@@ -10,6 +10,8 @@ import { releaseZoomArt } from './zoom-art.js';
 import { paintOcean, paintEcotones, SHORE_TREATMENTS } from './terrain-interactions.js';
 import { prepareTerrainSurfaces, createSurfaceSampler } from './terrain-surfaces.js';
 import { paintTerrainFoundations } from './terrain-foundations.js';
+import { paintRegionDivisions } from './terrain-divisions.js';
+import { bridgeSpans, paintBridge } from './road-crossings.js';
 
 export const ATLAS_COLOURS = { plains: 0xb7a17b, forest: 0x969174, islands: 0x688689, swamp: 0x858675, mountains: 0xa49782 };
 const ATLAS_GROUND = {
@@ -108,7 +110,8 @@ export function reliefSpriteTextures(terrain, flipX, flipY) {
       if (art.illustrated) colour = art.rgbColours?.[code] ?? Number.parseInt(art.colours[code].slice(1), 16);
       if (prop.kind.includes('hill') && !art.illustrated && code !== 'a' && code !== 'b') colour = mixColour(colour, bank[2], .75);
       const foot = Math.min(1, (art.rows.length - y) / Math.max(3, art.rows.length * (art.composable ? .22 : .12)));
-      ctx.globalAlpha = (art.opacity?.[y][x] ?? (code === 'f' ? .32 : 1)) * foot;
+      ctx.globalAlpha = (art.opacity?.[y][x] ?? (code === 'f' ? .32 : 1)) * foot
+        * (1 - samplePlane(terrain.divisionClearance, ix, iy) / 255);
       ctx.fillStyle = `#${colour.toString(16).padStart(6, '0')}`;
       ctx.fillRect(i % columns * cell + 2 + x, Math.floor(i / columns) * cell + 2 + y, 1, 1);
     }));
@@ -360,7 +363,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   // complete illustrated footprint can fit land; compact outcrops fill gaps.
   for (let y = 6; y < height - 6; y += 5 * detail) for (let x = 6; x < width - 6; x += 5 * detail) {
     const i = y * width + x, region = map.regions[regionIds[i]];
-    if (!region || !land[i] || dryDistance[i] < 18 || dryDistance[i] > 36) continue;
+    if (!region || region.biome === 'islands' || !land[i] || dryDistance[i] < 18 || dryDistance[i] > 36) continue;
     if (region.biome !== 'mountains' && noise(map.seed ^ 1471, x, y, 32) < .58) continue;
     const salt = Math.imul(x, 9371) ^ Math.imul(y, 3989);
     if (decorationRandom(map.seed, salt) < .24) candidates.push({ kind: `cliff${salt & 1}`, point: world(x, y), salt, background: false });
@@ -450,20 +453,21 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       roadDot(Math.round(p.x - (b.y - a.y) / length * detail), Math.round(p.y + (b.x - a.x) / length * detail), 0, '#594d3b');
     }
     roadCtx.globalAlpha = 1;
-    let crossing = false, inMountains = false;
+    let inMountains = false;
     for (let n = 0; n < samples.length; n++) {
       const p = samples[n], water = waterIndices[p.y * width + p.x], river = water >= 16 && water <= 23;
-      if (river && !crossing) bridges++;
       const mountain = !river && materialAt(p.x, p.y) === 'mountains';
       if (mountain && !inMountains) interactions.mountainPass++;
       inMountains = mountain;
-      if ((river || materialAt(p.x, p.y) === 'swamp') && n % (2 * detail) === 0) {
+      if (!river && materialAt(p.x, p.y) === 'swamp' && n % (2 * detail) === 0) {
         const a = samples[Math.max(0, n - 2)], b = samples[Math.min(samples.length - 1, n + 2)];
         const length = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-        for (let d = -(river ? 2 : 1) * detail; d <= (river ? 2 : 1) * detail; d++) roadDot(Math.round(p.x - (b.y - a.y) / length * d), Math.round(p.y + (b.x - a.x) / length * d), 0, river ? '#c3b18c' : '#928978');
+        for (let d = -detail; d <= detail; d++) roadDot(Math.round(p.x - (b.y - a.y) / length * d), Math.round(p.y + (b.x - a.x) / length * d), 0, '#928978');
       }
-      crossing = river;
     }
+    const spans = bridgeSpans(samples, p => waterIndices[p.y * width + p.x], detail);
+    bridges += spans.length;
+    for (const span of spans) paintBridge(span, detail, roadDot);
   }
   // Replace playable scatter with connected terrain compositions. Existing
   // background engraving and coastal accents remain; towns keep their anchors.
@@ -475,6 +479,8 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   props.splice(0, props.length, ...retained, ...composition.props);
   const foundations = paintTerrainFoundations({ props, art: ART, pixel, surfaces, materialAt, land, waterIndices,
     colours, width, height, detail, noise, seed: map.seed, mixColour });
+  const divisions = paintRegionDivisions({ map, pixel, width, height, detail, land, regionIds,
+    waterIndices, waterBase, colours, groundBank, noise, mixColour });
   interactions.bridge = bridges;
   interactions.rockyShore = props.filter(p => p.kind.startsWith('cliff')).length;
   interactions.softShore = map.geography.coasts.filter(c => !c.rocky).length;
@@ -482,6 +488,8 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   roadTexture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
   const borderCtx = borderCanvas.getContext('2d');
   for (const edge of map.edges) {
+    // Shared borders are illustrated landforms in the base bake. No dry outline.
+    if (edge.regions.length === 2) continue;
     borderCtx.fillStyle = '#534a37';
     borderCtx.globalAlpha = .64;
     const points = edge.points.map(pixel);
@@ -540,9 +548,9 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   fogCtx.putImageData(fogImage, 0, 0); const fogTexture = PIXI.Texture.from(fog);
   fogTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR; fogTexture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
 
-  return { texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
+  return { texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, divisionClearance: divisions.clearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
     palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', surfaceKit: surfaces.stats(), foundations, glyphKinds: new Set(props.map(p => p.kind)).size,
-    roads: roads.length, bridges, interactions, coastalEffects, terrainComposition: composition.diagnostics, assetLibrary: { biomePieces: composableLibrary.biomePieces, boundaryPieces: composableLibrary.boundaryPieces, sheets: composableLibrary.sheets,
+    roads: roads.length, bridges, regionDivisions: divisions.stats, interactions, coastalEffects, terrainComposition: composition.diagnostics, assetLibrary: { biomePieces: composableLibrary.biomePieces, boundaryPieces: composableLibrary.boundaryPieces, sheets: composableLibrary.sheets,
       usablePieces: composableLibrary.cells.filter(c => !Object.keys(c.cutRuns).length).length,
       excludedPieces: composableLibrary.cells.filter(c => Object.keys(c.cutRuns).length).map(c => c.kind) }, surfaceTreatments, illustratedProps: props.filter(p => ART[p.kind].illustrated).length, coastalOutcrops: props.filter(p => p.kind.startsWith('cliff')).length, reliefColouring: 'Source material colours, selective asset grades, alpha-overlap composition', mountainSpines: map.regions.filter(r => r.biome === 'mountains').length + map.features.filter(f => f.type === 'ridge').length, rangeMassifs: props.filter(p => p.range).length,
     fog: 'Separate static cloud overlay; toggle without rebaking', fogTextureMiB: +(Math.ceil(width / 4) * Math.ceil(height / 4) * 4 / 1048576).toFixed(1),

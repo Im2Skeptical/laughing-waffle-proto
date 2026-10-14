@@ -40,16 +40,16 @@ function field(seed, x, y, scale) {
 const INTERIORS = {
   forest: [0, 2, 3, 4, 5, 7, 8, 9, 11], mountains: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
   swamp: [0, 1, 2, 4, 5, 6, 7, 8, 9, 11], plains: [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-  islands: [0, 1, 2, 3, 5, 6, 8, 9, 10, 11],
+  islands: [8, 9, 10, 11],
 };
 const COASTS = { forest: [5, 6, 7, 9, 10], mountains: [5, 6, 7, 8, 9, 11],
   swamp: [3, 5, 6, 8, 9, 10], plains: [3, 6, 9, 10, 11], islands: [0, 1, 2, 3, 4, 5, 10, 11] };
 
 export function composeTerrainLandscape({ map, art, pixel, world, legal, detail }) {
-  const props = [], diagnostics = { paths: 0, placements: 0, joined: 0, breaks: 0, interiors: 0, families: {} };
+  const props = [], diagnostics = { paths: 0, coastalProfiles: 0, placements: 0, joined: 0, breaks: 0, interiors: 0, families: {} };
   const regions = new Map(map.regions.map(r => [r.id, r]));
   const rand = salt => decorationRandom(map.seed ^ 48317, salt);
-  const baseKind = kind => kind.replace(/-mirror$/, '');
+  const baseKind = kind => kind.replace(/-mirror$/, '').replace(/-small$/, '');
   const make = (kind, x, y, family, salt, allowedBiomes, context) => {
     const glyph = art[kind], s = shape(glyph), point = world(Math.round(x), Math.round(y + s.height * .5));
     const p = pixel(point), n = Number(baseKind(kind).split('-').at(-1));
@@ -69,7 +69,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
       .map((candidate, i) => ({ ...candidate, rank: rand(salt + i * 79) })).sort((a, b) => a.rank - b.rank);
     for (let attempt = 0; attempt < Math.min(context === 'interior' ? 8 : 12, candidates.length); attempt++) {
       const { n, mirrored } = candidates[attempt];
-      const kind = `${family}-${n}${mirrored ? '-mirror' : ''}`;
+      const kind = `${family}-${n}${family === 'terrain-islands' && art[`${family}-${n}-small`] ? '-small' : ''}${mirrored ? '-mirror' : ''}`;
       // Some source fragments physically touch artwork in the next row. Those
       // cannot be extracted whole; never place a sliced illustration.
       if (!art[kind] || Object.keys(art[kind].cutRuns ?? {}).length) continue;
@@ -112,6 +112,9 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
       && coast.points.some(p => insidePolygon(p, r.outline)));
     if (!region) continue;
     const centre = pixel(region.centre);
+    // Island beaches/cliffs follow the actual distance-field profile. Keep the
+    // shore profile, avoiding raised relief around every shore.
+    if (region.biome === 'islands') { diagnostics.coastalProfiles++; continue; }
     paths.push({ points: coast.points.map((p, n) => {
       const q = pixel(p);
       if (!edge) {
@@ -176,7 +179,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
       candidates.push({ x, y, density, salt });
     }
     candidates.sort((a, b) => b.density - a.density);
-    let placed = 0, limit = Math.ceil(area / ((dense ? 160 : 560) * detail * detail));
+    let placed = 0, limit = Math.ceil(area / ((region.biome === 'islands' ? 1150 : dense ? 160 : 560) * detail * detail));
     for (const candidate of candidates) {
       if (placed >= limit || props.length >= 600) break;
       const prop = choose({ ...candidate, family, indices: INTERIORS[region.biome], allowedBiomes: [region.biome], context: 'interior' });

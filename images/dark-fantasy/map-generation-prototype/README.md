@@ -1,5 +1,28 @@
 # Map generation Pixi workbench (disposable prototype)
 
+### Illustrated divisions and complete crossings
+
+Every shared region border, including same-biome borders, now receives a
+continuous geographic treatment baked into the ground: woodland embankments,
+peat drainage cuts, grassy gullies, rocky escarpments or coastal shelves.
+An asymmetric lit lip, shaded core and variable textured slopes establish relief;
+large terrain paintings feather away from the division instead of covering it.
+Existing river pixels are preserved. Shared dry border outlines are removed;
+selection highlighting remains an interaction aid. Underwater island divisions
+use submerged shelves and broken reef crests, retaining the cycle-index planes.
+
+Island relief uses half-size low coastal forms at a sparser density. Beaches and
+cliffs follow the real shore-distance profile; raised sprite chains no longer
+wrap every island into a ring of terraces. Source paintings remain unchanged.
+Road crossings detect a complete river run and create a continuous timber deck,
+cross-grain, rails, posts, shadow and stone abutments on both dry-bank approaches.
+
+Run `node images/dark-fantasy/map-generation-prototype/terrain-divisions-check.mjs`
+for continuous same-biome division coverage, protected rivers/ownership and full
+bridge spans. Inspect seed 1875 at Fit and close zoom, then run the zoom persistence
+check below. This changes disposable presentation only, not simulation or graph
+connectivity. Ground-based divisions still need visual review across more seeds.
+
 ### Continuous terrain kit across all five biomes
 
 The current pass uses imported ground materials under relief, not flat biome

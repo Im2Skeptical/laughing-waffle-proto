@@ -43,5 +43,23 @@ export async function loadComposableArt(banks) {
     const glyph = { rows, colours, rgbColours, opacity, cutRuns: frame.cutRuns, family: frame.family, illustrated: true, composable: true };
     banks[detail][frame.kind] = glyph;
     banks[detail][`${frame.kind}-mirror`] = { ...glyph, rows: rows.map(row => [...row].reverse().join('')), opacity: opacity.map(row => row.slice().reverse()) };
+    if (frame.family === 'islands') {
+      // Coastal relief is small geology, not a ring of miniature mountain ranges.
+      const w = Math.max(1, Math.round(canvas.width * .52)), h = Math.max(1, Math.round(canvas.height * .35));
+      const smallRows = [], smallAlpha = [];
+      for (let y = 0; y < h; y++) {
+        const sy = Math.min(canvas.height - 1, Math.floor((y + .5) * canvas.height / h));
+        let row = ''; const alpha = [];
+        for (let x = 0; x < w; x++) {
+          const sx = Math.min(canvas.width - 1, Math.floor((x + .5) * canvas.width / w));
+          row += rows[sy][sx]; alpha.push(opacity[sy][sx]);
+        }
+        smallRows.push(row); smallAlpha.push(alpha);
+      }
+      const small = { ...glyph, rows: smallRows, opacity: smallAlpha };
+      banks[detail][`${frame.kind}-small`] = small;
+      banks[detail][`${frame.kind}-small-mirror`] = { ...small, rows: smallRows.map(row => [...row].reverse().join('')), opacity: smallAlpha.map(row => row.slice().reverse()) };
+    }
+
   }
 }
