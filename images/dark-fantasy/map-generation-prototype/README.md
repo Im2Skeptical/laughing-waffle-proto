@@ -13,7 +13,8 @@ use submerged shelves and broken reef crests, retaining the cycle-index planes.
 
 Island relief uses half-size low coastal forms at a sparser density. Beaches and
 cliffs follow the real shore-distance profile; raised sprite chains no longer
-wrap every island into a ring of terraces. Source paintings remain unchanged.
+wrap every island into a ring of terraces. Full-height mountain-range paintings cannot occupy island terrain, and legacy
+cliff footprints must stay in their owning biome. Source paintings remain unchanged.
 Road crossings detect a complete river run and create a continuous timber deck,
 cross-grain, rails, posts, shadow and stone abutments on both dry-bank approaches.
 

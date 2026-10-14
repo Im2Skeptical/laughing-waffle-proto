@@ -366,7 +366,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     if (!region || region.biome === 'islands' || !land[i] || dryDistance[i] < 18 || dryDistance[i] > 36) continue;
     if (region.biome !== 'mountains' && noise(map.seed ^ 1471, x, y, 32) < .58) continue;
     const salt = Math.imul(x, 9371) ^ Math.imul(y, 3989);
-    if (decorationRandom(map.seed, salt) < .24) candidates.push({ kind: `cliff${salt & 1}`, point: world(x, y), salt, background: false });
+    if (decorationRandom(map.seed, salt) < .24) candidates.push({ kind: `cliff${salt & 1}`, point: world(x, y), salt, background: false, allowedBiomes: [region.biome] });
   }
   const fitsLand = prop => {
     const art = ART[prop.kind], p = pixel(prop.point), w = Math.max(...art.rows.map(r => r.length));

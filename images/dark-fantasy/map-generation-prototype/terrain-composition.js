@@ -95,7 +95,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
 
   const paths = [];
   for (const [i, feature] of map.features.entries()) if (feature.type === 'ridge')
-    paths.push({ points: feature.points.map(pixel), family: 'terrain-mountains', indices: [0, 1, 2, 4, 5, 6, 8, 9], salt: 3001 + i * 991, context: 'ridge' });
+    paths.push({ points: feature.points.map(pixel), family: 'terrain-mountains', allowedBiomes: ['plains', 'forest', 'swamp', 'mountains'], indices: [0, 1, 2, 4, 5, 6, 8, 9], salt: 3001 + i * 991, context: 'ridge' });
   for (const [i, edge] of map.edges.entries()) {
     if (edge.regions.length !== 2) continue;
     const pair = edge.regions.map(id => regions.get(id).biome);
