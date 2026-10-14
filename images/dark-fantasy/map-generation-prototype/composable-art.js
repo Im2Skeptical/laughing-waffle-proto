@@ -1,7 +1,3 @@
-import { CONTACT_PAIRS } from './terrain-composition.js';
-import { findTerrainFrames, terrainFrameCutRuns } from './terrain-frames.js';
-
-const biomes = ['plains', 'forest', 'islands', 'swamp', 'mountains'];
 export const composableLibrary = { biomePieces: 60, boundaryPieces: 50, cells: [], sheets: 7 };
 
 // Source hues carry the material information: leaves, trunks, earth and rock.
@@ -17,49 +13,18 @@ export function gradeTerrainColour(r, g, b, family) {
 }
 
 export async function loadComposableArt(banks) {
-  const sheets = [...biomes.map(name => ({ name, columns: 4, rows: 3 })),
-    { name: 'contacts-1', columns: 5, rows: 5 }, { name: 'contacts-2', columns: 5, rows: 5 }];
-  const frames = [];
-  for (const sheet of sheets) {
-    const image = new Image();
-    await new Promise((resolve, reject) => {
-      image.onload = resolve;
-      image.onerror = () => reject(new Error(`Terrain sheet failed to load: ${sheet.name}`));
-      image.src = new URL(`./assets/composable-${sheet.name}-v1.png`, import.meta.url).href;
-    });
-    const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
-    const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
-    const data = ctx.getImageData(0, 0, image.width, image.height).data;
-    const sourceFrames = findTerrainFrames(data, image.width, image.height, sheet.columns, sheet.rows);
-    for (let n = 0; n < sheet.columns * sheet.rows; n++) {
-      const col = n % sheet.columns, row = Math.floor(n / sheet.columns);
-      const cell = sourceFrames[n], cutRuns = terrainFrameCutRuns(data, image.width, cell);
-      let left = cell.right, right = 0, top = cell.bottom, bottom = 0, opaque = 0;
-      for (let y = cell.top; y < cell.bottom; y++) {
-        for (let x = cell.left; x < cell.right; x++) {
-          const alpha = data[(y * image.width + x) * 4 + 3];
-          if (alpha < 65) continue;
-          left = Math.min(left, x); right = Math.max(right, x); top = Math.min(top, y); bottom = Math.max(bottom, y);
-          if (alpha >= 120) opaque++;
-        }
-      }
-      if (opaque < 80) throw new Error(`Empty generated terrain cell: ${sheet.name}/${n}`);
-      left = Math.max(cell.left, left - 2); right = Math.min(cell.right - 1, right + 2);
-      top = Math.max(cell.top, top - 2); bottom = Math.min(cell.bottom - 1, bottom + 2);
-      const contact = sheet.name.startsWith('contacts');
-      const pair = contact ? (sheet.name === 'contacts-1' ? 0 : 5) + row : null;
-      const kind = contact ? `contact-${pair}-${col}` : `terrain-${sheet.name}-${n}`;
-      const scale = [1.2, 1, .85, 1.1, 1.05, .8, .75, 1.15, .9, 1, .8, .85][n];
-      const width = contact ? 25 : Math.round((sheet.name === 'mountains' ? 36 : sheet.name === 'forest' ? 26 : 25) * scale);
-      frames.push({ image, kind, family: sheet.name, cutRuns, rect: [left, top, right - left + 1, bottom - top + 1], width });
-      composableLibrary.cells.push({ kind, sheet: sheet.name, pair: contact ? CONTACT_PAIRS[pair] : null, sourcePixels: opaque, cutRuns });
-    }
-  }
-  for (const detail of [1, 2]) for (const frame of frames) {
-    const canvas = document.createElement('canvas'); canvas.width = frame.width * detail;
-    canvas.height = Math.min(59 * detail, Math.max(1, Math.round(canvas.width * frame.rect[3] / frame.rect[2])));
+  const manifest = await (await fetch(new URL('./assets/runtime/relief-v1.json', import.meta.url))).json();
+  const image = new Image();
+  await new Promise((resolve, reject) => {
+    image.onload = resolve; image.onerror = () => reject(new Error('Imported relief atlas failed to load'));
+    image.src = new URL('./assets/runtime/relief-v1.webp', import.meta.url).href;
+  });
+  composableLibrary.cells = manifest.frames.map(frame => ({ kind: frame.kind, sheet: frame.family, pair: frame.pair, cutRuns: frame.cutRuns }));
+  for (const detail of [1, 2]) for (const frame of manifest.frames) {
+    const canvas = document.createElement('canvas'); canvas.width = Math.round(frame.rect[2] * detail / 2);
+    canvas.height = Math.round(frame.rect[3] * detail / 2);
     const ctx = canvas.getContext('2d'); ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(frame.image, ...frame.rect, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(image, ...frame.rect, 0, 0, canvas.width, canvas.height);
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     const rows = [], colours = {}, opacity = [], rgbColours = {};
     for (let y = 0; y < canvas.height; y++) {

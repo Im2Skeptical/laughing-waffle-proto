@@ -1,4 +1,4 @@
-import { decorationRandom, insidePolygon, polygonArea } from './generator.js';
+import { decorationRandom, insidePolygon, polygonArea, isLand } from './generator.js';
 
 export const CONTACT_PAIRS = [
   ['plains', 'forest'], ['plains', 'islands'], ['plains', 'swamp'], ['plains', 'mountains'], ['forest', 'islands'],
@@ -105,11 +105,25 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
       allowedBiomes: pair, salt: 20003 + i * 919, context: 'boundary' });
   }
   for (const [i, coast] of map.geography.coasts.entries()) {
-    const edge = map.edges.find(e => e.id === coast.edgeId), region = regions.get(edge?.regions[0]);
+    const edge = map.edges.find(e => e.id === coast.edgeId);
+    // Island coast contours are independent of graph edges and have no edgeId.
+    // Find their owning region from the actual contour instead of skipping them.
+    const region = edge ? regions.get(edge.regions[0]) : map.regions.find(r => r.biome === 'islands'
+      && coast.points.some(p => insidePolygon(p, r.outline)));
     if (!region) continue;
     const centre = pixel(region.centre);
-    paths.push({ points: coast.points.map(p => {
-      const q = pixel(p), length = Math.hypot(centre.x - q.x, centre.y - q.y) || 1;
+    paths.push({ points: coast.points.map((p, n) => {
+      const q = pixel(p);
+      if (!edge) {
+        const a = pixel(coast.points[Math.max(0, n - 1)]), b = pixel(coast.points[Math.min(coast.points.length - 1, n + 1)]);
+        const length = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+        for (const sign of [1, -1]) {
+          const point = { x: q.x - (b.y - a.y) / length * 13 * detail * sign,
+            y: q.y + (b.x - a.x) / length * 13 * detail * sign };
+          if (isLand(map, world(point.x, point.y))) return point;
+        }
+      }
+      const length = Math.hypot(centre.x - q.x, centre.y - q.y) || 1;
       return { x: q.x + (centre.x - q.x) / length * 13 * detail, y: q.y + (centre.y - q.y) / length * 13 * detail };
     }), family: `terrain-${region.biome}`, indices: COASTS[region.biome], allowedBiomes: [region.biome],
     salt: 70001 + i * 827, context: 'coast' });

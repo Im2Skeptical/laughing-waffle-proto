@@ -1,0 +1,102 @@
+[
+  {
+    "name": "ground-plains-v1",
+    "biome": "plains",
+    "kind": "ground",
+    "columns": 4,
+    "rows": 4,
+    "prompt": "Create an ORIGINAL production terrain texture sheet for a dark fantasy regional map rendered as fine pixel art. Square canvas. Exactly 4 columns and 4 rows of SIXTEEN rectangular texture swatches, all cells FILLED EDGE TO EDGE, no gutters, no borders, no text. Each cell is a different usable variation of the same biome ground material. These are top-down flat ground textures, not landscapes, not islands, not scene vignettes, not freestanding sprite objects. No horizon, perspective blocks, detached shadows, buildings, large trees, tall mountains, roads or water. Antique fantasy atlas engraving translated to small deliberate pixel clusters, restrained weathered natural colours, directional fine marks, tactile ground detail at large/medium/fine scales. Consistent scale and diffuse upper-left lighting, no large lighting gradient or vignette across the sheet. Avoid obvious circular stamps and regular polka-dot speckles. These swatches will be imported at 32 pixels across and automatically joined into continuous terrain; each needs varied but readable material structure. Full opaque image.\nBIOME: Ochre loam and dry grass country: weathered soil, straw, olive grass filaments, fine gravel, worn bare earth, dry shallow channels, stony soil, grassy hummocks drawn flat, exposed roots, dark fertile earth, pale dusty patches. Subdued parchment ochre, taupe, umber and olive; no glaring yellow. Vary the balance in every cell.",
+    "file": "ground-plains-v1.png",
+    "generator": "built-in image_gen"
+  },
+  {
+    "name": "ground-forest-v1",
+    "biome": "forest",
+    "kind": "ground",
+    "columns": 4,
+    "rows": 4,
+    "prompt": "Create an ORIGINAL production terrain texture sheet for a dark fantasy regional map rendered as fine pixel art. Square canvas. Exactly 4 columns and 4 rows of SIXTEEN rectangular texture swatches, all cells FILLED EDGE TO EDGE, no gutters, no borders, no text. Each cell is a different usable variation of the same biome ground material. These are top-down flat ground textures, not landscapes, not islands, not scene vignettes, not freestanding sprite objects. No horizon, perspective blocks, detached shadows, buildings, large trees, tall mountains, roads or water. Antique fantasy atlas engraving translated to small deliberate pixel clusters, restrained weathered natural colours, directional fine marks, tactile ground detail at large/medium/fine scales. Consistent scale and diffuse upper-left lighting, no large lighting gradient or vignette across the sheet. Avoid obvious circular stamps and regular polka-dot speckles. These swatches will be imported at 32 pixels across and automatically joined into continuous terrain; each needs varied but readable material structure. Full opaque image.\nBIOME: Forest FLOOR, no whole trees: umber leaf litter, desaturated moss, dark root networks, exposed mineral soil, fine twigs, leaf fragments, needles, small grey stones, damp earth and scattered undergrowth. Rich separated bark/earth/green material colours with charcoal crevices, subdued olive highlights. Sixteen distinct forest-floor arrangements, no tree canopy silhouettes.",
+    "file": "ground-forest-v1.png",
+    "generator": "built-in image_gen"
+  },
+  {
+    "name": "ground-islands-v1",
+    "biome": "islands",
+    "kind": "ground",
+    "columns": 4,
+    "rows": 4,
+    "prompt": "Create an ORIGINAL production terrain texture sheet for a dark fantasy regional map rendered as fine pixel art. Square canvas. Exactly 4 columns and 4 rows of SIXTEEN rectangular texture swatches, all cells FILLED EDGE TO EDGE, no gutters, no borders, no text. Each cell is a different usable variation of the same biome ground material. These are top-down flat ground textures, not landscapes, not islands, not scene vignettes, not freestanding sprite objects. No horizon, perspective blocks, detached shadows, buildings, large trees, tall mountains, roads or water. Antique fantasy atlas engraving translated to small deliberate pixel clusters, restrained weathered natural colours, directional fine marks, tactile ground detail at large/medium/fine scales. Consistent scale and diffuse upper-left lighting, no large lighting gradient or vignette across the sheet. Avoid obvious circular stamps and regular polka-dot speckles. These swatches will be imported at 32 pixels across and automatically joined into continuous terrain; each needs varied but readable material structure. Full opaque image.\nBIOME: Low coastal island GROUND, no water or shore outlines: weathered limestone, pale sand, dune grass, exposed grey bedrock, fine shell gravel, salt-darkened earth, sage scrub ground cover, wind-scoured sand streaks, rock fissures and pebble terraces. Muted ivory sand, sage green, warm grey stone, umber fissures. Sixteen distinct sand/rock/scrub balances, not solid lime green.",
+    "file": "ground-islands-v1.png",
+    "generator": "built-in image_gen"
+  },
+  {
+    "name": "ground-swamp-v1",
+    "biome": "swamp",
+    "kind": "ground",
+    "columns": 4,
+    "rows": 4,
+    "prompt": "Create an ORIGINAL production terrain texture sheet for a dark fantasy regional map rendered as fine pixel art. Square canvas. Exactly 4 columns and 4 rows of SIXTEEN rectangular texture swatches, all cells FILLED EDGE TO EDGE, no gutters, no borders, no text. Each cell is a different usable variation of the same biome ground material. These are top-down flat ground textures, not landscapes, not islands, not scene vignettes, not freestanding sprite objects. No horizon, perspective blocks, detached shadows, buildings, large trees, tall mountains, roads or water. Antique fantasy atlas engraving translated to small deliberate pixel clusters, restrained weathered natural colours, directional fine marks, tactile ground detail at large/medium/fine scales. Consistent scale and diffuse upper-left lighting, no large lighting gradient or vignette across the sheet. Avoid obvious circular stamps and regular polka-dot speckles. These swatches will be imported at 32 pixels across and automatically joined into continuous terrain; each needs varied but readable material structure. Full opaque image.\nBIOME: Wet peatland GROUND, no water surfaces or whole trees: saturated dark earth, peat fissures, fine roots, reed litter, grey-green moss, exposed mud, dead leaves, silt, pale broken wood and muddy hummocks viewed flat. Muted grey olive, deep umber, moss green, subdued grey highlights. Sixteen distinct arrangements with material hue variation, no giant repeated platforms.",
+    "file": "ground-swamp-v1.png",
+    "generator": "built-in image_gen"
+  },
+  {
+    "name": "ground-mountains-v1",
+    "biome": "mountains",
+    "kind": "ground",
+    "columns": 4,
+    "rows": 4,
+    "prompt": "Create an ORIGINAL production terrain texture sheet for a dark fantasy regional map rendered as fine pixel art. Square canvas. Exactly 4 columns and 4 rows of SIXTEEN rectangular texture swatches, all cells FILLED EDGE TO EDGE, no gutters, no borders, no text. Each cell is a different usable variation of the same biome ground material. These are top-down flat ground textures, not landscapes, not islands, not scene vignettes, not freestanding sprite objects. No horizon, perspective blocks, detached shadows, buildings, large trees, tall mountains, roads or water. Antique fantasy atlas engraving translated to small deliberate pixel clusters, restrained weathered natural colours, directional fine marks, tactile ground detail at large/medium/fine scales. Consistent scale and diffuse upper-left lighting, no large lighting gradient or vignette across the sheet. Avoid obvious circular stamps and regular polka-dot speckles. These swatches will be imported at 32 pixels across and automatically joined into continuous terrain; each needs varied but readable material structure. Full opaque image.\nBIOME: Mountain GROUND viewed directly from above, NO tall peaks or whole mountain silhouettes: broken slate, reddish grey bedrock, scree, rock strata, narrow fissures, iron-stained stone, dry gritty soil, sparse lichen, pale fractured limestone and rubble. Subtle reddish umber with cool grey rock highlights and dark crevices. Sixteen distinct geology arrangements, not uniformly pink.",
+    "file": "ground-mountains-v1.png",
+    "generator": "built-in image_gen"
+  },
+  {
+    "name": "bank-plains-v1",
+    "biome": "plains",
+    "kind": "bank",
+    "columns": 2,
+    "rows": 4,
+    "prompt": "Create an ORIGINAL production bank-material atlas for a dark fantasy pixel-art regional terrain system. Landscape canvas. Exactly TWO columns and FOUR rows: EIGHT wide rectangular texture swatches filling every cell completely, without gutters, frames, text or labels. Every swatch is a flat TOP-DOWN terrain cross-section whose shoreline runs horizontally through the MIDDLE. Upper half: dry biome ground. Central quarter: a detailed irregular bank edge with stones, roots or low rock faces. Lower half: shallow water and submerged material. Waterline stays around the middle, with small natural meanders, not a diagonal scenic composition. Material extends all the way to the left and right edges of each swatch so it can continue sideways. No islands, no horizon, no perspective landscape scenes, no buildings, no decorative objects floating on a base, no giant trees or high mountains. Fine antique fantasy-map engraved/pixel-cluster aesthetic, weathered muted materials, consistent diffuse upper-left light, detailed ground-scale marks. These will be imported at 64 by 32 pixels and conformed to arbitrary coastlines and rivers. The artwork must describe the land meeting water as one continuous environment. FULL OPAQUE IMAGE.\nBIOME PROFILES: Dry ochre loam and grass above the bank; crumbling soil, gravel and root ends in the bank; a broken pale sand/silt margin and cool muted teal shallow water below. Eight profiles vary sandy beach, gritty bank, low eroded ledge, root-bound bank, pebbled margin, sheltered muddy inlet, rough bank and broad sand shelf.",
+    "file": "bank-plains-v1.png",
+    "generator": "built-in image_gen"
+  },
+  {
+    "name": "bank-forest-v1",
+    "biome": "forest",
+    "kind": "bank",
+    "columns": 2,
+    "rows": 4,
+    "prompt": "Create an ORIGINAL production bank-material atlas for a dark fantasy pixel-art regional terrain system. Landscape canvas. Exactly TWO columns and FOUR rows: EIGHT wide rectangular texture swatches filling every cell completely, without gutters, frames, text or labels. Every swatch is a flat TOP-DOWN terrain cross-section whose shoreline runs horizontally through the MIDDLE. Upper half: dry biome ground. Central quarter: a detailed irregular bank edge with stones, roots or low rock faces. Lower half: shallow water and submerged material. Waterline stays around the middle, with small natural meanders, not a diagonal scenic composition. Material extends all the way to the left and right edges of each swatch so it can continue sideways. No islands, no horizon, no perspective landscape scenes, no buildings, no decorative objects floating on a base, no giant trees or high mountains. Fine antique fantasy-map engraved/pixel-cluster aesthetic, weathered muted materials, consistent diffuse upper-left light, detailed ground-scale marks. These will be imported at 64 by 32 pixels and conformed to arbitrary coastlines and rivers. The artwork must describe the land meeting water as one continuous environment. FULL OPAQUE IMAGE.\nBIOME PROFILES: Dark umber woodland floor and olive moss ABOVE the bank, no tall trees; exposed tangled roots, soil and dark stones IN the bank; narrow earthy margins with cool slate teal shallow water BELOW. Eight profiles vary mossy roots, rocky root ledges, leaf-litter bank, damp soil, small fallen wood, muddy inlet, pebble margin and low wooded bluff.",
+    "file": "bank-forest-v1.png",
+    "generator": "built-in image_gen"
+  },
+  {
+    "name": "bank-islands-v1",
+    "biome": "islands",
+    "kind": "bank",
+    "columns": 2,
+    "rows": 4,
+    "prompt": "Create an ORIGINAL production bank-material atlas for a dark fantasy pixel-art regional terrain system. Landscape canvas. Exactly TWO columns and FOUR rows: EIGHT wide rectangular texture swatches filling every cell completely, without gutters, frames, text or labels. Every swatch is a flat TOP-DOWN terrain cross-section whose shoreline runs horizontally through the MIDDLE. Upper half: dry biome ground. Central quarter: a detailed irregular bank edge with stones, roots or low rock faces. Lower half: shallow water and submerged material. Waterline stays around the middle, with small natural meanders, not a diagonal scenic composition. Material extends all the way to the left and right edges of each swatch so it can continue sideways. No islands, no horizon, no perspective landscape scenes, no buildings, no decorative objects floating on a base, no giant trees or high mountains. Fine antique fantasy-map engraved/pixel-cluster aesthetic, weathered muted materials, consistent diffuse upper-left light, detailed ground-scale marks. These will be imported at 64 by 32 pixels and conformed to arbitrary coastlines and rivers. The artwork must describe the land meeting water as one continuous environment. FULL OPAQUE IMAGE.\nBIOME PROFILES: Pale weathered limestone, sage scrub and sand ABOVE the bank; exposed low limestone ledges, rock crevices, dune roots or sandy slopes AT the edge; shelly beaches, submerged grey rock and cool slate teal shallow water BELOW. Eight profiles vary cliff ledge, sandy beach, broken rock coast, dune bank, pebble shelf, sage bluff, sheltered inlet and tidal reef. No isolated island silhouettes or miniature scenes.",
+    "file": "bank-islands-v1.png",
+    "generator": "built-in image_gen"
+  },
+  {
+    "name": "bank-swamp-v1",
+    "biome": "swamp",
+    "kind": "bank",
+    "columns": 2,
+    "rows": 4,
+    "prompt": "Create an ORIGINAL production bank-material atlas for a dark fantasy pixel-art regional terrain system. Landscape canvas. Exactly TWO columns and FOUR rows: EIGHT wide rectangular texture swatches filling every cell completely, without gutters, frames, text or labels. Every swatch is a flat TOP-DOWN terrain cross-section whose shoreline runs horizontally through the MIDDLE. Upper half: dry biome ground. Central quarter: a detailed irregular bank edge with stones, roots or low rock faces. Lower half: shallow water and submerged material. Waterline stays around the middle, with small natural meanders, not a diagonal scenic composition. Material extends all the way to the left and right edges of each swatch so it can continue sideways. No islands, no horizon, no perspective landscape scenes, no buildings, no decorative objects floating on a base, no giant trees or high mountains. Fine antique fantasy-map engraved/pixel-cluster aesthetic, weathered muted materials, consistent diffuse upper-left light, detailed ground-scale marks. These will be imported at 64 by 32 pixels and conformed to arbitrary coastlines and rivers. The artwork must describe the land meeting water as one continuous environment. FULL OPAQUE IMAGE.\nBIOME PROFILES: Grey olive peat, reed litter and wet earth ABOVE the bank, no whole trees; tangled small roots, peat fissures, silt and short reed stems AT the bank; irregular muddy shelves and cool grey teal shallow water BELOW. Eight profiles vary reed bed, eroded peat, muddy inlet, mossy roots, shallow silt shelf, deadwood margin, soft bank and sedge roots. Avoid terraced circular platforms.",
+    "file": "bank-swamp-v1.png",
+    "generator": "built-in image_gen"
+  },
+  {
+    "name": "bank-mountains-v1",
+    "biome": "mountains",
+    "kind": "bank",
+    "columns": 2,
+    "rows": 4,
+    "prompt": "Create an ORIGINAL production bank-material atlas for a dark fantasy pixel-art regional terrain system. Landscape canvas. Exactly TWO columns and FOUR rows: EIGHT wide rectangular texture swatches filling every cell completely, without gutters, frames, text or labels. Every swatch is a flat TOP-DOWN terrain cross-section whose shoreline runs horizontally through the MIDDLE. Upper half: dry biome ground. Central quarter: a detailed irregular bank edge with stones, roots or low rock faces. Lower half: shallow water and submerged material. Waterline stays around the middle, with small natural meanders, not a diagonal scenic composition. Material extends all the way to the left and right edges of each swatch so it can continue sideways. No islands, no horizon, no perspective landscape scenes, no buildings, no decorative objects floating on a base, no giant trees or high mountains. Fine antique fantasy-map engraved/pixel-cluster aesthetic, weathered muted materials, consistent diffuse upper-left light, detailed ground-scale marks. These will be imported at 64 by 32 pixels and conformed to arbitrary coastlines and rivers. The artwork must describe the land meeting water as one continuous environment. FULL OPAQUE IMAGE.\nBIOME PROFILES: Reddish grey fractured bedrock, dry grit and sparse lichen ABOVE the bank; low exposed strata, jagged broken stone, scree and fissures AT the edge; scattered submerged stone, tiny gritty margins and cool slate teal shallow water BELOW. Eight profiles vary broken cliff, scree bank, stone shelf, fractured ledge, iron-stained rocks, narrow pebble strand, eroded gully mouth and rocky tidal edge. No tall mountain peaks or freestanding mountain vignettes.",
+    "file": "bank-mountains-v1.png",
+    "generator": "built-in image_gen"
+  }
+]

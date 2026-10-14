@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { composeTerrainLandscape, illustrationOverlap, CONTACT_PAIRS } from './terrain-composition.js';
 import { gradeTerrainColour } from './composable-art.js';
+import { generateMap } from './generator.js';
 
 const art = {};
 for (const family of ['plains', 'forest', 'islands', 'swamp', 'mountains'].map(b => `terrain-${b}`)
@@ -43,6 +44,15 @@ for (const seed of [1867, 1869, 1873]) {
   }
 }
 const leaves = gradeTerrainColour(70, 86, 38, 'forest'), stone = gradeTerrainColour(137, 130, 122, 'forest');
+const islandMap = generateMap({ seed: 1872, clustering: .05, sizeVariation: .85, roughness: 1, featureSet: 0 });
+assert.ok(islandMap.geography.coasts.some(coast => coast.edgeId === null), 'Fixture must include independent island contours');
+const pixel = p => ({ x: p.x * 788, y: p.y * 258 });
+const islandComposition = composeTerrainLandscape({ map: islandMap, art, pixel,
+  world: (x, y) => ({ x: x / 788, y: y / 258 }), legal: () => false, detail: 1 });
+const borderPaths = islandMap.edges.filter(edge => edge.regions.length === 2
+  && islandMap.regions.find(r => r.id === edge.regions[0]).biome !== islandMap.regions.find(r => r.id === edge.regions[1]).biome).length;
+assert.equal(islandComposition.diagnostics.paths, borderPaths + islandMap.features.filter(f => f.type === 'ridge').length
+  + islandMap.geography.coasts.length, 'Every island contour must enter coastal composition even without a graph edge ID');
 const channels = c => [c >> 16, c >> 8 & 255, c & 255];
 const [lr, lg, lb] = channels(leaves), [sr, sg, sb] = channels(stone);
 assert.ok(lg > lr && lg > lb * 1.7, 'Leaf hue must survive grading');

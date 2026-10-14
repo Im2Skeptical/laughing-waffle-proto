@@ -8,6 +8,8 @@ import { composeTerrainLandscape } from './terrain-composition.js';
 import { loadIllustratedArt } from './illustrated-art.js';
 import { releaseZoomArt } from './zoom-art.js';
 import { paintOcean, paintEcotones, SHORE_TREATMENTS } from './terrain-interactions.js';
+import { prepareTerrainSurfaces, createSurfaceSampler } from './terrain-surfaces.js';
+import { paintTerrainFoundations } from './terrain-foundations.js';
 
 export const ATLAS_COLOURS = { plains: 0xb7a17b, forest: 0x969174, islands: 0x688689, swamp: 0x858675, mountains: 0xa49782 };
 const ATLAS_GROUND = {
@@ -49,7 +51,7 @@ for (let i = 0; i < 32; i++) {
 
 const ART_BANKS = { 1: createAtlasArt(), 2: createAtlasArt(2) };
 const spriteArtCache = new Map();
-export const prepareIllustratedArt = () => Promise.all([loadIllustratedArt(ART_BANKS), loadComposableArt(ART_BANKS)]);
+export const prepareIllustratedArt = () => Promise.all([loadIllustratedArt(ART_BANKS), loadComposableArt(ART_BANKS), prepareTerrainSurfaces()]);
 export function pixelSpriteTextures(texel = 4) {
   const detail = texel === 2 ? 2 : 1, ART = ART_BANKS[detail];
   if (spriteArtCache.has(detail)) return spriteArtCache.get(detail);
@@ -198,6 +200,8 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     for (const contour of cluster.contours.slice(1)) fill(contour, islandLand, insidePolygon(contour[0], cluster.contours[0]) ? 0 : 1);
   }
   const f = new Float32Array(4), p = { x: 0, y: 0 };
+  const surfaces = createSurfaceSampler({ map, bounds, texel, width, height, land, regionIds });
+  surfaces.registerPaths('river', map.features.filter(feature => feature.type === 'river').map(feature => feature.points.map(pixel)));
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
     const i = y * width + x, region = map.regions[regionIds[i]];
     p.x = bounds.minX + (x + .5) * texel / 1576; p.y = bounds.minY + (y + .5) * texel / 516; sampleBackground(p, f);
@@ -211,6 +215,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     const grain = decorationRandom(map.seed ^ 1731, Math.imul(x, 8363) ^ Math.imul(y, 36433));
     if (grain < .025) tone = Math.max(0, tone - 1); else if (grain > .98) tone = Math.min(3, tone + 1);
     colours[i] = bank[tone];
+    if (region) colours[i] = mixColour(colours[i], surfaces.ground(region.biome, x, y), .72);
   }
   // Chamfer shore distances. Palette indices remain categorical.
   const seaDistance = new Uint16Array(size), dryDistance = new Uint16Array(size);
@@ -239,7 +244,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   }
   const waterBase = new Uint32Array(size), waterStrength = new Uint8Array(size);
   const surfaceTreatments = paintOcean({ map, width, height, texel, bounds, land, waterIndices, colours,
-    regionIds, seaDistance, dryDistance, shoreTypes, waterBank, groundBank, noise, mixColour, waterBase, waterStrength });
+    regionIds, seaDistance, dryDistance, shoreTypes, waterBank, groundBank, noise, mixColour, waterBase, waterStrength, surfaces });
   const put = (x, y, colour, water = 0, onlyDry = false) => {
     if (x < 0 || y < 0 || x >= width || y >= height) return;
     const i = y * width + x; if (onlyDry && !land[i]) return;
@@ -321,13 +326,19 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       colours[i] = region.biome === 'mountains' ? groundBank.mountains[0] : 0x677158;
       if (grain < .035 && land[i - width] && !waterIndices[i - width]) colours[i - width] = groundBank[region.biome][0];
     }
+    if (riverNear) {
+      let mask = 0;
+      for (const [bit, j] of [i - width * 3, i + 3, i + width * 3, i - 3].entries())
+        if (waterIndices[j] >= 16 && waterIndices[j] <= 23) mask |= 1 << bit;
+      colours[i] = mixColour(colours[i], surfaces.path('river', region.biome, x, y, (x + y) * texel / 2, 3, mask), .32);
+    }
     // A broken feathered woodland edge makes the transition legible beneath
     // the large tree masses, without bleeding decoration into another biome.
     if (region.biome === 'forest' && [i - 3, i + 3, i - width * 3, i + width * 3].some(j => map.regions[regionIds[j]]?.biome !== 'forest') && grain < .38) {
       colours[i] = groundBank.forest[grain < .12 ? 0 : 3]; interactions.woodlandFringe++;
     }
   }
-  paintEcotones({ map, width, height, texel, regionIds, land, waterIndices, colours, groundBank, noise, mixColour, surfaceTreatments });
+  paintEcotones({ map, width, height, texel, regionIds, land, waterIndices, colours, groundBank, noise, mixColour, surfaceTreatments, surfaces });
   const props = [], candidates = [];
   // Grid jitter uses map coordinates, not current zoom or camera position.
   const lo = pixel({ x: -1, y: -1 }), hi = pixel({ x: 2, y: 2 });
@@ -393,6 +404,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     data: new Uint8Array(borderCanvas.width * borderCanvas.height) };
   const roads = routeSampleRoads(towns.map(t => pixel(t.point)), { width, height, regionIds, land, waterIndices, materialAt, scale: detail,
     bounds: { minX: bx, minY: by, maxX: bx + borderCanvas.width, maxY: by + borderCanvas.height } });
+  surfaces.registerPaths('road', roads);
   const roadCanvas = document.createElement('canvas'); roadCanvas.width = borderCanvas.width; roadCanvas.height = borderCanvas.height;
   const roadCtx = roadCanvas.getContext('2d');
   let bridges = 0;
@@ -419,7 +431,16 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     roadCtx.globalAlpha = .85;
     for (const p of samples) roadDot(p.x, p.y, detail, '#695338');
     roadCtx.globalAlpha = 1;
-    for (const [n, p] of samples.entries()) roadDot(p.x, p.y, Math.max(0, detail - 1), '#' + ((SHORE_TREATMENTS[materialAt(p.x, p.y)]?.road ?? [0xb5a078, 0xc9b68c])[n % 11 < 3 ? 0 : 1]).toString(16));
+    for (const [n, p] of samples.entries()) {
+      const biome = map.regions[regionIds[p.y * width + p.x]]?.biome;
+      let colour = (SHORE_TREATMENTS[materialAt(p.x, p.y)]?.road ?? [0xb5a078, 0xc9b68c])[n % 11 < 3 ? 0 : 1];
+      if (biome) {
+        const a = samples[Math.max(0, n - 2)], b = samples[Math.min(samples.length - 1, n + 2)];
+        const mask = Math.abs(b.x - a.x) > Math.abs(b.y - a.y) ? 10 : 5;
+        colour = mixColour(colour, surfaces.path('road', biome, p.x, p.y, n * texel / 2, 0, mask), .42);
+      }
+      roadDot(p.x, p.y, Math.max(0, detail - 1), '#' + colour.toString(16));
+    }
     // Fine broken wheel marks and irregular verge stones give the route a
     // drawn surface. Bridges get their own continuous deck and cross-planks.
     for (let n = 3; n < samples.length - 3; n += 5) {
@@ -452,6 +473,8 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     legal: fitsLand });
   const retained = props.filter(prop => prop.background || prop.kind.startsWith('ruin') || prop.kind.startsWith('cliff'));
   props.splice(0, props.length, ...retained, ...composition.props);
+  const foundations = paintTerrainFoundations({ props, art: ART, pixel, surfaces, materialAt, land, waterIndices,
+    colours, width, height, detail, noise, seed: map.seed, mixColour });
   interactions.bridge = bridges;
   interactions.rockyShore = props.filter(p => p.kind.startsWith('cliff')).length;
   interactions.softShore = map.geography.coasts.filter(c => !c.rocky).length;
@@ -518,7 +541,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   fogTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR; fogTexture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
 
   return { texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
-    palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', glyphKinds: new Set(props.map(p => p.kind)).size,
+    palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', surfaceKit: surfaces.stats(), foundations, glyphKinds: new Set(props.map(p => p.kind)).size,
     roads: roads.length, bridges, interactions, coastalEffects, terrainComposition: composition.diagnostics, assetLibrary: { biomePieces: composableLibrary.biomePieces, boundaryPieces: composableLibrary.boundaryPieces, sheets: composableLibrary.sheets,
       usablePieces: composableLibrary.cells.filter(c => !Object.keys(c.cutRuns).length).length,
       excludedPieces: composableLibrary.cells.filter(c => Object.keys(c.cutRuns).length).map(c => c.kind) }, surfaceTreatments, illustratedProps: props.filter(p => ART[p.kind].illustrated).length, coastalOutcrops: props.filter(p => p.kind.startsWith('cliff')).length, reliefColouring: 'Source material colours, selective asset grades, alpha-overlap composition', mountainSpines: map.regions.filter(r => r.biome === 'mountains').length + map.features.filter(f => f.type === 'ridge').length, rangeMassifs: props.filter(p => p.range).length,

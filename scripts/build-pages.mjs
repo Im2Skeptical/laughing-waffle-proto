@@ -119,6 +119,9 @@ async function buildPagesArtifact() {
       const keepSharedCardStyles = !parts.includes("card-chrome-prototype")
         || filename === "card-chrome-prototype" || filename.endsWith(".css");
       return keepDarkFantasy && keepSharedCardStyles
+        && !(parts.includes("map-generation-prototype") && (parts.includes("masters")
+          || /^composable-.*-v1\.png$/.test(filename)
+          || filename === "terrain-engraving-v1.png" || filename === "landmark-lod-v1.png"))
         && !parts.includes("GameElements")
         && !/^resource-language-[01]\.(json|png)$/.test(filename)
         && !/^test-(data|sheet)-/.test(filename);
@@ -132,6 +135,9 @@ async function buildPagesArtifact() {
   await assertUnpublished(path.join(outDir, "images/dark-fantasy/card-chrome-prototype/index.html"));
   await assertUnpublished(path.join(outDir, "images/dark-fantasy/structure-chrome-prototype"));
   await assertUnpublished(path.join(outDir, "images/dark-fantasy/keyword-inspection-prototype"));
+  await assertUnpublished(path.join(outDir, "images/dark-fantasy/map-generation-prototype/assets/masters"));
+  await assertUnpublished(path.join(outDir, "images/dark-fantasy/map-generation-prototype/assets/composable-forest-v1.png"));
+  await access(path.join(outDir, "images/dark-fantasy/map-generation-prototype/assets/runtime/terrain-kit-v1.webp"));
   await copyFile(".nojekyll", path.join(outDir, ".nojekyll"));
 
   // Isolated workbenches bundle their read-only imports separately from the game.

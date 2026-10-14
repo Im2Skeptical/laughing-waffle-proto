@@ -565,6 +565,7 @@ function sampleLiveSites() {
 }
 
 function drawLiveSites() {
+  if (!gameArt) { prepareLiveGameArt().then(render); return; }
   for (const site of [...liveSites].sort((a, b) => point(a.point).y - point(b.point).y)) {
     const p = point(site.point), scale = state.actorScale;
     const group = new PIXI.Container(); group.position.set(p.x, p.y); group.scale.set(scale);
@@ -768,15 +769,22 @@ window.mapWorkbench = { get state() { return { ...state }; }, get map() { return
   get pixelRendering() { return pixelReview() ? currentPixelArt.stats : null; },
   setCamera(pose) { camera.restore(pose); updateZoomPresentation(); app.renderer.render(app.stage); },
   setState(patch) { Object.assign(state, patch); if (!VARIANTS[state.variant]) state.variant = 'F'; if (Object.keys(patch).some(k => ['seed', 'clustering', 'sizeVariation', 'roughness', 'featureSet'].includes(k))) regenerate(); else render(); }, exportPng: pngData };
-Promise.all([prepareIllustratedArt(), PIXI.Assets.load('images/sprite-sheets/chronicle-illustrations.json'),
-  PIXI.Assets.load('images/sprite-sheets/region-landmarks.json'), prepareLandmarkLods()]).then(([, chronicle, landmarks, lods]) => {
+let liveArtLoading = null;
+function prepareLiveGameArt() {
+  liveArtLoading ??= Promise.all([PIXI.Assets.load('images/sprite-sheets/chronicle-illustrations.json'),
+    PIXI.Assets.load('images/sprite-sheets/region-landmarks.json')]).then(([chronicle, landmarks]) => {
+    gameArt = { player: chronicle.textures['hamlet-0.png'], neutral: landmarks.textures['neutral-market-town.png'],
+      monster: landmarks.textures['monster-lair.png'], ground: landmarks.textures['monster-ground.png'] };
+    for (const texture of Object.values(gameArt)) {
+      texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+      texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
+    }
+  });
+  return liveArtLoading;
+}
+Promise.all([prepareIllustratedArt(), state.siteArt === 'live' ? prepareLiveGameArt() : Promise.resolve(),
+  prepareLandmarkLods()]).then(([, , lods]) => {
   landmarkArt = lods;
-  gameArt = { player: chronicle.textures['hamlet-0.png'], neutral: landmarks.textures['neutral-market-town.png'],
-    monster: landmarks.textures['monster-lair.png'], ground: landmarks.textures['monster-ground.png'] };
-  for (const texture of Object.values(gameArt)) {
-    texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-    texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
-  }
   fitMap(); render(); document.body.dataset.ready = 'true';
 }).catch(error => {
   document.body.dataset.ready = 'error'; console.error('Illustrated terrain failed to load', error);

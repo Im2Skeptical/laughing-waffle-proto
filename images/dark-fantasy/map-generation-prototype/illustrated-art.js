@@ -4,7 +4,7 @@ export async function loadIllustratedArt(banks) {
   const image = new Image();
   await new Promise((resolve, reject) => {
     image.onload = resolve; image.onerror = () => reject(new Error('Engraving sheet failed to load'));
-    image.src = new URL('./assets/terrain-engraving-v1.png', import.meta.url).href;
+    image.src = new URL('./assets/runtime/engraving-v1.webp', import.meta.url).href;
   });
   const frames = {
     massif: [8, 18, 585, 346], peaks: [593, 125, 355, 252],
@@ -18,7 +18,8 @@ export async function loadIllustratedArt(banks) {
     const [sx, sy, sw, sh] = frames[frame], canvas = document.createElement('canvas');
     canvas.width = width; canvas.height = Math.round(width * sh / sw);
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(image, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+    const scale = image.width / 1536;
+    ctx.drawImage(image, sx * scale, sy * scale, sw * scale, sh * scale, 0, 0, canvas.width, canvas.height);
     const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     const rows = [], colours = {}, tones = {};
     for (let y = 0; y < canvas.height; y++) {

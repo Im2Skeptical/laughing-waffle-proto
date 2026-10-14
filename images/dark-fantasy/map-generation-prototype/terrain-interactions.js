@@ -12,7 +12,7 @@ const fract = x => x - Math.floor(x);
 const clamp = x => Math.max(0, Math.min(1, x));
 
 export function paintOcean({ map, width, height, texel, bounds, land, waterIndices, colours,
-  regionIds, seaDistance, dryDistance, shoreTypes, waterBank, groundBank, noise, mixColour, waterBase, waterStrength }) {
+  regionIds, seaDistance, dryDistance, shoreTypes, waterBank, groundBank, noise, mixColour, waterBase, waterStrength, surfaces }) {
   // Dedicated cyclic ramps: offshore swell, lace foam and sheltered tidal water.
   // Ramp phase is encoded spatially; this is still frame zero, not animation.
   for (let n = 0; n < 32; n++) {
@@ -59,6 +59,12 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
       waterIndices[i] = index;
       const depth = clamp(.11 + broad * .25 + shoal * .36 + grain * .025);
       waterBase[i] = waterBank[64 + Math.floor(depth * 31)];
+      if (material && distance < 22) {
+        const horizontal = Math.abs((seaDistance[i + 1] ?? 0) - (seaDistance[i - 1] ?? 0))
+          < Math.abs((seaDistance[i + width] ?? 0) - (seaDistance[i - width] ?? 0));
+        const substrate = surfaces.bank(material, x, y, .52 + Math.min(.45, distance / 38), horizontal);
+        waterBase[i] = mixColour(waterBase[i], substrate, Math.exp(-distance / 9) * .52);
+      }
       if (material === 'swamp') waterBase[i] = mixColour(waterBase[i], 0x6e8270, Math.exp(-distance / 11) * .7);
       const strength = index >= 160 && index < 192 ? .2 + lace * .65
         : index >= 208 ? clamp((fine - .5) * 2) * .7
@@ -74,6 +80,10 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
       if (d < fringe) {
         const wet = d < 2.5 + lace * 2;
         colours[i] = mixColour(colours[i], wet ? bank.bank : bank.sediment, wet ? .8 : clamp(1 - d / fringe) * .7);
+        const horizontal = Math.abs((dryDistance[i + 1] ?? 0) - (dryDistance[i - 1] ?? 0))
+          < Math.abs((dryDistance[i + width] ?? 0) - (dryDistance[i - width] ?? 0));
+        const substrate = surfaces.bank(region.biome, x, y, .44 * (1 - clamp(d / fringe)), horizontal);
+        colours[i] = mixColour(colours[i], substrate, .76 * (1 - d / fringe));
         if (grain < .1 && d > 3) colours[i] = mixColour(colours[i], bank.bank, .35);
         if (region.biome === 'swamp' && d > 2 && d < 15 && lace > .54 && chopMark(wx, wy) < .18) colours[i] = 0x52665d;
         stats.beaches++;
@@ -84,7 +94,7 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
 }
 const chopMark = (x, y) => fract((y + Math.sin(x / 8) * 3) / 6);
 
-export function paintEcotones({ map, width, height, texel, regionIds, land, waterIndices, colours, groundBank, noise, mixColour, surfaceTreatments }) {
+export function paintEcotones({ map, width, height, texel, regionIds, land, waterIndices, colours, groundBank, noise, mixColour, surfaceTreatments, surfaces }) {
   // Feather adjacent materials in world-space ribbons, keeping the territory
   // edge available as its own readable overlay. This never changes ownership.
   const reach = Math.round(18 / texel);
@@ -104,8 +114,8 @@ export function paintEcotones({ map, width, height, texel, regionIds, land, wate
     if (other) {
       const pair = [region.biome, other.biome];
       const wet = pair.includes('swamp'), rock = pair.includes('mountains');
-      const tint = wet ? 0x737e60 : rock ? 0x9e8b70 : groundBank[other.biome][2];
-      colours[i] = mixColour(original[i], tint, (1 - distance / (reach + 2)) * (.25 + n * .4));
+      const amount = (1 - distance / (reach + 2)) * (.25 + n * .4);
+      colours[i] = mixColour(original[i], surfaces.contact(region.biome, other.biome, x, y, amount), .65);
       if (rock && n > .62 && (x + y * 7) % 13 < 2) colours[i] = bank[0];
       if (wet && n > .64 && chopMark(x, y) < .24) colours[i] = mixColour(bank[0], 0x5d7368, .5);
       surfaceTreatments.ecotones++;

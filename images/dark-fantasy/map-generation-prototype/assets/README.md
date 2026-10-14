@@ -1,5 +1,24 @@
 # Generated terrain engraving study
 
+## Imported continuous terrain kit
+
+The ten new source sheets in `masters/` contain sixteen full ground swatches
+and eight bank profiles for each biome. Their [exact prompts](masters/surface-prompts.json)
+record the built-in image-generation workflow. Sources are preserved unchanged.
+
+`runtime/terrain-kit-v1.webp` packs 635 32px material/transition/shore/river/road
+cases. `runtime/bank-profiles-v1.webp` packs forty 64x32px bank profiles.
+`runtime/relief-v1.webp` and its manifest hold the 110 reduced relief pieces;
+eight remain excluded because of inseparable source edges. Legacy engraving
+and the consistent landmark LODs also use reduced imported WebP files.
+
+Run `npm run build:map-art` to rebuild, and `npm run check:map-art` to verify
+actual pixel joins, coverage and size. The importer requires Python with Pillow
+and numpy, plus Node.js for the shared alpha-gutter parser. Pages publishes only
+the reduced runtime assets, approximately 1.98 MiB total, not the source masters.
+Ground sampling, coast profiles and textured foundations live in the prototype;
+the game's renderer does not import these modules yet.
+
 ## Composable terrain library
 
 Seven new transparent source sheets provide **110 pieces**: twelve for each of
@@ -10,8 +29,8 @@ The source paintings are original generated artwork, preserved unchanged.
 Exact generation prompts, cell names and grid metadata are recorded in
 [composable-terrain-prompts.json](composable-terrain-prompts.json).
 
-`../composable-art.js` crops alpha bounds, reduces them to the canonical pixel
-lattice and derives mirrored variants. Those mirrors do not count as additional
+The offline importer crops alpha bounds and reduces them to the canonical pixel
+lattice. `../composable-art.js` loads that atlas and derives mirrored variants. Those mirrors do not count as additional
 source pieces. Five-bit colour channels and retained source alpha preserve the
 painting's material variety. Small family-specific channel grades adjust warmth
 and foliage; illustrations are never recoloured by the region beneath them.

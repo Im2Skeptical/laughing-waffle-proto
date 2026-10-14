@@ -118,27 +118,22 @@ export function zoomArtStats() {
 }
 
 export async function prepareLandmarkLods() {
+  const manifest = await (await fetch(new URL('./assets/runtime/landmarks-v1.json', import.meta.url))).json();
   const image = new Image();
   await new Promise((resolve, reject) => {
     image.onload = resolve; image.onerror = () => reject(new Error('Landmark sheet failed to load'));
-    image.src = new URL('./assets/landmark-lod-v1.png', import.meta.url).href;
+    image.src = new URL('./assets/runtime/landmarks-v1.webp', import.meta.url).href;
   });
   const source = document.createElement('canvas'); source.width = image.width; source.height = image.height;
   const ctx = source.getContext('2d'); ctx.drawImage(image, 0, 0);
-  const pixels = ctx.getImageData(0, 0, image.width, image.height).data;
-  // Regional artwork reduces the same composition; only the overview is a symbolic replacement.
-  const rows = [[0, 447, 96], [0, 447, 48], [810, 1024, 20]], result = {};
-  for (const [col, kind] of ['player', 'neutral', 'monster'].entries()) {
-    result[kind] = rows.map(([top, bottom, width]) => {
-      let left = (col + 1) * 512, right = col * 512, upper = bottom, lower = top;
-      for (let y = top; y < bottom; y++) for (let x = col * 512; x < (col + 1) * 512; x++) {
-        if (pixels[(y * image.width + x) * 4 + 3] < 100) continue;
-        left = Math.min(left, x); right = Math.max(right, x); upper = Math.min(upper, y); lower = Math.max(lower, y);
-      }
+  const result = {};
+  for (const kind of ['player', 'neutral', 'monster']) {
+    result[kind] = manifest.frames.filter(frame => frame.kind === kind).sort((a, b) => a.lod - b.lod).map(frame => {
+      const [left, top, width, height] = frame.rect;
       const canvas = document.createElement('canvas');
-      canvas.width = width; canvas.height = Math.max(1, Math.round(width * (lower - upper + 1) / (right - left + 1)));
+      canvas.width = width; canvas.height = height;
       const target = canvas.getContext('2d'); target.imageSmoothingQuality = 'high';
-      target.drawImage(image, left, upper, right - left + 1, lower - upper + 1, 0, 0, canvas.width, canvas.height);
+      target.drawImage(image, left, top, width, height, 0, 0, width, height);
       const data = target.getImageData(0, 0, canvas.width, canvas.height);
       for (let i = 0; i < data.data.length; i += 4) {
         if (data.data[i + 3] < 95) { data.data[i + 3] = 0; continue; }

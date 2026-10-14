@@ -1,5 +1,68 @@
 # Map generation Pixi workbench (disposable prototype)
 
+### Continuous terrain kit across all five biomes
+
+The current pass uses imported ground materials under relief, not flat biome
+colours carrying isolated terrain vignettes. `terrain-surfaces.js` samples a
+world-anchored material grid and transition cases; `terrain-foundations.js`
+extends textured substrate beneath relief. Foliage, stone and bark keep their
+own asset colours. Dry and submerged banks use a shared profile, with the actual
+land/water mask and distance fields determining the coastline rather than a
+tile silhouette changing the approved geography. Bank styles follow local
+ground material. Island contours without graph-edge IDs now receive coastal
+composition; their inset direction is checked against actual land.
+
+Asset budget: the public [OpenRA RA2 snow definition](https://github.com/OpenRA/ra2/blob/master/mods/ra2/tilesets/snow.yaml)
+contains 475 template definitions, 678 listed image entries and 2,519 defined
+subtiles in the examined file. Examples include 42 shore templates and 16-case
+ground transition sets. These are counts of definitions/entries, not a claim
+that each is a separately painted image. Our first full-biome target is:
+
+| Imported terrain cases | Count | Source construction |
+|---|---:|---|
+| Ground variation | 80 | 16 painted swatches per biome |
+| Biome contacts | 160 | 16 matching corner cases for each of 10 pairs |
+| Shores | 235 | 47 valid neighbour patterns per biome |
+| Rivers | 80 | 16 connection patterns per biome |
+| Roads | 80 | 16 connection patterns per biome |
+| **Total** | **635** | **Compiled cases, not 635 independent paintings** |
+
+Five new ground sheets and five bank sheets provide 80 ground swatches and 40
+bank profiles. Together with the 102 usable existing relief pieces this gives
+222 painted material/relief fragments before recipe combinations. Road and river
+connection masks are derived from the actual paths; material transitions preserve
+the actual region ownership. The source kit stays in the same top-down/pictorial
+map presentation rather than changing the game to an isometric RTS projection.
+
+`npm run build:map-art` imports the paintings using Python, Pillow, numpy and
+Node.js. Ground/case tiles are **32px**, bank profiles **64x32px**, and relief is
+capped at **118px** on the canonical 2-design-unit pixel lattice. It explicitly
+conforms opposite and shared ground/bank edges, packs WebP atlases, and preserves
+the high-resolution source PNGs. `assets/runtime/` totals about **1.98 MiB** for
+the terrain kit, banks, relief, legacy engraving, landmarks and manifests.
+The browser downloads these reduced assets. Source masters and the superseded
+large PNGs are excluded from Pages by `scripts/build-pages.mjs`. Existing live-game
+comparison atlases are separate shared game assets and are not included in this
+art-library size. This import format is ready for later game integration; the
+live regional renderer remains unchanged.
+Original-game comparison atlases load only when Old game is selected; the
+default atlas view does not download them.
+
+Generated source artwork and exact prompts are in
+[assets/masters/surface-prompts.json](assets/masters/surface-prompts.json).
+All ten new paintings used the built-in image-generation tool; source images
+are original and RTS artwork was not copied.
+
+`npm run check:map-art` checks the actual imported pixels: all 635 case records,
+all five biome libraries, distinct ground variants, exact periodic/shared ground
+edges, matching contact edges/corners, matching bank profiles, relief exclusion
+metadata and runtime size. The state inspector reports selected cases by role,
+ground-biome coverage and foundation coverage. Run the persistence check below
+on seeds 1872, 1869 and 1873 with reflections. Inspect Fit and close zoom, island
+coasts, rocky/peat/root banks, road/river junctions and settlement surroundings.
+Water ramps remain static for this terrain review; categorical cycle indices
+and depth/effect planes are preserved for the later animation pass.
+
 ### Connected terrain composition review
 
 The current atlas uses geography-led compositions from a
@@ -31,6 +94,7 @@ pieces. Their identities are shown in the renderer inspector; source PNGs are
 preserved for replacement rather than painted over or globally blurred.
 
 `composable-art.js` preserves separate foliage, bark, earth and rock colours.
+It reads the pre-imported relief atlas; source cropping now runs offline.
 Small asset-family channel grades adjust warmth and vegetation without mapping
 the whole painting onto a biome ramp. Five-bit colour channels retain more
 subtle variation than the previous four-bit reduction. Source alpha and softly
