@@ -85,3 +85,4 @@ assert.deepEqual(createOpeningController({ getItem: key => memory.get(key) }).ge
 console.log('[opening-graph-editor] OK: routes, grid groups/bounds/collisions, undo/save isolation, pre-founding play and enter/confirm notes without world changes');
 await import('./opening-tour-test.mjs');
 await import('./opening-shops-test.mjs');
+await import('./opening-legacy-test.mjs');

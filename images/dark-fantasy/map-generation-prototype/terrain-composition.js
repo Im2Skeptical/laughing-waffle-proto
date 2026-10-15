@@ -205,6 +205,11 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
     const pair = edge.regions.map(id => regions.get(id).biome);
     if (pair[0] === pair[1] && !(ridgeArt && pair.includes('mountains'))) continue;
     const contact = CONTACT_PAIRS.findIndex(p => p.includes(pair[0]) && p.includes(pair[1]));
+    if (contact === 0) {
+      paths.push({ points: edge.points.map(pixel), family: 'terrain-forest', indices: [4,5,7,8,11],
+        allowedBiomes: pair, salt: 20003 + i * 919, context: 'boundary' });
+      continue;
+    }
     paths.push({ points: edge.points.map(pixel), family: ridgeArt && pair.includes('mountains') ? 'terrain-ridge-border' : `contact-${contact}`,
       directional: ridgeArt && pair.includes('mountains'), indices: ridgeArt && pair.includes('mountains') ? [0, 1, 2, 3, 4, 6, 7, 10] : [0, 1, 2, 3, 4],
       allowedBiomes: pair, salt: 20003 + i * 919, context: ridgeArt && pair.includes('mountains') ? 'ridge-boundary' : 'boundary' });
