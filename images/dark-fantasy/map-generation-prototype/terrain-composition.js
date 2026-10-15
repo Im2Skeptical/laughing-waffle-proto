@@ -64,7 +64,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
   const add = prop => {
     props.push(prop); diagnostics.families[prop.family] = (diagnostics.families[prop.family] ?? 0) + 1;
   };
-  const choose = ({ x, y, family, indices, salt, allowedBiomes, context, previous = null, sizeLevel = 0 }) => {
+  const choose = ({ x, y, family, indices, salt, allowedBiomes, context, previous = null, sizeLevel = 0, canopyCore = false }) => {
     const options = [];
     const candidates = indices.flatMap(n => [{ n, mirrored: false }, { n, mirrored: true }])
       .map((candidate, i) => ({ ...candidate, rank: rand(salt + i * 79) })).sort((a, b) => a.rank - b.rank);
@@ -83,7 +83,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       if (!legal(prop)) continue;
       let overlap = 0;
       for (const p of near) overlap = Math.max(overlap, illustrationOverlap(prop, p, art));
-      if (overlap > .58) continue;
+      if (overlap > (canopyCore ? .76 : .58)) continue;
       const join = previous ? illustrationOverlap(prop, previous, art) : 0;
       if (previous && (join < (context.startsWith('ridge') ? .12 : .06) || join > .46)) continue;
       const score = rand(salt + attempt * 31 + 4) * .3
@@ -92,7 +92,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
     }
     options.sort((a, b) => b.score - a.score);
     return options[0]?.prop ?? ((family.startsWith('terrain-island-') || ['terrain-plains','terrain-forest'].includes(family)) && sizeLevel < 2
-      ? choose({ x,y,family,indices,salt,allowedBiomes,context,previous,sizeLevel:sizeLevel+1 }) : undefined);
+      ? choose({ x,y,family,indices,salt,allowedBiomes,context,previous,sizeLevel:sizeLevel+1,canopyCore }) : undefined);
   };
 
   // Settlement edges have priority over general scatter. Rear cover frames the
@@ -205,9 +205,23 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
     const pair = edge.regions.map(id => regions.get(id).biome);
     if (pair[0] === pair[1] && !(ridgeArt && pair.includes('mountains'))) continue;
     const contact = CONTACT_PAIRS.findIndex(p => p.includes(pair[0]) && p.includes(pair[1]));
-    if (contact === 0) {
-      paths.push({ points: edge.points.map(pixel), family: 'terrain-forest', indices: [4,5,7,8,11],
-        allowedBiomes: pair, salt: 20003 + i * 919, context: 'boundary' });
+    if (pair.includes('plains') || pair.includes('forest')) {
+      // Current biome edges on BOTH sides, not an obsolete mixed contact stamp.
+      // Keep the custom mountain divide, with low new scenery along its foot.
+      for (const [side,id] of edge.regions.entries()) {
+        const region=regions.get(id), biome=region.biome, centre=pixel(region.centre);
+        if (biome==='mountains') continue;
+        paths.push({points:edge.points.map(point=>{
+          const p=pixel(point), length=Math.hypot(centre.x-p.x,centre.y-p.y)||1;
+          return {x:p.x+(centre.x-p.x)/length*9*detail,y:p.y+(centre.y-p.y)/length*9*detail};
+        }),family:biome==='islands'?islandFamily:`terrain-${biome}`,
+        indices:biome==='islands'?[6,7,8,10,11]:COASTS[biome],allowedBiomes:[biome],
+        salt:20003+i*919+side*347,context:'boundary'});
+      }
+      if (pair.includes('mountains')) paths.push({points:edge.points.map(pixel),
+        family:ridgeArt?'terrain-ridge-border':'terrain-mountains',directional:ridgeArt,
+        indices:ridgeArt?[0,1,2,3,4,6,7,10]:[7,8,9,11],allowedBiomes:pair,
+        salt:20003+i*919,context:'ridge-boundary'});
       continue;
     }
     paths.push({ points: edge.points.map(pixel), family: ridgeArt && pair.includes('mountains') ? 'terrain-ridge-border' : `contact-${contact}`,
@@ -284,7 +298,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
     const xs = outline.map(p => p.x), ys = outline.map(p => p.y), minX = Math.min(...xs), minY = Math.min(...ys);
     const width = Math.max(...xs) - minX, height = Math.max(...ys) - minY;
     const area = Math.abs(polygonArea(outline)), dense = region.biome === 'forest';
-    const candidates = [], count = Math.min(650, Math.ceil(width * height / (30 * detail * detail)));
+    const candidates = [], count = Math.min(dense ? 1000 : 650, Math.ceil(width * height / ((dense ? 16 : 30) * detail * detail)));
     for (let n = 0; n < count; n++) {
       const salt = 270001 + index * 91813 + n * 137, x = minX + rand(salt) * width, y = minY + rand(salt + 1) * height;
       if (!insidePolygon({ x, y }, outline)) continue;
@@ -296,16 +310,20 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
     let placed = 0, limit = Math.ceil(area / ((region.biome === 'islands' ? (islandStyle === 'caldera' ? 600 : 1000) : region.biome === 'swamp' ? 1100 : dense ? 110 : region.biome === 'plains' ? 320 : 560) * detail * detail));
     for (const candidate of candidates) {
       if (placed >= limit || props.length >= 600) break;
-      const prop = choose({ ...candidate, family, indices: region.biome === 'forest' && candidate.density < .57 ? [4,5,8,9,10,11] : region.biome === 'islands' ? [8,9,10,11] : region.biome === 'mountains' ? [7, 8, 9, 11] : INTERIORS[region.biome], allowedBiomes: [region.biome], context: 'interior' });
+      const canopyCore=dense && candidate.density>=.52;
+      const prop = choose({ ...candidate, family, canopyCore,
+        indices: dense ? (canopyCore ? [0,1,3] : [4,5,8,9,10,11]) : region.biome === 'islands' ? [8,9,10,11] : region.biome === 'mountains' ? [7, 8, 9, 11] : INTERIORS[region.biome], allowedBiomes: [region.biome], context: 'interior' });
       if (!prop) continue;
       const near = nearby(prop), overlap = near.reduce((n, p) => Math.max(n, illustrationOverlap(prop, p, art)), 0);
       // Moderate-density fringe extends an existing mass; high-density cores
       // can start another patch, leaving coherent open ground between them.
-      if (dense && candidate.density < .57 && overlap < .05 && rand(candidate.salt + 8) > .16) continue;
+      if (dense && !canopyCore && overlap < .05 && rand(candidate.salt + 8) > .16) continue;
+      prop.canopyCore=canopyCore;
       add(prop); placed++; diagnostics.interiors++;
     }
   }
   diagnostics.islandScaledPieces = props.filter(p => p.family.startsWith('terrain-island-') && /-(compact|small)(-mirror)?$/.test(p.kind)).length;
+  diagnostics.forestCores = props.filter(p=>p.canopyCore).length;
   diagnostics.islandStyle = islandStyle;
   diagnostics.islandCraters = props.filter(p => p.context === 'island-crater').length;
   diagnostics.placements = props.length;

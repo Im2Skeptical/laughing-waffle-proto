@@ -25,6 +25,17 @@ untouched. This is an integration pass for the prototype, not new gameplay.
 
 ### Plains and forest terrain pass
 
+Plains sprites receive material-aware warm ochre grading, with olive vegetation
+kept distinct from soil and stone; no zone overlay or ground-frequency change.
+All seven biome pairings involving plains or forest use current biome-specific
+verges on each side, replacing the old mixed contact paintings. Each verge is
+restricted to its own biome. Mountain pairs retain the custom ridge divide.
+Coasts and settlement surroundings use the same current kits and colour grade.
+Forest density fields now reserve closed-canopy pieces for dense cores, with
+more placement candidates and deeper silhouette overlap there. Sparse fringe
+pieces remain around openings; building, court and approach protection still
+applies. `terrainComposition.forestCores` reports dense-core placements.
+
 Twelve replacement pieces per biome now distinguish broad structures from fine
 cover. Plains use low rolling ridges and grassy gullies along a curved interior
 spine, with sparse heath, gravel and scrub between them. Forest spines use mixed

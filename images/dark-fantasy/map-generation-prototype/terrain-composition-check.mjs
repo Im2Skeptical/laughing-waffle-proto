@@ -37,7 +37,7 @@ for (const seed of [1867, 1869, 1873]) {
     assert.ok(legal(a.props[i]), 'Every footprint must satisfy the supplied geographic mask');
     assert.equal(Object.keys(art[a.props[i].kind].cutRuns ?? {}).length, 0, 'Source fragments with clipped edges must never be placed');
     for (const p of a.props.slice(0, i)) {
-      assert.ok(illustrationOverlap(a.props[i], p, art) <= .58, 'No painting may bury most of another painting');
+      assert.ok(illustrationOverlap(a.props[i], p, art) <= (a.props[i].canopyCore ? .76 : .58), 'Only closed-canopy cores may use deeper overlap');
       if (p.kind.replace(/-mirror$/, '') === a.props[i].kind.replace(/-mirror$/, ''))
         assert.ok(Math.hypot(p.left - a.props[i].left, p.top - a.props[i].top) >= (p.family === 'terrain-forest' ? 32 : 58), 'Mirroring must not bypass repetition spacing');
     }
@@ -51,9 +51,13 @@ const islandComposition = composeTerrainLandscape({ map: islandMap, art, pixel,
   world: (x, y) => ({ x: x / 788, y: y / 258 }), legal: () => false, detail: 1 });
 const borderPaths = islandMap.edges.filter(edge => edge.regions.length === 2
   && islandMap.regions.find(r => r.id === edge.regions[0]).biome !== islandMap.regions.find(r => r.id === edge.regions[1]).biome).length;
-assert.equal(islandComposition.diagnostics.paths + islandComposition.diagnostics.coastalProfiles, borderPaths + islandMap.features.filter(f => f.type === 'ridge').length
+const pairedVergePaths=islandMap.edges.filter(edge=>edge.regions.length===2).map(edge=>edge.regions.map(id=>islandMap.regions.find(r=>r.id===id).biome))
+  .filter(pair=>pair[0]!==pair[1] && pair.some(b=>['plains','forest'].includes(b))).length;
+assert.equal(islandComposition.diagnostics.paths + islandComposition.diagnostics.coastalProfiles, borderPaths + pairedVergePaths + islandMap.features.filter(f => f.type === 'ridge').length
   + islandMap.geography.coasts.length + islandMap.regions.filter(r => ['mountains','islands','plains','forest'].includes(r.biome)).length, 'Every island contour must receive a shore profile even without a graph edge ID');
 const channels = c => [c >> 16, c >> 8 & 255, c & 255];
+const [pr,pg,pb]=channels(gradeTerrainColour(150,145,136,'plains'));
+assert.ok(pr>pg+15 && pg>pb+25,'Plains earth must retain warm ochre rather than a neutral grey cast');
 const [lr, lg, lb] = channels(leaves), [sr, sg, sb] = channels(stone);
 assert.ok(lg > lr && lg > lb * 1.7, 'Leaf hue must survive grading');
 assert.ok(Math.max(sr, sg, sb) - Math.min(sr, sg, sb) < 25, 'Stone must remain neutral inside a forest');
@@ -94,6 +98,10 @@ for(const biome of ['plains','forest']) {
   const result=composeTerrainLandscape({map:fixture,art,pixel:p=>p,world:(x,y)=>({x,y}),detail:1,legal:p=>p.left>0&&p.top>0});
   assert.ok(result.props.some(p=>p.context==='landscape-spine'),'Plains/forest need connected structural masses');
   if(biome==='plains') assert.ok(result.props.filter(p=>p.context==='interior').every(p=>Number(p.kind.replace(/-mirror$/,'').split('-').at(-1))>=8),'Plains scatter must use small ground cover, not large ridges');
+  if(biome==='forest') {
+    assert.ok(result.diagnostics.forestCores>0,'Forest must include dense canopy cores');
+    assert.ok(result.props.filter(p=>p.canopyCore).every(p=>[0,1,3].includes(Number(p.kind.replace(/-mirror$/,'').split('-').at(-1)))),'Dense cores must use closed canopy art');
+  }
 }
 console.log('Plains/forest: connected structural masses and role-specific ground cover.');
 
@@ -113,3 +121,17 @@ for(const biome of ['plains','forest']) {
   assert.ok(result.props.slice(0,edges.length).every(p=>p.context==='settlement-edge'),'Settlement edges must reserve placement before general scatter');
 }
 console.log('Settlement surroundings: deliberate biome-specific edge art receives placement priority.');
+
+for(const pair of CONTACT_PAIRS.filter(pair=>pair.some(b=>['plains','forest'].includes(b)))) {
+  const regions=pair.map((biome,i)=>({id:i,biome,centre:{x:60+i*120,y:75},
+    outline:[{x:i*120,y:0},{x:(i+1)*120,y:0},{x:(i+1)*120,y:150},{x:i*120,y:150}]}));
+  const fixture={seed:1862,regions,features:[],geography:{coasts:[]},
+    edges:[{id:1,regions:[0,1],points:[{x:120,y:10},{x:120,y:140}]}]};
+  const result=composeTerrainLandscape({map:fixture,art,pixel:p=>p,world:(x,y)=>({x,y}),detail:1,legal:()=>true});
+  assert.ok(!result.props.some(p=>p.family.startsWith('contact-')),'Updated biomes must never load old mixed boundary paintings');
+  for(const biome of pair.filter(b=>b!=='mountains')) {
+    const family=biome==='islands'?'terrain-island-basalt':`terrain-${biome}`;
+    assert.ok(result.props.some(p=>p.context==='boundary' && p.family===family && p.allowedBiomes.length===1),`${pair}: each verge uses current art restricted to its own biome`);
+  }
+}
+console.log('Boundary integration: all seven plains/forest pairings use current biome verges, retaining mountain divides.');

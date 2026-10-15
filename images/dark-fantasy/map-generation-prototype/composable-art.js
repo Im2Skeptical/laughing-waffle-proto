@@ -3,9 +3,18 @@ export const composableLibrary = { biomePieces: 84, boundaryPieces: 50, cells: [
 // Source hues carry the material information: leaves, trunks, earth and rock.
 // Small channel corrections preserve those differences and the painted light.
 export function gradeTerrainColour(r, g, b, family) {
-  if (family === 'plains' || family === 'forest') {
-    const centre = family === 'forest' ? 104 : 133;
-    return [r,g,b].reduce((rgb,v,i) => rgb | Math.round(centre+(v-centre)*(family === 'plains' ? .72 : .83)) << (16-i*8),0);
+  if (family === 'plains') {
+    // Match dry straw/ochre soil without washing every material toward grey.
+    // Preserve cool olive vegetation separately from warm earth and pale rock.
+    const value = r*.30 + g*.59 + b*.11;
+    const foliage = g > b*1.35 && g > r*.90;
+    const channels = foliage
+      ? [value*.82+18, value*.80+20, value*.49+14]
+      : [value*.88+32, value*.76+25, value*.49+19];
+    return channels.reduce((rgb,v,i) => rgb | Math.max(0,Math.min(255,Math.round(v))) << (16-i*8),0);
+  }
+  if (family === 'forest') {
+    return [r,g,b].reduce((rgb,v,i) => rgb | Math.round(104+(v-104)*.83) << (16-i*8),0);
   }
   if (family === 'island-basalt') {
     // Compress values around weathered mid-grey without flattening leaf/stone hue.
