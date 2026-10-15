@@ -55,6 +55,8 @@ export function settlementGroundWeight(site,x,y) {
   for(const path of site.streets) for(let n=1;n<path.length;n++)
     weight=Math.max(weight,Math.max(0,1-segmentDistance(x,y,path[n-1],path[n])/(5*u))*.7);
   if(site.apron) weight=Math.max(weight,Math.max(0,1-segmentDistance(x,y,site.entrance,site.apron)/(5*u))*.65);
+  for(const glade of site.surroundings?.glades??[]) weight=Math.max(weight,
+    Math.max(0,1-Math.hypot((x-glade.x)/glade.rx,(y-glade.y)/glade.ry))*.65);
   return weight;
 }
 
@@ -94,7 +96,12 @@ export function layOutSettlements(sites, { detail, dry, world, seed }) {
       site.apron.x=(site.apron.x+site.entrance.x)/2; site.apron.y=(site.apron.y+site.entrance.y)/2;
     }
     site.surroundings = { approachAngle:angle, ground:site.biome==='forest'?'leaf-litter clearing':site.biome==='plains'?'worn grass and field margins':site.biome==='swamp'?'raised peat and reed edge':site.biome==='mountains'?'stone terrace and scree':'volcanic soil and scrub', placed:0 };
-    const at = (u, v) => ({ x: site.x + u * detail, y: site.y + v * detail });
+    const woodland=site.biome==='forest'?Math.floor(random(201)*3):-1;
+    site.surroundings.layout=woodland<0?'court':['crescent glade','twin glades','woodland lane'][woodland];
+    const at = (u, v) => {
+      const [a,b]=woodland===0?[u+v*v*.018-2,v*.85]:woodland===1?[u*1.06+(u<0?-2:2),v*.82+(u>0?2:-2)]:woodland===2?[u*.78+v*.4,v*1.08]:[u,v];
+      return { x: site.x + a * detail, y: site.y + b * detail };
+    };
     const safe = p => dry(p.x, p.y, site.regionId);
     const street = points => {
       const valid = points.every(safe) && points.slice(1).every((b, i) => {
@@ -139,6 +146,8 @@ export function layOutSettlements(sites, { detail, dry, world, seed }) {
       const irregular = 1 + (random(n + 90) - .5) * .09;
       return { x:site.x + Math.cos(a)*site.rx*.84*irregular, y:site.y + Math.sin(a)*site.ry*.86*irregular };
     });
+    if(woodland>=0)site.surroundings.glades=(woodland===0?[[-8,1],[7,3]]:woodland===1?[[-10,-2],[10,4]]:[[-5,-7],[4,7]])
+      .map(([u,v],n)=>({...at(u,v),rx:(10+random(220+n)*4)*detail,ry:(6+random(230+n)*3)*detail}));
   }
 }
 
@@ -157,7 +166,7 @@ export function paintSettlementSites(sites, { width, height, colours, waterIndic
         const noise = decorationRandom(map.seed, x * 9173 ^ y * 673);
         const court = Math.hypot((x - site.court.x) / (6 * detail), (y - site.court.y) / (4 * detail));
         const strength = Math.min(1,ground*(.9+noise*.2))*.68;
-        const quietGround = {plains:0x8c7955,forest:0x66654c,islands:0x7b7c68,swamp:0x62575f,mountains:0x78665c}[site.biome];
+        const quietGround = {plains:0x8c7955,forest:0x87816a,islands:0x7b7c68,swamp:0x62575f,mountains:0x78665c}[site.biome];
         colours[y * width + x] = mixColour(colours[y * width + x],quietGround,strength);
         if (court < 1 + (noise - .5) * .25) {
           const paving = site.biome === 'swamp' ? 0x9b8a9b : site.biome === 'mountains' ? 0xb5a596 : 0xc0b18a;
@@ -194,7 +203,7 @@ export function paintSettlementSites(sites, { width, height, colours, waterIndic
     for (const b of site.buildings) {
       for (let y = Math.floor(b.y - b.h / 3); y <= b.y + b.h / 2; y++) for (let x = Math.floor(b.x - b.w / 2); x <= b.x + b.w / 2; x++) {
         if (!dry(x, y)) continue;
-        const i = y * width + x, base = {plains:0x8c7955,forest:0x66654c,islands:0x7b7c68,swamp:0x62575f,mountains:0x78665c}[site.biome];
+        const i = y * width + x, base = {plains:0x8c7955,forest:0x87816a,islands:0x7b7c68,swamp:0x62575f,mountains:0x78665c}[site.biome];
         colours[i] = mixColour(colours[i], base, .3);
         if (y >= b.y) colours[i] = mixColour(colours[i], 0x322d29, .38);
         if (site.biome === 'mountains' && y === Math.floor(b.y + b.h / 2)) dot(x, y, 0, '#76605a');

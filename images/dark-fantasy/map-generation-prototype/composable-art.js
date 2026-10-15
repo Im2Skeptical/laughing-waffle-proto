@@ -9,7 +9,7 @@ export function gradeTerrainColour(r, g, b, family) {
     const colour=foliage?[value*.67+17,value*.50+14,value*.46+13]:[r*.86+10,g*.78+9,b*.78+10];
     return colour.reduce((rgb,v,i)=>rgb|Math.min(255,Math.round(v))<<(16-i*8),0);
   }
-  if(family==='hellscape') {
+  if(family==='hellscape'||family==='bone-border') {
     return [r,g,b].reduce((rgb,v,i)=>rgb|Math.round(85+(v-85)*.86)<<(16-i*8),0);
   }
   if (family === 'plains') {
@@ -54,7 +54,12 @@ export async function loadComposableArt(banks) {
     image.src = new URL('./assets/runtime/relief-v1.webp', import.meta.url).href;
   });
   composableLibrary.cells = manifest.frames.map(frame => ({ kind: frame.kind, sheet: frame.family, pair: frame.pair, cutRuns: frame.cutRuns }));
-  for (const detail of [1, 2]) for (const frame of manifest.frames) for (const scale of (frame.family==='hellscape'?([1,5].includes(Number(frame.kind.split('-').at(-1)))?[1.3,1,.72,.5,.3]:[1,.72,.5,.3]):(frame.family.startsWith('island-') || frame.family.startsWith('monster-') || ['plains','forest'].includes(frame.family)) ? [1,.72,.5] : [1])) {
+  const scales=frame=>{
+    if(frame.family==='bone-border')return [1.3,1,.72,.5,.3];
+    if(frame.family==='hellscape')return [1,5].includes(Number(frame.kind.split('-').at(-1)))?[1.3,1,.72,.5,.3]:[1,.72,.5,.3];
+    return frame.family.startsWith('island-')||frame.family.startsWith('monster-')||['plains','forest'].includes(frame.family)?[1,.72,.5]:[1];
+  };
+  for (const detail of [1, 2]) for (const frame of manifest.frames) for (const scale of scales(frame)) {
     const proportion = (frame.family === 'islands' ? .8 : 1) * scale;
     const kind = frame.kind + (scale===1.3?'-ridge':scale === .72 ? '-compact' : scale === .5 ? '-small' : scale===.3?'-micro':'');
     const canvas = document.createElement('canvas'); canvas.width = Math.round(frame.rect[2] * detail / 2 * proportion);

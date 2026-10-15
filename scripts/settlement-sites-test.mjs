@@ -76,3 +76,16 @@ paintSettlementSites(sites,{width,height,colours,waterIndices,regionIds,map,deta
   surfaces:{ground:()=>0x667744},mixColour:(a,b,t)=>t>0?b:a,dot:()=>{}});
 for(let i=0;i<waterIndices.length;i++) if(waterIndices[i]) assert.equal(colours[i],originalColours[i],'Worked ground must never paint over water');
 console.log('Integrated clearings: plot-shaped ground, protected approaches, finite feathering and untouched water across all five biomes.');
+
+const woodlandLayouts=new Set();
+for(let seed=1860;seed<1880;seed++) {
+  const copy=structuredClone(sites);
+  layOutSettlements(copy,{detail:2,dry,world:args.world,seed});
+  const f=copy.find(s=>s.biome==='forest');woodlandLayouts.add(f.surroundings.layout);
+  assert.equal(f.surroundings.glades.length,2,'Woodland ground needs local glades');
+  for(const b of f.buildings)assert.ok(siteReliefContains([f],b.x,b.y),'Every varied forest layout must protect roofs');
+  const duplicate=structuredClone(sites);layOutSettlements(duplicate,{detail:2,dry,world:args.world,seed});
+  assert.deepEqual(f,duplicate.find(s=>s.biome==='forest'),'Woodland forms remain deterministic');
+}
+assert.equal(woodlandLayouts.size,3,'Seeds should exercise all three woodland clearing forms');
+console.log('Forest integration: three deterministic clearing forms, plot protection and shared glade ground pass.');

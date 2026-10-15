@@ -5,7 +5,7 @@ import { generateMap } from './generator.js';
 
 const art = {};
 for (const family of ['plains', 'forest', 'islands', 'swamp', 'mountains'].map(b => `terrain-${b}`)
-  .concat(['terrain-island-basalt', 'terrain-island-caldera','terrain-hellscape'])
+  .concat(['terrain-island-basalt', 'terrain-island-caldera','terrain-hellscape','terrain-bone-border'])
   .concat(['plains','forest','islands','swamp','mountains'].map(b=>`terrain-monster-${b}`))
   .concat(CONTACT_PAIRS.map((_, n) => `contact-${n}`))) {
   for (let n = 0; n < (family.startsWith('contact') ? 5 : 12); n++) {
@@ -147,11 +147,12 @@ for(const biome of ['plains','forest','islands','swamp','mountains']) {
   assert.deepEqual(result,composeTerrainLandscape(args),'Monster territories must be stable for a world seed');
   assert.ok(monsters.length>=4 && result.diagnostics.monsterZones.length===1,`${biome}: multiple dens and pits must form a territory`);
   assert.ok(monsters.every(p=>p.family===`terrain-monster-${biome}`&&p.allowedBiomes[0]==='monster'&&args.legal(p)),'Monster silhouettes must fit dedicated monster territory');
-  const landscape=result.props.filter(p=>p.family==='terrain-hellscape');
+  const landscape=result.props.filter(p=>['terrain-hellscape','terrain-bone-border'].includes(p.family));
   assert.ok(landscape.length>0,'Monster regions need terrain masses beyond scattered den symbols');
   assert.ok(landscape.every(p=>p.allowedBiomes.length===1&&p.allowedBiomes[0]==='monster'),'Hellscape must remain inside monster territory');
   assert.ok(result.diagnostics.monsterBorders[0]?.placed>=6,'Bone spikes must follow the outer perimeter even when there are no shared graph edges');
-  assert.ok(result.props.filter(p=>p.context==='bone-boundary').every(p=>/-(1|5)(-mirror)?$/.test(p.kind)),'Border formations must use bone spine assets');
+  assert.ok(result.props.filter(p=>p.context==='bone-boundary').every(p=>p.family==='terrain-bone-border'),'Border formations must use bone spine assets');
+  assert.ok(new Set(result.props.filter(p=>p.context==='bone-boundary').map(p=>p.kind.replace(/-mirror$/,'').replace(/-(ridge|compact|small|micro)$/,''))).size>=5,'Monster rims must mix multiple distinct source silhouettes');
   const ordinary={...fixture,regions:fixture.regions.map(r=>({...r,biome}))};
   assert.equal(composeTerrainLandscape({...args,map:ordinary}).props.filter(p=>p.monster).length,0,'Ordinary biomes must never receive monster dens or pits');
   for(const m of monsters) for(const other of result.props.filter(p=>p!==m))
@@ -175,10 +176,10 @@ for(let seed=1860;seed<1880;seed++) {
 }
 console.log('Monster biome: two whole regions, six represented biomes, 20 cells, exact quotas and area accounting.');
 
-for(const n of [1,5])for(const mirror of ['', '-mirror']) {
-  const glyph=art[`terrain-hellscape-${n}${mirror}`],factor=.3;
+for(const n of Array.from({length:12},(_,n)=>n))for(const mirror of ['', '-mirror']) {
+  const glyph=art[`terrain-bone-border-${n}${mirror}`],factor=.3;
   const w=Math.round(glyph.rows[0].length*factor),h=Math.round(glyph.rows.length*factor);
-  art[`terrain-hellscape-${n}-micro${mirror}`]={rows:Array.from({length:h},(_,y)=>Array.from({length:w},(_,x)=>
+  art[`terrain-bone-border-${n}-micro${mirror}`]={rows:Array.from({length:h},(_,y)=>Array.from({length:w},(_,x)=>
     glyph.rows[Math.floor(y/factor)][Math.floor(x/factor)]).join(''))};
 }
 const tightMonster={...islandFixture,regions:islandFixture.regions.map(r=>({...r,biome:'monster',terrainBiome:'mountains'}))};

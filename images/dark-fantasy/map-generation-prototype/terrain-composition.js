@@ -104,7 +104,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       const prop = make(kind, px, py, family, salt, allowedBiomes, context), near = nearby(prop);
       // Never repeat the same source painting beside itself, including mirrors.
       if (near.some(p => baseKind(p.kind) === baseKind(kind)
-        && Math.hypot(p.left - prop.left, p.top - prop.top) < (context==='bone-boundary'?14:family.startsWith('contact') ? 40 : family==='terrain-forest'?18:family==='terrain-plains'?32:58) * detail)) {if(family==='terrain-forest')diagnostics.forestPlacement.repeatRejects++;continue;}
+        && Math.hypot(p.left - prop.left, p.top - prop.top) < (context==='bone-boundary'?32:family.startsWith('contact') ? 40 : family==='terrain-forest'?18:family==='terrain-plains'?32:58) * detail)) {if(family==='terrain-forest')diagnostics.forestPlacement.repeatRejects++;continue;}
       if (!legal(prop)) {if(family==='terrain-forest')diagnostics.forestPlacement.footprintRejects++;continue;}
       let overlap = 0;
       for (const p of near) overlap = Math.max(overlap, illustrationOverlap(prop, p, art));
@@ -117,7 +117,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       options.push({ prop, score, join });
     }
     options.sort((a, b) => b.score - a.score);
-    return options[0]?.prop ?? ((family.startsWith('terrain-island-') || family.startsWith('terrain-monster-') || ['terrain-plains','terrain-forest','terrain-hellscape'].includes(family)) && sizeLevel < (context==='bone-boundary'?4:2)
+    return options[0]?.prop ?? ((family.startsWith('terrain-island-') || family.startsWith('terrain-monster-') || ['terrain-plains','terrain-forest','terrain-hellscape','terrain-bone-border'].includes(family)) && sizeLevel < (context==='bone-boundary'?4:2)
       ? choose({ x,y,family,indices,salt,allowedBiomes,context,previous,sizeLevel:sizeLevel+1,canopyCore }) : undefined);
   };
 
@@ -125,7 +125,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
   // roofs; low foreground pieces lead into the biome, with an open approach.
   const siteRecipes={
     plains:{rear:[6,7,8],front:[9,10,11]},
-    forest:{rear:[4,5,7],front:[8,9,11]},
+    forest:{rear:[0,1,2,3,4,5,7],front:[8,9,10,11]},
     islands:{rear:[4,6,7],front:[8,10,11]},
     swamp:{rear:[3,6,8],front:[9,10,11]},
     mountains:{rear:[7,8,9],front:[8,9,11]},
@@ -136,24 +136,26 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
     const approach=site.surroundings?.approachAngle??Math.atan2(site.entrance.y-site.y,site.entrance.x-site.x);
     let placed=0;
     for(const n of [7,10,4,1,8,5,11,2,6,3,0,9]) {
-      const a=n*Math.PI/6+(rand(i*43+n+8101)-.5)*.22;
+      const woodland=site.biome==='forest';
+      const a=n*Math.PI/6+(rand(i*43+n+8101)-.5)*(woodland?.65:.22);
       const angularGap=Math.abs(Math.atan2(Math.sin(a-approach),Math.cos(a-approach)));
       if(angularGap<.65) continue;
       const rear=Math.sin(a)<-.25;
       const indices=rear?recipe.rear:recipe.front;
       let prop;
-      for(const ring of (['plains','forest'].includes(site.biome)?[1.15,1.45,1.75]:[1.4,1.75,2.1])) {
-        const x=site.x+Math.cos(a)*(site.rx*ring+4*detail);
-        const y=site.y+Math.sin(a)*(site.ry*ring+3*detail);
+      const fringe=woodland?.78+rand(i*57+n+9101)*.44:1;
+      for(const ring of (woodland?[1.05,1.3,1.6,1.9]:site.biome==='plains'?[1.15,1.45,1.75]:[1.4,1.75,2.1])) {
+        const x=site.x+Math.cos(a)*(site.rx*ring*fringe+4*detail);
+        const y=site.y+Math.sin(a)*(site.ry*ring*fringe+3*detail);
         prop=choose({x,y,family,indices,salt:620001+i*9887+n*431,allowedBiomes:[site.biome],context:'settlement-edge',
           sizeLevel:['plains','forest'].includes(site.biome)?(rear?0:1):site.biome==='islands'?1:0});
         if(prop) break;
       }
       if(prop) {prop.siteRegion=site.regionId;add(prop);placed++;}
-      if(placed>=(['plains','forest'].includes(site.biome)?8:6)) break;
+      if(placed>=(site.biome==='forest'?11:site.biome==='plains'?8:6)) break;
     }
     if(site.surroundings) site.surroundings.placed=placed;
-    diagnostics.settlementEdges.push({region:site.regionId,biome:site.biome,placed});
+    diagnostics.settlementEdges.push({region:site.regionId,biome:site.biome,placed,layout:site.surroundings?.layout});
   }
 
   // Monster territories use several small terrain features, never one hub.
@@ -216,7 +218,8 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
   diagnostics.monsterBorders=[];
   if(art['terrain-hellscape-1'])for(const [i,border] of monsterPerimeterPaths(map).entries()) {
     const region=regions.get(border.regionId),centre=pixel(region.centre);
-    paths.push({points:border.points.map(pixel),family:'terrain-hellscape',indices:[1,5],
+    const varied=!!art['terrain-bone-border-0'];
+    paths.push({points:border.points.map(pixel),family:varied?'terrain-bone-border':'terrain-hellscape',indices:varied?Array.from({length:12},(_,n)=>n):[1,5],
       allowedBiomes:['monster'],salt:990001+i*811,
       context:'bone-boundary',regionId:region.id,edgeId:border.edgeId,interior:centre});
   }
@@ -347,7 +350,8 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
         const t = (next - travelled) / length, x = a.x + (b.x - a.x) * t, y = a.y + (b.y - a.y) * t;
         const salt = path.salt + (++attempts) * 719;
         const dx = b.x - a.x, dy = b.y - a.y;
-        const recipe = { ...path, indices: !path.directional ? path.indices : Math.abs(dy) < Math.abs(dx) * .4 ? [0, 1, 6, 7, 10]
+        const recipe = { ...path, sizeLevel:path.context==='bone-boundary'?(rand(salt+11)<.35?0:rand(salt+12)<.7?1:2):0,
+          indices: path.family==='terrain-bone-border'?(rand(salt+13)<.3?[2,5,8,9,10]:[0,1,3,4,6,7,11]):!path.directional ? path.indices : Math.abs(dy) < Math.abs(dx) * .4 ? [0, 1, 6, 7, 10]
           : Math.abs(dy) > Math.abs(dx) * 2 ? [4, 5, 7, 10] : dx * dy < 0 ? [2, 6, 7, 10] : [3, 6, 7, 10] };
         let prop = choose({ ...recipe, x, y, salt, previous });
         if(!prop&&path.context==='bone-boundary')for(const offset of [4,8,12]) {
@@ -370,7 +374,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
           add(prop); previous = prop;
           accepted++;
           const s = shape(art[prop.kind]), projected = Math.abs((b.x - a.x) / length) * s.width + Math.abs((b.y - a.y) / length) * s.height;
-          next += projected * (.40 + rand(salt + 5) * .16);
+          next += path.context==='bone-boundary'?projected*(.48+rand(salt+5)*.36)+(rand(salt+17)<.16?8*detail:0):projected * (.40 + rand(salt + 5) * .16);
         } else next += (path.context==='bone-boundary'?3+rand(salt+7)*4:7 + rand(salt + 7) * 7) * detail;
       }
       travelled += length;

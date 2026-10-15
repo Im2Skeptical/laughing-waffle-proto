@@ -56,8 +56,9 @@ for biome in biomes:
         assert np.array_equal(common, bank[:, 0]), f'{biome} bank variations cannot join'
 
 relief = json.loads((folder / 'relief-v1.json').read_text())
-assert len(relief['frames']) == 196
+assert len(relief['frames']) == 208
 assert len([f for f in relief['frames'] if f['family']=='hellscape'])==12
+assert len([f for f in relief['frames'] if f['family']=='bone-border'])==12
 for biome in biomes:
     monster = [f for f in relief['frames'] if f['family'] == f'monster-{biome}']
     assert len(monster) == 6 and all(not f['cutRuns'] for f in monster), 'Each biome needs complete den/pit/accent pieces'
@@ -77,4 +78,4 @@ assert all(f['rect'][2] == expected_widths[f['role']] for f in settlements), 'Bu
 
 total = sum(p.stat().st_size for p in folder.iterdir() if p.suffix in ['.webp', '.json'])
 assert total < 3 * 1048576, 'Imported art exceeded the prototype runtime budget'
-print(f'Map terrain: 635 cases across five biomes, exact ground/contact/bank pixel joins, 196 relief frames; {total / 1048576:.2f} MiB.')
+print(f'Map terrain: 635 cases across five biomes, exact ground/contact/bank pixel joins, 208 relief frames; {total / 1048576:.2f} MiB.')

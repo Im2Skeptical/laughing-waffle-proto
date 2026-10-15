@@ -1,7 +1,7 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.7** — projecting bone ridges along the exposed
-perimeter of combined monster territories. The version appears under the title inside the
+Current published revision: **Map v1.0.8** — varied woodland settlement glades and twelve
+new bone-border silhouettes with irregular size and spacing. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -37,6 +37,11 @@ neighbouring terrain or water. Roads and dens retain gaps. Native, compact,
 small and micro variants handle restricted strips. Spikes retain their silhouette
 across division stencils; geography and water remain unchanged underneath.
 `terrainComposition.monsterBorders` reports attempts and placements per edge.
+Bone-border v1 adds twelve silhouettes, mixing tall tusks, leaning ribs, branching
+spines and low collapsed remnants. Seeded size, spacing and occasional breaks
+prevent a repeating fence. The separate kit retains the same grounded-foot rules.
+Master: `assets/masters/composable-bone-border-v1.png`; prompts:
+[bone-border-prompts-v1.json](assets/masters/bone-border-prompts-v1.json).
 Six generated pieces per material variant supply two low dens, a sunken pit,
 paired sinkholes, bone/cloth accents and scarred ground. The live game's bone,
 horn, dark stone, rust cloth and restrained ember theme is adapted to local
@@ -55,7 +60,7 @@ schemas, RNG streams or replay behavior change.
 Built-in imagegen master: `assets/masters/monster-biomes-v1.png`; exact prompt
 and theme references: [monster-biomes-prompts-v1.json](assets/masters/monster-biomes-prompts-v1.json).
 Import widths are 36/28px dens, 34/28px pits and 18/24px accents. The runtime
-kit now has 196 relief frames and is about 2.29 MiB. Run map-art, composition,
+kit now has 208 relief frames and is about 2.34 MiB. Run map-art, composition,
 settlement and browser LOD checks; inspect seeds 1867 and 1873 across all biomes.
 Hellscape master: `assets/masters/composable-hellscape-v1.png`; built-in imagegen
 prompt: [hellscape-prompts-v1.json](assets/masters/hellscape-prompts-v1.json).
@@ -67,6 +72,11 @@ building plots, the offset court, local lanes and a short dry entrance apron,
 with feathered edges; the previous broad ellipse wash is removed. Building pads
 use local soil/stone, and only a little source ground texture is reintroduced.
 Plains/forest enclosure marks are broken remnants, not a continuous circular rim.
+Forest towns vary between crescent glades, twin glades and a woodland lane.
+Building plots, local paths and worked-ground lobes share that layout. Warmer
+leaf-litter ground meets irregular canopy pockets; denser rear masses and low
+foreground margins preserve roofs and an open entrance. Woodland edge placement
+has up to eleven pieces with variable angles and distances rather than one ring.
 
 Before general terrain placement, each town gets up to eight deliberately placed
 biome pieces: low stone banks, grass and scrub for plains; woodland backs and
