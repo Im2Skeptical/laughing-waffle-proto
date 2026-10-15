@@ -87,7 +87,10 @@ dock, leaving the usual surrounding game screen visible. The complete map fits
 beside three options; pan, wheel/pinch zoom and Reset remain available. Unavailable
 regions, landmarks, labels and roads are greyed and darkened in every mode. The
 current region remains bright as the origin; Tour highlights only that region.
-Unavailable destinations do not select an action.
+Unavailable destinations do not select an action. Each option contains the shared time/Prestige cost
+panel used by shop choices; selecting a destination updates its exact price.
+Varying destination prices show **From** until a destination is selected. Selection
+feedback stays inside the modal, leaving the timegraph clear.
 
 Move highlights reachable destinations;
 Build highlights legal connections and draws the proposed road; Tour keeps the

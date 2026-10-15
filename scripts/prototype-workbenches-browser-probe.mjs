@@ -145,6 +145,15 @@ try {
       assert.deepEqual(view.brightRegionIds,expected,`${mode} highlights only legal destinations and origin`);
       assert.equal(view.brightRegionIds.length+view.dimmedRegionIds.length,view.regionCount,`${mode} dims every other region`);
       assert.ok(view.dimmedRegionIds.length>0);
+      assert.equal(view.prices.length,3,'all World Decision options show their shared cost panel');
+      for(const item of [...view.prices,view.feedback]) {
+        const r=item.rect;
+        assert.ok(r.x>=PANEL.x&&r.y>=PANEL.y&&r.x+r.width<=PANEL.x+PANEL.width&&r.y+r.height<=PANEL.y+PANEL.height,
+          `${mode} prices and feedback stay inside the modal, above the timegraph`);
+      }
+      const selected=view.targets.find(t=>t.id===view.selectedOptionId),price=view.prices.find(p=>p.mode===mode);
+      if(selected){assert.equal(price.optionId,selected.id);assert.equal(price.phaseCost,selected.phases);assert.equal(price.prestigeCost,selected.cost);}
+      assert.ok(!view.feedback.text.includes('Prestige'),'price text no longer floats below the modal');
       const before=view.selectedOptionId;
       await openingClick('worldTarget',view.dimmedRegionIds[0]);
       assert.equal((await world()).selectedOptionId,before,`${mode} ignores unavailable destinations`);
