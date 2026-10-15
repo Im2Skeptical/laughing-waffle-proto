@@ -53,8 +53,8 @@ try {
   const settled=()=>page.waitForFunction(()=>!__SETTLEMENT_DEBUG__.getFounderSnapshot().transitioning);
   assert.equal(dossier.lockedSlots,2,'two locked founder slots');
   const firstTab=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getFounderControlClickPoint('tab:0')),lastTab=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getFounderControlClickPoint('tab:3'));
-  // The right-hand column (attributes and abilities) spans panel x 600..2310 from the modal's left edge at 44.
-  assert.ok(Math.abs((firstTab.x+lastTab.x)/2-(44+(600+2310)/2))<2,'the four class slots are centred on the right-hand column');assert.equal(firstTab.y,lastTab.y);
+  // The right-hand column (attributes and abilities) spans panel x 616..2296 from the modal's left edge at 44.
+  assert.ok(Math.abs((firstTab.x+lastTab.x)/2-(44+(616+2296)/2))<2,'the four class slots are centred on the right-hand column');assert.equal(firstTab.y,lastTab.y);
   await click('getFounderControlClickPoint','tab:2');
   assert.match((await page.evaluate(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState())).title,/Locked/,'locked slot explains itself');
   await page.keyboard.press('Escape');

@@ -1,0 +1,11 @@
+{
+  "date": "2026-10-16",
+  "tool": "supplied by the project owner (original generation prompts were not recorded with the files)",
+  "direction": "Weathered dark stone, aged brass trim, neutral high-luminance so it can be tinted per class. Flat pure-black background so it can be luminance-keyed into real alpha. No baked text or numbers.",
+  "sources": [
+    { "id": "window", "file": "generated/window-source.jpg", "subject": "16:9 carved stone window frame with brass corner caps and top/bottom gems" },
+    { "id": "panel", "file": "generated/panel-source.jpg", "subject": "thin-rim panel frame with corner studs and brass trim" },
+    { "id": "banner", "file": "generated/banner-source.jpg", "subject": "tall swallow-tail banner frame with a brass header rail" },
+    { "id": "tabs", "file": "generated/tabs-source.jpg", "subject": "2x2 sheet: normal tab, selected tab with amber inner glow, locked tab with iron bands, round icon socket" }
+  ]
+}
