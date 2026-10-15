@@ -181,9 +181,9 @@ def import_surfaces():
 
 def import_relief():
     images, records = [], []
-    sheets = [(b, 4, 3) for b in BIOMES] + [('contacts-1', 5, 5), ('contacts-2', 5, 5), ('ridge-border', 4, 3), ('bridge', 4, 2)]
+    sheets = [(b, 4, 3) for b in BIOMES] + [('contacts-1', 5, 5), ('contacts-2', 5, 5), ('ridge-border', 4, 3), ('bridge', 4, 2), ('island-basalt', 4, 3), ('island-caldera', 4, 3)]
     for name, columns, rows in sheets:
-        source_path = MASTER / f'composable-{name}-v2.png' if name in ['mountains', 'swamp'] else MASTER / f'composable-{name}-v1.png' if name in ['ridge-border', 'bridge'] else BASE / f'composable-{name}-v1.png'
+        source_path = MASTER / f'composable-{name}-v2.png' if name in ['mountains', 'swamp'] else MASTER / f'composable-{name}-v1.png' if name in ['ridge-border', 'bridge', 'island-basalt', 'island-caldera'] else BASE / f'composable-{name}-v1.png'
         source = Image.open(source_path).convert('RGBA')
         payload = json.dumps([source.width, source.height, columns, rows]).encode() + b'\n' + source.tobytes()
         probe = subprocess.run(['node', str(ROOT / 'scripts/map-terrain-frame-probe.mjs')], input=payload, capture_output=True, check=True)
@@ -204,6 +204,7 @@ def import_relief():
             width = 50 if contact else round((36 if name == 'mountains' else 26 if name == 'forest' else 25) * scale) * 2
             if name == 'ridge-border': width = 92 if n < 8 else 64
             if name == 'bridge': width = 64
+            if name.startswith('island-'): width = 88 if n < 2 else 64 if n < 8 else 52
             height = min(118, max(1, round(width * cropped.height / cropped.width)))
             image = np.array(cropped.resize((width, height), Image.Resampling.LANCZOS))
             images.append(image)
@@ -262,4 +263,4 @@ if __name__ == '__main__':
     import_relief()
     import_buildings()
     total = sum(p.stat().st_size for p in OUT.iterdir() if p.suffix in ['.webp', '.json'])
-    print(f'Map art import: 635 terrain cases, 40 bank profiles, 130 relief frames; runtime files {total / 1048576:.2f} MiB')
+    print(f'Map art import: 635 terrain cases, 40 bank profiles, 154 relief frames; runtime files {total / 1048576:.2f} MiB')

@@ -20,6 +20,7 @@ const state = { seed: Math.floor(numberParam('seed', 1867, 0, 2147483647)),
   variant: VARIANTS[params.get('variant')] ? params.get('variant') : 'F',
   texel: [2, 4, 6].includes(Number(params.get('texel'))) ? Number(params.get('texel')) : 4, sites: params.get('sites') !== '0', fog: params.get('fog') !== '0',
   siteArt: ['live', 'sketch'].includes(params.get('siteArt')) ? params.get('siteArt') : 'atlas', actorScale: numberParam('actorScale', .75, .5, 1.5),
+  islandStyle: params.get('islandStyle') === 'caldera' ? 'caldera' : 'basalt',
   siteLabels: params.get('siteLabels') !== '0',
   smoothZoom: params.get('smoothZoom') !== '0', detailMode: ['close', 'regional', 'overview'].includes(params.get('detailMode')) ? params.get('detailMode') : 'auto',
   flipX: params.get('flipX') === '1', flipY: params.get('flipY') === '1', selected: null };
@@ -144,6 +145,7 @@ function drawControls() {
   button('Mirror horizontally', 58, 814, 182, 80, () => { state.flipX = !state.flipX; render(); }, { copy: 'Flip ↔', active: state.flipX });
   button('Mirror vertically', 256, 814, 184, 80, () => { state.flipY = !state.flipY; render(); }, { copy: 'Flip ↕', active: state.flipY });
   button('Save map PNG', 58, 914, 382, 64, exportPng, { copy: 'Save map PNG', size: 27 });
+  if (state.variant === 'F') button('Switch island terrain', 58, 1008, 382, 52, () => { state.islandStyle = state.islandStyle === 'basalt' ? 'caldera' : 'basalt'; render(); }, { copy: state.islandStyle === 'basalt' ? 'Islands: Basalt' : 'Islands: Caldera', size: 24 });
 }
 
 function drawTree(g, x, y, s, colour) {
@@ -473,8 +475,8 @@ function drawPixelMap() {
     pixelArtCache.clear(); pixelArtMap = map;
   }
   const terrainAt = texel => {
-    const key = `${texel}:${state.sites}:${state.actorScale}`;
-    if (!pixelArtCache.has(key)) pixelArtCache.set(key, bakePixelTerrain(map, { texel, sites: state.sites, settlementScale: state.actorScale, sampleBackground: backgroundArt.sample }));
+    const key = `${texel}:${state.sites}:${state.actorScale}:${state.islandStyle}`;
+    if (!pixelArtCache.has(key)) pixelArtCache.set(key, bakePixelTerrain(map, { texel, sites: state.sites, settlementScale: state.actorScale, islandStyle: state.islandStyle, sampleBackground: backgroundArt.sample }));
     if (pixelArtCache.size > 4) {
       const oldest = pixelArtCache.keys().next().value, art = pixelArtCache.get(oldest);
       destroyPixelTerrain(art); pixelArtCache.delete(oldest);
@@ -752,7 +754,7 @@ function render() {
 function sync() {
   const url = new URL(location.href);
   for (const [key, value] of Object.entries({ seed: state.seed, clustering: state.clustering, size: state.sizeVariation,
-    roughness: state.roughness, features: state.featureSet, variant: state.variant, texel: state.texel, sites: state.sites ? 1 : 0, siteArt: state.siteArt, siteLabels: state.siteLabels ? 1 : 0, actorScale: state.actorScale, smoothZoom: state.smoothZoom ? 1 : 0, detailMode: state.detailMode, fog: state.fog ? 1 : 0, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
+    islandStyle: state.islandStyle, roughness: state.roughness, features: state.featureSet, variant: state.variant, texel: state.texel, sites: state.sites ? 1 : 0, siteArt: state.siteArt, siteLabels: state.siteLabels ? 1 : 0, actorScale: state.actorScale, smoothZoom: state.smoothZoom ? 1 : 0, detailMode: state.detailMode, fog: state.fog ? 1 : 0, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
   history.replaceState(null, '', url);
   document.getElementById('status').textContent = `Seed ${state.seed} · ${VARIANTS[state.variant]} · 20 regions · quota counts ${Object.values(map.quota).join(' / ')} · ${map.features.map(f => FEATURE_NAMES[f.type]).join(' + ')}`;
   document.getElementById('state').textContent = JSON.stringify({ controls: state, quota: map.quota,

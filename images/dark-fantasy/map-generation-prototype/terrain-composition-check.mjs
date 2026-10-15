@@ -5,7 +5,7 @@ import { generateMap } from './generator.js';
 
 const art = {};
 for (const family of ['plains', 'forest', 'islands', 'swamp', 'mountains'].map(b => `terrain-${b}`)
-  .concat(CONTACT_PAIRS.map((_, n) => `contact-${n}`))) {
+  .concat(['terrain-island-basalt', 'terrain-island-caldera']).concat(CONTACT_PAIRS.map((_, n) => `contact-${n}`))) {
   for (let n = 0; n < (family.startsWith('contact') ? 5 : 12); n++) {
     const width = 18 + n % 4 * 3, height = 14 + n % 3 * 2;
     const rows = Array.from({ length: height }, (_, y) => Array.from({ length: width }, (_, x) =>
@@ -60,9 +60,15 @@ assert.ok(Math.max(sr, sg, sb) - Math.min(sr, sg, sb) < 25, 'Stone must remain n
 console.log('Terrain composition: real silhouette joins, legal footprints, nonrepeating neighbours, deterministic seeds and material colours pass.');
 
 const islandFixture={seed:1873,regions:[{id:1,biome:'islands',centre:{x:120,y:75},outline:[{x:0,y:0},{x:240,y:0},{x:240,y:150},{x:0,y:150}]}],edges:[],features:[],geography:{coasts:[]}};
-const islandBelt=composeTerrainLandscape({map:islandFixture,art,pixel:p=>p,world:(x,y)=>({x,y}),detail:1,
-  legal:p=>p.left>0&&p.top>0&&p.left+art[p.kind].rows[0].length<240&&p.top+art[p.kind].rows.length<150});
-assert.ok(islandBelt.props.some(p=>p.context==='island-belt'),'Islands need a connected structural belt');
-assert.ok(islandBelt.diagnostics.joined>0,'Island belt must join actual silhouettes');
-assert.ok(islandBelt.props.every(p=>/^terrain-islands-(2|3|7|8|11)(-mirror)?$/.test(p.kind)),'No flattened boulder/bowl stamps in island interiors');
-console.log('Island composition: dune/scrub belts join silhouettes, with no legacy flattened fragments.');
+for (const islandStyle of ['basalt', 'caldera']) {
+  const args={map:islandFixture,art,pixel:p=>p,world:(x,y)=>({x,y}),detail:1,islandStyle,
+    legal:p=>p.left>0&&p.top>0&&p.left+art[p.kind].rows[0].length<240&&p.top+art[p.kind].rows.length<150};
+  const result=composeTerrainLandscape(args);
+  assert.deepEqual(result,composeTerrainLandscape(args),'Both treatments must remain deterministic');
+  assert.equal(result.diagnostics.islandCraters,1,'One principal crater per connected group');
+  assert.ok(result.props.some(p=>p.context==='island-belt'),'Flanks must form a structural belt');
+  assert.ok(result.diagnostics.joined>0,'Volcanic belts must join actual silhouettes');
+  assert.ok(result.props.every(p=>p.family===`terrain-island-${islandStyle}`),'No legacy dune or cliff scatter');
+  assert.ok(result.props.filter(p=>p.context==='interior').every(p=>Number(p.kind.replace(/-mirror$/,'').split('-').at(-1))>=8),'Crater art must never enter interior scatter');
+}
+console.log('Island composition: two deterministic volcanic kits, one crater per group, connected flanks and separate undergrowth.');

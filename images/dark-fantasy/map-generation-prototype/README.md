@@ -1,19 +1,31 @@
 # Map generation Pixi workbench (disposable prototype)
 
-### Island landscape pass
+### Volcanic island variations
 
-Smooth texture filtering defaults on; mouse-wheel camera easing is always enabled.
-Explicit `smoothZoom=0` review links still select Nearest.
+`Islands: Basalt / Caldera` beneath Save map PNG switches two complete terrain
+kits on the same geography and camera. The URL records `islandStyle=basalt`
+(default) or `islandStyle=caldera`. Smooth texture filtering still defaults on;
+mouse-wheel easing remains enabled with either texture filter.
 
-Island pieces retain their original proportions at 80% scale; the old 52%-wide,
-35%-tall flattened variants are removed. Low dune ridges, scrub and gravel replace
-the isolated bowl cliffs and boulder stamps. Connected belts follow each region's
-long axis and reuse the existing dry-footprint/settlement-reservation rules.
-Island ground blends from pale beaches to larger sand/heath patches inland.
-Sand within the imported illustrations has a muted material grade and softer
-edges; vegetation retains its own colour. This affects presentation only.
-Review seeds 1873 (large cluster) and 1862 (small islands), including zoom/flips.
-Run `node images/dark-fantasy/map-generation-prototype/terrain-composition-check.mjs`.
+Basalt uses charcoal extinct craters, broken flanks and sparse olive growth.
+Caldera uses older reddish weathered rims with denser tropical canopy. Each has
+12 generated pieces: two principal craters, six connected flank sections and four
+vegetation/rubble pieces. One principal crater is attempted per connected island
+group; if no whole footprint fits dry land outside towns, it is omitted. Craters
+never enter the scatter pool. Flanks follow region axes; undergrowth uses the
+existing seeded density field. Narrow beaches surround textured volcanic soil.
+Source artwork keeps its own colours, alpha and proportions.
+
+Built-in imagegen masters are `assets/masters/composable-island-basalt-v1.png`
+and `composable-island-caldera-v1.png`; exact prompts are in
+[island-volcanic-prompts.json](assets/masters/island-volcanic-prompts.json).
+Runtime pieces are 88px wide for craters, 64px for flanks and 52px for undergrowth.
+The complete imported art is about 2.25 MiB, with 154 relief frames (152 usable).
+Simulation state, RNG, schemas and replay remain untouched.
+
+Review seeds 1873 (large cluster) and 1862 (small islands), at Fit and close zoom.
+Run `node images/dark-fantasy/map-generation-prototype/terrain-composition-check.mjs`
+and `npm run check:map-art` for deterministic placement and complete extraction.
 
 ### Label-free composition and wheel zoom
 

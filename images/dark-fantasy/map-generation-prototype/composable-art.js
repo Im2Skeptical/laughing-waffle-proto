@@ -1,4 +1,4 @@
-export const composableLibrary = { biomePieces: 60, boundaryPieces: 50, cells: [], sheets: 9 };
+export const composableLibrary = { biomePieces: 84, boundaryPieces: 50, cells: [], sheets: 11 };
 
 // Source hues carry the material information: leaves, trunks, earth and rock.
 // Small channel corrections preserve those differences and the painted light.

@@ -166,14 +166,14 @@ function noise(seed, x, y, scale) {
   return (at(ix, iy) * (1 - u) + at(ix + 1, iy) * u) * (1 - v) + (at(ix, iy + 1) * (1 - u) + at(ix + 1, iy + 1) * u) * v;
 }
 
-export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = true, settlementScale = .75 }) {
+export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = true, settlementScale = .75, islandStyle = 'basalt' }) {
   const started = performance.now(), detail = texel === 2 ? 2 : 1, ART = ART_BANKS[detail];
   // Fine detail covers the map and a generous hinterland. A cheap distant bake
   // supports unrestricted panning without a giant high-resolution GPU texture.
   const bounds = texel === 2 ? { minX: -1.5, minY: -1.5, maxX: 2.5, maxY: 2.5 } : map.surroundings.bounds;
   let backdropTexture = null;
   if (texel === 2) {
-    const distant = bakePixelTerrain(map, { texel: 8, sampleBackground, sites: false });
+    const distant = bakePixelTerrain(map, { texel: 8, sampleBackground, sites: false, islandStyle });
     backdropTexture = distant.texture; distant.texture = null; destroyPixelTerrain(distant);
   }
   const groundBank = ATLAS_GROUND, waterBank = ATLAS_WATER;
@@ -251,15 +251,19 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       if (shoreTypes[j] && seaDistance[j] < best) { best = seaDistance[j]; shoreTypes[i] = shoreTypes[j]; }
     }
   }
-  // Island interiors are coastal heath with broad sandy clearings. Preserve the
-  // pale beach fringe, instead of using beach-white noise across the whole landmass.
+  // Volcanic soil retains source texture detail; narrow beaches remain coastal.
+  // This prepares the substrate before drawing the un-tinted illustrations.
   for (let y=0;y<height;y++) for(let x=0;x<width;x++) {
     const i=y*width+x;
     if (!land[i] || map.regions[regionIds[i]]?.biome !== 'islands') continue;
-    const inland=Math.max(0,Math.min(1,(dryDistance[i]/3-4*detail)/(10*detail)));
+    const inland=Math.max(0,Math.min(1,(dryDistance[i]/3-2*detail)/(7*detail)));
     const heath=noise(map.seed^63917,x,y,35*detail);
-    const material=mixColour(0xb6aa86,0x858d70,Math.max(0,Math.min(1,(heath-.3)*2)));
-    colours[i]=mixColour(colours[i],material,inland*.72);
+    let material=mixColour(islandStyle === 'caldera' ? 0x84775c : 0x777971, islandStyle === 'caldera' ? 0x596447 : 0x565d4d, Math.max(0,Math.min(1,(heath-.3)*2)));
+    const source = surfaces.ground('islands', x, y);
+    const light = ((source >> 16 & 255) + (source >> 8 & 255) + (source & 255)) / 3;
+    material = light > 145 ? mixColour(material, 0xb2b099, Math.min(.35, (light-145)/190))
+      : mixColour(material, 0x353b31, Math.min(.3, (145-light)/180));
+    colours[i]=mixColour(colours[i],material,inland*.96);
   }
   const waterBase = new Uint32Array(size), waterStrength = new Uint8Array(size);
   const surfaceTreatments = paintOcean({ map, width, height, texel, bounds, land, waterIndices, colours,
@@ -488,7 +492,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   // Replace playable scatter with connected terrain compositions. Existing
   // background engraving remains; towns keep their anchors. Playable coasts
   // use terrain profiles rather than isolated legacy cliff/rock stamps.
-  const composition = composeTerrainLandscape({ map, art: ART, pixel, world, detail,
+  const composition = composeTerrainLandscape({ map, art: ART, pixel, world, detail, islandStyle,
     // Road corridors stencil individual pixels in reliefSpriteTextures; they
     // create passes instead of rejecting an entire connecting landscape piece.
     legal: prop => {
@@ -501,7 +505,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   const retained = props.filter(prop => prop.background || prop.kind.startsWith('ruin'));
   props.splice(0, props.length, ...retained, ...composition.props);
   const foundations = paintTerrainFoundations({ props, art: ART, pixel, surfaces, materialAt, land, waterIndices,
-    colours, width, height, detail, noise, seed: map.seed, mixColour });
+    colours, width, height, detail, noise, seed: map.seed, mixColour, islandStyle });
   const divisions = paintRegionDivisions({ map, pixel, width, height, detail, land, regionIds,
     waterIndices, waterBase, colours, groundBank, noise, mixColour });
   paintSettlementSites(settlementPlans, { width, height, colours, waterIndices, regionIds, map, surfaces, mixColour, detail: siteDetail, dot: roadDot });

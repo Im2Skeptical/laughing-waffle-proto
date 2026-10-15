@@ -3,7 +3,7 @@
 export const SHORE_TREATMENTS = {
   plains: { bank: 0x78664a, sediment: 0xc5b78c, road: [0xa28d65, 0xc3b18a], beach: 14, exposure: .9 },
   forest: { bank: 0x424936, sediment: 0x92956a, road: [0x6b6446, 0xa49b70], beach: 5, exposure: .6 },
-  islands: { bank: 0x8a8e69, sediment: 0xd3cbae, road: [0xa7a27a, 0xd0c6a0], beach: 18, exposure: .8 },
+  islands: { bank: 0x565b4c, sediment: 0xb3ac8f, road: [0xa7a27a, 0xd0c6a0], beach: 6, exposure: .8 },
   swamp: { bank: 0x55475b, sediment: 0x96869a, road: [0x6e6958, 0xaaa18b], beach: 24, exposure: .18 },
   mountains: { bank: 0x615047, sediment: 0xa3927f, road: [0x8b7161, 0xbfa991], beach: 4, exposure: 1 },
 };

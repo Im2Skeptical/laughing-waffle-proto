@@ -45,7 +45,8 @@ const INTERIORS = {
 const COASTS = { forest: [5, 6, 7, 9, 10], mountains: [5, 6, 7, 8, 9, 11],
   swamp: [3, 5, 6, 8, 9, 10], plains: [3, 6, 9, 10, 11], islands: [0, 1, 2, 3, 4, 5, 10, 11] };
 
-export function composeTerrainLandscape({ map, art, pixel, world, legal, detail }) {
+export function composeTerrainLandscape({ map, art, pixel, world, legal, detail, islandStyle = 'basalt' }) {
+  const islandFamily = `terrain-island-${islandStyle}`;
   const props = [], diagnostics = { paths: 0, coastalProfiles: 0, placements: 0, joined: 0, breaks: 0, interiors: 0, families: {} };
   const regions = new Map(map.regions.map(r => [r.id, r]));
   const rand = salt => decorationRandom(map.seed ^ 48317, salt);
@@ -93,6 +94,34 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
     return options[0]?.prop;
   };
 
+  // One principal extinct crater per connected island group. Search the largest
+  // regions first, accepting only a complete dry footprint outside towns.
+  const visited = new Set();
+  for (const origin of map.regions.filter(r => r.biome === 'islands')) {
+    if (visited.has(origin.id)) continue;
+    const group = [origin]; visited.add(origin.id);
+    for (let k = 0; k < group.length; k++) for (const edge of map.edges) {
+      if (!edge.regions.includes(group[k].id)) continue;
+      for (const id of edge.regions) {
+        const r = regions.get(id);
+        if (r?.biome === 'islands' && !visited.has(id)) { group.push(r); visited.add(id); }
+      }
+    }
+    group.sort((a, b) => Math.abs(polygonArea(b.outline)) - Math.abs(polygonArea(a.outline)));
+    let crater = null;
+    for (const [index, region] of group.entries()) {
+      const c = pixel(region.centre), outline = region.outline.map(pixel);
+      const xs = outline.map(p => p.x), ys = outline.map(p => p.y);
+      for (let attempt = 0; attempt < 65 && !crater; attempt++) {
+        const salt = 190001 + map.regions.indexOf(region) * 811 + index * 97 + attempt * 47;
+        const x = attempt === 0 ? c.x : Math.min(...xs) + rand(salt) * (Math.max(...xs) - Math.min(...xs));
+        const y = attempt === 0 ? c.y : Math.min(...ys) + rand(salt + 1) * (Math.max(...ys) - Math.min(...ys));
+        if (!insidePolygon({ x, y }, outline)) continue;
+        crater = choose({ x, y, family: islandFamily, indices: [0, 1], salt, allowedBiomes: ['islands'], context: 'island-crater' });
+      }
+      if (crater) { add(crater); break; }
+    }
+  }
   const paths = [];
   const ridgeArt = !!art['terrain-ridge-border-0'];
   for (const [i, feature] of map.features.entries()) if (feature.type === 'ridge')
@@ -110,7 +139,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
     paths.push({ points, family: 'terrain-mountains', allowedBiomes: ['mountains'],
       indices: [0, 1, 2, 3, 4, 6, 10], salt: 130001 + i * 877, context: 'ridge' });
   }
-  // Low wind-shaped dune and scrub belts give islands a connected interior.
+  // Broken volcanic flanks and tropical scrub give islands a connected interior.
   // Shore profiles still own the waterline: no ring of pasted cliff blocks.
   for (const [i, region] of map.regions.entries()) if (region.biome === 'islands') {
     const outline=region.outline.map(pixel), c=pixel(region.centre);
@@ -120,7 +149,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
     paths.push({points:Array.from({length:9},(_,n)=>{
       const t=n/8*2-1,bend=Math.sin(t*Math.PI+rand(i+631)*2)*.25;
       return {x:c.x+(horizontal?t*rx:bend*rx),y:c.y+(horizontal?bend*ry:t*ry)};
-    }),family:'terrain-islands',allowedBiomes:['islands'],indices:[2,3,7,8],salt:160001+i*877,context:'island-belt'});
+    }),family:islandFamily,allowedBiomes:['islands'],indices:[2,3,4,5,6,7],salt:160001+i*877,context:'island-belt'});
   }
   for (const [i, edge] of map.edges.entries()) {
     if (edge.regions.length !== 2) continue;
@@ -197,7 +226,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
   // Correlated density fields form irregular masses and clearings in two
   // dimensions. Blue-noise-like candidate ordering avoids lines and stamp grids.
   for (const [index, region] of map.regions.entries()) {
-    const outline = region.outline.map(pixel), family = `terrain-${region.biome}`;
+    const outline = region.outline.map(pixel), family = region.biome === 'islands' ? islandFamily : `terrain-${region.biome}`;
     const xs = outline.map(p => p.x), ys = outline.map(p => p.y), minX = Math.min(...xs), minY = Math.min(...ys);
     const width = Math.max(...xs) - minX, height = Math.max(...ys) - minY;
     const area = Math.abs(polygonArea(outline)), dense = region.biome === 'forest';
@@ -210,10 +239,10 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
       candidates.push({ x, y, density, salt });
     }
     candidates.sort((a, b) => b.density - a.density);
-    let placed = 0, limit = Math.ceil(area / ((region.biome === 'islands' ? 1800 : region.biome === 'swamp' ? 1100 : dense ? 160 : 560) * detail * detail));
+    let placed = 0, limit = Math.ceil(area / ((region.biome === 'islands' ? (islandStyle === 'caldera' ? 600 : 1000) : region.biome === 'swamp' ? 1100 : dense ? 160 : 560) * detail * detail));
     for (const candidate of candidates) {
       if (placed >= limit || props.length >= 600) break;
-      const prop = choose({ ...candidate, family, indices: region.biome === 'mountains' ? [7, 8, 9, 11] : INTERIORS[region.biome], allowedBiomes: [region.biome], context: 'interior' });
+      const prop = choose({ ...candidate, family, indices: region.biome === 'islands' ? [8,9,10,11] : region.biome === 'mountains' ? [7, 8, 9, 11] : INTERIORS[region.biome], allowedBiomes: [region.biome], context: 'interior' });
       if (!prop) continue;
       const near = nearby(prop), overlap = near.reduce((n, p) => Math.max(n, illustrationOverlap(prop, p, art)), 0);
       // Moderate-density fringe extends an existing mass; high-density cores
@@ -222,6 +251,8 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail 
       add(prop); placed++; diagnostics.interiors++;
     }
   }
+  diagnostics.islandStyle = islandStyle;
+  diagnostics.islandCraters = props.filter(p => p.context === 'island-crater').length;
   diagnostics.placements = props.length;
   return { props, diagnostics };
 }

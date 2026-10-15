@@ -6,7 +6,7 @@ const variants = {
 };
 
 export function paintTerrainFoundations({ props, art, pixel, surfaces, materialAt, land, waterIndices,
-  colours, width, height, detail, noise, seed, mixColour }) {
+  colours, width, height, detail, noise, seed, mixColour, islandStyle = 'basalt' }) {
   let painted = 0;
   const families = {};
   for (const prop of props.filter(p => p.composed)) {
@@ -24,7 +24,7 @@ export function paintTerrainFoundations({ props, art, pixel, surfaces, materialA
       if (distance >= extent) continue;
       const weight = Math.min(.52, (extent - distance) * .64) * (.62 + grain * .38);
       const choices = variants[biome], variant = choices[Math.abs(prop.salt) % choices.length];
-      const substrate = surfaces.groundVariant(biome, variant, x, y);
+      const substrate = biome === 'islands' ? mixColour(islandStyle === 'caldera' ? 0x77684f : 0x65675d, 0x5b624c, grain) : surfaces.groundVariant(biome, variant, x, y);
       colours[i] = mixColour(colours[i], substrate, weight);
       painted++; families[biome] = (families[biome] ?? 0) + 1;
     }
