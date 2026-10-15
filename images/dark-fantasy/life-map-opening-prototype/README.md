@@ -168,13 +168,14 @@ The editor and saved-draft controls remain beside/below the mock screen.
 Practice shops first show two eligible Stock tags and **Random** in the native
 modal. Clicking a choice inspects its explanation without drawing offers or
 changing Prestige. Each choice has its own **Confirm** button below it, which
-can also be clicked directly. Random reveals another
-eligible Stock tag and immediately grants **+10 Prestige**, once per visit, to spend
-in that shop. If an authored pool has only one or two eligible tags, Random can
-repeat one of them. Structure choices remain Housing, Stock and Special. Housing contains
+can also be clicked directly. Random opens a generic Practice shop using the
+normal full catalog, class mix and quality rolls, and immediately grants **+10
+Prestige**, once per visit, to spend in that shop. Structure choices remain
+Housing, Stock and Special. Housing contains
 housing structures, Stock contains Stock-capacity structures, and Special contains
 the remaining structures. Picking a tag deals up to three matching offers. Optional
-authored cards restrict the pool. Tag and offer draws use the saved Vassal RNG;
+authored cards restrict the named tag pools; Random uses the regular catalog.
+Tag and offer draws use the saved Vassal RNG;
 reading the picker or previewing prices does not consume RNG.
 
 An offer that exceeds remaining unstaged Prestige instead costs a flat **+10

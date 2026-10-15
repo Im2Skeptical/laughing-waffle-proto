@@ -5,6 +5,7 @@ import { getDetailedPracticeDef, getDetailedStructureDef } from '../../../src/mo
 import { getDetailedPracticeTierIndex } from '../../../src/model/detailed-practice-tiers.js';
 import { getResearchUnlockIndex } from '../../../src/model/research-progression.js';
 import { getVassalActionPrestigeCost } from '../../../src/model/vassal-life-map.js';
+import { generateShopInventory } from '../../../src/model/vassal-life-map/shop.js';
 
 export const isOpeningTagShop = spec => ['shop', 'structureShop'].includes(spec?.kind);
 const structureTag = def => (def.housing > 0 || def.tags?.includes('Housing')) ? 'Housing'
@@ -20,12 +21,14 @@ export function createOpeningShopSelection(state, vassal, spec) {
   const ids = kind === 'practice' ? VASSAL_INTERVENTION_PRACTICE_IDS : Object.keys(settlementStructureDefs);
   const installed = state.world.sites.find(site=>site.regionId===vassal.locationRegionId)?.detailedState?.practiceSlots??[];
   const authored = spec.cards?.filter(card => (card.kind ?? 'practice') === kind);
-  const cards = (authored ?? ids.map(definitionId => ({ kind, definitionId }))).filter(card => {
+  const eligible = card => {
     const def = kind === 'practice' ? getDetailedPracticeDef(state, card.definitionId) : getDetailedStructureDef(state, card.definitionId);
     return def && def.locked !== true && ['common', vassal.classId ?? vassal.founderClassId].includes(def.pool)
       && !(kind==='practice'&&installed.some(slot=>slot?.practiceId===card.definitionId&&slot.tier==='diamond'))
       && getDetailedPracticeTierIndex(def.minimumQuality ?? 'bronze') <= getResearchUnlockIndex(state);
-  });
+  };
+  const allCards = ids.map(definitionId => ({ kind, definitionId })).filter(eligible);
+  const cards = authored ? authored.filter(eligible) : allCards;
   const stockTags = kind === 'practice' ? getVassalStockOutputIds(cards.map(card => getDetailedPracticeDef(state, card.definitionId))) : [];
   const choices = kind === 'practice'
     ? draw(state, stockTags, 2)
@@ -37,10 +40,8 @@ export function createOpeningShopSelection(state, vassal, spec) {
       cards: cards.filter(card => kind === 'practice' ? isVassalStockOutputPractice(getDetailedPracticeDef(state, card.definitionId), tag)
         : structureTag(getDetailedStructureDef(state, card.definitionId)) === tag) }));
   if (kind === 'practice') {
-    const unseen = stockTags.filter(tag => !choices.includes(tag));
     tags.push({ id: 'random', label: 'Random', prestigeGain: 10,
-      description: 'Reveal another stock tag and its Practice offers. Gain 10 Prestige when confirmed.', cards: stockTags.length ? cards : [],
-      randomTags: unseen.length ? unseen : stockTags });
+      description: 'Open a generic Practice shop. Gain 10 Prestige when confirmed.', cards: allCards });
   }
   return { kind, selectedTag: null, monsterPressurePerPurchase: spec.monsterPressurePerPurchase ?? 10, tags };
 }
@@ -49,10 +50,9 @@ export function chooseOpeningShopTag(session, tagId, createOffers) {
   if (!tag || selection.selectedTag || !tag.cards.length) throw new Error('Choose an available tag.');
   const vassal = session.state.civilization.vassalLineage.vassalsById[session.vassalId];
   const current = vassal.lifeMap.nodeStates[session.runtimeNodeId];
-  const selectedTag = tag.randomTags ? draw(session.state, tag.randomTags, 1)[0] : tag.id;
-  const cards = tag.randomTags ? tag.cards.filter(card => isVassalStockOutputPractice(getDetailedPracticeDef(session.state, card.definitionId), selectedTag)) : tag.cards;
-  current.inventory = createOffers(draw(session.state, cards, 3));
-  selection.selectedTag = selectedTag;
+  current.inventory = tag.id === 'random' ? generateShopInventory(session.state, vassal, current)
+    : createOffers(draw(session.state, tag.cards, 3));
+  selection.selectedTag = tag.id;
   // Prototype selection reward is available for this shop's purchases immediately.
   vassal.prestige += tag.prestigeGain ?? 0;
 }
