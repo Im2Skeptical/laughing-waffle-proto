@@ -1337,6 +1337,7 @@ settlementVassalChooserView = createWorldMapVassalDrawerView({
   onReroll: () => rerollLifeMapCandidates(),
   onClose: () => closeSettlementVassalSelection(),
   onHoverCandidate: (candidate) => settlementVassalFlow.hoverCandidate(candidate),
+  tooltipView,
 });
 runCompleteView = createRunCompleteView({
   app,
@@ -1454,6 +1455,8 @@ function handleGlobalKeyDown(ev) {
   if (researchLibrary.isOpen()) { researchLibrary.handleKeyDown(ev); return; }
   if (gameSession.isInMenu() || opening.isRevealing() || !ev || ev.repeat || isTypingTarget(ev.target)) return;
   if (runCompleteView?.isOpen?.()) return;
+  // The founder class picker owns arrows, Enter and Escape while it is open.
+  if (settlementVassalChooserView?.handleKeyDown?.(ev)) { ev.preventDefault(); return; }
   if (vassalHeirloomFlowView?.isOpen?.()) {
     if (ev.key === 'Escape') {ev.preventDefault();vassalHeirloomFlowView.closeInventory();}
     return;

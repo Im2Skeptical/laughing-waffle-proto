@@ -30,7 +30,8 @@ export function preloadVassalClassArt() {
   }).catch(error=>{loading=null;throw error;});
 }
 
-export function createClassPortraitArt(classId, {size, founder = false, texture = null} = {}) {
+// `crest` defaults to the founder crest; tabs and chips pass crest:false for the bare frame.
+export function createClassPortraitArt(classId, {size, founder = false, texture = null, crest = founder} = {}) {
   if (!textures[classId]) return null;
   const root = new PIXI.Container();
   const h = size * textures[classId].height / textures[classId].width;
@@ -46,8 +47,8 @@ export function createClassPortraitArt(classId, {size, founder = false, texture 
     mask.endFill();root.addChild(sprite,mask);sprite.mask=mask;
   }
   const frame = new PIXI.Sprite(textures[classId]);frame.width=size;frame.height=h;root.addChild(frame);
-  if (founder) {
-    const crest = new PIXI.Sprite(textures.crest);crest.position.set(size*.34,-size*.105);crest.width=size*.32;crest.height=size*.32;root.addChild(crest);
+  if (crest) {
+    const sun = new PIXI.Sprite(textures.crest);sun.position.set(size*.34,-size*.105);sun.width=size*.32;sun.height=size*.32;root.addChild(sun);
   }
   root.hitArea = new PIXI.Rectangle(0,0,size,h);
   return root;

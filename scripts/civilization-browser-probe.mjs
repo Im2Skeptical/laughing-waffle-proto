@@ -17,7 +17,7 @@ try {
   const snapshot=()=>page.evaluate(()=>__SETTLEMENT_DEBUG__.getSnapshot());
   const click=async(method,arg)=>{
    const p=await page.evaluate(([method,arg])=>__SETTLEMENT_DEBUG__[method](arg),[method,arg]);
-   assert.ok(p,method);const b=await page.locator('canvas').boundingBox();
+   assert.ok(p,method);if(!Number.isFinite(p.x))throw new Error('bad point '+method+' '+arg+' '+JSON.stringify(p));const b=await page.locator('canvas').boundingBox();
    await page.mouse.click(b.x+p.x/2424*b.width,b.y+p.y/1080*b.height);await delay(200);
   };
   await page.goto(url);
@@ -47,10 +47,21 @@ try {
   await click('getFounderControlClickPoint',dossier.classStat);
   assert.equal((await page.evaluate(()=>__SETTLEMENT_DEBUG__.getFounderSnapshot())).tooltip,dossier.classStat);
   await page.screenshot({path:`artifacts/civilization-${candidateIndex}-dossier-tooltip.png`});
-  await click('getFounderControlClickPoint','closeTooltip');
-  await click('getFounderControlClickPoint','next');
-  assert.notEqual((await page.evaluate(()=>__SETTLEMENT_DEBUG__.getFounderSnapshot())).classId,dossier.classId);
-  await click('getFounderControlClickPoint','previous');
+  await click('getFounderControlClickPoint',dossier.classStat);
+  assert.equal((await page.evaluate(()=>__SETTLEMENT_DEBUG__.getFounderSnapshot())).tooltip,null,'tapping the pinned detail again closes it');
+  const founderState=()=>page.evaluate(()=>__SETTLEMENT_DEBUG__.getFounderSnapshot());
+  const settled=()=>page.waitForFunction(()=>!__SETTLEMENT_DEBUG__.getFounderSnapshot().transitioning);
+  assert.equal(dossier.lockedSlots,2,'two locked founder slots');
+  await click('getFounderControlClickPoint','tab:2');
+  assert.match((await page.evaluate(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState())).title,/Locked/,'locked slot explains itself');
+  await page.keyboard.press('Escape');
+  assert.equal((await founderState()).tooltip,null,'Escape closes the pinned detail first');
+  await page.keyboard.press('ArrowRight');
+  await settled();
+  assert.notEqual((await founderState()).classId,dossier.classId,'arrow keys switch class');
+  await click('getFounderControlClickPoint',candidateIndex?'tab:0':'tab:1');
+  await settled();
+  assert.equal((await founderState()).classId,dossier.classId,'class tabs switch back');
   await page.screenshot({path:`artifacts/civilization-${candidateIndex}-dossier.png`});
   await click('getFounderControlClickPoint','begin');
   assert.equal((await page.evaluate(()=>__SETTLEMENT_DEBUG__.getLastVassalSelectionResult())).ok,true);
@@ -61,7 +72,7 @@ try {
   await click('getLifeMapEnterNodeClickPoint');
   await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getSnapshot().lifeMapDecision?.animation?.phase==='open');
   await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getLifeMapOptionClickPoint(0)!=null);
-  await click('getLifeMapOptionClickPoint',0);
+  await delay(600);await click('getLifeMapOptionClickPoint',0); // let the prepared decision layout settle after the preview switches above
   assert.equal((await snapshot()).lifeMapDecision.selectedOptionId,'train-estate');
   await page.screenshot({path:`artifacts/civilization-${candidateIndex}-founding.png`});
   await click('getLifeMapConfirmClickPoint');
