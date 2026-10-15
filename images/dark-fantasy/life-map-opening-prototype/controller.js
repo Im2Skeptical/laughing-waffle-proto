@@ -60,6 +60,21 @@ export function createOpeningController(storage = null) {
       session = next; checkpoints = [before];
       message = 'Travel reward example: three destinations offer +3, +6 and +9 Prestige. Restart returns to your draft.'; notify();
     },
+    previewShop(kind = 'shop', zeroPrestige = false) {
+      idle(); if (!['shop','structureShop'].includes(kind)) throw new Error('Choose a shop.');
+      const document = createOpeningExperiment(), shop = document.nodes.find(node=>node.id==='shop');
+      shop.kind=kind;shop.title=kind==='shop'?'Practice shop':'Structure shop';shop.description='';
+      const next=createOpeningSession(document);next.availableIds=['founding'];enterOpeningEncounter(next,'founding');
+      const beforeFounding=openingSummary(next), option=getOpeningDecision(next).options.find(option=>!option.blocked);
+      commitOpeningEncounter(next,option.id);
+      const vassal=openingVassal(next), target=vassal.lifeMap.pendingResolution?.resolveSec??next.state.tSec;
+      next.state.paused=false;
+      while(next.state.tSec<target) {const result=advanceReplayStateOneSecond(next.state);if(!result.ok)throw new Error(result.reason);}
+      finishOpeningEncounter(next,beforeFounding);
+      if(zeroPrestige)vassal.prestige=0;
+      const before=cloneOpeningSession(next);enterOpeningEncounter(next,'shop');session=next;checkpoints=[before];
+      message=shop.title;notify();
+    },
     nextSeed() { idle(); validateOpeningExperiment(draft); editDraft({ ...draft, seed: (draft.seed + 1) >>> 0 }); controller.restart(); },
     enter(id) { idle(); const checkpoint = cloneOpeningSession(session), next = cloneOpeningSession(session);
       enterOpeningEncounter(next, id); deserializeGameState(serializeGameState(next.state));
@@ -73,6 +88,7 @@ export function createOpeningController(storage = null) {
     move(id, origin) { transact(next => { const result = moveVassalShopStructure(next.state, next.runtimeNodeId, id, origin); if (!result.ok) throw new Error(result.reason); }); },
     reroll() { transact(next => {
       const spec = next.experiment.nodes.find(n => n.id === next.activeId);
+      if (next.shopSelection?.tags.length) throw new Error('Shop offers follow the selected tag.');
       if (spec.cards) throw new Error('Edit curated offers in the draft, then Restart.');
       const result = rerollVassalShop(next.state, next.runtimeNodeId); if (!result.ok) throw new Error(result.reason);
     }); },

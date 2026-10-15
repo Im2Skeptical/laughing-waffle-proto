@@ -117,7 +117,7 @@ export function addCostPanel(parent, rect, {
     prestigeCost > 0 ? { id: 'prestige', value: prestigeCost } : null,
     prestigeGain > 0 ? { id: 'prestige', value: `+${prestigeGain}`, fill: 0xb6ce92 } : null,
     currencyCost > 0 ? { id: 'money', value: currencyCost } : null,
-    monsterPressureCost > 0 ? { id: 'monster', value: `+${monsterPressureCost} progress` } : null,
+    monsterPressureCost > 0 ? { id: 'monster', value: `+${monsterPressureCost}`, fill: 0xf0ad97 } : null,
     chaosCost > 0 ? { id: 'chaos', value: `+${chaosCost}` } : null,
   ].filter(Boolean);
   const hasResources = resourceCosts.length > 0;
@@ -163,7 +163,7 @@ export function addCostPanel(parent, rect, {
       ...TEXT_STYLES.body, fontSize: 27, fill: accent,
     }, rect.width - 12, 7, 1, 0));
   }
-  const description = `${formatVassalPhaseDuration(phaseCost, state)}${prestigeCost ? `, ${prestigeCost} Prestige` : ''}${prestigeGain > 0 ? `, +${prestigeGain} Prestige` : ''}${currencyCost ? `, ${currencyCost} Gold` : ''}${chaosCost ? `, +${chaosCost} Chaos` : ''}${monsterPressureCost ? `, +${monsterPressureCost} Monster expansion progress` : ''}${riskLabel ? `, ${riskLabel.replace(/\n/g, ', ')}` : ''}`;
+  const description = `${formatVassalPhaseDuration(phaseCost, state)}${prestigeCost ? `, ${prestigeCost} Prestige` : ''}${prestigeGain > 0 ? `, +${prestigeGain} Prestige` : ''}${currencyCost ? `, ${currencyCost} Gold` : ''}${chaosCost ? `, +${chaosCost} Chaos` : ''}${monsterPressureCost ? `, +${monsterPressureCost} Monster Pressure` : ''}${riskLabel ? `, ${riskLabel.replace(/\n/g, ', ')}` : ''}`;
   root.accessible = interactive;
   root.accessibleType = 'button';
   root.accessibleTitle = `${label}: ${description}${unaffordable ? ' — cost unavailable' : ''}`;

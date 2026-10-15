@@ -13,6 +13,7 @@ const controller = createOpeningController(storage);
 const $ = id => document.getElementById(id);
 let selectedId = 'relic', editorKey = '', toolbarKey = '', jsonKey = '', error = '', guide = null;
 let gameScreen = null;
+let zeroPrestigeShopPreview = true;
 const graphEditor = createOpeningGraphEditor({ host: $('graph-editor'), controller, run,
   onSelect: id => { selectedId = id; editorKey = ''; render(); } });
 const abilityNames = { intelligence: 'Prowess', effectiveness: 'Effectiveness', wisdom: 'Wisdom', cunning: 'Cunning' };
@@ -123,6 +124,7 @@ function renderEditor(snapshot) {
   fields.kind = appendField(grid, 'Encounter type', spec.kind, { options: OPENING_KINDS.map(kind => [kind, KIND_LABELS[kind]]) });
   if(spec.kind!=='world') fields.phaseCost = appendField(grid, 'Override phases (blank = offer cost)', spec.phaseCost, { type: 'number', min: 0, max: 320 });
   if (spec.kind === 'supply') fields.stockOutput = appendField(grid, 'Stock output / auto', spec.stockOutput ?? 'auto');
+  if (['shop','structureShop'].includes(spec.kind)) fields.monsterPressurePerPurchase = appendField(grid,'Monster Pressure / purchase',spec.monsterPressurePerPurchase??10,{type:'number',min:0,max:10000});
   host.append(grid);
   const worldFields={}, rewardFields={};
   if(spec.kind==='world') {
@@ -174,6 +176,7 @@ function renderEditor(snapshot) {
         travelPrestigeByRegion:Object.fromEntries(Object.entries(rewardFields).map(([id,input])=>[id,Number(input.value)]))};
     }
     if (fields.stockOutput) changed.stockOutput = fields.stockOutput.value;
+    if (fields.monsterPressurePerPurchase) changed.monsterPressurePerPurchase = Number(fields.monsterPressurePerPurchase.value);
     for (const [list, rows] of Object.entries(lists)) {
       const items = rows.map(({ item, inputs }) => { const value = structuredClone(item); for (const [name, input] of Object.entries(inputs)) {
         if(name==='relicChance'){value.weightedOutcomes[0].weight=Number(input.value);value.weightedOutcomes[1].weight=100-Number(input.value);continue;}
@@ -192,6 +195,12 @@ function renderGuides(snapshot) {
     tab.setAttribute('aria-pressed', guide?.id === scenario.id ? 'true' : 'false'); tab.disabled = snapshot.busy; host.append(tab);
   }
   const travelExample=button('Travel reward example',previewTravelRewards);travelExample.id='travel-reward-example';travelExample.disabled=snapshot.busy;host.append(travelExample);
+  for(const [kind,label] of [['shop','Practice shop'],['structureShop','Structure shop']]) {
+    const preview=button(label,()=>{guide=null;controller.previewShop(kind,zeroPrestigeShopPreview);gameScreen?.openDecision();$('game-screen').scrollIntoView({block:'start',behavior:'smooth'});});
+    preview.id=kind==='shop'?'preview-practice-shop':'preview-structure-shop';preview.disabled=snapshot.busy;host.append(preview);
+  }
+  const zero=el('label','0 Prestige','shop-preview-toggle'), toggle=document.createElement('input');toggle.type='checkbox';toggle.checked=zeroPrestigeShopPreview;toggle.disabled=snapshot.busy;
+  toggle.id='shop-preview-zero-prestige';toggle.addEventListener('change',()=>{zeroPrestigeShopPreview=toggle.checked;});zero.prepend(toggle);host.append(zero);
   if (guide) { const next = button('Next guided choice', guidedChoice); next.disabled = snapshot.busy || !snapshot.development && !snapshot.session.activeId && !snapshot.session.availableIds.length; host.append(next); }
   $('guide').textContent = guide ? `${guide.text} You can also make any available choice yourself.` : 'Guided experiments restart the built-in draft. Free play uses your current draft.';
 }
@@ -200,6 +209,7 @@ async function guidedChoice() {
   if (snapshot.development) return controller.develop(snapshot.development.offeredStatIds.includes('intelligence') ? 'intelligence' : snapshot.development.offeredStatIds[0]);
   if (!snapshot.session.activeId) return controller.enter(snapshot.session.availableIds.includes(guide.entry) ? guide.entry : snapshot.session.availableIds[0]);
   const spec = snapshot.experiment.nodes.find(n => n.id === snapshot.session.activeId), decision = snapshot.decision;
+  if(decision.shopTagChoices)return controller.select((decision.shopTagChoices.find(tag=>tag.id==='Edible'&&tag.enabled)??decision.shopTagChoices.find(tag=>tag.enabled)).id);
   if (spec.kind === 'customNote') return controller.commit();
   if (spec.kind === 'shop' || spec.kind === 'supply') {
     if (spec.kind === 'shop' && guide.buy) {

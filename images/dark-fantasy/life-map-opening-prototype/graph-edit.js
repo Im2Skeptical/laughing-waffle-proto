@@ -1,6 +1,6 @@
 import { createOpeningExperiment, OPENING_KINDS } from './experiment.js';
 
-export const KIND_LABELS = { relic: 'Relic', world: 'World decision', founding: 'Founding', shop: 'Practice shop', development: 'Development', martial: 'Martial', supply: 'Stock supply', patronage: 'Easy benefit', specialRelic: 'Special relic', customNote: 'Custom Note' };
+export const KIND_LABELS = { relic: 'Relic', world: 'World decision', founding: 'Founding', shop: 'Practice shop', structureShop: 'Structure shop', development: 'Development', martial: 'Martial', supply: 'Stock supply', patronage: 'Easy benefit', specialRelic: 'Special relic', customNote: 'Custom Note' };
 export const OPENING_GRID = { x: 72, y: 62, columnWidth: 300, rowHeight: 150, maxIndex: 47 };
 const unique = ids => [...new Set(ids)];
 const node = (doc, id) => {
@@ -14,7 +14,8 @@ export function newOpeningNode(doc, kind, copyId = null) {
   if (doc.nodes.length >= 24) throw new Error('This experiment supports up to 24 nodes.');
   if (!OPENING_KINDS.includes(kind) || kind === 'founding') throw new Error('Keep the existing founding node.');
   const template = copyId ? node(doc, copyId) : kind === 'customNote'
-    ? { kind, title: 'Custom Note', description: '' } : kind === 'specialRelic'
+    ? { kind, title: 'Custom Note', description: '' } : kind === 'structureShop'
+    ? { kind, title: 'Structure shop', description: '', monsterPressurePerPurchase: 10 } : kind === 'specialRelic'
     ? { kind, title: 'A dangerous discovery', description: 'A rare relic with a signalled direct death risk.', relics: [{ definitionId: 'hourglass', phaseCost: 6, immediateDeathChance: .35 }] }
     : createOpeningExperiment().nodes.find(n => n.kind === kind);
   let index = 1;

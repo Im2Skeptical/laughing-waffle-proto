@@ -4,7 +4,7 @@ import { VASSAL_HEIRLOOM_DEFS } from '../../../src/defs/gamepieces/vassal-heirlo
 import { MOON_PHASE_COUNT } from '../../../src/defs/gamesettings/moon-phase-defs.js';
 import { getGameSetting } from '../../../src/model/game-config.js';
 import { worldMapDefs } from '../../../src/defs/world/world-map-defs.js';
-export const OPENING_KINDS = ['relic', 'world', 'founding', 'shop', 'development', 'martial', 'supply', 'patronage', 'specialRelic', 'customNote'];
+export const OPENING_KINDS = ['relic', 'world', 'founding', 'shop', 'structureShop', 'development', 'martial', 'supply', 'patronage', 'specialRelic', 'customNote'];
 
 const phasesPerYear = getGameSetting(null, 'seasonDurationSec') * 4 / getGameSetting(null, 'phaseDurationSec');
 const worldRegions = worldMapDefs.riverBasin01.regions;
@@ -46,11 +46,8 @@ export function createOpeningExperiment() {
         description: 'Both routes converge here. Train ten existing adults; Prestige now sustains your Retinue.', phaseCost: 6, next: ['shop'] },
       { id: 'shop', title: 'Make your first investment', kind: 'shop',
         description: 'Buy a useful Practice or keep Prestige for your Retinue. Purchases still use the real five-slot settlement board.', next: ['development'],
-        cards: [
-          { kind: 'practice', definitionId: 'herdingTrain', prestigeCost: 10, phaseCost: 12 },
-          { kind: 'practice', definitionId: 'logging', prestigeCost: 10, phaseCost: 12 },
-          { kind: 'practice', definitionId: 'barter', prestigeCost: 10, phaseCost: 12 },
-        ], pass: { id: 'save', label: 'Keep Prestige for the Retinue', phaseCost: 2, prestigeDelta: 1 } },
+        monsterPressurePerPurchase: 10,
+        pass: { id: 'save', label: 'Keep Prestige for the Retinue', phaseCost: 2, prestigeDelta: 1 } },
       { id: 'development', title: 'Prepare for what comes next', kind: 'development',
         description: 'Compare personal Force with the nearby targets. Development should change an upcoming decision.', next: ['martial'],
         options: [
@@ -96,6 +93,7 @@ export function validateOpeningExperiment(doc) {
     }
     if (node.displayLabel != null && typeof node.displayLabel !== 'string') throw new Error(`${node.title}: the game-screen label must be text.`);
     if (node.phaseCost != null && !finite(node.phaseCost, 0, 320)) throw new Error(`${node.title}: phases must be between 0 and 320.`);
+    if (node.monsterPressurePerPurchase != null && !finite(node.monsterPressurePerPurchase, 0, 10000)) throw new Error(`${node.title}: choose a non-negative Monster Pressure price.`);
     if (node.worldCosts != null) {
       const costs = node.worldCosts;
       if (!costs || typeof costs !== 'object' || Array.isArray(costs)

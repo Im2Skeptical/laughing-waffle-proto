@@ -20,6 +20,8 @@ import { specialistCount, stockTotal } from '../../../src/model/detailed-settlem
 import { getRegionState, getRegionReference } from '../../../src/model/world-state.js';
 import { getMoonPhaseDurationSec } from '../../../src/model/moon-phases.js';
 import { createOpeningExperiment, validateOpeningExperiment } from './experiment.js';
+import { isOpeningTagShop, createOpeningShopSelection, chooseOpeningShopTag, openingShopPrice } from './shop-experiment.js';
+import { applyVassalNodeEffects } from '../../../src/model/vassal-life-map/lifecycle/node-confirm.js';
 
 export function cloneOpeningSession(session) {
   return { ...structuredClone({ ...session, state: null }), state: deserializeGameState(serializeGameState(session.state)) };
@@ -92,7 +94,7 @@ function curatedOffers(state, vassal, current, cards) {
   return cards.flatMap((card, index) => {
     const kind = card.kind ?? 'practice', def = kind === 'practice' ? getDetailedPracticeDef(state, card.definitionId) : getDetailedStructureDef(state, card.definitionId);
     if (!def) throw new Error(`Unknown ${kind}: ${card.definitionId}`);
-    if (def.locked === true || !['common', vassal.classId].includes(def.pool)
+    if (def.locked === true || !['common', vassal.classId ?? vassal.founderClassId].includes(def.pool)
         || getDetailedPracticeTierIndex(def.minimumQuality ?? 'bronze') > getResearchUnlockIndex(state)) return [];
     const installed = kind === 'practice' ? settlement.practiceSlots.find(p => p?.practiceId === def.id) : null;
     if (installed?.tier === 'diamond') return [];
@@ -108,12 +110,13 @@ function curatedOffers(state, vassal, current, cards) {
 export function enterOpeningEncounter(session, id) {
   if (!session.availableIds.includes(id) || session.activeId) throw new Error('Choose an available encounter.');
   session.randomOutcome = null;
+  session.shopSelection = null;
   const note = session.experiment.nodes.find(n => n.id === id);
   if (note.kind === 'customNote') { session.activeId = id; session.availableIds = []; session.runtimeNodeId = null; return session; }
   const { state } = session, vassal = getCurrentLifeMapVassal(state);
   if (!vassal || state.runStatus?.complete) throw new Error('This run has ended. Rewind or restart.');
   const spec = session.experiment.nodes.find(n => n.id === id), graph = vassal.lifeMap.graph;
-  const family = { world: 'travel', founding: 'warlordFounding', shop: 'practiceReform', martial: 'challenge', supply: 'stockShop', specialRelic: 'relic' }[spec.kind] ?? spec.kind;
+  const family = { world: 'travel', founding: 'warlordFounding', shop: 'practiceReform', structureShop: 'publicWorks', martial: 'challenge', supply: 'stockShop', specialRelic: 'relic' }[spec.kind] ?? spec.kind;
   const specimens = graph.nodes.filter(n => n.depth > 0 && !n.signatureNode && !['legacy', 'signature'].includes(n.family));
   const runtime = spec.kind === 'founding' ? graph.nodes.find(n => n.id === graph.foundingNodeId)
     : specimens.find(n => !vassal.lifeMap.completedNodeIds.includes(n.id)) ?? specimens[0];
@@ -161,7 +164,12 @@ export function enterOpeningEncounter(session, id) {
     current.options = spec.options.map(o => toOption(o, o.id));
   }
   if (spec.kind === 'relic') current.options.forEach(o => { o.immediateDeathChance = 0; });
-  if (spec.kind === 'shop' && spec.cards) current.inventory = curatedOffers(state, vassal, current, spec.cards);
+  if (isOpeningTagShop(spec)) {
+    session.shopSelection = createOpeningShopSelection(state, vassal, spec);
+    current.inventory = [];current.options = [];current.contentMode = 'shop';
+  } else if (current.contentMode === 'shop') {
+    session.shopSelection = {kind:'practice',selectedTag:runtime.stockOutput??spec.kind,tags:[],monsterPressurePerPurchase:spec.monsterPressurePerPurchase??10};
+  }
   if (spec.phaseCost != null && spec.kind !== 'world') {
     current.options.forEach(o => { o.phaseCost = spec.phaseCost; });
     current.inventory.forEach(o => { o.basePhaseCost = spec.phaseCost; });
@@ -174,8 +182,18 @@ export function getOpeningDecision(session, preview = {}) {
   if (!session.activeId) return null;
   const note = session.experiment.nodes.find(n => n.id === session.activeId);
   if (note.kind === 'customNote') return { node: note, nodeState: { contentMode: 'note' }, options: [], purchases: [] };
-  const presentation = getVassalNodeDecisionPresentation(session.state, session.runtimeNodeId, preview);
   const vassal = openingVassal(session), current = nodeState(session);
+  let priceState = session.state;
+  if (session.shopSelection?.selectedTag && current.inventory.some(offer => offer.monsterPressureCost > 0 || openingShopPrice(vassal, current, offer, session.shopSelection.monsterPressurePerPurchase).usesMonsterPressure)) {
+    priceState = deserializeGameState(serializeGameState(session.state));
+    const inventory = priceState.civilization.vassalLineage.vassalsById[session.vassalId].lifeMap.nodeStates[session.runtimeNodeId].inventory;
+    inventory.forEach(offer => {
+      const price = openingShopPrice(vassal, current, offer, session.shopSelection.monsterPressurePerPurchase);
+      offer.monsterPressureCost = price.monsterPressureCost;
+      if (price.usesMonsterPressure) offer.basePrestigeCost = 0;
+    });
+  }
+  const presentation = getVassalNodeDecisionPresentation(priceState, session.runtimeNodeId, preview);
   const spec = session.experiment.nodes.find(n => n.id === session.activeId);
   const options = current.options.map(option => {
     const cost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
@@ -197,20 +215,37 @@ export function getOpeningDecision(session, preview = {}) {
       timeLabel: formatVassalPhaseDuration(phases, session.state), projectedAge: age,
       naturalDeathChance: getVassalMortalityChance(age), totalDeathChance: getVassalMortalityChance(age) };
   }
-  return { ...presentation, node: { ...presentation.node, experimentId: spec.id,
+  return { ...presentation, ...(session.shopSelection ? { shopTag: session.shopSelection.selectedTag,
+    ...(!session.shopSelection.selectedTag ? {shopTagChoices:session.shopSelection.tags.map(({cards,...tag})=>({...tag,enabled:cards.length>0}))} : {}) } : {}),
+    node: { ...presentation.node, experimentId: spec.id,
     presentationLabel: spec.title, presentationDescription: spec.description },
     nodeState: { ...presentation.nodeState, options }, options };
 }
 export function selectOpeningOption(session, optionId) {
+  if (session.shopSelection && !session.shopSelection.selectedTag) {
+    return chooseOpeningShopTag(session, optionId, cards => curatedOffers(session.state, openingVassal(session), nodeState(session), cards));
+  }
   const option = getOpeningDecision(session)?.options.find(o => o.id === optionId);
   if (!option || option.blocked) throw new Error(option?.blocked ?? 'Choose an available action.');
   return requireOk(selectVassalNodeOption(session.state, session.runtimeNodeId, optionId));
 }
 export function stageOpeningOffer(session, offerId, origin, toIndex, replacePracticeId) {
-  return requireOk(purchaseVassalShopOffer(session.state, session.runtimeNodeId, offerId, origin, toIndex, replacePracticeId));
+  const current = nodeState(session), offer = current.inventory.find(offer => offer.offerId === offerId);
+  if (!session.shopSelection) return requireOk(purchaseVassalShopOffer(session.state, session.runtimeNodeId, offerId, origin, toIndex, replacePracticeId));
+  if (!session.shopSelection.selectedTag || !offer) throw new Error('Choose an available tag and offer.');
+  const price = openingShopPrice(openingVassal(session), current, offer, session.shopSelection.monsterPressurePerPurchase);
+  const baseCost = offer.basePrestigeCost;
+  try {
+    if (price.usesMonsterPressure) offer.basePrestigeCost = 0;
+    const result = requireOk(purchaseVassalShopOffer(session.state, session.runtimeNodeId, offerId, origin, toIndex, replacePracticeId));
+    const purchase = current.purchasedOffers.find(purchase => purchase.offerId === result.offerId);
+    purchase.basePrestigeCost = baseCost;purchase.monsterPressureCost = price.monsterPressureCost;
+    return result;
+  } finally { offer.basePrestigeCost = baseCost; }
 }
 export function commitOpeningEncounter(session, optionId = null, destination = 'equip', pass = false) {
   const current = nodeState(session), spec = session.experiment.nodes.find(n => n.id === session.activeId);
+  if (session.shopSelection && !session.shopSelection.selectedTag) throw new Error('Choose a tag first.');
   if (pass) {
     if (!spec.pass || current.purchasedOffers.length) throw new Error('Undo purchases before choosing the alternative.');
     current.contentMode = 'choice'; current.family = 'development'; current.options = [toOption(spec.pass, spec.pass.id)];
@@ -225,7 +260,11 @@ export function commitOpeningEncounter(session, optionId = null, destination = '
     if (check.blocked) throw new Error(check.blocked);
     requireOk(selectVassalNodeOption(session.state, session.runtimeNodeId, optionId));
   }
-  return requireOk(confirmVassalLifeNode(session.state, session.runtimeNodeId, typeof destination === 'object' ? destination : { destination }));
+  const result = requireOk(confirmVassalLifeNode(session.state, session.runtimeNodeId, typeof destination === 'object' ? destination : { destination }));
+  const effects = current.purchasedOffers.filter(purchase => purchase.monsterPressureCost > 0)
+    .map(purchase => ({op:'addMonsterPressure',amount:purchase.monsterPressureCost}));
+  requireOk(applyVassalNodeEffects(session.state, effects));
+  return result;
 }
 
 // Prototype outcome grammar: choose a weighted bucket, then one eligible reward.
@@ -296,7 +335,7 @@ export function getOpeningGraphPresentation(session) {
   const maxDepth = Math.max(...Object.values(depths));
   const nodes = session.experiment.nodes.map(spec => {
     const peers = session.experiment.nodes.filter(n => depths[n.id] === depths[spec.id]);
-    const family = { world: 'travel', founding: 'warlordFounding', shop: 'practiceReform', martial: 'challenge', supply: 'stockShop', specialRelic: 'relic', customNote: 'patronage' }[spec.kind] ?? spec.kind;
+    const family = { world: 'travel', founding: 'warlordFounding', shop: 'practiceReform', structureShop: 'publicWorks', martial: 'challenge', supply: 'stockShop', specialRelic: 'relic', customNote: 'patronage' }[spec.kind] ?? spec.kind;
     return { id: spec.id, experimentId: spec.id, presentationLabel: spec.title, presentationDescription: spec.description,
       family, depth: depths[spec.id], lane: peers.indexOf(spec),
       ...(family === 'stockShop' ? { stockOutput: spec.stockOutput === 'auto' ? 'Needed' : spec.stockOutput } : {}),

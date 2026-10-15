@@ -358,7 +358,7 @@ function applyIntervention(state, intervention) {
   return { ok: false, reason: "interventionUnavailable" };
 }
 
-function applyVassalNodeEffects(state, effects = []) {
+export function applyVassalNodeEffects(state, effects = []) {
   for (const effect of effects) {
     if (effect?.op === "addChaos") {
       addActionChaos(state,effect.amount);

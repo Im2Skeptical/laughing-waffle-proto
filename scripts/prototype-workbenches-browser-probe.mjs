@@ -137,6 +137,7 @@ try {
     await draftAction('Restore built-in draft');
     await page.locator('#edit-node').selectOption('shop');await page.locator('#preview-node').click();
     await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.modal.animation==='open');
+    await openingClick('option',0);
     const native=await page.evaluate(()=>{const g=openingWorkbench.getSnapshot().game;return {footer:g.modal.costPanels[0].rect,hud:g.hud};});
     assert.equal(native.hud.aboveDecisions,true,'the native buy modal keeps the Vassal HUD above its backdrop');
     await page.getByTestId('opening-game-screen').scrollIntoViewIfNeeded();
@@ -240,6 +241,37 @@ try {
     }finally{await mobile.close();page=previous;}
     await draftAction('Restore built-in draft');
   });
+  await check('Opening shops: tag selection, filtered offers and zero-Prestige pressure prices', async () => {
+    await page.setViewportSize({width:1280,height:800});
+    await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`);await ready();
+    for(const kind of ['practice','structure']) {
+      await page.locator(`#preview-${kind}-shop`).click();
+      await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.modal.animation==='open');
+      const gate=await page.evaluate(()=>openingWorkbench.getSnapshot().game.modal);
+      assert.equal(gate.shopTagChoices.length,3);assert.equal(gate.costPanels.length,0);
+      assert.equal(await page.evaluate(()=>openingWorkbench.getPoint('confirm')),null,'the tag step has no purchase confirmation');
+      if(kind==='structure')assert.deepEqual(gate.shopTagChoices.map(tag=>tag.id),['Housing','Stock','Special']);
+      await page.screenshot({path:`artifacts/prototype-${kind}-shop-tags.png`});
+      await openingClick('option',0);
+      const offers=await page.evaluate(()=>openingWorkbench.getSnapshot().game.modal);
+      assert.equal(offers.shopTag,gate.shopTagChoices[0].id);assert.ok(offers.offers.length);
+      assert.ok(offers.costPanels.every(price=>price.prestigeCost===0&&price.monsterPressureCost===10));
+      assert.ok(offers.offers.some(offer=>offer.canStage));
+      const before=await page.evaluate(()=>openingWorkbench.getSnapshot().summary);
+      await openingClick('offer',0);
+      assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().game.modal.purchaseOrder.length),1);
+      assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().summary.monsterPressure),before.monsterPressure);
+      if(kind==='practice') {
+        await openingClick('undo',0);assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().game.modal.purchaseOrder.length),0);
+        await openingClick('offer',0);
+      }
+      await page.screenshot({path:`artifacts/prototype-${kind}-shop-pressure.png`});
+      await openingClick('confirm');await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().visitedIds.includes('shop'));
+      assert.ok(await page.evaluate(before=>openingWorkbench.getSnapshot().summary.monsterPressure>=before+10,before.monsterPressure));
+    }
+    await page.locator('#shop-preview-zero-prestige').uncheck();await page.locator('#preview-structure-shop').click();await openingClick('option',0);
+    assert.ok(await page.evaluate(()=>openingWorkbench.getSnapshot().game.modal.costPanels.every(price=>price.prestigeCost>0&&price.monsterPressureCost===0)));
+  });
   await check('Travel reward example: three clickable destinations and selected Prestige previews', async () => {
     await page.setViewportSize({width:1280,height:800});
     await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`);await ready();
@@ -294,6 +326,7 @@ try {
     await openingEnter('founding');await openingClick('option',0);await openingClick('confirm');
     await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().summary.classId==='warrior');
     await openingEnter('shop');
+    await openingClick('option',0);
     await openingClick('offer',0);await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.modal.purchaseOrder.length===1);
     assert.ok(await page.evaluate(()=>openingWorkbench.getSnapshot().game.modal.projectedPrestige<openingWorkbench.getSnapshot().summary.prestige));
     await openingClick('undo',0);await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.modal.purchaseOrder.length===0);

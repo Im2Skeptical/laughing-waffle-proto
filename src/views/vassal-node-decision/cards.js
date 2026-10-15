@@ -80,7 +80,7 @@ export function actionCard(parent, rect, spec) {
   root.position.set(rect.x, rect.y);
   root.eventMode = 'static'; root.cursor = 'pointer';
   const footerHeight = spec.cost?.riskLabel ? 148 : COST_FOOTER_HEIGHT;
-  const totalHeight = rect.height + footerHeight + 8;
+  const totalHeight = rect.height + (spec.showCost === false ? 0 : footerHeight + 8);
   root.hitArea = new PIXI.Rectangle(0, 0, rect.width, totalHeight);
   // A touch press must keep its target until release; hover previews can redraw
   // the cards, so they belong only to a mouse/pen with hover.
@@ -111,7 +111,7 @@ export function actionCard(parent, rect, spec) {
     shade.eventMode = summary.eventMode = 'none';
     root.addChild(shade, summary);
   }
-  root.costPanel = addCostPanel(root, {
+  root.costPanel = spec.showCost === false ? null : addCostPanel(root, {
     x: 6, y: rect.height + 8, width: rect.width - 12, height: footerHeight,
   }, {
     ...spec.cost, selected: spec.selected, staged: spec.staged, disabled: !spec.enabled, unaffordable: spec.costUnmet,
