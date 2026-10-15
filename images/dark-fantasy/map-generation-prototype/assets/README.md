@@ -1,3 +1,11 @@
+## Current settlement building kit
+
+Two built-in imagegen sheets provide 30 isolated building pieces: house, paired
+houses, hall, market, workshop and gate for each of five biomes. Exact prompts:
+`masters/settlement-buildings-prompts.json`. Import uses 32px-wide cutouts with
+transparent margins. Site ground and streets come from the procedural map.
+Older whole-town masters remain reference material; their runtime atlas is removed.
+
 # Generated terrain engraving study
 
 ## Biome settlements

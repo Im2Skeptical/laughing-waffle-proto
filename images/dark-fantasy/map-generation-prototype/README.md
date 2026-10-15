@@ -1,38 +1,26 @@
 # Map generation Pixi workbench (disposable prototype)
 
-### Legacy cliff removal checkpoint
+### Integrated settlement sites
 
-The separate playable-coast scatter pass for `cliff0` and `cliff1` is removed.
-This removes the repeated yellow grass-topped cliffs and companion rock stamps
-from mountains and swamps. Existing coastline profiles, connected terrain art,
-background engraving and settlement rendering are unchanged. Inspect seed 1867;
-`mapWorkbench.pixelRendering.coastalOutcrops` should be zero. Settlement-system
-changes are deferred until this landscape checkpoint receives confirmation.
+`settlement-sites.js` plans dry sites before large scenery placement. Sites reserve
+space in their own region; mountain pieces and trees are rejected whole rather
+than cut through buildings. The accepted 75% setting remains the default footprint.
+Individual houses, halls, workshops and market buildings share terrain depth order.
+Local lanes join the actual mainland roads; island villages remain independent.
+Swamps use dry ground between pools and timber paths, mountains use stone pads,
+and other biomes use their existing ground materials. No imported town ground plate
+or blanket biome tint is used. Layouts are seeded and independent of camera zoom.
+Gold/teal overview markers retain identity when buildings become too small to read.
 
-### Distant settlements and biome outskirts
+Thirty generated building pieces (six per biome) replace the whole-town/outskirts
+runtime atlas. Masters and exact prompts are retained under `assets/masters/`;
+`settlement-buildings-v1.webp` imports each building at 32 pixels wide.
+The prior yellow coastal cliff scatter remains removed. Lairs retain their earlier
+art; this pass changes settlements and neutral markets only.
 
-Landmarks default to 75% (87 world units wide). Ten new town paintings provide
-player settlements and neutral markets for all five biomes, using smaller roofs,
-lanes and low walls within the footprint. Ten separate productive/approach pieces
-add fields, woodland yards, island quays, peat boardwalks and mountain terraces.
-Outskirts admit whole alpha footprints on dry ground within the owning region;
-they never cut a building in half at a shore. Source material colours are retained.
-Town silhouettes and their outskirts stay fixed through zoom: the renderer
-prefilters the same painting rather than swapping building arrangements.
-Small gold/teal identification marks remain visible at overview, with capped labels.
-
-The original road-connected sample towns remain. Additional neutral village
-fixtures fill missing biome examples where a dry footprint fits, including islands;
-these do not invent inter-town roads or gameplay connectivity. Review seed 1878
-at Fit and close zoom and 1869 with both reflections. All five biome variants and
-outskirts counts are exposed under `mapWorkbench.pixelRendering.settlementArt`.
-
-Built-in imagegen masters and exact prompts are in `assets/masters/settlement-*`.
-The offline importer packs 20 pieces into `assets/runtime/settlements-v1.webp`,
-with towns capped at 128px and surroundings at 80px wide. Four crowded outskirts
-cells were replaced by the v2 sheet; the importer rejects clipped silhouettes.
-Total runtime art is about 2.30 MiB. Run `npm run build:map-art`,
-`npm run check:map-art`, and the zoom persistence check below.
+Review seeds 1867 and 1869 at Fit and close zoom, including flips. Diagnostics are
+in `mapWorkbench.pixelRendering.settlementArt`. Run `npm run check:map-art`,
+`node scripts/settlement-sites-test.mjs`, and the zoom persistence check below.
 Simulation state, RNG, schemas, authoritative replay and the live game are untouched.
 
 ### Custom ridge boundaries, bridge spans and peat banks

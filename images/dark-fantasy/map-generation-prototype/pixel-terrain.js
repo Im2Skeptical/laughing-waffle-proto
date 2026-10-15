@@ -13,6 +13,7 @@ import { paintTerrainFoundations } from './terrain-foundations.js';
 import { paintRegionDivisions } from './terrain-divisions.js';
 import { paintWetlandPools } from './wetland-ground.js';
 import { bridgeSpans, paintBridge } from './road-crossings.js';
+import { planSettlementSites, siteContains, layOutSettlements, paintSettlementSites } from './settlement-sites.js';
 
 export const ATLAS_COLOURS = { plains: 0xb7a17b, forest: 0x969174, islands: 0x688689, swamp: 0x858675, mountains: 0xa49782 };
 const ATLAS_GROUND = {
@@ -161,7 +162,7 @@ function noise(seed, x, y, scale) {
   return (at(ix, iy) * (1 - u) + at(ix + 1, iy) * u) * (1 - v) + (at(ix, iy + 1) * (1 - u) + at(ix + 1, iy + 1) * u) * v;
 }
 
-export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = true }) {
+export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = true, settlementScale = .75 }) {
   const started = performance.now(), detail = texel === 2 ? 2 : 1, ART = ART_BANKS[detail];
   // Fine detail covers the map and a generous hinterland. A cheap distant bake
   // supports unrestricted panning without a giant high-resolution GPU texture.
@@ -346,6 +347,8 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     }
   }
   paintEcotones({ map, width, height, texel, regionIds, land, waterIndices, colours, groundBank, noise, mixColour, surfaceTreatments, surfaces });
+  const siteDetail = detail * settlementScale / .75;
+  const settlementPlans = sites ? planSettlementSites({ map, pixel, world, width, height, land, waterIndices, regionIds, detail: siteDetail }) : [];
   const props = [], candidates = [];
   // Grid jitter uses map coordinates, not current zoom or camera position.
   const lo = pixel({ x: -1, y: -1 }), hi = pixel({ x: 2, y: 2 });
@@ -377,8 +380,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     }));
     return fits && (!painted || outside / painted < .025);
   };
-  const towns = sites ? map.regions.filter(r => r.biome !== 'islands').filter((r, i) => i === 2 || i === 7 || i === 12)
-    .map((r, i) => ({ kind: `ruin${i % 3}`, point: r.centre, regionId: r.id })).filter(fitsLand) : [];
+  const towns = settlementPlans.map((s, i) => ({ kind: `ruin${i % 3}`, point: s.point, regionId: s.regionId }));
   for (const candidate of candidates) {
     if (candidate.kind.includes('crag') && !fitsLand(candidate)) {
       candidate.kind = `${candidate.background ? 'ash-' : ''}crag-small${Math.abs(candidate.salt) % 6}`;
@@ -400,7 +402,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   borderCanvas.height = Math.ceil(Math.max(...extent.map(p => p.y))) - by + 2;
   const roadClearance = { x: bx, y: by, width: borderCanvas.width, height: borderCanvas.height,
     data: new Uint8Array(borderCanvas.width * borderCanvas.height) };
-  const roads = routeSampleRoads(towns.map(t => pixel(t.point)), { width, height, regionIds, land, waterIndices, materialAt, scale: detail,
+  const roads = routeSampleRoads(settlementPlans.filter(s => s.biome !== 'islands').map(s => ({ x: s.x, y: s.y })), { width, height, regionIds, land, waterIndices, materialAt, scale: detail,
     bounds: { minX: bx, minY: by, maxX: bx + borderCanvas.width, maxY: by + borderCanvas.height } });
   surfaces.registerPaths('road', roads);
   const roadCanvas = document.createElement('canvas'); roadCanvas.width = borderCanvas.width; roadCanvas.height = borderCanvas.height;
@@ -415,6 +417,10 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       else { roadCtx.fillStyle = colour; roadCtx.fillRect(px - bx, py - by, 1, 1); }
     }
   };
+  layOutSettlements(settlementPlans, roads, { detail: siteDetail, world, seed: map.seed, dry: (x, y, id) => {
+    const i = Math.floor(y) * width + Math.floor(x);
+    return x >= 0 && y >= 0 && x < width && y < height && land[i] && !waterIndices[i] && map.regions[regionIds[i]]?.id === id;
+  } });
   for (const path of roads) {
     // Densify the search lattice to keep diagonal roads continuous.
     const samples = [];
@@ -471,13 +477,20 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   const composition = composeTerrainLandscape({ map, art: ART, pixel, world, detail,
     // Road corridors stencil individual pixels in reliefSpriteTextures; they
     // create passes instead of rejecting an entire connecting landscape piece.
-    legal: fitsLand });
+    legal: prop => {
+      if (!fitsLand(prop)) return false;
+      const art = ART[prop.kind], p = pixel(prop.point);
+      const left = prop.left ?? Math.round(p.x - art.rows[0].length / 2);
+      const top = prop.top ?? Math.round(p.y - art.rows.length);
+      return art.rows.every((row, y) => [...row].every((code, x) => code === '.' || !siteContains(settlementPlans, left + x, top + y, .9)));
+    } });
   const retained = props.filter(prop => prop.background || prop.kind.startsWith('ruin'));
   props.splice(0, props.length, ...retained, ...composition.props);
   const foundations = paintTerrainFoundations({ props, art: ART, pixel, surfaces, materialAt, land, waterIndices,
     colours, width, height, detail, noise, seed: map.seed, mixColour });
   const divisions = paintRegionDivisions({ map, pixel, width, height, detail, land, regionIds,
     waterIndices, waterBase, colours, groundBank, noise, mixColour });
+  paintSettlementSites(settlementPlans, { width, height, colours, waterIndices, regionIds, map, surfaces, mixColour, detail: siteDetail, dot: roadDot });
   interactions.bridge = bridges;
   interactions.rockyShore = props.filter(p => p.kind.startsWith('cliff')).length;
   interactions.softShore = map.geography.coasts.filter(c => !c.rocky).length;
@@ -545,7 +558,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   fogCtx.putImageData(fogImage, 0, 0); const fogTexture = PIXI.Texture.from(fog);
   fogTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR; fogTexture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
 
-  return { texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, divisionClearance: divisions.clearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
+  return { settlementPlans, texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, divisionClearance: divisions.clearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
     palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', surfaceKit: surfaces.stats(), foundations, wetlands, glyphKinds: new Set(props.map(p => p.kind)).size,
     roads: roads.length, bridges, regionDivisions: divisions.stats, interactions, coastalEffects, terrainComposition: composition.diagnostics, assetLibrary: { biomePieces: composableLibrary.biomePieces, boundaryPieces: composableLibrary.boundaryPieces, sheets: composableLibrary.sheets,
       usablePieces: composableLibrary.cells.filter(c => !Object.keys(c.cutRuns).length).length,

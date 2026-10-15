@@ -1,38 +1,6 @@
 import { decorationRandom } from './generator.js';
 import { SHORE_TREATMENTS } from './terrain-interactions.js';
 
-// Whole painted pieces are admitted only where their opaque footprint is dry.
-// Never stencil a house or boardwalk in half at a river or region boundary.
-export function settlementOutskirts(parent, art, scale, dry, roads, makeSprite) {
-  const source = art.productive.baseTexture.resource.source;
-  const alpha = texture => {
-    const canvas = document.createElement('canvas'); canvas.width = texture.width; canvas.height = texture.height;
-    const { x, y, width, height } = texture.frame, ctx = canvas.getContext('2d');
-    ctx.drawImage(source, x, y, width, height, 0, 0, width, height);
-    return ctx.getImageData(0, 0, width, height).data;
-  };
-  let placed = 0; const occupied = [];
-  const approach = roads.filter(p => Math.hypot(...p) > 38 * scale && Math.hypot(...p) < 95 * scale)
-    .sort((a, b) => Math.hypot(...a) - Math.hypot(...b))[0];
-  for (const role of ['approach', 'productive']) {
-    const texture = art[role], pixels = alpha(texture), width = 54 * scale, ratio = width / texture.width;
-    const candidates = role === 'approach' && approach ? [approach, [-40 * scale, -8 * scale], [40 * scale, -8 * scale]]
-      : [[42 * scale, -8 * scale], [-42 * scale, -8 * scale], [0, -48 * scale]];
-    for (const [cx, cy] of candidates) {
-      if (occupied.some(p => Math.hypot(p[0] - cx, p[1] - cy) < 32 * scale)) continue;
-      const left = cx - width / 2, top = cy - texture.height * ratio / 2;
-      let valid = true;
-      for (let y = 0; y < texture.height && valid; y += 2) for (let x = 0; x < texture.width; x += 2) {
-        if (pixels[(y * texture.width + x) * 4 + 3] > 95 && !dry(left + x * ratio, top + y * ratio)) { valid = false; break; }
-      }
-      if (!valid) continue;
-      const node = makeSprite(texture); node.scale.set(ratio); node.position.set(left, top);
-      parent.addChild(node); occupied.push([cx, cy]); placed++; break;
-    }
-  }
-  return placed;
-}
-
 // Ground work, not a circular icon plate. Every mark is clipped against the
 // canonical land/water field by the caller, and keyed to the site's identity.
 export function settlementGround(site, biome, seed, scale, dry, roads, illustrated = false) {

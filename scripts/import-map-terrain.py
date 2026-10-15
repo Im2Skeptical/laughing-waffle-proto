@@ -230,35 +230,30 @@ def import_relief():
     (OUT / 'landmarks-v1.json').write_text(json.dumps({'version': 1, 'frames': frames}, separators=(',', ':')))
 
 
-def import_settlements():
+def import_buildings():
     images, records = [], []
-    for sheet, roles, width, biomes, rows in [('town-v1', ['player', 'neutral'], 128, BIOMES, 5),
-                                ('outskirts-v1', ['productive', 'approach'], 80, BIOMES[:3], 5),
-                                ('outskirts-v2', ['productive', 'approach'], 80, BIOMES[3:], 2)]:
-        source = Image.open(MASTER / f'settlement-{sheet}.png').convert('RGBA')
-        payload = json.dumps([source.width, source.height, 2, rows]).encode() + b'\n' + source.tobytes()
-        probe = subprocess.run(['node', str(ROOT / 'scripts/map-terrain-frame-probe.mjs')], input=payload, capture_output=True, check=True)
-        for n, cell in enumerate(json.loads(probe.stdout)):
-            if n // 2 >= len(biomes): continue
-            if cell['cutRuns']: raise ValueError(f'Clipped settlement asset {sheet}/{n}: {cell["cutRuns"]}')
+    for sheet, roles in [('homes', ['house', 'pair', 'hall']), ('trades', ['market', 'workshop', 'gate'])]:
+        source = Image.open(MASTER / f'settlement-buildings-{sheet}-v1.png').convert('RGBA')
+        payload = json.dumps([source.width, source.height, 3, 5]).encode() + b'\n' + source.tobytes()
+        cells = json.loads(subprocess.run(['node', str(ROOT / 'scripts/map-terrain-frame-probe.mjs')], input=payload, capture_output=True, check=True).stdout)
+        for n, cell in enumerate(cells):
+            if cell['cutRuns']: raise ValueError(f'Clipped building {sheet}/{n}')
             cropped = source.crop((cell['left'], cell['top'], cell['right'], cell['bottom']))
-            alpha = np.array(cropped)[..., 3]
-            ys, xs = np.nonzero(alpha >= 95)
+            ys, xs = np.nonzero(np.array(cropped)[..., 3] >= 110)
             cropped = cropped.crop((int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1))
-            height = round(width * cropped.height / cropped.width)
-            image = np.array(cropped.resize((width, height), Image.Resampling.LANCZOS))
-            # Preserve painted material colours and soft contact edges; remove only faint gutter haze.
-            image[..., 3] = np.where(image[..., 3] < 45, 0, image[..., 3])
+            width = 32
+            image = np.array(cropped.resize((width, round(width * cropped.height / cropped.width)), Image.Resampling.LANCZOS))
+            image[..., 3] = np.where(image[..., 3] < 65, 0, image[..., 3])
             images.append(image)
-            records.append({'biome': biomes[n // 2], 'role': roles[n % 2], 'cutRuns': cell['cutRuns']})
-    frames = packed(images, records, 'settlements-v1.webp', 4, (136, 136))
-    (OUT / 'settlements-v1.json').write_text(json.dumps({'version': 1, 'frames': frames}, separators=(',', ':')))
+            records.append({'biome': BIOMES[n // 3], 'role': roles[n % 3], 'cutRuns': cell['cutRuns']})
+    frames = packed(images, records, 'settlement-buildings-v1.webp', 6, (40, 56))
+    (OUT / 'settlement-buildings-v1.json').write_text(json.dumps({'version': 1, 'frames': frames}, separators=(',', ':')))
 
 
 if __name__ == '__main__':
     OUT.mkdir(parents=True, exist_ok=True)
     import_surfaces()
     import_relief()
-    import_settlements()
+    import_buildings()
     total = sum(p.stat().st_size for p in OUT.iterdir() if p.suffix in ['.webp', '.json'])
     print(f'Map art import: 635 terrain cases, 40 bank profiles, 130 relief frames; runtime files {total / 1048576:.2f} MiB')

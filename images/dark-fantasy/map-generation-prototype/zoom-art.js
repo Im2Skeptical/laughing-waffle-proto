@@ -145,8 +145,8 @@ export async function prepareLandmarkLods() {
       return texture;
     });
   }
-  const settlements = await (await fetch(new URL('./assets/runtime/settlements-v1.json', import.meta.url))).json();
-  const sheet = await PIXI.Assets.load(new URL('./assets/runtime/settlements-v1.webp', import.meta.url).href);
+  const settlements = await (await fetch(new URL('./assets/runtime/settlement-buildings-v1.json', import.meta.url))).json();
+  const sheet = await PIXI.Assets.load(new URL('./assets/runtime/settlement-buildings-v1.webp', import.meta.url).href);
   result.biomes = {};
   for (const frame of settlements.frames) {
     const [x, y, w, h] = frame.rect;

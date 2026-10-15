@@ -5,7 +5,7 @@ import { VIEWPORT_DESIGN_WIDTH as W, VIEWPORT_DESIGN_HEIGHT as H } from '../../.
 import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 import { createMapCamera } from '../../../src/views/world-map/camera.js';
 import { bakePixelTerrain, pixelSpriteTextures, pixelSpriteFits, reliefSpriteTextures, destroyPixelTerrain, prepareIllustratedArt, ATLAS_COLOURS } from './pixel-terrain.js';
-import { settlementGround, settlementOutskirts } from './settlement-ground.js';
+import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
@@ -463,8 +463,8 @@ function drawPixelMap() {
     pixelArtCache.clear(); pixelArtMap = map;
   }
   const terrainAt = texel => {
-    const key = `${texel}:${state.sites}`;
-    if (!pixelArtCache.has(key)) pixelArtCache.set(key, bakePixelTerrain(map, { texel, sites: state.sites, sampleBackground: backgroundArt.sample }));
+    const key = `${texel}:${state.sites}:${state.actorScale}`;
+    if (!pixelArtCache.has(key)) pixelArtCache.set(key, bakePixelTerrain(map, { texel, sites: state.sites, settlementScale: state.actorScale, sampleBackground: backgroundArt.sample }));
     if (pixelArtCache.size > 4) {
       const oldest = pixelArtCache.keys().next().value, art = pixelArtCache.get(oldest);
       destroyPixelTerrain(art); pixelArtCache.delete(oldest);
@@ -505,6 +505,7 @@ function drawTerrainLayer(art, parent) {
   };
   if (art.backdropTexture) put(art.backdropTexture, art.backdropBounds, 8);
   put(art.texture, art.bounds);
+  put(art.roadTexture, art.borderBounds);
   const textures = pixelSpriteTextures(density), reliefTextures = reliefSpriteTextures(art, state.flipX, state.flipY);
   const origin = point({ x: art.bounds.minX, y: art.bounds.minY });
   // Reposition reflected props while keeping their silhouettes and light upright.
@@ -521,44 +522,34 @@ function drawTerrainLayer(art, parent) {
     if (state.flipY && prop.composed) node.position.y += node.height * 2 * (prop.anchorHeight ?? .5);
     node.alpha = prop.background ? .9 : 1; parent.addChild(node);
   };
-  props.filter(prop => !prop.kind.startsWith('ruin') && !liveSites.some(site => {
+  const landscape = props.filter(prop => !prop.kind.startsWith('ruin') && !liveSites.filter(s => s.kind === 'monster').some(site => {
     const a = point(prop.point), b = point(site.point);
     return Math.abs(a.x - b.x) < 66 * state.actorScale && a.y > b.y - (site.kind === 'monster' ? 104 : 68) * state.actorScale && a.y < b.y + 14 * state.actorScale;
-  })).forEach(drawProp);
+  }));
+  const buildings = state.siteArt === 'atlas' ? liveSites.flatMap(s => (s.plan?.buildings ?? []).map(building => ({ building, point: building.point }))) : [];
+  // Buildings and terrain share the same depth order. Foreground vegetation
+  // can overlap roof edges; settlement art is not an always-on-top plate.
+  [...landscape, ...buildings].sort((a, b) => point(a.point).y - point(b.point).y).forEach(prop => {
+    if (!prop.building) { drawProp(prop); return; }
+    const b = prop.building, texture = landmarkArt.biomes[b.biome][b.role], p = point(b.point);
+    const node = zoomArt(texture), worldWidth = b.w * density;
+    node.scale.set(worldWidth / texture.width);
+    node.position.set(p.x - worldWidth / 2, p.y - node.height + b.h * density * .25);
+    // Match the terrain's native texel size, including at close zoom.
+    node.terrainBuilding = true; parent.addChild(node);
+  });
   art.stats.fogEnabled = state.fog;
   if (art.fogTexture && state.fog) put(art.fogTexture, art.bounds, density * 4);
   // Region identity stays above stamps and atmospheric decoration.
   put(art.borderTexture, art.borderBounds);
-  put(art.roadTexture, art.borderBounds);
+
   if (!liveSites.length) props.filter(prop => prop.kind.startsWith('ruin')).forEach(drawProp);
 }
 
 // Illustrative fixtures only. Road endpoints remain the baked sample towns.
 function sampleLiveSites() {
-  const towns = currentPixelArt.props.filter(prop => prop.kind.startsWith('ruin'));
-  const result = towns.map((prop, i) => ({ ...prop, kind: i === 1 ? 'neutral' : 'player' }));
-  // Fill missing biome examples with small independent villages. These are
-  // illustrative fixtures; only the original sample towns own inter-town roads.
-  if (state.siteArt === 'atlas') for (const biome of ['plains', 'forest', 'islands', 'swamp', 'mountains']) {
-    if (result.some(s => map.regions.find(r => r.id === s.regionId)?.biome === biome)) continue;
-    const candidates = [];
-    for (const region of map.regions.filter(r => r.biome === biome)) {
-      const xs = region.outline.map(p => p.x), ys = region.outline.map(p => p.y);
-      for (let y = Math.min(...ys); y < Math.max(...ys); y += .025) for (let x = Math.min(...xs); x < Math.max(...xs); x += .012) {
-        const p = { x, y }, scale = state.actorScale;
-        const fits = [-1, -.5, 0, .5, 1].every(dx => [-80, -60, -40, -20, 12].every(dy => {
-          const q = { x: x + dx * 58 * scale / mapRect.width, y: y + dy * scale / mapRect.height };
-          const px = Math.floor((q.x - currentPixelArt.bounds.minX) * mapRect.width / 2);
-          const py = Math.floor((q.y - currentPixelArt.bounds.minY) * mapRect.height / 2);
-          return insidePolygon(q, region.outline) && px >= 0 && py >= 0 && px < currentPixelArt.stats.width && py < currentPixelArt.stats.height
-            && !currentPixelArt.waterIndices[py * currentPixelArt.stats.width + px];
-        }));
-        if (fits) candidates.push({ point: p, regionId: region.id, distance: Math.hypot((x - region.centre.x) * mapRect.width, (y - region.centre.y) * mapRect.height) });
-      }
-    }
-    candidates.sort((a, b) => a.distance - b.distance);
-    if (candidates.length) result.push({ ...candidates[0], kind: 'neutral' });
-  }
+  const towns = currentPixelArt.settlementPlans;
+  const result = towns.map(plan => ({ kind: plan.kind, point: plan.point, regionId: plan.regionId, plan }));
   const candidates = map.regions.filter(region => region.biome !== 'islands'
     && !towns.some(town => town.regionId === region.id));
   for (const region of candidates.filter(r => r.biome === 'swamp' || r.biome === 'mountains').concat(candidates)) {
@@ -573,6 +564,7 @@ function sampleLiveSites() {
     const roads = currentPixelArt.roadClearance;
     const cx = (p.x - currentPixelArt.bounds.minX) * mapRect.width / currentPixelArt.stats.texel;
     const cy = (p.y - currentPixelArt.bounds.minY) * mapRect.height / currentPixelArt.stats.texel;
+    if (currentPixelArt.waterIndices[Math.floor(cy) * currentPixelArt.stats.width + Math.floor(cx)]) continue;
     let coversRoad = false;
     for (let y = Math.floor(cy - 89 * scale / currentPixelArt.stats.texel); y <= cy + 18 * scale / currentPixelArt.stats.texel && !coversRoad; y++) {
       for (let x = Math.floor(cx - 54 * scale / currentPixelArt.stats.texel); x <= cx + 54 * scale / currentPixelArt.stats.texel; x++) {
@@ -617,6 +609,14 @@ function drawAtlasSites() {
     group.position.set(p.x, p.y); group.eventMode = 'none'; group.label = `atlas-${site.kind}-${site.regionId}`;
     const colour = site.kind === 'player' ? 0xe4c271 : site.kind === 'neutral' ? 0x8ed7cf : 0xe08b76;
     const biome = map.regions.find(r => r.id === site.regionId)?.biome ?? 'plains';
+    if (site.plan) {
+      const ground = new PIXI.Container(), badge = new PIXI.Graphics();
+      const label = text(group, site.kind === 'player' ? 'SETTLEMENT' : 'MARKET', 0, site.plan.ry * 2 + 10, 18, colour,
+        { fontFamily: 'Arial, sans-serif', stroke: 0x131b1b, strokeThickness: 4 }); label.anchor.set(.5, 0);
+      group.addChild(ground, badge);
+      landmarkNodes.push({ site, meshes: [], label, ground, badge, width, biome, outskirts: 0, buildings: site.plan.buildings.length, biomeArt: true });
+      worldLayer.addChild(group); continue;
+    }
     const dry = (x, y) => {
       const q = { x: site.point.x + (state.flipX ? -x : x) / mapRect.width, y: site.point.y + (state.flipY ? -y : y) / mapRect.height };
       const px = Math.floor((q.x - currentPixelArt.bounds.minX) * mapRect.width / 2), py = Math.floor((q.y - currentPixelArt.bounds.minY) * mapRect.height / 2);
@@ -624,10 +624,10 @@ function drawAtlasSites() {
       return !currentPixelArt.waterIndices[py * currentPixelArt.stats.width + px] && insidePolygon(q, map.regions.find(r => r.id === site.regionId).outline);
     };
     const roads = currentPixelArt.roadPaths.flat().map(q => { const a = point(q); return [a.x - p.x, a.y - p.y]; });
-    const biomeArt = site.kind !== 'monster' ? landmarkArt.biomes[biome] : null;
-    const ground = settlementGround(site, biome, map.seed, state.actorScale, dry, roads, !!biomeArt); group.addChild(ground);
-    const outskirts = biomeArt ? settlementOutskirts(ground, biomeArt, state.actorScale, dry, roads, zoomArt) : 0;
-    const textures = biomeArt ? [biomeArt[site.kind], biomeArt[site.kind], biomeArt[site.kind]] : landmarkArt[site.kind];
+
+    const ground = settlementGround(site, biome, map.seed, state.actorScale, dry, roads, false); group.addChild(ground);
+    const outskirts = 0;
+    const textures = landmarkArt[site.kind];
     // All versions share one lower-centre ground anchor and world footprint.
     const meshes = textures.map((texture, index) => {
       const node = zoomArt(texture), fit = Math.min(width / texture.width, 98 * state.actorScale / texture.height);
@@ -641,7 +641,7 @@ function drawAtlasSites() {
     const label = text(group, site.kind === 'player' ? 'SETTLEMENT' : site.kind === 'neutral' ? 'MARKET' : 'MONSTER', 0, 22, 18, colour,
       { fontFamily: 'Arial, sans-serif', stroke: 0x131b1b, strokeThickness: 4 }); label.anchor.set(.5, 0);
     const badge = new PIXI.Graphics(); group.addChild(badge);
-    landmarkNodes.push({ site, meshes, label, ground, badge, width, textures, biome, outskirts, biomeArt: !!biomeArt }); worldLayer.addChild(group);
+    landmarkNodes.push({ site, meshes, label, ground, badge, width, textures, biome, outskirts, biomeArt: false }); worldLayer.addChild(group);
   }
 }
 
@@ -684,7 +684,7 @@ function updateZoomPresentation() {
     node.renderable = Math.max(x, x2) * pose.zoom + pose.x >= viewRect.x && Math.min(x, x2) * pose.zoom + pose.x <= viewRect.x + viewRect.width
       && Math.max(y, y2) * pose.zoom + pose.y >= viewRect.y && Math.min(y, y2) * pose.zoom + pose.y <= viewRect.y + viewRect.height;
     if (node.renderable && node.visible) visibleMeshes++;
-    node.sampleZoom(physicalScale, state.smoothZoom, node.parent === terrainLayer ? terrainLodFloor : 0);
+    node.sampleZoom(physicalScale, state.smoothZoom, node.terrainBuilding ? 0 : node.parent === terrainLayer ? terrainLodFloor : 0);
   }
   // Important connections retain a small readable stroke at overview scale.
   overviewInk?.clear();
@@ -699,7 +699,7 @@ function updateZoomPresentation() {
     for (const path of currentPixelArt.roadPaths) { trace(path, 1.8, 0x3e342a, .7); trace(path, .9, 0xd7be8c, .9); }
   }
   Object.assign(currentPixelArt.stats, { landmarkLod: tiers, zoomFiltering: state.smoothZoom ? 'Prefiltered colour levels + sharp pixel enlargement' : 'Nearest pixel enlargement',
-    settlementArt: landmarkNodes.filter(n => n.biomeArt).map(n => ({ biome: n.biome, kind: n.site.kind, regionId: n.site.regionId, outskirts: n.outskirts, width: n.width })),
+    settlementArt: landmarkNodes.filter(n => n.biomeArt).map(n => ({ biome: n.biome, kind: n.site.kind, regionId: n.site.regionId, point: n.site.point, buildings: n.buildings, streets: n.site.plan.streets.length, width: n.width })),
     detailMode: state.detailMode, closeTerrainWeight: +near.toFixed(3), screenZoom: +screenScale.toFixed(3), zoomMeshes: zoomNodes.length, visibleMeshes, ...zoomArtStats() });
 }
 
