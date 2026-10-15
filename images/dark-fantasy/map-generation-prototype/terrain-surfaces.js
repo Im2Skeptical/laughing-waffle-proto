@@ -55,9 +55,13 @@ export function createSurfaceSampler({ map, bounds, texel, width, height, land, 
       const n = Math.floor(decorationRandom(map.seed ^ 60331, Math.imul(cx, 73856093) ^ Math.imul(cy, 19349663)) * 16);
       record = use(tiles.get(`ground-${biome}-${n}`)); groundCells.set(key, record);
     }
-    return sample(record, wx, wy);
+    const scale = ['plains','forest'].includes(biome) ? 2 : 1;
+    return sample(record, wx*scale, wy*scale);
   };
-  const groundVariant = (biome, variant, x, y) => sample(use(tiles.get(`ground-${biome}-${variant}`)), worldX(x), worldY(y));
+  const groundVariant = (biome, variant, x, y) => {
+    const scale = ['plains','forest'].includes(biome) ? 2 : 1;
+    return sample(use(tiles.get(`ground-${biome}-${variant}`)), worldX(x)*scale, worldY(y)*scale);
+  };
   const landAt = (x, y) => x >= 0 && y >= 0 && x < width && y < height && land[Math.floor(y) * width + Math.floor(x)] ? 1 : 0;
   const shoreCase = (biome, x, y) => {
     const cx = Math.floor(worldX(x) / 32), cy = Math.floor(worldY(y) / 32), key = `${biome}:${cx}:${cy}`;

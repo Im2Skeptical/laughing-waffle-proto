@@ -8,7 +8,7 @@ with feathered edges; the previous broad ellipse wash is removed. Building pads
 use local soil/stone, and only a little source ground texture is reintroduced.
 Plains/forest enclosure marks are broken remnants, not a continuous circular rim.
 
-Before general terrain placement, each town gets up to six deliberately placed
+Before general terrain placement, each town gets up to eight deliberately placed
 biome pieces: low stone banks, grass and scrub for plains; woodland backs and
 fern/deadwood fringes for forests; volcanic scrub for islands; peat margins for
 swamps; low rocky flanks for mountains. Smaller foreground pieces preserve roofs.
@@ -33,7 +33,14 @@ deadwood and fern clearings. Coasts select low banks and fringes. Neither biome
 scatters the entire asset set indiscriminately. The generated source colours get
 moderate value compression; plains stone highlights are softened further.
 
-Runtime widths are 76px (major masses), 64px (banks/edges) and 44px (small cover).
+Runtime widths are 42px (major masses), 36px (banks/edges) and 24px (small cover).
+This is about 55% of the previous footprint, so crowns, shrubs and low ridges
+read as distant terrain. Forest/plains cover budgets rise roughly threefold and
+repeat spacing shrinks with the pieces, retaining connected masses rather than
+sparse miniature stamps. Ground and clearing/foundation texture is sampled at
+twice the previous frequency. Forest/plains contact illustrations are reduced
+too. Town edges sit closer to the plots and use up to eight smaller pieces;
+settlement buildings and the shared footprint stay at the approved scale.
 Whole-footprint placement can fall back to 72% and 50% sizes around water and
 settlements. Actual buildings, court and lanes are protected, with the unused
 clearing fringe available for scenery, as in the island treatment. Zoom does not
@@ -42,7 +49,7 @@ change placement. Simulation state, RNG, schemas and replay remain untouched.
 Built-in imagegen sources: `assets/masters/composable-plains-v2.png` and
 `assets/masters/composable-forest-v2.png`. Prompts, including the plains spacing
 repair, are saved in [plains-forest-prompts-v2.json](assets/masters/plains-forest-prompts-v2.json).
-The runtime art remains about 2.31 MiB; all replacement source edges pass extraction.
+The runtime art remains about 2.20 MiB; all replacement source edges pass extraction.
 Review seeds 1862 and 1873 at Fit and close zoom, labels off. Run composition,
 settlement-site and map-art checks plus browser LOD persistence.
 

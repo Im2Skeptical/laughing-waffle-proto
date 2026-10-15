@@ -204,7 +204,8 @@ def import_relief():
             width = 50 if contact else round((36 if name == 'mountains' else 26 if name == 'forest' else 25) * scale) * 2
             if name == 'ridge-border': width = 92 if n < 8 else 64
             if name == 'bridge': width = 64
-            if name in ['plains', 'forest']: width = 76 if n < 4 else 64 if n < 8 else 44
+            if name in ['plains', 'forest']: width = 42 if n < 4 else 36 if n < 8 else 24
+            if contact and pair == 0: width = 30
             if name.startswith('island-'): width = 88 if n < 2 else 64 if n < 8 else 52
             height = min(118, max(1, round(width * cropped.height / cropped.width)))
             image = np.array(cropped.resize((width, height), Image.Resampling.LANCZOS))

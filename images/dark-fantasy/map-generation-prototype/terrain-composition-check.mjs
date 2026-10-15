@@ -39,7 +39,7 @@ for (const seed of [1867, 1869, 1873]) {
     for (const p of a.props.slice(0, i)) {
       assert.ok(illustrationOverlap(a.props[i], p, art) <= .58, 'No painting may bury most of another painting');
       if (p.kind.replace(/-mirror$/, '') === a.props[i].kind.replace(/-mirror$/, ''))
-        assert.ok(Math.hypot(p.left - a.props[i].left, p.top - a.props[i].top) >= 58, 'Mirroring must not bypass repetition spacing');
+        assert.ok(Math.hypot(p.left - a.props[i].left, p.top - a.props[i].top) >= (p.family === 'terrain-forest' ? 32 : 58), 'Mirroring must not bypass repetition spacing');
     }
   }
 }
