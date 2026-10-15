@@ -52,6 +52,8 @@ try {
   const founderState=()=>page.evaluate(()=>__SETTLEMENT_DEBUG__.getFounderSnapshot());
   const settled=()=>page.waitForFunction(()=>!__SETTLEMENT_DEBUG__.getFounderSnapshot().transitioning);
   assert.equal(dossier.lockedSlots,2,'two locked founder slots');
+  const firstTab=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getFounderControlClickPoint('tab:0')),lastTab=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getFounderControlClickPoint('tab:3'));
+  assert.ok(Math.abs((firstTab.x+lastTab.x)/2-1212)<2,'the four class slots are centred in the modal');assert.equal(firstTab.y,lastTab.y);
   await click('getFounderControlClickPoint','tab:2');
   assert.match((await page.evaluate(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState())).title,/Locked/,'locked slot explains itself');
   await page.keyboard.press('Escape');
@@ -63,7 +65,12 @@ try {
   await settled();
   assert.equal((await founderState()).classId,dossier.classId,'class tabs switch back');
   await page.screenshot({path:`artifacts/civilization-${candidateIndex}-dossier.png`});
-  await click('getFounderControlClickPoint','begin');
+  // No Begin button: the dock's Confirm (or Enter) begins the class on show.
+  const dock=(await snapshot()).navigation.destinations.find(d=>d.id==='vassal');
+  assert.equal(dock?.label,'Confirm','dock offers Confirm for the class on show');assert.equal(dock.enabled,true);
+  assert.equal(await page.evaluate(()=>__SETTLEMENT_DEBUG__.getFounderControlClickPoint('begin')),null,'picker has no Begin button');
+  if(candidateIndex){await click('getNavigationClickPoint','vassal');}
+  else{await page.keyboard.press('Enter');await delay(300);}
   assert.equal((await page.evaluate(()=>__SETTLEMENT_DEBUG__.getLastVassalSelectionResult())).ok,true);
   const selectedVassal=await snapshot();
   const first=selectedVassal.lineage.currentVassal.availableNodeIds[0];

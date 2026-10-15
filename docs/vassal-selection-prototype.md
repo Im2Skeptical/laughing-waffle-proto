@@ -9,11 +9,15 @@ the node-decision panel footprint between the top bar and the dock, so no HUD or
 dock chrome is covered at 844x390 through desktop. Layout: a class banner
 (painted frame, crest, name, flavour), an attribute block (four icon + value chips
 with the replaced attribute struck through and labelled, the class attribute shown
-as a feature), two illustrated ability cards, a class tab strip (emblem tabs, two
-locked silhouettes) and a primary Begin button. Copy and tooltip text live in
+as a feature), two illustrated ability cards and a class tab strip (emblem tabs, two
+locked silhouettes) centred along the bottom of the modal. There is no Begin button
+or hint text: the class on show is always the selected candidate (the picker
+previews it on open), so the dock's Confirm button, which the Navigation dock
+shows once a candidate is selected, begins the Vassal on touch and mouse, and Enter
+does the same from the keyboard. Copy and tooltip text live in
 `protovassal-class-data.js` and render through the shared tooltip view: hover on
 mouse, tap to pin on touch, tap again or Escape to close. Left/Right (or a swipe)
-change class, Enter begins, Escape closes the detail first and then the picker.
+change class, Enter confirms, Escape closes the detail first and then the picker.
 Motion (open, close, page slide) mirrors the node modal and is skipped under
 prefers-reduced-motion. Both Philosopher and Warlord are available from the first
 run; two future founder slots stay locked and explain themselves on tap. No
@@ -90,6 +94,6 @@ remains available for copy/layout studies. It is isolated from live simulation.
 
 Run `npm run verify`, `node scripts/vassal-class-rules-test.mjs`, and the existing
 civilization/Life Map browser probes. Check both founders, portrait rail navigation,
-compact tooltips and Begin on phone landscape. Check Commission selection and
+compact tooltips and dock Confirm on phone landscape. Check Commission selection and
 actor attribution, Structure completion, repeated Delve, mortality, reload, worker
 preparation and authoritative timeline replay.

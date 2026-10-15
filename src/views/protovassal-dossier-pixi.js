@@ -3,7 +3,6 @@ import { createClassPortraitArt } from './vassal-class-art.js';
 import { addInteractionFeedback } from './interaction-feedback.js';
 import { addResourceIcon } from './resource-cost-pixi.js';
 import { addIllustration } from './chronicle-art.js';
-import { dockPadContour, paintDockPadFace } from './settlement-dock-style.js';
 import { PANEL as MODAL_PANEL } from './vassal-node-decision/constants.js';
 import { BASE_STATS, FOUNDER_CLASSES, STAT_ICONS, founderTooltipSpec } from './protovassal-class-data.js';
 
@@ -14,8 +13,9 @@ import { BASE_STATS, FOUNDER_CLASSES, STAT_ICONS, founderTooltipSpec } from './p
 // tooltip view (hover on mouse, tap to pin on touch), as Practices do.
 const W = MODAL_PANEL.width, H = MODAL_PANEL.height;
 const SLOT_COUNT = 4, FONT = 'Georgia';
-const TAB = Object.freeze({ x: 600, y: 566, width: 150, height: 128, gap: 14 });
-const BEGIN = Object.freeze({ x: 1640, y: 566, width: 670, height: 128 });
+const TAB = Object.freeze({ y: 566, width: 150, height: 128, gap: 14 });
+// The four slots sit centred along the bottom of the modal.
+const TAB_ROW_X = (W - (SLOT_COUNT * TAB.width + (SLOT_COUNT - 1) * TAB.gap)) / 2;
 const OPEN_MS = 220, CLOSE_MS = 140, PAGE_MS = 240;
 const ease = t => 1 - (1 - Math.min(1, Math.max(0, t))) ** 3;
 const reducedMotion = () => globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
@@ -57,7 +57,7 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
   const tabLayer = new PIXI.Container(); shell.addChild(tabLayer);
 
   let selected = candidates.find(c => c.candidateIndex === selectedIndex) ?? candidates[0];
-  let page = null, leaving = null, transition = null, tabs = [], beginHalo = null;
+  let page = null, leaving = null, transition = null, tabs = [];
   let pose = { phase: 'open', startedAt: 0 }, gone = false, begun = false, tipId = null;
 
   // ---- tooltips (shared view) ----
@@ -161,27 +161,7 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
       addTip(card, ability.id, 'ability', classId, 'left'); controls[ability.id] = card;
     });
 
-    // Begin: dock-pad stone in the class colour
-    const colors = classId === 'warrior'
-      ? { fill: 0x7a3a2c, hoverFill: 0x934835, ink: 0xffe5d2, rim: data.accent }
-      : { fill: 0x34487e, hoverFill: 0x435c9c, ink: 0xe6eeff, rim: data.accent };
-    const begin = control(view, BEGIN.x, BEGIN.y, BEGIN.width, BEGIN.height), contour = dockPadContour(BEGIN.width, BEGIN.height, 'whole');
-    begin.hitArea = new PIXI.Polygon(contour);
-    const halo = new PIXI.Graphics(); halo.lineStyle(6, colors.rim, .9).drawPolygon(contour); halo.alpha = .0; begin.addChild(halo); view.halo = halo;
-    const bg = new PIXI.Graphics(); begin.addChild(bg);
-    const caption = text(begin, `BEGIN WITH ${data.name}`, BEGIN.width / 2, BEGIN.height / 2, 38, { fontWeight: 'bold', fill: colors.ink, letterSpacing: 2 });
-    caption.anchor.set(.5); fit(caption, BEGIN.width - 150);
-    const paint = state => {
-      paintDockPadFace(bg, { width: BEGIN.width, height: BEGIN.height, contour, colors, hovered: state === 'hover', pressed: state === 'pressed' });
-      caption.y = BEGIN.height / 2 + (state === 'pressed' ? 3 : 0);
-    };
-    paint('idle');
-    addInteractionFeedback(begin, { x: 0, y: 0, width: BEGIN.width, height: BEGIN.height }, {
-      onStateChange: paint,
-      onActivate: confirmSelected,
-      drawFeedback: (g, { pressed }) => { if (pressed) g.lineStyle(3, colors.ink, .8).beginFill(colors.ink, .16).drawPolygon(contour).endFill(); },
-    });
-    controls.begin = begin; view.controls = controls; view.candidateIndex = candidate.candidateIndex;
+    view.controls = controls; view.candidateIndex = candidate.candidateIndex;
     return view;
   }
 
@@ -192,7 +172,7 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
     for (let slot = 0; slot < SLOT_COUNT; slot++) {
       const candidate = candidates[slot], data = candidate && FOUNDER_CLASSES[candidate.founderClassId];
       const isSelected = candidate === selected;
-      const tab = control(tabLayer, TAB.x + slot * (TAB.width + TAB.gap), TAB.y, TAB.width, TAB.height), g = new PIXI.Graphics(); tab.addChild(g);
+      const tab = control(tabLayer, TAB_ROW_X + slot * (TAB.width + TAB.gap), TAB.y, TAB.width, TAB.height), g = new PIXI.Graphics(); tab.addChild(g);
       if (isSelected) g.beginFill(data.glow, .3).drawRoundedRect(-5, -5, TAB.width + 10, TAB.height + 10, 14).endFill();
       stoneRect(g, 0, 0, TAB.width, TAB.height, isSelected ? data.deep : RELIC.stone, isSelected ? data.accent : RELIC.brass, isSelected ? 3 : 2);
       if (candidate) {
@@ -215,7 +195,6 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
       }
       tabs.push(tab);
     }
-    text(tabLayer, 'Swipe or use ← → to browse', TAB.x + SLOT_COUNT * (TAB.width + TAB.gap) + 18, TAB.y + TAB.height / 2 - 12, 22, { fill: 0x80847a, fontStyle: 'italic' });
   }
 
   function confirmSelected() {
@@ -288,8 +267,6 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
       transition.to.alpha = e; transition.to.x = transition.dir * 70 * (1 - e);
       if (t >= 1) finishTransition();
     }
-    if (page?.halo && pose.phase === 'open' && !reducedMotion()) page.halo.alpha = .25 + .25 * Math.sin(time / 520);
-    else if (page?.halo) page.halo.alpha = 0;
     if (page?.glow) page.glow.alpha = reducedMotion() ? 1 : .85 + .15 * Math.sin(time / 1300);
   }
 

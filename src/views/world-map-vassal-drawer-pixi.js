@@ -85,7 +85,20 @@ export function createWorldMapVassalDrawerView({
 
   // The founder picker persists between redraws so its open, close and page
   // transitions play; it only rebuilds when the pool or artwork changes.
+  // The dock's Confirm button is the way to begin, so the class on show must
+  // already be the selected candidate; preview it (outside this render) if not.
+  let autoPreviewQueued = false;
+  function ensureFounderSelected(pool, selectedIndex) {
+    if (selectedIndex != null || autoPreviewQueued || !pool.candidates.length) return;
+    autoPreviewQueued = true;
+    queueMicrotask(() => {
+      autoPreviewQueued = false;
+      if (isOpen?.() === true && getSelectedCandidateIndex?.() == null) onPreviewCandidate?.(pool.candidates[0].candidateIndex);
+    });
+  }
+
   function renderFounder(pool, selectedIndex, open, force) {
+    if (open) ensureFounderSelected(pool, selectedIndex);
     const sig = `${getArtRevision()}:${getVassalClassArtRevision()}:${JSON.stringify(pool.candidates.map(c => [c.candidateIndex, c.founderClassId, c.stats]))}`;
     const justOpened = open && !wasOpen;
     if (!founderDossier || force || sig !== founderSignature) {
