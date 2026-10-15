@@ -6,11 +6,12 @@ import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.
 import { createMapCamera } from '../../../src/views/world-map/camera.js';
 import { bakePixelTerrain, pixelSpriteTextures, pixelSpriteFits, reliefSpriteTextures, destroyPixelTerrain, prepareIllustratedArt, ATLAS_COLOURS } from './pixel-terrain.js';
 import { createWheelZoom } from './wheel-zoom.js';
-import { createWaterClock } from './water-animation.js';
+import { createMapTimeline } from './map-timeline.js';
+import { createMapTimegraph } from './map-timegraph.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
-const MAP_VERSION = '1.0.14';
+const MAP_VERSION = '1.0.15';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
@@ -41,7 +42,7 @@ app.renderer.events.mapPositionToPoint = (target, x, y) => {
   target.y = (rect.right - x) / rect.width * H;
 };
 const root = new PIXI.Container(), viewport = new PIXI.Container(), worldLayer = new PIXI.Container();
-const viewRect = { x: 494, y: 146, width: 1896, height: 692 };
+const viewRect = { x: 494, y: 146, width: 1896, height: 552 };
 const backdrop = new PIXI.Graphics().beginFill(0x82795e).drawRoundedRect(viewRect.x, viewRect.y, viewRect.width, viewRect.height, 10).endFill();
 const viewportMask = new PIXI.Graphics().beginFill(0xffffff).drawRoundedRect(viewRect.x, viewRect.y, viewRect.width, viewRect.height, 10).endFill();
 backdrop.eventMode = 'none'; viewportMask.eventMode = 'none'; worldLayer.eventMode = 'none';
@@ -86,27 +87,42 @@ let gameArt = null, liveSites = [];
 let landmarkArt = null, zoomNodes = [], landmarkNodes = [], terrainLayer = null, overviewInk = null;
 const pixelArtCache = new Map();
 const pixelReview = () => state.variant === 'F';
-const waterClock=createWaterClock();let waterFrameId=null;
+const timeline=createMapTimeline({playing:state.waterMotion});
+let timegraph=null,waterFrameId=null;
 function updateWater(force=false) {
   if(!pixelReview()||!currentPixelArt)return;
-  const started=performance.now(),seconds=waterClock.seconds;
+  const started=performance.now(),seconds=timeline.snapshot.displaySec;
   currentPixelArt.backdropWaterCycle?.update(app.renderer,seconds,force);
   currentPixelArt.waterCycle.update(app.renderer,seconds,force);
-  Object.assign(currentPixelArt.stats.waterStudy,{phaseSeconds:seconds,paused:!state.waterMotion||document.hidden,
+  Object.assign(currentPixelArt.stats.waterStudy,{phaseSeconds:seconds,paused:!timeline.snapshot.playing||document.hidden,
     frames:currentPixelArt.waterCycle.frames,updateMs:Math.round((performance.now()-started)*100)/100,renderer:'GPU palette resolve + colour pyramid'});
 }
 function scheduleWater() {
   if(waterFrameId!==null)cancelAnimationFrame(waterFrameId);
-  waterFrameId=null;waterClock.reset();
-  if(!state.waterMotion||!pixelReview()||document.hidden||!currentPixelArt)return;
+  waterFrameId=null;timeline.reset();
+  if(!timeline.snapshot.playing||document.hidden)return;
   const frame=now=>{waterFrameId=null;
-    if(!state.waterMotion||!pixelReview()||document.hidden)return;
-    if(waterClock.step(now,true)){updateWater();app.renderer.render(app.stage);}
-    waterFrameId=requestAnimationFrame(frame);
+    if(!timeline.snapshot.playing||document.hidden)return;
+    if(timeline.step(now)){
+      state.waterMotion=timeline.snapshot.playing;
+      updateWater();timegraph?.update();app.renderer.render(app.stage);
+      if(!timeline.snapshot.playing)sync();
+    }
+    if(timeline.snapshot.playing)waterFrameId=requestAnimationFrame(frame);
   };
   waterFrameId=requestAnimationFrame(frame);
 }
-document.addEventListener('visibilitychange',()=>{if(currentPixelArt)currentPixelArt.stats.waterStudy.paused=!state.waterMotion||document.hidden;scheduleWater();});
+function timelineChanged() {
+  state.waterMotion=timeline.snapshot.playing;
+  updateWater();timegraph?.update();app.renderer.render(app.stage);scheduleWater();
+  // Pointer movement only updates the GPU palette and playhead, never terrain or JSON diagnostics.
+  if(!timeline.snapshot.scrubbing)sync();
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden)timegraph?.cancelScrub();
+  if(currentPixelArt)currentPixelArt.stats.waterStudy.paused=!timeline.snapshot.playing||document.hidden;
+  scheduleWater();
+});
 app.view.addEventListener('webglcontextrestored',()=>{if(currentPixelArt)render();});
 const point = p => ({ x: mapRect.x + (state.flipX ? 1 - p.x : p.x) * mapRect.width,
   y: mapRect.y + (state.flipY ? 1 - p.y : p.y) * mapRect.height });
@@ -137,14 +153,15 @@ function button(label, x, y, width, height, action, { copy = label, active = fal
   node.accessible = true; node.accessibleTitle = label; node.accessibleType = 'button';
   node.on('pointertap', event => { event.stopPropagation(); action(); }); root.addChild(node);
   targets.push({ label, x, y, width, height });
+  return { node, title };
 }
 function fitMap() {
   wheelZoom.cancel();
   const points = map.regions.flatMap(r => r.outline).map(point);
   const minX = Math.min(...points.map(p => p.x)), maxX = Math.max(...points.map(p => p.x));
   const minY = Math.min(...points.map(p => p.y)), maxY = Math.max(...points.map(p => p.y));
-  const zoom = Math.min(1.15, 1760 / (maxX - minX), 555 / (maxY - minY));
-  camera.restore({ zoom, x: 1440 - (minX + maxX) / 2 * zoom, y: 544 - (minY + maxY) / 2 * zoom });
+  const zoom = Math.min(1.15, 1760 / (maxX - minX), 425 / (maxY - minY));
+  camera.restore({ zoom, x: 1440 - (minX + maxX) / 2 * zoom, y: 475 - (minY + maxY) / 2 * zoom });
   app.renderer.render(app.stage);
 }
 function regenerate() { map = generateMap(state); state.selected = null; fitMap(); render(); }
@@ -471,7 +488,7 @@ function drawMap() {
   const selected = map.regions.find(r => r.id === state.selected);
   const oceanSides = map.world.oceanSides.map(side => state.flipX && (side === 'east' || side === 'west') ? side === 'east' ? 'west' : 'east' : side)
     .map(side => state.flipY && (side === 'north' || side === 'south') ? side === 'north' ? 'south' : 'north' : side);
-  text(root, `Ocean: ${oceanSides.join(' + ')} · ${pixelReview() ? `${state.waterMotion?'cycling water':'water paused'} · drag / pinch to explore` : 'drag / pinch / scroll to explore'}`, 520, 198, 25, 0xd9d6b6);
+  text(root, `Ocean: ${oceanSides.join(' + ')} · ${pixelReview() ? 'water follows timegraph · drag / pinch to explore' : 'drag / pinch / scroll to explore'}`, 520, 198, 25, 0xd9d6b6);
   if (pixelReview()) {
     button('Change pixel density', 1648, 158, 164, 70, () => { state.texel = { 2: 4, 4: 6, 6: 2 }[state.texel]; render(); }, { copy: state.texel === 2 ? 'Pixels: Detail' : state.texel === 4 ? 'Pixels: Fine' : 'Pixels: Coarse', size: 23 });
     button('Cycle map sites', 1826, 158, 212, 70, () => {
@@ -485,10 +502,10 @@ function drawMap() {
   button('Zoom out', 2052, 158, 90, 70, () => { camera.zoomBy(.8); app.renderer.render(app.stage); }, { copy: '−', size: 38 });
   button('Zoom in', 2156, 158, 90, 70, () => { camera.zoomBy(1.25); app.renderer.render(app.stage); }, { copy: '+', size: 38 });
   button('Fit map', 2260, 158, 110, 70, fitMap, { copy: 'Fit' });
-  const caption = selected ? `${selected.id} · ${BIOMES[selected.biome].name} · ${(selected.area / map.totalArea * 100).toFixed(1)}% of playable area · Neighbours ${selected.neighbours.join(', ')}`
-    : pixelReview() ? `${VARIANTS[state.variant]} · ${state.waterMotion?'cycling water':'water paused'} · gold settlements / teal markets / rust lairs · smooth zoom and adaptive detail`
-          : `${map.islandClusters.length} island landmass${map.islandClusters.length === 1 ? '' : 'es'} · gaps, valleys and coastal terrain · tap to inspect`;
-  panel(root, 514, 848, 1856, 38, 0x21383b, 0x21383b); text(root, caption, 534, 853, 25, 0xe2ddbd);
+  if(selected) {
+    const caption = `${selected.id} · ${BIOMES[selected.biome].name} · ${(selected.area / map.totalArea * 100).toFixed(1)}% of playable area · Neighbours ${selected.neighbours.join(', ')}`;
+    panel(root, 514, 658, 1856, 32, 0x21383b, 0x21383b); text(root, caption, 534, 661, 22, 0xe2ddbd);
+  }
 }
 
 function drawPixelMap() {
@@ -752,6 +769,7 @@ function updateZoomPresentation() {
 
 function render() {
   wheelZoom.cancel();
+  timegraph?.cancelScrub();timegraph=null;
   for (const node of root.removeChildren()) node.destroy({ children: true }); targets = [];
   for (const node of worldLayer.removeChildren()) node.destroy({ children: true });
   zoomNodes = []; landmarkNodes = []; terrainLayer = null; overviewInk = null;
@@ -763,6 +781,7 @@ function render() {
   button('Show approved base structure', 1450, 40, 306, 52, () => { state.variant = 'C'; render(); }, { copy: 'Base structure', active: !pixelReview(), size: 24 });
   button('Show atlas rendering', 1776, 40, 270, 52, () => { state.variant = 'F'; render(); }, { copy: 'Atlas rendering', active: pixelReview(), size: 24 });
   drawControls(); drawMap();
+  timegraph=createMapTimegraph({root,app,timeline,palette:currentPixelArt?.waterPalette,text,panel,button,targets,onChange:timelineChanged});
   button('Toggle location labels', 1400, 158, 230, 70, () => { state.siteLabels = !state.siteLabels; render(); }, { copy: state.siteLabels ? 'Labels: On' : 'Labels: Off', active: state.siteLabels, size: 24 });
   Object.entries(BIOMES).forEach(([id, biome], i) => {
     const x = 518 + i * 310, y = 928;
@@ -781,7 +800,7 @@ function render() {
   button('Next map view', 1826, 1008, 100, 52, () => cycle(1), { copy: '→', size: 35 });
   text(root, `${map.matchingBorders}/${map.sharedBorders} borders share a biome · ${map.clusteringStudy.groups} groups`, 520, 1022, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
   if (state.variant === 'F') {
-    button('Pause or resume water',1950,1008,210,52,()=>{state.waterMotion=!state.waterMotion;render();},{copy:state.waterMotion?'Water: Playing':'Water: Paused',active:state.waterMotion,size:23});
+    text(root,'Water follows time',1950,1023,23,0xa9bdaf,{fontFamily:'Arial, sans-serif'});
     button('Toggle hinterland fog', 2176, 1008, 194, 52, () => { state.fog = !state.fog; render(); }, { copy: state.fog ? 'Fog: On' : 'Fog: Off', active: state.fog, size: 24 });
   }
   else text(root, 'DISPOSABLE PROTOTYPE', 2010, 1023, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
@@ -834,7 +853,15 @@ window.addEventListener('resize', fitCanvas);
 fitCanvas();
 document.addEventListener('keydown', event => {
   if (event.target.closest('input, textarea, select, [contenteditable]')) return;
-  if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); cycle(event.key === 'ArrowLeft' ? -1 : 1); }
+  if(!['ArrowLeft','ArrowRight','Home','End',' ','n','N'].includes(event.key))return;
+  event.preventDefault();
+  const s=timeline.snapshot;
+  if(event.key===' ')timeline.play(!s.playing);
+  else if(event.key==='n'||event.key==='N')timeline.returnToNow();
+  else if(event.key==='Home')timeline.seek(s.minSec);
+  else if(event.key==='End')timeline.seek(s.revealCapSec);
+  else timeline.seek(s.displaySec+(event.key==='ArrowLeft'?-1:1)*(event.shiftKey?10:1));
+  timelineChanged();
 });
 window.mapWorkbench = { version: MAP_VERSION, get state() { return { ...state }; }, get map() { return map; }, get targets() { return targets.map(t => {
   if (t.map) { const pose = camera.snapshot(); t = { ...t, x: t.x * pose.zoom + pose.x, y: t.y * pose.zoom + pose.y,
@@ -847,14 +874,19 @@ window.mapWorkbench = { version: MAP_VERSION, get state() { return { ...state };
     width: t.width * scale, height: t.height * scale };
 }) }, get camera() { return camera.snapshot(); }, scene: { width: W, height: H, renderer: 'Pixi', regionCount: 20, viewRect },
   get pixelRendering() { return pixelReview() ? currentPixelArt.stats : null; },
-  setWaterPhase(seconds){waterClock.seek(seconds);updateWater(true);app.renderer.render(app.stage);},
+  get timeline(){return timeline.snapshot;},
+  seekTime(seconds){timeline.seek(seconds);timelineChanged();},
+  setPlayback({playing,rate,now=false}={}){
+    if(now)timeline.returnToNow();if(rate!==undefined)timeline.setRate(rate);
+    if(playing!==undefined)timeline.play(playing);timelineChanged();
+  },
   // Read-only inspection of the actual baked planes for palette-phase review.
   // Callers must not mutate these buffers or advance simulation time.
   get waterFields() { return pixelReview() ? { width:currentPixelArt.stats.width,height:currentPixelArt.stats.height,
     bounds:currentPixelArt.bounds,texel:currentPixelArt.stats.texel,indices:currentPixelArt.waterIndices,
     base:currentPixelArt.waterBase,strength:currentPixelArt.waterStrength,bodies:currentPixelArt.waterBodies,palette:currentPixelArt.waterPalette } : null; },
   setCamera(pose) { wheelZoom.cancel(); camera.restore(pose); updateZoomPresentation(); app.renderer.render(app.stage); },
-  setState(patch) { Object.assign(state, patch); if (!VARIANTS[state.variant]) state.variant = 'F'; if (Object.keys(patch).some(k => ['seed', 'clustering', 'sizeVariation', 'roughness', 'featureSet'].includes(k))) regenerate(); else render(); }, exportPng: pngData };
+  setState(patch) { Object.assign(state, patch); if('waterMotion' in patch)timeline.play(state.waterMotion); if (!VARIANTS[state.variant]) state.variant = 'F'; if (Object.keys(patch).some(k => ['seed', 'clustering', 'sizeVariation', 'roughness', 'featureSet'].includes(k))) regenerate(); else render(); }, exportPng: pngData };
 let liveArtLoading = null;
 function prepareLiveGameArt() {
   liveArtLoading ??= Promise.all([PIXI.Assets.load('images/sprite-sheets/chronicle-illustrations.json'),

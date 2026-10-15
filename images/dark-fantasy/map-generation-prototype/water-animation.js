@@ -66,13 +66,3 @@ export function createWaterCycle(texture,indices,strength,palette,base=null) {
       levels.forEach(t=>t.destroy(true));fields.destroy(true);paletteTexture.destroy(true);},
   };
 }
-
-// Never catch up time spent hidden, paused, or blocked baking a new map.
-export function createWaterClock() {
-  let last=null,seconds=0;
-  return {get seconds(){return seconds;},reset(){last=null;},seek(value){if(!Number.isFinite(value))throw new Error('Water phase must be finite');seconds=value;last=null;},
-    step(now,playing){if(!playing){last=null;return false;}if(last===null){last=now;return false;}
-      const elapsed=now-last;if(elapsed<1000/30-.5)return false;
-      last=now;seconds+=Math.min(elapsed,100)/1000;return true;},
-  };
-}

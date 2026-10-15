@@ -1,7 +1,7 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.14** — animated water palette cycling with
-pause/resume and smooth colour interpolation. The version appears under the title inside the
+Current published revision: **Map v1.0.15** — a scrubbable timegraph driving reversible
+water palette cycling, with preview playback and return to now. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -44,17 +44,62 @@ group's dominant environment, ramp speeds, current phase, paused state and updat
 A GPU pass adds the changing surface colour to the original bake, preserving
 static ground, seabed, shore treatment and softened river colour. GPU colour
 downsampling supplies the zoom pyramid after palette resolution; categorical
-indices are always nearest sampled. Fine terrain and distant backdrop share a
-visual clock capped at 30 updates/second. Hidden tabs, other map views and the
-Water: Paused control suspend it without catch-up. Pausing holds the current frame;
-resuming continues from there. PNG export captures that frame. Animation defaults
-on except under reduced-motion preferences; `waterMotion=0/1` persists the choice.
-Simulation time, RNG, schemas and replay remain untouched.
-`mapWorkbench.waterFields` exposes the actual baked buffers for read-only phase
-inspection; never mutate them. `setWaterPhase(seconds)` seeks the presentation
-clock for forward/backward tests. Pause before seeking for repeatable captures.
+indices are always nearest sampled. Fine terrain and distant backdrop sample the same absolute displayed timeline time,
+with continuous playback capped at 30 palette updates/second. Pausing holds the
+current frame; PNG export captures that frame. Animation defaults on except under
+reduced-motion preferences; `waterMotion=0/1` persists playback preference.
+`mapWorkbench.waterFields` exposes the baked buffers for read-only inspection.
 Run `water-animation-check.mjs`, `water-style-check.mjs`, the browser
-`water-animation-check.js` GPU comparison, and `lod-persistence-check.js`.
+`water-animation-check.js` GPU comparison, `map-timeline-check.js`, and
+`lod-persistence-check.js`.
+
+### Timegraph and animation time
+
+The map timegraph is a presentation fixture, not a second simulation or forecast
+worker. It starts with current time at 60s and 60s of available sample forecast.
+Its curves sample actual swell (blue) and surf/foam (pale) palette brightness.
+The shaded history, forecast and unrevealed areas distinguish available coverage.
+The current marker advances only during forward playback while following Now.
+Scrubbing pauses, enters read-only preview and leaves that frontier unchanged.
+Preview playback can run forwards or backwards and stops at zero or the reveal
+cap. Now returns to the frontier; it preserves paused/playing state and restores
+forward direction. Playback offers 0.25x, 1x, 4x and reverse 1x. Pointer drag,
+including release outside the plot, and touch share the scrub path. Space toggles
+playback, arrows step 1s (Shift: 10s), Home/End seek the visible start/reveal cap,
+and N returns to now. Hidden tabs suspend without elapsed-time catch-up.
+
+`map-timeline.js` owns only the fixture cursor/transport. `map-timegraph.js` uses
+the live graph's pointer-to-time helper and draws the study graph. `study.js`
+publishes one sample to both water layers. `mapWorkbench.timeline` exposes a
+copy of the sample, frontier, coverage and playback mode; `seekTime(seconds)`
+pauses and seeks, and `setPlayback({playing, rate, now})` drives transport.
+Scrubbing updates palette textures and playhead only, never the terrain bake.
+The browser timeline check verifies nonzero visual change, image restoration within
+one channel value of GPU/canvas readback rounding,
+unchanged frontier, coverage clamping and no terrain regeneration.
+
+For eventual live integration, replace this fixture transport with the runner's
+viewed cursor / forecast preview and the graph's revealed coverage. Do not use
+`historyEndSec` as animation time while browsing a different cursor. The exposed
+sample separates `{tSec, fraction, seconds}`: restore discrete simulation state
+at the authoritative second, then use the fractional position only for continuous
+presentation. The fixture's rAF accumulator and stall cap must NOT become the
+simulation clock or skip sim ticks. Simulation state, RNG, schemas, replay and
+worker/cache behavior are unchanged by this study.
+
+Ambient palette cycles are pure `colour = sample(index, displayedSeconds)` and
+need no recorded keyframes. This supports arbitrary seeks and reverse playback
+without replaying intervening rendered frames. Future event animations should
+sample a stable event ID and simulation start/end timestamps, using
+`progress = clamp((displayedSeconds - startSec) / duration, 0, 1)`. Use actual
+simulation ticks/events for visibility, births, deaths and completed actions;
+never blend these discrete outcomes. Movement can interpolate authoritative
+positions between samples. Any presentation cache must include the run/forecast
+generation so replaced forecasts cannot retain stale visuals. Re-seek on cursor
+changes, rebuilds and regeneration; do not persist per-effect wall clocks or
+advance RNG during rendering. Add a shared event-animation layer when there is
+an actual event effect to exercise it, rather than a speculative framework now.
+
 Reference study: [NASA's Bahama shelf aerial](https://www.jpl.nasa.gov/images/pia11019-tongue-of-the-ocean-and-grand-bahama-bank/)
 for broad depth/bed forms; [Landsat wave observations](https://science.nasa.gov/earth/earth-observatory/earths-iconic-waves-observed-by-landsat-150261/)
 for grouped swells and coastal refraction; [Ferrari's explanation](https://www.effectgames.com/effect/article-Q_A_with_Mark_J_Ferrari.html)
