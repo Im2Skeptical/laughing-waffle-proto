@@ -1,7 +1,7 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.12** — broader cycling foam ribbons and calibrated
-anti-clustering/grouping endpoints, with a 50% default. The version appears under the title inside the
+Current published revision: **Map v1.0.13** — aerial ocean depth, submerged shelves,
+broken wave groups and differentiated palette-cycle faces/crests/wakes. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -26,16 +26,28 @@ an outer bake edge is marine; enclosed basins are freshwater, including island
 channels on the inland side of the map. Actual sea inlets keep marine graphics.
 Lakes use blue-grey depth, muted green/silt banks, sparse reflection ripples and
 small shoreline glints. They have no ocean swell, white surf or broad sea beach.
-Marine shores have broad broken surf ribbons, a nearshore backwash and sparse
-offshore whitecap packets. Full 32-step foam phases follow depth around bays,
-with stronger foam opacity for the cycle test. Quiet gaps keep the sea depth wash
-visible; lakes never receive this surf. `surfaceTreatments.surfPhases` reports
+Marine waters have blue offshore depth, irregular green shelves, sandy shoals and
+darker submerged channels. Those substrate colours stay fixed. Directional swell
+groups bend into coastal breakers; complete phase paths pass through porous foam
+masks, rather than cycling only a short bright outline. Asymmetric ramps distinguish
+troughs, green wave faces, narrow pale crests and longer dispersing wakes. Offshore
+whitecaps use an independent 16-step ramp (192–207), with quieter fine ripple groups.
+Fine foam holes and substrate grain preserve the atlas texture at close zoom.
+Quiet gaps keep the sea depth wash visible; lakes never receive this surf. `surfaceTreatments.surfPhases` reports
 phase coverage and `offshoreCaps` counts offshore foam pixels. Peat pools and river channels remain distinct from both.
 The still frame remains phase zero. `water-style.js` defines independent timed
 ramps and a pure `waterColourAt` phase sampler; depth/sediment never cycle.
 The bake retains `waterBodies` and `waterPalette` with the existing base, index
 and strength fields for a subsequent animation test. `waterStudy` reports body
 counts, each island group's dominant environment, ramp speeds and paused phase.
+`mapWorkbench.waterFields` exposes the actual baked buffers for read-only phase
+inspection; never mutate them. Review multiple `waterColourAt` times before animating.
+Reference study: [NASA's Bahama shelf aerial](https://www.jpl.nasa.gov/images/pia11019-tongue-of-the-ocean-and-grand-bahama-bank/)
+for broad depth/bed forms; [Landsat wave observations](https://science.nasa.gov/earth/earth-observatory/earths-iconic-waves-observed-by-landsat-150261/)
+for grouped swells and coastal refraction; [Ferrari's explanation](https://www.effectgames.com/effect/article-Q_A_with_Mark_J_Ferrari.html)
+and [Seascape in Canvas Cycle](https://www.effectgames.com/demos/canvascycle/)
+for masked complete phase paths, wave faces versus particulate foam and independent
+cycle speeds. References inform the procedural material; no reference pixels ship.
 Water fields now use seven bytes per pixel. Run `water-style-check.mjs`, normal
 terrain/settlement checks and LOD persistence; inspect seeds 1869 and 1865.
 

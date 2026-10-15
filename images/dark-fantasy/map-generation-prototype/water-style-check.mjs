@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { classifyWaterBodies, extendWaterEnvironment, waterColourAt, WATER_BODY } from './water-style.js';
+import { classifyWaterBodies, extendWaterEnvironment, waterColourAt, WATER_BODY, WATER_RAMPS } from './water-style.js';
 import { paintOcean } from './terrain-interactions.js';
 
 const width=50,height=40,size=width*height,land=new Uint8Array(size).fill(1);
@@ -36,4 +36,22 @@ for(let i=0;i<size;i++)if(indices[i]&&waterColourAt(indices[i],base[i],strength[
 assert.ok(changed>0,'Animation test phases must vary surface effects');
 assert.deepEqual(base,saved,'Phase sampling must preserve depth and sediment');
 assert.equal(waterColourAt(70,0x405560,128,bank,mixColour,0),waterColourAt(70,0x405560,128,bank,mixColour,10),'Depth ramps must remain stationary');
-console.log('Water styles: enclosed lakes, open sea inlets, matching freshwater banks, no lake surf, separate phase ramps and fixed depth pass.');
+const luminance=c=>(c>>16&255)*.2126+(c>>8&255)*.7152+(c&255)*.0722;
+for(const [start,length,minimumRange] of [[128,32,30],[160,32,65],[192,16,50]]) {
+  const values=Array.from({length},(_,n)=>luminance(waterColourAt(start+n,0x39636c,180,bank,mixColour,0)));
+  assert.ok(Math.max(...values)-Math.min(...values)>minimumRange,'Wave faces, crests and troughs must survive compositing');
+  assert.ok(Math.abs(values[0]-values.at(-1))<10,'Palette wrap must not flash at the loop seam');
+  const ramp=WATER_RAMPS.find(r=>r.start===start);
+  assert.equal(waterColourAt(start+3,0x39636c,180,bank,mixColour,0),waterColourAt(start+3,0x39636c,180,bank,mixColour,length/ramp.stepsPerSecond),'Each surface ramp must loop exactly');
+}
+// A wide coast exercises the depth field, not only the narrow shoreline fixture.
+const w=180,h=32,n=w*h,coastLand=new Uint8Array(n),coastDistance=new Uint16Array(n),coastBodies=new Uint8Array(n).fill(WATER_BODY.ocean);
+for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=y*w+x;coastLand[i]=x<8?1:0;coastDistance[i]=Math.max(0,x-7)*3;}
+const coastBase=new Uint32Array(n);
+paintOcean({map:{seed:1867,regions:[{biome:'islands'}]},width:w,height:h,texel:2,bounds:{minX:0,minY:0},land:coastLand,
+  waterIndices:new Uint8Array(n),colours:new Uint32Array(n),regionIds:new Int16Array(n),seaDistance:coastDistance,dryDistance:new Uint16Array(n),shoreTypes:new Uint8Array(n).fill(3),waterBodies:coastBodies,
+  waterBank:bank,groundBank:{},noise:()=>.5,mixColour,waterBase:coastBase,waterStrength:new Uint8Array(n),surfaces:{bank:()=>0x777766}});
+const shallow=coastBase[16*w+25],deep=coastBase[16*w+170];
+assert.ok(luminance(shallow)-luminance(deep)>15,'Shallow shelf and offshore depth need visibly different values');
+assert.ok((shallow>>8&255)-(shallow&255)>(deep>>8&255)-(deep&255)+8,'Shallows must shift green relative to the blue offshore water');
+console.log('Water styles: lake/sea connectivity, freshwater banks, full foam phases, distinct wave values, seamless independent cycles, fixed depth and green shelves/blue offshore pass.');

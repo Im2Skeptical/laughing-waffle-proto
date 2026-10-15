@@ -15,16 +15,18 @@ const clamp = x => Math.max(0, Math.min(1, x));
 
 export function paintOcean({ map, width, height, texel, bounds, land, waterIndices, colours,
   regionIds, seaDistance, dryDistance, shoreTypes, waterBodies, waterBank, groundBank, noise, mixColour, waterBase, waterStrength, surfaces }) {
-  // Dedicated cyclic ramps: offshore swell, lace foam and sheltered tidal water.
-  // Ramp phase is encoded spatially; this is still frame zero, not animation.
+  // Asymmetric wave faces and short pale crests, followed by a longer dispersing
+  // wake. Full phase paths exist under the masks, not just at the visible crest.
+  const ramp=(stops,t)=>{for(let k=1;k<stops.length;k++)if(t<=stops[k][0])
+    return mixColour(stops[k-1][1],stops[k][1],(t-stops[k-1][0])/(stops[k][0]-stops[k-1][0]));return stops.at(-1)[1];};
   for (let n = 0; n < 32; n++) {
-    const t = n / 32, crest = Math.pow(Math.max(0, Math.cos(t * Math.PI * 2)), 5);
-    waterBank[128 + n] = mixColour(0x355560, 0x829d9b, crest * .65 + .06);
-    waterBank[208 + n] = mixColour(0x405f68, 0x7a9693, crest * .65 + .06);
-    waterBank[160 + n] = mixColour(0x527c80, 0xc1cdb9, Math.pow(Math.max(0, Math.sin(t * Math.PI)), .8));
+    const t = n / 32;
+    waterBank[128+n]=ramp([[0,0x294751],[.28,0x355e67],[.55,0x598b8c],[.65,0x86aaa3],[.73,0x416e79],[1,0x294751]],t);
+    waterBank[208+n]=ramp([[0,0x34555e],[.38,0x416d77],[.55,0x729995],[.65,0x416d77],[1,0x34555e]],t);
+    waterBank[160+n]=ramp([[0,0x38666c],[.30,0x528d8b],[.44,0x83b7ac],[.50,0xe0e4cd],[.60,0xb6d0bd],[.78,0x72a69e],[1,0x38666c]],t);
   }
   for (let n = 0; n < 16; n++) {
-    waterBank[192 + n] = mixColour(0x455d58, 0x8b9f86, n / 15);
+    waterBank[192+n]=ramp([[0,0x355c65],[.42,0x416f79],[.55,0xc0d2c4],[.66,0x83aaa5],[1,0x355c65]],n/16);
     const crest=Math.pow(Math.max(0,Math.cos(n/16*Math.PI*2)),4);
     waterBank[112+n]=mixColour(0x3c535f,0x8a9a96,crest*.6);
     waterBank[240+n]=mixColour(0x4e6867,0x939f8c,crest*.65);
@@ -53,41 +55,54 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
         continue;
       }
       stats.oceanPixels++;
-      // Long swells bend and fracture, with smaller oblique ripples superposed.
-      const bend = Math.sin(wx / 39 + broad * 5) * 4 + Math.sin(wx / 117) * 7 + noise(map.seed ^ 713, wx, wy, 27) * 12;
-      const swell = fract((wy + wx * .14 + bend + broad * 9) / 17 + noise(map.seed ^ 179, wx, wy * .4, 31) * 1.6);
-      const fine = noise(map.seed ^ 977, wx * .6, wy * 2.3, 8);
-      const chop = fract((wy * 1.8 - wx * .24 + Math.sin(wx / 11) * 1.5) / 8);
-      const shoal = Math.exp(-distance / (material === 'swamp' ? 24 : 16));
+      // Aerial scale: broad submerged shelves with darker channels, then long
+      // coherent wave fronts. Fine noise breaks the foam, never the wave face.
+      const shelf=noise(map.seed^179,wx,wy,135),channel=noise(map.seed^713,wx*.6,wy*1.2,46);
+      const shelfWidth=24+shelf*shelf*150;
+      const shoal=Math.exp(-distance/shelfWidth);
+      const bend=Math.sin(wx/83)*6+(noise(map.seed^619,wx,wy*.45,68)-.5)*21;
+      const travel=(wy+wx*.22+bend)/17;
+      const swell=fract(travel);
+      const fine=noise(map.seed^977,wx*.55,wy*1.8,10);
+      const chop=fract((wy-wx*.32+Math.sin(wx/27)*3)/9);
       const exposure = treatment?.exposure ?? .75;
-      const phase = fract(distance / (7 + broad * 5) + lace * .16 + Math.sin(wx / 32) * .1);
-      // Broad curved phase ribbons give a palette cycle room to travel from
-      // dark trough to foamy crest. Larger-scale gaps break up the surf sheet.
-      const surfWidth=.42+lace*.14,ribbon=Math.floor(distance/(7+broad*5));
-      const packet=noise(map.seed^4217,wx+ribbon*29,wy-ribbon*11,21)*.65+broad*.35;
-      const breaking = distance > 1 && distance < 23+exposure*13 && exposure > .4 && packet > .42 && lace > .28;
-      const backwash=distance<5.5&&exposure>.4&&lace>.42;
-      const whitecap=distance>28&&distance<180&&lace>.64&&fine>.55&&swell<.075;
-      let index;
+      // Blend refracting coastal waves with incoming swell. Variable shelf
+      // width and oblique travel prevent repeated concentric coastline strokes.
+      const phase=fract(distance/21+travel*.32+(channel-.5)*.65+(lace-.5)*.19);
+      const packet=noise(map.seed^4217,wx*.75,wy*1.25,37);
+      const pores=noise(map.seed^3191,wx,wy,2.7);
+      const streak=noise(map.seed^4231,wx*.45,wy*2.1,12);
+      const surfReach=16+shelf*35;
+      const surfEnvelope=clamp((surfReach-distance)/12)*clamp(distance/4);
+      const breaking=exposure>.4&&surfEnvelope>0&&packet>.32;
+      const whitecap=distance>surfReach&&packet>.64&&fine>.52;
+      let index,strength;
       if (material === 'swamp' && distance < 28) {
         index = 208 + Math.floor(chop * 32);
-        stats.shelteredWater++;
-      } else if ((breaking && phase < surfWidth && grain > .06) || (backwash && grain>.18)) {
-        index = 160 + Math.min(31,Math.floor(fract(phase/surfWidth)*32)); stats.exposedSurf++;
+        strength=.12;stats.shelteredWater++;
+      } else if (breaking) {
+        index=160+Math.floor(phase*32);
+        strength=surfEnvelope*clamp((packet-.28)*3)*(.42+lace*.30)*(.35+clamp((pores-.25)*2.1)*.65);
+        stats.exposedSurf++;
       } else if(whitecap) {
-        index=160+Math.min(31,Math.floor(swell/.075*32));stats.offshoreCaps++;
-      }
-      else if (distance < 25 && (chop < .2 || lace > .68)) index = 96 + Math.floor(clamp(shoal * .55 + broad * .3 + chop * .1) * 15);
-      else {
-        // Quiet gaps preserve the broad depth wash between ripple packets.
-        const packet = lace > .46;
-        index = fine > .64 ? 208 + Math.floor(chop * 32) : packet ? 128 + Math.floor(swell * 32) : 64 + Math.floor(clamp(.12 + broad * .34 + shoal * .43 + grain * .035) * 31);
-        if (packet) stats.swell++;
+        index=192+Math.floor(fract(swell+(pores-.5)*.06)*16);strength=clamp((packet-.60)*3)*(.35+fine*.3)*(.45+pores*.55);stats.offshoreCaps++;
+      } else if(fine>.64) {
+        index=208+Math.floor(chop*32);strength=.14+clamp((fine-.64)*3)*.3;
+      } else {
+        index=128+Math.floor(swell*32);strength=.07+clamp((packet-.32)*2)*(.12+streak*.38);
+        stats.swell++;
       }
       waterIndices[i] = index;
       if(index>=160&&index<192)stats.surfPhases[index-160]++;
-      const depth = clamp(.11 + broad * .25 + shoal * .36 + grain * .025);
-      waterBase[i] = waterBank[64 + Math.floor(depth * 31)];
+      let base=mixColour(0x293f50,0x365b68,clamp(broad*.7+shelf*.22));
+      base=mixColour(base,0x508b83,clamp(shoal*(.55+channel*.65)));
+      // Sand and reef mottling is static beneath the moving surface, in large
+      // connected shapes. Avoid uniformly bright rings and all-over stippling.
+      const sand=clamp((channel-.47)*3)*Math.pow(shoal,1.8);
+      base=mixColour(base,0x9eaf90,sand*.55);
+      base=mixColour(base,0x314f59,clamp((.42-channel)*4)*shoal*.45);
+      base=mixColour(base,grain>.5?0x729b96:0x294a58,.035+pores*.025);
+      waterBase[i]=base;
       if (material && distance < 22) {
         const horizontal = Math.abs((seaDistance[i + 1] ?? 0) - (seaDistance[i - 1] ?? 0))
           < Math.abs((seaDistance[i + width] ?? 0) - (seaDistance[i - width] ?? 0));
@@ -95,10 +110,6 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
         waterBase[i] = mixColour(waterBase[i], substrate, Math.exp(-distance / 9) * .52);
       }
       if (material === 'swamp') waterBase[i] = mixColour(waterBase[i], 0x74657b, Math.exp(-distance / 11) * .7);
-      const strength = index >= 160 && index < 192 ? (whitecap?.36:.46) + lace * .3
-        : index >= 208 ? clamp((fine - .5) * 2) * .7
-        : index >= 128 && index < 160 ? clamp((lace - .35) * 2.8) * (.18 + broad * .45)
-          : index >= 192 ? .28 : .25;
       waterStrength[i] = Math.round(strength * 255);
       colours[i] = mixColour(waterBase[i], waterBank[index], strength);
     } else {

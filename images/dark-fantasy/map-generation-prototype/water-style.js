@@ -5,6 +5,7 @@ export const WATER_RAMPS=[
   {name:'lake ripples',start:112,length:16,stepsPerSecond:1.5},
   {name:'ocean swell',start:128,length:32,stepsPerSecond:3},
   {name:'breaking surf',start:160,length:32,stepsPerSecond:5},
+  {name:'offshore whitecaps',start:192,length:16,stepsPerSecond:2},
   {name:'fine ocean ripples',start:208,length:32,stepsPerSecond:4},
   {name:'lake shore glints',start:240,length:16,stepsPerSecond:1},
 ];

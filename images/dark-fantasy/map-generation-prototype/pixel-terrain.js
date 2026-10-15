@@ -33,7 +33,7 @@ const ATLAS_GROUND = {
 // Explicit water indices survive the static bake for the subsequent cycle study.
 // Zero = dry. Ocean 1..8, river 16..23, foam 32..35, surf 40..47,
 // shallow ripples 48..55. Stationary depth 64..95 and shoals 96..111.
-// 128..159 swell, 160..191 breaking foam, 192..207 silt, 208..239 small ripples.
+// 128..159 swell, 160..191 breaking foam, 192..207 offshore foam, 208..239 small ripples.
 // Static RGB waterBase and byte waterStrength preserve modulation independently of cycle phase.
 // Index 9 and Atlas depth shades 64..95 stay fixed during surface cycling.
 const ATLAS_WATER = [0, 0x3c555c, 0x425c62, 0x496368, 0x526e72, 0x5a797b, 0x628182, 0x6b8989, 0x7a9691,
@@ -558,10 +558,11 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       ? Math.round(255 * Math.min(1, Math.min(i % width, width - 1 - i % width, Math.floor(i / width), height - 1 - Math.floor(i / width)) / 64)) : 255;
   }
   ctx.putImageData(image, 0, 0);
-  const coastalEffects = { foam: 0, surf: 0, shallowRipples: 0, shoals: 0, swell: 0, fineRipples: 0, lakeRipples:0,lakeGlints:0 };
+  const coastalEffects = { foam: 0, surf: 0, offshoreFoam:0, shallowRipples: 0, shoals: 0, swell: 0, fineRipples: 0, lakeRipples:0,lakeGlints:0 };
   for (const index of waterIndices) {
     if (index >= 128 && index <= 159) coastalEffects.swell++;
     else if (index >= 160 && index <= 191) coastalEffects.surf++;
+    else if (index >= 192 && index <= 207) coastalEffects.offshoreFoam++;
     else if (index >= 208 && index <= 239) coastalEffects.fineRipples++;
     else if (index >= 32 && index <= 35) coastalEffects.foam++;
     else if (index >= 40 && index <= 47) coastalEffects.surf++;
