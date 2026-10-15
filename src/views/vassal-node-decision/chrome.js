@@ -16,6 +16,24 @@ export function titlePlaqueRect() {
   };
 }
 
+export function locationPlaqueRect() {
+  return { x: PANEL.x + PANEL.width - 438, y: PANEL.y - 68, width: 446, height: 100 };
+}
+
+export function renderLocationPlaque(parent, label, color = PALETTE.accent) {
+  const rect = locationPlaqueRect();
+  const plaque = new PIXI.Container();
+  const gfx = new PIXI.Graphics();
+  roundedRect(gfx, rect.x, rect.y, rect.width, rect.height, 8, 0x242a27, color, 3);
+  const text = createText(label, {
+    ...TEXT_STYLES.header, fontSize: 28, lineHeight: 32, wordWrap: true, wordWrapWidth: 410,
+  }, rect.x + 20, rect.y + 23);
+  text.scale.set(Math.min(1, 64 / Math.max(1, text.height)));
+  plaque.addChild(gfx, text);
+  parent.addChild(plaque);
+  return plaque;
+}
+
 export function renderTitlePlaque(parent, family) {
   if (!family) return null;
   const rect = titlePlaqueRect();

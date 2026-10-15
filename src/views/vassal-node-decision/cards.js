@@ -91,13 +91,26 @@ export function actionCard(parent, rect, spec) {
   roundedRect(g, 0, 0, rect.width, rect.height, 8, PALETTE.card,
     spec.selected ? PALETTE.green : QUALITY_COLORS[spec.presentation?.tier] ?? PALETTE.stroke, 2);
   root.addChild(g);
-  addIllustration(root, spec.artId, { x: 6, y: 6, width: rect.width - 12, height: artHeight }, { alpha: spec.enabled ? 1 : .8 });
+  root.illustration = addIllustration(root, spec.artId, { x: 6, y: 6, width: rect.width - 12, height: artHeight }, { alpha: spec.enabled ? 1 : .8 });
   const plate = new PIXI.Graphics().beginFill(0x101918, .92).drawRect(7, 7, rect.width - 14, 83).endFill();
   root.addChild(plate, createText(spec.presentation?.label ?? spec.title, {
     ...TEXT_STYLES.cardTitle, fontSize: 36, wordWrap: true, wordWrapWidth: rect.width - 36, lineHeight: 36,
-  }, 18, 15), createText('ⓘ  Inspect', {
+  }, 18, 15), createText(spec.faceLabel ?? 'ⓘ  Inspect', {
     ...TEXT_STYLES.body, fontSize: 24, fill: PALETTE.text, stroke: 0x111714, strokeThickness: 4,
   }, 18, artHeight - 33));
+  if (spec.summary) {
+    const summary = createText(spec.summary, {
+      ...TEXT_STYLES.body, fontSize: 24, lineHeight: 28,
+      wordWrap: true, wordWrapWidth: rect.width - 40,
+    }, 20, 0);
+    const available = Math.max(1, artHeight - 160);
+    summary.scale.set(Math.min(1, available / Math.max(1, summary.height)));
+    summary.y = artHeight - 58 - summary.height;
+    const shade = new PIXI.Graphics().beginFill(0x101918, .93)
+      .drawRect(7, summary.y - 12, rect.width - 14, summary.height + 24).endFill();
+    shade.eventMode = summary.eventMode = 'none';
+    root.addChild(shade, summary);
+  }
   root.costPanel = addCostPanel(root, {
     x: 6, y: rect.height + 8, width: rect.width - 12, height: footerHeight,
   }, {

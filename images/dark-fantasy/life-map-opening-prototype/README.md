@@ -75,7 +75,9 @@ The prototype records the visit and offers the connected next nodes.
 
 The Pixi screen attaches immediately, with artwork prepared in the background.
 Entry confirmations and choices work during a cold or slow artwork load; an
-artwork failure reports a message without detaching the playable screen.
+artwork failure reports a message without detaching the playable screen. Illustrated
+World choices redraw as their art and resource atlases become available, without
+requiring another selection.
 
 **Preview this node** in the encounter editor opens it directly in a fresh
 disposable state, with the current seed and authored content. It does not change
@@ -87,10 +89,16 @@ dock, leaving the usual surrounding game screen visible. The complete map fits
 beside three options; pan, wheel/pinch zoom and Reset remain available. Unavailable
 regions, landmarks, labels and roads are greyed and darkened in every mode. The
 current region remains bright as the origin; Tour highlights only that region.
-Unavailable destinations do not select an action. Each option contains the shared time/Prestige cost
-panel used by shop choices; selecting a destination updates its exact price.
+Unavailable destinations do not select an action. The three illustrated choices
+use the native shop column widths, card height,
+cost-footer height, icon sizing and footer baseline. Selecting a destination updates
+its exact price and previews its Prestige cost in the shared Vassal HUD.
 Varying destination prices show **From** until a destination is selected. Selection
-feedback stays inside the modal, leaving the timegraph clear.
+feedback stays inside the modal, leaving the timegraph clear. Current location uses
+the native upper-right plaque; the Vassal HUD sits above decision backdrops for every
+node, matching the game. Native modal plaques retain their concise in-game copy;
+full authored descriptions stay in entry/editor views. The frame and scroll reuse native
+chrome for layout review; the scroll is passive and does not invent forecast data.
 
 Move highlights reachable destinations;
 Build highlights legal connections and draws the proposed road; Tour keeps the

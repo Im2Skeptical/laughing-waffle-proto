@@ -42,6 +42,7 @@ import {
   confirmDockButton,
   confirmDockRect,
   renderTitlePlaque,
+  renderLocationPlaque,
 } from "./vassal-node-decision/chrome.js";
 import { renderMortalityEstimate } from "./vassal-node-decision/mortality.js";
 import { renderRegionalMap } from "./vassal-node-decision/regional-map.js";
@@ -676,12 +677,7 @@ export function createVassalNodeDecisionModalView({
     const sx = hasSettlementContext ? TABLEAU.x : PANEL.x + 1200;
     const settlement = decision?.settlement;
     if (decision?.contextKind === "settlement" && settlement) {
-      const plaque = new PIXI.Graphics();
-      roundedRect(plaque, PANEL.x + PANEL.width - 438, PANEL.y - 68, 446, 100, 8,
-        0x242a27, family.color, 3);
-      root.addChild(plaque, createText(`SETTLEMENT \u00b7 ${decision.previewRegionLabel ?? vassal.locationRegionId}`, {
-        ...TEXT_STYLES.header, fontSize:28, wordWrap:true, wordWrapWidth:410,
-      }, PANEL.x + PANEL.width - 418, PANEL.y - 45));
+      renderLocationPlaque(root, `SETTLEMENT \u00b7 ${decision.previewRegionLabel ?? vassal.locationRegionId}`, family.color);
       const rendered = renderDecisionTableau(root, settlement, {
         time:state?.tSec ?? 0, readOnly, choosing:!!replacementOfferId,
         onChoose:(index, piece) => {

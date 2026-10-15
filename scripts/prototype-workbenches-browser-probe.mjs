@@ -127,6 +127,7 @@ try {
         assert.equal(actual.family,id==='relic'?'relic':'travel');
         assert.ok(await page.evaluate(()=>!!openingWorkbench.getPoint('option',0)),'choices have rendered controls');
       } finally {release();await page.unrouteAll({behavior:'wait'});}
+      if(id==='explore')await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.worldDecision.artworkReady,null,{timeout:10000});
       await ready();
     }
   });
@@ -134,6 +135,12 @@ try {
     await page.setViewportSize({width:1280,height:800});
     await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`);await ready();
     await draftAction('Restore built-in draft');
+    await page.locator('#edit-node').selectOption('shop');await page.locator('#preview-node').click();
+    await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.modal.animation==='open');
+    const native=await page.evaluate(()=>{const g=openingWorkbench.getSnapshot().game;return {footer:g.modal.costPanels[0].rect,hud:g.hud};});
+    assert.equal(native.hud.aboveDecisions,true,'the native buy modal keeps the Vassal HUD above its backdrop');
+    await page.getByTestId('opening-game-screen').scrollIntoViewIfNeeded();
+    await page.screenshot({path:'artifacts/prototype-native-buy-reference.png'});
     await page.locator('#edit-node').selectOption('explore');await page.locator('#preview-node').click();
     await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.worldDecision.open);
     const world=()=>page.evaluate(()=>openingWorkbench.getSnapshot().game.worldDecision);
@@ -146,6 +153,17 @@ try {
       assert.equal(view.brightRegionIds.length+view.dimmedRegionIds.length,view.regionCount,`${mode} dims every other region`);
       assert.ok(view.dimmedRegionIds.length>0);
       assert.equal(view.prices.length,3,'all World Decision options show their shared cost panel');
+      const game=await page.evaluate(()=>openingWorkbench.getSnapshot().game);
+      assert.equal(game.hud.visible,true);assert.equal(game.hud.aboveDecisions,true,'Vassal HUD stays bright above World Decision');
+      assert.equal(game.chronicle.visible,true,'native chronicle chrome supplies the surrounding game footprint');
+      assert.ok(view.locationPlaque.rect.x>PANEL.x+PANEL.width-450&&view.locationPlaque.rect.y<PANEL.y,'location uses the native upper-right plaque');
+      for(const price of view.prices){
+        assert.ok(Math.abs(price.rect.width-native.footer.width)<=3&&Math.abs(price.rect.height-native.footer.height)<=3,
+          'World Decision cost boxes match the native buy modal');
+        assert.ok(Math.abs(price.rect.y-native.footer.y)<=3,'cost footers use the same baseline as native shop options');
+        assert.ok(price.rect.y>price.cardRect.y+390,'cost box sits beneath the illustrated choice');
+      }
+
       for(const item of [...view.prices,view.feedback]) {
         const r=item.rect;
         assert.ok(r.x>=PANEL.x&&r.y>=PANEL.y&&r.x+r.width<=PANEL.x+PANEL.width&&r.y+r.height<=PANEL.y+PANEL.height,
@@ -164,8 +182,9 @@ try {
     const before=await page.evaluate(()=>openingWorkbench.getSnapshot().summary);
     await openingClick('worldMode','move');const move=(await world()).targets.find(t=>!t.blocked);assert.ok(move);
     await openingClick('worldTarget',move.regionId);assert.equal((await world()).selectedOptionId,move.id);await checkFocus('move');
-    await openingClick('worldMode','build');const build=(await world()).targets.find(t=>!t.blocked);assert.ok(build);
+    await openingClick('worldCost','build');assert.equal((await world()).mode,'build','native cost footer selects its action');const build=(await world()).targets.find(t=>!t.blocked);assert.ok(build);
     await openingClick('worldTarget',build.regionId);assert.equal((await world()).selectedOptionId,build.id);await checkFocus('build');
+    assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().game.hud.prestigeDelta),-build.cost,'selected costs preview in the real Vassal HUD');
     await openingClick('worldMode','tour');assert.equal((await world()).selectedOptionId,'tour');
     await checkFocus('tour');assert.deepEqual((await world()).brightRegionIds,[(await world()).locationRegionId]);
     assert.deepEqual(await page.evaluate(()=>openingWorkbench.getSnapshot().summary),before,'map previews apply no world changes');

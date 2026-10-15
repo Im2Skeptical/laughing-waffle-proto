@@ -7,6 +7,8 @@ import { createWorldMapView } from '../../../src/views/world-map-pixi.js';
 import { createSettlementPrototypeView } from '../../../src/views/settlement-prototype-view.js';
 import { createSettlementNavigationView, getNavigationVassalPortrait } from '../../../src/views/settlement-navigation-pixi.js';
 import { createTooltipView } from '../../../src/views/tooltip-pixi.js';
+import { createChronicleFrame } from '../../../src/views/chronicle-skin.js';
+import { createTimegraphScroll } from '../../../src/views/timegraph-scroll-pixi.js';
 import { prepareChronicleArt, getArtRevision } from '../../../src/views/chronicle-art.js';
 import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 import { button } from '../../../src/views/vassal-node-decision/cards.js';
@@ -44,13 +46,18 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   let destroyed = false;
   let previousRuntimeId = null, previousDecisionFamily = null, lastActiveId = null, outcomeId = null, message = '', footerKey = '', controlKey = '', outcomeKey = '';
   const decisionCache = new Map();
-  const layers = Object.fromEntries(['world', 'settlement', 'life', 'hud', 'navigation', 'footer', 'controls', 'modal', 'worldDecision', 'level', 'bag', 'note', 'outcome', 'tooltip'].map(name => [name, new PIXI.Container()]));
+  createChronicleFrame(app.stage);
+  const layers = Object.fromEntries(['world', 'settlement', 'life', 'chronicle', 'navigation', 'footer', 'controls', 'modal', 'worldDecision', 'level', 'hud', 'bag', 'note', 'outcome', 'tooltip'].map(name => [name, new PIXI.Container()]));
   app.stage.addChild(...Object.values(layers));
+  // Native surrounding chrome supplies the real modal footprint without inventing a forecast.
+  layers.chronicle.position.set(356,828);layers.chronicle.eventMode='none';
+  const chronicle=createTimegraphScroll({root:layers.chronicle,getActiveGroups:()=>['chaos','resources','population']});
+  chronicle.setScope('Civilization');chronicle.layoutKey(0);
   const state = () => snapshot.session.state;
   const presentation = () => ({ state: state(), vassal: openingVassal(snapshot.session), readOnly: snapshot.busy,
     viewedSec: state().tSec, frontierSec: state().tSec, profileSec: state().tSec });
   const tooltip = createTooltipView({ app, layer: layers.tooltip });
-  const family = node => {
+  const family = (node, compact = false) => {
     if (!node) return null;
     const def = getVassalLifeMapNodeFamily(node);
     const spec = snapshot.experiment.nodes.find(n => n.id === (node.experimentId ?? node.id));
@@ -60,6 +67,8 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
       ...[...(spec.options ?? []), ...(spec.relics ?? [])].map(o => o.immediateDeathChance ?? (spec.kind === 'specialRelic' ? .35 : 0)), 0);
     const chaos = Math.max(0, ...[...(spec.options ?? []), ...(spec.relics ?? [])].map(o => o.chaos ?? 0));
     const label = spec.displayLabel?.trim() || ({ world: 'World Decision', martial: 'Martial', specialRelic: 'Special Relic', customNote: 'Custom Note' })[spec.kind] || def.label;
+    // The graph/entry retains authored intent; the fixed modal plaque uses native concise copy.
+    if(compact)return {...def,label,...(spec.kind==='specialRelic'?{color:PALETTE.red}:{})};
     return { ...def, label, description: `${spec.title}\n${spec.kind === 'customNote' ? 'Read this design note, then Confirm to continue. No time or rewards are applied.' : spec.description}`
       + (danger ? `\nDirect death risk up to ${Math.round(danger * 100)}%.` : '')
       + (chaos ? `\nOptional Chaos cost up to ${chaos}.` : ''), ...(spec.kind === 'specialRelic' ? { color: PALETTE.red } : {}) };
@@ -97,7 +106,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     },
   });
   const modal = createVassalNodeDecisionModalView({ app, layer: layers.modal, tooltipView: tooltip,
-    getState: state, getPresentation: presentation, getNodeFamily: family,
+    getState: state, getPresentation: presentation, getNodeFamily: node => family(node,true),
     showShopReroll: () => !snapshot.experiment.nodes.find(n => n.id === snapshot.session.activeId)?.cards,
     getDecisionPresentation: (id, preview = {}) => {
       if (!snapshot.session.activeId || id !== snapshot.session.runtimeNodeId) return null;
@@ -132,7 +141,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   const bag = createVassalHeirloomFlowView({ app, layer: layers.bag, getState: state, getPresentation: presentation, tooltipView: tooltip });
   const note = createOpeningNoteScreen({ app, layer: layers.note, onConfirm: () => controller.commit().catch(error => { message = error.message; onError?.(message); }) });
   const hud = createVassalLifeHudView({ layer: layers.hud, getPresentation: presentation,
-    isVisible: () => mode === 'life' || modal.isOpen(), getDeltas: () => level.getHudDeltas() ?? modal.getHudDeltas(),
+    isVisible: () => mode === 'life' || modal.isOpen() || worldDecision.isOpen(), getDeltas: () => level.getHudDeltas() ?? worldDecision.getHudDeltas() ?? modal.getHudDeltas(),
     tooltipView: tooltip, onOpenHeirlooms: tab => bag.openInventory(tab) });
   const navigation = createSettlementNavigationView({ app, layer: layers.navigation, tooltipView: tooltip,
     getState: () => ({ time: { mode: 'present' }, portrait: getNavigationVassalPortrait(state()),
@@ -142,6 +151,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   });
 
   function drawChrome() {
+    layers.chronicle.visible=modal.isOpen()||worldDecision.isOpen()||note.isOpen()||level.getSemanticSnapshot().open;
     const s = snapshot.summary, active = snapshot.experiment.nodes.find(n => n.id === snapshot.session.activeId);
     const footerSignature = JSON.stringify([getArtRevision(), s, snapshot.busy, snapshot.progress, active?.id, snapshot.decision?.purchases.length, modal.isOpen(), worldDecision.isOpen(), note.isOpen(), life.isEntryConfirmationOpen(), message, mode]);
     if (footerKey !== footerSignature) {
@@ -215,7 +225,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   });
   app.ticker.add(() => {
     life.update(); if (mode === 'map') world.update(); if (mode === 'settlement') settlement.update();
-    worldDecision.update(); modal.update(); level.update(); bag.update(); hud.update(); navigation.update(app.ticker.deltaMS / 1000);
+    chronicle.update(); worldDecision.update(); modal.update(); level.update(); bag.update(); hud.update(); navigation.update(app.ticker.deltaMS / 1000);
     drawChrome();
   });
   refresh();
@@ -224,7 +234,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   void prepareChronicleArt(app.renderer).then(() => { if (!destroyed) refresh(); }).catch(error => {
     if (!destroyed) onError?.(`Some artwork could not load: ${error.message}`);
   });
-  const point = (kind, index = 0) => worldDecision.isOpen() && ['option','confirm','worldMode','worldTarget'].includes(kind) ? worldDecision.getPoint(kind,index) : ({
+  const point = (kind, index = 0) => worldDecision.isOpen() && ['option','confirm','worldMode','worldCost','worldTarget'].includes(kind) ? worldDecision.getPoint(kind,index) : ({
     node: () => life.getNodeClickPoint(index), enter: () => life.getEnterNodeClickPoint(),
     option: () => modal.getOptionClickPoint(index), offer: () => modal.getOfferClickPoint(index), face: () => modal.getOfferFacePoint(index),
     confirm: () => note.isOpen() ? note.getConfirmPoint() : modal.getConfirmClickPoint(), undo: () => modal.getUndoClickPoint(index), tableau: () => modal.getTableauClickPoint(index),
@@ -244,9 +254,9 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
       : { x: rect.left + target.x / 2424 * rect.width, y: rect.top + target.y / 1080 * rect.height };
   }, getSnapshot: () => {
     const modalState = modal.getSemanticSnapshot();
-    return { mode, ready: true, graph: { ...life.getPreparationSnapshot(), candidateId: life.getCandidateNodeId(), entryConfirmation: life.isEntryConfirmationOpen(), entryAnimation: life.getEntryConfirmationSnapshot().phase },
+    return { mode, ready: true, hud:{...hud.getSemanticSnapshot(),aboveDecisions:app.stage.getChildIndex(layers.hud)>app.stage.getChildIndex(layers.worldDecision)&&app.stage.getChildIndex(layers.hud)>app.stage.getChildIndex(layers.modal)},chronicle:{visible:layers.chronicle.visible,chromeOnly:true},graph: { ...life.getPreparationSnapshot(), candidateId: life.getCandidateNodeId(), entryConfirmation: life.isEntryConfirmationOpen(), entryAnimation: life.getEntryConfirmationSnapshot().phase },
       worldDecision:worldDecision.getSnapshot(),note: note.getSnapshot(), modal: { open: worldDecision.isOpen() || note.isOpen() || modalState.open, animation: worldDecision.isOpen() || note.isOpen() ? 'open' : modalState.animation.phase, family: worldDecision.isOpen() ? 'travel' : note.isOpen() ? 'customNote' : modalState.family, selectedOptionId: worldDecision.isOpen()?snapshot.decision.nodeState.selectedOptionId:modalState.selectedOptionId,
         inspectedCardId: modalState.inspectedCardId, purchaseOrder: modalState.purchaseOrder, offers: modalState.offers, replacementOfferId: modalState.replacementOfferId,
-        contextKind: modalState.contextKind, projectedPrestige: modalState.projectedPrestige, visibleOfferIds: modalState.visibleOfferIds }, level: level.getSemanticSnapshot() };
+        costPanels:modalState.costPanels,contextKind: modalState.contextKind, projectedPrestige: modalState.projectedPrestige, visibleOfferIds: modalState.visibleOfferIds }, level: level.getSemanticSnapshot() };
   }, destroy: () => { destroyed = true; display.destroy(); app.destroy(true, { children: true }); } };
 }
