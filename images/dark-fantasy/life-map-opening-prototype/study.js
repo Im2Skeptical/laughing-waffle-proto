@@ -6,6 +6,7 @@ import { createOpeningGraphEditor } from './graph-editor.js';
 import { KIND_LABELS } from './graph-edit.js';
 import { statIcon } from './stat-icons.js';
 import { getRegionReference } from '../../../src/model/world-state.js';
+import { CAMPAIGN_INPUTS, CAMPAIGN_TUNING } from './campaign-experiment.js';
 
 let storage = null;
 try { storage = window.localStorage; } catch { /* Export works without browser storage. */ }
@@ -15,6 +16,7 @@ let selectedId = 'relic', editorKey = '', toolbarKey = '', jsonKey = '', error =
 let gameScreen = null;
 let zeroPrestigeShopPreview = true;
 let zeroPrestigeLegacyPreview = false;
+const campaignInputs={...CAMPAIGN_INPUTS};
 const graphEditor = createOpeningGraphEditor({ host: $('graph-editor'), controller, run,
   onSelect: id => { selectedId = id; editorKey = ''; render(); } });
 const abilityNames = { intelligence: 'Prowess', effectiveness: 'Effectiveness', wisdom: 'Wisdom', cunning: 'Cunning' };
@@ -103,7 +105,7 @@ function renderEditor(snapshot) {
   host.append(el('h2', 'Edit an encounter'), el('p', 'Apply edits, then Restart. The current playthrough retains its original experiment.', 'note'));
   const chooser = appendField(host, 'Node', selectedId, { options: doc.nodes.map(n => [n.id, n.title]), id: 'edit-node' });
   chooser.addEventListener('change', () => { selectedId = chooser.value; editorKey = ''; render(); });
-  const preview = button('Preview this node', () => { if(spec.kind==='legacy')controller.previewLegacy(zeroPrestigeLegacyPreview,spec.id);else controller.previewEncounter(spec.id); gameScreen?.openDecision(); $('game-screen').scrollIntoView({block:'start',behavior:'smooth'}); }, 'primary');
+  const preview = button('Preview this node', () => { if(spec.kind==='legacy')controller.previewLegacy(zeroPrestigeLegacyPreview,spec.id);else if(spec.kind==='martial')controller.previewCampaign(campaignInputs,spec.id);else controller.previewEncounter(spec.id); gameScreen?.openDecision(); $('game-screen').scrollIntoView({block:'start',behavior:'smooth'}); }, 'primary');
   preview.id='preview-node';host.append(preview);
   if(spec.kind==='world') {
     const example=button('Preview travel rewards',previewTravelRewards,'primary');
@@ -123,7 +125,7 @@ function renderEditor(snapshot) {
   fields.title = appendField(grid, 'Title', spec.title);
   fields.displayLabel = appendField(grid, 'Game-screen label (blank = node type)', spec.displayLabel);
   fields.kind = appendField(grid, 'Encounter type', spec.kind, { options: OPENING_KINDS.map(kind => [kind, KIND_LABELS[kind]]) });
-  if(spec.kind!=='world') fields.phaseCost = appendField(grid, 'Override phases (blank = offer cost)', spec.phaseCost, { type: 'number', min: 0, max: 320 });
+  if(!['world','martial'].includes(spec.kind)) fields.phaseCost = appendField(grid, 'Override phases (blank = offer cost)', spec.phaseCost, { type: 'number', min: 0, max: 320 });
   if (spec.kind === 'supply') fields.stockOutput = appendField(grid, 'Stock output / auto', spec.stockOutput ?? 'auto');
   if (['shop','structureShop'].includes(spec.kind)) fields.monsterPressurePerPurchase = appendField(grid,'Monster Pressure / purchase',spec.monsterPressurePerPurchase??10,{type:'number',min:0,max:10000});
   host.append(grid);
@@ -146,9 +148,14 @@ function renderEditor(snapshot) {
       legacyFields[key]=appendField(host,label,spec.legacy[key],{id:`legacy-${key}`,type:'number',min:key==='settlementPrestigeCost'?0:1});
     }
   }
+  const campaignFields={};
+  if(spec.kind==='martial')for(const [key,label] of Object.entries({prestigeCost:'Prestige per army action',foodBase:'Base Food cost',foodPerDistance:'Food per region of distance',nestDefenseBonus:'Nest defence bonus',questDefense:'Quest defence',questPrestige:'Quest Prestige reward'})) {
+    campaignFields[key]=appendField(host,label,spec.campaign?.[key]??CAMPAIGN_TUNING[key],{id:`campaign-${key}`,type:'number',min:0,max:10000});
+  }
   const lists = {};
   for (const list of ['options', 'cards', 'relics', 'pass']) {
     if (spec[list] == null) continue;
+    if(spec.kind==='martial'&&list==='options')continue;
     const items = list === 'pass' ? [spec.pass] : spec[list], section = el('div'); section.append(el('h3', list === 'pass' ? 'Alternative to purchasing' : ({ options: 'Options', cards: 'Cards', relics: 'Relics' })[list]));
     lists[list] = items.map((item, index) => {
       const group = el('details', '', 'offer-editor'), inputs = {}, row = el('div', '', 'editor-grid');
@@ -185,6 +192,7 @@ function renderEditor(snapshot) {
     if (fields.stockOutput) changed.stockOutput = fields.stockOutput.value;
     if (fields.monsterPressurePerPurchase) changed.monsterPressurePerPurchase = Number(fields.monsterPressurePerPurchase.value);
     if(spec.kind==='legacy')changed.legacy=Object.fromEntries(Object.entries(legacyFields).map(([key,input])=>[key,input.type==='number'?Number(input.value):input.value]));
+    if(spec.kind==='martial')changed.campaign=Object.fromEntries(Object.entries(campaignFields).map(([key,input])=>[key,Number(input.value)]));
     for (const [list, rows] of Object.entries(lists)) {
       const items = rows.map(({ item, inputs }) => { const value = structuredClone(item); for (const [name, input] of Object.entries(inputs)) {
         if(name==='relicChance'){value.weightedOutcomes[0].weight=Number(input.value);value.weightedOutcomes[1].weight=100-Number(input.value);continue;}
@@ -203,6 +211,14 @@ function renderGuides(snapshot) {
     tab.setAttribute('aria-pressed', guide?.id === scenario.id ? 'true' : 'false'); tab.disabled = snapshot.busy; host.append(tab);
   }
   const travelExample=button('Travel reward example',previewTravelRewards);travelExample.id='travel-reward-example';travelExample.disabled=snapshot.busy;host.append(travelExample);
+  const campaignButton=button('Campaign',()=>{guide=null;controller.previewCampaign(campaignInputs);gameScreen?.openDecision();$('game-screen').scrollIntoView({block:'start',behavior:'smooth'});});
+  campaignButton.id='preview-campaign';campaignButton.disabled=snapshot.busy;host.append(campaignButton);
+  const inputs=el('details');inputs.append(el('summary','Campaign inputs'));const inputGrid=el('div','','editor-grid');
+  for(const key of Object.keys(campaignInputs)) {
+    const input=appendField(inputGrid,key[0].toUpperCase()+key.slice(1),campaignInputs[key],{id:`campaign-input-${key}`,type:'number',min:0,max:10000});
+    input.disabled=snapshot.busy;input.addEventListener('change',()=>{campaignInputs[key]=Number(input.value);});
+  }
+  inputs.append(inputGrid);host.append(inputs);
   const legacyPreview=()=>{guide=null;controller.previewLegacy(zeroPrestigeLegacyPreview);gameScreen?.openDecision();$('game-screen').scrollIntoView({block:'start',behavior:'smooth'});};
   const legacyButton=button('Legacy',legacyPreview);legacyButton.id='preview-legacy';legacyButton.disabled=snapshot.busy;host.append(legacyButton);
   const legacyZero=el('label','0 Prestige · Legacy','shop-preview-toggle'),legacyToggle=document.createElement('input');

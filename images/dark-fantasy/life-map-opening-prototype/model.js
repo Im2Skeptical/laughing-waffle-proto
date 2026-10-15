@@ -6,7 +6,6 @@ import { getCurrentLifeMapVassal, selectLifeMapVassal, enterVassalLifeNode, getV
   getVassalAge, getVassalEffectiveStats, getVassalActionPhaseCost, getAdjustedVassalPrestigeCost,
   selectVassalNodeOption, confirmVassalLifeNode, purchaseVassalShopOffer, chooseVassalDevelopmentStat, getVassalStatPresentation, formatVassalPhaseDuration } from '../../../src/model/vassal-life-map.js';
 import { getVassalMortalityChance, VASSAL_STAT_IDS } from '../../../src/defs/gamepieces/vassal-life-map-defs.js';
-import { classActionOptions } from '../../../src/model/vassal-life-map/class-actions.js';
 import { generateShopInventory } from '../../../src/model/vassal-life-map/shop.js';
 import { getStockShopGenerationContext } from '../../../src/model/vassal-life-map/stock-shops.js';
 import { getOwnedHeirloomDefinitionIds } from '../../../src/model/vassal-life-map/heirlooms.js';
@@ -22,6 +21,7 @@ import { getMoonPhaseDurationSec } from '../../../src/model/moon-phases.js';
 import { createOpeningExperiment, validateOpeningExperiment } from './experiment.js';
 import { isOpeningTagShop, createOpeningShopSelection, chooseOpeningShopTag, openingShopPrice } from './shop-experiment.js';
 import { applyVassalNodeEffects, getSettlementRequirements } from '../../../src/model/vassal-life-map/lifecycle/node-confirm.js';
+import { createCampaignExperiment, getCampaignPresentation, selectCampaignMode } from './campaign-experiment.js';
 
 export function cloneOpeningSession(session) {
   return { ...structuredClone({ ...session, state: null }), state: deserializeGameState(serializeGameState(session.state)) };
@@ -97,12 +97,12 @@ function legacyOptions(session, spec) {
   const prestigeQuantity=Math.floor(vassal.prestige/tuning.prestigeDivisor);
   return [
     {id:'found-settlement',label:'Found a settlement',prestigeCost:tuning.settlementPrestigeCost,phaseCost:0,
-      description:'Found a new settlement · Choose its location next'},
-    {id:'highest-stat',label:statLabel,prestigeCost:0,phaseCost:0,
-      description:`${statLabel} ${stats[highest]} ÷ ${tuning.statDivisor} · Future Vassals start with +${statQuantity} ${statLabel}`,
+      description:'Establish a new settlement on the frontier.'},
+    {id:'highest-stat',label:`Teach ${statLabel}`,prestigeCost:0,phaseCost:0,
+      description:`Future Vassals start with +${statQuantity} ${statLabel}. · ${stats[highest]} ${statLabel} ÷ ${tuning.statDivisor}`,
       legacyReward:{kind:'startingStat',statId:highest,basis:highest,value:stats[highest],quantity:statQuantity,label:`Future starting ${statLabel}`}},
-    {id:'accumulated-prestige',label:'Prestige',prestigeCost:0,phaseCost:0,
-      description:`${vassal.prestige} Prestige ÷ ${tuning.prestigeDivisor} · Future Vassals start with +${prestigeQuantity} Prestige`,
+    {id:'accumulated-prestige',label:'Leave renown',prestigeCost:0,phaseCost:0,
+      description:`Future Vassals start with +${prestigeQuantity} Prestige. · ${vassal.prestige} Prestige ÷ ${tuning.prestigeDivisor}`,
       legacyReward:{kind:'startingPrestige',basis:'prestige',value:vassal.prestige,quantity:prestigeQuantity,label:'Future starting Prestige'}},
   ];
 }
@@ -138,6 +138,7 @@ export function enterOpeningEncounter(session, id) {
   if (!session.availableIds.includes(id) || session.activeId) throw new Error('Choose an available encounter.');
   session.randomOutcome = null;
   session.shopSelection = null;
+  session.campaign=null;
   session.legacyDestinationRegionId=null;
   const note = session.experiment.nodes.find(n => n.id === id);
   if (note.kind === 'customNote') { session.activeId = id; session.availableIds = []; session.runtimeNodeId = null; return session; }
@@ -178,9 +179,8 @@ export function enterOpeningEncounter(session, id) {
       prestigeCost: spec.worldCosts?.routePrestigeCost ?? offer.basePrestigeCost, intervention: offer.intervention, experimentFamily: 'routes' })));
     current.options.push(...(spec.options ?? []).map(o => toOption(o, o.id)));
   } else if (spec.kind === 'martial') {
-    current.options = [...classActionOptions(state, vassal, 'campaign').filter(o => o.classAction.kind !== 'prepare'),
-      ...classActionOptions(state, vassal, 'crisis').filter(o => o.classAction.kind !== 'observe'),
-      ...(spec.options ?? []).map(o => toOption(o, o.id))];
+    session.campaign=createCampaignExperiment(state,vassal,spec.campaign);
+    current.options=getCampaignPresentation(session).options.map(option=>({id:option.id,label:option.label,phaseCost:0}));
   } else if (['relic', 'specialRelic'].includes(spec.kind) && spec.relics) {
     const owned = getOwnedHeirloomDefinitionIds(state, vassal);
     current.options = spec.relics.filter(item => !owned.has(item.definitionId)).map((item, index) => {
@@ -214,6 +214,11 @@ export function getOpeningDecision(session, preview = {}) {
   const note = session.experiment.nodes.find(n => n.id === session.activeId);
   if (note.kind === 'customNote') return { node: note, nodeState: { contentMode: 'note' }, options: [], purchases: [] };
   const vassal = openingVassal(session), current = nodeState(session);
+  if(session.campaign) {
+    const native=getVassalNodeDecisionPresentation(session.state,session.runtimeNodeId),campaign=getCampaignPresentation(session);
+    return {...native,campaign,options:campaign.options,offers:[],purchases:[],contextKind:'none',mortalityEstimate:null,
+      node:{...native.node,family:'campaign',experimentId:note.id},nodeState:{...native.nodeState,family:'campaign',contentMode:'choice',options:campaign.options,selectedOptionId:campaign.mode}};
+  }
   let priceState = session.state;
   if (session.shopSelection?.selectedTag && current.inventory.some(offer => offer.monsterPressureCost > 0 || openingShopPrice(vassal, current, offer, session.shopSelection.monsterPressurePerPurchase).usesMonsterPressure)) {
     priceState = deserializeGameState(serializeGameState(session.state));
@@ -262,6 +267,7 @@ export function getOpeningDecision(session, preview = {}) {
     nodeState: { ...presentation.nodeState, options }, options };
 }
 export function selectOpeningOption(session, optionId) {
+  if(session.campaign)return selectCampaignMode(session,optionId);
   if(session.experiment.nodes.find(node=>node.id===session.activeId)?.kind==='legacy') {
     session.legacyDestinationRegionId=null;
     if(optionId===null){nodeState(session).selectedOptionId=null;return;}
@@ -296,6 +302,7 @@ export function stageOpeningOffer(session, offerId, origin, toIndex, replacePrac
 }
 export function commitOpeningEncounter(session, optionId = null, destination = 'equip', pass = false) {
   const current = nodeState(session), spec = session.experiment.nodes.find(n => n.id === session.activeId);
+  if(session.campaign)throw new Error('Campaign is a workshop mockup; use the prototype controller.');
   if(spec.kind==='legacy')throw new Error('Legacy is a workshop mockup; record its choice through the prototype controller.');
   if (session.shopSelection && !session.shopSelection.selectedTag) throw new Error('Choose a tag first.');
   if (pass) {

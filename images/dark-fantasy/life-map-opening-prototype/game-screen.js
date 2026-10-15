@@ -21,6 +21,9 @@ import { getOpeningGraphPresentation, openingVassal } from './model.js';
 import { createOpeningNoteScreen } from './note-screen.js';
 import { createOpeningWorldDecisionScreen } from './world-decision-screen.js';
 
+// Bump for each published opening-workbench iteration and report it to the user.
+export const OPENING_PREVIEW_VERSION = '0.1.0';
+
 // A mock game shell around the exact views used by the game. All input goes
 // through the disposable controller; this module owns no simulation rules.
 export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
@@ -29,7 +32,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   app.view.tabIndex = 0; app.view.dataset.testid = 'opening-game-screen';
   app.view.setAttribute('aria-label', 'Playable opening: Life Map, world map, settlement and node decisions');
   host.replaceChildren(app.view);
-  const screenLabel = document.createElement('span'); screenLabel.className = 'game-screen-label'; screenLabel.textContent = 'Opening playthrough'; host.prepend(screenLabel);
+  const screenLabel = document.createElement('span'); screenLabel.className = 'game-screen-label'; screenLabel.textContent = `Opening playthrough · v${OPENING_PREVIEW_VERSION}`; host.prepend(screenLabel);
   const display = attachDevPreviewDisplay(host, { onChange: active => { host.closest('body')?.classList.toggle('opening-fullscreen', active); } });
   const rotated = () => display.active && matchMedia('(orientation:portrait) and (pointer:coarse)').matches;
   const mapPosition = app.renderer.events.mapPositionToPoint.bind(app.renderer.events);
@@ -49,6 +52,12 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   createChronicleFrame(app.stage);
   const layers = Object.fromEntries(['world', 'settlement', 'life', 'chronicle', 'navigation', 'footer', 'controls', 'modal', 'worldDecision', 'level', 'hud', 'bag', 'note', 'outcome', 'tooltip'].map(name => [name, new PIXI.Container()]));
   app.stage.addChild(...Object.values(layers));
+  // Keep the build identifier above every decision/inspection, including fullscreen.
+  const versionBadge = new PIXI.Container(); versionBadge.eventMode = 'none';
+  const versionBackground = new PIXI.Graphics();
+  roundedRect(versionBackground, 1780, 18, 160, 48, 8, PALETTE.panel, PALETTE.stroke, 1);
+  versionBadge.addChild(versionBackground, createText(`v${OPENING_PREVIEW_VERSION}`, { ...TEXT_STYLES.body, fontSize: 26, fill: PALETTE.accent }, 1860, 42, .5, .5));
+  app.stage.addChild(versionBadge);
   // Native surrounding chrome supplies the real modal footprint without inventing a forecast.
   layers.chronicle.position.set(356,828);layers.chronicle.eventMode='none';
   const chronicle=createTimegraphScroll({root:layers.chronicle,getActiveGroups:()=>['chaos','resources','population']});
@@ -58,7 +67,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     viewedSec: state().tSec, frontierSec: state().tSec, profileSec: state().tSec });
   const usesWorldDecision=()=>{
     const kind=snapshot.experiment.nodes.find(node=>node.id===snapshot.session.activeId)?.kind;
-    return kind==='world'&&snapshot.decision?.node.family==='travel'||kind==='legacy';
+    return kind==='world'&&snapshot.decision?.node.family==='travel'||kind==='legacy'||kind==='martial';
   };
   const tooltip = createTooltipView({ app, layer: layers.tooltip });
   const family = (node, compact = false) => {
@@ -70,7 +79,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     const danger = Math.max(spec.kind === 'specialRelic' && !spec.relics?.length ? .35 : 0,
       ...[...(spec.options ?? []), ...(spec.relics ?? [])].map(o => o.immediateDeathChance ?? (spec.kind === 'specialRelic' ? .35 : 0)), 0);
     const chaos = Math.max(0, ...[...(spec.options ?? []), ...(spec.relics ?? [])].map(o => o.chaos ?? 0));
-    const label = spec.displayLabel?.trim() || ({ world: 'Crossroads', martial: 'Martial', specialRelic: 'Special Relic', customNote: 'Custom Note' })[spec.kind] || def.label;
+    const label = spec.displayLabel?.trim() || ({ world: 'Crossroads', martial: 'Campaign', specialRelic: 'Special Relic', customNote: 'Custom Note' })[spec.kind] || def.label;
     // The graph/entry retains authored intent; the fixed modal plaque uses native concise copy.
     if(compact)return {...def,label,...(spec.kind==='specialRelic'?{color:PALETTE.red}:{})};
     return { ...def, label, description: `${spec.title}\n${spec.kind === 'customNote' ? 'Read this design note, then Confirm to continue. No time or rewards are applied.' : spec.description}`
@@ -140,6 +149,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   const worldDecision = createOpeningWorldDecisionScreen({app,layer:layers.worldDecision,getState:state,
     getVassal:()=>openingVassal(snapshot.session),tooltipView:tooltip,onSelect:id=>invoke(()=>controller.select(id)),
     onSelectSettlement:id=>invoke(()=>controller.selectLegacyDestination(id)),
+    onSelectCampaignTarget:id=>invoke(()=>controller.selectCampaignTarget(id)),onLeaveCampaign:()=>invoke(()=>controller.leaveCampaign()),
     onConfirm:id=>{void controller.commit(id).catch(error=>{message=error.message;onError?.(message);});}});
   const level = createVassalLevelUpModalView({ app, layer: layers.level, getPresentation: presentation,
     isLifegraphVisible: () => mode === 'life', onChoose: (_choice, stat) => invoke(() => controller.develop(stat)) });
@@ -241,7 +251,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   void prepareChronicleArt(app.renderer).then(() => { if (!destroyed) refresh(); }).catch(error => {
     if (!destroyed) onError?.(`Some artwork could not load: ${error.message}`);
   });
-  const point = (kind, index = 0) => worldDecision.isOpen() && ['option','confirm','worldMode','worldCost','worldTarget','worldReward'].includes(kind) ? worldDecision.getPoint(kind,index) : ({
+  const point = (kind, index = 0) => worldDecision.isOpen() && ['option','confirm','worldMode','worldCost','worldTarget','worldReward','campaignLeave'].includes(kind) ? worldDecision.getPoint(kind,index) : ({
     node: () => life.getNodeClickPoint(index), enter: () => life.getEnterNodeClickPoint(),
     option: () => modal.getOptionClickPoint(index), offer: () => modal.getOfferClickPoint(index), face: () => modal.getOfferFacePoint(index),
     tagConfirm: () => modal.getShopTagConfirmPoint(index),
@@ -262,7 +272,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
       : { x: rect.left + target.x / 2424 * rect.width, y: rect.top + target.y / 1080 * rect.height };
   }, getSnapshot: () => {
     const modalState = modal.getSemanticSnapshot();
-    return { mode, ready: true, hud:{...hud.getSemanticSnapshot(),aboveDecisions:app.stage.getChildIndex(layers.hud)>app.stage.getChildIndex(layers.worldDecision)&&app.stage.getChildIndex(layers.hud)>app.stage.getChildIndex(layers.modal)},chronicle:{visible:layers.chronicle.visible,chromeOnly:true},graph: { ...life.getPreparationSnapshot(), candidateId: life.getCandidateNodeId(), entryConfirmation: life.isEntryConfirmationOpen(), entryAnimation: life.getEntryConfirmationSnapshot().phase },
+    return { mode, ready: true, version: OPENING_PREVIEW_VERSION, versionBadge:{visible:versionBadge.visible,aboveDecisions:app.stage.getChildIndex(versionBadge)>app.stage.getChildIndex(layers.outcome)}, hud:{...hud.getSemanticSnapshot(),aboveDecisions:app.stage.getChildIndex(layers.hud)>app.stage.getChildIndex(layers.worldDecision)&&app.stage.getChildIndex(layers.hud)>app.stage.getChildIndex(layers.modal)},chronicle:{visible:layers.chronicle.visible,chromeOnly:true},graph: { ...life.getPreparationSnapshot(), candidateId: life.getCandidateNodeId(), entryConfirmation: life.isEntryConfirmationOpen(), entryAnimation: life.getEntryConfirmationSnapshot().phase },
       worldDecision:worldDecision.getSnapshot(),note: note.getSnapshot(), modal: { open: worldDecision.isOpen() || note.isOpen() || modalState.open, animation: worldDecision.isOpen() || note.isOpen() ? 'open' : modalState.animation.phase, family: worldDecision.isOpen() ? snapshot.decision?.node.family : note.isOpen() ? 'customNote' : modalState.family, selectedOptionId: worldDecision.isOpen()?snapshot.decision.nodeState.selectedOptionId:modalState.selectedOptionId,
         inspectedCardId: modalState.inspectedCardId, purchaseOrder: modalState.purchaseOrder, offers: modalState.offers, replacementOfferId: modalState.replacementOfferId,
         shopTag:modalState.shopTag,shopTagChoices:modalState.shopTagChoices,

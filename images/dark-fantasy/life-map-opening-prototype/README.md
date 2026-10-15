@@ -4,6 +4,43 @@ Open **Development Lab → Prototypes → Protovassal opening**, or run
 `npm run preview:opening` and open
 <http://localhost:5185/images/dark-fantasy/life-map-opening-prototype/>.
 The Pages build bundles this page separately; player modules never import it.
+The canvas header and preview heading show **v0.1.0**. Bump
+`OPENING_PREVIEW_VERSION` in `game-screen.js` for each published iteration, update
+this number, and report it in the handoff so the loaded Pages build is identifiable.
+The canvas badge stays visible above modals and in fullscreen.
+The **Campaign** button opens a repeatable Warrior Campaign mockup on the same
+full-map screen. **Campaign inputs** below the canvas supplies editable sample
+Prowess, Prestige, adult Warriors, Arms and Food. Adjust values, then click
+Campaign again; this never edits the saved graph. The encounter editor separately
+exposes its provisional expedition prices, nest defence and quest reward.
+
+Force = Prowess + personal Retinue + min(adult Warriors, Arms). Retinue uses the
+existing Prestige-per-Retinue rule. Defeat risk = Defence / (Force + Defence),
+rounded to a whole percent. Solo quests use Prowess alone. Target strength and
+distance, the force breakdown and the selected target's risk are visible before
+Confirm. Authored Campaign nodes in this workbench read civilization-wide adult Warriors and
+Arms, the current settlement's Edible Stock, and the Vassal's current stats.
+
+There is no target range or road requirement. Food costs 1 + region distance by
+default; disconnected islands get a finite geometric distance too. Each army
+attempt also costs 5 Prestige; solo quests cost no Prestige, but still pay travel
+Food. Prices are shown in the existing cost boxes. The direct preview includes
+nearby and distant monster examples, plus the world's neutral settlements.
+
+**Hunt monsters** first clears the region's expansion buildup to zero, then offers
+**Destroy nest** as a separate, stronger encounter. **Win allegiance** records a
+neutral settlement as allied. **Solo quest** provisionally awards a monster relic
+and 10 Prestige; each quest is available once per encounter. Success keeps the
+screen open to continue. Defeat ends the expedition; **Leave** always returns to
+the opening graph. No new Vassal death rule is applied.
+
+These are workshop outcomes: monster stages, alliances, Food and relic rewards
+are session records, not normal world changes or newly installed gamepieces.
+Prestige is deducted from the disposable Vassal so the HUD and Retinue agree.
+Attempts use the saved Vassal RNG; inspecting costs consumes none. Rewind restores
+the previous attempt, supplies, Prestige and RNG. These mock attempts do not
+advance simulation time or change normal Campaign rules, save schemas or replay.
+
 The **Legacy** button below the canvas opens the three-choice endpoint mockup:
 found a settlement, scale a reward by the highest effective stat, or scale a
 reward by accumulated Prestige. The default recipe ends at Legacy; saved drafts
@@ -40,11 +77,12 @@ opening or a replacement for normal gameplay.
 - `experiment.js`: editable JSON graph, offers and validation.
 - `model.js`: disposable encounters using existing Life Map effects and fresh-game state.
 - `shop-experiment.js`: Stock-tag Practice pools, Housing/Stock/Special Structure pools and the prototype's Monster Pressure payment quote.
+- `campaign-experiment.js`: disposable force, supply, risk and staged Campaign outcomes.
 - `controller.js`: transactions, tick resolution, complete rewind checkpoints and separate draft storage.
 - `game-screen.js`: mock game shell reusing the live Pixi graph, world map, settlement, HUD and decision views.
 - `graph-edit.js` / `graph-editor.js`: route-changing operations and the visual draft editor.
 - `note-screen.js`: enterable Custom Notes, with scrollable intention text and Confirm.
-- `world-decision-screen.js`: full-map Move / Build a route / Tour selection.
+- `world-decision-screen.js`: shared full-map Crossroads, Legacy and Campaign choices.
 - `study.js`: graph/node editing, outcomes and guided experiments around the game screen.
 - `stat-icons.js`: the game's resource icons as small DOM images for the summary panel.
 
@@ -175,7 +213,7 @@ Next guided choice button; all ordinary free-play controls remain available.
 ## Real rules and experimental differences
 
 Fresh-game initialization, hosted Stock, five-slot Practices, construction,
-Retinue, Campaigns, crisis responses, heirloom effects, ability gains, mortality
+Retinue, crisis responses, heirloom effects, ability gains, mortality
 and elapsed simulation time use the existing engine. Time advances through real
 ticks, with short yields so the interface remains responsive.
 
@@ -218,9 +256,8 @@ does not read any of these shop recipes.
 Curated shop offers use existing card definitions and eligibility. Ordinary
 relics have zero direct death risk and explicit authored Chaos costs. The separate
 `specialRelic` kind permits signalled direct death risk after founding. World
-encounters combine real travel/route options and, for Warriors, legal Campaigns.
-Martial encounters combine legal Campaigns/crisis responses with authored useful
-alternatives. Stock Supply retains the current global unmet-input check.
+encounters combine real travel/route options. Martial encounters use the Campaign
+workshop described above. Stock Supply retains the current global unmet-input check.
 
 Current routine node Prestige/Development gains and earned level-ups still apply.
 Pre-founding actions reaching age 40 or containing direct death risk are blocked;
