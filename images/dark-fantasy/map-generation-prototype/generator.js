@@ -1,4 +1,5 @@
 // Disposable map study. No GameState, live simulation or save is attached.
+import { assignClusteredBiomes } from './biome-clustering.js';
 import { attachRngHelpers } from '../../../src/model/rng.js';
 
 export const BIOMES = {
@@ -198,31 +199,6 @@ function buildGeography(vertices, edges, types, state, oceanSides) {
     });
   }
   return features;
-}
-
-function assignBiomes(regions, edges, quota, clustering, state) {
-  const assignment = shuffle(Object.entries(quota).flatMap(([biome, count]) => Array(count).fill(biome)), state);
-  const shared = edges.filter(e => e.regions.length === 2);
-  const regionById = new Map(regions.map((r, i) => [r.id, i]));
-  const affinity = regions.map(region => {
-    const features = edges.filter(e => e.regions.includes(region.id)).map(e => e.feature);
-    const coastal = edges.some(e => e.regions.length === 1 && e.regions[0] === region.id);
-    return { plains: .15, forest: .2, islands: coastal ? .85 : -.35,
-      swamp: features.includes('river') ? .65 : 0,
-      mountains: features.includes('ridge') ? .85 : -.1 };
-  });
-  const score = () => shared.reduce((sum, edge) => sum + (assignment[regionById.get(edge.regions[0])] === assignment[regionById.get(edge.regions[1])] ? clustering * 1.8 : 0), 0)
-    + assignment.reduce((sum, biome, i) => sum + affinity[i][biome] * .5, 0);
-  let current = score();
-  for (let step = 0; step < 3500; step++) {
-    const a = state.rngNextInt(0, 19), b = state.rngNextInt(0, 19);
-    if (assignment[a] === assignment[b]) continue;
-    [assignment[a], assignment[b]] = [assignment[b], assignment[a]];
-    const candidate = score(), temperature = .5 * (1 - step / 3500) + .015;
-    if (candidate >= current || state.rngNextFloat() < Math.exp((candidate - current) / temperature)) current = candidate;
-    else [assignment[a], assignment[b]] = [assignment[b], assignment[a]];
-  }
-  regions.forEach((region, i) => { region.biome = assignment[i]; });
 }
 
 function shapeEdge(edge, vertices, regions, roughness, state) {
@@ -476,7 +452,7 @@ function buildFootprint(state, sizeVariation, phases) {
   }));
 }
 
-export function generateMap({ seed = 1847, clustering = .45, sizeVariation = .6, roughness = .65, featureSet = 0 } = {}) {
+export function generateMap({ seed = 1847, clustering = .5, sizeVariation = .6, roughness = .65, featureSet = 0 } = {}) {
   const state = { rng: { seed: Math.floor(seed) } }; attachRngHelpers(state);
   const world = createWorld(Math.floor(seed));
   const regions = buildFootprint(state, sizeVariation, world.shape.phases);
@@ -498,7 +474,12 @@ export function generateMap({ seed = 1847, clustering = .45, sizeVariation = .6,
   }
   const features = buildGeography(vertices, edges, FEATURE_SETS[featureSet], state, world.oceanSides);
   const biomes = shuffle(Object.keys(BIOMES).filter(b=>b!=='monster'), state), quota = Object.fromEntries(biomes.map((biome, i) => [biome, 6 - i]));
-  assignBiomes(regions, edges, quota, clustering, state);
+  // Monster is a sixth quota during optimisation; later conversion would
+  // break both anti-clustering and connected groups at the slider endpoints.
+  quota.monster=2;
+  const donors=biomes.filter(b=>b!=='islands');
+  for(let n=0;n<2;n++)quota[donors[n%donors.length]]--;
+  const clusteringStudy=assignClusteredBiomes({regions,edges,quota,clustering,seed});
   for (const edge of edges) shapeEdge(edge, vertices, regions, roughness, state);
   for (const region of regions) {
     region.outline = region.edgeIds.flatMap((id, i) => {
@@ -509,15 +490,9 @@ export function generateMap({ seed = 1847, clustering = .45, sizeVariation = .6,
     region.centre = centroid(region.outline);
     region.bounds = pathBounds(region.outline);
   }
-  // Two whole cells become monster territory. Preserve the five landscape
-  // types and island topology; terrainBiome selects the den material kit only.
-  quota.monster=0;
-  const monsterCandidates=regions.filter(r=>r.biome!=='islands').sort((a,b)=>
-    decorationRandom(seed^91837,regions.indexOf(a))-decorationRandom(seed^91837,regions.indexOf(b)));
-  for(const region of monsterCandidates) {
-    if(quota.monster===2) break;
-    if(quota[region.biome]<=1) continue;
-    region.terrainBiome=region.biome;quota[region.biome]--;region.biome='monster';quota.monster++;
+  for(const region of regions.filter(r=>r.biome==='monster')) {
+    const features=region.edgeIds.map(id=>edgeMap.get(id).feature);
+    region.terrainBiome=features.includes('ridge')?'mountains':features.includes('river')?'swamp':'plains';
   }
   const islandClusters = buildIslandClusters(regions, edges, seed);
   const surroundings = buildSurroundings(regions, edges, features, seed, world.oceanSides);
@@ -527,7 +502,7 @@ export function generateMap({ seed = 1847, clustering = .45, sizeVariation = .6,
   const biomeAreas = Object.fromEntries(Object.keys(BIOMES).map(b => [b, regions.filter(r => r.biome === b).reduce((sum, r) => sum + r.area, 0) / totalArea]));
   const shared = edges.filter(e => e.regions.length === 2);
   const matching = shared.filter(e => regions.find(r => r.id === e.regions[0]).biome === regions.find(r => r.id === e.regions[1]).biome).length;
-  return { seed, regions, edges, features, quota, biomeAreas, totalArea, matchingBorders: matching, sharedBorders: shared.length,
+  return { seed, regions, edges, features, quota, biomeAreas, totalArea, clusteringStudy, matchingBorders: matching, sharedBorders: shared.length,
     islandClusters, surroundings, geography, world: { oceanSides: world.oceanSides, shape: world.shape } };
 }
 

@@ -25,6 +25,10 @@ const stats=paintOcean({map:{seed:1869,regions:[{biome:'islands'}]},width,height
   waterIndices:indices,colours,regionIds:new Int16Array(size),seaDistance,dryDistance,shoreTypes:new Uint8Array(size).fill(3),waterBodies:bodies,
   waterBank:bank,groundBank:{},noise:(_s,x,y,scale)=>(Math.sin(x/scale+y/scale)*.5+.5),mixColour,waterBase:base,waterStrength:strength,surfaces:{bank:()=>0x777766}});
 assert.ok(stats.lakePixels>0&&stats.oceanPixels>0);
+const nearSea=Array.from(indices.keys()).filter(i=>!land[i]&&bodies[i]===WATER_BODY.ocean&&seaDistance[i]/3*2<36);
+const foam=nearSea.filter(i=>indices[i]>=160&&indices[i]<192);
+assert.ok(foam.length>nearSea.length*.2,'Exposed sea needs substantial foam area for a cycle');
+assert.ok(stats.surfPhases.filter(n=>n>0).length>=24,'Foam ribbons need a broad distribution across the 32-step cycle');
 for(let i=0;i<size;i++)if(!land[i]&&bodies[i]===WATER_BODY.lake)
   assert.ok(indices[i]>=112&&indices[i]<=127||indices[i]>=240,'Lakes must never use ocean swell or white surf');
 const saved=base.slice();let changed=0;

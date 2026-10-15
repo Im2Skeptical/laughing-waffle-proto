@@ -1,11 +1,23 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.11** — distinct inland-lake and marine island waters,
-calmer water graphics and separated animation-test ramps. The version appears under the title inside the
+Current published revision: **Map v1.0.12** — broader cycling foam ribbons and calibrated
+anti-clustering/grouping endpoints, with a 50% default. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
 revision note, and report that version to the user.
+
+### Clustering calibration
+
+The default is 50%. The slider selects a measured same-biome adjacency target
+between two seeded optimised layouts: 0% minimises matching borders; 100% keeps
+each biome in one connected group. The middle targets half the matching-border
+range instead of adding a positive grouping bias to a random layout. Swaps
+preserve exact quotas, and monster participates as a sixth type from the start.
+Biome optimisation has its own local seeded RNG, leaving region geometry fixed
+when clustering changes. `clusteringStudy` reports endpoint counts, target,
+actual matching borders and connected group count. Inspect 0/50/100 on one seed;
+run `biome-clustering-check.mjs` alongside the terrain checks.
 
 ### Inland and ocean island waters
 
@@ -14,8 +26,11 @@ an outer bake edge is marine; enclosed basins are freshwater, including island
 channels on the inland side of the map. Actual sea inlets keep marine graphics.
 Lakes use blue-grey depth, muted green/silt banks, sparse reflection ripples and
 small shoreline glints. They have no ocean swell, white surf or broad sea beach.
-Ocean ripple packets are quieter, with restrained broken surf over a fixed depth
-wash. Peat pools and river channels remain distinct from both.
+Marine shores have broad broken surf ribbons, a nearshore backwash and sparse
+offshore whitecap packets. Full 32-step foam phases follow depth around bays,
+with stronger foam opacity for the cycle test. Quiet gaps keep the sea depth wash
+visible; lakes never receive this surf. `surfaceTreatments.surfPhases` reports
+phase coverage and `offshoreCaps` counts offshore foam pixels. Peat pools and river channels remain distinct from both.
 The still frame remains phase zero. `water-style.js` defines independent timed
 ramps and a pure `waterColourAt` phase sampler; depth/sediment never cycle.
 The bake retains `waterBodies` and `waterPalette` with the existing base, index
@@ -48,8 +63,8 @@ terrain/settlement checks and browser LOD persistence; inspect seed 1865.
 ### Monster territories
 
 The atlas has two dedicated monster regions among its 20 cells. `biome: monster`
-is a sixth type; it replaces two non-island assignments while preserving at least
-one cell of every landscape type. Quotas, area percentages, selection and the
+is a sixth type; its two slots are reserved from non-island quotas before
+assignment, preserving every landscape type and participating in clustering. Quotas, area percentages, selection and the
 six-entry legend all use the actual monster type. `terrainBiome` records only
 which material variant of the den kit to use; it is not the cell's identity.
 Ordinary towns and monster props cannot share these cells. Monster dens never
@@ -517,12 +532,12 @@ rotated fallback where browser orientation locking is unavailable.
 The **Base structure / Atlas rendering** buttons and bottom arrows switch between
 these two views without regenerating the graph. The earlier region/skeleton,
 Quiet and Textured comparisons are removed. Atlas is the default view; both
-entries now default to seed 1867 with **Clustering 5%**, Size variation 85% and
-Border variation 100%. Clustering moves in **2.5 percentage-point steps**,
-allowing a choice between the earlier 0% and 15% settings. On seed 1867 these
-produce 15, 18 and 21 shared-biome borders at 0%, 5% and 15%, respectively;
-clustering is a bias, not a guaranteed percentage of shared borders. Explicit URL generation
-settings still override them. The isolated generator's own defaults are unchanged.
+entries default to seed 1867 with **Clustering 50%**, Size variation 85% and
+Border variation 100%. Clustering moves in **2.5 percentage-point steps**.
+Zero actively minimises same-biome neighbours; 100% makes each biome connected;
+the middle targets a measured adjacency count between the two. Explicit URL
+generation settings override the defaults. The isolated generator also defaults
+to 50% clustering.
 
 ### Dark fantasy atlas direction
 

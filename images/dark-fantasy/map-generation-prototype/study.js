@@ -9,14 +9,14 @@ import { createWheelZoom } from './wheel-zoom.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
-const MAP_VERSION = '1.0.11';
+const MAP_VERSION = '1.0.12';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
 const numberParam = (name, fallback, min, max) => params.has(name) && Number.isFinite(Number(params.get(name)))
   ? Math.max(min, Math.min(max, Number(params.get(name)))) : fallback;
 const state = { seed: Math.floor(numberParam('seed', 1867, 0, 2147483647)),
-  clustering: numberParam('clustering', .05, 0, 1), sizeVariation: numberParam('size', .85, 0, 1),
+  clustering: numberParam('clustering', .5, 0, 1), sizeVariation: numberParam('size', .85, 0, 1),
   roughness: numberParam('roughness', 1, 0, 1), featureSet: Math.floor(numberParam('features', 0, 0, 3)),
   variant: VARIANTS[params.get('variant')] ? params.get('variant') : 'F',
   texel: [2, 4, 6].includes(Number(params.get('texel'))) ? Number(params.get('texel')) : 4, sites: params.get('sites') !== '0', fog: params.get('fog') !== '0',
@@ -754,7 +754,7 @@ function render() {
     }, { copy: `Detail: ${state.detailMode}`, size: 23 });
   } else { const label = text(root, VARIANTS[state.variant], 1470, 1035, 29); label.anchor.set(.5); }
   button('Next map view', 1826, 1008, 100, 52, () => cycle(1), { copy: '→', size: 35 });
-  text(root, `${map.matchingBorders}/${map.sharedBorders} borders share a biome`, 520, 1022, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
+  text(root, `${map.matchingBorders}/${map.sharedBorders} borders share a biome · ${map.clusteringStudy.groups} groups`, 520, 1022, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
   if (state.variant === 'F') button('Toggle hinterland fog', 2010, 1008, 340, 52, () => { state.fog = !state.fog; render(); }, { copy: state.fog ? 'Hinterland fog: On' : 'Hinterland fog: Off', active: state.fog, size: 24 });
   else text(root, 'DISPOSABLE PROTOTYPE', 2010, 1023, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
   updateZoomPresentation(); app.renderer.render(app.stage);

@@ -29,7 +29,7 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
     waterBank[112+n]=mixColour(0x3c535f,0x8a9a96,crest*.6);
     waterBank[240+n]=mixColour(0x4e6867,0x939f8c,crest*.65);
   }
-  const stats = { exposedSurf: 0, shelteredWater: 0, swell: 0, beaches: 0, ecotones: 0, riverMargins: 0, oceanPixels:0,lakePixels:0,lakeRipples:0,lakeMargins:0 };
+  const stats = { exposedSurf: 0, offshoreCaps:0, surfPhases:Array(32).fill(0), shelteredWater: 0, swell: 0, beaches: 0, ecotones: 0, riverMargins: 0, oceanPixels:0,lakePixels:0,lakeRipples:0,lakeMargins:0 };
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
     const i = y * width + x;
     const wx = (bounds.minX * 1576 + x * texel) / 2, wy = (bounds.minY * 516 + y * texel) / 2;
@@ -61,16 +61,22 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
       const shoal = Math.exp(-distance / (material === 'swamp' ? 24 : 16));
       const exposure = treatment?.exposure ?? .75;
       const phase = fract(distance / (7 + broad * 5) + lace * .16 + Math.sin(wx / 32) * .1);
-      // Discontinuous white caps sit on a darker wave face. Near shore their
-      // phase follows depth, turning around bays instead of drawing parallel stripes.
-      const breaking = distance > 1 && distance < 18 && exposure > .4 && broad > .44 && lace > .44;
+      // Broad curved phase ribbons give a palette cycle room to travel from
+      // dark trough to foamy crest. Larger-scale gaps break up the surf sheet.
+      const surfWidth=.42+lace*.14,ribbon=Math.floor(distance/(7+broad*5));
+      const packet=noise(map.seed^4217,wx+ribbon*29,wy-ribbon*11,21)*.65+broad*.35;
+      const breaking = distance > 1 && distance < 23+exposure*13 && exposure > .4 && packet > .42 && lace > .28;
+      const backwash=distance<5.5&&exposure>.4&&lace>.42;
+      const whitecap=distance>28&&distance<180&&lace>.64&&fine>.55&&swell<.075;
       let index;
       if (material === 'swamp' && distance < 28) {
         index = 208 + Math.floor(chop * 32);
         stats.shelteredWater++;
-      } else if (breaking && phase < .22 + lace * .1 && grain > .12) {
-        index = 160 + Math.floor(clamp(phase / .32) * 31); stats.exposedSurf++;
-      } else if (distance < 2.2 && lace > .35 && grain > .25) index = 160 + 12 + Math.floor(grain * 8);
+      } else if ((breaking && phase < surfWidth && grain > .06) || (backwash && grain>.18)) {
+        index = 160 + Math.min(31,Math.floor(fract(phase/surfWidth)*32)); stats.exposedSurf++;
+      } else if(whitecap) {
+        index=160+Math.min(31,Math.floor(swell/.075*32));stats.offshoreCaps++;
+      }
       else if (distance < 25 && (chop < .2 || lace > .68)) index = 96 + Math.floor(clamp(shoal * .55 + broad * .3 + chop * .1) * 15);
       else {
         // Quiet gaps preserve the broad depth wash between ripple packets.
@@ -79,6 +85,7 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
         if (packet) stats.swell++;
       }
       waterIndices[i] = index;
+      if(index>=160&&index<192)stats.surfPhases[index-160]++;
       const depth = clamp(.11 + broad * .25 + shoal * .36 + grain * .025);
       waterBase[i] = waterBank[64 + Math.floor(depth * 31)];
       if (material && distance < 22) {
@@ -88,7 +95,7 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
         waterBase[i] = mixColour(waterBase[i], substrate, Math.exp(-distance / 9) * .52);
       }
       if (material === 'swamp') waterBase[i] = mixColour(waterBase[i], 0x74657b, Math.exp(-distance / 11) * .7);
-      const strength = index >= 160 && index < 192 ? .18 + lace * .44
+      const strength = index >= 160 && index < 192 ? (whitecap?.36:.46) + lace * .3
         : index >= 208 ? clamp((fine - .5) * 2) * .7
         : index >= 128 && index < 160 ? clamp((lace - .35) * 2.8) * (.18 + broad * .45)
           : index >= 192 ? .28 : .25;
