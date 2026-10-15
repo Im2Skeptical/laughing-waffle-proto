@@ -89,7 +89,7 @@ export function addTimeCostTokens(parent, phaseCost, state, {
 // One footer for options, shop offers, inspections, and draft receipts. Prices
 // remain live text; the entire framed area owns the action, independently of art.
 export function addCostPanel(parent, rect, {
-  phaseCost = 0, prestigeCost = 0, currencyCost = 0, chaosCost = 0, monsterPressureCost = 0, state = null, selected = false, staged = false,
+  phaseCost = 0, prestigeCost = 0, prestigeGain = 0, currencyCost = 0, chaosCost = 0, monsterPressureCost = 0, state = null, selected = false, staged = false,
   disabled = false, unaffordable = false, label = 'Choose', onActivate, onUnavailable,
   interactive = true, fontSize = 40, iconSize = 52, riskLabel = null,
 } = {}) {
@@ -115,6 +115,7 @@ export function addCostPanel(parent, rect, {
   const ink = disabled && !staged && !selected && !unaffordable ? PALETTE.textMuted : PALETTE.text;
   const resourceCosts = [
     prestigeCost > 0 ? { id: 'prestige', value: prestigeCost } : null,
+    prestigeGain > 0 ? { id: 'prestige', value: `+${prestigeGain}`, fill: 0xb6ce92 } : null,
     currencyCost > 0 ? { id: 'money', value: currencyCost } : null,
     monsterPressureCost > 0 ? { id: 'monster', value: `+${monsterPressureCost} progress` } : null,
     chaosCost > 0 ? { id: 'chaos', value: `+${chaosCost}` } : null,
@@ -140,7 +141,7 @@ export function addCostPanel(parent, rect, {
       divider.lineStyle(1, 0x829078, .3).moveTo(inset, y-gap/2).lineTo(rect.width - inset, y-gap/2);
       root.addChild(divider);
       const amount = addResourceAmount(root, resource.id, resource.value, {
-        fontSize: fontSize * .82, iconSize: iconSize * .76, fill: unaffordable ? 0xf0ad97 : ink,
+        fontSize: fontSize * .82, iconSize: iconSize * .76, fill: unaffordable ? 0xf0ad97 : resource.fill ?? ink,
       });
       const scale = Math.min(1, (rect.width - inset * 2) / amount.width, resourceHeight / amount.height);
       amount.scale.set(scale);
@@ -162,11 +163,11 @@ export function addCostPanel(parent, rect, {
       ...TEXT_STYLES.body, fontSize: 27, fill: accent,
     }, rect.width - 12, 7, 1, 0));
   }
-  const description = `${formatVassalPhaseDuration(phaseCost, state)}${prestigeCost ? `, ${prestigeCost} Prestige` : ''}${currencyCost ? `, ${currencyCost} Gold` : ''}${chaosCost ? `, +${chaosCost} Chaos` : ''}${monsterPressureCost ? `, +${monsterPressureCost} Monster expansion progress` : ''}${riskLabel ? `, ${riskLabel.replace(/\n/g, ', ')}` : ''}`;
+  const description = `${formatVassalPhaseDuration(phaseCost, state)}${prestigeCost ? `, ${prestigeCost} Prestige` : ''}${prestigeGain > 0 ? `, +${prestigeGain} Prestige` : ''}${currencyCost ? `, ${currencyCost} Gold` : ''}${chaosCost ? `, +${chaosCost} Chaos` : ''}${monsterPressureCost ? `, +${monsterPressureCost} Monster expansion progress` : ''}${riskLabel ? `, ${riskLabel.replace(/\n/g, ', ')}` : ''}`;
   root.accessible = interactive;
   root.accessibleType = 'button';
   root.accessibleTitle = `${label}: ${description}${unaffordable ? ' — cost unavailable' : ''}`;
-  root.costSummary = { phaseCost, prestigeCost, currencyCost, chaosCost, monsterPressureCost, description, riskLabel, selected, staged, disabled, unaffordable };
+  root.costSummary = { phaseCost, prestigeCost, prestigeGain, currencyCost, chaosCost, monsterPressureCost, description, riskLabel, selected, staged, disabled, unaffordable };
   root.eventMode = interactive ? 'static' : 'none';
   root.cursor = disabled ? 'default' : 'pointer';
   addInteractionFeedback(root, { x: 0, y: 0, width: rect.width, height: rect.height }, {

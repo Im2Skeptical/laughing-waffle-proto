@@ -116,10 +116,13 @@ export function enterOpeningEncounter(session, id) {
   session.activeId = id; session.runtimeNodeId = runtime.id; session.availableIds = [];
   const current = nodeState(session);
   if (spec.kind === 'world') {
-    current.options.forEach(option => { option.phaseCost = spec.phaseCost ?? option.phaseCost; });
+    current.options.forEach(option => {
+      option.phaseCost = spec.worldCosts?.movePhaseCost ?? spec.phaseCost ?? option.phaseCost;
+      if (spec.worldCosts) option.prestigeDelta = spec.worldCosts.travelPrestigeByRegion[option.locationRegionId] ?? 0;
+    });
     const routes = generateShopInventory(state, vassal, { ...current, family: 'routes' });
-    current.options.push(...routes.map(offer => ({ id: offer.offerId, label: offer.label, phaseCost: spec.phaseCost ?? offer.basePhaseCost,
-      prestigeCost: offer.basePrestigeCost, intervention: offer.intervention, experimentFamily: 'routes' })));
+    current.options.push(...routes.map(offer => ({ id: offer.offerId, label: offer.label, phaseCost: spec.worldCosts?.routePhaseCost ?? spec.phaseCost ?? offer.basePhaseCost,
+      prestigeCost: spec.worldCosts?.routePrestigeCost ?? offer.basePrestigeCost, intervention: offer.intervention, experimentFamily: 'routes' })));
     current.options.push(...(spec.options ?? []).map(o => toOption(o, o.id)));
   } else if (spec.kind === 'martial') {
     current.options = [...classActionOptions(state, vassal, 'campaign').filter(o => o.classAction.kind !== 'prepare'),

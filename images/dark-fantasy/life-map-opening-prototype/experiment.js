@@ -1,10 +1,27 @@
 // Experimental encounter data. Never read by player New Game or saved runs.
 import { VASSAL_STAT_IDS } from '../../../src/defs/gamepieces/vassal-life-map-defs.js';
 import { VASSAL_HEIRLOOM_DEFS } from '../../../src/defs/gamepieces/vassal-heirloom-defs.js';
+import { MOON_PHASE_COUNT } from '../../../src/defs/gamesettings/moon-phase-defs.js';
+import { getGameSetting } from '../../../src/model/game-config.js';
+import { worldMapDefs } from '../../../src/defs/world/world-map-defs.js';
 export const OPENING_KINDS = ['relic', 'world', 'founding', 'shop', 'development', 'martial', 'supply', 'patronage', 'specialRelic', 'customNote'];
 
+const phasesPerYear = getGameSetting(null, 'seasonDurationSec') * 4 / getGameSetting(null, 'phaseDurationSec');
+const worldRegions = worldMapDefs.riverBasin01.regions;
+export function createOpeningWorldCosts() {
+  return { movePhaseCost: 3 * MOON_PHASE_COUNT, routePhaseCost: 5 * phasesPerYear, routePrestigeCost: 15,
+    travelPrestigeByRegion: Object.fromEntries(worldRegions.map((region, i) => [region.id, [3, 6, 9][i % 3]])) };
+}
+
+export function applyOpeningWorldPrices(node) {
+  const priced = { ...node, worldCosts: createOpeningWorldCosts(), options: (node.options ?? []).map(option =>
+    option.id === 'tour' ? { ...option, phaseCost: 2 * phasesPerYear } : option) };
+  delete priced.phaseCost;
+  return priced;
+}
+
 export function createOpeningTourOption(relicChance = 25) {
-  return { id: 'tour', label: 'Tour the current region', phaseCost: 6, weightedOutcomes: [
+  return { id: 'tour', label: 'Tour the current region', phaseCost: 2 * phasesPerYear, weightedOutcomes: [
     { weight: relicChance, options: Object.values(VASSAL_HEIRLOOM_DEFS).filter(d => d.quality === 'bronze').map(d => ({ definitionId: d.id })) },
     { weight: 100 - relicChance, options: VASSAL_STAT_IDS.map(statId => ({ statId, statDelta: 1 })) },
   ] };
@@ -23,8 +40,8 @@ export function createOpeningExperiment() {
           { definitionId: 'hourglass', phaseCost: 6, prestigeCost: 0, chaos: 10 },
         ] },
       { id: 'explore', title: 'Choose your foothold', kind: 'world',
-        description: 'Move to another settlement, build a route, or tour this region for an ordinary relic or a random ability gain.', phaseCost: 6, next: ['founding'],
-        options: [createOpeningTourOption()] },
+        description: 'Move to another settlement, build a route, or tour this region for an ordinary relic or a random ability gain.', next: ['founding'],
+        worldCosts: createOpeningWorldCosts(), options: [createOpeningTourOption()] },
       { id: 'founding', title: 'Establish the Warriors', kind: 'founding',
         description: 'Both routes converge here. Train ten existing adults; Prestige now sustains your Retinue.', phaseCost: 6, next: ['shop'] },
       { id: 'shop', title: 'Make your first investment', kind: 'shop',
@@ -79,6 +96,16 @@ export function validateOpeningExperiment(doc) {
     }
     if (node.displayLabel != null && typeof node.displayLabel !== 'string') throw new Error(`${node.title}: the game-screen label must be text.`);
     if (node.phaseCost != null && !finite(node.phaseCost, 0, 320)) throw new Error(`${node.title}: phases must be between 0 and 320.`);
+    if (node.worldCosts != null) {
+      const costs = node.worldCosts;
+      if (!costs || typeof costs !== 'object' || Array.isArray(costs)
+          || !finite(costs.movePhaseCost, 0, 320) || !finite(costs.routePhaseCost, 0, 320)
+          || !finite(costs.routePrestigeCost, 0, 10000)
+          || !costs.travelPrestigeByRegion || typeof costs.travelPrestigeByRegion !== 'object' || Array.isArray(costs.travelPrestigeByRegion)
+          || Object.entries(costs.travelPrestigeByRegion).some(([id, value]) => !worldRegions.some(region => region.id === id) || !Number.isInteger(value) || !finite(value, 0, 10000))) {
+        throw new Error(`${node.title}: world prices need valid phase costs, a Prestige cost and non-negative destination rewards.`);
+      }
+    }
     if (node.stockOutput != null && typeof node.stockOutput !== 'string') throw new Error(`${node.title}: choose a Stock output.`);
     for (const list of ['options', 'relics', 'cards']) {
       if (node[list] != null && (!Array.isArray(node[list]) || node[list].length > 12)) throw new Error(`${node.title}: ${list} must be a list of at most 12 offers.`);

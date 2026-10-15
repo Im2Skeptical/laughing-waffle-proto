@@ -170,7 +170,7 @@ try {
           `${mode} prices and feedback stay inside the modal, above the timegraph`);
       }
       const selected=view.targets.find(t=>t.id===view.selectedOptionId),price=view.prices.find(p=>p.mode===mode);
-      if(selected){assert.equal(price.optionId,selected.id);assert.equal(price.phaseCost,selected.phases);assert.equal(price.prestigeCost,selected.cost);}
+      if(selected){assert.equal(price.optionId,selected.id);assert.equal(price.phaseCost,selected.phases);assert.equal(price.prestigeCost,selected.cost);assert.equal(price.prestigeGain,selected.prestigeGain);}
       assert.ok(!view.feedback.text.includes('Prestige'),'price text no longer floats below the modal');
       const before=view.selectedOptionId;
       await openingClick('worldTarget',view.dimmedRegionIds[0]);
@@ -182,10 +182,14 @@ try {
     const before=await page.evaluate(()=>openingWorkbench.getSnapshot().summary);
     await openingClick('worldMode','move');const move=(await world()).targets.find(t=>!t.blocked);assert.ok(move);
     await openingClick('worldTarget',move.regionId);assert.equal((await world()).selectedOptionId,move.id);await checkFocus('move');
+    assert.equal(move.phases,18);assert.ok([3,6,9].includes(move.prestigeGain));
+    assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().game.hud.prestigeDelta),move.prestigeGain-move.cost,'destination reward previews in the real Vassal HUD');
     await openingClick('worldCost','build');assert.equal((await world()).mode,'build','native cost footer selects its action');const build=(await world()).targets.find(t=>!t.blocked);assert.ok(build);
     await openingClick('worldTarget',build.regionId);assert.equal((await world()).selectedOptionId,build.id);await checkFocus('build');
+    assert.equal(build.phases,160);assert.equal(build.cost,14,'15 base Prestige receives the normal protovassal discount');
     assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().game.hud.prestigeDelta),-build.cost,'selected costs preview in the real Vassal HUD');
     await openingClick('worldMode','tour');assert.equal((await world()).selectedOptionId,'tour');
+    assert.equal((await world()).prices.find(p=>p.mode==='tour').phaseCost,64);
     await checkFocus('tour');assert.deepEqual((await world()).brightRegionIds,[(await world()).locationRegionId]);
     assert.deepEqual(await page.evaluate(()=>openingWorkbench.getSnapshot().summary),before,'map previews apply no world changes');
     await page.screenshot({path:'artifacts/prototype-world-decision.png'});

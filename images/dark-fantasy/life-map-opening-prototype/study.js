@@ -1,10 +1,11 @@
 import { createOpeningController } from './controller.js';
-import { createOpeningExperiment, createOpeningTourOption, OPENING_KINDS } from './experiment.js';
+import { createOpeningExperiment, createOpeningTourOption, createOpeningWorldCosts, applyOpeningWorldPrices, OPENING_KINDS } from './experiment.js';
 import { VASSAL_HEIRLOOM_DEFS } from '../../../src/defs/gamepieces/vassal-heirloom-defs.js';
 import { createOpeningGameScreen } from './game-screen.js';
 import { createOpeningGraphEditor } from './graph-editor.js';
 import { KIND_LABELS } from './graph-edit.js';
 import { statIcon } from './stat-icons.js';
+import { getRegionReference } from '../../../src/model/world-state.js';
 
 let storage = null;
 try { storage = window.localStorage; } catch { /* Export works without browser storage. */ }
@@ -98,7 +99,11 @@ function renderEditor(snapshot) {
   chooser.addEventListener('change', () => { selectedId = chooser.value; editorKey = ''; render(); });
   const preview = button('Preview this node', () => { controller.previewEncounter(spec.id); gameScreen?.openDecision(); $('game-screen').scrollIntoView({block:'start',behavior:'smooth'}); }, 'primary');
   preview.id='preview-node';host.append(preview);
-  if(spec.kind==='world') host.append(button('Use Tour as the local activity',()=>controller.editDraft({...doc,nodes:doc.nodes.map(n=>n.id===spec.id?{...n,options:[createOpeningTourOption()]}:n)})));
+  if(spec.kind==='world') {
+    host.append(button('Use Tour as the local activity',()=>controller.editDraft({...doc,nodes:doc.nodes.map(n=>n.id===spec.id?{...n,options:[createOpeningTourOption()]}:n)})));
+    const prices=button('Use dummy World prices',()=>controller.editDraft({...doc,nodes:doc.nodes.map(n=>n.id===spec.id?applyOpeningWorldPrices(n):n)}));
+    prices.id='world-dummy-prices';host.append(prices);
+  }
   if (spec.kind === 'customNote') {
     const title = appendField(host, 'Title', spec.title, { id: 'note-title' });
     const label = el('label', 'Intended player interaction'), intention = el('textarea'); intention.id = 'note-intention'; intention.rows = 7; intention.value = spec.description;
@@ -110,9 +115,21 @@ function renderEditor(snapshot) {
   fields.title = appendField(grid, 'Title', spec.title);
   fields.displayLabel = appendField(grid, 'Game-screen label (blank = node type)', spec.displayLabel);
   fields.kind = appendField(grid, 'Encounter type', spec.kind, { options: OPENING_KINDS.map(kind => [kind, KIND_LABELS[kind]]) });
-  fields.phaseCost = appendField(grid, 'Override phases (blank = offer cost)', spec.phaseCost, { type: 'number', min: 0, max: 320 });
+  if(spec.kind!=='world') fields.phaseCost = appendField(grid, 'Override phases (blank = offer cost)', spec.phaseCost, { type: 'number', min: 0, max: 320 });
   if (spec.kind === 'supply') fields.stockOutput = appendField(grid, 'Stock output / auto', spec.stockOutput ?? 'auto');
   host.append(grid);
+  const worldFields={}, rewardFields={};
+  if(spec.kind==='world') {
+    const costs=spec.worldCosts??createOpeningWorldCosts(), section=el('div'), prices=el('div','','editor-grid');
+    section.append(el('h3','World prices'),el('p','Base prices before normal ability and relic discounts. Default calendar: 6 phases per moon, 32 phases per year. Tour time is in its option below.','note'));
+    for(const [key,label] of [['movePhaseCost','Move phases'],['routePhaseCost','Build route phases'],['routePrestigeCost','Build route Prestige']]) {
+      worldFields[key]=appendField(prices,label,costs[key],{type:'number',min:0,max:key==='routePrestigeCost'?10000:320,id:`world-${key}`});
+    }
+    section.append(prices,el('h3','Prestige reward by destination'));
+    const rewards=el('div','','editor-grid');
+    for(const [id,value] of Object.entries(costs.travelPrestigeByRegion))rewardFields[id]=appendField(rewards,getRegionReference(snapshot.session.state,id)??id,value,{type:'number',min:0,max:10000,id:`world-reward-${id}`});
+    section.append(rewards);host.append(section);
+  }
   const description = el('label', 'Description'), text = el('textarea'); text.rows = 3; text.value = spec.description; description.append(text); host.append(description);
   const lists = {};
   for (const list of ['options', 'cards', 'relics', 'pass']) {
@@ -144,7 +161,12 @@ function renderEditor(snapshot) {
   host.append(button('Apply node edits', () => {
     const changed = structuredClone(spec); changed.title = fields.title.value; changed.kind = fields.kind.value; changed.description = text.value;
     if (fields.displayLabel.value.trim()) changed.displayLabel = fields.displayLabel.value.trim(); else delete changed.displayLabel;
-    if (fields.phaseCost.value === '') delete changed.phaseCost; else changed.phaseCost = Number(fields.phaseCost.value);
+    if (fields.phaseCost) { if (fields.phaseCost.value === '') delete changed.phaseCost; else changed.phaseCost = Number(fields.phaseCost.value); }
+    if(spec.kind==='world') {
+      delete changed.phaseCost;
+      changed.worldCosts={...Object.fromEntries(Object.entries(worldFields).map(([key,input])=>[key,Number(input.value)])),
+        travelPrestigeByRegion:Object.fromEntries(Object.entries(rewardFields).map(([id,input])=>[id,Number(input.value)]))};
+    }
     if (fields.stockOutput) changed.stockOutput = fields.stockOutput.value;
     for (const [list, rows] of Object.entries(lists)) {
       const items = rows.map(({ item, inputs }) => { const value = structuredClone(item); for (const [name, input] of Object.entries(inputs)) {

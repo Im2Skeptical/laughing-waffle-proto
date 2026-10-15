@@ -79,13 +79,15 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
       : local?.label??'No local activity is available';
     const labels=['MOVE','BUILD A ROUTE',local?.randomReward?'TOUR THIS REGION':'LOCAL ACTIVITY'];
     const counts=groups().map(group=>group.filter(o=>!o.blocked).length);
-    const details=[`Travel to another settlement.\n${counts[0]} reachable destination${counts[0]===1?'':'s'}`,`Build a road from here.\n${counts[1]} legal connection${counts[1]===1?'':'s'}`,description];
+    const rewards=[...new Set(groups()[0].map(o=>o.prestigeDelta??0))].sort((a,b)=>a-b);
+    const travelReward=rewards.length?`\n+${rewards.join(' / +')} Prestige by destination`:'';
+    const details=[`Travel to another settlement.\n${counts[0]} reachable destination${counts[0]===1?'':'s'}${travelReward}`,`Build a road from here.\n${counts[1]} legal connection${counts[1]===1?'':'s'}`,description];
     modeButtons=labels.map((label,index)=>{
       const id=['move','build','tour'][index], group=groups()[index], enabled=!busy&&group.some(o=>!o.blocked);
       const selectedOption=group.find(o=>o.id===decision?.nodeState.selectedOptionId);
       const candidates=group.filter(o=>!o.blocked), priced=candidates.length?candidates:group;
       const option=selectedOption??[...priced].sort((a,b)=>a.cost-b.cost||a.phases-b.phases)[0];
-      const from=!!option&&!selectedOption&&priced.some(o=>o.cost!==option.cost||o.phases!==option.phases);
+      const from=!!option&&!selectedOption&&priced.some(o=>o.cost!==option.cost||o.phases!==option.phases||o.prestigeDelta!==option.prestigeDelta);
       const card=actionCard(chrome,{
         x:PANEL.x+30+index*(OPTION_COLUMN.width+OPTION_COLUMN.gap),y:PANEL.y+CONTENT.cardY,
         width:OPTION_COLUMN.width,height:OPTION_COLUMN.height,
@@ -93,7 +95,7 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
         title:label,artId:['travel','settlement','patronage'][index],summary:details[index],
         actionLabel:from?'FROM':'CHOOSE',faceLabel:from?'From':mode===id?'Selected':'Choose',
         enabled,selected:mode===id,costUnmet:!!option&&option.cost>(getVassal()?.prestige??0),
-        cost:{phaseCost:option?.phases??0,prestigeCost:option?.cost??0,state:getState()},
+        cost:{phaseCost:option?.phases??0,prestigeCost:option?.cost??0,prestigeGain:option?.prestigeDelta??0,state:getState()},
         onClick:()=>chooseMode(id),onInspect:()=>chooseMode(id),
       });
       card.priceOptionId=option?.id;card.priceFrom=from;
@@ -134,7 +136,7 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
   const mapPoint=id=>{const p=map.getRegionClickPoint(id);return p?mapLayer.toGlobal(p):null;};
   const point=control=>{if(!root.visible||!control)return null;const r=control.getBounds();return{x:r.x+r.width/2,y:r.y+r.height/2};};
   const bounds=control=>{const r=control.getBounds();return{x:r.x,y:r.y,width:r.width,height:r.height};};
-  return {refresh,getHudDeltas:()=>{const choice=selected();return root.visible&&choice&&available().some(o=>o.id===choice.id)&&!choice.blocked?{prestige:-choice.cost,stats:{}}:null;},update:()=>{draw();updateOverlay();},isOpen:()=>root.visible,
+  return {refresh,getHudDeltas:()=>{const choice=selected();return root.visible&&choice&&available().some(o=>o.id===choice.id)&&!choice.blocked?{prestige:(choice.prestigeDelta??0)-choice.cost,stats:{}}:null;},update:()=>{draw();updateOverlay();},isOpen:()=>root.visible,
     open:()=>{dismissed=false;root.visible=!!decision;map.setVisible(root.visible);map.refresh();key='';draw();},close:()=>{dismissed=true;root.visible=false;},
     getPoint:(kind,id)=>kind==='confirm'?point(confirmButton):kind==='option'?point(modeButtons[id]):kind==='worldMode'?point(modeButtons[['move','build','tour'].indexOf(id)]):kind==='worldCost'?point(modeButtons[['move','build','tour'].indexOf(id)]?.costPanel):kind==='worldTarget'?mapPoint(id):null,
     getSnapshot:()=>({open:root.visible,mode,selectedOptionId:decision?.nodeState.selectedOptionId,
@@ -144,5 +146,5 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
       prices:modeButtons.flatMap((card,index)=>card.costPanel?[{mode:['move','build','tour'][index],optionId:card.priceOptionId,from:card.priceFrom,
         ...card.costPanel.costSummary,rect:bounds(card.costPanel),cardRect:bounds(card)}]:[]),feedback:feedback?{text:feedback.text,rect:bounds(feedback)}:null,
       dimmedRegionIds:(getState()?.world?.regions??[]).map(r=>r.id).filter(id=>!brightRegions().includes(id)),
-      targets:available().map(o=>({id:o.id,regionId:target(o),blocked:o.blocked,cost:o.cost,phases:o.phases})),tour:groups()[2][0]?.randomReward??null})};
+      targets:available().map(o=>({id:o.id,regionId:target(o),blocked:o.blocked,cost:o.cost,phases:o.phases,prestigeGain:o.prestigeDelta??0})),tour:groups()[2][0]?.randomReward??null})};
 }

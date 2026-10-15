@@ -100,6 +100,16 @@ node, matching the game. Native modal plaques retain their concise in-game copy;
 full authored descriptions stay in entry/editor views. The frame and scroll reuse native
 chrome for layout review; the scroll is passive and does not invent forecast data.
 
+Dummy base prices are Tour **2 years**, Move **3 moons**, and Build a route
+**5 years / 15 Prestige**. Movement grants **+3, +6 or +9 Prestige** according to
+its destination, in addition to ordinary node income. The selected destination's
+reward appears in the shared price footer and Vassal HUD before confirmation.
+These are prototype values, editable under **World prices** and **Prestige reward
+by destination**; Tour time remains editable in its option. **Use dummy World
+prices** applies the preset to an existing draft without changing its graph or
+reward odds. Apply, then Preview or Restart to test. Existing saved drafts retain
+their authored prices until edited. Normal ability and relic discounts still apply.
+
 Move highlights reachable destinations;
 Build highlights legal connections and draws the proposed road; Tour keeps the
 Vassal in the current region. Confirming Tour rolls a weighted reward: by default
