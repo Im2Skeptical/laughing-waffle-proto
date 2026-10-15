@@ -177,6 +177,15 @@ def import_surfaces():
                 'reference': {'source': 'https://github.com/OpenRA/ra2/blob/master/mods/ra2/tilesets/snow.yaml',
                               'templates': 475, 'imageVariants': 678, 'definedSubtiles': 2519}}
     (OUT / 'terrain-kit-v1.json').write_text(json.dumps(manifest, separators=(',', ':')))
+    # Dedicated scorched monster-region substrate from the live game's theme.
+    raw = swatches(ROOT / 'images/dark-fantasy/region-landmarks-v1/monster-ground.png', 4, 4, (SIZE, SIZE))
+    for tile in raw:
+        tile[..., :3] = np.clip(tile[..., :3].astype(float) * .70 + 32, 0, 255).astype(np.uint8)
+    common = periodic(raw[0])
+    monster_tiles = packed([conform(tile, common) for tile in raw],
+        [{'kind': f'ground-monster-{n}', 'role': 'ground', 'biome': 'monster', 'variant': n} for n in range(16)],
+        'monster-ground-v1.webp', 4, (SIZE, SIZE))
+    (OUT / 'monster-ground-v1.json').write_text(json.dumps({'version': 1, 'tiles': monster_tiles}, separators=(',', ':')))
 
 
 def import_relief():

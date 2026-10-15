@@ -7,6 +7,7 @@ export const BIOMES = {
   islands: { name: 'Islands', colour: 0x70a2ac, ink: 0x365e6a },
   swamp: { name: 'Swamp', colour: 0x727e69, ink: 0x3c504b },
   mountains: { name: 'Mountains', colour: 0xa59887, ink: 0x5d5d59 },
+  monster: { name: 'Monster', colour: 0x786359, ink: 0x443839 },
 };
 export const FEATURE_SETS = [
   ['river', 'ridge'], ['river', 'chasm'], ['valley', 'ridge'], ['river', 'ridge', 'chasm', 'valley'],
@@ -496,7 +497,7 @@ export function generateMap({ seed = 1847, clustering = .45, sizeVariation = .6,
     regions.find(r => r.id === a).neighbours.push(b); regions.find(r => r.id === b).neighbours.push(a);
   }
   const features = buildGeography(vertices, edges, FEATURE_SETS[featureSet], state, world.oceanSides);
-  const biomes = shuffle(Object.keys(BIOMES), state), quota = Object.fromEntries(biomes.map((biome, i) => [biome, 6 - i]));
+  const biomes = shuffle(Object.keys(BIOMES).filter(b=>b!=='monster'), state), quota = Object.fromEntries(biomes.map((biome, i) => [biome, 6 - i]));
   assignBiomes(regions, edges, quota, clustering, state);
   for (const edge of edges) shapeEdge(edge, vertices, regions, roughness, state);
   for (const region of regions) {
@@ -507,6 +508,16 @@ export function generateMap({ seed = 1847, clustering = .45, sizeVariation = .6,
     region.area = polygonArea(region.outline);
     region.centre = centroid(region.outline);
     region.bounds = pathBounds(region.outline);
+  }
+  // Two whole cells become monster territory. Preserve the five landscape
+  // types and island topology; terrainBiome selects the den material kit only.
+  quota.monster=0;
+  const monsterCandidates=regions.filter(r=>r.biome!=='islands').sort((a,b)=>
+    decorationRandom(seed^91837,regions.indexOf(a))-decorationRandom(seed^91837,regions.indexOf(b)));
+  for(const region of monsterCandidates) {
+    if(quota.monster===2) break;
+    if(quota[region.biome]<=1) continue;
+    region.terrainBiome=region.biome;quota[region.biome]--;region.biome='monster';quota.monster++;
   }
   const islandClusters = buildIslandClusters(regions, edges, seed);
   const surroundings = buildSurroundings(regions, edges, features, seed, world.oceanSides);

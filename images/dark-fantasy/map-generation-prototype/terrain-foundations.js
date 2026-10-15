@@ -3,6 +3,7 @@
 const variants = {
   plains: [0, 2, 4, 9, 15], forest: [0, 1, 4, 6, 8], islands: [1, 6, 11, 13],
   swamp: [1, 6, 7, 10, 14], mountains: [0, 2, 6, 8, 12],
+  monster:[0,3,7,11,15],
 };
 
 export function paintTerrainFoundations({ props, art, pixel, surfaces, materialAt, land, waterIndices,

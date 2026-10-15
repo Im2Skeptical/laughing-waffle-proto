@@ -13,6 +13,15 @@ tiles = {record['kind']: np.array(atlas.crop((record['rect'][0], record['rect'][
 assert len(tiles) == 635 and all(tile.shape == (32, 32, 4) for tile in tiles.values())
 assert all(np.all(tile[..., 3] == 255) for tile in tiles.values()), 'Material templates must fill their ground'
 biomes = ['plains', 'forest', 'islands', 'swamp', 'mountains']
+monster_manifest = json.loads((folder / 'monster-ground-v1.json').read_text())
+monster_atlas = Image.open(folder / 'monster-ground-v1.webp').convert('RGBA')
+monster_ground = [np.array(monster_atlas.crop((r['rect'][0],r['rect'][1],r['rect'][0]+32,r['rect'][1]+32))) for r in monster_manifest['tiles']]
+assert len(monster_ground)==16
+assert len({tile.tobytes() for tile in monster_ground})==16
+for tile in monster_ground:
+    assert np.all(tile[...,3]==255)
+    assert np.array_equal(tile[:,0],tile[:,-1]) and np.array_equal(tile[0],tile[-1]), 'Monster substrate must tile without seams'
+    assert np.array_equal(tile[:,0],monster_ground[0][:,0]) and np.array_equal(tile[0],monster_ground[0][0]), 'Monster variants must share edges'
 for biome in biomes:
     ground = [tiles[f'ground-{biome}-{n}'] for n in range(16)]
     assert len({tile.tobytes() for tile in ground}) == 16, f'{biome} variants collapsed to duplicates'

@@ -1,7 +1,7 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.3** — biome-specific scattered monster
-dens and pits replace the atlas fortress hub. The version appears under the title inside the
+Current published revision: **Map v1.0.4** — monster territory is a sixth biome
+occupying two whole regions, with its own scorched substrate and region-only dens/pits. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -9,8 +9,18 @@ revision note, and report that version to the user.
 
 ### Monster territories
 
-The atlas has one illustrative monster territory per biome, selected from regions
-without towns. Six generated pieces per biome supply two low dens, a sunken pit,
+The atlas has two dedicated monster regions among its 20 cells. `biome: monster`
+is a sixth type; it replaces two non-island assignments while preserving at least
+one cell of every landscape type. Quotas, area percentages, selection and the
+six-entry legend all use the actual monster type. `terrainBiome` records only
+which material variant of the den kit to use; it is not the cell's identity.
+Ordinary towns and monster props cannot share these cells. Monster dens never
+spawn in the five ordinary biome types.
+
+The whole territory uses 16 seam-matched scorched-ground variants imported from
+the live game's monster-ground artwork. Contacts blend into that substrate;
+cinder banks describe dry borders, with matching road, river and shore treatment.
+Six generated pieces per material variant supply two low dens, a sunken pit,
 paired sinkholes, bone/cloth accents and scarred ground. The live game's bone,
 horn, dark stone, rust cloth and restrained ember theme is adapted to local
 grass banks, woodland roots, basalt, violet peat and reddish scree.
@@ -19,7 +29,8 @@ clearing. They share terrain depth ordering, substrate blending, native pixel
 sampling and zoom. Full silhouettes must fit dry land in the correct biome,
 avoid roads and town plots, and reserve space against later terrain placement.
 Smaller variants handle restricted footprints. Placement is seeded and fixed
-across zoom; Sites Off removes the content and Labels controls its captions.
+across zoom; Sites Off removes dens/pits but preserves the region's biome ground.
+Labels controls one caption at each monster region centre.
 `terrainComposition.monsterZones` reports biome, region and accepted pieces.
 The old fortress remains only in the Old game comparison. No simulation,
 schemas, RNG streams or replay behavior change.
@@ -27,7 +38,7 @@ schemas, RNG streams or replay behavior change.
 Built-in imagegen master: `assets/masters/monster-biomes-v1.png`; exact prompt
 and theme references: [monster-biomes-prompts-v1.json](assets/masters/monster-biomes-prompts-v1.json).
 Import widths are 36/28px dens, 34/28px pits and 18/24px accents. The runtime
-kit now has 184 relief frames and is about 2.30 MiB. Run map-art, composition,
+kit now has 184 relief frames and is about 2.32 MiB. Run map-art, composition,
 settlement and browser LOD checks; inspect seeds 1867 and 1873 across all biomes.
 
 ### Settlement landscape integration

@@ -15,13 +15,14 @@ import { paintWetlandPools } from './wetland-ground.js';
 import { bridgeSpans, paintBridge } from './road-crossings.js';
 import { planSettlementSites, siteReliefContains, layOutSettlements, paintSettlementSites } from './settlement-sites.js';
 
-export const ATLAS_COLOURS = { plains: 0xb7a17b, forest: 0x969174, islands: 0x688689, swamp: 0x858675, mountains: 0xa49782 };
+export const ATLAS_COLOURS = { plains: 0xb7a17b, forest: 0x969174, islands: 0x688689, swamp: 0x858675, mountains: 0xa49782, monster:0x786359 };
 const ATLAS_GROUND = {
   plains: [0x9f8c69, 0xac9670, 0xb7a17b, 0xc5b18d],
   forest: [0x777556, 0x898164, 0x969174, 0xa39b7b],
   islands: [0x9eaa83, 0xabb48e, 0xb5bc99, 0xc1c5a6],
   swamp: [0x55505d, 0x6d6170, 0x867b87, 0x9c8c99],
   mountains: [0x827869, 0x958774, 0xa49782, 0xb4a792],
+  monster: [0x443b39,0x5a4c45,0x726154,0x8b7765],
   highlands: [0x25292e, 0x30353c, 0x3d434b, 0x4b5159],
   marsh: [0x202429, 0x2b2f36, 0x363b42, 0x454b51],
   scrub: [0x242728, 0x2f3435, 0x3c4142, 0x4a5051],
@@ -229,7 +230,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   // Chamfer shore distances. Palette indices remain categorical.
   const seaDistance = new Uint16Array(size), dryDistance = new Uint16Array(size);
   const shoreTypes = new Uint8Array(size);
-  for (let i = 0; i < size; i++) if (land[i]) shoreTypes[i] = MATERIAL_IDS[map.regions[regionIds[i]]?.biome] ?? 6;
+  for (let i = 0; i < size; i++) if (land[i]) shoreTypes[i] = MATERIAL_IDS[map.regions[regionIds[i]]?.biome] ?? 0;
   const unit = 3, cap = 768;
   for (let i = 0; i < size; i++) { seaDistance[i] = land[i] ? 0 : cap; dryDistance[i] = land[i] ? cap : 0; }
   for (const d of [seaDistance, dryDistance]) {

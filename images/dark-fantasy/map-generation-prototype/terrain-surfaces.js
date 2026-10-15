@@ -2,7 +2,7 @@
 // All sampling is anchored to world coordinates and uses the map's fixed seed.
 import { decorationRandom } from './generator.js';
 
-export const surfaceLibrary = { ready: false, counts: {}, sourceGroundPieces: 80, sourceBankProfiles: 40 };
+export const surfaceLibrary = { ready: false, counts: {}, sourceGroundPieces: 96, sourceBankProfiles: 40 };
 const tiles = new Map(), profiles = new Map();
 const biomes = ['plains', 'forest', 'islands', 'swamp', 'mountains'];
 const wrap = (n, size) => ((Math.floor(n) % size) + size) % size;
@@ -28,7 +28,9 @@ export async function prepareTerrainSurfaces() {
   const manifest = await (await fetch(new URL('./assets/runtime/terrain-kit-v1.json', import.meta.url))).json();
   await Promise.all([readAtlas('./assets/runtime/terrain-kit-v1.webp', manifest.tiles, tiles),
     readAtlas('./assets/runtime/bank-profiles-v1.webp', manifest.profiles, profiles)]);
-  Object.assign(surfaceLibrary, { ready: true, counts: manifest.counts, cases: manifest.tiles.length,
+  const monster = await (await fetch(new URL('./assets/runtime/monster-ground-v1.json', import.meta.url))).json();
+  await readAtlas('./assets/runtime/monster-ground-v1.webp', monster.tiles, tiles);
+  Object.assign(surfaceLibrary, { ready: true, counts: {...manifest.counts,ground:manifest.counts.ground+16}, cases: manifest.tiles.length+16,
     tilePixels: manifest.tilePixels, importedTexel: manifest.designTexel });
 }
 
@@ -85,6 +87,7 @@ export function createSurfaceSampler({ map, bounds, texel, width, height, land, 
     return record;
   };
   const bank = (biome, x, y, depth, horizontal = true) => {
+    if(biome==='monster') return mix(bank('mountains',x,y,depth,horizontal),ground('monster',x,y),.65);
     const record = shoreCase(biome, x, y), profile = profiles.get(`bank-${biome}-${record.profile}`);
     const along = horizontal ? worldX(x) : worldY(y);
     return sample(profile, along * 2, Math.max(0, Math.min(31, Math.round(depth * 31))));
@@ -92,6 +95,7 @@ export function createSurfaceSampler({ map, bounds, texel, width, height, land, 
   const regionAt = (x, y) => x >= 0 && y >= 0 && x < width && y < height
     ? map.regions[regionIds[Math.floor(y) * width + Math.floor(x)]]?.biome : null;
   const contact = (a, b, x, y, amount) => {
+    if(a==='monster'||b==='monster') return mix(ground(a,x,y),ground(b,x,y),amount);
     if (biomes.indexOf(a) > biomes.indexOf(b)) { [a, b] = [b, a]; amount = 1 - amount; }
     const wx = worldX(x), wy = worldY(y), cx = Math.floor(wx / 32), cy = Math.floor(wy / 32);
     const px = (cx * 64 - bounds.minX * 1576) / texel, py = (cy * 64 - bounds.minY * 516) / texel, step = 64 / texel;
@@ -105,6 +109,7 @@ export function createSurfaceSampler({ map, bounds, texel, width, height, land, 
     return mix(base, sample(record, wx, wy), .22);
   };
   const path = (role, biome, x, y, along, distance, mask = 10) => {
+    if(biome==='monster') return mix(path(role,'mountains',x,y,along,distance,mask),ground('monster',x,y),.40);
     const key = `${role}:${Math.floor(worldX(x) / 32)}:${Math.floor(worldY(y) / 32)}`;
     mask = pathMasks.get(key) ?? mask;
     const record = use(tiles.get(`${role}-${biome}-${mask & 15}`));

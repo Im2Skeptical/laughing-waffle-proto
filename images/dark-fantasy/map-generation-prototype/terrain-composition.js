@@ -134,12 +134,10 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
   // Monster territories use several small terrain features, never one hub.
   // Reserve their actual silhouettes before woodland/ranges grow around them.
   diagnostics.monsterZones=[];
-  if(monsterZones) for(const biome of ['plains','forest','islands','swamp','mountains']) {
+  if(monsterZones) for(const region of map.regions.filter(r=>r.biome==='monster')) {
+    const biome=region.terrainBiome??'mountains';
     const family=`terrain-monster-${biome}`;
     if(!art[`${family}-0`]) continue;
-    const candidates=map.regions.filter(r=>r.biome===biome && !settlementPlans.some(s=>s.regionId===r.id))
-      .sort((a,b)=>Math.abs(polygonArea(b.outline))-Math.abs(polygonArea(a.outline)));
-    for(const region of candidates) {
       const outline=region.outline.map(pixel), xs=outline.map(p=>p.x),ys=outline.map(p=>p.y);
       const minX=Math.min(...xs),minY=Math.min(...ys),w=Math.max(...xs)-minX,h=Math.max(...ys)-minY;
       const placed=[];
@@ -149,15 +147,13 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
         if(!insidePolygon({x,y},outline)) continue;
         const role=placed.length;
         if(placed.some(p=>Math.hypot(p.left-x,p.top-y)<(role<4?18:10)*detail)) continue;
-        const prop=choose({x,y,family,indices:[role],salt,allowedBiomes:[biome],context:'monster'});
+        const prop=choose({x,y,family,indices:[role],salt,allowedBiomes:['monster'],context:'monster'});
         if(!prop) continue;
         prop.monster=true;prop.regionId=region.id;add(prop);placed.push(prop);
       }
       if(!placed.length) continue;
-      diagnostics.monsterZones.push({regionId:region.id,biome,point:placed[0].point,
+      diagnostics.monsterZones.push({regionId:region.id,biome:'monster',terrainBiome:biome,point:region.centre,
         pieces:placed.map(p=>({kind:p.kind,point:p.point}))});
-      break;
-    }
   }
 
   // One principal extinct crater per connected island group. Search the largest
@@ -235,6 +231,20 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
     const pair = edge.regions.map(id => regions.get(id).biome);
     if (pair[0] === pair[1] && !(ridgeArt && pair.includes('mountains'))) continue;
     const contact = CONTACT_PAIRS.findIndex(p => p.includes(pair[0]) && p.includes(pair[1]));
+    if(pair.includes('monster')) {
+      // Region boundaries, not a monster-site overlay: current scenery on the
+      // natural side and low scorched scars on the monster side.
+      for(const [side,id] of edge.regions.entries()) {
+        const region=regions.get(id),biome=region.biome,centre=pixel(region.centre);
+        if(biome==='monster'&&!monsterZones) continue;
+        const family=biome==='monster'?`terrain-monster-${region.terrainBiome??'mountains'}`:biome==='islands'?islandFamily:`terrain-${biome}`;
+        paths.push({points:edge.points.map(point=>{const p=pixel(point),d=Math.hypot(centre.x-p.x,centre.y-p.y)||1;
+          return {x:p.x+(centre.x-p.x)/d*10*detail,y:p.y+(centre.y-p.y)/d*10*detail};}),
+          family,indices:biome==='monster'?[5]:biome==='islands'?[6,7,8,10,11]:COASTS[biome],
+          allowedBiomes:[biome],salt:20117+i*919+side*347,context:'boundary'});
+      }
+      continue;
+    }
     if (pair.includes('plains') || pair.includes('forest')) {
       // Current biome edges on BOTH sides, not an obsolete mixed contact stamp.
       // Keep the custom mountain divide, with low new scenery along its foot.
@@ -268,7 +278,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
     const centre = pixel(region.centre);
     // Island beaches/cliffs follow the actual distance-field profile. Keep the
     // shore profile, avoiding raised relief around every shore.
-    if (region.biome === 'islands') { diagnostics.coastalProfiles++; continue; }
+    if (region.biome === 'islands' || region.biome==='monster') { diagnostics.coastalProfiles++; continue; }
     paths.push({ points: coast.points.map((p, n) => {
       const q = pixel(p);
       if (!edge) {
@@ -324,6 +334,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
   // Correlated density fields form irregular masses and clearings in two
   // dimensions. Blue-noise-like candidate ordering avoids lines and stamp grids.
   for (const [index, region] of map.regions.entries()) {
+    if(region.biome==='monster') continue;
     const outline = region.outline.map(pixel), family = region.biome === 'islands' ? islandFamily : `terrain-${region.biome}`;
     const xs = outline.map(p => p.x), ys = outline.map(p => p.y), minX = Math.min(...xs), minY = Math.min(...ys);
     const width = Math.max(...xs) - minX, height = Math.max(...ys) - minY;

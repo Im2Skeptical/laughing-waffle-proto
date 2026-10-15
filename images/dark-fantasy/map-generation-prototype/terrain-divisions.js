@@ -9,7 +9,7 @@ export function paintRegionDivisions({ map, pixel, width, height, detail, land, 
   for (const edge of map.edges) {
     if (edge.regions.length !== 2) continue;
     const pair = edge.regions.map(id => regions.get(id).biome);
-    const type = pair.includes('mountains') ? 'escarpment' : pair.includes('swamp') ? 'peat-channel'
+    const type = pair.includes('monster') ? 'cinder-bank' : pair.includes('mountains') ? 'escarpment' : pair.includes('swamp') ? 'peat-channel'
       : pair.includes('forest') ? 'woodland-bank' : pair.includes('islands') ? 'coastal-ridge' : 'grass-gully';
     stats.edges++; if (pair[0] === pair[1]) stats.sameBiomeEdges++;
     stats.treatments[type] = (stats.treatments[type] ?? 0) + 1;
@@ -46,7 +46,7 @@ export function paintRegionDivisions({ map, pixel, width, height, detail, land, 
         }
         let shade, amount;
         if (d < core) {
-          shade = type === 'peat-channel' ? 0x4b4056 : type === 'woodland-bank' ? 0x343c2d
+          shade = type === 'cinder-bank' ? 0x453634 : type === 'peat-channel' ? 0x4b4056 : type === 'woodland-bank' ? 0x343c2d
             : type === 'escarpment' ? 0x51413a : 0x5a5040;
           amount = .78;
         } else if (signed < 0) {

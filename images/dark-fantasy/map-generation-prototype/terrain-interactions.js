@@ -6,8 +6,9 @@ export const SHORE_TREATMENTS = {
   islands: { bank: 0x565b4c, sediment: 0xb3ac8f, road: [0xa7a27a, 0xd0c6a0], beach: 6, exposure: .8 },
   swamp: { bank: 0x55475b, sediment: 0x96869a, road: [0x6e6958, 0xaaa18b], beach: 24, exposure: .18 },
   mountains: { bank: 0x615047, sediment: 0xa3927f, road: [0x8b7161, 0xbfa991], beach: 4, exposure: 1 },
+  monster: {bank:0x493e3b,sediment:0x8b7765,road:[0x766051,0xa28b70],beach:5,exposure:.8},
 };
-const biomes = [null, 'plains', 'forest', 'islands', 'swamp', 'mountains'];
+const biomes = [null, 'plains', 'forest', 'islands', 'swamp', 'mountains', 'monster'];
 const fract = x => x - Math.floor(x);
 const clamp = x => Math.max(0, Math.min(1, x));
 

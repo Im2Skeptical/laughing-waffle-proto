@@ -54,7 +54,7 @@ const islandComposition = composeTerrainLandscape({ map: islandMap, art, pixel,
 const borderPaths = islandMap.edges.filter(edge => edge.regions.length === 2
   && islandMap.regions.find(r => r.id === edge.regions[0]).biome !== islandMap.regions.find(r => r.id === edge.regions[1]).biome).length;
 const pairedVergePaths=islandMap.edges.filter(edge=>edge.regions.length===2).map(edge=>edge.regions.map(id=>islandMap.regions.find(r=>r.id===id).biome))
-  .filter(pair=>pair[0]!==pair[1] && pair.some(b=>['plains','forest'].includes(b))).length;
+  .filter(pair=>pair[0]!==pair[1] && !pair.includes('monster') && pair.some(b=>['plains','forest'].includes(b))).length;
 assert.equal(islandComposition.diagnostics.paths + islandComposition.diagnostics.coastalProfiles, borderPaths + pairedVergePaths + islandMap.features.filter(f => f.type === 'ridge').length
   + islandMap.geography.coasts.length + islandMap.regions.filter(r => ['mountains','islands','plains','forest'].includes(r.biome)).length, 'Every island contour must receive a shore profile even without a graph edge ID');
 const channels = c => [c >> 16, c >> 8 & 255, c & 255];
@@ -139,16 +139,30 @@ for(const pair of CONTACT_PAIRS.filter(pair=>pair.some(b=>['plains','forest'].in
 console.log('Boundary integration: all seven plains/forest pairings use current biome verges, retaining mountain divides.');
 
 for(const biome of ['plains','forest','islands','swamp','mountains']) {
-  const fixture={...islandFixture,regions:islandFixture.regions.map(r=>({...r,biome}))};
+  const fixture={...islandFixture,regions:islandFixture.regions.map(r=>({...r,biome:'monster',terrainBiome:biome}))};
   const args={map:fixture,art,pixel:p=>p,world:(x,y)=>({x,y}),detail:1,monsterZones:true,
     legal:p=>p.left>0&&p.top>0&&p.left+art[p.kind].rows[0].length<240&&p.top+art[p.kind].rows.length<150};
   const result=composeTerrainLandscape(args), monsters=result.props.filter(p=>p.monster);
   assert.deepEqual(result,composeTerrainLandscape(args),'Monster territories must be stable for a world seed');
   assert.ok(monsters.length>=4 && result.diagnostics.monsterZones.length===1,`${biome}: multiple dens and pits must form a territory`);
-  assert.ok(monsters.every(p=>p.family===`terrain-monster-${biome}`&&p.allowedBiomes[0]===biome&&args.legal(p)),'Monster silhouettes must fit their own dry biome');
+  assert.ok(monsters.every(p=>p.family===`terrain-monster-${biome}`&&p.allowedBiomes[0]==='monster'&&args.legal(p)),'Monster silhouettes must fit dedicated monster territory');
+  const ordinary={...fixture,regions:fixture.regions.map(r=>({...r,biome}))};
+  assert.equal(composeTerrainLandscape({...args,map:ordinary}).props.filter(p=>p.monster).length,0,'Ordinary biomes must never receive monster dens or pits');
   for(const m of monsters) for(const other of result.props.filter(p=>p!==m))
     assert.ok(illustrationOverlap(m,other,art)<=.12,'Scenery must not bury dens or pits');
   assert.equal(composeTerrainLandscape({...args,monsterZones:false}).props.filter(p=>p.monster).length,0,'Turning sites off must remove monster content');
   assert.equal(composeTerrainLandscape({...args,legal:()=>false}).props.filter(p=>p.monster).length,0,'Unsafe footprints must be omitted whole');
 }
 console.log('Monster territories: biome-specific scattered dens/pits, deterministic placement, protected silhouettes and sites-off pass.');
+
+for(let seed=1860;seed<1880;seed++) {
+  const map=generateMap({seed,clustering:.05,sizeVariation:.85,roughness:1,featureSet:0});
+  assert.equal(map.regions.length,20);
+  assert.equal(map.quota.monster,2);
+  assert.equal(map.regions.filter(r=>r.biome==='monster').length,2);
+  assert.equal(Object.values(map.quota).reduce((a,b)=>a+b,0),20);
+  assert.ok(Object.values(map.quota).every(n=>n>0),'All six biomes must remain represented');
+  for(const [biome,n] of Object.entries(map.quota)) assert.equal(map.regions.filter(r=>r.biome===biome).length,n);
+  assert.ok(Math.abs(Object.values(map.biomeAreas).reduce((a,b)=>a+b,0)-1)<1e-9,'Monster area must be counted exactly once');
+}
+console.log('Monster biome: two whole regions, six represented biomes, 20 cells, exact quotas and area accounting.');

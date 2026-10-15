@@ -9,7 +9,7 @@ import { createWheelZoom } from './wheel-zoom.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
-const MAP_VERSION = '1.0.3';
+const MAP_VERSION = '1.0.4';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
@@ -566,7 +566,7 @@ function sampleLiveSites() {
   if(state.siteArt==='atlas') return result.concat(currentPixelArt.stats.terrainComposition.monsterZones.map(zone=>({
     kind:'monster',point:zone.point,regionId:zone.regionId,zone
   })));
-  const candidates = map.regions.filter(region => region.biome !== 'islands'
+  const candidates = map.regions.filter(region => region.biome === 'monster'
     && !towns.some(town => town.regionId === region.id));
   for (const region of candidates.filter(r => r.biome === 'swamp' || r.biome === 'mountains').concat(candidates)) {
     if (result.filter(site => site.kind === 'monster').length >= 2) break;
@@ -627,7 +627,7 @@ function drawAtlasSites() {
     const biome = map.regions.find(r => r.id === site.regionId)?.biome ?? 'plains';
     if(site.zone) {
       const ground=new PIXI.Container();group.addChild(ground);
-      const label=text(group,'MONSTER DENS',0,20,18,colour,{fontFamily:'Arial, sans-serif',stroke:0x131b1b,strokeThickness:4});
+      const label=text(group,'MONSTER REGION',0,20,18,colour,{fontFamily:'Arial, sans-serif',stroke:0x131b1b,strokeThickness:4});
       label.anchor.set(.5,0);label.visible=state.siteLabels;
       landmarkNodes.push({site,meshes:[],label,ground,width:70*state.actorScale,biome,outskirts:0,biomeArt:true});
       worldLayer.addChild(group);continue;
@@ -727,7 +727,7 @@ function render() {
   for (const node of worldLayer.removeChildren()) node.destroy({ children: true });
   zoomNodes = []; landmarkNodes = []; terrainLayer = null; overviewInk = null;
   text(root, 'THE SHAPING OF A WORLD', 38, 30, 48, 0xe8dfbf, { letterSpacing: 3 });
-  text(root, `MAP v${MAP_VERSION}   /   20 regions · five biomes · no gameplay attached`, 42, 94, 25, 0xacc1b2, { fontFamily: 'Arial, sans-serif', letterSpacing: 1.5 });
+  text(root, `MAP v${MAP_VERSION}   /   20 regions · six biomes · no gameplay attached`, 42, 94, 25, 0xacc1b2, { fontFamily: 'Arial, sans-serif', letterSpacing: 1.5 });
   if (pixelReview()) button('Cycle live asset scale', 1065, 40, 350, 52, () => {
     state.actorScale = state.actorScale < 1 ? 1 : state.actorScale < 1.25 ? 1.25 : .75; render();
   }, { copy: `Landmarks: ${Math.round(state.actorScale * 100)}%`, size: 24 });
@@ -736,10 +736,10 @@ function render() {
   drawControls(); drawMap();
   button('Toggle location labels', 1400, 158, 230, 70, () => { state.siteLabels = !state.siteLabels; render(); }, { copy: state.siteLabels ? 'Labels: On' : 'Labels: Off', active: state.siteLabels, size: 24 });
   Object.entries(BIOMES).forEach(([id, biome], i) => {
-    const x = 518 + i * 372, y = 928;
+    const x = 518 + i * 310, y = 928;
     const g = new PIXI.Graphics().beginFill(pixelReview() ? ATLAS_COLOURS[id] : biome.colour).drawCircle(x + 12, y + 17, 12).endFill(); root.addChild(g);
-    text(root, `${biome.name}  ${map.quota[id]}`, x + 37, y, 31);
-    text(root, `${(map.biomeAreas[id] * 100).toFixed(1)}% of playable area`, x + 37, y + 43, 24, 0xaec1b4, { fontFamily: 'Arial, sans-serif' });
+    text(root, `${biome.name}  ${map.quota[id]}`, x + 37, y, 29);
+    text(root, `${(map.biomeAreas[id] * 100).toFixed(1)}% of playable area`, x + 37, y + 43, 21, 0xaec1b4, { fontFamily: 'Arial, sans-serif' });
   });
   panel(root, 1004, 1003, 930, 62, 0x182e32, 0x778675);
   button('Previous map view', 1012, 1008, 100, 52, () => cycle(-1), { copy: '←', size: 35 });
