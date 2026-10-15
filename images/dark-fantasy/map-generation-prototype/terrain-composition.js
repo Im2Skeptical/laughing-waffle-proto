@@ -38,12 +38,12 @@ function field(seed, x, y, scale) {
 }
 
 const INTERIORS = {
-  forest: [0, 2, 3, 4, 5, 7, 8, 9, 11], mountains: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-  swamp: [0, 1, 2, 3, 6, 7, 8, 9, 10, 11], plains: [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+  forest: [0, 1, 2, 3, 4, 5, 8, 9, 10, 11], mountains: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  swamp: [0, 1, 2, 3, 6, 7, 8, 9, 10, 11], plains: [8, 9, 10, 11],
   islands: [2, 3, 7, 8, 11],
 };
-const COASTS = { forest: [5, 6, 7, 9, 10], mountains: [5, 6, 7, 8, 9, 11],
-  swamp: [3, 5, 6, 8, 9, 10], plains: [3, 6, 9, 10, 11], islands: [0, 1, 2, 3, 4, 5, 10, 11] };
+const COASTS = { forest: [4, 5, 7, 8, 9, 11], mountains: [5, 6, 7, 8, 9, 11],
+  swamp: [3, 5, 6, 8, 9, 10], plains: [4, 6, 7, 9, 11], islands: [0, 1, 2, 3, 4, 5, 10, 11] };
 
 export function composeTerrainLandscape({ map, art, pixel, world, legal, detail, islandStyle = 'basalt' }) {
   const islandFamily = `terrain-island-${islandStyle}`;
@@ -91,7 +91,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       options.push({ prop, score, join });
     }
     options.sort((a, b) => b.score - a.score);
-    return options[0]?.prop ?? (family.startsWith('terrain-island-') && sizeLevel < 2
+    return options[0]?.prop ?? ((family.startsWith('terrain-island-') || ['terrain-plains','terrain-forest'].includes(family)) && sizeLevel < 2
       ? choose({ x,y,family,indices,salt,allowedBiomes,context,previous,sizeLevel:sizeLevel+1 }) : undefined);
   };
 
@@ -127,6 +127,19 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
   const ridgeArt = !!art['terrain-ridge-border-0'];
   for (const [i, feature] of map.features.entries()) if (feature.type === 'ridge')
     paths.push({ points: feature.points.map(pixel), family: ridgeArt ? 'terrain-ridge-border' : 'terrain-mountains', directional: ridgeArt, allowedBiomes: ['plains', 'forest', 'swamp', 'mountains'], indices: ridgeArt ? [0, 1, 2, 3, 4, 6, 7, 10] : [0, 1, 2, 4, 5, 6, 8, 9], salt: 3001 + i * 991, context: ridgeArt ? 'ridge-boundary' : 'ridge' });
+  // Broad low grassland spines and wooded slopes organise the interior before
+  // smaller cover grows around them. Each has bends and open breathing room.
+  for (const [i, region] of map.regions.entries()) if (['plains','forest'].includes(region.biome)) {
+    const outline=region.outline.map(pixel), c=pixel(region.centre);
+    const rx=(Math.max(...outline.map(p=>p.x))-Math.min(...outline.map(p=>p.x)))*.31;
+    const ry=(Math.max(...outline.map(p=>p.y))-Math.min(...outline.map(p=>p.y)))*.31;
+    const horizontal=rx>ry;
+    paths.push({points:Array.from({length:9},(_,n)=>{
+      const t=n/8*2-1,bend=Math.sin(t*Math.PI+rand(i+418)*3)*.34;
+      return {x:c.x+(horizontal?t*rx:bend*rx),y:c.y+(horizontal?bend*ry:t*ry)};
+    }),family:`terrain-${region.biome}`,allowedBiomes:[region.biome],
+    indices:region.biome==='plains'?[0,1,2,3,4,5]:[0,1,2,3,6,7],salt:180001+i*877,context:'landscape-spine'});
+  }
   // Mountain biomes carry a connected major-axis spine, with low flanks below.
   for (const [i, region] of map.regions.entries()) if (region.biome === 'mountains') {
     const outline = region.outline.map(pixel), centre = pixel(region.centre);
@@ -240,10 +253,10 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       candidates.push({ x, y, density, salt });
     }
     candidates.sort((a, b) => b.density - a.density);
-    let placed = 0, limit = Math.ceil(area / ((region.biome === 'islands' ? (islandStyle === 'caldera' ? 600 : 1000) : region.biome === 'swamp' ? 1100 : dense ? 160 : 560) * detail * detail));
+    let placed = 0, limit = Math.ceil(area / ((region.biome === 'islands' ? (islandStyle === 'caldera' ? 600 : 1000) : region.biome === 'swamp' ? 1100 : dense ? 320 : region.biome === 'plains' ? 950 : 560) * detail * detail));
     for (const candidate of candidates) {
       if (placed >= limit || props.length >= 600) break;
-      const prop = choose({ ...candidate, family, indices: region.biome === 'islands' ? [8,9,10,11] : region.biome === 'mountains' ? [7, 8, 9, 11] : INTERIORS[region.biome], allowedBiomes: [region.biome], context: 'interior' });
+      const prop = choose({ ...candidate, family, indices: region.biome === 'forest' && candidate.density < .57 ? [4,5,8,9,10,11] : region.biome === 'islands' ? [8,9,10,11] : region.biome === 'mountains' ? [7, 8, 9, 11] : INTERIORS[region.biome], allowedBiomes: [region.biome], context: 'interior' });
       if (!prop) continue;
       const near = nearby(prop), overlap = near.reduce((n, p) => Math.max(n, illustrationOverlap(prop, p, art)), 0);
       // Moderate-density fringe extends an existing mass; high-density cores
@@ -252,7 +265,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       add(prop); placed++; diagnostics.interiors++;
     }
   }
-  diagnostics.islandScaledPieces = props.filter(p => /-(compact|small)(-mirror)?$/.test(p.kind)).length;
+  diagnostics.islandScaledPieces = props.filter(p => p.family.startsWith('terrain-island-') && /-(compact|small)(-mirror)?$/.test(p.kind)).length;
   diagnostics.islandStyle = islandStyle;
   diagnostics.islandCraters = props.filter(p => p.context === 'island-crater').length;
   diagnostics.placements = props.length;

@@ -52,7 +52,7 @@ const islandComposition = composeTerrainLandscape({ map: islandMap, art, pixel,
 const borderPaths = islandMap.edges.filter(edge => edge.regions.length === 2
   && islandMap.regions.find(r => r.id === edge.regions[0]).biome !== islandMap.regions.find(r => r.id === edge.regions[1]).biome).length;
 assert.equal(islandComposition.diagnostics.paths + islandComposition.diagnostics.coastalProfiles, borderPaths + islandMap.features.filter(f => f.type === 'ridge').length
-  + islandMap.geography.coasts.length + islandMap.regions.filter(r => r.biome === 'mountains' || r.biome === 'islands').length, 'Every island contour must receive a shore profile even without a graph edge ID');
+  + islandMap.geography.coasts.length + islandMap.regions.filter(r => ['mountains','islands','plains','forest'].includes(r.biome)).length, 'Every island contour must receive a shore profile even without a graph edge ID');
 const channels = c => [c >> 16, c >> 8 & 255, c & 255];
 const [lr, lg, lb] = channels(leaves), [sr, sg, sb] = channels(stone);
 assert.ok(lg > lr && lg > lb * 1.7, 'Leaf hue must survive grading');
@@ -88,3 +88,11 @@ assert.ok(narrow.props.every(p=>art[p.kind].rows[0].length<=14),'Fallback must s
 const dark=channels(gradeTerrainColour(25,28,23,'island-basalt'));
 const light=channels(gradeTerrainColour(210,212,200,'island-basalt'));
 assert.ok(light[0]-dark[0]<145 && dark[0]>45,'Basalt should have lifted shadows and compressed highlights');
+
+for(const biome of ['plains','forest']) {
+  const fixture={...islandFixture,regions:islandFixture.regions.map(r=>({...r,biome}))};
+  const result=composeTerrainLandscape({map:fixture,art,pixel:p=>p,world:(x,y)=>({x,y}),detail:1,legal:p=>p.left>0&&p.top>0});
+  assert.ok(result.props.some(p=>p.context==='landscape-spine'),'Plains/forest need connected structural masses');
+  if(biome==='plains') assert.ok(result.props.filter(p=>p.context==='interior').every(p=>Number(p.kind.replace(/-mirror$/,'').split('-').at(-1))>=8),'Plains scatter must use small ground cover, not large ridges');
+}
+console.log('Plains/forest: connected structural masses and role-specific ground cover.');

@@ -1,5 +1,28 @@
 # Map generation Pixi workbench (disposable prototype)
 
+### Plains and forest terrain pass
+
+Twelve replacement pieces per biome now distinguish broad structures from fine
+cover. Plains use low rolling ridges and grassy gullies along a curved interior
+spine, with sparse heath, gravel and scrub between them. Forest spines use mixed
+canopy and wooded slopes; lower-density areas choose feathered edges, young trees,
+deadwood and fern clearings. Coasts select low banks and fringes. Neither biome
+scatters the entire asset set indiscriminately. The generated source colours get
+moderate value compression; plains stone highlights are softened further.
+
+Runtime widths are 76px (major masses), 64px (banks/edges) and 44px (small cover).
+Whole-footprint placement can fall back to 72% and 50% sizes around water and
+settlements. Actual buildings, court and lanes are protected, with the unused
+clearing fringe available for scenery, as in the island treatment. Zoom does not
+change placement. Simulation state, RNG, schemas and replay remain untouched.
+
+Built-in imagegen sources: `assets/masters/composable-plains-v2.png` and
+`assets/masters/composable-forest-v2.png`. Prompts, including the plains spacing
+repair, are saved in [plains-forest-prompts-v2.json](assets/masters/plains-forest-prompts-v2.json).
+The runtime art remains about 2.31 MiB; all replacement source edges pass extraction.
+Review seeds 1862 and 1873 at Fit and close zoom, labels off. Run composition,
+settlement-site and map-art checks plus browser LOD persistence.
+
 ### Volcanic island variations
 
 `Islands: Basalt / Caldera` beneath Save map PNG switches two complete terrain

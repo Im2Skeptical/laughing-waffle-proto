@@ -41,11 +41,12 @@ export function siteContains(sites, x, y, margin = 1) {
   return sites.some(s => ((x - s.x) / (s.rx * margin)) ** 2 + ((y - s.y) / (s.ry * margin)) ** 2 < 1);
 }
 
-// Island scenery may meet an irregular town fringe, but never cover buildings,
-// the court or the approach. Other biome reservations retain their current shape.
+// Woodland, grassland and island scenery may meet an irregular town fringe,
+// while buildings, court and approach remain protected. Wetland and mountain
+// reservations retain their current shape.
 export function siteReliefContains(sites, x, y) {
   return sites.some(s => {
-    if (s.biome !== 'islands' || !s.buildings.length) return siteContains([s],x,y,.9);
+    if (!['islands','plains','forest'].includes(s.biome) || !s.buildings.length) return siteContains([s],x,y,.9);
     const unit=s.rx/23;
     if(s.buildings.some(b=>x>b.x-b.w*.6-unit && x<b.x+b.w*.6+unit
       && y>b.y-b.h-unit*2 && y<b.y+b.h*.55+unit)) return true;

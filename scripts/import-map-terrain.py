@@ -183,7 +183,7 @@ def import_relief():
     images, records = [], []
     sheets = [(b, 4, 3) for b in BIOMES] + [('contacts-1', 5, 5), ('contacts-2', 5, 5), ('ridge-border', 4, 3), ('bridge', 4, 2), ('island-basalt', 4, 3), ('island-caldera', 4, 3)]
     for name, columns, rows in sheets:
-        source_path = MASTER / f'composable-{name}-v2.png' if name in ['mountains', 'swamp'] else MASTER / f'composable-{name}-v1.png' if name in ['ridge-border', 'bridge', 'island-basalt', 'island-caldera'] else BASE / f'composable-{name}-v1.png'
+        source_path = MASTER / f'composable-{name}-v2.png' if name in ['mountains', 'swamp', 'plains', 'forest'] else MASTER / f'composable-{name}-v1.png' if name in ['ridge-border', 'bridge', 'island-basalt', 'island-caldera'] else BASE / f'composable-{name}-v1.png'
         source = Image.open(source_path).convert('RGBA')
         payload = json.dumps([source.width, source.height, columns, rows]).encode() + b'\n' + source.tobytes()
         probe = subprocess.run(['node', str(ROOT / 'scripts/map-terrain-frame-probe.mjs')], input=payload, capture_output=True, check=True)
@@ -204,6 +204,7 @@ def import_relief():
             width = 50 if contact else round((36 if name == 'mountains' else 26 if name == 'forest' else 25) * scale) * 2
             if name == 'ridge-border': width = 92 if n < 8 else 64
             if name == 'bridge': width = 64
+            if name in ['plains', 'forest']: width = 76 if n < 4 else 64 if n < 8 else 44
             if name.startswith('island-'): width = 88 if n < 2 else 64 if n < 8 else 52
             height = min(118, max(1, round(width * cropped.height / cropped.width)))
             image = np.array(cropped.resize((width, height), Image.Resampling.LANCZOS))
