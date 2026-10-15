@@ -4,7 +4,7 @@ import { getRegionDefinition, getRegionReference } from '../../../src/model/worl
 import { PANEL, CONTENT, OPTION_COLUMN, MORTALITY_PLATE } from '../../../src/views/vassal-node-decision/constants.js';
 import { confirmDockButton, confirmDockRect, renderTitlePlaque, renderLocationPlaque } from '../../../src/views/vassal-node-decision/chrome.js';
 import { MAP_VIEWPORT_RECT } from '../../../src/views/world-map/constants.js';
-import { actionCard, button } from '../../../src/views/vassal-node-decision/cards.js';
+import { actionCard } from '../../../src/views/vassal-node-decision/cards.js';
 import { VASSAL_NODE_FAMILIES } from '../../../src/defs/gamepieces/vassal-life-map-defs.js';
 import { renderMortalityEstimate } from '../../../src/views/vassal-node-decision/mortality.js';
 import { clearChildren, createText, roundedRect } from '../../../src/views/settlement-view-primitives.js';
@@ -15,13 +15,13 @@ import { addInteractionFeedback } from '../../../src/views/interaction-feedback.
 // Experimental modal. Complete live map inside the shared node-decision body.
 const MAP_BODY = Object.freeze({ x: 986, y: 234, width: 1358, height: 520 });
 const FAMILY = { ...VASSAL_NODE_FAMILIES.travel, label: 'Crossroads', description: 'Move, connect, or explore your region.' };
-export function createOpeningWorldDecisionScreen({ app, layer, getState, getVassal, onSelect, onSelectSettlement, onBack, onConfirm, tooltipView }) {
+export function createOpeningWorldDecisionScreen({ app, layer, getState, getVassal, onSelect, onSelectSettlement, onConfirm, tooltipView }) {
   const root = new PIXI.Container(), mapLayer = new PIXI.Container(), overlay = new PIXI.Container(), chrome = new PIXI.Container();
   root.visible = false; root.eventMode = 'static'; root.hitArea = app.screen; layer.addChild(root);
   const backdrop = new PIXI.Graphics().beginFill(0x171713,.68)
     .drawRect(0,0,app.screen.width,app.screen.height).endFill();
   backdrop.eventMode='static';
-  backdrop.on('pointertap',()=>{if(!busy){if(isFounding()){onBack?.();return;}dismissed=true;root.visible=false;tooltipView?.hide?.({force:true});}});
+  backdrop.on('pointertap',()=>{if(!busy){dismissed=true;root.visible=false;tooltipView?.hide?.({force:true});}});
   const background = new PIXI.Graphics();
   roundedRect(background,PANEL.x,PANEL.y,PANEL.width,PANEL.height,18,0x292f2b,FAMILY.color,3);
   background.eventMode='static';background.on('pointertap',event=>event.stopPropagation());
@@ -31,7 +31,7 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
   mapLayer.position.set(MAP_BODY.x - MAP_VIEWPORT_RECT.x * mapScale,
     MAP_BODY.y + (MAP_BODY.height - MAP_VIEWPORT_RECT.height * mapScale) / 2 - MAP_VIEWPORT_RECT.y * mapScale);
   let decision = null, spec = null, busy = false, mode = 'move', selection = null, key = '', activeKey = null, dismissed = false;
-  let modeButtons = [], confirmButton = null, backButton = null, feedback = null, locationPlaque = null, locationLabel = '', message = '';
+  let modeButtons = [], confirmButton = null, feedback = null, locationPlaque = null, locationLabel = '', message = '';
   let overlayKey = '';
   const currentRegion = () => getVassal()?.locationRegionId;
   const isFounding=()=>spec?.kind==='legacy'&&!!decision?.legacySettlement;
@@ -42,7 +42,10 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
     options().filter(o => !o.locationRegionId && !o.intervention && !o.classAction),
   ];
   const available = () => isFounding()?options():groups()[['move','build','tour'].indexOf(mode)] ?? [];
-  const selected = () => options().find(o => isFounding()?o.settlementRegionId===decision.legacySettlement.selectedRegionId:o.id === decision?.nodeState.selectedOptionId);
+  const selected = () => isFounding()&&decision.nodeState.selectedOptionId!=='found-settlement'
+    ? decision.options.find(option=>option.id===decision.nodeState.selectedOptionId)
+    : options().find(o => isFounding()?o.settlementRegionId===decision.legacySettlement.selectedRegionId:o.id === decision?.nodeState.selectedOptionId);
+  const matchesChoice=choice=>!!choice&&(isFounding()&&decision.nodeState.selectedOptionId!=='found-settlement'||available().some(option=>option.id===choice.id));
   const brightRegions = () => [...new Set([currentRegion(), ...available().filter(o=>!o.blocked).map(target)].filter(Boolean))];
   const map = createWorldMapView({layer:mapLayer,getState,getSelectedRegionId:()=>selection??currentRegion(),
     getRegionSelectionActive:()=>false,getGraphScope:()=> 'settlement',
@@ -54,6 +57,7 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
   function target(o) { return o.settlementRegionId ?? o.locationRegionId ?? (o.intervention?.regionAId === currentRegion() ? o.intervention?.regionBId : o.intervention?.regionAId); }
   function pickRegion(id) {
     if (busy || mode === 'tour') return;
+    if(isFounding()&&decision.nodeState.selectedOptionId!=='found-settlement')return;
     const option = available().find(o => target(o) === id);
     if (!option || option.blocked) {message=isFounding()?'Choose a highlighted frontier destination.':mode==='move'?'Choose a highlighted reachable settlement.':'Choose a highlighted legal road destination.';draw();return;}
     selection=id;message='';if(isFounding())onSelectSettlement?.(id);else onSelect(option.id);
@@ -80,7 +84,6 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
       .moveTo(958,PANEL.y+CONTENT.labelY).lineTo(958,PANEL.y+PANEL.height-28);
     chrome.addChild(divider);
     chrome.addChild(createText(founding?'Choose a settlement destination':mode==='move'?'Choose a bright destination on the map':mode==='build'?'Choose a bright region to connect':'Tour your current region', {...TEXT_STYLES.title,fontSize:26},MAP_BODY.x,PANEL.y+CONTENT.labelY));
-    backButton=founding?button(chrome,{x:MAP_BODY.x+MAP_BODY.width-140,y:PANEL.y+CONTENT.labelY-8,width:140,height:44},'Back',!busy,onBack):null;
     const local=groups()[2][0], chance=local?.randomReward?.relicChance;
     const description=local?.randomReward ? `${Math.round(chance)}% ordinary relic · ${Math.round(100-chance)}% ${local.randomReward.statDelta?`+${local.randomReward.statDelta}`:'gain to'} a random ability`
       : local?.label??'No local activity is available';
@@ -110,14 +113,14 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
       card.priceOptionId=option?.id;card.priceFrom=from;
       return card;
     });
-    const choice=selected(), matching=choice&&available().some(o=>o.id===choice.id);
+    const choice=selected(), matching=matchesChoice(choice);
     const text=busy?'Resolving the world…':message|| (matching ? `${choice.label}${choice.blocked?` · ${choice.blocked}`:''}`
-      : founding?'Choose a highlighted frontier destination.':mode==='tour'?description:mode==='move'?'Click a highlighted destination to preview your journey.':'Click a highlighted destination to preview a new road.');
+      : founding?decision.nodeState.selectedOptionId==='found-settlement'?'Choose a highlighted frontier destination.':'Choose a Legacy option.':mode==='tour'?description:mode==='move'?'Click a highlighted destination to preview your journey.':'Click a highlighted destination to preview a new road.');
     feedback=createText(text,{...TEXT_STYLES.body,fontSize:24,lineHeight:28,wordWrap:true,wordWrapWidth:MAP_BODY.width,fill:message?PALETTE.red:PALETTE.text},MAP_BODY.x,774);
     feedback.scale.set(Math.min(1,54/Math.max(1,feedback.height)));chrome.addChild(feedback);
     const dock=confirmDockRect(app);
     renderMortalityEstimate(chrome,decision?.mortalityEstimate,{x:dock.x-MORTALITY_PLATE.gap-MORTALITY_PLATE.width,y:dock.y+(dock.height-MORTALITY_PLATE.height)/2,width:MORTALITY_PLATE.width,height:MORTALITY_PLATE.height},!busy&&!!matching&&!choice.blocked);
-    confirmButton=confirmDockButton(chrome,app,{label:busy?'Resolving...':'Confirm',enabled:!busy&&!!matching&&!choice.blocked,onClick:()=>onConfirm(founding?'found-settlement':choice.id)});
+    confirmButton=confirmDockButton(chrome,app,{label:busy?'Resolving...':'Confirm',enabled:!busy&&!!matching&&!choice.blocked,onClick:()=>onConfirm(founding&&decision.nodeState.selectedOptionId==='found-settlement'?'found-settlement':choice.id)});
   }
   function updateOverlay() {
     if(!root.visible)return; map.update();
@@ -151,16 +154,17 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
     decision=next;spec=node;busy=isBusy;
     if(!next){root.visible=false;activeKey=null;dismissed=false;key='';return;}
     if(activeKey!==node.id){activeKey=node.id;dismissed=false;mode=isFounding()?'found':groups()[0].length?'move':groups()[1].length?'build':'tour';selection=null;message='';key='';overlayKey='';}
+    if(isFounding()){selection=decision.legacySettlement.selectedRegionId;message='';}
     root.visible=!dismissed;
     map.setVisible(root.visible);map.refresh();draw();updateOverlay();
   }
   const mapPoint=id=>{const p=map.getRegionClickPoint(id);return p?mapLayer.toGlobal(p):null;};
   const point=control=>{if(!root.visible||!control)return null;const r=control.getBounds();return{x:r.x+r.width/2,y:r.y+r.height/2};};
   const bounds=control=>{const r=control.getBounds();return{x:r.x,y:r.y,width:r.width,height:r.height};};
-  return {refresh,getHudDeltas:()=>{const choice=selected();return root.visible&&choice&&available().some(o=>o.id===choice.id)&&!choice.blocked?{prestige:(choice.prestigeDelta??0)-choice.cost,stats:{}}:null;},update:()=>{draw();updateOverlay();},isOpen:()=>root.visible,
+  return {refresh,getHudDeltas:()=>{const choice=selected();return root.visible&&matchesChoice(choice)&&!choice.blocked?{prestige:(choice.prestigeDelta??0)-choice.cost,stats:{}}:null;},update:()=>{draw();updateOverlay();},isOpen:()=>root.visible,
     open:()=>{dismissed=false;root.visible=!!decision;map.setVisible(root.visible);map.refresh();key='';draw();},close:()=>{dismissed=true;root.visible=false;},
-    getPoint:(kind,id)=>kind==='confirm'?point(confirmButton):kind==='worldBack'?point(backButton):kind==='option'?point(modeButtons[id]):kind==='worldMode'?point(modeButtons[['move','build','tour'].indexOf(id)]):kind==='worldCost'?point(modeButtons[(isFounding()?['found-settlement','highest-stat','accumulated-prestige']:['move','build','tour']).indexOf(id)]?.costPanel):kind==='worldTarget'?mapPoint(id):kind==='worldReward'?point(rewardBadges.find(b=>b.regionId===id)?.control):null,
-    getSnapshot:()=>({open:root.visible,mode,selectedOptionId:decision?.nodeState.selectedOptionId,selectedRegionId:selected()?target(selected()):null,
+    getPoint:(kind,id)=>kind==='confirm'?point(confirmButton):kind==='option'?point(modeButtons[id]):kind==='worldMode'?point(modeButtons[['move','build','tour'].indexOf(id)]):kind==='worldCost'?point(modeButtons[(isFounding()?['found-settlement','highest-stat','accumulated-prestige']:['move','build','tour']).indexOf(id)]?.costPanel):kind==='worldTarget'?mapPoint(id):kind==='worldReward'?point(rewardBadges.find(b=>b.regionId===id)?.control):null,
+    getSnapshot:()=>({open:root.visible,mode,selectedOptionId:decision?.nodeState.selectedOptionId,selectedRegionId:selected()?target(selected())??null:null,
       locationRegionId:currentRegion(),regionCount:getState()?.world?.regions?.length??0,
       connectionCount:getState()?.world?.connections?.length??0,
       panel:PANEL,mapBody:MAP_BODY,artworkReady:modeButtons.length>0&&modeButtons.every(card=>card.illustration?.texture?.baseTexture.valid),brightRegionIds:brightRegions(),locationPlaque:locationPlaque?{label:locationLabel,rect:bounds(locationPlaque)}:null,
