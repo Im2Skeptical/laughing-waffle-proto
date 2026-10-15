@@ -5,6 +5,7 @@ import { openingVassal, commitOpeningEncounter, cloneOpeningSession } from '../i
 import { serializeGameState } from '../src/model/state.js';
 import { getDetailedPracticeDef, getDetailedStructureDef } from '../src/model/game-config.js';
 import { isVassalStockOutputPractice } from '../src/defs/gamepieces/vassal-life-map-defs.js';
+import { generateShopInventory } from '../src/model/vassal-life-map/shop.js';
 const saved=c=>JSON.stringify(serializeGameState(c.getSnapshot().session.state));
 // The old authored pool in the reported screenshot must use the same picker
 // when the player enters the shop along the graph, rather than a preview button.
@@ -54,17 +55,20 @@ const random=createOpeningController();random.previewShop('shop',true);
 const randomGate=random.getDecision(), namedTags=randomGate.shopTagChoices.filter(tag=>tag.id!=='random');
 assert.equal(namedTags.length,2);assert.equal(new Set(namedTags.map(tag=>tag.id)).size,2);
 assert.equal(randomGate.shopTagChoices[2].id,'random');assert.equal(randomGate.shopTagChoices[2].prestigeGain,10);
-assert.ok(!('randomTags' in randomGate.shopTagChoices[2]),'hidden stock tags stay hidden in the picker');
+const generic=cloneOpeningSession(random.getSnapshot().session),genericVassal=openingVassal(generic);
+const genericOffers=generateShopInventory(generic.state,genericVassal,genericVassal.lifeMap.nodeStates[generic.runtimeNodeId]);
 const randomTime=random.getSnapshot().summary.tSec;random.select('random');
-const revealed=random.getDecision();assert.ok(!namedTags.some(tag=>tag.id===revealed.shopTag),'Random reveals another eligible stock tag');
+const revealed=random.getDecision();assert.equal(revealed.shopTag,'random');
 assert.equal(random.getSnapshot().summary.prestige,10);assert.equal(random.getSnapshot().summary.tSec,randomTime);
-assert.ok(revealed.offers.length);assert.ok(revealed.offers.every(offer=>isVassalStockOutputPractice(getDetailedPracticeDef(random.getSnapshot().session.state,offer.intervention.practiceId),revealed.shopTag)));
+assert.deepEqual(openingVassal(random.getSnapshot().session).lifeMap.nodeStates[random.getSnapshot().session.runtimeNodeId].inventory,genericOffers,'Random uses generic shop selection, class mix and quality rolls');
+assert.deepEqual(random.getSnapshot().session.state.rng,generic.state.rng,'Random consumes exactly the generic shop RNG draws');
+assert.ok(revealed.offers.length);assert.deepEqual(revealed.offers.map(offer=>getDetailedPracticeDef(random.getSnapshot().session.state,offer.intervention.practiceId).pool).sort(),['common','warrior','warrior']);
 assert.ok(revealed.offers.every(offer=>!offer.monsterPressureCost),'the reward funds purchases immediately');
 const revealedState=saved(random);for(let i=0;i<5;i++)random.getDecision();assert.equal(saved(random),revealedState);
 assert.throws(()=>random.select('random'));assert.equal(random.getSnapshot().summary.prestige,10,'the reward cannot be claimed twice');
 assert.deepEqual(serializeGameState(cloneOpeningSession(random.getSnapshot().session).state),JSON.parse(revealedState));
 random.rewind();random.enter('shop');assert.equal(random.getSnapshot().summary.prestige,0);random.select('random');
-assert.equal(saved(random),revealedState,'rewind repeats the random tag, offers and single reward');
+assert.equal(saved(random),revealedState,'rewind repeats the generic offers and single reward');
 random.stage(random.getDecision().offers.find(offer=>offer.canStage).offerId);
 const randomPurchase=random.getDecision().purchases[0];assert.ok(randomPurchase.prestigeCost>0);assert.equal(randomPurchase.monsterPressureCost,0);
 random.undo(randomPurchase.offerId);assert.equal(random.getSnapshot().summary.prestige,10,'undoing a purchase does not duplicate the tag reward');
