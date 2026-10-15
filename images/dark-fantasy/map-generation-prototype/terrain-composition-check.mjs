@@ -72,3 +72,19 @@ for (const islandStyle of ['basalt', 'caldera']) {
   assert.ok(result.props.filter(p=>p.context==='interior').every(p=>Number(p.kind.replace(/-mirror$/,'').split('-').at(-1))>=8),'Crater art must never enter interior scatter');
 }
 console.log('Island composition: two deterministic volcanic kits, one crater per group, connected flanks and separate undergrowth.');
+
+// Narrow usable land must fall back to compact silhouettes rather than go bare.
+for (const [kind,glyph] of Object.entries({...art})) if(kind.startsWith('terrain-island-')) {
+  for(const [suffix,factor] of [['compact',.72],['small',.5]]) {
+    const w=Math.max(1,Math.round(glyph.rows[0].length*factor)),h=Math.max(1,Math.round(glyph.rows.length*factor));
+    const key=kind.replace(/-mirror$/,'')+'-'+suffix+(kind.endsWith('-mirror')?'-mirror':'');
+    art[key]={rows:Array.from({length:h},(_,y)=>Array.from({length:w},(_,x)=>glyph.rows[Math.min(glyph.rows.length-1,Math.floor(y/factor))][Math.min(glyph.rows[0].length-1,Math.floor(x/factor))]).join(''))};
+  }
+}
+const narrow=composeTerrainLandscape({map:islandFixture,art,pixel:p=>p,world:(x,y)=>({x,y}),detail:1,
+  legal:p=>art[p.kind].rows[0].length<=14 && p.left>0 && p.top>0});
+assert.ok(narrow.props.length>0 && narrow.diagnostics.islandCraters===1,'Restricted footprint must retain a smaller crater and relief');
+assert.ok(narrow.props.every(p=>art[p.kind].rows[0].length<=14),'Fallback must still obey the full footprint constraint');
+const dark=channels(gradeTerrainColour(25,28,23,'island-basalt'));
+const light=channels(gradeTerrainColour(210,212,200,'island-basalt'));
+assert.ok(light[0]-dark[0]<145 && dark[0]>45,'Basalt should have lifted shadows and compressed highlights');

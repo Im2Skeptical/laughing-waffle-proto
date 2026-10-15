@@ -3,6 +3,10 @@ export const composableLibrary = { biomePieces: 84, boundaryPieces: 50, cells: [
 // Source hues carry the material information: leaves, trunks, earth and rock.
 // Small channel corrections preserve those differences and the painted light.
 export function gradeTerrainColour(r, g, b, family) {
+  if (family === 'island-basalt') {
+    // Compress values around weathered mid-grey without flattening leaf/stone hue.
+    return [r,g,b].reduce((rgb,v,i) => rgb | Math.round(112 + (v-112)*.64 + [8,9,7][i]) << (16-i*8), 0);
+  }
   const foliage = g > b * 1.22 && r < g * 1.22;
   const stone = Math.max(r, g, b) - Math.min(r, g, b) < 35;
   let gains = [1.06, 1.055, 1.08];
@@ -24,8 +28,9 @@ export async function loadComposableArt(banks) {
     image.src = new URL('./assets/runtime/relief-v1.webp', import.meta.url).href;
   });
   composableLibrary.cells = manifest.frames.map(frame => ({ kind: frame.kind, sheet: frame.family, pair: frame.pair, cutRuns: frame.cutRuns }));
-  for (const detail of [1, 2]) for (const frame of manifest.frames) {
-    const proportion = frame.family === 'islands' ? .8 : 1;
+  for (const detail of [1, 2]) for (const frame of manifest.frames) for (const scale of (frame.family.startsWith('island-') ? [1,.72,.5] : [1])) {
+    const proportion = (frame.family === 'islands' ? .8 : 1) * scale;
+    const kind = frame.kind + (scale === .72 ? '-compact' : scale === .5 ? '-small' : '');
     const canvas = document.createElement('canvas'); canvas.width = Math.round(frame.rect[2] * detail / 2 * proportion);
     canvas.height = Math.round(frame.rect[3] * detail / 2 * proportion);
     const ctx = canvas.getContext('2d'); ctx.imageSmoothingQuality = 'high';
@@ -46,8 +51,8 @@ export async function loadComposableArt(banks) {
       rows.push(row); opacity.push(alpha);
     }
     const glyph = { rows, colours, rgbColours, opacity, cutRuns: frame.cutRuns, family: frame.family, illustrated: true, composable: true };
-    banks[detail][frame.kind] = glyph;
-    banks[detail][`${frame.kind}-mirror`] = { ...glyph, rows: rows.map(row => [...row].reverse().join('')), opacity: opacity.map(row => row.slice().reverse()) };
+    banks[detail][kind] = glyph;
+    banks[detail][`${kind}-mirror`] = { ...glyph, rows: rows.map(row => [...row].reverse().join('')), opacity: opacity.map(row => row.slice().reverse()) };
 
 
   }

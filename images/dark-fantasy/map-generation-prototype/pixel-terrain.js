@@ -13,7 +13,7 @@ import { paintTerrainFoundations } from './terrain-foundations.js';
 import { paintRegionDivisions } from './terrain-divisions.js';
 import { paintWetlandPools } from './wetland-ground.js';
 import { bridgeSpans, paintBridge } from './road-crossings.js';
-import { planSettlementSites, siteContains, layOutSettlements, paintSettlementSites } from './settlement-sites.js';
+import { planSettlementSites, siteReliefContains, layOutSettlements, paintSettlementSites } from './settlement-sites.js';
 
 export const ATLAS_COLOURS = { plains: 0xb7a17b, forest: 0x969174, islands: 0x688689, swamp: 0x858675, mountains: 0xa49782 };
 const ATLAS_GROUND = {
@@ -500,7 +500,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       const art = ART[prop.kind], p = pixel(prop.point);
       const left = prop.left ?? Math.round(p.x - art.rows[0].length / 2);
       const top = prop.top ?? Math.round(p.y - art.rows.length);
-      return art.rows.every((row, y) => [...row].every((code, x) => code === '.' || !siteContains(settlementPlans, left + x, top + y, .9)));
+      return art.rows.every((row, y) => [...row].every((code, x) => code === '.' || !siteReliefContains(settlementPlans, left + x, top + y)));
     } });
   const retained = props.filter(prop => prop.background || prop.kind.startsWith('ruin'));
   props.splice(0, props.length, ...retained, ...composition.props);

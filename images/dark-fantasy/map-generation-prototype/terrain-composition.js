@@ -50,7 +50,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
   const props = [], diagnostics = { paths: 0, coastalProfiles: 0, placements: 0, joined: 0, breaks: 0, interiors: 0, families: {} };
   const regions = new Map(map.regions.map(r => [r.id, r]));
   const rand = salt => decorationRandom(map.seed ^ 48317, salt);
-  const baseKind = kind => kind.replace(/-mirror$/, '');
+  const baseKind = kind => kind.replace(/-mirror$/, '').replace(/-(compact|small)$/, '');
   const make = (kind, x, y, family, salt, allowedBiomes, context) => {
     const glyph = art[kind], s = shape(glyph), point = world(Math.round(x), Math.round(y + s.height * (context === 'ridge-boundary' ? .68 : .5)));
     const p = pixel(point), n = Number(baseKind(kind).split('-').at(-1));
@@ -64,13 +64,13 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
   const add = prop => {
     props.push(prop); diagnostics.families[prop.family] = (diagnostics.families[prop.family] ?? 0) + 1;
   };
-  const choose = ({ x, y, family, indices, salt, allowedBiomes, context, previous = null }) => {
+  const choose = ({ x, y, family, indices, salt, allowedBiomes, context, previous = null, sizeLevel = 0 }) => {
     const options = [];
     const candidates = indices.flatMap(n => [{ n, mirrored: false }, { n, mirrored: true }])
       .map((candidate, i) => ({ ...candidate, rank: rand(salt + i * 79) })).sort((a, b) => a.rank - b.rank);
     for (let attempt = 0; attempt < Math.min(context === 'interior' ? 8 : 12, candidates.length); attempt++) {
       const { n, mirrored } = candidates[attempt];
-      const kind = `${family}-${n}${mirrored ? '-mirror' : ''}`;
+      const kind = `${family}-${n}${sizeLevel === 1 ? '-compact' : sizeLevel === 2 ? '-small' : ''}${mirrored ? '-mirror' : ''}`;
       // Some source fragments physically touch artwork in the next row. Those
       // cannot be extracted whole; never place a sliced illustration.
       if (!art[kind] || Object.keys(art[kind].cutRuns ?? {}).length) continue;
@@ -91,7 +91,8 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       options.push({ prop, score, join });
     }
     options.sort((a, b) => b.score - a.score);
-    return options[0]?.prop;
+    return options[0]?.prop ?? (family.startsWith('terrain-island-') && sizeLevel < 2
+      ? choose({ x,y,family,indices,salt,allowedBiomes,context,previous,sizeLevel:sizeLevel+1 }) : undefined);
   };
 
   // One principal extinct crater per connected island group. Search the largest
@@ -251,6 +252,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       add(prop); placed++; diagnostics.interiors++;
     }
   }
+  diagnostics.islandScaledPieces = props.filter(p => /-(compact|small)(-mirror)?$/.test(p.kind)).length;
   diagnostics.islandStyle = islandStyle;
   diagnostics.islandCraters = props.filter(p => p.context === 'island-crater').length;
   diagnostics.placements = props.length;

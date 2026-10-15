@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { routeSampleRoads, windRoad } from '../images/dark-fantasy/map-generation-prototype/roads.js';
-import { planSettlementSites, layOutSettlements } from '../images/dark-fantasy/map-generation-prototype/settlement-sites.js';
+import { planSettlementSites, layOutSettlements, siteReliefContains, siteContains } from '../images/dark-fantasy/map-generation-prototype/settlement-sites.js';
 
 const biomes = ['plains', 'forest', 'islands', 'swamp', 'mountains'];
 const width = 500, height = 100;
@@ -51,3 +51,12 @@ assert.ok(bowed.every((p,i)=>!i||p.x>bowed[i-1].x),'Open-land road must not doub
 const blocked=windRoad(straight,{scale:1,clear:()=>false,wet:()=>false,inTown:()=>false});
 assert.deepEqual(blocked,straight,'Reject a whole unsafe bow, not scattered samples');
 console.log('Road character: broad bends, protected approaches, no reversals, obstacle-safe whole-span fallback.');
+
+const island=sites.find(s=>s.biome==='islands');
+for(const building of island.buildings) assert.ok(siteReliefContains([island],building.x,building.y),'Island relief must protect every building');
+assert.ok(siteReliefContains([island],island.court.x,island.court.y),'Court remains protected');
+let fringe=0;
+for(let y=Math.floor(island.y-island.ry);y<island.y+island.ry;y++) for(let x=Math.floor(island.x-island.rx);x<island.x+island.rx;x++)
+  if(siteContains([island],x,y,.9)&&!siteReliefContains([island],x,y)) fringe++;
+assert.ok(fringe>20,'Irregular island clearing must release unused fringe for relief');
+console.log('Island clearing: building/court protection with usable irregular relief fringe.');

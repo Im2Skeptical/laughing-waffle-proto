@@ -19,7 +19,16 @@ export function planSettlementSites({ map, pixel, world, width, height, land, wa
           for (let dy = -ry; dy <= ry && fits; dy += 2 * detail) for (let dx = -rx; dx <= rx; dx += 2 * detail)
             if ((dx / rx) ** 2 + (dy / ry) ** 2 < 1 && !dry(x + dx, y + dy, region.id)) { fits = false; break; }
           if (!fits) continue;
-          const score = Math.hypot(x - centre.x, (y - centre.y) * 1.3) + decorationRandom(map.seed, x * 9173 ^ y * 673) * 4;
+          // Prefer a dry coastal shoulder with room for an inland landform beside it.
+          let reliefRoom = 0;
+          if (biome === 'islands') for (let n=0;n<8;n++) {
+            const a=n*Math.PI/4, px=x+Math.cos(a)*40*detail, py=y+Math.sin(a)*32*detail;
+            let room=0;
+            for (const dx of [-12,0,12]) for (const dy of [-10,0,10]) if(dry(px+dx*detail,py+dy*detail,region.id)) room++;
+            reliefRoom=Math.max(reliefRoom,room/9);
+          }
+          const score = Math.hypot(x - centre.x, (y - centre.y) * 1.3) * (biome === 'islands' ? .25 : 1)
+            - reliefRoom*32*detail + decorationRandom(map.seed, x * 9173 ^ y * 673) * 4;
           if (!best || score < best.score) best = { x, y, rx, ry, score, biome, regionId: region.id, point: world(x, y), kind: bi === 0 || bi === 3 ? 'player' : 'neutral', buildings: [], streets: [] };
         }
     }
@@ -30,6 +39,23 @@ export function planSettlementSites({ map, pixel, world, width, height, land, wa
 
 export function siteContains(sites, x, y, margin = 1) {
   return sites.some(s => ((x - s.x) / (s.rx * margin)) ** 2 + ((y - s.y) / (s.ry * margin)) ** 2 < 1);
+}
+
+// Island scenery may meet an irregular town fringe, but never cover buildings,
+// the court or the approach. Other biome reservations retain their current shape.
+export function siteReliefContains(sites, x, y) {
+  return sites.some(s => {
+    if (s.biome !== 'islands' || !s.buildings.length) return siteContains([s],x,y,.9);
+    const unit=s.rx/23;
+    if(s.buildings.some(b=>x>b.x-b.w*.6-unit && x<b.x+b.w*.6+unit
+      && y>b.y-b.h-unit*2 && y<b.y+b.h*.55+unit)) return true;
+    if(s.court && Math.hypot((x-s.court.x)/(7*unit),(y-s.court.y)/(5*unit))<1) return true;
+    return s.streets.some(path=>path.slice(1).some((b,i)=>{
+      const a=path[i],dx=b.x-a.x,dy=b.y-a.y,den=dx*dx+dy*dy;
+      const t=den?Math.max(0,Math.min(1,((x-a.x)*dx+(y-a.y)*dy)/den)):0;
+      return Math.hypot(x-a.x-t*dx,y-a.y-t*dy)<2*unit;
+    }));
+  });
 }
 
 // Plan one entrance and a compact neighbourhood before inter-town routing.
@@ -105,14 +131,14 @@ export function paintSettlementSites(sites, { width, height, colours, waterIndic
         const noise = decorationRandom(map.seed, x * 9173 ^ y * 673);
         const court = Math.hypot((x - site.court.x) / (6 * detail), (y - site.court.y) / (4 * detail));
         const strength = Math.max(0, 1 - d + (noise - .5) * .15) * .58;
-        const quietGround = {plains:0x8c7955,forest:0x66654c,islands:0x9c9c7d,swamp:0x62575f,mountains:0x78665c}[site.biome];
+        const quietGround = {plains:0x8c7955,forest:0x66654c,islands:0x7b7c68,swamp:0x62575f,mountains:0x78665c}[site.biome];
         colours[y * width + x] = mixColour(colours[y * width + x],quietGround,strength);
         if (court < 1 + (noise - .5) * .25) {
           const paving = site.biome === 'swamp' ? 0x9b8a9b : site.biome === 'mountains' ? 0xb5a596 : 0xc0b18a;
           colours[y * width + x] = mixColour(colours[y * width + x], paving, .45);
         }
         const i = y * width + x;
-        colours[i] = mixColour(colours[i], surfaces.ground(site.biome, x, y), strength);
+        colours[i] = mixColour(colours[i], surfaces.ground(site.biome, x, y), strength * (site.biome === 'islands' ? .15 : 1));
       }
     const ink = site.biome === 'swamp' ? ['#423a3d', '#877767'] : site.biome === 'mountains' ? ['#66544f', '#aa9180'] : ['#6b5c43', '#ad9a75'];
     for (const path of site.streets) for (let n = 1; n < path.length; n++) {
@@ -141,7 +167,7 @@ export function paintSettlementSites(sites, { width, height, colours, waterIndic
     for (const b of site.buildings) {
       for (let y = Math.floor(b.y - b.h / 3); y <= b.y + b.h / 2; y++) for (let x = Math.floor(b.x - b.w / 2); x <= b.x + b.w / 2; x++) {
         if (!dry(x, y)) continue;
-        const i = y * width + x, base = surfaces.ground(site.biome, x, y);
+        const i = y * width + x, base = site.biome === 'islands' ? 0x7b7c68 : surfaces.ground(site.biome, x, y);
         colours[i] = mixColour(colours[i], base, .3);
         if (y >= b.y) colours[i] = mixColour(colours[i], 0x322d29, .38);
         if (site.biome === 'mountains' && y === Math.floor(b.y + b.h / 2)) dot(x, y, 0, '#76605a');

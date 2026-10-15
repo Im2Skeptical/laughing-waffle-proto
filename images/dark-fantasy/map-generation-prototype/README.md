@@ -14,7 +14,15 @@ vegetation/rubble pieces. One principal crater is attempted per connected island
 group; if no whole footprint fits dry land outside towns, it is omitted. Craters
 never enter the scatter pool. Flanks follow region axes; undergrowth uses the
 existing seeded density field. Narrow beaches surround textured volcanic soil.
-Source artwork keeps its own colours, alpha and proportions.
+Basalt uses a selective value compression (lifted shadows, softer highlights),
+while retaining leaf/rock hue differences and original alpha. Island pieces try
+full size, then uniform 72% and 50% variants when the usable dry footprint rejects
+the larger version. Sizes are chosen once at bake time, never from camera zoom.
+Island settlement siting favours room for a neighbouring landform; relief respects
+actual buildings, court and lanes instead of a full exclusion ellipse. Clearing
+soil and building pads use volcanic tones and quieter sandy texture. Other biome
+reservations are unchanged. Regression coverage includes compact placement and
+protected buildings with an available irregular fringe.
 
 Built-in imagegen masters are `assets/masters/composable-island-basalt-v1.png`
 and `composable-island-caldera-v1.png`; exact prompts are in
