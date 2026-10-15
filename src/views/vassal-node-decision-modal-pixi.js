@@ -608,7 +608,13 @@ export function createVassalNodeDecisionModalView({
             title:tag.label,artId:node.family,faceLabel:'',showCost:false,
             enabled:!readOnly&&tag.enabled,onInspect:!readOnly&&tag.enabled?choose:null,
           });
-          const icon=addResourceIcon(card,tag.iconId,OPTION_COLUMN.width/2,cardHeight*.62,100);icon.alpha=tag.enabled?1:.35;
+          const icon=tag.iconId ? addResourceIcon(card,tag.iconId,OPTION_COLUMN.width/2,cardHeight*.62,100)
+            : createText('?',{...TEXT_STYLES.cardTitle,fontSize:100},OPTION_COLUMN.width/2,cardHeight*.62,.5,.5);
+          if(!tag.iconId)card.addChild(icon);
+          icon.alpha=tag.enabled?1:.35;
+          if(tag.prestigeGain>0)addResourceAmount(card,'prestige',`+${tag.prestigeGain}`,{
+            x:OPTION_COLUMN.width/2-60,y:cardHeight-78,fontSize:40,iconSize:46,fill:0xb6ce92,
+          });
           return card;
         });
       } else if (isShop) {

@@ -22,7 +22,7 @@ for(const kind of ['shop','structureShop']) {
   if(kind==='structureShop')assert.deepEqual(gate.shopTagChoices.map(tag=>tag.id),['Housing','Stock','Special']);
   for(let i=0;i<5;i++)c.getDecision();assert.equal(saved(c),before,'reading tags consumes no state or RNG');
   assert.throws(()=>commitOpeningEncounter(c.getSnapshot().session),/Choose a tag/);
-  for(const tag of gate.shopTagChoices) {
+  for(const tag of gate.shopTagChoices.filter(tag=>tag.id!=='random')) {
     c.previewShop(kind,true);const time=c.getSnapshot().summary.tSec;c.select(tag.id);
     const decision=c.getDecision();assert.equal(decision.shopTag,tag.id);assert.ok(decision.offers.length);
     assert.equal(c.getSnapshot().summary.tSec,time);
@@ -50,6 +50,27 @@ for(const kind of ['shop','structureShop']) {
   }
   assert.deepEqual(c.getSnapshot().draft,draft);
 }
+const random=createOpeningController();random.previewShop('shop',true);
+const randomGate=random.getDecision(), namedTags=randomGate.shopTagChoices.filter(tag=>tag.id!=='random');
+assert.equal(namedTags.length,2);assert.equal(new Set(namedTags.map(tag=>tag.id)).size,2);
+assert.equal(randomGate.shopTagChoices[2].id,'random');assert.equal(randomGate.shopTagChoices[2].prestigeGain,10);
+assert.ok(!('randomTags' in randomGate.shopTagChoices[2]),'hidden stock tags stay hidden in the picker');
+const randomTime=random.getSnapshot().summary.tSec;random.select('random');
+const revealed=random.getDecision();assert.ok(!namedTags.some(tag=>tag.id===revealed.shopTag),'Random reveals another eligible stock tag');
+assert.equal(random.getSnapshot().summary.prestige,10);assert.equal(random.getSnapshot().summary.tSec,randomTime);
+assert.ok(revealed.offers.length);assert.ok(revealed.offers.every(offer=>isVassalStockOutputPractice(getDetailedPracticeDef(random.getSnapshot().session.state,offer.intervention.practiceId),revealed.shopTag)));
+assert.ok(revealed.offers.every(offer=>!offer.monsterPressureCost),'the reward funds purchases immediately');
+const revealedState=saved(random);for(let i=0;i<5;i++)random.getDecision();assert.equal(saved(random),revealedState);
+assert.throws(()=>random.select('random'));assert.equal(random.getSnapshot().summary.prestige,10,'the reward cannot be claimed twice');
+assert.deepEqual(serializeGameState(cloneOpeningSession(random.getSnapshot().session).state),JSON.parse(revealedState));
+random.rewind();random.enter('shop');assert.equal(random.getSnapshot().summary.prestige,0);random.select('random');
+assert.equal(saved(random),revealedState,'rewind repeats the random tag, offers and single reward');
+random.stage(random.getDecision().offers.find(offer=>offer.canStage).offerId);
+const randomPurchase=random.getDecision().purchases[0];assert.ok(randomPurchase.prestigeCost>0);assert.equal(randomPurchase.monsterPressureCost,0);
+random.undo(randomPurchase.offerId);assert.equal(random.getSnapshot().summary.prestige,10,'undoing a purchase does not duplicate the tag reward');
+await random.commit();const randomOutcome=structuredClone(random.getSnapshot().session.outcomes.at(-1));
+random.rewind();random.enter('shop');random.select('random');await random.commit();
+assert.deepEqual(random.getSnapshot().session.outcomes.at(-1),randomOutcome);
 const paid=createOpeningController();paid.previewShop('structureShop',false);paid.select('Housing');
 assert.ok(paid.getDecision().offers.every(offer=>!offer.monsterPressureCost));
 const paidOffer=paid.getDecision().offers.find(offer=>offer.canStage);assert.ok(paidOffer.prestigeCost>0);paid.stage(paidOffer.offerId);

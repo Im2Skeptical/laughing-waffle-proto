@@ -165,9 +165,11 @@ staging/drag/undo, level-up cards, HUD, world map and settlement. The shared
 navigation opens these views; Fullscreen uses the existing landscape control.
 The editor and saved-draft controls remain beside/below the mock screen.
 
-Practice and Structure shops first show three tags in the native modal, with no
-purchase cost or confirmation at that step. Practice choices come from eligible
-Stock outputs; Structure choices are Housing, Stock and Special. Housing contains
+Practice shops first show two eligible Stock tags and **Random** in the native
+modal, with no purchase cost or confirmation at that step. Random reveals another
+eligible Stock tag and immediately grants **+10 Prestige**, once per visit, to spend
+in that shop. If an authored pool has only one or two eligible tags, Random can
+repeat one of them. Structure choices remain Housing, Stock and Special. Housing contains
 housing structures, Stock contains Stock-capacity structures, and Special contains
 the remaining structures. Picking a tag deals up to three matching offers. Optional
 authored cards restrict the pool. Tag and offer draws use the saved Vassal RNG;
