@@ -5,7 +5,7 @@ import { getRetinue } from '../../../src/model/detailed-settlements/external-wor
 import { stockTotal } from '../../../src/model/detailed-settlements/stock.js';
 import { VASSAL_CLASS_RULES } from '../../../src/defs/vassal-class-rules.js';
 
-export const CAMPAIGN_TUNING = Object.freeze({prestigeCost:5,foodBase:1,foodPerDistance:1,nestDefenseBonus:4,questDefense:4,questPrestige:10});
+export const CAMPAIGN_TUNING = Object.freeze({prestigeCost:5,foodBase:1,foodPerDistance:1,nestDefenseBonus:4,questDefense:4,questPrestige:10,duelDefense:4,duelPrestige:10});
 export const CAMPAIGN_INPUTS = Object.freeze({prowess:6,prestige:40,warriors:18,arms:12,food:30});
 const actor=session=>session.state.civilization.vassalLineage.vassalsById[session.vassalId];
 
@@ -29,7 +29,7 @@ export function createCampaignExperiment(state,vassal,tuning={}) {
   const sites=state.world.sites.filter(site=>site.detailedState&&state.world.regions.find(region=>region.id===site.regionId)?.controller==='player');
   const source=sites.find(site=>site.regionId===vassal.locationRegionId)?.detailedState;
   const monsters=state.world.regions.filter(region=>region.monster).map(region=>({regionId:region.id,defense:region.monster.defense,expansion:state.civilization.chaos.monsterPressure,cleared:false,nest:true}));
-  return {mode:'monsters',selectedTargetId:null,failed:false,tuning:{...CAMPAIGN_TUNING,...tuning},
+  return {mode:'attack',selectedTargetId:null,failed:false,duelDone:false,tuning:{...CAMPAIGN_TUNING,...tuning},
     resources:{prowess:getVassalEffectiveStats(vassal).intelligence,prestige:vassal.prestige,food:source?stockTotal(state,source,'Edible'):0,
       arms:sites.reduce((sum,site)=>sum+stockTotal(state,site.detailedState,'Arms'),0),warriors:sites.reduce((sum,site)=>sum+Object.values(site.detailedState.populationByClass).reduce((count,cohort)=>count+(cohort.specialists?.warrior?.adults??0),0),0)},
     retinueBonus:vassal.classId==='warrior'?getRetinue(state,vassal).value-Math.floor(vassal.prestige/VASSAL_CLASS_RULES.warrior.prestigePerRetinue):0,
@@ -59,27 +59,31 @@ export function campaignForce(campaign,solo=false) {
 export function getCampaignPresentation(session) {
   const c=session.campaign,r=c.resources,vassal=actor(session),force=campaignForce(c),solo=campaignForce(c,true);
   const target=(mode,regionId,defense,stage,label,description)=>{
-    const distance=campaignDistance(session.state,vassal.locationRegionId,regionId),personal=mode==='quest';
-    const foodCost=c.tuning.foodBase+distance*c.tuning.foodPerDistance,prestigeCost=personal?0:c.tuning.prestigeCost;
+    const distance=campaignDistance(session.state,vassal.locationRegionId,regionId),personal=mode!=='attack';
+    const foodCost=mode==='duel'?0:c.tuning.foodBase+distance*c.tuning.foodPerDistance,prestigeCost=personal?0:c.tuning.prestigeCost;
     const strength=personal?solo:force,risk=Math.round(defense/Math.max(1,strength.total+defense)*100);
+    const warriorBonus=mode==='duel'&&vassal.classId==='warrior'&&risk>0?VASSAL_CLASS_RULES.warrior.riskPrestige:0;
     return {id:`${mode}:${regionId}`,regionId,mode,stage,label:`${label} · ${getRegionReference(session.state,regionId)}`,description,defense,force:strength.total,risk,distance,
+      prestigeGain:mode==='duel'?c.tuning.duelPrestige+warriorBonus:0,prestigeDelta:mode==='duel'?c.tuning.duelPrestige+warriorBonus:0,warriorBonus,
       foodCost,cost:prestigeCost,phases:0,blocked:c.failed?'Expedition ended':r.prestige<prestigeCost?'Insufficient Prestige':r.food<foodCost?'Insufficient food':null};
   };
   const allTargets=[
-    ...c.monsters.filter(monster=>monster.nest).map(monster=>target('monsters',monster.regionId,monster.defense+(monster.cleared?c.tuning.nestDefenseBonus:0),monster.cleared?'nest':'clear',monster.cleared?'Destroy nest':'Clear monsters',monster.cleared?'Destroy the nest after clearing its monsters.':`Clear monsters; expansion buildup ${monster.expansion} → 0.`)),
-    ...c.neutrals.filter(site=>!site.allied).map(site=>target('neutrals',site.regionId,site.defense,'alliance','Win allegiance','Success converts this neutral settlement to allied.')),
+    ...c.monsters.filter(monster=>monster.nest).map(monster=>target('attack',monster.regionId,monster.defense+(monster.cleared?c.tuning.nestDefenseBonus:0),monster.cleared?'nest':'clear',monster.cleared?'Destroy nest':'Clear monsters',monster.cleared?'Destroy the nest after clearing its monsters.':`Clear monsters; expansion buildup ${monster.expansion} → 0.`)),
+    ...c.neutrals.filter(site=>!site.allied).map(site=>target('attack',site.regionId,site.defense,'alliance','Attack settlement','Success converts this neutral settlement to allied.')),
+    ...(!c.duelDone?[target('duel',vassal.locationRegionId,c.tuning.duelDefense,'duel','Honour duel','Victory: +1 Prowess and the Prestige prize. Prowess only.')]:[]),
     ...c.quests.filter(quest=>!quest.done).map(quest=>target('quest',quest.regionId,c.tuning.questDefense,'quest','Solo quest',`Success: a monster relic and ${c.tuning.questPrestige} Prestige. Prowess only.`)),
   ];
   const selected=allTargets.find(target=>target.id===c.selectedTargetId&&target.mode===c.mode);
   const options=[
-    {id:'monsters',label:'Hunt monsters',description:'Clear expansion buildup. · Then destroy the nest.'},
-    {id:'neutrals',label:'Win allegiance',description:'Defeat a neutral settlement. · It becomes allied.'},
-    {id:'quest',label:'Solo quest',description:`Prowess only. · Monster relic +${c.tuning.questPrestige} Prestige. · No Prestige cost.`},
+    {id:'attack',label:'Attack',description:'Pick a monster region or neutral settlement. · Clear nests or gain allies.'},
+    {id:'duel',label:'Honour duel',description:`Prowess only. · Victory: +1 Prowess. · Prize: ${c.tuning.duelPrestige} Prestige. · Once per visit.`},
+    {id:'quest',label:'Quest',description:`Prowess only. · Monster relic +${c.tuning.questPrestige} Prestige. · No Prestige cost.`},
   ].map(option=>{
     const targets=allTargets.filter(target=>target.mode===option.id),affordable=targets.filter(target=>!target.blocked);
     const price=selected?.mode===option.id?selected:[...(affordable.length?affordable:targets)].sort((a,b)=>a.foodCost-b.foodCost)[0];
-    return {...option,cost:price?.cost??0,phases:0,foodCost:price?.foodCost??0,from:selected?.mode!==option.id&&targets.some(target=>target.foodCost!==price?.foodCost),blocked:c.failed?'Expedition ended':!targets.length?'No remaining targets':!affordable.length?price?.blocked:null,
-      riskLabel:selected?.mode===option.id?`${selected.risk}% defeat risk\nForce ${selected.force} vs Defence ${selected.defense}`:'Choose a target'};
+    const preview=option.id==='duel'?price:selected?.mode===option.id?selected:null;
+    return {...option,...(option.id==='duel'&&price?.warriorBonus?{description:`${option.description} · Warrior bonus: +${price.warriorBonus} Prestige.`}:{}),cost:price?.cost??0,phases:0,foodCost:price?.foodCost??0,prestigeDelta:price?.prestigeGain??0,from:selected?.mode!==option.id&&targets.some(target=>target.foodCost!==price?.foodCost),blocked:c.failed?'Expedition ended':!targets.length?option.id==='duel'?'Duel completed':'No remaining targets':!affordable.length?price?.blocked:null,
+      riskLabel:preview?`${preview.risk}% defeat risk\n${option.id==='duel'?'Prowess':'Force'} ${preview.force} vs Defence ${preview.defense}`:option.id==='duel'?'Duel completed':'Choose a target'};
   });
   return {mode:c.mode,selectedTargetId:c.selectedTargetId,targets:allTargets.filter(target=>target.mode===c.mode),allTargets,options,force,solo,resources:{...r},failed:c.failed,lastResult:c.history.at(-1)??null,
     progress:[...c.monsters.filter(monster=>monster.cleared).map(monster=>({regionId:monster.regionId,label:monster.nest?'Buildup cleared':'Nest destroyed'})),...c.neutrals.filter(site=>site.allied).map(site=>({regionId:site.regionId,label:'Allied'}))]};
@@ -87,7 +91,7 @@ export function getCampaignPresentation(session) {
 export function selectCampaignMode(session,mode) {
   const option=getCampaignPresentation(session).options.find(option=>option.id===mode);
   if(!option||option.blocked)throw new Error(option?.blocked??'Choose a Campaign option.');
-  session.campaign.mode=mode;session.campaign.selectedTargetId=null;
+  session.campaign.mode=mode;session.campaign.selectedTargetId=mode==='duel'?getCampaignPresentation(session).targets[0]?.id??null:null;
 }
 export function selectCampaignTarget(session,regionId) {
   const target=getCampaignPresentation(session).targets.find(target=>target.regionId===regionId);
@@ -106,8 +110,12 @@ export function resolveCampaignAttempt(session) {
     text=`Monsters cleared at ${getRegionReference(session.state,target.regionId)}. Buildup reset; the nest remains.`;
   } else if(target.stage==='nest') {c.monsters.find(monster=>monster.regionId===target.regionId).nest=false;text=`Nest destroyed at ${getRegionReference(session.state,target.regionId)}.`;}
   else if(target.stage==='alliance') {c.neutrals.find(site=>site.regionId===target.regionId).allied=true;text=`${getRegionReference(session.state,target.regionId)} is now allied.`;}
+  else if(target.stage==='duel') {
+    c.duelDone=true;c.resources.prowess+=1;actor(session).stats.intelligence+=1;c.resources.prestige+=target.prestigeGain;
+    text=`Duel won. +1 Prowess, +${c.tuning.duelPrestige} Prestige${target.warriorBonus?` and +${target.warriorBonus} Warrior Prestige`:''}.`;
+  }
   else {c.quests.find(quest=>quest.regionId===target.regionId).done=true;c.resources.prestige+=c.tuning.questPrestige;text=`Quest complete. Monster relic and +${c.tuning.questPrestige} Prestige.`;}
-  const result={targetId:target.id,regionId:target.regionId,stage:target.stage,risk:target.risk,roll,success,foodCost:target.foodCost,prestigeCost:target.cost,text,...(success&&target.stage==='quest'?{relic:'Monster relic'}:{})};
+  const result={targetId:target.id,regionId:target.regionId,stage:target.stage,risk:target.risk,roll,success,foodCost:target.foodCost,prestigeCost:target.cost,text,...(success&&target.stage==='duel'?{prowessGain:1,prestigePrize:c.tuning.duelPrestige,warriorBonus:target.warriorBonus}:{}),...(success&&target.stage==='quest'?{relic:'Monster relic'}:{})};
   c.history.push(result);actor(session).prestige=c.resources.prestige;
   if(!success||target.stage!=='clear')c.selectedTargetId=null;
   return result;

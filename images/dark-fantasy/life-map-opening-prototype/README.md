@@ -4,7 +4,7 @@ Open **Development Lab → Prototypes → Protovassal opening**, or run
 `npm run preview:opening` and open
 <http://localhost:5185/images/dark-fantasy/life-map-opening-prototype/>.
 The Pages build bundles this page separately; player modules never import it.
-The canvas header and preview heading show **v0.1.2**. Bump
+The canvas header and preview heading show **v0.1.3**. Bump
 `OPENING_PREVIEW_VERSION` in `game-screen.js` for each published iteration, update
 this number, and report it in the handoff so the loaded Pages build is identifiable.
 The canvas badge stays visible above modals and in fullscreen.
@@ -12,11 +12,11 @@ The **Campaign** button below the canvas opens a repeatable Warrior Campaign moc
 full-map screen. **Campaign inputs** below the canvas supplies editable sample
 Prowess, Prestige, adult Warriors, Arms and Food. Adjust values, then click
 Campaign again; this never edits the saved graph. The encounter editor separately
-exposes its provisional expedition prices, nest defence and quest reward.
+exposes its provisional expedition prices, nest defence, quest reward and duel opponent/prize.
 
 Force = Prowess + personal Retinue + min(adult Warriors, Arms). Retinue uses the
 existing Prestige-per-Retinue rule. Defeat risk = Defence / (Force + Defence),
-rounded to a whole percent. Solo quests use Prowess alone. Target strength and
+rounded to a whole percent. Duels and solo quests use Prowess alone. Target strength and
 distance, the force breakdown and the selected target's risk are visible before
 Confirm. Authored Campaign nodes in this workbench read civilization-wide adult Warriors and
 Arms, the current settlement's Edible Stock, and the Vassal's current stats.
@@ -27,16 +27,25 @@ attempt also costs 5 Prestige; solo quests cost no Prestige, but still pay trave
 Food. Prices are shown in the existing cost boxes. The direct preview includes
 nearby and distant monster examples, plus the world's neutral settlements.
 
-**Hunt monsters** first clears the region's expansion buildup to zero, then offers
-**Destroy nest** as a separate, stronger encounter. **Win allegiance** records a
-neutral settlement as allied. **Solo quest** provisionally awards a monster relic
+**Attack** offers monster regions and neutral settlements together on the map.
+A monster target first clears the region's expansion buildup to zero, then offers
+**Destroy nest** as a separate, stronger encounter. Defeating a neutral settlement
+records it as allied. **Honour duel** takes place in the current region without
+Food, Prestige, army or Retinue costs. Select it, inspect the risk, then Confirm.
+Victory grants +1 Prowess and a provisional 10-Prestige prize, plus the existing
+Warrior 15-Prestige risk bonus when the displayed defeat risk is above zero.
+Opponent strength defaults to 4; strength and prize are editable on the Campaign
+node. A duel can be won once per visit; victory leaves Attack and Quest available.
+Defeat uses the existing expedition-end result, without a new injury rule.
+**Quest** provisionally awards a monster relic
 and 10 Prestige; each quest is available once per encounter. Success keeps the
 screen open to continue. Defeat ends the expedition; **Leave** always returns to
 the opening graph. No new Vassal death rule is applied.
 
 These are workshop outcomes: monster stages, alliances, Food and relic rewards
 are session records, not normal world changes or newly installed gamepieces.
-Prestige is deducted from the disposable Vassal so the HUD and Retinue agree.
+Prestige and duel Prowess gains update the disposable Vassal so the HUD, Force and
+Retinue agree. Duels grant no Arms or population.
 Attempts use the saved Vassal RNG; inspecting costs consumes none. Rewind restores
 the previous attempt, supplies, Prestige and RNG. These mock attempts do not
 advance simulation time or change normal Campaign rules, save schemas or replay.

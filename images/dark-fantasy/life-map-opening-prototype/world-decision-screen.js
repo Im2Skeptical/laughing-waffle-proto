@@ -85,7 +85,7 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
     const divider = new PIXI.Graphics().lineStyle(2,PALETTE.stroke,.9)
       .moveTo(958,PANEL.y+CONTENT.labelY).lineTo(958,PANEL.y+PANEL.height-28);
     chrome.addChild(divider);
-    chrome.addChild(createText(campaign?'Choose a target':founding?'Choose a settlement destination':mode==='move'?'Choose a bright destination on the map':mode==='build'?'Choose a bright region to connect':'Tour your current region', {...TEXT_STYLES.title,fontSize:26},MAP_BODY.x,PANEL.y+CONTENT.labelY));
+    chrome.addChild(createText(campaign?mode==='duel'?'Honour duel':'Choose a target':founding?'Choose a settlement destination':mode==='move'?'Choose a bright destination on the map':mode==='build'?'Choose a bright region to connect':'Tour your current region', {...TEXT_STYLES.title,fontSize:26},MAP_BODY.x,PANEL.y+CONTENT.labelY));
     leaveButton=campaign?button(chrome,{x:MAP_BODY.x+MAP_BODY.width-140,y:PANEL.y+CONTENT.labelY-8,width:140,height:44},'Leave',!busy,onLeaveCampaign):null;
     const local=groups()[2][0], chance=local?.randomReward?.relicChance;
     const description=local?.randomReward ? `${Math.round(chance)}% ordinary relic · ${Math.round(100-chance)}% ${local.randomReward.statDelta?`+${local.randomReward.statDelta}`:'gain to'} a random ability`
@@ -107,7 +107,7 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
         x:PANEL.x+30+index*(OPTION_COLUMN.width+OPTION_COLUMN.gap),y:PANEL.y+CONTENT.cardY,
         width:OPTION_COLUMN.width,height:OPTION_COLUMN.height,
       },{
-        title:label,artId:(campaign?['challenge','settlement','relic']:founding?['settlement','development','legacy']:['travel','settlement','patronage'])[index],summary:details[index],
+        title:label,artId:(campaign?['crisis','vigil','legacy']:founding?['settlement','development','legacy']:['travel','settlement','patronage'])[index],summary:details[index],
         actionLabel:from?'FROM':'CHOOSE',faceLabel:from?'From':(menu?decision.nodeState.selectedOptionId===id:mode===id)?'Selected':'Choose',
         enabled,showCost:!founding,selected:menu?decision.nodeState.selectedOptionId===id:mode===id,costUnmet:!!option&&option.cost>(getVassal()?.prestige??0),
         cost:{phaseCost:option?.phases??0,prestigeCost:option?.cost??0,foodCost:option?.foodCost??0,riskLabel:option?.riskLabel,prestigeGain:!selectedOption&&varyingReward?0:option?.prestigeDelta??0,state:getState()},
@@ -119,7 +119,7 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
       return card;
     });
     const choice=selected(), matching=matchesChoice(choice);
-    const campaignText=campaign?(choice?`${decision.campaign.lastResult?.regionId===choice.regionId&&decision.campaign.lastResult.stage==='clear'&&decision.campaign.lastResult.success?'Buildup cleared. ':''}${choice.label} · Distance ${choice.distance} · Food ${choice.foodCost}\n${choice.defense} ÷ (${choice.force} + ${choice.defense}) = ${choice.risk}% defeat risk`:decision.campaign.lastResult?.text??'Choose a highlighted target.'):null;
+    const campaignText=campaign?(choice?`${decision.campaign.lastResult?.regionId===choice.regionId&&decision.campaign.lastResult.stage==='clear'&&decision.campaign.lastResult.success?'Buildup cleared. ':''}${choice.label}${choice.stage==='duel'?` · Victory: +1 Prowess, +${choice.prestigeGain} Prestige`:` · Distance ${choice.distance} · Food ${choice.foodCost}`}\n${choice.defense} ÷ (${choice.force} + ${choice.defense}) = ${choice.risk}% defeat risk`:decision.campaign.lastResult?.text??'Choose a highlighted target.'):null;
     const text=busy?'Resolving the world…':message||campaignText|| (matching ? `${choice.label}${choice.blocked?` · ${choice.blocked}`:''}`
       : founding?decision.nodeState.selectedOptionId==='found-settlement'?'Choose a highlighted frontier destination.':'Choose a Legacy option.':mode==='tour'?description:mode==='move'?'Click a highlighted destination to preview your journey.':'Click a highlighted destination to preview a new road.');
     feedback=createText(text,{...TEXT_STYLES.body,fontSize:24,lineHeight:28,wordWrap:true,wordWrapWidth:MAP_BODY.width,fill:message?PALETTE.red:PALETTE.text},MAP_BODY.x,774);
@@ -127,8 +127,8 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
     const dock=confirmDockRect(app);
     if(!campaign)renderMortalityEstimate(chrome,decision?.mortalityEstimate,{x:dock.x-MORTALITY_PLATE.gap-MORTALITY_PLATE.width,y:dock.y+(dock.height-MORTALITY_PLATE.height)/2,width:MORTALITY_PLATE.width,height:MORTALITY_PLATE.height},!busy&&!!matching&&!choice.blocked);
     if(campaign) {
-      const f=decision.campaign.force,r=decision.campaign.resources;
-      const copy=createText(`Force ${f.total} = Prowess ${f.prowess} + Retinue ${f.retinue} + Armed Warriors ${f.armedWarriors}\n${r.warriors} Warriors · ${r.arms} Arms · ${r.food} Food · ${r.prestige} Prestige`,{...TEXT_STYLES.body,fontSize:22,lineHeight:26,wordWrap:true,wordWrapWidth:870},PANEL.x+30,774);
+      const f=mode==='attack'?decision.campaign.force:decision.campaign.solo,r=decision.campaign.resources;
+      const copy=createText(`${mode==='attack'?`Force ${f.total} = Prowess ${f.prowess} + Retinue ${f.retinue} + Armed Warriors ${f.armedWarriors}`:`Prowess ${f.prowess} · No army or Retinue`}\n${r.warriors} Warriors · ${r.arms} Arms · ${r.food} Food · ${r.prestige} Prestige`,{...TEXT_STYLES.body,fontSize:22,lineHeight:26,wordWrap:true,wordWrapWidth:870},PANEL.x+30,774);
       copy.scale.set(Math.min(1,54/Math.max(1,copy.height)));chrome.addChild(copy);
     }
     confirmButton=confirmDockButton(chrome,app,{label:busy?'Resolving...':'Confirm',enabled:!busy&&!!matching&&!choice.blocked,onClick:()=>onConfirm(founding&&decision.nodeState.selectedOptionId==='found-settlement'?'found-settlement':choice.id)});
@@ -179,7 +179,7 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
   const bounds=control=>{const r=control.getBounds();return{x:r.x,y:r.y,width:r.width,height:r.height};};
   return {refresh,getHudDeltas:()=>{const choice=selected();return root.visible&&matchesChoice(choice)&&!choice.blocked?{prestige:(choice.prestigeDelta??0)-choice.cost,stats:{}}:null;},update:()=>{draw();updateOverlay();},isOpen:()=>root.visible,
     open:()=>{dismissed=false;root.visible=!!decision;map.setVisible(root.visible);map.refresh();key='';draw();},close:()=>{dismissed=true;root.visible=false;},
-    getPoint:(kind,id)=>kind==='confirm'?point(confirmButton):kind==='campaignLeave'?point(leaveButton):kind==='option'?point(modeButtons[id]?.choiceButton??modeButtons[id]):kind==='worldMode'?point(modeButtons[['move','build','tour'].indexOf(id)]):kind==='worldCost'?point(modeButtons[(isCampaign()?['monsters','neutrals','quest']:isFounding()?['found-settlement','highest-stat','accumulated-prestige']:['move','build','tour']).indexOf(id)]?.costPanel):kind==='worldTarget'?mapPoint(id):kind==='worldReward'?point(rewardBadges.find(b=>b.regionId===id)?.control):null,
+    getPoint:(kind,id)=>kind==='confirm'?point(confirmButton):kind==='campaignLeave'?point(leaveButton):kind==='option'?point(modeButtons[id]?.choiceButton??modeButtons[id]):kind==='worldMode'?point(modeButtons[['move','build','tour'].indexOf(id)]):kind==='worldCost'?point(modeButtons[(isCampaign()?['attack','duel','quest']:isFounding()?['found-settlement','highest-stat','accumulated-prestige']:['move','build','tour']).indexOf(id)]?.costPanel):kind==='worldTarget'?mapPoint(id):kind==='worldReward'?point(rewardBadges.find(b=>b.regionId===id)?.control):null,
     getSnapshot:()=>({open:root.visible,mode,selectedOptionId:decision?.nodeState.selectedOptionId,selectedRegionId:selected()?target(selected())??null:null,
       locationRegionId:currentRegion(),regionCount:getState()?.world?.regions?.length??0,
       connectionCount:getState()?.world?.connections?.length??0,

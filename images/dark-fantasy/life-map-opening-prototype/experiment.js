@@ -62,7 +62,7 @@ export function createOpeningExperiment() {
           { id: 'organize', label: 'Learn to organize work', statId: 'effectiveness', statDelta: 1, phaseCost: 6 },
         ] },
       { id: 'martial', title: 'Campaign', kind: 'martial',
-        description: 'Hunt monsters, win a neutral settlement’s allegiance, or take a solo quest. Distant targets cost more food.', next: ['supply'],campaign:{...CAMPAIGN_TUNING} },
+        description: 'Attack a territory, fight an honour duel, or take a quest. Distant targets cost more food.', next: ['supply'],campaign:{...CAMPAIGN_TUNING} },
       { id: 'supply', title: 'Support the emerging economy', kind: 'supply', stockOutput: 'auto',
         description: 'Prefer an unmet recipe input; otherwise offer a seeded output. Producing a trait does not guarantee the recipe can run.', next: ['favor'],
         pass: { id: 'supply-favor', label: 'Seek support instead', prestigeDelta: 3, phaseCost: 4 } },
