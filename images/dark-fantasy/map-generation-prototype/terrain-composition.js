@@ -48,15 +48,16 @@ const COASTS = { forest: [4, 5, 7, 8, 9, 11], mountains: [5, 6, 7, 8, 9, 11],
 export function composeTerrainLandscape({ map, art, pixel, world, legal, detail, islandStyle = 'basalt', settlementPlans = [], monsterZones = false }) {
   const islandFamily = `terrain-island-${islandStyle}`;
   const props = [], diagnostics = { paths: 0, coastalProfiles: 0, placements: 0, joined: 0, breaks: 0, interiors: 0, families: {} };
+  diagnostics.forestPlacement={repeatRejects:0,footprintRejects:0,overlapRejects:0};
   const regions = new Map(map.regions.map(r => [r.id, r]));
   const rand = salt => decorationRandom(map.seed ^ 48317, salt);
-  const baseKind = kind => kind.replace(/-mirror$/, '').replace(/-(compact|small)$/, '');
+  const baseKind = kind => kind.replace(/-mirror$/, '').replace(/-(compact|small|micro)$/, '');
   const make = (kind, x, y, family, salt, allowedBiomes, context) => {
     const glyph = art[kind], s = shape(glyph), point = world(Math.round(x), Math.round(y + s.height * (context === 'ridge-boundary' ? .68 : .5)));
     const p = pixel(point), n = Number(baseKind(kind).split('-').at(-1));
     return { kind, point, salt, family, allowedBiomes, context, composed: true,
       left: Math.round(p.x - s.width / 2), top: Math.round(p.y - s.height),
-      boundary: context !== 'interior', ridgeBoundary: context === 'ridge-boundary', anchorHeight: context === 'ridge-boundary' ? .68 : .5, range: family === 'terrain-mountains' || family === 'terrain-ridge-border',
+      boundary: context !== 'interior', ridgeBoundary: context === 'ridge-boundary'||context==='bone-boundary', anchorHeight: context === 'ridge-boundary' ? .68 : .5, range: family === 'terrain-mountains' || family === 'terrain-ridge-border',
       peak: family === 'terrain-ridge-border' || family === 'terrain-mountains' && [0, 1, 2, 4, 10].includes(n)
         || family.startsWith('contact-') && CONTACT_PAIRS[Number(family.slice(8))].includes('mountains') && n !== 3 };
   };
@@ -70,21 +71,21 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       .map((candidate, i) => ({ ...candidate, rank: rand(salt + i * 79) })).sort((a, b) => a.rank - b.rank);
     for (let attempt = 0; attempt < Math.min(context === 'interior' ? 8 : 12, candidates.length); attempt++) {
       const { n, mirrored } = candidates[attempt];
-      const kind = `${family}-${n}${sizeLevel === 1 ? '-compact' : sizeLevel === 2 ? '-small' : ''}${mirrored ? '-mirror' : ''}`;
+      const kind = `${family}-${n}${sizeLevel === 1 ? '-compact' : sizeLevel === 2 ? '-small' : sizeLevel===3?'-micro':''}${mirrored ? '-mirror' : ''}`;
       // Some source fragments physically touch artwork in the next row. Those
       // cannot be extracted whole; never place a sliced illustration.
       if (!art[kind] || Object.keys(art[kind].cutRuns ?? {}).length) continue;
-      const px = x + (rand(salt + attempt * 31 + 2) - .5) * 5 * detail;
-      const py = y + (rand(salt + attempt * 31 + 3) - .5) * 6 * detail;
+      const px = x + (rand(salt + attempt * 31 + 2) - .5) * (context==='bone-boundary'?1.5:5) * detail;
+      const py = y + (rand(salt + attempt * 31 + 3) - .5) * (context==='bone-boundary'?1.5:6) * detail;
       const prop = make(kind, px, py, family, salt, allowedBiomes, context), near = nearby(prop);
       // Never repeat the same source painting beside itself, including mirrors.
       if (near.some(p => baseKind(p.kind) === baseKind(kind)
-        && Math.hypot(p.left - prop.left, p.top - prop.top) < (family.startsWith('contact') ? 40 : ['terrain-plains','terrain-forest'].includes(family) ? 32 : 58) * detail)) continue;
-      if (!legal(prop)) continue;
+        && Math.hypot(p.left - prop.left, p.top - prop.top) < (context==='bone-boundary'?14:family.startsWith('contact') ? 40 : family==='terrain-forest'?18:family==='terrain-plains'?32:58) * detail)) {if(family==='terrain-forest')diagnostics.forestPlacement.repeatRejects++;continue;}
+      if (!legal(prop)) {if(family==='terrain-forest')diagnostics.forestPlacement.footprintRejects++;continue;}
       let overlap = 0;
       for (const p of near) overlap = Math.max(overlap, illustrationOverlap(prop, p, art));
       if (near.some(p=>(p.monster || family.startsWith('terrain-monster-')) && illustrationOverlap(prop,p,art)>.12)) continue;
-      if (overlap > (canopyCore ? .76 : .58)) continue;
+      if (overlap > (canopyCore ? .82 : .58)) {if(family==='terrain-forest')diagnostics.forestPlacement.overlapRejects++;continue;}
       const join = previous ? illustrationOverlap(prop, previous, art) : 0;
       if (previous && (join < (context.startsWith('ridge') ? .12 : .06) || join > .46)) continue;
       const score = rand(salt + attempt * 31 + 4) * .3
@@ -92,7 +93,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       options.push({ prop, score, join });
     }
     options.sort((a, b) => b.score - a.score);
-    return options[0]?.prop ?? ((family.startsWith('terrain-island-') || family.startsWith('terrain-monster-') || ['terrain-plains','terrain-forest','terrain-hellscape'].includes(family)) && sizeLevel < 2
+    return options[0]?.prop ?? ((family.startsWith('terrain-island-') || family.startsWith('terrain-monster-') || ['terrain-plains','terrain-forest','terrain-hellscape'].includes(family)) && sizeLevel < (context==='bone-boundary'?3:2)
       ? choose({ x,y,family,indices,salt,allowedBiomes,context,previous,sizeLevel:sizeLevel+1,canopyCore }) : undefined);
   };
 
@@ -188,6 +189,15 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
     }
   }
   const paths = [];
+  diagnostics.monsterBorders=[];
+  if(art['terrain-hellscape-1'])for(const region of map.regions.filter(r=>r.biome==='monster')) {
+    const centre=pixel(region.centre),outline=region.outline.map(pixel);
+    const inset=outline.map(p=>{const d=Math.hypot(centre.x-p.x,centre.y-p.y)||1;
+      return {x:p.x+(centre.x-p.x)/d*6*detail,y:p.y+(centre.y-p.y)/d*6*detail};});
+    paths.push({points:[...inset,inset[0]],family:'terrain-hellscape',indices:[1,5],
+      allowedBiomes:['monster'],salt:990001+map.regions.indexOf(region)*811,
+      context:'bone-boundary',regionId:region.id,interior:centre});
+  }
   const ridgeArt = !!art['terrain-ridge-border-0'];
   for (const [i, feature] of map.features.entries()) if (feature.type === 'ridge')
     paths.push({ points: feature.points.map(pixel), family: ridgeArt ? 'terrain-ridge-border' : 'terrain-mountains', directional: ridgeArt, allowedBiomes: ['plains', 'forest', 'swamp', 'mountains'], indices: ridgeArt ? [0, 1, 2, 3, 4, 6, 7, 10] : [0, 1, 2, 4, 5, 6, 8, 9], salt: 3001 + i * 991, context: ridgeArt ? 'ridge-boundary' : 'ridge' });
@@ -239,6 +249,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       // natural side and low scorched scars on the monster side.
       for(const [side,id] of edge.regions.entries()) {
         const region=regions.get(id),biome=region.biome,centre=pixel(region.centre);
+        if(biome==='monster'&&art['terrain-hellscape-1'])continue;
         if(biome==='monster'&&!monsterZones) continue;
         const hell=biome==='monster'&&art['terrain-hellscape-0'];
         const family=biome==='monster'?hell?'terrain-hellscape':`terrain-monster-${region.terrainBiome??'mountains'}`:biome==='islands'?islandFamily:`terrain-${biome}`;
@@ -302,10 +313,12 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
 
   // Step by each accepted painting's footprint, vary the spacing, and require
   // real alpha overlap when extending a run. No equal slots or parallel rows.
-  paths.sort((a, b) => Number(b.context === 'ridge-boundary') - Number(a.context === 'ridge-boundary'));
+  const priority=p=>p.context==='bone-boundary'?2:p.context==='ridge-boundary'?1:0;
+  paths.sort((a, b) => priority(b)-priority(a));
   for (const path of paths) {
     diagnostics.paths++;
     let travelled = 0, next = rand(path.salt) * 12 * detail, previous = null, attempts = 0;
+    let accepted=0;
     for (let j = 1; j < path.points.length; j++) {
       const a = path.points[j - 1], b = path.points[j], length = Math.hypot(b.x - a.x, b.y - a.y);
       while (length && next <= travelled + length) {
@@ -315,6 +328,12 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
         const recipe = { ...path, indices: !path.directional ? path.indices : Math.abs(dy) < Math.abs(dx) * .4 ? [0, 1, 6, 7, 10]
           : Math.abs(dy) > Math.abs(dx) * 2 ? [4, 5, 7, 10] : dx * dy < 0 ? [2, 6, 7, 10] : [3, 6, 7, 10] };
         let prop = choose({ ...recipe, x, y, salt, previous });
+        if(!prop&&path.context==='bone-boundary')for(const offset of [4,8,12]) {
+          const d=Math.hypot(path.interior.x-x,path.interior.y-y)||1;
+          prop=choose({...recipe,x:x+(path.interior.x-x)/d*offset*detail,
+            y:y+(path.interior.y-y)/d*offset*detail,salt:salt+offset*13,previous:null});
+          if(prop)break;
+        }
         // Search either side of the predicted join before declaring a gap.
         // This adapts to differently shaped paintings and curved boundaries.
         if (!prop && previous) for (const offset of [-5, 5, -9]) {
@@ -327,12 +346,14 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
         if (prop) {
           if (previous) diagnostics.joined++;
           add(prop); previous = prop;
+          accepted++;
           const s = shape(art[prop.kind]), projected = Math.abs((b.x - a.x) / length) * s.width + Math.abs((b.y - a.y) / length) * s.height;
           next += projected * (.40 + rand(salt + 5) * .16);
-        } else next += (7 + rand(salt + 7) * 7) * detail;
+        } else next += (path.context==='bone-boundary'?3+rand(salt+7)*4:7 + rand(salt + 7) * 7) * detail;
       }
       travelled += length;
     }
+    if(path.context==='bone-boundary')diagnostics.monsterBorders.push({regionId:path.regionId,attempts,placed:accepted,perimeter:Math.round(travelled/detail)});
   }
 
   // Correlated density fields form irregular masses and clearings in two
@@ -348,16 +369,16 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       const salt = 270001 + index * 91813 + n * 137, x = minX + rand(salt) * width, y = minY + rand(salt + 1) * height;
       if (!insidePolygon({ x, y }, outline)) continue;
       const density = field(map.seed ^ 7281, x, y, 43 * detail) * .65 + field(map.seed ^ 8167, x, y, 16 * detail) * .35;
-      if (density < (dense ? .36 : .53)) continue;
+      if (density < (dense ? .28 : .53)) continue;
       candidates.push({ x, y, density, salt });
     }
     candidates.sort((a, b) => b.density - a.density);
-    let placed = 0, limit = Math.ceil(area / ((region.biome === 'islands' ? (islandStyle === 'caldera' ? 600 : 1000) : region.biome === 'swamp' ? 1100 : dense ? 80 : region.biome === 'plains' ? 320 : 560) * detail * detail));
+    let placed = 0, limit = Math.ceil(area / ((region.biome === 'islands' ? (islandStyle === 'caldera' ? 600 : 1000) : region.biome === 'swamp' ? 1100 : dense ? 55 : region.biome === 'plains' ? 320 : 560) * detail * detail));
     for (const candidate of candidates) {
       if (placed >= limit || props.length >= 600) break;
-      const canopyCore=dense && candidate.density>=.46;
+      const canopyCore=dense && candidate.density>=.40;
       const prop = choose({ ...candidate, family, canopyCore,
-        indices: dense ? (canopyCore ? [0,1,3] : [4,5,8,9,10,11]) : ['islands','monster'].includes(region.biome) ? [8,9,10,11] : region.biome === 'mountains' ? [7, 8, 9, 11] : INTERIORS[region.biome], allowedBiomes: [region.biome], context: 'interior' });
+        indices: dense ? (canopyCore ? [0,1,2,3] : [4,5,8,9,10,11]) : ['islands','monster'].includes(region.biome) ? [8,9,10,11] : region.biome === 'mountains' ? [7, 8, 9, 11] : INTERIORS[region.biome], allowedBiomes: [region.biome], context: 'interior' });
       if (!prop) continue;
       const near = nearby(prop), overlap = near.reduce((n, p) => Math.max(n, illustrationOverlap(prop, p, art)), 0);
       // Moderate-density fringe extends an existing mass; high-density cores
@@ -369,6 +390,15 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
   }
   diagnostics.islandScaledPieces = props.filter(p => p.family.startsWith('terrain-island-') && /-(compact|small)(-mirror)?$/.test(p.kind)).length;
   diagnostics.forestCores = props.filter(p=>p.canopyCore).length;
+  diagnostics.forestCoverage=map.regions.filter(r=>r.biome==='forest').map(region=>{
+    const outline=region.outline.map(pixel),xs=outline.map(p=>p.x),ys=outline.map(p=>p.y);
+    const trees=props.filter(p=>p.family==='terrain-forest');let samples=0,covered=0;
+    for(let y=Math.min(...ys);y<=Math.max(...ys);y+=4*detail)for(let x=Math.min(...xs);x<=Math.max(...xs);x+=4*detail){
+      if(!insidePolygon({x,y},outline))continue;samples++;
+      if(trees.some(p=>solid(art[p.kind],Math.floor(x-p.left),Math.floor(y-p.top))))covered++;
+    }
+    return {regionId:region.id,samples,covered,coverage:samples?Math.round(covered/samples*100):0};
+  });
   diagnostics.islandStyle = islandStyle;
   diagnostics.islandCraters = props.filter(p => p.context === 'island-crater').length;
   diagnostics.placements = props.length;

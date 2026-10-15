@@ -83,7 +83,7 @@ def import_surfaces():
             for tile in raw:
                 rgb = tile[..., :3].astype(float)
                 value = rgb[...,0]*.30 + rgb[...,1]*.59 + rgb[...,2]*.11
-                floor = 110 + (value-100)*.65
+                floor = 103 + (value-100)*.65
                 tile[..., :3] = np.clip(floor[...,None] + [12,10,-2],0,255).astype(np.uint8)
         if biome == 'swamp':
             for tile in raw:

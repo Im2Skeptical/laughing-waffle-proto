@@ -18,7 +18,7 @@ import { planSettlementSites, siteReliefContains, layOutSettlements, paintSettle
 export const ATLAS_COLOURS = { plains: 0xb7a17b, forest: 0x969174, islands: 0x688689, swamp: 0x858675, mountains: 0xa49782, monster:0x786359 };
 const ATLAS_GROUND = {
   plains: [0x9f8c69, 0xac9670, 0xb7a17b, 0xc5b18d],
-  forest: [0x8c896d, 0x9f9c7a, 0xadaa88, 0xb8b492],
+  forest: [0x858266, 0x989573, 0xa6a381, 0xb1ad8b],
   islands: [0x9eaa83, 0xabb48e, 0xb5bc99, 0xc1c5a6],
   swamp: [0x55505d, 0x6d6170, 0x867b87, 0x9c8c99],
   mountains: [0x827869, 0x958774, 0xa49782, 0xb4a792],
@@ -501,7 +501,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       const art = ART[prop.kind], p = pixel(prop.point);
       const left = prop.left ?? Math.round(p.x - art.rows[0].length / 2);
       const top = prop.top ?? Math.round(p.y - art.rows.length);
-      if(prop.family.startsWith('terrain-monster-') && art.rows.some((row,y)=>[...row].some((code,x)=>{
+      if((prop.family.startsWith('terrain-monster-')||prop.context==='bone-boundary') && art.rows.some((row,y)=>[...row].some((code,x)=>{
         const px=left+x,py=top+y;
         return code!=='.' && px>=roadClearance.x && py>=roadClearance.y && px<roadClearance.x+roadClearance.width && py<roadClearance.y+roadClearance.height
           && roadClearance.data[(py-roadClearance.y)*roadClearance.width+px-roadClearance.x];

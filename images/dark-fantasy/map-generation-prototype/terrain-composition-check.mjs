@@ -39,9 +39,9 @@ for (const seed of [1867, 1869, 1873]) {
     assert.ok(legal(a.props[i]), 'Every footprint must satisfy the supplied geographic mask');
     assert.equal(Object.keys(art[a.props[i].kind].cutRuns ?? {}).length, 0, 'Source fragments with clipped edges must never be placed');
     for (const p of a.props.slice(0, i)) {
-      assert.ok(illustrationOverlap(a.props[i], p, art) <= (a.props[i].canopyCore ? .76 : .58), 'Only closed-canopy cores may use deeper overlap');
+      assert.ok(illustrationOverlap(a.props[i], p, art) <= (a.props[i].canopyCore ? .82 : .58), 'Only closed-canopy cores may use deeper overlap');
       if (p.kind.replace(/-mirror$/, '') === a.props[i].kind.replace(/-mirror$/, ''))
-        assert.ok(Math.hypot(p.left - a.props[i].left, p.top - a.props[i].top) >= (p.family === 'terrain-forest' ? 32 : 58), 'Mirroring must not bypass repetition spacing');
+        assert.ok(Math.hypot(p.left - a.props[i].left, p.top - a.props[i].top) >= (p.family === 'terrain-forest' ? 18 : 58), 'Mirroring must not bypass repetition spacing');
     }
   }
 }
@@ -56,7 +56,8 @@ const borderPaths = islandMap.edges.filter(edge => edge.regions.length === 2
 const pairedVergePaths=islandMap.edges.filter(edge=>edge.regions.length===2).map(edge=>edge.regions.map(id=>islandMap.regions.find(r=>r.id===id).biome))
   .filter(pair=>pair[0]!==pair[1] && !pair.includes('monster') && pair.some(b=>['plains','forest'].includes(b))).length;
 assert.equal(islandComposition.diagnostics.paths + islandComposition.diagnostics.coastalProfiles, borderPaths + pairedVergePaths + islandMap.features.filter(f => f.type === 'ridge').length
-  + islandMap.geography.coasts.length + islandMap.regions.filter(r => ['mountains','islands','plains','forest','monster'].includes(r.biome)).length, 'Every island contour must receive a shore profile even without a graph edge ID');
+  + islandMap.geography.coasts.length + islandMap.regions.filter(r => ['mountains','islands','plains','forest','monster'].includes(r.biome)).length
+  + islandMap.regions.filter(r=>r.biome==='monster').length, 'Every island contour must receive a shore profile and every monster cell a full bone perimeter');
 const channels = c => [c >> 16, c >> 8 & 255, c & 255];
 const [pr,pg,pb]=channels(gradeTerrainColour(150,145,136,'plains'));
 assert.ok(pr>pg+15 && pg>pb+25,'Plains earth must retain warm ochre rather than a neutral grey cast');
@@ -102,7 +103,7 @@ for(const biome of ['plains','forest']) {
   if(biome==='plains') assert.ok(result.props.filter(p=>p.context==='interior').every(p=>Number(p.kind.replace(/-mirror$/,'').split('-').at(-1))>=8),'Plains scatter must use small ground cover, not large ridges');
   if(biome==='forest') {
     assert.ok(result.diagnostics.forestCores>0,'Forest must include dense canopy cores');
-    assert.ok(result.props.filter(p=>p.canopyCore).every(p=>[0,1,3].includes(Number(p.kind.replace(/-mirror$/,'').split('-').at(-1)))),'Dense cores must use closed canopy art');
+    assert.ok(result.props.filter(p=>p.canopyCore).every(p=>[0,1,2,3].includes(Number(p.kind.replace(/-mirror$/,'').split('-').at(-1)))),'Dense cores must use closed canopy art');
   }
 }
 console.log('Plains/forest: connected structural masses and role-specific ground cover.');
@@ -149,6 +150,8 @@ for(const biome of ['plains','forest','islands','swamp','mountains']) {
   const landscape=result.props.filter(p=>p.family==='terrain-hellscape');
   assert.ok(landscape.length>0,'Monster regions need terrain masses beyond scattered den symbols');
   assert.ok(landscape.every(p=>p.allowedBiomes.length===1&&p.allowedBiomes[0]==='monster'),'Hellscape must remain inside monster territory');
+  assert.ok(result.diagnostics.monsterBorders[0]?.placed>=6,'Bone spikes must follow the outer perimeter even when there are no shared graph edges');
+  assert.ok(result.props.filter(p=>p.context==='bone-boundary').every(p=>/-(1|5)(-mirror)?$/.test(p.kind)),'Border formations must use bone spine assets');
   const ordinary={...fixture,regions:fixture.regions.map(r=>({...r,biome}))};
   assert.equal(composeTerrainLandscape({...args,map:ordinary}).props.filter(p=>p.monster).length,0,'Ordinary biomes must never receive monster dens or pits');
   for(const m of monsters) for(const other of result.props.filter(p=>p!==m))
@@ -171,3 +174,15 @@ for(let seed=1860;seed<1880;seed++) {
   assert.ok(Math.abs(Object.values(map.biomeAreas).reduce((a,b)=>a+b,0)-1)<1e-9,'Monster area must be counted exactly once');
 }
 console.log('Monster biome: two whole regions, six represented biomes, 20 cells, exact quotas and area accounting.');
+
+for(const n of [1,5])for(const mirror of ['', '-mirror']) {
+  const glyph=art[`terrain-hellscape-${n}${mirror}`],factor=.3;
+  const w=Math.round(glyph.rows[0].length*factor),h=Math.round(glyph.rows.length*factor);
+  art[`terrain-hellscape-${n}-micro${mirror}`]={rows:Array.from({length:h},(_,y)=>Array.from({length:w},(_,x)=>
+    glyph.rows[Math.floor(y/factor)][Math.floor(x/factor)]).join(''))};
+}
+const tightMonster={...islandFixture,regions:islandFixture.regions.map(r=>({...r,biome:'monster',terrainBiome:'mountains'}))};
+const tightBorders=composeTerrainLandscape({map:tightMonster,art,pixel:p=>p,world:(x,y)=>({x,y}),detail:1,
+  legal:p=>art[p.kind].rows[0].length<=9 && p.left>0 && p.top>0});
+assert.ok(tightBorders.props.some(p=>p.context==='bone-boundary'&&p.kind.includes('-micro')),'Narrow monster borders must retain micro spikes when larger formations cannot fit');
+console.log('Monster perimeters: whole bone formations, outer-edge coverage and micro-size fallback pass.');

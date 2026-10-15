@@ -1,7 +1,7 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.5** — darker forest canopy over lighter
-ground; connected hellscape terrain around protected monster dens and pits. The version appears under the title inside the
+Current published revision: **Map v1.0.6** — bony monster-region perimeters,
+denser forest coverage and softer floor/canopy contrast. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -29,6 +29,11 @@ Each den/pit/accent role gets its own placement attempts; a rejected large pit
 cannot prevent subsequent small sinkholes, bones and fissures from spawning.
 `monsterVisibility` compares planned and displayed den counts and reports the
 displayed hellscape pieces; it exposes failures beyond successful composition.
+Bone-spine pieces follow a closed inset path around each monster cell, including
+coasts and outer edges, before general landscape placement. Rivers, roads and
+dens remain gaps. Full, compact, small and micro variants fit narrower strips;
+spikes retain their silhouettes across the illustrated division stencil.
+`terrainComposition.monsterBorders` reports attempts and placements per region.
 Six generated pieces per material variant supply two low dens, a sunken pit,
 paired sinkholes, bone/cloth accents and scarred ground. The live game's bone,
 horn, dark stone, rust cloth and restrained ember theme is adapted to local
@@ -89,6 +94,12 @@ a darker olive value range with softened highlights. These separate material
 grades make dense tree cover darker than the openings, instead of light crowns
 above a dark floor. Foundations, clearing textures and boundaries share the
 corrected floor samples, while every forest sprite uses the canopy grade.
+The floor is now slightly darker and canopy slightly lighter to narrow their
+contrast. Forest repeat spacing is 18 canonical pixels rather than 32, with all
+four core sources, a larger cover budget and more permissive dense-core joins.
+The old repetition radius was the main blocker to filling woodland gaps.
+`forestPlacement` tracks rejection reasons and `forestCoverage` samples actual
+opaque canopy coverage per polygon; these values are independent of camera zoom.
 It uses source alpha rather than the legacy cyan key. Dense patches accept more overlapping closed canopy;
 clearings retain the lower fringe pieces and protected settlement approaches.
 The same kit supplies coasts, boundary verges and settlement surroundings.
