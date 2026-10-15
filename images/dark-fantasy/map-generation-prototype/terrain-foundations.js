@@ -12,7 +12,8 @@ export function paintTerrainFoundations({ props, art, pixel, surfaces, materialA
   for (const prop of props.filter(p => p.composed)) {
     const glyph = art[prop.kind], centre = pixel(prop.point), w = glyph.rows[0].length, h = glyph.rows.length;
     const x0 = centre.x, y0 = centre.y - h * .34;
-    const rx = w * .63 + 5 * detail, ry = h * .35 + 6 * detail;
+    const fine = ['plains','forest'].includes(glyph.family);
+    const rx = w * .63 + (fine ? 2.5 : 5) * detail, ry = h * .35 + (fine ? 3 : 6) * detail;
     const left = Math.max(0, Math.floor(x0 - rx * 1.3)), right = Math.min(width - 1, Math.ceil(x0 + rx * 1.3));
     const top = Math.max(0, Math.floor(y0 - ry * 1.3)), bottom = Math.min(height - 1, Math.ceil(y0 + ry * 1.3));
     for (let y = top; y <= bottom; y++) for (let x = left; x <= right; x++) {

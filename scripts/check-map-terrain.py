@@ -50,6 +50,10 @@ relief = json.loads((folder / 'relief-v1.json').read_text())
 assert len(relief['frames']) == 154
 assert {r['kind'] for r in relief['frames'] if r['cutRuns']} == {'contact-7-2', 'contact-8-2'}, 'Replacement biome art must have complete extractable edges'
 assert all(r['rect'][2] <= 118 and r['rect'][3] <= 118 for r in relief['frames'])
+for frame in relief['frames']:
+    if frame['family'] in ['plains','forest']:
+        n=int(frame['kind'].split('-')[-1])
+        assert frame['rect'][2] == (42 if n<4 else 36 if n<8 else 24), 'Plains/forest must use distant-scale imported pieces'
 settlements = json.loads((folder / 'settlement-buildings-v1.json').read_text())['frames']
 assert len(settlements) == 30 and all(not f['cutRuns'] for f in settlements)
 for biome in biomes:

@@ -79,7 +79,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       const prop = make(kind, px, py, family, salt, allowedBiomes, context), near = nearby(prop);
       // Never repeat the same source painting beside itself, including mirrors.
       if (near.some(p => baseKind(p.kind) === baseKind(kind)
-        && Math.hypot(p.left - prop.left, p.top - prop.top) < (family.startsWith('contact') ? 40 : 58) * detail)) continue;
+        && Math.hypot(p.left - prop.left, p.top - prop.top) < (family.startsWith('contact') ? 40 : ['terrain-plains','terrain-forest'].includes(family) ? 32 : 58) * detail)) continue;
       if (!legal(prop)) continue;
       let overlap = 0;
       for (const p of near) overlap = Math.max(overlap, illustrationOverlap(prop, p, art));
@@ -116,15 +116,15 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       const rear=Math.sin(a)<-.25;
       const indices=rear?recipe.rear:recipe.front;
       let prop;
-      for(const ring of [1.4,1.75,2.1]) {
+      for(const ring of (['plains','forest'].includes(site.biome)?[1.15,1.45,1.75]:[1.4,1.75,2.1])) {
         const x=site.x+Math.cos(a)*(site.rx*ring+4*detail);
         const y=site.y+Math.sin(a)*(site.ry*ring+3*detail);
         prop=choose({x,y,family,indices,salt:620001+i*9887+n*431,allowedBiomes:[site.biome],context:'settlement-edge',
-          sizeLevel:['plains','forest','islands'].includes(site.biome)?1:0});
+          sizeLevel:['plains','forest'].includes(site.biome)?(rear?0:1):site.biome==='islands'?1:0});
         if(prop) break;
       }
       if(prop) {prop.siteRegion=site.regionId;add(prop);placed++;}
-      if(placed>=6) break;
+      if(placed>=(['plains','forest'].includes(site.biome)?8:6)) break;
     }
     if(site.surroundings) site.surroundings.placed=placed;
     diagnostics.settlementEdges.push({region:site.regionId,biome:site.biome,placed});
@@ -288,7 +288,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       candidates.push({ x, y, density, salt });
     }
     candidates.sort((a, b) => b.density - a.density);
-    let placed = 0, limit = Math.ceil(area / ((region.biome === 'islands' ? (islandStyle === 'caldera' ? 600 : 1000) : region.biome === 'swamp' ? 1100 : dense ? 320 : region.biome === 'plains' ? 950 : 560) * detail * detail));
+    let placed = 0, limit = Math.ceil(area / ((region.biome === 'islands' ? (islandStyle === 'caldera' ? 600 : 1000) : region.biome === 'swamp' ? 1100 : dense ? 110 : region.biome === 'plains' ? 320 : 560) * detail * detail));
     for (const candidate of candidates) {
       if (placed >= limit || props.length >= 600) break;
       const prop = choose({ ...candidate, family, indices: region.biome === 'forest' && candidate.density < .57 ? [4,5,8,9,10,11] : region.biome === 'islands' ? [8,9,10,11] : region.biome === 'mountains' ? [7, 8, 9, 11] : INTERIORS[region.biome], allowedBiomes: [region.biome], context: 'interior' });
