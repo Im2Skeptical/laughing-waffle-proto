@@ -5,7 +5,9 @@ import { generateMap } from './generator.js';
 
 const art = {};
 for (const family of ['plains', 'forest', 'islands', 'swamp', 'mountains'].map(b => `terrain-${b}`)
-  .concat(['terrain-island-basalt', 'terrain-island-caldera']).concat(CONTACT_PAIRS.map((_, n) => `contact-${n}`))) {
+  .concat(['terrain-island-basalt', 'terrain-island-caldera'])
+  .concat(['plains','forest','islands','swamp','mountains'].map(b=>`terrain-monster-${b}`))
+  .concat(CONTACT_PAIRS.map((_, n) => `contact-${n}`))) {
   for (let n = 0; n < (family.startsWith('contact') ? 5 : 12); n++) {
     const width = 18 + n % 4 * 3, height = 14 + n % 3 * 2;
     const rows = Array.from({ length: height }, (_, y) => Array.from({ length: width }, (_, x) =>
@@ -135,3 +137,18 @@ for(const pair of CONTACT_PAIRS.filter(pair=>pair.some(b=>['plains','forest'].in
   }
 }
 console.log('Boundary integration: all seven plains/forest pairings use current biome verges, retaining mountain divides.');
+
+for(const biome of ['plains','forest','islands','swamp','mountains']) {
+  const fixture={...islandFixture,regions:islandFixture.regions.map(r=>({...r,biome}))};
+  const args={map:fixture,art,pixel:p=>p,world:(x,y)=>({x,y}),detail:1,monsterZones:true,
+    legal:p=>p.left>0&&p.top>0&&p.left+art[p.kind].rows[0].length<240&&p.top+art[p.kind].rows.length<150};
+  const result=composeTerrainLandscape(args), monsters=result.props.filter(p=>p.monster);
+  assert.deepEqual(result,composeTerrainLandscape(args),'Monster territories must be stable for a world seed');
+  assert.ok(monsters.length>=4 && result.diagnostics.monsterZones.length===1,`${biome}: multiple dens and pits must form a territory`);
+  assert.ok(monsters.every(p=>p.family===`terrain-monster-${biome}`&&p.allowedBiomes[0]===biome&&args.legal(p)),'Monster silhouettes must fit their own dry biome');
+  for(const m of monsters) for(const other of result.props.filter(p=>p!==m))
+    assert.ok(illustrationOverlap(m,other,art)<=.12,'Scenery must not bury dens or pits');
+  assert.equal(composeTerrainLandscape({...args,monsterZones:false}).props.filter(p=>p.monster).length,0,'Turning sites off must remove monster content');
+  assert.equal(composeTerrainLandscape({...args,legal:()=>false}).props.filter(p=>p.monster).length,0,'Unsafe footprints must be omitted whole');
+}
+console.log('Monster territories: biome-specific scattered dens/pits, deterministic placement, protected silhouettes and sites-off pass.');

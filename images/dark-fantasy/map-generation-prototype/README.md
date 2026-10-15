@@ -1,11 +1,34 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.2** — removed overview landmark underline
-bars from settlements, neutral towns and monster hubs. The version appears under the title inside the
+Current published revision: **Map v1.0.3** — biome-specific scattered monster
+dens and pits replace the atlas fortress hub. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
 revision note, and report that version to the user.
+
+### Monster territories
+
+The atlas has one illustrative monster territory per biome, selected from regions
+without towns. Six generated pieces per biome supply two low dens, a sunken pit,
+paired sinkholes, bone/cloth accents and scarred ground. The live game's bone,
+horn, dark stone, rust cloth and restrained ember theme is adapted to local
+grass banks, woodland roots, basalt, violet peat and reddish scree.
+Pieces are scattered through a region, not attached to a central hub or broad
+clearing. They share terrain depth ordering, substrate blending, native pixel
+sampling and zoom. Full silhouettes must fit dry land in the correct biome,
+avoid roads and town plots, and reserve space against later terrain placement.
+Smaller variants handle restricted footprints. Placement is seeded and fixed
+across zoom; Sites Off removes the content and Labels controls its captions.
+`terrainComposition.monsterZones` reports biome, region and accepted pieces.
+The old fortress remains only in the Old game comparison. No simulation,
+schemas, RNG streams or replay behavior change.
+
+Built-in imagegen master: `assets/masters/monster-biomes-v1.png`; exact prompt
+and theme references: [monster-biomes-prompts-v1.json](assets/masters/monster-biomes-prompts-v1.json).
+Import widths are 36/28px dens, 34/28px pits and 18/24px accents. The runtime
+kit now has 184 relief frames and is about 2.30 MiB. Run map-art, composition,
+settlement and browser LOD checks; inspect seeds 1867 and 1873 across all biomes.
 
 ### Settlement landscape integration
 

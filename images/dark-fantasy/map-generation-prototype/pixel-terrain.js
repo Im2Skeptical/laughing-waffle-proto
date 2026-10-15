@@ -492,7 +492,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   // Replace playable scatter with connected terrain compositions. Existing
   // background engraving remains; towns keep their anchors. Playable coasts
   // use terrain profiles rather than isolated legacy cliff/rock stamps.
-  const composition = composeTerrainLandscape({ map, art: ART, pixel, world, detail, islandStyle, settlementPlans,
+  const composition = composeTerrainLandscape({ map, art: ART, pixel, world, detail, islandStyle, settlementPlans, monsterZones: sites,
     // Road corridors stencil individual pixels in reliefSpriteTextures; they
     // create passes instead of rejecting an entire connecting landscape piece.
     legal: prop => {
@@ -500,6 +500,11 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       const art = ART[prop.kind], p = pixel(prop.point);
       const left = prop.left ?? Math.round(p.x - art.rows[0].length / 2);
       const top = prop.top ?? Math.round(p.y - art.rows.length);
+      if(prop.family.startsWith('terrain-monster-') && art.rows.some((row,y)=>[...row].some((code,x)=>{
+        const px=left+x,py=top+y;
+        return code!=='.' && px>=roadClearance.x && py>=roadClearance.y && px<roadClearance.x+roadClearance.width && py<roadClearance.y+roadClearance.height
+          && roadClearance.data[(py-roadClearance.y)*roadClearance.width+px-roadClearance.x];
+      }))) return false;
       return art.rows.every((row, y) => [...row].every((code, x) => code === '.' || !siteReliefContains(settlementPlans, left + x, top + y)));
     } });
   const retained = props.filter(prop => prop.background || prop.kind.startsWith('ruin'));

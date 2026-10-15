@@ -9,7 +9,7 @@ import { createWheelZoom } from './wheel-zoom.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
-const MAP_VERSION = '1.0.2';
+const MAP_VERSION = '1.0.3';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
@@ -535,10 +535,10 @@ function drawTerrainLayer(art, parent) {
     if (state.flipY && prop.composed) node.position.y += node.height * 2 * (prop.anchorHeight ?? .5);
     node.alpha = prop.background ? .9 : 1; parent.addChild(node);
   };
-  const landscape = props.filter(prop => !prop.kind.startsWith('ruin') && !liveSites.filter(s => s.kind === 'monster').some(site => {
+  const landscape = props.filter(prop => !prop.kind.startsWith('ruin') && !(state.siteArt === 'live' && !prop.monster && liveSites.filter(s => s.kind === 'monster').some(site => {
     const a = point(prop.point), b = point(site.point);
     return Math.abs(a.x - b.x) < 66 * state.actorScale && a.y > b.y - (site.kind === 'monster' ? 104 : 68) * state.actorScale && a.y < b.y + 14 * state.actorScale;
-  }));
+  })));
   const buildings = state.siteArt === 'atlas' ? liveSites.flatMap(s => (s.plan?.buildings ?? []).map(building => ({ building, point: building.point }))) : [];
   // Buildings and terrain share the same depth order. Foreground vegetation
   // can overlap roof edges; settlement art is not an always-on-top plate.
@@ -563,6 +563,9 @@ function drawTerrainLayer(art, parent) {
 function sampleLiveSites() {
   const towns = currentPixelArt.settlementPlans;
   const result = towns.map(plan => ({ kind: plan.kind, point: plan.point, regionId: plan.regionId, plan }));
+  if(state.siteArt==='atlas') return result.concat(currentPixelArt.stats.terrainComposition.monsterZones.map(zone=>({
+    kind:'monster',point:zone.point,regionId:zone.regionId,zone
+  })));
   const candidates = map.regions.filter(region => region.biome !== 'islands'
     && !towns.some(town => town.regionId === region.id));
   for (const region of candidates.filter(r => r.biome === 'swamp' || r.biome === 'mountains').concat(candidates)) {
@@ -622,6 +625,13 @@ function drawAtlasSites() {
     group.position.set(p.x, p.y); group.eventMode = 'none'; group.label = `atlas-${site.kind}-${site.regionId}`;
     const colour = site.kind === 'player' ? 0xe4c271 : site.kind === 'neutral' ? 0x8ed7cf : 0xe08b76;
     const biome = map.regions.find(r => r.id === site.regionId)?.biome ?? 'plains';
+    if(site.zone) {
+      const ground=new PIXI.Container();group.addChild(ground);
+      const label=text(group,'MONSTER DENS',0,20,18,colour,{fontFamily:'Arial, sans-serif',stroke:0x131b1b,strokeThickness:4});
+      label.anchor.set(.5,0);label.visible=state.siteLabels;
+      landmarkNodes.push({site,meshes:[],label,ground,width:70*state.actorScale,biome,outskirts:0,biomeArt:true});
+      worldLayer.addChild(group);continue;
+    }
     if (site.plan) {
       const ground = new PIXI.Container();
       const label = text(group, site.kind === 'player' ? 'SETTLEMENT' : 'MARKET', 0, site.plan.ry * 2 + 10, 18, colour,
@@ -707,7 +717,7 @@ function updateZoomPresentation() {
     for (const path of currentPixelArt.roadPaths) { trace(path, 1.8, 0x3e342a, .7); trace(path, .9, 0xd7be8c, .9); }
   }
   Object.assign(currentPixelArt.stats, { landmarkLod: tiers, zoomFiltering: state.smoothZoom ? 'Prefiltered colour levels + sharp pixel enlargement' : 'Nearest pixel enlargement',
-    settlementArt: landmarkNodes.filter(n => n.biomeArt).map(n => ({ biome: n.biome, kind: n.site.kind, regionId: n.site.regionId, point: n.site.point, buildings: n.buildings, streets: n.site.plan.streets.length, width: n.width })),
+    settlementArt: landmarkNodes.filter(n => n.biomeArt && n.site.plan).map(n => ({ biome: n.biome, kind: n.site.kind, regionId: n.site.regionId, point: n.site.point, buildings: n.buildings, streets: n.site.plan.streets.length, width: n.width })),
     detailMode: state.detailMode, closeTerrainWeight: +near.toFixed(3), screenZoom: +screenScale.toFixed(3), zoomMeshes: zoomNodes.length, visibleMeshes, ...zoomArtStats() });
 }
 

@@ -1,8 +1,12 @@
-export const composableLibrary = { biomePieces: 84, boundaryPieces: 50, cells: [], sheets: 11 };
+export const composableLibrary = { biomePieces: 114, boundaryPieces: 50, cells: [], sheets: 12 };
 
 // Source hues carry the material information: leaves, trunks, earth and rock.
 // Small channel corrections preserve those differences and the painted light.
 export function gradeTerrainColour(r, g, b, family) {
+  if (family.startsWith('monster-')) {
+    // Keep bone, rust cloth and embers distinct, with restrained landscape values.
+    return [r,g,b].reduce((rgb,v,i)=>rgb|Math.round(100+(v-100)*.80)<<(16-i*8),0);
+  }
   if (family === 'plains') {
     // Match dry straw/ochre soil without washing every material toward grey.
     // Preserve cool olive vegetation separately from warm earth and pale rock.
@@ -44,7 +48,7 @@ export async function loadComposableArt(banks) {
     image.src = new URL('./assets/runtime/relief-v1.webp', import.meta.url).href;
   });
   composableLibrary.cells = manifest.frames.map(frame => ({ kind: frame.kind, sheet: frame.family, pair: frame.pair, cutRuns: frame.cutRuns }));
-  for (const detail of [1, 2]) for (const frame of manifest.frames) for (const scale of ((frame.family.startsWith('island-') || ['plains','forest'].includes(frame.family)) ? [1,.72,.5] : [1])) {
+  for (const detail of [1, 2]) for (const frame of manifest.frames) for (const scale of ((frame.family.startsWith('island-') || frame.family.startsWith('monster-') || ['plains','forest'].includes(frame.family)) ? [1,.72,.5] : [1])) {
     const proportion = (frame.family === 'islands' ? .8 : 1) * scale;
     const kind = frame.kind + (scale === .72 ? '-compact' : scale === .5 ? '-small' : '');
     const canvas = document.createElement('canvas'); canvas.width = Math.round(frame.rect[2] * detail / 2 * proportion);

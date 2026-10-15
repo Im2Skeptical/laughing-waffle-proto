@@ -224,6 +224,19 @@ def import_relief():
             image = np.array(cropped.resize((width, height), Image.Resampling.LANCZOS))
             images.append(image)
             records.append({'kind': kind, 'family': name, 'cutRuns': cell['cutRuns'], 'pair': list(PAIRS[pair]) if contact else None})
+    source = Image.open(MASTER / 'monster-biomes-v1.png').convert('RGBA')
+    payload = json.dumps([source.width, source.height, 6, 5]).encode() + b'\n' + source.tobytes()
+    cells = json.loads(subprocess.run(['node', str(ROOT / 'scripts/map-terrain-frame-probe.mjs')], input=payload, capture_output=True, check=True).stdout)
+    for n, cell in enumerate(cells):
+        if cell['cutRuns']: raise ValueError(f'Clipped monster piece {n}')
+        cropped = source.crop((cell['left'], cell['top'], cell['right'], cell['bottom']))
+        ys, xs = np.nonzero(np.array(cropped)[..., 3] >= 65)
+        cropped = cropped.crop((int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1))
+        role = n % 6
+        width = [36, 28, 34, 28, 18, 24][role]
+        images.append(np.array(cropped.resize((width, max(1, round(width * cropped.height / cropped.width))), Image.Resampling.LANCZOS)))
+        family = f'monster-{BIOMES[n // 6]}'
+        records.append({'kind': f'terrain-{family}-{role}', 'family': family, 'cutRuns': {}, 'pair': None})
     frames = packed(images, records, 'relief-v1.webp', 16, (124, 124))
     (OUT / 'relief-v1.json').write_text(json.dumps({'version': 1, 'designTexel': 2, 'frames': frames}, separators=(',', ':')))
     legacy = Image.open(BASE / 'terrain-engraving-v1.png').convert('RGBA')
@@ -278,4 +291,4 @@ if __name__ == '__main__':
     import_relief()
     import_buildings()
     total = sum(p.stat().st_size for p in OUT.iterdir() if p.suffix in ['.webp', '.json'])
-    print(f'Map art import: 635 terrain cases, 40 bank profiles, 154 relief frames; runtime files {total / 1048576:.2f} MiB')
+    print(f'Map art import: 635 terrain cases, 40 bank profiles, 184 relief frames; runtime files {total / 1048576:.2f} MiB')

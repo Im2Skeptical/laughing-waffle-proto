@@ -1,0 +1,17 @@
+{
+  "tool": "built-in imagegen",
+  "prompt": "Production transparent sprite atlas for a dark fantasy illustrated pixel RTS REGIONAL world map. Exactly THIRTY isolated assets in a regular SIX columns FIVE rows grid, equal cells, fully transparent wide gutters around every sprite. No text labels header grid or backdrop. Each row a different biome, each column a consistent role. High altitude oblique orthographic camera, miniature terrain-scale details, painterly 1990s RTS texture. Muted values matching earth and foliage, top-left light. Theme: monstrous infestation expressed by earth-burrow dens, low rocky cave mouths, sunken pits, bone rib fragments, tiny horn stakes and ragged rust-red cloth, scorched disturbed earth, only pinprick ember warmth. NO central fortress, giant skull building, tower, humanoid or monster character. Den entrances are small dark apertures embedded into natural terrain; pits are concave ground depressions with asymmetric broken rims and dark depth. No raised circular pedestal, rectangular base, cliff platforms, giant bones, bright lava glow or black outlines. Surrounding natural material must dissolve raggedly into transparency. All pieces must be COMPLETE, separated within cell with at least 20 percent margins. Columns left to right: 1 low den mouth in terrain with subtle bone supports; 2 alternate smaller den/burrow; 3 irregular larger sunken breeding pit with broken rocky rim; 4 pair of small scattered sinkholes; 5 sparse bones and horn stakes with torn rust cloth; 6 scarred ground and a few ember fissures fading into local vegetation. Rows top to bottom: 1 PLAINS ochre soil and dry straw/sage scrub, earthen dens in LOW grass banks. 2 FOREST muted olive grey-green dense MINUSCULE canopy around root hollows, dark earth and deadwood; tree scale very distant not individual giant trees. 3 ISLANDS weathered grey basalt and dusty olive tropical scrub, low volcanic vents and black sand pits, NO water. 4 SWAMP violet-grey peat and purple-brown roots, bog sinkholes and rotten root dens, NO painted water ponds. 5 MOUNTAINS muted reddish grey scree and weathered rock with low cave fissures, scree pits; NO full mountain peaks. Preserve local biome material colour and contrast, no blanket tint. Terrain should read as ominous scattered dens/pits within the environment, not symbols pasted on top. Each subject a compact wide low silhouette. Import targets: den 32px wide, pits 28px, accent pieces 18px, very fine distant detail.",
+  "themeReferences": [
+    "images/dark-fantasy/region-landmarks-v1/monster-lair.png",
+    "images/dark-fantasy/region-landmarks-v1/monster-ground.png"
+  ],
+  "layout": "6 columns x 5 biome rows: plains, forest, islands, swamp, mountains. Columns: den, small den, pit, sinkholes, bone/cloth accents, scarred ground.",
+  "importWidths": [
+    36,
+    28,
+    34,
+    28,
+    18,
+    24
+  ]
+}

@@ -45,7 +45,7 @@ const INTERIORS = {
 const COASTS = { forest: [4, 5, 7, 8, 9, 11], mountains: [5, 6, 7, 8, 9, 11],
   swamp: [3, 5, 6, 8, 9, 10], plains: [4, 6, 7, 9, 11], islands: [0, 1, 2, 3, 4, 5, 10, 11] };
 
-export function composeTerrainLandscape({ map, art, pixel, world, legal, detail, islandStyle = 'basalt', settlementPlans = [] }) {
+export function composeTerrainLandscape({ map, art, pixel, world, legal, detail, islandStyle = 'basalt', settlementPlans = [], monsterZones = false }) {
   const islandFamily = `terrain-island-${islandStyle}`;
   const props = [], diagnostics = { paths: 0, coastalProfiles: 0, placements: 0, joined: 0, breaks: 0, interiors: 0, families: {} };
   const regions = new Map(map.regions.map(r => [r.id, r]));
@@ -83,6 +83,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       if (!legal(prop)) continue;
       let overlap = 0;
       for (const p of near) overlap = Math.max(overlap, illustrationOverlap(prop, p, art));
+      if (near.some(p=>(p.monster || family.startsWith('terrain-monster-')) && illustrationOverlap(prop,p,art)>.12)) continue;
       if (overlap > (canopyCore ? .76 : .58)) continue;
       const join = previous ? illustrationOverlap(prop, previous, art) : 0;
       if (previous && (join < (context.startsWith('ridge') ? .12 : .06) || join > .46)) continue;
@@ -91,7 +92,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       options.push({ prop, score, join });
     }
     options.sort((a, b) => b.score - a.score);
-    return options[0]?.prop ?? ((family.startsWith('terrain-island-') || ['terrain-plains','terrain-forest'].includes(family)) && sizeLevel < 2
+    return options[0]?.prop ?? ((family.startsWith('terrain-island-') || family.startsWith('terrain-monster-') || ['terrain-plains','terrain-forest'].includes(family)) && sizeLevel < 2
       ? choose({ x,y,family,indices,salt,allowedBiomes,context,previous,sizeLevel:sizeLevel+1,canopyCore }) : undefined);
   };
 
@@ -128,6 +129,35 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
     }
     if(site.surroundings) site.surroundings.placed=placed;
     diagnostics.settlementEdges.push({region:site.regionId,biome:site.biome,placed});
+  }
+
+  // Monster territories use several small terrain features, never one hub.
+  // Reserve their actual silhouettes before woodland/ranges grow around them.
+  diagnostics.monsterZones=[];
+  if(monsterZones) for(const biome of ['plains','forest','islands','swamp','mountains']) {
+    const family=`terrain-monster-${biome}`;
+    if(!art[`${family}-0`]) continue;
+    const candidates=map.regions.filter(r=>r.biome===biome && !settlementPlans.some(s=>s.regionId===r.id))
+      .sort((a,b)=>Math.abs(polygonArea(b.outline))-Math.abs(polygonArea(a.outline)));
+    for(const region of candidates) {
+      const outline=region.outline.map(pixel), xs=outline.map(p=>p.x),ys=outline.map(p=>p.y);
+      const minX=Math.min(...xs),minY=Math.min(...ys),w=Math.max(...xs)-minX,h=Math.max(...ys)-minY;
+      const placed=[];
+      for(let n=0;n<160 && placed.length<6;n++) {
+        const salt=740001+map.regions.indexOf(region)*8803+n*199;
+        const x=minX+w*(.12+rand(salt)*.76), y=minY+h*(.12+rand(salt+1)*.76);
+        if(!insidePolygon({x,y},outline)) continue;
+        const role=placed.length;
+        if(placed.some(p=>Math.hypot(p.left-x,p.top-y)<(role<4?18:10)*detail)) continue;
+        const prop=choose({x,y,family,indices:[role],salt,allowedBiomes:[biome],context:'monster'});
+        if(!prop) continue;
+        prop.monster=true;prop.regionId=region.id;add(prop);placed.push(prop);
+      }
+      if(!placed.length) continue;
+      diagnostics.monsterZones.push({regionId:region.id,biome,point:placed[0].point,
+        pieces:placed.map(p=>({kind:p.kind,point:p.point}))});
+      break;
+    }
   }
 
   // One principal extinct crater per connected island group. Search the largest
