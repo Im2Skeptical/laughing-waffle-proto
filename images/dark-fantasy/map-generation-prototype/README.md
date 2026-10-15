@@ -1,7 +1,7 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.15** — a scrubbable timegraph driving reversible
-water palette cycling, with preview playback and return to now. The version appears under the title inside the
+Current published revision: **Map v1.0.16** — distinct inland lake and peat-pool
+materials, planted margins and reversible calm-water ripples. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -24,8 +24,22 @@ run `biome-clustering-check.mjs` alongside the terrain checks.
 Water connectivity is classified from the canonical dry mask. Water connected to
 an outer bake edge is marine; enclosed basins are freshwater, including island
 channels on the inland side of the map. Actual sea inlets keep marine graphics.
-Lakes use blue-grey depth, muted green/silt banks, sparse reflection ripples and
-small shoreline glints. They have no ocean swell, white surf or broad sea beach.
+Lakes use blue-grey depth with irregular green shelves, silt beds, broad sky
+reflections and small patches of wind ripples. Submerged bank texture connects
+the water to the island slope, with broken reed colonies and restrained glints.
+They have no ocean swell, white surf or broad sea beach. Peat pools use a separate
+tannin/olive material: dark open channels, soft reflections, muddy margins and
+floating vegetation with small holes exposing the water. Their shoreline distance
+field controls depth and vegetation rather than the original pool-generation noise.
+`inland-water.js` samples both materials in world coordinates. Depth, sediment,
+reeds and floating colonies remain static; their separate surface ramps follow
+the timegraph. Ripple strength is suppressed under vegetation. Swamp pool outlines,
+site exclusions, lake/ocean classification and playable land stay unchanged.
+`wetlands` reports floating mats, reeds and ripples; `surfaceTreatments` reports
+lake vegetation and reed coverage. Inspect seed 1869 at 5% clustering for two inland
+islands, one marine island and swamp pools. Default clustering remains 50%.
+Run `wetland-ground-check.mjs` and `water-style-check.mjs`, then the browser GPU
+comparison and timeline restoration check on the actual water fields.
 Marine waters have blue offshore depth, irregular green shelves, sandy shoals and
 darker submerged channels. Those substrate colours stay fixed. Directional swell
 groups bend into coastal breakers; complete phase paths pass through porous foam

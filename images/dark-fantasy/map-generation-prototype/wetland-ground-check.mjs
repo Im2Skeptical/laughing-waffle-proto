@@ -14,6 +14,7 @@ const surfaces = { bank: (biome, x, y, depth) => { depths.push(depth); return 0x
 const result = paintWetlandPools({ ...args, ...a, surfaces }); paintWetlandPools({ ...args, ...b, surfaces });
 assert.ok(result.illustratedBanks > 0 && depths.some(d => d < .46) && depths.some(d => d > .53), 'Imported bank profiles must wrap both dry and submerged sides of pool contours');
 assert.ok(result.pools > 0 && result.margins > 0, 'Wetlands need open pools and textured margins');
+assert.ok(result.floatingMats > 0 && result.ripples > 0, 'Wetlands need still floating colonies beside moving open water');
 assert.deepEqual(a, b, 'Wetland detail must be deterministic');
 assert.equal(a.waterIndices[45 * width + 25], 0, 'Site approach must remain dry');
 for (let i = 0; i < size; i++) {
@@ -21,7 +22,7 @@ for (let i = 0; i < size; i++) {
   if (regionIds[i] === 1) { assert.equal(a.colours[i], 0x778675); assert.equal(a.waterIndices[i], 0); }
   if (a.waterIndices[i]) {
     assert.ok(a.waterIndices[i] >= 48 && a.waterIndices[i] <= 55);
-    assert.ok(a.waterBase[i] && a.waterStrength[i] <= 18, 'Pool depth wash must dominate quiet cyclic ripples');
+    assert.ok(a.waterBase[i] && a.waterStrength[i] <= 71, 'Tannin depth and stationary vegetation must dominate quiet cyclic ripples');
   }
 }
 console.log('Wetlands: deterministic pools and banks, quiet cycle modulation, protected sites, forest and gameplay land pass.');

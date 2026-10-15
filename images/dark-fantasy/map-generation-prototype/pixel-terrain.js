@@ -1,5 +1,5 @@
 // Disposable Atlas renderer: one world pixel lattice over the approved geography.
-// Geography stays authoritative. Surface palette animation has its own visual clock.
+// Geography stays authoritative. Surface palettes sample the viewed timeline time.
 import { decorationRandom, insidePolygon, canPlacePeak } from './generator.js';
 import { createAtlasArt } from './atlas-art.js';
 import { routeSampleRoads } from './roads.js';
@@ -277,7 +277,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   extendWaterEnvironment(waterBodies,land,dryDistance,width,height);
   const surfaceTreatments = paintOcean({ map, width, height, texel, bounds, land, waterIndices, colours,
     regionIds, seaDistance, dryDistance, shoreTypes, waterBodies, waterBank, groundBank, noise, mixColour, waterBase, waterStrength, surfaces });
-  const wetlands = paintWetlandPools({ map, pixel, width, height, detail, regionIds, land, dryDistance,
+  const wetlands = paintWetlandPools({ map, pixel, width, height, detail, texel, bounds, regionIds, land, dryDistance,
     colours, waterIndices, waterBase, waterStrength, noise, mixColour, surfaces, protectedCentres: sites ? map.regions.filter(r => r.biome !== 'islands')
       .filter((r, i) => i === 2 || i === 7 || i === 12).map(r => pixel(r.centre)) : [] });
   const put = (x, y, colour, water = 0, onlyDry = false) => {

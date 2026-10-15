@@ -1,6 +1,7 @@
 // Disposable material study. These fields decorate the canonical world once.
 // Cycle indices describe coherent bands; geometry and random samples never depend on zoom.
 import { WATER_BODY } from './water-style.js';
+import { prepareInlandPalette, sampleInlandWater } from './inland-water.js';
 export const SHORE_TREATMENTS = {
   plains: { bank: 0x78664a, sediment: 0xc5b78c, road: [0xa28d65, 0xc3b18a], beach: 14, exposure: .9 },
   forest: { bank: 0x424936, sediment: 0x92956a, road: [0x6b6446, 0xa49b70], beach: 5, exposure: .6 },
@@ -27,11 +28,9 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
   }
   for (let n = 0; n < 16; n++) {
     waterBank[192+n]=ramp([[0,0x355c65],[.42,0x416f79],[.55,0xc0d2c4],[.66,0x83aaa5],[1,0x355c65]],n/16);
-    const crest=Math.pow(Math.max(0,Math.cos(n/16*Math.PI*2)),4);
-    waterBank[112+n]=mixColour(0x3c535f,0x8a9a96,crest*.6);
-    waterBank[240+n]=mixColour(0x4e6867,0x939f8c,crest*.65);
   }
-  const stats = { exposedSurf: 0, offshoreCaps:0, surfPhases:Array(32).fill(0), shelteredWater: 0, swell: 0, beaches: 0, ecotones: 0, riverMargins: 0, oceanPixels:0,lakePixels:0,lakeRipples:0,lakeMargins:0 };
+  prepareInlandPalette(waterBank, mixColour);
+  const stats = { exposedSurf: 0, offshoreCaps:0, surfPhases:Array(32).fill(0), shelteredWater: 0, swell: 0, beaches: 0, ecotones: 0, riverMargins: 0, oceanPixels:0,lakePixels:0,lakeRipples:0,lakeMargins:0,lakeVegetation:0,lakeReeds:0 };
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
     const i = y * width + x;
     const wx = (bounds.minX * 1576 + x * texel) / 2, wy = (bounds.minY * 516 + y * texel) / 2;
@@ -41,17 +40,16 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
     if (!land[i]) {
       const distance = seaDistance[i] / 3 * texel / 2;
       if(waterBodies[i]===WATER_BODY.lake) {
-        const shallow=Math.exp(-distance/11),silt=noise(map.seed^17233,wx,wy,23);
-        const ripple=fract((wy+Math.sin(wx/41)*2)/12+noise(map.seed^6197,wx,wy,37)*.35);
-        const packet=noise(map.seed^8729,wx*.45,wy*1.6,13);
-        const glint=distance<3.5&&lace>.58;
-        const index=glint?240+Math.floor(ripple*16):112+Math.floor(ripple*16);
-        let base=mixColour(0x354957,0x62736b,clamp(shallow*.72+broad*.14));
-        if(distance<12)base=mixColour(base,0x747963,shallow*silt*.2);
-        const strength=(glint?.22:packet>.55?.25: .025)*( .7+lace*.3);
-        waterIndices[i]=index;waterBase[i]=base;waterStrength[i]=Math.round(strength*255);
-        colours[i]=mixColour(base,waterBank[index],strength);
-        stats.lakePixels++;if(packet>.55)stats.lakeRipples++;if(glint)stats.lakeMargins++;
+        const sample=sampleInlandWater({kind:'lake',seed:map.seed,x:wx,y:wy,distance,noise,mix:mixColour});
+        let base=sample.base;
+        if(material&&distance<10) {
+          const horizontal=Math.abs((seaDistance[i+1]??0)-(seaDistance[i-1]??0))<Math.abs((seaDistance[i+width]??0)-(seaDistance[i-width]??0));
+          base=mixColour(base,surfaces.bank(material,x,y,.56+Math.min(.4,distance/24),horizontal),Math.exp(-distance/4)*.32);
+        }
+        waterIndices[i]=sample.index;waterBase[i]=base;waterStrength[i]=sample.strength;
+        colours[i]=mixColour(base,waterBank[sample.index],sample.strength/255);
+        stats.lakePixels++;if(sample.ripple)stats.lakeRipples++;if(sample.glint)stats.lakeMargins++;
+        if(sample.vegetation)stats.lakeVegetation++;if(sample.reeds)stats.lakeReeds++;
         continue;
       }
       stats.oceanPixels++;
@@ -117,10 +115,11 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
       if (!bank) continue;
       const d = dryDistance[i] / 3 * texel / 2;
       if(waterBodies[i]===WATER_BODY.lake) {
-        if(d<5+lace*3){
-          const wet=d<1.8,colour=wet?0x4e5d52:mixColour(bank.bank,0x7b8064,.48);
-          colours[i]=mixColour(colours[i],colour,(wet?.66:.3)*clamp(1-d/9));
-          if(d>1&&d<5&&lace>.65&&grain>.72)colours[i]=mixColour(colours[i],0x5d6a48,.3);
+        const reach=6+lace*6;
+        if(d<reach){
+          const wet=d<1.5+lace,colour=wet?0x4c6055:mixColour(bank.bank,0x7b8064,.48);
+          colours[i]=mixColour(colours[i],colour,(wet?.60:.38)*clamp(1-d/reach));
+          if(d>1&&d<6&&lace>.59&&grain>.66)colours[i]=mixColour(colours[i],grain>.87?0x949777:0x536446,.42);
           stats.lakeMargins++;
         }
         continue;

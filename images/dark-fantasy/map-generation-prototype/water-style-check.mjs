@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { classifyWaterBodies, extendWaterEnvironment, waterColourAt, WATER_BODY, WATER_RAMPS } from './water-style.js';
 import { paintOcean } from './terrain-interactions.js';
+import { sampleInlandWater } from './inland-water.js';
 
 const width=50,height=40,size=width*height,land=new Uint8Array(size).fill(1);
 for(let y=0;y<height;y++)for(let x=0;x<width;x++)if(x<5||x>44||y<4||y>35||(x>15&&x<34&&y>12&&y<28))land[y*width+x]=0;
@@ -54,4 +55,21 @@ paintOcean({map:{seed:1867,regions:[{biome:'islands'}]},width:w,height:h,texel:2
 const shallow=coastBase[16*w+25],deep=coastBase[16*w+170];
 assert.ok(luminance(shallow)-luminance(deep)>15,'Shallow shelf and offshore depth need visibly different values');
 assert.ok((shallow>>8&255)-(shallow&255)>(deep>>8&255)-(deep&255)+8,'Shallows must shift green relative to the blue offshore water');
+// Calm-water features are stable substrate beneath independent, reversible cycles.
+const samples=[];
+for(const kind of ['lake','peat'])for(let y=0;y<60;y++)for(let x=0;x<80;x++) {
+  const args={kind,seed:1869,x,y,distance:1+x*.5,noise:(_s,a,b,scale)=>.5+.25*Math.sin(a/scale)+.2*Math.cos(b/scale),mix:mixColour};
+  const sample=sampleInlandWater(args);samples.push({kind,...sample});
+  assert.deepEqual(sampleInlandWater(args),sample,'Inland fields must be repeatable at an absolute world coordinate');
+  assert.ok(sample.strength>=0&&sample.strength<=110,'Freshwater stays calmer than exposed ocean foam');
+  assert.ok(kind==='peat'?sample.index>=48&&sample.index<=55:sample.index>=112&&sample.index<=127||sample.index>=240);
+}
+for(const kind of ['lake','peat']) {
+  const group=samples.filter(s=>s.kind===kind);
+  assert.ok(group.some(s=>s.vegetation)&&group.some(s=>s.reeds)&&group.some(s=>s.ripple),'Each freshwater material needs planted margins and moving open water');
+  assert.ok(new Set(group.map(s=>s.base)).size>100,'Broad depth and reflection fields must replace flat water fills');
+  const planted=group.filter(s=>s.vegetation),open=group.filter(s=>!s.vegetation);
+  const mean=list=>list.reduce((sum,s)=>sum+s.strength,0)/list.length;
+  assert.ok(mean(planted)<mean(open),'Vegetated water must suppress ripple motion');
+}
 console.log('Water styles: lake/sea connectivity, freshwater banks, full foam phases, distinct wave values, seamless independent cycles, fixed depth and green shelves/blue offshore pass.');
