@@ -14,7 +14,8 @@ export function gradeTerrainColour(r, g, b, family) {
     return channels.reduce((rgb,v,i) => rgb | Math.max(0,Math.min(255,Math.round(v))) << (16-i*8),0);
   }
   if (family === 'forest') {
-    return [r,g,b].reduce((rgb,v,i) => rgb | Math.round(104+(v-104)*.83) << (16-i*8),0);
+    // Deep canopy shadows carry height; lifting them made woodland look flat.
+    return [r,g,b].reduce((rgb,v,i) => rgb | Math.round(72+(v-72)*.95) << (16-i*8),0);
   }
   if (family === 'island-basalt') {
     // Compress values around weathered mid-grey without flattening leaf/stone hue.
@@ -54,7 +55,7 @@ export async function loadComposableArt(banks) {
       let row = ''; const alpha = [];
       for (let x = 0; x < canvas.width; x++) {
         const i = (y * canvas.width + x) * 4;
-        if (data[i + 3] < 65 || (data[i + 2] > data[i] + 8 && data[i + 1] > data[i] + 3)) { row += '.'; alpha.push(0); continue; }
+        if (data[i + 3] < 65 || (frame.family !== 'forest' && data[i + 2] > data[i] + 8 && data[i + 1] > data[i] + 3)) { row += '.'; alpha.push(0); continue; }
         const r = data[i] >> 3, g = data[i + 1] >> 3, b = data[i + 2] >> 3;
         const code = String.fromCharCode(256 + (r << 10) + (g << 5) + b);
         const rgb = gradeTerrainColour(r * 8 + 4, g * 8 + 4, b * 8 + 4, frame.family);

@@ -25,6 +25,17 @@ untouched. This is an integration pass for the prototype, not new gameplay.
 
 ### Plains and forest terrain pass
 
+Forest v4 replaces all twelve forest pieces with raised ancient canopy masses,
+layered crowns and shaded near edges. The fine tree scale remains regional;
+height comes from the painted canopy profile, not enlarged individual trees.
+Core pieces import at 72px, connectors at 54px and low fringes at 32px.
+Forest grading preserves deep blue-green shadows and uses source alpha rather
+than the legacy cyan key. Dense patches accept more overlapping closed canopy;
+clearings retain the lower fringe pieces and protected settlement approaches.
+The same kit supplies coasts, boundary verges and settlement surroundings.
+Source: `assets/masters/composable-forest-v4.png`; exact built-in imagegen prompt:
+[forest-prompts-v4.json](assets/masters/forest-prompts-v4.json).
+
 Plains sprites receive material-aware warm ochre grading, with olive vegetation
 kept distinct from soil and stone; no zone overlay or ground-frequency change.
 All seven biome pairings involving plains or forest use current biome-specific
@@ -44,9 +55,10 @@ deadwood and fern clearings. Coasts select low banks and fringes. Neither biome
 scatters the entire asset set indiscriminately. The generated source colours get
 moderate value compression; plains stone highlights are softened further.
 
-The v3 generated masters depict distant terrain directly: broad shallow plains
-folds with fine scrub and drainage, and continuous forests of many tiny crowns.
-Runtime widths are 64px (major masses), 48px (banks/edges) and 32px (small cover).
+The generated masters depict distant terrain directly: v3 broad shallow plains
+folds with fine scrub and drainage, and v4 forests with layered raised crowns.
+Plains widths are 64px (major masses), 48px (banks/edges) and 32px (small cover);
+forest widths are 72/54/32px.
 The new source detail carries the scale, rather than shrinking close-up paintings.
 Ground and clearing/foundation texture sampling is restored to its original
 frequency; the doubled texture frequency caused visible repetition. Plains–forest
@@ -59,9 +71,9 @@ clearing fringe available for scenery, as in the island treatment. Zoom does not
 change placement. Simulation state, RNG, schemas and replay remain untouched.
 
 Built-in imagegen sources: `assets/masters/composable-plains-v3.png` and
-`assets/masters/composable-forest-v3.png`. Exact prompts and import notes are in
+`assets/masters/composable-forest-v4.png`. The plains prompt and previous import notes are in
 [plains-forest-prompts-v3.json](assets/masters/plains-forest-prompts-v3.json).
-The runtime art remains about 2.22 MiB; all replacement source edges pass extraction.
+The runtime art remains about 2.25 MiB; all replacement source edges pass extraction.
 Review seeds 1862 and 1873 at Fit and close zoom, labels off. Run composition,
 settlement-site and map-art checks plus browser LOD persistence.
 

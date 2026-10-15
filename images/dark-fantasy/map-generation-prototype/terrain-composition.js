@@ -87,7 +87,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       const join = previous ? illustrationOverlap(prop, previous, art) : 0;
       if (previous && (join < (context.startsWith('ridge') ? .12 : .06) || join > .46)) continue;
       const score = rand(salt + attempt * 31 + 4) * .3
-        + (previous ? 1 - Math.abs(join - .22) * 3 : Math.min(.3, overlap)) - Math.max(0, overlap - .38);
+        + (previous ? 1 - Math.abs(join - .22) * 3 : Math.min(canopyCore ? .5 : .3, overlap)) - Math.max(0, overlap - (canopyCore ? .6 : .38));
       options.push({ prop, score, join });
     }
     options.sort((a, b) => b.score - a.score);
@@ -307,10 +307,10 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       candidates.push({ x, y, density, salt });
     }
     candidates.sort((a, b) => b.density - a.density);
-    let placed = 0, limit = Math.ceil(area / ((region.biome === 'islands' ? (islandStyle === 'caldera' ? 600 : 1000) : region.biome === 'swamp' ? 1100 : dense ? 110 : region.biome === 'plains' ? 320 : 560) * detail * detail));
+    let placed = 0, limit = Math.ceil(area / ((region.biome === 'islands' ? (islandStyle === 'caldera' ? 600 : 1000) : region.biome === 'swamp' ? 1100 : dense ? 80 : region.biome === 'plains' ? 320 : 560) * detail * detail));
     for (const candidate of candidates) {
       if (placed >= limit || props.length >= 600) break;
-      const canopyCore=dense && candidate.density>=.52;
+      const canopyCore=dense && candidate.density>=.46;
       const prop = choose({ ...candidate, family, canopyCore,
         indices: dense ? (canopyCore ? [0,1,3] : [4,5,8,9,10,11]) : region.biome === 'islands' ? [8,9,10,11] : region.biome === 'mountains' ? [7, 8, 9, 11] : INTERIORS[region.biome], allowedBiomes: [region.biome], context: 'interior' });
       if (!prop) continue;
