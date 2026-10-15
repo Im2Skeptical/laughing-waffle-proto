@@ -9,6 +9,7 @@ import { createWheelZoom } from './wheel-zoom.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
+const MAP_VERSION = '1.0.1';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
@@ -721,7 +722,7 @@ function render() {
   for (const node of worldLayer.removeChildren()) node.destroy({ children: true });
   zoomNodes = []; landmarkNodes = []; terrainLayer = null; overviewInk = null;
   text(root, 'THE SHAPING OF A WORLD', 38, 30, 48, 0xe8dfbf, { letterSpacing: 3 });
-  text(root, 'MAP STUDY 01   /   20 regions · five biomes · no gameplay attached', 42, 94, 25, 0xacc1b2, { fontFamily: 'Arial, sans-serif', letterSpacing: 1.5 });
+  text(root, `MAP v${MAP_VERSION}   /   20 regions · five biomes · no gameplay attached`, 42, 94, 25, 0xacc1b2, { fontFamily: 'Arial, sans-serif', letterSpacing: 1.5 });
   if (pixelReview()) button('Cycle live asset scale', 1065, 40, 350, 52, () => {
     state.actorScale = state.actorScale < 1 ? 1 : state.actorScale < 1.25 ? 1.25 : .75; render();
   }, { copy: `Landmarks: ${Math.round(state.actorScale * 100)}%`, size: 24 });
@@ -756,7 +757,8 @@ function sync() {
   for (const [key, value] of Object.entries({ seed: state.seed, clustering: state.clustering, size: state.sizeVariation,
     islandStyle: state.islandStyle, roughness: state.roughness, features: state.featureSet, variant: state.variant, texel: state.texel, sites: state.sites ? 1 : 0, siteArt: state.siteArt, siteLabels: state.siteLabels ? 1 : 0, actorScale: state.actorScale, smoothZoom: state.smoothZoom ? 1 : 0, detailMode: state.detailMode, fog: state.fog ? 1 : 0, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
   history.replaceState(null, '', url);
-  document.getElementById('status').textContent = `Seed ${state.seed} · ${VARIANTS[state.variant]} · 20 regions · quota counts ${Object.values(map.quota).join(' / ')} · ${map.features.map(f => FEATURE_NAMES[f.type]).join(' + ')}`;
+  document.title = `Map v${MAP_VERSION} · Pixi workbench`;
+  document.getElementById('status').textContent = `Map v${MAP_VERSION} · Seed ${state.seed} · ${VARIANTS[state.variant]} · 20 regions · quota counts ${Object.values(map.quota).join(' / ')} · ${map.features.map(f => FEATURE_NAMES[f.type]).join(' + ')}`;
   document.getElementById('state').textContent = JSON.stringify({ controls: state, quota: map.quota,
     biomeAreaPercent: Object.fromEntries(Object.entries(map.biomeAreas).map(([id, area]) => [id, +(area * 100).toFixed(1)])),
     features: map.features.map(f => ({ type: f.type, sharedEdges: f.edgeIds.length })),
@@ -796,7 +798,7 @@ document.addEventListener('keydown', event => {
   if (event.target.closest('input, textarea, select, [contenteditable]')) return;
   if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); cycle(event.key === 'ArrowLeft' ? -1 : 1); }
 });
-window.mapWorkbench = { get state() { return { ...state }; }, get map() { return map; }, get targets() { return targets.map(t => {
+window.mapWorkbench = { version: MAP_VERSION, get state() { return { ...state }; }, get map() { return map; }, get targets() { return targets.map(t => {
   if (t.map) { const pose = camera.snapshot(); t = { ...t, x: t.x * pose.zoom + pose.x, y: t.y * pose.zoom + pose.y,
     width: t.width * pose.zoom, height: t.height * pose.zoom }; }
   const r = app.view.getBoundingClientRect();

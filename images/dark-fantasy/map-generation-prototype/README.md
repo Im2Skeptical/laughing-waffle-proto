@@ -1,5 +1,12 @@
 # Map generation Pixi workbench (disposable prototype)
 
+Current published revision: **Map v1.0.1** — softened forest asset contrast and
+visible version identification. The version appears under the title inside the
+canvas (including fullscreen and PNG exports), in the page status and browser
+title, and as `mapWorkbench.version`. For each published map pass, increment
+`MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
+revision note, and report that version to the user.
+
 ### Settlement landscape integration
 
 Settlements now own a shared worked-ground and surroundings plan. Ground follows
