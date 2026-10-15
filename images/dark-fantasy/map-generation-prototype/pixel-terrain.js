@@ -4,6 +4,7 @@ import { decorationRandom, insidePolygon, canPlacePeak } from './generator.js';
 import { createAtlasArt } from './atlas-art.js';
 import { routeSampleRoads } from './roads.js';
 import { loadComposableArt, composableLibrary } from './composable-art.js';
+import { composeHinterland } from './hinterland-composition.js';
 import { composeTerrainLandscape, boneRidgeFits } from './terrain-composition.js';
 import { loadIllustratedArt } from './illustrated-art.js';
 import { releaseZoomArt } from './zoom-art.js';
@@ -225,7 +226,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     const bank = groundBank[material]; let tone = Math.min(3, Math.floor(shade * 4));
     const grain = decorationRandom(map.seed ^ 1731, Math.imul(x, 8363) ^ Math.imul(y, 36433));
     if (grain < .025) tone = Math.max(0, tone - 1); else if (grain > .98) tone = Math.min(3, tone + 1);
-    colours[i] = bank[tone];
+    colours[i] = region?bank[tone]:mixColour(bank[Math.min(2,Math.floor(shade*3))],bank[Math.min(3,Math.floor(shade*3)+1)],shade*3%1);
     if (region) colours[i] = mixColour(colours[i], surfaces.ground(region.biome, x, y), .72);
   }
   // Chamfer shore distances. Palette indices remain categorical.
@@ -369,23 +370,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   paintEcotones({ map, width, height, texel, regionIds, land, waterIndices, colours, groundBank, noise, mixColour, surfaceTreatments, surfaces });
   const siteDetail = detail * settlementScale / .75;
   const settlementPlans = sites ? planSettlementSites({ map, pixel, world, width, height, land, waterIndices, regionIds, detail: siteDetail }) : [];
-  const props = [], candidates = [];
-  // Grid jitter uses map coordinates, not current zoom or camera position.
-  const lo = pixel({ x: -1, y: -1 }), hi = pixel({ x: 2, y: 2 });
-  const spacing = 10 * detail;
-  for (let y = Math.ceil(lo.y / spacing) * spacing; y < hi.y; y += spacing) for (let x = Math.ceil(lo.x / spacing) * spacing; x < hi.x; x += spacing) {
-    const salt = Math.imul(x, 14369) ^ Math.imul(y, 37813), qx = x + Math.floor(decorationRandom(map.seed, salt) * 8 * detail), qy = y + Math.floor(decorationRandom(map.seed, salt + 1) * 8 * detail);
-    const i = qy * width + qx; if (!land[i] || waterIndices[i]) continue;
-    const p = world(qx, qy), region = map.regions[regionIds[i]], chance = decorationRandom(map.seed, salt + 2);
-    let kind = null;
-    const variant = Math.floor(decorationRandom(map.seed, salt + 3) * 12);
-    if (region) continue; // Playable terrain is composed on geographic chains below.
-    sampleBackground(p, f);
-    kind = chance < .12 ? f[1] > .5 ? `crag${variant}` : f[2] > .3 || f[3] > .3 ? `deadwood${variant % 3}` : `hill${variant % 5}` : null;
-    if (kind?.startsWith('crag') && !canPlacePeak(map.geography, p, .07)) kind = null;
-    if (kind && !region) kind = `ash-${kind}`;
-    if (kind) candidates.push({ kind, point: p, salt, background: !region, plainsOnly: region?.biome === 'plains' && kind.startsWith('hill') });
-  }
+  const props = [];
   const fitsLand = prop => {
     const art = ART[prop.kind], p = pixel(prop.point), w = Math.max(...art.rows.map(r => r.length));
     const left = Math.round(p.x - w / 2), top = Math.round(p.y - art.rows.length);
@@ -406,19 +391,6 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     return fits && (!painted || outside / painted < .025);
   };
   const towns = settlementPlans.map((s, i) => ({ kind: `ruin${i % 3}`, point: s.point, regionId: s.regionId }));
-  for (const candidate of candidates) {
-    if (candidate.kind.includes('crag') && !fitsLand(candidate)) {
-      candidate.kind = `${candidate.background ? 'ash-' : ''}crag-small${Math.abs(candidate.salt) % 6}`;
-    }
-    if (!fitsLand(candidate)) continue;
-    if (/copse|deadwood/.test(candidate.kind) && props.some(q => /copse|deadwood/.test(q.kind)
-      && Math.hypot((q.point.x - candidate.point.x) * 1576 / texel, (q.point.y - candidate.point.y) * 516 / texel)
-      < Math.max(ART[q.kind].rows[0].length, ART[candidate.kind].rows[0].length) * .35)) continue;
-    if (candidate.kind.includes('crag') && props.some(q => q.kind.includes('crag')
-      && Math.hypot((q.point.x - candidate.point.x) * 1576 / texel, (q.point.y - candidate.point.y) * 516 / texel) < (candidate.range ? 13 : 24) * detail)) continue;
-    if (towns.some(t => Math.hypot((t.point.x - candidate.point.x) * 1576 / texel, (t.point.y - candidate.point.y) * 516 / texel) < 16 * detail)) continue;
-    props.push(candidate);
-  }
   props.push(...towns);
   const extent = map.regions.flatMap(r => r.outline).map(pixel);
   const bx = Math.floor(Math.min(...extent.map(p => p.x))) - 2, by = Math.floor(Math.min(...extent.map(p => p.y))) - 2;
@@ -496,8 +468,8 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     for (const [n, span] of spans.entries()) paintBridge(span, detail, roadDot, {
       art: ART[`terrain-bridge-${(n + bridges + map.seed) % 8}`], context: roadCtx, origin: { x: bx, y: by } });
   }
-  // Replace playable scatter with connected terrain compositions. Existing
-  // background engraving remains; towns keep their anchors. Playable coasts
+  // Compose playable terrain and imported hinterland instead of legacy scatter.
+  // Coasts
   // use terrain profiles rather than isolated legacy cliff/rock stamps.
   const composition = composeTerrainLandscape({ map, art: ART, pixel, world, detail, islandStyle, settlementPlans, monsterZones: sites,
     // Road corridors stencil individual pixels in reliefSpriteTextures; they
@@ -514,8 +486,21 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       }))) return false;
       return art.rows.every((row, y) => [...row].every((code, x) => code === '.' || !siteReliefContains(settlementPlans, left + x, top + y)));
     } });
-  const retained = props.filter(prop => prop.background || prop.kind.startsWith('ruin'));
-  props.splice(0, props.length, ...retained, ...composition.props);
+  const hinterland=composeHinterland({map,art:ART,pixel,world,detail,sampleBackground,
+    legal:prop=>{
+      const glyph=ART[prop.kind];let painted=0,outside=0,dry=0;
+      for(let y=0;y<glyph.rows.length;y+=2)for(let x=0;x<glyph.rows[y].length;x+=2){
+        if(glyph.rows[y][x]==='.')continue;
+        const px=prop.left+x,py=prop.top+y;
+        if(px<0||py<0||px>=width||py>=height)return false;
+        const i=py*width+px;painted++;
+        if(land[i]&&!waterIndices[i])dry++;
+        if(regionIds[i]<0)outside++;
+        if(siteReliefContains(settlementPlans,px,py))return false;
+      }
+      return painted>0&&dry/painted>.96&&outside/painted>(prop.barrier?.72:.98);
+    }});
+  props.splice(0,props.length,...towns,...hinterland.props,...composition.props);
   const foundations = paintTerrainFoundations({ props, art: ART, pixel, surfaces, materialAt, land, waterIndices,
     colours, width, height, detail, noise, seed: map.seed, mixColour, islandStyle });
   const divisions = paintRegionDivisions({ map, pixel, width, height, detail, land, regionIds,
@@ -589,7 +574,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   fogTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR; fogTexture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
 
   return { settlementPlans, texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, divisionClearance: divisions.clearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
-    palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', surfaceKit: surfaces.stats(), foundations, wetlands, glyphKinds: new Set(props.map(p => p.kind)).size,
+    hinterland:hinterland.stats, palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', surfaceKit: surfaces.stats(), foundations, wetlands, glyphKinds: new Set(props.map(p => p.kind)).size,
     roads: roads.length, bridges, regionDivisions: divisions.stats, interactions, coastalEffects, terrainComposition: composition.diagnostics, assetLibrary: { biomePieces: composableLibrary.biomePieces, boundaryPieces: composableLibrary.boundaryPieces, sheets: composableLibrary.sheets,
       usablePieces: composableLibrary.cells.filter(c => !Object.keys(c.cutRuns).length).length,
       excludedPieces: composableLibrary.cells.filter(c => Object.keys(c.cutRuns).length).map(c => c.kind) }, surfaceTreatments, illustratedProps: props.filter(p => ART[p.kind].illustrated).length, coastalOutcrops: props.filter(p => p.kind.startsWith('cliff')).length, reliefColouring: 'Source material colours, selective asset grades, alpha-overlap composition', mountainSpines: map.regions.filter(r => r.biome === 'mountains').length + map.features.filter(f => f.type === 'ridge').length, rangeMassifs: props.filter(p => p.range).length,

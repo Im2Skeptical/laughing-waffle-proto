@@ -1,11 +1,25 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.8** — varied woodland settlement glades and twelve
-new bone-border silhouettes with irregular size and spacing. The version appears under the title inside the
+Current published revision: **Map v1.0.9** — imported RTS hinterland terrain and
+mountain barriers following the unplayable landward perimeter. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
 revision note, and report that version to the user.
+
+### Unplayable hinterland
+
+Legacy ash crag/hill/deadwood stamps are replaced by grey-graded versions of the
+imported RTS mountain, ridge, woodland, swamp and plains pieces. Seeded spatial
+patches leave broad quiet spaces between distinct relief masses. Background
+substrate values interpolate continuously rather than stepping between flat bands.
+Two staggered mountain crests follow each actual landward outer edge, with varied
+silhouettes and outward offsets. Ocean-facing edges remain open. Footprints stay
+mostly outside playable cells, avoid towns, and require dry land; river channels
+retain their gaps. Geography, region ownership and gameplay are untouched.
+`pixelRendering.hinterland` reports border attempts/placements, barrier/scatter
+counts and unique source kinds. Run `hinterland-composition-check.mjs`, normal
+terrain/settlement checks and browser LOD persistence; inspect seed 1865.
 
 ### Monster territories
 

@@ -84,7 +84,16 @@ export async function loadComposableArt(banks) {
     const glyph = { rows, colours, rgbColours, opacity, cutRuns: frame.cutRuns, family: frame.family, illustrated: true, composable: true };
     banks[detail][kind] = glyph;
     banks[detail][`${kind}-mirror`] = { ...glyph, rows: rows.map(row => [...row].reverse().join('')), opacity: opacity.map(row => row.slice().reverse()) };
-
-
+    if(scale===1&&['mountains','ridge-border','forest','swamp','plains'].includes(frame.family)) {
+      const ashRgb={},ashColours={};
+      for(const [code,rgb] of Object.entries(rgbColours)) {
+        const value=(rgb>>16)*.3+(rgb>>8&255)*.59+(rgb&255)*.11;
+        const grey=Math.max(25,Math.min(116,62+(value-105)*.48));
+        const colour=(Math.round(grey-3)<<16)|(Math.round(grey+1)<<8)|Math.round(grey+6);
+        ashRgb[code]=colour;ashColours[code]=`#${colour.toString(16).padStart(6,'0')}`;
+      }
+      for(const suffix of ['', '-mirror'])banks[detail][kind.replace('terrain-','terrain-hinterland-')+suffix]=
+        {...banks[detail][kind+suffix],rgbColours:ashRgb,colours:ashColours};
+    }
   }
 }
