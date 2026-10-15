@@ -14,7 +14,7 @@ import { addInteractionFeedback } from '../../../src/views/interaction-feedback.
 
 // Experimental modal. Complete live map inside the shared node-decision body.
 const MAP_BODY = Object.freeze({ x: 986, y: 234, width: 1358, height: 520 });
-const FAMILY = { ...VASSAL_NODE_FAMILIES.travel, label: 'World decision', description: 'Move, connect, or explore your region.' };
+const FAMILY = { ...VASSAL_NODE_FAMILIES.travel, label: 'Crossroads', description: 'Move, connect, or explore your region.' };
 export function createOpeningWorldDecisionScreen({ app, layer, getState, getVassal, onSelect, onConfirm, tooltipView }) {
   const root = new PIXI.Container(), mapLayer = new PIXI.Container(), overlay = new PIXI.Container(), chrome = new PIXI.Container();
   root.visible = false; root.eventMode = 'static'; root.hitArea = app.screen; layer.addChild(root);

@@ -66,7 +66,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     const danger = Math.max(spec.kind === 'specialRelic' && !spec.relics?.length ? .35 : 0,
       ...[...(spec.options ?? []), ...(spec.relics ?? [])].map(o => o.immediateDeathChance ?? (spec.kind === 'specialRelic' ? .35 : 0)), 0);
     const chaos = Math.max(0, ...[...(spec.options ?? []), ...(spec.relics ?? [])].map(o => o.chaos ?? 0));
-    const label = spec.displayLabel?.trim() || ({ world: 'World Decision', martial: 'Martial', specialRelic: 'Special Relic', customNote: 'Custom Note' })[spec.kind] || def.label;
+    const label = spec.displayLabel?.trim() || ({ world: 'Crossroads', martial: 'Martial', specialRelic: 'Special Relic', customNote: 'Custom Note' })[spec.kind] || def.label;
     // The graph/entry retains authored intent; the fixed modal plaque uses native concise copy.
     if(compact)return {...def,label,...(spec.kind==='specialRelic'?{color:PALETTE.red}:{})};
     return { ...def, label, description: `${spec.title}\n${spec.kind === 'customNote' ? 'Read this design note, then Confirm to continue. No time or rewards are applied.' : spec.description}`
@@ -237,6 +237,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   const point = (kind, index = 0) => worldDecision.isOpen() && ['option','confirm','worldMode','worldCost','worldTarget','worldReward'].includes(kind) ? worldDecision.getPoint(kind,index) : ({
     node: () => life.getNodeClickPoint(index), enter: () => life.getEnterNodeClickPoint(),
     option: () => modal.getOptionClickPoint(index), offer: () => modal.getOfferClickPoint(index), face: () => modal.getOfferFacePoint(index),
+    tagConfirm: () => modal.getShopTagConfirmPoint(index),
     confirm: () => note.isOpen() ? note.getConfirmPoint() : modal.getConfirmClickPoint(), undo: () => modal.getUndoClickPoint(index), tableau: () => modal.getTableauClickPoint(index),
     acquire: () => modal.getAcquireClickPoint(index),
     inspectClose: () => modal.getInspectionClosePoint(), level: () => level.getChoiceClickPoint(index), levelConfirm: () => level.getConfirmClickPoint(),

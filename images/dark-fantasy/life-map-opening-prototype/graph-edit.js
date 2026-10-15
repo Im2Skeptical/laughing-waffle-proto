@@ -1,6 +1,6 @@
 import { createOpeningExperiment, OPENING_KINDS } from './experiment.js';
 
-export const KIND_LABELS = { relic: 'Relic', world: 'World decision', founding: 'Founding', shop: 'Practice shop', structureShop: 'Structure shop', development: 'Development', martial: 'Martial', supply: 'Stock supply', patronage: 'Easy benefit', specialRelic: 'Special relic', customNote: 'Custom Note' };
+export const KIND_LABELS = { relic: 'Relic', world: 'Crossroads', founding: 'Founding', shop: 'Practice shop', structureShop: 'Structure shop', development: 'Development', martial: 'Martial', supply: 'Stock supply', patronage: 'Easy benefit', specialRelic: 'Special relic', customNote: 'Custom Note' };
 export const OPENING_GRID = { x: 72, y: 62, columnWidth: 300, rowHeight: 150, maxIndex: 47 };
 const unique = ids => [...new Set(ids)];
 const node = (doc, id) => {

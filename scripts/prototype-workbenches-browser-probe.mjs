@@ -252,7 +252,13 @@ try {
       assert.equal(await page.evaluate(()=>openingWorkbench.getPoint('confirm')),null,'the tag step has no purchase confirmation');
       if(kind==='structure')assert.deepEqual(gate.shopTagChoices.map(tag=>tag.id),['Housing','Stock','Special']);
       await page.screenshot({path:`artifacts/prototype-${kind}-shop-tags.png`});
+      const beforeTag=await page.evaluate(()=>openingWorkbench.getSnapshot().summary);
       await openingClick('option',0);
+      const inspectedTag=await page.evaluate(()=>openingWorkbench.getSnapshot());
+      assert.equal(inspectedTag.game.modal.inspectedCardId,gate.shopTagChoices[0].id);
+      assert.equal(inspectedTag.game.modal.shopTag,null);assert.equal(inspectedTag.game.modal.offers.length,0);
+      assert.deepEqual(inspectedTag.summary,beforeTag,'inspection does not confirm a shop tag');
+      await openingClick('tagConfirm',0);
       const offers=await page.evaluate(()=>openingWorkbench.getSnapshot().game.modal);
       assert.equal(offers.shopTag,gate.shopTagChoices[0].id);assert.ok(offers.offers.length);
       assert.ok(offers.costPanels.every(price=>price.prestigeCost===0&&price.monsterPressureCost===10));
@@ -269,7 +275,12 @@ try {
       await openingClick('confirm');await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().visitedIds.includes('shop'));
       assert.ok(await page.evaluate(before=>openingWorkbench.getSnapshot().summary.monsterPressure>=before+10,before.monsterPressure));
     }
-    await page.locator('#shop-preview-zero-prestige').uncheck();await page.locator('#preview-structure-shop').click();await openingClick('option',0);
+    await page.locator('#preview-practice-shop').click();await openingClick('option',2);
+    assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().summary.prestige),0,'inspecting Random awards nothing');
+    assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().game.modal.shopTag),null);
+    await openingClick('tagConfirm',2);
+    assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().summary.prestige),10,'confirming Random grants its reward');
+    await page.locator('#shop-preview-zero-prestige').uncheck();await page.locator('#preview-structure-shop').click();await openingClick('tagConfirm',0);
     assert.ok(await page.evaluate(()=>openingWorkbench.getSnapshot().game.modal.costPanels.every(price=>price.prestigeCost>0&&price.monsterPressureCost===0)));
   });
   await check('Travel reward example: three clickable destinations and selected Prestige previews', async () => {

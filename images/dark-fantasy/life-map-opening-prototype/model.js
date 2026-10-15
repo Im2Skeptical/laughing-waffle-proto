@@ -216,7 +216,7 @@ export function getOpeningDecision(session, preview = {}) {
       naturalDeathChance: getVassalMortalityChance(age), totalDeathChance: getVassalMortalityChance(age) };
   }
   return { ...presentation, ...(session.shopSelection ? { shopTag: session.shopSelection.selectedTag,
-    ...(!session.shopSelection.selectedTag ? {shopTagChoices:session.shopSelection.tags.map(({cards,...tag})=>({...tag,enabled:cards.length>0}))} : {}) } : {}),
+    ...(!session.shopSelection.selectedTag ? {shopTagChoices:session.shopSelection.tags.map(({cards,randomTags,...tag})=>({...tag,enabled:cards.length>0}))} : {}) } : {}),
     node: { ...presentation.node, experimentId: spec.id,
     presentationLabel: spec.title, presentationDescription: spec.description },
     nodeState: { ...presentation.nodeState, options }, options };

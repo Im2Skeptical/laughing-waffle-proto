@@ -603,12 +603,20 @@ export function createVassalNodeDecisionModalView({
         ? PANEL.x + (PANEL.width - cardCount * cardWidth - (cardCount - 1) * cardGap) / 2 : PANEL.x + 30;
       if (selectingTag) {
         optionRoots = decision.shopTagChoices.map((tag,index) => {
-          const choose=()=>onSelectOption?.(node.id,tag.id);
+          const choose=()=>{pinnedInspectionId=quickInspectionId=null;onSelectOption?.(node.id,tag.id);};
           const card=actionCard(root,{x:PANEL.x+30+index*(OPTION_COLUMN.width+cardGap),y:cardY,width:OPTION_COLUMN.width,height:cardHeight},{
-            title:tag.label,artId:node.family,faceLabel:'',showCost:false,
-            enabled:!readOnly&&tag.enabled,onInspect:!readOnly&&tag.enabled?choose:null,
+            title:tag.label,artId:node.family,showCost:false,selected:pinnedInspectionId===tag.id,
+            enabled:!readOnly&&tag.enabled,onInspect:event=>inspectPiece(tag.id,null,event),
           });
-          const icon=addResourceIcon(card,tag.iconId,OPTION_COLUMN.width/2,cardHeight*.62,100);icon.alpha=tag.enabled?1:.35;
+          const icon=tag.iconId ? addResourceIcon(card,tag.iconId,OPTION_COLUMN.width/2,cardHeight*.62,100)
+            : createText('?',{...TEXT_STYLES.cardTitle,fontSize:100},OPTION_COLUMN.width/2,cardHeight*.62,.5,.5);
+          if(!tag.iconId)card.addChild(icon);
+          icon.alpha=tag.enabled?1:.35;
+          if(tag.prestigeGain>0)addResourceAmount(card,'prestige',`+${tag.prestigeGain}`,{
+            x:OPTION_COLUMN.width/2-60,y:cardHeight-118,fontSize:40,iconSize:46,fill:0xb6ce92,
+          });
+          card.tagConfirmButton=button(root,{x:card.x,y:cardY+cardHeight+12,width:OPTION_COLUMN.width,height:78},
+            'Confirm',!readOnly&&tag.enabled,choose,pinnedInspectionId===tag.id);
           return card;
         });
       } else if (isShop) {
@@ -876,11 +884,12 @@ export function createVassalNodeDecisionModalView({
     const completedInspection=inspectionId?.startsWith('completed:');
     const inspectedOffer=[...(decision?.offers??[]),...(decision?.purchases??[])].find(offer=>offer.offerId===(completedInspection?inspectionId.slice('completed:'.length):inspectionId));
     const inspectedOption=(nodeState?.options??[]).find(option=>option.id===retainedInspectionId);
+    const inspectedTag=decision?.shopTagChoices?.find(tag=>tag.id===retainedInspectionId);
     const inspectedTableau=[...(settlement?.practices??[]),...(settlement?.structures??[]),...(settlement?.demolishedStructures??[])].find(piece=>piece&&(
       'practice:'+piece.practiceId===(retainedInspectionId??previewTableauId)||'structure:'+piece.placementId===(retainedInspectionId??previewTableauId)));
     const displaced=(settlement?.displacedPractices??[]).find(face=>'displaced:'+face.definitionId===(retainedInspectionId??previewTableauId));
-    if(inspectedOffer||inspectedTableau||displaced||(inspectedOption&&!simpleOutcomes)) {
-      const piece=inspectedOffer??inspectedOption??inspectedTableau;
+    if(inspectedTag||inspectedOffer||inspectedTableau||displaced||(inspectedOption&&!simpleOutcomes)) {
+      const piece=inspectedTag??inspectedOffer??inspectedOption??inspectedTableau;
       const face=inspectedOffer&&!completedInspection ? piece.constructionPresentation??piece.presentation : piece?.presentation??displaced;
       const requirements=decision?.optionRequirements?.[piece?.id]??[];
       if(face?.reading&&!pinnedInspectionId) {
@@ -922,7 +931,7 @@ export function createVassalNodeDecisionModalView({
           : !readOnly && inspectedOption && requirements.every(entry=>entry.met)
             ? ()=>{pinnedInspectionId=null;const result=onSelectOption?.(node.id,piece.id);if(result?.ok!==true)render(true);} : undefined,
         metadata:[face?.qualityLabel,...(face?.tags??[])].filter(Boolean).join(' · '),
-        detail:[face?[face.rule,...(face.details??face.detailLines??[])].join('\n'):optionEffect(piece),
+        detail:[inspectedTag?inspectedTag.description:face?[face.rule,...(face.details??face.detailLines??[])].join('\n'):optionEffect(piece),
           inspectedOffer && !piece.purchased ? piece.stageBlockedReason : null,
           displaced?'This practice leaves because the incoming prefix fills all five slots.':null,
           ...requirements.map(entry=>(entry.met?'✓ ':'✗ ')+entry.label)].filter(Boolean).join('\n'),
@@ -984,6 +993,10 @@ export function createVassalNodeDecisionModalView({
       const target = optionRoots[index];
       const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height - COST_FOOTER_HEIGHT / 2 - 6));
       return point ? { x: point.x, y: point.y } : null;
+    },
+    getShopTagConfirmPoint(index = 0) {
+      const target=logicalOpen?optionRoots[index]?.tagConfirmButton:null;
+      return target?.toGlobal?.(new PIXI.Point(target.hitArea.width/2,target.hitArea.height/2))??null;
     },
     getOfferClickPoint(index = 0) {
       if (!logicalOpen) return null;
