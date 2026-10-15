@@ -68,7 +68,7 @@ export const FOUNDER_CLASSES = Object.freeze({
       { id: 'risk', name: 'Risk reward', summary: '+15 Prestige on RISK success', art: 'crisis' },
     ]),
     // Palette: ember red on a banner of dark oxblood.
-    accent: 0xe08a64, deep: 0x3b1f1d, glow: 0xc4573f,
+    accent: 0xe08a64, deep: 0x3b1f1d, glow: 0xc4573f, frameTint: 0xffc9b8,
   }),
   scholar: Object.freeze({
     name: 'PHILOSOPHER', unlocks: 'Scholar', flavour: 'A patient mind leaves its mark.',
@@ -78,7 +78,7 @@ export const FOUNDER_CLASSES = Object.freeze({
       { id: 'commission', name: 'Commissions', summary: 'Gain Prestige each Commission completion', art: 'patronage' },
       { id: 'delve', name: 'Delve', summary: 'Spend 10 years to reroll shop offers', art: 'study' },
     ]),
-    accent: 0x9fb8ec, deep: 0x1b2438, glow: 0x6a86c9,
+    accent: 0x9fb8ec, deep: 0x1b2438, glow: 0x6a86c9, frameTint: 0xbfd0ff,
   }),
 });
 

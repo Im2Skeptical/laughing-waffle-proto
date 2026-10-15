@@ -73,6 +73,14 @@ const PACKED_GROUPS = Object.freeze({
     files: Object.freeze(['chronicle-gate.json']),
     eager: true,
   }),
+  // Painted picker frames are downscaled paintings, so they filter smoothly
+  // instead of using the pixel-art nearest-neighbour default.
+  classPickerFrames: Object.freeze({
+    prefix: 'class-picker-frames-v1/',
+    files: Object.freeze(['class-picker-frames.json']),
+    eager: true,
+    smooth: true,
+  }),
   timegraphChronicle: Object.freeze({
     prefix: 'timegraph-chronicle-v1/',
     files: Object.freeze(['timegraph-chronicle.json']),
@@ -84,9 +92,9 @@ function bumpRevision() {
   revision += 1;
 }
 
-function configureTexture(texture) {
+function configureTexture(texture, smooth = false) {
   if (!texture?.baseTexture) return texture;
-  texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+  texture.baseTexture.scaleMode = smooth ? PIXI.SCALE_MODES.LINEAR : PIXI.SCALE_MODES.NEAREST;
   texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
   return texture;
 }
@@ -161,7 +169,7 @@ async function loadPackedGroup(group, retryFailed = false) {
       loaded.add(name); linked.forEach(item => loaded.add(item));
       for (const sheet of sheets) Object.entries(sheet.textures).forEach(([name, texture]) => {
         const file = `${group.prefix}${name}`;
-        configureTexture(texture);
+        configureTexture(texture, group.smooth === true);
         packedTextures.set(file, texture);
       });
     }

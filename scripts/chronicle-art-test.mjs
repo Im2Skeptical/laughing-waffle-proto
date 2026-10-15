@@ -8,7 +8,7 @@ let instance = 0;
 async function fixture(load) {
   const calls = [];
   globalThis.PIXI = {
-    SCALE_MODES: { NEAREST: 0 }, MIPMAP_MODES: { OFF: 0 },
+    SCALE_MODES: { NEAREST: 0, LINEAR: 1 }, MIPMAP_MODES: { OFF: 0 },
     Rectangle: class {constructor(x,y,width,height){Object.assign(this,{x,y,width,height});}},
     Texture: class {constructor(baseTexture,rect){Object.assign(this,{baseTexture,width:rect.width,height:rect.height});}},
     Assets: { setPreferences() {}, async load(url) {
@@ -50,7 +50,7 @@ try {
   });
   await transient.art.prepareChronicleArt(transient.renderer);
   assert.equal(attempts, 3);
-  assert.equal(transient.uploaded.length, 13, 'every atlas, including heirlooms and class portraits, reaches upload preparation');
+  assert.equal(transient.uploaded.length, 14, 'every atlas, including heirlooms, class portraits and class picker frames, reaches upload preparation');
 
   const invalid = await fixture(() => ({ textures: { 'food.png': { baseTexture: { valid: false } } } }));
   await assert.rejects(invalid.art.prepareChronicleArt(invalid.renderer), /invalid|decoded/i, 'invalid textures cannot pass readiness');
@@ -61,7 +61,7 @@ try {
   await assert.rejects(gpu.art.prepareChronicleArt(gpu.renderer), /upload/i);
   uploadFails = false;
   await gpu.art.prepareChronicleArt(gpu.renderer);
-  assert.equal(gpu.calls.length, 11, 'upload retry keeps downloaded atlases');
+  assert.equal(gpu.calls.length, 12, 'upload retry keeps downloaded atlases');
 
   const scaled = await fixture(url => {
     const result = sheet(url);
@@ -75,7 +75,7 @@ try {
     for (const texture of scaled.uploaded) texture.baseTexture._glTextures = { 1: {} };
   };
   await scaled.art.prepareChronicleArt(scaled.renderer);
-  assert.equal(scaled.uploaded.length, 13, 'GPU limits use physical pixels, not scaled logical texture dimensions');
+  assert.equal(scaled.uploaded.length, 14, 'GPU limits use physical pixels, not scaled logical texture dimensions');
   await assert.rejects(scaled.art.prepareChronicleArt({ ...scaled.renderer,
     gl: { ...scaled.renderer.gl, getParameter: () => 1000 } }), /texture size limit/);
   await assert.rejects(scaled.art.prepareChronicleArt({ ...scaled.renderer, CONTEXT_UID: 2 }), /uploaded/,

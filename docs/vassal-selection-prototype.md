@@ -26,6 +26,21 @@ workbench controls or copy editor appear in the playable picker. Flavour is a
 single muted italic line; unique nodes are explained on encounter. The painted
 class frames also surround ordinary Vassals' existing stable portraits.
 
+## Painted picker frames - October 16
+
+The picker's window, banner, attribute chips, class attribute feature, ability cards,
+class tabs (normal, selected, locked) and icon sockets use painted stone-and-brass frames from
+`images/dark-fantasy/class-picker-frames-v1` (atlas `class-picker-frames`, loaded smoothly by
+`chronicle-art.js`). `painted-frames.js` provides `addPaintedWindow` (fixed corners, tiled
+carved edges, centre gems), `addPaintedPanel`, `addPaintedBanner` and `addPaintedSocket`
+(nine-slice, with a class-coloured stone underlay behind the transparent aperture); the art
+is neutral so each class tints it with `frameTint` in `protovassal-class-data.js` (Warlord
+crimson, Philosopher blue; the selected tab keeps its amber glow). Every helper falls back to
+the vector `paintRelicPanel` look while the atlas loads or if a piece is missing. To fit the
+painted rim, content sits slightly inside the old footprint: right-hand column x 616-2296
+(the four class slots stay centred on it), banner 530x598, chips 380x114, feature 778x168 and
+ability cards 420x424. `scripts/class-picker-frames-test.mjs` checks the spec against the atlas.
+
 | Rule | Warrior | Scholar |
 | --- | --- | --- |
 | Founder | Warlord; trains 10 Warriors | Philosopher; trains 2 Scholars and establishes a Lyceum |
