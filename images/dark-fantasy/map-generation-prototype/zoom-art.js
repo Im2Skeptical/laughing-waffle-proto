@@ -67,8 +67,8 @@ function levelsFor(texture) {
   return levels;
 }
 
-export function createZoomArt(texture) {
-  const levels = levelsFor(texture);
+export function createZoomArt(texture, dynamicLevels = null) {
+  const levels = dynamicLevels ?? levelsFor(texture);
   const geometry = new PIXI.Geometry().addAttribute('aVertexPosition',
     [0, 0, texture.width, 0, texture.width, texture.height, 0, texture.height], 2)
     .addAttribute('aTextureCoord', [0, 0, 1, 0, 1, 1, 0, 1], 2).addIndex([0, 1, 2, 0, 2, 3]);

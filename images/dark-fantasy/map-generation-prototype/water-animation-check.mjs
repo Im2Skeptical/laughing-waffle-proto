@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import { createWaterClock } from './water-animation.js';
+import { waterPaletteColour } from './water-style.js';
+const clock=createWaterClock();
+assert.equal(clock.step(0,true),false);
+assert.equal(clock.step(20,true),false);
+assert.equal(clock.step(40,true),true);assert.equal(clock.seconds,.04);
+clock.step(80,false);clock.step(10000,true);assert.equal(clock.seconds,.04,'Pause must not accumulate hidden time');
+clock.step(10040,true);assert.equal(clock.seconds,.08);
+clock.step(20000,true);assert.equal(clock.seconds,.18,'Long bake/background stalls must not cause catch-up');
+clock.seek(2.5);clock.step(21000,true);assert.equal(clock.seconds,2.5);
+assert.throws(()=>clock.seek(NaN));
+const palette=Array.from({length:256},(_,n)=>n),mix=(a,b,t)=>a+(b-a)*t;
+assert.equal(waterPaletteColour(128,palette,mix,.1),128.3,'Subframe phase must blend smoothly');
+assert.equal(waterPaletteColour(70,palette,mix,3.7),70,'Depth stays fixed');
+assert.equal(waterPaletteColour(128,palette,mix,-.1),137.3,'Reverse phase wraps inside its own ramp');
+console.log('Water animation: capped visual clock, pause/resume, seek, smooth fractional palette phases and fixed depth pass.');

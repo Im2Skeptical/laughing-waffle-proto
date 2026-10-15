@@ -37,10 +37,16 @@ export function extendWaterEnvironment(bodies,land,dryDistance,width,height) {
   }
 }
 
-export function waterColourAt(index,base,strength,bank,mixColour,seconds=0) {
-  if(!seconds)return base?mixColour(base,bank[index],strength/255):bank[index];
+export function waterPaletteColour(index,bank,mixColour,seconds=0) {
   const ramp=WATER_RAMPS.find(r=>index>=r.start&&index<r.start+r.length);
   const offset=ramp?Math.floor(seconds*ramp.stepsPerSecond):0;
   const phase=ramp?ramp.start+((index-ramp.start+offset)%ramp.length+ramp.length)%ramp.length:index;
-  return base?mixColour(base,bank[phase],strength/255):bank[phase];
+  if(!ramp)return bank[index]||0;
+  const next=ramp.start+(phase-ramp.start+1)%ramp.length;
+  return mixColour(bank[phase],bank[next],seconds*ramp.stepsPerSecond-offset);
+}
+
+export function waterColourAt(index,base,strength,bank,mixColour,seconds=0) {
+  const colour=waterPaletteColour(index,bank,mixColour,seconds);
+  return base?mixColour(base,colour,strength/255):colour;
 }

@@ -13,7 +13,7 @@ export async function verifyTerrainPersistence() {
     return ctx.getImageData(0, 0, 1000, 450).data;
   };
   try {
-    mapWorkbench.setState({ sites: false, detailMode: 'regional' });
+    mapWorkbench.setState({ sites: false, detailMode: 'regional',waterMotion:false });
     mapWorkbench.setCamera({ zoom: 2, x: -2200, y: -550 });
     const regional = await capture();
     mapWorkbench.setState({ detailMode: 'close' });

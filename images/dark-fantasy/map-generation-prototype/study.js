@@ -6,10 +6,11 @@ import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.
 import { createMapCamera } from '../../../src/views/world-map/camera.js';
 import { bakePixelTerrain, pixelSpriteTextures, pixelSpriteFits, reliefSpriteTextures, destroyPixelTerrain, prepareIllustratedArt, ATLAS_COLOURS } from './pixel-terrain.js';
 import { createWheelZoom } from './wheel-zoom.js';
+import { createWaterClock } from './water-animation.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
-const MAP_VERSION = '1.0.13';
+const MAP_VERSION = '1.0.14';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
@@ -23,6 +24,7 @@ const state = { seed: Math.floor(numberParam('seed', 1867, 0, 2147483647)),
   siteArt: ['live', 'sketch'].includes(params.get('siteArt')) ? params.get('siteArt') : 'atlas', actorScale: numberParam('actorScale', .75, .5, 1.5),
   islandStyle: params.get('islandStyle') === 'caldera' ? 'caldera' : 'basalt',
   siteLabels: params.get('siteLabels') !== '0',
+  waterMotion:params.has('waterMotion')?params.get('waterMotion')!=='0':!matchMedia('(prefers-reduced-motion: reduce)').matches,
   smoothZoom: params.get('smoothZoom') !== '0', detailMode: ['close', 'regional', 'overview'].includes(params.get('detailMode')) ? params.get('detailMode') : 'auto',
   flipX: params.get('flipX') === '1', flipY: params.get('flipY') === '1', selected: null };
 const host = document.getElementById('map-preview');
@@ -84,6 +86,28 @@ let gameArt = null, liveSites = [];
 let landmarkArt = null, zoomNodes = [], landmarkNodes = [], terrainLayer = null, overviewInk = null;
 const pixelArtCache = new Map();
 const pixelReview = () => state.variant === 'F';
+const waterClock=createWaterClock();let waterFrameId=null;
+function updateWater(force=false) {
+  if(!pixelReview()||!currentPixelArt)return;
+  const started=performance.now(),seconds=waterClock.seconds;
+  currentPixelArt.backdropWaterCycle?.update(app.renderer,seconds,force);
+  currentPixelArt.waterCycle.update(app.renderer,seconds,force);
+  Object.assign(currentPixelArt.stats.waterStudy,{phaseSeconds:seconds,paused:!state.waterMotion||document.hidden,
+    frames:currentPixelArt.waterCycle.frames,updateMs:Math.round((performance.now()-started)*100)/100,renderer:'GPU palette resolve + colour pyramid'});
+}
+function scheduleWater() {
+  if(waterFrameId!==null)cancelAnimationFrame(waterFrameId);
+  waterFrameId=null;waterClock.reset();
+  if(!state.waterMotion||!pixelReview()||document.hidden||!currentPixelArt)return;
+  const frame=now=>{waterFrameId=null;
+    if(!state.waterMotion||!pixelReview()||document.hidden)return;
+    if(waterClock.step(now,true)){updateWater();app.renderer.render(app.stage);}
+    waterFrameId=requestAnimationFrame(frame);
+  };
+  waterFrameId=requestAnimationFrame(frame);
+}
+document.addEventListener('visibilitychange',()=>{if(currentPixelArt)currentPixelArt.stats.waterStudy.paused=!state.waterMotion||document.hidden;scheduleWater();});
+app.view.addEventListener('webglcontextrestored',()=>{if(currentPixelArt)render();});
 const point = p => ({ x: mapRect.x + (state.flipX ? 1 - p.x : p.x) * mapRect.width,
   y: mapRect.y + (state.flipY ? 1 - p.y : p.y) * mapRect.height });
 const polygonPoints = points => points.flatMap(p => { const v = point(p); return [v.x, v.y]; });
@@ -447,7 +471,7 @@ function drawMap() {
   const selected = map.regions.find(r => r.id === state.selected);
   const oceanSides = map.world.oceanSides.map(side => state.flipX && (side === 'east' || side === 'west') ? side === 'east' ? 'west' : 'east' : side)
     .map(side => state.flipY && (side === 'north' || side === 'south') ? side === 'north' ? 'south' : 'north' : side);
-  text(root, `Ocean: ${oceanSides.join(' + ')} · ${pixelReview() ? 'still water · drag / pinch to explore' : 'drag / pinch / scroll to explore'}`, 520, 198, 25, 0xd9d6b6);
+  text(root, `Ocean: ${oceanSides.join(' + ')} · ${pixelReview() ? `${state.waterMotion?'cycling water':'water paused'} · drag / pinch to explore` : 'drag / pinch / scroll to explore'}`, 520, 198, 25, 0xd9d6b6);
   if (pixelReview()) {
     button('Change pixel density', 1648, 158, 164, 70, () => { state.texel = { 2: 4, 4: 6, 6: 2 }[state.texel]; render(); }, { copy: state.texel === 2 ? 'Pixels: Detail' : state.texel === 4 ? 'Pixels: Fine' : 'Pixels: Coarse', size: 23 });
     button('Cycle map sites', 1826, 158, 212, 70, () => {
@@ -462,7 +486,7 @@ function drawMap() {
   button('Zoom in', 2156, 158, 90, 70, () => { camera.zoomBy(1.25); app.renderer.render(app.stage); }, { copy: '+', size: 38 });
   button('Fit map', 2260, 158, 110, 70, fitMap, { copy: 'Fit' });
   const caption = selected ? `${selected.id} · ${BIOMES[selected.biome].name} · ${(selected.area / map.totalArea * 100).toFixed(1)}% of playable area · Neighbours ${selected.neighbours.join(', ')}`
-    : pixelReview() ? `${VARIANTS[state.variant]} · still water · gold settlements / teal markets / rust lairs · smooth zoom and adaptive detail`
+    : pixelReview() ? `${VARIANTS[state.variant]} · ${state.waterMotion?'cycling water':'water paused'} · gold settlements / teal markets / rust lairs · smooth zoom and adaptive detail`
           : `${map.islandClusters.length} island landmass${map.islandClusters.length === 1 ? '' : 'es'} · gaps, valleys and coastal terrain · tap to inspect`;
   panel(root, 514, 848, 1856, 38, 0x21383b, 0x21383b); text(root, caption, 534, 853, 25, 0xe2ddbd);
 }
@@ -505,19 +529,20 @@ function drawPixelMap() {
   text(root, 'ILLUSTRATED TERRAIN STUDY · DARK FANTASY ATLAS', 520, 165, 22, 0xc0c4aa, { fontFamily: 'Arial, sans-serif', letterSpacing: 2 });
 }
 
-function zoomArt(texture) {
-  const node = createZoomArt(texture); zoomNodes.push(node); return node;
+function zoomArt(texture,levels=null) {
+  const node = createZoomArt(texture,levels); zoomNodes.push(node); return node;
 }
 
 function drawTerrainLayer(art, parent) {
   const density = art.stats.texel;
-  const put = (texture, bounds, texel = density) => {
-    const node = zoomArt(texture), p = point({ x: bounds.minX, y: bounds.minY });
+  const put = (texture, bounds, texel = density,levels=null) => {
+    const node = zoomArt(texture,levels), p = point({ x: bounds.minX, y: bounds.minY });
     node.position.set(p.x, p.y); node.scale.set(state.flipX ? -texel : texel, state.flipY ? -texel : texel);
     parent.addChild(node);
   };
-  if (art.backdropTexture) put(art.backdropTexture, art.backdropBounds, 8);
-  put(art.texture, art.bounds);
+  updateWater(true);
+  if (art.backdropTexture) put(art.backdropWaterCycle.levels[0], art.backdropBounds, 8,art.backdropWaterCycle.levels);
+  put(art.waterCycle.levels[0], art.bounds,density,art.waterCycle.levels);
   put(art.roadTexture, art.borderBounds);
   const textures = pixelSpriteTextures(density), reliefTextures = reliefSpriteTextures(art, state.flipX, state.flipY);
   const origin = point({ x: art.bounds.minX, y: art.bounds.minY });
@@ -755,16 +780,20 @@ function render() {
   } else { const label = text(root, VARIANTS[state.variant], 1470, 1035, 29); label.anchor.set(.5); }
   button('Next map view', 1826, 1008, 100, 52, () => cycle(1), { copy: '→', size: 35 });
   text(root, `${map.matchingBorders}/${map.sharedBorders} borders share a biome · ${map.clusteringStudy.groups} groups`, 520, 1022, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
-  if (state.variant === 'F') button('Toggle hinterland fog', 2010, 1008, 340, 52, () => { state.fog = !state.fog; render(); }, { copy: state.fog ? 'Hinterland fog: On' : 'Hinterland fog: Off', active: state.fog, size: 24 });
+  if (state.variant === 'F') {
+    button('Pause or resume water',1950,1008,210,52,()=>{state.waterMotion=!state.waterMotion;render();},{copy:state.waterMotion?'Water: Playing':'Water: Paused',active:state.waterMotion,size:23});
+    button('Toggle hinterland fog', 2176, 1008, 194, 52, () => { state.fog = !state.fog; render(); }, { copy: state.fog ? 'Fog: On' : 'Fog: Off', active: state.fog, size: 24 });
+  }
   else text(root, 'DISPOSABLE PROTOTYPE', 2010, 1023, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
   updateZoomPresentation(); app.renderer.render(app.stage);
+  scheduleWater();
   sync();
 }
 
 function sync() {
   const url = new URL(location.href);
   for (const [key, value] of Object.entries({ seed: state.seed, clustering: state.clustering, size: state.sizeVariation,
-    islandStyle: state.islandStyle, roughness: state.roughness, features: state.featureSet, variant: state.variant, texel: state.texel, sites: state.sites ? 1 : 0, siteArt: state.siteArt, siteLabels: state.siteLabels ? 1 : 0, actorScale: state.actorScale, smoothZoom: state.smoothZoom ? 1 : 0, detailMode: state.detailMode, fog: state.fog ? 1 : 0, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
+    islandStyle: state.islandStyle, roughness: state.roughness, features: state.featureSet, variant: state.variant, texel: state.texel, sites: state.sites ? 1 : 0, siteArt: state.siteArt, siteLabels: state.siteLabels ? 1 : 0, actorScale: state.actorScale, smoothZoom: state.smoothZoom ? 1 : 0, waterMotion:state.waterMotion?1:0, detailMode: state.detailMode, fog: state.fog ? 1 : 0, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
   history.replaceState(null, '', url);
   document.title = `Map v${MAP_VERSION} · Pixi workbench`;
   document.getElementById('status').textContent = `Map v${MAP_VERSION} · Seed ${state.seed} · ${VARIANTS[state.variant]} · 20 regions · quota counts ${Object.values(map.quota).join(' / ')} · ${map.features.map(f => FEATURE_NAMES[f.type]).join(' + ')}`;
@@ -818,6 +847,7 @@ window.mapWorkbench = { version: MAP_VERSION, get state() { return { ...state };
     width: t.width * scale, height: t.height * scale };
 }) }, get camera() { return camera.snapshot(); }, scene: { width: W, height: H, renderer: 'Pixi', regionCount: 20, viewRect },
   get pixelRendering() { return pixelReview() ? currentPixelArt.stats : null; },
+  setWaterPhase(seconds){waterClock.seek(seconds);updateWater(true);app.renderer.render(app.stage);},
   // Read-only inspection of the actual baked planes for palette-phase review.
   // Callers must not mutate these buffers or advance simulation time.
   get waterFields() { return pixelReview() ? { width:currentPixelArt.stats.width,height:currentPixelArt.stats.height,

@@ -1,7 +1,7 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.13** — aerial ocean depth, submerged shelves,
-broken wave groups and differentiated palette-cycle faces/crests/wakes. The version appears under the title inside the
+Current published revision: **Map v1.0.14** — animated water palette cycling with
+pause/resume and smooth colour interpolation. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -35,13 +35,26 @@ whitecaps use an independent 16-step ramp (192–207), with quieter fine ripple 
 Fine foam holes and substrate grain preserve the atlas texture at close zoom.
 Quiet gaps keep the sea depth wash visible; lakes never receive this surf. `surfaceTreatments.surfPhases` reports
 phase coverage and `offshoreCaps` counts offshore foam pixels. Peat pools and river channels remain distinct from both.
-The still frame remains phase zero. `water-style.js` defines independent timed
-ramps and a pure `waterColourAt` phase sampler; depth/sediment never cycle.
+`water-style.js` defines independent timed ramps and a pure `waterColourAt`
+phase sampler with fractional colour interpolation; depth/sediment never cycle.
 The bake retains `waterBodies` and `waterPalette` with the existing base, index
-and strength fields for a subsequent animation test. `waterStudy` reports body
-counts, each island group's dominant environment, ramp speeds and paused phase.
+and strength fields for animation. `waterStudy` reports body counts, each island
+group's dominant environment, ramp speeds, current phase, paused state and update cost.
+`water-animation.js` uploads indices/strength once and a 2 KiB palette each update.
+A GPU pass adds the changing surface colour to the original bake, preserving
+static ground, seabed, shore treatment and softened river colour. GPU colour
+downsampling supplies the zoom pyramid after palette resolution; categorical
+indices are always nearest sampled. Fine terrain and distant backdrop share a
+visual clock capped at 30 updates/second. Hidden tabs, other map views and the
+Water: Paused control suspend it without catch-up. Pausing holds the current frame;
+resuming continues from there. PNG export captures that frame. Animation defaults
+on except under reduced-motion preferences; `waterMotion=0/1` persists the choice.
+Simulation time, RNG, schemas and replay remain untouched.
 `mapWorkbench.waterFields` exposes the actual baked buffers for read-only phase
-inspection; never mutate them. Review multiple `waterColourAt` times before animating.
+inspection; never mutate them. `setWaterPhase(seconds)` seeks the presentation
+clock for forward/backward tests. Pause before seeking for repeatable captures.
+Run `water-animation-check.mjs`, `water-style-check.mjs`, the browser
+`water-animation-check.js` GPU comparison, and `lod-persistence-check.js`.
 Reference study: [NASA's Bahama shelf aerial](https://www.jpl.nasa.gov/images/pia11019-tongue-of-the-ocean-and-grand-bahama-bank/)
 for broad depth/bed forms; [Landsat wave observations](https://science.nasa.gov/earth/earth-observatory/earths-iconic-waves-observed-by-landsat-150261/)
 for grouped swells and coastal refraction; [Ferrari's explanation](https://www.effectgames.com/effect/article-Q_A_with_Mark_J_Ferrari.html)
@@ -815,8 +828,8 @@ phase indices use 128-159 for swell, 160-191 for foam, and 208-239 for small rip
 Static RGB `waterBase` and byte `waterStrength` retain depth/sediment and effect
 amplitude separately from phase. The body-type byte distinguishes ocean, lake,
 river and peat. These CPU planes total six bytes per pixel beyond the index plane; the inspector reports all seven as `waterFieldMiB`.
-Only resolved colour is filtered for zoom. Water is still static: the proposed
-ramps need an actual forward/backward animation review before acceptance.
+Only resolved colour is filtered for zoom. Water cycles through the independent
+ramps with smooth palette interpolation; the Water control pauses/resumes it.
 
 Reference: [Ferrari's explanation](https://www.effectgames.com/effect/article-Q_A_with_Mark_J_Ferrari.html)
 of arranging and masking moving colour bands, and the

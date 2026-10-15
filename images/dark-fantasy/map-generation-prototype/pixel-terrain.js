@@ -1,11 +1,12 @@
 // Disposable Atlas renderer: one world pixel lattice over the approved geography.
-// Geography stays authoritative. No ticker, simulation events or mutable RNG.
+// Geography stays authoritative. Surface palette animation has its own visual clock.
 import { decorationRandom, insidePolygon, canPlacePeak } from './generator.js';
 import { createAtlasArt } from './atlas-art.js';
 import { routeSampleRoads } from './roads.js';
 import { loadComposableArt, composableLibrary } from './composable-art.js';
 import { composeHinterland, paintHinterlandMass } from './hinterland-composition.js';
 import { classifyWaterBodies, extendWaterEnvironment, waterColourAt, WATER_BODY, WATER_RAMPS } from './water-style.js';
+import { createWaterCycle } from './water-animation.js';
 import { composeTerrainLandscape, boneRidgeFits } from './terrain-composition.js';
 import { loadIllustratedArt } from './illustrated-art.js';
 import { releaseZoomArt } from './zoom-art.js';
@@ -138,6 +139,7 @@ export function reliefSpriteTextures(terrain, flipX, flipY) {
   return textures;
 }
 export function destroyPixelTerrain(terrain) {
+  terrain.waterCycle?.destroy();terrain.backdropWaterCycle?.destroy();
   releaseZoomArt([terrain.texture, terrain.borderTexture, terrain.fogTexture, terrain.roadTexture, terrain.backdropTexture]);
   for (const texture of [terrain.texture, terrain.borderTexture, terrain.fogTexture, terrain.roadTexture, terrain.backdropTexture]) texture?.destroy(true);
   for (const cached of terrain.reliefCache?.values() ?? []) { releaseZoomArt(cached.textures.values()); cached.base.destroy(); }
@@ -175,10 +177,11 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   // Fine detail covers the map and a generous hinterland. A cheap distant bake
   // supports unrestricted panning without a giant high-resolution GPU texture.
   const bounds = texel === 2 ? { minX: -1.5, minY: -1.5, maxX: 2.5, maxY: 2.5 } : map.surroundings.bounds;
-  let backdropTexture = null;
+  let backdropTexture = null,backdropWaterCycle=null;
   if (texel === 2) {
     const distant = bakePixelTerrain(map, { texel: 8, sampleBackground, sites: false, islandStyle });
-    backdropTexture = distant.texture; distant.texture = null; destroyPixelTerrain(distant);
+    backdropTexture = distant.texture; distant.texture = null;
+    backdropWaterCycle=distant.waterCycle;distant.waterCycle=null;destroyPixelTerrain(distant);
   }
   const groundBank = ATLAS_GROUND, waterBank = ATLAS_WATER;
   const width = Math.ceil((bounds.maxX - bounds.minX) * 1576 / texel), height = Math.ceil((bounds.maxY - bounds.minY) * 516 / texel);
@@ -590,12 +593,13 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   fogCtx.putImageData(fogImage, 0, 0); const fogTexture = PIXI.Texture.from(fog);
   fogTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR; fogTexture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
 
-  return { settlementPlans, texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, divisionClearance: divisions.clearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, waterBodies, waterPalette:Uint32Array.from(waterBank), geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
+  const waterCycle=createWaterCycle(texture,waterIndices,waterStrength,Uint32Array.from(waterBank),waterBase);
+  return { waterCycle,backdropWaterCycle,settlementPlans, texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, divisionClearance: divisions.clearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, waterBodies, waterPalette:Uint32Array.from(waterBank), geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
     waterStudy:{bodyCounts,islandGroups:islandWater.map(c=>({...c,environment:c.lakePixels>c.oceanPixels?'inland lake':'ocean'})),ramps:WATER_RAMPS,phaseSeconds:0,paused:true},
     hinterland:hinterland.stats, palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', surfaceKit: surfaces.stats(), foundations, wetlands, glyphKinds: new Set(props.map(p => p.kind)).size,
     roads: roads.length, bridges, regionDivisions: divisions.stats, interactions, coastalEffects, terrainComposition: composition.diagnostics, assetLibrary: { biomePieces: composableLibrary.biomePieces, boundaryPieces: composableLibrary.boundaryPieces, sheets: composableLibrary.sheets,
       usablePieces: composableLibrary.cells.filter(c => !Object.keys(c.cutRuns).length).length,
       excludedPieces: composableLibrary.cells.filter(c => Object.keys(c.cutRuns).length).map(c => c.kind) }, surfaceTreatments, illustratedProps: props.filter(p => ART[p.kind].illustrated).length, coastalOutcrops: props.filter(p => p.kind.startsWith('cliff')).length, reliefColouring: 'Source material colours, selective asset grades, alpha-overlap composition', mountainSpines: map.regions.filter(r => r.biome === 'mountains').length + map.features.filter(f => f.type === 'ridge').length, rangeMassifs: props.filter(p => p.range).length,
     fog: 'Separate static cloud overlay; toggle without rebaking', fogTextureMiB: +(Math.ceil(width / 4) * Math.ceil(height / 4) * 4 / 1048576).toFixed(1),
-    textureMiB: +(size * 4 / 1048576).toFixed(1), waterIndexMiB: +(size / 1048576).toFixed(1), waterFieldMiB: +(size * 7 / 1048576).toFixed(1), bakeMs: Math.round(performance.now() - started), animation: 'Still frame zero; separate marine/freshwater ramps and fixed depth ready for phase sampling' } };
+    textureMiB: +(size * 4 / 1048576).toFixed(1), waterIndexMiB: +(size / 1048576).toFixed(1), waterFieldMiB: +(size * 7 / 1048576).toFixed(1), bakeMs: Math.round(performance.now() - started), animation: 'GPU palette cycling; separate marine/freshwater ramps, fixed depth and resolved-colour zoom filtering' } };
 }
