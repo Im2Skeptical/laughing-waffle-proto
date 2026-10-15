@@ -5,6 +5,7 @@ import { createAtlasArt } from './atlas-art.js';
 import { routeSampleRoads } from './roads.js';
 import { loadComposableArt, composableLibrary } from './composable-art.js';
 import { composeHinterland, paintHinterlandMass } from './hinterland-composition.js';
+import { classifyWaterBodies, extendWaterEnvironment, waterColourAt, WATER_BODY, WATER_RAMPS } from './water-style.js';
 import { composeTerrainLandscape, boneRidgeFits } from './terrain-composition.js';
 import { loadIllustratedArt } from './illustrated-art.js';
 import { releaseZoomArt } from './zoom-art.js';
@@ -269,8 +270,10 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     colours[i]=mixColour(colours[i],material,inland*.96);
   }
   const waterBase = new Uint32Array(size), waterStrength = new Uint8Array(size);
+  const waterBodies=classifyWaterBodies(land,width,height);
+  extendWaterEnvironment(waterBodies,land,dryDistance,width,height);
   const surfaceTreatments = paintOcean({ map, width, height, texel, bounds, land, waterIndices, colours,
-    regionIds, seaDistance, dryDistance, shoreTypes, waterBank, groundBank, noise, mixColour, waterBase, waterStrength, surfaces });
+    regionIds, seaDistance, dryDistance, shoreTypes, waterBodies, waterBank, groundBank, noise, mixColour, waterBase, waterStrength, surfaces });
   const wetlands = paintWetlandPools({ map, pixel, width, height, detail, regionIds, land, dryDistance,
     colours, waterIndices, waterBase, waterStrength, noise, mixColour, surfaces, protectedCentres: sites ? map.regions.filter(r => r.biome !== 'islands')
       .filter((r, i) => i === 2 || i === 7 || i === 12).map(r => pixel(r.centre)) : [] });
@@ -536,8 +539,18 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   const borderBounds = { minX: bounds.minX + bx * texel / 1576, minY: bounds.minY + by * texel / 516 };
   const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
   const ctx = canvas.getContext('2d'), image = ctx.createImageData(width, height);
+  const islandWater=map.islandClusters.map(c=>({id:c.id,regions:c.regionIds,oceanPixels:0,lakePixels:0}));
+  const clusterForRegion=new Int16Array(map.regions.length).fill(-1);
+  for(const [n,c] of map.islandClusters.entries())for(const id of c.regionIds)clusterForRegion[map.regions.findIndex(r=>r.id===id)]=n;
+  const bodyCounts={ocean:0,lake:0,river:0,peat:0};
   for (let i = 0; i < size; i++) {
-    let c = waterIndices[i] ? (waterBase[i] ? mixColour(waterBase[i], waterBank[waterIndices[i]], waterStrength[i] / 255) : waterBank[waterIndices[i]]) : colours[i];
+    const index=waterIndices[i];
+    waterBodies[i]=!index?0:index>=16&&index<=23?WATER_BODY.river:index>=48&&index<=55&&land[i]?WATER_BODY.peat:waterBodies[i]||WATER_BODY.ocean;
+    if(index){const body=waterBodies[i];bodyCounts[body===1?'ocean':body===2?'lake':body===3?'river':'peat']++;
+      const cluster=regionIds[i]>=0?clusterForRegion[regionIds[i]]:-1;
+      if(cluster>=0&&body<=2)islandWater[cluster][body===1?'oceanPixels':'lakePixels']++;
+    }
+    let c = index ? waterColourAt(index,waterBase[i],waterStrength[i],waterBank,mixColour) : colours[i];
     // Retain the river phase indices while keeping the still-water study from
     // reading as alternating bright stripes at the finer resolution.
     if (waterIndices[i] >= 16 && waterIndices[i] <= 23) c = mixColour(c, 0x68868b, .85);
@@ -545,7 +558,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       ? Math.round(255 * Math.min(1, Math.min(i % width, width - 1 - i % width, Math.floor(i / width), height - 1 - Math.floor(i / width)) / 64)) : 255;
   }
   ctx.putImageData(image, 0, 0);
-  const coastalEffects = { foam: 0, surf: 0, shallowRipples: 0, shoals: 0, swell: 0, fineRipples: 0 };
+  const coastalEffects = { foam: 0, surf: 0, shallowRipples: 0, shoals: 0, swell: 0, fineRipples: 0, lakeRipples:0,lakeGlints:0 };
   for (const index of waterIndices) {
     if (index >= 128 && index <= 159) coastalEffects.swell++;
     else if (index >= 160 && index <= 191) coastalEffects.surf++;
@@ -554,6 +567,8 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     else if (index >= 40 && index <= 47) coastalEffects.surf++;
     else if (index >= 48 && index <= 55) coastalEffects.shallowRipples++;
     else if (index >= 96 && index <= 111) coastalEffects.shoals++;
+    else if (index >=112 && index<=127)coastalEffects.lakeRipples++;
+    else if (index>=240)coastalEffects.lakeGlints++;
   }
   const texture = PIXI.Texture.from(canvas); texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST; texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
   const fog = document.createElement('canvas'); fog.width = Math.ceil(width / 4); fog.height = Math.ceil(height / 4);
@@ -574,11 +589,12 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   fogCtx.putImageData(fogImage, 0, 0); const fogTexture = PIXI.Texture.from(fog);
   fogTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR; fogTexture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
 
-  return { settlementPlans, texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, divisionClearance: divisions.clearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
+  return { settlementPlans, texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, divisionClearance: divisions.clearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, waterBodies, waterPalette:Uint32Array.from(waterBank), geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
+    waterStudy:{bodyCounts,islandGroups:islandWater.map(c=>({...c,environment:c.lakePixels>c.oceanPixels?'inland lake':'ocean'})),ramps:WATER_RAMPS,phaseSeconds:0,paused:true},
     hinterland:hinterland.stats, palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', surfaceKit: surfaces.stats(), foundations, wetlands, glyphKinds: new Set(props.map(p => p.kind)).size,
     roads: roads.length, bridges, regionDivisions: divisions.stats, interactions, coastalEffects, terrainComposition: composition.diagnostics, assetLibrary: { biomePieces: composableLibrary.biomePieces, boundaryPieces: composableLibrary.boundaryPieces, sheets: composableLibrary.sheets,
       usablePieces: composableLibrary.cells.filter(c => !Object.keys(c.cutRuns).length).length,
       excludedPieces: composableLibrary.cells.filter(c => Object.keys(c.cutRuns).length).map(c => c.kind) }, surfaceTreatments, illustratedProps: props.filter(p => ART[p.kind].illustrated).length, coastalOutcrops: props.filter(p => p.kind.startsWith('cliff')).length, reliefColouring: 'Source material colours, selective asset grades, alpha-overlap composition', mountainSpines: map.regions.filter(r => r.biome === 'mountains').length + map.features.filter(f => f.type === 'ridge').length, rangeMassifs: props.filter(p => p.range).length,
     fog: 'Separate static cloud overlay; toggle without rebaking', fogTextureMiB: +(Math.ceil(width / 4) * Math.ceil(height / 4) * 4 / 1048576).toFixed(1),
-    textureMiB: +(size * 4 / 1048576).toFixed(1), waterIndexMiB: +(size / 1048576).toFixed(1), waterFieldMiB: +(size * 6 / 1048576).toFixed(1), bakeMs: Math.round(performance.now() - started), animation: 'Still water; independent index ranges retained' } };
+    textureMiB: +(size * 4 / 1048576).toFixed(1), waterIndexMiB: +(size / 1048576).toFixed(1), waterFieldMiB: +(size * 7 / 1048576).toFixed(1), bakeMs: Math.round(performance.now() - started), animation: 'Still frame zero; separate marine/freshwater ramps and fixed depth ready for phase sampling' } };
 }

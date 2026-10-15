@@ -1,5 +1,6 @@
 // Disposable material study. These fields decorate the canonical world once.
 // Cycle indices describe coherent bands; geometry and random samples never depend on zoom.
+import { WATER_BODY } from './water-style.js';
 export const SHORE_TREATMENTS = {
   plains: { bank: 0x78664a, sediment: 0xc5b78c, road: [0xa28d65, 0xc3b18a], beach: 14, exposure: .9 },
   forest: { bank: 0x424936, sediment: 0x92956a, road: [0x6b6446, 0xa49b70], beach: 5, exposure: .6 },
@@ -13,17 +14,22 @@ const fract = x => x - Math.floor(x);
 const clamp = x => Math.max(0, Math.min(1, x));
 
 export function paintOcean({ map, width, height, texel, bounds, land, waterIndices, colours,
-  regionIds, seaDistance, dryDistance, shoreTypes, waterBank, groundBank, noise, mixColour, waterBase, waterStrength, surfaces }) {
+  regionIds, seaDistance, dryDistance, shoreTypes, waterBodies, waterBank, groundBank, noise, mixColour, waterBase, waterStrength, surfaces }) {
   // Dedicated cyclic ramps: offshore swell, lace foam and sheltered tidal water.
   // Ramp phase is encoded spatially; this is still frame zero, not animation.
   for (let n = 0; n < 32; n++) {
     const t = n / 32, crest = Math.pow(Math.max(0, Math.cos(t * Math.PI * 2)), 5);
-    waterBank[128 + n] = mixColour(0x294d59, 0x769e9e, crest * .8 + .08);
-    waterBank[208 + n] = mixColour(0x365a65, 0x729799, crest * .8 + .08);
-    waterBank[160 + n] = mixColour(0x487c83, 0xd2ddc8, Math.pow(Math.max(0, Math.sin(t * Math.PI)), .6));
+    waterBank[128 + n] = mixColour(0x355560, 0x829d9b, crest * .65 + .06);
+    waterBank[208 + n] = mixColour(0x405f68, 0x7a9693, crest * .65 + .06);
+    waterBank[160 + n] = mixColour(0x527c80, 0xc1cdb9, Math.pow(Math.max(0, Math.sin(t * Math.PI)), .8));
   }
-  for (let n = 0; n < 16; n++) waterBank[192 + n] = mixColour(0x455d58, 0x8b9f86, n / 15);
-  const stats = { exposedSurf: 0, shelteredWater: 0, swell: 0, beaches: 0, ecotones: 0, riverMargins: 0 };
+  for (let n = 0; n < 16; n++) {
+    waterBank[192 + n] = mixColour(0x455d58, 0x8b9f86, n / 15);
+    const crest=Math.pow(Math.max(0,Math.cos(n/16*Math.PI*2)),4);
+    waterBank[112+n]=mixColour(0x3c535f,0x8a9a96,crest*.6);
+    waterBank[240+n]=mixColour(0x4e6867,0x939f8c,crest*.65);
+  }
+  const stats = { exposedSurf: 0, shelteredWater: 0, swell: 0, beaches: 0, ecotones: 0, riverMargins: 0, oceanPixels:0,lakePixels:0,lakeRipples:0,lakeMargins:0 };
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
     const i = y * width + x;
     const wx = (bounds.minX * 1576 + x * texel) / 2, wy = (bounds.minY * 516 + y * texel) / 2;
@@ -32,6 +38,21 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
     const grain = fract(Math.sin(wx * 12.9898 + wy * 78.233 + map.seed) * 43758.5453);
     if (!land[i]) {
       const distance = seaDistance[i] / 3 * texel / 2;
+      if(waterBodies[i]===WATER_BODY.lake) {
+        const shallow=Math.exp(-distance/11),silt=noise(map.seed^17233,wx,wy,23);
+        const ripple=fract((wy+Math.sin(wx/41)*2)/12+noise(map.seed^6197,wx,wy,37)*.35);
+        const packet=noise(map.seed^8729,wx*.45,wy*1.6,13);
+        const glint=distance<3.5&&lace>.58;
+        const index=glint?240+Math.floor(ripple*16):112+Math.floor(ripple*16);
+        let base=mixColour(0x354957,0x62736b,clamp(shallow*.72+broad*.14));
+        if(distance<12)base=mixColour(base,0x747963,shallow*silt*.2);
+        const strength=(glint?.22:packet>.55?.25: .025)*( .7+lace*.3);
+        waterIndices[i]=index;waterBase[i]=base;waterStrength[i]=Math.round(strength*255);
+        colours[i]=mixColour(base,waterBank[index],strength);
+        stats.lakePixels++;if(packet>.55)stats.lakeRipples++;if(glint)stats.lakeMargins++;
+        continue;
+      }
+      stats.oceanPixels++;
       // Long swells bend and fracture, with smaller oblique ripples superposed.
       const bend = Math.sin(wx / 39 + broad * 5) * 4 + Math.sin(wx / 117) * 7 + noise(map.seed ^ 713, wx, wy, 27) * 12;
       const swell = fract((wy + wx * .14 + bend + broad * 9) / 17 + noise(map.seed ^ 179, wx, wy * .4, 31) * 1.6);
@@ -53,8 +74,8 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
       else if (distance < 25 && (chop < .2 || lace > .68)) index = 96 + Math.floor(clamp(shoal * .55 + broad * .3 + chop * .1) * 15);
       else {
         // Quiet gaps preserve the broad depth wash between ripple packets.
-        const packet = lace > .34;
-        index = fine > .54 ? 208 + Math.floor(chop * 32) : packet ? 128 + Math.floor(swell * 32) : 64 + Math.floor(clamp(.12 + broad * .34 + shoal * .43 + grain * .035) * 31);
+        const packet = lace > .46;
+        index = fine > .64 ? 208 + Math.floor(chop * 32) : packet ? 128 + Math.floor(swell * 32) : 64 + Math.floor(clamp(.12 + broad * .34 + shoal * .43 + grain * .035) * 31);
         if (packet) stats.swell++;
       }
       waterIndices[i] = index;
@@ -67,7 +88,7 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
         waterBase[i] = mixColour(waterBase[i], substrate, Math.exp(-distance / 9) * .52);
       }
       if (material === 'swamp') waterBase[i] = mixColour(waterBase[i], 0x74657b, Math.exp(-distance / 11) * .7);
-      const strength = index >= 160 && index < 192 ? .2 + lace * .65
+      const strength = index >= 160 && index < 192 ? .18 + lace * .44
         : index >= 208 ? clamp((fine - .5) * 2) * .7
         : index >= 128 && index < 160 ? clamp((lace - .35) * 2.8) * (.18 + broad * .45)
           : index >= 192 ? .28 : .25;
@@ -77,6 +98,15 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
       const region = map.regions[regionIds[i]], bank = SHORE_TREATMENTS[region?.biome];
       if (!bank) continue;
       const d = dryDistance[i] / 3 * texel / 2;
+      if(waterBodies[i]===WATER_BODY.lake) {
+        if(d<5+lace*3){
+          const wet=d<1.8,colour=wet?0x4e5d52:mixColour(bank.bank,0x7b8064,.48);
+          colours[i]=mixColour(colours[i],colour,(wet?.66:.3)*clamp(1-d/9));
+          if(d>1&&d<5&&lace>.65&&grain>.72)colours[i]=mixColour(colours[i],0x5d6a48,.3);
+          stats.lakeMargins++;
+        }
+        continue;
+      }
       const fringe = bank.beach * (.55 + broad * .7);
       if (d < fringe) {
         const wet = d < 2.5 + lace * 2;

@@ -1,11 +1,28 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.10** — softer hinterland values, broader foothill
-masses and continuous textured scree beneath the mountain barriers. The version appears under the title inside the
+Current published revision: **Map v1.0.11** — distinct inland-lake and marine island waters,
+calmer water graphics and separated animation-test ramps. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
 revision note, and report that version to the user.
+
+### Inland and ocean island waters
+
+Water connectivity is classified from the canonical dry mask. Water connected to
+an outer bake edge is marine; enclosed basins are freshwater, including island
+channels on the inland side of the map. Actual sea inlets keep marine graphics.
+Lakes use blue-grey depth, muted green/silt banks, sparse reflection ripples and
+small shoreline glints. They have no ocean swell, white surf or broad sea beach.
+Ocean ripple packets are quieter, with restrained broken surf over a fixed depth
+wash. Peat pools and river channels remain distinct from both.
+The still frame remains phase zero. `water-style.js` defines independent timed
+ramps and a pure `waterColourAt` phase sampler; depth/sediment never cycle.
+The bake retains `waterBodies` and `waterPalette` with the existing base, index
+and strength fields for a subsequent animation test. `waterStudy` reports body
+counts, each island group's dominant environment, ramp speeds and paused phase.
+Water fields now use seven bytes per pixel. Run `water-style-check.mjs`, normal
+terrain/settlement checks and LOD persistence; inspect seeds 1869 and 1865.
 
 ### Unplayable hinterland
 
@@ -769,8 +786,8 @@ The sea now combines directional warped swells, smaller oblique ripple packets,
 localized breaking surf, quiet depth washes and sheltered coastal water. Dedicated
 phase indices use 128-159 for swell, 160-191 for foam, and 208-239 for small ripples.
 Static RGB `waterBase` and byte `waterStrength` retain depth/sediment and effect
-amplitude separately from phase. These additional CPU planes total five bytes per
-pixel beyond the index plane; the inspector reports all six as `waterFieldMiB`.
+amplitude separately from phase. The body-type byte distinguishes ocean, lake,
+river and peat. These CPU planes total six bytes per pixel beyond the index plane; the inspector reports all seven as `waterFieldMiB`.
 Only resolved colour is filtered for zoom. Water is still static: the proposed
 ramps need an actual forward/backward animation review before acceptance.
 
