@@ -269,7 +269,6 @@ controller.subscribe(render); render();
 function startGameScreen() {
 try {
   gameScreen = createOpeningGameScreen({ host: $('game-screen'), controller,
-    onCampaign:()=>run(()=>{guide=null;controller.previewCampaign(campaignInputs);gameScreen?.openDecision();}),
     onError: message => { error = message; render(); },
     onEdit: id => { if (id) selectedId = id; editorKey = ''; render(); $('graph-editor').scrollIntoView({ block: 'start', behavior: 'smooth' }); },
   });
