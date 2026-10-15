@@ -363,15 +363,6 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     if (kind && !region) kind = `ash-${kind}`;
     if (kind) candidates.push({ kind, point: p, salt, background: !region, plainsOnly: region?.biome === 'plains' && kind.startsWith('hill') });
   }
-  // Cliffs belong to rocky coast sections, placed back from the water so their
-  // complete illustrated footprint can fit land; compact outcrops fill gaps.
-  for (let y = 6; y < height - 6; y += 5 * detail) for (let x = 6; x < width - 6; x += 5 * detail) {
-    const i = y * width + x, region = map.regions[regionIds[i]];
-    if (!region || region.biome === 'islands' || !land[i] || dryDistance[i] < 18 || dryDistance[i] > 36) continue;
-    if (region.biome !== 'mountains' && noise(map.seed ^ 1471, x, y, 32) < .58) continue;
-    const salt = Math.imul(x, 9371) ^ Math.imul(y, 3989);
-    if (decorationRandom(map.seed, salt) < .24) candidates.push({ kind: `cliff${salt & 1}`, point: world(x, y), salt, background: false, allowedBiomes: [region.biome] });
-  }
   const fitsLand = prop => {
     const art = ART[prop.kind], p = pixel(prop.point), w = Math.max(...art.rows.map(r => r.length));
     const left = Math.round(p.x - w / 2), top = Math.round(p.y - art.rows.length);
@@ -475,12 +466,13 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       art: ART[`terrain-bridge-${(n + bridges + map.seed) % 8}`], context: roadCtx, origin: { x: bx, y: by } });
   }
   // Replace playable scatter with connected terrain compositions. Existing
-  // background engraving and coastal accents remain; towns keep their anchors.
+  // background engraving remains; towns keep their anchors. Playable coasts
+  // use terrain profiles rather than isolated legacy cliff/rock stamps.
   const composition = composeTerrainLandscape({ map, art: ART, pixel, world, detail,
     // Road corridors stencil individual pixels in reliefSpriteTextures; they
     // create passes instead of rejecting an entire connecting landscape piece.
     legal: fitsLand });
-  const retained = props.filter(prop => prop.background || prop.kind.startsWith('ruin') || prop.kind.startsWith('cliff'));
+  const retained = props.filter(prop => prop.background || prop.kind.startsWith('ruin'));
   props.splice(0, props.length, ...retained, ...composition.props);
   const foundations = paintTerrainFoundations({ props, art: ART, pixel, surfaces, materialAt, land, waterIndices,
     colours, width, height, detail, noise, seed: map.seed, mixColour });

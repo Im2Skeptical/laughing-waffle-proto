@@ -1,5 +1,14 @@
 # Map generation Pixi workbench (disposable prototype)
 
+### Legacy cliff removal checkpoint
+
+The separate playable-coast scatter pass for `cliff0` and `cliff1` is removed.
+This removes the repeated yellow grass-topped cliffs and companion rock stamps
+from mountains and swamps. Existing coastline profiles, connected terrain art,
+background engraving and settlement rendering are unchanged. Inspect seed 1867;
+`mapWorkbench.pixelRendering.coastalOutcrops` should be zero. Settlement-system
+changes are deferred until this landscape checkpoint receives confirmation.
+
 ### Distant settlements and biome outskirts
 
 Landmarks default to 75% (87 world units wide). Ten new town paintings provide
