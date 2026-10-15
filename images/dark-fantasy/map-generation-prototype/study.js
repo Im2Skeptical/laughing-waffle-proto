@@ -9,7 +9,7 @@ import { createWheelZoom } from './wheel-zoom.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
-const MAP_VERSION = '1.0.1';
+const MAP_VERSION = '1.0.2';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
@@ -623,11 +623,11 @@ function drawAtlasSites() {
     const colour = site.kind === 'player' ? 0xe4c271 : site.kind === 'neutral' ? 0x8ed7cf : 0xe08b76;
     const biome = map.regions.find(r => r.id === site.regionId)?.biome ?? 'plains';
     if (site.plan) {
-      const ground = new PIXI.Container(), badge = new PIXI.Graphics();
+      const ground = new PIXI.Container();
       const label = text(group, site.kind === 'player' ? 'SETTLEMENT' : 'MARKET', 0, site.plan.ry * 2 + 10, 18, colour,
         { fontFamily: 'Arial, sans-serif', stroke: 0x131b1b, strokeThickness: 4 }); label.anchor.set(.5, 0); label.visible = state.siteLabels;
-      group.addChild(ground, badge);
-      landmarkNodes.push({ site, meshes: [], label, ground, badge, width, biome, outskirts: 0, buildings: site.plan.buildings.length, biomeArt: true });
+      group.addChild(ground);
+      landmarkNodes.push({ site, meshes: [], label, ground, width, biome, outskirts: 0, buildings: site.plan.buildings.length, biomeArt: true });
       worldLayer.addChild(group); continue;
     }
     const dry = (x, y) => {
@@ -653,8 +653,7 @@ function drawAtlasSites() {
     });
     const label = text(group, site.kind === 'player' ? 'SETTLEMENT' : site.kind === 'neutral' ? 'MARKET' : 'MONSTER', 0, 22, 18, colour,
       { fontFamily: 'Arial, sans-serif', stroke: 0x131b1b, strokeThickness: 4 }); label.anchor.set(.5, 0); label.visible = state.siteLabels;
-    const badge = new PIXI.Graphics(); group.addChild(badge);
-    landmarkNodes.push({ site, meshes, label, ground, badge, width, textures, biome, outskirts, biomeArt: false }); worldLayer.addChild(group);
+    landmarkNodes.push({ site, meshes, label, ground, width, textures, biome, outskirts, biomeArt: false }); worldLayer.addChild(group);
   }
 }
 
@@ -684,10 +683,6 @@ function updateZoomPresentation() {
     const dominant = weights.indexOf(Math.max(...weights)); tiers[['close', 'regional', 'overview'][dominant]]++;
     item.ground.alpha = item.biomeArt ? 1 : 1 - overview; item.label.alpha = smoothRange(30, 42, projected); item.label.visible = state.siteLabels;
     item.label.scale.set(Math.max(8 / (18 * screenScale), Math.min(1, 14 / (18 * screenScale))));
-    item.badge.clear(); item.badge.alpha = item.biomeArt ? 1 - close : overview;
-    const colour = item.site.kind === 'player' ? 0xe4c271 : item.site.kind === 'neutral' ? 0x8ed7cf : 0xe08b76;
-    const width = item.biomeArt ? 20 / screenScale : item.meshes[2].width;
-    item.badge.lineStyle(1 / screenScale, colour, .8).moveTo(-width * .3, 10).lineTo(width * .3, 10);
   }
   const pose = camera.snapshot(); let visibleMeshes = 0;
   for (const node of zoomNodes) {

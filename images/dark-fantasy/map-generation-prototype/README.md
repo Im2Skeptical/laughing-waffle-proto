@@ -1,7 +1,7 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.1** — softened forest asset contrast and
-visible version identification. The version appears under the title inside the
+Current published revision: **Map v1.0.2** — removed overview landmark underline
+bars from settlements, neutral towns and monster hubs. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
