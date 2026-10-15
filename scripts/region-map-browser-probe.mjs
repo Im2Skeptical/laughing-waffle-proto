@@ -3,6 +3,8 @@ import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright';
+import { DEBUG_PROFILE_LIBRARY_SCHEMA_VERSION, DEBUG_PROFILE_LIBRARY_STORAGE_KEY, validateDebugProfile } from '../src/model/debug-profile-library.js';
+import { NEW_GAME_DEV_SETTINGS_KEY } from '../src/controllers/new-game-settings-controller.js';
 import { BROWSER_PROBE_LAUNCH_OPTIONS } from './browser-probe-config.mjs';
 import { createAuthoredMapLabDraft, updateMapLabRegion } from '../src/model/map-lab-draft.js';
 import { createAuthoredGameSettingsDraft, createAuthoredGamepiecesDraft } from '../src/model/game-config.js';
@@ -11,7 +13,7 @@ import { getSettlementStockTagLayout } from '../src/views/world-map/stock-tags.j
 
 const output='artifacts/region-map', port=18096;
 mkdirSync(output,{recursive:true});
-const profile={mapLab:createAuthoredMapLabDraft(),gameSettings:createAuthoredGameSettingsDraft(),gamepieces:createAuthoredGamepiecesDraft(),lifeMapLab:createAuthoredLifeMapLabDraft(),vassalLab:null,activePage:'mapLab'};
+const profile={mapLab:createAuthoredMapLabDraft(),gameSettings:createAuthoredGameSettingsDraft(),gamepieces:createAuthoredGamepiecesDraft(),lifeMapLab:createAuthoredLifeMapLabDraft(),launch:{startMode:'authoredMap',neutralSettlements:false},activePage:'mapLab'};
 // Camera/inspection checks need their settlement target to survive the reveal.
 profile.gameSettings.values.primordialBasePressure=0;
 profile.gameSettings.values.primordialGrowthFactor=1;
@@ -36,6 +38,7 @@ cedar.detailedState.structureSlots=cedar.detailedState.structureSlots.slice(0,5)
 // Show all three Stock roles in the real map renderer.
 cedar.detailedState.practiceSlots=['forage','logging','smelting','housebuilding','barter']
   .map(practiceId=>({practiceId,tier:'bronze',stock:0,charge:0,work:0}));
+assert.equal(validateDebugProfile(profile).ok,true,'region map fixture follows the current launch contract');
 const server=spawn(process.execPath,['./node_modules/serve/bin/serve.js','-l',String(port),'--no-clipboard','dist'],{stdio:'ignore',windowsHide:true});
 let browser,page;
 const errors=[];
@@ -82,14 +85,18 @@ try {
   browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
   page=await browser.newPage({viewport:{width:1280,height:800},hasTouch:true});
   page.on('pageerror',error=>errors.push(error.message));
-  await page.addInitScript(profile=>{
-    localStorage.setItem('civsurvivor.debugProfiles.v2',JSON.stringify({schemaVersion:2,nextId:2,profiles:[{id:'profile-1',name:'Region map probe',profile}]}));
-    localStorage.setItem('civsurvivor.debugProfiles.boot.v2','profile-1');
-  },profile);
+  await page.addInitScript(({profile,schema,key,preferencesKey})=>{
+    localStorage.setItem(key,JSON.stringify({schemaVersion:schema,nextId:2,profiles:[{id:'profile-1',name:'Region map probe',profile}]}));
+    localStorage.setItem(preferencesKey,JSON.stringify({enabled:true,profileId:'profile-1'}));
+  },{profile,schema:DEBUG_PROFILE_LIBRARY_SCHEMA_VERSION,key:DEBUG_PROFILE_LIBRARY_STORAGE_KEY,preferencesKey:NEW_GAME_DEV_SETTINGS_KEY});
   await page.goto(`http://127.0.0.1:${port}`);
-  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__?.enterBootTestRun);
-  await page.waitForFunction(()=>globalThis.PIXI?.Assets.get('images/sprite-sheets/settlement-pieces-0.json')?.textures);
-  await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.enterBootTestRun());
+  await page.getByRole('button',{name:'New game',exact:true}).click();
+  await page.getByRole('button',{name:'Start here',exact:true}).first().click();
+  await page.waitForFunction(()=>document.querySelector('#game-menu')?.hidden===true,null,{timeout:60000});
+  // New Game reveals the future before accepting input; inspect the authored start.
+  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runComplete.open);
+  await click(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getRunCompleteClickPoint('browse')));
+  await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.browseSecond(0));
   await delay(600);
   if(process.argv.includes('--double-tap-only')) {
     await doubleTapFlag();
@@ -97,8 +104,8 @@ try {
   assert.equal((await snap()).detail,false);
   const stockRoles=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.regionMapIndicators
     .find(region=>region.regionId==='cedar-woods').stockTags.map(({trait,outline})=>[trait,outline]));
-  assert.deepEqual(stockRoles,[['Construction',null],['Currency','green'],['Edible',null],['Fuel','green'],
-    ['Metal','green'],['Timber','green'],['Tool','red'],['Wild','green']], 'real installed recipes show local use, nonlocal production, and unsourced demand');
+  assert.deepEqual(stockRoles,[['Construction',null],['Currency','green'],['Edible',null],
+    ['Metal','green'],['Timber','green'],['Tool','red']], 'real installed recipes show local use, nonlocal production, and unsourced demand');
   await capture('desktop-map');
   const stockAnchor=await regionPoint();
   const stockPoint=getSettlementStockTagLayout(stockRoles.map(([trait])=>({trait})),stockAnchor).find(tag=>tag.trait==='Tool');
@@ -203,7 +210,12 @@ try {
   assert.ok((await snap()).camera.zoom>1,'wheel zooms');
   await click({x:2340,y:780});
   assert.deepEqual((await snap()).camera,{zoom:1,x:0,y:0},'reset restores fit');
-  await page.setViewportSize({width:844,height:390});await delay(300);
+  // Touch New Game requests fullscreen; leave it before resizing the test window.
+  await page.evaluate(async()=>{if(document.fullscreenElement)await document.exitFullscreen();});
+  await page.setViewportSize({width:844,height:390});
+  // Leaving fullscreen pauses touch sessions in the menu. Resume at the new size.
+  await page.getByTestId('game-continue').click();
+  await page.getByTestId('game-menu').waitFor({state:'hidden'});await delay(300);
   await capture('mobile-map');
   await click(await regionPoint(),true);
   assert.equal((await snap()).detail,true,'touch selects');

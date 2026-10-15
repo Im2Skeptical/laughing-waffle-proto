@@ -3,6 +3,7 @@ import { createServer } from 'node:http';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { PANEL } from '../src/views/vassal-node-decision/constants.js';
 import { BROWSER_PROBE_LAUNCH_OPTIONS } from './browser-probe-config.mjs';
 
 const prefix = '/laughing-waffle-proto/', port = 18894;
@@ -137,12 +138,27 @@ try {
     await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.worldDecision.open);
     const world=()=>page.evaluate(()=>openingWorkbench.getSnapshot().game.worldDecision);
     assert.equal((await world()).regionCount,15,'whole world is represented');
+    assert.deepEqual((await world()).panel,PANEL,'World Decision uses the shared node-modal body');
+    const checkFocus=async mode=>{
+      const view=await world();
+      const expected=[...new Set([view.locationRegionId,...view.targets.filter(t=>!t.blocked).map(t=>t.regionId)].filter(Boolean))];
+      assert.deepEqual(view.brightRegionIds,expected,`${mode} highlights only legal destinations and origin`);
+      assert.equal(view.brightRegionIds.length+view.dimmedRegionIds.length,view.regionCount,`${mode} dims every other region`);
+      assert.ok(view.dimmedRegionIds.length>0);
+      const before=view.selectedOptionId;
+      await openingClick('worldTarget',view.dimmedRegionIds[0]);
+      assert.equal((await world()).selectedOptionId,before,`${mode} ignores unavailable destinations`);
+      const body=view.mapBody;
+      assert.ok(body.x>=PANEL.x&&body.y>=PANEL.y&&body.x+body.width<=PANEL.x+PANEL.width&&body.y+body.height<=PANEL.y+PANEL.height);
+      await page.screenshot({path:`artifacts/prototype-world-decision-${mode}.png`});
+    };
     const before=await page.evaluate(()=>openingWorkbench.getSnapshot().summary);
     await openingClick('worldMode','move');const move=(await world()).targets.find(t=>!t.blocked);assert.ok(move);
-    await openingClick('worldTarget',move.regionId);assert.equal((await world()).selectedOptionId,move.id);
+    await openingClick('worldTarget',move.regionId);assert.equal((await world()).selectedOptionId,move.id);await checkFocus('move');
     await openingClick('worldMode','build');const build=(await world()).targets.find(t=>!t.blocked);assert.ok(build);
-    await openingClick('worldTarget',build.regionId);assert.equal((await world()).selectedOptionId,build.id);
+    await openingClick('worldTarget',build.regionId);assert.equal((await world()).selectedOptionId,build.id);await checkFocus('build');
     await openingClick('worldMode','tour');assert.equal((await world()).selectedOptionId,'tour');
+    await checkFocus('tour');assert.deepEqual((await world()).brightRegionIds,[(await world()).locationRegionId]);
     assert.deepEqual(await page.evaluate(()=>openingWorkbench.getSnapshot().summary),before,'map previews apply no world changes');
     await page.screenshot({path:'artifacts/prototype-world-decision.png'});
     await openingClick('confirm');
@@ -177,7 +193,15 @@ try {
     const previous=page,mobile=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});page=await mobile.newPage();
     try{await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`);await ready();await page.locator('#edit-node').selectOption('explore');await page.locator('#preview-node').tap();
       await page.locator('#game-screen .dev-preview-fullscreen').tap();await page.waitForFunction(()=>document.querySelector('#game-screen').classList.contains('dev-preview-expanded'));
-      await openingClick('worldMode','tour',true);assert.equal((await world()).selectedOptionId,'tour');await openingClick('confirm',0,true);
+      for(const mode of ['move','build']) {
+        await openingClick('worldMode',mode,true);
+        const choice=(await world()).targets.find(t=>!t.blocked);assert.ok(choice);
+        await openingClick('worldTarget',choice.regionId,true);
+        assert.equal((await world()).selectedOptionId,choice.id,`${mode} map selection works in the phone modal`);
+      }
+      await openingClick('worldMode','tour',true);assert.equal((await world()).selectedOptionId,'tour');
+      assert.deepEqual((await world()).brightRegionIds,[(await world()).locationRegionId]);
+      await page.screenshot({path:'artifacts/prototype-world-decision-phone.png'});await openingClick('confirm',0,true);
       await page.waitForFunction(()=>openingWorkbench.getSnapshot().visitedIds.includes('explore')||openingWorkbench.getSnapshot().game.modal.family==='relic');
       if(await page.evaluate(()=>openingWorkbench.getSnapshot().activeId==='explore'))await openingClick('acquire','carry',true);
       await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().visitedIds.includes('explore'));

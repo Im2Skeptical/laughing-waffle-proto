@@ -41,7 +41,10 @@ simulation second, including during rewind; they do not move Stock themselves.
 
 `createWorldMapView` accepts optional `getDisplayOptions` for the Development Lab's
 terrain/scenery/connections/workers/structures/actors/alerts toggles. Omitted flags
-retain normal game rendering. These flags affect presentation only.
+retain normal game rendering. `choiceRegionIds` optionally keeps those regions
+bright and desaturates/darkens other terrain, borders, labels, landmarks and roads.
+`chrome: false` omits civilization panels while retaining camera controls for an
+embedded map. These options affect presentation only; callers own legal actions.
 
 ## Map disclosure and camera
 

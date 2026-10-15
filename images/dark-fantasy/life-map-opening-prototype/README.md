@@ -82,7 +82,14 @@ disposable state, with the current seed and authored content. It does not change
 the draft or require playing through the preceding nodes. Rewind returns to that
 preview's entry; Restart resumes the complete authored opening.
 
-World Decision uses the complete game map. Move highlights reachable destinations;
+World Decision uses the shared node-modal body, title plaque, backdrop and Confirm
+dock, leaving the usual surrounding game screen visible. The complete map fits
+beside three options; pan, wheel/pinch zoom and Reset remain available. Unavailable
+regions, landmarks, labels and roads are greyed and darkened in every mode. The
+current region remains bright as the origin; Tour highlights only that region.
+Unavailable destinations do not select an action.
+
+Move highlights reachable destinations;
 Build highlights legal connections and draws the proposed road; Tour keeps the
 Vassal in the current region. Confirming Tour rolls a weighted reward: by default
 25% an unowned Bronze relic, otherwise +1 to a random ability. The reward has no

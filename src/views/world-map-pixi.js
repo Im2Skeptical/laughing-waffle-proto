@@ -240,6 +240,9 @@ export function createWorldMapView({
   const viewport = new PIXI.Container();
   const world = new PIXI.Container();
   const mapContent = new PIXI.Container();
+  const unavailableFilter = new PIXI.filters.ColorMatrixFilter();
+  unavailableFilter.desaturate();
+  unavailableFilter.brightness(.38, true);
   const clip = new PIXI.Graphics().beginFill(0xffffff)
     .drawRect(MAP_VIEWPORT_RECT.x, MAP_VIEWPORT_RECT.y, MAP_VIEWPORT_RECT.width, MAP_VIEWPORT_RECT.height).endFill();
   viewport.addChild(world);
@@ -515,6 +518,12 @@ export function createWorldMapView({
     );
     const regionMapIndicators = buildRegionMapIndicators(state, definition);
     const display = getDisplayOptions?.() ?? {};
+    // Optional choice presentation. Omitted in normal gameplay; affects no rules.
+    const choiceRegionIds = display.choiceRegionIds == null ? null : new Set(display.choiceRegionIds);
+    const presentRegion = (container, regionId) => {
+      if (choiceRegionIds && !choiceRegionIds.has(regionId)) container.filters = [unavailableFilter];
+      return container;
+    };
     const vassalHighlight = getVassalHighlight?.() ?? null;
     const nextSignature = JSON.stringify(display) + getArtRevision() + signature(
       state,
@@ -618,12 +627,12 @@ export function createWorldMapView({
         shape.beginFill(0x071216, .36).drawPolygon(points).endFill();
       }
       shape.eventMode = 'none';
-      territoryBorders.push({points, player:region.controller==='player' && !region.monster,
+      territoryBorders.push({points, regionId:region.id, player:region.controller==='player' && !region.monster,
         monster:!!region.monster, selected, highlighted, relationship, relationshipStyle:getRelationshipStyle(mapIndicator), controller:region.controller});
       const hit = new PIXI.Container();
       hit.hitArea = new PIXI.Polygon(points);
       hit.eventMode = "static";
-      hit.cursor = "pointer";
+      hit.cursor = !choiceRegionIds || choiceRegionIds.has(region.id) ? 'pointer' : 'default';
       if (display.terrain !== false) addRegionTerrain(hit, points, region.colour, region.controller === "player" ? 1 : .74);
       hit.addChild(shape);
       if (region.monster && display.actors !== false) addMonsterGround(hit, points);
@@ -651,11 +660,11 @@ export function createWorldMapView({
         }, hit.getBounds(), { dismissOnExit: true });
       });
       hit.on("pointerout", () => tooltipView?.hide?.());
-      mapContent.addChild(hit);
+      mapContent.addChild(presentRegion(hit, region.id));
     }
 
-    const edges = new PIXI.Graphics();
     for (const edge of state.world.connections) {
+      const edges = new PIXI.Graphics();
       const a = definition.regions.find((entry) => entry.id === edge.regionAId);
       const b = definition.regions.find((entry) => entry.id === edge.regionBId);
       const from = screenPoint(a.display.labelPoint);
@@ -673,15 +682,18 @@ export function createWorldMapView({
           drawRelationshipLine(edges, from, to, style);
         }
       }
+      edges.eventMode = 'none';
+      edges.visible = display.connections !== false;
+      if (choiceRegionIds && (!choiceRegionIds.has(a.id) || !choiceRegionIds.has(b.id))) edges.filters = [unavailableFilter];
+      mapContent.addChild(edges);
     }
-    edges.eventMode = "none";
-    edges.visible = display.connections !== false;
-    mapContent.addChild(edges);
     // Draw borders after every terrain polygon and road, with selection last.
     // Neighboring terrain must not erase the important side of a shared edge.
     const borderPriority = territory => territory.selected ? 5 : territory.relationship === 'connected' ? territory.relationshipStyle.priority : 0;
     for (const territory of territoryBorders.sort((a,b)=>borderPriority(a)-borderPriority(b))) {
-      addTerritoryBorder(mapContent, territory.points, territory);
+      const border = new PIXI.Container();
+      mapContent.addChild(presentRegion(border, territory.regionId));
+      addTerritoryBorder(border, territory.points, territory);
     }
 
     for (const indicator of regionMapIndicators) {
@@ -689,27 +701,29 @@ export function createWorldMapView({
         (entry) => entry.id === indicator.regionId
       );
       if (!regionDef) continue;
+      const regionContent = new PIXI.Container();
+      mapContent.addChild(presentRegion(regionContent, indicator.regionId));
       const point = screenPoint(regionDef.display.labelPoint);
       const stockTagTop = getSettlementStockTagLayout(indicator.stockTags, point)[0]?.y;
-      if (display.actors !== false && (indicator.monster || indicator.neutral)) mapContent.addChild(createText(
+      if (display.actors !== false && (indicator.monster || indicator.neutral)) regionContent.addChild(createText(
         indicator.monster ? `Defense ${indicator.monster.defense}` : 'NEUTRAL',
         {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:NEUTRAL_COLOUR,stroke:0x111713,strokeThickness:4},point.x,indicator.monster?point.y-110:stockTagTop!=null?stockTagTop-26:point.y-88,.5));
-      if (display.actors !== false && indicator.monster) addMonsterMarker(mapContent, point, civilizationSummary.chaos);
+      if (display.actors !== false && indicator.monster) addMonsterMarker(regionContent, point, civilizationSummary.chaos);
       const adornments = new PIXI.Container();
       adornments.position.set(point.x,point.y);
       adornments.scale.set(.75);
       adornments.eventMode = 'none';
-      mapContent.addChild(adornments);
+      regionContent.addChild(adornments);
       if (indicator.hasDetailedSettlement && !indicator.monster) {
-        addSettlementStockTags(mapContent, point, indicator.stockTags, {
+        addSettlementStockTags(regionContent, point, indicator.stockTags, {
           tooltipView, reference: getRegionReference(state, indicator.regionId) ?? indicator.regionId,
         });
         if (display.scenery !== false) {
-          if (indicator.neutral) addNeutralMarketGlyph(mapContent, point);
+          if (indicator.neutral) addNeutralMarketGlyph(regionContent, point);
           else {
-            landmarks.push(addTimelineLandmark(mapContent,{x:point.x-29,y:point.y-76,width:58,height:66},
+            landmarks.push(addTimelineLandmark(regionContent,{x:point.x-29,y:point.y-76,width:58,height:66},
               {startSec:definition.regions.indexOf(regionDef)*.37}));
-            landmarks.push(addTimelineLandmark(mapContent,{x:point.x+29,y:point.y-17,width:20,height:17},
+            landmarks.push(addTimelineLandmark(regionContent,{x:point.x+29,y:point.y-17,width:20,height:17},
               {kind:'fire',startSec:definition.regions.indexOf(regionDef)*.23}));
           }
         }
@@ -735,11 +749,12 @@ export function createWorldMapView({
     for (const regionDef of definition.regions) {
       const point = getRegionReferenceCorner(definition, regionDef)
         ?? screenPoint(regionDef.display.labelPoint);
-      mapContent.addChild(createText(getRegionReference(state, regionDef.id) ?? "R??", {
+      const label = createText(getRegionReference(state, regionDef.id) ?? "R??", {
         ...TEXT_STYLES.chip,
         fontSize: 21,
         fill: PALETTE.text, stroke: 0x111713, strokeThickness: 4,
-      }, point.x, point.y, 0, 0));
+      }, point.x, point.y, 0, 0);
+      mapContent.addChild(presentRegion(label, regionDef.id));
     }
 
     const activeVassal = getCurrentLifeMapVassal(state);
@@ -809,6 +824,8 @@ export function createWorldMapView({
         tooltipView?.hide?.();
         lastSignature = '';
       });
+    // Embedded maps retain camera controls while omitting civilization chrome.
+    if (display.chrome === false) clearChildren(root);
     const controlsX = regionSelectionActive ? DETAIL_RECT.x - 226 : MAP_VIEWPORT_RECT.x + MAP_VIEWPORT_RECT.width - 226;
     const cameraRight = regionSelectionActive ? DETAIL_RECT.x : MAP_VIEWPORT_RECT.x + MAP_VIEWPORT_RECT.width;
     addButton(root, {x: controlsX, y: 756, width: 52, height: 52}, '-', () => camera.zoomBy(1 / 1.2, cameraRight));
@@ -995,6 +1012,7 @@ export function createWorldMapView({
     getPracticeClickPoint: () => null,
     getInstalledPracticeClickPoint: () => null,
     destroy: () => {
+      unavailableFilter.destroy();
       regionPanels.clear();
       stockTransferIcons.clear();
       clearChildren(root);
