@@ -192,6 +192,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
       const panel = new PIXI.Graphics(); roundedRect(panel, 480, 230, 1464, 600, 18, PALETTE.panel, PALETTE.accent, 3); layers.outcome.addChild(panel);
       layers.outcome.addChild(createText(result.title, { ...TEXT_STYLES.header, fontSize: 38 }, 530, 270));
       if(result.reward) layers.outcome.addChild(createText(result.reward.label,{...TEXT_STYLES.body,fontSize:26,fill:PALETTE.accent},530,310));
+      if(result.legacyChoice)layers.outcome.addChild(createText(`${result.legacyChoice.label}${result.legacyChoice.reward?` · ${result.legacyChoice.reward.label}: ${result.legacyChoice.reward.quantity}`:''} · Mockup`,{...TEXT_STYLES.body,fontSize:26,fill:PALETTE.accent},530,310));
       const lines = [['age', 'Age'], ['prestige', 'Prestige'], ['force', 'Force'], ['chaos', 'Chaos'], ['research', 'Research'], ['tSec', 'Elapsed time']];
       lines.forEach(([key, label], index) => layers.outcome.addChild(createText(`${label}: ${result.before[key]} → ${result.after[key]}`, { ...TEXT_STYLES.title, fontSize: 28 }, 530, 345 + index * 52)));
       button(layers.outcome, { x: 1540, y: 720, width: 320, height: 64 }, 'CLOSE OUTCOME', true, () => { outcomeId = null; drawChrome(); });

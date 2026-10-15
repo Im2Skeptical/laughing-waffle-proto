@@ -1,10 +1,15 @@
 // Experimental encounter data. Never read by player New Game or saved runs.
-import { VASSAL_STAT_IDS } from '../../../src/defs/gamepieces/vassal-life-map-defs.js';
+import { VASSAL_STAT_IDS, VASSAL_LIFE_TUNING } from '../../../src/defs/gamepieces/vassal-life-map-defs.js';
 import { VASSAL_HEIRLOOM_DEFS } from '../../../src/defs/gamepieces/vassal-heirloom-defs.js';
 import { MOON_PHASE_COUNT } from '../../../src/defs/gamesettings/moon-phase-defs.js';
 import { getGameSetting } from '../../../src/model/game-config.js';
 import { worldMapDefs } from '../../../src/defs/world/world-map-defs.js';
-export const OPENING_KINDS = ['relic', 'world', 'founding', 'shop', 'structureShop', 'development', 'martial', 'supply', 'patronage', 'specialRelic', 'customNote'];
+export const OPENING_KINDS = ['relic', 'world', 'founding', 'shop', 'structureShop', 'development', 'martial', 'supply', 'patronage', 'specialRelic', 'customNote', 'legacy'];
+
+export function createOpeningLegacyNode() {
+  return { id:'legacy', title:'Legacy', kind:'legacy', description:'Choose how this life leaves its mark.', next:[],
+    legacy:{settlementPrestigeCost:VASSAL_LIFE_TUNING.settlementPrestigeCost,statMultiplier:1,prestigeDivisor:10,statReward:'Reward to define',prestigeReward:'Reward to define'} };
+}
 
 const phasesPerYear = getGameSetting(null, 'seasonDurationSec') * 4 / getGameSetting(null, 'phaseDurationSec');
 const worldRegions = worldMapDefs.riverBasin01.regions;
@@ -62,11 +67,12 @@ export function createOpeningExperiment() {
         description: 'Prefer an unmet recipe input; otherwise offer a seeded output. Producing a trait does not guarantee the recipe can run.', next: ['favor'],
         pass: { id: 'supply-favor', label: 'Seek support instead', prestigeDelta: 3, phaseCost: 4 } },
       { id: 'favor', title: 'An easy opportunity', kind: 'patronage',
-        description: 'A modest benefit is a valid step. This completes the authored opening experiment.', next: [],
+        description: 'A modest benefit is a valid step.', next: ['legacy'],
         options: [
           { id: 'favor', label: 'Accept local goodwill', prestigeDelta: 5, phaseCost: 2 },
           { id: 'office', label: 'Take a longer appointment', prestigeDelta: 12, phaseCost: 12 },
         ] },
+      createOpeningLegacyNode(),
     ],
   };
 }
@@ -94,6 +100,12 @@ export function validateOpeningExperiment(doc) {
     if (node.displayLabel != null && typeof node.displayLabel !== 'string') throw new Error(`${node.title}: the game-screen label must be text.`);
     if (node.phaseCost != null && !finite(node.phaseCost, 0, 320)) throw new Error(`${node.title}: phases must be between 0 and 320.`);
     if (node.monsterPressurePerPurchase != null && !finite(node.monsterPressurePerPurchase, 0, 10000)) throw new Error(`${node.title}: choose a non-negative Monster Pressure price.`);
+    if (node.kind === 'legacy') {
+      const tuning=node.legacy;
+      if(node.next.length)throw new Error('Legacy must end its route.');
+      if(!tuning||!finite(tuning.settlementPrestigeCost,0,10000)||!finite(tuning.statMultiplier,0,100)
+        ||!finite(tuning.prestigeDivisor,1,10000)||![tuning.statReward,tuning.prestigeReward].every(value=>typeof value==='string'&&value.trim()&&value.length<=100))throw new Error(`${node.title}: choose valid Legacy costs, scalars and reward labels.`);
+    }
     if (node.worldCosts != null) {
       const costs = node.worldCosts;
       if (!costs || typeof costs !== 'object' || Array.isArray(costs)

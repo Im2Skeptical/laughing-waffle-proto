@@ -545,7 +545,7 @@ export function createVassalNodeDecisionModalView({
     const hasContext = decision?.contextKind && decision.contextKind !== "none";
     const hasSettlementContext = decision?.contextKind === "settlement";
     const simpleOutcomes = node.family === 'patronage' || node.family === 'development'
-      || node.family === 'relic';
+      || node.family === 'relic' || decision?.workshopLegacy;
     if (hasContext) {
       const divider = new PIXI.Graphics();
       const dividerX = hasSettlementContext ? TABLEAU.x - 28 : PANEL.x + 1160;
@@ -664,14 +664,14 @@ export function createVassalNodeDecisionModalView({
             x: cardStartX + index * (cardWidth + cardGap), y: cardY,
             width: cardWidth, height: cardHeight,
           }, {
-            artId:node.family, quality: option.quality, item:option, fitEffects: nodeState.family === 'relic',
+            artId:node.family, quality: option.quality, item:option, fitEffects: nodeState.family === 'relic'||decision?.workshopLegacy,
             expanded:pinnedInspectionId===option.id||previewOptionId===option.id,actionLabel:'CHOOSE',
             onInspect:event=>inspectPiece(option.id,option.presentation,event),
             title: requirements.some((entry) => !entry.met) ? `${option.label} · Unavailable` : option.label,
             cost: { prestigeCost, phaseCost, chaosCost:getActionChaosCost(option),monsterPressureCost:getActionMonsterPressureCost(option), state,
               riskLabel: nodeState.family === 'relic' ? relicRiskLabel(option) : null },
             costUnmet: prestigeCost > vassal.prestige,
-            effect: requirements.length
+            effect: decision?.workshopLegacy ? [option.description,...requirements.map(entry=>`${entry.met?'✓':'✗'} ${entry.label}`)].join(' · ') : requirements.length
               ? requirements.map((entry) => `${entry.met ? "✓" : "✗"} ${entry.label}`).join("\n")
               : optionEffect(option),
             enabled: !readOnly && prestigeCost <= vassal.prestige && requirements.every((entry) => entry.met),

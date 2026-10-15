@@ -3,7 +3,17 @@ import { advanceReplayStateOneSecond } from '../../../src/model/replay-second-ru
 import { undoVassalShopPurchase, reorderVassalShopPurchase, moveVassalShopStructure, rerollVassalShop } from '../../../src/model/vassal-life-map.js';
 import { createOpeningExperiment, validateOpeningExperiment } from './experiment.js';
 import { createOpeningSession, createTravelRewardExampleSession, cloneOpeningSession, openingSummary, openingVassal, enterOpeningEncounter,
-  getOpeningDecision, selectOpeningOption, stageOpeningOffer, commitOpeningEncounter, finishOpeningEncounter, chooseOpeningDevelopment, finishOpeningNote, resolveOpeningOptionOutcome } from './model.js';
+  getOpeningDecision, selectOpeningOption, stageOpeningOffer, commitOpeningEncounter, finishOpeningEncounter, chooseOpeningDevelopment, finishOpeningNote, finishOpeningLegacyMock, resolveOpeningOptionOutcome } from './model.js';
+
+function createFoundedPreview(document) {
+  const next=createOpeningSession(document);next.availableIds=['founding'];enterOpeningEncounter(next,'founding');
+  const before=openingSummary(next), option=getOpeningDecision(next).options.find(option=>!option.blocked);
+  commitOpeningEncounter(next,option.id);
+  const vassal=openingVassal(next), target=vassal.lifeMap.pendingResolution?.resolveSec??next.state.tSec;
+  next.state.paused=false;
+  while(next.state.tSec<target) {const result=advanceReplayStateOneSecond(next.state);if(!result.ok)throw new Error(result.reason);}
+  finishOpeningEncounter(next,before);return next;
+}
 
 export const OPENING_STORAGE_KEY = 'civsurvivor.prototype.warriorOpening.v1';
 export function createOpeningController(storage = null) {
@@ -64,16 +74,18 @@ export function createOpeningController(storage = null) {
       idle(); if (!['shop','structureShop'].includes(kind)) throw new Error('Choose a shop.');
       const document = createOpeningExperiment(), shop = document.nodes.find(node=>node.id==='shop');
       shop.kind=kind;shop.title=kind==='shop'?'Practice shop':'Structure shop';shop.description='';
-      const next=createOpeningSession(document);next.availableIds=['founding'];enterOpeningEncounter(next,'founding');
-      const beforeFounding=openingSummary(next), option=getOpeningDecision(next).options.find(option=>!option.blocked);
-      commitOpeningEncounter(next,option.id);
-      const vassal=openingVassal(next), target=vassal.lifeMap.pendingResolution?.resolveSec??next.state.tSec;
-      next.state.paused=false;
-      while(next.state.tSec<target) {const result=advanceReplayStateOneSecond(next.state);if(!result.ok)throw new Error(result.reason);}
-      finishOpeningEncounter(next,beforeFounding);
+      const next=createFoundedPreview(document),vassal=openingVassal(next);
       if(zeroPrestige)vassal.prestige=0;
       const before=cloneOpeningSession(next);enterOpeningEncounter(next,'shop');session=next;checkpoints=[before];
       message=shop.title;notify();
+    },
+    previewLegacy(zeroPrestige=false,id=null) {
+      idle();const document=createOpeningExperiment(),recipe=draft.nodes.find(node=>id?node.id===id:node.kind==='legacy');
+      if(recipe?.kind==='legacy')document.nodes[document.nodes.findIndex(node=>node.id==='legacy')]={...structuredClone(recipe),id:'legacy',next:[]};
+      const next=createFoundedPreview(document),vassal=openingVassal(next);
+      vassal.prestige=zeroPrestige?0:60;Object.assign(vassal.stats,{intelligence:6,effectiveness:3,wisdom:2,cunning:1});
+      next.availableIds=['legacy'];const before=cloneOpeningSession(next);enterOpeningEncounter(next,'legacy');
+      session=next;checkpoints=[before];message='Legacy mockup: Confirm records your choice. Settlement effects and reward types remain to be designed.';notify();
     },
     nextSeed() { idle(); validateOpeningExperiment(draft); editDraft({ ...draft, seed: (draft.seed + 1) >>> 0 }); controller.restart(); },
     enter(id) { idle(); const checkpoint = cloneOpeningSession(session), next = cloneOpeningSession(session);
@@ -97,6 +109,9 @@ export function createOpeningController(storage = null) {
       idle(); const next = cloneOpeningSession(session), before = openingSummary(next);
       if (next.experiment.nodes.find(n => n.id === next.activeId)?.kind === 'customNote') {
         finishOpeningNote(next); session = next; message = 'Note read. Continue to the next node.'; notify(); return;
+      }
+      if(next.experiment.nodes.find(node=>node.id===next.activeId)?.kind==='legacy') {
+        finishOpeningLegacyMock(next,optionId);session=next;message='Legacy choice recorded for this mockup. No settlement, reward or retirement effects applied.';notify();return;
       }
       const outcome = resolveOpeningOptionOutcome(next, optionId);
       if (outcome?.needsAcquisition) {

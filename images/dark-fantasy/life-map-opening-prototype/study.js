@@ -14,6 +14,7 @@ const $ = id => document.getElementById(id);
 let selectedId = 'relic', editorKey = '', toolbarKey = '', jsonKey = '', error = '', guide = null;
 let gameScreen = null;
 let zeroPrestigeShopPreview = true;
+let zeroPrestigeLegacyPreview = false;
 const graphEditor = createOpeningGraphEditor({ host: $('graph-editor'), controller, run,
   onSelect: id => { selectedId = id; editorKey = ''; render(); } });
 const abilityNames = { intelligence: 'Prowess', effectiveness: 'Effectiveness', wisdom: 'Wisdom', cunning: 'Cunning' };
@@ -102,7 +103,7 @@ function renderEditor(snapshot) {
   host.append(el('h2', 'Edit an encounter'), el('p', 'Apply edits, then Restart. The current playthrough retains its original experiment.', 'note'));
   const chooser = appendField(host, 'Node', selectedId, { options: doc.nodes.map(n => [n.id, n.title]), id: 'edit-node' });
   chooser.addEventListener('change', () => { selectedId = chooser.value; editorKey = ''; render(); });
-  const preview = button('Preview this node', () => { controller.previewEncounter(spec.id); gameScreen?.openDecision(); $('game-screen').scrollIntoView({block:'start',behavior:'smooth'}); }, 'primary');
+  const preview = button('Preview this node', () => { if(spec.kind==='legacy')controller.previewLegacy(zeroPrestigeLegacyPreview,spec.id);else controller.previewEncounter(spec.id); gameScreen?.openDecision(); $('game-screen').scrollIntoView({block:'start',behavior:'smooth'}); }, 'primary');
   preview.id='preview-node';host.append(preview);
   if(spec.kind==='world') {
     const example=button('Preview travel rewards',previewTravelRewards,'primary');
@@ -139,6 +140,12 @@ function renderEditor(snapshot) {
     section.append(rewards);host.append(section);
   }
   const description = el('label', 'Description'), text = el('textarea'); text.rows = 3; text.value = spec.description; description.append(text); host.append(description);
+  const legacyFields={};
+  if(spec.kind==='legacy') {
+    for(const [key,label] of Object.entries({settlementPrestigeCost:'Settlement Prestige cost',statMultiplier:'Highest stat multiplier',prestigeDivisor:'Prestige per reward',statReward:'Highest stat reward',prestigeReward:'Prestige reward'})) {
+      legacyFields[key]=appendField(host,label,spec.legacy[key],{id:`legacy-${key}`,type:key.endsWith('Reward')?'text':'number',min:key==='prestigeDivisor'?1:0});
+    }
+  }
   const lists = {};
   for (const list of ['options', 'cards', 'relics', 'pass']) {
     if (spec[list] == null) continue;
@@ -177,6 +184,7 @@ function renderEditor(snapshot) {
     }
     if (fields.stockOutput) changed.stockOutput = fields.stockOutput.value;
     if (fields.monsterPressurePerPurchase) changed.monsterPressurePerPurchase = Number(fields.monsterPressurePerPurchase.value);
+    if(spec.kind==='legacy')changed.legacy=Object.fromEntries(Object.entries(legacyFields).map(([key,input])=>[key,input.type==='number'?Number(input.value):input.value]));
     for (const [list, rows] of Object.entries(lists)) {
       const items = rows.map(({ item, inputs }) => { const value = structuredClone(item); for (const [name, input] of Object.entries(inputs)) {
         if(name==='relicChance'){value.weightedOutcomes[0].weight=Number(input.value);value.weightedOutcomes[1].weight=100-Number(input.value);continue;}
@@ -195,6 +203,11 @@ function renderGuides(snapshot) {
     tab.setAttribute('aria-pressed', guide?.id === scenario.id ? 'true' : 'false'); tab.disabled = snapshot.busy; host.append(tab);
   }
   const travelExample=button('Travel reward example',previewTravelRewards);travelExample.id='travel-reward-example';travelExample.disabled=snapshot.busy;host.append(travelExample);
+  const legacyPreview=()=>{guide=null;controller.previewLegacy(zeroPrestigeLegacyPreview);gameScreen?.openDecision();$('game-screen').scrollIntoView({block:'start',behavior:'smooth'});};
+  const legacyButton=button('Legacy',legacyPreview);legacyButton.id='preview-legacy';legacyButton.disabled=snapshot.busy;host.append(legacyButton);
+  const legacyZero=el('label','0 Prestige · Legacy','shop-preview-toggle'),legacyToggle=document.createElement('input');
+  legacyToggle.type='checkbox';legacyToggle.id='legacy-preview-zero-prestige';legacyToggle.checked=zeroPrestigeLegacyPreview;legacyToggle.disabled=snapshot.busy;
+  legacyToggle.addEventListener('change',()=>{zeroPrestigeLegacyPreview=legacyToggle.checked;legacyPreview();});legacyZero.prepend(legacyToggle);host.append(legacyZero);
   for(const [kind,label] of [['shop','Practice shop'],['structureShop','Structure shop']]) {
     const preview=button(label,()=>{guide=null;controller.previewShop(kind,zeroPrestigeShopPreview);gameScreen?.openDecision();$('game-screen').scrollIntoView({block:'start',behavior:'smooth'});});
     preview.id=kind==='shop'?'preview-practice-shop':'preview-structure-shop';preview.disabled=snapshot.busy;host.append(preview);

@@ -4,6 +4,21 @@ Open **Development Lab → Prototypes → Protovassal opening**, or run
 `npm run preview:opening` and open
 <http://localhost:5185/images/dark-fantasy/life-map-opening-prototype/>.
 The Pages build bundles this page separately; player modules never import it.
+The **Legacy** button below the canvas opens the three-choice endpoint mockup:
+found a settlement, scale a reward by the highest effective stat, or scale a
+reward by accumulated Prestige. The default recipe ends at Legacy; saved drafts
+are preserved and can add this node through the graph editor.
+
+This is a choice/layout workshop. Settlement uses the existing 40-Prestige and
+10-adult-Villager prices provisionally; choosing its location would follow.
+The two reward types remain **Reward to define**. Their sample quantities are
+highest stat × 1 and floor(Prestige / 10), both with a minimum of one. Edit the
+Legacy node's cost, multiplier, divisor and reward labels, then Apply and Preview.
+The preview uses a Warrior with 60 Prestige and highest stat 6; **0 Prestige ·
+Legacy** tests the unavailable settlement and positive fallback rewards.
+Confirm records the chosen option for review, without founding, charging costs,
+granting rewards, retiring, advancing time, or consuming RNG. Rewind restores the
+choice. Normal player Legacy and settlement generation are unchanged.
 Deployed workbench module URLs include their content hash so a reload fetches the
 matching code. An already open page still needs reloading after an update; Save
 your draft first, then reload and Restart to test its nodes with the current code.
