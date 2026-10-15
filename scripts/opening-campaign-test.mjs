@@ -22,7 +22,20 @@ for(const [inputs,expected] of [[{prowess:9},25],[{prestige:50},23],[{arms:18},2
   c.previewCampaign(inputs);assert.equal(c.getDecision().campaign.force.total,expected);
 }
 c.previewCampaign();const camp=c.getSnapshot().session.campaign;
-assert.equal(campaignForce(camp,true).total,6,'solo quests use Prowess only');
+assert.equal(campaignForce(camp,'duel').total,6,'Honour duel uses Prowess only');
+assert.equal(campaignForce(camp,'quest').total,10,'Quest uses Prowess and personal Retinue');
+assert.equal(campaignForce(camp,'attack').total,22,'Attack adds armed Warriors');
+c.select('quest');p=c.getDecision().campaign;
+assert.equal(p.activeForce.total,10);assert.equal(p.activeForce.retinue,4);assert.equal(p.activeForce.armedWarriors,0);
+assert.ok(p.targets.every(target=>target.force===10&&target.risk===29),'quest risk includes Retinue');
+c.select('duel');assert.equal(c.getDecision().campaign.activeForce.total,6);
+assert.equal(c.getDecision().campaign.targets[0].risk,40,'duel risk excludes Retinue');
+for(const inputs of [{arms:0},{warriors:0},{arms:100,warriors:100}]) {
+  c.previewCampaign(inputs);c.select('quest');assert.equal(c.getDecision().campaign.activeForce.total,10,'Arms and Warriors do not affect Quest');
+  c.select('duel');assert.equal(c.getDecision().campaign.activeForce.total,6,'Arms and Warriors do not affect Honour duel');
+}
+c.previewCampaign({prestige:80});c.select('quest');assert.equal(c.getDecision().campaign.activeForce.total,14,'Quest benefits from personal Retinue growth');
+c.select('duel');assert.equal(c.getDecision().campaign.activeForce.total,6,'Honour duel excludes Retinue even at high Prestige');
 
 c.previewCampaign({prowess:10000});const baselineWorld=world(),first=c.getDecision().campaign.targets[0];
 c.selectCampaignTarget(first.regionId);assert.equal(c.getDecision().campaign.selectedTargetId,first.id);
@@ -88,4 +101,4 @@ assert.equal(c.getDecision().campaign.resources.prestige,50);
 assert.deepEqual(c.getSnapshot().draft,draft);
 const tuned=structuredClone(draft);Object.assign(tuned.nodes.find(node=>node.kind==='martial').campaign,{duelPrestige:27,duelDefense:4});
 c.replaceDraft(tuned);c.previewCampaign();c.select('duel');await c.commit();assert.equal(c.getDecision().campaign.resources.prestige,82,'duel prize follows the authored tuning');
-console.log('[opening-campaign] OK: unified Attack targets, Honour duel stat/prize/class bonus, no Arms reward, continuation, one duel per visit, force/supply prices, monsters, alliances, quests, defeat, undo/RNG and draft isolation');
+console.log('[opening-campaign] OK: distinct Duel/Quest/Attack forces, quest Retinue risk, unified targets, duel stat/prize/class bonus, supply prices, monsters, alliances, continuation, defeat, undo/RNG and draft isolation');

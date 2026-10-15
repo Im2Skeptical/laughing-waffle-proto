@@ -4,7 +4,7 @@ Open **Development Lab → Prototypes → Protovassal opening**, or run
 `npm run preview:opening` and open
 <http://localhost:5185/images/dark-fantasy/life-map-opening-prototype/>.
 The Pages build bundles this page separately; player modules never import it.
-The canvas header and preview heading show **v0.1.3**. Bump
+The canvas header and preview heading show **v0.1.4**. Bump
 `OPENING_PREVIEW_VERSION` in `game-screen.js` for each published iteration, update
 this number, and report it in the handoff so the loaded Pages build is identifiable.
 The canvas badge stays visible above modals and in fullscreen.
@@ -14,16 +14,20 @@ Prowess, Prestige, adult Warriors, Arms and Food. Adjust values, then click
 Campaign again; this never edits the saved graph. The encounter editor separately
 exposes its provisional expedition prices, nest defence, quest reward and duel opponent/prize.
 
-Force = Prowess + personal Retinue + min(adult Warriors, Arms). Retinue uses the
-existing Prestige-per-Retinue rule. Defeat risk = Defence / (Force + Defence),
-rounded to a whole percent. Duels and solo quests use Prowess alone. Target strength and
+Attack Force = Prowess + personal Retinue + min(adult Warriors, Arms).
+Quest Force = Prowess + personal Retinue. Honour duel uses Prowess alone.
+Retinue uses the existing Prestige-per-Retinue rule.
+The lower force panel shows the selected choice's total, each component's owned
+quantity and contribution, and how many Warriors have Arms or remain unarmed.
+Unused components are dimmed. Food and Prestige remain below the choice cards.
+Defeat risk = Defence / (Force + Defence), rounded to a whole percent. Target strength and
 distance, the force breakdown and the selected target's risk are visible before
 Confirm. Authored Campaign nodes in this workbench read civilization-wide adult Warriors and
 Arms, the current settlement's Edible Stock, and the Vassal's current stats.
 
 There is no target range or road requirement. Food costs 1 + region distance by
 default; disconnected islands get a finite geometric distance too. Each army
-attempt also costs 5 Prestige; solo quests cost no Prestige, but still pay travel
+attempt also costs 5 Prestige; quests cost no Prestige, but still pay travel
 Food. Prices are shown in the existing cost boxes. The direct preview includes
 nearby and distant monster examples, plus the world's neutral settlements.
 

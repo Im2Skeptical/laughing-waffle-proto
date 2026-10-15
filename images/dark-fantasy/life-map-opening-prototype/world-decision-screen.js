@@ -15,6 +15,33 @@ import { addInteractionFeedback } from '../../../src/views/interaction-feedback.
 // Experimental modal. Complete live map inside the shared node-decision body.
 const MAP_BODY = Object.freeze({ x: 986, y: 234, width: 1358, height: 520 });
 const FAMILY = { ...VASSAL_NODE_FAMILIES.travel, label: 'Crossroads', description: 'Move, connect, or explore your region.' };
+
+function renderCampaignForcePanel(parent,campaign) {
+  const rect={x:390,y:858,width:1650,height:190},f=campaign.activeForce,army=campaign.forces.attack;
+  const armyUsed=campaign.mode==='attack',retinueUsed=campaign.mode!=='duel';
+  const components=[
+    {label:'Prowess',value:f.prowess,contribution:f.prowess,active:true,detail:`+${f.prowess} Force`},
+    {label:'Personal Retinue',value:army.retinue,contribution:f.retinue,active:retinueUsed,detail:retinueUsed?`+${f.retinue} Force`:'Not used'},
+    {label:'Warriors',value:army.warriors,contribution:f.armedWarriors,active:armyUsed,detail:armyUsed?`${army.armedWarriors} armed · +${f.armedWarriors} Force`:'Not used'},
+    {label:'Arms',value:army.arms,contribution:null,active:armyUsed,detail:armyUsed?`${army.warriors-army.armedWarriors} Warriors unarmed`:'Not used'},
+  ];
+  const equation=[f.prowess,...(retinueUsed?[f.retinue]:[]),...(armyUsed?[f.armedWarriors]:[])].join(' + ');
+  const panel=new PIXI.Container();panel.position.set(rect.x,rect.y);panel.eventMode='none';parent.addChild(panel);
+  const background=new PIXI.Graphics();roundedRect(background,0,0,rect.width,rect.height,14,PALETTE.panel,PALETTE.accent,2);panel.addChild(background);
+  const total=new PIXI.Graphics();roundedRect(total,18,18,234,154,8,0x25352d,PALETTE.accent,2);panel.addChild(total);
+  panel.addChild(createText('Force',{...TEXT_STYLES.title,fontSize:28},34,28),
+    createText(String(f.total),{...TEXT_STYLES.header,fontSize:60,fill:PALETTE.accent},34,64),
+    createText(equation,{...TEXT_STYLES.body,fontSize:24,fill:PALETTE.textMuted},34,136));
+  components.forEach((component,index)=>{
+    const cell=new PIXI.Container();cell.position.set(264+index*345,18);panel.addChild(cell);cell.alpha=component.active?1:.4;
+    const frame=new PIXI.Graphics();roundedRect(frame,0,0,333,154,8,0x1b2827,component.active?PALETTE.stroke:0x343e38,1);cell.addChild(frame);
+    cell.addChild(createText(component.label,{...TEXT_STYLES.title,fontSize:26},16,10),
+      createText(String(component.value),{...TEXT_STYLES.header,fontSize:46,fill:PALETTE.text},16,51),
+      createText(component.detail,{...TEXT_STYLES.body,fontSize:24,fill:component.active?PALETTE.green:PALETTE.textMuted},16,116));
+  });
+  return {rect,total:f.total,equation,mode:campaign.mode,components};
+}
+
 export function createOpeningWorldDecisionScreen({ app, layer, getState, getVassal, onSelect, onSelectSettlement, onSelectCampaignTarget, onLeaveCampaign, onConfirm, tooltipView }) {
   const root = new PIXI.Container(), mapLayer = new PIXI.Container(), overlay = new PIXI.Container(), chrome = new PIXI.Container();
   root.visible = false; root.eventMode = 'static'; root.hitArea = app.screen; layer.addChild(root);
@@ -31,7 +58,7 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
   mapLayer.position.set(MAP_BODY.x - MAP_VIEWPORT_RECT.x * mapScale,
     MAP_BODY.y + (MAP_BODY.height - MAP_VIEWPORT_RECT.height * mapScale) / 2 - MAP_VIEWPORT_RECT.y * mapScale);
   let decision = null, spec = null, busy = false, mode = 'move', selection = null, key = '', activeKey = null, dismissed = false;
-  let modeButtons = [], confirmButton = null, leaveButton = null, feedback = null, locationPlaque = null, locationLabel = '', message = '';
+  let modeButtons = [], confirmButton = null, leaveButton = null, feedback = null, forcePanel = null, locationPlaque = null, locationLabel = '', message = '';
   let overlayKey = '';
   const currentRegion = () => getVassal()?.locationRegionId;
   const isFounding=()=>spec?.kind==='legacy'&&!!decision?.legacySettlement;
@@ -74,7 +101,7 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
   function draw() {
     if (!root.visible) return;
     const signature=JSON.stringify([getArtRevision(),spec,decision?.options,decision?.legacySettlement,decision?.campaign,decision?.nodeState.selectedOptionId,mode,selection,busy,message]);
-    if(signature===key)return;key=signature;clearChildren(chrome);
+    if(signature===key)return;key=signature;clearChildren(chrome);forcePanel=null;
     const founding=isFounding(),campaign=isCampaign(),menu=isMenuMap(),family=campaign?{...VASSAL_NODE_FAMILIES.campaign,description:''}:founding?{...VASSAL_NODE_FAMILIES.legacy,description:''}:FAMILY;
     background.clear();roundedRect(background,PANEL.x,PANEL.y,PANEL.width,PANEL.height,18,0x292f2b,family.color,3);
     renderTitlePlaque(chrome,family);
@@ -127,9 +154,9 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
     const dock=confirmDockRect(app);
     if(!campaign)renderMortalityEstimate(chrome,decision?.mortalityEstimate,{x:dock.x-MORTALITY_PLATE.gap-MORTALITY_PLATE.width,y:dock.y+(dock.height-MORTALITY_PLATE.height)/2,width:MORTALITY_PLATE.width,height:MORTALITY_PLATE.height},!busy&&!!matching&&!choice.blocked);
     if(campaign) {
-      const f=mode==='attack'?decision.campaign.force:decision.campaign.solo,r=decision.campaign.resources;
-      const copy=createText(`${mode==='attack'?`Force ${f.total} = Prowess ${f.prowess} + Retinue ${f.retinue} + Armed Warriors ${f.armedWarriors}`:`Prowess ${f.prowess} · No army or Retinue`}\n${r.warriors} Warriors · ${r.arms} Arms · ${r.food} Food · ${r.prestige} Prestige`,{...TEXT_STYLES.body,fontSize:22,lineHeight:26,wordWrap:true,wordWrapWidth:870},PANEL.x+30,774);
-      copy.scale.set(Math.min(1,54/Math.max(1,copy.height)));chrome.addChild(copy);
+      forcePanel=renderCampaignForcePanel(chrome,decision.campaign);
+      addResourceAmount(chrome,'stock-edible',decision.campaign.resources.food,{x:PANEL.x+30,y:778,fontSize:28,iconSize:34});
+      addResourceAmount(chrome,'prestige',decision.campaign.resources.prestige,{x:PANEL.x+220,y:778,fontSize:28,iconSize:34});
     }
     confirmButton=confirmDockButton(chrome,app,{label:busy?'Resolving...':'Confirm',enabled:!busy&&!!matching&&!choice.blocked,onClick:()=>onConfirm(founding&&decision.nodeState.selectedOptionId==='found-settlement'?'found-settlement':choice.id)});
   }
@@ -184,6 +211,7 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
       locationRegionId:currentRegion(),regionCount:getState()?.world?.regions?.length??0,
       connectionCount:getState()?.world?.connections?.length??0,
       panel:PANEL,mapBody:MAP_BODY,artworkReady:modeButtons.length>0&&modeButtons.every(card=>card.illustration?.texture?.baseTexture.valid),brightRegionIds:brightRegions(),locationPlaque:locationPlaque?{label:locationLabel,rect:bounds(locationPlaque)}:null,
+      forcePanel,
       choiceButtons:modeButtons.flatMap((card,index)=>card.choiceButton?[{id:decision.options[index].id,label:decision.nodeState.selectedOptionId===decision.options[index].id?'Selected':'Choose',rect:bounds(card.choiceButton)}]:[]),
       prices:modeButtons.flatMap((card,index)=>card.costPanel?[{mode:isMenuMap()?decision.options[index].id:['move','build','tour'][index],optionId:card.priceOptionId,from:card.priceFrom,
         ...card.costPanel.costSummary,rect:bounds(card.costPanel),cardRect:bounds(card)}]:[]),feedback:feedback?{text:feedback.text,rect:bounds(feedback)}:null,
