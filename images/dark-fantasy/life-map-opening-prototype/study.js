@@ -34,6 +34,10 @@ function field(label, value, { type = 'text', min, max, options, id } = {}) {
 }
 function appendField(host, label, value, options) { const entry = field(label, value, options); host.append(entry.wrap); return entry.input; }
 function format(value) { return typeof value === 'number' ? Math.round(value * 100) / 100 : value; }
+function previewTravelRewards() {
+  guide=null;controller.previewTravelRewards();gameScreen?.openDecision();
+  $('game-screen').scrollIntoView({block:'start',behavior:'smooth'});
+}
 
 function renderToolbar(snapshot) {
   const key = JSON.stringify([snapshot.draft.name, snapshot.draft.seed]);
@@ -100,6 +104,8 @@ function renderEditor(snapshot) {
   const preview = button('Preview this node', () => { controller.previewEncounter(spec.id); gameScreen?.openDecision(); $('game-screen').scrollIntoView({block:'start',behavior:'smooth'}); }, 'primary');
   preview.id='preview-node';host.append(preview);
   if(spec.kind==='world') {
+    const example=button('Preview travel rewards',previewTravelRewards,'primary');
+    example.id='preview-travel-rewards';host.append(example);
     host.append(button('Use Tour as the local activity',()=>controller.editDraft({...doc,nodes:doc.nodes.map(n=>n.id===spec.id?{...n,options:[createOpeningTourOption()]}:n)})));
     const prices=button('Use dummy World prices',()=>controller.editDraft({...doc,nodes:doc.nodes.map(n=>n.id===spec.id?applyOpeningWorldPrices(n):n)}));
     prices.id='world-dummy-prices';host.append(prices);
@@ -185,6 +191,7 @@ function renderGuides(snapshot) {
     const tab = button(scenario.label, () => { guide = scenario; selectedId = scenario.entry; controller.replaceDraft(createOpeningExperiment()); controller.restart(); });
     tab.setAttribute('aria-pressed', guide?.id === scenario.id ? 'true' : 'false'); tab.disabled = snapshot.busy; host.append(tab);
   }
+  const travelExample=button('Travel reward example',previewTravelRewards);travelExample.id='travel-reward-example';travelExample.disabled=snapshot.busy;host.append(travelExample);
   if (guide) { const next = button('Next guided choice', guidedChoice); next.disabled = snapshot.busy || !snapshot.development && !snapshot.session.activeId && !snapshot.session.availableIds.length; host.append(next); }
   $('guide').textContent = guide ? `${guide.text} You can also make any available choice yourself.` : 'Guided experiments restart the built-in draft. Free play uses your current draft.';
 }

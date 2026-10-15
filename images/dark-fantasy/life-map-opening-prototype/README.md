@@ -110,6 +110,15 @@ prices** applies the preset to an existing draft without changing its graph or
 reward odds. Apply, then Preview or Restart to test. Existing saved drafts retain
 their authored prices until edited. Normal ability and relic discounts still apply.
 
+**Travel reward example** beside the guided experiments (or **Preview travel
+rewards** in a World Decision editor) opens a disposable four-settlement world.
+From R07, move to **R06 (+3 Prestige)**, **R08 (+6)** or **R11 (+9)**. Each legal
+destination has a clickable Prestige badge; selecting it updates the shared Move
+footer and Vassal HUD. Before selection, the footer shows the time price and the
+card lists the available reward amounts. The example uses real movement and
+rewards, supports rewind, and does not edit or save your graph. **Restart** returns
+to your draft's normal world.
+
 Move highlights reachable destinations;
 Build highlights legal connections and draws the proposed road; Tour keeps the
 Vassal in the current region. Confirming Tour rolls a weighted reward: by default

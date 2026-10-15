@@ -75,3 +75,23 @@ const old={...world,phaseCost:6,options:[{...createOpeningTourOption(70),phaseCo
 assert.equal(priced.options[0].phaseCost,64);assert.equal(priced.options[0].weightedOutcomes[0].weight,70);assert.deepEqual(priced.next,old.next);
 world.worldCosts.travelPrestigeByRegion['copper-basin']=-1;assert.throws(()=>validateOpeningExperiment(authored),/world prices/);
 console.log('[opening-tour] OK: 2-year Tour, 3-moon Move with destination rewards, 5-year/15-Prestige route, pure previews, seeded rewards, acquisition, serialization and rewind');
+
+const example=createOpeningController(), originalDraft=example.getSnapshot().draft;
+example.previewTravelRewards();
+const destinations=example.getDecision().options.filter(option=>option.locationRegionId);
+assert.deepEqual(destinations.map(option=>option.prestigeDelta).sort((a,b)=>a-b),[3,6,9]);
+assert.equal(example.getSnapshot().summary.location,'R07');
+assert.deepEqual(example.getSnapshot().draft,originalDraft,'example leaves the authored draft unchanged');
+const exampleRng=structuredClone(example.getSnapshot().session.state.rng);
+for(const destination of destinations){example.select(destination.id);example.getDecision();}
+assert.deepEqual(example.getSnapshot().session.state.rng,exampleRng,'comparing rewards consumes no RNG');
+assert.equal(example.getSnapshot().summary.tSec,0,'comparing rewards advances no time');
+for(const destination of destinations) {
+  example.previewTravelRewards();await example.commit(destination.id);
+  const end=example.getSnapshot();assert.equal(end.summary.tSec,18);assert.equal(end.summary.dead,false);
+  assert.equal(openingVassal(end.session).locationRegionId,destination.locationRegionId);
+  const outcome=structuredClone(end.session.outcomes.at(-1));example.rewind();example.enter('explore');await example.commit(destination.id);
+  assert.deepEqual(example.getSnapshot().session.outcomes.at(-1),outcome,'example moves reproduce after rewind');
+}
+example.restart();assert.deepEqual(example.getSnapshot().draft,originalDraft);assert.equal(example.getSnapshot().summary.sites.length,2,'Restart returns to the regular draft world');
+console.log('[opening-travel-example] OK: three legal destinations, distinct rewards, inert previews, real movement, rewind and draft isolation');

@@ -1,5 +1,6 @@
 // Disposable adapter around real rules. No player module imports this workbench.
-import { createNewGameState } from '../../../src/model/new-game.js';
+import { createNewGameState, createConfiguredNewGameState } from '../../../src/model/new-game.js';
+import { createStarterBootProfile } from '../../../src/model/starter-boot-profile.js';
 import { serializeGameState, deserializeGameState } from '../../../src/model/state.js';
 import { getCurrentLifeMapVassal, selectLifeMapVassal, enterVassalLifeNode, getVassalNodeDecisionPresentation,
   getVassalAge, getVassalEffectiveStats, getVassalActionPhaseCost, getAdjustedVassalPrestigeCost,
@@ -18,13 +19,13 @@ import { getRetinue, getMartialSupport, adjacentRegionIds } from '../../../src/m
 import { specialistCount, stockTotal } from '../../../src/model/detailed-settlements/stock.js';
 import { getRegionState, getRegionReference } from '../../../src/model/world-state.js';
 import { getMoonPhaseDurationSec } from '../../../src/model/moon-phases.js';
-import { validateOpeningExperiment } from './experiment.js';
+import { createOpeningExperiment, validateOpeningExperiment } from './experiment.js';
 
 export function cloneOpeningSession(session) {
   return { ...structuredClone({ ...session, state: null }), state: deserializeGameState(serializeGameState(session.state)) };
 }
-export function createOpeningSession(document) {
-  const experiment = validateOpeningExperiment(document), state = createNewGameState(experiment.seed);
+export function createOpeningSession(document, initialState = null) {
+  const experiment = validateOpeningExperiment(document), state = initialState ?? createNewGameState(experiment.seed);
   const index = state.civilization.vassalLineage.pendingCandidates.findIndex(c => c.founderClassId === 'warrior');
   const selected = selectLifeMapVassal(state, index);
   if (!selected.ok) throw new Error(selected.reason);
@@ -32,6 +33,26 @@ export function createOpeningSession(document) {
   vassal.lifeMap.availableNodeIds = [];
   return { experiment, state, vassalId: vassal.vassalId, availableIds: [...experiment.entryIds],
     visitedIds: [], activeId: null, runtimeNodeId: null, founded: false, outcomes: [] };
+}
+
+// Explicit UI example, initialized through the normal configured-game path.
+// It never writes to the authored draft or the player's New Game setup.
+export function createTravelRewardExampleSession() {
+  const document = createOpeningExperiment(), profile = createStarterBootProfile();
+  const origin = 'river-crown', rewards = { 'upper-floodplain': 3, 'reed-delta': 6, 'lake-country': 9 };
+  const regions = [origin, ...Object.keys(rewards)];
+  const template = profile.mapLab.regions.find(region => region.detailedState).detailedState;
+  profile.launch = { startMode: 'authoredMap', neutralSettlements: false };
+  profile.mapLab.regions = profile.mapLab.regions.map(region => ({ ...region,
+    controller: regions.includes(region.id) ? 'player' : 'frontier',
+    detailedSettlementEnabled: regions.includes(region.id),
+    detailedState: regions.includes(region.id) ? structuredClone(template) : null }));
+  profile.mapLab.connections = Object.keys(rewards).map(regionBId => ({ regionAId: origin, regionBId }));
+  Object.assign(document.nodes.find(node => node.id === 'explore').worldCosts.travelPrestigeByRegion, rewards);
+  const state = createConfiguredNewGameState(document.seed, profile);
+  const candidate = state.civilization.vassalLineage.pendingCandidates.find(candidate => candidate.founderClassId === 'warrior');
+  candidate.locationRegionId = candidate.originRegionId = origin;
+  return createOpeningSession(document, state);
 }
 export function openingVassal(session) {
   return session.state.civilization.vassalLineage.vassalsById[session.vassalId];

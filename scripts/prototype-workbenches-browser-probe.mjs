@@ -240,6 +240,28 @@ try {
     }finally{await mobile.close();page=previous;}
     await draftAction('Restore built-in draft');
   });
+  await check('Travel reward example: three clickable destinations and selected Prestige previews', async () => {
+    await page.setViewportSize({width:1280,height:800});
+    await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`);await ready();
+    const draft=await page.evaluate(()=>openingWorkbench.getSnapshot().draftGraph);
+    await page.locator('#travel-reward-example').click();
+    const world=()=>page.evaluate(()=>openingWorkbench.getSnapshot().game.worldDecision);
+    const start=await page.evaluate(()=>openingWorkbench.getSnapshot().summary), initial=await world();
+    assert.deepEqual(initial.rewardBadges.map(b=>b.reward).sort((a,b)=>a-b),[3,6,9]);
+    assert.equal(initial.prices.find(p=>p.mode==='move').prestigeGain,0,'choose a destination before quoting its exact reward');
+    for(const target of initial.targets) {
+      await openingClick('worldReward',target.regionId);
+      const view=await world(), price=view.prices.find(p=>p.mode==='move');
+      assert.equal(view.selectedOptionId,target.id);assert.equal(price.prestigeGain,target.prestigeGain);
+      assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().game.hud.prestigeDelta),target.prestigeGain);
+      assert.deepEqual(await page.evaluate(()=>openingWorkbench.getSnapshot().summary),start,'reward comparison does not commit a move');
+    }
+    assert.deepEqual(await page.evaluate(()=>openingWorkbench.getSnapshot().draftGraph),draft);
+    await page.screenshot({path:'artifacts/prototype-travel-reward-example.png'});
+    await openingClick('confirm');await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().visitedIds.includes('explore'));
+    assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().summary.location),'R06');
+    assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().summary.tSec),18);
+  });
   await check('Opening playthrough, real founding, purchase, rewind and same-seed outcomes', async () => {
     await page.setViewportSize({width:1280,height:800});
     await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`); await ready();

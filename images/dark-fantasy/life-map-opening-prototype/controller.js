@@ -2,7 +2,7 @@ import { serializeGameState, deserializeGameState } from '../../../src/model/sta
 import { advanceReplayStateOneSecond } from '../../../src/model/replay-second-runner.js';
 import { undoVassalShopPurchase, reorderVassalShopPurchase, moveVassalShopStructure, rerollVassalShop } from '../../../src/model/vassal-life-map.js';
 import { createOpeningExperiment, validateOpeningExperiment } from './experiment.js';
-import { createOpeningSession, cloneOpeningSession, openingSummary, openingVassal, enterOpeningEncounter,
+import { createOpeningSession, createTravelRewardExampleSession, cloneOpeningSession, openingSummary, openingVassal, enterOpeningEncounter,
   getOpeningDecision, selectOpeningOption, stageOpeningOffer, commitOpeningEncounter, finishOpeningEncounter, chooseOpeningDevelopment, finishOpeningNote, resolveOpeningOptionOutcome } from './model.js';
 
 export const OPENING_STORAGE_KEY = 'civsurvivor.prototype.warriorOpening.v1';
@@ -53,6 +53,12 @@ export function createOpeningController(storage = null) {
       if (!draft.nodes.some(n => n.id === id)) throw new Error('Select a node to preview.');
       next.availableIds = [id]; const before = cloneOpeningSession(next); enterOpeningEncounter(next, id);
       session = next; checkpoints = [before]; message = 'Previewing this node in a fresh disposable opening.'; notify();
+    },
+    previewTravelRewards() {
+      idle(); const next = createTravelRewardExampleSession();
+      next.availableIds = ['explore']; const before = cloneOpeningSession(next); enterOpeningEncounter(next, 'explore');
+      session = next; checkpoints = [before];
+      message = 'Travel reward example: three destinations offer +3, +6 and +9 Prestige. Restart returns to your draft.'; notify();
     },
     nextSeed() { idle(); validateOpeningExperiment(draft); editDraft({ ...draft, seed: (draft.seed + 1) >>> 0 }); controller.restart(); },
     enter(id) { idle(); const checkpoint = cloneOpeningSession(session), next = cloneOpeningSession(session);

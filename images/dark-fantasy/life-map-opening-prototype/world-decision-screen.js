@@ -9,6 +9,8 @@ import { VASSAL_NODE_FAMILIES } from '../../../src/defs/gamepieces/vassal-life-m
 import { renderMortalityEstimate } from '../../../src/views/vassal-node-decision/mortality.js';
 import { clearChildren, createText, roundedRect } from '../../../src/views/settlement-view-primitives.js';
 import { PALETTE, TEXT_STYLES } from '../../../src/views/settlement-theme.js';
+import { addResourceAmount } from '../../../src/views/resource-cost-pixi.js';
+import { addInteractionFeedback } from '../../../src/views/interaction-feedback.js';
 
 // Experimental modal. Complete live map inside the shared node-decision body.
 const MAP_BODY = Object.freeze({ x: 986, y: 234, width: 1358, height: 520 });
@@ -47,7 +49,7 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
     setSelectedRegionId:pickRegion,onOpenDetailedSite:(_site,id)=>pickRegion(id),tooltipView});
   const overlayMask = new PIXI.Graphics().beginFill(0xffffff)
     .drawRect(MAP_VIEWPORT_RECT.x,MAP_VIEWPORT_RECT.y,MAP_VIEWPORT_RECT.width,MAP_VIEWPORT_RECT.height).endFill();
-  mapLayer.addChild(overlay,overlayMask); overlay.eventMode = 'none'; overlay.mask = overlayMask;
+  mapLayer.addChild(overlay,overlayMask); overlay.eventMode = 'passive'; overlay.mask = overlayMask;
   function target(o) { return o.locationRegionId ?? (o.intervention?.regionAId === currentRegion() ? o.intervention?.regionBId : o.intervention?.regionAId); }
   function pickRegion(id) {
     if (busy || mode === 'tour') return;
@@ -61,6 +63,7 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
     if (next==='tour' && groups()[2].length) onSelect(groups()[2][0].id);
     else draw();
   }
+  let rewardBadges=[];
   function draw() {
     if (!root.visible) return;
     const signature=JSON.stringify([getArtRevision(),spec,decision?.options,decision?.nodeState.selectedOptionId,mode,selection,busy,message]);
@@ -87,7 +90,8 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
       const selectedOption=group.find(o=>o.id===decision?.nodeState.selectedOptionId);
       const candidates=group.filter(o=>!o.blocked), priced=candidates.length?candidates:group;
       const option=selectedOption??[...priced].sort((a,b)=>a.cost-b.cost||a.phases-b.phases)[0];
-      const from=!!option&&!selectedOption&&priced.some(o=>o.cost!==option.cost||o.phases!==option.phases||o.prestigeDelta!==option.prestigeDelta);
+      const varyingReward=priced.some(o=>o.prestigeDelta!==option?.prestigeDelta);
+      const from=!!option&&!selectedOption&&priced.some(o=>o.cost!==option.cost||o.phases!==option.phases);
       const card=actionCard(chrome,{
         x:PANEL.x+30+index*(OPTION_COLUMN.width+OPTION_COLUMN.gap),y:PANEL.y+CONTENT.cardY,
         width:OPTION_COLUMN.width,height:OPTION_COLUMN.height,
@@ -95,7 +99,7 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
         title:label,artId:['travel','settlement','patronage'][index],summary:details[index],
         actionLabel:from?'FROM':'CHOOSE',faceLabel:from?'From':mode===id?'Selected':'Choose',
         enabled,selected:mode===id,costUnmet:!!option&&option.cost>(getVassal()?.prestige??0),
-        cost:{phaseCost:option?.phases??0,prestigeCost:option?.cost??0,prestigeGain:option?.prestigeDelta??0,state:getState()},
+        cost:{phaseCost:option?.phases??0,prestigeCost:option?.cost??0,prestigeGain:!selectedOption&&varyingReward?0:option?.prestigeDelta??0,state:getState()},
         onClick:()=>chooseMode(id),onInspect:()=>chooseMode(id),
       });
       card.priceOptionId=option?.id;card.priceFrom=from;
@@ -112,9 +116,9 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
   }
   function updateOverlay() {
     if(!root.visible)return; map.update();
-    const positions=available().map(o=>[o.id,target(o),o.blocked,map.getRegionClickPoint(target(o))]);
-    const nextKey=JSON.stringify([mode,selected()?.id,map.getRegionClickPoint(currentRegion()),positions]);
-    if(nextKey===overlayKey)return;overlayKey=nextKey;overlay.removeChildren().forEach(c=>c.destroy());
+    const positions=available().map(o=>[o.id,target(o),o.blocked,o.prestigeDelta,map.getRegionClickPoint(target(o))]);
+    const nextKey=JSON.stringify([getArtRevision(),mode,busy,selected()?.id,map.getRegionClickPoint(currentRegion()),positions]);
+    if(nextKey===overlayKey)return;overlayKey=nextKey;overlay.removeChildren().forEach(c=>c.destroy({children:true}));rewardBadges=[];
     const gfx=new PIXI.Graphics();gfx.eventMode='none';overlay.addChild(gfx);
     const origin=map.getRegionClickPoint(currentRegion());
     if(origin){gfx.lineStyle(5,PALETTE.accent).drawCircle(origin.x,origin.y,42);}
@@ -124,6 +128,18 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
       if(selected()?.id===option.id&&origin){gfx.lineStyle(6,PALETTE.accent,.95);if(mode==='build'){
         const dx=p.x-origin.x,dy=p.y-origin.y,d=Math.hypot(dx,dy);for(let n=0;n<d;n+=30){const end=Math.min(d,n+18);gfx.moveTo(origin.x+dx*n/d,origin.y+dy*n/d).lineTo(origin.x+dx*end/d,origin.y+dy*end/d);}
       }else {const path=decision?.regionalMap?.selectedPath??[];if(path.length>1){for(let i=1;i<path.length;i++){const a=map.getRegionClickPoint(path[i-1]),b=map.getRegionClickPoint(path[i]);if(a&&b)gfx.moveTo(a.x,a.y).lineTo(b.x,b.y);}}else gfx.moveTo(origin.x,origin.y).lineTo(p.x,p.y);}}
+      if(mode==='move') {
+        const badge=new PIXI.Container(), active=selected()?.id===option.id, width=210,height=60;
+        badge.position.set(Math.max(MAP_VIEWPORT_RECT.x+8,Math.min(p.x-width/2,MAP_VIEWPORT_RECT.x+MAP_VIEWPORT_RECT.width-width-8)),
+          Math.max(MAP_VIEWPORT_RECT.y+8,Math.min(p.y+42,MAP_VIEWPORT_RECT.y+MAP_VIEWPORT_RECT.height-height-8)));
+        const background=new PIXI.Graphics();roundedRect(background,0,0,width,height,8,0x17211f,active?PALETTE.accent:PALETTE.green,3);badge.addChild(background);
+        badge.addChild(createText(getRegionReference(getState(),id),{...TEXT_STYLES.chip,fontSize:30},12,height/2,0,.5));
+        addResourceAmount(badge,'prestige',`+${option.prestigeDelta??0}`,{x:88,y:10,fontSize:34,iconSize:40,fill:0xb6ce92});
+        badge.eventMode='static';badge.cursor=busy?'default':'pointer';badge.hitArea=new PIXI.Rectangle(0,0,width,height);
+        badge.accessible=true;badge.accessibleType='button';badge.accessibleTitle=`${option.label}: +${option.prestigeDelta??0} Prestige`;
+        addInteractionFeedback(badge,{x:0,y:0,width,height},{enabled:!busy,onActivate:()=>pickRegion(id)});
+        overlay.addChild(badge);rewardBadges.push({optionId:option.id,regionId:id,reward:option.prestigeDelta??0,control:badge});
+      }
     }
   }
   function refresh(next, node, isBusy=false) {
@@ -138,7 +154,7 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
   const bounds=control=>{const r=control.getBounds();return{x:r.x,y:r.y,width:r.width,height:r.height};};
   return {refresh,getHudDeltas:()=>{const choice=selected();return root.visible&&choice&&available().some(o=>o.id===choice.id)&&!choice.blocked?{prestige:(choice.prestigeDelta??0)-choice.cost,stats:{}}:null;},update:()=>{draw();updateOverlay();},isOpen:()=>root.visible,
     open:()=>{dismissed=false;root.visible=!!decision;map.setVisible(root.visible);map.refresh();key='';draw();},close:()=>{dismissed=true;root.visible=false;},
-    getPoint:(kind,id)=>kind==='confirm'?point(confirmButton):kind==='option'?point(modeButtons[id]):kind==='worldMode'?point(modeButtons[['move','build','tour'].indexOf(id)]):kind==='worldCost'?point(modeButtons[['move','build','tour'].indexOf(id)]?.costPanel):kind==='worldTarget'?mapPoint(id):null,
+    getPoint:(kind,id)=>kind==='confirm'?point(confirmButton):kind==='option'?point(modeButtons[id]):kind==='worldMode'?point(modeButtons[['move','build','tour'].indexOf(id)]):kind==='worldCost'?point(modeButtons[['move','build','tour'].indexOf(id)]?.costPanel):kind==='worldTarget'?mapPoint(id):kind==='worldReward'?point(rewardBadges.find(b=>b.regionId===id)?.control):null,
     getSnapshot:()=>({open:root.visible,mode,selectedOptionId:decision?.nodeState.selectedOptionId,
       locationRegionId:currentRegion(),regionCount:getState()?.world?.regions?.length??0,
       connectionCount:getState()?.world?.connections?.length??0,
@@ -146,5 +162,6 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
       prices:modeButtons.flatMap((card,index)=>card.costPanel?[{mode:['move','build','tour'][index],optionId:card.priceOptionId,from:card.priceFrom,
         ...card.costPanel.costSummary,rect:bounds(card.costPanel),cardRect:bounds(card)}]:[]),feedback:feedback?{text:feedback.text,rect:bounds(feedback)}:null,
       dimmedRegionIds:(getState()?.world?.regions??[]).map(r=>r.id).filter(id=>!brightRegions().includes(id)),
+      rewardBadges:rewardBadges.map(({control,...badge})=>({...badge,rect:bounds(control)})),
       targets:available().map(o=>({id:o.id,regionId:target(o),blocked:o.blocked,cost:o.cost,phases:o.phases,prestigeGain:o.prestigeDelta??0})),tour:groups()[2][0]?.randomReward??null})};
 }
