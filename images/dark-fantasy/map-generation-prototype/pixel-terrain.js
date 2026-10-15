@@ -492,7 +492,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   // Replace playable scatter with connected terrain compositions. Existing
   // background engraving remains; towns keep their anchors. Playable coasts
   // use terrain profiles rather than isolated legacy cliff/rock stamps.
-  const composition = composeTerrainLandscape({ map, art: ART, pixel, world, detail, islandStyle,
+  const composition = composeTerrainLandscape({ map, art: ART, pixel, world, detail, islandStyle, settlementPlans,
     // Road corridors stencil individual pixels in reliefSpriteTextures; they
     // create passes instead of rejecting an entire connecting landscape piece.
     legal: prop => {

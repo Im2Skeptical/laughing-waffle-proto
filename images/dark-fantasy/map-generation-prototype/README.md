@@ -1,5 +1,28 @@
 # Map generation Pixi workbench (disposable prototype)
 
+### Settlement landscape integration
+
+Settlements now own a shared worked-ground and surroundings plan. Ground follows
+building plots, the offset court, local lanes and a short dry entrance apron,
+with feathered edges; the previous broad ellipse wash is removed. Building pads
+use local soil/stone, and only a little source ground texture is reintroduced.
+Plains/forest enclosure marks are broken remnants, not a continuous circular rim.
+
+Before general terrain placement, each town gets up to six deliberately placed
+biome pieces: low stone banks, grass and scrub for plains; woodland backs and
+fern/deadwood fringes for forests; volcanic scrub for islands; peat margins for
+swamps; low rocky flanks for mountains. Smaller foreground pieces preserve roofs.
+The entrance sector stays open. Every accepted piece must fit the dry biome mask
+and avoid actual buildings, court, lanes and the apron. Placement can search
+outwards or use the existing smaller variants; unsuitable pieces are omitted
+whole, never sliced through a town. Existing generated kits supply this pass.
+
+`terrainComposition.settlementEdges` reports accepted edge pieces by region.
+Review seeds 1862 and 1873, labels off, close and overview zoom. Run
+`node scripts/settlement-sites-test.mjs`, the terrain composition check, and the
+browser LOD persistence check. Simulation state, RNG, schemas and replay are
+untouched. This is an integration pass for the prototype, not new gameplay.
+
 ### Plains and forest terrain pass
 
 Twelve replacement pieces per biome now distinguish broad structures from fine

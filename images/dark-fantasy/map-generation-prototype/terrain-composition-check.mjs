@@ -96,3 +96,20 @@ for(const biome of ['plains','forest']) {
   if(biome==='plains') assert.ok(result.props.filter(p=>p.context==='interior').every(p=>Number(p.kind.replace(/-mirror$/,'').split('-').at(-1))>=8),'Plains scatter must use small ground cover, not large ridges');
 }
 console.log('Plains/forest: connected structural masses and role-specific ground cover.');
+
+for(const biome of ['plains','forest']) {
+  for(let n=0;n<12;n++) for(const suffix of ['compact','small']) {
+    const glyph=art[`terrain-${biome}-${n}`];
+    art[`terrain-${biome}-${n}-${suffix}`]=glyph;
+    art[`terrain-${biome}-${n}-${suffix}-mirror`]=glyph;
+  }
+  const fixture={...islandFixture,regions:islandFixture.regions.map(r=>({...r,biome}))};
+  const site={regionId:1,biome,x:120,y:75,rx:23,ry:16,entrance:{x:143,y:75},surroundings:{approachAngle:0}};
+  const args={map:fixture,art,pixel:p=>p,world:(x,y)=>({x,y}),detail:1,settlementPlans:[site],
+    legal:p=>p.left>0&&p.top>0&&p.left+art[p.kind].rows[0].length<240&&p.top+art[p.kind].rows.length<150};
+  const result=composeTerrainLandscape(args),edges=result.props.filter(p=>p.context==='settlement-edge');
+  assert.ok(edges.length>=3,'Settlement must receive deliberately composed edge assets');
+  assert.ok(edges.every(p=>p.siteRegion===1&&p.family===`terrain-${biome}`),'Town edge art must use its own biome');
+  assert.ok(result.props.slice(0,edges.length).every(p=>p.context==='settlement-edge'),'Settlement edges must reserve placement before general scatter');
+}
+console.log('Settlement surroundings: deliberate biome-specific edge art receives placement priority.');

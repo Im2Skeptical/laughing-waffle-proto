@@ -41,13 +41,31 @@ export function siteContains(sites, x, y, margin = 1) {
   return sites.some(s => ((x - s.x) / (s.rx * margin)) ** 2 + ((y - s.y) / (s.ry * margin)) ** 2 < 1);
 }
 
+const segmentDistance = (x,y,a,b) => {
+  const dx=b.x-a.x,dy=b.y-a.y,den=dx*dx+dy*dy;
+  const t=den?Math.max(0,Math.min(1,((x-a.x)*dx+(y-a.y)*dy)/den)):0;
+  return Math.hypot(x-a.x-t*dx,y-a.y-t*dy);
+};
+
+// Continuous worked-ground field follows plots, court and lanes, not a disc.
+export function settlementGroundWeight(site,x,y) {
+  const u=site.rx/23;
+  let weight=site.court?Math.max(0,1-Math.hypot((x-site.court.x)/(12*u),(y-site.court.y)/(9*u))):0;
+  for(const b of site.buildings) weight=Math.max(weight,Math.max(0,1-Math.hypot((x-b.x)/(b.w*.8+4*u),(y-b.y)/(b.h+4*u))));
+  for(const path of site.streets) for(let n=1;n<path.length;n++)
+    weight=Math.max(weight,Math.max(0,1-segmentDistance(x,y,path[n-1],path[n])/(5*u))*.7);
+  if(site.apron) weight=Math.max(weight,Math.max(0,1-segmentDistance(x,y,site.entrance,site.apron)/(5*u))*.65);
+  return weight;
+}
+
 // Woodland, grassland and island scenery may meet an irregular town fringe,
 // while buildings, court and approach remain protected. Wetland and mountain
 // reservations retain their current shape.
 export function siteReliefContains(sites, x, y) {
   return sites.some(s => {
-    if (!['islands','plains','forest'].includes(s.biome) || !s.buildings.length) return siteContains([s],x,y,.9);
+    if (!s.buildings.length) return siteContains([s],x,y,.9);
     const unit=s.rx/23;
+    if(s.apron && segmentDistance(x,y,s.entrance,s.apron)<3*unit) return true;
     if(s.buildings.some(b=>x>b.x-b.w*.6-unit && x<b.x+b.w*.6+unit
       && y>b.y-b.h-unit*2 && y<b.y+b.h*.55+unit)) return true;
     if(s.court && Math.hypot((x-s.court.x)/(7*unit),(y-s.court.y)/(5*unit))<1) return true;
@@ -70,6 +88,12 @@ export function layOutSettlements(sites, { detail, dry, world, seed }) {
     const other = neighbours[0];
     const angle = other ? Math.atan2((other.y - site.y) / site.ry, (other.x - site.x) / site.rx) : 1.2;
     site.entrance = { x: Math.round(site.x + Math.cos(angle) * site.rx * .88), y: Math.round(site.y + Math.sin(angle) * site.ry * .88) };
+    // A short protected apron leaves a real gap in the surrounding vegetation.
+    site.apron={x:site.entrance.x+Math.cos(angle)*12*detail,y:site.entrance.y+Math.sin(angle)*12*detail};
+    while(!dry(site.apron.x,site.apron.y,site.regionId) && Math.hypot(site.apron.x-site.entrance.x,site.apron.y-site.entrance.y)>detail) {
+      site.apron.x=(site.apron.x+site.entrance.x)/2; site.apron.y=(site.apron.y+site.entrance.y)/2;
+    }
+    site.surroundings = { approachAngle:angle, ground:site.biome==='forest'?'leaf-litter clearing':site.biome==='plains'?'worn grass and field margins':site.biome==='swamp'?'raised peat and reed edge':site.biome==='mountains'?'stone terrace and scree':'volcanic soil and scrub', placed:0 };
     const at = (u, v) => ({ x: site.x + u * detail, y: site.y + v * detail });
     const safe = p => dry(p.x, p.y, site.regionId);
     const street = points => {
@@ -125,13 +149,14 @@ export function paintSettlementSites(sites, { width, height, colours, waterIndic
       && map.regions[regionIds[y * width + x]]?.id === site.regionId;
     // Blend the original biome material into worked ground, with irregular,
     // feathered margins. No imported ground plates or blanket biome tint.
-    for (let y = Math.floor(site.y - site.ry * 1.2); y <= site.y + site.ry * 1.2; y++)
-      for (let x = Math.floor(site.x - site.rx * 1.2); x <= site.x + site.rx * 1.2; x++) {
+    for (let y = Math.floor(site.y - site.ry * 1.8); y <= site.y + site.ry * 1.8; y++)
+      for (let x = Math.floor(site.x - site.rx * 1.8); x <= site.x + site.rx * 1.8; x++) {
         if (!dry(x, y)) continue;
-        const d = Math.hypot((x - site.x) / site.rx, (y - site.y) / site.ry);
+        const ground = settlementGroundWeight(site,x,y);
+        if(ground<=0) continue;
         const noise = decorationRandom(map.seed, x * 9173 ^ y * 673);
         const court = Math.hypot((x - site.court.x) / (6 * detail), (y - site.court.y) / (4 * detail));
-        const strength = Math.max(0, 1 - d + (noise - .5) * .15) * .58;
+        const strength = Math.min(1,ground*(.9+noise*.2))*.68;
         const quietGround = {plains:0x8c7955,forest:0x66654c,islands:0x7b7c68,swamp:0x62575f,mountains:0x78665c}[site.biome];
         colours[y * width + x] = mixColour(colours[y * width + x],quietGround,strength);
         if (court < 1 + (noise - .5) * .25) {
@@ -139,7 +164,7 @@ export function paintSettlementSites(sites, { width, height, colours, waterIndic
           colours[y * width + x] = mixColour(colours[y * width + x], paving, .45);
         }
         const i = y * width + x;
-        colours[i] = mixColour(colours[i], surfaces.ground(site.biome, x, y), strength * (site.biome === 'islands' ? .15 : 1));
+        colours[i] = mixColour(colours[i], surfaces.ground(site.biome, x, y), strength * .18);
       }
     const ink = site.biome === 'swamp' ? ['#423a3d', '#877767'] : site.biome === 'mountains' ? ['#66544f', '#aa9180'] : ['#6b5c43', '#ad9a75'];
     for (const path of site.streets) for (let n = 1; n < path.length; n++) {
@@ -159,7 +184,8 @@ export function paintSettlementSites(sites, { width, height, colours, waterIndic
       for (let k=0;k<=length;k++) {
         const t=length?k/length:0, x=Math.round(a.x+(b.x-a.x)*t), y=Math.round(a.y+(b.y-a.y)*t);
         if (!dry(x,y)) continue;
-        if (n > 3 && n < 9 && k % 3 === 0) continue;
+        if (site.biome === 'plains' || site.biome === 'forest') { if (n % 4 !== 0 || k % 3 === 0) continue; }
+        else if (n > 3 && n < 9 && k % 3 === 0) continue;
         const edge = site.biome === 'mountains' ? 0x776158 : site.biome === 'swamp' ? 0x554850 : 0x6c694d;
         colours[y*width+x]=mixColour(colours[y*width+x],edge,.7);
         if (dry(x,y+1)) colours[(y+1)*width+x]=mixColour(colours[(y+1)*width+x],0x38332b,.35);
@@ -168,7 +194,7 @@ export function paintSettlementSites(sites, { width, height, colours, waterIndic
     for (const b of site.buildings) {
       for (let y = Math.floor(b.y - b.h / 3); y <= b.y + b.h / 2; y++) for (let x = Math.floor(b.x - b.w / 2); x <= b.x + b.w / 2; x++) {
         if (!dry(x, y)) continue;
-        const i = y * width + x, base = site.biome === 'islands' ? 0x7b7c68 : surfaces.ground(site.biome, x, y);
+        const i = y * width + x, base = {plains:0x8c7955,forest:0x66654c,islands:0x7b7c68,swamp:0x62575f,mountains:0x78665c}[site.biome];
         colours[i] = mixColour(colours[i], base, .3);
         if (y >= b.y) colours[i] = mixColour(colours[i], 0x322d29, .38);
         if (site.biome === 'mountains' && y === Math.floor(b.y + b.h / 2)) dot(x, y, 0, '#76605a');

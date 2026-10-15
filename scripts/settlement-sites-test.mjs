@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { routeSampleRoads, windRoad } from '../images/dark-fantasy/map-generation-prototype/roads.js';
-import { planSettlementSites, layOutSettlements, siteReliefContains, siteContains } from '../images/dark-fantasy/map-generation-prototype/settlement-sites.js';
+import { planSettlementSites, layOutSettlements, siteReliefContains, siteContains, settlementGroundWeight, paintSettlementSites } from '../images/dark-fantasy/map-generation-prototype/settlement-sites.js';
 
 const biomes = ['plains', 'forest', 'islands', 'swamp', 'mountains'];
 const width = 500, height = 100;
@@ -60,3 +60,19 @@ for(let y=Math.floor(island.y-island.ry);y<island.y+island.ry;y++) for(let x=Mat
   if(siteContains([island],x,y,.9)&&!siteReliefContains([island],x,y)) fringe++;
 assert.ok(fringe>20,'Irregular island clearing must release unused fringe for relief');
 console.log('Island clearing: building/court protection with usable irregular relief fringe.');
+
+for(const site of sites) {
+  for(const b of site.buildings) {
+    assert.ok(siteReliefContains([site],b.x,b.y),'All biome buildings remain protected');
+    assert.ok(settlementGroundWeight(site,b.x,b.y)>.9,'Worked ground follows each building plot');
+  }
+  const mid={x:(site.entrance.x+site.apron.x)/2,y:(site.entrance.y+site.apron.y)/2};
+  assert.ok(siteReliefContains([site],mid.x,mid.y),'Approach corridor stays clear of scenery');
+  assert.ok(settlementGroundWeight(site,mid.x,mid.y)>.5,'Worked ground connects the entrance apron');
+  assert.equal(settlementGroundWeight(site,site.x+site.rx*4,site.y),0,'Clearing must not tint the surrounding biome');
+}
+const colours=new Uint32Array(width*height).fill(0x667744),originalColours=colours.slice();
+paintSettlementSites(sites,{width,height,colours,waterIndices,regionIds,map,detail:2,
+  surfaces:{ground:()=>0x667744},mixColour:(a,b,t)=>t>0?b:a,dot:()=>{}});
+for(let i=0;i<waterIndices.length;i++) if(waterIndices[i]) assert.equal(colours[i],originalColours[i],'Worked ground must never paint over water');
+console.log('Integrated clearings: plot-shaped ground, protected approaches, finite feathering and untouched water across all five biomes.');

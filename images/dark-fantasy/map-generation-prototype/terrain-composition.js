@@ -45,7 +45,7 @@ const INTERIORS = {
 const COASTS = { forest: [4, 5, 7, 8, 9, 11], mountains: [5, 6, 7, 8, 9, 11],
   swamp: [3, 5, 6, 8, 9, 10], plains: [4, 6, 7, 9, 11], islands: [0, 1, 2, 3, 4, 5, 10, 11] };
 
-export function composeTerrainLandscape({ map, art, pixel, world, legal, detail, islandStyle = 'basalt' }) {
+export function composeTerrainLandscape({ map, art, pixel, world, legal, detail, islandStyle = 'basalt', settlementPlans = [] }) {
   const islandFamily = `terrain-island-${islandStyle}`;
   const props = [], diagnostics = { paths: 0, coastalProfiles: 0, placements: 0, joined: 0, breaks: 0, interiors: 0, families: {} };
   const regions = new Map(map.regions.map(r => [r.id, r]));
@@ -94,6 +94,41 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
     return options[0]?.prop ?? ((family.startsWith('terrain-island-') || ['terrain-plains','terrain-forest'].includes(family)) && sizeLevel < 2
       ? choose({ x,y,family,indices,salt,allowedBiomes,context,previous,sizeLevel:sizeLevel+1 }) : undefined);
   };
+
+  // Settlement edges have priority over general scatter. Rear cover frames the
+  // roofs; low foreground pieces lead into the biome, with an open approach.
+  const siteRecipes={
+    plains:{rear:[6,7,8],front:[9,10,11]},
+    forest:{rear:[4,5,7],front:[8,9,11]},
+    islands:{rear:[4,6,7],front:[8,10,11]},
+    swamp:{rear:[3,6,8],front:[9,10,11]},
+    mountains:{rear:[7,8,9],front:[8,9,11]},
+  };
+  diagnostics.settlementEdges=[];
+  for(const [i,site] of settlementPlans.entries()) {
+    const recipe=siteRecipes[site.biome], family=site.biome==='islands'?islandFamily:`terrain-${site.biome}`;
+    const approach=site.surroundings?.approachAngle??Math.atan2(site.entrance.y-site.y,site.entrance.x-site.x);
+    let placed=0;
+    for(const n of [7,10,4,1,8,5,11,2,6,3,0,9]) {
+      const a=n*Math.PI/6+(rand(i*43+n+8101)-.5)*.22;
+      const angularGap=Math.abs(Math.atan2(Math.sin(a-approach),Math.cos(a-approach)));
+      if(angularGap<.65) continue;
+      const rear=Math.sin(a)<-.25;
+      const indices=rear?recipe.rear:recipe.front;
+      let prop;
+      for(const ring of [1.4,1.75,2.1]) {
+        const x=site.x+Math.cos(a)*(site.rx*ring+4*detail);
+        const y=site.y+Math.sin(a)*(site.ry*ring+3*detail);
+        prop=choose({x,y,family,indices,salt:620001+i*9887+n*431,allowedBiomes:[site.biome],context:'settlement-edge',
+          sizeLevel:['plains','forest','islands'].includes(site.biome)?1:0});
+        if(prop) break;
+      }
+      if(prop) {prop.siteRegion=site.regionId;add(prop);placed++;}
+      if(placed>=6) break;
+    }
+    if(site.surroundings) site.surroundings.placed=placed;
+    diagnostics.settlementEdges.push({region:site.regionId,biome:site.biome,placed});
+  }
 
   // One principal extinct crater per connected island group. Search the largest
   // regions first, accepting only a complete dry footprint outside towns.
