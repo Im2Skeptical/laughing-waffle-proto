@@ -6,7 +6,13 @@
 space in their own region; mountain pieces and trees are rejected whole rather
 than cut through buildings. The accepted 75% setting remains the default footprint.
 Individual houses, halls, workshops and market buildings share terrain depth order.
-Local lanes join the actual mainland roads; island villages remain independent.
+Local lanes join a single planned entrance; mainland routes target that entrance
+and avoid the civic centre. The route search retains terrain constraints but no
+longer adds independent sine displacement to its samples. Island villages remain
+independent. Compact building groups surround an offset court and crescent lane,
+with a larger hall/market, gate and broken biome-material enclosure. Ground-level
+contact shadows anchor the buildings. Layouts have 13-19 pieces rather than two
+sparse rows connected by a rectangular grid.
 Swamps use dry ground between pools and timber paths, mountains use stone pads,
 and other biomes use their existing ground materials. No imported town ground plate
 or blanket biome tint is used. Layouts are seeded and independent of camera zoom.

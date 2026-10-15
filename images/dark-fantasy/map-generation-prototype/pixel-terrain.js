@@ -402,7 +402,11 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   borderCanvas.height = Math.ceil(Math.max(...extent.map(p => p.y))) - by + 2;
   const roadClearance = { x: bx, y: by, width: borderCanvas.width, height: borderCanvas.height,
     data: new Uint8Array(borderCanvas.width * borderCanvas.height) };
-  const roads = routeSampleRoads(settlementPlans.filter(s => s.biome !== 'islands').map(s => ({ x: s.x, y: s.y })), { width, height, regionIds, land, waterIndices, materialAt, scale: detail,
+  layOutSettlements(settlementPlans, { detail: siteDetail, world, seed: map.seed, dry: (x, y, id) => {
+    const i = Math.floor(y) * width + Math.floor(x);
+    return x >= 0 && y >= 0 && x < width && y < height && land[i] && !waterIndices[i] && map.regions[regionIds[i]]?.id === id;
+  } });
+  const roads = routeSampleRoads(settlementPlans.filter(s => s.biome !== 'islands').map(s => s.entrance), { width, height, regionIds, land, waterIndices, materialAt, scale: detail, exclusions: settlementPlans,
     bounds: { minX: bx, minY: by, maxX: bx + borderCanvas.width, maxY: by + borderCanvas.height } });
   surfaces.registerPaths('road', roads);
   const roadCanvas = document.createElement('canvas'); roadCanvas.width = borderCanvas.width; roadCanvas.height = borderCanvas.height;
@@ -417,10 +421,6 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       else { roadCtx.fillStyle = colour; roadCtx.fillRect(px - bx, py - by, 1, 1); }
     }
   };
-  layOutSettlements(settlementPlans, roads, { detail: siteDetail, world, seed: map.seed, dry: (x, y, id) => {
-    const i = Math.floor(y) * width + Math.floor(x);
-    return x >= 0 && y >= 0 && x < width && y < height && land[i] && !waterIndices[i] && map.regions[regionIds[i]]?.id === id;
-  } });
   for (const path of roads) {
     // Densify the search lattice to keep diagonal roads continuous.
     const samples = [];

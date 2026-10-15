@@ -1,14 +1,15 @@
 // Disposable presentation routes between sample sites. No gameplay connections.
 // Search the already-baked land lattice; the generator and its RNG stay untouched.
-export function routeSampleRoads(sites, { width, height, regionIds, land, waterIndices, materialAt, bounds, scale = 1 }) {
+export function routeSampleRoads(sites, { width, height, regionIds, land, waterIndices, materialAt, bounds, scale = 1, exclusions = [] }) {
   const step = 2, minX = Math.max(0, bounds.minX), minY = Math.max(0, bounds.minY);
   const cols = Math.ceil((Math.min(width, bounds.maxX) - minX) / step), rows = Math.ceil((Math.min(height, bounds.maxY) - minY) / step);
   const size = cols * rows, costs = new Float32Array(size);
   const pixel = n => ({ x: minX + n % cols * step, y: minY + Math.floor(n / cols) * step });
   const dry = (x, y) => x >= 0 && y >= 0 && x < width && y < height && regionIds[y * width + x] >= 0 && land[y * width + x];
+  const inTown = p => exclusions.some(s => ((p.x-s.x)/s.rx)**2 + ((p.y-s.y)/s.ry)**2 < .65);
   for (let n = 0; n < size; n++) {
     const p = pixel(n), i = p.y * width + p.x;
-    if (dry(p.x, p.y)) costs[n] = waterIndices[i] >= 16 && waterIndices[i] <= 23 ? 14
+    if (dry(p.x, p.y) && !inTown(p)) costs[n] = waterIndices[i] >= 16 && waterIndices[i] <= 23 ? 14
       : ({ forest: 1.6, swamp: 2.1, mountains: 2.8 })[materialAt(p.x, p.y)] ?? 1;
   }
   const nearest = p => {
@@ -72,6 +73,7 @@ export function routeSampleRoads(sites, { width, height, regionIds, land, waterI
     pairs.sort((a, b) => a.d - b.d); let joined = false;
     for (const pair of pairs) {
       const path = search(anchors[pair.a], anchors[pair.b]); if (!path) continue;
+      path[0] = { ...sites[pair.a] }; path[path.length - 1] = { ...sites[pair.b] };
       paths.push(path); connected.add(pair.b); joined = true; break;
     }
     if (!joined) break;
@@ -93,20 +95,12 @@ export function routeSampleRoads(sites, { width, height, regionIds, land, waterI
         if (wet(path[n])) continue;
         const a = shaped[n - 1], p = shaped[n], b = shaped[n + 1];
         const q = { x: (a.x + p.x * 2 + b.x) / 4, y: (a.y + p.y * 2 + b.y) / 4 };
-        if (!wet(q) && clear(a, q) && clear(q, b)) next[n] = q;
+        if (!wet(q) && !inTown(q) && clear(a, q) && clear(q, b)) next[n] = q;
       }
       shaped = next;
     }
-    const original = shaped.map(p => ({ ...p })); let distance = 0;
-    for (let n = 1; n < shaped.length - 1; n++) {
-      const a = original[n - 1], p = original[n], b = original[n + 1];
-      distance += Math.hypot(p.x - a.x, p.y - a.y);
-      if (wet(p)) continue;
-      const length = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-      const bend = (Math.sin(distance / (31 * scale)) * 6 + Math.sin(distance / (13 * scale)) * 1.5) * Math.sin(Math.PI * n / (shaped.length - 1)) * scale;
-      const q = { x: p.x - (b.y - a.y) / length * bend, y: p.y + (b.x - a.x) / length * bend };
-      if (!wet(q) && clear(shaped[n - 1], q) && clear(q, shaped[n + 1])) shaped[n] = q;
-    }
-    return shaped.map(p => ({ x: Math.round(p.x), y: Math.round(p.y) }));
+    // Do not add a second perpendicular wave after pathfinding. That displaced
+    // adjacent samples independently and made the approach kink at destinations.
+    return shaped.map((p,i) => i === 0 || i === shaped.length-1 ? p : ({ x: Math.round(p.x), y: Math.round(p.y) }));
   });
 }

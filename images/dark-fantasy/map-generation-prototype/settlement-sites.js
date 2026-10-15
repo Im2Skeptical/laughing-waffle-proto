@@ -32,16 +32,18 @@ export function siteContains(sites, x, y, margin = 1) {
   return sites.some(s => ((x - s.x) / (s.rx * margin)) ** 2 + ((y - s.y) / (s.ry * margin)) ** 2 < 1);
 }
 
-export function layOutSettlements(sites, roads, { detail, dry, world, seed }) {
+// Plan one entrance and a compact neighbourhood before inter-town routing.
+export function layOutSettlements(sites, { detail, dry, world, seed }) {
   detail *= .5;
   for (const site of sites) {
     site.buildings = []; site.streets = [];
-    const near = roads.flat().filter(p => Math.hypot(p.x - site.x, p.y - site.y) < 24 * detail
-      && Math.hypot(p.x - site.x, p.y - site.y) > 10 * detail);
-    const target = near[0];
-    // Streets follow the road but keep a broad, shallow site footprint.
-    const slope = target ? Math.max(-.4, Math.min(.4, (target.y - site.y) / (target.x - site.x || 1))) : .16;
-    const at = (u, v) => ({ x: site.x + u * detail, y: site.y + (v + u * slope) * detail });
+    const random = n => decorationRandom(seed, Number(site.regionId.slice(1)) * 3571 + n * 83);
+    const neighbours = sites.filter(s => s !== site && s.biome !== 'islands')
+      .sort((a, b) => Math.hypot(a.x - site.x, a.y - site.y) - Math.hypot(b.x - site.x, b.y - site.y));
+    const other = neighbours[0];
+    const angle = other ? Math.atan2((other.y - site.y) / site.ry, (other.x - site.x) / site.rx) : 1.2;
+    site.entrance = { x: Math.round(site.x + Math.cos(angle) * site.rx * .88), y: Math.round(site.y + Math.sin(angle) * site.ry * .88) };
+    const at = (u, v) => ({ x: site.x + u * detail, y: site.y + v * detail });
     const safe = p => dry(p.x, p.y, site.regionId);
     const street = points => {
       const valid = points.every(safe) && points.slice(1).every((b, i) => {
@@ -54,21 +56,38 @@ export function layOutSettlements(sites, roads, { detail, dry, world, seed }) {
       });
       if (valid) site.streets.push(points);
     };
-    street([at(-20, 0), at(-7, -1), at(5, 1), at(20, 0)]);
-    if (target) street([{ x: site.x, y: site.y }, target]);
-    const occupied = [];
-    for (const [row, v] of [-7, 7].entries()) for (let col = 0; col < 5; col++) {
-      const u = -15 + col * 7.5, salt = Number(site.regionId.slice(1)) * 3571 + row * 113 + col * 83;
-      const p = at(u + (decorationRandom(seed, salt) - .5) * 3, v + (decorationRandom(seed, salt + 17) - .5) * 4);
-      const role = col === 2 && row === 0 ? (site.kind === 'player' ? 'hall' : 'market')
-        : col === 4 ? 'workshop' : (col + row) % 3 === 0 ? 'pair' : 'house';
-      const w = (role === 'pair' ? 7 : role === 'hall' || role === 'market' ? 8 : 5.5) * detail, h = w * .72;
-      if (![-1, 0, 1].every(dx => [-1, 0, 1].every(dy => safe({ x: p.x + dx * w / 2, y: p.y + dy * h / 2 })))) continue;
-      if (occupied.some(b => Math.abs(b.x - p.x) < (b.w + w) * .42 && Math.abs(b.y - p.y) < h)) continue;
-      occupied.push({ ...p, w });
-      site.buildings.push({ ...p, w, h, role, point: world(p.x, p.y), biome: site.biome });
-      street([p, at(u, 0)]);
+    // An offset civic court and a crescent lane replace the rectangular street grid.
+    site.court = at(9, 3);
+    street([site.entrance, { x: (site.entrance.x + site.court.x) / 2 + detail,
+      y: (site.entrance.y + site.court.y) / 2 }, site.court]);
+    street([at(-17, 3), at(-8, 3), at(1, 4), site.court]);
+    const plots = [
+      [0,-5,'civic',11], [-9,-6,'pair',7], [9,-5,'pair',7],
+      [-16,-3,'house',5.8], [16,-2,'workshop',7],
+      [-13,4,'pair',7], [-5,9,'house',6], [3,10,'pair',7], [11,7,'house',6],
+      [-7,-11,'house',5.6], [1,-12,'house',5.6], [9,-10,'house',5.6],
+      [-19,2,'house',5.2], [18,5,'house',5.2], [-12,10,'house',5.2],
+      [-6,0,'house',5.8], [3,1,'pair',6.8], [-3,6,'house',5.2],
+    ];
+    // Materials and silhouette differ: a narrow terrace, a loose woodland crescent,
+    // or compact raised wetland court. The same plan survives every zoom level.
+    const stretch = site.biome === 'mountains' ? .78 : site.biome === 'forest' ? .9 : 1;
+    for (const [n, [u,v,kind,size]] of plots.entries()) {
+      const p = at(u + (random(n) - .5) * 1.6, v * stretch + (random(n + 40) - .5));
+      const role = kind === 'civic' ? (site.kind === 'player' ? 'hall' : 'market') : kind;
+      const w = size * detail, h = w * .6;
+      const entranceDistance = Math.hypot(p.x - site.entrance.x, p.y - site.entrance.y);
+      if (entranceDistance < 5 * detail) continue;
+      if (![-1,0,1].every(dx => [-1,0,1].every(dy => safe({ x:p.x + dx*w/2,y:p.y + dy*h/2 })))) continue;
+      site.buildings.push({ ...p,w,h,role,point:world(p.x,p.y),biome:site.biome });
     }
+    if ([-1,0,1].every(dx => [-1,0,1].every(dy => safe({x:site.entrance.x+dx*3.5*detail,y:site.entrance.y+dy*1.5*detail}))))
+      site.buildings.push({ ...site.entrance,w:7*detail,h:3*detail,role:'gate',point:world(site.entrance.x,site.entrance.y),biome:site.biome });
+    site.enclosure = Array.from({ length: 21 }, (_, n) => {
+      const a = angle + .24 + n / 20 * (Math.PI * 2 - .48);
+      const irregular = 1 + (random(n + 90) - .5) * .09;
+      return { x:site.x + Math.cos(a)*site.rx*.84*irregular, y:site.y + Math.sin(a)*site.ry*.86*irregular };
+    });
   }
 }
 
@@ -84,7 +103,12 @@ export function paintSettlementSites(sites, { width, height, colours, waterIndic
         if (!dry(x, y)) continue;
         const d = Math.hypot((x - site.x) / site.rx, (y - site.y) / site.ry);
         const noise = decorationRandom(map.seed, x * 9173 ^ y * 673);
-        const strength = Math.max(0, 1 - d + (noise - .5) * .15) * .45;
+        const court = Math.hypot((x - site.court.x) / (6 * detail), (y - site.court.y) / (4 * detail));
+        const strength = Math.max(0, 1 - d + (noise - .5) * .15) * .32;
+        if (court < 1 + (noise - .5) * .25) {
+          const paving = site.biome === 'swamp' ? 0x71636c : site.biome === 'mountains' ? 0x948075 : 0x9d8e71;
+          colours[y * width + x] = mixColour(colours[y * width + x], paving, .45);
+        }
         const i = y * width + x;
         colours[i] = mixColour(colours[i], surfaces.ground(site.biome, x, y), strength);
       }
@@ -95,14 +119,29 @@ export function paintSettlementSites(sites, { width, height, colours, waterIndic
         const t = length ? k / length : 0, x = Math.round(a.x + (b.x - a.x) * t), y = Math.round(a.y + (b.y - a.y) * t);
         if (!dry(x, y)) continue;
         dot(x, y, 0, k % 5 === 0 ? ink[0] : ink[1]);
-        if (site.biome === 'swamp' && k % 3 === 0) dot(x + 1, y, 0, '#a09178');
+
+      }
+    }
+    // Broken stone banks / hedges / timber edge bind the town into a readable
+    // footprint, with a real opening at the approach. Paint into terrain pixels.
+    for (let n = 1; n < site.enclosure.length; n++) {
+      const a = site.enclosure[n-1], b = site.enclosure[n];
+      const length = Math.ceil(Math.hypot(b.x-a.x,b.y-a.y));
+      for (let k=0;k<=length;k++) {
+        const t=length?k/length:0, x=Math.round(a.x+(b.x-a.x)*t), y=Math.round(a.y+(b.y-a.y)*t);
+        if (!dry(x,y)) continue;
+        if (n > 3 && n < 9 && k % 3 === 0) continue;
+        const edge = site.biome === 'mountains' ? 0x776158 : site.biome === 'swamp' ? 0x554850 : 0x6c694d;
+        colours[y*width+x]=mixColour(colours[y*width+x],edge,.7);
+        if (dry(x,y+1)) colours[(y+1)*width+x]=mixColour(colours[(y+1)*width+x],0x38332b,.35);
       }
     }
     for (const b of site.buildings) {
       for (let y = Math.floor(b.y - b.h / 3); y <= b.y + b.h / 2; y++) for (let x = Math.floor(b.x - b.w / 2); x <= b.x + b.w / 2; x++) {
         if (!dry(x, y)) continue;
         const i = y * width + x, base = surfaces.ground(site.biome, x, y);
-        colours[i] = mixColour(colours[i], base, .6);
+        colours[i] = mixColour(colours[i], base, .3);
+        if (y >= b.y) colours[i] = mixColour(colours[i], 0x322d29, .23);
         if (site.biome === 'mountains' && y === Math.floor(b.y + b.h / 2)) dot(x, y, 0, '#76605a');
       }
     }

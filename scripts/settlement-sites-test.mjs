@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { routeSampleRoads } from '../images/dark-fantasy/map-generation-prototype/roads.js';
 import { planSettlementSites, layOutSettlements } from '../images/dark-fantasy/map-generation-prototype/settlement-sites.js';
 
 const biomes = ['plains', 'forest', 'islands', 'swamp', 'mountains'];
@@ -22,13 +23,21 @@ assert.equal(sites.length, 5);
 const dry = (x, y, id) => x >= 0 && y >= 0 && x < width && y < height
   && !waterIndices[Math.floor(y) * width + Math.floor(x)]
   && map.regions[regionIds[Math.floor(y) * width + Math.floor(x)]].id === id;
-const roads = sites.map(s => [{ x: s.x - 18, y: s.y }, { x: s.x, y: s.y }, { x: s.x + 18, y: s.y }]);
-layOutSettlements(sites, roads, { detail: 2, dry, world: args.world, seed: map.seed });
+layOutSettlements(sites, { detail: 2, dry, world: args.world, seed: map.seed });
 for (const site of sites) {
   assert.ok(site.buildings.length >= 8);
   for (const b of site.buildings) for (const dx of [-1, 1]) for (const dy of [-1, 1])
     assert.ok(dry(b.x + dx * b.w / 2, b.y + dy * b.h / 2, site.regionId), 'Building crosses water or region boundary');
-  assert.ok(site.streets.some(path => path.some(p => roads.flat().some(r => r.x === p.x && r.y === p.y))), 'No road connection');
+  assert.ok(site.streets.some(path => path[0] === site.entrance), 'Local lane must meet entrance');
 }
 assert.deepEqual(waterIndices, before, 'Site planning must preserve water');
 console.log('Settlement sites: five biomes, deterministic dry footprints, road connections, water preserved.');
+
+const endpoints=sites.map(s=>s.entrance);
+const routed=routeSampleRoads(endpoints,{width,height,land,waterIndices,regionIds,materialAt:()=> 'plains',bounds:{minX:0,minY:0,maxX:width,maxY:height},exclusions:sites,scale:2});
+assert.equal(routed.length,4);
+for(const path of routed) {
+ for(const p of [path[0],path.at(-1)]) assert.ok(endpoints.some(e=>e.x===p.x&&e.y===p.y),'Route must end exactly at an entrance');
+ for(const p of path) for(const s of sites) assert.ok(Math.hypot(p.x-s.x,p.y-s.y)>5,'Through-road crosses civic centre');
+}
+console.log('Settlement roads: exact entrances; no through-roads across town centres.');
