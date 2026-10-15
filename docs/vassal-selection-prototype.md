@@ -10,7 +10,8 @@ dock chrome is covered at 844x390 through desktop. Layout: a class banner
 (painted frame, crest, name, flavour), an attribute block (four icon + value chips
 with the replaced attribute struck through and labelled, the class attribute shown
 as a feature), two illustrated ability cards and a class tab strip (emblem tabs, two
-locked silhouettes) centred along the bottom of the modal. There is no Begin button
+locked silhouettes) centred under the right-hand column (the attributes and
+abilities, to the right of the banner). There is no Begin button
 or hint text: the class on show is always the selected candidate (the picker
 previews it on open), so the dock's Confirm button, which the Navigation dock
 shows once a candidate is selected, begins the Vassal on touch and mouse, and Enter

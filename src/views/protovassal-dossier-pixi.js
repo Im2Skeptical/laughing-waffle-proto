@@ -14,8 +14,10 @@ import { BASE_STATS, FOUNDER_CLASSES, STAT_ICONS, founderTooltipSpec } from './p
 const W = MODAL_PANEL.width, H = MODAL_PANEL.height;
 const SLOT_COUNT = 4, FONT = 'Georgia';
 const TAB = Object.freeze({ y: 566, width: 150, height: 128, gap: 14 });
-// The four slots sit centred along the bottom of the modal.
-const TAB_ROW_X = (W - (SLOT_COUNT * TAB.width + (SLOT_COUNT - 1) * TAB.gap)) / 2;
+// The right-hand column (attribute chips and ability cards) spans COLUMN.left..right,
+// to the right of the banner. The four class slots centre on that column.
+const COLUMN = Object.freeze({ left: 600, right: 2310 });
+const TAB_ROW_X = (COLUMN.left + COLUMN.right) / 2 - (SLOT_COUNT * TAB.width + (SLOT_COUNT - 1) * TAB.gap) / 2;
 const OPEN_MS = 220, CLOSE_MS = 140, PAGE_MS = 240;
 const ease = t => 1 - (1 - Math.min(1, Math.max(0, t))) ** 3;
 const reducedMotion = () => globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
@@ -101,7 +103,7 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
     const flavour = text(view, data.flavour, mid, 614, 24, { fontStyle: 'italic', fill: 0xc2c3b4, wordWrap: true, wordWrapWidth: bw - 80, align: 'center' }); flavour.anchor.set(.5, 0);
 
     // Attribute chips: the class attribute takes the replaced slot.
-    const cx = 600, cw = 385, ch = 128, cgap = 20;
+    const cx = COLUMN.left, cw = 385, ch = 128, cgap = 20;
     label(view, 'ATTRIBUTES', cx, 26);
     BASE_STATS.forEach((base, index) => {
       const replaced = base.name === data.replaces, name = replaced ? data.stat : base.name;
@@ -140,7 +142,7 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
     addTip(feature, data.stat, 'stat', classId, 'right'); controls.feature = feature;
 
     // Ability cards
-    const ax = 1430, aw = 430, agap = 20, ay = 66, ah = 548 - ay;
+    const aw = 430, agap = 20, ax = COLUMN.right - 2 * aw - agap, ay = 66, ah = 548 - ay;
     label(view, 'CLASS ABILITIES', ax, 26);
     data.abilities.forEach((ability, index) => {
       const x = ax + index * (aw + agap), card = control(view, x, ay, aw, ah), g = new PIXI.Graphics(); card.addChild(g);
