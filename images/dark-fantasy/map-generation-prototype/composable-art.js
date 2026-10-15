@@ -88,7 +88,7 @@ export async function loadComposableArt(banks) {
       const ashRgb={},ashColours={};
       for(const [code,rgb] of Object.entries(rgbColours)) {
         const value=(rgb>>16)*.3+(rgb>>8&255)*.59+(rgb&255)*.11;
-        const grey=Math.max(25,Math.min(116,62+(value-105)*.48));
+        const grey=Math.max(29,Math.min(88,53+(value-105)*.30));
         const colour=(Math.round(grey-3)<<16)|(Math.round(grey+1)<<8)|Math.round(grey+6);
         ashRgb[code]=colour;ashColours[code]=`#${colour.toString(16).padStart(6,'0')}`;
       }

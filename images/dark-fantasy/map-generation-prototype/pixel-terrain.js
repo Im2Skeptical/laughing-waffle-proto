@@ -4,7 +4,7 @@ import { decorationRandom, insidePolygon, canPlacePeak } from './generator.js';
 import { createAtlasArt } from './atlas-art.js';
 import { routeSampleRoads } from './roads.js';
 import { loadComposableArt, composableLibrary } from './composable-art.js';
-import { composeHinterland } from './hinterland-composition.js';
+import { composeHinterland, paintHinterlandMass } from './hinterland-composition.js';
 import { composeTerrainLandscape, boneRidgeFits } from './terrain-composition.js';
 import { loadIllustratedArt } from './illustrated-art.js';
 import { releaseZoomArt } from './zoom-art.js';
@@ -501,6 +501,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       return painted>0&&dry/painted>.96&&outside/painted>(prop.barrier?.72:.98);
     }});
   props.splice(0,props.length,...towns,...hinterland.props,...composition.props);
+  hinterland.stats.mass=paintHinterlandMass({props:hinterland.props,art:ART,width,height,colours,land,waterIndices,regionIds,detail,seed:map.seed,noise,mixColour});
   const foundations = paintTerrainFoundations({ props, art: ART, pixel, surfaces, materialAt, land, waterIndices,
     colours, width, height, detail, noise, seed: map.seed, mixColour, islandStyle });
   const divisions = paintRegionDivisions({ map, pixel, width, height, detail, land, regionIds,

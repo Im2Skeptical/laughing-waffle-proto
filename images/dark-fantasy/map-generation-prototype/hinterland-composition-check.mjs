@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { composeHinterland, hinterlandBorderEdges } from './hinterland-composition.js';
+import { composeHinterland, hinterlandBorderEdges, paintHinterlandMass } from './hinterland-composition.js';
 import { generateMap } from './generator.js';
 
 const art={};
@@ -21,3 +21,20 @@ for(const seed of [1865,1867,1873]) {
   assert.equal(composeHinterland({...args,legal:()=>false}).props.length,0,'Never force scenery onto unsafe terrain');
 }
 console.log('Hinterland: imported terrain variety, seeded mountain chains on landward outer borders, open ocean arcs and unsafe-footprint rejection pass.');
+
+const width=100,height=70,land=new Uint8Array(width*height).fill(1),waterIndices=new Uint8Array(width*height),regionIds=new Int16Array(width*height).fill(-1);
+for(let y=0;y<height;y++)for(let x=0;x<width;x++) {
+  if(x<12)waterIndices[y*width+x]=16;
+  if(x>85)regionIds[y*width+x]=0;
+}
+const prop={kind:'terrain-hinterland-mountains-0',hinterland:true,barrier:true,left:36,top:20};
+const colours=new Uint32Array(width*height).fill(0x252932),before=colours.slice();
+const args={props:[prop],art,width,height,colours,land,waterIndices,regionIds,detail:1,seed:1865,noise:()=>.5,
+  mixColour:(a,b,t)=>[16,8,0].reduce((c,s)=>c|Math.round((a>>s&255)*(1-t)+(b>>s&255)*t)<<s,0)};
+const result=paintHinterlandMass(args);
+assert.ok(result.paintedPixels>300,'Mountain support should form a broad mass beyond the glyph footprint');
+for(let i=0;i<colours.length;i++)if(waterIndices[i]||regionIds[i]>=0)assert.equal(colours[i],before[i],'Scree support must preserve water and playable regions');
+const doubled=before.slice();paintHinterlandMass({...args,props:[prop,prop],colours:doubled});
+assert.deepEqual(doubled,colours,'Overlapping masses must merge rather than stack bright halos');
+assert.equal(colours[69*width+50],before[69*width+50],'The support must fade completely outside its footprint');
+console.log('Hinterland mass: broad textured support, overlap without halos, finite fade and untouched water/playable terrain pass.');

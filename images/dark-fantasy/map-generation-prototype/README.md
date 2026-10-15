@@ -1,7 +1,7 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.9** — imported RTS hinterland terrain and
-mountain barriers following the unplayable landward perimeter. The version appears under the title inside the
+Current published revision: **Map v1.0.10** — softer hinterland values, broader foothill
+masses and continuous textured scree beneath the mountain barriers. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -13,10 +13,17 @@ Legacy ash crag/hill/deadwood stamps are replaced by grey-graded versions of the
 imported RTS mountain, ridge, woodland, swamp and plains pieces. Seeded spatial
 patches leave broad quiet spaces between distinct relief masses. Background
 substrate values interpolate continuously rather than stepping between flat bands.
-Two staggered mountain crests follow each actual landward outer edge, with varied
+Two staggered mountain crests and a third low foothill belt follow each actual
+landward outer edge, with varied
 silhouettes and outward offsets. Ocean-facing edges remain open. Footprints stay
 mostly outside playable cells, avoid towns, and require dry land; river channels
-retain their gaps. Geography, region ownership and gameplay are untouched.
+retain their gaps. Wider support fields merge into one continuous scree bed,
+with matching grey grain and directional strata fading into the distant ground.
+Overlaps use maximum influence, avoiding stacked bright halos. Only unplayable
+dry pixels receive this support; water and playable substrate are untouched.
+Grey asset highlights/shadows are compressed to match the scree values; distant
+scatter is reduced so the broad mass carries the transition before isolated noise.
+Geography, region ownership and gameplay are untouched.
 `pixelRendering.hinterland` reports border attempts/placements, barrier/scatter
 counts and unique source kinds. Run `hinterland-composition-check.mjs`, normal
 terrain/settlement checks and browser LOD persistence; inspect seed 1865.
