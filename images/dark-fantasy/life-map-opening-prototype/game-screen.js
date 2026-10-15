@@ -22,7 +22,7 @@ import { createOpeningNoteScreen } from './note-screen.js';
 import { createOpeningWorldDecisionScreen } from './world-decision-screen.js';
 
 // Bump for each published opening-workbench iteration and report it to the user.
-export const OPENING_PREVIEW_VERSION = '0.1.3';
+export const OPENING_PREVIEW_VERSION = '0.1.4';
 
 // A mock game shell around the exact views used by the game. All input goes
 // through the disposable controller; this module owns no simulation rules.

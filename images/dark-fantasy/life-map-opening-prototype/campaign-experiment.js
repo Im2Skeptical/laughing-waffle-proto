@@ -51,17 +51,19 @@ export function seedCampaignExample(session,inputs={}) {
   for(const monster of campaign.monsters)if(!monster.expansion)monster.expansion=40;
   campaign.quests=campaign.monsters.map(target=>({regionId:target.regionId,done:false}));
 }
-export function campaignForce(campaign,solo=false) {
+export function campaignForce(campaign,mode='attack') {
   const r=campaign.resources,retinue=campaign.hasRetinue?Math.floor(r.prestige/VASSAL_CLASS_RULES.warrior.prestigePerRetinue)+campaign.retinueBonus:0;
   const armedWarriors=Math.min(r.warriors,r.arms);
-  return {prowess:r.prowess,retinue:solo?0:retinue,warriors:r.warriors,arms:r.arms,armedWarriors:solo?0:armedWarriors,total:r.prowess+(solo?0:retinue+armedWarriors)};
+  const usedRetinue=mode==='duel'?0:retinue,usedWarriors=mode==='attack'?armedWarriors:0;
+  return {prowess:r.prowess,retinue:usedRetinue,warriors:r.warriors,arms:r.arms,armedWarriors:usedWarriors,total:r.prowess+usedRetinue+usedWarriors};
 }
 export function getCampaignPresentation(session) {
-  const c=session.campaign,r=c.resources,vassal=actor(session),force=campaignForce(c),solo=campaignForce(c,true);
+  const c=session.campaign,r=c.resources,vassal=actor(session);
+  const forces=Object.fromEntries(['attack','duel','quest'].map(mode=>[mode,campaignForce(c,mode)]));
   const target=(mode,regionId,defense,stage,label,description)=>{
     const distance=campaignDistance(session.state,vassal.locationRegionId,regionId),personal=mode!=='attack';
     const foodCost=mode==='duel'?0:c.tuning.foodBase+distance*c.tuning.foodPerDistance,prestigeCost=personal?0:c.tuning.prestigeCost;
-    const strength=personal?solo:force,risk=Math.round(defense/Math.max(1,strength.total+defense)*100);
+    const strength=forces[mode],risk=Math.round(defense/Math.max(1,strength.total+defense)*100);
     const warriorBonus=mode==='duel'&&vassal.classId==='warrior'&&risk>0?VASSAL_CLASS_RULES.warrior.riskPrestige:0;
     return {id:`${mode}:${regionId}`,regionId,mode,stage,label:`${label} · ${getRegionReference(session.state,regionId)}`,description,defense,force:strength.total,risk,distance,
       prestigeGain:mode==='duel'?c.tuning.duelPrestige+warriorBonus:0,prestigeDelta:mode==='duel'?c.tuning.duelPrestige+warriorBonus:0,warriorBonus,
@@ -71,13 +73,13 @@ export function getCampaignPresentation(session) {
     ...c.monsters.filter(monster=>monster.nest).map(monster=>target('attack',monster.regionId,monster.defense+(monster.cleared?c.tuning.nestDefenseBonus:0),monster.cleared?'nest':'clear',monster.cleared?'Destroy nest':'Clear monsters',monster.cleared?'Destroy the nest after clearing its monsters.':`Clear monsters; expansion buildup ${monster.expansion} → 0.`)),
     ...c.neutrals.filter(site=>!site.allied).map(site=>target('attack',site.regionId,site.defense,'alliance','Attack settlement','Success converts this neutral settlement to allied.')),
     ...(!c.duelDone?[target('duel',vassal.locationRegionId,c.tuning.duelDefense,'duel','Honour duel','Victory: +1 Prowess and the Prestige prize. Prowess only.')]:[]),
-    ...c.quests.filter(quest=>!quest.done).map(quest=>target('quest',quest.regionId,c.tuning.questDefense,'quest','Solo quest',`Success: a monster relic and ${c.tuning.questPrestige} Prestige. Prowess only.`)),
+    ...c.quests.filter(quest=>!quest.done).map(quest=>target('quest',quest.regionId,c.tuning.questDefense,'quest','Quest',`Success: a monster relic and ${c.tuning.questPrestige} Prestige. Prowess and personal Retinue.`)),
   ];
   const selected=allTargets.find(target=>target.id===c.selectedTargetId&&target.mode===c.mode);
   const options=[
     {id:'attack',label:'Attack',description:'Pick a monster region or neutral settlement. · Clear nests or gain allies.'},
     {id:'duel',label:'Honour duel',description:`Prowess only. · Victory: +1 Prowess. · Prize: ${c.tuning.duelPrestige} Prestige. · Once per visit.`},
-    {id:'quest',label:'Quest',description:`Prowess only. · Monster relic +${c.tuning.questPrestige} Prestige. · No Prestige cost.`},
+    {id:'quest',label:'Quest',description:`Prowess + Retinue. · Monster relic +${c.tuning.questPrestige} Prestige. · No Prestige cost.`},
   ].map(option=>{
     const targets=allTargets.filter(target=>target.mode===option.id),affordable=targets.filter(target=>!target.blocked);
     const price=selected?.mode===option.id?selected:[...(affordable.length?affordable:targets)].sort((a,b)=>a.foodCost-b.foodCost)[0];
@@ -85,7 +87,7 @@ export function getCampaignPresentation(session) {
     return {...option,...(option.id==='duel'&&price?.warriorBonus?{description:`${option.description} · Warrior bonus: +${price.warriorBonus} Prestige.`}:{}),cost:price?.cost??0,phases:0,foodCost:price?.foodCost??0,prestigeDelta:price?.prestigeGain??0,from:selected?.mode!==option.id&&targets.some(target=>target.foodCost!==price?.foodCost),blocked:c.failed?'Expedition ended':!targets.length?option.id==='duel'?'Duel completed':'No remaining targets':!affordable.length?price?.blocked:null,
       riskLabel:preview?`${preview.risk}% defeat risk\n${option.id==='duel'?'Prowess':'Force'} ${preview.force} vs Defence ${preview.defense}`:option.id==='duel'?'Duel completed':'Choose a target'};
   });
-  return {mode:c.mode,selectedTargetId:c.selectedTargetId,targets:allTargets.filter(target=>target.mode===c.mode),allTargets,options,force,solo,resources:{...r},failed:c.failed,lastResult:c.history.at(-1)??null,
+  return {mode:c.mode,selectedTargetId:c.selectedTargetId,targets:allTargets.filter(target=>target.mode===c.mode),allTargets,options,force:forces.attack,forces,activeForce:forces[c.mode],resources:{...r},failed:c.failed,lastResult:c.history.at(-1)??null,
     progress:[...c.monsters.filter(monster=>monster.cleared).map(monster=>({regionId:monster.regionId,label:monster.nest?'Buildup cleared':'Nest destroyed'})),...c.neutrals.filter(site=>site.allied).map(site=>({regionId:site.regionId,label:'Allied'}))]};
 }
 export function selectCampaignMode(session,mode) {
