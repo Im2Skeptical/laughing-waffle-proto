@@ -11,7 +11,7 @@ import { createMapTimegraph } from './map-timegraph.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
-const MAP_VERSION = '1.0.17';
+const MAP_VERSION = '1.0.18';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
@@ -781,7 +781,7 @@ function render() {
   button('Show approved base structure', 1450, 40, 306, 52, () => { state.variant = 'C'; render(); }, { copy: 'Base structure', active: !pixelReview(), size: 24 });
   button('Show atlas rendering', 1776, 40, 270, 52, () => { state.variant = 'F'; render(); }, { copy: 'Atlas rendering', active: pixelReview(), size: 24 });
   drawControls(); drawMap();
-  timegraph=createMapTimegraph({root,app,timeline,palette:currentPixelArt?.waterPalette,text,panel,button,targets,onChange:timelineChanged});
+  timegraph=createMapTimegraph({root,app,timeline,palette:currentPixelArt?.waterPalette,seed:map.seed,text,panel,button,targets,onChange:timelineChanged});
   button('Toggle location labels', 1400, 158, 230, 70, () => { state.siteLabels = !state.siteLabels; render(); }, { copy: state.siteLabels ? 'Labels: On' : 'Labels: Off', active: state.siteLabels, size: 24 });
   Object.entries(BIOMES).forEach(([id, biome], i) => {
     const x = 518 + i * 310, y = 928;

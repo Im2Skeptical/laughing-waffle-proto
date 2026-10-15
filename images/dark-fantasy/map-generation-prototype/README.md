@@ -1,7 +1,7 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.17** — expanding inland ripple rings,
-regional phase variation and multi-year water conditions, with a 50-year review span. The version appears under the title inside the
+Current published revision: **Map v1.0.18** — soft offshore colour drift with a
+third graph curve, and quieter inland arcs with their small inner rings suppressed. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -38,10 +38,11 @@ site exclusions, lake/ocean classification and playable land stay unchanged.
 `wetlands` reports floating mats, reeds and ripples; `surfaceTreatments` reports
 lake vegetation and reed coverage. Inspect seed 1869 at 5% clustering for two inland
 islands, one marine island and swamp pools. Default clustering remains 50%.
-Run `water-ripples-check.mjs`, `wetland-ground-check.mjs` and `water-style-check.mjs`, then the browser GPU
+Run `water-drift-check.mjs`, `water-ripples-check.mjs`, `wetland-ground-check.mjs` and `water-style-check.mjs`, then the browser GPU
 comparison and timeline restoration check on the actual water fields.
 Marine waters have blue offshore depth, irregular green shelves, sandy shoals and
-darker submerged channels. Those substrate colours stay fixed. Directional swell
+darker submerged channels. Their depth and texture stay fixed beneath a soft
+offshore colour drift. Directional swell
 groups bend into coastal breakers; complete phase paths pass through porous foam
 masks, rather than cycling only a short bright outline. Asymmetric ramps distinguish
 troughs, green wave faces, narrow pale crests and longer dispersing wakes. Offshore
@@ -55,8 +56,10 @@ The bake retains `waterBodies` and `waterPalette` with the existing base, index
 and strength fields for animation. `waterStudy` reports body counts, each island
 group's dominant environment, ramp speeds, current phase, paused state and update cost.
 `water-ripples.js` snaps seeded ripple origins onto actual lake/peat water during
-the bake. Elliptical rings expand with varied spacing and radius, fading toward
-their edges and under vegetation. Origins, shorelines and beds stay fixed.
+the bake. Broad elliptical arcs expand with varied spacing and radius. Inner
+rings are fully suppressed for 22 art units, then emerge gradually; their wider
+spacing, lower strength and soft outer fade avoid visible point emitters. Tiny
+pools can remain almost still. Origins, shorelines and beds stay fixed.
 `waterCycleProfile` samples absolute time with regional speed variation and two
 slow layers spanning several game years. These vary phase and wave strength;
 they do not reset at the original short loop period. Forward phase remains
@@ -64,6 +67,14 @@ monotonic, and returning to any date restores the same water appearance.
 `water-animation.js` uploads indices/strength/regional variation once and a
 9 KiB palette each update. Eight phase variants blend smoothly across a seeded
 world-space field stored in the existing packed texture's spare blue channel.
+`water-drift.js` adds a separate continuous blue/teal/green field below the surface
+cycles. Two warped, broad waves move at independent 83/137-second rates with
+slower timing modulation. Its bounded RGB offsets (at most 5/8/7 channel values)
+keep the shift subtle. The marine-only depth mask fades from zero near shore to
+full strength offshore and occupies the packed texture's previously unused alpha
+channel. Raw data upload explicitly disables alpha premultiplication. World
+coordinates and absolute time match across fine terrain and backdrop; no extra
+large texture or mutable animation state is needed. Lakes/peat/land are excluded.
 A GPU pass adds the changing surface colour to the original bake, preserving
 static ground, seabed, shore treatment and softened river colour. GPU colour
 downsampling supplies the zoom pyramid after palette resolution; categorical
@@ -80,7 +91,9 @@ Run `water-animation-check.mjs`, `water-style-check.mjs`, the browser
 
 The map timegraph is a presentation fixture, not a second simulation or forecast
 worker. It starts with current time at 60s and 60s of available sample forecast.
-Its curves sample actual swell (blue) and surf/foam (pale) palette brightness.
+Its curves sample actual swell (blue) and surf/foam (pale) palette brightness,
+plus a representative normalised offshore tint sample for Water drift (green).
+The drift curve is not water depth or a global ocean-wide colour value.
 The shaded history, forecast and unrevealed areas distinguish available coverage.
 The current marker advances only during forward playback while following Now.
 Scrubbing pauses, enters read-only preview and leaves that frontier unchanged.
@@ -94,7 +107,8 @@ The Span button switches between the short view and 50 years of sample forecast.
 Year labels use the live game's default calendar (32 simulation seconds/year),
 so 50 years span 1,600 seconds. This is a review fixture, not extra live forecast
 coverage. The long graph plots slow wave-strength envelopes rather than aliasing
-the rapid palette cycles. Switching back clamps preview to short-view coverage.
+the rapid palette cycles; Water drift continues to show its slower tint sample.
+Switching back clamps preview to short-view coverage.
 
 `map-timeline.js` owns only the fixture cursor/transport. `map-timegraph.js` uses
 the live graph's pointer-to-time helper and draws the study graph. `study.js`

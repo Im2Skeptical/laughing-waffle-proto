@@ -41,7 +41,7 @@ export function sampleInlandWater({ kind, seed, x, y, distance, noise, mix, ripp
   if (reeds) base = mix(base, grain > .9 ? 0x969573 : 0x515b40, .56);
   const glint = !peat && distance < 4 && patch < .6 && wind > .38;
   const index = (peat ? 48 : glint ? 240 : 112) + Math.floor(phase * (peat ? 8 : 16));
-  const strength = (radial ? (peat ? .055 + ripple.weight * .28 : .065 + ripple.weight * .43)
+  const strength = (radial ? (peat ? .035 + ripple.weight * .16 : .045 + ripple.weight * .25)
     : peat ? .055 + clamp((wind - .42) * 2.6) * .22
     : glint ? .32 : .055 + clamp((wind - .35) * 2.2) * .37) * (1 - vegetation * .92) * (reeds ? .15 : 1);
   return { base, index, strength: Math.round(strength * 255), vegetation: vegetation > .18, reeds, glint,

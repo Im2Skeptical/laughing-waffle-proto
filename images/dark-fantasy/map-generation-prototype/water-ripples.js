@@ -3,7 +3,7 @@ import { decorationRandom } from './generator.js';
 // Sparse seeded ripple origins, snapped onto actual water during the bake.
 // No rings centred on dry islands, and no per-frame emitter state to replay.
 export function createInlandRipples({ width, height, texel, bounds, seed, isWater }) {
-  const cell = 70, bins = new Map();
+  const cell = 110, bins = new Map();
   const random = (gx, gy, salt) => decorationRandom(seed ^ salt, Math.imul(gx, 8363) ^ Math.imul(gy, 36433));
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
     if (!isWater(y * width + x)) continue;
@@ -13,7 +13,7 @@ export function createInlandRipples({ width, height, texel, bounds, seed, isWate
     if (!source) {
       source = { tx: (gx + .2 + random(gx, gy, 3471) * .6) * cell,
         ty: (gy + .2 + random(gx, gy, 7381) * .6) * cell, score: Infinity,
-        radius: 38 + random(gx, gy, 5279) * 18, wavelength: 7 + random(gx, gy, 9137) * 6,
+        radius: 85 + random(gx, gy, 5279) * 25, wavelength: 18 + random(gx, gy, 9137) * 8,
         offset: random(gx, gy, 6191) };
       bins.set(key, source);
     }
@@ -27,7 +27,10 @@ export function createInlandRipples({ width, height, texel, bounds, seed, isWate
       const source = bins.get(`${gx + dx}:${gy + dy}`); if (!source) continue;
       const distance = Math.hypot(x - source.x, (y - source.y) / .72);
       const fade = Math.max(0, 1 - distance / source.radius);
-      const envelope = fade * fade * (3 - 2 * fade) * Math.min(1, distance / 3);
+      // Hide the point of origin and the small concentric rings. Only broad,
+      // softly emerging outer arcs remain; tiny pools can stay almost still.
+      const emerge = Math.max(0,Math.min(1,(distance-22)/22));
+      const envelope = fade * fade * (3 - 2 * fade) * emerge * emerge * (3-2*emerge);
       if (envelope > weight) {
         weight = envelope;
         // Negative distance + increasing temporal phase = outward travel.

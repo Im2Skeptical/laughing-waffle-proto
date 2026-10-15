@@ -1,5 +1,6 @@
 import { pointerLocalXToSec } from '../../../src/views/timegraphs/scrub-session.js';
 import { waterPaletteColour,waterCycleProfile,WATER_RAMPS,STUDY_YEAR_SECONDS } from './water-style.js';
+import { sampleWaterDrift,waterDriftOffset } from './water-drift.js';
 
 const format = seconds => `${Math.floor(seconds / 60)}:${(seconds % 60).toFixed(1).padStart(4, '0')}`;
 const mix = (a, b, t) => {
@@ -10,12 +11,14 @@ const mix = (a, b, t) => {
 
 // Small study graph, not a second civilization graph/controller. Curves show the
 // actual sampled water palette brightness, not invented gameplay metrics.
-export function createMapTimegraph({ root, app, timeline, palette, text, panel, button, targets, onChange }) {
+export function createMapTimegraph({ root, app, timeline, palette, seed=0, text, panel, button, targets, onChange }) {
   panel(root, 506, 710, 1872, 180, 0x192f33, 0x63786b);
   text(root, 'TIMEGRAPH', 526, 719, 23, 0xe5dfbd, { fontFamily: 'Arial, sans-serif', letterSpacing: 2 });
   const status = text(root, '', 740, 719, 23, 0xbad4c6, { fontFamily: 'Arial, sans-serif' });
-  text(root, 'Water study · sample history / forecast', 1865, 724, 19, 0x9eb3a9, { fontFamily: 'Arial, sans-serif' });
-  const legend=text(root, 'Swell / foam', 1630, 724, 19, 0xa5bbb2, { fontFamily: 'Arial, sans-serif' });
+  text(root, 'Swell', 1740, 724, 19, 0x729fa9, { fontFamily: 'Arial, sans-serif' });
+  text(root, 'Foam', 1850, 724, 19, 0xd1d7ad, { fontFamily: 'Arial, sans-serif' });
+  text(root, 'Water drift', 1960, 724, 19, 0x79c5ac, { fontFamily: 'Arial, sans-serif' });
+  const legend=text(root, 'Samples', 2210, 724, 19, 0xa5bbb2, { fontFamily: 'Arial, sans-serif' });
   const plot = { x: 528, y: 757, w: 1820, h: 56 };
   const graph = new PIXI.Graphics(), marker = new PIXI.Graphics();
   graph.eventMode = 'none'; marker.eventMode = 'none'; root.addChild(graph, marker);
@@ -58,7 +61,7 @@ export function createMapTimegraph({ root, app, timeline, palette, text, panel, 
     const x = sec => plot.x + (sec - minSec) / (maxSec - minSec) * plot.w;
     const graphKey = `${s.longSpan}:${minSec}:${maxSec}:${Math.floor(s.currentSec)}:${Math.floor(s.revealCapSec)}`;
     span.title.text=s.longSpan?'Span: 50 years':'Span: 3 minutes';
-    legend.text=s.longSpan?'Wave strength':'Swell / foam';
+    legend.text=s.longSpan?'Strength / tint':'Samples';
     if (graphKey !== key) {
       key = graphKey; graph.clear();
       for (const child of ticks.removeChildren()) child.destroy();
@@ -70,13 +73,16 @@ export function createMapTimegraph({ root, app, timeline, palette, text, panel, 
         graph.lineStyle(1, 0x9bb6aa, .18).moveTo(x(sec), plot.y).lineTo(x(sec), plot.y + plot.h);
         const label = text(ticks, s.longSpan?`${sec/STUDY_YEAR_SECONDS}y`:`${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`, x(sec), plot.y + plot.h + 1, 17, 0xadc1b6, { fontFamily: 'Arial, sans-serif' }); label.anchor.x = .5;
       }
-      if (palette) for (const [index, colour] of [[128, 0x729fa9], [160, 0xd1d7ad]]) {
+      if (palette) for (const [index, colour] of [[128, 0x729fa9], [160, 0xd1d7ad], [null,0x79c5ac]]) {
         graph.lineStyle(1.5, colour, .75);
         const steps = Math.min(1800,Math.ceil((s.revealCapSec - minSec) * 8));
         for (let n = 0; n <= steps; n++) {
           const sec = minSec + n / steps * (s.revealCapSec - minSec);
           const rgb = waterPaletteColour(index, palette, mix, sec);
-          const luminance = s.longSpan?waterCycleProfile(WATER_RAMPS.find(r=>r.start===index),sec).envelope:
+          // Drift shows a representative blue/green tint sample, normalised to
+          // the plot. It is not water depth or a global tint applied everywhere.
+          const luminance = index===null?.5+sampleWaterDrift(waterDriftOffset(seed),0,sec)[1]/16:
+            s.longSpan?waterCycleProfile(WATER_RAMPS.find(r=>r.start===index),sec).envelope:
             (.2126 * (rgb >> 16 & 255) + .7152 * (rgb >> 8 & 255) + .0722 * (rgb & 255)) / 255;
           const y = plot.y + plot.h - 4 - luminance * (plot.h - 8);
           if (n) graph.lineTo(x(sec), y); else graph.moveTo(x(sec), y);

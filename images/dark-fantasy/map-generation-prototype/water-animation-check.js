@@ -1,6 +1,7 @@
 // Browser GPU regression: use an isolated small fixture, not a full-scene readback.
 import { createWaterCycle } from './water-animation.js';
 import { waterPaletteColour } from './water-style.js';
+import { sampleWaterDrift } from './water-drift.js';
 export function verifyWaterGpu() {
   const renderer=new PIXI.Renderer({width:64,height:4,resolution:1});
   const palette=mapWorkbench.waterFields.palette,mix=(a,b,t)=>[16,8,0].reduce((c,s)=>c|Math.round((a>>s&255)*(1-t)+(b>>s&255)*t)<<s,0);
@@ -8,7 +9,8 @@ export function verifyWaterGpu() {
   for(let i=0;i<256;i++){indices[i]=i;strength[i]=180;base[i]=i>=16&&i<24?0:0x486773;const c=base[i]?mix(base[i],palette[i]||0,180/255):palette[i]||0;
     rgba[i*4]=c>>16&255;rgba[i*4+1]=c>>8&255;rgba[i*4+2]=c&255;rgba[i*4+3]=255;}
   const variationAt=(x,y)=>(x+y*64)/255;
-  const texture=PIXI.Texture.fromBuffer(rgba,64,4),cycle=createWaterCycle(texture,indices,strength,palette,base,variationAt);
+  const maskAt=i=>[0,.25,.7,1][i%4],world=[-200,25,640,80];
+  const texture=PIXI.Texture.fromBuffer(rgba,64,4),cycle=createWaterCycle(texture,indices,strength,palette,base,variationAt,{maskAt,world});
   let maximumError=0,changed=0;
   try {
     for(const t of [0,.125,1.7,-.4,320,997,1600,0]) {
@@ -16,7 +18,8 @@ export function verifyWaterGpu() {
       for(let i=0;i<256;i++)for(let channel=0;channel<3;channel++) {
         const shift=16-channel*8,before=palette[i]||0,after=waterPaletteColour(i,palette,mix,t,i/255*7);
         const amplitude=(i>=16&&i<24?Math.round(255*.15):180)/255;
-        const expected=Math.max(0,Math.min(255,rgba[i*4+channel]+((after>>shift&255)-(before>>shift&255))*amplitude));
+        const drift=sampleWaterDrift(world[0]+(i%64+.5)*10,world[1]+(Math.floor(i/64)+.5)*20,t)[channel]*Math.round(maskAt(i)*255)/255;
+        const expected=Math.max(0,Math.min(255,rgba[i*4+channel]+drift+((after>>shift&255)-(before>>shift&255))*amplitude));
         const error=Math.abs(pixels[i*4+channel]-expected);maximumError=Math.max(maximumError,error);
         if(error>2)throw new Error(`GPU palette mismatch: phase ${t}, index ${i}, channel ${channel}, expected ${expected}, got ${pixels[i*4+channel]}`);
         if(t===1.7&&Math.abs(pixels[i*4+channel]-rgba[i*4+channel])>5)changed++;

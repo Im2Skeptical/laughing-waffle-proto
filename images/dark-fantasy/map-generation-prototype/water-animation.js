@@ -1,6 +1,7 @@
 // Visual-only palette cycling. Resolve categorical indices on the GPU first;
 // downsample the resulting colours, never the indices, for the existing zoom UI.
 import { WATER_RAMPS, WATER_VARIANTS, waterPaletteColour } from './water-style.js';
+import { WATER_DRIFT_GLSL, waterDriftPhase } from './water-drift.js';
 
 const vertex=`
 attribute vec2 aVertexPosition;
@@ -15,9 +16,12 @@ varying vec2 vUV;
 uniform sampler2D uScene;
 uniform sampler2D uFields;
 uniform sampler2D uPalette;
+uniform vec4 uWorld;
+uniform vec2 uDriftPhase;
+${WATER_DRIFT_GLSL}
 void main(){
   vec4 scene=texture2D(uScene,vUV);
-  vec3 fields=texture2D(uFields,vUV).rgb;
+  vec4 fields=texture2D(uFields,vUV);
   float index=floor(fields.r*255.0+0.5);
   float u=(index+0.5)/256.0;
   float variation=fields.b*${WATER_VARIANTS-1}.0;
@@ -26,11 +30,12 @@ void main(){
   vec3 a=texture2D(uPalette,vec2(u,(lo+1.5)/${WATER_VARIANTS+1}.0)).rgb;
   vec3 b=texture2D(uPalette,vec2(u,(hi+1.5)/${WATER_VARIANTS+1}.0)).rgb;
   vec3 after=mix(a,b,fract(variation));
-  gl_FragColor=vec4(clamp(scene.rgb+(after-before)*fields.g*scene.a,vec3(0.0),vec3(scene.a)),scene.a);
+  vec3 drift=waterDrift(uWorld.xy+vUV*uWorld.zw,uDriftPhase)*fields.a;
+  gl_FragColor=vec4(clamp(scene.rgb+(drift+(after-before)*fields.g)*scene.a,vec3(0.0),vec3(scene.a)),scene.a);
 }`;
 const mixColour=(a,b,t)=>[16,8,0].reduce((c,s)=>c|Math.round((a>>s&255)*(1-t)+(b>>s&255)*t)<<s,0);
 
-export function createWaterCycle(texture,indices,strength,palette,base=null,variationAt=()=>0) {
+export function createWaterCycle(texture,indices,strength,palette,base=null,variationAt=()=>0,drift={}) {
   const width=texture.width,height=texture.height,packed=new Uint8Array(width*height*4);
   const animated=new Uint8Array(256);
   for(const ramp of WATER_RAMPS)animated.fill(1,ramp.start,ramp.start+ramp.length);
@@ -40,9 +45,10 @@ export function createWaterCycle(texture,indices,strength,palette,base=null,vari
     // The still renderer deliberately softens river colours by 85%.
     packed[i*4+1]=animated[index]?Math.round(amplitude*(index>=16&&index<24?.15:1)):0;
     packed[i*4+2]=animated[index]?Math.round(Math.max(0,Math.min(1,variationAt(i%width,Math.floor(i/width))))*255):0;
-    packed[i*4+3]=255;
+    packed[i*4+3]=Math.round(Math.max(0,Math.min(1,drift.maskAt?.(i)??0))*255);
   }
-  const fields=PIXI.Texture.fromBuffer(packed,width,height,{scaleMode:PIXI.SCALE_MODES.NEAREST,mipmap:PIXI.MIPMAP_MODES.OFF});
+  const fields=PIXI.Texture.fromBuffer(packed,width,height,{scaleMode:PIXI.SCALE_MODES.NEAREST,mipmap:PIXI.MIPMAP_MODES.OFF,
+    alphaMode:PIXI.ALPHA_MODES.NO_PREMULTIPLIED_ALPHA});
   const bytes=new Uint8Array(256*(WATER_VARIANTS+1)*4);
   const paletteTexture=PIXI.Texture.fromBuffer(bytes,256,WATER_VARIANTS+1,{scaleMode:PIXI.SCALE_MODES.NEAREST,mipmap:PIXI.MIPMAP_MODES.OFF});
   const levels=[];
@@ -50,7 +56,8 @@ export function createWaterCycle(texture,indices,strength,palette,base=null,vari
     width:Math.ceil(width/2**n),height:Math.ceil(height/2**n),resolution:1,scaleMode:PIXI.SCALE_MODES.LINEAR,mipmap:PIXI.MIPMAP_MODES.OFF}));
   const geometry=new PIXI.Geometry().addAttribute('aVertexPosition',[0,0,width,0,width,height,0,height],2)
     .addAttribute('aTextureCoord',[0,0,1,0,1,1,0,1],2).addIndex([0,1,2,0,2,3]);
-  const shader=PIXI.Shader.from(vertex,fragment,{uScene:texture,uFields:fields,uPalette:paletteTexture});
+  const shader=PIXI.Shader.from(vertex,fragment,{uScene:texture,uFields:fields,uPalette:paletteTexture,
+    uWorld:drift.world??[0,0,1,1],uDriftPhase:waterDriftPhase(0)});
   const mesh=new PIXI.Mesh(geometry,shader);mesh.blendMode=PIXI.BLEND_MODES.NONE;
   const reducers=levels.slice(1).map((level,n)=>{const s=new PIXI.Sprite(levels[n]);s.width=level.width;s.height=level.height;return s;});
   let last=null;
@@ -63,6 +70,7 @@ export function createWaterCycle(texture,indices,strength,palette,base=null,vari
         bytes[p]=colour>>16&255;bytes[p+1]=colour>>8&255;bytes[p+2]=colour&255;bytes[p+3]=255;
       }
       paletteTexture.baseTexture.update();
+      shader.uniforms.uDriftPhase=waterDriftPhase(seconds);
       renderer.render(mesh,{renderTexture:levels[0],clear:true});
       for(let n=1;n<levels.length;n++)renderer.render(reducers[n-1],{renderTexture:levels[n],clear:true});
       last=seconds;this.frames++;this.lastUpdateMs=performance.now()-started;
