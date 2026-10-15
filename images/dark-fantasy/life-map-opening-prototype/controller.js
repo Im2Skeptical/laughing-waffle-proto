@@ -85,7 +85,7 @@ export function createOpeningController(storage = null) {
       const next=createFoundedPreview(document),vassal=openingVassal(next);
       vassal.prestige=zeroPrestige?0:60;Object.assign(vassal.stats,{intelligence:6,effectiveness:3,wisdom:2,cunning:1});
       next.availableIds=['legacy'];const before=cloneOpeningSession(next);enterOpeningEncounter(next,'legacy');
-      session=next;checkpoints=[before];message='Legacy mockup: Confirm records your choice. Settlement effects and reward types remain to be designed.';notify();
+      session=next;checkpoints=[before];message='Legacy mockup: Confirm records your choice and its future Vassal bonus.';notify();
     },
     nextSeed() { idle(); validateOpeningExperiment(draft); editDraft({ ...draft, seed: (draft.seed + 1) >>> 0 }); controller.restart(); },
     enter(id) { idle(); const checkpoint = cloneOpeningSession(session), next = cloneOpeningSession(session);

@@ -8,7 +8,7 @@ export const OPENING_KINDS = ['relic', 'world', 'founding', 'shop', 'structureSh
 
 export function createOpeningLegacyNode() {
   return { id:'legacy', title:'Legacy', kind:'legacy', description:'Choose how this life leaves its mark.', next:[],
-    legacy:{settlementPrestigeCost:VASSAL_LIFE_TUNING.settlementPrestigeCost,statMultiplier:1,prestigeDivisor:10,statReward:'Reward to define',prestigeReward:'Reward to define'} };
+    legacy:{settlementPrestigeCost:VASSAL_LIFE_TUNING.settlementPrestigeCost,statDivisor:3,prestigeDivisor:10} };
 }
 
 const phasesPerYear = getGameSetting(null, 'seasonDurationSec') * 4 / getGameSetting(null, 'phaseDurationSec');
@@ -103,8 +103,8 @@ export function validateOpeningExperiment(doc) {
     if (node.kind === 'legacy') {
       const tuning=node.legacy;
       if(node.next.length)throw new Error('Legacy must end its route.');
-      if(!tuning||!finite(tuning.settlementPrestigeCost,0,10000)||!finite(tuning.statMultiplier,0,100)
-        ||!finite(tuning.prestigeDivisor,1,10000)||![tuning.statReward,tuning.prestigeReward].every(value=>typeof value==='string'&&value.trim()&&value.length<=100))throw new Error(`${node.title}: choose valid Legacy costs, scalars and reward labels.`);
+      if(!tuning||!finite(tuning.settlementPrestigeCost,0,10000)||!finite(tuning.statDivisor,1,10000)
+        ||!finite(tuning.prestigeDivisor,1,10000))throw new Error(`${node.title}: choose valid Legacy costs and divisors.`);
     }
     if (node.worldCosts != null) {
       const costs = node.worldCosts;
