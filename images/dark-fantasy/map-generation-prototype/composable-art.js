@@ -11,6 +11,7 @@ export function gradeTerrainColour(r, g, b, family) {
     const peat = b > g * .70 && r < g * 1.35;
     gains = peat ? [1.10, .95, 1.20] : foliage ? [1.04, .99, 1.08] : [1.04, 1.02, 1.04];
   }
+  if (family === 'islands' && r > 145 && g > 125 && b < g * .95) gains = [.87, .90, .88];
   if (family === 'mountains' && stone) gains = [1.085, 1.035, 1.025];
   return [r, g, b].reduce((rgb, value, i) => rgb | Math.min(255, Math.round(value * gains[i] + 3)) << (16 - i * 8), 0);
 }
@@ -24,8 +25,9 @@ export async function loadComposableArt(banks) {
   });
   composableLibrary.cells = manifest.frames.map(frame => ({ kind: frame.kind, sheet: frame.family, pair: frame.pair, cutRuns: frame.cutRuns }));
   for (const detail of [1, 2]) for (const frame of manifest.frames) {
-    const canvas = document.createElement('canvas'); canvas.width = Math.round(frame.rect[2] * detail / 2);
-    canvas.height = Math.round(frame.rect[3] * detail / 2);
+    const proportion = frame.family === 'islands' ? .8 : 1;
+    const canvas = document.createElement('canvas'); canvas.width = Math.round(frame.rect[2] * detail / 2 * proportion);
+    canvas.height = Math.round(frame.rect[3] * detail / 2 * proportion);
     const ctx = canvas.getContext('2d'); ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(image, ...frame.rect, 0, 0, canvas.width, canvas.height);
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
@@ -46,23 +48,7 @@ export async function loadComposableArt(banks) {
     const glyph = { rows, colours, rgbColours, opacity, cutRuns: frame.cutRuns, family: frame.family, illustrated: true, composable: true };
     banks[detail][frame.kind] = glyph;
     banks[detail][`${frame.kind}-mirror`] = { ...glyph, rows: rows.map(row => [...row].reverse().join('')), opacity: opacity.map(row => row.slice().reverse()) };
-    if (frame.family === 'islands') {
-      // Coastal relief is small geology, not a ring of miniature mountain ranges.
-      const w = Math.max(1, Math.round(canvas.width * .52)), h = Math.max(1, Math.round(canvas.height * .35));
-      const smallRows = [], smallAlpha = [];
-      for (let y = 0; y < h; y++) {
-        const sy = Math.min(canvas.height - 1, Math.floor((y + .5) * canvas.height / h));
-        let row = ''; const alpha = [];
-        for (let x = 0; x < w; x++) {
-          const sx = Math.min(canvas.width - 1, Math.floor((x + .5) * canvas.width / w));
-          row += rows[sy][sx]; alpha.push(opacity[sy][sx]);
-        }
-        smallRows.push(row); smallAlpha.push(alpha);
-      }
-      const small = { ...glyph, rows: smallRows, opacity: smallAlpha };
-      banks[detail][`${frame.kind}-small`] = small;
-      banks[detail][`${frame.kind}-small-mirror`] = { ...small, rows: smallRows.map(row => [...row].reverse().join('')), opacity: smallAlpha.map(row => row.slice().reverse()) };
-    }
+
 
   }
 }

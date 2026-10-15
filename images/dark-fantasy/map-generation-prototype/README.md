@@ -1,5 +1,20 @@
 # Map generation Pixi workbench (disposable prototype)
 
+### Island landscape pass
+
+Smooth texture filtering defaults on; mouse-wheel camera easing is always enabled.
+Explicit `smoothZoom=0` review links still select Nearest.
+
+Island pieces retain their original proportions at 80% scale; the old 52%-wide,
+35%-tall flattened variants are removed. Low dune ridges, scrub and gravel replace
+the isolated bowl cliffs and boulder stamps. Connected belts follow each region's
+long axis and reuse the existing dry-footprint/settlement-reservation rules.
+Island ground blends from pale beaches to larger sand/heath patches inland.
+Sand within the imported illustrations has a muted material grade and softer
+edges; vegetation retains its own colour. This affects presentation only.
+Review seeds 1873 (large cluster) and 1862 (small islands), including zoom/flips.
+Run `node images/dark-fantasy/map-generation-prototype/terrain-composition-check.mjs`.
+
 ### Label-free composition and wheel zoom
 
 `Labels: On/Off` hides settlement, market and monster captions in map-art and

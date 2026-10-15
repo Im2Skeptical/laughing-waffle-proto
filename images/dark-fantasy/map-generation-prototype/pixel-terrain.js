@@ -111,8 +111,12 @@ export function reliefSpriteTextures(terrain, flipX, flipY) {
       let colour = palette[code] ?? bank[2];
       if (art.illustrated) colour = art.rgbColours?.[code] ?? Number.parseInt(art.colours[code].slice(1), 16);
       if (prop.kind.includes('hill') && !art.illustrated && code !== 'a' && code !== 'b') colour = mixColour(colour, bank[2], .75);
+      // Coastal sand fades into the common ground while scrub and rock retain
+      // their silhouettes. Only the imported island material is affected.
+      const islandSand = art.family === 'islands' && (colour >> 16) > 145 && (colour >> 8 & 255) > 125;
+      const edgeFade = islandSand ? Math.min(1, Math.min(x+1,row.length-x,y+1,art.rows.length-y)/5) * .78 : 1;
       const foot = Math.min(1, (art.rows.length - y) / Math.max(3, art.rows.length * (art.composable ? .22 : .12)));
-      ctx.globalAlpha = (art.opacity?.[y][x] ?? (code === 'f' ? .32 : 1)) * foot
+      ctx.globalAlpha = (art.opacity?.[y][x] ?? (code === 'f' ? .32 : 1)) * foot * edgeFade
         * (prop.ridgeBoundary ? 1 : 1 - samplePlane(terrain.divisionClearance, ix, iy) / 255);
       ctx.fillStyle = `#${colour.toString(16).padStart(6, '0')}`;
       ctx.fillRect(i % columns * cell + 2 + x, Math.floor(i / columns) * cell + 2 + y, 1, 1);
@@ -246,6 +250,16 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     for (const j of [x ? i - 1 : i, x < width - 1 ? i + 1 : i, y ? i - width : i, y < height - 1 ? i + width : i]) {
       if (shoreTypes[j] && seaDistance[j] < best) { best = seaDistance[j]; shoreTypes[i] = shoreTypes[j]; }
     }
+  }
+  // Island interiors are coastal heath with broad sandy clearings. Preserve the
+  // pale beach fringe, instead of using beach-white noise across the whole landmass.
+  for (let y=0;y<height;y++) for(let x=0;x<width;x++) {
+    const i=y*width+x;
+    if (!land[i] || map.regions[regionIds[i]]?.biome !== 'islands') continue;
+    const inland=Math.max(0,Math.min(1,(dryDistance[i]/3-4*detail)/(10*detail)));
+    const heath=noise(map.seed^63917,x,y,35*detail);
+    const material=mixColour(0xb6aa86,0x858d70,Math.max(0,Math.min(1,(heath-.3)*2)));
+    colours[i]=mixColour(colours[i],material,inland*.72);
   }
   const waterBase = new Uint32Array(size), waterStrength = new Uint8Array(size);
   const surfaceTreatments = paintOcean({ map, width, height, texel, bounds, land, waterIndices, colours,

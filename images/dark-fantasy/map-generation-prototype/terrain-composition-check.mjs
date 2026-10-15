@@ -52,9 +52,17 @@ const islandComposition = composeTerrainLandscape({ map: islandMap, art, pixel,
 const borderPaths = islandMap.edges.filter(edge => edge.regions.length === 2
   && islandMap.regions.find(r => r.id === edge.regions[0]).biome !== islandMap.regions.find(r => r.id === edge.regions[1]).biome).length;
 assert.equal(islandComposition.diagnostics.paths + islandComposition.diagnostics.coastalProfiles, borderPaths + islandMap.features.filter(f => f.type === 'ridge').length
-  + islandMap.geography.coasts.length + islandMap.regions.filter(r => r.biome === 'mountains').length, 'Every island contour must receive a shore profile even without a graph edge ID');
+  + islandMap.geography.coasts.length + islandMap.regions.filter(r => r.biome === 'mountains' || r.biome === 'islands').length, 'Every island contour must receive a shore profile even without a graph edge ID');
 const channels = c => [c >> 16, c >> 8 & 255, c & 255];
 const [lr, lg, lb] = channels(leaves), [sr, sg, sb] = channels(stone);
 assert.ok(lg > lr && lg > lb * 1.7, 'Leaf hue must survive grading');
 assert.ok(Math.max(sr, sg, sb) - Math.min(sr, sg, sb) < 25, 'Stone must remain neutral inside a forest');
 console.log('Terrain composition: real silhouette joins, legal footprints, nonrepeating neighbours, deterministic seeds and material colours pass.');
+
+const islandFixture={seed:1873,regions:[{id:1,biome:'islands',centre:{x:120,y:75},outline:[{x:0,y:0},{x:240,y:0},{x:240,y:150},{x:0,y:150}]}],edges:[],features:[],geography:{coasts:[]}};
+const islandBelt=composeTerrainLandscape({map:islandFixture,art,pixel:p=>p,world:(x,y)=>({x,y}),detail:1,
+  legal:p=>p.left>0&&p.top>0&&p.left+art[p.kind].rows[0].length<240&&p.top+art[p.kind].rows.length<150});
+assert.ok(islandBelt.props.some(p=>p.context==='island-belt'),'Islands need a connected structural belt');
+assert.ok(islandBelt.diagnostics.joined>0,'Island belt must join actual silhouettes');
+assert.ok(islandBelt.props.every(p=>/^terrain-islands-(2|3|7|8|11)(-mirror)?$/.test(p.kind)),'No flattened boulder/bowl stamps in island interiors');
+console.log('Island composition: dune/scrub belts join silhouettes, with no legacy flattened fragments.');
