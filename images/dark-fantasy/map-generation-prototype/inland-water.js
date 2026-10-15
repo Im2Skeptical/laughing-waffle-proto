@@ -6,31 +6,31 @@ const fract = n => n - Math.floor(n);
 export function prepareInlandPalette(bank, mix) {
   for (let n = 0; n < 16; n++) {
     const crest = Math.pow(Math.max(0, Math.cos(n / 16 * Math.PI * 2)), 3);
-    bank[112 + n] = mix(0x3c5960, 0x93b1ab, crest);
-    bank[240 + n] = mix(0x556e60, 0xa7b69a, crest * .8);
+    bank[112 + n] = mix(0x3d5356, 0x758a83, crest);
+    bank[240 + n] = mix(0x525e50, 0x90977b, crest * .65);
   }
   for (let n = 0; n < 8; n++) {
     const crest = Math.pow(Math.max(0, Math.cos(n / 8 * Math.PI * 2)), 3);
-    bank[48 + n] = mix(0x3b484b, 0x869690, crest);
+    bank[48 + n] = mix(0x3d4846, 0x758078, crest);
   }
 }
 
-export function sampleInlandWater({ kind, seed, x, y, distance, noise, mix, ripple = null }) {
+export function sampleInlandWater({ kind, seed, x, y, distance, noise, mix }) {
   const peat = kind === 'peat';
-  const shelf = noise(seed ^ 17233, x, y, 28);
+  const warpX=(noise(seed^4817,x,y,54)-.5)*27,warpY=(noise(seed^9217,x+53,y-71,61)-.5)*27;
+  const shelf = noise(seed ^ 17233, x+warpX, y+warpY, 28);
+  const mixing = noise(seed ^ 3167, x+warpY, y-warpX, peat?25:31);
   const patch = noise(seed ^ 8171, x * .65, y, 11);
   const grain = fract(Math.sin(x * 12.9898 + y * 78.233 + seed) * 43758.5453);
-  const shallow = Math.exp(-distance / (peat ? 8 + shelf * 9 : 8 + shelf * 18));
-  const cloud = noise(seed ^ 7319, x * .48, y * 1.7, 31);
+  const shallow = Math.exp(-distance / (peat ? 5 + shelf * shelf * 13 : 4 + shelf * shelf * 24));
+  const cloud = noise(seed ^ 7319, x+warpX, y+warpY, 39);
   const wind = noise(seed ^ 8729, x * .45, y * 1.6, 13);
-  const bend = Math.sin(x / 33) * 2.2 + noise(seed ^ 6197, x, y, 37) * 5;
-  const radial = ripple && ripple.weight > .06;
-  const phase = fract(radial ? ripple.phase : (y + x * .08 + bend) / (peat ? 11 : 14));
-  let base = mix(peat ? 0x354449 : 0x3e5964, peat ? 0x626a53 : 0x708c79, shallow * .82);
-  // Broad sky reflections leave dark open channels between them. Avoid the old
-  // evenly spaced diagonal striping and uniformly grey pool centres.
-  base = mix(base, peat ? 0x7a8585 : 0x91a5a2, clamp((cloud - .38) * 1.7) * (peat ? .29 : .26));
-  base = mix(base, peat ? 0x786b50 : 0x9b9d7b, shallow * clamp((shelf - .40) * 2) * .35);
+  // Disconnected, irregular reflection patches instead of point-emitter rings.
+  const phase = fract(mixing*2.3+cloud*.7+patch*.22);
+  let base=mix(peat?0x35433f:0x30474f,peat?0x545a44:0x5c6b59,clamp((mixing-.32)*2.4));
+  base=mix(base,peat?0x67664f:0x78806a,shallow*(.32+shelf*.28));
+  base = mix(base, peat ? 0x6c7773 : 0x82928c, clamp((cloud - .5) * 2) * .18);
+  base = mix(base, peat ? 0x786b50 : 0x959477, shallow * clamp((shelf - .48) * 2) * .25);
   base = mix(base, grain > .5 ? 0x869583 : 0x394a4b, .025);
   // Broken sheltered colonies, strongest near the bank, with holes exposing
   // water. They are part of the static substrate, never palette-cycled foliage.
@@ -41,9 +41,8 @@ export function sampleInlandWater({ kind, seed, x, y, distance, noise, mix, ripp
   if (reeds) base = mix(base, grain > .9 ? 0x969573 : 0x515b40, .56);
   const glint = !peat && distance < 4 && patch < .6 && wind > .38;
   const index = (peat ? 48 : glint ? 240 : 112) + Math.floor(phase * (peat ? 8 : 16));
-  const strength = (radial ? (peat ? .035 + ripple.weight * .16 : .045 + ripple.weight * .25)
-    : peat ? .055 + clamp((wind - .42) * 2.6) * .22
-    : glint ? .32 : .055 + clamp((wind - .35) * 2.2) * .37) * (1 - vegetation * .92) * (reeds ? .15 : 1);
+  const strength = (peat ? .055 + clamp((wind - .42) * 2.6) * .10
+    : glint ? .18 : .065 + clamp((wind - .35) * 2.2) * .12) * (1-clamp(vegetation*2.4)) * (reeds ? .1 : 1);
   return { base, index, strength: Math.round(strength * 255), vegetation: vegetation > .18, reeds, glint,
-    ripple: strength > (peat ? .12 : .18) };
+    ripple: strength > (peat ? .085 : .11) };
 }

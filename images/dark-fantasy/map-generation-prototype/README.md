@@ -1,7 +1,7 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.19** — organic offshore colour patches
-that reshape locally, replacing the repeating travelling bands. The version appears under the title inside the
+Current published revision: **Map v1.0.20** — muted, irregular inland depths and
+slower local mixing in lakes and peat pools, replacing the remaining ring emitters. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -24,21 +24,23 @@ run `biome-clustering-check.mjs` alongside the terrain checks.
 Water connectivity is classified from the canonical dry mask. Water connected to
 an outer bake edge is marine; enclosed basins are freshwater, including island
 channels on the inland side of the map. Actual sea inlets keep marine graphics.
-Lakes use blue-grey depth with irregular green shelves, silt beds, broad sky
-reflections and small patches of wind ripples. Submerged bank texture connects
+Lakes use muted blue-grey channels, irregular olive shelves, silt beds and quiet
+reflection patches. Warped fields vary shelf width and water colour rather than
+painting a uniform turquoise halo. Submerged bank texture connects
 the water to the island slope, with broken reed colonies and restrained glints.
 They have no ocean swell, white surf or broad sea beach. Peat pools use a separate
 tannin/olive material: dark open channels, soft reflections, muddy margins and
 floating vegetation with small holes exposing the water. Their shoreline distance
 field controls depth and vegetation rather than the original pool-generation noise.
 `inland-water.js` samples both materials in world coordinates. Depth, sediment,
-reeds and floating colonies remain static; their separate surface ramps follow
-the timegraph. Ripple strength is suppressed under vegetation. Swamp pool outlines,
+reeds and floating colonies remain static; their separate surface ramps and
+organic mixing follow the timegraph. Surface strength is suppressed under
+vegetation, and also masks out drift over dense planting. Swamp pool outlines,
 site exclusions, lake/ocean classification and playable land stay unchanged.
 `wetlands` reports floating mats, reeds and ripples; `surfaceTreatments` reports
 lake vegetation and reed coverage. Inspect seed 1869 at 5% clustering for two inland
 islands, one marine island and swamp pools. Default clustering remains 50%.
-Run `water-drift-check.mjs`, `water-ripples-check.mjs`, `wetland-ground-check.mjs` and `water-style-check.mjs`, then the browser GPU
+Run `water-drift-check.mjs`, `wetland-ground-check.mjs` and `water-style-check.mjs`, then the browser GPU
 comparison and timeline restoration check on the actual water fields.
 Marine waters have blue offshore depth, irregular green shelves, sandy shoals and
 darker submerged channels. Their depth and texture stay fixed beneath a soft
@@ -55,11 +57,9 @@ phase sampler with fractional colour interpolation; depth/sediment never cycle.
 The bake retains `waterBodies` and `waterPalette` with the existing base, index
 and strength fields for animation. `waterStudy` reports body counts, each island
 group's dominant environment, ramp speeds, current phase, paused state and update cost.
-`water-ripples.js` snaps seeded ripple origins onto actual lake/peat water during
-the bake. Broad elliptical arcs expand with varied spacing and radius. Inner
-rings are fully suppressed for 22 art units, then emerge gradually; their wider
-spacing, lower strength and soft outer fade avoid visible point emitters. Tiny
-pools can remain almost still. Origins, shorelines and beds stay fixed.
+Inland water no longer spawns radial emitters. Irregular reflection patches sit
+above a locally evolving mixing field, with planted margins and quiet open areas.
+Shorelines, depth, sediment and beds stay fixed.
 `waterCycleProfile` samples absolute time with regional speed variation and two
 slow layers spanning several game years. These vary phase and wave strength;
 they do not reset at the original short loop period. Forward phase remains
@@ -75,11 +75,14 @@ direction or repeating wave carrier. The CPU/graph and GPU share the same
 integer polynomial hash and quintic interpolation. The visual reference is
 [NASA's South Atlantic colour imagery](https://science.nasa.gov/earth/earth-observatory/coloring-the-south-atlantic-149384/):
 irregular mixing fronts and patches separated by quieter water. Its bounded RGB offsets (at most 5/8/7 channel values)
-keep the shift subtle. The marine-only depth mask fades from zero near shore to
-full strength offshore and occupies the packed texture's previously unused alpha
+keep the shift subtle. Marine drift fades from zero near shore to full strength
+offshore. Lakes use 2.4x smaller spatial features and 65% phase speed with a muted
+green-grey tint; peat pools use 3.1x smaller features and 40% speed with less blue.
+Their masks fade at banks and under vegetation. Dry land and rivers remain
+excluded. The drift mask occupies the packed texture's previously unused alpha
 channel. Raw data upload explicitly disables alpha premultiplication. World
 coordinates and absolute time match across fine terrain and backdrop; no extra
-large texture or mutable animation state is needed. Lakes/peat/land are excluded.
+large texture or mutable animation state is needed.
 A GPU pass adds the changing surface colour to the original bake, preserving
 static ground, seabed, shore treatment and softened river colour. GPU colour
 downsampling supplies the zoom pyramid after palette resolution; categorical

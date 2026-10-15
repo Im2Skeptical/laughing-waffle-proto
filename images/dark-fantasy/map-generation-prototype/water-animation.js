@@ -30,7 +30,8 @@ void main(){
   vec3 a=texture2D(uPalette,vec2(u,(lo+1.5)/${WATER_VARIANTS+1}.0)).rgb;
   vec3 b=texture2D(uPalette,vec2(u,(hi+1.5)/${WATER_VARIANTS+1}.0)).rgb;
   vec3 after=mix(a,b,fract(variation));
-  vec3 drift=waterDrift(uWorld.xy+vUV*uWorld.zw,uDriftPhase)*fields.a;
+  float body=index>=48.0&&index<56.0?4.0:(index>=112.0&&index<128.0)||index>=240.0?2.0:1.0;
+  vec3 drift=waterDrift(uWorld.xy+vUV*uWorld.zw,uDriftPhase,body)*fields.a;
   gl_FragColor=vec4(clamp(scene.rgb+(drift+(after-before)*fields.g)*scene.a,vec3(0.0),vec3(scene.a)),scene.a);
 }`;
 const mixColour=(a,b,t)=>[16,8,0].reduce((c,s)=>c|Math.round((a>>s&255)*(1-t)+(b>>s&255)*t)<<s,0);

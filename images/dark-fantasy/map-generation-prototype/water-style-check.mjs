@@ -61,7 +61,7 @@ for(const kind of ['lake','peat'])for(let y=0;y<60;y++)for(let x=0;x<80;x++) {
   const args={kind,seed:1869,x,y,distance:1+x*.5,noise:(_s,a,b,scale)=>.5+.25*Math.sin(a/scale)+.2*Math.cos(b/scale),mix:mixColour};
   const sample=sampleInlandWater(args);samples.push({kind,...sample});
   assert.deepEqual(sampleInlandWater(args),sample,'Inland fields must be repeatable at an absolute world coordinate');
-  assert.ok(sample.strength>=0&&sample.strength<=110,'Freshwater stays calmer than exposed ocean foam');
+  assert.ok(sample.strength>=0&&sample.strength<=48,'Freshwater reflection patches must stay quiet');
   assert.ok(kind==='peat'?sample.index>=48&&sample.index<=55:sample.index>=112&&sample.index<=127||sample.index>=240);
 }
 for(const kind of ['lake','peat']) {
