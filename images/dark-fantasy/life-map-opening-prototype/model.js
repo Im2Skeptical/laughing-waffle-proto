@@ -92,17 +92,18 @@ function nodeState(session) { return openingVassal(session).lifeMap.nodeStates[s
 function legacyOptions(session, spec) {
   const vassal=openingVassal(session), stats=getVassalEffectiveStats(vassal), tuning=spec.legacy;
   const highest=VASSAL_STAT_IDS.reduce((best,id)=>stats[id]>stats[best]?id:best,VASSAL_STAT_IDS[0]);
-  const statQuantity=Math.max(1,Math.floor(stats[highest]*tuning.statMultiplier));
-  const prestigeQuantity=Math.max(1,Math.floor(vassal.prestige/tuning.prestigeDivisor));
+  const statLabel=getVassalStatPresentation(vassal,highest).label;
+  const statQuantity=Math.floor(stats[highest]/tuning.statDivisor);
+  const prestigeQuantity=Math.floor(vassal.prestige/tuning.prestigeDivisor);
   return [
     {id:'found-settlement',label:'Found a settlement',prestigeCost:tuning.settlementPrestigeCost,phaseCost:0,
       description:'Found a new settlement · Choose its location next'},
-    {id:'highest-stat',label:'Highest stat',prestigeCost:0,phaseCost:0,
-      description:`${getVassalStatPresentation(vassal,highest).label} ${stats[highest]} × ${tuning.statMultiplier} · Minimum 1 · ${tuning.statReward}: ${statQuantity}`,
-      legacyReward:{basis:highest,value:stats[highest],quantity:statQuantity,label:tuning.statReward}},
+    {id:'highest-stat',label:statLabel,prestigeCost:0,phaseCost:0,
+      description:`${statLabel} ${stats[highest]} ÷ ${tuning.statDivisor} · Future Vassals start with +${statQuantity} ${statLabel}`,
+      legacyReward:{kind:'startingStat',statId:highest,basis:highest,value:stats[highest],quantity:statQuantity,label:`Future starting ${statLabel}`}},
     {id:'accumulated-prestige',label:'Prestige',prestigeCost:0,phaseCost:0,
-      description:`${vassal.prestige} Prestige ÷ ${tuning.prestigeDivisor} · Minimum 1 · ${tuning.prestigeReward}: ${prestigeQuantity}`,
-      legacyReward:{basis:'prestige',value:vassal.prestige,quantity:prestigeQuantity,label:tuning.prestigeReward}},
+      description:`${vassal.prestige} Prestige ÷ ${tuning.prestigeDivisor} · Future Vassals start with +${prestigeQuantity} Prestige`,
+      legacyReward:{kind:'startingPrestige',basis:'prestige',value:vassal.prestige,quantity:prestigeQuantity,label:'Future starting Prestige'}},
   ];
 }
 function curatedOffers(state, vassal, current, cards) {

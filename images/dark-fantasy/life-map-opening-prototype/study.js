@@ -142,8 +142,8 @@ function renderEditor(snapshot) {
   const description = el('label', 'Description'), text = el('textarea'); text.rows = 3; text.value = spec.description; description.append(text); host.append(description);
   const legacyFields={};
   if(spec.kind==='legacy') {
-    for(const [key,label] of Object.entries({settlementPrestigeCost:'Settlement Prestige cost',statMultiplier:'Highest stat multiplier',prestigeDivisor:'Prestige per reward',statReward:'Highest stat reward',prestigeReward:'Prestige reward'})) {
-      legacyFields[key]=appendField(host,label,spec.legacy[key],{id:`legacy-${key}`,type:key.endsWith('Reward')?'text':'number',min:key==='prestigeDivisor'?1:0});
+    for(const [key,label] of Object.entries({settlementPrestigeCost:'Settlement Prestige cost',statDivisor:'Stat points per starting stat point',prestigeDivisor:'Prestige per starting Prestige'})) {
+      legacyFields[key]=appendField(host,label,spec.legacy[key],{id:`legacy-${key}`,type:'number',min:key==='settlementPrestigeCost'?0:1});
     }
   }
   const lists = {};

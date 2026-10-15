@@ -11,11 +11,12 @@ are preserved and can add this node through the graph editor.
 
 This is a choice/layout workshop. Settlement uses the existing 40-Prestige and
 10-adult-Villager prices provisionally; choosing its location would follow.
-The two reward types remain **Reward to define**. Their sample quantities are
-highest stat × 1 and floor(Prestige / 10), both with a minimum of one. Edit the
-Legacy node's cost, multiplier, divisor and reward labels, then Apply and Preview.
+The stat choice always uses the highest effective stat: each three points give
+future Vassals +1 starting point in that same stat. Each ten remaining Prestige
+give future Vassals +1 starting Prestige. Both formulas round down with no cap
+and no minimum bonus. Edit the Legacy node's cost and divisors, then Apply and Preview.
 The preview uses a Warrior with 60 Prestige and highest stat 6; **0 Prestige ·
-Legacy** tests the unavailable settlement and positive fallback rewards.
+Legacy** tests the unavailable settlement, available stat reward and zero Prestige bonus.
 Confirm records the chosen option for review, without founding, charging costs,
 granting rewards, retiring, advancing time, or consuming RNG. Rewind restores the
 choice. Normal player Legacy and settlement generation are unchanged.
