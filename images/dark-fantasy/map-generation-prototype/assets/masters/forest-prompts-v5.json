@@ -1,0 +1,16 @@
+{
+  "tool": "built-in imagegen",
+  "prompt": "Use case: stylized-concept. Production sprite sheet for a dark fantasy illustrated pixel regional atlas. TWELVE fully separate forest terrain fragments in exact FOUR columns THREE rows, equal cells, each centered with 20% completely transparent gutters. Genuine transparent alpha background, no matte, text, grid or header. High-altitude reconnaissance view of kilometres of continuous ancient forest, near overhead orthographic with very slight oblique relief. DESIGN SCALE: each large fragment is 2-4 kilometres of woodland containing THOUSANDS of tiny crowns. At import width 72 pixels, an individual tree should be 1-2 pixels at most; NO clearly drawn trunks, branches, leaves, large mushroom crowns, scenic foreground trees, bonsai groves, tree walls, tall frontal facades. Forest is a dense finely granular interlocking canopy carpet whose surface rolls very gently; height reads through fine top lighting, small interstitial shadows and a VERY THIN shaded lip at the near edge, not a tall mass. Retain deep mysterious fantasy woodland density with virtually no visible soil inside core pieces. Subtle varied canopy species patches, muted desaturated olive and deep grey-green, dusty moss highlights, cool green inner shadows, moderate contrast, diffuse upper-left lighting. Painterly 1990s RTS pixel terrain finish, not photorealistic photograph. Every mass asymmetrical and organic, edge has minute irregular serrations instead of large scallops. Row1: four dense broad continuous forest expanses, a crescent, diagonal sweep, branching wedge and irregular oval, all flat low profiles and fine canopy texture. Row2: four narrow linked transition bands, long treeline, concave clearing edge, gently curved forest flank, narrow connecting neck. Row3: four LOW and SPARSE small edge transitions, feathered sapling cover, broken thicket edge, curved scrub fringe, fern/shrub transition. All pieces have ragged natural bases tapering into alpha transparency, no hard cut, rectangular ground slab or floating island. No water roads buildings mountains. Critical: preserve distant regional scale across all twelve pieces, no few oversized trees. Height must remain much less prominent than mountain relief. Show forest geography through continuous fine grain and irregular voids, NOT rows of tree icons.",
+  "references": [
+    {
+      "url": "https://engage.gov.bc.ca/govtogetherbc/engagement/kispiox-timber-supply-area-public-review/",
+      "role": "aerial canopy structure: varied crown grain, short interstitial shadows, irregular cover"
+    },
+    {
+      "url": "https://science.nasa.gov/earth/earth-observatory/how-to-interpret-a-satellite-image/",
+      "role": "landscape-scale interpretation: patterns, shape, texture and relative values"
+    }
+  ],
+  "design": "Depth from fine grain and short opening shadows, with no visible trunk facade or large scalloped crowns. Dense composition retained. Runtime width unchanged at 72/54/32; source design carries the scale correction.",
+  "packing": "Source bands 0–50%, 50–75%, 75–100% are centered into three equal atlas rows. No painted pixels scaled or discarded in this layout normalization."
+}

@@ -185,8 +185,18 @@ def import_relief():
     for name, columns, rows in sheets:
         source_path = MASTER / f'composable-{name}-v2.png' if name in ['mountains', 'swamp', 'plains', 'forest'] else MASTER / f'composable-{name}-v1.png' if name in ['ridge-border', 'bridge', 'island-basalt', 'island-caldera'] else BASE / f'composable-{name}-v1.png'
         if name in ['plains', 'forest']: source_path = MASTER / f'composable-{name}-v3.png'
-        if name == 'forest': source_path = MASTER / 'composable-forest-v4.png'
+        if name == 'forest': source_path = MASTER / 'composable-forest-v5.png'
         source = Image.open(source_path).convert('RGBA')
+        if name == 'forest':
+            # This master gives the dense first row more vertical room. Pack
+            # its three complete bands into equal cells before frame detection.
+            band_edges = [0, source.height // 2, source.height * 3 // 4, source.height]
+            cell_height = source.height // 2
+            normalized = Image.new('RGBA', (source.width, cell_height * 3))
+            for row in range(3):
+                band = source.crop((0, band_edges[row], source.width, band_edges[row + 1]))
+                normalized.paste(band, (0, row * cell_height + (cell_height - band.height) // 2))
+            source = normalized
         payload = json.dumps([source.width, source.height, columns, rows]).encode() + b'\n' + source.tobytes()
         probe = subprocess.run(['node', str(ROOT / 'scripts/map-terrain-frame-probe.mjs')], input=payload, capture_output=True, check=True)
         cells = json.loads(probe.stdout)
