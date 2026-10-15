@@ -9,7 +9,7 @@ import { createWheelZoom } from './wheel-zoom.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
-const MAP_VERSION = '1.0.4';
+const MAP_VERSION = '1.0.5';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
@@ -525,6 +525,10 @@ function drawTerrainLayer(art, parent) {
   const props = art.props.filter(prop => pixelSpriteFits(art, prop, state.flipX, state.flipY))
     .sort((a, b) => point(a.point).y - point(b.point).y);
   art.stats.displayedProps = props.length;
+  art.stats.monsterVisibility={planned:art.props.filter(p=>p.monster).length,displayed:props.filter(p=>p.monster).length,
+    landscape:props.filter(p=>p.family==='terrain-hellscape').length,
+    regions:art.stats.terrainComposition.monsterZones.map(z=>({regionId:z.regionId,
+      planned:z.pieces.length,displayed:props.filter(p=>p.monster&&p.regionId===z.regionId).length}))};
   const drawProp = prop => {
     const node = zoomArt(reliefTextures.get(prop) ?? textures[prop.kind]), p = point(prop.point);
     node.scale.set(density);

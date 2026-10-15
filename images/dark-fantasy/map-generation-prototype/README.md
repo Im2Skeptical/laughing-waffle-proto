@@ -1,7 +1,7 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.4** — monster territory is a sixth biome
-occupying two whole regions, with its own scorched substrate and region-only dens/pits. The version appears under the title inside the
+Current published revision: **Map v1.0.5** — darker forest canopy over lighter
+ground; connected hellscape terrain around protected monster dens and pits. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -20,6 +20,15 @@ spawn in the five ordinary biome types.
 The whole territory uses 16 seam-matched scorched-ground variants imported from
 the live game's monster-ground artwork. Contacts blend into that substrate;
 cinder banks describe dry borders, with matching road, river and shore treatment.
+Twelve generated hellscape pieces now supply structural charred ridges, bone
+spines, burnt thickets, linking embankments and ember scars. They follow curved
+interior spines and boundary verges, with smaller ground cover between. Dens and
+pits reserve their silhouettes first; later terrain cannot bury them. Existing
+den-kit foliage is graded to ash and rust so it belongs to the monster biome.
+Each den/pit/accent role gets its own placement attempts; a rejected large pit
+cannot prevent subsequent small sinkholes, bones and fissures from spawning.
+`monsterVisibility` compares planned and displayed den counts and reports the
+displayed hellscape pieces; it exposes failures beyond successful composition.
 Six generated pieces per material variant supply two low dens, a sunken pit,
 paired sinkholes, bone/cloth accents and scarred ground. The live game's bone,
 horn, dark stone, rust cloth and restrained ember theme is adapted to local
@@ -38,8 +47,10 @@ schemas, RNG streams or replay behavior change.
 Built-in imagegen master: `assets/masters/monster-biomes-v1.png`; exact prompt
 and theme references: [monster-biomes-prompts-v1.json](assets/masters/monster-biomes-prompts-v1.json).
 Import widths are 36/28px dens, 34/28px pits and 18/24px accents. The runtime
-kit now has 184 relief frames and is about 2.32 MiB. Run map-art, composition,
+kit now has 196 relief frames and is about 2.29 MiB. Run map-art, composition,
 settlement and browser LOD checks; inspect seeds 1867 and 1873 across all biomes.
+Hellscape master: `assets/masters/composable-hellscape-v1.png`; built-in imagegen
+prompt: [hellscape-prompts-v1.json](assets/masters/hellscape-prompts-v1.json).
 
 ### Settlement landscape integration
 
@@ -73,8 +84,11 @@ Visible trunks, large scalloped crowns and tall frontal forest walls are removed
 because they made the prior pass read as a close-up grove. Density is retained;
 height comes from subtle canopy shading and a narrow shaded edge at openings.
 Core pieces import at 72px, connectors at 54px and low fringes at 32px.
-Forest grading compresses luminance by 30% around a muted midtone, lifting deep
-shadows and softening highlights while retaining leaf/wood hue differences.
+Forest floor tiles are imported as lighter moss/khaki soil; canopy sprites use
+a darker olive value range with softened highlights. These separate material
+grades make dense tree cover darker than the openings, instead of light crowns
+above a dark floor. Foundations, clearing textures and boundaries share the
+corrected floor samples, while every forest sprite uses the canopy grade.
 It uses source alpha rather than the legacy cyan key. Dense patches accept more overlapping closed canopy;
 clearings retain the lower fringe pieces and protected settlement approaches.
 The same kit supplies coasts, boundary verges and settlement surroundings.

@@ -5,7 +5,7 @@ import { generateMap } from './generator.js';
 
 const art = {};
 for (const family of ['plains', 'forest', 'islands', 'swamp', 'mountains'].map(b => `terrain-${b}`)
-  .concat(['terrain-island-basalt', 'terrain-island-caldera'])
+  .concat(['terrain-island-basalt', 'terrain-island-caldera','terrain-hellscape'])
   .concat(['plains','forest','islands','swamp','mountains'].map(b=>`terrain-monster-${b}`))
   .concat(CONTACT_PAIRS.map((_, n) => `contact-${n}`))) {
   for (let n = 0; n < (family.startsWith('contact') ? 5 : 12); n++) {
@@ -56,7 +56,7 @@ const borderPaths = islandMap.edges.filter(edge => edge.regions.length === 2
 const pairedVergePaths=islandMap.edges.filter(edge=>edge.regions.length===2).map(edge=>edge.regions.map(id=>islandMap.regions.find(r=>r.id===id).biome))
   .filter(pair=>pair[0]!==pair[1] && !pair.includes('monster') && pair.some(b=>['plains','forest'].includes(b))).length;
 assert.equal(islandComposition.diagnostics.paths + islandComposition.diagnostics.coastalProfiles, borderPaths + pairedVergePaths + islandMap.features.filter(f => f.type === 'ridge').length
-  + islandMap.geography.coasts.length + islandMap.regions.filter(r => ['mountains','islands','plains','forest'].includes(r.biome)).length, 'Every island contour must receive a shore profile even without a graph edge ID');
+  + islandMap.geography.coasts.length + islandMap.regions.filter(r => ['mountains','islands','plains','forest','monster'].includes(r.biome)).length, 'Every island contour must receive a shore profile even without a graph edge ID');
 const channels = c => [c >> 16, c >> 8 & 255, c & 255];
 const [pr,pg,pb]=channels(gradeTerrainColour(150,145,136,'plains'));
 assert.ok(pr>pg+15 && pg>pb+25,'Plains earth must retain warm ochre rather than a neutral grey cast');
@@ -146,12 +146,17 @@ for(const biome of ['plains','forest','islands','swamp','mountains']) {
   assert.deepEqual(result,composeTerrainLandscape(args),'Monster territories must be stable for a world seed');
   assert.ok(monsters.length>=4 && result.diagnostics.monsterZones.length===1,`${biome}: multiple dens and pits must form a territory`);
   assert.ok(monsters.every(p=>p.family===`terrain-monster-${biome}`&&p.allowedBiomes[0]==='monster'&&args.legal(p)),'Monster silhouettes must fit dedicated monster territory');
+  const landscape=result.props.filter(p=>p.family==='terrain-hellscape');
+  assert.ok(landscape.length>0,'Monster regions need terrain masses beyond scattered den symbols');
+  assert.ok(landscape.every(p=>p.allowedBiomes.length===1&&p.allowedBiomes[0]==='monster'),'Hellscape must remain inside monster territory');
   const ordinary={...fixture,regions:fixture.regions.map(r=>({...r,biome}))};
   assert.equal(composeTerrainLandscape({...args,map:ordinary}).props.filter(p=>p.monster).length,0,'Ordinary biomes must never receive monster dens or pits');
   for(const m of monsters) for(const other of result.props.filter(p=>p!==m))
     assert.ok(illustrationOverlap(m,other,art)<=.12,'Scenery must not bury dens or pits');
   assert.equal(composeTerrainLandscape({...args,monsterZones:false}).props.filter(p=>p.monster).length,0,'Turning sites off must remove monster content');
   assert.equal(composeTerrainLandscape({...args,legal:()=>false}).props.filter(p=>p.monster).length,0,'Unsafe footprints must be omitted whole');
+  const blockedPit=composeTerrainLandscape({...args,legal:p=>args.legal(p)&&!(p.family.startsWith('terrain-monster-')&&/-2(-mirror)?$/.test(p.kind))});
+  assert.ok(blockedPit.props.some(p=>p.monster&&p.monsterRole>=3),'An unplaceable large pit must not starve later small pieces');
 }
 console.log('Monster territories: biome-specific scattered dens/pits, deterministic placement, protected silhouettes and sites-off pass.');
 

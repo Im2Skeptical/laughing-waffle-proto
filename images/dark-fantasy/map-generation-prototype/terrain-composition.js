@@ -92,7 +92,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       options.push({ prop, score, join });
     }
     options.sort((a, b) => b.score - a.score);
-    return options[0]?.prop ?? ((family.startsWith('terrain-island-') || family.startsWith('terrain-monster-') || ['terrain-plains','terrain-forest'].includes(family)) && sizeLevel < 2
+    return options[0]?.prop ?? ((family.startsWith('terrain-island-') || family.startsWith('terrain-monster-') || ['terrain-plains','terrain-forest','terrain-hellscape'].includes(family)) && sizeLevel < 2
       ? choose({ x,y,family,indices,salt,allowedBiomes,context,previous,sizeLevel:sizeLevel+1,canopyCore }) : undefined);
   };
 
@@ -141,15 +141,18 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       const outline=region.outline.map(pixel), xs=outline.map(p=>p.x),ys=outline.map(p=>p.y);
       const minX=Math.min(...xs),minY=Math.min(...ys),w=Math.max(...xs)-minX,h=Math.max(...ys)-minY;
       const placed=[];
-      for(let n=0;n<160 && placed.length<6;n++) {
+      // Try each role independently: a cramped pit must not prevent smaller
+      // sinkholes, bone markers or fissures from being considered afterwards.
+      for(let n=0;n<480 && placed.length<6;n++) {
+        const role=Math.floor(n/80);
+        if(placed.some(p=>p.monsterRole===role)) continue;
         const salt=740001+map.regions.indexOf(region)*8803+n*199;
         const x=minX+w*(.12+rand(salt)*.76), y=minY+h*(.12+rand(salt+1)*.76);
         if(!insidePolygon({x,y},outline)) continue;
-        const role=placed.length;
         if(placed.some(p=>Math.hypot(p.left-x,p.top-y)<(role<4?18:10)*detail)) continue;
         const prop=choose({x,y,family,indices:[role],salt,allowedBiomes:['monster'],context:'monster'});
         if(!prop) continue;
-        prop.monster=true;prop.regionId=region.id;add(prop);placed.push(prop);
+        prop.monster=true;prop.monsterRole=role;prop.regionId=region.id;add(prop);placed.push(prop);
       }
       if(!placed.length) continue;
       diagnostics.monsterZones.push({regionId:region.id,biome:'monster',terrainBiome:biome,point:region.centre,
@@ -190,7 +193,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
     paths.push({ points: feature.points.map(pixel), family: ridgeArt ? 'terrain-ridge-border' : 'terrain-mountains', directional: ridgeArt, allowedBiomes: ['plains', 'forest', 'swamp', 'mountains'], indices: ridgeArt ? [0, 1, 2, 3, 4, 6, 7, 10] : [0, 1, 2, 4, 5, 6, 8, 9], salt: 3001 + i * 991, context: ridgeArt ? 'ridge-boundary' : 'ridge' });
   // Broad low grassland spines and wooded slopes organise the interior before
   // smaller cover grows around them. Each has bends and open breathing room.
-  for (const [i, region] of map.regions.entries()) if (['plains','forest'].includes(region.biome)) {
+  for (const [i, region] of map.regions.entries()) if (['plains','forest'].includes(region.biome) || region.biome==='monster'&&art['terrain-hellscape-0']) {
     const outline=region.outline.map(pixel), c=pixel(region.centre);
     const rx=(Math.max(...outline.map(p=>p.x))-Math.min(...outline.map(p=>p.x)))*.31;
     const ry=(Math.max(...outline.map(p=>p.y))-Math.min(...outline.map(p=>p.y)))*.31;
@@ -198,8 +201,8 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
     paths.push({points:Array.from({length:9},(_,n)=>{
       const t=n/8*2-1,bend=Math.sin(t*Math.PI+rand(i+418)*3)*.34;
       return {x:c.x+(horizontal?t*rx:bend*rx),y:c.y+(horizontal?bend*ry:t*ry)};
-    }),family:`terrain-${region.biome}`,allowedBiomes:[region.biome],
-    indices:region.biome==='plains'?[0,1,2,3,4,5]:[0,1,2,3,6,7],salt:180001+i*877,context:'landscape-spine'});
+    }),family:region.biome==='monster'?'terrain-hellscape':`terrain-${region.biome}`,allowedBiomes:[region.biome],
+    indices:region.biome==='monster'?[0,1,2,3]:region.biome==='plains'?[0,1,2,3,4,5]:[0,1,2,3,6,7],salt:180001+i*877,context:'landscape-spine'});
   }
   // Mountain biomes carry a connected major-axis spine, with low flanks below.
   for (const [i, region] of map.regions.entries()) if (region.biome === 'mountains') {
@@ -237,10 +240,11 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       for(const [side,id] of edge.regions.entries()) {
         const region=regions.get(id),biome=region.biome,centre=pixel(region.centre);
         if(biome==='monster'&&!monsterZones) continue;
-        const family=biome==='monster'?`terrain-monster-${region.terrainBiome??'mountains'}`:biome==='islands'?islandFamily:`terrain-${biome}`;
+        const hell=biome==='monster'&&art['terrain-hellscape-0'];
+        const family=biome==='monster'?hell?'terrain-hellscape':`terrain-monster-${region.terrainBiome??'mountains'}`:biome==='islands'?islandFamily:`terrain-${biome}`;
         paths.push({points:edge.points.map(point=>{const p=pixel(point),d=Math.hypot(centre.x-p.x,centre.y-p.y)||1;
           return {x:p.x+(centre.x-p.x)/d*10*detail,y:p.y+(centre.y-p.y)/d*10*detail};}),
-          family,indices:biome==='monster'?[5]:biome==='islands'?[6,7,8,10,11]:COASTS[biome],
+          family,indices:biome==='monster'?hell?[4,5,6,7]:[5]:biome==='islands'?[6,7,8,10,11]:COASTS[biome],
           allowedBiomes:[biome],salt:20117+i*919+side*347,context:'boundary'});
       }
       continue;
@@ -334,8 +338,8 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
   // Correlated density fields form irregular masses and clearings in two
   // dimensions. Blue-noise-like candidate ordering avoids lines and stamp grids.
   for (const [index, region] of map.regions.entries()) {
-    if(region.biome==='monster') continue;
-    const outline = region.outline.map(pixel), family = region.biome === 'islands' ? islandFamily : `terrain-${region.biome}`;
+    if(region.biome==='monster'&&!art['terrain-hellscape-0']) continue;
+    const outline = region.outline.map(pixel), family = region.biome==='monster'?'terrain-hellscape':region.biome === 'islands' ? islandFamily : `terrain-${region.biome}`;
     const xs = outline.map(p => p.x), ys = outline.map(p => p.y), minX = Math.min(...xs), minY = Math.min(...ys);
     const width = Math.max(...xs) - minX, height = Math.max(...ys) - minY;
     const area = Math.abs(polygonArea(outline)), dense = region.biome === 'forest';
@@ -353,7 +357,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       if (placed >= limit || props.length >= 600) break;
       const canopyCore=dense && candidate.density>=.46;
       const prop = choose({ ...candidate, family, canopyCore,
-        indices: dense ? (canopyCore ? [0,1,3] : [4,5,8,9,10,11]) : region.biome === 'islands' ? [8,9,10,11] : region.biome === 'mountains' ? [7, 8, 9, 11] : INTERIORS[region.biome], allowedBiomes: [region.biome], context: 'interior' });
+        indices: dense ? (canopyCore ? [0,1,3] : [4,5,8,9,10,11]) : ['islands','monster'].includes(region.biome) ? [8,9,10,11] : region.biome === 'mountains' ? [7, 8, 9, 11] : INTERIORS[region.biome], allowedBiomes: [region.biome], context: 'interior' });
       if (!prop) continue;
       const near = nearby(prop), overlap = near.reduce((n, p) => Math.max(n, illustrationOverlap(prop, p, art)), 0);
       // Moderate-density fringe extends an existing mass; high-density cores

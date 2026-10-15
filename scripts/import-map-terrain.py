@@ -79,6 +79,12 @@ def import_surfaces():
     banks = {}
     for biome in BIOMES:
         raw = swatches(MASTER / f'ground-{biome}-v1.png', 4, 4, (SIZE, SIZE))
+        if biome == 'forest':
+            for tile in raw:
+                rgb = tile[..., :3].astype(float)
+                value = rgb[...,0]*.30 + rgb[...,1]*.59 + rgb[...,2]*.11
+                floor = 110 + (value-100)*.65
+                tile[..., :3] = np.clip(floor[...,None] + [12,10,-2],0,255).astype(np.uint8)
         if biome == 'swamp':
             for tile in raw:
                 rgb = tile[..., :3].astype(float)
@@ -180,7 +186,11 @@ def import_surfaces():
     # Dedicated scorched monster-region substrate from the live game's theme.
     raw = swatches(ROOT / 'images/dark-fantasy/region-landmarks-v1/monster-ground.png', 4, 4, (SIZE, SIZE))
     for tile in raw:
-        tile[..., :3] = np.clip(tile[..., :3].astype(float) * .70 + 32, 0, 255).astype(np.uint8)
+        rgb=tile[..., :3].astype(float)
+        ember=(rgb[...,0]>rgb[...,1]*1.6)&(rgb[...,0]>65)
+        rgb=rgb*.80+[16,7,10]
+        rgb[ember]+= [22,0,0]
+        tile[..., :3] = np.clip(rgb, 0, 255).astype(np.uint8)
     common = periodic(raw[0])
     monster_tiles = packed([conform(tile, common) for tile in raw],
         [{'kind': f'ground-monster-{n}', 'role': 'ground', 'biome': 'monster', 'variant': n} for n in range(16)],
@@ -190,11 +200,12 @@ def import_surfaces():
 
 def import_relief():
     images, records = [], []
-    sheets = [(b, 4, 3) for b in BIOMES] + [('contacts-1', 5, 5), ('contacts-2', 5, 5), ('ridge-border', 4, 3), ('bridge', 4, 2), ('island-basalt', 4, 3), ('island-caldera', 4, 3)]
+    sheets = [(b, 4, 3) for b in BIOMES] + [('contacts-1', 5, 5), ('contacts-2', 5, 5), ('ridge-border', 4, 3), ('bridge', 4, 2), ('island-basalt', 4, 3), ('island-caldera', 4, 3), ('hellscape',4,3)]
     for name, columns, rows in sheets:
         source_path = MASTER / f'composable-{name}-v2.png' if name in ['mountains', 'swamp', 'plains', 'forest'] else MASTER / f'composable-{name}-v1.png' if name in ['ridge-border', 'bridge', 'island-basalt', 'island-caldera'] else BASE / f'composable-{name}-v1.png'
         if name in ['plains', 'forest']: source_path = MASTER / f'composable-{name}-v3.png'
         if name == 'forest': source_path = MASTER / 'composable-forest-v5.png'
+        if name == 'hellscape': source_path = MASTER / 'composable-hellscape-v1.png'
         source = Image.open(source_path).convert('RGBA')
         if name == 'forest':
             # This master gives the dense first row more vertical room. Pack
@@ -227,6 +238,7 @@ def import_relief():
             if name == 'bridge': width = 64
             if name in ['plains', 'forest']: width = 64 if n < 4 else 48 if n < 8 else 32
             if name == 'forest': width = 72 if n < 4 else 54 if n < 8 else 32
+            if name == 'hellscape': width = 64 if n < 4 else 52 if n < 8 else 36
             if contact and pair == 0: width = 30
             if name.startswith('island-'): width = 88 if n < 2 else 64 if n < 8 else 52
             height = min(118, max(1, round(width * cropped.height / cropped.width)))
@@ -300,4 +312,4 @@ if __name__ == '__main__':
     import_relief()
     import_buildings()
     total = sum(p.stat().st_size for p in OUT.iterdir() if p.suffix in ['.webp', '.json'])
-    print(f'Map art import: 635 terrain cases, 40 bank profiles, 184 relief frames; runtime files {total / 1048576:.2f} MiB')
+    print(f'Map art import: 635 terrain cases, 40 bank profiles, 196 relief frames; runtime files {total / 1048576:.2f} MiB')
