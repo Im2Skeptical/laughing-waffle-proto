@@ -14,8 +14,10 @@ export function gradeTerrainColour(r, g, b, family) {
     return channels.reduce((rgb,v,i) => rgb | Math.max(0,Math.min(255,Math.round(v))) << (16-i*8),0);
   }
   if (family === 'forest') {
-    // Deep canopy shadows carry height; lifting them made woodland look flat.
-    return [r,g,b].reduce((rgb,v,i) => rgb | Math.round(72+(v-72)*.95) << (16-i*8),0);
+    // Compress luminance, retaining the painted leaf/wood hue differences.
+    // Fine canopy relief survives without competing with the other biomes.
+    const value=r*.30+g*.59+b*.11, shift=(108-value)*.30;
+    return [r,g,b].reduce((rgb,v,i) => rgb | Math.max(0,Math.min(255,Math.round(v+shift))) << (16-i*8),0);
   }
   if (family === 'island-basalt') {
     // Compress values around weathered mid-grey without flattening leaf/stone hue.

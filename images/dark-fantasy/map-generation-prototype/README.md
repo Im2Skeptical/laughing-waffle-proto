@@ -32,8 +32,9 @@ Visible trunks, large scalloped crowns and tall frontal forest walls are removed
 because they made the prior pass read as a close-up grove. Density is retained;
 height comes from subtle canopy shading and a narrow shaded edge at openings.
 Core pieces import at 72px, connectors at 54px and low fringes at 32px.
-Forest grading preserves deep blue-green shadows and uses source alpha rather
-than the legacy cyan key. Dense patches accept more overlapping closed canopy;
+Forest grading compresses luminance by 30% around a muted midtone, lifting deep
+shadows and softening highlights while retaining leaf/wood hue differences.
+It uses source alpha rather than the legacy cyan key. Dense patches accept more overlapping closed canopy;
 clearings retain the lower fringe pieces and protected settlement approaches.
 The same kit supplies coasts, boundary verges and settlement surroundings.
 Source: `assets/masters/composable-forest-v5.png`; exact built-in imagegen prompt,
