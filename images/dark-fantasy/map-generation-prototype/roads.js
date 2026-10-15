@@ -1,3 +1,38 @@
+// Broad route bends are planned over complete spans, never per-pixel jitter.
+export function windRoad(path, { scale = 1, clear, wet, inTown }) {
+  if (path.length < 3) return path;
+  const distance = [0];
+  for (let i=1;i<path.length;i++) distance.push(distance[i-1]+Math.hypot(path[i].x-path[i-1].x,path[i].y-path[i-1].y));
+  const total=distance.at(-1), result=path.map(p=>({...p}));
+  const protectedLength=16*scale;
+  // Alternate broad bows, with zero displacement AND slope at each span end.
+  // Validate the entire bow at once so obstacles cannot produce jagged fragments.
+  const spanLength=65*scale;
+  const spans=Math.max(1,Math.round((total-2*protectedLength)/spanLength));
+  if(total<protectedLength*3) return result;
+  for(let span=0;span<spans;span++) {
+    const start=protectedLength+(total-2*protectedLength)*span/spans;
+    const end=protectedLength+(total-2*protectedLength)*(span+1)/spans;
+    const indices=distance.map((d,i)=>d>=start&&d<=end?i:-1).filter(i=>i>0&&i<path.length-1);
+    if(indices.length<3||indices.some(i=>wet(path[i]))) continue;
+    const a=path[indices[0]],b=path[indices.at(-1)],length=Math.hypot(b.x-a.x,b.y-a.y)||1;
+    const sign=((span+Math.floor(path[0].x/17+path[0].y/13))%2)?1:-1;
+    for(const amount of [1,.65,.35]) {
+      const candidate=result.map(p=>({...p}));
+      for(const i of indices) {
+        const t=(distance[i]-start)/(end-start);
+        const offset=sign*Math.sin(Math.PI*t)**2*Math.min(10*scale,(end-start)*.16)*amount;
+        candidate[i]={x:path[i].x-(b.y-a.y)/length*offset,y:path[i].y+(b.x-a.x)/length*offset};
+      }
+      const first=indices[0],last=indices.at(-1);
+      let valid=true;
+      for(let i=first;i<=last+1;i++) if(wet(candidate[i])||inTown(candidate[i])||!clear(candidate[i-1],candidate[i])) {valid=false;break;}
+      if(valid){for(const i of indices) result[i]=candidate[i];break;}
+    }
+  }
+  return result;
+}
+
 // Disposable presentation routes between sample sites. No gameplay connections.
 // Search the already-baked land lattice; the generator and its RNG stay untouched.
 export function routeSampleRoads(sites, { width, height, regionIds, land, waterIndices, materialAt, bounds, scale = 1, exclusions = [] }) {
@@ -83,7 +118,7 @@ export function routeSampleRoads(sites, { width, height, regionIds, land, waterI
     const wet = p => waterIndices[Math.round(p.y) * width + Math.round(p.x)] >= 16 && waterIndices[Math.round(p.y) * width + Math.round(p.x)] <= 23;
     const clear = (a, b) => {
       const count = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y)));
-      for (let n = 0; n <= count; n++) if (!dry(Math.round(a.x + (b.x - a.x) * n / count), Math.round(a.y + (b.y - a.y) * n / count))) return false;
+      for (let n = 0; n <= count; n++) if (inTown({x:a.x + (b.x-a.x)*n/count,y:a.y+(b.y-a.y)*n/count}) || !dry(Math.round(a.x + (b.x - a.x) * n / count), Math.round(a.y + (b.y - a.y) * n / count))) return false;
       return true;
     };
     let shaped = path.map(p => ({ ...p }));
@@ -99,8 +134,7 @@ export function routeSampleRoads(sites, { width, height, regionIds, land, waterI
       }
       shaped = next;
     }
-    // Do not add a second perpendicular wave after pathfinding. That displaced
-    // adjacent samples independently and made the approach kink at destinations.
+    shaped = windRoad(shaped, {scale,clear,wet,inTown});
     return shaped.map((p,i) => i === 0 || i === shaped.length-1 ? p : ({ x: Math.round(p.x), y: Math.round(p.y) }));
   });
 }

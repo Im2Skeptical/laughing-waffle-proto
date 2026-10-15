@@ -8,7 +8,10 @@ than cut through buildings. The accepted 75% setting remains the default footpri
 Individual houses, halls, workshops and market buildings share terrain depth order.
 Local lanes join a single planned entrance; mainland routes target that entrance
 and avoid the civic centre. The route search retains terrain constraints but no
-longer adds independent sine displacement to its samples. Island villages remain
+longer adds independent sine displacement to its samples. Broad bowed spans
+restore winding character; the first/last 16 texels (scaled with map detail) remain
+fixed. Whole bows are reduced or rejected if they meet water, town interiors or
+impassable ground, rather than accepting scattered displaced pixels. Island villages remain
 independent. Compact building groups surround an offset court and crescent lane,
 with a larger hall/market, gate and broken biome-material enclosure. Ground-level
 contact shadows anchor the buildings. Layouts have 13-19 pieces rather than two
@@ -20,7 +23,13 @@ Gold/teal overview markers retain identity when buildings become too small to re
 
 Thirty generated building pieces (six per biome) replace the whole-town/outskirts
 runtime atlas. Masters and exact prompts are retained under `assets/masters/`;
-`settlement-buildings-v1.webp` imports each building at 32 pixels wide.
+`settlement-buildings-v1.webp` imports houses at 12px, paired houses/workshops/gates
+at 14px and civic buildings at 22px. These sizes follow their world footprints,
+roughly one source pixel per world unit at 75%, instead of giving tiny houses
+32 pixels of miniature detail. Import compresses value contrast and preserves
+soft alpha edges; original source masters stay untouched. Buildings now use the
+same zoom detail floor as terrain. This is import-time preparation, not a scene
+blur or a biome tint; perspective/light-direction changes still require source art.
 The prior yellow coastal cliff scatter remains removed. Lairs retain their earlier
 art; this pass changes settlements and neutral markets only.
 

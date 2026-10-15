@@ -2,7 +2,8 @@
 
 Two built-in imagegen sheets provide 30 isolated building pieces: house, paired
 houses, hall, market, workshop and gate for each of five biomes. Exact prompts:
-`masters/settlement-buildings-prompts.json`. Import uses 32px-wide cutouts with
+`masters/settlement-buildings-prompts.json`. Import uses 12-22px-wide cutouts matched to building footprints, compressed
+value contrast and
 transparent margins. Site ground and streets come from the procedural map.
 Older whole-town masters remain reference material; their runtime atlas is removed.
 

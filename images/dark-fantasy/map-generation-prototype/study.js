@@ -684,7 +684,7 @@ function updateZoomPresentation() {
     node.renderable = Math.max(x, x2) * pose.zoom + pose.x >= viewRect.x && Math.min(x, x2) * pose.zoom + pose.x <= viewRect.x + viewRect.width
       && Math.max(y, y2) * pose.zoom + pose.y >= viewRect.y && Math.min(y, y2) * pose.zoom + pose.y <= viewRect.y + viewRect.height;
     if (node.renderable && node.visible) visibleMeshes++;
-    node.sampleZoom(physicalScale, state.smoothZoom, node.terrainBuilding ? 0 : node.parent === terrainLayer ? terrainLodFloor : 0);
+    node.sampleZoom(physicalScale, state.smoothZoom, node.parent === terrainLayer ? terrainLodFloor : 0);
   }
   // Important connections retain a small readable stroke at overview scale.
   overviewInk?.clear();

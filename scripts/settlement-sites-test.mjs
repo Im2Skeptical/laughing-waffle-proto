@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { routeSampleRoads } from '../images/dark-fantasy/map-generation-prototype/roads.js';
+import { routeSampleRoads, windRoad } from '../images/dark-fantasy/map-generation-prototype/roads.js';
 import { planSettlementSites, layOutSettlements } from '../images/dark-fantasy/map-generation-prototype/settlement-sites.js';
 
 const biomes = ['plains', 'forest', 'islands', 'swamp', 'mountains'];
@@ -41,3 +41,13 @@ for(const path of routed) {
  for(const p of path) for(const s of sites) assert.ok(Math.hypot(p.x-s.x,p.y-s.y)>5,'Through-road crosses civic centre');
 }
 console.log('Settlement roads: exact entrances; no through-roads across town centres.');
+
+const straight=Array.from({length:201},(_,x)=>({x,y:50}));
+const bowed=windRoad(straight,{scale:1,clear:()=>true,wet:()=>false,inTown:()=>false});
+assert.ok(Math.max(...bowed.map(p=>Math.abs(p.y-50)))>7,'Roads must retain broad winding character');
+assert.deepEqual(bowed.slice(0,16),straight.slice(0,16),'Start approach must stay fixed');
+assert.deepEqual(bowed.slice(-16),straight.slice(-16),'Terminal approach must stay fixed');
+assert.ok(bowed.every((p,i)=>!i||p.x>bowed[i-1].x),'Open-land road must not double back');
+const blocked=windRoad(straight,{scale:1,clear:()=>false,wet:()=>false,inTown:()=>false});
+assert.deepEqual(blocked,straight,'Reject a whole unsafe bow, not scattered samples');
+console.log('Road character: broad bends, protected approaches, no reversals, obstacle-safe whole-span fallback.');
