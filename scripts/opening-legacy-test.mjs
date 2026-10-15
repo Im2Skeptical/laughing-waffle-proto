@@ -15,15 +15,16 @@ for(const zero of [false,true]) {
   c.previewLegacy(zero);
   const before=saved(c),decision=c.getDecision();
   assert.deepEqual(decision.options.map(option=>option.id),['found-settlement','highest-stat','accumulated-prestige']);
-  assert.equal(decision.options[0].blocked,zero?'Insufficient Prestige':null);
+  assert.equal(decision.options[0].blocked,null);
+  assert.ok(decision.options.every(option=>option.cost===0&&option.phases===0),'Legacy choices have no prices');
+  assert.ok(decision.legacySettlement.targets.every(target=>target.cost===0),'founding destinations are free');
   assert.equal(decision.options[1].legacyReward.quantity,2);
   assert.equal(decision.options[1].legacyReward.kind,'startingStat');assert.equal(decision.options[1].legacyReward.statId,'intelligence');
   assert.equal(decision.options[2].legacyReward.quantity,zero?0:6);
   assert.equal(decision.options[2].legacyReward.kind,'startingPrestige');
   for(let i=0;i<5;i++)c.getDecision();assert.equal(saved(c),before,'previewing consumes no state or RNG');
-  if(zero)assert.throws(()=>c.select('found-settlement'),/Insufficient Prestige/);
   assert.throws(()=>commitOpeningEncounter(c.getSnapshot().session),/workshop mockup/,'native settlement/retirement effects cannot run');
-  for(const id of zero?['highest-stat','accumulated-prestige']:['found-settlement','highest-stat','accumulated-prestige']) {
+  for(const id of ['found-settlement','highest-stat','accumulated-prestige']) {
     c.previewLegacy(zero);c.select(id);
     if(id==='found-settlement') {
       await assert.rejects(c.commit(),/settlement destination/);
@@ -54,7 +55,8 @@ assert.equal(c.getDecision().options[1].label,'Teach Wisdom');
 c.previewLegacy();c.rewind();
 const lowPopulation=c.getSnapshot().session,cohort=lowPopulation.state.world.sites.find(site=>site.regionId===openingVassal(lowPopulation).locationRegionId).detailedState.populationByClass.villager;
 cohort.adults=0;for(const specialist of Object.values(cohort.specialists))specialist.adults=0;
-c.enter('legacy');assert.equal(c.getDecision().options[0].blocked,'Requires 10 adult Villagers');
+c.enter('legacy');assert.equal(c.getDecision().options[0].blocked,null,'founding has no Villager cost');
+assert.ok(c.getDecision().legacySettlement.targets.some(target=>!target.blocked));
 assert.ok(c.getDecision().options.slice(1).every(option=>!option.blocked));
 for(const [statValue,prestige,statExpected,prestigeExpected] of [[0,0,0,0],[2,9,0,0],[3,10,1,1],[5,19,1,1],[6,20,2,2],[90,1500,30,150]]) {
   c.previewLegacy();c.rewind();const actor=openingVassal(c.getSnapshot().session);
@@ -72,5 +74,5 @@ const configured=createOpeningExperiment();Object.assign(configured.nodes.find(n
 c.replaceDraft(configured);c.previewLegacy();
 assert.equal(c.getDecision().options[1].legacyReward.quantity,1);assert.equal(c.getDecision().options[2].legacyReward.quantity,3);
 const invalid=structuredClone(configured);invalid.nodes.find(node=>node.kind==='legacy').legacy.prestigeDivisor=0;
-assert.throws(()=>validateOpeningExperiment(invalid),/Legacy costs/);
-console.log('[opening-legacy] OK: three choices, affordability, linear uncapped bonuses, thresholds, all highest stats, inert confirmation, draft isolation and rewind');
+assert.throws(()=>validateOpeningExperiment(invalid),/Legacy divisors/);
+console.log('[opening-legacy] OK: three free choices, free founding at zero Prestige/population, linear uncapped bonuses, thresholds, all highest stats, inert confirmation, draft isolation and rewind');

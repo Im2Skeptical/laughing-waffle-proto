@@ -32,6 +32,9 @@ summary{min-height:44px;display:flex;align-items:center;gap:6px}header>a{display
   #game-screen:not(.dev-preview-expanded) .dev-preview-fullscreen{top:6px;right:6px}}
 .shop-preview-toggle{display:flex;align-items:center;gap:8px;white-space:nowrap}
 .shop-preview-toggle input{width:20px;min-width:20px;height:20px;min-height:20px;margin:0}
+.opening-campaign-shortcut{position:absolute;right:162px;top:6px;z-index:10}
+@media(max-width:760px){.opening-campaign-shortcut{right:146px}.game-screen-label{max-width:calc(100% - 310px);white-space:nowrap;overflow:hidden}}
+@media(max-height:500px) and (orientation:landscape){#game-screen:not(.dev-preview-expanded) .opening-campaign-shortcut{right:6px;top:56px;font-size:12px;padding:6px;width:96px}}
 /* Portrait phones: a rotate screen over the inline canvas; Fullscreen rotates it. */
 @media(orientation:portrait) and (max-width:760px) and (pointer:coarse){#game-screen:not(.dev-preview-expanded){position:relative}#game-screen:not(.dev-preview-expanded) canvas{opacity:.25;pointer-events:none}
   .game-panel{position:relative}.rotate-hint{display:flex;position:absolute;inset:48px 0 0;align-items:center;justify-content:center;text-align:center;padding:16px;margin:0;color:var(--text);font-weight:600;pointer-events:none}

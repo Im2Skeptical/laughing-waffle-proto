@@ -20,7 +20,7 @@ import { getRegionState, getRegionReference } from '../../../src/model/world-sta
 import { getMoonPhaseDurationSec } from '../../../src/model/moon-phases.js';
 import { createOpeningExperiment, validateOpeningExperiment } from './experiment.js';
 import { isOpeningTagShop, createOpeningShopSelection, chooseOpeningShopTag, openingShopPrice } from './shop-experiment.js';
-import { applyVassalNodeEffects, getSettlementRequirements } from '../../../src/model/vassal-life-map/lifecycle/node-confirm.js';
+import { applyVassalNodeEffects } from '../../../src/model/vassal-life-map/lifecycle/node-confirm.js';
 import { createCampaignExperiment, getCampaignPresentation, selectCampaignMode } from './campaign-experiment.js';
 
 export function cloneOpeningSession(session) {
@@ -96,7 +96,7 @@ function legacyOptions(session, spec) {
   const statQuantity=Math.floor(stats[highest]/tuning.statDivisor);
   const prestigeQuantity=Math.floor(vassal.prestige/tuning.prestigeDivisor);
   return [
-    {id:'found-settlement',label:'Found a settlement',prestigeCost:tuning.settlementPrestigeCost,phaseCost:0,
+    {id:'found-settlement',label:'Found a settlement',prestigeCost:0,phaseCost:0,
       description:'Establish a new settlement on the frontier.'},
     {id:'highest-stat',label:`Teach ${statLabel}`,prestigeCost:0,phaseCost:0,
       description:`Future Vassals start with +${statQuantity} ${statLabel}. · ${stats[highest]} ${statLabel} ÷ ${tuning.statDivisor}`,
@@ -106,13 +106,13 @@ function legacyOptions(session, spec) {
       legacyReward:{kind:'startingPrestige',basis:'prestige',value:vassal.prestige,quantity:prestigeQuantity,label:'Future starting Prestige'}},
   ];
 }
-function legacySettlement(session, spec) {
+function legacySettlement(session) {
   const state=session.state,vassal=openingVassal(session);
   const connected=[...new Set(state.world.connections.flatMap(edge=>edge.regionAId===vassal.locationRegionId?[edge.regionBId]:edge.regionBId===vassal.locationRegionId?[edge.regionAId]:[]))].sort();
   const targets=connected.filter(id=>getRegionState(state,id)?.controller==='frontier').map(regionId=>{
-    const option={id:`legacy-found:${regionId}`,settlementRegionId:regionId,label:`Found ${getRegionReference(state,regionId)}`,prestigeCost:spec.legacy.settlementPrestigeCost,phaseCost:0};
-    const requirements=getSettlementRequirements(state,vassal,option);
-    return {...option,requirements,cost:getAdjustedVassalPrestigeCost(vassal,option.prestigeCost),phases:0,blocked:requirements.find(entry=>!entry.met)?.label??null};
+    const option={id:`legacy-found:${regionId}`,settlementRegionId:regionId,label:`Found ${getRegionReference(state,regionId)}`,prestigeCost:0,phaseCost:0};
+    const requirements=[{label:'Destination capacity: at least 1',met:(getRegionState(state,regionId)?.structureCapacity??0)>=1}];
+    return {...option,requirements,cost:0,phases:0,blocked:requirements.find(entry=>!entry.met)?.label??null};
   });
   return {targets,selectedRegionId:session.legacyDestinationRegionId??null};
 }
@@ -251,14 +251,13 @@ export function getOpeningDecision(session, preview = {}) {
       timeLabel: formatVassalPhaseDuration(phases, session.state), projectedAge: age,
       naturalDeathChance: getVassalMortalityChance(age), totalDeathChance: getVassalMortalityChance(age) };
   }
-  const settlement=spec.kind==='legacy'?legacySettlement(session,spec):null;
+  const settlement=spec.kind==='legacy'?legacySettlement(session):null;
   const legacyRequirements=settlement?{ 'found-settlement':[
-    {label:'10 adult Villagers relocate',met:(session.state.world.sites.find(site=>site.regionId===vassal.locationRegionId)?.detailedState?.populationByClass?.villager?.adults??0)>=10},
-    {label:'Connected frontier destination',met:settlement.targets.some(target=>target.requirements.slice(2).every(entry=>entry.met))},
+    {label:'Connected frontier destination',met:settlement.targets.some(target=>!target.blocked)},
   ] }:null;
   if(legacyRequirements) {
     const unmet=legacyRequirements['found-settlement'].find(entry=>!entry.met);
-    if(unmet)options.find(option=>option.id==='found-settlement').blocked=unmet===legacyRequirements['found-settlement'][0]?'Requires 10 adult Villagers':`Requires ${unmet.label}`;
+    if(unmet)options.find(option=>option.id==='found-settlement').blocked=`Requires ${unmet.label}`;
   }
   return { ...presentation, ...(legacyRequirements?{workshopLegacy:true,contextKind:'none',optionRequirements:legacyRequirements,legacySettlement:settlement}:{}), ...(session.shopSelection ? { shopTag: session.shopSelection.selectedTag,
     ...(!session.shopSelection.selectedTag ? {shopTagChoices:session.shopSelection.tags.map(({cards,...tag})=>({...tag,enabled:cards.length>0}))} : {}) } : {}),

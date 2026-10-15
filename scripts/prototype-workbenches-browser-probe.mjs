@@ -289,9 +289,9 @@ try {
     await page.locator('#preview-legacy').click();const before=await page.evaluate(()=>openingWorkbench.getSnapshot().summary);
     const world=()=>page.evaluate(()=>openingWorkbench.getSnapshot().game.worldDecision);
     let map=await world();assert.equal(map.mode,'found');assert.ok(map.open);assert.ok(map.targets.length>1);assert.ok(map.dimmedRegionIds.length);
-    const cardCenters=map=>map.prices.map(({rect})=>[rect.x+rect.width/2,rect.y+rect.height/2]);
+    const cardCenters=map=>map.choiceButtons.map(({rect})=>[rect.x+rect.width/2,rect.y+rect.height/2]);
     const layout=cardCenters(map);
-    assert.equal(map.prices[0].prestigeCost,40);assert.equal(map.selectedRegionId,null);
+    assert.equal(map.prices.length,0);assert.equal(map.choiceButtons.length,3);assert.equal(map.selectedRegionId,null);
     await openingClick('option',0);
     await openingClick('confirm');assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().activeId),'legacy','destination is required');
     await openingClick('worldReward',map.targets[0].regionId);map=await world();assert.equal(map.selectedRegionId,map.targets[0].regionId);
