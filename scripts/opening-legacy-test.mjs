@@ -50,7 +50,7 @@ c.previewLegacy(true);c.rewind();const vassal=openingVassal(c.getSnapshot().sess
 Object.assign(vassal.stats,{intelligence:0,effectiveness:0,wisdom:9,cunning:0});c.enter('legacy');
 assert.equal(c.getDecision().options[1].legacyReward.basis,'wisdom');
 assert.equal(c.getDecision().options[1].legacyReward.quantity,3,'uses the actual highest stat');
-assert.equal(c.getDecision().options[1].label,'Wisdom');
+assert.equal(c.getDecision().options[1].label,'Teach Wisdom');
 c.previewLegacy();c.rewind();
 const lowPopulation=c.getSnapshot().session,cohort=lowPopulation.state.world.sites.find(site=>site.regionId===openingVassal(lowPopulation).locationRegionId).detailedState.populationByClass.villager;
 cohort.adults=0;for(const specialist of Object.values(cohort.specialists))specialist.adults=0;

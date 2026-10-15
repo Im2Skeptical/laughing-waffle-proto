@@ -86,3 +86,4 @@ console.log('[opening-graph-editor] OK: routes, grid groups/bounds/collisions, u
 await import('./opening-tour-test.mjs');
 await import('./opening-shops-test.mjs');
 await import('./opening-legacy-test.mjs');
+await import('./opening-campaign-test.mjs');

@@ -4,6 +4,7 @@ import { VASSAL_HEIRLOOM_DEFS } from '../../../src/defs/gamepieces/vassal-heirlo
 import { MOON_PHASE_COUNT } from '../../../src/defs/gamesettings/moon-phase-defs.js';
 import { getGameSetting } from '../../../src/model/game-config.js';
 import { worldMapDefs } from '../../../src/defs/world/world-map-defs.js';
+import { CAMPAIGN_TUNING } from './campaign-experiment.js';
 export const OPENING_KINDS = ['relic', 'world', 'founding', 'shop', 'structureShop', 'development', 'martial', 'supply', 'patronage', 'specialRelic', 'customNote', 'legacy'];
 
 export function createOpeningLegacyNode() {
@@ -60,9 +61,8 @@ export function createOpeningExperiment() {
           { id: 'train', label: 'Dedicated martial training', statId: 'intelligence', statDelta: 2, phaseCost: 18 },
           { id: 'organize', label: 'Learn to organize work', statId: 'effectiveness', statDelta: 1, phaseCost: 6 },
         ] },
-      { id: 'martial', title: 'Test the new host', kind: 'martial',
-        description: 'Legal Campaigns and real crisis responses appear here. Drilling is a useful alternative when no target is ready.', next: ['supply'],
-        options: [{ id: 'readiness', label: 'Drill for the next encounter', statId: 'intelligence', statDelta: 1, phaseCost: 8 }] },
+      { id: 'martial', title: 'Campaign', kind: 'martial',
+        description: 'Hunt monsters, win a neutral settlement’s allegiance, or take a solo quest. Distant targets cost more food.', next: ['supply'],campaign:{...CAMPAIGN_TUNING} },
       { id: 'supply', title: 'Support the emerging economy', kind: 'supply', stockOutput: 'auto',
         description: 'Prefer an unmet recipe input; otherwise offer a seeded output. Producing a trait does not guarantee the recipe can run.', next: ['favor'],
         pass: { id: 'supply-favor', label: 'Seek support instead', prestigeDelta: 3, phaseCost: 4 } },
@@ -100,6 +100,7 @@ export function validateOpeningExperiment(doc) {
     if (node.displayLabel != null && typeof node.displayLabel !== 'string') throw new Error(`${node.title}: the game-screen label must be text.`);
     if (node.phaseCost != null && !finite(node.phaseCost, 0, 320)) throw new Error(`${node.title}: phases must be between 0 and 320.`);
     if (node.monsterPressurePerPurchase != null && !finite(node.monsterPressurePerPurchase, 0, 10000)) throw new Error(`${node.title}: choose a non-negative Monster Pressure price.`);
+    if(node.campaign!=null&&(!node.campaign||typeof node.campaign!=='object'||Array.isArray(node.campaign)||Object.entries(node.campaign).some(([key,value])=>!Object.hasOwn(CAMPAIGN_TUNING,key)||!Number.isInteger(value)||!finite(value,0,10000))))throw new Error(`${node.title}: Campaign tuning must use non-negative whole numbers.`);
     if (node.kind === 'legacy') {
       const tuning=node.legacy;
       if(node.next.length)throw new Error('Legacy must end its route.');

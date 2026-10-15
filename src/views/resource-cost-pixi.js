@@ -89,7 +89,7 @@ export function addTimeCostTokens(parent, phaseCost, state, {
 // One footer for options, shop offers, inspections, and draft receipts. Prices
 // remain live text; the entire framed area owns the action, independently of art.
 export function addCostPanel(parent, rect, {
-  phaseCost = 0, prestigeCost = 0, prestigeGain = 0, currencyCost = 0, chaosCost = 0, monsterPressureCost = 0, state = null, selected = false, staged = false,
+  phaseCost = 0, prestigeCost = 0, prestigeGain = 0, currencyCost = 0, foodCost = 0, chaosCost = 0, monsterPressureCost = 0, state = null, selected = false, staged = false,
   disabled = false, unaffordable = false, label = 'Choose', onActivate, onUnavailable,
   interactive = true, fontSize = 40, iconSize = 52, riskLabel = null,
 } = {}) {
@@ -117,6 +117,7 @@ export function addCostPanel(parent, rect, {
     prestigeCost > 0 ? { id: 'prestige', value: prestigeCost } : null,
     prestigeGain > 0 ? { id: 'prestige', value: `+${prestigeGain}`, fill: 0xb6ce92 } : null,
     currencyCost > 0 ? { id: 'money', value: currencyCost } : null,
+    foodCost > 0 ? { id: 'stock-edible', value: foodCost } : null,
     monsterPressureCost > 0 ? { id: 'monster', value: `+${monsterPressureCost}`, fill: 0xf0ad97 } : null,
     chaosCost > 0 ? { id: 'chaos', value: `+${chaosCost}` } : null,
   ].filter(Boolean);
@@ -163,11 +164,11 @@ export function addCostPanel(parent, rect, {
       ...TEXT_STYLES.body, fontSize: 27, fill: accent,
     }, rect.width - 12, 7, 1, 0));
   }
-  const description = `${formatVassalPhaseDuration(phaseCost, state)}${prestigeCost ? `, ${prestigeCost} Prestige` : ''}${prestigeGain > 0 ? `, +${prestigeGain} Prestige` : ''}${currencyCost ? `, ${currencyCost} Gold` : ''}${chaosCost ? `, +${chaosCost} Chaos` : ''}${monsterPressureCost ? `, +${monsterPressureCost} Monster Pressure` : ''}${riskLabel ? `, ${riskLabel.replace(/\n/g, ', ')}` : ''}`;
+  const description = `${formatVassalPhaseDuration(phaseCost, state)}${prestigeCost ? `, ${prestigeCost} Prestige` : ''}${prestigeGain > 0 ? `, +${prestigeGain} Prestige` : ''}${currencyCost ? `, ${currencyCost} Gold` : ''}${foodCost ? `, ${foodCost} Food` : ''}${chaosCost ? `, +${chaosCost} Chaos` : ''}${monsterPressureCost ? `, +${monsterPressureCost} Monster Pressure` : ''}${riskLabel ? `, ${riskLabel.replace(/\n/g, ', ')}` : ''}`;
   root.accessible = interactive;
   root.accessibleType = 'button';
   root.accessibleTitle = `${label}: ${description}${unaffordable ? ' — cost unavailable' : ''}`;
-  root.costSummary = { phaseCost, prestigeCost, prestigeGain, currencyCost, chaosCost, monsterPressureCost, description, riskLabel, selected, staged, disabled, unaffordable };
+  root.costSummary = { phaseCost, prestigeCost, prestigeGain, currencyCost, foodCost, chaosCost, monsterPressureCost, description, riskLabel, selected, staged, disabled, unaffordable };
   root.eventMode = interactive ? 'static' : 'none';
   root.cursor = disabled ? 'default' : 'pointer';
   addInteractionFeedback(root, { x: 0, y: 0, width: rect.width, height: rect.height }, {

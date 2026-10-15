@@ -3,6 +3,7 @@ import { advanceReplayStateOneSecond } from '../../../src/model/replay-second-ru
 import { undoVassalShopPurchase, reorderVassalShopPurchase, moveVassalShopStructure, rerollVassalShop } from '../../../src/model/vassal-life-map.js';
 import { createOpeningExperiment, validateOpeningExperiment } from './experiment.js';
 import { getWorldDefinition, getWorldConnectionCandidates, getRegionState, addWorldConnection } from '../../../src/model/world-state.js';
+import { seedCampaignExample, selectCampaignTarget, resolveCampaignAttempt } from './campaign-experiment.js';
 import { createOpeningSession, createTravelRewardExampleSession, cloneOpeningSession, openingSummary, openingVassal, enterOpeningEncounter,
   getOpeningDecision, selectOpeningOption, selectOpeningLegacyDestination, stageOpeningOffer, commitOpeningEncounter, finishOpeningEncounter, chooseOpeningDevelopment, finishOpeningNote, finishOpeningLegacyMock, resolveOpeningOptionOutcome } from './model.js';
 
@@ -91,6 +92,12 @@ export function createOpeningController(storage = null) {
       next.availableIds=['legacy'];const before=cloneOpeningSession(next);enterOpeningEncounter(next,'legacy');
       session=next;checkpoints=[before];message='Legacy mockup: Confirm records your choice and its future Vassal bonus.';notify();
     },
+    previewCampaign(inputs={},id=null) {
+      idle();const document=createOpeningExperiment(),recipe=draft.nodes.find(node=>id?node.id===id:node.kind==='martial');
+      if(recipe?.kind==='martial')document.nodes[document.nodes.findIndex(node=>node.id==='martial')]={...structuredClone(recipe),id:'martial',next:['supply']};
+      const next=createFoundedPreview(document);next.availableIds=['martial'];enterOpeningEncounter(next,'martial');seedCampaignExample(next,inputs);
+      session=next;checkpoints=[];message='Campaign mockup: sample forces and supplies. Outcomes change this experiment only.';notify();
+    },
     nextSeed() { idle(); validateOpeningExperiment(draft); editDraft({ ...draft, seed: (draft.seed + 1) >>> 0 }); controller.restart(); },
     enter(id) { idle(); const checkpoint = cloneOpeningSession(session), next = cloneOpeningSession(session);
       enterOpeningEncounter(next, id); deserializeGameState(serializeGameState(next.state));
@@ -99,6 +106,13 @@ export function createOpeningController(storage = null) {
       session = cloneOpeningSession(checkpoints.pop()); message = 'Returned to the previous decision, including its RNG state.'; notify(); },
     select(id) { transact(next => selectOpeningOption(next, id)); },
     selectLegacyDestination(regionId) { transact(next=>selectOpeningLegacyDestination(next,regionId)); },
+    selectCampaignTarget(regionId) { transact(next=>selectCampaignTarget(next,regionId)); },
+    leaveCampaign() {
+      idle();if(!session.campaign||!session.activeId)throw new Error('Enter Campaign first.');
+      const next=cloneOpeningSession(session),history=structuredClone(next.campaign.history);checkpoints.push(cloneOpeningSession(session));
+      finishOpeningEncounter(next,openingSummary(next));next.outcomes.at(-1).campaign=history;next.outcomes.at(-1).mock=true;
+      session=next;message='Campaign recorded. Continue to the next node.';notify();
+    },
     stage(id, origin, toIndex, replacePracticeId) { transact(next => stageOpeningOffer(next, id, origin, toIndex, replacePracticeId)); },
     undo(id) { transact(next => { const result = undoVassalShopPurchase(next.state, next.runtimeNodeId, id); if (!result.ok) throw new Error(result.reason); }); },
     reorder(id, toIndex) { transact(next => { const result = reorderVassalShopPurchase(next.state, next.runtimeNodeId, id, toIndex); if (!result.ok) throw new Error(result.reason); }); },
@@ -112,6 +126,10 @@ export function createOpeningController(storage = null) {
     develop(statId) { transact(next => chooseOpeningDevelopment(next, statId)); },
     async commit(optionId, destination, pass) {
       idle(); const next = cloneOpeningSession(session), before = openingSummary(next);
+      if(next.campaign) {
+        const checkpoint=cloneOpeningSession(session),result=resolveCampaignAttempt(next);checkpoints.push(checkpoint);
+        session=next;message=result.text;notify();return;
+      }
       if (next.experiment.nodes.find(n => n.id === next.activeId)?.kind === 'customNote') {
         finishOpeningNote(next); session = next; message = 'Note read. Continue to the next node.'; notify(); return;
       }

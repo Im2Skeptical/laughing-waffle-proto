@@ -58,7 +58,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     viewedSec: state().tSec, frontierSec: state().tSec, profileSec: state().tSec });
   const usesWorldDecision=()=>{
     const kind=snapshot.experiment.nodes.find(node=>node.id===snapshot.session.activeId)?.kind;
-    return kind==='world'&&snapshot.decision?.node.family==='travel'||kind==='legacy';
+    return kind==='world'&&snapshot.decision?.node.family==='travel'||kind==='legacy'||kind==='martial';
   };
   const tooltip = createTooltipView({ app, layer: layers.tooltip });
   const family = (node, compact = false) => {
@@ -70,7 +70,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     const danger = Math.max(spec.kind === 'specialRelic' && !spec.relics?.length ? .35 : 0,
       ...[...(spec.options ?? []), ...(spec.relics ?? [])].map(o => o.immediateDeathChance ?? (spec.kind === 'specialRelic' ? .35 : 0)), 0);
     const chaos = Math.max(0, ...[...(spec.options ?? []), ...(spec.relics ?? [])].map(o => o.chaos ?? 0));
-    const label = spec.displayLabel?.trim() || ({ world: 'Crossroads', martial: 'Martial', specialRelic: 'Special Relic', customNote: 'Custom Note' })[spec.kind] || def.label;
+    const label = spec.displayLabel?.trim() || ({ world: 'Crossroads', martial: 'Campaign', specialRelic: 'Special Relic', customNote: 'Custom Note' })[spec.kind] || def.label;
     // The graph/entry retains authored intent; the fixed modal plaque uses native concise copy.
     if(compact)return {...def,label,...(spec.kind==='specialRelic'?{color:PALETTE.red}:{})};
     return { ...def, label, description: `${spec.title}\n${spec.kind === 'customNote' ? 'Read this design note, then Confirm to continue. No time or rewards are applied.' : spec.description}`
@@ -140,6 +140,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   const worldDecision = createOpeningWorldDecisionScreen({app,layer:layers.worldDecision,getState:state,
     getVassal:()=>openingVassal(snapshot.session),tooltipView:tooltip,onSelect:id=>invoke(()=>controller.select(id)),
     onSelectSettlement:id=>invoke(()=>controller.selectLegacyDestination(id)),
+    onSelectCampaignTarget:id=>invoke(()=>controller.selectCampaignTarget(id)),onLeaveCampaign:()=>invoke(()=>controller.leaveCampaign()),
     onConfirm:id=>{void controller.commit(id).catch(error=>{message=error.message;onError?.(message);});}});
   const level = createVassalLevelUpModalView({ app, layer: layers.level, getPresentation: presentation,
     isLifegraphVisible: () => mode === 'life', onChoose: (_choice, stat) => invoke(() => controller.develop(stat)) });
@@ -241,7 +242,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   void prepareChronicleArt(app.renderer).then(() => { if (!destroyed) refresh(); }).catch(error => {
     if (!destroyed) onError?.(`Some artwork could not load: ${error.message}`);
   });
-  const point = (kind, index = 0) => worldDecision.isOpen() && ['option','confirm','worldMode','worldCost','worldTarget','worldReward'].includes(kind) ? worldDecision.getPoint(kind,index) : ({
+  const point = (kind, index = 0) => worldDecision.isOpen() && ['option','confirm','worldMode','worldCost','worldTarget','worldReward','campaignLeave'].includes(kind) ? worldDecision.getPoint(kind,index) : ({
     node: () => life.getNodeClickPoint(index), enter: () => life.getEnterNodeClickPoint(),
     option: () => modal.getOptionClickPoint(index), offer: () => modal.getOfferClickPoint(index), face: () => modal.getOfferFacePoint(index),
     tagConfirm: () => modal.getShopTagConfirmPoint(index),
