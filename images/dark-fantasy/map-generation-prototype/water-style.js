@@ -37,16 +37,36 @@ export function extendWaterEnvironment(bodies,land,dryDistance,width,height) {
   }
 }
 
-export function waterPaletteColour(index,bank,mixColour,seconds=0) {
-  const ramp=WATER_RAMPS.find(r=>index>=r.start&&index<r.start+r.length);
-  const offset=ramp?Math.floor(seconds*ramp.stepsPerSecond):0;
-  const phase=ramp?ramp.start+((index-ramp.start+offset)%ramp.length+ramp.length)%ramp.length:index;
-  if(!ramp)return bank[index]||0;
-  const next=ramp.start+(phase-ramp.start+1)%ramp.length;
-  return mixColour(bank[phase],bank[next],seconds*ramp.stepsPerSecond-offset);
+export const WATER_VARIANTS=8;
+export const STUDY_YEAR_SECONDS=32; // Default live calendar: four 8-second seasons.
+
+// Analytic multi-year modulation. A sample never depends on the previous frame,
+// scrub direction, frame count, or wall time. Different banks/regions drift apart.
+export function waterCycleProfile(ramp,seconds,variant=0) {
+  const salt=ramp.start*.137+variant*1.618;
+  const medium=seconds*Math.PI*2/(STUDY_YEAR_SECONDS*7.3+variant*17+ramp.start*.2);
+  const slow=seconds*Math.PI*2/(STUDY_YEAR_SECONDS*29.7+variant*67+ramp.start*1.3);
+  const a=Math.sin(salt+medium)-Math.sin(salt);
+  const b=Math.sin(salt*.7+slow)-Math.sin(salt*.7);
+  return {phase:seconds*ramp.stepsPerSecond*(1+Math.sin(salt)*.12)+ramp.length*(a*.45+b*.7),
+    envelope:1-.42*a*a/4-.26*b*b/4};
 }
 
-export function waterColourAt(index,base,strength,bank,mixColour,seconds=0) {
-  const colour=waterPaletteColour(index,bank,mixColour,seconds);
+export function waterPaletteColour(index,bank,mixColour,seconds=0,variation=0) {
+  const ramp=WATER_RAMPS.find(r=>index>=r.start&&index<r.start+r.length);
+  if(!ramp)return bank[index]||0;
+  const sample=variant=>{
+    const timing=waterCycleProfile(ramp,seconds,variant),offset=Math.floor(timing.phase);
+    const phase=ramp.start+((index-ramp.start+offset)%ramp.length+ramp.length)%ramp.length;
+    const next=ramp.start+(phase-ramp.start+1)%ramp.length;
+    const colour=mixColour(bank[phase],bank[next],timing.phase-offset);
+    return mixColour(bank[ramp.start+Math.floor(ramp.length*.85)],colour,timing.envelope);
+  };
+  const v=Math.max(0,Math.min(WATER_VARIANTS-1,variation)),lo=Math.floor(v),hi=Math.min(WATER_VARIANTS-1,lo+1);
+  return lo===v?sample(lo):mixColour(sample(lo),sample(hi),v-lo);
+}
+
+export function waterColourAt(index,base,strength,bank,mixColour,seconds=0,variation=0) {
+  const colour=waterPaletteColour(index,bank,mixColour,seconds,variation);
   return base?mixColour(base,colour,strength/255):colour;
 }

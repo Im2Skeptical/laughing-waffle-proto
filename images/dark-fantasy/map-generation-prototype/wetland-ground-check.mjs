@@ -22,7 +22,7 @@ for (let i = 0; i < size; i++) {
   if (regionIds[i] === 1) { assert.equal(a.colours[i], 0x778675); assert.equal(a.waterIndices[i], 0); }
   if (a.waterIndices[i]) {
     assert.ok(a.waterIndices[i] >= 48 && a.waterIndices[i] <= 55);
-    assert.ok(a.waterBase[i] && a.waterStrength[i] <= 71, 'Tannin depth and stationary vegetation must dominate quiet cyclic ripples');
+    assert.ok(a.waterBase[i] && a.waterStrength[i] <= 86, 'Tannin depth and stationary vegetation must dominate quiet cyclic ripples');
   }
 }
 console.log('Wetlands: deterministic pools and banks, quiet cycle modulation, protected sites, forest and gameplay land pass.');

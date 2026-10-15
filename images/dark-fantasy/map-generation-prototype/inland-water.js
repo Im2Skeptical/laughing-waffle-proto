@@ -15,7 +15,7 @@ export function prepareInlandPalette(bank, mix) {
   }
 }
 
-export function sampleInlandWater({ kind, seed, x, y, distance, noise, mix }) {
+export function sampleInlandWater({ kind, seed, x, y, distance, noise, mix, ripple = null }) {
   const peat = kind === 'peat';
   const shelf = noise(seed ^ 17233, x, y, 28);
   const patch = noise(seed ^ 8171, x * .65, y, 11);
@@ -24,7 +24,8 @@ export function sampleInlandWater({ kind, seed, x, y, distance, noise, mix }) {
   const cloud = noise(seed ^ 7319, x * .48, y * 1.7, 31);
   const wind = noise(seed ^ 8729, x * .45, y * 1.6, 13);
   const bend = Math.sin(x / 33) * 2.2 + noise(seed ^ 6197, x, y, 37) * 5;
-  const phase = fract((y + x * .08 + bend) / (peat ? 11 : 14));
+  const radial = ripple && ripple.weight > .06;
+  const phase = fract(radial ? ripple.phase : (y + x * .08 + bend) / (peat ? 11 : 14));
   let base = mix(peat ? 0x354449 : 0x3e5964, peat ? 0x626a53 : 0x708c79, shallow * .82);
   // Broad sky reflections leave dark open channels between them. Avoid the old
   // evenly spaced diagonal striping and uniformly grey pool centres.
@@ -40,7 +41,8 @@ export function sampleInlandWater({ kind, seed, x, y, distance, noise, mix }) {
   if (reeds) base = mix(base, grain > .9 ? 0x969573 : 0x515b40, .56);
   const glint = !peat && distance < 4 && patch < .6 && wind > .38;
   const index = (peat ? 48 : glint ? 240 : 112) + Math.floor(phase * (peat ? 8 : 16));
-  const strength = (peat ? .055 + clamp((wind - .42) * 2.6) * .22
+  const strength = (radial ? (peat ? .055 + ripple.weight * .28 : .065 + ripple.weight * .43)
+    : peat ? .055 + clamp((wind - .42) * 2.6) * .22
     : glint ? .32 : .055 + clamp((wind - .35) * 2.2) * .37) * (1 - vegetation * .92) * (reeds ? .15 : 1);
   return { base, index, strength: Math.round(strength * 255), vegetation: vegetation > .18, reeds, glint,
     ripple: strength > (peat ? .12 : .18) };

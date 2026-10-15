@@ -2,6 +2,7 @@
 // Cycle indices describe coherent bands; geometry and random samples never depend on zoom.
 import { WATER_BODY } from './water-style.js';
 import { prepareInlandPalette, sampleInlandWater } from './inland-water.js';
+import { createInlandRipples } from './water-ripples.js';
 export const SHORE_TREATMENTS = {
   plains: { bank: 0x78664a, sediment: 0xc5b78c, road: [0xa28d65, 0xc3b18a], beach: 14, exposure: .9 },
   forest: { bank: 0x424936, sediment: 0x92956a, road: [0x6b6446, 0xa49b70], beach: 5, exposure: .6 },
@@ -30,6 +31,8 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
     waterBank[192+n]=ramp([[0,0x355c65],[.42,0x416f79],[.55,0xc0d2c4],[.66,0x83aaa5],[1,0x355c65]],n/16);
   }
   prepareInlandPalette(waterBank, mixColour);
+  const lakeRings=createInlandRipples({width,height,texel,bounds,seed:map.seed,
+    isWater:i=>!land[i]&&waterBodies[i]===WATER_BODY.lake});
   const stats = { exposedSurf: 0, offshoreCaps:0, surfPhases:Array(32).fill(0), shelteredWater: 0, swell: 0, beaches: 0, ecotones: 0, riverMargins: 0, oceanPixels:0,lakePixels:0,lakeRipples:0,lakeMargins:0,lakeVegetation:0,lakeReeds:0 };
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
     const i = y * width + x;
@@ -40,7 +43,7 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
     if (!land[i]) {
       const distance = seaDistance[i] / 3 * texel / 2;
       if(waterBodies[i]===WATER_BODY.lake) {
-        const sample=sampleInlandWater({kind:'lake',seed:map.seed,x:wx,y:wy,distance,noise,mix:mixColour});
+        const sample=sampleInlandWater({kind:'lake',seed:map.seed,x:wx,y:wy,distance,noise,mix:mixColour,ripple:lakeRings.sample(wx,wy)});
         let base=sample.base;
         if(material&&distance<10) {
           const horizontal=Math.abs((seaDistance[i+1]??0)-(seaDistance[i-1]??0))<Math.abs((seaDistance[i+width]??0)-(seaDistance[i-width]??0));
@@ -138,7 +141,7 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
       }
     }
   }
-  return stats;
+  return {...stats,lakeRippleOrigins:lakeRings.count};
 }
 const chopMark = (x, y) => fract((y + Math.sin(x / 8) * 3) / 6);
 

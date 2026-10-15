@@ -43,7 +43,7 @@ for(const [start,length,minimumRange] of [[128,32,30],[160,32,65],[192,16,50]]) 
   assert.ok(Math.max(...values)-Math.min(...values)>minimumRange,'Wave faces, crests and troughs must survive compositing');
   assert.ok(Math.abs(values[0]-values.at(-1))<10,'Palette wrap must not flash at the loop seam');
   const ramp=WATER_RAMPS.find(r=>r.start===start);
-  assert.equal(waterColourAt(start+3,0x39636c,180,bank,mixColour,0),waterColourAt(start+3,0x39636c,180,bank,mixColour,length/ramp.stepsPerSecond),'Each surface ramp must loop exactly');
+  assert.notEqual(waterColourAt(start+3,0x39636c,180,bank,mixColour,0),waterColourAt(start+3,0x39636c,180,bank,mixColour,length/ramp.stepsPerSecond),'Long modulation must break the old short repeated frame');
 }
 // A wide coast exercises the depth field, not only the narrow shoreline fixture.
 const w=180,h=32,n=w*h,coastLand=new Uint8Array(n),coastDistance=new Uint16Array(n),coastBodies=new Uint8Array(n).fill(WATER_BODY.ocean);

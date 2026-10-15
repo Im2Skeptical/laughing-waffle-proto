@@ -1,7 +1,7 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.16** — distinct inland lake and peat-pool
-materials, planted margins and reversible calm-water ripples. The version appears under the title inside the
+Current published revision: **Map v1.0.17** — expanding inland ripple rings,
+regional phase variation and multi-year water conditions, with a 50-year review span. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -38,7 +38,7 @@ site exclusions, lake/ocean classification and playable land stay unchanged.
 `wetlands` reports floating mats, reeds and ripples; `surfaceTreatments` reports
 lake vegetation and reed coverage. Inspect seed 1869 at 5% clustering for two inland
 islands, one marine island and swamp pools. Default clustering remains 50%.
-Run `wetland-ground-check.mjs` and `water-style-check.mjs`, then the browser GPU
+Run `water-ripples-check.mjs`, `wetland-ground-check.mjs` and `water-style-check.mjs`, then the browser GPU
 comparison and timeline restoration check on the actual water fields.
 Marine waters have blue offshore depth, irregular green shelves, sandy shoals and
 darker submerged channels. Those substrate colours stay fixed. Directional swell
@@ -54,7 +54,16 @@ phase sampler with fractional colour interpolation; depth/sediment never cycle.
 The bake retains `waterBodies` and `waterPalette` with the existing base, index
 and strength fields for animation. `waterStudy` reports body counts, each island
 group's dominant environment, ramp speeds, current phase, paused state and update cost.
-`water-animation.js` uploads indices/strength once and a 2 KiB palette each update.
+`water-ripples.js` snaps seeded ripple origins onto actual lake/peat water during
+the bake. Elliptical rings expand with varied spacing and radius, fading toward
+their edges and under vegetation. Origins, shorelines and beds stay fixed.
+`waterCycleProfile` samples absolute time with regional speed variation and two
+slow layers spanning several game years. These vary phase and wave strength;
+they do not reset at the original short loop period. Forward phase remains
+monotonic, and returning to any date restores the same water appearance.
+`water-animation.js` uploads indices/strength/regional variation once and a
+9 KiB palette each update. Eight phase variants blend smoothly across a seeded
+world-space field stored in the existing packed texture's spare blue channel.
 A GPU pass adds the changing surface colour to the original bake, preserving
 static ground, seabed, shore treatment and softened river colour. GPU colour
 downsampling supplies the zoom pyramid after palette resolution; categorical
@@ -81,12 +90,17 @@ forward direction. Playback offers 0.25x, 1x, 4x and reverse 1x. Pointer drag,
 including release outside the plot, and touch share the scrub path. Space toggles
 playback, arrows step 1s (Shift: 10s), Home/End seek the visible start/reveal cap,
 and N returns to now. Hidden tabs suspend without elapsed-time catch-up.
+The Span button switches between the short view and 50 years of sample forecast.
+Year labels use the live game's default calendar (32 simulation seconds/year),
+so 50 years span 1,600 seconds. This is a review fixture, not extra live forecast
+coverage. The long graph plots slow wave-strength envelopes rather than aliasing
+the rapid palette cycles. Switching back clamps preview to short-view coverage.
 
 `map-timeline.js` owns only the fixture cursor/transport. `map-timegraph.js` uses
 the live graph's pointer-to-time helper and draws the study graph. `study.js`
 publishes one sample to both water layers. `mapWorkbench.timeline` exposes a
 copy of the sample, frontier, coverage and playback mode; `seekTime(seconds)`
-pauses and seeks, and `setPlayback({playing, rate, now})` drives transport.
+pauses and seeks, and `setPlayback({playing, rate, now, longSpan})` drives transport.
 Scrubbing updates palette textures and playhead only, never the terrain bake.
 The browser timeline check verifies nonzero visual change, image restoration within
 one channel value of GPU/canvas readback rounding,

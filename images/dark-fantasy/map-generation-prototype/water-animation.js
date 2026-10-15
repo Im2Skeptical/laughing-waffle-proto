@@ -1,6 +1,6 @@
 // Visual-only palette cycling. Resolve categorical indices on the GPU first;
 // downsample the resulting colours, never the indices, for the existing zoom UI.
-import { WATER_RAMPS, waterPaletteColour } from './water-style.js';
+import { WATER_RAMPS, WATER_VARIANTS, waterPaletteColour } from './water-style.js';
 
 const vertex=`
 attribute vec2 aVertexPosition;
@@ -17,16 +17,20 @@ uniform sampler2D uFields;
 uniform sampler2D uPalette;
 void main(){
   vec4 scene=texture2D(uScene,vUV);
-  vec2 fields=texture2D(uFields,vUV).rg;
+  vec3 fields=texture2D(uFields,vUV).rgb;
   float index=floor(fields.r*255.0+0.5);
   float u=(index+0.5)/256.0;
-  vec3 before=texture2D(uPalette,vec2(u,0.25)).rgb;
-  vec3 after=texture2D(uPalette,vec2(u,0.75)).rgb;
+  float variation=fields.b*${WATER_VARIANTS-1}.0;
+  float lo=floor(variation),hi=min(${WATER_VARIANTS-1}.0,lo+1.0);
+  vec3 before=texture2D(uPalette,vec2(u,0.5/${WATER_VARIANTS+1}.0)).rgb;
+  vec3 a=texture2D(uPalette,vec2(u,(lo+1.5)/${WATER_VARIANTS+1}.0)).rgb;
+  vec3 b=texture2D(uPalette,vec2(u,(hi+1.5)/${WATER_VARIANTS+1}.0)).rgb;
+  vec3 after=mix(a,b,fract(variation));
   gl_FragColor=vec4(clamp(scene.rgb+(after-before)*fields.g*scene.a,vec3(0.0),vec3(scene.a)),scene.a);
 }`;
 const mixColour=(a,b,t)=>[16,8,0].reduce((c,s)=>c|Math.round((a>>s&255)*(1-t)+(b>>s&255)*t)<<s,0);
 
-export function createWaterCycle(texture,indices,strength,palette,base=null) {
+export function createWaterCycle(texture,indices,strength,palette,base=null,variationAt=()=>0) {
   const width=texture.width,height=texture.height,packed=new Uint8Array(width*height*4);
   const animated=new Uint8Array(256);
   for(const ramp of WATER_RAMPS)animated.fill(1,ramp.start,ramp.start+ramp.length);
@@ -35,11 +39,12 @@ export function createWaterCycle(texture,indices,strength,palette,base=null) {
     packed[i*4]=index;
     // The still renderer deliberately softens river colours by 85%.
     packed[i*4+1]=animated[index]?Math.round(amplitude*(index>=16&&index<24?.15:1)):0;
+    packed[i*4+2]=animated[index]?Math.round(Math.max(0,Math.min(1,variationAt(i%width,Math.floor(i/width))))*255):0;
     packed[i*4+3]=255;
   }
   const fields=PIXI.Texture.fromBuffer(packed,width,height,{scaleMode:PIXI.SCALE_MODES.NEAREST,mipmap:PIXI.MIPMAP_MODES.OFF});
-  const bytes=new Uint8Array(256*2*4);
-  const paletteTexture=PIXI.Texture.fromBuffer(bytes,256,2,{scaleMode:PIXI.SCALE_MODES.NEAREST,mipmap:PIXI.MIPMAP_MODES.OFF});
+  const bytes=new Uint8Array(256*(WATER_VARIANTS+1)*4);
+  const paletteTexture=PIXI.Texture.fromBuffer(bytes,256,WATER_VARIANTS+1,{scaleMode:PIXI.SCALE_MODES.NEAREST,mipmap:PIXI.MIPMAP_MODES.OFF});
   const levels=[];
   for(let n=0;n<=4&&Math.min(width,height)/2**n>=2;n++)levels.push(PIXI.RenderTexture.create({
     width:Math.ceil(width/2**n),height:Math.ceil(height/2**n),resolution:1,scaleMode:PIXI.SCALE_MODES.LINEAR,mipmap:PIXI.MIPMAP_MODES.OFF}));
@@ -53,8 +58,8 @@ export function createWaterCycle(texture,indices,strength,palette,base=null) {
     update(renderer,seconds,force=false) {
       if(last===seconds&&!force)return;
       const started=performance.now();
-      for(let i=0;i<256;i++)for(let row=0;row<2;row++) {
-        const colour=row?waterPaletteColour(i,palette,mixColour,seconds):palette[i]||0,p=(row*256+i)*4;
+      for(let i=0;i<256;i++)for(let row=0;row<=WATER_VARIANTS;row++) {
+        const colour=row?waterPaletteColour(i,palette,mixColour,seconds,row-1):palette[i]||0,p=(row*256+i)*4;
         bytes[p]=colour>>16&255;bytes[p+1]=colour>>8&255;bytes[p+2]=colour&255;bytes[p+3]=255;
       }
       paletteTexture.baseTexture.update();

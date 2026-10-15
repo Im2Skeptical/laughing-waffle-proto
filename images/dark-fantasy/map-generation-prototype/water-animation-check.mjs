@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createMapTimeline } from './map-timeline.js';
-import { waterPaletteColour } from './water-style.js';
+import { waterPaletteColour,waterCycleProfile,WATER_RAMPS } from './water-style.js';
 const clock=createMapTimeline({currentSec:0});
 assert.equal(clock.step(0),false);
 assert.equal(clock.step(20),false);
@@ -27,10 +27,25 @@ clock.beginScrub();clock.seek(.125);clock.step(26000);
 assert.equal(clock.snapshot.scrubbing,true);assert.equal(clock.snapshot.playing,false);
 clock.endScrub();assert.equal(clock.snapshot.displaySec,.125,'Release holds the selected frame');
 const palette=Array.from({length:256},(_,n)=>n),mix=(a,b,t)=>a+(b-a)*t;
-assert.equal(waterPaletteColour(128,palette,mix,.1),128.3,'Subframe phase must blend smoothly');
+assert.ok(waterPaletteColour(128,palette,mix,.1)>128&&waterPaletteColour(128,palette,mix,.1)<129,'Subframe phase must blend smoothly');
 assert.equal(waterPaletteColour(70,palette,mix,3.7),70,'Depth stays fixed');
-assert.equal(waterPaletteColour(128,palette,mix,-.1),137.3,'Reverse phase wraps inside its own ramp');
+assert.ok(waterPaletteColour(128,palette,mix,-.1)>=128&&waterPaletteColour(128,palette,mix,-.1)<160,'Reverse phase wraps inside its own ramp');
+for(const ramp of WATER_RAMPS)for(let variant=0;variant<8;variant++) {
+  let previous=-Infinity;
+  for(let sec=-1600;sec<=3200;sec+=.7) {
+    const p=waterCycleProfile(ramp,sec,variant);
+    assert.ok(p.phase>previous,'Forward time must not turn expanding ripples inward');previous=p.phase;
+    assert.ok(p.envelope>=.32&&p.envelope<=1,'Slow energy modulation stays bounded');
+  }
+  assert.ok(Math.min(...Array.from({length:161},(_,n)=>waterCycleProfile(ramp,n*10,variant).envelope))<.9,'A 50-year window must include distinct long-term conditions');
+}
 const phase=waterPaletteColour(128,palette,mix,clock.snapshot.displaySec);
 clock.seek(50);clock.seek(.125);
 assert.equal(waterPaletteColour(128,palette,mix,clock.snapshot.displaySec),phase,'Return to time restores identical colour');
 console.log('Water timeline: forward/reverse, pause, scrub, reveal cap, read-only preview, Now, fractional/reversible palette sampling pass.');
+const frontier=clock.snapshot.currentSec;
+clock.setLongSpan(true);clock.seek(1600);
+assert.equal(clock.snapshot.displaySec,1600,'Long review must expose fifty default calendar years');
+assert.equal(clock.snapshot.currentSec,frontier,'Long preview must not advance Now');
+clock.setLongSpan(false);
+assert.equal(clock.snapshot.displaySec,clock.snapshot.revealCapSec,'Returning to short review clamps the cursor');

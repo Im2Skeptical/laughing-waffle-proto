@@ -593,7 +593,8 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   fogCtx.putImageData(fogImage, 0, 0); const fogTexture = PIXI.Texture.from(fog);
   fogTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR; fogTexture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
 
-  const waterCycle=createWaterCycle(texture,waterIndices,waterStrength,Uint32Array.from(waterBank),waterBase);
+  const waterCycle=createWaterCycle(texture,waterIndices,waterStrength,Uint32Array.from(waterBank),waterBase,
+    (x,y)=>noise(map.seed^6719,(bounds.minX*1576+x*texel)/2,(bounds.minY*516+y*texel)/2,87));
   return { waterCycle,backdropWaterCycle,settlementPlans, texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, divisionClearance: divisions.clearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, waterBodies, waterPalette:Uint32Array.from(waterBank), geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
     waterStudy:{bodyCounts,islandGroups:islandWater.map(c=>({...c,environment:c.lakePixels>c.oceanPixels?'inland lake':'ocean'})),ramps:WATER_RAMPS,phaseSeconds:0,paused:true},
     hinterland:hinterland.stats, palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', surfaceKit: surfaces.stats(), foundations, wetlands, glyphKinds: new Set(props.map(p => p.kind)).size,

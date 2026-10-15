@@ -7,13 +7,14 @@ export function verifyWaterGpu() {
   const indices=new Uint8Array(256),strength=new Uint8Array(256),rgba=new Uint8Array(1024),base=new Uint32Array(256);
   for(let i=0;i<256;i++){indices[i]=i;strength[i]=180;base[i]=i>=16&&i<24?0:0x486773;const c=base[i]?mix(base[i],palette[i]||0,180/255):palette[i]||0;
     rgba[i*4]=c>>16&255;rgba[i*4+1]=c>>8&255;rgba[i*4+2]=c&255;rgba[i*4+3]=255;}
-  const texture=PIXI.Texture.fromBuffer(rgba,64,4),cycle=createWaterCycle(texture,indices,strength,palette,base);
+  const variationAt=(x,y)=>(x+y*64)/255;
+  const texture=PIXI.Texture.fromBuffer(rgba,64,4),cycle=createWaterCycle(texture,indices,strength,palette,base,variationAt);
   let maximumError=0,changed=0;
   try {
-    for(const t of [0,.125,1.7,-.4,0]) {
+    for(const t of [0,.125,1.7,-.4,320,997,1600,0]) {
       cycle.update(renderer,t,true);const pixels=renderer.extract.pixels(cycle.levels[0]);
       for(let i=0;i<256;i++)for(let channel=0;channel<3;channel++) {
-        const shift=16-channel*8,before=palette[i]||0,after=waterPaletteColour(i,palette,mix,t);
+        const shift=16-channel*8,before=palette[i]||0,after=waterPaletteColour(i,palette,mix,t,i/255*7);
         const amplitude=(i>=16&&i<24?Math.round(255*.15):180)/255;
         const expected=Math.max(0,Math.min(255,rgba[i*4+channel]+((after>>shift&255)-(before>>shift&255))*amplitude));
         const error=Math.abs(pixels[i*4+channel]-expected);maximumError=Math.max(maximumError,error);
