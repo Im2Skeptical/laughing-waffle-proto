@@ -4,6 +4,11 @@ import { createOpeningExperiment, validateOpeningExperiment } from '../images/da
 import { openingVassal, commitOpeningEncounter } from '../images/dark-fantasy/life-map-opening-prototype/model.js';
 import { serializeGameState } from '../src/model/state.js';
 const saved=c=>JSON.stringify(serializeGameState(c.getSnapshot().session.state));
+const chooseDestination=c=>{
+  const target=c.getDecision().legacySettlement.targets.find(target=>!target.blocked);assert.ok(target);
+  const before=saved(c);c.selectLegacyDestination(target.settlementRegionId);assert.equal(saved(c),before,'selecting a map destination changes no simulation state or RNG');
+  return target.settlementRegionId;
+};
 const c=createOpeningController(),draft=c.getSnapshot().draft;
 assert.deepEqual(draft.nodes.find(node=>node.id==='favor').next,['legacy']);
 for(const zero of [false,true]) {
@@ -19,15 +24,28 @@ for(const zero of [false,true]) {
   if(zero)assert.throws(()=>c.select('found-settlement'),/Insufficient Prestige/);
   assert.throws(()=>commitOpeningEncounter(c.getSnapshot().session),/workshop mockup/,'native settlement/retirement effects cannot run');
   for(const id of zero?['highest-stat','accumulated-prestige']:['found-settlement','highest-stat','accumulated-prestige']) {
-    c.previewLegacy(zero);c.select(id);const selected=saved(c);await c.commit();
+    c.previewLegacy(zero);c.select(id);
+    if(id==='found-settlement') {
+      await assert.rejects(c.commit(),/settlement destination/);
+      assert.throws(()=>c.selectLegacyDestination(openingVassal(c.getSnapshot().session).locationRegionId),/highlighted frontier/);
+      chooseDestination(c);
+    }
+    const selected=saved(c);await c.commit();
     assert.equal(saved(c),selected,'mock confirmation changes no game state, costs, rewards, time or RNG');
     const result=structuredClone(c.getSnapshot().session.outcomes.at(-1));
     assert.equal(result.legacyChoice.id,id);assert.equal(result.mock,true);assert.equal(c.getSnapshot().session.activeId,null);
-    c.rewind();c.enter('legacy');c.select(id);await c.commit();
+    if(id==='found-settlement')assert.ok(result.legacyChoice.destinationRegionId);
+    c.rewind();c.enter('legacy');c.select(id);if(id==='found-settlement')chooseDestination(c);await c.commit();
     assert.deepEqual(c.getSnapshot().session.outcomes.at(-1),result,'rewind repeats the mock choice');
   }
   assert.deepEqual(c.getSnapshot().draft,draft,'previewing preserves the authored draft');
 }
+c.previewLegacy();c.select('found-settlement');chooseDestination(c);c.select(null);
+assert.equal(c.getDecision().nodeState.selectedOptionId,null);assert.equal(c.getDecision().legacySettlement.selectedRegionId,null);
+c.select('found-settlement');chooseDestination(c);c.select('highest-stat');assert.equal(c.getDecision().legacySettlement.selectedRegionId,null,'switching rewards clears the destination');
+c.previewLegacy();c.rewind();const disconnected=c.getSnapshot().session,origin=openingVassal(disconnected).locationRegionId;
+disconnected.state.world.connections=disconnected.state.world.connections.filter(edge=>edge.regionAId!==origin&&edge.regionBId!==origin);
+c.enter('legacy');assert.equal(c.getDecision().options[0].blocked,'Requires Connected frontier destination');assert.ok(c.getDecision().options.slice(1).every(option=>!option.blocked));
 c.previewLegacy(true);c.rewind();const vassal=openingVassal(c.getSnapshot().session);
 Object.assign(vassal.stats,{intelligence:0,effectiveness:0,wisdom:9,cunning:0});c.enter('legacy');
 assert.equal(c.getDecision().options[1].legacyReward.basis,'wisdom');

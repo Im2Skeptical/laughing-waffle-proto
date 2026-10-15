@@ -56,6 +56,10 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   const state = () => snapshot.session.state;
   const presentation = () => ({ state: state(), vassal: openingVassal(snapshot.session), readOnly: snapshot.busy,
     viewedSec: state().tSec, frontierSec: state().tSec, profileSec: state().tSec });
+  const usesWorldDecision=()=>{
+    const kind=snapshot.experiment.nodes.find(node=>node.id===snapshot.session.activeId)?.kind;
+    return kind==='world'&&snapshot.decision?.node.family==='travel'||kind==='legacy'&&snapshot.decision?.nodeState.selectedOptionId==='found-settlement';
+  };
   const tooltip = createTooltipView({ app, layer: layers.tooltip });
   const family = (node, compact = false) => {
     if (!node) return null;
@@ -100,7 +104,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     onEnterNode: id => invoke(() => controller.enter(id)),
     onOpenDecision: (id, point) => {
       if (id === snapshot.session.activeId && snapshot.decision?.nodeState.contentMode === 'note') note.refresh(snapshot.decision.node);
-      else if (id === snapshot.session.activeId && snapshot.experiment.nodes.find(n=>n.id===id)?.kind === 'world' && snapshot.decision?.node.family === 'travel') worldDecision.open();
+      else if (id === snapshot.session.activeId && usesWorldDecision()) worldDecision.open();
       else if (id === snapshot.session.activeId) modal.open(snapshot.session.runtimeNodeId, point);
       else if (snapshot.session.visitedIds.includes(id)) { outcomeId = id; drawChrome(); }
     },
@@ -135,6 +139,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   });
   const worldDecision = createOpeningWorldDecisionScreen({app,layer:layers.worldDecision,getState:state,
     getVassal:()=>openingVassal(snapshot.session),tooltipView:tooltip,onSelect:id=>invoke(()=>controller.select(id)),
+    onSelectSettlement:id=>invoke(()=>controller.selectLegacyDestination(id)),onBack:()=>invoke(()=>controller.select(null)),
     onConfirm:id=>{void controller.commit(id).catch(error=>{message=error.message;onError?.(message);});}});
   const level = createVassalLevelUpModalView({ app, layer: layers.level, getPresentation: presentation,
     isLifegraphVisible: () => mode === 'life', onChoose: (_choice, stat) => invoke(() => controller.develop(stat)) });
@@ -192,7 +197,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
       const panel = new PIXI.Graphics(); roundedRect(panel, 480, 230, 1464, 600, 18, PALETTE.panel, PALETTE.accent, 3); layers.outcome.addChild(panel);
       layers.outcome.addChild(createText(result.title, { ...TEXT_STYLES.header, fontSize: 38 }, 530, 270));
       if(result.reward) layers.outcome.addChild(createText(result.reward.label,{...TEXT_STYLES.body,fontSize:26,fill:PALETTE.accent},530,310));
-      if(result.legacyChoice)layers.outcome.addChild(createText(`${result.legacyChoice.label}${result.legacyChoice.reward?` · ${result.legacyChoice.reward.label}: ${result.legacyChoice.reward.quantity}`:''} · Mockup`,{...TEXT_STYLES.body,fontSize:26,fill:PALETTE.accent},530,310));
+      if(result.legacyChoice)layers.outcome.addChild(createText(`${result.legacyChoice.label}${result.legacyChoice.destinationLabel?` · ${result.legacyChoice.destinationLabel}`:''}${result.legacyChoice.reward?` · ${result.legacyChoice.reward.label}: ${result.legacyChoice.reward.quantity}`:''} · Mockup`,{...TEXT_STYLES.body,fontSize:26,fill:PALETTE.accent},530,310));
       const lines = [['age', 'Age'], ['prestige', 'Prestige'], ['force', 'Force'], ['chaos', 'Chaos'], ['research', 'Research'], ['tSec', 'Elapsed time']];
       lines.forEach(([key, label], index) => layers.outcome.addChild(createText(`${label}: ${result.before[key]} → ${result.after[key]}`, { ...TEXT_STYLES.title, fontSize: 28 }, 530, 345 + index * 52)));
       button(layers.outcome, { x: 1540, y: 720, width: 320, height: 64 }, 'CLOSE OUTCOME', true, () => { outcomeId = null; drawChrome(); });
@@ -202,7 +207,8 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     snapshot = next; decisionCache.clear();
     if(snapshot.session.activeId && snapshot.session.activeId !== lastActiveId) mode = 'life';
     const active = snapshot.experiment.nodes.find(n=>n.id===snapshot.session.activeId);
-    const showWorld = mode === 'life' && active?.kind === 'world' && snapshot.decision?.node.family === 'travel';
+    const wasWorldOpen=worldDecision.isOpen();
+    const showWorld = mode === 'life' && usesWorldDecision();
     worldDecision.refresh(showWorld?snapshot.decision:null,active,snapshot.busy);
     if(showWorld && modal.isOpen()) modal.close({immediate:true});
     note.refresh(mode === 'life' && next.decision?.nodeState.contentMode === 'note' ? next.decision.node : null);
@@ -214,13 +220,13 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
       previousRuntimeId = snapshot.session.runtimeNodeId;
       if (previousRuntimeId && !showWorld) { mode = 'life'; world.setVisible(false); settlement.setVisible(false); life.setVisible(true); modal.open(previousRuntimeId); }
       else modal.close({ immediate: true });
-    } else if (previousRuntimeId && !showWorld && previousDecisionFamily !== snapshot.decision?.node.family) modal.open(previousRuntimeId);
+    } else if (previousRuntimeId && !showWorld && (wasWorldOpen||previousDecisionFamily !== snapshot.decision?.node.family)) modal.open(previousRuntimeId);
     else if (previousRuntimeId && modal.isOpen()) modal.refresh();
     previousDecisionFamily = snapshot.decision?.node.family ?? null;
     drawChrome();
   }
   app.view.addEventListener('keydown', event => {
-    if(worldDecision.isOpen() && event.key==='Escape'){worldDecision.close();drawChrome();event.preventDefault();return;}
+    if(worldDecision.isOpen() && event.key==='Escape'){if(snapshot.decision?.legacySettlement)invoke(()=>controller.select(null));else worldDecision.close();drawChrome();event.preventDefault();return;}
     if (modal.handleInspectionKey(event) || life.handleKeyDown(event)) { event.preventDefault(); return; }
     if (event.key === 'Escape') { modal.close(); outcomeId = null; drawChrome(); }
   });
@@ -235,7 +241,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   void prepareChronicleArt(app.renderer).then(() => { if (!destroyed) refresh(); }).catch(error => {
     if (!destroyed) onError?.(`Some artwork could not load: ${error.message}`);
   });
-  const point = (kind, index = 0) => worldDecision.isOpen() && ['option','confirm','worldMode','worldCost','worldTarget','worldReward'].includes(kind) ? worldDecision.getPoint(kind,index) : ({
+  const point = (kind, index = 0) => worldDecision.isOpen() && ['option','confirm','worldMode','worldCost','worldTarget','worldReward','worldBack'].includes(kind) ? worldDecision.getPoint(kind,index) : ({
     node: () => life.getNodeClickPoint(index), enter: () => life.getEnterNodeClickPoint(),
     option: () => modal.getOptionClickPoint(index), offer: () => modal.getOfferClickPoint(index), face: () => modal.getOfferFacePoint(index),
     tagConfirm: () => modal.getShopTagConfirmPoint(index),
@@ -247,7 +253,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   return { refresh, openDecision:()=>{
     app.view.focus({preventScroll:true});
     if(snapshot.decision?.nodeState.contentMode==='note')note.refresh(snapshot.decision.node);
-    else if(snapshot.experiment.nodes.find(n=>n.id===snapshot.session.activeId)?.kind==='world' && snapshot.decision?.node.family==='travel')worldDecision.open();
+    else if(usesWorldDecision())worldDecision.open();
     else if(snapshot.session.runtimeNodeId)modal.open(snapshot.session.runtimeNodeId);
   }, getPoint: point, getClientPoint: (kind, index) => {
     const target = point(kind, index); if (!target) return null;
@@ -257,7 +263,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   }, getSnapshot: () => {
     const modalState = modal.getSemanticSnapshot();
     return { mode, ready: true, hud:{...hud.getSemanticSnapshot(),aboveDecisions:app.stage.getChildIndex(layers.hud)>app.stage.getChildIndex(layers.worldDecision)&&app.stage.getChildIndex(layers.hud)>app.stage.getChildIndex(layers.modal)},chronicle:{visible:layers.chronicle.visible,chromeOnly:true},graph: { ...life.getPreparationSnapshot(), candidateId: life.getCandidateNodeId(), entryConfirmation: life.isEntryConfirmationOpen(), entryAnimation: life.getEntryConfirmationSnapshot().phase },
-      worldDecision:worldDecision.getSnapshot(),note: note.getSnapshot(), modal: { open: worldDecision.isOpen() || note.isOpen() || modalState.open, animation: worldDecision.isOpen() || note.isOpen() ? 'open' : modalState.animation.phase, family: worldDecision.isOpen() ? 'travel' : note.isOpen() ? 'customNote' : modalState.family, selectedOptionId: worldDecision.isOpen()?snapshot.decision.nodeState.selectedOptionId:modalState.selectedOptionId,
+      worldDecision:worldDecision.getSnapshot(),note: note.getSnapshot(), modal: { open: worldDecision.isOpen() || note.isOpen() || modalState.open, animation: worldDecision.isOpen() || note.isOpen() ? 'open' : modalState.animation.phase, family: worldDecision.isOpen() ? snapshot.decision?.node.family : note.isOpen() ? 'customNote' : modalState.family, selectedOptionId: worldDecision.isOpen()?snapshot.decision.nodeState.selectedOptionId:modalState.selectedOptionId,
         inspectedCardId: modalState.inspectedCardId, purchaseOrder: modalState.purchaseOrder, offers: modalState.offers, replacementOfferId: modalState.replacementOfferId,
         shopTag:modalState.shopTag,shopTagChoices:modalState.shopTagChoices,
         costPanels:modalState.costPanels,contextKind: modalState.contextKind, projectedPrestige: modalState.projectedPrestige, visibleOfferIds: modalState.visibleOfferIds }, level: level.getSemanticSnapshot() };

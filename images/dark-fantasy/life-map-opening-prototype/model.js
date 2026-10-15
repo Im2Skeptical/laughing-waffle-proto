@@ -21,7 +21,7 @@ import { getRegionState, getRegionReference } from '../../../src/model/world-sta
 import { getMoonPhaseDurationSec } from '../../../src/model/moon-phases.js';
 import { createOpeningExperiment, validateOpeningExperiment } from './experiment.js';
 import { isOpeningTagShop, createOpeningShopSelection, chooseOpeningShopTag, openingShopPrice } from './shop-experiment.js';
-import { applyVassalNodeEffects } from '../../../src/model/vassal-life-map/lifecycle/node-confirm.js';
+import { applyVassalNodeEffects, getSettlementRequirements } from '../../../src/model/vassal-life-map/lifecycle/node-confirm.js';
 
 export function cloneOpeningSession(session) {
   return { ...structuredClone({ ...session, state: null }), state: deserializeGameState(serializeGameState(session.state)) };
@@ -106,6 +106,16 @@ function legacyOptions(session, spec) {
       legacyReward:{kind:'startingPrestige',basis:'prestige',value:vassal.prestige,quantity:prestigeQuantity,label:'Future starting Prestige'}},
   ];
 }
+function legacySettlement(session, spec) {
+  const state=session.state,vassal=openingVassal(session);
+  const connected=[...new Set(state.world.connections.flatMap(edge=>edge.regionAId===vassal.locationRegionId?[edge.regionBId]:edge.regionBId===vassal.locationRegionId?[edge.regionAId]:[]))].sort();
+  const targets=connected.filter(id=>getRegionState(state,id)?.controller==='frontier').map(regionId=>{
+    const option={id:`legacy-found:${regionId}`,settlementRegionId:regionId,label:`Found ${getRegionReference(state,regionId)}`,prestigeCost:spec.legacy.settlementPrestigeCost,phaseCost:0};
+    const requirements=getSettlementRequirements(state,vassal,option);
+    return {...option,requirements,cost:getAdjustedVassalPrestigeCost(vassal,option.prestigeCost),phases:0,blocked:requirements.find(entry=>!entry.met)?.label??null};
+  });
+  return {targets,selectedRegionId:session.legacyDestinationRegionId??null};
+}
 function curatedOffers(state, vassal, current, cards) {
   const settlement = state.world.sites.find(s => s.regionId === vassal.locationRegionId).detailedState;
   return cards.flatMap((card, index) => {
@@ -128,6 +138,7 @@ export function enterOpeningEncounter(session, id) {
   if (!session.availableIds.includes(id) || session.activeId) throw new Error('Choose an available encounter.');
   session.randomOutcome = null;
   session.shopSelection = null;
+  session.legacyDestinationRegionId=null;
   const note = session.experiment.nodes.find(n => n.id === id);
   if (note.kind === 'customNote') { session.activeId = id; session.availableIds = []; session.runtimeNodeId = null; return session; }
   const { state } = session, vassal = getCurrentLifeMapVassal(state);
@@ -235,21 +246,39 @@ export function getOpeningDecision(session, preview = {}) {
       timeLabel: formatVassalPhaseDuration(phases, session.state), projectedAge: age,
       naturalDeathChance: getVassalMortalityChance(age), totalDeathChance: getVassalMortalityChance(age) };
   }
-  const legacyRequirements=spec.kind==='legacy'?{ 'found-settlement':[{label:'10 adult Villagers relocate',met:(session.state.world.sites.find(site=>site.regionId===vassal.locationRegionId)?.detailedState?.populationByClass?.villager?.adults??0)>=10}] }:null;
-  if(legacyRequirements&&!legacyRequirements['found-settlement'][0].met)options.find(option=>option.id==='found-settlement').blocked='Requires 10 adult Villagers';
-  return { ...presentation, ...(legacyRequirements?{workshopLegacy:true,contextKind:'none',optionRequirements:legacyRequirements}:{}), ...(session.shopSelection ? { shopTag: session.shopSelection.selectedTag,
+  const settlement=spec.kind==='legacy'?legacySettlement(session,spec):null;
+  const legacyRequirements=settlement?{ 'found-settlement':[
+    {label:'10 adult Villagers relocate',met:(session.state.world.sites.find(site=>site.regionId===vassal.locationRegionId)?.detailedState?.populationByClass?.villager?.adults??0)>=10},
+    {label:'Connected frontier destination',met:settlement.targets.some(target=>target.requirements.slice(2).every(entry=>entry.met))},
+  ] }:null;
+  if(legacyRequirements) {
+    const unmet=legacyRequirements['found-settlement'].find(entry=>!entry.met);
+    if(unmet)options.find(option=>option.id==='found-settlement').blocked=unmet===legacyRequirements['found-settlement'][0]?'Requires 10 adult Villagers':`Requires ${unmet.label}`;
+  }
+  return { ...presentation, ...(legacyRequirements?{workshopLegacy:true,contextKind:'none',optionRequirements:legacyRequirements,legacySettlement:settlement}:{}), ...(session.shopSelection ? { shopTag: session.shopSelection.selectedTag,
     ...(!session.shopSelection.selectedTag ? {shopTagChoices:session.shopSelection.tags.map(({cards,...tag})=>({...tag,enabled:cards.length>0}))} : {}) } : {}),
     node: { ...presentation.node, experimentId: spec.id,
     presentationLabel: spec.title, presentationDescription: spec.description },
     nodeState: { ...presentation.nodeState, options }, options };
 }
 export function selectOpeningOption(session, optionId) {
+  if(session.experiment.nodes.find(node=>node.id===session.activeId)?.kind==='legacy') {
+    session.legacyDestinationRegionId=null;
+    if(optionId===null){nodeState(session).selectedOptionId=null;return;}
+  }
   if (session.shopSelection && !session.shopSelection.selectedTag) {
     return chooseOpeningShopTag(session, optionId, cards => curatedOffers(session.state, openingVassal(session), nodeState(session), cards));
   }
   const option = getOpeningDecision(session)?.options.find(o => o.id === optionId);
   if (!option || option.blocked) throw new Error(option?.blocked ?? 'Choose an available action.');
   return requireOk(selectVassalNodeOption(session.state, session.runtimeNodeId, optionId));
+}
+export function selectOpeningLegacyDestination(session, regionId) {
+  const decision=getOpeningDecision(session);
+  if(!decision?.legacySettlement||decision.nodeState.selectedOptionId!=='found-settlement')throw new Error('Choose Found a settlement first.');
+  const target=decision.legacySettlement.targets.find(target=>target.settlementRegionId===regionId);
+  if(!target||target.blocked)throw new Error(target?.blocked??'Choose a highlighted frontier destination.');
+  session.legacyDestinationRegionId=regionId;
 }
 export function stageOpeningOffer(session, offerId, origin, toIndex, replacePracticeId) {
   const current = nodeState(session), offer = current.inventory.find(offer => offer.offerId === offerId);
@@ -351,9 +380,11 @@ export function finishOpeningLegacyMock(session, optionId) {
   if(spec?.kind!=='legacy')throw new Error('Enter Legacy first.');
   const option=getOpeningDecision(session).options.find(option=>option.id===(optionId??nodeState(session).selectedOptionId));
   if(!option||option.blocked)throw new Error(option?.blocked??'Choose a Legacy option.');
+  const destination=option.id==='found-settlement'?getOpeningDecision(session).legacySettlement.targets.find(target=>target.settlementRegionId===session.legacyDestinationRegionId):null;
+  if(option.id==='found-settlement'&&(!destination||destination.blocked))throw new Error(destination?.blocked??'Choose a settlement destination on the map.');
   const summary=openingSummary(session);
   session.outcomes.push({id:spec.id,title:spec.title,before:summary,after:structuredClone(summary),
-    legacyChoice:{id:option.id,label:option.label,...(option.legacyReward?{reward:structuredClone(option.legacyReward)}:{})},mock:true});
+    legacyChoice:{id:option.id,label:option.label,...(destination?{destinationRegionId:destination.settlementRegionId,destinationLabel:getRegionReference(session.state,destination.settlementRegionId)}:{}),...(option.legacyReward?{reward:structuredClone(option.legacyReward)}:{})},mock:true});
   session.visitedIds.push(spec.id);session.activeId=null;session.runtimeNodeId=null;session.availableIds=[];
 }
 

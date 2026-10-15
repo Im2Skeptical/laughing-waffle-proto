@@ -2,8 +2,9 @@ import { serializeGameState, deserializeGameState } from '../../../src/model/sta
 import { advanceReplayStateOneSecond } from '../../../src/model/replay-second-runner.js';
 import { undoVassalShopPurchase, reorderVassalShopPurchase, moveVassalShopStructure, rerollVassalShop } from '../../../src/model/vassal-life-map.js';
 import { createOpeningExperiment, validateOpeningExperiment } from './experiment.js';
+import { getWorldDefinition, getWorldConnectionCandidates, getRegionState, addWorldConnection } from '../../../src/model/world-state.js';
 import { createOpeningSession, createTravelRewardExampleSession, cloneOpeningSession, openingSummary, openingVassal, enterOpeningEncounter,
-  getOpeningDecision, selectOpeningOption, stageOpeningOffer, commitOpeningEncounter, finishOpeningEncounter, chooseOpeningDevelopment, finishOpeningNote, finishOpeningLegacyMock, resolveOpeningOptionOutcome } from './model.js';
+  getOpeningDecision, selectOpeningOption, selectOpeningLegacyDestination, stageOpeningOffer, commitOpeningEncounter, finishOpeningEncounter, chooseOpeningDevelopment, finishOpeningNote, finishOpeningLegacyMock, resolveOpeningOptionOutcome } from './model.js';
 
 function createFoundedPreview(document) {
   const next=createOpeningSession(document);next.availableIds=['founding'];enterOpeningEncounter(next,'founding');
@@ -84,6 +85,9 @@ export function createOpeningController(storage = null) {
       if(recipe?.kind==='legacy')document.nodes[document.nodes.findIndex(node=>node.id==='legacy')]={...structuredClone(recipe),id:'legacy',next:[]};
       const next=createFoundedPreview(document),vassal=openingVassal(next);
       vassal.prestige=zeroPrestige?0:60;Object.assign(vassal.stats,{intelligence:6,effectiveness:3,wisdom:2,cunning:1});
+      const targets=getWorldConnectionCandidates(getWorldDefinition(next.state)).flatMap(edge=>edge.regionAId===vassal.locationRegionId?[edge.regionBId]:edge.regionBId===vassal.locationRegionId?[edge.regionAId]:[])
+        .filter(id=>getRegionState(next.state,id)?.controller==='frontier'&&(getRegionState(next.state,id)?.structureCapacity??0)>=1).sort().slice(0,3);
+      for(const regionId of targets)addWorldConnection(next.state,vassal.locationRegionId,regionId);
       next.availableIds=['legacy'];const before=cloneOpeningSession(next);enterOpeningEncounter(next,'legacy');
       session=next;checkpoints=[before];message='Legacy mockup: Confirm records your choice and its future Vassal bonus.';notify();
     },
@@ -94,6 +98,7 @@ export function createOpeningController(storage = null) {
     rewind() { idle(); if (!checkpoints.length) return;
       session = cloneOpeningSession(checkpoints.pop()); message = 'Returned to the previous decision, including its RNG state.'; notify(); },
     select(id) { transact(next => selectOpeningOption(next, id)); },
+    selectLegacyDestination(regionId) { transact(next=>selectOpeningLegacyDestination(next,regionId)); },
     stage(id, origin, toIndex, replacePracticeId) { transact(next => stageOpeningOffer(next, id, origin, toIndex, replacePracticeId)); },
     undo(id) { transact(next => { const result = undoVassalShopPurchase(next.state, next.runtimeNodeId, id); if (!result.ok) throw new Error(result.reason); }); },
     reorder(id, toIndex) { transact(next => { const result = reorderVassalShopPurchase(next.state, next.runtimeNodeId, id, toIndex); if (!result.ok) throw new Error(result.reason); }); },
