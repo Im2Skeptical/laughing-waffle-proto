@@ -54,7 +54,7 @@ settlements = json.loads((folder / 'settlement-buildings-v1.json').read_text())[
 assert len(settlements) == 30 and all(not f['cutRuns'] for f in settlements)
 for biome in biomes:
     assert {f['role'] for f in settlements if f['biome'] == biome} == {'house', 'pair', 'hall', 'market', 'workshop', 'gate'}
-expected_widths = {'house': 12, 'pair': 14, 'hall': 22, 'market': 22, 'workshop': 14, 'gate': 14}
+expected_widths = {'house': 12, 'pair': 14, 'hall': 34, 'market': 34, 'workshop': 14, 'gate': 14}
 assert all(f['rect'][2] == expected_widths[f['role']] for f in settlements), 'Building detail must follow world footprint'
 
 total = sum(p.stat().st_size for p in folder.iterdir() if p.suffix in ['.webp', '.json'])

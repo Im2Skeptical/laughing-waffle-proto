@@ -62,7 +62,7 @@ export function layOutSettlements(sites, { detail, dry, world, seed }) {
       y: (site.entrance.y + site.court.y) / 2 }, site.court]);
     street([at(-17, 3), at(-8, 3), at(1, 4), site.court]);
     const plots = [
-      [0,-5,'civic',11], [-9,-6,'pair',7], [9,-5,'pair',7],
+      [0,-5,'civic',17], [-9,-6,'pair',7], [9,-5,'pair',7],
       [-16,-3,'house',5.8], [16,-2,'workshop',7],
       [-13,4,'pair',7], [-5,9,'house',6], [3,10,'pair',7], [11,7,'house',6],
       [-7,-11,'house',5.6], [1,-12,'house',5.6], [9,-10,'house',5.6],
@@ -104,9 +104,11 @@ export function paintSettlementSites(sites, { width, height, colours, waterIndic
         const d = Math.hypot((x - site.x) / site.rx, (y - site.y) / site.ry);
         const noise = decorationRandom(map.seed, x * 9173 ^ y * 673);
         const court = Math.hypot((x - site.court.x) / (6 * detail), (y - site.court.y) / (4 * detail));
-        const strength = Math.max(0, 1 - d + (noise - .5) * .15) * .32;
+        const strength = Math.max(0, 1 - d + (noise - .5) * .15) * .58;
+        const quietGround = {plains:0x8c7955,forest:0x66654c,islands:0x9c9c7d,swamp:0x62575f,mountains:0x78665c}[site.biome];
+        colours[y * width + x] = mixColour(colours[y * width + x],quietGround,strength);
         if (court < 1 + (noise - .5) * .25) {
-          const paving = site.biome === 'swamp' ? 0x71636c : site.biome === 'mountains' ? 0x948075 : 0x9d8e71;
+          const paving = site.biome === 'swamp' ? 0x9b8a9b : site.biome === 'mountains' ? 0xb5a596 : 0xc0b18a;
           colours[y * width + x] = mixColour(colours[y * width + x], paving, .45);
         }
         const i = y * width + x;
@@ -141,7 +143,7 @@ export function paintSettlementSites(sites, { width, height, colours, waterIndic
         if (!dry(x, y)) continue;
         const i = y * width + x, base = surfaces.ground(site.biome, x, y);
         colours[i] = mixColour(colours[i], base, .3);
-        if (y >= b.y) colours[i] = mixColour(colours[i], 0x322d29, .23);
+        if (y >= b.y) colours[i] = mixColour(colours[i], 0x322d29, .38);
         if (site.biome === 'mountains' && y === Math.floor(b.y + b.h / 2)) dot(x, y, 0, '#76605a');
       }
     }

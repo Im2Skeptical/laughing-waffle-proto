@@ -1,5 +1,20 @@
 # Map generation Pixi workbench (disposable prototype)
 
+### Label-free composition and wheel zoom
+
+`Labels: On/Off` hides settlement, market and monster captions in map-art and
+old-game-asset views. The choice persists in the URL as `siteLabels=0`.
+`wheel-zoom.js` smooths wheel input over rendered frames, anchored to the cursor;
+rapid notches accumulate and pointer dragging cancels the transition. This works
+with either Nearest or smooth texture sampling. It never advances simulation time.
+Check with `node scripts/map-wheel-zoom-test.mjs` and a mouse wheel in the map.
+
+Town footprints remain 75%; the civic roof mass is larger, brighter/darker than
+small houses, with a lighter offset court and stronger ground contact shadows.
+The immediate clearing has quieter texture contrast. Review seed 1862 at Fit and
+close zoom with Nearest and labels off; this is a composition test, not a claim
+that the final icon-free overview readability has been settled.
+
 ### Integrated settlement sites
 
 `settlement-sites.js` plans dry sites before large scenery placement. Sites reserve
@@ -24,9 +39,10 @@ Gold/teal overview markers retain identity when buildings become too small to re
 Thirty generated building pieces (six per biome) replace the whole-town/outskirts
 runtime atlas. Masters and exact prompts are retained under `assets/masters/`;
 `settlement-buildings-v1.webp` imports houses at 12px, paired houses/workshops/gates
-at 14px and civic buildings at 22px. These sizes follow their world footprints,
+at 14px and civic buildings at 34px. These sizes follow their world footprints,
 roughly one source pixel per world unit at 75%, instead of giving tiny houses
-32 pixels of miniature detail. Import compresses value contrast and preserves
+32 pixels of miniature detail. Import compresses incidental building contrast while civic buildings retain stronger
+light/dark separation, and preserves
 soft alpha edges; original source masters stay untouched. Buildings now use the
 same zoom detail floor as terrain. This is import-time preparation, not a scene
 blur or a biome tint; perspective/light-direction changes still require source art.

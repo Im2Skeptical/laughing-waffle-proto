@@ -242,12 +242,13 @@ def import_buildings():
             ys, xs = np.nonzero(np.array(cropped)[..., 3] >= 110)
             cropped = cropped.crop((int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1))
             role = roles[n % 3]
-            width = {'house': 12, 'pair': 14, 'hall': 22, 'market': 22, 'workshop': 14, 'gate': 14}[role]
+            width = {'house': 12, 'pair': 14, 'hall': 34, 'market': 34, 'workshop': 14, 'gate': 14}[role]
             image = np.array(cropped.resize((width, round(width * cropped.height / cropped.width)), Image.Resampling.LANCZOS))
             # Resolve miniature roof detail before packing. Lift ink-black outlines
             # and compress highlights without replacing the painted material hues.
             rgb = image[..., :3].astype(np.float32)
-            image[..., :3] = np.clip(rgb * .86 + 14, 0, 255).astype(np.uint8)
+            civic = role in ['hall', 'market']
+            image[..., :3] = np.clip(rgb * (1.12 if civic else .86) + (-4 if civic else 14), 0, 255).astype(np.uint8)
             image[..., 3] = np.where(image[..., 3] < 28, 0, image[..., 3])
             images.append(image)
             records.append({'biome': BIOMES[n // 3], 'role': roles[n % 3], 'cutRuns': cell['cutRuns']})

@@ -5,6 +5,7 @@ import { VIEWPORT_DESIGN_WIDTH as W, VIEWPORT_DESIGN_HEIGHT as H } from '../../.
 import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 import { createMapCamera } from '../../../src/views/world-map/camera.js';
 import { bakePixelTerrain, pixelSpriteTextures, pixelSpriteFits, reliefSpriteTextures, destroyPixelTerrain, prepareIllustratedArt, ATLAS_COLOURS } from './pixel-terrain.js';
+import { createWheelZoom } from './wheel-zoom.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
@@ -19,6 +20,7 @@ const state = { seed: Math.floor(numberParam('seed', 1867, 0, 2147483647)),
   variant: VARIANTS[params.get('variant')] ? params.get('variant') : 'F',
   texel: [2, 4, 6].includes(Number(params.get('texel'))) ? Number(params.get('texel')) : 4, sites: params.get('sites') !== '0', fog: params.get('fog') !== '0',
   siteArt: ['live', 'sketch'].includes(params.get('siteArt')) ? params.get('siteArt') : 'atlas', actorScale: numberParam('actorScale', .75, .5, 1.5),
+  siteLabels: params.get('siteLabels') !== '0',
   smoothZoom: params.get('smoothZoom') !== '0', detailMode: ['close', 'regional', 'overview'].includes(params.get('detailMode')) ? params.get('detailMode') : 'auto',
   flipX: params.get('flipX') === '1', flipY: params.get('flipY') === '1', selected: null };
 const host = document.getElementById('map-preview');
@@ -52,6 +54,13 @@ const camera = createMapCamera(viewport, worldLayer, viewRect, { reducedMotion: 
     requestAnimationFrame(() => { cameraPaintPending = false; updateZoomPresentation(); app.renderer.render(app.stage); });
   },
 });
+const wheelZoom = createWheelZoom(camera, () => { updateZoomPresentation(); app.renderer.render(app.stage); });
+viewport.removeAllListeners('wheel');
+viewport.on('wheel', event => {
+  event.preventDefault(); suppressTap = true;
+  wheelZoom.wheel(event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? viewRect.height : 1), viewport.toLocal(event.global));
+});
+viewport.on('pointerdown', () => wheelZoom.cancel());
 viewport.on('pointerdown', event => {
   if (!gesturePointers.size) suppressTap = false;
   gesturePointers.add(event.pointerId);
@@ -104,6 +113,7 @@ function button(label, x, y, width, height, action, { copy = label, active = fal
   targets.push({ label, x, y, width, height });
 }
 function fitMap() {
+  wheelZoom.cancel();
   const points = map.regions.flatMap(r => r.outline).map(point);
   const minX = Math.min(...points.map(p => p.x)), maxX = Math.max(...points.map(p => p.x));
   const minY = Math.min(...points.map(p => p.y)), maxY = Math.max(...points.map(p => p.y));
@@ -598,7 +608,7 @@ function drawLiveSites() {
     sprite.scale.set(fit); sprite.position.set(0, rect.top + (rect.height - sprite.height) / 2); group.addChild(sprite);
     const colour = site.kind === 'player' ? 0xe4c271 : site.kind === 'neutral' ? 0x8ed7cf : 0xff886e;
     const label = text(group, site.kind === 'player' ? 'SETTLEMENT' : site.kind === 'neutral' ? 'MARKET' : 'MONSTER', 0, 26, 17, colour,
-      { fontFamily: 'Arial, sans-serif', stroke: 0x131b1b, strokeThickness: 4 }); label.anchor.set(.5, 0);
+      { fontFamily: 'Arial, sans-serif', stroke: 0x131b1b, strokeThickness: 4 }); label.anchor.set(.5, 0); label.visible = state.siteLabels;
     worldLayer.addChild(group);
   }
 }
@@ -612,7 +622,7 @@ function drawAtlasSites() {
     if (site.plan) {
       const ground = new PIXI.Container(), badge = new PIXI.Graphics();
       const label = text(group, site.kind === 'player' ? 'SETTLEMENT' : 'MARKET', 0, site.plan.ry * 2 + 10, 18, colour,
-        { fontFamily: 'Arial, sans-serif', stroke: 0x131b1b, strokeThickness: 4 }); label.anchor.set(.5, 0);
+        { fontFamily: 'Arial, sans-serif', stroke: 0x131b1b, strokeThickness: 4 }); label.anchor.set(.5, 0); label.visible = state.siteLabels;
       group.addChild(ground, badge);
       landmarkNodes.push({ site, meshes: [], label, ground, badge, width, biome, outskirts: 0, buildings: site.plan.buildings.length, biomeArt: true });
       worldLayer.addChild(group); continue;
@@ -639,7 +649,7 @@ function drawAtlasSites() {
       node.position.set(-node.width / 2, 8 - node.height); group.addChild(node); return node;
     });
     const label = text(group, site.kind === 'player' ? 'SETTLEMENT' : site.kind === 'neutral' ? 'MARKET' : 'MONSTER', 0, 22, 18, colour,
-      { fontFamily: 'Arial, sans-serif', stroke: 0x131b1b, strokeThickness: 4 }); label.anchor.set(.5, 0);
+      { fontFamily: 'Arial, sans-serif', stroke: 0x131b1b, strokeThickness: 4 }); label.anchor.set(.5, 0); label.visible = state.siteLabels;
     const badge = new PIXI.Graphics(); group.addChild(badge);
     landmarkNodes.push({ site, meshes, label, ground, badge, width, textures, biome, outskirts, biomeArt: false }); worldLayer.addChild(group);
   }
@@ -669,7 +679,7 @@ function updateZoomPresentation() {
       }
     });
     const dominant = weights.indexOf(Math.max(...weights)); tiers[['close', 'regional', 'overview'][dominant]]++;
-    item.ground.alpha = item.biomeArt ? 1 : 1 - overview; item.label.alpha = smoothRange(30, 42, projected);
+    item.ground.alpha = item.biomeArt ? 1 : 1 - overview; item.label.alpha = smoothRange(30, 42, projected); item.label.visible = state.siteLabels;
     item.label.scale.set(Math.max(8 / (18 * screenScale), Math.min(1, 14 / (18 * screenScale))));
     item.badge.clear(); item.badge.alpha = item.biomeArt ? 1 - close : overview;
     const colour = item.site.kind === 'player' ? 0xe4c271 : item.site.kind === 'neutral' ? 0x8ed7cf : 0xe08b76;
@@ -704,6 +714,7 @@ function updateZoomPresentation() {
 }
 
 function render() {
+  wheelZoom.cancel();
   for (const node of root.removeChildren()) node.destroy({ children: true }); targets = [];
   for (const node of worldLayer.removeChildren()) node.destroy({ children: true });
   zoomNodes = []; landmarkNodes = []; terrainLayer = null; overviewInk = null;
@@ -715,6 +726,7 @@ function render() {
   button('Show approved base structure', 1450, 40, 306, 52, () => { state.variant = 'C'; render(); }, { copy: 'Base structure', active: !pixelReview(), size: 24 });
   button('Show atlas rendering', 1776, 40, 270, 52, () => { state.variant = 'F'; render(); }, { copy: 'Atlas rendering', active: pixelReview(), size: 24 });
   drawControls(); drawMap();
+  button('Toggle location labels', 1400, 158, 230, 70, () => { state.siteLabels = !state.siteLabels; render(); }, { copy: state.siteLabels ? 'Labels: On' : 'Labels: Off', active: state.siteLabels, size: 24 });
   Object.entries(BIOMES).forEach(([id, biome], i) => {
     const x = 518 + i * 372, y = 928;
     const g = new PIXI.Graphics().beginFill(pixelReview() ? ATLAS_COLOURS[id] : biome.colour).drawCircle(x + 12, y + 17, 12).endFill(); root.addChild(g);
@@ -740,7 +752,7 @@ function render() {
 function sync() {
   const url = new URL(location.href);
   for (const [key, value] of Object.entries({ seed: state.seed, clustering: state.clustering, size: state.sizeVariation,
-    roughness: state.roughness, features: state.featureSet, variant: state.variant, texel: state.texel, sites: state.sites ? 1 : 0, siteArt: state.siteArt, actorScale: state.actorScale, smoothZoom: state.smoothZoom ? 1 : 0, detailMode: state.detailMode, fog: state.fog ? 1 : 0, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
+    roughness: state.roughness, features: state.featureSet, variant: state.variant, texel: state.texel, sites: state.sites ? 1 : 0, siteArt: state.siteArt, siteLabels: state.siteLabels ? 1 : 0, actorScale: state.actorScale, smoothZoom: state.smoothZoom ? 1 : 0, detailMode: state.detailMode, fog: state.fog ? 1 : 0, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
   history.replaceState(null, '', url);
   document.getElementById('status').textContent = `Seed ${state.seed} · ${VARIANTS[state.variant]} · 20 regions · quota counts ${Object.values(map.quota).join(' / ')} · ${map.features.map(f => FEATURE_NAMES[f.type]).join(' + ')}`;
   document.getElementById('state').textContent = JSON.stringify({ controls: state, quota: map.quota,
@@ -793,7 +805,7 @@ window.mapWorkbench = { get state() { return { ...state }; }, get map() { return
     width: t.width * scale, height: t.height * scale };
 }) }, get camera() { return camera.snapshot(); }, scene: { width: W, height: H, renderer: 'Pixi', regionCount: 20, viewRect },
   get pixelRendering() { return pixelReview() ? currentPixelArt.stats : null; },
-  setCamera(pose) { camera.restore(pose); updateZoomPresentation(); app.renderer.render(app.stage); },
+  setCamera(pose) { wheelZoom.cancel(); camera.restore(pose); updateZoomPresentation(); app.renderer.render(app.stage); },
   setState(patch) { Object.assign(state, patch); if (!VARIANTS[state.variant]) state.variant = 'F'; if (Object.keys(patch).some(k => ['seed', 'clustering', 'sizeVariation', 'roughness', 'featureSet'].includes(k))) regenerate(); else render(); }, exportPng: pngData };
 let liveArtLoading = null;
 function prepareLiveGameArt() {
