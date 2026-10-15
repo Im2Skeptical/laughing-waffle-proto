@@ -149,7 +149,7 @@ function renderEditor(snapshot) {
     }
   }
   const campaignFields={};
-  if(spec.kind==='martial')for(const [key,label] of Object.entries({prestigeCost:'Prestige per army action',foodBase:'Base Food cost',foodPerDistance:'Food per region of distance',nestDefenseBonus:'Nest defence bonus',questDefense:'Quest defence',questPrestige:'Quest Prestige reward'})) {
+  if(spec.kind==='martial')for(const [key,label] of Object.entries({prestigeCost:'Prestige per army action',foodBase:'Base Food cost',foodPerDistance:'Food per region of distance',nestDefenseBonus:'Nest defence bonus',questDefense:'Quest defence',questPrestige:'Quest Prestige reward',duelDefense:'Duel opponent strength',duelPrestige:'Duel Prestige prize'})) {
     campaignFields[key]=appendField(host,label,spec.campaign?.[key]??CAMPAIGN_TUNING[key],{id:`campaign-${key}`,type:'number',min:0,max:10000});
   }
   const lists = {};
