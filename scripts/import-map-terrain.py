@@ -184,7 +184,11 @@ def import_relief():
     sheets = [(b, 4, 3) for b in BIOMES] + [('contacts-1', 5, 5), ('contacts-2', 5, 5), ('ridge-border', 4, 3), ('bridge', 4, 2), ('island-basalt', 4, 3), ('island-caldera', 4, 3)]
     for name, columns, rows in sheets:
         source_path = MASTER / f'composable-{name}-v2.png' if name in ['mountains', 'swamp', 'plains', 'forest'] else MASTER / f'composable-{name}-v1.png' if name in ['ridge-border', 'bridge', 'island-basalt', 'island-caldera'] else BASE / f'composable-{name}-v1.png'
+        if name in ['plains', 'forest']: source_path = MASTER / f'composable-{name}-v3.png'
         source = Image.open(source_path).convert('RGBA')
+        # The v3 forest master has an empty header above its three sprite rows.
+        # Trim that sheet margin during packing; preserve every painted pixel.
+        if name == 'forest': source = source.crop((0, round(source.height * .24), source.width, source.height))
         payload = json.dumps([source.width, source.height, columns, rows]).encode() + b'\n' + source.tobytes()
         probe = subprocess.run(['node', str(ROOT / 'scripts/map-terrain-frame-probe.mjs')], input=payload, capture_output=True, check=True)
         cells = json.loads(probe.stdout)
@@ -204,7 +208,7 @@ def import_relief():
             width = 50 if contact else round((36 if name == 'mountains' else 26 if name == 'forest' else 25) * scale) * 2
             if name == 'ridge-border': width = 92 if n < 8 else 64
             if name == 'bridge': width = 64
-            if name in ['plains', 'forest']: width = 42 if n < 4 else 36 if n < 8 else 24
+            if name in ['plains', 'forest']: width = 64 if n < 4 else 48 if n < 8 else 32
             if contact and pair == 0: width = 30
             if name.startswith('island-'): width = 88 if n < 2 else 64 if n < 8 else 52
             height = min(118, max(1, round(width * cropped.height / cropped.width)))

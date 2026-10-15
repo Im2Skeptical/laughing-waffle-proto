@@ -33,23 +33,24 @@ deadwood and fern clearings. Coasts select low banks and fringes. Neither biome
 scatters the entire asset set indiscriminately. The generated source colours get
 moderate value compression; plains stone highlights are softened further.
 
-Runtime widths are 42px (major masses), 36px (banks/edges) and 24px (small cover).
-This is about 55% of the previous footprint, so crowns, shrubs and low ridges
-read as distant terrain. Forest/plains cover budgets rise roughly threefold and
-repeat spacing shrinks with the pieces, retaining connected masses rather than
-sparse miniature stamps. Ground and clearing/foundation texture is sampled at
-twice the previous frequency. Forest/plains contact illustrations are reduced
-too. Town edges sit closer to the plots and use up to eight smaller pieces;
+The v3 generated masters depict distant terrain directly: broad shallow plains
+folds with fine scrub and drainage, and continuous forests of many tiny crowns.
+Runtime widths are 64px (major masses), 48px (banks/edges) and 32px (small cover).
+The new source detail carries the scale, rather than shrinking close-up paintings.
+Ground and clearing/foundation texture sampling is restored to its original
+frequency; the doubled texture frequency caused visible repetition. Plains–forest
+boundaries use the new woodland fringes. Town edges use the new biome pieces,
+sit closer to the plots and use up to eight pieces;
 settlement buildings and the shared footprint stay at the approved scale.
 Whole-footprint placement can fall back to 72% and 50% sizes around water and
 settlements. Actual buildings, court and lanes are protected, with the unused
 clearing fringe available for scenery, as in the island treatment. Zoom does not
 change placement. Simulation state, RNG, schemas and replay remain untouched.
 
-Built-in imagegen sources: `assets/masters/composable-plains-v2.png` and
-`assets/masters/composable-forest-v2.png`. Prompts, including the plains spacing
-repair, are saved in [plains-forest-prompts-v2.json](assets/masters/plains-forest-prompts-v2.json).
-The runtime art remains about 2.20 MiB; all replacement source edges pass extraction.
+Built-in imagegen sources: `assets/masters/composable-plains-v3.png` and
+`assets/masters/composable-forest-v3.png`. Exact prompts and import notes are in
+[plains-forest-prompts-v3.json](assets/masters/plains-forest-prompts-v3.json).
+The runtime art remains about 2.22 MiB; all replacement source edges pass extraction.
 Review seeds 1862 and 1873 at Fit and close zoom, labels off. Run composition,
 settlement-site and map-art checks plus browser LOD persistence.
 
