@@ -107,7 +107,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   });
   const modal = createVassalNodeDecisionModalView({ app, layer: layers.modal, tooltipView: tooltip,
     getState: state, getPresentation: presentation, getNodeFamily: node => family(node,true),
-    showShopReroll: () => !snapshot.experiment.nodes.find(n => n.id === snapshot.session.activeId)?.cards,
+    showShopReroll: () => !snapshot.session.shopSelection?.tags.length && !snapshot.experiment.nodes.find(n => n.id === snapshot.session.activeId)?.cards,
     getDecisionPresentation: (id, preview = {}) => {
       if (!snapshot.session.activeId || id !== snapshot.session.runtimeNodeId) return null;
       const key = JSON.stringify(preview);
@@ -257,6 +257,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     return { mode, ready: true, hud:{...hud.getSemanticSnapshot(),aboveDecisions:app.stage.getChildIndex(layers.hud)>app.stage.getChildIndex(layers.worldDecision)&&app.stage.getChildIndex(layers.hud)>app.stage.getChildIndex(layers.modal)},chronicle:{visible:layers.chronicle.visible,chromeOnly:true},graph: { ...life.getPreparationSnapshot(), candidateId: life.getCandidateNodeId(), entryConfirmation: life.isEntryConfirmationOpen(), entryAnimation: life.getEntryConfirmationSnapshot().phase },
       worldDecision:worldDecision.getSnapshot(),note: note.getSnapshot(), modal: { open: worldDecision.isOpen() || note.isOpen() || modalState.open, animation: worldDecision.isOpen() || note.isOpen() ? 'open' : modalState.animation.phase, family: worldDecision.isOpen() ? 'travel' : note.isOpen() ? 'customNote' : modalState.family, selectedOptionId: worldDecision.isOpen()?snapshot.decision.nodeState.selectedOptionId:modalState.selectedOptionId,
         inspectedCardId: modalState.inspectedCardId, purchaseOrder: modalState.purchaseOrder, offers: modalState.offers, replacementOfferId: modalState.replacementOfferId,
+        shopTag:modalState.shopTag,shopTagChoices:modalState.shopTagChoices,
         costPanels:modalState.costPanels,contextKind: modalState.contextKind, projectedPrestige: modalState.projectedPrestige, visibleOfferIds: modalState.visibleOfferIds }, level: level.getSemanticSnapshot() };
   }, destroy: () => { destroyed = true; display.destroy(); app.destroy(true, { children: true }); } };
 }

@@ -14,6 +14,7 @@ opening or a replacement for normal gameplay.
 
 - `experiment.js`: editable JSON graph, offers and validation.
 - `model.js`: disposable encounters using existing Life Map effects and fresh-game state.
+- `shop-experiment.js`: Stock-tag Practice pools, Housing/Stock/Special Structure pools and the prototype's Monster Pressure payment quote.
 - `controller.js`: transactions, tick resolution, complete rewind checkpoints and separate draft storage.
 - `game-screen.js`: mock game shell reusing the live Pixi graph, world map, settlement, HUD and decision views.
 - `graph-edit.js` / `graph-editor.js`: route-changing operations and the visual draft editor.
@@ -160,6 +161,29 @@ unchanged. Play uses the game's Pixi Life Map, node modal, cards, inspection,
 staging/drag/undo, level-up cards, HUD, world map and settlement. The shared
 navigation opens these views; Fullscreen uses the existing landscape control.
 The editor and saved-draft controls remain beside/below the mock screen.
+
+Practice and Structure shops first show three tags in the native modal, with no
+purchase cost or confirmation at that step. Practice choices come from eligible
+Stock outputs; Structure choices are Housing, Stock and Special. Housing contains
+housing structures, Stock contains Stock-capacity structures, and Special contains
+the remaining structures. Picking a tag deals up to three matching offers. Optional
+authored cards restrict the pool. Tag and offer draws use the saved Vassal RNG;
+reading the picker or previewing prices does not consume RNG.
+
+An offer that exceeds remaining unstaged Prestige instead costs a flat **+10
+Monster Pressure**. It does not spend the insufficient Prestige balance. The normal
+time, placement and hosted-Currency requirements remain. The existing price box
+shows the Monster icon and amount before staging, including in inspection. Staging
+and undo do not apply pressure; Confirm executes one existing `addMonsterPressure`
+effect per such purchase. Ordinary wave thresholds still apply. This payment does
+not add Chaos. Paid purchases retain their ordinary Prestige prices.
+
+The **Practice shop** and **Structure shop** preview buttons initialize an actual
+Warrior founding, then open the picker. **0 Prestige** tests the fallback payment;
+uncheck it to compare ordinary payment. The examples leave the authored draft
+unchanged. The graph editor also supports Structure shop nodes. The flat amount
+is editable per node as `monsterPressurePerPurchase`. Normal player New Game
+does not read any of these shop recipes.
 
 Curated shop offers use existing card definitions and eligibility. Ordinary
 relics have zero direct death risk and explicit authored Chaos costs. The separate

@@ -65,6 +65,7 @@ if(controller.getSnapshot().development) controller.develop(controller.getSnapsh
 controller.enter('development'); await controller.commit('drill');
 assert.equal(controller.getSnapshot().session.founded, false);
 controller.enter('shop');
+controller.select(controller.getDecision().shopTagChoices.find(tag=>tag.enabled).id);
 const offer = controller.getSnapshot().decision.offers.find(o => o.canStage);
 assert.ok(offer, 'a common Practice can be purchased before founding'); controller.stage(offer.offerId); await controller.commit();
 const snap = controller.getSnapshot(); if (snap.development) controller.develop(snap.development.offeredStatIds[0]);
@@ -83,3 +84,4 @@ controller.editDraft(positioned); controller.save();
 assert.deepEqual(createOpeningController({ getItem: key => memory.get(key) }).getSnapshot().draft, positioned);
 console.log('[opening-graph-editor] OK: routes, grid groups/bounds/collisions, undo/save isolation, pre-founding play and enter/confirm notes without world changes');
 await import('./opening-tour-test.mjs');
+await import('./opening-shops-test.mjs');

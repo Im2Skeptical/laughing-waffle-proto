@@ -10,7 +10,7 @@ import { getArtRevision } from './chronicle-art.js';
 import { addHeirloomSlot, heirloomEffectText } from './vassal-heirloom-pixi.js';
 import { addChronicleInspection } from './chronicle-inspection.js';
 import { addPracticeReading } from './practice-reading-pixi.js';
-import { addResourceAmount } from './resource-cost-pixi.js';
+import { addResourceAmount, addResourceIcon } from './resource-cost-pixi.js';
 import { getVassalLifeMapNodeFamily } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { getVassalLifeMapNode } from "../model/vassal-life-map.js";
 import {
@@ -484,6 +484,7 @@ export function createVassalNodeDecisionModalView({
       previewOfferId,
     }) ?? null;
     lastDecision = decision;
+    const selectingTag = !!decision?.shopTagChoices;
     tableau.width = TABLEAU.width;
     const node = decision?.node ?? getVassalLifeMapNode(vassal, openNodeId);
     const nodeState = decision?.nodeState ?? vassal?.lifeMap?.nodeStates?.[openNodeId] ?? null;
@@ -582,7 +583,7 @@ export function createVassalNodeDecisionModalView({
       const isShop = nodeState.contentMode === "shop";
       const cardGap = OPTION_COLUMN.gap;
       const cardY = PANEL.y + CONTENT.cardY;
-      const cardCount = isShop
+      const cardCount = selectingTag ? decision.shopTagChoices.length : isShop
         ? [...(decision?.offers ?? []), ...(decision?.purchases ?? [])].length
         : (nodeState.options ?? []).length;
       const choiceSpace = hasContext ? 1080 : PANEL.width - 80;
@@ -600,7 +601,17 @@ export function createVassalNodeDecisionModalView({
       const shopCards = visibleOffers.map(entry => entry.offer);
       const cardStartX = !isShop && !hasContext
         ? PANEL.x + (PANEL.width - cardCount * cardWidth - (cardCount - 1) * cardGap) / 2 : PANEL.x + 30;
-      if (isShop) {
+      if (selectingTag) {
+        optionRoots = decision.shopTagChoices.map((tag,index) => {
+          const choose=()=>onSelectOption?.(node.id,tag.id);
+          const card=actionCard(root,{x:PANEL.x+30+index*(OPTION_COLUMN.width+cardGap),y:cardY,width:OPTION_COLUMN.width,height:cardHeight},{
+            title:tag.label,artId:node.family,faceLabel:'',showCost:false,
+            enabled:!readOnly&&tag.enabled,onInspect:!readOnly&&tag.enabled?choose:null,
+          });
+          const icon=addResourceIcon(card,tag.iconId,OPTION_COLUMN.width/2,cardHeight*.62,100);icon.alpha=tag.enabled?1:.35;
+          return card;
+        });
+      } else if (isShop) {
         shopCardRoots = shopCards.map((offer,index)=>{
           const enabled=!readOnly&&!offer.purchased&&offer.prestigeCost<=projected&&offer.canStage!==false;
           const blockedReason=offer.prestigeCost>projected
@@ -613,7 +624,7 @@ export function createVassalNodeDecisionModalView({
             title:offer.label,artId:node.family,presentation:offer.presentation,constructionPresentation:offer.constructionPresentation,
             actionLabel:offer.purchased?'STAGED':'STAGE',staged:offer.purchased,onInspect:inspect,
             onCompletedInspect:event=>inspectPiece('completed:'+offer.offerId,offer.presentation,event),
-            cost:{prestigeCost:offer.prestigeCost,currencyCost:offer.currencyCost,phaseCost:offer.phaseCost,state},enabled,
+            cost:{prestigeCost:offer.prestigeCost,currencyCost:offer.currencyCost,phaseCost:offer.phaseCost,monsterPressureCost:offer.monsterPressureCost??0,state},enabled,
             costUnmet:!offer.purchased && String(offer.stageBlockedReason ?? '').startsWith('Insufficient'),
             onClick:()=>stageOffer(offer),selected:replacementOfferId===offer.offerId,
             onUnavailable:readOnly?onReadOnlyAction:!enabled&&!offer.purchased&&blockedReason?()=>explainBlocked(blockedReason):null,
@@ -783,7 +794,7 @@ export function createVassalNodeDecisionModalView({
           : replacementOfferId ? 'Choose a board Practice to replace, or tap the offer again to cancel.'
             : node.family === 'relic' ? 'Choose an heirloom first.' : 'Choose an option first.';
     const explainConfirm = confirmBlocked ? () => explainBlocked(confirmBlocked) : null;
-    if (isShop && nodeState && !nodeState.resolving && showShopReroll(node)) {
+    if (isShop && !selectingTag && nodeState && !nodeState.resolving && showShopReroll(node)) {
       const rerollCost = getVassalShopRerollCost(vassal);
       const rerollEnabled = !readOnly && !nodeState.resolving && (vassal.classId === "scholar" || !nodeState.rerollUsed)
         && (nodeState.purchasedOffers ?? []).length === 0
@@ -803,9 +814,9 @@ export function createVassalNodeDecisionModalView({
       } else if (!nodeState.rerollUsed) addResourceAmount(reroll, 'prestige', rerollCost, { x: 191, y: 7, fontSize: 27, iconSize: 36 });
       explainReadOnly(reroll, readOnly);
     }
-    renderTitlePlaque(root, family);
+    renderTitlePlaque(root, selectingTag ? {...family,description:''} : family);
     const confirmRect = confirmDockRect(app);
-    if (nodeState) {
+    if (nodeState && !selectingTag) {
       renderMortalityEstimate(root, decision?.mortalityEstimate, {
         x: confirmRect.x - MORTALITY_PLATE.gap - MORTALITY_PLATE.width,
         y: confirmRect.y + (confirmRect.height - MORTALITY_PLATE.height) / 2,
@@ -847,7 +858,7 @@ export function createVassalNodeDecisionModalView({
       confirmRoot = button(root, {
         x: confirmRect.x, y: confirmRect.y + 104, width: confirmRect.width, height: 48,
       }, "LEAVE BEHIND", canConfirm, () => confirmRelic({ destination: "decline" }), false, { onUnavailable: explainConfirm });
-    } else if (!readOnly) {
+    } else if (!readOnly && !selectingTag) {
       confirmRoot = confirmDockButton(root, app, {
         enabled: canConfirm,
         onUnavailable: explainConfirm,
@@ -901,7 +912,7 @@ export function createVassalNodeDecisionModalView({
       inspectionRoot=addChronicleInspection(root,practiceInspect?{x:112,y:90,width:2200,height:880}:{x:inspectedTableau||displaced?PANEL.x+36:PANEL.x+1170,y:PANEL.y+108,width:inspectedTableau||displaced?1092:970,height:572},{
         title:face?.label??piece?.label,face,artId:face?.definitionId??node.family,
         onReview,
-        cost:inspectedOffer?{prestigeCost:piece.prestigeCost,currencyCost:piece.currencyCost,phaseCost:piece.phaseCost,state,staged:piece.purchased,disabled:piece.purchased||readOnly||!piece.canStage}:inspectedOption?{
+        cost:inspectedOffer?{prestigeCost:piece.prestigeCost,currencyCost:piece.currencyCost,phaseCost:piece.phaseCost,monsterPressureCost:piece.monsterPressureCost??0,state,staged:piece.purchased,disabled:piece.purchased||readOnly||!piece.canStage}:inspectedOption?{
           prestigeCost:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0),chaosCost:getActionChaosCost(piece),monsterPressureCost:getActionMonsterPressureCost(piece),
           phaseCost:getVassalActionPhaseCost(vassal,piece.phaseCost??0,{nodeState,isTravel:nodeState.family==='travel'}),state,
           riskLabel:nodeState.family==='relic'?relicRiskLabel(piece):null,
@@ -1030,6 +1041,8 @@ export function createVassalNodeDecisionModalView({
         tableauRect: {x:tableau.x,y:tableau.practiceY,width:tableau.width,height:tableau.structureY+construction().height-tableau.practiceY},
         family: decision?.node?.family ?? null,
         selectedOptionId: decision?.nodeState?.selectedOptionId ?? null,
+        shopTag: decision?.shopTag ?? null,
+        shopTagChoices: decision?.shopTagChoices ?? [],
         acquirePicker: acquirePicker ? {...acquirePicker} : null,
         resolving: decision?.nodeState?.resolving === true,
         currentPrestige: decision?.currentPrestige ?? null,
@@ -1037,7 +1050,7 @@ export function createVassalNodeDecisionModalView({
         mortalityEstimate: decision?.mortalityEstimate ?? null,
         offers: (decision?.offers ?? []).map((offer) => ({ offerId: offer.offerId, label: offer.label, kind: offer.intervention?.kind, mode: offer.intervention?.mode, footprint: offer.presentation?.footprint, validOrigins: offer.validOrigins, canStage: offer.canStage, rule: offer.presentation?.rule ?? offerEffect(offer) })),
         purchaseOrder: (decision?.purchases ?? []).map((purchase) => purchase.offerId),
-        costPanels: [...shopCardRoots, ...optionRoots].map(card => ({ ...card.costPanel.costSummary, interactionState: card.costPanel.interactionState,
+        costPanels: [...shopCardRoots, ...optionRoots].filter(card=>card.costPanel).map(card => ({ ...card.costPanel.costSummary, interactionState: card.costPanel.interactionState,
           cardInteractionState: card.interactionState, cardRect: card.getBounds(),
           rect: card.costPanel.getBounds(),
         })),

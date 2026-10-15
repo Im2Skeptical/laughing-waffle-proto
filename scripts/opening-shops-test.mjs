@@ -1,0 +1,58 @@
+import assert from 'node:assert/strict';
+import { createOpeningController } from '../images/dark-fantasy/life-map-opening-prototype/controller.js';
+import { openingVassal, commitOpeningEncounter, cloneOpeningSession } from '../images/dark-fantasy/life-map-opening-prototype/model.js';
+import { serializeGameState } from '../src/model/state.js';
+import { getDetailedPracticeDef, getDetailedStructureDef } from '../src/model/game-config.js';
+import { isVassalStockOutputPractice } from '../src/defs/gamepieces/vassal-life-map-defs.js';
+const saved=c=>JSON.stringify(serializeGameState(c.getSnapshot().session.state));
+for(const kind of ['shop','structureShop']) {
+  const c=createOpeningController(), draft=c.getSnapshot().draft;c.previewShop(kind,true);
+  const gate=c.getDecision(), before=saved(c);
+  assert.equal(gate.shopTagChoices.length,3);assert.equal(gate.offers.length,0);assert.equal(c.getSnapshot().summary.prestige,0);
+  if(kind==='structureShop')assert.deepEqual(gate.shopTagChoices.map(tag=>tag.id),['Housing','Stock','Special']);
+  for(let i=0;i<5;i++)c.getDecision();assert.equal(saved(c),before,'reading tags consumes no state or RNG');
+  assert.throws(()=>commitOpeningEncounter(c.getSnapshot().session),/Choose a tag/);
+  for(const tag of gate.shopTagChoices) {
+    c.previewShop(kind,true);const time=c.getSnapshot().summary.tSec;c.select(tag.id);
+    const decision=c.getDecision();assert.equal(decision.shopTag,tag.id);assert.ok(decision.offers.length);
+    assert.equal(c.getSnapshot().summary.tSec,time);
+    const pure=saved(c);for(let i=0;i<5;i++)c.getDecision();assert.equal(saved(c),pure,'offer previews are pure');
+    for(const offer of decision.offers) {
+      assert.equal(offer.prestigeCost,0);assert.equal(offer.monsterPressureCost,10);
+      const change=offer.intervention, def=kind==='shop'?getDetailedPracticeDef(c.getSnapshot().session.state,change.practiceId):getDetailedStructureDef(c.getSnapshot().session.state,change.structureId);
+      if(kind==='shop')assert.ok(isVassalStockOutputPractice(def,tag.id));
+      else if(tag.id==='Housing')assert.ok(def.housing>0);
+      else if(tag.id==='Stock')assert.ok(def.modifiers.some(mod=>mod.kind==='capacity'));
+      else assert.ok(!(def.housing>0)&&!def.modifiers?.some(mod=>mod.kind==='capacity'));
+    }
+    const offer=decision.offers.find(offer=>offer.canStage);assert.ok(offer);
+    const start=c.getSnapshot().summary;c.stage(offer.offerId);
+    assert.equal(c.getSnapshot().summary.monsterPressure,start.monsterPressure,'staging does not apply the payment');
+    const purchase=c.getDecision().purchases[0];assert.equal(purchase.monsterPressureCost,10);assert.equal(purchase.prestigeCost,0);
+    c.undo(purchase.offerId);assert.equal(c.getDecision().purchases.length,0);assert.equal(c.getSnapshot().summary.monsterPressure,start.monsterPressure);
+    c.stage(offer.offerId);
+    const session=c.getSnapshot().session, copy=cloneOpeningSession(session), pressure=session.state.civilization.chaos.monsterPressure, chaos=session.state.civilization.chaos.chaosPower;
+    commitOpeningEncounter(copy);assert.equal(copy.state.civilization.chaos.monsterPressure,pressure+10);
+    assert.equal(copy.state.civilization.chaos.chaosPower,chaos,'payment does not add Chaos');assert.equal(openingVassal(copy).prestige,0);
+    await c.commit();const outcome=structuredClone(c.getSnapshot().session.outcomes.at(-1));
+    c.rewind();c.enter('shop');c.select(tag.id);c.stage(c.getDecision().offers.find(offer=>offer.canStage).offerId);await c.commit();
+    assert.deepEqual(c.getSnapshot().session.outcomes.at(-1),outcome,'rewind repeats the shop and payment');
+  }
+  assert.deepEqual(c.getSnapshot().draft,draft);
+}
+const paid=createOpeningController();paid.previewShop('structureShop',false);paid.select('Housing');
+assert.ok(paid.getDecision().offers.every(offer=>!offer.monsterPressureCost));
+const paidOffer=paid.getDecision().offers.find(offer=>offer.canStage);assert.ok(paidOffer.prestigeCost>0);paid.stage(paidOffer.offerId);
+assert.equal(paid.getDecision().purchases[0].monsterPressureCost,0);
+const repeat=createOpeningController();repeat.previewShop('structureShop',true);repeat.select('Housing');
+const repeatOffer=repeat.getDecision().offers.find(offer=>offer.canStage);repeat.stage(repeatOffer.offerId);repeat.stage(repeatOffer.offerId);
+assert.equal(repeat.getDecision().purchases.length,2);const pressure=repeat.getSnapshot().summary.monsterPressure;
+commitOpeningEncounter(repeat.getSnapshot().session);assert.equal(repeat.getSnapshot().summary.monsterPressure,pressure+20);
+const short=createOpeningController();short.previewShop('structureShop',true);openingVassal(short.getSnapshot().session).prestige=1;short.select('Housing');
+assert.equal(short.getDecision().offers[0].monsterPressureCost,10);short.stage(short.getDecision().offers[0].offerId);
+const wave=cloneOpeningSession(short.getSnapshot().session);wave.state.civilization.chaos.monsterPressure=95;
+commitOpeningEncounter(wave);assert.equal(wave.state.civilization.chaos.monsterPressure,5,'the payment crosses the real wave threshold');
+assert.equal(openingVassal(wave).prestige,1,'a shortfall payment preserves the insufficient balance');
+const supply=createOpeningController();supply.previewEncounter('supply');openingVassal(supply.getSnapshot().session).prestige=0;
+assert.ok(supply.getDecision().offers.length);assert.ok(supply.getDecision().offers.every(offer=>offer.prestigeCost===0&&offer.monsterPressureCost===10),'Stock Supply has the same fallback payment');
+console.log('[opening-shops] OK: tag pools, zero-Prestige purchases, flat pressure prices, paid purchases, undo, repeat purchases, serialization and rewind');
