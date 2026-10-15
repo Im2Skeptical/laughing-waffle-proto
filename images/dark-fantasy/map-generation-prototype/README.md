@@ -1,7 +1,7 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.18** — soft offshore colour drift with a
-third graph curve, and quieter inland arcs with their small inner rings suppressed. The version appears under the title inside the
+Current published revision: **Map v1.0.19** — organic offshore colour patches
+that reshape locally, replacing the repeating travelling bands. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -68,8 +68,13 @@ monotonic, and returning to any date restores the same water appearance.
 9 KiB palette each update. Eight phase variants blend smoothly across a seeded
 world-space field stored in the existing packed texture's spare blue channel.
 `water-drift.js` adds a separate continuous blue/teal/green field below the surface
-cycles. Two warped, broad waves move at independent 83/137-second rates with
-slower timing modulation. Its bounded RGB offsets (at most 5/8/7 channel values)
+cycles. Smooth 3D value noise evolves through time at two independent rates;
+two slower noise fields displace the sampling coordinates locally. Rotated detail
+at a second scale breaks up patch boundaries. There is no global scrolling
+direction or repeating wave carrier. The CPU/graph and GPU share the same
+integer polynomial hash and quintic interpolation. The visual reference is
+[NASA's South Atlantic colour imagery](https://science.nasa.gov/earth/earth-observatory/coloring-the-south-atlantic-149384/):
+irregular mixing fronts and patches separated by quieter water. Its bounded RGB offsets (at most 5/8/7 channel values)
 keep the shift subtle. The marine-only depth mask fades from zero near shore to
 full strength offshore and occupies the packed texture's previously unused alpha
 channel. Raw data upload explicitly disables alpha premultiplication. World

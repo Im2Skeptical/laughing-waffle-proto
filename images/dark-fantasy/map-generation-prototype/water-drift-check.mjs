@@ -16,4 +16,15 @@ sampleWaterDrift(120,80,1600);
 assert.deepEqual(sampleWaterDrift(120,80,997.25),at,'Arbitrary seeks must restore exactly');
 assert.notDeepEqual(sampleWaterDrift(420,80,997.25),at,'Different ocean locations must not pulse in unison');
 assert.notDeepEqual(sampleWaterDrift(120,80,1600),at);
-console.log('Water drift: marine/depth masks, restrained smooth movement, spatial variation and absolute-time restoration pass.');
+// Regress the previous parallel strips: colour gradients over a large field
+// should not share one dominant direction. Zero is isotropic, one is stripes.
+for(const t of [0,60,997]) {
+  let xx=0,xy=0,yy=0;
+  for(let y=-400;y<1000;y+=30)for(let x=-700;x<1500;x+=30) {
+    const gx=sampleWaterDrift(x+2,y,t)[1]-sampleWaterDrift(x-2,y,t)[1];
+    const gy=sampleWaterDrift(x,y+2,t)[1]-sampleWaterDrift(x,y-2,t)[1];
+    xx+=gx*gx;xy+=gx*gy;yy+=gy*gy;
+  }
+  assert.ok(Math.hypot(xx-yy,2*xy)/(xx+yy)<.4,'Drift must not collapse into aligned bands');
+}
+console.log('Water drift: marine/depth masks, restrained smooth movement, non-directional patches and absolute-time restoration pass.');
