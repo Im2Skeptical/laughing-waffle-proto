@@ -4,6 +4,10 @@ Open **Development Lab → Prototypes → Protovassal opening**, or run
 `npm run preview:opening` and open
 <http://localhost:5185/images/dark-fantasy/life-map-opening-prototype/>.
 The Pages build bundles this page separately; player modules never import it.
+The canvas header and preview heading show **v0.1.0**. Bump
+`OPENING_PREVIEW_VERSION` in `game-screen.js` for each published iteration, update
+this number, and report it in the handoff so the loaded Pages build is identifiable.
+The canvas badge stays visible above modals and in fullscreen.
 The **Campaign** button opens a repeatable Warrior Campaign mockup on the same
 full-map screen. **Campaign inputs** below the canvas supplies editable sample
 Prowess, Prestige, adult Warriors, Arms and Food. Adjust values, then click
