@@ -283,6 +283,25 @@ try {
     await page.locator('#shop-preview-zero-prestige').uncheck();await page.locator('#preview-structure-shop').click();await openingClick('tagConfirm',0);
     assert.ok(await page.evaluate(()=>openingWorkbench.getSnapshot().game.modal.costPanels.every(price=>price.prestigeCost>0&&price.monsterPressureCost===0)));
   });
+  await check('Legacy founding: full map, destination selection, Back and inert confirmation', async () => {
+    await page.setViewportSize({width:1280,height:800});
+    await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`);await ready();
+    await page.locator('#preview-legacy').click();const before=await page.evaluate(()=>openingWorkbench.getSnapshot().summary);
+    await openingClick('option',0);
+    const world=()=>page.evaluate(()=>openingWorkbench.getSnapshot().game.worldDecision);
+    let map=await world();assert.equal(map.mode,'found');assert.ok(map.open);assert.ok(map.targets.length>1);assert.ok(map.dimmedRegionIds.length);
+    assert.equal(map.prices[0].prestigeCost,40);assert.equal(map.selectedRegionId,null);
+    await openingClick('confirm');assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().activeId),'legacy','destination is required');
+    await openingClick('worldReward',map.targets[0].regionId);map=await world();assert.equal(map.selectedRegionId,map.targets[0].regionId);
+    assert.deepEqual(await page.evaluate(()=>openingWorkbench.getSnapshot().summary),before,'choosing a destination is inert');
+    await openingClick('option',1);assert.equal((await world()).open,false);assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().game.modal.selectedOptionId),'highest-stat');
+    await openingClick('option',0);await openingClick('worldBack');assert.equal((await world()).open,false);
+    assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().game.modal.selectedOptionId),null);
+    await openingClick('option',0);map=await world();assert.equal(map.selectedRegionId,null);
+    await openingClick('worldReward',map.targets[0].regionId);await openingClick('confirm');
+    assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().activeId),null);
+    assert.deepEqual(await page.evaluate(()=>openingWorkbench.getSnapshot().summary),before,'mock confirmation charges no cost and founds nothing');
+  });
   await check('Travel reward example: three clickable destinations and selected Prestige previews', async () => {
     await page.setViewportSize({width:1280,height:800});
     await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`);await ready();

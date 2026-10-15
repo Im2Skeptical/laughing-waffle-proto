@@ -10,14 +10,19 @@ reward by accumulated Prestige. The default recipe ends at Legacy; saved drafts
 are preserved and can add this node through the graph editor.
 
 This is a choice/layout workshop. Settlement uses the existing 40-Prestige and
-10-adult-Villager prices provisionally; choosing its location would follow.
+10-adult-Villager prices provisionally. Selecting it opens the same complete map
+as Crossroads, with legal connected frontier destinations highlighted and other
+regions darkened. Choose a destination before Confirm; Back returns to the three
+choices, and the stat/Prestige alternatives remain available beside the map.
+The direct preview supplies a few legal frontier roads for testing. Ordinary
+authored play uses its existing roads and settlement requirements.
 The stat choice always uses the highest effective stat: each three points give
 future Vassals +1 starting point in that same stat. Each ten remaining Prestige
 give future Vassals +1 starting Prestige. Both formulas round down with no cap
 and no minimum bonus. Edit the Legacy node's cost and divisors, then Apply and Preview.
 The preview uses a Warrior with 60 Prestige and highest stat 6; **0 Prestige ·
 Legacy** tests the unavailable settlement, available stat reward and zero Prestige bonus.
-Confirm records the chosen option for review, without founding, charging costs,
+Confirm records the chosen option and any settlement destination for review, without founding, charging costs,
 granting rewards, retiring, advancing time, or consuming RNG. Rewind restores the
 choice. Normal player Legacy and settlement generation are unchanged.
 Deployed workbench module URLs include their content hash so a reload fetches the
