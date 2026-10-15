@@ -58,7 +58,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     viewedSec: state().tSec, frontierSec: state().tSec, profileSec: state().tSec });
   const usesWorldDecision=()=>{
     const kind=snapshot.experiment.nodes.find(node=>node.id===snapshot.session.activeId)?.kind;
-    return kind==='world'&&snapshot.decision?.node.family==='travel'||kind==='legacy'&&snapshot.decision?.nodeState.selectedOptionId==='found-settlement';
+    return kind==='world'&&snapshot.decision?.node.family==='travel'||kind==='legacy';
   };
   const tooltip = createTooltipView({ app, layer: layers.tooltip });
   const family = (node, compact = false) => {
@@ -139,7 +139,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   });
   const worldDecision = createOpeningWorldDecisionScreen({app,layer:layers.worldDecision,getState:state,
     getVassal:()=>openingVassal(snapshot.session),tooltipView:tooltip,onSelect:id=>invoke(()=>controller.select(id)),
-    onSelectSettlement:id=>invoke(()=>controller.selectLegacyDestination(id)),onBack:()=>invoke(()=>controller.select(null)),
+    onSelectSettlement:id=>invoke(()=>controller.selectLegacyDestination(id)),
     onConfirm:id=>{void controller.commit(id).catch(error=>{message=error.message;onError?.(message);});}});
   const level = createVassalLevelUpModalView({ app, layer: layers.level, getPresentation: presentation,
     isLifegraphVisible: () => mode === 'life', onChoose: (_choice, stat) => invoke(() => controller.develop(stat)) });
@@ -226,7 +226,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     drawChrome();
   }
   app.view.addEventListener('keydown', event => {
-    if(worldDecision.isOpen() && event.key==='Escape'){if(snapshot.decision?.legacySettlement)invoke(()=>controller.select(null));else worldDecision.close();drawChrome();event.preventDefault();return;}
+    if(worldDecision.isOpen() && event.key==='Escape'){worldDecision.close();drawChrome();event.preventDefault();return;}
     if (modal.handleInspectionKey(event) || life.handleKeyDown(event)) { event.preventDefault(); return; }
     if (event.key === 'Escape') { modal.close(); outcomeId = null; drawChrome(); }
   });
@@ -241,7 +241,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   void prepareChronicleArt(app.renderer).then(() => { if (!destroyed) refresh(); }).catch(error => {
     if (!destroyed) onError?.(`Some artwork could not load: ${error.message}`);
   });
-  const point = (kind, index = 0) => worldDecision.isOpen() && ['option','confirm','worldMode','worldCost','worldTarget','worldReward','worldBack'].includes(kind) ? worldDecision.getPoint(kind,index) : ({
+  const point = (kind, index = 0) => worldDecision.isOpen() && ['option','confirm','worldMode','worldCost','worldTarget','worldReward'].includes(kind) ? worldDecision.getPoint(kind,index) : ({
     node: () => life.getNodeClickPoint(index), enter: () => life.getEnterNodeClickPoint(),
     option: () => modal.getOptionClickPoint(index), offer: () => modal.getOfferClickPoint(index), face: () => modal.getOfferFacePoint(index),
     tagConfirm: () => modal.getShopTagConfirmPoint(index),

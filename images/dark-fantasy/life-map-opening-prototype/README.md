@@ -10,10 +10,11 @@ reward by accumulated Prestige. The default recipe ends at Legacy; saved drafts
 are preserved and can add this node through the graph editor.
 
 This is a choice/layout workshop. Settlement uses the existing 40-Prestige and
-10-adult-Villager prices provisionally. Selecting it opens the same complete map
-as Crossroads, with legal connected frontier destinations highlighted and other
-regions darkened. Choose a destination before Confirm; Back returns to the three
-choices, and the stat/Prestige alternatives remain available beside the map.
+10-adult-Villager prices provisionally. Legacy always shows the complete map
+alongside all three choices, in fixed positions. Legal connected frontier
+destinations are highlighted and other regions darkened. Select founding and
+choose a destination before Confirm; the stat and Prestige choices confirm on
+the same screen without changing layouts.
 The direct preview supplies a few legal frontier roads for testing. Ordinary
 authored play uses its existing roads and settlement requirements.
 The stat choice always uses the highest effective stat: each three points give
