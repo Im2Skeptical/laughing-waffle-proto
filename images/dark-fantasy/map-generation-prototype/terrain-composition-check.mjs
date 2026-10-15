@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { composeTerrainLandscape, illustrationOverlap, CONTACT_PAIRS } from './terrain-composition.js';
+import { composeTerrainLandscape, illustrationOverlap, CONTACT_PAIRS, monsterPerimeterPaths, boneRidgeFits } from './terrain-composition.js';
 import { gradeTerrainColour } from './composable-art.js';
 import { generateMap } from './generator.js';
 
@@ -57,7 +57,7 @@ const pairedVergePaths=islandMap.edges.filter(edge=>edge.regions.length===2).map
   .filter(pair=>pair[0]!==pair[1] && !pair.includes('monster') && pair.some(b=>['plains','forest'].includes(b))).length;
 assert.equal(islandComposition.diagnostics.paths + islandComposition.diagnostics.coastalProfiles, borderPaths + pairedVergePaths + islandMap.features.filter(f => f.type === 'ridge').length
   + islandMap.geography.coasts.length + islandMap.regions.filter(r => ['mountains','islands','plains','forest','monster'].includes(r.biome)).length
-  + islandMap.regions.filter(r=>r.biome==='monster').length, 'Every island contour must receive a shore profile and every monster cell a full bone perimeter');
+  + monsterPerimeterPaths(islandMap).length, 'Every island contour must receive a shore profile and every monster cell a full bone perimeter');
 const channels = c => [c >> 16, c >> 8 & 255, c & 255];
 const [pr,pg,pb]=channels(gradeTerrainColour(150,145,136,'plains'));
 assert.ok(pr>pg+15 && pg>pb+25,'Plains earth must retain warm ochre rather than a neutral grey cast');
@@ -186,3 +186,15 @@ const tightBorders=composeTerrainLandscape({map:tightMonster,art,pixel:p=>p,worl
   legal:p=>art[p.kind].rows[0].length<=9 && p.left>0 && p.top>0});
 assert.ok(tightBorders.props.some(p=>p.context==='bone-boundary'&&p.kind.includes('-micro')),'Narrow monster borders must retain micro spikes when larger formations cannot fit');
 console.log('Monster perimeters: whole bone formations, outer-edge coverage and micro-size fallback pass.');
+
+const combined={regions:[{id:'a',biome:'monster'},{id:'b',biome:'monster'},{id:'c',biome:'forest'}],edges:[
+  {id:'internal',regions:['a','b'],points:[{x:10,y:0},{x:10,y:20}]},
+  {id:'exposed',regions:['b','c'],points:[{x:20,y:0},{x:20,y:20}]},
+  {id:'coast',regions:['a'],points:[{x:0,y:0},{x:0,y:20}]}]};
+assert.deepEqual(monsterPerimeterPaths(combined).map(p=>p.edgeId),['exposed','coast'],'Connected monster cells must share only their exposed outer ridge');
+const bone={rows:Array(10).fill('xxxxxxxxxx')};
+assert.ok(boneRidgeFits(bone,0,0,(x,y)=>({dry:true,biome:x<5?'monster':'forest'})),'Raised bones may cross a dry region boundary');
+assert.ok(boneRidgeFits(bone,0,0,(x,y)=>({dry:y>=7,biome:'monster'})),'Grounded bones may project their tips over water');
+assert.ok(!boneRidgeFits(bone,0,0,()=>({dry:false,biome:'monster'})),'Bone ridges cannot float without a grounded foot');
+assert.ok(!boneRidgeFits(bone,0,0,()=>({dry:true,biome:'forest'})),'Bone ridges must remain attached to monster territory');
+console.log('Combined monster silhouette: internal seams open, grounded projecting ridges and shoreline overhang pass.');

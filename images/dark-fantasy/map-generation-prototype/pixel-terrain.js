@@ -4,7 +4,7 @@ import { decorationRandom, insidePolygon, canPlacePeak } from './generator.js';
 import { createAtlasArt } from './atlas-art.js';
 import { routeSampleRoads } from './roads.js';
 import { loadComposableArt, composableLibrary } from './composable-art.js';
-import { composeTerrainLandscape } from './terrain-composition.js';
+import { composeTerrainLandscape, boneRidgeFits } from './terrain-composition.js';
 import { loadIllustratedArt } from './illustrated-art.js';
 import { releaseZoomArt } from './zoom-art.js';
 import { paintOcean, paintEcotones, SHORE_TREATMENTS } from './terrain-interactions.js';
@@ -106,7 +106,8 @@ export function reliefSpriteTextures(terrain, flipX, flipY) {
     art.rows.forEach((row, y) => [...row].forEach((code, x) => {
       if (code === '.') return;
       const ix = Math.floor(g.sx * (g.left + x + .5)), iy = Math.floor(g.sy * (g.top + y + .5));
-      const name = MATERIALS[samplePlane(terrain.materials, ix, iy)];
+      const name = MATERIALS[samplePlane(terrain.materials, ix, iy)]
+        ?? (prop.context==='bone-boundary' && y<art.rows.length*.7 ? 'monster':null);
       if (!name || samplePlane(terrain.roadClearance, ix, iy)) return;
       const bank = ATLAS_GROUND[name], palette = palettes[name];
       let colour = palette[code] ?? bank[2];
@@ -388,6 +389,11 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   const fitsLand = prop => {
     const art = ART[prop.kind], p = pixel(prop.point), w = Math.max(...art.rows.map(r => r.length));
     const left = Math.round(p.x - w / 2), top = Math.round(p.y - art.rows.length);
+    if(prop.context==='bone-boundary')return boneRidgeFits(art,left,top,(x,y)=>{
+      if(x<0||y<0||x>=width||y>=height)return null;
+      const i=y*width+x;
+      return {dry:!!land[i]&&!waterIndices[i],biome:map.regions[regionIds[i]]?.biome};
+    });
     let outside = 0, painted = 0;
     const fits = art.rows.every((row, y) => [...row].every((code, x) => {
       if (code === '.') return true;

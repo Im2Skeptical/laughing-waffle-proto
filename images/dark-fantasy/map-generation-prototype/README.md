@@ -1,7 +1,7 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.6** — bony monster-region perimeters,
-denser forest coverage and softer floor/canopy contrast. The version appears under the title inside the
+Current published revision: **Map v1.0.7** — projecting bone ridges along the exposed
+perimeter of combined monster territories. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -29,11 +29,14 @@ Each den/pit/accent role gets its own placement attempts; a rejected large pit
 cannot prevent subsequent small sinkholes, bones and fissures from spawning.
 `monsterVisibility` compares planned and displayed den counts and reports the
 displayed hellscape pieces; it exposes failures beyond successful composition.
-Bone-spine pieces follow a closed inset path around each monster cell, including
-coasts and outer edges, before general landscape placement. Rivers, roads and
-dens remain gaps. Full, compact, small and micro variants fit narrower strips;
-spikes retain their silhouettes across the illustrated division stencil.
-`terrainComposition.monsterBorders` reports attempts and placements per region.
+Bone-spine pieces trace exposed geographic edges, including coasts and outer
+edges. Shared monster-to-monster edges are omitted, giving connected cells one
+outer silhouette. Larger ridge variants straddle borders: a grounded foot and
+attachment to monster territory are required, but upper tips can project across
+neighbouring terrain or water. Roads and dens retain gaps. Native, compact,
+small and micro variants handle restricted strips. Spikes retain their silhouette
+across division stencils; geography and water remain unchanged underneath.
+`terrainComposition.monsterBorders` reports attempts and placements per edge.
 Six generated pieces per material variant supply two low dens, a sunken pit,
 paired sinkholes, bone/cloth accents and scarred ground. The live game's bone,
 horn, dark stone, rust cloth and restrained ember theme is adapted to local

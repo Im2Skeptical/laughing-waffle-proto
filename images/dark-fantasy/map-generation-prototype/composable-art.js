@@ -54,9 +54,9 @@ export async function loadComposableArt(banks) {
     image.src = new URL('./assets/runtime/relief-v1.webp', import.meta.url).href;
   });
   composableLibrary.cells = manifest.frames.map(frame => ({ kind: frame.kind, sheet: frame.family, pair: frame.pair, cutRuns: frame.cutRuns }));
-  for (const detail of [1, 2]) for (const frame of manifest.frames) for (const scale of (frame.family==='hellscape'?[1,.72,.5,.3]:(frame.family.startsWith('island-') || frame.family.startsWith('monster-') || ['plains','forest'].includes(frame.family)) ? [1,.72,.5] : [1])) {
+  for (const detail of [1, 2]) for (const frame of manifest.frames) for (const scale of (frame.family==='hellscape'?([1,5].includes(Number(frame.kind.split('-').at(-1)))?[1.3,1,.72,.5,.3]:[1,.72,.5,.3]):(frame.family.startsWith('island-') || frame.family.startsWith('monster-') || ['plains','forest'].includes(frame.family)) ? [1,.72,.5] : [1])) {
     const proportion = (frame.family === 'islands' ? .8 : 1) * scale;
-    const kind = frame.kind + (scale === .72 ? '-compact' : scale === .5 ? '-small' : scale===.3?'-micro':'');
+    const kind = frame.kind + (scale===1.3?'-ridge':scale === .72 ? '-compact' : scale === .5 ? '-small' : scale===.3?'-micro':'');
     const canvas = document.createElement('canvas'); canvas.width = Math.round(frame.rect[2] * detail / 2 * proportion);
     canvas.height = Math.round(frame.rect[3] * detail / 2 * proportion);
     const ctx = canvas.getContext('2d'); ctx.imageSmoothingQuality = 'high';

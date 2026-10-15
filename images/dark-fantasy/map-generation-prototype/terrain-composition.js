@@ -45,13 +45,36 @@ const INTERIORS = {
 const COASTS = { forest: [4, 5, 7, 8, 9, 11], mountains: [5, 6, 7, 8, 9, 11],
   swamp: [3, 5, 6, 8, 9, 10], plains: [4, 6, 7, 9, 11], islands: [0, 1, 2, 3, 4, 5, 10, 11] };
 
+// Only exposed edges form the silhouette of a connected monster territory.
+// Keep the generator's curved edge geometry; internal monster seams stay open.
+export function monsterPerimeterPaths(map) {
+  const monsters = new Set(map.regions.filter(r=>r.biome==='monster').map(r=>r.id));
+  if(map.edges.length) return map.edges.filter(edge=>edge.regions.filter(id=>monsters.has(id)).length===1)
+    .map(edge=>({edgeId:edge.id,regionId:edge.regions.find(id=>monsters.has(id)),points:edge.points}));
+  return map.regions.filter(r=>monsters.has(r.id)).map(r=>({regionId:r.id,points:[...r.outline,r.outline[0]]}));
+}
+
+export function boneRidgeFits(glyph, left, top, sample) {
+  let base=0,dryBase=0,painted=0,monster=0;
+  for(let y=0;y<glyph.rows.length;y++)for(let x=0;x<glyph.rows[y].length;x++) {
+    if(glyph.rows[y][x]==='.')continue;
+    const ground=sample(left+x,top+y);
+    if(!ground)return false;
+    painted++;if(ground.biome==='monster'&&ground.dry)monster++;
+    if(y>=glyph.rows.length*.7){base++;if(ground.dry)dryBase++;}
+  }
+  // The foot must be grounded; upper bone tips may project over adjacent
+  // terrain or a shoreline, like a raised ridge rather than a ground decal.
+  return base>0&&dryBase/base>=.85&&monster/painted>=.18;
+}
+
 export function composeTerrainLandscape({ map, art, pixel, world, legal, detail, islandStyle = 'basalt', settlementPlans = [], monsterZones = false }) {
   const islandFamily = `terrain-island-${islandStyle}`;
   const props = [], diagnostics = { paths: 0, coastalProfiles: 0, placements: 0, joined: 0, breaks: 0, interiors: 0, families: {} };
   diagnostics.forestPlacement={repeatRejects:0,footprintRejects:0,overlapRejects:0};
   const regions = new Map(map.regions.map(r => [r.id, r]));
   const rand = salt => decorationRandom(map.seed ^ 48317, salt);
-  const baseKind = kind => kind.replace(/-mirror$/, '').replace(/-(compact|small|micro)$/, '');
+  const baseKind = kind => kind.replace(/-mirror$/, '').replace(/-(compact|small|micro|ridge)$/, '');
   const make = (kind, x, y, family, salt, allowedBiomes, context) => {
     const glyph = art[kind], s = shape(glyph), point = world(Math.round(x), Math.round(y + s.height * (context === 'ridge-boundary' ? .68 : .5)));
     const p = pixel(point), n = Number(baseKind(kind).split('-').at(-1));
@@ -71,7 +94,8 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       .map((candidate, i) => ({ ...candidate, rank: rand(salt + i * 79) })).sort((a, b) => a.rank - b.rank);
     for (let attempt = 0; attempt < Math.min(context === 'interior' ? 8 : 12, candidates.length); attempt++) {
       const { n, mirrored } = candidates[attempt];
-      const kind = `${family}-${n}${sizeLevel === 1 ? '-compact' : sizeLevel === 2 ? '-small' : sizeLevel===3?'-micro':''}${mirrored ? '-mirror' : ''}`;
+      const suffix=context==='bone-boundary'?['-ridge','','-compact','-small','-micro'][sizeLevel]:['','-compact','-small'][sizeLevel];
+      const kind = `${family}-${n}${suffix}${mirrored ? '-mirror' : ''}`;
       // Some source fragments physically touch artwork in the next row. Those
       // cannot be extracted whole; never place a sliced illustration.
       if (!art[kind] || Object.keys(art[kind].cutRuns ?? {}).length) continue;
@@ -93,7 +117,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       options.push({ prop, score, join });
     }
     options.sort((a, b) => b.score - a.score);
-    return options[0]?.prop ?? ((family.startsWith('terrain-island-') || family.startsWith('terrain-monster-') || ['terrain-plains','terrain-forest','terrain-hellscape'].includes(family)) && sizeLevel < (context==='bone-boundary'?3:2)
+    return options[0]?.prop ?? ((family.startsWith('terrain-island-') || family.startsWith('terrain-monster-') || ['terrain-plains','terrain-forest','terrain-hellscape'].includes(family)) && sizeLevel < (context==='bone-boundary'?4:2)
       ? choose({ x,y,family,indices,salt,allowedBiomes,context,previous,sizeLevel:sizeLevel+1,canopyCore }) : undefined);
   };
 
@@ -190,13 +214,11 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
   }
   const paths = [];
   diagnostics.monsterBorders=[];
-  if(art['terrain-hellscape-1'])for(const region of map.regions.filter(r=>r.biome==='monster')) {
-    const centre=pixel(region.centre),outline=region.outline.map(pixel);
-    const inset=outline.map(p=>{const d=Math.hypot(centre.x-p.x,centre.y-p.y)||1;
-      return {x:p.x+(centre.x-p.x)/d*6*detail,y:p.y+(centre.y-p.y)/d*6*detail};});
-    paths.push({points:[...inset,inset[0]],family:'terrain-hellscape',indices:[1,5],
-      allowedBiomes:['monster'],salt:990001+map.regions.indexOf(region)*811,
-      context:'bone-boundary',regionId:region.id,interior:centre});
+  if(art['terrain-hellscape-1'])for(const [i,border] of monsterPerimeterPaths(map).entries()) {
+    const region=regions.get(border.regionId),centre=pixel(region.centre);
+    paths.push({points:border.points.map(pixel),family:'terrain-hellscape',indices:[1,5],
+      allowedBiomes:['monster'],salt:990001+i*811,
+      context:'bone-boundary',regionId:region.id,edgeId:border.edgeId,interior:centre});
   }
   const ridgeArt = !!art['terrain-ridge-border-0'];
   for (const [i, feature] of map.features.entries()) if (feature.type === 'ridge')
@@ -353,7 +375,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
       }
       travelled += length;
     }
-    if(path.context==='bone-boundary')diagnostics.monsterBorders.push({regionId:path.regionId,attempts,placed:accepted,perimeter:Math.round(travelled/detail)});
+    if(path.context==='bone-boundary')diagnostics.monsterBorders.push({regionId:path.regionId,edgeId:path.edgeId,attempts,placed:accepted,perimeter:Math.round(travelled/detail)});
   }
 
   // Correlated density fields form irregular masses and clearings in two
