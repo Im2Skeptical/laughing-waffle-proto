@@ -237,6 +237,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   const point = (kind, index = 0) => worldDecision.isOpen() && ['option','confirm','worldMode','worldCost','worldTarget','worldReward'].includes(kind) ? worldDecision.getPoint(kind,index) : ({
     node: () => life.getNodeClickPoint(index), enter: () => life.getEnterNodeClickPoint(),
     option: () => modal.getOptionClickPoint(index), offer: () => modal.getOfferClickPoint(index), face: () => modal.getOfferFacePoint(index),
+    tagConfirm: () => modal.getShopTagConfirmPoint(index),
     confirm: () => note.isOpen() ? note.getConfirmPoint() : modal.getConfirmClickPoint(), undo: () => modal.getUndoClickPoint(index), tableau: () => modal.getTableauClickPoint(index),
     acquire: () => modal.getAcquireClickPoint(index),
     inspectClose: () => modal.getInspectionClosePoint(), level: () => level.getChoiceClickPoint(index), levelConfirm: () => level.getConfirmClickPoint(),

@@ -31,12 +31,15 @@ export function createOpeningShopSelection(state, vassal, spec) {
     ? draw(state, stockTags, 2)
     : ['Housing', 'Stock', 'Special'];
   const tags = choices.map(tag => ({ id: tag, label: tag,
+      description: kind === 'practice' ? `Offers up to three Practices that produce ${tag}.`
+        : {Housing:'Offers housing structures.',Stock:'Offers structures that increase Stock capacity.',Special:'Offers other special structures.'}[tag],
       iconId: kind === 'practice' ? `stock-${tag.toLowerCase()}` : {Housing:'housingCapacity',Stock:'stock-construction',Special:'activation'}[tag],
       cards: cards.filter(card => kind === 'practice' ? isVassalStockOutputPractice(getDetailedPracticeDef(state, card.definitionId), tag)
         : structureTag(getDetailedStructureDef(state, card.definitionId)) === tag) }));
   if (kind === 'practice') {
     const unseen = stockTags.filter(tag => !choices.includes(tag));
-    tags.push({ id: 'random', label: 'Random', prestigeGain: 10, cards: stockTags.length ? cards : [],
+    tags.push({ id: 'random', label: 'Random', prestigeGain: 10,
+      description: 'Reveal another stock tag and its Practice offers. Gain 10 Prestige when confirmed.', cards: stockTags.length ? cards : [],
       randomTags: unseen.length ? unseen : stockTags });
   }
   return { kind, selectedTag: null, monsterPressurePerPurchase: spec.monsterPressurePerPurchase ?? 10, tags };

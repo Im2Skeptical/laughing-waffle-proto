@@ -166,7 +166,9 @@ navigation opens these views; Fullscreen uses the existing landscape control.
 The editor and saved-draft controls remain beside/below the mock screen.
 
 Practice shops first show two eligible Stock tags and **Random** in the native
-modal, with no purchase cost or confirmation at that step. Random reveals another
+modal. Clicking a choice inspects its explanation without drawing offers or
+changing Prestige. Each choice has its own **Confirm** button below it, which
+can also be clicked directly. Random reveals another
 eligible Stock tag and immediately grants **+10 Prestige**, once per visit, to spend
 in that shop. If an authored pool has only one or two eligible tags, Random can
 repeat one of them. Structure choices remain Housing, Stock and Special. Housing contains
