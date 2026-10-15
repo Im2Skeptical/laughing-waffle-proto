@@ -64,7 +64,7 @@ function candidateCard(parent, rect, state, candidate, selected, { onPreview, on
 
 export function createWorldMapVassalDrawerView({
   layer, getState, getSelectionPool, getSelectedCandidateIndex, isOpen,
-  onPreviewCandidate, onConfirmCandidate, onHoverCandidate, onReroll, onClose,
+  onPreviewCandidate, onConfirmCandidate, onHoverCandidate, onReroll, onClose, tooltipView = null,
 } = {}) {
   const root = new PIXI.Container();
   root.zIndex = 12;
@@ -73,7 +73,7 @@ export function createWorldMapVassalDrawerView({
   let buildCount = 0;
   let candidateRoots = [];
   let rerollRoot = null;
-  let founderDossier = null;
+  let founderDossier = null, founderSignature = "", wasOpen = false, fading = false;
   let lastTapIndex=null,lastTapTime=0;
   function tapCandidate(index){
     const now=performance.now();
@@ -83,16 +83,65 @@ export function createWorldMapVassalDrawerView({
     else onPreviewCandidate?.(index);
   }
 
+  // The founder picker persists between redraws so its open, close and page
+  // transitions play; it only rebuilds when the pool or artwork changes.
+  // The dock's Confirm button is the way to begin, so the class on show must
+  // already be the selected candidate; preview it (outside this render) if not.
+  let autoPreviewQueued = false;
+  function ensureFounderSelected(pool, selectedIndex) {
+    if (selectedIndex != null || autoPreviewQueued || !pool.candidates.length) return;
+    autoPreviewQueued = true;
+    queueMicrotask(() => {
+      autoPreviewQueued = false;
+      if (isOpen?.() === true && getSelectedCandidateIndex?.() == null) onPreviewCandidate?.(pool.candidates[0].candidateIndex);
+    });
+  }
+
+  function renderFounder(pool, selectedIndex, open, force) {
+    if (open) ensureFounderSelected(pool, selectedIndex);
+    const sig = `${getArtRevision()}:${getVassalClassArtRevision()}:${JSON.stringify(pool.candidates.map(c => [c.candidateIndex, c.founderClassId, c.stats]))}`;
+    const justOpened = open && !wasOpen;
+    if (!founderDossier || force || sig !== founderSignature) {
+      founderDossier?.destroyTooltip?.();
+      clearChildren(root);
+      const blocker = new PIXI.Graphics();
+      blocker.beginFill(0x000000, 0.001).drawRect(0, 0, VIEWPORT.width, VIEWPORT.height).endFill();
+      blocker.eventMode = "static";
+      root.addChild(blocker);
+      founderDossier = createProtovassalDossier({candidates:pool.candidates,selectedIndex,onPreview:onPreviewCandidate,onConfirm:onConfirmCandidate,onClose,tooltipView});
+      founderSignature = sig;
+      root.addChild(founderDossier);candidateRoots=founderDossier.candidateRoots;rerollRoot=null;
+      buildCount++;
+      if (open) founderDossier.open();
+    } else {
+      if (justOpened) founderDossier.open();
+      founderDossier.select(selectedIndex);
+    }
+  }
+
   function render(force = false, preparing = false) {
     const open = isOpen?.() === true;
+    if (!open && !preparing && founderDossier) {
+      // A picker that was showing plays its close transition before hiding.
+      if (wasOpen) { founderDossier.close(); fading = true; }
+      if (fading) { founderDossier.update(); fading = !founderDossier.isGone(); }
+      root.visible = fading; wasOpen = false; lastTapIndex = null;
+      return;
+    }
     root.visible = open;
     if (!open && !preparing) {
-      lastTapIndex=null;
+      lastTapIndex=null; wasOpen = false;
       return;
     }
     const state = getState?.();
     const pool = getSelectionPool?.() ?? (preparing ? buildDetailedVassalSelectionPool(state) : null);
     const selectedIndex = getSelectedCandidateIndex?.() ?? null;
+    if (pool?.candidates?.[0]?.founderClassId) {
+      renderFounder(pool, selectedIndex, open, force);
+      fading = false; wasOpen = open;
+      if (open) founderDossier.update();
+      return;
+    }
     const next = getArtRevision() + getVassalClassArtRevision() + JSON.stringify({ tSec: state?.tSec, pool, selectedIndex });
     if (!force && next === signature) return;
     signature = next;
@@ -106,11 +155,6 @@ export function createWorldMapVassalDrawerView({
     blocker.on("pointerdown", (event) => { event?.stopPropagation?.(); onClose?.(); });
     root.addChild(blocker);
 
-    if (pool?.candidates?.[0]?.founderClassId) {
-      const dossier = createProtovassalDossier({candidates:pool.candidates,selectedIndex,onPreview:onPreviewCandidate,onConfirm:onConfirmCandidate});
-      founderDossier=dossier;
-      root.addChild(dossier);candidateRoots=dossier.candidateRoots;rerollRoot=null;return;
-    }
     const frame = new PIXI.Graphics();
     roundedRect(frame, DRAWER_RECT.x, DRAWER_RECT.y, DRAWER_RECT.width, DRAWER_RECT.height,
       12, PALETTE.panel, PALETTE.accent, 3);
@@ -155,11 +199,15 @@ export function createWorldMapVassalDrawerView({
     getPreparationSnapshot: () => ({ visible: root.visible, candidateCount: candidateRoots.length, buildCount,
       portraitStages: candidateRoots.map(card => card.portraitStage ?? card.children.find(child => child.portraitStage)?.portraitStage) }),
     setVisible: (visible) => { root.visible = visible === true; },
+    handleKeyDown: event => root.visible && !!founderDossier && isOpen?.() === true && founderDossier.handleKeyDown(event),
     getFounderSnapshot: () => root.visible ? founderDossier?.getSnapshot() ?? null : null,
     getFounderControlClickPoint: id => {
       const control=founderDossier?.controls[id];
       if(!root.visible || !control || control.destroyed)return null;
-      const point=control.toGlobal(new PIXI.Point(control.hitArea.width/2,control.hitArea.height/2));
+      const hit=control.hitArea, pts=hit.points;
+      const area=Array.isArray(pts)&&pts.length>=2?(()=>{const xs=pts.filter((_,i)=>i%2===0),ys=pts.filter((_,i)=>i%2===1);
+        return {x:Math.min(...xs),y:Math.min(...ys),width:Math.max(...xs)-Math.min(...xs),height:Math.max(...ys)-Math.min(...ys)};})():{x:hit.x??0,y:hit.y??0,width:hit.width,height:hit.height};
+      const point=control.toGlobal(new PIXI.Point(area.x+area.width/2,area.y+area.height/2));
       return {x:point.x,y:point.y};
     },
     getCandidateClickPoint: (candidateIndex = 0) => {

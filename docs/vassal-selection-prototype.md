@@ -2,17 +2,29 @@
 
 ## Approved implementation pass - October 12
 
-The live Pixi picker uses the focused dossier in the forced phone landscape game
-canvas. Both Philosopher and Warlord are available from the first run. A portrait
-rail with flanking arrows selects the dossier; Begin selects the real candidate
-and leads into the existing founding node. Two future founder slots remain locked.
-No workbench controls or copy editor appear in the playable picker.
+## Class picker polish - October 15
 
-All four default attribute names remain visible. The replaced attribute is muted,
-crossed out, and marked REPLACED. The class attribute has its own subsection and
-an explicit Replaces line. Tapping attributes or abilities opens a compact tooltip.
-Flavour is a single muted italic line; unique nodes are explained on encounter.
-The painted class frames also surround ordinary Vassals' existing stable portraits.
+The live Pixi picker (`protovassal-dossier-pixi.js`) is a centred modal that reuses
+the node-decision panel footprint between the top bar and the dock, so no HUD or
+dock chrome is covered at 844x390 through desktop. Layout: a class banner
+(painted frame, crest, name, flavour), an attribute block (four icon + value chips
+with the replaced attribute struck through and labelled, the class attribute shown
+as a feature), two illustrated ability cards and a class tab strip (emblem tabs, two
+locked silhouettes) centred under the right-hand column (the attributes and
+abilities, to the right of the banner). There is no Begin button
+or hint text: the class on show is always the selected candidate (the picker
+previews it on open), so the dock's Confirm button, which the Navigation dock
+shows once a candidate is selected, begins the Vassal on touch and mouse, and Enter
+does the same from the keyboard. Copy and tooltip text live in
+`protovassal-class-data.js` and render through the shared tooltip view: hover on
+mouse, tap to pin on touch, tap again or Escape to close. Left/Right (or a swipe)
+change class, Enter confirms, Escape closes the detail first and then the picker.
+Motion (open, close, page slide) mirrors the node modal and is skipped under
+prefers-reduced-motion. Both Philosopher and Warlord are available from the first
+run; two future founder slots stay locked and explain themselves on tap. No
+workbench controls or copy editor appear in the playable picker. Flavour is a
+single muted italic line; unique nodes are explained on encounter. The painted
+class frames also surround ordinary Vassals' existing stable portraits.
 
 | Rule | Warrior | Scholar |
 | --- | --- | --- |
@@ -83,6 +95,6 @@ remains available for copy/layout studies. It is isolated from live simulation.
 
 Run `npm run verify`, `node scripts/vassal-class-rules-test.mjs`, and the existing
 civilization/Life Map browser probes. Check both founders, portrait rail navigation,
-compact tooltips and Begin on phone landscape. Check Commission selection and
+compact tooltips and dock Confirm on phone landscape. Check Commission selection and
 actor attribution, Structure completion, repeated Delve, mortality, reload, worker
 preparation and authoritative timeline replay.

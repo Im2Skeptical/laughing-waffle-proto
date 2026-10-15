@@ -1,75 +1,298 @@
-import { paintRelicPanel, RELIC } from './chronicle-skin.js';
+import { paintRelicPanel, getStoneTexture, RELIC } from './chronicle-skin.js';
 import { createClassPortraitArt } from './vassal-class-art.js';
 import { addInteractionFeedback } from './interaction-feedback.js';
+import { addResourceIcon } from './resource-cost-pixi.js';
+import { addIllustration } from './chronicle-art.js';
+import { PANEL as MODAL_PANEL } from './vassal-node-decision/constants.js';
+import { BASE_STATS, FOUNDER_CLASSES, STAT_ICONS, founderTooltipSpec } from './protovassal-class-data.js';
 
-const COPY = {
-  warrior:{name:'WARLORD',lost:'Intelligence',stat:'Prowess',effects:['+1 Martial Force per point','15% increased RISK success chance per point'],abilities:[['Personal Retinue','+1 Martial Force per 10 held Prestige','retinue'],['Risk reward','+15 Prestige on RISK success','risk']],flavour:'Their courage outlives their name.'},
-  scholar:{name:'PHILOSOPHER',lost:'Cunning',stat:'Ingenuity',effects:['+5% shop-quality chance per point','+1 Research on DISCOVERY per point'],abilities:[['Commissions','Gain Prestige each Commission completion','commission'],['Delve','Spend 10 years to reroll shop offers','delve']],flavour:'A patient mind leaves its mark.'},
-};
-const TIPS = {
-  Cunning:'Each point adds 1 Prestige per completed node, on top of 3 base Prestige. Scholars replace this with Ingenuity and keep the base income.',
-  Intelligence:'Each point discounts Prestige costs by 8%, capped at 60%. Costs round up. Warriors replace this with Prowess and lose the discount.',
-  Wisdom:'Each completed node grants 2 base EXP plus Wisdom. Both classes retain this stat.',
-  Effectiveness:'Each point discounts time costs by 8%, capped at 60%. Costs round up. This includes Scholar Delve.',
-  Prowess:'Each point adds 1 to global Martial Force and increases RISK success by 15% of the base success chance. A 50% chance becomes 57.5% at 1 Prowess and 65% at 2. Success caps at 100%. Natural mortality is separate.',
-  Ingenuity:'Each point adds 5% shop-quality chance and 1 Research on DISCOVERY. Above 100%, surplus chance rolls for another tier: 125% gives one guaranteed tier and a 25% chance of a second. Quality stops at Diamond; prices stay the same.',
-  retinue:'Each 10 Prestige currently held adds 1 global Martial Force. Spending Prestige reduces this bonus. There is no population cap. Supplied Retinue improvements add Force directly.',
-  risk:'Each successful RISK grants 15 extra Prestige alongside the action reward. Applies to all risky node actions, including Relic searches. Protection from a failed roll does not count as success.',
-  commission:'Keep a Commission underway, complete it through your vassal’s nodes, then choose the next from three offers. Install a Practice: 20 Prestige. Finish a commissioned Structure: 40. Acquire a Relic: 60. Inheritance and autonomous civilization actions do not count.',
-  delve:'Spend 10 base years to refresh this shop’s offers, discounted by Effectiveness. Costs no Prestige and can be repeated before purchases are staged. Time, aging and natural mortality resolve before new offers appear.',
-};
-function text(parent, copy, x, y, size=32, options={}) {
-  const t=new PIXI.Text(copy,{fontFamily:'Georgia',fontSize:size,fill:RELIC.bone,lineHeight:size*1.18,wordWrap:true,wordWrapWidth:options.width??900,...options});t.position.set(x,y);parent.addChild(t);return t;
+// The founder class picker: a carved-stone slab on the node-decision modal's
+// footprint, so it sits between the top bar and dock instead of over them. The
+// class is a hanging banner (hero), attribute chips, a feature panel and
+// ability cards; a tab rail below picks the class. Details use the shared
+// tooltip view (hover on mouse, tap to pin on touch), as Practices do.
+const W = MODAL_PANEL.width, H = MODAL_PANEL.height;
+const SLOT_COUNT = 4, FONT = 'Georgia';
+const TAB = Object.freeze({ y: 566, width: 150, height: 128, gap: 14 });
+// The right-hand column (attribute chips and ability cards) spans COLUMN.left..right,
+// to the right of the banner. The four class slots centre on that column.
+const COLUMN = Object.freeze({ left: 600, right: 2310 });
+const TAB_ROW_X = (COLUMN.left + COLUMN.right) / 2 - (SLOT_COUNT * TAB.width + (SLOT_COUNT - 1) * TAB.gap) / 2;
+const OPEN_MS = 220, CLOSE_MS = 140, PAGE_MS = 240;
+const ease = t => 1 - (1 - Math.min(1, Math.max(0, t))) ** 3;
+const reducedMotion = () => globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
+const now = () => performance.now();
+
+function text(parent, copy, x, y, size, options = {}) {
+  const node = new PIXI.Text(copy, { fontFamily: FONT, fontSize: size, fill: RELIC.bone, ...options });
+  node.position.set(x, y); parent.addChild(node); return node;
 }
-function panel(parent,x,y,w,h,bright=false) {const g=new PIXI.Graphics();paintRelicPanel(g,x,y,w,h,RELIC.night,bright?RELIC.gold:RELIC.brass,bright?3:2);parent.addChild(g);return g;}
-function button(parent,x,y,w,h,copy,activate,disabled=false) {
-  const r=new PIXI.Container();r.position.set(x,y);r.hitArea=new PIXI.Rectangle(0,0,w,h);r.eventMode=disabled?'none':'static';r.cursor=disabled?'default':'pointer';
-  panel(r,0,0,w,h);if(copy){const t=text(r,copy,w/2,h/2,26,{fontWeight:'bold',fill:disabled?0x80867d:RELIC.bone});t.anchor.set(.5);}
-  addInteractionFeedback(r,{x:0,y:0,width:w,height:h},{enabled:!disabled,onActivate:activate});parent.addChild(r);return r;
+// Shrinks a label that would overrun its slot rather than wrapping it.
+function fit(node, maxWidth) { if (node.width > maxWidth) node.scale.set(maxWidth / node.width); return node; }
+function stoneRect(g, x, y, w, h, fill, stroke, sw = 2) { paintRelicPanel(g, x, y, w, h, fill, stroke, sw); return g; }
+function control(parent, x, y, w, h) {
+  const node = new PIXI.Container(); node.position.set(x, y);
+  node.hitArea = new PIXI.Rectangle(0, 0, w, h); node.eventMode = 'static'; node.cursor = 'pointer';
+  parent.addChild(node); return node;
+}
+function label(parent, copy, x, y, color = RELIC.ash) {
+  return text(parent, copy, x, y, 24, { fill: color, fontWeight: 'bold', letterSpacing: 4 });
 }
 
-export function createProtovassalDossier({candidates:poolCandidates, selectedIndex, onPreview, onConfirm}) {
-  const candidates=[...poolCandidates].sort((a,b)=>(a.founderClassId==='warrior'?0:1)-(b.founderClassId==='warrior'?0:1));
-  const root=new PIXI.Container();root.position.set(432,116);root.eventMode='static';root.hitArea=new PIXI.Rectangle(0,0,1560,958);
-  root.controls={};root.tipId=null;
-  root.on('pointerdown',event=>event.stopPropagation());
-  panel(root,0,0,1560,958);
-  const selected=candidates.find(c=>c.candidateIndex===selectedIndex)??candidates[0];
-  const classId=selected.founderClassId;const data=COPY[classId];
-  text(root,data.name,40,86,54,{fontWeight:'bold'});text(root,`Unlocks ${classId.toUpperCase()}`,40,160,30,{fill:RELIC.gold});
-  const art=createClassPortraitArt(classId,{size:440,founder:true});if(art){art.position.set(46,278);root.addChild(art);}
-  text(root,data.flavour,40,774,26,{fontStyle:'italic',fill:0xb1b4a6,width:460});
-  let tip=null;
-  function inspect(id,anchorY) {
-    if(tip){root.removeChild(tip);tip.destroy({children:true});tip=null;}
-    root.tipId=id;
-    tip=new PIXI.Container();tip.position.set(560,Math.min(490,Math.max(190,anchorY)));tip.eventMode='static';tip.on('pointerdown',e=>e.stopPropagation());
-    panel(tip,0,0,930,300,true);text(tip,['retinue','risk','commission','delve'].includes(id)?data.abilities.find(a=>a[2]===id)[0]:id,24,22,36,{fill:RELIC.gold,fontWeight:'bold'});
-    text(tip,TIPS[id],24,82,28,{width:882});root.controls.closeTooltip=button(tip,830,10,84,58,'×',()=>{root.removeChild(tip);tip.destroy({children:true});tip=null;root.tipId=null;});root.addChild(tip);
+export function createProtovassalDossier({ candidates: poolCandidates, selectedIndex, onPreview, onConfirm, onClose, tooltipView = null }) {
+  // Founders in tab order; remaining tabs are locked silhouettes.
+  const candidates = [...poolCandidates].sort((a, b) => (a.founderClassId === 'warrior' ? 0 : 1) - (b.founderClassId === 'warrior' ? 0 : 1));
+  const root = new PIXI.Container(); root.eventMode = 'static';
+  root.hitArea = new PIXI.Rectangle(0, 0, 2424, 1080);
+  root.controls = {}; root.candidateRoots = [];
+  const backdrop = new PIXI.Graphics().beginFill(0x171713, 1).drawRect(0, 0, 2424, 1080).endFill();
+  backdrop.eventMode = 'static'; backdrop.on('pointerdown', event => { event.stopPropagation(); tooltipView?.hide({ force: true }); onClose?.(); });
+  const shell = new PIXI.Container();
+  shell.pivot.set(W / 2, H / 2); shell.position.set(MODAL_PANEL.x + W / 2, MODAL_PANEL.y + H / 2);
+  shell.eventMode = 'static'; shell.hitArea = new PIXI.Rectangle(0, 0, W, H);
+  shell.on('pointerdown', event => event.stopPropagation());
+  root.addChild(backdrop, shell);
+
+  const slab = new PIXI.Graphics(); stoneRect(slab, 0, 0, W, H, RELIC.night, RELIC.brass, 3); shell.addChild(slab);
+  const holder = new PIXI.Container(); shell.addChild(holder);
+  const clip = new PIXI.Graphics().beginFill(0xffffff).drawRect(4, 4, W - 8, H - 8).endFill(); shell.addChild(clip); holder.mask = clip;
+  const tabLayer = new PIXI.Container(); shell.addChild(tabLayer);
+
+  let selected = candidates.find(c => c.candidateIndex === selectedIndex) ?? candidates[0];
+  let page = null, leaving = null, transition = null, tabs = [];
+  let pose = { phase: 'open', startedAt: 0 }, gone = false, begun = false, tipId = null;
+
+  // ---- tooltips (shared view) ----
+  function anchorFor(node, side) {
+    const b = node.getBounds();
+    return { x: b.x, y: b.y, width: b.width, height: b.height, side, alignY: 'top', coordinateSpace: 'screen' };
   }
-  root.on('pointerdown',()=>{if(tip){root.removeChild(tip);tip.destroy({children:true});tip=null;root.tipId=null;}});
-  function hit(id,x,y,w,h) {const r=new PIXI.Container();r.position.set(x,y);r.hitArea=new PIXI.Rectangle(0,0,w,h);r.eventMode='static';r.cursor='pointer';r.on('pointerdown',e=>e.stopPropagation());r.on('pointertap',()=>inspect(id,y+h));root.addChild(r);root.controls[id]=r;}
-  panel(root,540,130,978,360);text(root,'BASE ATTRIBUTES',564,148,24,{fill:0xb1b4a6});
-  ['Cunning','Intelligence','Wisdom','Effectiveness'].forEach((name,i)=>{
-    const y=188+i*70;const lost=name===data.lost;const t=text(root,name,564,y,34,{fill:lost?0x80867d:RELIC.bone});
-    if(lost){root.addChild(new PIXI.Graphics().lineStyle(2,0x80867d).moveTo(564,y+22).lineTo(564+t.width,y+22));text(root,'REPLACED',564,y+39,20,{fill:0x80867d});}hit(name,558,y-4,278,48);
+  function addTip(node, id, kind, classId, side) {
+    const spec = founderTooltipSpec(kind, id, classId);
+    node.on('pointerover', event => { if (event.pointerType !== 'touch') tooltipView?.show(spec, anchorFor(node, side)); });
+    node.on('pointerout', () => tooltipView?.hide());
+    node.on('pointerdown', event => {
+      event.stopPropagation(); tipId = tipId === id ? null : id;
+      tooltipView?.pin(spec, anchorFor(node, side), `founder:${id}`);
+    });
+  }
+  const hideTip = () => { tipId = null; tooltipView?.hide({ force: true }); };
+  const pinnedTip = () => tooltipView?.getDebugState?.().pinned === true && tipId;
+
+  // ---- page: banner hero, attribute chips, feature, ability cards, Begin ----
+  function buildPage(candidate) {
+    const classId = candidate.founderClassId, data = FOUNDER_CLASSES[classId];
+    const view = new PIXI.Container(), controls = {};
+    const bx = 30, bw = 530, top = 18, bottom = 696, mid = bx + bw / 2;
+    // Class glow and trim
+    const glow = new PIXI.Graphics(); view.addChild(glow);
+    for (const [r, a] of [[330, .05], [250, .07], [180, .09]]) glow.beginFill(data.glow, a).drawCircle(mid, 300, r).endFill();
+    view.glow = glow;
+    const banner = new PIXI.Graphics();
+    const tail = 36, poly = [bx, top, bx + bw, top, bx + bw, bottom, mid, bottom - tail, bx, bottom];
+    banner.lineStyle(4, RELIC.gold, .95).beginTextureFill({ texture: getStoneTexture(), color: data.deep, alpha: .96 }).drawPolygon(poly).endFill();
+    banner.lineStyle(2, data.accent, .6).drawPolygon([bx + 14, top + 14, bx + bw - 14, top + 14, bx + bw - 14, bottom - 18, mid, bottom - tail - 12, bx + 14, bottom - 18]);
+    banner.lineStyle(1, RELIC.bone, .14).moveTo(bx + 22, top + 24).lineTo(bx + bw - 22, top + 24);
+    banner.lineStyle(2, RELIC.shadow, .9).beginFill(RELIC.gold).drawRoundedRect(bx - 18, top - 12, bw + 36, 16, 8).endFill();
+    for (const x of [bx - 18, bx + bw + 18]) banner.lineStyle(2, RELIC.shadow, .9).beginFill(RELIC.gold).drawCircle(x, top - 4, 12).endFill();
+    view.addChild(banner);
+    const art = createClassPortraitArt(classId, { size: 430, founder: true });
+    if (art) { art.position.set(bx + (bw - 430) / 2, 82); view.addChild(art); }
+    const name = text(view, data.name, mid, 520, 52, { fontWeight: 'bold', letterSpacing: 2 }); name.anchor.set(.5, 0); fit(name, bw - 70);
+    const unlocks = text(view, `UNLOCKS ${data.unlocks.toUpperCase()}`, mid, 580, 24, { fill: data.accent, fontWeight: 'bold', letterSpacing: 4 }); unlocks.anchor.set(.5, 0);
+    const flavour = text(view, data.flavour, mid, 614, 24, { fontStyle: 'italic', fill: 0xc2c3b4, wordWrap: true, wordWrapWidth: bw - 80, align: 'center' }); flavour.anchor.set(.5, 0);
+
+    // Attribute chips: the class attribute takes the replaced slot.
+    const cx = COLUMN.left, cw = 385, ch = 128, cgap = 20;
+    label(view, 'ATTRIBUTES', cx, 26);
+    BASE_STATS.forEach((base, index) => {
+      const replaced = base.name === data.replaces, name = replaced ? data.stat : base.name;
+      const value = candidate.stats?.[replaced ? data.statKey : base.statId];
+      const x = cx + (index % 2) * (cw + cgap), y = 66 + Math.floor(index / 2) * (ch + 16);
+      const chip = control(view, x, y, cw, ch), g = new PIXI.Graphics(); chip.addChild(g);
+      if (replaced) {
+        g.beginFill(data.glow, .22).drawRoundedRect(-6, -6, cw + 12, ch + 12, 16).endFill();
+        stoneRect(g, 0, 0, cw, ch, data.deep, data.accent, 3);
+      } else stoneRect(g, 0, 0, cw, ch, RELIC.stone, RELIC.brass, 2);
+      g.lineStyle(2, replaced ? data.accent : RELIC.brass, .8).beginFill(RELIC.shadow, .9).drawCircle(68, ch / 2, 46).endFill();
+      addResourceIcon(chip, STAT_ICONS[name], 68, ch / 2, 74);
+      const title = text(chip, name, 132, replaced ? 20 : ch / 2 - 22, 36, { fontWeight: 'bold', fill: replaced ? 0xfff0d6 : RELIC.bone }); fit(title, cw - 132 - 90);
+      if (replaced) {
+        const old = text(chip, base.name, 132, 78, 24, { fill: 0x8d9084 });
+        const strike = new PIXI.Graphics().lineStyle(2, 0x8d9084).moveTo(132, 91).lineTo(132 + old.width, 91);
+        chip.addChild(strike); text(chip, 'replaced', 132 + old.width + 10, 78, 24, { fill: 0x8d9084, letterSpacing: 2 });
+      }
+      const num = text(chip, value == null ? '–' : String(value), cw - 26, ch / 2, 56, { fontWeight: 'bold', fill: replaced ? data.accent : RELIC.gold }); num.anchor.set(1, .5);
+      addInteractionFeedback(chip, { x: 0, y: 0, width: cw, height: ch });
+      addTip(chip, name, 'stat', classId, 'right'); controls[name] = chip;
+    });
+    // Feature panel for the class attribute
+    const fy = 66 + 2 * ch + 16 + 24, fh = 548 - fy, fw = 2 * cw + cgap;
+    const feature = control(view, cx, fy, fw, fh), fg = new PIXI.Graphics(); feature.addChild(fg);
+    fg.beginFill(data.glow, .14).drawRoundedRect(-5, -5, fw + 10, fh + 10, 14).endFill();
+    stoneRect(fg, 0, 0, fw, fh, data.deep, data.accent, 3);
+    text(feature, `CLASS ATTRIBUTE · ${data.stat.toUpperCase()}`, 30, 20, 24, { fill: data.accent, fontWeight: 'bold', letterSpacing: 4 });
+    let ey = 62;
+    for (const line of data.effects) {
+      fg.beginFill(data.accent).drawPolygon([38, ey + 17, 48, ey + 7, 58, ey + 17, 48, ey + 27]).endFill();
+      const t = text(feature, line, 76, ey, 31, { wordWrap: true, wordWrapWidth: fw - 150 }); ey += t.height + 16;
+    }
+    text(feature, '›', fw - 40, fh / 2 - 6, 52, { fill: data.accent, fontWeight: 'bold' }).anchor.set(.5);
+    addInteractionFeedback(feature, { x: 0, y: 0, width: fw, height: fh });
+    addTip(feature, data.stat, 'stat', classId, 'right'); controls.feature = feature;
+
+    // Ability cards
+    const aw = 430, agap = 20, ax = COLUMN.right - 2 * aw - agap, ay = 66, ah = 548 - ay;
+    label(view, 'CLASS ABILITIES', ax, 26);
+    data.abilities.forEach((ability, index) => {
+      const x = ax + index * (aw + agap), card = control(view, x, ay, aw, ah), g = new PIXI.Graphics(); card.addChild(g);
+      stoneRect(g, 0, 0, aw, ah, RELIC.stone, RELIC.brass, 2);
+      const art = addIllustration(card, ability.art, { x: 10, y: 10, width: aw - 20, height: 218 });
+      if (art) {
+        const mask = new PIXI.Graphics().beginFill(0xffffff).drawRoundedRect(10, 10, aw - 20, 218, 10).endFill(); card.addChild(mask); art.mask = mask;
+        const fade = new PIXI.Graphics(); for (let i = 0; i < 8; i++) fade.beginFill(RELIC.stone, .09 * (i + 1)).drawRect(10, 228 - 8 * (8 - i), aw - 20, 8).endFill();
+        card.addChild(fade);
+      } else g.beginFill(RELIC.shadow, .8).drawRoundedRect(10, 10, aw - 20, 218, 10).endFill();
+      g.lineStyle(3, data.accent, .8).beginFill(RELIC.shadow, .85).drawCircle(aw - 48, 50, 26).endFill();
+      text(card, 'i', aw - 48, 50, 32, { fontStyle: 'italic', fontWeight: 'bold', fill: data.accent }).anchor.set(.5);
+      g.lineStyle(0).beginFill(data.accent, .9).drawRect(24, 246, 56, 4).endFill();
+      const title = text(card, ability.name, 24, 262, 38, { fontWeight: 'bold', wordWrap: true, wordWrapWidth: aw - 48 });
+      text(card, ability.summary, 24, 262 + title.height + 12, 28, { fill: 0xc2c3b4, wordWrap: true, wordWrapWidth: aw - 48 });
+      text(card, 'DETAILS  ›', 24, ah - 50, 24, { fill: data.accent, fontWeight: 'bold', letterSpacing: 3 });
+      addInteractionFeedback(card, { x: 0, y: 0, width: aw, height: ah });
+      addTip(card, ability.id, 'ability', classId, 'left'); controls[ability.id] = card;
+    });
+
+    view.controls = controls; view.candidateIndex = candidate.candidateIndex;
+    return view;
+  }
+
+  // ---- tab rail: emblem per class, locked silhouettes for the rest ----
+  function buildTabs() {
+    tabLayer.removeChildren().forEach(node => node.destroy({ children: true }));
+    tabs = [];
+    for (let slot = 0; slot < SLOT_COUNT; slot++) {
+      const candidate = candidates[slot], data = candidate && FOUNDER_CLASSES[candidate.founderClassId];
+      const isSelected = candidate === selected;
+      const tab = control(tabLayer, TAB_ROW_X + slot * (TAB.width + TAB.gap), TAB.y, TAB.width, TAB.height), g = new PIXI.Graphics(); tab.addChild(g);
+      if (isSelected) g.beginFill(data.glow, .3).drawRoundedRect(-5, -5, TAB.width + 10, TAB.height + 10, 14).endFill();
+      stoneRect(g, 0, 0, TAB.width, TAB.height, isSelected ? data.deep : RELIC.stone, isSelected ? data.accent : RELIC.brass, isSelected ? 3 : 2);
+      if (candidate) {
+        const emblem = createClassPortraitArt(candidate.founderClassId, { size: 84, founder: true, crest: false });
+        if (emblem) { emblem.position.set((TAB.width - 84) / 2, 8); emblem.alpha = isSelected ? 1 : .72; tab.addChild(emblem); }
+        const name = text(tab, data.name[0] + data.name.slice(1).toLowerCase(), TAB.width / 2, 100, 22, { fill: isSelected ? RELIC.bone : RELIC.ash, fontWeight: 'bold' });
+        name.anchor.set(.5, 0); fit(name, TAB.width - 16);
+        if (isSelected) g.lineStyle(0).beginFill(data.accent).drawRect(18, TAB.height - 8, TAB.width - 36, 4).endFill();
+        addInteractionFeedback(tab, { x: 0, y: 0, width: TAB.width, height: TAB.height }, { onActivate: () => choose(candidate) });
+        tab.portraitStage = 'youth'; // founders are always painted as youth; the life-map probe reads this
+        root.candidateRoots[candidate.candidateIndex] = tab; root.controls[`tab:${slot}`] = tab;
+      } else {
+        const ghost = createClassPortraitArt('mystery', { size: 70 });
+        if (ghost) { ghost.position.set((TAB.width - 70) / 2, 10); ghost.alpha = .5; tab.addChild(ghost); }
+        // padlock
+        g.lineStyle(3, 0xb8b09a, .95).arc(TAB.width / 2, 50, 11, Math.PI, 0).lineStyle(0).beginFill(0xb8b09a).drawRoundedRect(TAB.width / 2 - 16, 50, 32, 26, 5).endFill();
+        const name = text(tab, 'Locked', TAB.width / 2, 100, 22, { fill: 0x80847a, fontWeight: 'bold' }); name.anchor.set(.5, 0);
+        addInteractionFeedback(tab, { x: 0, y: 0, width: TAB.width, height: TAB.height });
+        addTip(tab, `locked:${slot}`, 'locked', null, 'right'); root.controls[`tab:${slot}`] = tab;
+      }
+      tabs.push(tab);
+    }
+  }
+
+  function confirmSelected() {
+    if (begun || gone) return; begun = true; hideTip(); onConfirm?.(selected.candidateIndex);
+  }
+  function mountPage(candidate, { fromDir = 0 } = {}) {
+    const next = buildPage(candidate);
+    holder.addChild(next);
+    if (page && fromDir && !reducedMotion()) {
+      leaving = page; leaving.eventMode = 'none';
+      transition = { startedAt: now(), dir: fromDir, from: leaving, to: next };
+      next.alpha = 0; next.x = fromDir * 70;
+    } else if (page) { page.destroy({ children: true }); }
+    page = next; root.controls = { ...tabsControls(), ...next.controls };
+  }
+  const tabsControls = () => Object.fromEntries(Object.entries(root.controls).filter(([key]) => key.startsWith('tab:')));
+
+  function choose(candidate) {
+    if (!candidate || candidate === selected) return;
+    select(candidate.candidateIndex); onPreview?.(candidate.candidateIndex);
+  }
+  function select(index) {
+    const next = candidates.find(c => c.candidateIndex === index) ?? candidates[0];
+    if (!next || next === selected) return;
+    const dir = Math.sign(candidates.indexOf(next) - candidates.indexOf(selected)) || 1;
+    selected = next; hideTip(); finishTransition(); buildTabs(); mountPage(selected, { fromDir: dir });
+  }
+  function navigate(delta) {
+    const at = candidates.indexOf(selected);
+    choose(candidates[(at + delta + candidates.length) % candidates.length]);
+  }
+  function finishTransition() {
+    if (!transition) return;
+    transition.from.destroy({ children: true }); transition.to.alpha = 1; transition.to.x = 0; leaving = null; transition = null;
+  }
+
+  // ---- swipe between classes ----
+  let swipe = null;
+  shell.on('pointerdowncapture', event => { swipe = { x: event.global.x, y: event.global.y }; });
+  const endSwipe = event => {
+    if (!swipe) return; const dx = event.global.x - swipe.x, dy = event.global.y - swipe.y; swipe = null;
+    if (Math.abs(dx) > 140 && Math.abs(dy) < Math.abs(dx) * .6) navigate(dx < 0 ? 1 : -1);
+  };
+  shell.on('pointerup', endSwipe); shell.on('pointerupoutside', endSwipe);
+
+  // ---- open / close / frame update ----
+  function applyPose(t, opening) {
+    const e = ease(t), show = opening ? e : 1 - e;
+    backdrop.alpha = .74 * show; shell.alpha = Math.min(1, show * 1.6);
+    shell.scale.set(.94 + .06 * show); shell.y = MODAL_PANEL.y + H / 2 + (1 - show) * 26;
+  }
+  function open() {
+    gone = false; begun = false; root.visible = true; root.eventMode = 'static';
+    hideTip();
+    if (reducedMotion()) { pose = { phase: 'open', startedAt: 0 }; applyPose(1, true); return; }
+    pose = { phase: 'opening', startedAt: now() }; applyPose(0, true);
+  }
+  function close() {
+    if (pose.phase === 'closing' || gone) return;
+    hideTip(); root.eventMode = 'none';
+    if (reducedMotion()) { gone = true; return; }
+    pose = { phase: 'closing', startedAt: now() };
+  }
+  function update(time = now()) {
+    if (pose.phase === 'opening') { const t = (time - pose.startedAt) / OPEN_MS; applyPose(t, true); if (t >= 1) pose.phase = 'open'; }
+    else if (pose.phase === 'closing') { const t = (time - pose.startedAt) / CLOSE_MS; applyPose(t, false); if (t >= 1) gone = true; }
+    if (transition) {
+      const t = (time - transition.startedAt) / PAGE_MS, e = ease(t);
+      transition.from.alpha = 1 - e; transition.from.x = -transition.dir * 70 * e;
+      transition.to.alpha = e; transition.to.x = transition.dir * 70 * (1 - e);
+      if (t >= 1) finishTransition();
+    }
+    if (page?.glow) page.glow.alpha = reducedMotion() ? 1 : .85 + .15 * Math.sin(time / 1300);
+  }
+
+  function handleKeyDown(event) {
+    if (gone || pose.phase === 'closing') return false;
+    if (event.key === 'ArrowRight') { navigate(1); return true; }
+    if (event.key === 'ArrowLeft') { navigate(-1); return true; }
+    if (event.key === 'Enter' || event.key === 'NumpadEnter') { confirmSelected(); return true; }
+    if (event.key === 'Escape') { if (pinnedTip()) { hideTip(); return true; } onClose?.(); return true; }
+    return false;
+  }
+
+  buildTabs(); mountPage(selected);
+  // Starts fully shown; the drawer calls open() when the picker becomes visible.
+  applyPose(1, true);
+  Object.assign(root, {
+    select, open, close, update, handleKeyDown, navigate,
+    isGone: () => gone, isClosing: () => pose.phase === 'closing',
+    destroyTooltip: hideTip,
+    getSnapshot: () => ({ classId: selected.founderClassId, name: FOUNDER_CLASSES[selected.founderClassId].name,
+      replacedStat: FOUNDER_CLASSES[selected.founderClassId].replaces, classStat: FOUNDER_CLASSES[selected.founderClassId].stat,
+      tooltip: pinnedTip() || null, availableFounders: candidates.length, totalSlots: SLOT_COUNT,
+      lockedSlots: SLOT_COUNT - candidates.length, phase: pose.phase, transitioning: !!transition,
+      stats: selected.stats ?? null }),
   });
-  panel(root,848,140,660,340,true);text(root,'CLASS ATTRIBUTES',872,156,24,{fill:RELIC.gold});text(root,`${data.stat}  ›`,872,192,44,{fill:RELIC.gold,fontWeight:'bold'});hit(data.stat,872,192,610,55);
-  data.effects.forEach((copy,i)=>text(root,copy,872,250+i*78,32,{width:610}));
-  root.addChild(new PIXI.Graphics().lineStyle(1,RELIC.brass).moveTo(872,410).lineTo(1482,410));text(root,`Replaces ${data.lost}`,872,422,26,{fill:0xb1b4a6});
-  text(root,'CLASS ABILITIES',564,518,24,{fill:RELIC.gold});data.abilities.forEach(([name,copy,id],i)=>{const y=560+i*112;text(root,name,564,y,36,{fontWeight:'bold'});text(root,copy,564,y+46,32,{fill:0xb1b4a6,width:842});text(root,'›',1450,y+15,36,{fill:RELIC.gold});hit(id,554,y,930,99);});
-  root.controls.begin=button(root,1024,802,494,76,`BEGIN WITH ${data.name}`,()=>onConfirm(selected.candidateIndex));
-  const start=(1560-4*88)/2;
-  const thumbs=[];
-  for(let index=0;index<4;index++) {
-    const candidate=candidates[index];const b=button(root,start+index*88,890,76,62,candidate?'':'?',()=>onPreview(candidate.candidateIndex),!candidate);
-    if(candidate){const a=createClassPortraitArt(candidate.founderClassId,{size:54,founder:true});if(a){a.position.set(11,4);b.addChild(a);}b.portraitStage='youth';if(candidate===selected)panel(b,0,0,76,62,true).alpha=.25;}thumbs.push(b);
-  }
-  text(root,`${candidates.indexOf(selected)+1} / 4`,780,853,24,{fill:0xb1b4a6}).anchor.x=.5;
-  function navigate(delta) {const index=candidates.indexOf(selected);onPreview(candidates[(index+delta+candidates.length)%candidates.length].candidateIndex);}
-  root.controls.previous=button(root,start-84,890,70,62,'‹',()=>navigate(-1));root.controls.next=button(root,start+352+2,890,70,62,'›',()=>navigate(1));
-  root.candidateRoots=[];
-  candidates.forEach((candidate,index)=>{root.candidateRoots[candidate.candidateIndex]=thumbs[index];});
-  root.getSnapshot=()=>({classId,name:data.name,replacedStat:data.lost,classStat:data.stat,tooltip:root.tipId,availableFounders:candidates.length,totalSlots:4});
   return root;
 }
