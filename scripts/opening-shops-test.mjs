@@ -1,10 +1,20 @@
 import assert from 'node:assert/strict';
-import { createOpeningController } from '../images/dark-fantasy/life-map-opening-prototype/controller.js';
+import { createOpeningController, OPENING_STORAGE_KEY } from '../images/dark-fantasy/life-map-opening-prototype/controller.js';
+import { createOpeningExperiment } from '../images/dark-fantasy/life-map-opening-prototype/experiment.js';
 import { openingVassal, commitOpeningEncounter, cloneOpeningSession } from '../images/dark-fantasy/life-map-opening-prototype/model.js';
 import { serializeGameState } from '../src/model/state.js';
 import { getDetailedPracticeDef, getDetailedStructureDef } from '../src/model/game-config.js';
 import { isVassalStockOutputPractice } from '../src/defs/gamepieces/vassal-life-map-defs.js';
 const saved=c=>JSON.stringify(serializeGameState(c.getSnapshot().session.state));
+// The old authored pool in the reported screenshot must use the same picker
+// when the player enters the shop along the graph, rather than a preview button.
+const legacyDraft=createOpeningExperiment();
+legacyDraft.nodes.find(node=>node.id==='shop').cards=['herdingTrain','logging','barter'].map(definitionId=>({kind:'practice',definitionId,prestigeCost:10,phaseCost:12}));
+const graphShop=createOpeningController({getItem:key=>key===OPENING_STORAGE_KEY?JSON.stringify(legacyDraft):null});
+graphShop.enter('relic');await graphShop.commit(graphShop.getDecision().options[0].id,'carry');
+graphShop.enter('founding');await graphShop.commit(graphShop.getDecision().options[0].id);
+graphShop.enter('shop');assert.equal(graphShop.getDecision().shopTagChoices.length,3);assert.equal(graphShop.getDecision().offers.length,0);
+assert.deepEqual(graphShop.getSnapshot().draft,legacyDraft,'checking the saved draft preserves its authored graph and costs');
 for(const kind of ['shop','structureShop']) {
   const c=createOpeningController(), draft=c.getSnapshot().draft;c.previewShop(kind,true);
   const gate=c.getDecision(), before=saved(c);

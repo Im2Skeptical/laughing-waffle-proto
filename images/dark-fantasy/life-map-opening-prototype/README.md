@@ -4,6 +4,9 @@ Open **Development Lab → Prototypes → Protovassal opening**, or run
 `npm run preview:opening` and open
 <http://localhost:5185/images/dark-fantasy/life-map-opening-prototype/>.
 The Pages build bundles this page separately; player modules never import it.
+Deployed workbench module URLs include their content hash so a reload fetches the
+matching code. An already open page still needs reloading after an update; Save
+your draft first, then reload and Restart to test its nodes with the current code.
 
 The question is whether a curated Warrior opening teaches Prestige, makes early
 military preparation useful and gives every encountered node a benefit or an
@@ -85,7 +88,7 @@ disposable state, with the current seed and authored content. It does not change
 the draft or require playing through the preceding nodes. Rewind returns to that
 preview's entry; Restart resumes the complete authored opening.
 
-World Decision uses the shared node-modal body, title plaque, backdrop and Confirm
+Crossroads uses the shared node-modal body, title plaque, backdrop and Confirm
 dock, leaving the usual surrounding game screen visible. The complete map fits
 beside three options; pan, wheel/pinch zoom and Reset remain available. Unavailable
 regions, landmarks, labels and roads are greyed and darkened in every mode. The
@@ -112,7 +115,7 @@ reward odds. Apply, then Preview or Restart to test. Existing saved drafts retai
 their authored prices until edited. Normal ability and relic discounts still apply.
 
 **Travel reward example** beside the guided experiments (or **Preview travel
-rewards** in a World Decision editor) opens a disposable four-settlement world.
+rewards** in a Crossroads editor) opens a disposable four-settlement world.
 From R07, move to **R06 (+3 Prestige)**, **R08 (+6)** or **R11 (+9)**. Each legal
 destination has a clickable Prestige badge; selecting it updates the shared Move
 footer and Vassal HUD. Before selection, the footer shows the time price and the
@@ -130,7 +133,7 @@ exhausted relic pool falls back to an ability gain. Ordinary node income still
 follows the game rules. Outcomes record the reward, and complete RNG rewind
 repeats it. Hovering, selecting modes, and reading odds do not roll rewards.
 
-The World Decision editor exposes **Relic chance (%)**. Existing authored local
+The Crossroads editor exposes **Relic chance (%)**. Existing authored local
 options remain as authored; **Use Tour as the local activity** replaces them with
 the new reward recipe while retaining the node and its connections. The optional
 `weightedOutcomes` option data defines weighted pools of existing relic/ability

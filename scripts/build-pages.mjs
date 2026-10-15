@@ -148,7 +148,13 @@ async function buildPagesArtifact() {
       bundle: true, platform: "browser", format: "esm", target: ["es2020"],
       legalComments: "none", logLevel: "silent",
     });
-    await access(path.join(outDir, `images/dark-fantasy/${folder}/index.html`));
+    // Each deployed build needs a new module URL; Pages can cache study.js
+    // while the editor HTML is already showing a newer version.
+    const htmlPath = path.join(outDir, `images/dark-fantasy/${folder}/index.html`);
+    const moduleHash = shortContentHash(await readFile(path.join(outDir, studyPath)));
+    const html = await readFile(htmlPath, "utf8");
+    await writeFile(htmlPath, html.replace(/src="([^"]+)"/g, (attribute, source) =>
+      source.split("?")[0] === studyPath ? `src="${source}${source.includes("?") ? "&" : "?"}build=${moduleHash}"` : attribute));
   }
 
   const sourceHtml = await readFile("index.html", "utf8");
