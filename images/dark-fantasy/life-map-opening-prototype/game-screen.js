@@ -22,17 +22,20 @@ import { createOpeningNoteScreen } from './note-screen.js';
 import { createOpeningWorldDecisionScreen } from './world-decision-screen.js';
 
 // Bump for each published opening-workbench iteration and report it to the user.
-export const OPENING_PREVIEW_VERSION = '0.1.0';
+export const OPENING_PREVIEW_VERSION = '0.1.1';
 
 // A mock game shell around the exact views used by the game. All input goes
 // through the disposable controller; this module owns no simulation rules.
-export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
+export function createOpeningGameScreen({ host, controller, onEdit, onError, onCampaign }) {
   const app = new PIXI.Application({ width: 2424, height: 1080, backgroundColor: PALETTE.background, antialias: true, resolution: 1 });
   app.stage.eventMode = 'static'; app.stage.hitArea = app.screen;
   app.view.tabIndex = 0; app.view.dataset.testid = 'opening-game-screen';
   app.view.setAttribute('aria-label', 'Playable opening: Life Map, world map, settlement and node decisions');
   host.replaceChildren(app.view);
   const screenLabel = document.createElement('span'); screenLabel.className = 'game-screen-label'; screenLabel.textContent = `Opening playthrough · v${OPENING_PREVIEW_VERSION}`; host.prepend(screenLabel);
+  const campaignShortcut = document.createElement('button');
+  campaignShortcut.type='button';campaignShortcut.id='open-campaign';campaignShortcut.className='opening-campaign-shortcut';campaignShortcut.textContent='Open Campaign';
+  campaignShortcut.addEventListener('click',()=>onCampaign?.());host.append(campaignShortcut);
   const display = attachDevPreviewDisplay(host, { onChange: active => { host.closest('body')?.classList.toggle('opening-fullscreen', active); } });
   const rotated = () => display.active && matchMedia('(orientation:portrait) and (pointer:coarse)').matches;
   const mapPosition = app.renderer.events.mapPositionToPoint.bind(app.renderer.events);
@@ -215,6 +218,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   }
   function refresh(next = controller.getSnapshot()) {
     snapshot = next; decisionCache.clear();
+    campaignShortcut.disabled=snapshot.busy;
     if(snapshot.session.activeId && snapshot.session.activeId !== lastActiveId) mode = 'life';
     const active = snapshot.experiment.nodes.find(n=>n.id===snapshot.session.activeId);
     const wasWorldOpen=worldDecision.isOpen();

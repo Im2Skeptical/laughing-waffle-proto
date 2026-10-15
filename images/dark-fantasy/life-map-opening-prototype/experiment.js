@@ -1,5 +1,5 @@
 // Experimental encounter data. Never read by player New Game or saved runs.
-import { VASSAL_STAT_IDS, VASSAL_LIFE_TUNING } from '../../../src/defs/gamepieces/vassal-life-map-defs.js';
+import { VASSAL_STAT_IDS } from '../../../src/defs/gamepieces/vassal-life-map-defs.js';
 import { VASSAL_HEIRLOOM_DEFS } from '../../../src/defs/gamepieces/vassal-heirloom-defs.js';
 import { MOON_PHASE_COUNT } from '../../../src/defs/gamesettings/moon-phase-defs.js';
 import { getGameSetting } from '../../../src/model/game-config.js';
@@ -9,7 +9,7 @@ export const OPENING_KINDS = ['relic', 'world', 'founding', 'shop', 'structureSh
 
 export function createOpeningLegacyNode() {
   return { id:'legacy', title:'Legacy', kind:'legacy', description:'Choose how this life leaves its mark.', next:[],
-    legacy:{settlementPrestigeCost:VASSAL_LIFE_TUNING.settlementPrestigeCost,statDivisor:3,prestigeDivisor:10} };
+    legacy:{statDivisor:3,prestigeDivisor:10} };
 }
 
 const phasesPerYear = getGameSetting(null, 'seasonDurationSec') * 4 / getGameSetting(null, 'phaseDurationSec');
@@ -104,8 +104,8 @@ export function validateOpeningExperiment(doc) {
     if (node.kind === 'legacy') {
       const tuning=node.legacy;
       if(node.next.length)throw new Error('Legacy must end its route.');
-      if(!tuning||!finite(tuning.settlementPrestigeCost,0,10000)||!finite(tuning.statDivisor,1,10000)
-        ||!finite(tuning.prestigeDivisor,1,10000))throw new Error(`${node.title}: choose valid Legacy costs and divisors.`);
+      if(!tuning||!finite(tuning.statDivisor,1,10000)
+        ||!finite(tuning.prestigeDivisor,1,10000))throw new Error(`${node.title}: choose valid Legacy divisors.`);
     }
     if (node.worldCosts != null) {
       const costs = node.worldCosts;

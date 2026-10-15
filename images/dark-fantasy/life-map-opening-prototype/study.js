@@ -144,8 +144,8 @@ function renderEditor(snapshot) {
   const description = el('label', 'Description'), text = el('textarea'); text.rows = 3; text.value = spec.description; description.append(text); host.append(description);
   const legacyFields={};
   if(spec.kind==='legacy') {
-    for(const [key,label] of Object.entries({settlementPrestigeCost:'Settlement Prestige cost',statDivisor:'Stat points per starting stat point',prestigeDivisor:'Prestige per starting Prestige'})) {
-      legacyFields[key]=appendField(host,label,spec.legacy[key],{id:`legacy-${key}`,type:'number',min:key==='settlementPrestigeCost'?0:1});
+    for(const [key,label] of Object.entries({statDivisor:'Stat points per starting stat point',prestigeDivisor:'Prestige per starting Prestige'})) {
+      legacyFields[key]=appendField(host,label,spec.legacy[key],{id:`legacy-${key}`,type:'number',min:1});
     }
   }
   const campaignFields={};
@@ -269,6 +269,7 @@ controller.subscribe(render); render();
 function startGameScreen() {
 try {
   gameScreen = createOpeningGameScreen({ host: $('game-screen'), controller,
+    onCampaign:()=>run(()=>{guide=null;controller.previewCampaign(campaignInputs);gameScreen?.openDecision();}),
     onError: message => { error = message; render(); },
     onEdit: id => { if (id) selectedId = id; editorKey = ''; render(); $('graph-editor').scrollIntoView({ block: 'start', behavior: 'smooth' }); },
   });

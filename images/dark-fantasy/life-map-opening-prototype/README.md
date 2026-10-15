@@ -4,11 +4,11 @@ Open **Development Lab → Prototypes → Protovassal opening**, or run
 `npm run preview:opening` and open
 <http://localhost:5185/images/dark-fantasy/life-map-opening-prototype/>.
 The Pages build bundles this page separately; player modules never import it.
-The canvas header and preview heading show **v0.1.0**. Bump
+The canvas header and preview heading show **v0.1.1**. Bump
 `OPENING_PREVIEW_VERSION` in `game-screen.js` for each published iteration, update
 this number, and report it in the handoff so the loaded Pages build is identifiable.
 The canvas badge stays visible above modals and in fullscreen.
-The **Campaign** button opens a repeatable Warrior Campaign mockup on the same
+**Open Campaign**, beside Fullscreen, opens a repeatable Warrior Campaign mockup on the same
 full-map screen. **Campaign inputs** below the canvas supplies editable sample
 Prowess, Prestige, adult Warriors, Arms and Food. Adjust values, then click
 Campaign again; this never edits the saved graph. The encounter editor separately
@@ -46,20 +46,22 @@ found a settlement, scale a reward by the highest effective stat, or scale a
 reward by accumulated Prestige. The default recipe ends at Legacy; saved drafts
 are preserved and can add this node through the graph editor.
 
-This is a choice/layout workshop. Settlement uses the existing 40-Prestige and
-10-adult-Villager prices provisionally. Legacy always shows the complete map
+This is a choice/layout workshop. All three Legacy options are free, including
+settlement founding: no Prestige or Villagers are charged or required. Each card
+has a plain **Choose** button using the same component as shop specialty selection,
+with no cost footer. Legacy always shows the complete map
 alongside all three choices, in fixed positions. Legal connected frontier
 destinations are highlighted and other regions darkened. Select founding and
 choose a destination before Confirm; the stat and Prestige choices confirm on
 the same screen without changing layouts.
 The direct preview supplies a few legal frontier roads for testing. Ordinary
-authored play uses its existing roads and settlement requirements.
+authored play uses its existing roads and destination-capacity requirements.
 The stat choice always uses the highest effective stat: each three points give
 future Vassals +1 starting point in that same stat. Each ten remaining Prestige
 give future Vassals +1 starting Prestige. Both formulas round down with no cap
-and no minimum bonus. Edit the Legacy node's cost and divisors, then Apply and Preview.
+and no minimum bonus. Edit the Legacy node's divisors, then Apply and Preview.
 The preview uses a Warrior with 60 Prestige and highest stat 6; **0 Prestige ·
-Legacy** tests the unavailable settlement, available stat reward and zero Prestige bonus.
+Legacy** tests free settlement founding, the stat reward and zero Prestige bonus.
 Confirm records the chosen option and any settlement destination for review, without founding, charging costs,
 granting rewards, retiring, advancing time, or consuming RNG. Rewind restores the
 choice. Normal player Legacy and settlement generation are unchanged.

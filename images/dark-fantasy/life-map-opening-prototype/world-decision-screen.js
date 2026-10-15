@@ -109,10 +109,12 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
       },{
         title:label,artId:(campaign?['challenge','settlement','relic']:founding?['settlement','development','legacy']:['travel','settlement','patronage'])[index],summary:details[index],
         actionLabel:from?'FROM':'CHOOSE',faceLabel:from?'From':(menu?decision.nodeState.selectedOptionId===id:mode===id)?'Selected':'Choose',
-        enabled,selected:menu?decision.nodeState.selectedOptionId===id:mode===id,costUnmet:!!option&&option.cost>(getVassal()?.prestige??0),
+        enabled,showCost:!founding,selected:menu?decision.nodeState.selectedOptionId===id:mode===id,costUnmet:!!option&&option.cost>(getVassal()?.prestige??0),
         cost:{phaseCost:option?.phases??0,prestigeCost:option?.cost??0,foodCost:option?.foodCost??0,riskLabel:option?.riskLabel,prestigeGain:!selectedOption&&varyingReward?0:option?.prestigeDelta??0,state:getState()},
         onClick:choose,onInspect:choose,
       });
+      if(founding)card.choiceButton=button(chrome,{x:card.x,y:PANEL.y+CONTENT.cardY+OPTION_COLUMN.height+12,width:OPTION_COLUMN.width,height:78},
+        decision.nodeState.selectedOptionId===id?'Selected':'Choose',enabled,choose,decision.nodeState.selectedOptionId===id);
       card.priceOptionId=option?.id;card.priceFrom=from;
       return card;
     });
@@ -177,11 +179,12 @@ export function createOpeningWorldDecisionScreen({ app, layer, getState, getVass
   const bounds=control=>{const r=control.getBounds();return{x:r.x,y:r.y,width:r.width,height:r.height};};
   return {refresh,getHudDeltas:()=>{const choice=selected();return root.visible&&matchesChoice(choice)&&!choice.blocked?{prestige:(choice.prestigeDelta??0)-choice.cost,stats:{}}:null;},update:()=>{draw();updateOverlay();},isOpen:()=>root.visible,
     open:()=>{dismissed=false;root.visible=!!decision;map.setVisible(root.visible);map.refresh();key='';draw();},close:()=>{dismissed=true;root.visible=false;},
-    getPoint:(kind,id)=>kind==='confirm'?point(confirmButton):kind==='campaignLeave'?point(leaveButton):kind==='option'?point(modeButtons[id]):kind==='worldMode'?point(modeButtons[['move','build','tour'].indexOf(id)]):kind==='worldCost'?point(modeButtons[(isCampaign()?['monsters','neutrals','quest']:isFounding()?['found-settlement','highest-stat','accumulated-prestige']:['move','build','tour']).indexOf(id)]?.costPanel):kind==='worldTarget'?mapPoint(id):kind==='worldReward'?point(rewardBadges.find(b=>b.regionId===id)?.control):null,
+    getPoint:(kind,id)=>kind==='confirm'?point(confirmButton):kind==='campaignLeave'?point(leaveButton):kind==='option'?point(modeButtons[id]?.choiceButton??modeButtons[id]):kind==='worldMode'?point(modeButtons[['move','build','tour'].indexOf(id)]):kind==='worldCost'?point(modeButtons[(isCampaign()?['monsters','neutrals','quest']:isFounding()?['found-settlement','highest-stat','accumulated-prestige']:['move','build','tour']).indexOf(id)]?.costPanel):kind==='worldTarget'?mapPoint(id):kind==='worldReward'?point(rewardBadges.find(b=>b.regionId===id)?.control):null,
     getSnapshot:()=>({open:root.visible,mode,selectedOptionId:decision?.nodeState.selectedOptionId,selectedRegionId:selected()?target(selected())??null:null,
       locationRegionId:currentRegion(),regionCount:getState()?.world?.regions?.length??0,
       connectionCount:getState()?.world?.connections?.length??0,
       panel:PANEL,mapBody:MAP_BODY,artworkReady:modeButtons.length>0&&modeButtons.every(card=>card.illustration?.texture?.baseTexture.valid),brightRegionIds:brightRegions(),locationPlaque:locationPlaque?{label:locationLabel,rect:bounds(locationPlaque)}:null,
+      choiceButtons:modeButtons.flatMap((card,index)=>card.choiceButton?[{id:decision.options[index].id,label:decision.nodeState.selectedOptionId===decision.options[index].id?'Selected':'Choose',rect:bounds(card.choiceButton)}]:[]),
       prices:modeButtons.flatMap((card,index)=>card.costPanel?[{mode:isMenuMap()?decision.options[index].id:['move','build','tour'][index],optionId:card.priceOptionId,from:card.priceFrom,
         ...card.costPanel.costSummary,rect:bounds(card.costPanel),cardRect:bounds(card)}]:[]),feedback:feedback?{text:feedback.text,rect:bounds(feedback)}:null,
       dimmedRegionIds:(getState()?.world?.regions??[]).map(r=>r.id).filter(id=>!brightRegions().includes(id)),
