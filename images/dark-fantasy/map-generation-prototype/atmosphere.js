@@ -5,6 +5,7 @@ import { cloudWeatherTime } from './cloud-cover.js';
 import { noise, WATER_DRIFT_GLSL } from './water-drift.js';
 import { createCloudLayer } from './cloud-banks.js';
 import { CLOUD_DISSOLVE_GLSL,cloudWind } from './cloud-dissolve.js';
+import { createAnimationWindow } from './animation-window.js';
 
 const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
 export function atmospherePhase(seconds,seed) {
@@ -72,15 +73,16 @@ uniform vec4 uWorld;
 uniform vec2 uCloudWind;
 uniform float uCloudTime;
 uniform float uCloudSalt;
+uniform vec4 uCloudView;
 ${WATER_DRIFT_GLSL}
 ${CLOUD_DISSOLVE_GLSL}
 void main(){
-  vec3 field=texture2D(uDensity,vUV).rgb;
+  vec3 field=texture2D(uDensity,(vUV-uCloudView.xy)/uCloudView.zw).rgb;
   vec3 mask=texture2D(uMask,vUV).rgb;
   vec2 source=vUV-uShadowOffset;
   float bankShadow=dissolvedCloud(source).a*.16*uEnabled.z*mask.b;
   // Original broad shadows cross playable land independently of visible wisps.
-  float wispShadow=texture2D(uDensity,source).r*.105*uEnabled.z*mask.b;
+  float wispShadow=texture2D(uDensity,(source-uCloudView.xy)/uCloudView.zw).r*.105*uEnabled.z*mask.b;
   float shadow=1.0-(1.0-bankShadow)*(1.0-wispShadow);
   float fog=mask.r*(.18+field.g*.57)*uEnabled.x;
   vec4 bank=dissolvedCloud(vUV);
@@ -97,9 +99,10 @@ void main(){
   gl_FragColor=vec4(colour,alpha);
 }`;
 
-export function createAtmosphere({width,height,mask,world,seed}) {
-  const makeTarget=()=>PIXI.RenderTexture.create({width,height,resolution:1,scaleMode:PIXI.SCALE_MODES.LINEAR,mipmap:PIXI.MIPMAP_MODES.OFF});
-  const density=makeTarget(),texture=makeTarget(),cloudTexture=makeTarget();
+export function createAtmosphere({width,height,mask,world,seed,windowed=false}) {
+  const surface=createAnimationWindow(width,height,{windowed,padding:16});
+  const makeTarget=()=>PIXI.RenderTexture.create({width:surface.frame.width,height:surface.frame.height,resolution:1,scaleMode:PIXI.SCALE_MODES.LINEAR,mipmap:PIXI.MIPMAP_MODES.OFF});
+  const density=makeTarget(),texture=surface.levels[0],cloudTexture=makeTarget();
   const cloudLayer=createCloudLayer(width,height,world,seed);
   const maskTexture=PIXI.Texture.fromBuffer(mask,width,height,{scaleMode:PIXI.SCALE_MODES.LINEAR,
     mipmap:PIXI.MIPMAP_MODES.OFF,alphaMode:PIXI.ALPHA_MODES.NO_PREMULTIPLIED_ALPHA});
@@ -107,40 +110,57 @@ export function createAtmosphere({width,height,mask,world,seed}) {
     .addAttribute('aTextureCoord',[0,0,1,0,1,1,0,1],2).addIndex([0,1,2,0,2,3]);
   const fieldShader=PIXI.Shader.from(vertex,densityFragment,{uWorld:world,uWind:[0,0],uPhase:[0,0,0,0],uSeconds:0});
   const compositeShader=PIXI.Shader.from(vertex,compositeFragment,{uDensity:density,uClouds:cloudTexture,uMask:maskTexture,
-    uWorld:world,uCloudWind:[0,0],uCloudTime:0,uCloudSalt:(seed%997)*.0713,
+    uWorld:world,uCloudWind:[0,0],uCloudTime:0,uCloudSalt:(seed%997)*.0713,uCloudView:[0,0,1,1],
     uShadowOffset:[18/world[2],12/world[3]],uEnabled:[1,1,1],uWisps:0});
   const fieldMesh=new PIXI.Mesh(geometry,fieldShader),compositeMesh=new PIXI.Mesh(geometry,compositeShader);
   fieldMesh.blendMode=compositeMesh.blendMode=PIXI.BLEND_MODES.NONE;
-  let lastTime=null,densityTime=null,cloudTime=null,lastOptions='';
+  let lastTime=null,densityTime=null,cloudTime=null,lastOptions='',lastRevision=-1;
   const stats={width,height,textureMiB:+(width*height*16/1048576).toFixed(2),frames:0,phaseSeconds:null,updateMs:0};
-  return {texture,density,cloudTexture,stats,
+  return {texture,density,cloudTexture,stats,frame:surface.frame,
+    get visible(){return surface.visible;},
+    setView(view,pixelsPerTexel){
+      const changed=surface.setView(view,pixelsPerTexel);
+      if(changed){
+        const {width:w,height:h}=surface.frame;density.resize(w,h,true);cloudTexture.resize(w,h,true);
+        compositeShader.uniforms.uCloudView=surface.uv;
+        stats.textureMiB=+((width*height*4+w*h*12)/1048576).toFixed(2);
+      }
+      return changed;
+    },
     update(renderer,seconds,{fog=true,clouds=true,shadows=true,wisps=false}={},force=false) {
+      if(!surface.visible)return false;
+      force=force||lastRevision!==surface.revision;
       const key=`${fog}/${clouds}/${shadows}/${wisps}`;
       if(!force&&lastTime===seconds&&lastOptions===key)return false;
       const started=performance.now();
+      let passes=0;
       const enabled=fog||clouds||shadows||wisps;
       if((clouds||shadows)&&(force||cloudTime!==seconds)) {
         stats.banks=cloudLayer.update(seconds);
-        renderer.render(cloudLayer.container,{renderTexture:cloudTexture,clear:true});
+        renderer.render(cloudLayer.container,{renderTexture:cloudTexture,clear:true,transform:surface.transform});
+        passes++;
         cloudTime=seconds;
       }
       if(enabled&&(force||densityTime!==seconds)) {
         const p=atmospherePhase(seconds,seed);
         Object.assign(fieldShader.uniforms,{uWind:p.wind,uPhase:[p.evolve,p.fogTime,p.salt,p.threshold],uSeconds:seconds});
-        renderer.render(fieldMesh,{renderTexture:density,clear:true});
+        renderer.render(fieldMesh,{renderTexture:density,clear:true,transform:surface.transform});
+        passes++;
         densityTime=seconds;
       }
       compositeShader.uniforms.uEnabled=[+fog,+clouds,+shadows];
       compositeShader.uniforms.uWisps=+wisps;
       compositeShader.uniforms.uCloudWind=cloudWind(cloudWeatherTime(seconds));
       compositeShader.uniforms.uCloudTime=cloudWeatherTime(seconds);
-      if(enabled||lastOptions!==key||force)renderer.render(compositeMesh,{renderTexture:texture,clear:true});
+      if(enabled||lastOptions!==key||force){renderer.render(compositeMesh,{renderTexture:texture,clear:true,transform:surface.transform});passes++;}
       lastTime=seconds;lastOptions=key;
-      Object.assign(stats,{phaseSeconds:seconds,frames:stats.frames+1,updateMs:Math.round((performance.now()-started)*100)/100,fog,clouds,shadows,wisps});
+      lastRevision=surface.revision;
+      Object.assign(stats,{phaseSeconds:seconds,frames:stats.frames+1,updateMs:Math.round((performance.now()-started)*100)/100,fog,clouds,shadows,wisps,
+        passes,renderPixels:texture.width*texture.height*passes});
       return true;
     },
     destroy(){fieldMesh.destroy();compositeMesh.destroy();geometry.destroy();fieldShader.destroy();compositeShader.destroy();
       cloudLayer.destroy();cloudTexture.destroy(true);
-      density.destroy(true);texture.destroy(true);maskTexture.destroy(true);},
+      density.destroy(true);surface.destroy();maskTexture.destroy(true);},
   };
 }

@@ -79,6 +79,12 @@ export function createZoomArt(texture, dynamicLevels = null) {
   });
   const mesh = new PIXI.Mesh(geometry, shader);
   mesh.sourceWidth = texture.width; mesh.sourceHeight = texture.height;
+  mesh.resizeSource = (width,height) => {
+    if(mesh.sourceWidth===width&&mesh.sourceHeight===height)return;
+    const buffer=geometry.getBuffer('aVertexPosition');
+    buffer.data.set([0,0,width,0,width,height,0,height]);buffer.update();
+    mesh.sourceWidth=width;mesh.sourceHeight=height;
+  };
   mesh.eventMode = 'none';
   const render = mesh._render.bind(mesh);
   mesh._render = renderer => { shader.uniforms.uAlpha = mesh.worldAlpha; render(renderer); };

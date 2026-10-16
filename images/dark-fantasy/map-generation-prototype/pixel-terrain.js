@@ -169,14 +169,14 @@ function noise(seed, x, y, scale) {
   return (at(ix, iy) * (1 - u) + at(ix + 1, iy) * u) * (1 - v) + (at(ix, iy + 1) * (1 - u) + at(ix + 1, iy + 1) * u) * v;
 }
 
-export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = true, settlementScale = .75, islandStyle = 'basalt', retainPresentation = false }) {
+export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = true, settlementScale = .75, islandStyle = 'basalt', retainPresentation = false, windowedAnimation = false }) {
   const started = performance.now(), detail = texel === 2 ? 2 : 1, ART = ART_BANKS[detail];
   // Fine detail covers the map and a generous hinterland. A cheap distant bake
   // supports unrestricted panning without a giant high-resolution GPU texture.
   const bounds = texel === 2 ? { minX: -1.5, minY: -1.5, maxX: 2.5, maxY: 2.5 } : map.surroundings.bounds;
   let backdropTexture = null,backdropWaterCycle=null;
   if (texel === 2) {
-    const distant = bakePixelTerrain(map, { texel: 8, sampleBackground, sites: false, islandStyle });
+    const distant = bakePixelTerrain(map, { texel: 8, sampleBackground, sites: false, islandStyle, windowedAnimation });
     backdropTexture = distant.texture; distant.texture = null;
     backdropWaterCycle=distant.waterCycle;distant.waterCycle=null;destroyPixelTerrain(distant);
   }
@@ -442,13 +442,13 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       mask[i+1]=cloudMask[y*fw+x];
       mask[i+2]=Math.round(edge*255);mask[i+3]=255;
     }
-    atmosphere=createAtmosphere({width:fw,height:fh,mask,seed:map.seed,
+    atmosphere=createAtmosphere({width:fw,height:fh,mask,seed:map.seed,windowed:windowedAnimation,
       world:[bounds.minX*1576/2,bounds.minY*516/2,width*texel/2,height*texel/2]});
   }
 
   const waterCycle=createWaterCycle(texture,waterIndices,waterStrength,Uint32Array.from(waterBank),waterBase,
     (x,y)=>noise(map.seed^6719,(bounds.minX*1576+x*texel)/2,(bounds.minY*516+y*texel)/2,87),
-    {world:[bounds.minX*1576/2+waterDriftOffset(map.seed)-texel/4,bounds.minY*516/2-texel/4,width*texel/2,height*texel/2],
+    {windowed:windowedAnimation,world:[bounds.minX*1576/2+waterDriftOffset(map.seed)-texel/4,bounds.minY*516/2-texel/4,width*texel/2,height*texel/2],
       maskAt:i=>waterDriftMask(waterBodies[i],seaDistance[i]/3*texel/2,Math.min(1,waterStrength[i]/35))},waterOverlays);
   return { presentationSource, waterCycle,backdropWaterCycle,settlementPlans, texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, atmosphere, roadTexture, roadClearance, divisionClearance: divisions.clearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, waterOverlays, waterBodies, waterPalette:Uint32Array.from(waterBank), geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: settlementPlans.length,
     waterStudy:{bodyCounts,islandGroups:islandWater.map(c=>({...c,environment:c.lakePixels>c.oceanPixels?'inland lake':'ocean'})),ramps:WATER_RAMPS,phaseSeconds:0,paused:true},

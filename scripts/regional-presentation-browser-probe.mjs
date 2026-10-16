@@ -5,7 +5,8 @@ import path from 'node:path';
 import {chromium} from 'playwright';
 
 const seed=Number(process.argv[2]??1867);
-const output=`artifacts/regional-presentation/${seed}`,url='http://127.0.0.1:18135';
+const windowed=process.argv.includes('--windowed');
+const output=`artifacts/regional-presentation/${seed}${windowed?'-windowed':''}`,url='http://127.0.0.1:18135';
 await mkdir(output,{recursive:true});
 const server=createServer(async(req,res)=>{
   try{
@@ -23,29 +24,39 @@ try{
   const page=await browser.newPage({viewport:{width:1576,height:600}});
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(url);await page.waitForFunction(()=>!!globalThis.PIXI);
-  await page.evaluate(async seed=>{
+  await page.evaluate(async ({seed,windowed})=>{
     const {createNewGameState}=await import('/src/model/new-game.js');
     const {createIllustratedTerrain}=await import('/src/views/world-map/illustrated-terrain.js');
     const state=createNewGameState(seed);
     state.world.regions.forEach(r=>{delete r.monster;});
     const before=JSON.stringify(state),app=new PIXI.Application({width:1576,height:600,backgroundColor:0x14262a});
     app.stop();document.body.append(app.view);
+    const world=new PIXI.Container(),pose={x:0,y:0,zoom:1};app.stage.addChild(world);
     const {getRegionalMap}=await import('/src/model/regional-map/definition.js');
     const points=getRegionalMap(state.world.definitionId).map.regions.flatMap(r=>r.outline);
     const minX=Math.min(...points.map(p=>p.x)),maxX=Math.max(...points.map(p=>p.x));
     const minY=Math.min(...points.map(p=>p.y)),maxY=Math.max(...points.map(p=>p.y));
     const width=Math.min(1450/(maxX-minX),520/(maxY-minY)*1576/516),height=width*516/1576;
-    const view=createIllustratedTerrain(app.stage,{x:60-minX*width,y:40-minY*height,width,height});
+    const rect={x:60-minX*width,y:40-minY*height,width,height};
+    const view=createIllustratedTerrain(world,rect,windowed?{getView:()=>({
+      minX:((-pose.x)/pose.zoom-rect.x)/width,minY:((-pose.y)/pose.zoom-rect.y)/height,
+      maxX:((1576-pose.x)/pose.zoom-rect.x)/width,maxY:((600-pose.y)/pose.zoom-rect.y)/height,zoom:pose.zoom,
+    })}:{});
     await view.prepare(state,app.renderer);
-    const paint=state=>{view.setState(state);view.update(300,1,true);app.renderer.render(app.stage);};
+    const paint=state=>{world.position.set(pose.x,pose.y);world.scale.set(pose.zoom);view.setState(state);view.update(300,pose.zoom,true);app.renderer.render(app.stage);};
     paint(state);
-    window.fixture={state,app,view,paint,before,first:app.renderer.extract.pixels()};
-  },seed);
+    window.fixture={state,app,view,paint,pose,before,first:app.renderer.extract.pixels()};
+  },{seed,windowed});
   await page.screenshot({path:`${output}/natural.png`});
   const initial=await page.evaluate(()=>structuredClone(fixture.view.stats));
   assert.equal(initial.sites.length,6,'Every live town uses a planned biome village');
   assert.ok(initial.sites.every(s=>s.buildings>=5),'Villages contain the approved building compositions');
   assert.ok(initial.roads>=1,'Live gameplay connections use prototype terrain routes');
+  if(windowed){
+    assert.equal(initial.backdropAnimating,false,'Covered background water does not render');
+    assert.ok(initial.animationPasses<13,'Live camera uses fewer animation passes');
+    assert.ok(initial.waterWindows.every(w=>w.width<initial.width),'Water target follows the camera width');
+  }
   const results=[];
   for(const phase of ['spread','islands','occupied-town','clear','road-removed','town-removed','restore']){
     results.push(await page.evaluate(phase=>{
@@ -81,11 +92,24 @@ try{
     assert.equal(r.stats.variantBuilds,1,'State changes reuse prepared terrain variants');
     if(r.phase==='town-removed')assert.equal(r.stats.sites.length,0);
   }
+  const camera=[];
+  for(const pose of [{x:-800,y:-160,zoom:2.5},{x:450,y:130,zoom:.35},{x:0,y:0,zoom:1}]){
+    camera.push(await page.evaluate(pose=>{
+      const f=fixture;Object.assign(f.pose,pose);f.paint(f.state);
+      const pixels=f.app.renderer.extract.pixels();let difference=0;
+      for(let i=0;i<pixels.length;i++)if(pixels[i]!==f.first[i])difference++;
+      return {pose,difference,passes:f.view.stats.animationPasses,pixels:f.view.stats.animationPixels,backdrop:f.view.stats.backdropAnimating};
+    },pose));
+    await page.screenshot({path:`${output}/camera-${pose.zoom}.png`});
+  }
+  assert.equal(camera.at(-1).difference,0,'Panning and zooming restore the same world-space appearance');
+  if(windowed)assert.equal(camera[1].backdrop,true,'Distant water appears beyond the fine layer fade');
   const unchanged=await page.evaluate(()=>{
     const same=fixture.before===JSON.stringify(fixture.state);
     fixture.view.destroy();fixture.app.destroy(true);
     return same;
   });
   assert.equal(unchanged,true);assert.deepEqual(errors,[]);
-  console.log(JSON.stringify({passed:true,sites:initial.sites.length,roads:initial.roads,changes:results.map(r=>({phase:r.phase,renderMs:Math.round(r.stats.presentationMs)})),artifact:`${output}/result.json`}));
+  await writeFile(`${output}/camera.json`,JSON.stringify(camera,null,2));
+  console.log(JSON.stringify({passed:true,sites:initial.sites.length,roads:initial.roads,animation:{passes:initial.animationPasses,pixels:initial.animationPixels},camera,artifact:`${output}/result.json`}));
 }finally{await browser.close();await new Promise(r=>server.close(r));}

@@ -1,6 +1,6 @@
 {
   "name": "laughing-waffle-proto",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Sparse prototype fork for Civilization Survivor core-system rework",
   "type": "module",
   "main": "index.html",
@@ -15,6 +15,7 @@
     "preview:structures": "node scripts/preview-structures.mjs",
     "preview:keywords": "node scripts/preview-keywords.mjs",
     "preview:map": "node scripts/preview-map.mjs",
+    "probe:map-animation": "node scripts/map-animation-window-probe.mjs",
     "build:map-art": "python scripts/import-map-terrain.py",
     "check:map-art": "python scripts/check-map-terrain.py",
     "build": "node scripts/build-pages.mjs",

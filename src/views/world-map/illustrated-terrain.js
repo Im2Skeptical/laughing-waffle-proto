@@ -25,24 +25,25 @@ function surroundingsSampler(map) {
   };
 }
 
-export function createIllustratedTerrain(parent,rect) {
+export function createIllustratedTerrain(parent,rect,{getView}={}) {
   const container=new PIXI.Container();container.eventMode='none';parent.addChild(container);
   let id=null,terrain=null,renderer=null,landmarks=null,lastPaint=-Infinity,lastTime=null;
   let staticLevels=[],meshes=[],generation=0,pending=null,presentation=null,active=null,presentationRoot=null;
   const cache=new Map();
   let variants=null;
+  let animated=[],sky=null;
   const stats={ready:false,bakes:0,flattenedProps:0,frames:0,updateMs:0};
   function clear(){
     for(const entry of cache.values()){entry.node.destroy();entry.levels.forEach(t=>t.destroy(true));}
     cache.clear();variants?.destroy();variants=null;presentation=null;active=null;presentationRoot=null;
     for(const child of container.removeChildren())child.destroy({children:true});
-    staticLevels.forEach(t=>t.destroy(true));staticLevels=[];meshes=[];
+    staticLevels.forEach(t=>t.destroy(true));staticLevels=[];meshes=[];animated=[];sky=null;
     if(terrain)destroyPixelTerrain(terrain);terrain=null;stats.ready=false;lastTime=null;
   }
   function put(texture,bounds,texel,levels){
     const node=createZoomArt(texture,levels);meshes.push(node);
     node.position.set(rect.x+bounds.minX*rect.width,rect.y+bounds.minY*rect.height);
-    node.scale.set(texel*rect.width/1576,texel*rect.height/516);container.addChild(node);
+    node.scale.set(texel*rect.width/1576,texel*rect.height/516);container.addChild(node);return node;
   }
   return {container,stats,
     supports(state){return !!getRegionalMap(state?.world?.definitionId);},
@@ -57,10 +58,12 @@ export function createIllustratedTerrain(parent,rect) {
       // Let the loading screen paint before the one-time CPU bake.
       await new Promise(resolve=>setTimeout(resolve,0));if(request!==generation)return;
       const start=performance.now(),map=naturalRegionalMap(record.map);
-      terrain=bakePixelTerrain(map,{texel:2,sites:false,retainPresentation:true,sampleBackground:surroundingsSampler(map)});
+      terrain=bakePixelTerrain(map,{texel:2,sites:false,retainPresentation:true,sampleBackground:surroundingsSampler(map),windowedAnimation:!!getView});
       const art=terrain,density=art.stats.texel;
-      if(art.backdropTexture)put(art.backdropWaterCycle.levels[0],art.backdropBounds,8,art.backdropWaterCycle.levels);
-      put(art.waterCycle.levels[0],art.bounds,density,art.waterCycle.levels);
+      if(art.backdropTexture)animated.push({cycle:art.backdropWaterCycle,bounds:art.backdropBounds,texel:8,backdrop:true,
+        node:put(art.backdropWaterCycle.levels[0],art.backdropBounds,8,art.backdropWaterCycle.levels)});
+      animated.push({cycle:art.waterCycle,bounds:art.bounds,texel:density,
+        node:put(art.waterCycle.levels[0],art.bounds,density,art.waterCycle.levels)});
       // Flatten hundreds of immutable terrain paintings once. Live ownership,
       // settlements, roads, packets and selection remain separate overlays.
       const scenery=new PIXI.Container(),textures=pixelSpriteTextures(density),relief=reliefSpriteTextures(art,false,false);
@@ -77,8 +80,7 @@ export function createIllustratedTerrain(parent,rect) {
       put(staticLevels[0],art.bounds,density,staticLevels);
       presentation=createRegionalPresentation(terrain,map);
       presentationRoot=new PIXI.Container();container.addChild(presentationRoot);
-      const sky=new PIXI.Sprite(art.atmosphere.texture);sky.position.set(rect.x+art.bounds.minX*rect.width,rect.y+art.bounds.minY*rect.height);
-      sky.width=art.stats.width*density*rect.width/1576;sky.height=art.stats.height*density*rect.height/516;container.addChild(sky);
+      sky=new PIXI.Sprite(art.atmosphere.texture);container.addChild(sky);
       Object.assign(stats,{ready:true,bakes:stats.bakes+1,bakeMs:performance.now()-start,flattenedProps:props.length,width:art.stats.width,height:art.stats.height});
       this.setState(state);
       this.update(state.tSec??0,1,true);
@@ -89,12 +91,44 @@ export function createIllustratedTerrain(parent,rect) {
     },
     update(seconds,zoom=1,force=false){
       if(!terrain||!container.visible)return;
-      for(const mesh of meshes)mesh.sampleZoom(zoom,true);
-      active?.node.sampleZoom(zoom,true);
-      const now=performance.now();if(!force&&(seconds===lastTime||now-lastPaint<1000/30))return;
-      const start=performance.now();terrain.waterCycle.update(renderer,seconds,force);terrain.backdropWaterCycle?.update(renderer,seconds,force);
+      const view=getView?.(),density=terrain.stats.texel;
+      zoom=view?.zoom??zoom;
+      const effectiveZoom=zoom*renderer.resolution;
+      const sourceView=(bounds,texel)=>({x:(view.minX-bounds.minX)*1576/texel,y:(view.minY-bounds.minY)*516/texel,
+        width:(view.maxX-view.minX)*1576/texel,height:(view.maxY-view.minY)*516/texel});
+      let moved=false;
+      const fine=terrain.bounds;
+      // The fine bake fades through its outer 64 texels into the distant layer.
+      const apronX=64*density/1576,apronY=64*density/516;
+      const covered=view&&view.minX>=fine.minX+apronX&&view.maxX<=fine.maxX-apronX
+        &&view.minY>=fine.minY+apronY&&view.maxY<=fine.maxY-apronY;
+      for(const entry of animated){
+        const {cycle,node,bounds,texel,backdrop}=entry;
+        if(backdrop&&covered){node.visible=false;continue;}
+        if(view)moved=cycle.setView(sourceView(bounds,texel),texel*rect.width/1576*effectiveZoom)||moved;
+        moved=(!node.visible&&cycle.visible)||moved;node.visible=cycle.visible;
+        const frame=cycle.frame;
+        node.resizeSource(frame.width,frame.height);
+        node.position.set(rect.x+(bounds.minX+frame.x*texel/1576)*rect.width,rect.y+(bounds.minY+frame.y*texel/516)*rect.height);
+      }
+      const atmosphere=terrain.atmosphere;
+      if(view)moved=atmosphere.setView(sourceView(fine,density*4),density*4*rect.width/1576*effectiveZoom)||moved;
+      sky.visible=atmosphere.visible;
+      const frame=atmosphere.frame,texel=density*4;
+      sky.position.set(rect.x+(fine.minX+frame.x*texel/1576)*rect.width,rect.y+(fine.minY+frame.y*texel/516)*rect.height);
+      sky.width=frame.width*texel*rect.width/1576;sky.height=frame.height*texel*rect.height/516;
+      for(const mesh of meshes)if(mesh.visible)mesh.sampleZoom(effectiveZoom,true);
+      active?.node.sampleZoom(effectiveZoom,true);
+      const now=performance.now();if(!force&&!moved&&(seconds===lastTime||now-lastPaint<1000/30))return;
+      const start=performance.now();
+      for(const entry of animated)if(entry.node.visible)entry.cycle.update(renderer,seconds,force);
       terrain.atmosphere.update(renderer,seconds,{fog:true,clouds:true,shadows:true,wisps:true},force);
-      lastTime=seconds;lastPaint=now;Object.assign(stats,{frames:stats.frames+1,viewedSec:seconds,updateMs:performance.now()-start});
+      const water=animated.filter(e=>e.node.visible);
+      lastTime=seconds;lastPaint=now;Object.assign(stats,{frames:stats.frames+1,viewedSec:seconds,updateMs:performance.now()-start,
+        animationPasses:water.reduce((sum,e)=>sum+e.cycle.stats.passes,0)+(sky.visible?atmosphere.stats.passes:0),
+        animationPixels:water.reduce((sum,e)=>sum+e.cycle.stats.renderPixels,0)+(sky.visible?atmosphere.stats.renderPixels:0),
+        waterWindows:water.map(e=>({...e.cycle.frame,levels:e.cycle.levels.length,backdrop:!!e.backdrop})),
+        atmosphereWindow:{...atmosphere.frame},backdropAnimating:water.some(e=>e.backdrop)});
     },
     sitePoint(regionId){return presentation?.anchors.find(s=>s.regionId===regionId)?.point;},
     roadPoints(edge){return active?.roads.find(r=>r.id===[edge.regionAId,edge.regionBId].sort().join(':'))?.points;},

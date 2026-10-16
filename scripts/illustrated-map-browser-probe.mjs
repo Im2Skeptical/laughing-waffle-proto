@@ -47,6 +47,8 @@ try {
  await page.waitForTimeout(600);
  s=await snapshot();assert.equal(s.worldMap.illustratedTerrain.ready,true);
  assert.equal(s.worldMap.illustratedTerrain.bakes,1);
+ assert.ok(s.worldMap.illustratedTerrain.animationPasses<13,'Overview skips covered background and unused water LODs');
+ const overviewWork={passes:s.worldMap.illustratedTerrain.animationPasses,pixels:s.worldMap.illustratedTerrain.animationPixels};
  await page.screenshot({path:`${output}/desktop.png`});
  const region=s.worldMap.regionMapIndicators.find(r=>r.hasDetailedSettlement&&!r.neutral&&!r.monster).regionId;
  const p=await page.evaluate(id=>__SETTLEMENT_DEBUG__.getWorldMapClickPoint(id),region);
@@ -69,12 +71,18 @@ try {
  const mobile=await snapshot();assert.equal(mobile.worldMap.illustratedTerrain.bakes,1,'mobile layout retains the same terrain');
  assert.equal(mobile.worldMap.selectedRegionId,mobileRegion,'touch selects another live settlement');
  assert.equal(mobile.worldMap.detailPanelVisible,true,'touch opens its settlement panel');
+ assert.ok(mobile.worldMap.illustratedTerrain.animationPasses<13,'Phone camera uses windowed animation');
+ const mobileWork={passes:mobile.worldMap.illustratedTerrain.animationPasses,pixels:mobile.worldMap.illustratedTerrain.animationPixels};
+ await page.mouse.move(phoneBounds.x+phoneBounds.width*.15,phoneBounds.y+phoneBounds.height*.4);
+ await page.mouse.wheel(0,1800);await page.waitForTimeout(400);
+ const wide=await snapshot();assert.ok(wide.worldMap.camera.zoom<mobile.worldMap.camera.zoom,'Zoom-out updates the animation window');
+ await page.screenshot({path:`${output}/mobile-wide.png`});
  await page.goto(`${url}images/dark-fantasy/map-generation-prototype/?waterMotion=0`);
  await page.waitForFunction(()=>window.mapWorkbench?.atmosphere,null,{timeout:180000});
  const workbench=await page.evaluate(()=>({version:mapWorkbench.version,regions:mapWorkbench.map.regions.length}));
  assert.equal(workbench.regions,20,'the standalone workbench still loads shared geography and artwork');
  assert.deepEqual(errors,[]);
- const result={pass:true,terrain:s.worldMap.illustratedTerrain,selectedRegion:region,workbench,errors};
- await writeFile(`${output}/result.json`,JSON.stringify(result,null,2));console.log(JSON.stringify(result));
+ const result={pass:true,terrain:s.worldMap.illustratedTerrain,overviewWork,mobileWork,wideWork:{passes:wide.worldMap.illustratedTerrain.animationPasses,pixels:wide.worldMap.illustratedTerrain.animationPixels},selectedRegion:region,workbench,errors};
+ await writeFile(`${output}/result.json`,JSON.stringify(result,null,2));console.log(JSON.stringify({pass:true,overviewWork,mobileWork,workbench,errors,artifact:`${output}/result.json`}));
 } catch(error){await writeFile(`${output}/failure.json`,JSON.stringify({message:error.message,errors},null,2));throw error;}
 finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

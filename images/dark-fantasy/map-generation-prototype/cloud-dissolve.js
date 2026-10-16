@@ -64,7 +64,7 @@ float cloudDissolve(float alpha,float distanceCode,vec2 w){
   return smoothstep(threshold-.045,threshold+.045,resistance);
 }
 vec4 dissolvedCloud(vec2 uv){
-  vec4 bank=texture2D(uClouds,uv);
+  vec4 bank=texture2D(uClouds,(uv-uCloudView.xy)/uCloudView.zw);
   float distanceCode=texture2D(uMask,uv).g;
   return bank*cloudDissolve(bank.a,distanceCode,uWorld.xy+uv*uWorld.zw);
 }`;

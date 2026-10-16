@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.1`.
+Game build version: `1.1.2`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. The game badge adds a source
 fingerprint and Local/Pages label. For preview, version bumps and deployment,

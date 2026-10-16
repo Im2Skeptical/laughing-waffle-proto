@@ -2,6 +2,7 @@
 // downsample the resulting colours, never the indices, for the existing zoom UI.
 import { WATER_RAMPS, WATER_VARIANTS, waterPaletteColour } from './water-style.js';
 import { WATER_DRIFT_GLSL, waterDriftPhase } from './water-drift.js';
+import { createAnimationWindow } from './animation-window.js';
 
 const vertex=`
 attribute vec2 aVertexPosition;
@@ -63,19 +64,19 @@ export function createWaterCycle(texture,indices,strength,palette,base=null,vari
     {scaleMode:PIXI.SCALE_MODES.NEAREST,mipmap:PIXI.MIPMAP_MODES.OFF,alphaMode:PIXI.ALPHA_MODES.NO_PREMULTIPLIED_ALPHA});
   const bytes=new Uint8Array(256*(WATER_VARIANTS+1)*4);
   const paletteTexture=PIXI.Texture.fromBuffer(bytes,256,WATER_VARIANTS+1,{scaleMode:PIXI.SCALE_MODES.NEAREST,mipmap:PIXI.MIPMAP_MODES.OFF});
-  const levels=[];
-  for(let n=0;n<=4&&Math.min(width,height)/2**n>=2;n++)levels.push(PIXI.RenderTexture.create({
-    width:Math.ceil(width/2**n),height:Math.ceil(height/2**n),resolution:1,scaleMode:PIXI.SCALE_MODES.LINEAR,mipmap:PIXI.MIPMAP_MODES.OFF}));
+  const surface=createAnimationWindow(width,height,{windowed:drift.windowed,mipLevels:true}),{levels}=surface;
   const geometry=new PIXI.Geometry().addAttribute('aVertexPosition',[0,0,width,0,width,height,0,height],2)
     .addAttribute('aTextureCoord',[0,0,1,0,1,1,0,1],2).addIndex([0,1,2,0,2,3]);
   const shader=PIXI.Shader.from(vertex,fragment,{uScene:texture,uFields:fields,uOverlays:overlayTexture,uPalette:paletteTexture,
     uWorld:drift.world??[0,0,1,1],uDriftPhase:waterDriftPhase(0)});
   const mesh=new PIXI.Mesh(geometry,shader);mesh.blendMode=PIXI.BLEND_MODES.NONE;
-  const reducers=levels.slice(1).map((level,n)=>{const s=new PIXI.Sprite(levels[n]);s.width=level.width;s.height=level.height;return s;});
-  let last=null;
-  return {levels,frames:0,lastUpdateMs:0,
+  let last=null,lastRevision=-1;
+  const stats={passes:0,renderPixels:0};
+  return {levels,frame:surface.frame,stats,frames:0,lastUpdateMs:0,
+    get visible(){return surface.visible;},
+    setView:(view,pixelsPerTexel)=>surface.setView(view,pixelsPerTexel),
     update(renderer,seconds,force=false) {
-      if(last===seconds&&!force)return;
+      if(!surface.visible||last===seconds&&lastRevision===surface.revision&&!force)return;
       const started=performance.now();
       for(let i=0;i<256;i++)for(let row=0;row<=WATER_VARIANTS;row++) {
         const colour=row?waterPaletteColour(i,palette,mixColour,seconds,row-1):palette[i]||0,p=(row*256+i)*4;
@@ -83,11 +84,12 @@ export function createWaterCycle(texture,indices,strength,palette,base=null,vari
       }
       paletteTexture.baseTexture.update();
       shader.uniforms.uDriftPhase=waterDriftPhase(seconds);
-      renderer.render(mesh,{renderTexture:levels[0],clear:true});
-      for(let n=1;n<levels.length;n++)renderer.render(reducers[n-1],{renderTexture:levels[n],clear:true});
-      last=seconds;this.frames++;this.lastUpdateMs=performance.now()-started;
+      renderer.render(mesh,{renderTexture:levels[0],clear:true,transform:surface.transform});
+      surface.reduce(renderer);
+      last=seconds;lastRevision=surface.revision;this.frames++;this.lastUpdateMs=performance.now()-started;
+      Object.assign(stats,{passes:levels.length,renderPixels:surface.pixels});
     },
-    destroy(){mesh.destroy();geometry.destroy();shader.destroy();reducers.forEach(s=>s.destroy());
-      levels.forEach(t=>t.destroy(true));fields.destroy(true);overlayTexture.destroy(true);paletteTexture.destroy(true);},
+    destroy(){mesh.destroy();geometry.destroy();shader.destroy();surface.destroy();
+      fields.destroy(true);overlayTexture.destroy(true);paletteTexture.destroy(true);},
   };
 }

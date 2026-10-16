@@ -12,6 +12,27 @@ underlying natural biome, including the study's example monster regions.
 Only the viewed state's `region.monster` selects occupied terrain; clearing or
 rewinding restores the original biome, including island water topology.
 
+Live water and atmosphere render to padded camera windows in source coordinates.
+Small pans reuse those windows; larger moves and zoom changes refresh them even
+while time is paused. Water resolves categorical palette data before reducing
+only the colour LODs sampled by the display. Fine terrain's transparent apron
+keeps distant water enabled at its edges; a view entirely within opaque fine
+terrain skips the covered background animation. World extent, camera framing,
+cloud timing and absolute-time sampling are unchanged. The standalone workbench
+retains full-image targets for its atlas views and exports.
+
+`npm run probe:map-animation` checks cropped/full shader output, padded panning,
+LOD selection, render workload and exact forward/rewind restoration. Run the
+regional presentation probe with `1867 --windowed` for the live camera path,
+including zoomed-out background water and exact camera restoration. Debug map
+stats expose animation pass/pixel counts and active window dimensions; these
+describe submitted rendering work, not phone GPU frame times.
+At seed 1867 in that fixture, overview animation submitted 1,228,800 output
+pixels in four passes, versus 6,472,468 in thirteen with full-image targets
+(81% less pixel work). Full/cropped overview, close and wide views differ only
+by small filtering-rounding differences; returning to the same camera/time is
+pixel-exact. This is workload evidence, not a measured Pixel 6 frame-rate claim.
+
 `regional-tiles.js` prepares wilderness, settlement-ground and monster variants
 once, then combines regional pieces and exposed bone borders. Player and neutral
 villages use the prototype's biome-specific building atlas and layout planner.

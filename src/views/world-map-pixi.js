@@ -250,7 +250,13 @@ export function createWorldMapView({
   viewport.addChild(world);
   const illustratedWidth=MAP_RECT.height*1576/516;
   const illustratedRect={...MAP_RECT,x:MAP_RECT.x+(MAP_RECT.width-illustratedWidth)/2,width:illustratedWidth};
-  const illustrated=createIllustratedTerrain(world,illustratedRect);
+  const illustrated=createIllustratedTerrain(world,illustratedRect,{getView:()=>{
+    const pose=camera.snapshot();
+    return {minX:((MAP_VIEWPORT_RECT.x-pose.x)/pose.zoom-illustratedRect.x)/illustratedRect.width,
+      minY:((MAP_VIEWPORT_RECT.y-pose.y)/pose.zoom-illustratedRect.y)/illustratedRect.height,
+      maxX:((MAP_VIEWPORT_RECT.x+MAP_VIEWPORT_RECT.width-pose.x)/pose.zoom-illustratedRect.x)/illustratedRect.width,
+      maxY:((MAP_VIEWPORT_RECT.y+MAP_VIEWPORT_RECT.height-pose.y)/pose.zoom-illustratedRect.y)/illustratedRect.height,zoom:pose.zoom};
+  }});
   // Use the workbench's aspect ratio for both artwork and gameplay projection.
   const screenPoint=point=>{
     const rect=illustrated.supports(getState?.())?illustratedRect:MAP_RECT;
