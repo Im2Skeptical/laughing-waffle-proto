@@ -1,7 +1,7 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.20** — muted, irregular inland depths and
-slower local mixing in lakes and peat pools, replacing the remaining ring emitters. The version appears under the title inside the
+Current published revision: **Map v1.0.21** — continuous ocean swell with feathered,
+overlapping ripple and foam layers, removing abrupt wave-family seams. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -49,6 +49,16 @@ groups bend into coastal breakers; complete phase paths pass through porous foam
 masks, rather than cycling only a short bright outline. Asymmetric ramps distinguish
 troughs, green wave faces, narrow pale crests and longer dispersing wakes. Offshore
 whitecaps use an independent 16-step ramp (192–207), with quieter fine ripple groups.
+Swell remains continuous beneath the ripple and foam layers. Smooth spatial
+weights replace hard noise cutoffs; coastal and offshore foam both fade to zero
+at their shared boundary. Swamp shelter also fades gradually with distance.
+One extra static RGBA data texture stores ripple index/weight and foam index/weight
+(four bytes per terrain texel). The GPU composites each layer's palette delta in
+the same order as the initial bake, then downsamples resolved colours for zoom.
+This keeps pixel detail without the larger cut-off wave patches. Run
+`water-seams-check.mjs` for continuity across all five former switching boundaries
+at multiple times and regional phases; `water-animation-check.js` also compares
+overlapping layers against CPU compositing, including zero-opacity foam pixels.
 Fine foam holes and substrate grain preserve the atlas texture at close zoom.
 Quiet gaps keep the sea depth wash visible; lakes never receive this surf. `surfaceTreatments.surfPhases` reports
 phase coverage and `offshoreCaps` counts offshore foam pixels. Peat pools and river channels remain distinct from both.

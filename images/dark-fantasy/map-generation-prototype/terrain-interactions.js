@@ -13,9 +13,10 @@ export const SHORE_TREATMENTS = {
 const biomes = [null, 'plains', 'forest', 'islands', 'swamp', 'mountains', 'monster'];
 const fract = x => x - Math.floor(x);
 const clamp = x => Math.max(0, Math.min(1, x));
+const fade = (a,b,x) => {const t=clamp((x-a)/(b-a));return t*t*(3-2*t);};
 
 export function paintOcean({ map, width, height, texel, bounds, land, waterIndices, colours,
-  regionIds, seaDistance, dryDistance, shoreTypes, waterBodies, waterBank, groundBank, noise, mixColour, waterBase, waterStrength, surfaces }) {
+  regionIds, seaDistance, dryDistance, shoreTypes, waterBodies, waterBank, groundBank, noise, mixColour, waterBase, waterStrength, waterOverlays, surfaces }) {
   // Asymmetric wave faces and short pale crests, followed by a longer dispersing
   // wake. Full phase paths exist under the masks, not just at the visible crest.
   const ramp=(stops,t)=>{for(let k=1;k<stops.length;k++)if(t<=stops[k][0])
@@ -71,27 +72,32 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
       const pores=noise(map.seed^3191,wx,wy,2.7);
       const streak=noise(map.seed^4231,wx*.45,wy*2.1,12);
       const surfReach=16+shelf*35;
-      const surfEnvelope=clamp((surfReach-distance)/12)*clamp(distance/4);
-      const breaking=exposure>.4&&surfEnvelope>0&&packet>.32;
-      const whitecap=distance>surfReach&&packet>.64&&fine>.52;
-      let index,strength;
-      if (material === 'swamp' && distance < 28) {
-        index = 208 + Math.floor(chop * 32);
-        strength=.12;stats.shelteredWater++;
-      } else if (breaking) {
-        index=160+Math.floor(phase*32);
-        strength=surfEnvelope*clamp((packet-.28)*3)*(.42+lace*.30)*(.35+clamp((pores-.25)*2.1)*.65);
-        stats.exposedSurf++;
-      } else if(whitecap) {
-        index=192+Math.floor(fract(swell+(pores-.5)*.06)*16);strength=clamp((packet-.60)*3)*(.35+fine*.3)*(.45+pores*.55);stats.offshoreCaps++;
-      } else if(fine>.64) {
-        index=208+Math.floor(chop*32);strength=.14+clamp((fine-.64)*3)*.3;
-      } else {
-        index=128+Math.floor(swell*32);strength=.07+clamp((packet-.32)*2)*(.12+streak*.38);
-        stats.swell++;
+      const surfEnvelope=fade(0,12,surfReach-distance)*fade(0,4,distance);
+      const shelter=material==='swamp'?1-fade(12,40,distance):0;
+      // Keep one continuous swell field. Other wave families overlap it instead
+      // of replacing its phase/direction at a noise threshold.
+      const index=128+Math.floor(swell*32);
+      const strength=(.07+clamp((packet-.32)*2)*(.12+streak*.38))*(1-shelter*.7);
+      const rippleStrength=(.14+clamp((fine-.64)*3)*.3)*fade(.48,.80,fine)*(1-shelter)+shelter*.12;
+      const coastal=distance<surfReach;
+      // Both foam families reach zero at their shared boundary. Changing the
+      // categorical index there cannot cut a visible wave in half.
+      const foamIndex=coastal?160+Math.floor(phase*32):192+Math.floor(fract(swell+(pores-.5)*.06)*16);
+      const foamStrength=coastal
+        ?surfEnvelope*fade(.22,.50,packet)*fade(.18,.6,exposure)*(.42+lace*.30)*(.35+fade(.25,.73,pores)*.65)
+        :fade(0,16,distance-surfReach)*fade(.50,.82,packet)*fade(.40,.72,fine)*(.35+fine*.3)*(.45+pores*.55);
+      const offset=i*4;
+      waterOverlays[offset]=208+Math.floor(chop*32);
+      waterOverlays[offset+1]=Math.round(rippleStrength*255);
+      waterOverlays[offset+2]=foamIndex;
+      waterOverlays[offset+3]=Math.round(foamStrength*255);
+      stats.swell++;
+      if(shelter>0)stats.shelteredWater++;
+      if(waterOverlays[offset+3]) {
+        if(coastal){stats.exposedSurf++;stats.surfPhases[foamIndex-160]++;}
+        else stats.offshoreCaps++;
       }
       waterIndices[i] = index;
-      if(index>=160&&index<192)stats.surfPhases[index-160]++;
       let base=mixColour(0x293f50,0x365b68,clamp(broad*.7+shelf*.22));
       base=mixColour(base,0x508b83,clamp(shoal*(.55+channel*.65)));
       // Sand and reef mottling is static beneath the moving surface, in large
@@ -110,6 +116,8 @@ export function paintOcean({ map, width, height, texel, bounds, land, waterIndic
       if (material === 'swamp') waterBase[i] = mixColour(waterBase[i], 0x74657b, Math.exp(-distance / 11) * .7);
       waterStrength[i] = Math.round(strength * 255);
       colours[i] = mixColour(waterBase[i], waterBank[index], strength);
+      colours[i] = mixColour(colours[i],waterBank[waterOverlays[offset]],waterOverlays[offset+1]/255);
+      colours[i] = mixColour(colours[i],waterBank[foamIndex],waterOverlays[offset+3]/255);
     } else {
       const region = map.regions[regionIds[i]], bank = SHORE_TREATMENTS[region?.biome];
       if (!bank) continue;

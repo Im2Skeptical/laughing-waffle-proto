@@ -273,11 +273,11 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       : mixColour(material, 0x353b31, Math.min(.3, (145-light)/180));
     colours[i]=mixColour(colours[i],material,inland*.96);
   }
-  const waterBase = new Uint32Array(size), waterStrength = new Uint8Array(size);
+  const waterBase = new Uint32Array(size), waterStrength = new Uint8Array(size), waterOverlays = new Uint8Array(size*4);
   const waterBodies=classifyWaterBodies(land,width,height);
   extendWaterEnvironment(waterBodies,land,dryDistance,width,height);
   const surfaceTreatments = paintOcean({ map, width, height, texel, bounds, land, waterIndices, colours,
-    regionIds, seaDistance, dryDistance, shoreTypes, waterBodies, waterBank, groundBank, noise, mixColour, waterBase, waterStrength, surfaces });
+    regionIds, seaDistance, dryDistance, shoreTypes, waterBodies, waterBank, groundBank, noise, mixColour, waterBase, waterStrength, waterOverlays, surfaces });
   const wetlands = paintWetlandPools({ map, pixel, width, height, detail, texel, bounds, regionIds, land, dryDistance,
     colours, waterIndices, waterBase, waterStrength, noise, mixColour, surfaces, protectedCentres: sites ? map.regions.filter(r => r.biome !== 'islands')
       .filter((r, i) => i === 2 || i === 7 || i === 12).map(r => pixel(r.centre)) : [] });
@@ -555,6 +555,12 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       if(cluster>=0&&body<=2)islandWater[cluster][body===1?'oceanPixels':'lakePixels']++;
     }
     let c = index ? waterColourAt(index,waterBase[i],waterStrength[i],waterBank,mixColour) : colours[i];
+    // Only ocean swell carries the two overlapping surface layers. Later land,
+    // river and site painting must never inherit ocean foam from the first pass.
+    const overlay=i*4;
+    if(index<128||index>=160)waterOverlays.fill(0,overlay,overlay+4);
+    for(let layer=0;layer<4;layer+=2)if(waterOverlays[overlay+layer+1])
+      c=mixColour(c,waterBank[waterOverlays[overlay+layer]],waterOverlays[overlay+layer+1]/255);
     // Retain the river phase indices while keeping the still-water study from
     // reading as alternating bright stripes at the finer resolution.
     if (waterIndices[i] >= 16 && waterIndices[i] <= 23) c = mixColour(c, 0x68868b, .85);
@@ -563,6 +569,10 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   }
   ctx.putImageData(image, 0, 0);
   const coastalEffects = { foam: 0, surf: 0, offshoreFoam:0, shallowRipples: 0, shoals: 0, swell: 0, fineRipples: 0, lakeRipples:0,lakeGlints:0 };
+  for(let i=0;i<size;i++) {
+    if(waterOverlays[i*4+1])coastalEffects.fineRipples++;
+    if(waterOverlays[i*4+3])coastalEffects[waterOverlays[i*4+2]<192?'surf':'offshoreFoam']++;
+  }
   for (const index of waterIndices) {
     if (index >= 128 && index <= 159) coastalEffects.swell++;
     else if (index >= 160 && index <= 191) coastalEffects.surf++;
@@ -597,8 +607,8 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   const waterCycle=createWaterCycle(texture,waterIndices,waterStrength,Uint32Array.from(waterBank),waterBase,
     (x,y)=>noise(map.seed^6719,(bounds.minX*1576+x*texel)/2,(bounds.minY*516+y*texel)/2,87),
     {world:[bounds.minX*1576/2+waterDriftOffset(map.seed)-texel/4,bounds.minY*516/2-texel/4,width*texel/2,height*texel/2],
-      maskAt:i=>waterDriftMask(waterBodies[i],seaDistance[i]/3*texel/2,Math.min(1,waterStrength[i]/35))});
-  return { waterCycle,backdropWaterCycle,settlementPlans, texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, divisionClearance: divisions.clearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, waterBodies, waterPalette:Uint32Array.from(waterBank), geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
+      maskAt:i=>waterDriftMask(waterBodies[i],seaDistance[i]/3*texel/2,Math.min(1,waterStrength[i]/35))},waterOverlays);
+  return { waterCycle,backdropWaterCycle,settlementPlans, texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, divisionClearance: divisions.clearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, waterOverlays, waterBodies, waterPalette:Uint32Array.from(waterBank), geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
     waterStudy:{bodyCounts,islandGroups:islandWater.map(c=>({...c,environment:c.lakePixels>c.oceanPixels?'inland lake':'ocean'})),ramps:WATER_RAMPS,phaseSeconds:0,paused:true},
     hinterland:hinterland.stats, palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', surfaceKit: surfaces.stats(), foundations, wetlands, glyphKinds: new Set(props.map(p => p.kind)).size,
     roads: roads.length, bridges, regionDivisions: divisions.stats, interactions, coastalEffects, terrainComposition: composition.diagnostics, assetLibrary: { biomePieces: composableLibrary.biomePieces, boundaryPieces: composableLibrary.boundaryPieces, sheets: composableLibrary.sheets,

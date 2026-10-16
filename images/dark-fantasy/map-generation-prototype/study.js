@@ -11,7 +11,7 @@ import { createMapTimegraph } from './map-timegraph.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
-const MAP_VERSION = '1.0.20';
+const MAP_VERSION = '1.0.21';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
@@ -885,7 +885,7 @@ window.mapWorkbench = { version: MAP_VERSION, get state() { return { ...state };
   // Callers must not mutate these buffers or advance simulation time.
   get waterFields() { return pixelReview() ? { width:currentPixelArt.stats.width,height:currentPixelArt.stats.height,
     bounds:currentPixelArt.bounds,texel:currentPixelArt.stats.texel,indices:currentPixelArt.waterIndices,
-    base:currentPixelArt.waterBase,strength:currentPixelArt.waterStrength,bodies:currentPixelArt.waterBodies,palette:currentPixelArt.waterPalette } : null; },
+    base:currentPixelArt.waterBase,strength:currentPixelArt.waterStrength,overlays:currentPixelArt.waterOverlays,bodies:currentPixelArt.waterBodies,palette:currentPixelArt.waterPalette } : null; },
   setCamera(pose) { wheelZoom.cancel(); camera.restore(pose); updateZoomPresentation(); app.renderer.render(app.stage); },
   setState(patch) { Object.assign(state, patch); if('waterMotion' in patch)timeline.play(state.waterMotion); if (!VARIANTS[state.variant]) state.variant = 'F'; if (Object.keys(patch).some(k => ['seed', 'clustering', 'sizeVariation', 'roughness', 'featureSet'].includes(k))) regenerate(); else render(); }, exportPng: pngData };
 let liveArtLoading = null;
