@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { cloudBanks,cloudFrame,CLOUD_FAMILIES } from './cloud-weather.js';
 
-for(const seed of [0,1867,-74123])for(let bag=-3;bag<20;bag++) {
-  const frames=Array.from({length:8},(_,i)=>cloudFrame(seed,bag*8+i));
-  assert.equal(new Set(frames).size,8,'Every local eight-episode bag uses every silhouette');
-  assert.notEqual(frames[0],cloudFrame(seed,bag*8-1),'No adjacent repeated silhouettes, including bag boundaries');
+for(const count of [4,8])for(const seed of [0,1867,-74123])for(let bag=-3;bag<20;bag++) {
+  const frames=Array.from({length:count},(_,i)=>cloudFrame(seed,bag*count+i,count));
+  assert.equal(new Set(frames).size,count,'Every local episode bag uses every silhouette');
+  assert.notEqual(frames[0],cloudFrame(seed,bag*count-1,count),'No adjacent repeated silhouettes, including bag boundaries');
 }
 
 const world=[-1182,-387,3152,1032],small=[0,0,300,200];
@@ -25,8 +25,10 @@ for(let t=0;t<=9600;t+=80) {
     assert.ok(Math.abs(b.width-bank.width)<.002,'Continuous size changes');
   }
 }
-for(const [i,frames] of variants.entries())assert.equal(frames.size,8,`${CLOUD_FAMILIES[i].id}: all eight variants used`);
-assert.ok(counts.reduce((a,b)=>a+b)/counts.length<15,'Sparse cloud cover (v129 averaged about 18 full banks)');
+for(const [i,frames] of variants.entries())assert.equal(frames.size,CLOUD_FAMILIES[i].frames,`${CLOUD_FAMILIES[i].id}: all variants used`);
+const meanArea=area.reduce((a,b)=>a+b)/area.length;
+assert.ok(meanArea>2200000&&meanArea<5000000,'Broad bank footprint restored, not isolated v130 pieces');
+assert.ok(counts.reduce((a,b)=>a+b)/counts.length<32,'Bounded population of substantial banks');
 const oldIds=new Set(cloudBanks(world,0,1867).map(b=>b.id));
 assert.ok(cloudBanks(world,9600,1867).every(b=>!oldIds.has(b.id)),'Clouds are finite episodes, not immortal looping sprites');
 assert.notDeepEqual(cloudBanks(world,320,1867),cloudBanks(world,320,1868),'Seed changes weather');

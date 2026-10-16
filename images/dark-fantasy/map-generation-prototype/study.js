@@ -12,7 +12,7 @@ import { createMapTimegraph } from './map-timegraph.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
-const MAP_VERSION = '1.0.30';
+const MAP_VERSION = '1.0.31';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;

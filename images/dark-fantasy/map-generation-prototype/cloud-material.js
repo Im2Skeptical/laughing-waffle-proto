@@ -20,8 +20,8 @@ ${WATER_DRIFT_GLSL}
 void main(){
   vec2 p=vUV;
   float z=uMotion.x;
-  float a=driftNoise(vec3(p*4.0+vec2(uMotion.y,13),z));
-  float b=driftNoise(vec3(p*5.0+vec2(31,uMotion.y),z*.73));
+  float a=driftNoise(vec3(p*2.2+vec2(uMotion.y,13),z));
+  float b=driftNoise(vec3(p*3.0+vec2(31,uMotion.y),z*.73));
   p+=vec2(a,b)*uMotion.z;
   p.x+=(p.y-.5)*uMotion.w;
   float inside=step(0.0,p.x)*step(p.x,1.0)*step(0.0,p.y)*step(p.y,1.0);
@@ -41,7 +41,7 @@ export function createCloudMesh() {
   const mesh=new PIXI.Mesh(geometry,shader);mesh.eventMode='none';
   mesh.setBank=(bank,atlas)=>{
     Object.assign(shader.uniforms,{uAtlas:atlas,
-      uFrame:[(bank.frame%4)/4,Math.floor(bank.frame/4)/2,1/4,1/2],
+      uFrame:[(bank.frame%bank.columns)/bank.columns,Math.floor(bank.frame/bank.columns)/bank.rows,1/bank.columns,1/bank.rows],
       uShape:[bank.life,bank.alpha,0,0],uMotion:[bank.evolution,bank.phase,bank.warp,bank.shear]});
   };
   const destroy=mesh.destroy.bind(mesh);
