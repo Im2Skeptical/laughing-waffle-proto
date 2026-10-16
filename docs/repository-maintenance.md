@@ -1,6 +1,7 @@
 # Repository maintenance
 
-`main` is the development and Pages deployment branch. Keep completed work in
+`main` is the development branch; [local previews and confirmed Pages publication](development-workflow.md)
+follow the development workflow. Keep completed work in
 Git history, and remove finished topic branches and worktrees after checking
 for unfinished files and commits. A comparison script should not depend on a
 permanent agent checkout.

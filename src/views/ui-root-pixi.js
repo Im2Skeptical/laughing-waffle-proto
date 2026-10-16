@@ -1,3 +1,6 @@
+import { mountBuildBadge } from './build-badge-dom.js';
+
+mountBuildBadge();
 const isLabRoute = () => /^#\/dev(?:\/|$)/.test(location.hash) && !location.hash.startsWith('#/dev/play');
 const startsInLab = isLabRoute();
 // Browser Back from a disposable run must restore the Lab entry module, and

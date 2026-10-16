@@ -57,15 +57,17 @@ Local instructions for agents working in this repo.
   test.
 
 ## Development deployment
-- This prototype uses `main` as its active development branch and GitHub Pages
-  mobile-testing deployment. After completing a requested change and the
-  relevant verification, commit only the task's changes and push `main` to
-  `origin` so the mobile build is current.
-- Do not hold changes for a separate release branch or preserve `main` as a
-  stable release line; use Git history to revert a bad development change.
-- Do not commit or push when the user explicitly asks to keep work local, when
-  verification identifies an unresolved failure, or when the working tree also
-  contains unrelated user changes.
+- Local previews are the default. Before handing back changes, run `npm start`:
+  it reuses this checkout's LAN preview or starts one. Verify it serves the
+  updated build and include the live mobile URL and game version in the response.
+- Bump the game version once per completed change and keep AI documentation in
+  sync using [development workflow](docs/development-workflow.md).
+- GitHub Pages publication requires explicit user confirmation for that update.
+  Prepare and verify locally first; only dispatch deployment after confirmation.
+  Committing or pushing source is not permission to publish Pages.
+- `main` remains the active development branch. Commit only task changes after
+  verification; keep work local by default. Do not commit unrelated user changes
+  or changes with unresolved verification failures.
 
 ## Context hygiene
 - Use targeted `rg`/file reads first; do not broadly inspect generated or artifact folders unless the task is specifically about them.

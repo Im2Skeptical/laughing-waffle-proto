@@ -1,9 +1,17 @@
 name: Deploy GitHub Pages
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Game version approved for Pages (x.y.z)'
+        required: true
+        type: string
+      confirm_publish:
+        description: 'I confirm publishing this version to GitHub Pages'
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -14,6 +22,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/main' && inputs.confirm_publish
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -27,6 +36,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Check approved game version
+        env:
+          APPROVED_VERSION: ${{ inputs.version }}
+        run: node --input-type=module -e "import fs from 'node:fs'; if (JSON.parse(fs.readFileSync('package.json')).version !== process.env.APPROVED_VERSION) throw new Error('Approved version does not match checkout');"
 
       - name: Verify and build deployment artifact
         run: npm run verify

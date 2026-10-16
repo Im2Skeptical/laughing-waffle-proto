@@ -1,5 +1,11 @@
 # Current Project Context
 
+Game build version: `1.1.0`.
+This checked marker matches `package.json`; app versions are independent of save
+schemas and isolated art prototype versions. The game badge adds a source
+fingerprint and Local/Pages label. For preview, version bumps and deployment,
+follow [development workflow](../docs/development-workflow.md).
+
 Concise invariants for agents. Always read this file. Which other docs to
 open is in root `AGENTS.md` — do not also load `CONTEXT.md`, `ai/sim.md`,
 and `ai/ui.md` on every task. Exact tunables live in

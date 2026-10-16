@@ -98,6 +98,12 @@ const schemas = [
   ["src/model/debug-draft-library.js", /DEBUG_DRAFT_LIBRARY_SCHEMA_VERSION\s*=\s*(\d+)/u, /Named debug draft libraries v(\d+)/u],
 ];
 const invariants = read("ai/ai-context.md");
+const gameVersion = JSON.parse(read('package.json')).version;
+const lock = JSON.parse(read('package-lock.json'));
+if (invariants.match(/^Game build version: `([^`]+)`\.$/m)?.[1] !== gameVersion
+    || lock.version !== gameVersion || lock.packages[''].version !== gameVersion) {
+  fail('ai/ai-context.md', 1, 'game/documentation version mismatch; run npm run version:game -- <x.y.z>');
+}
 for (const [source, sourcePattern, docPattern] of schemas) {
   const expected = read(source).match(sourcePattern)?.[1];
   const match = invariants.match(docPattern);

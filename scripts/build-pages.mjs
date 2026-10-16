@@ -10,6 +10,7 @@ import {
 } from "node:fs/promises";
 import path from "node:path";
 import { build } from "esbuild";
+import { getBuildInfo, stampBuildInfo } from './build-info.mjs';
 
 const entryPoint = "src/views/ui-root-pixi.js";
 const workerEntryPoint = "src/controllers/timegraph-forecast-worker.js";
@@ -35,6 +36,7 @@ async function assertUnpublished(filePath) {
 }
 
 async function buildPagesArtifact() {
+  const buildInfo = await getBuildInfo('pages');
   await rm(outDir, { recursive: true, force: true });
   await mkdir(assetsDir, { recursive: true });
 
@@ -157,7 +159,7 @@ async function buildPagesArtifact() {
       source.split("?")[0] === studyPath ? `src="${source}${source.includes("?") ? "&" : "?"}build=${moduleHash}"` : attribute));
   }
 
-  const sourceHtml = await readFile("index.html", "utf8");
+  const sourceHtml = stampBuildInfo(await readFile("index.html", "utf8"), buildInfo);
   const bundleUrl = relativeUrl(bundleOutput);
   const stylesheetUrl = relativeUrl(stylesheetOutput);
   const deploymentHtml = sourceHtml
@@ -175,6 +177,7 @@ async function buildPagesArtifact() {
   }
 
   const manifest = {
+    ...buildInfo,
     entryPoint,
     bundle: bundleUrl,
     worker: relativeUrl(workerOutput),
@@ -182,6 +185,7 @@ async function buildPagesArtifact() {
     stylesheet: stylesheetUrl,
   };
   await Promise.all([
+    writeFile(path.join(outDir, 'build-info.json'), `${JSON.stringify(buildInfo, null, 2)}\n`),
     writeFile(path.join(outDir, "index.html"), deploymentHtml),
     writeFile(
       path.join(outDir, "build-manifest.json"),

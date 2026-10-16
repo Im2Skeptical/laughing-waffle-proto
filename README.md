@@ -49,8 +49,13 @@ Documentation ownership, Git cleanup and recovery conventions are in
 
 ## Deployment
 
-The [current development build](https://im2skeptical.github.io/laughing-waffle-proto/)
-tracks `main`. The [pre-content-pass archive](https://im2skeptical.github.io/laughing-pancake-proto/)
+Local previews are the default: `npm start` starts or reuses a mobile-accessible
+server and prints its live URL. Game and AI documentation versions are checked
+together. See [development workflow](docs/development-workflow.md) for version
+bumps, build identity and confirmed publication.
+
+The [last approved Pages build](https://im2skeptical.github.io/laughing-waffle-proto/)
+updates only after explicit confirmation and manual deployment. The [pre-content-pass archive](https://im2skeptical.github.io/laughing-pancake-proto/)
 is a separate repository with isolated saves; iterative work belongs here.
 
 GitHub Pages publishes only `dist/`. Bundled JavaScript and CSS use
