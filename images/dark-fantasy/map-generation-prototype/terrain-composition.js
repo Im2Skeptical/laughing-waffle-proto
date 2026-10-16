@@ -47,9 +47,9 @@ const COASTS = { forest: [4, 5, 7, 8, 9, 11], mountains: [5, 6, 7, 8, 9, 11],
 
 // Only exposed edges form the silhouette of a connected monster territory.
 // Keep the generator's curved edge geometry; internal monster seams stay open.
-export function monsterPerimeterPaths(map) {
+export function monsterPerimeterPaths(map, includeInternal = false) {
   const monsters = new Set(map.regions.filter(r=>r.biome==='monster').map(r=>r.id));
-  if(map.edges.length) return map.edges.filter(edge=>edge.regions.filter(id=>monsters.has(id)).length===1)
+  if(map.edges.length) return map.edges.filter(edge=>includeInternal?edge.regions.some(id=>monsters.has(id)):edge.regions.filter(id=>monsters.has(id)).length===1)
     .map(edge=>({edgeId:edge.id,regionId:edge.regions.find(id=>monsters.has(id)),points:edge.points}));
   return map.regions.filter(r=>monsters.has(r.id)).map(r=>({regionId:r.id,points:[...r.outline,r.outline[0]]}));
 }
@@ -68,7 +68,7 @@ export function boneRidgeFits(glyph, left, top, sample) {
   return base>0&&dryBase/base>=.85&&monster/painted>=.18;
 }
 
-export function composeTerrainLandscape({ map, art, pixel, world, legal, detail, islandStyle = 'basalt', settlementPlans = [], monsterZones = false }) {
+export function composeTerrainLandscape({ map, art, pixel, world, legal, detail, islandStyle = 'basalt', settlementPlans = [], monsterZones = false, isolatedMonsterBorders = false }) {
   const islandFamily = `terrain-island-${islandStyle}`;
   const props = [], diagnostics = { paths: 0, coastalProfiles: 0, placements: 0, joined: 0, breaks: 0, interiors: 0, families: {} };
   diagnostics.forestPlacement={repeatRejects:0,footprintRejects:0,overlapRejects:0};
@@ -216,7 +216,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
   }
   const paths = [];
   diagnostics.monsterBorders=[];
-  if(art['terrain-hellscape-1'])for(const [i,border] of monsterPerimeterPaths(map).entries()) {
+  if(art['terrain-hellscape-1'])for(const [i,border] of monsterPerimeterPaths(map,isolatedMonsterBorders).entries()) {
     const region=regions.get(border.regionId),centre=pixel(region.centre);
     const varied=!!art['terrain-bone-border-0'];
     paths.push({points:border.points.map(pixel),family:varied?'terrain-bone-border':'terrain-hellscape',indices:varied?Array.from({length:12},(_,n)=>n):[1,5],
@@ -370,6 +370,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
         if (!prop && previous) { diagnostics.breaks++; previous = null; }
         if (!prop) prop = choose({ ...recipe, x, y, salt });
         if (prop) {
+          if(path.context==='bone-boundary')prop.edgeId=path.edgeId;
           if (previous) diagnostics.joined++;
           add(prop); previous = prop;
           accepted++;

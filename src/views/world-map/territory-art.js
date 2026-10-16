@@ -65,12 +65,12 @@ export function addTerritoryBorder(parent, points, { player, monster, selected, 
   return border;
 }
 
-export function addMonsterMarker(parent, point, chaos) {
+export function addMonsterMarker(parent, point, chaos, {art = true} = {}) {
   const marker = new PIXI.Container();
   marker.label = 'monster-marker';
   marker.eventMode = 'none';
   marker.position.set(point.x,point.y);
-  addRegionLandmark(marker,'monster-lair',{x:-53,y:-89,width:106,height:106});
+  if(art) addRegionLandmark(marker,'monster-lair',{x:-53,y:-89,width:106,height:106});
   parent.addChild(marker);
   const interval = chaos.expansionThreshold;
   const remaining = Math.max(0,interval - chaos.expansionProgress);

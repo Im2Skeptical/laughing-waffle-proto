@@ -1,20 +1,24 @@
 import { decorationRandom } from '../../../src/model/regional-map/generator.js';
 
 // Canonical texture-space site planning. Camera and zoom never enter this model.
-export function planSettlementSites({ map, pixel, world, width, height, land, waterIndices, regionIds, detail }) {
+export function planSettlementSites({ map, pixel, world, width, height, land, waterIndices, regionIds, detail, perRegion = false }) {
   detail *= .5;
   const sites = [];
   const dry = (x, y, id) => x >= 0 && y >= 0 && x < width && y < height
     && land[Math.floor(y) * width + Math.floor(x)] && !waterIndices[Math.floor(y) * width + Math.floor(x)]
     && map.regions[regionIds[Math.floor(y) * width + Math.floor(x)]]?.id === id;
-  for (const [bi, biome] of ['plains', 'forest', 'islands', 'swamp', 'mountains'].entries()) {
+  const groups = perRegion ? map.regions.map(r => [r])
+    : ['plains', 'forest', 'islands', 'swamp', 'mountains'].map(b => map.regions.filter(r => r.biome === b));
+  for (const [bi, regions] of groups.entries()) {
+    const biome = regions[0]?.biome;
     let best = null;
-    for (const region of map.regions.filter(r => r.biome === biome)) {
+    for (const scale of perRegion ? [1,.75,.5,.3,.15] : [1]) {
+    for (const region of regions) {
       const outline = region.outline.map(pixel), centre = pixel(region.centre);
       for (let y = Math.ceil(Math.min(...outline.map(p => p.y))); y <= Math.max(...outline.map(p => p.y)); y += 5 * detail)
         for (let x = Math.ceil(Math.min(...outline.map(p => p.x))); x <= Math.max(...outline.map(p => p.x)); x += 5 * detail) {
           if (!dry(x, y, region.id)) continue;
-          const rx = 23 * detail, ry = 16 * detail;
+          const rx = 23 * detail * scale, ry = 16 * detail * scale;
           let fits = true;
           for (let dy = -ry; dy <= ry && fits; dy += 2 * detail) for (let dx = -rx; dx <= rx; dx += 2 * detail)
             if ((dx / rx) ** 2 + (dy / ry) ** 2 < 1 && !dry(x + dx, y + dy, region.id)) { fits = false; break; }
@@ -31,6 +35,8 @@ export function planSettlementSites({ map, pixel, world, width, height, land, wa
             - reliefRoom*32*detail + decorationRandom(map.seed, x * 9173 ^ y * 673) * 4;
           if (!best || score < best.score) best = { x, y, rx, ry, score, biome, regionId: region.id, point: world(x, y), kind: bi === 0 || bi === 3 ? 'player' : 'neutral', buildings: [], streets: [] };
         }
+    }
+    if (best) break;
     }
     if (best) sites.push(best);
   }
@@ -81,8 +87,8 @@ export function siteReliefContains(sites, x, y) {
 
 // Plan one entrance and a compact neighbourhood before inter-town routing.
 export function layOutSettlements(sites, { detail, dry, world, seed }) {
-  detail *= .5;
   for (const site of sites) {
+    const detail = site.rx / 23;
     site.buildings = []; site.streets = [];
     const random = n => decorationRandom(seed, Number(site.regionId.slice(1)) * 3571 + n * 83);
     const neighbours = sites.filter(s => s !== site && s.biome !== 'islands')
@@ -152,8 +158,8 @@ export function layOutSettlements(sites, { detail, dry, world, seed }) {
 }
 
 export function paintSettlementSites(sites, { width, height, colours, waterIndices, regionIds, map, surfaces, mixColour, detail, dot }) {
-  detail *= .5;
   for (const site of sites) {
+    const detail = site.rx / 23;
     const dry = (x, y) => x >= 0 && y >= 0 && x < width && y < height && !waterIndices[y * width + x]
       && map.regions[regionIds[y * width + x]]?.id === site.regionId;
     // Blend the original biome material into worked ground, with irregular,

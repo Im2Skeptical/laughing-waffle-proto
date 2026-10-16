@@ -6,19 +6,37 @@ New games use the shared v1.0.34 regional geography and artwork. The saved
 `regional-v1:<seed>` definition ID fixes polygons, biomes and initial roads;
 the same definition supplies simulation adjacency and view hit areas.
 Explicit authored Map Lab maps remain supported as authored layouts.
-`illustrated-terrain.js` retains one terrain bake per active map, flattens static
-scenery into a texture pyramid, and updates water/clouds from viewed time at
-at most 30 fps. Selection, owners, roads, actors, packets and panels remain live.
-Hidden maps do not animate. Texture disposal is owned by the view; no Pixi
-objects or decorative animation state enter saves.
+`illustrated-terrain.js` retains one water/hinterland bake and updates water/clouds
+from viewed time at at most 30 fps. `regional-presentation.js` preserves the
+underlying natural biome, including the study's example monster regions.
+Only the viewed state's `region.monster` selects occupied terrain; clearing or
+rewinding restores the original biome, including island water topology.
 
-Initial headless desktop assessment: workbench cold terrain bake ~15.8 s,
-scrub median ~20.9 ms with large stalls. The isolated integrated fixture measured
-~12.2 s preparation (9.9 s bake) and 4.5/6.3 ms median/p95 updates after flattening
-424 static pieces and removing unused background painting. Cold baking is still
-the main cost and stays behind the loading screen. These are local diagnostics,
-not Pixel 6 measurements. `scripts/illustrated-map-browser-probe.mjs` exercises
-the built game, selection, time browsing, mobile layout and retained terrain.
+`regional-tiles.js` prepares wilderness, settlement-ground and monster variants
+once, then combines regional pieces and exposed bone borders. Player and neutral
+villages use the prototype's biome-specific building atlas and layout planner.
+Sites are planned on dry land per region, with smaller layouts for narrow
+regions. Flags, input targets and road endpoints use these same site positions.
+Roads use the shared prototype router/painter for exact live connections, with
+bridges and terrain clearances. Disconnected islands show a dotted sea connection.
+Road changes reroute/repaint without recomposing the landscape. Recent complete
+presentations and road layouts have bounded caches owned/disposed by the view.
+
+The shared `playable-terrain.js` compositor serves both the standalone study and
+live game. Raster town reservations and cached peak checks avoid repeating expensive
+per-building checks for every candidate illustration pixel. Local headless probes
+measured roughly 10?32 ms to assemble changed regional appearances; a new road
+layout took about 62 ms. These CPU submission timings exclude GPU readback and
+are not mobile-device measurements. Cold art preparation remains the main cost
+and stays behind the loading screen. Hidden maps do not animate; presentation
+objects never enter simulation state, RNG, saves or authoritative replay.
+
+Run `node scripts/regional-presentation-browser-probe.mjs [seed]` to check monster
+spread, island occupation, occupied towns, removal, road changes and pixel-exact
+restoration with a single terrain/variant bake. `node scripts/settlement-sites-test.mjs`
+checks explicit connection routing, per-region planning and compact towns.
+`scripts/illustrated-map-browser-probe.mjs` exercises the built game, selection,
+time browsing, mobile layout, asset URLs and the standalone study.
 
 Helpers for the public module `src/views/world-map-pixi.js`, which remains the
 orchestrator and still re-exports every previous public symbol.
@@ -120,18 +138,18 @@ live-connection selectors. The render signature includes live connections so
 adding or removing a road refreshes highlighting without changing simulation
 state. Ownership and actual available Stock still govern resource sharing.
 
-Settlement paintings are 58 x 66 map units; zoom supplies the close view.
+On authored maps, settlement paintings are 58 x 66 map units; zoom supplies the close view.
 Structure-slot pictograms are omitted from the map and remain in settlement
 panels. Player land has a dark-backed gold boundary; the selected polygon uses
 an ice-blue/white outline drawn above neighboring terrain and roads.
-`territory-art.js` tiles generated scorched ground inside polygon masks and
+On authored maps, `territory-art.js` tiles generated scorched ground inside polygon masks and
 places a generated horned-skull lair painting for monster regions, without consuming simulation RNG.
 Each monster marker shows moons remaining until its next spread attempt, out of
 the simulation's configured spread interval. The countdown restarts after each attempt.
 Run `node scripts/map-territory-browser-probe.mjs` for occupied-region visual
 checks, including selection and mobile zoom, and serialized-state preservation.
 
-Generated region art uses the `region-landmarks-v1` atlas, packed at 40% source
+Authored-map region art uses the `region-landmarks-v1` atlas, packed at 40% source
 resolution. Complete town/lair cutouts preserve aspect ratio. The market
 billboard uses a nine-slice wooden frame behind live quantities and prices;
 monster region panels show the same lair painting. Source masters and exact

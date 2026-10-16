@@ -35,7 +35,7 @@ export function windRoad(path, { scale = 1, clear, wet, inTown }) {
 
 // Disposable presentation routes between sample sites. No gameplay connections.
 // Search the already-baked land lattice; the generator and its RNG stay untouched.
-export function routeSampleRoads(sites, { width, height, regionIds, land, waterIndices, materialAt, bounds, scale = 1, exclusions = [] }) {
+export function routeSampleRoads(sites, { width, height, regionIds, land, waterIndices, materialAt, bounds, scale = 1, exclusions = [], pairs = null }) {
   const step = 2, minX = Math.max(0, bounds.minX), minY = Math.max(0, bounds.minY);
   const cols = Math.ceil((Math.min(width, bounds.maxX) - minX) / step), rows = Math.ceil((Math.min(height, bounds.maxY) - minY) / step);
   const size = cols * rows, costs = new Float32Array(size);
@@ -98,9 +98,15 @@ export function routeSampleRoads(sites, { width, height, regionIds, land, waterI
     return null;
   };
   const paths = [], connected = new Set(sites.length ? [0] : []), anchors = sites.map(nearest);
+  if (pairs) for (const { a, b, id } of pairs) {
+    const path = search(anchors[a], anchors[b]);
+    if (!path) continue;
+    path[0] = { ...sites[a] }; path[path.length - 1] = { ...sites[b] };
+    path.connectionId = id; paths.push(path);
+  }
   // Connect the reachable sites by short routes; disconnected islands get no
   // invented causeway. All returned path samples belong to playable dry land.
-  while (connected.size < sites.length) {
+  while (!pairs && connected.size < sites.length) {
     const pairs = [];
     for (const a of connected) for (let b = 0; b < sites.length; b++) if (!connected.has(b)) {
       pairs.push({ a, b, d: Math.hypot(sites[a].x - sites[b].x, sites[a].y - sites[b].y) });
@@ -135,6 +141,8 @@ export function routeSampleRoads(sites, { width, height, regionIds, land, waterI
       shaped = next;
     }
     shaped = windRoad(shaped, {scale,clear,wet,inTown});
-    return shaped.map((p,i) => i === 0 || i === shaped.length-1 ? p : ({ x: Math.round(p.x), y: Math.round(p.y) }));
+    const result = shaped.map((p,i) => i === 0 || i === shaped.length-1 ? p : ({ x: Math.round(p.x), y: Math.round(p.y) }));
+    if (path.connectionId) result.connectionId = path.connectionId;
+    return result;
   });
 }

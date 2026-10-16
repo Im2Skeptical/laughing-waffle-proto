@@ -23,13 +23,17 @@ function createDefinition(id,map) {
     .map((e,i)=>({e,rank:decorationRandom(map.seed,i+741)})).sort((a,b)=>a.rank-b.rank)
     .slice(0,9).map(({e})=>({regionAId:e.regions[0],regionBId:e.regions[1]}));
   const starters=new Set(Object.values(connections[0]));
-  const regions=map.regions.map((r,i)=>({
-    id:r.id,name:`${r.biome[0].toUpperCase()+r.biome.slice(1)} ${i+1}`,biome:r.biome,
+  const regions=map.regions.map((r,i)=>{
+    // The study's occupied examples retain natural terrain underneath. Live
+    // occupation belongs to region.monster, not permanent biome metadata.
+    const biome=r.biome==='monster'?r.terrainBiome:r.biome;
+    return {
+    id:r.id,name:`${biome[0].toUpperCase()+biome.slice(1)} ${i+1}`,biome,
     polygonVertexIds:r.outline.map(p=>{const id=key(p);vertices.set(id,{id,x:p.x,y:p.y});return id;}),
     display:{labelPoint:{...r.centre},sitePoint:{...r.centre}},
     initialState:{colour:({plains:'red',forest:'green',islands:'blue',swamp:'black',mountains:'black',monster:'red'})[r.biome],
       structureCapacity:5,randomizeStructureCapacity:true,controller:starters.has(r.id)?'player':'frontier',detailedSettlementEnabled:starters.has(r.id)},
-  }));
+  };});
   return {id,name:`Regional world · ${map.seed}`,geometry:{vertices:[...vertices.values()]},regions,connections,sites:[],
     mapContext:{coastlineVertexIds:regions[0].polygonVertexIds,oceanBoundaryPoints:[]}};
 }

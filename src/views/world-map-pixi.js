@@ -1,6 +1,6 @@
 import { addMonsterGround, addMonsterMarker, addTerritoryBorder } from './world-map/territory-art.js';
 import { createIllustratedTerrain } from './world-map/illustrated-terrain.js';
-import { getMapRelationships, getMapRelationship, getRelationshipStyle, drawRelationshipLine } from './world-map/relationships.js';
+import { getMapRelationships, getMapRelationship, getRelationshipStyle, drawRelationshipLine, drawRelationshipPath } from './world-map/relationships.js';
 import { createMapCamera } from './world-map/camera.js';
 import { createMapPanelReveal } from './world-map/transitions.js';
 import { createStockTransferIcons, getStockTransferIconLayout } from './world-map/stock-transfer-icons.js';
@@ -256,6 +256,7 @@ export function createWorldMapView({
     const rect=illustrated.supports(getState?.())?illustratedRect:MAP_RECT;
     return {x:rect.x+Number(point?.x??0)*rect.width,y:rect.y+Number(point?.y??0)*rect.height};
   };
+  const sitePoint=region=>screenPoint((illustrated.supports(getState?.())?illustrated.sitePoint(region.id):null)??region.display.labelPoint);
   world.addChild(mapContent, edgeTransferLayer);
   viewport.mask = clip;
   layer.addChild(viewport, clip, root, detailRoot);
@@ -336,7 +337,7 @@ export function createWorldMapView({
       onShowCivilizationGraph?.();
       return;
     }
-    const flagPoint = camera.project(screenPoint(regionDef.display.labelPoint));
+    const flagPoint = camera.project(sitePoint(regionDef));
     const nearFlag = Math.hypot(point.x - flagPoint.x, point.y - flagPoint.y) <= REGION_FLAG_DOUBLE_TAP_RADIUS;
     lastPointerRegionId = regionId;
     const vm = getDetailedSettlementViewModel(state, regionId);
@@ -403,7 +404,7 @@ export function createWorldMapView({
       const route=transfer.sourceRegionId+'>'+transfer.destinationRegionId;
       const routeInfo=routes.get(route)??{count:0,spacing:9};
       const index=routeInfo.count++;
-      const from=screenPoint(source.display.labelPoint),to=screenPoint(destination.display.labelPoint);
+      const from=sitePoint(source),to=sitePoint(destination);
       const packet={...transfer,from,to,facingFrom:from,facingTo:to,route,lane:[0,-1,1][index%3],
         glyph:getEdgeTransferPacketGlyphSpec(transfer.resourceId,transfer.traits),
         laneOffset:[0,-9,9][index%3],startedSec:(transfer.boundarySec??batch.boundarySec)+index*.06,durationSec:1.8};
@@ -527,7 +528,7 @@ export function createWorldMapView({
     const frameGroup = () => camera.frame(definition.regions
       .filter(entry => relationships?.groupRegionIds.includes(entry.id))
       .flatMap(entry => getRegionPolygon(definition, entry).map(screenPoint)), GROUP_FRAME_RECT,
-      screenPoint(getRegionDefinition(state, selectedRegionId).display.labelPoint));
+      sitePoint(getRegionDefinition(state, selectedRegionId)));
     const graphScope =
       getGraphScope?.() === "settlement" ? "settlement" : "civilization";
     const civilizationSummary = getDetailedCivilizationSummary(state);
@@ -540,6 +541,7 @@ export function createWorldMapView({
     const display = getDisplayOptions?.() ?? {};
     const illustratedMap=illustrated.supports(state);
     illustrated.container.visible=illustratedMap&&display.terrain!==false;
+    if(illustratedMap)illustrated.setState(state,display);
     // Optional choice presentation. Omitted in normal gameplay; affects no rules.
     const choiceRegionIds = display.choiceRegionIds == null ? null : new Set(display.choiceRegionIds);
     const presentRegion = (container, regionId) => {
@@ -567,7 +569,7 @@ export function createWorldMapView({
       if (!lastRevealedRegionId && !panelReveal.isClosing()) overviewCamera = camera.snapshot();
       const selected = getRegionDefinition(state, selectedRegionId);
       if (selected) {
-        const point = screenPoint(selected.display.labelPoint);
+        const point = sitePoint(selected);
         if (!lastRevealedRegionId) panelReveal.open(camera.project(point));
         frameGroup();
         tooltipView?.hide?.();
@@ -575,7 +577,7 @@ export function createWorldMapView({
     }
     if (!regionSelectionActive && lastRevealedRegionId) {
       const dismissed = getRegionDefinition(state, lastRevealedRegionId);
-      const point = dismissed ? screenPoint(dismissed.display.labelPoint) : { x: MAP_RECT.x, y: MAP_RECT.y };
+      const point = dismissed ? sitePoint(dismissed) : { x: MAP_RECT.x, y: MAP_RECT.y };
       panelReveal.close({ x: point.x * overviewCamera.zoom + overviewCamera.x,
         y: point.y * overviewCamera.zoom + overviewCamera.y });
       camera.restore(overviewCamera);
@@ -657,7 +659,7 @@ export function createWorldMapView({
       hit.cursor = !choiceRegionIds || choiceRegionIds.has(region.id) ? 'pointer' : 'default';
       if (!illustratedMap&&display.terrain !== false) addRegionTerrain(hit, points, region.colour, region.controller === "player" ? 1 : .74);
       hit.addChild(shape);
-      if (region.monster && display.actors !== false) addMonsterGround(hit, points);
+      if (!illustratedMap && region.monster && display.actors !== false) addMonsterGround(hit, points);
       hit.mapRegionId = region.id;
       hit.on("pointerover", () => {
         const pressure = mapIndicator?.pressure;
@@ -689,10 +691,17 @@ export function createWorldMapView({
       const edges = new PIXI.Graphics();
       const a = definition.regions.find((entry) => entry.id === edge.regionAId);
       const b = definition.regions.find((entry) => entry.id === edge.regionBId);
-      const from = screenPoint(a.display.labelPoint);
-      const to = screenPoint(b.display.labelPoint);
-      edges.lineStyle(9, 0x141511, .8).moveTo(from.x, from.y).lineTo(to.x, to.y);
-      edges.lineStyle(4, 0xb49562, .8).moveTo(from.x, from.y).lineTo(to.x, to.y);
+      const from = sitePoint(a);
+      const to = sitePoint(b);
+      const route=illustratedMap?illustrated.roadPoints(edge)?.map(screenPoint):null;
+      if(!illustratedMap){
+        edges.lineStyle(9, 0x141511, .8).moveTo(from.x, from.y).lineTo(to.x, to.y);
+        edges.lineStyle(4, 0xb49562, .8).moveTo(from.x, from.y).lineTo(to.x, to.y);
+      } else if(!route) {
+        // No dry route across disconnected islands: show a sea connection,
+        // never paint an invented land causeway over animated water.
+        drawRelationshipLine(edges,from,to,{width:2,colour:0x9ab8b5,alpha:.65,dashLength:3,gapLength:8});
+      }
       if (relationships) {
         const aKind = getMapRelationship(relationships, a.id);
         const bKind = getMapRelationship(relationships, b.id);
@@ -701,7 +710,8 @@ export function createWorldMapView({
           const bStyle = getRelationshipStyle(regionMapIndicators.find(entry => entry.regionId === b.id));
           const style = aKind === 'selected' ? bStyle : bKind === 'selected' ? aStyle
             : aStyle.priority < bStyle.priority ? aStyle : bStyle;
-          drawRelationshipLine(edges, from, to, style);
+          if(route)drawRelationshipPath(edges,route,style);
+          else drawRelationshipLine(edges, from, to, style);
         }
       }
       edges.eventMode = 'none';
@@ -725,12 +735,12 @@ export function createWorldMapView({
       if (!regionDef) continue;
       const regionContent = new PIXI.Container();
       mapContent.addChild(presentRegion(regionContent, indicator.regionId));
-      const point = screenPoint(regionDef.display.labelPoint);
+      const point = sitePoint(regionDef);
       const stockTagTop = getSettlementStockTagLayout(indicator.stockTags, point)[0]?.y;
       if (display.actors !== false && (indicator.monster || indicator.neutral)) regionContent.addChild(createText(
         indicator.monster ? `Defense ${indicator.monster.defense}` : 'NEUTRAL',
         {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:NEUTRAL_COLOUR,stroke:0x111713,strokeThickness:4},point.x,indicator.monster?point.y-110:stockTagTop!=null?stockTagTop-26:point.y-88,.5));
-      if (display.actors !== false && indicator.monster) addMonsterMarker(regionContent, point, civilizationSummary.chaos);
+      if (display.actors !== false && indicator.monster) addMonsterMarker(regionContent, point, civilizationSummary.chaos, {art:!illustratedMap});
       const adornments = new PIXI.Container();
       adornments.position.set(point.x,point.y);
       adornments.scale.set(.75);
@@ -740,9 +750,8 @@ export function createWorldMapView({
         addSettlementStockTags(regionContent, point, indicator.stockTags, {
           tooltipView, reference: getRegionReference(state, indicator.regionId) ?? indicator.regionId,
         });
-        if (display.scenery !== false) {
-          if(illustratedMap&&illustrated.addSite(regionContent,point,indicator.neutral?'neutral':'player')) {}
-          else if (indicator.neutral) addNeutralMarketGlyph(regionContent, point);
+        if (display.scenery !== false && !illustratedMap) {
+          if (indicator.neutral) addNeutralMarketGlyph(regionContent, point);
           else {
             landmarks.push(addTimelineLandmark(regionContent,{x:point.x-29,y:point.y-76,width:58,height:66},
               {startSec:definition.regions.indexOf(regionDef)*.37}));
@@ -771,7 +780,7 @@ export function createWorldMapView({
     }
     for (const regionDef of definition.regions) {
       const point = getRegionReferenceCorner(definition, regionDef, screenPoint)
-        ?? screenPoint(regionDef.display.labelPoint);
+        ?? sitePoint(regionDef);
       const label = createText(getRegionReference(state, regionDef.id) ?? "R??", {
         ...TEXT_STYLES.chip,
         fontSize: 21,
@@ -783,7 +792,7 @@ export function createWorldMapView({
     const activeVassal = getCurrentLifeMapVassal(state);
     if (display.actors !== false && activeVassal?.locationRegionId) {
       const regionDef = definition.regions.find((entry) => entry.id === activeVassal.locationRegionId);
-      if (regionDef) addActiveVassalMarker(mapContent, {x:screenPoint(regionDef.display.labelPoint).x-55,y:screenPoint(regionDef.display.labelPoint).y+12}, activeVassal, state);
+      if (regionDef) addActiveVassalMarker(mapContent, {x:sitePoint(regionDef).x-55,y:sitePoint(regionDef).y+12}, activeVassal, state);
     }
 
     if (chaosExpanded) {
@@ -1035,7 +1044,7 @@ export function createWorldMapView({
     getEndDetailsClickPoint: () => getSurvivalEndDetailsClickPoint(endDetailsTarget, root.visible),
     getRegionClickPoint: (regionId) => {
       const region = getRegionDefinition(getState?.(), regionId);
-      return region ? camera.project(screenPoint(region.display.labelPoint)) : null;
+      return region ? camera.project(sitePoint(region)) : null;
     },
     getPracticeClickPoint: () => null,
     getInstalledPracticeClickPoint: () => null,

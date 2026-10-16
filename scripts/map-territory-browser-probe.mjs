@@ -17,12 +17,13 @@ try {
   await page.goto(url);await page.waitForFunction(()=>!!globalThis.PIXI);
   await page.evaluate(async()=>{
     const {preloadChronicleArt}=await import('/src/views/chronicle-art.js');
-    const {createLabFixture}=await import('/src/model/dev-lab/fixtures.js');
+    const {createConfiguredNewGameState}=await import('/src/model/new-game.js');
+    const {createStarterBootProfile}=await import('/src/model/starter-boot-profile.js');
     const {serializeGameState}=await import('/src/model/state.js');
     const {createWorldMapView}=await import('/src/views/world-map-pixi.js');
     const {addMonsterMarker}=await import('/src/views/world-map/territory-art.js');
     await preloadChronicleArt();
-    const state=createLabFixture('defense',42);
+    const state=createConfiguredNewGameState(42,createStarterBootProfile());
     const {getGameSetting}=await import('/src/model/game-config.js');
     const spreadInterval=getGameSetting(state,'monsterExpansionThreshold');
     const before=JSON.stringify(serializeGameState(state));
@@ -84,11 +85,12 @@ try {
   await page.screenshot({path:`${output}/mobile-monster.png`});
   await page.setViewportSize({width:1280,height:570});
   await page.evaluate(async()=>{
-    const {createLabFixture}=await import('/src/model/dev-lab/fixtures.js');
+    const {createConfiguredNewGameState}=await import('/src/model/new-game.js');
+    const {createStarterBootProfile}=await import('/src/model/starter-boot-profile.js');
     const {getAdjacentRegionIds}=await import('/src/model/world-state.js');
     const {serializeGameState}=await import('/src/model/state.js');
     const {createWorldMapView}=await import('/src/views/world-map-pixi.js');
-    const state=createLabFixture('defense',42), regionId='river-crown';
+    const state=createConfiguredNewGameState(42,createStarterBootProfile()), regionId='river-crown';
     const neighbours=getAdjacentRegionIds(state,regionId).slice(0,4);
     const player=structuredClone(state.world.sites.find(site=>site.detailedState && state.world.regions.find(r=>r.id===site.regionId)?.controller==='player'));
     const neutral=structuredClone(state.world.sites.find(site=>site.neutral));

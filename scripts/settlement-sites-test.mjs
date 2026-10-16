@@ -1,8 +1,17 @@
 import assert from 'node:assert/strict';
+import { getRegionalMap, regionalMapId } from '../src/model/regional-map/definition.js';
 import { routeSampleRoads, windRoad } from '../images/dark-fantasy/map-generation-prototype/roads.js';
 import { planSettlementSites, layOutSettlements, siteReliefContains, siteContains, settlementGroundWeight, paintSettlementSites } from '../images/dark-fantasy/map-generation-prototype/settlement-sites.js';
 
 const biomes = ['plains', 'forest', 'islands', 'swamp', 'mountains'];
+for(const seed of [42,1867]){
+  const {map,definition}=getRegionalMap(regionalMapId(seed));
+  for(const region of definition.regions){
+    const source=map.regions.find(r=>r.id===region.id);
+    assert.equal(region.biome,source.biome==='monster'?source.terrainBiome:source.biome);
+    assert.ok(!region.name.startsWith('Monster '),'Live region names describe the underlying terrain');
+  }
+}
 const width = 500, height = 100;
 const land = new Uint8Array(width * height).fill(1);
 const waterIndices = new Uint8Array(width * height);
@@ -41,6 +50,22 @@ for(const path of routed) {
  for(const p of path) for(const s of sites) assert.ok(Math.hypot(p.x-s.x,p.y-s.y)>5,'Through-road crosses civic centre');
 }
 console.log('Settlement roads: exact entrances; no through-roads across town centres.');
+
+const liveRoutes=routeSampleRoads(endpoints,{width,height,land,waterIndices,regionIds,materialAt:()=> 'plains',
+  bounds:{minX:0,minY:0,maxX:width,maxY:height},exclusions:sites,scale:2,pairs:[{a:1,b:3,id:'R2:R4'}]});
+assert.equal(liveRoutes.length,1,'Live roads must not invent a sample spanning tree');
+assert.equal(liveRoutes[0].connectionId,'R2:R4');
+assert.deepEqual(liveRoutes[0][0],endpoints[1]);
+assert.deepEqual(liveRoutes[0].at(-1),endpoints[3]);
+const repeatedBiome={...map,regions:map.regions.map(r=>({...r,biome:'plains'}))};
+assert.equal(planSettlementSites({...args,map:repeatedBiome,perRegion:true}).length,5,'Live towns are planned per region, not one per biome');
+const narrowWater=new Uint8Array(width*height).fill(128);
+for(let y=45;y<=55;y++)for(let x=0;x<width;x++)narrowWater[y*width+x]=0;
+const small=planSettlementSites({...args,waterIndices:narrowWater,perRegion:true});
+assert.equal(small.length,5,'Small dry regions still receive compact towns');
+assert.ok(small.every(s=>s.rx<23));
+layOutSettlements(small,{detail:2,world:args.world,seed:map.seed,dry:(x,y)=>x>=0&&y>=45&&x<width&&y<=55});
+assert.ok(small.every(s=>s.buildings.length>=5),'Compact layouts scale their buildings with the footprint');
 
 const straight=Array.from({length:201},(_,x)=>({x,y:50}));
 const bowed=windRoad(straight,{scale:1,clear:()=>true,wet:()=>false,inTown:()=>false});

@@ -53,3 +53,21 @@ export function drawRelationshipLine(graphics, from, to, style = RELATION_STYLES
       .lineTo(from.x + (to.x - from.x) * end, from.y + (to.y - from.y) * end);
   }
 }
+
+// Keep dash phase continuous along the prototype's winding route.
+export function drawRelationshipPath(graphics, points, style) {
+  let travelled=0;
+  const dash=style.dashLength??Infinity,period=dash+(style.gapLength??0);
+  graphics.lineStyle(style.width,style.colour,style.alpha);
+  for(let i=1;i<points.length;i++){
+    const a=points[i-1],b=points[i],length=Math.hypot(b.x-a.x,b.y-a.y);
+    for(let d=0;d<length;){
+      const phase=(travelled+d)%period,on=phase<dash;
+      const end=Math.min(length,d+(on?dash-phase:period-phase));
+      if(on)graphics.moveTo(a.x+(b.x-a.x)*d/length,a.y+(b.y-a.y)*d/length)
+        .lineTo(a.x+(b.x-a.x)*end/length,a.y+(b.y-a.y)*end/length);
+      if(end<=d)break;d=end;
+    }
+    travelled+=length;
+  }
+}
