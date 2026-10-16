@@ -1,5 +1,5 @@
 import { normalizeStructureLayout, validateStructureLayout } from "./structure-layout.js";
-import { worldMapDefs } from "../defs/world/world-map-defs.js";
+import { getWorldDefinitionById } from './world-definitions.js';
 import {
   DEFAULT_REGION_STRUCTURE_CAPACITY_MAX,
   DEFAULT_REGION_STRUCTURE_CAPACITY_MIN,
@@ -58,7 +58,9 @@ function getRegionPolygonEdgeKeys(region) {
   )));
 }
 
+const connectionCandidatesByDefinition=new WeakMap();
 export function getWorldConnectionCandidates(definition) {
+  if(definition && connectionCandidatesByDefinition.has(definition))return connectionCandidatesByDefinition.get(definition);
   const regions = Array.isArray(definition?.regions) ? definition.regions : [];
   const edgeKeysByRegionId = new Map(regions.map((region) => [
     region.id,
@@ -76,6 +78,7 @@ export function getWorldConnectionCandidates(definition) {
       }
     }
   }
+  if(definition)connectionCandidatesByDefinition.set(definition,candidates);
   return candidates;
 }
 
@@ -316,7 +319,7 @@ export function validateWorldDefinition(definition, { requireConnected = false }
 
 export function getWorldDefinition(state) {
   const id = state?.world?.definitionId;
-  return typeof id === "string" ? worldMapDefs[id] ?? null : null;
+  return typeof id === "string" ? getWorldDefinitionById(id) : null;
 }
 
 export function getWorldVertex(definition, vertexId) {
@@ -501,7 +504,7 @@ export function createWorldState(
   mechanicalDraft = null,
   rngNextInt = null
 ) {
-  const definition = worldMapDefs[definitionId];
+  const definition = getWorldDefinitionById(definitionId);
   const validation = validateWorldDefinition(definition);
   if (!validation.ok) throw new Error(`Invalid world definition ${definitionId}: ${validation.errors.join("; ")}`);
   if (mechanicalDraft?.starterRandomization?.kind === "twoRegionStarter" && typeof rngNextInt === "function") {

@@ -1,10 +1,11 @@
+import { mapAssetUrl } from './asset-url.js';
 // Curated frames from the generated engraving sheet. Converted once into the
 // same categorical glyph format as the procedural artwork, on the world lattice.
 export async function loadIllustratedArt(banks) {
   const image = new Image();
   await new Promise((resolve, reject) => {
     image.onload = resolve; image.onerror = () => reject(new Error('Engraving sheet failed to load'));
-    image.src = new URL('./assets/runtime/engraving-v1.webp', import.meta.url).href;
+    image.src = mapAssetUrl('./assets/runtime/engraving-v1.webp');
   });
   const frames = {
     massif: [8, 18, 585, 346], peaks: [593, 125, 355, 252],

@@ -1,5 +1,5 @@
 import { normalizeStructureLayout, validateStructureLayout, occupiedCells, applyBuild, applyDemolish } from "./structure-layout.js";
-import { worldMapDefs } from "../defs/world/world-map-defs.js";
+import { getWorldDefinitionById } from './world-definitions.js';
 import {
   DETAILED_PRACTICE_SLOT_COUNT,
   detailedSettlementPracticeDefs,
@@ -22,7 +22,7 @@ export const MAP_LAB_DRAFT_SCHEMA_VERSION = 8;
 export const MAP_LAB_STORAGE_KEY = "civsurvivor.mapLabDraft.v8";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
-const definitionFor = (id) => worldMapDefs[id] ?? null;
+const definitionFor = getWorldDefinitionById;
 
 function normalizeDetailedState(raw, capacity, regionId = null) {
   const fallback = createInitialDetailedSettlementData(regionId);

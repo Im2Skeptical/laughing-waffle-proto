@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { composeTerrainLandscape, illustrationOverlap, CONTACT_PAIRS, monsterPerimeterPaths, boneRidgeFits } from './terrain-composition.js';
 import { gradeTerrainColour } from './composable-art.js';
-import { generateMap } from './generator.js';
+import { generateMap } from '../../../src/model/regional-map/generator.js';
 
 const art = {};
 for (const family of ['plains', 'forest', 'islands', 'swamp', 'mountains'].map(b => `terrain-${b}`)

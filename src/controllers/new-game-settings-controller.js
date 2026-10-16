@@ -1,5 +1,5 @@
 import { createConfiguredNewGameState } from '../model/new-game.js';
-import { createStarterBootProfile } from '../model/starter-boot-profile.js';
+import { createRegionalBootProfile } from '../model/regional-map/boot-profile.js';
 import { validateGamepiecesDraft } from '../model/game-config.js';
 import {
   DEBUG_PROFILE_LIBRARY_STORAGE_KEY, REGULAR_GAME_PROFILE_ID, REGULAR_GAME_PROFILE_NAME,
@@ -14,7 +14,8 @@ export function createNewGameSettingsController({ storage = browserStorage(), ca
   function preferences() {
     try {
       const value = JSON.parse(storage?.getItem(NEW_GAME_DEV_SETTINGS_KEY) ?? 'null');
-      return { enabled: value?.enabled === true, profileId: typeof value?.profileId === 'string' ? value.profileId : REGULAR_GAME_PROFILE_ID };
+      return { enabled: value?.enabled === true, profileId: typeof value?.profileId === 'string' ? value.profileId : REGULAR_GAME_PROFILE_ID,
+        seed: Number.isInteger(value?.seed) && value.seed >= 0 && value.seed <= 4294967295 ? value.seed : null };
     } catch { return { enabled: false, profileId: REGULAR_GAME_PROFILE_ID }; }
   }
   function selection() {
@@ -28,7 +29,7 @@ export function createNewGameSettingsController({ storage = browserStorage(), ca
         else error = `Saved dev profiles need attention: ${result.errors[0]}`;
       }
     } catch { error = 'Saved dev profiles could not be read on this device.'; }
-    const entries = [{ id: REGULAR_GAME_PROFILE_ID, name: REGULAR_GAME_PROFILE_NAME, profile: createStarterBootProfile() }, ...profiles];
+    const entries = [{ id: REGULAR_GAME_PROFILE_ID, name: REGULAR_GAME_PROFILE_NAME, profile: createRegionalBootProfile(choice.seed ?? 1867) }, ...profiles];
     const selected = entries.find(entry => entry.id === choice.profileId);
     if (!selected) error ||= 'The selected dev profile is unavailable. Choose another profile or turn off Use dev settings.';
     return { ...choice, entries, selected, error };
@@ -44,26 +45,31 @@ export function createNewGameSettingsController({ storage = browserStorage(), ca
   }
   return {
     getSnapshot() {
-      const { enabled, profileId, entries, selected, error } = selection();
-      return { enabled, profileId, selectedName: selected?.name ?? null, error,
+      const { enabled, profileId, seed, entries, selected, error } = selection();
+      return { enabled, profileId, seed, selectedName: selected?.name ?? null, error,
         profileOptions: entries.map(({ id, name }) => ({ id, name })) };
     },
     setEnabled(enabled) { write({ ...preferences(), enabled: Boolean(enabled) }); },
+    setSeed(value) {
+      const seed=value==null||String(value).trim()===''?null:Number(value);
+      if(seed!==null&&(!Number.isInteger(seed)||seed<0||seed>4294967295))throw new Error('Seed must be a whole number from 0 to 4294967295, or blank for random.');
+      write({...preferences(),seed});
+    },
     selectProfile(profileId) {
       if (!selection().entries.some(entry => entry.id === profileId)) throw new Error('Choose an available dev profile.');
       write({ ...preferences(), profileId });
     },
     getLaunchKey() {
-      if (!preferences().enabled) return cardReviews.getLaunchKey();
+      if (!preferences().enabled) return JSON.stringify([preferences().seed,cardReviews.getLaunchKey()]);
       // Include saved values so editing a named profile also invalidates preparation.
       const selected = selection();
       if (!selected.selected) return JSON.stringify(['unavailableProfile', selected.profileId, selected.error]);
       const { activePage: _activePage, ...profile } = selected.selected.profile;
-      return JSON.stringify([profile, cardReviews.getLaunchKey()]);
+      return JSON.stringify([preferences().seed,profile, cardReviews.getLaunchKey()]);
     },
-    createNewGame(seed = globalThis.crypto.getRandomValues(new Uint32Array(1))[0]) {
+    createNewGame(seed = preferences().seed ?? globalThis.crypto.getRandomValues(new Uint32Array(1))[0]) {
       if (!preferences().enabled) return cardReviews.createNewGame(seed);
-      const profile = selectedProfile();
+      const profile = preferences().profileId===REGULAR_GAME_PROFILE_ID ? createRegionalBootProfile(seed) : selectedProfile();
       if (cardReviews.useInNewGames()) {
         const result = cardReviews.applyTo(profile.gamepieces);
         result.issues.push(...validateGamepiecesDraft(result.gamepieces).errors);

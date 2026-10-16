@@ -50,6 +50,8 @@ export function createLabScene({getController,run,onReview}) {
   groupPanel.append(seriesSummary,seriesPanel);
   node.append(controls,disclosure('Map layers',[layers],{key:'scene:layers',open:!isNarrow(),count:7}),groupPanel);
   const viewport=el('div','','lab-scene-viewport');node.append(viewport);
+  const mapStatus=el('p','','lab-note');mapStatus.setAttribute('role','status');controls.append(mapStatus);
+  let preparedMapId=null;
   const displayMode=attachDevPreviewDisplay(viewport);
   const app=new PIXI.Application({width:2424,height:1200,backgroundColor:0x111c21,antialias:true,resolution:1});
   app.stage.eventMode='static';app.stage.hitArea=app.screen;
@@ -106,6 +108,12 @@ export function createLabScene({getController,run,onReview}) {
       renderSeries();
     }
     map.refresh();
+    const mapId=state().world?.definitionId;
+    if(mapId!==preparedMapId){
+      preparedMapId=mapId;mapStatus.textContent='Preparing map artwork…';
+      void map.prepare(app.renderer).then(()=>{if(preparedMapId===mapId)mapStatus.textContent='';})
+        .catch(error=>{if(preparedMapId===mapId){preparedMapId=null;mapStatus.textContent=`Map artwork could not load: ${error.message}`;}});
+    }
   }
   app.ticker.add(()=>{if(!node.isConnected)return;graphController().update();map.update();wheel.update();graph.render();});
   return {node,refresh,clearPreview:()=>graph.resetForecastPreviewState(),

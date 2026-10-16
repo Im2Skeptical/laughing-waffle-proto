@@ -1,6 +1,6 @@
 // Original pixel engravings for the disposable dark-fantasy atlas treatment.
 // Fixed silhouettes and hatching; no borrowed map artwork or simulation RNG.
-import { decorationRandom } from './generator.js';
+import { decorationRandom } from '../../../src/model/regional-map/generator.js';
 
 const STONE = { a: '#51422f', b: '#867359', c: '#af9d7a', d: '#c9b894', e: '#ddd0ae', f: '#ac9872' };
 const MOUNTAIN = { a: '#5d4034', b: '#94705e', c: '#b49a7e', d: '#d0b29b', e: '#e0cbb0', f: '#aa9276' };

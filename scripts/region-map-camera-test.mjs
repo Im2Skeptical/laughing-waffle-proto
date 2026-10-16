@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { createMapPanelReveal } from '../src/views/world-map/transitions.js';
 import { createMapCamera } from '../src/views/world-map/camera.js';
 import { getMapRelationships, getMapRelationship, getRelationshipStyle, drawRelationshipLine } from '../src/views/world-map/relationships.js';
-import { createLabFixture } from '../src/model/dev-lab/fixtures.js';
+import { createConfiguredNewGameState } from '../src/model/new-game.js';
+import { createStarterBootProfile } from '../src/model/starter-boot-profile.js';
 import { getAdjacentRegionIds, getWorldDefinition, getRegionPolygon, getRegionState } from '../src/model/world-state.js';
 import { MAP_RECT, GROUP_FRAME_RECT } from '../src/views/world-map/constants.js';
 import { getSettlementStockTags, getSettlementStockTagLayout } from '../src/views/world-map/stock-tags.js';
@@ -167,7 +168,21 @@ console.log('[region-map-group-frame] OK: no automatic zoom-out, manual zoom pre
 
 // R10 with only R14 connected: the southern neighbour must not force a
 // matching empty margin above the selected settlement.
-const screenshotDefinition = getWorldDefinition(createLabFixture('defense', 42));
+// Keep this geometric regression tied to its authored outline, independently
+// of the seeded geography used by ordinary games and the development lab.
+const cameraProfile = createStarterBootProfile();
+cameraProfile.launch = { startMode: 'authoredMap', neutralSettlements: false };
+const template = cameraProfile.mapLab.regions.find(r => r.detailedState).detailedState;
+for (const id of ['copper-basin', 'high-pass', 'east-steppe']) {
+  Object.assign(cameraProfile.mapLab.regions.find(r => r.id === id), {
+    detailedSettlementEnabled: true, controller: id === 'high-pass' ? 'external-a' : 'player',
+    detailedState: structuredClone(template),
+  });
+}
+cameraProfile.mapLab.connections.push({regionAId:'copper-basin',regionBId:'high-pass'});
+const state = createConfiguredNewGameState(42, cameraProfile);
+getRegionState(state, 'east-steppe').monster = {defense: 2};
+const screenshotDefinition = getWorldDefinition(state);
 const mapPoint = point => ({x:MAP_RECT.x+point.x*MAP_RECT.width,y:MAP_RECT.y+point.y*MAP_RECT.height});
 const screenshotRegions = screenshotDefinition.regions.filter(region => ['east-steppe','obsidian-ridge'].includes(region.id));
 const screenshotPoints = screenshotRegions.flatMap(region => getRegionPolygon(screenshotDefinition, region).map(mapPoint));
@@ -191,7 +206,6 @@ assert.equal(camera.snapshot().zoom, 1, 'R10/R14 preserve the overview zoom when
 assert.ok(Math.abs(camera.project(screenshotFocus).y-(GROUP_FRAME_RECT.y+GROUP_FRAME_RECT.height/2))<.001,
   'R10 takes vertical focus when the full group cannot fit without zooming out');
 
-const state = createLabFixture('defense', 42);
 const beforeRelationships = JSON.stringify(state);
 const reach = getMapRelationships(state, 'copper-basin', true);
 assert.deepEqual(reach.highlightedRegionIds, ['high-pass', 'east-steppe']);

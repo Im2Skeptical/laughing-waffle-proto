@@ -138,6 +138,7 @@ try {
     await page.locator('#edit-node').selectOption('shop');await page.locator('#preview-node').click();
     await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.modal.animation==='open');
     await openingClick('option',0);
+    await openingClick('tagConfirm',0);
     const native=await page.evaluate(()=>{const g=openingWorkbench.getSnapshot().game;return {footer:g.modal.costPanels[0].rect,hud:g.hud};});
     assert.equal(native.hud.aboveDecisions,true,'the native buy modal keeps the Vassal HUD above its backdrop');
     await page.getByTestId('opening-game-screen').scrollIntoViewIfNeeded();
@@ -364,6 +365,7 @@ try {
     await page.waitForFunction(()=>!openingWorkbench.getSnapshot().busy&&openingWorkbench.getSnapshot().summary.classId==='warrior');
     await openingEnter('shop');
     await openingClick('option',0);
+    await openingClick('tagConfirm',0);
     await openingClick('offer',0);await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.modal.purchaseOrder.length===1);
     assert.ok(await page.evaluate(()=>openingWorkbench.getSnapshot().game.modal.projectedPrestige<openingWorkbench.getSnapshot().summary.prestige));
     await openingClick('undo',0);await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.modal.purchaseOrder.length===0);

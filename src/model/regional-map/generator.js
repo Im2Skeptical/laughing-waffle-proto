@@ -1,6 +1,6 @@
-// Disposable map study. No GameState, live simulation or save is attached.
+// Pure seeded geography, shared by live worlds and the map workbench.
 import { assignClusteredBiomes } from './biome-clustering.js';
-import { attachRngHelpers } from '../../../src/model/rng.js';
+import { attachRngHelpers } from '../rng.js';
 
 export const BIOMES = {
   plains: { name: 'Plains', colour: 0xc4b679, ink: 0x77734b },

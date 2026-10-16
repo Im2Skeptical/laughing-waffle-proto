@@ -2,7 +2,6 @@ import { createSaveTestStorage } from '../../../scripts/save-test-storage.mjs';
 import { ActionKinds } from "../actions.js";
 import { getVassalCandidatePool } from "../vassal-life-map.js";
 import { createNewGameState } from "../new-game.js";
-import { createStarterBootProfile } from "../starter-boot-profile.js";
 import { createGameSessionController } from "../../controllers/game-session-controller.js";
 import assert from "node:assert/strict";
 import { createInitialState } from "../init.js";
@@ -42,6 +41,7 @@ import {
 import {
   addWorldConnection,
   getConnectedRegionIds,
+  getWorldDefinition,
   getRegionReference,
   getRegionState,
   removeWorldConnection,
@@ -661,8 +661,7 @@ assert.deepEqual(
   "authoritative graph refresh exposes the replayed frontier values"
 );
 
-// Player starts retain the fixed map and roll only eligible connected pairs.
-const starterProfile = createStarterBootProfile();
+// Each seed captures generated geography and an eligible connected start.
 const startingPairs = new Set();
 for (let seed = 1; seed <= 64; seed += 1) {
   const fresh = createNewGameState(seed * 7919);
@@ -675,7 +674,8 @@ for (let seed = 1; seed <= 64; seed += 1) {
     [edge.regionAId, edge.regionBId].sort().join("|") === ids.join("|")));
   const hamlet=fresh.world.sites.find(site=>site.neutral?.template==='Forager Hamlet');
   assert.ok(getConnectedRegionIds(fresh,fresh.civilization.capitalRegionId).includes(hamlet.regionId));
-  for(const edge of starterProfile.mapLab.connections) assert.ok(fresh.world.connections.some(actual=>actual.regionAId===edge.regionAId&&actual.regionBId===edge.regionBId));
+  assert.equal(fresh.world.regions.length,20);
+  for(const edge of getWorldDefinition(fresh).connections) assert.ok(fresh.world.connections.some(actual=>actual.regionAId===edge.regionAId&&actual.regionBId===edge.regionBId));
   assert.equal(fresh.world.regions.filter(region=>region.monster).length,1);
   assert.equal(fresh.world.regions.find(region=>region.monster).monster.defense,2);
   assert.ok(players.every((region) => region.detailedSettlementEnabled));
@@ -683,7 +683,7 @@ for (let seed = 1; seed <= 64; seed += 1) {
   assert.deepEqual(serializeGameState(fresh), serializeGameState(createNewGameState(seed * 7919)));
   assert.deepEqual(serializeGameState(deserializeGameState(serializeGameState(fresh))), serializeGameState(fresh));
 }
-assert.equal(startingPairs.size, starterProfile.mapLab.connections.length, "seed coverage reaches all fixed-map roads");
+assert.ok(startingPairs.size>9, "seed coverage varies connected starts across generated worlds");
 const freshRun = createNewGameState(735);
 const freshTimeline = createTimelineFromInitialState(freshRun);
 assert.deepEqual(serializeGameState(rebuildStateAtSecond(freshTimeline, 12).state),

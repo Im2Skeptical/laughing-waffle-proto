@@ -1,4 +1,5 @@
 import { addMonsterGround, addMonsterMarker, addTerritoryBorder } from './world-map/territory-art.js';
+import { createIllustratedTerrain } from './world-map/illustrated-terrain.js';
 import { getMapRelationships, getMapRelationship, getRelationshipStyle, drawRelationshipLine } from './world-map/relationships.js';
 import { createMapCamera } from './world-map/camera.js';
 import { createMapPanelReveal } from './world-map/transitions.js';
@@ -107,7 +108,7 @@ function addButton(parent, rect, label, onPress, disabled = false, textStyle = {
   return root;
 }
 
-function getRegionReferenceCorner(definition, regionDef) {
+function getRegionReferenceCorner(definition, regionDef, project = screenPoint) {
   const points = getRegionPolygon(definition, regionDef);
   if (!points.length) return null;
   const corner = points.reduce((best, point) =>
@@ -116,7 +117,7 @@ function getRegionReferenceCorner(definition, regionDef) {
   const center = regionDef?.display?.labelPoint ?? corner;
   // Pull the label just inside the nearest top-left vertex, leaving the
   // settlement glyphs at the authored display point unobstructed.
-  return screenPoint({
+  return project({
     x: corner.x * 0.88 + center.x * 0.12,
     y: corner.y * 0.88 + center.y * 0.12,
   });
@@ -192,6 +193,7 @@ function signature(
   vassalHighlight
 ) {
   return JSON.stringify({
+    worldDefinitionId:state?.world?.definitionId,
     selectedRegionId,
     regionSelectionActive,
     graphScope,
@@ -246,6 +248,14 @@ export function createWorldMapView({
   const clip = new PIXI.Graphics().beginFill(0xffffff)
     .drawRect(MAP_VIEWPORT_RECT.x, MAP_VIEWPORT_RECT.y, MAP_VIEWPORT_RECT.width, MAP_VIEWPORT_RECT.height).endFill();
   viewport.addChild(world);
+  const illustratedWidth=MAP_RECT.height*1576/516;
+  const illustratedRect={...MAP_RECT,x:MAP_RECT.x+(MAP_RECT.width-illustratedWidth)/2,width:illustratedWidth};
+  const illustrated=createIllustratedTerrain(world,illustratedRect);
+  // Use the workbench's aspect ratio for both artwork and gameplay projection.
+  const screenPoint=point=>{
+    const rect=illustrated.supports(getState?.())?illustratedRect:MAP_RECT;
+    return {x:rect.x+Number(point?.x??0)*rect.width,y:rect.y+Number(point?.y??0)*rect.height};
+  };
   world.addChild(mapContent, edgeTransferLayer);
   viewport.mask = clip;
   layer.addChild(viewport, clip, root, detailRoot);
@@ -259,6 +269,16 @@ export function createWorldMapView({
   let chaosExpanded = true;
   let lastRevealedRegionId = null;
   let overviewCamera = camera.snapshot();
+  let preparedWorldId=null;
+  function fitOverview() {
+    const state=getState?.(),definition=getWorldDefinition(state);
+    if(!illustrated.supports(state)||!definition){camera.reset();return;}
+    const points=definition.geometry.vertices.map(screenPoint),xs=points.map(p=>p.x),ys=points.map(p=>p.y);
+    const left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
+    const zoom=Math.min(1,(MAP_VIEWPORT_RECT.width-180)/(right-left),(MAP_VIEWPORT_RECT.height-130)/(bottom-top));
+    camera.restore({zoom,x:MAP_VIEWPORT_RECT.x+MAP_VIEWPORT_RECT.width/2-(left+right)/2*zoom,
+      y:MAP_VIEWPORT_RECT.y+MAP_VIEWPORT_RECT.height/2-(top+bottom)/2*zoom});camera.finish();overviewCamera=camera.snapshot();
+  }
   let lastSignature = "";
   let lastPointerRegionId = null;
   let lastRegionTap = {
@@ -518,6 +538,8 @@ export function createWorldMapView({
     );
     const regionMapIndicators = buildRegionMapIndicators(state, definition);
     const display = getDisplayOptions?.() ?? {};
+    const illustratedMap=illustrated.supports(state);
+    illustrated.container.visible=illustratedMap&&display.terrain!==false;
     // Optional choice presentation. Omitted in normal gameplay; affects no rules.
     const choiceRegionIds = display.choiceRegionIds == null ? null : new Set(display.choiceRegionIds);
     const presentRegion = (container, regionId) => {
@@ -566,7 +588,7 @@ export function createWorldMapView({
     const bg = new PIXI.Graphics();
     bg.beginFill(0x152426).drawRect(-3000, -2000, 8500, 5000).endFill();
     bg.eventMode = "none";
-    mapContent.addChild(bg);
+    if(!illustratedMap)mapContent.addChild(bg);else bg.destroy();
     const civilizationHeader = new PIXI.Graphics();
     roundedRect(
       civilizationHeader,
@@ -633,7 +655,7 @@ export function createWorldMapView({
       hit.hitArea = new PIXI.Polygon(points);
       hit.eventMode = "static";
       hit.cursor = !choiceRegionIds || choiceRegionIds.has(region.id) ? 'pointer' : 'default';
-      if (display.terrain !== false) addRegionTerrain(hit, points, region.colour, region.controller === "player" ? 1 : .74);
+      if (!illustratedMap&&display.terrain !== false) addRegionTerrain(hit, points, region.colour, region.controller === "player" ? 1 : .74);
       hit.addChild(shape);
       if (region.monster && display.actors !== false) addMonsterGround(hit, points);
       hit.mapRegionId = region.id;
@@ -719,7 +741,8 @@ export function createWorldMapView({
           tooltipView, reference: getRegionReference(state, indicator.regionId) ?? indicator.regionId,
         });
         if (display.scenery !== false) {
-          if (indicator.neutral) addNeutralMarketGlyph(regionContent, point);
+          if(illustratedMap&&illustrated.addSite(regionContent,point,indicator.neutral?'neutral':'player')) {}
+          else if (indicator.neutral) addNeutralMarketGlyph(regionContent, point);
           else {
             landmarks.push(addTimelineLandmark(regionContent,{x:point.x-29,y:point.y-76,width:58,height:66},
               {startSec:definition.regions.indexOf(regionDef)*.37}));
@@ -747,7 +770,7 @@ export function createWorldMapView({
       }
     }
     for (const regionDef of definition.regions) {
-      const point = getRegionReferenceCorner(definition, regionDef)
+      const point = getRegionReferenceCorner(definition, regionDef, screenPoint)
         ?? screenPoint(regionDef.display.labelPoint);
       const label = createText(getRegionReference(state, regionDef.id) ?? "R??", {
         ...TEXT_STYLES.chip,
@@ -832,7 +855,7 @@ export function createWorldMapView({
     addButton(root, {x: controlsX + 58, y: 756, width: 52, height: 52}, '+', () => camera.zoomBy(1.2, cameraRight));
     addButton(root, {x: controlsX + 116, y: 756, width: 98, height: 52}, 'Reset', () => {
       if (relationships) frameGroup();
-      else camera.reset();
+      else fitOverview();
     });
     if (!regionSelectionActive) return;
 
@@ -851,12 +874,16 @@ export function createWorldMapView({
       panelReveal.update();
       render();
       updateEdgeTransferPackets();
+      illustrated.update(visualTime(),camera.snapshot().zoom);
     },
     refresh: () => { lastSignature = ""; render(true); },
     async prepare(renderer) {
+      await illustrated.prepare(getState?.(),renderer);
+      if(preparedWorldId!==getState?.()?.world?.definitionId){preparedWorldId=getState?.()?.world?.definitionId;fitOverview();lastRevealedRegionId=null;}
       // Prepare the panels opened by map flags, without selecting a region or
       // altering camera, graph scope, or the live settlement state.
       regionPanels.clear();
+      render(true);
       const state = getState?.();
       const definition = getWorldDefinition(state);
       const indicators = definition ? buildRegionMapIndicators(state, definition) : [];
@@ -907,6 +934,7 @@ export function createWorldMapView({
         : [];
       return {
         visible: root.visible === true,
+        illustratedTerrain:{...illustrated.stats},
         selectedRegionId: regionId,
         regionSelectionActive: getRegionSelectionActive?.() === true,
         relationships: getMapRelationships(state, regionId, root.visible && getRegionSelectionActive?.() === true),
@@ -1012,6 +1040,7 @@ export function createWorldMapView({
     getPracticeClickPoint: () => null,
     getInstalledPracticeClickPoint: () => null,
     destroy: () => {
+      illustrated.destroy();
       unavailableFilter.destroy();
       regionPanels.clear();
       stockTransferIcons.clear();

@@ -6,7 +6,7 @@ import {
   parseDebugProfileExportJson, parseDebugProfileLibraryJson, saveDebugProfile,
   serializeDebugProfileExport, serializeDebugProfileLibrary, validateDebugProfile,
 } from '../model/debug-profile-library.js';
-import { createStarterBootProfile } from '../model/starter-boot-profile.js';
+import { createRegionalBootProfile } from '../model/regional-map/boot-profile.js';
 import { createConfiguredNewGameState } from '../model/new-game.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
@@ -17,9 +17,9 @@ export function createDebugProfileController({ mapLabController, debugConfigurat
   const storage = safeStorage();
   let library = createEmptyDebugProfileLibrary(), selectedProfileId = REGULAR_GAME_PROFILE_ID;
   let defaultProfileId = REGULAR_GAME_PROFILE_ID, activePage = 'mapLab', readOnly = true;
-  let launch = clone(createStarterBootProfile().launch), status = { message: '', tone: 'info' };
+  let launch = clone(createRegionalBootProfile().launch), status = { message: '', tone: 'info' };
   let loading = false;
-  const builtIn = () => ({ id: REGULAR_GAME_PROFILE_ID, name: REGULAR_GAME_PROFILE_NAME, profile: createStarterBootProfile(), readOnly: true });
+  const builtIn = () => ({ id: REGULAR_GAME_PROFILE_ID, name: REGULAR_GAME_PROFILE_NAME, profile: createRegionalBootProfile(), readOnly: true });
   const entryFor = id => id === REGULAR_GAME_PROFILE_ID ? builtIn() : library.profiles.find(entry => entry.id === id);
   try {
     const text = storage?.getItem(DEBUG_PROFILE_LIBRARY_STORAGE_KEY);
@@ -36,7 +36,7 @@ export function createDebugProfileController({ mapLabController, debugConfigurat
     catch (_) { return false; }
   }
   function currentProfile() {
-    if (readOnly) return createStarterBootProfile();
+    if (readOnly) return createRegionalBootProfile();
     return {
       mapLab: mapLabController.getSnapshot().draft,
       gameSettings: debugConfigurationController.getSnapshot(GAME_SETTINGS_DRAFT_KIND).draft,
@@ -151,7 +151,7 @@ export function createDebugProfileController({ mapLabController, debugConfigurat
       } catch (_) { return { ok: false, reason: 'storageUnavailable' }; }
     },
     createRun(seed) {
-      const profile = currentProfile(), validation = validateDebugProfile(profile);
+      const profile = readOnly ? createRegionalBootProfile(seed) : currentProfile(), validation = validateDebugProfile(profile);
       if (!validation.ok) throw new Error(validation.errors[0]);
       if (!Number.isInteger(seed) || seed < -2147483648 || seed > 2147483647) throw new Error('Seed must be a signed 32-bit integer.');
       return createConfiguredNewGameState(seed, profile);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { assignClusteredBiomes } from './biome-clustering.js';
-import { generateMap, BIOMES } from './generator.js';
+import { assignClusteredBiomes } from '../../../src/model/regional-map/biome-clustering.js';
+import { generateMap, BIOMES } from '../../../src/model/regional-map/generator.js';
 
 for(let seed=1860;seed<1880;seed++){
   let previous=-1,geometry=null,quota=null;

@@ -1,6 +1,6 @@
 // Throwaway Pixi study: approved base geography and current Atlas rendering.
 // Same generated map in each mode; no live renderer or simulation is attached.
-import { generateMap, sampleSurroundings, projectToPath, canPlacePeak, BIOMES, FEATURE_SETS, insidePolygon, decorationRandom } from './generator.js';
+import { generateMap, sampleSurroundings, projectToPath, canPlacePeak, BIOMES, FEATURE_SETS, insidePolygon, decorationRandom } from '../../../src/model/regional-map/generator.js';
 import { VIEWPORT_DESIGN_WIDTH as W, VIEWPORT_DESIGN_HEIGHT as H } from '../../../src/views/layout-pixi.js';
 import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.js';
 import { createMapCamera } from '../../../src/views/world-map/camera.js';

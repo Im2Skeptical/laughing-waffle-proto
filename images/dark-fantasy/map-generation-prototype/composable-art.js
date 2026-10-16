@@ -1,3 +1,4 @@
+import { mapAssetUrl } from './asset-url.js';
 export const composableLibrary = { biomePieces: 126, boundaryPieces: 50, cells: [], sheets: 13 };
 
 // Source hues carry the material information: leaves, trunks, earth and rock.
@@ -47,11 +48,11 @@ export function gradeTerrainColour(r, g, b, family) {
 }
 
 export async function loadComposableArt(banks) {
-  const manifest = await (await fetch(new URL('./assets/runtime/relief-v1.json', import.meta.url))).json();
+  const manifest = await (await fetch(mapAssetUrl('./assets/runtime/relief-v1.json'))).json();
   const image = new Image();
   await new Promise((resolve, reject) => {
     image.onload = resolve; image.onerror = () => reject(new Error('Imported relief atlas failed to load'));
-    image.src = new URL('./assets/runtime/relief-v1.webp', import.meta.url).href;
+    image.src = mapAssetUrl('./assets/runtime/relief-v1.webp');
   });
   composableLibrary.cells = manifest.frames.map(frame => ({ kind: frame.kind, sheet: frame.family, pair: frame.pair, cutRuns: frame.cutRuns }));
   const scales=frame=>{

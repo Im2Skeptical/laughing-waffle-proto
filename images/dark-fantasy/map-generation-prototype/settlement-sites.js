@@ -1,4 +1,4 @@
-import { decorationRandom } from './generator.js';
+import { decorationRandom } from '../../../src/model/regional-map/generator.js';
 
 // Canonical texture-space site planning. Camera and zoom never enter this model.
 export function planSettlementSites({ map, pixel, world, width, height, land, waterIndices, regionIds, detail }) {

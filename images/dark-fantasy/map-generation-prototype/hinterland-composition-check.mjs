@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { composeHinterland, hinterlandBorderEdges, paintHinterlandMass } from './hinterland-composition.js';
-import { generateMap } from './generator.js';
+import { generateMap } from '../../../src/model/regional-map/generator.js';
 
 const art={};
 for(const family of ['mountains','ridge-border','forest','swamp','plains'])for(let n=0;n<12;n++)for(const suffix of ['', '-mirror'])

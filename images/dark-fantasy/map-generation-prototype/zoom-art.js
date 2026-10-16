@@ -1,3 +1,4 @@
+import { mapAssetUrl } from './asset-url.js';
 // Disposable colour renderer. Categorical water indices never enter this path.
 // Resolve colours first, then prefilter shrinking art and sharpen enlargement.
 const cache = new Map();
@@ -118,11 +119,11 @@ export function zoomArtStats() {
 }
 
 export async function prepareLandmarkLods() {
-  const manifest = await (await fetch(new URL('./assets/runtime/landmarks-v1.json', import.meta.url))).json();
+  const manifest = await (await fetch(mapAssetUrl('./assets/runtime/landmarks-v1.json'))).json();
   const image = new Image();
   await new Promise((resolve, reject) => {
     image.onload = resolve; image.onerror = () => reject(new Error('Landmark sheet failed to load'));
-    image.src = new URL('./assets/runtime/landmarks-v1.webp', import.meta.url).href;
+    image.src = mapAssetUrl('./assets/runtime/landmarks-v1.webp');
   });
   const source = document.createElement('canvas'); source.width = image.width; source.height = image.height;
   const ctx = source.getContext('2d'); ctx.drawImage(image, 0, 0);
@@ -145,8 +146,8 @@ export async function prepareLandmarkLods() {
       return texture;
     });
   }
-  const settlements = await (await fetch(new URL('./assets/runtime/settlement-buildings-v1.json', import.meta.url))).json();
-  const sheet = await PIXI.Assets.load(new URL('./assets/runtime/settlement-buildings-v1.webp', import.meta.url).href);
+  const settlements = await (await fetch(mapAssetUrl('./assets/runtime/settlement-buildings-v1.json'))).json();
+  const sheet = await PIXI.Assets.load(mapAssetUrl('./assets/runtime/settlement-buildings-v1.webp'));
   result.biomes = {};
   for (const frame of settlements.frames) {
     const [x, y, w, h] = frame.rect;

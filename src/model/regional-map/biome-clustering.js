@@ -1,4 +1,4 @@
-import { attachRngHelpers } from '../../../src/model/rng.js';
+import { attachRngHelpers } from '../rng.js';
 
 const cache=new Map();
 

@@ -1,5 +1,5 @@
 // Disposable adapter around real rules. No player module imports this workbench.
-import { createNewGameState, createConfiguredNewGameState } from '../../../src/model/new-game.js';
+import { createConfiguredNewGameState } from '../../../src/model/new-game.js';
 import { createStarterBootProfile } from '../../../src/model/starter-boot-profile.js';
 import { serializeGameState, deserializeGameState } from '../../../src/model/state.js';
 import { getCurrentLifeMapVassal, selectLifeMapVassal, enterVassalLifeNode, getVassalNodeDecisionPresentation,
@@ -27,7 +27,9 @@ export function cloneOpeningSession(session) {
   return { ...structuredClone({ ...session, state: null }), state: deserializeGameState(serializeGameState(session.state)) };
 }
 export function createOpeningSession(document, initialState = null) {
-  const experiment = validateOpeningExperiment(document), state = initialState ?? createNewGameState(experiment.seed);
+  // This authored experiment prices destinations by river-basin region ID.
+  // Keep its fixture stable when the player's default geography changes.
+  const experiment = validateOpeningExperiment(document), state = initialState ?? createConfiguredNewGameState(experiment.seed, createStarterBootProfile());
   const index = state.civilization.vassalLineage.pendingCandidates.findIndex(c => c.founderClassId === 'warrior');
   const selected = selectLifeMapVassal(state, index);
   if (!selected.ok) throw new Error(selected.reason);

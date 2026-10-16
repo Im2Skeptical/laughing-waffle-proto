@@ -1,4 +1,10 @@
-# Map generation Pixi workbench (disposable prototype)
+# Regional map rendering and Pixi workbench
+
+The approved v1.0.34 renderer also supplies the live game's illustrated map.
+Pure geography now lives in `src/model/regional-map/` at the repository root;
+this workbench imports the same generator and biome clustering as the model.
+`src/views/world-map/illustrated-terrain.js` retains and flattens its scenery for
+gameplay, with live settlements, roads and ownership rendered separately.
 
 Current published revision: **Map v1.0.34**: triple cloud lifecycle timings for
 all three families, including appearance and dissolution, for calmer 300-year

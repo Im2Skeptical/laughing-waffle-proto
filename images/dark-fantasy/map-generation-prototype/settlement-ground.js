@@ -1,4 +1,4 @@
-import { decorationRandom } from './generator.js';
+import { decorationRandom } from '../../../src/model/regional-map/generator.js';
 import { SHORE_TREATMENTS } from './terrain-interactions.js';
 
 // Ground work, not a circular icon plate. Every mark is clipped against the

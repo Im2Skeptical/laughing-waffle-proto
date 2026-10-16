@@ -293,7 +293,12 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
         };
         toggle.addEventListener('change', () => changed(() => newGameSettings.setEnabled(toggle.checked)));
         picker.addEventListener('change', () => changed(() => newGameSettings.selectProfile(picker.value)));
-        update(); settings.append(label, profileLabel, edit, info); dev.append(settings);
+        const seedLabel=document.createElement('label');seedLabel.className='game-dev-profile-label';
+        const seed=document.createElement('input');seed.type='number';seed.min='0';seed.max='4294967295';seed.step='1';seed.placeholder='Random each new game';seed.dataset.testid='game-new-seed';seed.setAttribute('aria-label','New game seed');
+        seed.value=newGameSettings.getSnapshot().seed ?? '';
+        seed.addEventListener('change',()=>changed(()=>newGameSettings.setSeed(seed.value)));
+        seedLabel.append(document.createTextNode('New game seed (blank = random)'),seed);
+        update(); settings.append(label, profileLabel, seedLabel, edit, info); dev.append(settings);
       }
       dev.append(button('Save diagnostics', () => { mode = 'diagnostics'; render(); }, 'game-save-diagnostics'));
       if(cardReviews) {

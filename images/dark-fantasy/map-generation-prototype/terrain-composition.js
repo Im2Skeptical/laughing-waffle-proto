@@ -1,4 +1,4 @@
-import { decorationRandom, insidePolygon, polygonArea, isLand } from './generator.js';
+import { decorationRandom, insidePolygon, polygonArea, isLand } from '../../../src/model/regional-map/generator.js';
 
 export const CONTACT_PAIRS = [
   ['plains', 'forest'], ['plains', 'islands'], ['plains', 'swamp'], ['plains', 'mountains'], ['forest', 'islands'],

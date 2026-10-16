@@ -1,4 +1,4 @@
-import { decorationRandom } from './generator.js';
+import { decorationRandom } from '../../../src/model/regional-map/generator.js';
 
 export function hinterlandBorderEdges(map) {
   return map.edges.filter(e=>e.regions.length===1&&!map.world.oceanSides.includes(e.worldSide));

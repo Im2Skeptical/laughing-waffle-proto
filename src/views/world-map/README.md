@@ -1,5 +1,25 @@
 # World map view extract
 
+## Illustrated live worlds
+
+New games use the shared v1.0.34 regional geography and artwork. The saved
+`regional-v1:<seed>` definition ID fixes polygons, biomes and initial roads;
+the same definition supplies simulation adjacency and view hit areas.
+Explicit authored Map Lab maps remain supported as authored layouts.
+`illustrated-terrain.js` retains one terrain bake per active map, flattens static
+scenery into a texture pyramid, and updates water/clouds from viewed time at
+at most 30 fps. Selection, owners, roads, actors, packets and panels remain live.
+Hidden maps do not animate. Texture disposal is owned by the view; no Pixi
+objects or decorative animation state enter saves.
+
+Initial headless desktop assessment: workbench cold terrain bake ~15.8 s,
+scrub median ~20.9 ms with large stalls. The isolated integrated fixture measured
+~12.2 s preparation (9.9 s bake) and 4.5/6.3 ms median/p95 updates after flattening
+424 static pieces and removing unused background painting. Cold baking is still
+the main cost and stays behind the loading screen. These are local diagnostics,
+not Pixel 6 measurements. `scripts/illustrated-map-browser-probe.mjs` exercises
+the built game, selection, time browsing, mobile layout and retained terrain.
+
 Helpers for the public module `src/views/world-map-pixi.js`, which remains the
 orchestrator and still re-exports every previous public symbol.
 

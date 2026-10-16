@@ -1,3 +1,4 @@
+import { mapAssetUrl } from './asset-url.js';
 // Overhead cloud-top banks, positioned from absolute time rather than frame history.
 import { CLOUD_FAMILIES,cloudBanks } from './cloud-weather.js';
 import { createCloudMesh } from './cloud-material.js';
@@ -5,13 +6,13 @@ import { createCloudMesh } from './cloud-material.js';
 let atlasPromise,atlases;
 export function prepareCloudArt() {
   return atlasPromise ??= Promise.all(CLOUD_FAMILIES.map(family=>
-    PIXI.Assets.load(new URL(family.asset,import.meta.url).href))).then(textures=>{
+    PIXI.Assets.load(mapAssetUrl(family.asset)))).then(textures=>{
       for(const atlas of textures) {
         atlas.baseTexture.scaleMode=PIXI.SCALE_MODES.LINEAR;
         atlas.baseTexture.mipmap=PIXI.MIPMAP_MODES.OFF;
       }
       atlases=textures;return textures;
-    });
+    }).catch(error=>{atlasPromise=null;throw error;});
 }
 
 // Signed distance to the playable union, encoded over [-256, 256] world units.

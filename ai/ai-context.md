@@ -71,7 +71,10 @@ Authoritative numbers:
 
 ## Current prototype setup
 
-Regular player New Game uses the Starter_02 map, nine fixed roads, and tuning.
+Regular player New Game uses a seeded 20-region illustrated map, nine generated
+starting roads, and Starter_02 economic tuning. The serialized world definition
+ID captures the generator version and seed; gameplay and art share its geometry.
+New game seeds are random unless Developer tools specifies a seed override.
 The menu's Use dev settings toggle explicitly substitutes a saved combined profile. Each
 run chooses one existing road through `state.rng`; its two adjacent regions
 become the only player-controlled detailed settlements, with the first in

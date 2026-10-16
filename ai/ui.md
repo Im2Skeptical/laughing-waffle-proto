@@ -60,6 +60,12 @@ Authoritative UI behavior. Engine invariants and schema numbers:
 `ai/ai-context.md`. Art, asset inventory, and the time-first extension
 contract: `ai/visual-overhaul.md`.
 
+New games use the illustrated regional map from the map workbench baseline.
+Terrain is retained across time/selection changes; water and clouds sample the
+viewed simulation time, including reverse browsing. Developer tools offers a
+New game seed field: blank means random, and a number reproduces the run.
+Save/load preserves the generated map through its versioned seeded definition.
+
 - Main screens share a fixed-landscape dark stone/brass frame, pixel-art terrain,
   illustrated gamepiece cards with dedicated packed art for all 188 runtime pieces, and an engraved astrolabe. New presentation
   modules sample viewed timeline time for hamlet/fire sprites, dust, transfer

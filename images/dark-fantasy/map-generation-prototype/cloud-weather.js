@@ -1,6 +1,6 @@
 // Art-directed weather episodes, not meteorological simulation. A seed and the
 // viewed second fully determine births, shapes and movement (including reverse).
-import { decorationRandom } from './generator.js';
+import { decorationRandom } from '../../../src/model/regional-map/generator.js';
 import { noise } from './water-drift.js';
 import { cloudWeatherTime } from './cloud-cover.js';
 

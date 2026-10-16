@@ -1,6 +1,7 @@
+import { mapAssetUrl } from './asset-url.js';
 // Imported material tiles describe the ground; relief sprites add height to it.
 // All sampling is anchored to world coordinates and uses the map's fixed seed.
-import { decorationRandom } from './generator.js';
+import { decorationRandom } from '../../../src/model/regional-map/generator.js';
 
 export const surfaceLibrary = { ready: false, counts: {}, sourceGroundPieces: 96, sourceBankProfiles: 40 };
 const tiles = new Map(), profiles = new Map();
@@ -12,7 +13,7 @@ async function readAtlas(path, records, target) {
   const image = new Image();
   await new Promise((resolve, reject) => {
     image.onload = resolve; image.onerror = () => reject(new Error(`Imported terrain atlas failed: ${path}`));
-    image.src = new URL(path, import.meta.url).href;
+    image.src = mapAssetUrl(path);
   });
   const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
   const ctx = canvas.getContext('2d'); ctx.drawImage(image, 0, 0);
@@ -25,10 +26,10 @@ async function readAtlas(path, records, target) {
 }
 
 export async function prepareTerrainSurfaces() {
-  const manifest = await (await fetch(new URL('./assets/runtime/terrain-kit-v1.json', import.meta.url))).json();
+  const manifest = await (await fetch(mapAssetUrl('./assets/runtime/terrain-kit-v1.json'))).json();
   await Promise.all([readAtlas('./assets/runtime/terrain-kit-v1.webp', manifest.tiles, tiles),
     readAtlas('./assets/runtime/bank-profiles-v1.webp', manifest.profiles, profiles)]);
-  const monster = await (await fetch(new URL('./assets/runtime/monster-ground-v1.json', import.meta.url))).json();
+  const monster = await (await fetch(mapAssetUrl('./assets/runtime/monster-ground-v1.json'))).json();
   await readAtlas('./assets/runtime/monster-ground-v1.webp', monster.tiles, tiles);
   Object.assign(surfaceLibrary, { ready: true, counts: {...manifest.counts,ground:manifest.counts.ground+16}, cases: manifest.tiles.length+16,
     tilePixels: manifest.tilePixels, importedTexel: manifest.designTexel });

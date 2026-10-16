@@ -1,6 +1,6 @@
 // Disposable Atlas renderer: one world pixel lattice over the approved geography.
 // Geography stays authoritative. Surface palettes sample the viewed timeline time.
-import { decorationRandom, insidePolygon, canPlacePeak } from './generator.js';
+import { decorationRandom, insidePolygon, canPlacePeak } from '../../../src/model/regional-map/generator.js';
 import { createAtlasArt } from './atlas-art.js';
 import { routeSampleRoads } from './roads.js';
 import { loadComposableArt, composableLibrary } from './composable-art.js';

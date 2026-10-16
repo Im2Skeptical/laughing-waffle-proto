@@ -1,7 +1,7 @@
 import { lockDebugEditor } from "./debug-editor-readonly.js";
 import { button as labButton, field, disclosure, info, badge, isNarrow } from "./development-lab/elements.js";
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from "../defs/gamepieces/detailed-settlement-defs.js";
-import { worldMapDefs } from "../defs/world/world-map-defs.js";
+import { getWorldDefinitionById } from '../model/world-definitions.js';
 import { REGION_COLOURS, REGION_CONTROLLERS } from "../model/world-state.js";
 import { createDebugWorldMapDom } from "./debug-world-map-dom.js";
 import { occupiedCells } from "../model/structure-layout.js";
@@ -95,7 +95,7 @@ export function createMapLabDom({ controller, readOnly = () => false } = {}) {
   function renderContents() {
     if (readOnly()) mapMode = "inspect";
     const snapshot = controller.getSnapshot();
-    const definition = worldMapDefs[snapshot.draft.worldDefinitionId];
+    const definition = getWorldDefinitionById(snapshot.draft.worldDefinitionId);
     const region = snapshot.draft.regions.find((entry) => entry.id === snapshot.selectedRegionId);
     root.replaceChildren();
 
