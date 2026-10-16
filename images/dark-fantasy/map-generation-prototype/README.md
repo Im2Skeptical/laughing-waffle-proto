@@ -1,8 +1,9 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.22** — Nearest pixel sampling defaults on,
-while wheel zoom remains animated. Smooth sampling is still available explicitly
-with `smoothZoom=1` or the Pixels toggle. The version appears under the title inside the
+Current published revision: **Map v1.0.23** — animated hinterland fog, drifting
+cloud banks and aligned cloud shadows, all following displayed time with separate
+toggles. Nearest remains the default and wheel zoom remains animated.
+The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -19,6 +20,36 @@ Biome optimisation has its own local seeded RNG, leaving region geometry fixed
 when clustering changes. `clusteringStudy` reports endpoint counts, target,
 actual matching borders and connected group count. Inspect 0/50/100 on one seed;
 run `biome-clustering-check.mjs` alongside the terrain checks.
+
+### Atmosphere study
+
+`atmosphere.js` samples seeded world-space density from absolute displayed time.
+Broad cloud banks drift along a gently varying wind path while their shapes
+evolve through continuous noise. Rotated detail and local displacement avoid
+obvious square cells. Slower threshold changes vary coverage over multi-year
+scrubs. Hinterland mist has its own slower density motion and a stationary,
+feathered mask that excludes playable regions and their immediate margin.
+The cloud field supplies a faint offset shadow, so it cannot detach from its cloud.
+Clouds are translucent and all three effects sit below region outlines and labels.
+
+Fog, Clouds and Shadows have independent bottom-row toggles, enabled by default;
+share `fog=0`, `clouds=0` or `shadows=0` to disable each. These controls do not
+rebake terrain. All effects use the timegraph's Play/Pause, reverse and scrub,
+including reduced-motion startup and hidden-tab suspension. Returning to a date
+restores the same field; no frame integration, gameplay weather or RNG is added.
+The graph's existing three curves still describe water, not weather forecasts.
+
+Two small GPU passes produce density and premultiplied atmosphere colour at
+788 x 258 for the canonical atlas. Mask, density and output total about 2.33 MiB.
+Atmosphere is softly sampled independently of the terrain's Nearest setting.
+No full-screen blur or CPU texture upload runs each frame, and disabling all
+three effects skips density rendering. Initial shader compilation is separate
+from steady-state update cost; desktop timings are not mobile guarantees.
+`mapWorkbench.atmosphere.stats` reports dimensions, time, controls and submission
+cost. Run `atmosphere-check.mjs`, then browser `verifyAtmosphereGpu()` from
+`atmosphere-check.js`, `verifyMapTimeline()` and the zoom persistence check.
+The GPU check covers the CPU field match, exact time restoration, mask exclusion,
+offset shadow alignment and fully transparent disabled output.
 
 ### Inland and ocean island waters
 
@@ -709,12 +740,11 @@ island land, independently of game-zone edges. Region divisions use sepia ink
 above terrain stamps, including equal-biome neighbours; water-rich Island
 regions use lighter broken lines so their zone extent does not read as a coast.
 Unplayable land uses black/grey badlands, dead scrub, peat marsh and ash highlands;
-these are visual treatments of the existing background field. A separate,
-smoothly sampled static cloud texture sits above those stamps, clearing a margin
-around playable regions. **Hinterland fog** toggles it without rebaking; `fog=0`
-shares the clear view. The overlay adds about 0.8 MiB at Detail, 1.1 MiB at Fine, 0.5 MiB at Coarse.
-It has no wall-clock animation. Later fog motion should sample the same absolute
-viewed time as water, outside the ground bake. Opaque glyph pixels
+these are visual treatments of the existing background field. Animated hinterland
+fog sits above those stamps, clearing a margin around playable regions. **Fog**
+toggles it without rebaking; `fog=0` shares the clear view. Separate cloud banks
+and shadows follow the same displayed time as water; see Atmosphere study above.
+Opaque glyph pixels
 must fit dry ground, and crags respect the existing river/coast exclusion rules.
 
 Pixel rendering is **static**, including water. `pixel-terrain.js` rasterizes the
@@ -893,7 +923,7 @@ Overview roads, rivers and internal borders get restrained screen-width ink.
 Labels fade before tiny versions become cluttered. Source water indices remain
 untouched: only resolved RGBA colours enter this filtering path. Future cycling
 must resolve palette colours before filtering, or use authored categorical LODs.
-Water/fog and landmarks remain static in this review; no simulation ticks are added.
+Landmarks stay fixed while water and atmosphere sample displayed time; no simulation ticks are added.
 
 Share `siteArt=atlas&smoothZoom=0&detailMode=auto`. Inspect seeds 1867/1873,
 0.35–2.5 camera zoom, phone fullscreen, both reflections, forced detail, nearest

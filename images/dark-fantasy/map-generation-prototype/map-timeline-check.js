@@ -9,6 +9,7 @@ export function verifyMapTimeline() {
     ctx.drawImage(source, source.width * 494 / 2424, source.height * 238 / 1080,
       source.width * 1896 / 2424, source.height * 410 / 1080, 0, 0, 900, 210);
     if (mapWorkbench.pixelRendering.waterStudy.phaseSeconds !== seconds) throw new Error('Water did not sample the viewed time');
+    if (mapWorkbench.atmosphere.stats.phaseSeconds !== seconds) throw new Error('Atmosphere did not sample the viewed time');
     return ctx.getImageData(0, 0, 900, 210).data;
   };
   try {

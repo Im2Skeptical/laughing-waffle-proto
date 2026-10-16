@@ -18,7 +18,7 @@ const fade = t => t * t * t * (t * (t * 6 - 15) + 10);
 const mix = (a,b,t) => a + (b-a)*t;
 // Integer polynomial hash stays exact in highp float on the GPU. No sine hash
 // (which diverges between JS and GLSL), frame history, or simulation RNG.
-function noise(x,y,z) {
+export function noise(x,y,z) {
   const ix=Math.floor(x),iy=Math.floor(y),iz=Math.floor(z);
   const fx=fade(x-ix),fy=fade(y-iy),fz=fade(z-iz);
   const h=(dx,dy,dz)=>permute(permute(permute(mod(ix+dx))+mod(iy+dy))+mod(iz+dz))/144-1;

@@ -7,6 +7,7 @@ import { loadComposableArt, composableLibrary } from './composable-art.js';
 import { composeHinterland, paintHinterlandMass } from './hinterland-composition.js';
 import { classifyWaterBodies, extendWaterEnvironment, waterColourAt, WATER_BODY, WATER_RAMPS } from './water-style.js';
 import { createWaterCycle } from './water-animation.js';
+import { createAtmosphere } from './atmosphere.js';
 import { waterDriftMask, waterDriftOffset } from './water-drift.js';
 import { composeTerrainLandscape, boneRidgeFits } from './terrain-composition.js';
 import { loadIllustratedArt } from './illustrated-art.js';
@@ -140,9 +141,9 @@ export function reliefSpriteTextures(terrain, flipX, flipY) {
   return textures;
 }
 export function destroyPixelTerrain(terrain) {
-  terrain.waterCycle?.destroy();terrain.backdropWaterCycle?.destroy();
-  releaseZoomArt([terrain.texture, terrain.borderTexture, terrain.fogTexture, terrain.roadTexture, terrain.backdropTexture]);
-  for (const texture of [terrain.texture, terrain.borderTexture, terrain.fogTexture, terrain.roadTexture, terrain.backdropTexture]) texture?.destroy(true);
+  terrain.waterCycle?.destroy();terrain.backdropWaterCycle?.destroy();terrain.atmosphere?.destroy();
+  releaseZoomArt([terrain.texture, terrain.borderTexture, terrain.roadTexture, terrain.backdropTexture]);
+  for (const texture of [terrain.texture, terrain.borderTexture, terrain.roadTexture, terrain.backdropTexture]) texture?.destroy(true);
   for (const cached of terrain.reliefCache?.values() ?? []) { releaseZoomArt(cached.textures.values()); cached.base.destroy(); }
 }
 
@@ -586,34 +587,39 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     else if (index>=240)coastalEffects.lakeGlints++;
   }
   const texture = PIXI.Texture.from(canvas); texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST; texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
-  const fog = document.createElement('canvas'); fog.width = Math.ceil(width / 4); fog.height = Math.ceil(height / 4);
-  const fogCtx = fog.getContext('2d'), fogImage = fogCtx.createImageData(fog.width, fog.height);
-  for (let y = 0; y < fog.height; y++) for (let x = 0; x < fog.width; x++) {
-    const px = x * 4, py = y * 4, offset = (y * fog.width + x) * 4;
-    // Clear a margin around playable polygons; fog never obscures region detail.
-    let playable = false;
-    for (let dy = -8; dy <= 8; dy += 4) for (let dx = -8; dx <= 8; dx += 4) {
-      const sx = px + dx, sy = py + dy;
-      if (sx >= 0 && sy >= 0 && sx < width && sy < height && regionIds[sy * width + sx] >= 0) playable = true;
+  // One low-resolution atmospheric layer covers the fine atlas and hinterland.
+  // Its stationary geographic mask keeps fog outside playable regions; cloud
+  // density and shadows move independently above the full landscape.
+  let atmosphere=null;
+  if(detail===2) {
+    const fw=Math.ceil(width/4),fh=Math.ceil(height/4),mask=new Uint8Array(fw*fh*4);
+    for(let y=0;y<fh;y++)for(let x=0;x<fw;x++) {
+      const px=Math.min(width-1,Math.floor((x+.5)*width/fw)),py=Math.min(height-1,Math.floor((y+.5)*height/fh));
+      let distance=32;
+      for(let dy=-24;dy<=24;dy+=8)for(let dx=-24;dx<=24;dx+=8) {
+        const sx=px+dx,sy=py+dy;
+        if(sx>=0&&sy>=0&&sx<width&&sy<height&&regionIds[sy*width+sx]>=0)
+          distance=Math.min(distance,Math.hypot(dx,dy));
+      }
+      const edge=Math.min(1,Math.min(x,y,fw-1-x,fh-1-y)/16);
+      const t=Math.max(0,Math.min(1,(distance-8)/16)),clearance=t*t*(3-2*t),i=(y*fw+x)*4;
+      mask[i]=Math.round(clearance*(land[py*width+px]?110:25)*edge);
+      mask[i+2]=Math.round(edge*255);mask[i+3]=255;
     }
-    const cloud = noise(map.seed ^ 3831, px, py, 100) * .7 + noise(map.seed ^ 8591, px, py, 38) * .3;
-    fogImage.data[offset] = 151; fogImage.data[offset + 1] = 164; fogImage.data[offset + 2] = 169;
-    const fade = detail === 2 ? Math.min(1, Math.min(x, y, fog.width - 1 - x, fog.height - 1 - y) / 16) : 1;
-    fogImage.data[offset + 3] = playable ? 0 : Math.max(0, cloud - .3) * (land[Math.min(size - 1, py * width + px)] ? 110 : 25) * fade;
+    atmosphere=createAtmosphere({width:fw,height:fh,mask,seed:map.seed,
+      world:[bounds.minX*1576/2,bounds.minY*516/2,width*texel/2,height*texel/2]});
   }
-  fogCtx.putImageData(fogImage, 0, 0); const fogTexture = PIXI.Texture.from(fog);
-  fogTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR; fogTexture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
 
   const waterCycle=createWaterCycle(texture,waterIndices,waterStrength,Uint32Array.from(waterBank),waterBase,
     (x,y)=>noise(map.seed^6719,(bounds.minX*1576+x*texel)/2,(bounds.minY*516+y*texel)/2,87),
     {world:[bounds.minX*1576/2+waterDriftOffset(map.seed)-texel/4,bounds.minY*516/2-texel/4,width*texel/2,height*texel/2],
       maskAt:i=>waterDriftMask(waterBodies[i],seaDistance[i]/3*texel/2,Math.min(1,waterStrength[i]/35))},waterOverlays);
-  return { waterCycle,backdropWaterCycle,settlementPlans, texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, fogTexture, roadTexture, roadClearance, divisionClearance: divisions.clearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, waterOverlays, waterBodies, waterPalette:Uint32Array.from(waterBank), geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
+  return { waterCycle,backdropWaterCycle,settlementPlans, texture, backdropTexture, backdropBounds: map.surroundings.bounds, borderTexture, borderBounds, atmosphere, roadTexture, roadClearance, divisionClearance: divisions.clearance, roadPaths: roads.map(path => path.map(p => world(p.x, p.y))), materials, props, bounds, waterIndices, waterBase, waterStrength, waterOverlays, waterBodies, waterPalette:Uint32Array.from(waterBank), geography: map.geography, stats: { style: 'F', texel, detail, backdropTexel: backdropTexture ? 8 : null, width, height, props: props.length, sites: towns.length,
     waterStudy:{bodyCounts,islandGroups:islandWater.map(c=>({...c,environment:c.lakePixels>c.oceanPixels?'inland lake':'ocean'})),ramps:WATER_RAMPS,phaseSeconds:0,paused:true},
     hinterland:hinterland.stats, palette: 'Parchment ochre, olive woodland, grey peat and reddish umber relief; charcoal hinterland', surfaceKit: surfaces.stats(), foundations, wetlands, glyphKinds: new Set(props.map(p => p.kind)).size,
     roads: roads.length, bridges, regionDivisions: divisions.stats, interactions, coastalEffects, terrainComposition: composition.diagnostics, assetLibrary: { biomePieces: composableLibrary.biomePieces, boundaryPieces: composableLibrary.boundaryPieces, sheets: composableLibrary.sheets,
       usablePieces: composableLibrary.cells.filter(c => !Object.keys(c.cutRuns).length).length,
       excludedPieces: composableLibrary.cells.filter(c => Object.keys(c.cutRuns).length).map(c => c.kind) }, surfaceTreatments, illustratedProps: props.filter(p => ART[p.kind].illustrated).length, coastalOutcrops: props.filter(p => p.kind.startsWith('cliff')).length, reliefColouring: 'Source material colours, selective asset grades, alpha-overlap composition', mountainSpines: map.regions.filter(r => r.biome === 'mountains').length + map.features.filter(f => f.type === 'ridge').length, rangeMassifs: props.filter(p => p.range).length,
-    fog: 'Separate static cloud overlay; toggle without rebaking', fogTextureMiB: +(Math.ceil(width / 4) * Math.ceil(height / 4) * 4 / 1048576).toFixed(1),
+    atmosphere: atmosphere?.stats ?? null,
     textureMiB: +(size * 4 / 1048576).toFixed(1), waterIndexMiB: +(size / 1048576).toFixed(1), waterFieldMiB: +(size * 7 / 1048576).toFixed(1), bakeMs: Math.round(performance.now() - started), animation: 'GPU palette cycling; separate marine/freshwater ramps, fixed depth and resolved-colour zoom filtering' } };
 }

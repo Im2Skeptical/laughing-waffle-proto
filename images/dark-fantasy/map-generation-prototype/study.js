@@ -11,7 +11,7 @@ import { createMapTimegraph } from './map-timegraph.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
-const MAP_VERSION = '1.0.22';
+const MAP_VERSION = '1.0.23';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
@@ -25,6 +25,7 @@ const state = { seed: Math.floor(numberParam('seed', 1867, 0, 2147483647)),
   siteArt: ['live', 'sketch'].includes(params.get('siteArt')) ? params.get('siteArt') : 'atlas', actorScale: numberParam('actorScale', .75, .5, 1.5),
   islandStyle: params.get('islandStyle') === 'caldera' ? 'caldera' : 'basalt',
   siteLabels: params.get('siteLabels') !== '0',
+  clouds: params.get('clouds') !== '0', shadows: params.get('shadows') !== '0',
   waterMotion:params.has('waterMotion')?params.get('waterMotion')!=='0':!matchMedia('(prefers-reduced-motion: reduce)').matches,
   smoothZoom: params.get('smoothZoom') === '1', detailMode: ['close', 'regional', 'overview'].includes(params.get('detailMode')) ? params.get('detailMode') : 'auto',
   flipX: params.get('flipX') === '1', flipY: params.get('flipY') === '1', selected: null };
@@ -88,40 +89,41 @@ let landmarkArt = null, zoomNodes = [], landmarkNodes = [], terrainLayer = null,
 const pixelArtCache = new Map();
 const pixelReview = () => state.variant === 'F';
 const timeline=createMapTimeline({playing:state.waterMotion});
-let timegraph=null,waterFrameId=null;
-function updateWater(force=false) {
+let timegraph=null,environmentFrameId=null;
+function updateEnvironment(force=false) {
   if(!pixelReview()||!currentPixelArt)return;
   const started=performance.now(),seconds=timeline.snapshot.displaySec;
   currentPixelArt.backdropWaterCycle?.update(app.renderer,seconds,force);
   currentPixelArt.waterCycle.update(app.renderer,seconds,force);
   Object.assign(currentPixelArt.stats.waterStudy,{phaseSeconds:seconds,paused:!timeline.snapshot.playing||document.hidden,
     frames:currentPixelArt.waterCycle.frames,updateMs:Math.round((performance.now()-started)*100)/100,renderer:'GPU palette resolve + colour pyramid'});
+  currentPixelArt.atmosphere?.update(app.renderer,seconds,state,force);
 }
-function scheduleWater() {
-  if(waterFrameId!==null)cancelAnimationFrame(waterFrameId);
-  waterFrameId=null;timeline.reset();
+function scheduleEnvironment() {
+  if(environmentFrameId!==null)cancelAnimationFrame(environmentFrameId);
+  environmentFrameId=null;timeline.reset();
   if(!timeline.snapshot.playing||document.hidden)return;
-  const frame=now=>{waterFrameId=null;
+  const frame=now=>{environmentFrameId=null;
     if(!timeline.snapshot.playing||document.hidden)return;
     if(timeline.step(now)){
       state.waterMotion=timeline.snapshot.playing;
-      updateWater();timegraph?.update();app.renderer.render(app.stage);
+      updateEnvironment();timegraph?.update();app.renderer.render(app.stage);
       if(!timeline.snapshot.playing)sync();
     }
-    if(timeline.snapshot.playing)waterFrameId=requestAnimationFrame(frame);
+    if(timeline.snapshot.playing)environmentFrameId=requestAnimationFrame(frame);
   };
-  waterFrameId=requestAnimationFrame(frame);
+  environmentFrameId=requestAnimationFrame(frame);
 }
 function timelineChanged() {
   state.waterMotion=timeline.snapshot.playing;
-  updateWater();timegraph?.update();app.renderer.render(app.stage);scheduleWater();
-  // Pointer movement only updates the GPU palette and playhead, never terrain or JSON diagnostics.
+  updateEnvironment();timegraph?.update();app.renderer.render(app.stage);scheduleEnvironment();
+  // Pointer movement updates animated GPU targets and the playhead, never terrain or JSON diagnostics.
   if(!timeline.snapshot.scrubbing)sync();
 }
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden)timegraph?.cancelScrub();
   if(currentPixelArt)currentPixelArt.stats.waterStudy.paused=!timeline.snapshot.playing||document.hidden;
-  scheduleWater();
+  scheduleEnvironment();
 });
 app.view.addEventListener('webglcontextrestored',()=>{if(currentPixelArt)render();});
 const point = p => ({ x: mapRect.x + (state.flipX ? 1 - p.x : p.x) * mapRect.width,
@@ -557,7 +559,7 @@ function drawTerrainLayer(art, parent) {
     node.position.set(p.x, p.y); node.scale.set(state.flipX ? -texel : texel, state.flipY ? -texel : texel);
     parent.addChild(node);
   };
-  updateWater(true);
+  updateEnvironment(true);
   if (art.backdropTexture) put(art.backdropWaterCycle.levels[0], art.backdropBounds, 8,art.backdropWaterCycle.levels);
   put(art.waterCycle.levels[0], art.bounds,density,art.waterCycle.levels);
   put(art.roadTexture, art.borderBounds);
@@ -598,7 +600,13 @@ function drawTerrainLayer(art, parent) {
     node.terrainBuilding = true; parent.addChild(node);
   });
   art.stats.fogEnabled = state.fog;
-  if (art.fogTexture && state.fog) put(art.fogTexture, art.bounds, density * 4);
+  if(art.atmosphere) {
+    const node=new PIXI.Sprite(art.atmosphere.texture),p=point({x:art.bounds.minX,y:art.bounds.minY});
+    node.eventMode='none';node.position.set(p.x,p.y);
+    node.scale.set((state.flipX?-1:1)*art.stats.width*density/node.texture.width,
+      (state.flipY?-1:1)*art.stats.height*density/node.texture.height);
+    parent.addChild(node);
+  }
   // Region identity stays above stamps and atmospheric decoration.
   put(art.borderTexture, art.borderBounds);
 
@@ -800,19 +808,20 @@ function render() {
   button('Next map view', 1826, 1008, 100, 52, () => cycle(1), { copy: '→', size: 35 });
   text(root, `${map.matchingBorders}/${map.sharedBorders} borders share a biome · ${map.clusteringStudy.groups} groups`, 520, 1022, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
   if (state.variant === 'F') {
-    text(root,'Water follows time',1950,1023,23,0xa9bdaf,{fontFamily:'Arial, sans-serif'});
-    button('Toggle hinterland fog', 2176, 1008, 194, 52, () => { state.fog = !state.fog; render(); }, { copy: state.fog ? 'Fog: On' : 'Fog: Off', active: state.fog, size: 24 });
+    for(const [i,[key,label]] of [['fog','Fog'],['clouds','Clouds'],['shadows','Shadows']].entries())
+      button(`Toggle ${label.toLowerCase()}`,1944+i*146,1008,138,52,()=>{state[key]=!state[key];render();},
+        {copy:`${label}: ${state[key]?'On':'Off'}`,active:state[key],size:21});
   }
   else text(root, 'DISPOSABLE PROTOTYPE', 2010, 1023, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
   updateZoomPresentation(); app.renderer.render(app.stage);
-  scheduleWater();
+  scheduleEnvironment();
   sync();
 }
 
 function sync() {
   const url = new URL(location.href);
   for (const [key, value] of Object.entries({ seed: state.seed, clustering: state.clustering, size: state.sizeVariation,
-    islandStyle: state.islandStyle, roughness: state.roughness, features: state.featureSet, variant: state.variant, texel: state.texel, sites: state.sites ? 1 : 0, siteArt: state.siteArt, siteLabels: state.siteLabels ? 1 : 0, actorScale: state.actorScale, smoothZoom: state.smoothZoom ? 1 : 0, waterMotion:state.waterMotion?1:0, detailMode: state.detailMode, fog: state.fog ? 1 : 0, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
+    islandStyle: state.islandStyle, roughness: state.roughness, features: state.featureSet, variant: state.variant, texel: state.texel, sites: state.sites ? 1 : 0, siteArt: state.siteArt, siteLabels: state.siteLabels ? 1 : 0, actorScale: state.actorScale, smoothZoom: state.smoothZoom ? 1 : 0, waterMotion:state.waterMotion?1:0, detailMode: state.detailMode, fog: state.fog ? 1 : 0, clouds: state.clouds ? 1 : 0, shadows: state.shadows ? 1 : 0, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
   history.replaceState(null, '', url);
   document.title = `Map v${MAP_VERSION} · Pixi workbench`;
   document.getElementById('status').textContent = `Map v${MAP_VERSION} · Seed ${state.seed} · ${VARIANTS[state.variant]} · 20 regions · quota counts ${Object.values(map.quota).join(' / ')} · ${map.features.map(f => FEATURE_NAMES[f.type]).join(' + ')}`;
@@ -883,6 +892,7 @@ window.mapWorkbench = { version: MAP_VERSION, get state() { return { ...state };
   },
   // Read-only inspection of the actual baked planes for palette-phase review.
   // Callers must not mutate these buffers or advance simulation time.
+  get atmosphere() { return currentPixelArt?.atmosphere ?? null; },
   get waterFields() { return pixelReview() ? { width:currentPixelArt.stats.width,height:currentPixelArt.stats.height,
     bounds:currentPixelArt.bounds,texel:currentPixelArt.stats.texel,indices:currentPixelArt.waterIndices,
     base:currentPixelArt.waterBase,strength:currentPixelArt.waterStrength,overlays:currentPixelArt.waterOverlays,bodies:currentPixelArt.waterBodies,palette:currentPixelArt.waterPalette } : null; },
