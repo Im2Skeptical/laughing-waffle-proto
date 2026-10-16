@@ -4,7 +4,11 @@ import {
   getMoonPhaseDurationSec,
 } from "./moon-phases.js";
 import { advanceReplayStateOneSecond } from "./replay-second-runner.js";
-import { deserializeGameState, serializeGameState } from "./state.js";
+import { createProjectionAnchorReader, serializeGameState } from "./state.js";
+
+// Runtime-only: retain one validated frozen config, never a mutable replay body.
+// Unfrozen/changed configs and every incoming state body are still validated.
+const packetReader = createProjectionAnchorReader();
 
 export function getLatestEdgeTransferBoundarySec(tSec, state = null) {
   const sec = Math.max(0, Math.floor(tSec ?? 0));
@@ -64,7 +68,10 @@ export function buildEdgeTransferBatchAtBoundary(
   const sec = Math.max(0, Math.floor(boundarySec ?? 0));
   let transfers = [];
   if (preBoundaryState?.runStatus?.complete !== true && sec > 0) {
-    const replayState = deserializeGameState(serializeGameState(preBoundaryState));
+    const replayState = packetReader.read({
+      ...serializeGameState({ ...preBoundaryState, gameConfig: undefined }),
+      gameConfig: preBoundaryState.gameConfig,
+    });
     replayState.paused = false;
     const advanceResult = advanceReplayStateOneSecond(replayState);
     if (advanceResult?.ok && Math.floor(replayState.tSec ?? 0) === sec) {

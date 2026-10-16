@@ -133,6 +133,18 @@ reconciles them when the transfer batch changes. Packets use authoritative
 transfer records and the viewed
 simulation second, including during rewind; they do not move Stock themselves.
 
+Packet reconstruction (`src/model/edge-transfers.js`) uses a private projection
+anchor reader. It serializes only the mutable body and reuses one validated,
+frozen configuration; each replay owns independent mutable state and still runs
+all 60 ticks. Mutable/changed configurations are rechecked, and every body is
+validated. Packet selection, ordering, timestamps and overlap remain unchanged.
+Run `node scripts/edge-transfer-performance-probe.mjs 12c67e1` to compare with
+the full-configuration-copy implementation at a compatible schema revision.
+The two-seed, twenty-comparison fixture measured a median 33.8 ms before versus
+2.3 ms after on this desktop; it does not establish a phone frame-rate result.
+Settlement supply tests cover real Food/Practice packets, exact restoration,
+source isolation and validation after configuration edits.
+
 ## Intentionally not extracted
 
 - Packet spawn/draw/reset (closes over batch and playback state)

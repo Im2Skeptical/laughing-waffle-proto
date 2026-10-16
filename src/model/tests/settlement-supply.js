@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createNewGameState } from '../new-game.js';
-import { serializeGameState, deserializeGameState } from '../state.js';
+import { serializeGameState, deserializeGameState, createProjectionAnchorReader } from '../state.js';
 import { getDetailedSettlementSites } from '../detailed-settlements/queries.js';
 import { getRegionState, getWorldDefinition, getWorldConnectionCandidates, addWorldConnection } from '../world-state.js';
 import { practiceSlot, fiveSlots, setFixturePopulation } from '../dev-lab/fixtures.js';
@@ -237,6 +237,29 @@ const batch = buildEdgeTransferBatchAtBoundary(meals.state, 2);
 assert.deepEqual(serializeGameState(meals.state), preMeal, 'map batch reconstruction cannot mutate live state');
 assert.ok(batch.transfers.some(t => t.resourceId === 'food' && t.sourceRegionId === meals.remote.regionId
   && t.destinationRegionId === meals.local.regionId && t.amount === 2));
+// A warmed packet reader must notice an unfrozen configuration edited in place.
+// Moving Food to second 4 removes this boundary's meal without touching Stock.
+const originalPhaseDuration=meals.state.gameConfig.settings.values.phaseDurationSec;
+meals.state.gameConfig.settings.values.phaseDurationSec=3;
+const changedInput=serializeGameState(meals.state);
+const delayedMeal=buildEdgeTransferBatchAtBoundary(meals.state,2);
+assert.equal(delayedMeal.transfers.some(t=>t.reason==='food'),false,'Packet replay revalidates changed configurations');
+assert.deepEqual(serializeGameState(meals.state),changedInput,'Changed-config replay is isolated');
+meals.state.gameConfig.settings.values.phaseDurationSec=originalPhaseDuration;
+assert.deepEqual(buildEdgeTransferBatchAtBoundary(meals.state,2),batch,'Returning to an earlier config restores exact packets');
+const malformedConfig=deserializeGameState(preMeal);
+malformedConfig.gameConfig.schemaVersion=-1;
+assert.throws(()=>buildEdgeTransferBatchAtBoundary(malformedConfig,2),/Invalid serialized game config/,'Warm readers reject malformed configurations');
+const malformedBody=deserializeGameState(preMeal);
+malformedBody.rng.seed=NaN;
+assert.throws(()=>buildEdgeTransferBatchAtBoundary(malformedBody,2),/Invalid serialized RNG/,'Warm readers still validate mutable state');
+assert.deepEqual(serializeGameState(meals.state),preMeal,'Reader changes do not freeze or mutate the source config');
+const frozenMeal=createProjectionAnchorReader().read(preMeal);
+assert.equal(Object.isFrozen(frozenMeal.gameConfig),true);
+for(let repeat=0;repeat<3;repeat++){
+  assert.deepEqual(buildEdgeTransferBatchAtBoundary(frozenMeal,2),batch,'Frozen forecast config produces identical packets on repeated reads');
+  assert.deepEqual(serializeGameState(frozenMeal),preMeal,'Each replay owns its mutable body');
+}
 advanceReplayStateToSecond(meals.state, 2);
 assert.equal(meals.local.detailedState.lastMeal.consumed, 2);
 assert.equal(meals.local.detailedState.lastMeal.byClass.villager.consumed, 60);
