@@ -1,0 +1,12 @@
+{
+  "generator": "OpenAI built-in image_gen",
+  "asset": "cloud-cumulus-v1.png",
+  "grid": {
+    "columns": 4,
+    "rows": 2
+  },
+  "family": "cumulus",
+  "prompt": "Production fantasy RTS atlas weather sprite sheet on a genuinely transparent RGBA background. Camera strictly VERTICALLY DOWN from satellite altitude, orthographic overhead cloud TOPS, no horizon, no side elevation, no ground, no sky background, no underside, no cast shadows. Painterly realism with restrained ivory-white highlights, soft cool neutral grey shallow shading, diffuse overhead daylight, low contrast, compatible with muted hand-painted dark fantasy terrain. EXACTLY EIGHT completely separate sprites in a strict FOUR COLUMNS by TWO ROWS grid, every equal rectangular cell has generous fully transparent padding at least 12% on all sides. No sprite touches a cell edge. No overlap between cells. No grid lines, text, labels, frames, symbols or checkerboard. Landscape sheet. All eight silhouettes must differ substantially, no mirrored duplicates. Cloud family: small fair-weather CUMULUS HUMILIS and ragged CUMULUS FRACTUS seen from directly above. Substantial cottony pale tops with small rounded cauliflower texture, modest flat vertical development. Eight distinct patches: row1 single asymmetrical compact puff; loose three-puff triangular grouping with transparent gaps; offset connected pair with small satellite puffs; crescent cluster with large central bay. Row2 torn irregular small cloudlet field; branching four-lobe puff with disintegrating edges; narrow loose broken trail of tiny puffs; irregular oval puff with a scalloped bite and a few detached fragments. These should be smaller discrete cotton clouds, NOT huge blankets or towering thunderheads. Irregular organic separation within each cluster. Fully transparent holes and fringes.",
+  "paddingEdit": null,
+  "research": "../../../docs/research/map-cloud-families.md"
+}

@@ -1,8 +1,9 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.29**: calmer, smaller cloud-clearance
-changes across long scrubs; cloud banks shear in three currents with individual
-meanders. The span button cycles through 3 minutes, 50 years and 300 years.
+Current published revision: **Map v1.0.30**: sparser cloud cover with three
+researched families and 24 generated overhead silhouettes. Small cumulus/fractus,
+cellular stratocumulus rafts and fibrous cirrus have distinct drift, morphology
+and finite seeded lifecycles. The 3-minute / 50-year / 300-year review remains.
 Borders remain underneath clouds and all weather restores at absolute time.
 Nearest remains the default and wheel zoom remains animated.
 The version appears under the title inside the
@@ -26,14 +27,23 @@ run `biome-clustering-check.mjs` alongside the terrain checks.
 ### Atmosphere study
 
 `atmosphere.js` keeps the approved seeded fog field and colour treatment.
-`cloud-banks.js` draws four overhead stratocumulus patches from
-`cloud-banks-v2.png`; generation provenance and prompt are in the adjacent JSON.
-Broad cloud tops and shallow internal shading replace the former side-view
-cumulus towers. Banks retain their opacity and drift on a gently varying
-world-space wind paths, derived directly from displayed time. Three seeded
-currents differ in speed and heading; each bank has its own bounded meander,
-period and phase. Each current queries its own moving grid with conservative
-coverage margins, including at 300-year times, so banks cannot pop in at the view edge.
+`cloud-banks.js` loads three eight-frame overhead atlases (`cloud-cumulus-v1`,
+`cloud-stratocumulus-v1`, `cloud-cirrus-v1`, PNG + JSON prompt provenance).
+[Cloud research](../../../docs/research/map-cloud-families.md) cites WMO/NASA
+references and distinguishes observational evidence from artistic time compression.
+`cloud-weather.js` samples finite episodes from seed, family, cell and generation.
+Cumulus grows and fragments; ragged variants break up sooner. Stratocumulus
+moves in broad coherent rafts with gradual shear/gap changes. Cirrus moves in a
+separate upper flow and stretches along its fibres at low opacity. Eight source
+silhouettes per family are selected from seeded shuffled bags, preventing immediate
+repeat choices at bag boundaries. They combine with individual position, size, lifecycle, local
+noise deformation and drift; they do not loop or wrap unchanged across the map.
+`cloud-material.js` draws local density erosion and shape deformation directly
+into the existing cloud target. Birth/death changes erode/grow fragments, rather
+than lowering an entire cloud's opacity. The cloud population and footprint are
+smaller than v1.0.29, with longer clear gaps. Conservative finite-lifetime bounds
+keep spatial queries consistent at any sampled time. Sprite counts stay bounded
+independently of scrub duration. This is decorative weather, not a live simulation.
 `cloud-dissolve.js` uses geographic clearance as an erosion threshold, not an
 opacity multiplier. Advected, slowly evolving noise and source cloud alpha
 open gaps through the cloud and eat away thin edges; dense lobes survive with
@@ -54,7 +64,7 @@ Fog, Clouds and Shadows have independent bottom-row toggles, enabled by default.
 The original v1.0.23 cloud density and offset shadows are restored in the spare
 R/B channels of the fog target. These broad shadows use their original 10.5%
 maximum opacity and cross playable regions independently of visible clouds.
-Shadows controls both cloud families. Wisps is a separate toggle, off by default,
+Shadows controls both painted-cloud and original procedural shadows. Wisps is a separate toggle, off by default,
 that adds the original cloud field at 7% maximum opacity (previously 26%), under
 the current overhead clouds. Use `wisps=1` for this comparison; `fog=0`,
 `clouds=0` or `shadows=0` disables each other layer. These controls do not
@@ -65,8 +75,8 @@ The graph's existing three curves still describe water, not weather forecasts.
 
 Three small GPU passes produce fog density, painted cloud colour and final
 premultiplied atmosphere colour at 788 x 258 for the canonical atlas. Mask and
-three targets total about 3.10 MiB, plus the shared 1254 x 1254 cloud atlas
-(about 6 MiB decoded; 1.9 MB PNG). The atlas is loaded once across terrain rebakes.
+three targets total about 3.10 MiB, plus three shared eight-frame cloud atlases
+(about 18 MiB decoded; 4.5 MB PNG total). Atlases are loaded once across terrain rebakes.
 Atmosphere is softly sampled independently of the terrain's Nearest setting.
 Boundary motion adds two noise samples per cloud/shadow lookup in the transition
 area, reusing the existing mask, targets and passes. Signed distance is baked
@@ -75,12 +85,18 @@ No full-screen blur or CPU texture upload runs each frame, and disabling all
 four toggles skips density and cloud rendering. Initial shader compilation is separate
 from steady-state update cost; desktop timings are not mobile guarantees.
 `mapWorkbench.atmosphere.stats` reports dimensions, time, controls and submission
-cost. Run `atmosphere-check.mjs`, then browser `verifyAtmosphereGpu()` from
+cost. Run `cloud-weather-check.mjs` and `atmosphere-check.mjs`, then browser
+`verifyCloudShapes()` from `cloud-shapes-check.js` and `verifyAtmosphereGpu()` from
 `atmosphere-check.js`, `verifyMapTimeline()` and the zoom persistence check.
-The CPU check locks approved fog samples and checks cloud motion/coverage continuity,
+The CPU checks cover all 24 variants, finite episode turnover, sparse cover,
+continuous family-specific motion and size, spatial query consistency, and absolute
+time restoration. They also lock approved fog samples and check
 intact lobes plus holes within a dissolving bank, monotonic erosion near land,
 actual boundary travel, calm fifty-year scrubs, independent bank speeds/headings,
 local boundary motion, edge incursions and interior protection through 300 years.
+The shape GPU check renders every real frame through the production material;
+it checks distinct silhouettes, atlas gutters, local erosion with retained lobes,
+zero pixels before birth/after death, deformation and exact restoration.
 The GPU check covers original density matching, exact time restoration,
 GPU/CPU erosion agreement, fog exclusion, aligned broken and broad shadows,
 playable-land shadows with both cloud layers off, independent low-opacity wisps,

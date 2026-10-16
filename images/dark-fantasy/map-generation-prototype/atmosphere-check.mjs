@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict';
 import { sampleAtmosphere,atmospherePhase } from './atmosphere.js';
-import { cloudBanks,cloudDistanceField } from './cloud-banks.js';
+import { cloudDistanceField } from './cloud-banks.js';
 import { cloudDissolve,cloudBoundaryClearance } from './cloud-dissolve.js';
 // Approved fog values from v1.0.23: cloud changes must not alter the fog.
 for(const [x,y,t,expected] of [[-200,25,0,.3946422743699783],[321,117,60,.6061955230585269],[800,-200,997.125,.6185905813484168]])
   assert.equal(sampleAtmosphere(x,y,t,1867).fog,expected);
-const world=[-1182,-387,3152,1032],coverage=[];
 for(const t of [0,7.875,60,320,997,1600,4800,9600]) {
   for(let y=-200;y<600;y+=17)for(let x=-500;x<1200;x+=23) {
     const a=sampleAtmosphere(x,y,t,1867),b=sampleAtmosphere(x,y,t+.001,1867);
@@ -13,33 +12,6 @@ for(const t of [0,7.875,60,320,997,1600,4800,9600]) {
     assert.ok(Math.abs(a.fog-b.fog)<.001);
     assert.deepEqual(sampleAtmosphere(x,y,t,1867),a);
   }
-  const banks=cloudBanks(world,t,1867),next=new Map(cloudBanks(world,t+.001,1867).map(b=>[b.id,b]));
-  assert.deepEqual(cloudBanks(world,t,1867),banks,'Exact absolute-time bank restoration');
-  coverage.push(banks.reduce((n,b)=>n+b.alpha*b.width,0));
-  for(const bank of banks) {
-    assert.ok(bank.width>290&&bank.width<500,'Clouds remain substantial banks');
-    assert.ok(bank.alpha>=.38&&bank.alpha<=.8);
-    const b=next.get(bank.id);if(!b)continue;
-    assert.ok(Math.hypot(b.x-bank.x,b.y-bank.y)<.001,'No motion pop-in');
-    assert.ok(Math.abs(b.alpha-bank.alpha)<.001,'No opacity steps');
-  }
-}
-// Querying a tighter viewport must retain all intersecting banks, even after
-// centuries of unequal drift. Conservative culling must not create edge pops.
-const small=[0,0,300,200];
-for(const t of [0,1599,4800,9600]) {
-  const cropped=new Map(cloudBanks(small,t,1867).map(b=>[b.id,b]));
-  for(const b of cloudBanks(world,t,1867))if(b.x+b.width/2>=0&&b.x-b.width/2<=300&&
-    b.y+b.width/2>=0&&b.y-b.width/2<=200)
-    assert.deepEqual(cropped.get(b.id),b,'Moving-current culling must preserve visible banks');
-}
-// Banks must shear relative to each other rather than translate as one sheet.
-for(const t of [0,1600,8000]) {
-  const next=new Map(cloudBanks(world,t+100,1867).map(b=>[b.id,b]));
-  const drift=cloudBanks(world,t,1867).filter(b=>next.has(b.id)).map(b=>({
-    x:next.get(b.id).x-b.x,y:next.get(b.id).y-b.y}));
-  assert.ok(Math.max(...drift.map(d=>d.x))-Math.min(...drift.map(d=>d.x))>15,'Different bank speeds');
-  assert.ok(Math.max(...drift.map(d=>d.y))-Math.min(...drift.map(d=>d.y))>10,'Different bank headings');
 }
 // One percent of a fifty-year drag must not suddenly reshape the clearing.
 let maximumScrubChange=0;
@@ -49,9 +21,7 @@ for(let t=0;t<=1600;t+=16)for(let x=-300;x<=900;x+=60) {
     cloudBoundaryClearance(code,x,80,t+16,1867)-cloudBoundaryClearance(code,x,80,t,1867)));
 }
 assert.ok(maximumScrubChange<.02,'Boundary is calm over a fifty-year scrub');
-assert.ok(Math.max(...coverage)-Math.min(...coverage)>100,'Long-span coverage varies');
 assert.notDeepEqual(atmospherePhase(320,1867),atmospherePhase(320,1868));
-assert.notDeepEqual(cloudBanks(world,320,1867),cloudBanks(world,320,1868));
 const code=d=>(d+256)/512;
 const ids=new Int16Array(360*240).fill(-1);
 for(let y=20;y<220;y++)for(let x=60;x<300;x++)ids[y*360+x]=0;

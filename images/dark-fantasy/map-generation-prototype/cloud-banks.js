@@ -1,46 +1,17 @@
 // Overhead cloud-top banks, positioned from absolute time rather than frame history.
-import { decorationRandom } from './generator.js';
-import { cloudWind } from './cloud-dissolve.js';
+import { CLOUD_FAMILIES,cloudBanks } from './cloud-weather.js';
+import { createCloudMesh } from './cloud-material.js';
 
-let atlasPromise,atlasFrames;
+let atlasPromise,atlases;
 export function prepareCloudArt() {
-  return atlasPromise ??= PIXI.Assets.load(new URL('./cloud-banks-v2.png',import.meta.url).href).then(atlas=>{
-    atlas.baseTexture.scaleMode=PIXI.SCALE_MODES.LINEAR;
-    atlas.baseTexture.mipmap=PIXI.MIPMAP_MODES.OFF;
-    const w=atlas.width/2,h=atlas.height/2;
-    return atlasFrames=[[0,0],[1,0],[0,1],[1,1]]
-      .map(([x,y])=>new PIXI.Texture(atlas.baseTexture,new PIXI.Rectangle(x*w,y*h,w,h)));
-  });
-}
-
-export function cloudBanks(world,seconds,seed) {
-  const banks=[];
-  // Three coherent currents share a prevailing direction, but shear past one
-  // another. Each cell belongs to exactly one current; query its own moving grid
-  // so arbitrarily distant scrub times never lose banks or spawn visible edges.
-  for(let current=0;current<3;current++) {
-    const speed=[.72,1,1.28][current],angle=[-.18,.04,.22][current];
-    const wind=cloudWind(seconds*speed),c=Math.cos(angle),s=Math.sin(angle);
-    const windX=wind[0]*c-wind[1]*s,windY=wind[0]*s+wind[1]*c;
-    // Includes the widest bank, cell jitter and maximum individual meander.
-    const left=Math.floor((world[0]-windX-620)/440),right=Math.ceil((world[0]+world[2]-windX+620)/440);
-    const top=Math.floor((world[1]-windY-500)/310),bottom=Math.ceil((world[1]+world[3]-windY+500)/310);
-    for(let row=top;row<=bottom;row++)for(let col=left;col<=right;col++) {
-      const cellSeed=seed^Math.imul(col,73856093)^Math.imul(row,19349663);
-      let sample=0;
-      const rng=()=>decorationRandom(cellSeed,sample++);
-      if(Math.floor(rng()*3)!==current||rng()>.78)continue;
-      const x=col*440+(rng()-.5)*200,y=row*310+(rng()-.5)*150;
-      const width=330+rng()*150,frame=Math.floor(rng()*4),phase=rng()*Math.PI*2;
-      const period=450+rng()*450,sidePeriod=570+rng()*520;
-      const along=25+rng()*45,across=20+rng()*35;
-      banks.push({id:`${col}/${row}`,frame,
-        x:x+windX+along*Math.sin(seconds/period+phase),
-        y:y+windY+across*Math.sin(seconds/sidePeriod+phase*1.7),
-        width:width*(.94+.06*Math.sin(seconds/(period*1.3)+phase)),alpha:.78});
-    }
-  }
-  return banks;
+  return atlasPromise ??= Promise.all(CLOUD_FAMILIES.map(family=>
+    PIXI.Assets.load(new URL(family.asset,import.meta.url).href))).then(textures=>{
+      for(const atlas of textures) {
+        atlas.baseTexture.scaleMode=PIXI.SCALE_MODES.LINEAR;
+        atlas.baseTexture.mipmap=PIXI.MIPMAP_MODES.OFF;
+      }
+      atlases=textures;return textures;
+    });
 }
 
 // Signed distance to the playable union, encoded over [-256, 256] world units.
@@ -74,20 +45,18 @@ export function cloudDistanceField(regionIds,sourceWidth,sourceHeight,width,heig
 }
 
 export function createCloudLayer(width,height,world,seed) {
-  const frames=atlasFrames;
-  if(!frames)throw new Error('Cloud art must be prepared before baking atmosphere');
+  if(!atlases)throw new Error('Cloud art must be prepared before baking atmosphere');
   const container=new PIXI.Container(),pool=[];
   return {container,
     update(seconds) {
       const banks=cloudBanks(world,seconds,seed);
-      while(pool.length<banks.length){const sprite=new PIXI.Sprite();sprite.anchor.set(.5);pool.push(sprite);container.addChild(sprite);}
+      while(pool.length<banks.length){const mesh=createCloudMesh();pool.push(mesh);container.addChild(mesh);}
       for(let i=0;i<pool.length;i++) {
-        const sprite=pool[i],bank=banks[i];sprite.visible=!!bank;if(!bank)continue;
-        sprite.texture=frames[bank.frame];
-        sprite.position.set((bank.x-world[0])*width/world[2],(bank.y-world[1])*height/world[3]);
-        sprite.width=bank.width*width/world[2];
-        sprite.height=bank.width*frames[bank.frame].height/frames[bank.frame].width*height/world[3];
-        sprite.alpha=bank.alpha;
+        const mesh=pool[i],bank=banks[i];mesh.visible=!!bank;if(!bank)continue;
+        mesh.setBank(bank,atlases[bank.family]);
+        mesh.position.set((bank.x-world[0])*width/world[2],(bank.y-world[1])*height/world[3]);
+        mesh.scale.set(bank.width*width/world[2],bank.height*height/world[3]);
+        mesh.rotation=bank.rotation;
       }
       return banks.length;
     },
