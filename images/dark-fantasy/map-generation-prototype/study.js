@@ -12,7 +12,7 @@ import { createMapTimegraph } from './map-timegraph.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
-const MAP_VERSION = '1.0.28';
+const MAP_VERSION = '1.0.29';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
@@ -887,8 +887,8 @@ window.mapWorkbench = { version: MAP_VERSION, get state() { return { ...state };
   get pixelRendering() { return pixelReview() ? currentPixelArt.stats : null; },
   get timeline(){return timeline.snapshot;},
   seekTime(seconds){timeline.seek(seconds);timelineChanged();},
-  setPlayback({playing,rate,now=false,longSpan}={}){
-    if(longSpan!==undefined)timeline.setLongSpan(longSpan);
+  setPlayback({playing,rate,now=false,spanYears}={}){
+    if(spanYears!==undefined)timeline.setSpanYears(spanYears);
     if(now)timeline.returnToNow();if(rate!==undefined)timeline.setRate(rate);
     if(playing!==undefined)timeline.play(playing);timelineChanged();
   },

@@ -6,7 +6,7 @@ import { cloudDissolve,cloudBoundaryClearance } from './cloud-dissolve.js';
 for(const [x,y,t,expected] of [[-200,25,0,.3946422743699783],[321,117,60,.6061955230585269],[800,-200,997.125,.6185905813484168]])
   assert.equal(sampleAtmosphere(x,y,t,1867).fog,expected);
 const world=[-1182,-387,3152,1032],coverage=[];
-for(const t of [0,7.875,60,320,997,1600]) {
+for(const t of [0,7.875,60,320,997,1600,4800,9600]) {
   for(let y=-200;y<600;y+=17)for(let x=-500;x<1200;x+=23) {
     const a=sampleAtmosphere(x,y,t,1867),b=sampleAtmosphere(x,y,t+.001,1867);
     assert.ok(a.fog>=0&&a.fog<=1);
@@ -24,6 +24,31 @@ for(const t of [0,7.875,60,320,997,1600]) {
     assert.ok(Math.abs(b.alpha-bank.alpha)<.001,'No opacity steps');
   }
 }
+// Querying a tighter viewport must retain all intersecting banks, even after
+// centuries of unequal drift. Conservative culling must not create edge pops.
+const small=[0,0,300,200];
+for(const t of [0,1599,4800,9600]) {
+  const cropped=new Map(cloudBanks(small,t,1867).map(b=>[b.id,b]));
+  for(const b of cloudBanks(world,t,1867))if(b.x+b.width/2>=0&&b.x-b.width/2<=300&&
+    b.y+b.width/2>=0&&b.y-b.width/2<=200)
+    assert.deepEqual(cropped.get(b.id),b,'Moving-current culling must preserve visible banks');
+}
+// Banks must shear relative to each other rather than translate as one sheet.
+for(const t of [0,1600,8000]) {
+  const next=new Map(cloudBanks(world,t+100,1867).map(b=>[b.id,b]));
+  const drift=cloudBanks(world,t,1867).filter(b=>next.has(b.id)).map(b=>({
+    x:next.get(b.id).x-b.x,y:next.get(b.id).y-b.y}));
+  assert.ok(Math.max(...drift.map(d=>d.x))-Math.min(...drift.map(d=>d.x))>15,'Different bank speeds');
+  assert.ok(Math.max(...drift.map(d=>d.y))-Math.min(...drift.map(d=>d.y))>10,'Different bank headings');
+}
+// One percent of a fifty-year drag must not suddenly reshape the clearing.
+let maximumScrubChange=0;
+for(let t=0;t<=1600;t+=16)for(let x=-300;x<=900;x+=60) {
+  const code=(35+256)/512;
+  maximumScrubChange=Math.max(maximumScrubChange,Math.abs(
+    cloudBoundaryClearance(code,x,80,t+16,1867)-cloudBoundaryClearance(code,x,80,t,1867)));
+}
+assert.ok(maximumScrubChange<.02,'Boundary is calm over a fifty-year scrub');
 assert.ok(Math.max(...coverage)-Math.min(...coverage)>100,'Long-span coverage varies');
 assert.notDeepEqual(atmospherePhase(320,1867),atmospherePhase(320,1868));
 assert.notDeepEqual(cloudBanks(world,320,1867),cloudBanks(world,320,1868));
@@ -35,7 +60,7 @@ assert.ok(mask[120*360+180]<128,'Distance includes the playable interior');
 assert.ok(mask[120*360+300]>=128,'Exterior distance is positive');
 for(let x=300;x<359;x++)assert.ok(mask[120*360+x]<=mask[120*360+x+1]);
 const fronts=[];let incursions=0;
-for(const t of [0,61,170,320,997,1600]) {
+for(const t of [0,320,1600,3200,6400,9600]) {
   let low=-65,high=200;
   for(let i=0;i<20;i++) {
     const d=(low+high)/2;
@@ -50,21 +75,22 @@ for(const t of [0,61,170,320,997,1600]) {
     if(cloudBoundaryClearance(code(-5),x,80,t,1867)>.05)incursions++;
   }
 }
-assert.ok(Math.max(...fronts)-Math.min(...fronts)>30,'Boundary must travel, not just change cloud texture');
+assert.ok(Math.max(...fronts)-Math.min(...fronts)>15,'Boundary must travel, not just change cloud texture');
 assert.ok(incursions>0,'Boundary occasionally crosses the map edge');
-const motion=x=>cloudBoundaryClearance(code(35),x,80,320,1867)-cloudBoundaryClearance(code(35),x,80,0,1867);
-assert.ok(Math.abs(motion(40)-motion(800))>.05,'Separate boundary stretches move independently');
+const motion=x=>cloudBoundaryClearance(code(35),x,80,1600,1867)-cloudBoundaryClearance(code(35),x,80,0,1867);
+const localMotion=Array.from({length:21},(_,i)=>motion(i*60-300));
+assert.ok(Math.max(...localMotion)-Math.min(...localMotion)>.05,'Separate boundary stretches move independently');
 assert.notEqual(cloudBoundaryClearance(code(35),40,80,320,1867),cloudBoundaryClearance(code(35),40,80,320,1868));
 // A half-dissolved cloud has intact pieces and holes, not a translucent sheet.
 let holes=0,cores=0,fringes=0;
 for(let y=-200;y<400;y+=7)for(let x=-300;x<500;x+=7) {
-  const erosion=cloudDissolve(.78,.58,x,y,320,1867);
+  const erosion=cloudDissolve(.78,.54,x,y,320,1867);
   if(erosion<.02)holes++;else if(erosion>.98)cores++;else fringes++;
   assert.equal(cloudDissolve(.78,0,x,y,320,1867),0,'Playable area fully cleared');
   assert.equal(cloudDissolve(.78,1,x,y,320,1867),1,'Clouds away from map retain density');
-  assert.ok(Math.abs(erosion-cloudDissolve(.78,.58,x,y,320.001,1867))<.002,'Erosion evolves continuously');
-  assert.ok(cloudDissolve(.78,.56,x,y,320,1867)<=erosion,'Approaching land erodes more cloud');
+  assert.ok(Math.abs(erosion-cloudDissolve(.78,.54,x,y,320.001,1867))<.002,'Erosion evolves continuously');
+  assert.ok(cloudDissolve(.78,.52,x,y,320,1867)<=erosion,'Approaching land erodes more cloud');
 }
 assert.ok(holes>500&&cores>500,'Dissolution must create holes and retain solid lobes');
 assert.ok(fringes<holes+cores,'Only dissolving edges soften');
-console.log(`Atmosphere: approved fog unchanged; deterministic wandering boundary, overhead banks and erosion pass (holes=${holes}, cores=${cores}, fringes=${fringes}).`);
+console.log(`Atmosphere: approved fog unchanged; deterministic wandering boundary, overhead banks and erosion pass (holes=${holes}, cores=${cores}, fringes=${fringes}, maxScrubChange=${maximumScrubChange.toFixed(4)}).`);

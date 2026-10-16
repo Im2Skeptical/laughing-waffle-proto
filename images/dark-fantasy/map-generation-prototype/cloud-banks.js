@@ -14,20 +14,31 @@ export function prepareCloudArt() {
 }
 
 export function cloudBanks(world,seconds,seed) {
-  const [windX,windY]=cloudWind(seconds);
   const banks=[];
-  const left=Math.floor((world[0]-windX-420)/440),right=Math.ceil((world[0]+world[2]-windX+420)/440);
-  const top=Math.floor((world[1]-windY-300)/310),bottom=Math.ceil((world[1]+world[3]-windY+300)/310);
-  for(let row=top;row<=bottom;row++)for(let col=left;col<=right;col++) {
-    const cellSeed=seed^Math.imul(col,73856093)^Math.imul(row,19349663);
-    let sample=0;
-    const rng=()=>decorationRandom(cellSeed,sample++);
-    if(rng()>.78)continue;
-    const x=col*440+(rng()-.5)*200,y=row*310+(rng()-.5)*150;
-    const width=330+rng()*150,frame=Math.floor(rng()*4),phase=rng()*Math.PI*2;
-    banks.push({id:`${col}/${row}`,frame,x:x+windX+14*Math.sin(seconds/311+phase),
-      y:y+windY+11*Math.sin(seconds/397+phase),width:width*(.94+.06*Math.sin(seconds/433+phase)),
-      alpha:.78});
+  // Three coherent currents share a prevailing direction, but shear past one
+  // another. Each cell belongs to exactly one current; query its own moving grid
+  // so arbitrarily distant scrub times never lose banks or spawn visible edges.
+  for(let current=0;current<3;current++) {
+    const speed=[.72,1,1.28][current],angle=[-.18,.04,.22][current];
+    const wind=cloudWind(seconds*speed),c=Math.cos(angle),s=Math.sin(angle);
+    const windX=wind[0]*c-wind[1]*s,windY=wind[0]*s+wind[1]*c;
+    // Includes the widest bank, cell jitter and maximum individual meander.
+    const left=Math.floor((world[0]-windX-620)/440),right=Math.ceil((world[0]+world[2]-windX+620)/440);
+    const top=Math.floor((world[1]-windY-500)/310),bottom=Math.ceil((world[1]+world[3]-windY+500)/310);
+    for(let row=top;row<=bottom;row++)for(let col=left;col<=right;col++) {
+      const cellSeed=seed^Math.imul(col,73856093)^Math.imul(row,19349663);
+      let sample=0;
+      const rng=()=>decorationRandom(cellSeed,sample++);
+      if(Math.floor(rng()*3)!==current||rng()>.78)continue;
+      const x=col*440+(rng()-.5)*200,y=row*310+(rng()-.5)*150;
+      const width=330+rng()*150,frame=Math.floor(rng()*4),phase=rng()*Math.PI*2;
+      const period=450+rng()*450,sidePeriod=570+rng()*520;
+      const along=25+rng()*45,across=20+rng()*35;
+      banks.push({id:`${col}/${row}`,frame,
+        x:x+windX+along*Math.sin(seconds/period+phase),
+        y:y+windY+across*Math.sin(seconds/sidePeriod+phase*1.7),
+        width:width*(.94+.06*Math.sin(seconds/(period*1.3)+phase)),alpha:.78});
+    }
   }
   return banks;
 }

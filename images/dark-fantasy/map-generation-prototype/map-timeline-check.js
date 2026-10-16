@@ -13,8 +13,8 @@ export function verifyMapTimeline() {
     return ctx.getImageData(0, 0, 900, 210).data;
   };
   try {
-    mapWorkbench.setPlayback({longSpan:true,playing:false});
-    const a = at(997.125), b = at(1600), restored = at(997.125);
+    mapWorkbench.setPlayback({spanYears:300,playing:false});
+    const a = at(997.125), b = at(9600), restored = at(997.125);
     let changed = 0, drift = 0, maxError = 0;
     for (let i = 0; i < a.length; i++) {
       if (Math.abs(a[i] - b[i]) > 1) changed++;
@@ -31,7 +31,7 @@ export function verifyMapTimeline() {
     if (mapWorkbench.timeline.displaySec !== before.currentSec) throw new Error('Now failed to restore the frontier');
     return { pass: true, changedChannels: changed, restoredDrift: drift, maxReadbackError: maxError, terrainRebaked: false };
   } finally {
-    mapWorkbench.setPlayback({longSpan:before.longSpan});
+    mapWorkbench.setPlayback({spanYears:before.spanYears});
     mapWorkbench.seekTime(before.displaySec);
     mapWorkbench.setPlayback({ now: before.followingNow, rate: before.rate, playing: before.playing });
   }

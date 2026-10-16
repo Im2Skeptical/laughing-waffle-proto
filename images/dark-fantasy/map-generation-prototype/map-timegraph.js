@@ -54,14 +54,14 @@ export function createMapTimegraph({ root, app, timeline, palette, seed=0, text,
     timeline.setRate(rates[(rates.indexOf(rate) + 1) % rates.length]); onChange();
   }, { copy: '1×', size: 22 });
   button('Return timeline to now', 1152, 840, 150, 40, () => { timeline.returnToNow(); onChange(); }, { copy: '↩ Now', size: 22 });
-  const span=button('Toggle 50-year water study',1320,840,218,40,()=>{timeline.setLongSpan(!timeline.snapshot.longSpan);onChange();},{copy:'Span: 3 minutes',size:21});
+  const span=button('Cycle timeline span',1320,840,218,40,()=>{const spans=[0,50,300];timeline.setSpanYears(spans[(spans.indexOf(timeline.snapshot.spanYears)+1)%spans.length]);onChange();},{copy:'Span: 3 minutes',size:21});
   text(root, 'Drag to preview · Space: pause · ← →: step · N: now', 1558, 849, 20, 0x9eb3a9, { fontFamily: 'Arial, sans-serif' });
   function update() {
     const s = timeline.snapshot, { minSec, maxSec } = s;
     const x = sec => plot.x + (sec - minSec) / (maxSec - minSec) * plot.w;
-    const graphKey = `${s.longSpan}:${minSec}:${maxSec}:${Math.floor(s.currentSec)}:${Math.floor(s.revealCapSec)}`;
-    span.title.text=s.longSpan?'Span: 50 years':'Span: 3 minutes';
-    legend.text=s.longSpan?'Strength / tint':'Samples';
+    const graphKey = `${s.spanYears}:${minSec}:${maxSec}:${Math.floor(s.currentSec)}:${Math.floor(s.revealCapSec)}`;
+    span.title.text=s.spanYears?`Span: ${s.spanYears} years`:'Span: 3 minutes';
+    legend.text=s.spanYears?'Strength / tint':'Samples';
     if (graphKey !== key) {
       key = graphKey; graph.clear();
       for (const child of ticks.removeChildren()) child.destroy();
@@ -69,9 +69,9 @@ export function createMapTimegraph({ root, app, timeline, palette, seed=0, text,
       graph.beginFill(0x29443e).drawRect(plot.x, plot.y, frontierX - plot.x, plot.h).endFill();
       graph.beginFill(0x263c48).drawRect(frontierX, plot.y, capX - frontierX, plot.h).endFill();
       graph.beginFill(0x14252b).drawRect(capX, plot.y, plot.x + plot.w - capX, plot.h).endFill();
-      for (let sec = minSec; sec <= maxSec; sec += s.longSpan?STUDY_YEAR_SECONDS*10:30) {
+      for (let sec = minSec; sec <= maxSec; sec += s.spanYears?STUDY_YEAR_SECONDS*(s.spanYears===300?50:10):30) {
         graph.lineStyle(1, 0x9bb6aa, .18).moveTo(x(sec), plot.y).lineTo(x(sec), plot.y + plot.h);
-        const label = text(ticks, s.longSpan?`${sec/STUDY_YEAR_SECONDS}y`:`${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`, x(sec), plot.y + plot.h + 1, 17, 0xadc1b6, { fontFamily: 'Arial, sans-serif' }); label.anchor.x = .5;
+        const label = text(ticks, s.spanYears?`${sec/STUDY_YEAR_SECONDS}y`:`${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`, x(sec), plot.y + plot.h + 1, 17, 0xadc1b6, { fontFamily: 'Arial, sans-serif' }); label.anchor.x = .5;
       }
       if (palette) for (const [index, colour] of [[128, 0x729fa9], [160, 0xd1d7ad], [null,0x79c5ac]]) {
         graph.lineStyle(1.5, colour, .75);
@@ -82,7 +82,7 @@ export function createMapTimegraph({ root, app, timeline, palette, seed=0, text,
           // Drift shows a representative blue/green tint sample, normalised to
           // the plot. It is not water depth or a global tint applied everywhere.
           const luminance = index===null?.5+sampleWaterDrift(waterDriftOffset(seed),0,sec)[1]/16:
-            s.longSpan?waterCycleProfile(WATER_RAMPS.find(r=>r.start===index),sec).envelope:
+            s.spanYears?waterCycleProfile(WATER_RAMPS.find(r=>r.start===index),sec).envelope:
             (.2126 * (rgb >> 16 & 255) + .7152 * (rgb >> 8 & 255) + .0722 * (rgb & 255)) / 255;
           const y = plot.y + plot.h - 4 - luminance * (plot.h - 8);
           if (n) graph.lineTo(x(sec), y); else graph.moveTo(x(sec), y);
@@ -95,7 +95,7 @@ export function createMapTimegraph({ root, app, timeline, palette, seed=0, text,
     marker.clear().lineStyle(2, 0xa7c79c, .85).moveTo(x(s.currentSec), plot.y).lineTo(x(s.currentSec), plot.y + plot.h);
     marker.lineStyle(3, 0xf2e3ad).moveTo(x(s.displaySec), plot.y - 5).lineTo(x(s.displaySec), plot.y + plot.h);
     marker.beginFill(0xf2e3ad).drawCircle(x(s.displaySec), plot.y - 4, 4).endFill();
-    const stamp=sec=>s.longSpan?`${(sec/STUDY_YEAR_SECONDS).toFixed(1)}y`:format(sec);
+    const stamp=sec=>s.spanYears?`${(sec/STUDY_YEAR_SECONDS).toFixed(1)}y`:format(sec);
     status.text = `${s.mode}  ${stamp(s.displaySec)}   ·   Now ${stamp(s.currentSec)}   ·   ${s.scrubbing ? 'Scrubbing' : s.playing ? 'Playing' : 'Paused'}`;
     play.title.text = s.playing ? 'Pause' : 'Play'; speed.title.text = `${s.rate}×`;
     reverse.node.alpha = s.rate < 0 ? 1 : .7; forward.node.alpha = s.rate > 0 ? 1 : .7;

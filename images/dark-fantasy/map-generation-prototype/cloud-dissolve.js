@@ -10,9 +10,9 @@ export function cloudBoundaryClearance(distanceCode,x,y,seconds,seed) {
   if(distanceCode<=0)return 0;
   if(distanceCode>=1)return 1;
   const distance=distanceCode*512-256,salt=(seed%997)*.0713;
-  const broad=noise(x/170+salt,y/170-29,seconds/113);
-  const local=noise((x*.8-y*.6)/65-51,(x*.6+y*.8)/65+salt,seconds/283+17);
-  const centre=45+65*broad+25*local,halfWidth=48+10*local;
+  const broad=noise(x/220+salt,y/220-29,seconds/1200);
+  const local=noise((x*.8-y*.6)/100-51,(x*.6+y*.8)/100+salt,seconds/2700+17);
+  const centre=32+30*broad+12*local,halfWidth=56+6*local;
   return smooth(centre-halfWidth,centre+halfWidth,distance)*smooth(-65,-30,distance);
 }
 
@@ -39,10 +39,10 @@ float cloudBoundaryClearance(float distanceCode,vec2 w){
   if(distanceCode<=0.0)return 0.0;
   if(distanceCode>=1.0)return 1.0;
   float distance=distanceCode*512.0-256.0;
-  float broad=driftNoise(vec3(w/170.0+vec2(uCloudSalt,-29),uCloudTime/113.0));
-  vec2 localUV=vec2(w.x*.8-w.y*.6,w.x*.6+w.y*.8)/65.0+vec2(-51,uCloudSalt);
-  float local=driftNoise(vec3(localUV,uCloudTime/283.0+17.0));
-  float centre=45.0+65.0*broad+25.0*local,halfWidth=48.0+10.0*local;
+  float broad=driftNoise(vec3(w/220.0+vec2(uCloudSalt,-29),uCloudTime/1200.0));
+  vec2 localUV=vec2(w.x*.8-w.y*.6,w.x*.6+w.y*.8)/100.0+vec2(-51,uCloudSalt);
+  float local=driftNoise(vec3(localUV,uCloudTime/2700.0+17.0));
+  float centre=32.0+30.0*broad+12.0*local,halfWidth=56.0+6.0*local;
   return smoothstep(centre-halfWidth,centre+halfWidth,distance)*smoothstep(-65.0,-30.0,distance);
 }
 float cloudDissolve(float alpha,float distanceCode,vec2 w){

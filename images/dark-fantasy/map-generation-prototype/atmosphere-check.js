@@ -14,7 +14,7 @@ export async function verifyAtmosphereGpu() {
   const sky=createAtmosphere({width,height,mask,world,seed});
   let maximumError=0,initial=null,changed=0;
   try {
-    for(const t of [0,7.875,320,997,1600,0]) {
+    for(const t of [0,7.875,320,997,1600,9600,0]) {
       sky.update(renderer,t,{fog:true,clouds:true,shadows:true});
       const density=renderer.extract.pixels(sky.density),result=renderer.extract.pixels(sky.texture);
       for(let i=0;i<width*height;i++) {
@@ -33,7 +33,7 @@ export async function verifyAtmosphereGpu() {
     const fog=renderer.extract.pixels(sky.texture);
     for(let i=0;i<width*height;i++)if(i%width<width/2&&fog[i*4+3])throw Error('Fog crossed the playable-area mask');
     let clouds,visible=0,suppressed=0;
-    for(const t of [0,997,1600,320]) {
+    for(const t of [0,997,1600,9600,320]) {
       sky.update(renderer,t,{fog:false,clouds:true,shadows:false});
       clouds=renderer.extract.pixels(sky.texture);
       const banks=renderer.extract.pixels(sky.cloudTexture);

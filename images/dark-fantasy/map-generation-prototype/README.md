@@ -1,8 +1,9 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.28**: geographic region borders now
-render beneath the atmosphere, removing dark outlines across drifting cloud tops.
-Selection highlights and labels remain above weather for interaction.
+Current published revision: **Map v1.0.29**: calmer, smaller cloud-clearance
+changes across long scrubs; cloud banks shear in three currents with individual
+meanders. The span button cycles through 3 minutes, 50 years and 300 years.
+Borders remain underneath clouds and all weather restores at absolute time.
 Nearest remains the default and wheel zoom remains animated.
 The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
@@ -29,15 +30,19 @@ run `biome-clustering-check.mjs` alongside the terrain checks.
 `cloud-banks-v2.png`; generation provenance and prompt are in the adjacent JSON.
 Broad cloud tops and shallow internal shading replace the former side-view
 cumulus towers. Banks retain their opacity and drift on a gently varying
-world-space wind path, derived directly from displayed time.
+world-space wind paths, derived directly from displayed time. Three seeded
+currents differ in speed and heading; each bank has its own bounded meander,
+period and phase. Each current queries its own moving grid with conservative
+coverage margins, including at 300-year times, so banks cannot pop in at the view edge.
 `cloud-dissolve.js` uses geographic clearance as an erosion threshold, not an
 opacity multiplier. Advected, slowly evolving noise and source cloud alpha
 open gaps through the cloud and eat away thin edges; dense lobes survive with
 their original colour/opacity until eroded. A narrow feather softens the edge
 of each remaining fragment. The static mask stores signed distance, including
 inside the playable edge. Two seeded, continuous 3D noise fields shift the
-clearance centre and width on separate 113/283-second noise scales. Large
-stretches and smaller bays wander independently rather than pulsing together.
+clearance centre and width on separate 1200/2700-second noise scales (about 38/84 calendar years). Large
+stretches and smaller bays wander independently rather than pulsing together,
+with less than half the previous displacement amplitude.
 Occasional edge incursions erase the fixed outline; a deep-interior guard keeps
 the centre readable. Sampling a date always restores the same boundary.
 This does not alter fog. Shadows evaluate the identical erosion function at
@@ -74,7 +79,8 @@ cost. Run `atmosphere-check.mjs`, then browser `verifyAtmosphereGpu()` from
 `atmosphere-check.js`, `verifyMapTimeline()` and the zoom persistence check.
 The CPU check locks approved fog samples and checks cloud motion/coverage continuity,
 intact lobes plus holes within a dissolving bank, monotonic erosion near land,
-actual boundary travel, independent local motion, edge incursions and interior protection.
+actual boundary travel, calm fifty-year scrubs, independent bank speeds/headings,
+local boundary motion, edge incursions and interior protection through 300 years.
 The GPU check covers original density matching, exact time restoration,
 GPU/CPU erosion agreement, fog exclusion, aligned broken and broad shadows,
 playable-land shadows with both cloud layers off, independent low-opacity wisps,
@@ -185,18 +191,21 @@ forward direction. Playback offers 0.25x, 1x, 4x and reverse 1x. Pointer drag,
 including release outside the plot, and touch share the scrub path. Space toggles
 playback, arrows step 1s (Shift: 10s), Home/End seek the visible start/reveal cap,
 and N returns to now. Hidden tabs suspend without elapsed-time catch-up.
-The Span button switches between the short view and 50 years of sample forecast.
+The Span button cycles 3 minutes / 50 years / 300 years of sample forecast.
 Year labels use the live game's default calendar (32 simulation seconds/year),
-so 50 years span 1,600 seconds. This is a review fixture, not extra live forecast
+so 50/300 years span 1,600/9,600 seconds. Long spans use 10/50-year ticks and
+a bounded graph sample count. This is a review fixture, not extra live forecast
 coverage. The long graph plots slow wave-strength envelopes rather than aliasing
 the rapid palette cycles; Water drift continues to show its slower tint sample.
-Switching back clamps preview to short-view coverage.
+Switching spans keeps the viewed time when in range and clamps it to revealed
+coverage otherwise.
 
 `map-timeline.js` owns only the fixture cursor/transport. `map-timegraph.js` uses
 the live graph's pointer-to-time helper and draws the study graph. `study.js`
 publishes one sample to both water layers. `mapWorkbench.timeline` exposes a
 copy of the sample, frontier, coverage and playback mode; `seekTime(seconds)`
-pauses and seeks, and `setPlayback({playing, rate, now, longSpan})` drives transport.
+pauses and seeks, and `setPlayback({playing, rate, now, spanYears})` drives transport.
+Use `spanYears:0`, `50` or `300` for the three review spans.
 Scrubbing updates palette textures and playhead only, never the terrain bake.
 The browser timeline check verifies nonzero visual change, image restoration within
 one channel value of GPU/canvas readback rounding,
