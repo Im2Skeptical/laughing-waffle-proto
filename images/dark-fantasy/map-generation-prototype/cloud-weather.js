@@ -5,7 +5,7 @@ import { noise } from './water-drift.js';
 import { cloudWeatherTime } from './cloud-cover.js';
 
 // Full billows and broad banks surround sparse cumulus weather patches.
-// The shared cover mask keeps the small clouds inside large openings.
+// Shared weather develops small clouds in openings and full banks around them.
 export const CLOUD_FAMILIES = [
   {id:'billows',asset:'cloud-banks-v2.png',columns:2,rows:2,frames:4,
     spacing:[600,440],chance:.85,cadence:1350,width:[360,520],aspect:1,
@@ -56,8 +56,8 @@ export function cloudBanks(world,seconds,seed) {
         const episodeSeed=cellSeed^Math.imul(generation,1640531513);
         let sample=10;const rng=()=>decorationRandom(episodeSeed,sample++);
         const birth=generation*cadence-offset;
-        // Cover is sampled per pixel in the material, not once at birth.
-        // Shared large openings can cross many overlapping cloud banks.
+        // Weather is sampled at the moving bank centre in the material.
+        // Shared openings control local development, never slice the artwork.
         if(rng()>profile.chance)continue;
         const frame=cloudFrame(cellSeed,generation,profile.frames);
         const lifetime=cadence*(1.05+.45*rng());

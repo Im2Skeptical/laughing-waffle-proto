@@ -5,8 +5,8 @@ import { noise } from './water-drift.js';
 export const cloudWeatherTime=seconds=>seconds*.18;
 const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
 
-// World-sized openings, shared by every bank. Dense clouds erode here while
-// small cumulus remains: this is a sparse weather patch, not an empty cutout.
+// World-sized openings, sampled at each bank centre to control development.
+// Local cloud lobes dissolve in sparse weather; there is no per-pixel stencil.
 export function cloudOpening(x,y,time,seed) {
   const salt=(seed%997)*.0713;
   const u=(x-time*.025)/720+salt,v=(y-time*.008)/470-19;

@@ -46,15 +46,23 @@ for(const t of [0,1599,4800,9600]) {
   assert.ok(Math.max(...drift.map(d=>d.y))-Math.min(...drift.map(d=>d.y))>5,'Independent bank heading');
 }
 // 1% of a 300-year drag used to change a bank's life by 95% (v131).
-let maxScrubLife=0,maxOpeningChange=0;
+let maxScrubLife=0,maxOpeningChange=0,maxDevelopmentChange=0;
+const development=bank=>{
+  const opening=cloudOpening(bank.x,bank.y,bank.weatherTime,1867);
+  const t=Math.max(0,Math.min(1,(opening-.22)/.5));
+  return Math.min(bank.life,bank.sparse?t*t*(3-2*t):1-opening);
+};
 for(let t=0;t<9600;t+=48){
   const next=new Map(cloudBanks(world,t+96,1867).map(b=>[b.id,b]));
-  for(const b of cloudBanks(world,t,1867))if(next.has(b.id))
+  for(const b of cloudBanks(world,t,1867))if(next.has(b.id)) {
     maxScrubLife=Math.max(maxScrubLife,Math.abs(b.life-next.get(b.id).life));
+    maxDevelopmentChange=Math.max(maxDevelopmentChange,Math.abs(development(b)-development(next.get(b.id))));
+  }
   for(let x=-1000;x<2000;x+=120)
     maxOpeningChange=Math.max(maxOpeningChange,Math.abs(cloudOpening(x,100,cloudWeatherTime(t),1867)-cloudOpening(x,100,cloudWeatherTime(t+96),1867)));
 }
 assert.ok(maxScrubLife<.22,'A small long-span scrub must not create/remove an entire bank');
+assert.ok(maxDevelopmentChange<.22,'Moving through weather openings must not create/remove an entire bank during a small long-span scrub');
 assert.ok(maxOpeningChange<.08,'World-sized openings must drift calmly during a long scrub');
 let open=0,dense=0,nearby=0;
 for(let y=-500;y<1500;y+=50)for(let x=-1500;x<2500;x+=50){
@@ -65,5 +73,5 @@ for(let y=-500;y<1500;y+=50)for(let x=-1500;x<2500;x+=50){
 assert.ok(open>100&&dense>100&&nearby>50,'Large coherent sparse openings coexist with dense cover');
 assert.ok(cloudBanks(world,60,1867).some(b=>b.sparse&&cloudOpening(b.x,b.y,b.weatherTime,1867)>.65),'Small cumulus lives inside the large openings');
 console.log(JSON.stringify({pass:true,familyVariants:variants.map(v=>v.size),
-  maxScrubLife,maxOpeningChange,meanDevelopedBanks:+(counts.reduce((a,b)=>a+b)/counts.length).toFixed(1),
+  maxScrubLife,maxOpeningChange,maxDevelopmentChange,meanDevelopedBanks:+(counts.reduce((a,b)=>a+b)/counts.length).toFixed(1),
   meanWeightedArea:Math.round(area.reduce((a,b)=>a+b)/area.length),noImmortalClouds:true}));

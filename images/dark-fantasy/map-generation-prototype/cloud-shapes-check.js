@@ -9,7 +9,7 @@ export async function verifyCloudShapes() {
   const target=PIXI.RenderTexture.create({width:size,height:size,resolution:1});
   const mesh=createCloudMesh();mesh.position.set(size/2);mesh.scale.set(size);
   const render=(bank,atlas)=>{mesh.setBank(bank,atlas);renderer.render(mesh,{renderTexture:target,clear:true});return renderer.extract.pixels(target);};
-  let retained=0,holes=0,changed=0,maxEdgeAlpha=0,maxSpriteError=0;
+  let retained=0,holes=0,changed=0,maxEdgeAlpha=0,maxSpriteError=0,maxSpriteAlphaError=0;
   const variants=[];
   try {
     for(const [family,profile] of CLOUD_FAMILIES.entries()) {
@@ -24,7 +24,15 @@ export async function verifyCloudShapes() {
         const sprite=new PIXI.Sprite(frameTexture);sprite.width=sprite.height=size;
         renderer.render(sprite,{renderTexture:target,clear:true});
         const ordinary=renderer.extract.pixels(target);
-        for(let i=0;i<raw.length;i++)maxSpriteError=Math.max(maxSpriteError,Math.abs(raw[i]-ordinary[i]));
+        // Extract returns straight RGB. A one-byte alpha rounding difference
+        // at a transparent edge can turn its meaningless RGB from 0 to 255;
+        // compare visible (premultiplied) colour and alpha instead.
+        for(let i=0;i<raw.length;i+=4)for(let channel=0;channel<4;channel++) {
+          const a=channel===3?raw[i+3]:raw[i+channel]*raw[i+3]/255;
+          const b=channel===3?ordinary[i+3]:ordinary[i+channel]*ordinary[i+3]/255;
+          maxSpriteError=Math.max(maxSpriteError,Math.abs(a-b));
+          if(channel===3)maxSpriteAlphaError=Math.max(maxSpriteAlphaError,Math.abs(a-b));
+        }
         sprite.destroy();frameTexture.destroy(false);
         const full=render(bank,atlas);
         let visible=0,hash=2166136261;
@@ -49,9 +57,11 @@ export async function verifyCloudShapes() {
       if(signatures.size!==profile.frames)throw Error(`${profile.id}: repeated/blank variants`);
       variants.push(signatures.size);
     }
-    if(maxSpriteError>1)throw Error(`Cloud transparency differs from ordinary sprite: ${maxSpriteError}`);
+    // Two quantisations (render target and straight-RGB extraction) can differ
+    // by two colour bytes; coverage must still agree within one alpha byte.
+    if(maxSpriteError>2||maxSpriteAlphaError>1)throw Error(`Cloud transparency differs from ordinary sprite: colour ${maxSpriteError}, alpha ${maxSpriteAlphaError}`);
     if(maxEdgeAlpha>4)throw Error(`Cloud sheet bleeds across cell edges: alpha ${maxEdgeAlpha}`);
     if(!retained||!holes||!changed)throw Error('Lifecycle must erode locally and retain intact fragments');
-    return {pass:true,variants,retained,holes,changed,maxEdgeAlpha,maxSpriteError,restoredExactly:true};
+    return {pass:true,variants,retained,holes,changed,maxEdgeAlpha,maxSpriteError,maxSpriteAlphaError,restoredExactly:true};
   } finally {mesh.destroy();target.destroy(true);renderer.destroy();}
 }

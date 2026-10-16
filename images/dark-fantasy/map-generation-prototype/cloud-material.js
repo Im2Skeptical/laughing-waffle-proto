@@ -9,14 +9,11 @@ attribute vec2 aTextureCoord;
 uniform mat3 translationMatrix;
 uniform mat3 projectionMatrix;
 varying vec2 vUV;
-varying vec2 vWorld;
-uniform vec4 uBankWorld;
-uniform vec2 uRotation;
-void main(){vUV=aTextureCoord;vWorld=uBankWorld.xy+mat2(uRotation.x,uRotation.y,-uRotation.y,uRotation.x)*(aVertexPosition*uBankWorld.zw);gl_Position=vec4((projectionMatrix*translationMatrix*vec3(aVertexPosition,1.0)).xy,0,1);}`;
+void main(){vUV=aTextureCoord;gl_Position=vec4((projectionMatrix*translationMatrix*vec3(aVertexPosition,1.0)).xy,0,1);}`;
 const fragment=`
 precision highp float;
 varying vec2 vUV;
-varying vec2 vWorld;
+uniform vec2 uCoverCentre;
 uniform vec4 uCover;
 uniform sampler2D uAtlas;
 uniform vec4 uFrame;
@@ -41,7 +38,9 @@ void main(){
   float resistance=.25*source.a+.25*luminance+.50*(.5+.5*(a*.5+fine*.5));
   float available=1.0;
   if(uCover.w>.5){
-    float opening=cloudOpening(vWorld,uCover.x,uCover.y);
+    // Weather controls development of the bank, not a screen cutting through
+    // it. Local resistance supplies the shape of every emerging/dying lobe.
+    float opening=cloudOpening(uCoverCentre,uCover.x,uCover.y);
     available=uCover.z>.5?smoothstep(.22,.72,opening):1.0-opening;
   }
   if(uShape.x<=0.0||available<=0.0){gl_FragColor=vec4(0.0);return;}
@@ -53,12 +52,11 @@ void main(){
 export function createCloudMesh() {
   const geometry=new PIXI.Geometry().addAttribute('aVertexPosition',[-.5,-.5,.5,-.5,.5,.5,-.5,.5],2)
     .addAttribute('aTextureCoord',[0,0,1,0,1,1,0,1],2).addIndex([0,1,2,0,2,3]);
-  const shader=PIXI.Shader.from(vertex,fragment,{uAtlas:PIXI.Texture.WHITE,uFrame:[0,0,1,1],uShape:[0,0,0,0],uMotion:[0,0,0,0],uBankWorld:[0,0,1,1],uRotation:[1,0],uCover:[0,0,0,0]});
+  const shader=PIXI.Shader.from(vertex,fragment,{uAtlas:PIXI.Texture.WHITE,uFrame:[0,0,1,1],uShape:[0,0,0,0],uMotion:[0,0,0,0],uCoverCentre:[0,0],uCover:[0,0,0,0]});
   const mesh=new PIXI.Mesh(geometry,shader);mesh.eventMode='none';
   mesh.setBank=(bank,atlas)=>{
     Object.assign(shader.uniforms,{uAtlas:atlas,
-      uBankWorld:[bank.x??0,bank.y??0,bank.width??1,bank.height??1],
-      uRotation:[Math.cos(bank.rotation??0),Math.sin(bank.rotation??0)],
+      uCoverCentre:[bank.x??0,bank.y??0],
       uCover:[bank.weatherTime??0,bank.salt??0,+!!bank.sparse,+!!bank.cover],
       uFrame:[(bank.frame%bank.columns)/bank.columns,Math.floor(bank.frame/bank.columns)/bank.rows,1/bank.columns,1/bank.rows],
       uShape:[bank.life,bank.alpha,0,0],uMotion:[bank.evolution,bank.phase,bank.warp,bank.shear]});

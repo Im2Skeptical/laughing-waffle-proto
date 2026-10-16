@@ -1,8 +1,9 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.32**: slower cloud development across
-300-year scrubs, plus broad weather openings containing sparse small cumulus.
-Dense banks surround these openings instead of covering the whole sky uniformly.
+Current published revision: **Map v1.0.33**: remove the invisible cutout edges
+that clouds emerged through in open water. Shared weather now controls each
+bank's local development, rather than clipping pixels against a world stencil.
+Broad sparse areas, small cumulus and slow 300-year scrub transitions remain.
 Painted clouds and their clearance erosion use a fixed 0.18x decorative time axis;
 water, fog, original shadows/wisps and authoritative simulation time are unchanged.
 The clock does not depend on scrub speed or selected span, so any date restores
@@ -46,18 +47,19 @@ generation. Dense billows travel more slowly with restrained deformation; the
 more open companion banks develop and shear a little faster. Each uses seeded
 shuffled bags, avoiding immediate repeated frame choices at bag boundaries.
 `cloud-cover.js` supplies a shared, continuous world-coordinate field. Broad
-warped openings span several cloud banks; the full banks erode locally there,
-while smaller cumulus uses the complementary mask. Sparse patches therefore
-contain small clouds instead of being empty cutouts. Finer world noise roughens
-the opening edges, and authored bright lobes plus local density erode individual
-clouds without broad straight cuts. This mask is sampled per
-pixel and follows world coordinates through bank movement, rotation and culling.
+openings reduce full-bank development and favour small cumulus. Each bank samples
+weather at its moving centre; the resulting development threshold acts on its
+own authored lobes and local density. The v1.0.32 per-pixel world stencil made
+opaque clouds slide through smooth invisible edges, even with lifecycle erosion
+and deformation disabled. Sampling development per bank removes that stencil
+while retaining coherent sparse patches. Whole silhouettes may straddle the
+weather transition; there is deliberately no shared cut line through them.
 The 0.18x cloud clock and longer 24% birth / 28% death intervals avoid whole-bank
 flashes while dragging centuries. On the fixed 300-year regression sweep, a 1%
 seek changed a bank's lifecycle by up to 95% in v1.0.31 and about 11% now.
 Clouds still have finite seeded episodes and distinct drift/deformation; they
 can persist through a long part of a 300-year review without being permanent.
-`cloud-material.js` combines local lifecycle erosion with shared cover, inside
+`cloud-material.js` combines local lifecycle erosion with weather development, inside
 the existing cloud target, supporting each atlas's actual grid dimensions.
 Population, spatial queries and motion remain bounded and deterministic at any
 viewed time, including reverse scrubbing. No simulation rules or RNG are added.
@@ -114,9 +116,16 @@ local boundary motion, edge incursions and interior protection through 300 years
 The shape GPU check renders every real frame through the production material;
 it checks distinct silhouettes, atlas gutters, local erosion with retained lobes,
 zero pixels before birth/after death, deformation, ordinary-sprite alpha agreement
-and exact restoration. `verifyCloudCover()` from `cloud-cover-check.js` checks
-the actual material against CPU field sampling, including rotated banks, intact
-dense cover, eroded openings and complementary small-cloud coverage.
+and exact restoration. Compare extracted colours premultiplied by alpha so
+near-transparent RGB rounding cannot report a false full-colour mismatch.
+`verifyCloudCover()` from `cloud-cover-check.js` checks the actual material
+against CPU weather sampling, intact dense cover, eroded openings and
+complementary small-cloud coverage. `verifyCloudMask()` from `cloud-mask-check.js`
+tracks continuous sharp cuts through opaque artwork at four dates: the original
+stencil failed at 121 pixels; v1.0.33 measures 17 against a 24-pixel limit. It also
+checks exact restoration after disappearing. The CPU sweep limits combined
+weather/lifecycle development changes on a 1% seek through 300 years (maximum
+0.162), including banks moving through weather transitions.
 The GPU check covers original density matching, exact time restoration,
 GPU/CPU erosion agreement, fog exclusion, aligned broken and broad shadows,
 playable-land shadows with both cloud layers off, independent low-opacity wisps,
