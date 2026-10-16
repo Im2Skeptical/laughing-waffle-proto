@@ -12,7 +12,7 @@ import { createMapTimegraph } from './map-timegraph.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
-const MAP_VERSION = '1.0.27';
+const MAP_VERSION = '1.0.28';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
@@ -555,10 +555,10 @@ function zoomArt(texture,levels=null) {
 
 function drawTerrainLayer(art, parent) {
   const density = art.stats.texel;
-  const put = (texture, bounds, texel = density,levels=null) => {
+  const put = (texture, bounds, texel = density,levels=null,name=null) => {
     const node = zoomArt(texture,levels), p = point({ x: bounds.minX, y: bounds.minY });
     node.position.set(p.x, p.y); node.scale.set(state.flipX ? -texel : texel, state.flipY ? -texel : texel);
-    parent.addChild(node);
+    node.name=name;parent.addChild(node);
   };
   updateEnvironment(true);
   if (art.backdropTexture) put(art.backdropWaterCycle.levels[0], art.backdropBounds, 8,art.backdropWaterCycle.levels);
@@ -600,16 +600,17 @@ function drawTerrainLayer(art, parent) {
     // Match the terrain's native texel size, including at close zoom.
     node.terrainBuilding = true; parent.addChild(node);
   });
+  // Geographic borders belong to the terrain, so clouds can obscure them.
+  // Interactive selection outlines and labels remain in the world overlay.
+  put(art.borderTexture, art.borderBounds,density,null,'region-borders');
   art.stats.fogEnabled = state.fog;
   if(art.atmosphere) {
     const node=new PIXI.Sprite(art.atmosphere.texture),p=point({x:art.bounds.minX,y:art.bounds.minY});
-    node.eventMode='none';node.position.set(p.x,p.y);
+    node.name='atmosphere';node.eventMode='none';node.position.set(p.x,p.y);
     node.scale.set((state.flipX?-1:1)*art.stats.width*density/node.texture.width,
       (state.flipY?-1:1)*art.stats.height*density/node.texture.height);
     parent.addChild(node);
   }
-  // Region identity stays above stamps and atmospheric decoration.
-  put(art.borderTexture, art.borderBounds);
 
   if (!liveSites.length) props.filter(prop => prop.kind.startsWith('ruin')).forEach(drawProp);
 }

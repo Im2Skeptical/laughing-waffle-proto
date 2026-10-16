@@ -1,9 +1,8 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.27**: the cloud dissipation boundary
-wanders smoothly at broad and local scales as displayed time changes. Clouds can
-occasionally stray across the playable edge, while the deep interior stays clear.
-Current cloud art, original shadows, Wisps and approved fog remain in place.
+Current published revision: **Map v1.0.28**: geographic region borders now
+render beneath the atmosphere, removing dark outlines across drifting cloud tops.
+Selection highlights and labels remain above weather for interaction.
 Nearest remains the default and wheel zoom remains animated.
 The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
@@ -43,7 +42,8 @@ Occasional edge incursions erase the fixed outline; a deep-interior guard keeps
 the centre readable. Sampling a date always restores the same boundary.
 This does not alter fog. Shadows evaluate the identical erosion function at
 the offset cloud source, including every hole and wisp.
-All effects sit below region outlines and labels.
+Atmosphere covers ordinary geographic borders. Interactive selection outlines
+and labels stay above it.
 
 Fog, Clouds and Shadows have independent bottom-row toggles, enabled by default.
 The original v1.0.23 cloud density and offset shadows are restored in the spare
@@ -78,7 +78,10 @@ actual boundary travel, independent local motion, edge incursions and interior p
 The GPU check covers original density matching, exact time restoration,
 GPU/CPU erosion agreement, fog exclusion, aligned broken and broad shadows,
 playable-land shadows with both cloud layers off, independent low-opacity wisps,
-and unchanged overhead clouds after toggling wisps.
+and unchanged overhead clouds after toggling wisps. Run browser
+`verifyCloudBorderOcclusion()` from `cloud-layer-check.js` to exercise the actual
+workbench display list: an opaque cloud fixture hides every ordinary border,
+while a clear atmosphere reveals the borders again.
 
 ### Inland and ocean island waters
 
