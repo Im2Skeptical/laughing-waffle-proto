@@ -8,13 +8,13 @@ import { cloudWeatherTime } from './cloud-cover.js';
 // Shared weather develops small clouds in openings and full banks around them.
 export const CLOUD_FAMILIES = [
   {id:'billows',asset:'cloud-banks-v2.png',columns:2,rows:2,frames:4,
-    spacing:[600,440],chance:.85,cadence:1350,width:[360,520],aspect:1,
+    spacing:[600,440],chance:.85,cadence:4050,width:[360,520],aspect:1,
     speed:[.10,.22],heading:.16,alpha:.78,warp:.012,shear:.018,develop:.10,evolution:1300},
   {id:'open-banks',asset:'cloud-banks-v3.png',columns:4,rows:2,frames:8,
-    spacing:[520,390],chance:.90,cadence:1100,width:[400,580],aspect:1,
+    spacing:[520,390],chance:.90,cadence:3300,width:[400,580],aspect:1,
     speed:[.13,.29],heading:.03,alpha:.78,warp:.017,shear:.035,develop:.14,evolution:950},
   {id:'sparse-cumulus',asset:'cloud-cumulus-v1.png',columns:4,rows:2,frames:8,
-    spacing:[390,300],chance:.65,cadence:1250,width:[160,270],aspect:.95,sparse:true,
+    spacing:[390,300],chance:.65,cadence:3750,width:[160,270],aspect:.95,sparse:true,
     speed:[.08,.19],heading:.24,alpha:.70,warp:.014,shear:.020,develop:.12,evolution:1250},
 ];
 const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};

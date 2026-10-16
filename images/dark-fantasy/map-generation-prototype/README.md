@@ -1,9 +1,10 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.33**: remove the invisible cutout edges
-that clouds emerged through in open water. Shared weather now controls each
-bank's local development, rather than clipping pixels against a world stencil.
-Broad sparse areas, small cumulus and slow 300-year scrub transitions remain.
+Current published revision: **Map v1.0.34**: triple cloud lifecycle timings for
+all three families, including appearance and dissolution, for calmer 300-year
+scrubs. Episode cadence and lifetime scale together, preserving their overlap
+and population. Drift speeds and the shared weather field are unchanged.
+Weather still controls local development without a per-pixel cutout stencil.
 Painted clouds and their clearance erosion use a fixed 0.18x decorative time axis;
 water, fog, original shadows/wisps and authoritative simulation time are unchanged.
 The clock does not depend on scrub speed or selected span, so any date restores
@@ -54,9 +55,11 @@ opaque clouds slide through smooth invisible edges, even with lifecycle erosion
 and deformation disabled. Sampling development per bank removes that stencil
 while retaining coherent sparse patches. Whole silhouettes may straddle the
 weather transition; there is deliberately no shared cut line through them.
-The 0.18x cloud clock and longer 24% birth / 28% death intervals avoid whole-bank
-flashes while dragging centuries. On the fixed 300-year regression sweep, a 1%
-seek changed a bank's lifecycle by up to 95% in v1.0.31 and about 11% now.
+The 0.18x cloud clock and 24% birth / 28% death intervals avoid whole-bank
+flashes while dragging centuries. v1.0.34 triples all episode cadences, so both
+transition durations are exactly three times v1.0.33 while drift speeds stay
+unchanged. On the fixed 300-year regression sweep, a 1% seek changed a bank's
+lifecycle by up to 95% in v1.0.31, about 11% in v1.0.33 and 3.6% in v1.0.34.
 Clouds still have finite seeded episodes and distinct drift/deformation; they
 can persist through a long part of a 300-year review without being permanent.
 `cloud-material.js` combines local lifecycle erosion with weather development, inside
@@ -122,10 +125,10 @@ near-transparent RGB rounding cannot report a false full-colour mismatch.
 against CPU weather sampling, intact dense cover, eroded openings and
 complementary small-cloud coverage. `verifyCloudMask()` from `cloud-mask-check.js`
 tracks continuous sharp cuts through opaque artwork at four dates: the original
-stencil failed at 121 pixels; v1.0.33 measures 17 against a 24-pixel limit. It also
+stencil failed at 121 pixels; v1.0.34 measures 19 against a 24-pixel limit. It also
 checks exact restoration after disappearing. The CPU sweep limits combined
 weather/lifecycle development changes on a 1% seek through 300 years (maximum
-0.162), including banks moving through weather transitions.
+0.163), including banks moving through weather transitions.
 The GPU check covers original density matching, exact time restoration,
 GPU/CPU erosion agreement, fog exclusion, aligned broken and broad shadows,
 playable-land shadows with both cloud layers off, independent low-opacity wisps,
