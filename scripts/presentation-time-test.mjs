@@ -1,4 +1,20 @@
 import assert from 'node:assert/strict';
+import { WATER_VARIANTS, waterPaletteColour, writeWaterPalette } from '../images/dark-fantasy/map-generation-prototype/water-style.js';
+
+// Compare integer rows with the analytic reference through long/reverse scrubs.
+{
+  const bank=Uint32Array.from({length:256},(_,i)=>(i*92783)&0xffffff);
+  const mix=(a,b,t)=>[16,8,0].reduce((c,s)=>c|Math.round((a>>s&255)*(1-t)+(b>>s&255)*t)<<s,0);
+  const bytes=new Uint8Array(256*(WATER_VARIANTS+1)*4);
+  for(const seconds of [0,.025,32,9600,13.7,-45.125,0]){
+    writeWaterPalette(bytes,bank,mix,seconds);
+    for(let row=0;row<=WATER_VARIANTS;row++)for(let i=0;i<256;i++){
+      const p=(row*256+i)*4,expected=row?waterPaletteColour(i,bank,mix,seconds,row-1):bank[i];
+      assert.equal((bytes[p]<<16)|(bytes[p+1]<<8)|bytes[p+2],expected);
+      assert.equal(bytes[p+3],255);
+    }
+  }
+}
 import { normalizeEventMarkers } from '../src/views/timegraphs-helpers.js';
 import { fitPiece, constructionGeometry, regionalConstructionRect } from '../src/views/piece-geometry.js';
 import { getGamepieceFace } from '../src/model/gamepiece-presentation.js';

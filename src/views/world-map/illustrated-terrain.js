@@ -5,6 +5,7 @@ import { sampleSurroundings } from '../../model/regional-map/generator.js';
 import { bakePixelTerrain, destroyPixelTerrain, prepareIllustratedArt, pixelSpriteTextures, reliefSpriteTextures, pixelSpriteFits } from '../../../images/dark-fantasy/map-generation-prototype/pixel-terrain.js';
 import { prepareCloudArt } from '../../../images/dark-fantasy/map-generation-prototype/cloud-banks.js';
 import { createZoomArt, prepareLandmarkLods } from '../../../images/dark-fantasy/map-generation-prototype/zoom-art.js';
+import { getIllustratedWorldBounds } from './world-bounds.js';
 
 let assets;
 function prepareAssets(){return assets??=Promise.all([prepareIllustratedArt(),prepareCloudArt(),prepareLandmarkLods()]).catch(error=>{assets=null;throw error;});}
@@ -32,13 +33,14 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
   const cache=new Map();
   let variants=null;
   let animated=[],sky=null;
+  let lastView=null,lastZoom=null;
   const stats={ready:false,bakes:0,flattenedProps:0,frames:0,updateMs:0};
   function clear(){
     for(const entry of cache.values()){entry.node.destroy();entry.levels.forEach(t=>t.destroy(true));}
     cache.clear();variants?.destroy();variants=null;presentation=null;active=null;presentationRoot=null;
     for(const child of container.removeChildren())child.destroy({children:true});
     staticLevels.forEach(t=>t.destroy(true));staticLevels=[];meshes=[];animated=[];sky=null;
-    if(terrain)destroyPixelTerrain(terrain);terrain=null;stats.ready=false;lastTime=null;
+    if(terrain)destroyPixelTerrain(terrain);terrain=null;stats.ready=false;lastTime=null;lastView=null;lastZoom=null;
   }
   function put(texture,bounds,texel,levels){
     const node=createZoomArt(texture,levels);meshes.push(node);
@@ -58,10 +60,9 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
       // Let the loading screen paint before the one-time CPU bake.
       await new Promise(resolve=>setTimeout(resolve,0));if(request!==generation)return;
       const start=performance.now(),map=naturalRegionalMap(record.map);
-      terrain=bakePixelTerrain(map,{texel:2,sites:false,retainPresentation:true,sampleBackground:surroundingsSampler(map),windowedAnimation:!!getView});
+      terrain=bakePixelTerrain(map,{texel:2,sites:false,retainPresentation:true,sampleBackground:surroundingsSampler(map),windowedAnimation:!!getView,
+        worldBounds:getIllustratedWorldBounds(map)});
       const art=terrain,density=art.stats.texel;
-      if(art.backdropTexture)animated.push({cycle:art.backdropWaterCycle,bounds:art.backdropBounds,texel:8,backdrop:true,
-        node:put(art.backdropWaterCycle.levels[0],art.backdropBounds,8,art.backdropWaterCycle.levels)});
       animated.push({cycle:art.waterCycle,bounds:art.bounds,texel:density,
         node:put(art.waterCycle.levels[0],art.bounds,density,art.waterCycle.levels)});
       // Flatten hundreds of immutable terrain paintings once. Live ownership,
@@ -81,7 +82,8 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
       presentation=createRegionalPresentation(terrain,map);
       presentationRoot=new PIXI.Container();container.addChild(presentationRoot);
       sky=new PIXI.Sprite(art.atmosphere.texture);container.addChild(sky);
-      Object.assign(stats,{ready:true,bakes:stats.bakes+1,bakeMs:performance.now()-start,flattenedProps:props.length,width:art.stats.width,height:art.stats.height});
+      Object.assign(stats,{ready:true,bakes:stats.bakes+1,bakeMs:performance.now()-start,terrainBakeMs:art.stats.bakeMs,
+        bounds:{...art.bounds},textureMiB:art.stats.textureMiB,flattenedProps:props.length,width:art.stats.width,height:art.stats.height});
       this.setState(state);
       this.update(state.tSec??0,1,true);
       })();
@@ -94,31 +96,32 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
       const view=getView?.(),density=terrain.stats.texel;
       zoom=view?.zoom??zoom;
       const effectiveZoom=zoom*renderer.resolution;
+      const viewChanged=force||!lastView||!view||view.minX!==lastView.minX||view.minY!==lastView.minY
+        ||view.maxX!==lastView.maxX||view.maxY!==lastView.maxY||effectiveZoom!==lastZoom;
       const sourceView=(bounds,texel)=>({x:(view.minX-bounds.minX)*1576/texel,y:(view.minY-bounds.minY)*516/texel,
         width:(view.maxX-view.minX)*1576/texel,height:(view.maxY-view.minY)*516/texel});
       let moved=false;
       const fine=terrain.bounds;
-      // The fine bake fades through its outer 64 texels into the distant layer.
-      const apronX=64*density/1576,apronY=64*density/516;
-      const covered=view&&view.minX>=fine.minX+apronX&&view.maxX<=fine.maxX-apronX
-        &&view.minY>=fine.minY+apronY&&view.maxY<=fine.maxY-apronY;
-      for(const entry of animated){
-        const {cycle,node,bounds,texel,backdrop}=entry;
-        if(backdrop&&covered){node.visible=false;continue;}
-        if(view)moved=cycle.setView(sourceView(bounds,texel),texel*rect.width/1576*effectiveZoom)||moved;
-        moved=(!node.visible&&cycle.visible)||moved;node.visible=cycle.visible;
-        const frame=cycle.frame;
-        node.resizeSource(frame.width,frame.height);
-        node.position.set(rect.x+(bounds.minX+frame.x*texel/1576)*rect.width,rect.y+(bounds.minY+frame.y*texel/516)*rect.height);
-      }
       const atmosphere=terrain.atmosphere;
-      if(view)moved=atmosphere.setView(sourceView(fine,density*4),density*4*rect.width/1576*effectiveZoom)||moved;
-      sky.visible=atmosphere.visible;
-      const frame=atmosphere.frame,texel=density*4;
-      sky.position.set(rect.x+(fine.minX+frame.x*texel/1576)*rect.width,rect.y+(fine.minY+frame.y*texel/516)*rect.height);
-      sky.width=frame.width*texel*rect.width/1576;sky.height=frame.height*texel*rect.height/516;
-      for(const mesh of meshes)if(mesh.visible)mesh.sampleZoom(effectiveZoom,true);
-      active?.node.sampleZoom(effectiveZoom,true);
+      if(viewChanged){
+        for(const entry of animated){
+          const {cycle,node,bounds,texel}=entry;
+          if(view)moved=cycle.setView(sourceView(bounds,texel),texel*rect.width/1576*effectiveZoom)||moved;
+          moved=(!node.visible&&cycle.visible)||moved;node.visible=cycle.visible;
+          const frame=cycle.frame;
+          node.resizeSource(frame.width,frame.height);
+          node.position.set(rect.x+(bounds.minX+frame.x*texel/1576)*rect.width,rect.y+(bounds.minY+frame.y*texel/516)*rect.height);
+        }
+        if(view)moved=atmosphere.setView(sourceView(fine,density*4),density*4*rect.width/1576*effectiveZoom)||moved;
+        sky.visible=atmosphere.visible;
+        const frame=atmosphere.frame,texel=density*4;
+        sky.position.set(rect.x+(fine.minX+frame.x*texel/1576)*rect.width,rect.y+(fine.minY+frame.y*texel/516)*rect.height);
+        sky.width=frame.width*texel*rect.width/1576;sky.height=frame.height*texel*rect.height/516;
+        for(const mesh of meshes)if(mesh.visible)mesh.sampleZoom(effectiveZoom,true);
+        lastView=view?{...view}:null;lastZoom=effectiveZoom;
+        stats.cameraUpdates=(stats.cameraUpdates??0)+1;
+      }
+      if(viewChanged||active?.zoom!==effectiveZoom){active?.node.sampleZoom(effectiveZoom,true);if(active)active.zoom=effectiveZoom;}
       const now=performance.now();if(!force&&!moved&&(seconds===lastTime||now-lastPaint<1000/30))return;
       const start=performance.now();
       for(const entry of animated)if(entry.node.visible)entry.cycle.update(renderer,seconds,force);
@@ -127,10 +130,11 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
       lastTime=seconds;lastPaint=now;Object.assign(stats,{frames:stats.frames+1,viewedSec:seconds,updateMs:performance.now()-start,
         animationPasses:water.reduce((sum,e)=>sum+e.cycle.stats.passes,0)+(sky.visible?atmosphere.stats.passes:0),
         animationPixels:water.reduce((sum,e)=>sum+e.cycle.stats.renderPixels,0)+(sky.visible?atmosphere.stats.renderPixels:0),
-        waterWindows:water.map(e=>({...e.cycle.frame,levels:e.cycle.levels.length,backdrop:!!e.backdrop})),
-        atmosphereWindow:{...atmosphere.frame},backdropAnimating:water.some(e=>e.backdrop)});
+        waterWindows:water.map(e=>({...e.cycle.frame,levels:e.cycle.levels.length,backdrop:false})),
+        atmosphereWindow:{...atmosphere.frame},backdropAnimating:false});
     },
     sitePoint(regionId){return presentation?.anchors.find(s=>s.regionId===regionId)?.point;},
+    worldBounds(){return terrain?.bounds??null;},
     roadPoints(edge){return active?.roads.find(r=>r.id===[edge.regionAId,edge.regionBId].sort().join(':'))?.points;},
     setState(state,display={}){
       if(!presentation)return;

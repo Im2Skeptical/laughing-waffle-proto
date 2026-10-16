@@ -15,23 +15,37 @@ rewinding restores the original biome, including island water topology.
 Live water and atmosphere render to padded camera windows in source coordinates.
 Small pans reuse those windows; larger moves and zoom changes refresh them even
 while time is paused. Water resolves categorical palette data before reducing
-only the colour LODs sampled by the display. Fine terrain's transparent apron
-keeps distant water enabled at its edges; a view entirely within opaque fine
-terrain skips the covered background animation. World extent, camera framing,
-cloud timing and absolute-time sampling are unchanged. The standalone workbench
-retains full-image targets for its atlas views and exports.
+only the colour LODs sampled by the display. Camera windows and mesh uniforms
+are reused until the camera, render resolution or presentation mesh changes.
+The live bake covers all region outlines plus 320 canonical illustration pixels
+on each side, snapped to a 16-pixel lattice (`world-bounds.js`). It is opaque and
+has no distant bake. Pan limits and minimum zoom keep the visible playfield
+inside that extent, including the area beside an open settlement panel.
+The standalone workbench retains its original fine/distant extent and exports.
+Cloud timing and absolute-time sampling are unchanged.
+
+At seed 1867, the live fine raster is 1528 x 736 versus 3152 x 1032 (65% fewer
+pixels), with the former distant raster eliminated. In one matched local probe,
+the initial terrain/scenery preparation stage fell from 8.6 s to 5.5 s. This
+excludes asset fetching and the subsequent village/monster variant preparation;
+it is not an end-to-end phone loading-time claim.
+
+GPU water cycles with the same immutable palette bank share a reference-counted
+CPU table and texture upload. Each ramp/variant evaluates its analytic phase
+once per animation time, then applies it to all colours. The palette matches
+the single-colour reference exactly, including long and reverse-time samples.
 
 `npm run probe:map-animation` checks cropped/full shader output, padded panning,
 LOD selection, render workload and exact forward/rewind restoration. Run the
 regional presentation probe with `1867 --windowed` for the live camera path,
-including zoomed-out background water and exact camera restoration. Debug map
+including wide views and exact camera restoration. Debug map
 stats expose animation pass/pixel counts and active window dimensions; these
 describe submitted rendering work, not phone GPU frame times.
-At seed 1867 in that fixture, overview animation submitted 1,228,800 output
+At seed 1867 in that fixture, overview animation submitted 1,152,944 output
 pixels in four passes, versus 6,472,468 in thirteen with full-image targets
-(81% less pixel work). Full/cropped overview, close and wide views differ only
-by small filtering-rounding differences; returning to the same camera/time is
-pixel-exact. This is workload evidence, not a measured Pixel 6 frame-rate claim.
+(82% less pixel work). The isolated shader probe compares full/cropped output;
+returning to the same camera/time is pixel-exact. This is workload evidence,
+not a measured Pixel 6 frame-rate claim.
 
 The map keeps separate retained sections for region markers/geometry, the active
 Vassal, population/research, calendar/survival, Chaos and camera controls. Sections
@@ -41,8 +55,16 @@ and a new definition clear the retained scene; disposal destroys every section.
 A redraw-local vertex index resolves jagged region outlines without repeated
 linear searches through the complete world vertex list.
 
+The live caller supplies `getStateRevision` from the runner's timeline. Unchanged
+state identity, definition, second, revision and compact UI inputs reuse the
+derived summaries, indicators and full scene signature. Forecast survival info,
+selection, disclosure, display options and art changes still invalidate while
+paused. Callers without a revision retain exact input inspection; explicit
+`refresh()` also covers definitions or state edited in place.
+
 `npm run probe:map-retention` checks consecutive viewed seconds without spread,
-current population labels, pixel-exact rewind, and invalidation on occupation.
+current population labels, pixel-exact rewind, occupation, same-second edits,
+forecast updates and repeated paused frames without derived reads/uniform work.
 It captures a CPU profile and allocation counts in `artifacts/map-retention/`.
 `--baseline --baseline-ref <ref>` compares the map view from a compatible Git
 revision; `PROBE_CPU_RATE=4` adds diagnostic CPU throttling after preparation.

@@ -76,6 +76,22 @@ try {
  await page.mouse.move(phoneBounds.x+phoneBounds.width*.15,phoneBounds.y+phoneBounds.height*.4);
  await page.mouse.wheel(0,1800);await page.waitForTimeout(400);
  const wide=await snapshot();assert.ok(wide.worldMap.camera.zoom<mobile.worldMap.camera.zoom,'Zoom-out updates the animation window');
+ const checkBoundaries=async()=>{
+   const {worldMap:m}=await snapshot(),b=m.illustratedTerrain.bounds,c=m.camera,v=m.layout.viewport;
+   const width=688*1576/516,x=488+(1448-width)/2;
+   const left=(x+b.minX*width)*c.zoom+c.x,right=(x+b.maxX*width)*c.zoom+c.x;
+   const top=(104+b.minY*688)*c.zoom+c.y,bottom=(104+b.maxY*688)*c.zoom+c.y;
+   const visibleRight=m.regionSelectionActive?m.layout.detail.x:v.x+v.width;
+   assert.ok(left<=v.x+.01&&right>=visibleRight-.01&&top<=v.y+.01&&bottom>=v.y+v.height-.01,
+     'Live camera stays inside the baked world at its pan/zoom limits');
+ };
+ await checkBoundaries();
+ for(const direction of [-1,1]){
+   const x=phoneBounds.x+phoneBounds.width*.2,y=phoneBounds.y+phoneBounds.height*.4;
+   await page.mouse.move(x,y);await page.mouse.down();
+   await page.mouse.move(x+direction*phoneBounds.width*4,y+direction*phoneBounds.height*4,{steps:8});
+   await page.mouse.up();await checkBoundaries();
+ }
  await page.screenshot({path:`${output}/mobile-wide.png`});
  await page.goto(`${url}images/dark-fantasy/map-generation-prototype/?waterMotion=0`);
  await page.waitForFunction(()=>window.mapWorkbench?.atmosphere,null,{timeout:180000});

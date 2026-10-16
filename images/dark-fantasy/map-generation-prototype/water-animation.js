@@ -1,6 +1,6 @@
 // Visual-only palette cycling. Resolve categorical indices on the GPU first;
 // downsample the resulting colours, never the indices, for the existing zoom UI.
-import { WATER_RAMPS, WATER_VARIANTS, waterPaletteColour } from './water-style.js';
+import { WATER_RAMPS, WATER_VARIANTS, writeWaterPalette } from './water-style.js';
 import { WATER_DRIFT_GLSL, waterDriftPhase } from './water-drift.js';
 import { createAnimationWindow } from './animation-window.js';
 
@@ -44,6 +44,24 @@ void main(){
 }`;
 const mixColour=(a,b,t)=>[16,8,0].reduce((c,s)=>c|Math.round((a>>s&255)*(1-t)+(b>>s&255)*t)<<s,0);
 
+// Bakes sharing an immutable bank also share one CPU table and GPU upload.
+// Reference counts release the resource when the last owning cycle is disposed.
+const palettes=new WeakMap();
+function acquirePalette(bank) {
+  let entry=palettes.get(bank);
+  if(!entry){
+    const bytes=new Uint8Array(256*(WATER_VARIANTS+1)*4);
+    const texture=PIXI.Texture.fromBuffer(bytes,256,WATER_VARIANTS+1,{scaleMode:PIXI.SCALE_MODES.NEAREST,mipmap:PIXI.MIPMAP_MODES.OFF});
+    entry={bytes,texture,owners:0,seconds:null};palettes.set(bank,entry);
+  }
+  entry.owners++;
+  return {texture:entry.texture,
+    update(seconds){if(entry.seconds===seconds)return false;writeWaterPalette(entry.bytes,bank,mixColour,seconds);
+      entry.texture.baseTexture.update();entry.seconds=seconds;return true;},
+    release(){if(!--entry.owners){entry.texture.destroy(true);palettes.delete(bank);}},
+  };
+}
+
 export function createWaterCycle(texture,indices,strength,palette,base=null,variationAt=()=>0,drift={},overlays=null) {
   const width=texture.width,height=texture.height,packed=new Uint8Array(width*height*4);
   const animated=new Uint8Array(256);
@@ -62,27 +80,22 @@ export function createWaterCycle(texture,indices,strength,palette,base=null,vari
   // Non-ocean callers can share a single transparent texel.
   const overlayTexture=PIXI.Texture.fromBuffer(overlays??new Uint8Array(4),overlays?width:1,overlays?height:1,
     {scaleMode:PIXI.SCALE_MODES.NEAREST,mipmap:PIXI.MIPMAP_MODES.OFF,alphaMode:PIXI.ALPHA_MODES.NO_PREMULTIPLIED_ALPHA});
-  const bytes=new Uint8Array(256*(WATER_VARIANTS+1)*4);
-  const paletteTexture=PIXI.Texture.fromBuffer(bytes,256,WATER_VARIANTS+1,{scaleMode:PIXI.SCALE_MODES.NEAREST,mipmap:PIXI.MIPMAP_MODES.OFF});
+  const paletteResource=acquirePalette(palette);
   const surface=createAnimationWindow(width,height,{windowed:drift.windowed,mipLevels:true}),{levels}=surface;
   const geometry=new PIXI.Geometry().addAttribute('aVertexPosition',[0,0,width,0,width,height,0,height],2)
     .addAttribute('aTextureCoord',[0,0,1,0,1,1,0,1],2).addIndex([0,1,2,0,2,3]);
-  const shader=PIXI.Shader.from(vertex,fragment,{uScene:texture,uFields:fields,uOverlays:overlayTexture,uPalette:paletteTexture,
+  const shader=PIXI.Shader.from(vertex,fragment,{uScene:texture,uFields:fields,uOverlays:overlayTexture,uPalette:paletteResource.texture,
     uWorld:drift.world??[0,0,1,1],uDriftPhase:waterDriftPhase(0)});
   const mesh=new PIXI.Mesh(geometry,shader);mesh.blendMode=PIXI.BLEND_MODES.NONE;
   let last=null,lastRevision=-1;
-  const stats={passes:0,renderPixels:0};
+  const stats={passes:0,renderPixels:0,paletteUpdates:0};
   return {levels,frame:surface.frame,stats,frames:0,lastUpdateMs:0,
     get visible(){return surface.visible;},
     setView:(view,pixelsPerTexel)=>surface.setView(view,pixelsPerTexel),
     update(renderer,seconds,force=false) {
       if(!surface.visible||last===seconds&&lastRevision===surface.revision&&!force)return;
       const started=performance.now();
-      for(let i=0;i<256;i++)for(let row=0;row<=WATER_VARIANTS;row++) {
-        const colour=row?waterPaletteColour(i,palette,mixColour,seconds,row-1):palette[i]||0,p=(row*256+i)*4;
-        bytes[p]=colour>>16&255;bytes[p+1]=colour>>8&255;bytes[p+2]=colour&255;bytes[p+3]=255;
-      }
-      paletteTexture.baseTexture.update();
+      if(paletteResource.update(seconds))stats.paletteUpdates++;
       shader.uniforms.uDriftPhase=waterDriftPhase(seconds);
       renderer.render(mesh,{renderTexture:levels[0],clear:true,transform:surface.transform});
       surface.reduce(renderer);
@@ -90,6 +103,6 @@ export function createWaterCycle(texture,indices,strength,palette,base=null,vari
       Object.assign(stats,{passes:levels.length,renderPixels:surface.pixels});
     },
     destroy(){mesh.destroy();geometry.destroy();shader.destroy();surface.destroy();
-      fields.destroy(true);overlayTexture.destroy(true);paletteTexture.destroy(true);},
+      fields.destroy(true);overlayTexture.destroy(true);paletteResource.release();},
   };
 }

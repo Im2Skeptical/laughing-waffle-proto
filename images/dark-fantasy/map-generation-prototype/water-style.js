@@ -66,6 +66,28 @@ export function waterPaletteColour(index,bank,mixColour,seconds=0,variation=0) {
   return lo===v?sample(lo):mixColour(sample(lo),sample(hi),v-lo);
 }
 
+// Integer variant rows used by the GPU palette. Share each analytic phase
+// across its whole ramp rather than evaluating it once for every colour.
+export function writeWaterPalette(bytes,bank,mixColour,seconds) {
+  const put=(index,row,colour)=>{
+    const p=(row*256+index)*4;
+    bytes[p]=colour>>16&255;bytes[p+1]=colour>>8&255;bytes[p+2]=colour&255;bytes[p+3]=255;
+  };
+  for(let i=0;i<256;i++)put(i,0,bank[i]||0);
+  for(let row=1;row<=WATER_VARIANTS;row++) {
+    bytes.copyWithin(row*1024,0,1024);
+    for(const ramp of WATER_RAMPS) {
+      const timing=waterCycleProfile(ramp,seconds,row-1),offset=Math.floor(timing.phase);
+      for(let i=0;i<ramp.length;i++) {
+        const phase=ramp.start+((i+offset)%ramp.length+ramp.length)%ramp.length;
+        const next=ramp.start+(phase-ramp.start+1)%ramp.length;
+        const colour=mixColour(bank[phase],bank[next],timing.phase-offset);
+        put(ramp.start+i,row,mixColour(bank[ramp.start+Math.floor(ramp.length*.85)],colour,timing.envelope));
+      }
+    }
+  }
+}
+
 export function waterColourAt(index,base,strength,bank,mixColour,seconds=0,variation=0) {
   const colour=waterPaletteColour(index,bank,mixColour,seconds,variation);
   return base?mixColour(base,colour,strength/255):colour;

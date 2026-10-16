@@ -46,6 +46,7 @@ try{
     viewWater.setView(view,1);viewSky.setView({x:view.x/4,y:view.y/4,width:view.width/4,height:view.height/4},4);
     calls=[];viewWater.update(renderer,300,true);viewSky.update(renderer,300,{wisps:true},true);
     const cropped={passes:calls.length,pixels:calls.reduce((a,b)=>a+b,0)};
+    const sharedPalette=viewWater.stats.paletteUpdates===0&&water.stats.paletteUpdates===1;
     const compare=(fullTexture,partTexture,frame,inset)=>{
       const a=renderer.extract.pixels(fullTexture),b=renderer.extract.pixels(partTexture);
       let difference=0,maximum=0,count=0;
@@ -70,7 +71,7 @@ try{
     const detached=!viewWater.setView({x:-1000,y:-1000,width:10,height:10},1)&&!viewWater.visible;
     for(const item of [water,viewWater,sky,viewSky])item.destroy();
     texture.destroy(true);app.destroy(true);
-    return {full,cropped,pixels,rewind,stable,pan,levels,detached};
+    return {full,cropped,pixels,rewind,stable,pan,levels,detached,sharedPalette};
   },process.argv.includes('--baseline'));
   await writeFile(`${output}/${process.argv.includes('--baseline')?'baseline':'result'}.json`,JSON.stringify({result,errors},null,2));
   if(!process.argv.includes('--baseline')){
@@ -81,6 +82,7 @@ try{
     assert.equal(result.stable,true,'Small pans reuse the padded texture');assert.equal(result.pan.changed,true);
     assert.equal(result.levels,3,'A fractional zoom prepares only the two sampled levels and their source');
     assert.equal(result.detached,true,'Off-screen animation stops');
+    assert.equal(result.sharedPalette,true,'Fine/distant/cropped cycles share one palette calculation and upload');
   }
   assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,...result,artifact:output}));
 }finally{await browser.close();await new Promise(r=>server.close(r));}

@@ -900,6 +900,7 @@ const researchLibrary = createResearchLibraryView({
 worldMapView = createWorldMapView({
   layer: playfieldLayer,
   getState: () => runner.getState?.(),
+  getStateRevision: () => runner.getTimeline?.()?.revision,
   getEdgeTransferBatch: () => getSettlementViewedEdgeTransferBatch(),
   getVisualTime: getSettlementVisualTime,
   getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),

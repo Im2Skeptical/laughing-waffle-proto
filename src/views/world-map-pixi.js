@@ -217,6 +217,7 @@ function signature(
 export function createWorldMapView({
   layer,
   getState,
+  getStateRevision,
   getEdgeTransferBatch,
   getVisualTime,
   getSelectedRegionId,
@@ -271,6 +272,12 @@ export function createWorldMapView({
   viewport.mask = clip;
   layer.addChild(viewport, clip, root, detailRoot);
   const camera = createMapCamera(viewport, world, MAP_VIEWPORT_RECT, {
+    getWorldBounds:()=>{
+      const bounds=illustrated.worldBounds();if(!bounds)return null;
+      return {x:illustratedRect.x+bounds.minX*illustratedRect.width,y:illustratedRect.y+bounds.minY*illustratedRect.height,
+        width:(bounds.maxX-bounds.minX)*illustratedRect.width,height:(bounds.maxY-bounds.minY)*illustratedRect.height};
+    },
+    getViewRect:()=>getRegionSelectionActive?.()===true?{...MAP_VIEWPORT_RECT,width:DETAIL_RECT.x-MAP_VIEWPORT_RECT.x}:MAP_VIEWPORT_RECT,
     onTap: handleMapTap,
     onGesture: () => {
       tooltipView?.hide?.();
@@ -291,6 +298,7 @@ export function createWorldMapView({
       y:MAP_VIEWPORT_RECT.y+MAP_VIEWPORT_RECT.height/2-(top+bottom)/2*zoom});camera.finish();overviewCamera=camera.snapshot();
   }
   let lastSignature = "";
+  let lastInputs=null,presentationReads=0;
   let lastPointerRegionId = null;
   let lastRegionTap = {
     regionId: null,
@@ -534,21 +542,29 @@ export function createWorldMapView({
     if (!definition) return;
     const selectedRegionId = getSelectedRegionId?.() ?? state.civilization.capitalRegionId;
     const regionSelectionActive = getRegionSelectionActive?.() === true;
-    const relationships = getMapRelationships(state, selectedRegionId, regionSelectionActive);
-    const frameGroup = () => camera.frame(definition.regions
-      .filter(entry => relationships?.groupRegionIds.includes(entry.id))
-      .flatMap(entry => polygon(entry).map(screenPoint)), GROUP_FRAME_RECT,
-      sitePoint(getRegionDefinition(state, selectedRegionId)));
     const graphScope =
       getGraphScope?.() === "settlement" ? "settlement" : "civilization";
-    const civilizationSummary = getDetailedCivilizationSummary(state);
     const civilizationLossInfo = getCivilizationLossInfo?.() ?? null;
     const survivalTracker = getCivilizationSurvivalViewModel(
       state,
       civilizationLossInfo
     );
-    const regionMapIndicators = buildRegionMapIndicators(state, definition);
     const display = getDisplayOptions?.() ?? {};
+    const vassalHighlight = getVassalHighlight?.() ?? null;
+    const revision=getStateRevision?.();
+    // Opt in only when the caller supplies a revision for same-second edits.
+    // Editors without that contract retain exact input inspection each frame.
+    const uiKey=JSON.stringify([selectedRegionId,regionSelectionActive,graphScope,display,survivalTracker,vassalHighlight,getArtRevision(),chaosExpanded]);
+    if(!force&&lastSignature&&revision!=null&&lastInputs?.state===state&&lastInputs.definition===definition
+      &&lastInputs.second===state.tSec&&lastInputs.revision===revision&&lastInputs.uiKey===uiKey)return;
+    lastInputs={state,definition,second:state.tSec,revision,uiKey};presentationReads++;
+    const relationships = getMapRelationships(state, selectedRegionId, regionSelectionActive);
+    const frameGroup = () => camera.frame(definition.regions
+      .filter(entry => relationships?.groupRegionIds.includes(entry.id))
+      .flatMap(entry => polygon(entry).map(screenPoint)), GROUP_FRAME_RECT,
+      sitePoint(getRegionDefinition(state, selectedRegionId)));
+    const civilizationSummary = getDetailedCivilizationSummary(state);
+    const regionMapIndicators = buildRegionMapIndicators(state, definition);
     const illustratedMap=illustrated.supports(state);
     illustrated.container.visible=illustratedMap&&display.terrain!==false;
     if(illustratedMap)illustrated.setState(state,display);
@@ -558,7 +574,6 @@ export function createWorldMapView({
       if (choiceRegionIds && !choiceRegionIds.has(regionId)) container.filters = [unavailableFilter];
       return container;
     };
-    const vassalHighlight = getVassalHighlight?.() ?? null;
     const nextSignature = JSON.stringify(display) + getArtRevision() + signature(
       state,
       selectedRegionId,
@@ -975,6 +990,7 @@ export function createWorldMapView({
         visible: root.visible === true,
         illustratedTerrain:{...illustrated.stats},
         retainedScene:retained.snapshot(),
+        presentationReads,
         selectedRegionId: regionId,
         regionSelectionActive: getRegionSelectionActive?.() === true,
         relationships: getMapRelationships(state, regionId, root.visible && getRegionSelectionActive?.() === true),

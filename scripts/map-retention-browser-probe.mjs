@@ -39,10 +39,10 @@ try{
     const states=Array.from({length:9},(_,i)=>rebuildStateAtSecond(timeline,i).state);
     const definition=getWorldDefinition(states[0]),polygon=createMapPolygonReader(definition);
     if(!definition.regions.every(r=>JSON.stringify(polygon(r))===JSON.stringify(getRegionPolygon(definition,r))))throw Error('Indexed geometry changed regional outlines');
-    let state=states[0];
-    const map=createWorldMapView({layer:app.stage,getState:()=>state,getVisualTime:()=>0,getSelectedRegionId:()=>state.civilization.capitalRegionId,getGraphScope:()=> 'civilization'});
+    let state=states[0],revision=0,lossInfo=null;
+    const map=createWorldMapView({layer:app.stage,getState:()=>state,getStateRevision:()=>revision,getCivilizationLossInfo:()=>lossInfo,getVisualTime:()=>0,getSelectedRegionId:()=>state.civilization.capitalRegionId,getGraphScope:()=> 'civilization'});
     await map.prepare(app.renderer);map.update();app.render();
-    globalThis.fixture={app,map,states,setState:value=>{state=value;},originals:states.map(s=>JSON.stringify(s)),expected:states.map(s=>getDetailedCivilizationSummary(s).population.total),chaosAtFour:getDetailedCivilizationSummary(states[4]).chaos.chaosPower,first:app.renderer.extract.pixels()};
+    globalThis.fixture={app,map,states,setState:value=>{state=value;},edit:()=>revision++,setLoss:value=>{lossInfo=value;},originals:states.map(s=>JSON.stringify(s)),expected:states.map(s=>getDetailedCivilizationSummary(s).population.total),chaosAtFour:getDetailedCivilizationSummary(states[4]).chaos.chaosPower,first:app.renderer.extract.pixels()};
   });
   await page.screenshot({path:`${output}/${process.argv.includes('--baseline')?'baseline':'result'}.png`});
   const cdp=await page.context().newCDPSession(page);
@@ -61,6 +61,11 @@ try{
       return null;
     }
     try{
+      const pausedBefore=map.getSemanticSnapshot(),pausedStart=performance.now();
+      for(let i=0;i<60;i++)map.update();
+      const pausedMs=(performance.now()-pausedStart)/60,pausedAfter=map.getSemanticSnapshot();
+      const paused={ms:pausedMs,reads:pausedAfter.presentationReads-pausedBefore.presentationReads,
+        cameraUpdates:pausedAfter.illustratedTerrain.cameraUpdates-pausedBefore.illustratedTerrain.cameraUpdates};
       // Consecutive viewed seconds at 2x, with no monster spread or camera change.
       for(const state of states.slice(1)){
         setState(state);const before=performance.now();map.update();const painted=performance.now();app.render();
@@ -81,7 +86,15 @@ try{
       findText(t=>t.text==='<').parent.emit('pointerdown');map.update();
       setState(states[4]);map.update();
       const collapsed=findText(t=>t.text.startsWith('Chaos '))?.text===`Chaos ${fixture.chaosAtFour} >`;
-      return {...allocations,samples,semantics,rewind,invalidates,difference,collapsed,retained:after.retainedScene,unchanged:states.every((s,i)=>JSON.stringify(s)===originals[i])};
+      // Runner edits can mutate the same object at the same simulation second.
+      const edited=JSON.parse(JSON.stringify(states[4]));setState(edited);map.update();
+      const label=findText(t=>t.text.startsWith('Chaos '))?.text;
+      edited.civilization.chaos.chaosPower+=10;fixture.edit();map.update();
+      const editInvalidates=findText(t=>t.text.startsWith('Chaos '))?.text!==label;
+      const reads=map.getSemanticSnapshot().presentationReads;
+      fixture.setLoss({resolved:true,lossYear:77});map.update();
+      const forecastInvalidates=map.getSemanticSnapshot().presentationReads>reads;
+      return {...allocations,paused,samples,semantics,rewind,invalidates,difference,collapsed,editInvalidates,forecastInvalidates,retained:after.retainedScene,unchanged:states.every((s,i)=>JSON.stringify(s)===originals[i])};
     }finally{PIXI.Text.prototype.destroy=textDestroy;PIXI.DisplayObject.prototype.destroy=objectDestroy;map.destroy();app.destroy(true);}
   });
   const {profile}=await cdp.send('Profiler.stop');
@@ -94,6 +107,12 @@ try{
   assert.equal(result.rewind,true,'Rewind restores all retained map and HUD pixels');
   assert.equal(result.invalidates,true);assert.ok(result.difference>500,'Monster changes replace retained map content');
   assert.equal(result.collapsed,true,'Collapsed Chaos counter updates during playback');
+  if(!process.argv.includes('--baseline')){
+    assert.equal(result.paused.reads,0,'Paused frames reuse map summaries and signatures');
+    assert.equal(result.paused.cameraUpdates,0,'Stationary frames reuse camera uniforms');
+    assert.equal(result.editInvalidates,true,'Same-second runner edits invalidate the cache');
+    assert.equal(result.forecastInvalidates,true,'Forecast updates invalidate without a simulation tick');
+  }
   if(!process.argv.includes('--baseline'))assert.ok(result.destroyedText<100,`2x playback recreates too much map text: ${result.destroyedText} destroyed labels`);
   console.log(JSON.stringify({passed:true,cpuRate,destroyedText:result.destroyedText,destroyedObjects:result.destroyedObjects,meanUpdateMs:result.samples.reduce((s,x)=>s+x.updateMs,0)/result.samples.length,artifact:output}));
 }finally{await browser.close();await new Promise(r=>server.close(r));}

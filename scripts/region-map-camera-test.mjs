@@ -7,6 +7,8 @@ import { createStarterBootProfile } from '../src/model/starter-boot-profile.js';
 import { getAdjacentRegionIds, getWorldDefinition, getRegionPolygon, getRegionState } from '../src/model/world-state.js';
 import { MAP_RECT, GROUP_FRAME_RECT } from '../src/views/world-map/constants.js';
 import { getSettlementStockTags, getSettlementStockTagLayout } from '../src/views/world-map/stock-tags.js';
+import { getIllustratedWorldBounds } from '../src/views/world-map/world-bounds.js';
+import { getRegionalMap, regionalMapId } from '../src/model/regional-map/definition.js';
 
 const stockView = {
   population: { mealDemand: 2 },
@@ -75,6 +77,32 @@ handlers.get('wheel')({deltaY:-100,global:{x:460,y:430},preventDefault(){}});
 const wheeled = camera.snapshot();
 time = 4000; camera.update(); assert.deepEqual(camera.snapshot(),wheeled,'wheel retains camera control');
 console.log('[region-map-camera] OK: smooth focus, switched selection, zoom, gesture cancellation');
+
+// Finite live worlds clamp both drag and zoom, including the visible area
+// beside a settlement panel. Authored maps above keep their existing camera.
+for(const seed of [1867,1,42,4294967295]){
+  const record=getRegionalMap(regionalMapId(seed)).map,before=JSON.stringify(record);
+  const bounds=getIllustratedWorldBounds(record);
+  for(const p of record.regions.flatMap(r=>r.outline)){
+    assert.ok((p.x-bounds.minX)*1576>=319&&(bounds.maxX-p.x)*1576>=319);
+    assert.ok((p.y-bounds.minY)*516>=319&&(bounds.maxY-p.y)*516>=319);
+  }
+  assert.ok((bounds.maxX-bounds.minX)*(bounds.maxY-bounds.minY)<8,'Bake area is less than half the former fixed extent');
+  assert.equal(JSON.stringify(record),before);
+}
+{
+  const bounds={x:-600,y:-300,width:4000,height:1800};let visible=rect;
+  const bounded=createMapCamera(viewport,world,rect,{reducedMotion:()=>true,getWorldBounds:()=>bounds,getViewRect:()=>visible});
+  const covered=()=>{
+    const a=bounded.project(bounds),b=bounded.project({x:bounds.x+bounds.width,y:bounds.y+bounds.height});
+    assert.ok(a.x<=visible.x+.001&&a.y<=visible.y+.001&&b.x>=visible.x+visible.width-.001&&b.y>=visible.y+visible.height-.001,'Camera never exposes empty space beyond the bake');
+  };
+  for(const pose of [{x:-100000,y:100000,zoom:2.5},{x:100000,y:-100000,zoom:2.5},{x:0,y:0,zoom:.01}]){bounded.restore(pose);covered();}
+  visible={...rect,width:944};
+  bounded.frame([{x:2400,y:200},{x:2700,y:500}],{x:48,y:236,width:864,height:504},{x:2600,y:350});
+  covered();assert.ok(bounded.project({x:2600,y:350}).x<960,'Eastern settlement stays beside the panel');
+  bounded.zoomBy(.001);covered();
+}
 
 const vector = () => ({x:0,y:0,set(x,y=x){this.x=x;this.y=y;}});
 const panel = {position:vector(),scale:vector(),pivot:vector()};

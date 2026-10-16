@@ -1,13 +1,25 @@
 // Local presentation state only. Map art, markers and timeline effects share
 // this transform; fixed chrome and inspection panels stay outside it.
-export function createMapCamera(viewport, world, rect, { onTap, onGesture, now, reducedMotion } = {}) {
+export function createMapCamera(viewport, world, rect, { onTap, onGesture, now, reducedMotion, getWorldBounds, getViewRect } = {}) {
   let zoom = 1, x = 0, y = 0;
   const pointers = new Map();
   let moved = false, pinch = null;
   const local = event => viewport.toLocal(event.global);
+  const minimumZoom = () => {
+    const bounds=getWorldBounds?.();
+    return bounds?Math.max(rect.width/bounds.width,rect.height/bounds.height):.35;
+  };
   const apply = () => {
-    x = Math.max(-rect.width * zoom, Math.min(rect.width, x));
-    y = Math.max(-rect.height * zoom * .8, Math.min(rect.height * .8, y));
+    const bounds=getWorldBounds?.();
+    if(bounds){
+      zoom=Math.max(minimumZoom(),zoom);
+      const visible=getViewRect?.()??rect;
+      x=Math.max(visible.x+visible.width-(bounds.x+bounds.width)*zoom,Math.min(visible.x-bounds.x*zoom,x));
+      y=Math.max(visible.y+visible.height-(bounds.y+bounds.height)*zoom,Math.min(visible.y-bounds.y*zoom,y));
+    }else{
+      x = Math.max(-rect.width * zoom, Math.min(rect.width, x));
+      y = Math.max(-rect.height * zoom * .8, Math.min(rect.height * .8, y));
+    }
     world.position.set(x, y);
     world.scale.set(zoom);
   };
@@ -17,7 +29,7 @@ export function createMapCamera(viewport, world, rect, { onTap, onGesture, now, 
   } });
   const zoomAt = (factor, point) => {
     focus.cancel();
-    const next = Math.max(Math.min(.35, zoom), Math.min(2.5, zoom * factor));
+    const next = Math.max(Math.min(minimumZoom(), zoom), Math.min(2.5, zoom * factor));
     x = point.x - (point.x - x) * next / zoom;
     y = point.y - (point.y - y) * next / zoom;
     zoom = next;

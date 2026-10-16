@@ -103,7 +103,8 @@ try{
     await page.screenshot({path:`${output}/camera-${pose.zoom}.png`});
   }
   assert.equal(camera.at(-1).difference,0,'Panning and zooming restore the same world-space appearance');
-  if(windowed)assert.equal(camera[1].backdrop,true,'Distant water appears beyond the fine layer fade');
+  assert.equal(camera[1].backdrop,false,'Bounded live worlds do not allocate or animate a distant bake');
+  assert.ok(initial.width*initial.height<3152*1032*.5,'Live terrain bakes fewer than half the old fine pixels');
   const unchanged=await page.evaluate(()=>{
     const same=fixture.before===JSON.stringify(fixture.state);
     fixture.view.destroy();fixture.app.destroy(true);

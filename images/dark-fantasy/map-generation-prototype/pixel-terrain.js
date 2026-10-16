@@ -169,13 +169,13 @@ function noise(seed, x, y, scale) {
   return (at(ix, iy) * (1 - u) + at(ix + 1, iy) * u) * (1 - v) + (at(ix, iy + 1) * (1 - u) + at(ix + 1, iy + 1) * u) * v;
 }
 
-export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = true, settlementScale = .75, islandStyle = 'basalt', retainPresentation = false, windowedAnimation = false }) {
+export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = true, settlementScale = .75, islandStyle = 'basalt', retainPresentation = false, windowedAnimation = false, worldBounds = null }) {
   const started = performance.now(), detail = texel === 2 ? 2 : 1, ART = ART_BANKS[detail];
-  // Fine detail covers the map and a generous hinterland. A cheap distant bake
-  // supports unrestricted panning without a giant high-resolution GPU texture.
-  const bounds = texel === 2 ? { minX: -1.5, minY: -1.5, maxX: 2.5, maxY: 2.5 } : map.surroundings.bounds;
+  // The live game supplies a finite opaque extent. The standalone study keeps
+  // its generous fine apron and cheap distant bake for unrestricted panning.
+  const bounds = worldBounds ?? (texel === 2 ? { minX: -1.5, minY: -1.5, maxX: 2.5, maxY: 2.5 } : map.surroundings.bounds);
   let backdropTexture = null,backdropWaterCycle=null;
-  if (texel === 2) {
+  if (texel === 2 && !worldBounds) {
     const distant = bakePixelTerrain(map, { texel: 8, sampleBackground, sites: false, islandStyle, windowedAnimation });
     backdropTexture = distant.texture; distant.texture = null;
     backdropWaterCycle=distant.waterCycle;distant.waterCycle=null;destroyPixelTerrain(distant);
@@ -399,7 +399,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     // Retain the river phase indices while keeping the still-water study from
     // reading as alternating bright stripes at the finer resolution.
     if (waterIndices[i] >= 16 && waterIndices[i] <= 23) c = mixColour(c, 0x68868b, .85);
-    image.data[i * 4] = c >> 16 & 255; image.data[i * 4 + 1] = c >> 8 & 255; image.data[i * 4 + 2] = c & 255; image.data[i * 4 + 3] = detail === 2
+    image.data[i * 4] = c >> 16 & 255; image.data[i * 4 + 1] = c >> 8 & 255; image.data[i * 4 + 2] = c & 255; image.data[i * 4 + 3] = detail === 2 && !worldBounds
       ? Math.round(255 * Math.min(1, Math.min(i % width, width - 1 - i % width, Math.floor(i / width), height - 1 - Math.floor(i / width)) / 64)) : 255;
   }
   ctx.putImageData(image, 0, 0);
@@ -446,7 +446,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       world:[bounds.minX*1576/2,bounds.minY*516/2,width*texel/2,height*texel/2]});
   }
 
-  const waterCycle=createWaterCycle(texture,waterIndices,waterStrength,Uint32Array.from(waterBank),waterBase,
+  const waterCycle=createWaterCycle(texture,waterIndices,waterStrength,waterBank,waterBase,
     (x,y)=>noise(map.seed^6719,(bounds.minX*1576+x*texel)/2,(bounds.minY*516+y*texel)/2,87),
     {windowed:windowedAnimation,world:[bounds.minX*1576/2+waterDriftOffset(map.seed)-texel/4,bounds.minY*516/2-texel/4,width*texel/2,height*texel/2],
       maskAt:i=>waterDriftMask(waterBodies[i],seaDistance[i]/3*texel/2,Math.min(1,waterStrength[i]/35))},waterOverlays);
