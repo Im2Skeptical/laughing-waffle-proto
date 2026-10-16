@@ -11,7 +11,7 @@ import { createMapTimegraph } from './map-timegraph.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
-const MAP_VERSION = '1.0.21';
+const MAP_VERSION = '1.0.22';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
@@ -26,7 +26,7 @@ const state = { seed: Math.floor(numberParam('seed', 1867, 0, 2147483647)),
   islandStyle: params.get('islandStyle') === 'caldera' ? 'caldera' : 'basalt',
   siteLabels: params.get('siteLabels') !== '0',
   waterMotion:params.has('waterMotion')?params.get('waterMotion')!=='0':!matchMedia('(prefers-reduced-motion: reduce)').matches,
-  smoothZoom: params.get('smoothZoom') !== '0', detailMode: ['close', 'regional', 'overview'].includes(params.get('detailMode')) ? params.get('detailMode') : 'auto',
+  smoothZoom: params.get('smoothZoom') === '1', detailMode: ['close', 'regional', 'overview'].includes(params.get('detailMode')) ? params.get('detailMode') : 'auto',
   flipX: params.get('flipX') === '1', flipY: params.get('flipY') === '1', selected: null };
 const host = document.getElementById('map-preview');
 const app = new PIXI.Application({ width: W, height: H, backgroundColor: 0x13262c, antialias: true,

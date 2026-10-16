@@ -1,7 +1,8 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.21** — continuous ocean swell with feathered,
-overlapping ripple and foam layers, removing abrupt wave-family seams. The version appears under the title inside the
+Current published revision: **Map v1.0.22** — Nearest pixel sampling defaults on,
+while wheel zoom remains animated. Smooth sampling is still available explicitly
+with `smoothZoom=1` or the Pixels toggle. The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
 `MAP_VERSION` in `study.js`, match the script query in `index.html`, update this
@@ -894,7 +895,7 @@ untouched: only resolved RGBA colours enter this filtering path. Future cycling
 must resolve palette colours before filtering, or use authored categorical LODs.
 Water/fog and landmarks remain static in this review; no simulation ticks are added.
 
-Share `siteArt=atlas&smoothZoom=1&detailMode=auto`. Inspect seeds 1867/1873,
+Share `siteArt=atlas&smoothZoom=0&detailMode=auto`. Inspect seeds 1867/1873,
 0.35–2.5 camera zoom, phone fullscreen, both reflections, forced detail, nearest
 comparison, sites off/on, Base/Atlas and repeat PNG exports. `mapWorkbench.setCamera`
 is a review hook. All changes remain in the disposable prototype.
