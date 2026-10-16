@@ -1,19 +1,20 @@
-// Painted cumulus banks, positioned from absolute time rather than frame history.
+// Overhead cloud-top banks, positioned from absolute time rather than frame history.
 import { decorationRandom } from './generator.js';
+import { cloudWind } from './cloud-dissolve.js';
 
 let atlasPromise,atlasFrames;
 export function prepareCloudArt() {
-  return atlasPromise ??= PIXI.Assets.load(new URL('./cloud-banks-v1.png',import.meta.url).href).then(atlas=>{
+  return atlasPromise ??= PIXI.Assets.load(new URL('./cloud-banks-v2.png',import.meta.url).href).then(atlas=>{
     atlas.baseTexture.scaleMode=PIXI.SCALE_MODES.LINEAR;
     atlas.baseTexture.mipmap=PIXI.MIPMAP_MODES.OFF;
-    // The generated banks are independently framed rather than cut on a grid.
-    return atlasFrames=[[0,0,710,620],[720,0,534,625],[0,635,600,619],[610,690,644,564]]
-      .map(rect=>new PIXI.Texture(atlas.baseTexture,new PIXI.Rectangle(...rect)));
+    const w=atlas.width/2,h=atlas.height/2;
+    return atlasFrames=[[0,0],[1,0],[0,1],[1,1]]
+      .map(([x,y])=>new PIXI.Texture(atlas.baseTexture,new PIXI.Rectangle(x*w,y*h,w,h)));
   });
 }
 
 export function cloudBanks(world,seconds,seed) {
-  const windX=seconds*.36+22*Math.sin(seconds/173),windY=seconds*.09+19*Math.sin(seconds/269);
+  const [windX,windY]=cloudWind(seconds);
   const banks=[];
   const left=Math.floor((world[0]-windX-420)/440),right=Math.ceil((world[0]+world[2]-windX+420)/440);
   const top=Math.floor((world[1]-windY-300)/310),bottom=Math.ceil((world[1]+world[3]-windY+300)/310);
@@ -24,11 +25,9 @@ export function cloudBanks(world,seconds,seed) {
     if(rng()>.78)continue;
     const x=col*440+(rng()-.5)*200,y=row*310+(rng()-.5)*150;
     const width=330+rng()*150,frame=Math.floor(rng()*4),phase=rng()*Math.PI*2;
-    const period=210+rng()*370;
-    const life=.5+.5*Math.sin(seconds/period+phase);
     banks.push({id:`${col}/${row}`,frame,x:x+windX+14*Math.sin(seconds/311+phase),
       y:y+windY+11*Math.sin(seconds/397+phase),width:width*(.94+.06*Math.sin(seconds/433+phase)),
-      alpha:.38+.42*life*life*(3-2*life)});
+      alpha:.78});
   }
   return banks;
 }
@@ -73,7 +72,7 @@ export function createCloudLayer(width,height,world,seed) {
         sprite.texture=frames[bank.frame];
         sprite.position.set((bank.x-world[0])*width/world[2],(bank.y-world[1])*height/world[3]);
         sprite.width=bank.width*width/world[2];
-        sprite.height=bank.width*frames[bank.frame].height/frames[bank.frame].width*.72*height/world[3];
+        sprite.height=bank.width*frames[bank.frame].height/frames[bank.frame].width*height/world[3];
         sprite.alpha=bank.alpha;
       }
       return banks.length;

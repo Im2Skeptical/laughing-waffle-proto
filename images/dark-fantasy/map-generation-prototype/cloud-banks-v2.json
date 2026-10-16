@@ -1,0 +1,10 @@
+{
+  "generator": "OpenAI built-in image_gen",
+  "asset": "cloud-banks-v2.png",
+  "size": [
+    1254,
+    1254
+  ],
+  "purpose": "Four top-down cloud blankets for high-altitude atlas atmosphere",
+  "prompt": "Production game cloud sprite atlas, 2 by 2 grid on transparent RGBA. FOUR isolated cloud-top masses as seen by a satellite looking VERTICALLY DOWN, camera exactly 90 degrees to the ground. True orthographic overhead plan view. Cloud tops spread as broad irregular horizontal blankets, soft cauliflower cells seen on their TOP surfaces, rounded lobes radiating in ALL directions around each perimeter, thin feathered filaments and a few natural gaps through the masses. NO horizon, NO side elevation, NO towering cumulus silhouette, NO flat bottom/base, NO visible underside, NO sky, NO ground. Imagine aerial imagery of low stratocumulus over an ocean taken from directly above, transformed into finely painted restrained fantasy RTS map art. Creamy pale-grey tops, subtle cool grey shallow folds distributed throughout the interior, soft diffuse overhead daylight with modest upper-left lighting; low contrast, no deep blue shadows. Four different asymmetrical shapes: broad loose cloud raft, rounded broken cellular blanket, branching cluster of connected cloud tops, elongated irregular patch. Each cloud contained COMPLETELY within its own equal square quadrant with at least 12 percent transparent padding on EVERY side of that quadrant, also a clear transparent gutter crossing the entire middle horizontally and vertically. No shapes crossing quadrant boundaries. No text, no frames, no labels, no cast shadows. Genuine transparent background. The cloud masses should read from high altitude as an overhead weather layer, NOT as clouds photographed from the ground or an aircraft window pointing horizontally. Square atlas."
+}

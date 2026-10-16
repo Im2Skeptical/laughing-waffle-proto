@@ -1,5 +1,6 @@
 import { createAtmosphere,sampleAtmosphere } from './atmosphere.js';
 import { prepareCloudArt } from './cloud-banks.js';
+import { cloudDissolve } from './cloud-dissolve.js';
 
 export async function verifyAtmosphereGpu() {
   await prepareCloudArt();
@@ -35,8 +36,9 @@ export async function verifyAtmosphereGpu() {
     const clouds=renderer.extract.pixels(sky.texture),banks=renderer.extract.pixels(sky.cloudTexture);
     let visible=0,suppressed=0;
     for(let i=0;i<width*height;i++) {
-      const expected=banks[i*4+3]*mask[i*4+1]/255;
-      if(Math.abs(clouds[i*4+3]-expected)>1)throw Error('Cloud did not follow gradual playable-area dissipation');
+      const expected=banks[i*4+3]*cloudDissolve(banks[i*4+3]/255,mask[i*4+1]/255,
+        world[0]+(i%width+.5)*6,world[1]+(Math.floor(i/width)+.5)*6,320,seed);
+      if(Math.abs(clouds[i*4+3]-expected)>2)throw Error('Cloud erosion diverged from the density threshold');
       if(clouds[i*4+3]>20)visible++;
       if(banks[i*4+3]>20&&mask[i*4+1]===0)suppressed++;
     }
@@ -45,7 +47,7 @@ export async function verifyAtmosphereGpu() {
     const shadow=renderer.extract.pixels(sky.texture);
     for(let y=2;y<height;y++)for(let x=3;x<width;x++) {
       const source=((y-2)*width+x-3)*4;
-      const expected=banks[source+3]*mask[source+1]/255*.16;
+      const expected=clouds[source+3]*.16;
       if(Math.abs(shadow[(y*width+x)*4+3]-expected)>1)throw Error('Shadow detached from its offset cloud');
     }
     sky.update(renderer,320,{fog:false,clouds:false,shadows:false});

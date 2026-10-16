@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { sampleAtmosphere,atmospherePhase } from './atmosphere.js';
 import { cloudBanks,cloudClearance } from './cloud-banks.js';
+import { cloudDissolve } from './cloud-dissolve.js';
 // Approved fog values from v1.0.23: cloud changes must not alter the fog.
 for(const [x,y,t,expected] of [[-200,25,0,.3946422743699783],[321,117,60,.6061955230585269],[800,-200,997.125,.6185905813484168]])
   assert.equal(sampleAtmosphere(x,y,t,1867).fog,expected);
@@ -36,4 +37,16 @@ for(let x=120;x<180;x++) {
   const alpha=mask[50*180+x];assert.ok(alpha>=last&&alpha-last<=4,'Broad, gradual fade');last=alpha;
 }
 assert.ok(last>100,'Clouds recover beyond playable area');
-console.log('Atmosphere: approved fog unchanged; large seeded banks, continuous time/coverage, broad playable-area dissipation and exact restoration pass.');
+// A half-dissolved cloud has intact pieces and holes, not a translucent sheet.
+let holes=0,cores=0,fringes=0;
+for(let y=-200;y<400;y+=7)for(let x=-300;x<500;x+=7) {
+  const erosion=cloudDissolve(.78,.35,x,y,320,1867);
+  if(erosion<.02)holes++;else if(erosion>.98)cores++;else fringes++;
+  assert.equal(cloudDissolve(.78,0,x,y,320,1867),0,'Playable area fully cleared');
+  assert.equal(cloudDissolve(.78,1,x,y,320,1867),1,'Clouds away from map retain density');
+  assert.ok(Math.abs(erosion-cloudDissolve(.78,.35,x,y,320.001,1867))<.002,'Erosion evolves continuously');
+  assert.ok(cloudDissolve(.78,.25,x,y,320,1867)<=erosion,'Approaching land erodes more cloud');
+}
+assert.ok(holes>500&&cores>500,'Dissolution must create holes and retain solid lobes');
+assert.ok(fringes<holes+cores,'Only dissolving edges soften');
+console.log(`Atmosphere: approved fog unchanged; deterministic overhead banks and erosion pass (holes=${holes}, cores=${cores}, fringes=${fringes}).`);

@@ -3,6 +3,7 @@
 // Shadows sample cloud alpha with an offset. No frame history or simulation RNG.
 import { noise, WATER_DRIFT_GLSL } from './water-drift.js';
 import { createCloudLayer } from './cloud-banks.js';
+import { CLOUD_DISSOLVE_GLSL,cloudWind } from './cloud-dissolve.js';
 
 export function atmospherePhase(seconds,seed) {
   const salt=(seed%997)*.713;
@@ -51,19 +52,25 @@ uniform sampler2D uClouds;
 uniform sampler2D uMask;
 uniform vec2 uShadowOffset;
 uniform vec3 uEnabled;
+uniform vec4 uWorld;
+uniform vec2 uCloudWind;
+uniform float uCloudTime;
+uniform float uCloudSalt;
+${WATER_DRIFT_GLSL}
+${CLOUD_DISSOLVE_GLSL}
 void main(){
   vec3 field=texture2D(uDensity,vUV).rgb;
   vec3 mask=texture2D(uMask,vUV).rgb;
   vec2 source=vUV-uShadowOffset;
-  float shadow=texture2D(uClouds,source).a*texture2D(uMask,source).g*.16*uEnabled.z*mask.b;
+  float shadow=dissolvedCloud(source).a*.16*uEnabled.z*mask.b;
   float fog=mask.r*(.18+field.g*.57)*uEnabled.x;
-  vec4 bank=texture2D(uClouds,vUV);
-  float cloud=bank.a*uEnabled.y*mask.g*mask.b;
+  vec4 bank=dissolvedCloud(vUV);
+  float cloud=bank.a*uEnabled.y*mask.b;
   vec3 colour=vec3(.11,.16,.19)*shadow;
   float alpha=shadow;
   colour=colour*(1.0-fog)+vec3(.59,.64,.66)*fog;
   alpha=alpha*(1.0-fog)+fog;
-  colour=colour*(1.0-cloud)+bank.rgb*uEnabled.y*mask.g*mask.b;
+  colour=colour*(1.0-cloud)+bank.rgb*uEnabled.y*mask.b;
   alpha=alpha*(1.0-cloud)+cloud;
   gl_FragColor=vec4(colour,alpha);
 }`;
@@ -78,6 +85,7 @@ export function createAtmosphere({width,height,mask,world,seed}) {
     .addAttribute('aTextureCoord',[0,0,1,0,1,1,0,1],2).addIndex([0,1,2,0,2,3]);
   const fieldShader=PIXI.Shader.from(vertex,densityFragment,{uWorld:world,uWind:[0,0],uPhase:[0,0,0,0],uSeconds:0});
   const compositeShader=PIXI.Shader.from(vertex,compositeFragment,{uDensity:density,uClouds:cloudTexture,uMask:maskTexture,
+    uWorld:world,uCloudWind:[0,0],uCloudTime:0,uCloudSalt:(seed%997)*.0713,
     uShadowOffset:[18/world[2],12/world[3]],uEnabled:[1,1,1]});
   const fieldMesh=new PIXI.Mesh(geometry,fieldShader),compositeMesh=new PIXI.Mesh(geometry,compositeShader);
   fieldMesh.blendMode=compositeMesh.blendMode=PIXI.BLEND_MODES.NONE;
@@ -101,6 +109,8 @@ export function createAtmosphere({width,height,mask,world,seed}) {
         densityTime=seconds;
       }
       compositeShader.uniforms.uEnabled=[+fog,+clouds,+shadows];
+      compositeShader.uniforms.uCloudWind=cloudWind(seconds);
+      compositeShader.uniforms.uCloudTime=seconds;
       if(enabled||lastOptions!==key||force)renderer.render(compositeMesh,{renderTexture:texture,clear:true});
       lastTime=seconds;lastOptions=key;
       Object.assign(stats,{phaseSeconds:seconds,frames:stats.frames+1,updateMs:Math.round((performance.now()-started)*100)/100,fog,clouds,shadows});
