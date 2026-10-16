@@ -26,7 +26,8 @@ Update affected AI documentation in the same change. `npm run check:docs` reject
 version drift. Save schemas and standalone art prototype versions are separate.
 
 The badge remains visible in the menu and game: Local/Pages, game version and a
-12-character source fingerprint. The fingerprint includes uncommitted source,
+12-character source fingerprint. During play it sits faintly below the top-right
+save/menu controls, over the game view. The fingerprint includes uncommitted source,
 assets, tooling and documentation, with text line endings normalized. It is
 independent of the Git revision; metadata also records that revision for lookup.
 Local HTML and Pages artifacts embed their identity at load/build time. Pages

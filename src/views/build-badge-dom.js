@@ -14,6 +14,17 @@ export function mountBuildBadge() {
     badge.title = `Game v${info.version} | Build ${info.build} | Revision ${info.revision} | ${info.channel}`;
   }
   document.body.append(badge);
+  const placeBadge = () => {
+    const controls = document.querySelector('[data-testid="utility-controls"]');
+    const parent = controls && !document.body.classList.contains('game-menu-open')
+      ? controls : document.body;
+    if (badge.parentElement !== parent) parent.append(badge);
+  };
+  // The controls mount after the entry module; menu visibility changes later.
+  new MutationObserver(placeBadge).observe(document.body, {
+    childList: true, attributes: true, attributeFilter: ['class'],
+  });
+  placeBadge();
   if (info?.channel !== 'local') return;
   let checking = false;
   const check = async () => {
