@@ -1,5 +1,6 @@
 // Erode cloud density into lobes and wisps; never lower the whole bank's opacity.
 import { noise } from './water-drift.js';
+import { cloudWeatherTime } from './cloud-cover.js';
 
 export const cloudWind=seconds=>[seconds*.36+22*Math.sin(seconds/173),seconds*.09+19*Math.sin(seconds/269)];
 const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
@@ -9,6 +10,7 @@ const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3
 export function cloudBoundaryClearance(distanceCode,x,y,seconds,seed) {
   if(distanceCode<=0)return 0;
   if(distanceCode>=1)return 1;
+  seconds=cloudWeatherTime(seconds);
   const distance=distanceCode*512-256,salt=(seed%997)*.0713;
   const broad=noise(x/220+salt,y/220-29,seconds/1200);
   const local=noise((x*.8-y*.6)/100-51,(x*.6+y*.8)/100+salt,seconds/2700+17);
@@ -21,6 +23,7 @@ export function cloudDissolve(alpha,distanceCode,x,y,seconds,seed) {
   const clearance=cloudBoundaryClearance(distanceCode,x,y,seconds,seed);
   if(clearance<=0||alpha<=0)return 0;
   if(clearance>=1)return 1;
+  seconds=cloudWeatherTime(seconds);
   const wind=cloudWind(seconds),u=(x-wind[0])/26,v=(y-wind[1])/26;
   const z=seconds/347+(seed%997)*.0713;
   const warp=noise(u*.31+17,v*.31-39,z*.37);

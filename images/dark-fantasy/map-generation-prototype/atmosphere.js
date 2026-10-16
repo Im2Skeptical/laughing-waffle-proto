@@ -1,3 +1,4 @@
+import { cloudWeatherTime } from './cloud-cover.js';
 // Presentation-only weather: absolute time, world coordinates and a fixed seed.
 // Fog keeps its existing density field; painted clouds have a separate target.
 // Shadows sample cloud alpha with an offset. No frame history or simulation RNG.
@@ -131,8 +132,8 @@ export function createAtmosphere({width,height,mask,world,seed}) {
       }
       compositeShader.uniforms.uEnabled=[+fog,+clouds,+shadows];
       compositeShader.uniforms.uWisps=+wisps;
-      compositeShader.uniforms.uCloudWind=cloudWind(seconds);
-      compositeShader.uniforms.uCloudTime=seconds;
+      compositeShader.uniforms.uCloudWind=cloudWind(cloudWeatherTime(seconds));
+      compositeShader.uniforms.uCloudTime=cloudWeatherTime(seconds);
       if(enabled||lastOptions!==key||force)renderer.render(compositeMesh,{renderTexture:texture,clear:true});
       lastTime=seconds;lastOptions=key;
       Object.assign(stats,{phaseSeconds:seconds,frames:stats.frames+1,updateMs:Math.round((performance.now()-started)*100)/100,fog,clouds,shadows,wisps});

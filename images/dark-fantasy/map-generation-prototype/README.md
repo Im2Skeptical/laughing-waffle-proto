@@ -1,12 +1,12 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.31**: restores substantial cloud banks
-around the map, with irregular clear patches within the coverage. Four approved
-billowing shapes combine with eight new companion banks. The feather sheets and
-fragmented ring/cloudlet artwork from v1.0.30 are retired from rendering.
-Clouds remain intact longer, with quieter local deformation and broader erosion.
-The 3-minute / 50-year / 300-year review, calm clearance boundary, original shadows
-and optional wisps remain. Borders stay below clouds; Nearest remains the default.
+Current published revision: **Map v1.0.32**: slower cloud development across
+300-year scrubs, plus broad weather openings containing sparse small cumulus.
+Dense banks surround these openings instead of covering the whole sky uniformly.
+Painted clouds and their clearance erosion use a fixed 0.18x decorative time axis;
+water, fog, original shadows/wisps and authoritative simulation time are unchanged.
+The clock does not depend on scrub speed or selected span, so any date restores
+exactly. The 3-minute / 50-year / 300-year controls and Nearest default remain.
 The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
@@ -30,8 +30,10 @@ run `biome-clustering-check.mjs` alongside the terrain checks.
 `atmosphere.js` keeps the approved seeded fog field and colour treatment.
 `cloud-banks.js` loads the approved four-frame `cloud-banks-v2.png` and an
 eight-frame companion, `cloud-banks-v3.png` (built-in image generation; full
-reference/prompt/padding-edit provenance in the adjacent JSON). Both use the
-same substantial overhead billows. The companion introduces broad bays, uneven
+reference/prompt/padding-edit provenance in the adjacent JSON). These use the
+same substantial overhead billows. An eight-frame `cloud-cumulus-v1.png` layer
+returns specifically inside sparse weather openings. The rejected feather and
+necklace assets remain excluded. The companion introduces broad bays, uneven
 shoulders and a few internal openings, rather than necklace rings or isolated
 cloudlets. The v1.0.30 cirrus/stratocumulus sheets are no longer loaded: their
 feather-like grey membranes and fragmented shapes were baked into the artwork,
@@ -43,12 +45,20 @@ simulation. `cloud-weather.js` samples finite episodes from seed, family, cell a
 generation. Dense billows travel more slowly with restrained deformation; the
 more open companion banks develop and shear a little faster. Each uses seeded
 shuffled bags, avoiding immediate repeated frame choices at bag boundaries.
-Broad seeded weather patches influence birth density, giving larger clear bays
-among overlapping banks. Density is sampled at birth so live clouds cannot pop
-when a field threshold changes. Each cloud spends 70% of its lifetime fully formed;
-shorter birth/death windows prevent the scene remaining mostly eroded fragments.
-`cloud-material.js` applies modest local deformation and broad density erosion
-inside the existing cloud target. It supports each atlas's actual grid dimensions.
+`cloud-cover.js` supplies a shared, continuous world-coordinate field. Broad
+warped openings span several cloud banks; the full banks erode locally there,
+while smaller cumulus uses the complementary mask. Sparse patches therefore
+contain small clouds instead of being empty cutouts. Finer world noise roughens
+the opening edges, and authored bright lobes plus local density erode individual
+clouds without broad straight cuts. This mask is sampled per
+pixel and follows world coordinates through bank movement, rotation and culling.
+The 0.18x cloud clock and longer 24% birth / 28% death intervals avoid whole-bank
+flashes while dragging centuries. On the fixed 300-year regression sweep, a 1%
+seek changed a bank's lifecycle by up to 95% in v1.0.31 and about 11% now.
+Clouds still have finite seeded episodes and distinct drift/deformation; they
+can persist through a long part of a 300-year review without being permanent.
+`cloud-material.js` combines local lifecycle erosion with shared cover, inside
+the existing cloud target, supporting each atlas's actual grid dimensions.
 Population, spatial queries and motion remain bounded and deterministic at any
 viewed time, including reverse scrubbing. No simulation rules or RNG are added.
 `cloud-dissolve.js` uses geographic clearance as an erosion threshold, not an
@@ -57,7 +67,7 @@ open gaps through the cloud and eat away thin edges; dense lobes survive with
 their original colour/opacity until eroded. A narrow feather softens the edge
 of each remaining fragment. The static mask stores signed distance, including
 inside the playable edge. Two seeded, continuous 3D noise fields shift the
-clearance centre and width on separate 1200/2700-second noise scales (about 38/84 calendar years). Large
+clearance centre and width on separate 1200/2700-cloud-second noise scales (about 208/469 calendar years). Large
 stretches and smaller bays wander independently rather than pulsing together,
 with less than half the previous displacement amplitude.
 Occasional edge incursions erase the fixed outline; a deep-interior guard keeps
@@ -82,8 +92,8 @@ The graph's existing three curves still describe water, not weather forecasts.
 
 Three small GPU passes produce fog density, painted cloud colour and final
 premultiplied atmosphere colour at 788 x 258 for the canonical atlas. Mask and
-three targets total about 3.10 MiB, plus two shared cloud atlases
-(about 12 MiB decoded). Atlases are loaded once across terrain rebakes.
+three targets total about 3.10 MiB, plus three shared cloud atlases
+(about 18 MiB decoded). Atlases are loaded once across terrain rebakes.
 Atmosphere is softly sampled independently of the terrain's Nearest setting.
 Boundary motion adds two noise samples per cloud/shadow lookup in the transition
 area, reusing the existing mask, targets and passes. Signed distance is baked
@@ -95,16 +105,18 @@ from steady-state update cost; desktop timings are not mobile guarantees.
 cost. Run `cloud-weather-check.mjs` and `atmosphere-check.mjs`, then browser
 `verifyCloudShapes()` from `cloud-shapes-check.js` and `verifyAtmosphereGpu()` from
 `atmosphere-check.js`, `verifyMapTimeline()` and the zoom persistence check.
-The CPU checks cover all 12 variants, finite episode turnover, substantial bank coverage,
+The CPU checks cover all 20 variants, finite episode turnover, substantial bank coverage,
 continuous family-specific motion and size, spatial query consistency, and absolute
 time restoration. They also lock approved fog samples and check
 intact lobes plus holes within a dissolving bank, monotonic erosion near land,
-actual boundary travel, calm fifty-year scrubs, independent bank speeds/headings,
+actual boundary travel, calm 300-year scrubs, independent bank speeds/headings,
 local boundary motion, edge incursions and interior protection through 300 years.
 The shape GPU check renders every real frame through the production material;
 it checks distinct silhouettes, atlas gutters, local erosion with retained lobes,
 zero pixels before birth/after death, deformation, ordinary-sprite alpha agreement
-and exact restoration.
+and exact restoration. `verifyCloudCover()` from `cloud-cover-check.js` checks
+the actual material against CPU field sampling, including rotated banks, intact
+dense cover, eroded openings and complementary small-cloud coverage.
 The GPU check covers original density matching, exact time restoration,
 GPU/CPU erosion agreement, fog exclusion, aligned broken and broad shadows,
 playable-land shadows with both cloud layers off, independent low-opacity wisps,

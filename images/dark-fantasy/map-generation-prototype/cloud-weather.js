@@ -2,9 +2,10 @@
 // viewed second fully determine births, shapes and movement (including reverse).
 import { decorationRandom } from './generator.js';
 import { noise } from './water-drift.js';
+import { cloudWeatherTime } from './cloud-cover.js';
 
-// Two compatible bank structures: the approved full billows and broad banks
-// with authored bays/openings. No feather sheets or necklaces of cloudlets.
+// Full billows and broad banks surround sparse cumulus weather patches.
+// The shared cover mask keeps the small clouds inside large openings.
 export const CLOUD_FAMILIES = [
   {id:'billows',asset:'cloud-banks-v2.png',columns:2,rows:2,frames:4,
     spacing:[600,440],chance:.85,cadence:1350,width:[360,520],aspect:1,
@@ -12,6 +13,9 @@ export const CLOUD_FAMILIES = [
   {id:'open-banks',asset:'cloud-banks-v3.png',columns:4,rows:2,frames:8,
     spacing:[520,390],chance:.90,cadence:1100,width:[400,580],aspect:1,
     speed:[.13,.29],heading:.03,alpha:.78,warp:.017,shear:.035,develop:.14,evolution:950},
+  {id:'sparse-cumulus',asset:'cloud-cumulus-v1.png',columns:4,rows:2,frames:8,
+    spacing:[390,300],chance:.65,cadence:1250,width:[160,270],aspect:.95,sparse:true,
+    speed:[.08,.19],heading:.24,alpha:.70,warp:.014,shear:.020,develop:.12,evolution:1250},
 ];
 const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
 const hash=(seed,col,row,family)=>seed^Math.imul(col,73856093)^Math.imul(row,19349663)^Math.imul(family+1,83492791);
@@ -32,6 +36,7 @@ export function cloudFrame(cellSeed,generation,count=8) {
 }
 
 export function cloudBanks(world,seconds,seed) {
+  seconds=cloudWeatherTime(seconds);
   const banks=[];
   for(const [family,profile] of CLOUD_FAMILIES.entries()) {
     const [sx,sy]=profile.spacing;
@@ -51,16 +56,14 @@ export function cloudBanks(world,seconds,seed) {
         const episodeSeed=cellSeed^Math.imul(generation,1640531513);
         let sample=10;const rng=()=>decorationRandom(episodeSeed,sample++);
         const birth=generation*cadence-offset;
-        // Coherent weather patches give broad clear bays within the bank cover.
-        // Sample at birth, so crossing a noise threshold cannot pop a live bank.
-        const weather=noise(col*sx/850+(seed%997),row*sy/650-31,birth/3400);
-        const coverage=.58+.42*smooth(-.45,.40,weather);
-        if(rng()>profile.chance*coverage)continue;
+        // Cover is sampled per pixel in the material, not once at birth.
+        // Shared large openings can cross many overlapping cloud banks.
+        if(rng()>profile.chance)continue;
         const frame=cloudFrame(cellSeed,generation,profile.frames);
         const lifetime=cadence*(1.05+.45*rng());
         const age=seconds-birth,fraction=age/lifetime;
         if(fraction<=0||fraction>=1)continue;
-        const life=smooth(0,.12,fraction)*(1-smooth(.82,1,fraction));
+        const life=smooth(0,.24,fraction)*(1-smooth(.72,1,fraction));
         const phase=rng()*79,variation=rng();
         const anchorX=col*sx+(rng()-.5)*sx*.72,anchorY=row*sy+(rng()-.5)*sy*.72;
         const speed=profile.speed[0]+rng()*(profile.speed[1]-profile.speed[0]);
@@ -79,6 +82,7 @@ export function cloudBanks(world,seconds,seed) {
         if(x+radius<world[0]||x-radius>world[0]+world[2]||y+radius<world[1]||y-radius>world[1]+world[3])continue;
         banks.push({id:`${family}/${col}/${row}/${generation}`,family,frame,x,y,width,height,
           rotation,alpha:profile.alpha,life,phase,age:fraction,columns:profile.columns,rows:profile.rows,
+          cover:true,sparse:!!profile.sparse,weatherTime:seconds,salt:(seed%997)*.0713,
           evolution:age/profile.evolution,
           warp:profile.warp,shear:profile.shear*(fraction-.35)});
       }

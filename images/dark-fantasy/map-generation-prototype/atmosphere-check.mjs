@@ -13,14 +13,14 @@ for(const t of [0,7.875,60,320,997,1600,4800,9600]) {
     assert.deepEqual(sampleAtmosphere(x,y,t,1867),a);
   }
 }
-// One percent of a fifty-year drag must not suddenly reshape the clearing.
+// One percent of a 300-year drag must not suddenly reshape the clearing.
 let maximumScrubChange=0;
-for(let t=0;t<=1600;t+=16)for(let x=-300;x<=900;x+=60) {
+for(let t=0;t<=9600;t+=96)for(let x=-300;x<=900;x+=60) {
   const code=(35+256)/512;
   maximumScrubChange=Math.max(maximumScrubChange,Math.abs(
-    cloudBoundaryClearance(code,x,80,t+16,1867)-cloudBoundaryClearance(code,x,80,t,1867)));
+    cloudBoundaryClearance(code,x,80,t+96,1867)-cloudBoundaryClearance(code,x,80,t,1867)));
 }
-assert.ok(maximumScrubChange<.02,'Boundary is calm over a fifty-year scrub');
+assert.ok(maximumScrubChange<.02,'Boundary is calm over a 300-year scrub');
 assert.notDeepEqual(atmospherePhase(320,1867),atmospherePhase(320,1868));
 const code=d=>(d+256)/512;
 const ids=new Int16Array(360*240).fill(-1);
@@ -30,7 +30,8 @@ assert.ok(mask[120*360+180]<128,'Distance includes the playable interior');
 assert.ok(mask[120*360+300]>=128,'Exterior distance is positive');
 for(let x=300;x<359;x++)assert.ok(mask[120*360+x]<=mask[120*360+x+1]);
 const fronts=[];let incursions=0;
-for(const t of [0,320,1600,3200,6400,9600]) {
+// Inspect full boundary travel over the longer, slowed weather history.
+for(const t of [0,320,1600,3200,6400,9600].map(t=>t/.18)) {
   let low=-65,high=200;
   for(let i=0;i<20;i++) {
     const d=(low+high)/2;
