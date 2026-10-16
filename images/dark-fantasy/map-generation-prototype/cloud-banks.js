@@ -32,31 +32,34 @@ export function cloudBanks(world,seconds,seed) {
   return banks;
 }
 
-// Distance to the union of playable regions, including inland water regions.
-// This broad apron is independent of the approved, narrower fog mask.
-export function cloudClearance(regionIds,sourceWidth,sourceHeight,width,height) {
-  const distance=new Float32Array(width*height).fill(1e6),diagonal=Math.SQRT2;
+// Signed distance to the playable union, encoded over [-256, 256] world units.
+// Keeping interior distance lets the animated boundary cross the map edge.
+export function cloudDistanceField(regionIds,sourceWidth,sourceHeight,width,height) {
+  const occupied=new Uint8Array(width*height);
   for(let y=0;y<height;y++)for(let x=0;x<width;x++) {
     const px=Math.min(sourceWidth-1,Math.floor((x+.5)*sourceWidth/width));
     const py=Math.min(sourceHeight-1,Math.floor((y+.5)*sourceHeight/height));
-    if(regionIds[py*sourceWidth+px]>=0)distance[y*width+x]=0;
+    occupied[y*width+x]=+(regionIds[py*sourceWidth+px]>=0);
   }
-  for(let y=0;y<height;y++)for(let x=0;x<width;x++) {
-    const i=y*width+x;
-    if(x)distance[i]=Math.min(distance[i],distance[i-1]+1);
-    if(y)distance[i]=Math.min(distance[i],distance[i-width]+1,
-      x?distance[i-width-1]+diagonal:1e6,x+1<width?distance[i-width+1]+diagonal:1e6);
-  }
-  for(let y=height-1;y>=0;y--)for(let x=width-1;x>=0;x--) {
-    const i=y*width+x;
-    if(x+1<width)distance[i]=Math.min(distance[i],distance[i+1]+1);
-    if(y+1<height)distance[i]=Math.min(distance[i],distance[i+width]+1,
-      x?distance[i+width-1]+diagonal:1e6,x+1<width?distance[i+width+1]+diagonal:1e6);
-  }
-  return Uint8Array.from(distance,d=>{
-    const t=Math.max(0,Math.min(1,(d*sourceWidth/width-5)/100));
-    return Math.round(t*t*(3-2*t)*255);
-  });
+  const distanceTo=value=>{
+    const distance=Float32Array.from(occupied,v=>v===value?0:1e6),diagonal=Math.SQRT2;
+    for(let y=0;y<height;y++)for(let x=0;x<width;x++) {
+      const i=y*width+x;
+      if(x)distance[i]=Math.min(distance[i],distance[i-1]+1);
+      if(y)distance[i]=Math.min(distance[i],distance[i-width]+1,
+        x?distance[i-width-1]+diagonal:1e6,x+1<width?distance[i-width+1]+diagonal:1e6);
+    }
+    for(let y=height-1;y>=0;y--)for(let x=width-1;x>=0;x--) {
+      const i=y*width+x;
+      if(x+1<width)distance[i]=Math.min(distance[i],distance[i+1]+1);
+      if(y+1<height)distance[i]=Math.min(distance[i],distance[i+width]+1,
+        x?distance[i+width-1]+diagonal:1e6,x+1<width?distance[i+width+1]+diagonal:1e6);
+    }
+    return distance;
+  };
+  const outside=distanceTo(1),inside=distanceTo(0),scale=sourceWidth/width;
+  return Uint8Array.from(outside,(d,i)=>Math.round(Math.max(0,Math.min(1,
+    ((d-inside[i])*scale+256)/512))*255));
 }
 
 export function createCloudLayer(width,height,world,seed) {

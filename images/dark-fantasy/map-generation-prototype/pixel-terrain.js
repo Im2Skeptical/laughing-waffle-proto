@@ -8,7 +8,7 @@ import { composeHinterland, paintHinterlandMass } from './hinterland-composition
 import { classifyWaterBodies, extendWaterEnvironment, waterColourAt, WATER_BODY, WATER_RAMPS } from './water-style.js';
 import { createWaterCycle } from './water-animation.js';
 import { createAtmosphere } from './atmosphere.js';
-import { cloudClearance } from './cloud-banks.js';
+import { cloudDistanceField } from './cloud-banks.js';
 import { waterDriftMask, waterDriftOffset } from './water-drift.js';
 import { composeTerrainLandscape, boneRidgeFits } from './terrain-composition.js';
 import { loadIllustratedArt } from './illustrated-art.js';
@@ -594,7 +594,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   let atmosphere=null;
   if(detail===2) {
     const fw=Math.ceil(width/4),fh=Math.ceil(height/4),mask=new Uint8Array(fw*fh*4);
-    const cloudMask=cloudClearance(regionIds,width,height,fw,fh);
+    const cloudMask=cloudDistanceField(regionIds,width,height,fw,fh);
     for(let y=0;y<fh;y++)for(let x=0;x<fw;x++) {
       const px=Math.min(width-1,Math.floor((x+.5)*width/fw)),py=Math.min(height-1,Math.floor((y+.5)*height/fh));
       let distance=32;

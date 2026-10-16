@@ -1,9 +1,9 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.26**: original moving cloud shadows
-restored over playable land alongside the current overhead clouds. A separate
-Wisps toggle adds the original procedural cloud field at low opacity (off by
-default). Fog, overhead cloud artwork and their dissolution are unchanged.
+Current published revision: **Map v1.0.27**: the cloud dissipation boundary
+wanders smoothly at broad and local scales as displayed time changes. Clouds can
+occasionally stray across the playable edge, while the deep interior stays clear.
+Current cloud art, original shadows, Wisps and approved fog remain in place.
 Nearest remains the default and wheel zoom remains animated.
 The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
@@ -35,7 +35,12 @@ world-space wind path, derived directly from displayed time.
 opacity multiplier. Advected, slowly evolving noise and source cloud alpha
 open gaps through the cloud and eat away thin edges; dense lobes survive with
 their original colour/opacity until eroded. A narrow feather softens the edge
-of each remaining fragment. The cloud mask reaches zero at the playable border.
+of each remaining fragment. The static mask stores signed distance, including
+inside the playable edge. Two seeded, continuous 3D noise fields shift the
+clearance centre and width on separate 113/283-second noise scales. Large
+stretches and smaller bays wander independently rather than pulsing together.
+Occasional edge incursions erase the fixed outline; a deep-interior guard keeps
+the centre readable. Sampling a date always restores the same boundary.
 This does not alter fog. Shadows evaluate the identical erosion function at
 the offset cloud source, including every hole and wisp.
 All effects sit below region outlines and labels.
@@ -58,6 +63,9 @@ premultiplied atmosphere colour at 788 x 258 for the canonical atlas. Mask and
 three targets total about 3.10 MiB, plus the shared 1254 x 1254 cloud atlas
 (about 6 MiB decoded; 1.9 MB PNG). The atlas is loaded once across terrain rebakes.
 Atmosphere is softly sampled independently of the terrain's Nearest setting.
+Boundary motion adds two noise samples per cloud/shadow lookup in the transition
+area, reusing the existing mask, targets and passes. Signed distance is baked
+once; no terrain regeneration or CPU texture upload runs on a timeline scrub.
 No full-screen blur or CPU texture upload runs each frame, and disabling all
 four toggles skips density and cloud rendering. Initial shader compilation is separate
 from steady-state update cost; desktop timings are not mobile guarantees.
@@ -65,7 +73,8 @@ from steady-state update cost; desktop timings are not mobile guarantees.
 cost. Run `atmosphere-check.mjs`, then browser `verifyAtmosphereGpu()` from
 `atmosphere-check.js`, `verifyMapTimeline()` and the zoom persistence check.
 The CPU check locks approved fog samples and checks cloud motion/coverage continuity,
-intact lobes plus holes within a dissolving bank, and monotonic erosion near land.
+intact lobes plus holes within a dissolving bank, monotonic erosion near land,
+actual boundary travel, independent local motion, edge incursions and interior protection.
 The GPU check covers original density matching, exact time restoration,
 GPU/CPU erosion agreement, fog exclusion, aligned broken and broad shadows,
 playable-land shadows with both cloud layers off, independent low-opacity wisps,

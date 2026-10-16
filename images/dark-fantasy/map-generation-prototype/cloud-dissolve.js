@@ -4,7 +4,21 @@ import { noise } from './water-drift.js';
 export const cloudWind=seconds=>[seconds*.36+22*Math.sin(seconds/173),seconds*.09+19*Math.sin(seconds/269)];
 const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
 
-export function cloudDissolve(alpha,clearance,x,y,seconds,seed) {
+// Broad stretches and smaller bays wander on different, non-looping timescales.
+// Geography stays fixed; this is only the weather clearance around its edge.
+export function cloudBoundaryClearance(distanceCode,x,y,seconds,seed) {
+  if(distanceCode<=0)return 0;
+  if(distanceCode>=1)return 1;
+  const distance=distanceCode*512-256,salt=(seed%997)*.0713;
+  const broad=noise(x/170+salt,y/170-29,seconds/113);
+  const local=noise((x*.8-y*.6)/65-51,(x*.6+y*.8)/65+salt,seconds/283+17);
+  const centre=45+65*broad+25*local,halfWidth=48+10*local;
+  return smooth(centre-halfWidth,centre+halfWidth,distance)*smooth(-65,-30,distance);
+}
+
+export function cloudDissolve(alpha,distanceCode,x,y,seconds,seed) {
+  if(alpha<=0)return 0;
+  const clearance=cloudBoundaryClearance(distanceCode,x,y,seconds,seed);
   if(clearance<=0||alpha<=0)return 0;
   if(clearance>=1)return 1;
   const wind=cloudWind(seconds),u=(x-wind[0])/26,v=(y-wind[1])/26;
@@ -21,7 +35,19 @@ export function cloudDissolve(alpha,clearance,x,y,seconds,seed) {
 // Uses driftNoise from WATER_DRIFT_GLSL. Evaluate identically at the cloud and
 // the shadow's source position so holes cast matching broken shadows.
 export const CLOUD_DISSOLVE_GLSL=`
-float cloudDissolve(float alpha,float clearance,vec2 w){
+float cloudBoundaryClearance(float distanceCode,vec2 w){
+  if(distanceCode<=0.0)return 0.0;
+  if(distanceCode>=1.0)return 1.0;
+  float distance=distanceCode*512.0-256.0;
+  float broad=driftNoise(vec3(w/170.0+vec2(uCloudSalt,-29),uCloudTime/113.0));
+  vec2 localUV=vec2(w.x*.8-w.y*.6,w.x*.6+w.y*.8)/65.0+vec2(-51,uCloudSalt);
+  float local=driftNoise(vec3(localUV,uCloudTime/283.0+17.0));
+  float centre=45.0+65.0*broad+25.0*local,halfWidth=48.0+10.0*local;
+  return smoothstep(centre-halfWidth,centre+halfWidth,distance)*smoothstep(-65.0,-30.0,distance);
+}
+float cloudDissolve(float alpha,float distanceCode,vec2 w){
+  if(alpha<=0.0)return 0.0;
+  float clearance=cloudBoundaryClearance(distanceCode,w);
   if(clearance<=0.0||alpha<=0.0)return 0.0;
   if(clearance>=1.0)return 1.0;
   vec2 uv=(w-uCloudWind)/26.0;
@@ -36,6 +62,6 @@ float cloudDissolve(float alpha,float clearance,vec2 w){
 }
 vec4 dissolvedCloud(vec2 uv){
   vec4 bank=texture2D(uClouds,uv);
-  float clearance=texture2D(uMask,uv).g;
-  return bank*cloudDissolve(bank.a,clearance,uWorld.xy+uv*uWorld.zw);
+  float distanceCode=texture2D(uMask,uv).g;
+  return bank*cloudDissolve(bank.a,distanceCode,uWorld.xy+uv*uWorld.zw);
 }`;

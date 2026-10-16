@@ -32,15 +32,18 @@ export async function verifyAtmosphereGpu() {
     sky.update(renderer,320,{fog:true,clouds:false,shadows:false});
     const fog=renderer.extract.pixels(sky.texture);
     for(let i=0;i<width*height;i++)if(i%width<width/2&&fog[i*4+3])throw Error('Fog crossed the playable-area mask');
-    sky.update(renderer,320,{fog:false,clouds:true,shadows:false});
-    const clouds=renderer.extract.pixels(sky.texture),banks=renderer.extract.pixels(sky.cloudTexture);
-    let visible=0,suppressed=0;
-    for(let i=0;i<width*height;i++) {
-      const expected=banks[i*4+3]*cloudDissolve(banks[i*4+3]/255,mask[i*4+1]/255,
-        world[0]+(i%width+.5)*6,world[1]+(Math.floor(i/width)+.5)*6,320,seed);
-      if(Math.abs(clouds[i*4+3]-expected)>2)throw Error('Cloud erosion diverged from the density threshold');
-      if(clouds[i*4+3]>20)visible++;
-      if(banks[i*4+3]>20&&mask[i*4+1]===0)suppressed++;
+    let clouds,visible=0,suppressed=0;
+    for(const t of [0,997,1600,320]) {
+      sky.update(renderer,t,{fog:false,clouds:true,shadows:false});
+      clouds=renderer.extract.pixels(sky.texture);
+      const banks=renderer.extract.pixels(sky.cloudTexture);
+      for(let i=0;i<width*height;i++) {
+        const expected=banks[i*4+3]*cloudDissolve(banks[i*4+3]/255,mask[i*4+1]/255,
+          world[0]+(i%width+.5)*6,world[1]+(Math.floor(i/width)+.5)*6,t,seed);
+        if(Math.abs(clouds[i*4+3]-expected)>2)throw Error(`Cloud boundary/erosion diverged at ${t}`);
+        if(clouds[i*4+3]>20)visible++;
+        if(banks[i*4+3]>20&&mask[i*4+1]===0)suppressed++;
+      }
     }
     if(!visible||!suppressed)throw Error('Cloud mask fixture must exercise visible and dissipated banks');
     sky.update(renderer,320,{fog:false,clouds:false,shadows:true});
