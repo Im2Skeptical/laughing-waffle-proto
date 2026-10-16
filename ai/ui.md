@@ -36,9 +36,13 @@ repeat commissions keep the plan available. Cycle readiness uses the existing ti
 content with distinct names and rules. Structure inspection retains its existing
 hover/touch reading panel.
 The live founder picker uses a Pixi focused dossier with crossed-out replaced
-attributes, a separate class-stat panel, compact tooltips and a bottom portrait
-rail with flanking arrows. Both founders are available; two future slots are locked.
-Painted class frames preserve ordinary Vassal portrait identity.
+attributes, a separate class-stat panel, compact tooltips and four emblem tabs
+centred below the right-hand column. Both founders are available; two future slots
+are locked. Pixel-illustrated carved-stone rims use fixed corners and tiled edges
+throughout, with matching round sockets, nearest filtering and warm selected tabs.
+Picker frames and approved class portraits load from named TexturePacker atlases;
+class frames preserve ordinary Vassal portrait identity. See
+`docs/vassal-selection-prototype.md` for the source and packing workflow.
 Warrior status displays uncapped Retinue and next Prestige threshold. Scholar status
 shows the active Commission. Class stat labels are Ingenuity and Prowess.
 Structure rows are centered and use the same eight-cell pitch across regions.

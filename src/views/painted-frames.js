@@ -1,6 +1,6 @@
 import { getChronicleTexture } from './chronicle-art.js';
 import { getStoneTexture, paintRelicPanel, RELIC } from './chronicle-skin.js';
-import { FRAME_PREFIX, NINE_SLICE_FRAMES, SOCKET_FRAME, WINDOW_FRAME } from './painted-frame-spec.js';
+import { FRAME_PREFIX, PANEL_FRAMES, SOCKET_FRAME, WINDOW_FRAME } from './painted-frame-spec.js';
 
 // Painted dark-fantasy frames for the founder class picker. Each helper draws the
 // painted art when its atlas textures are ready and the vector paintRelicPanel
@@ -20,49 +20,43 @@ function underlay(parent, x, y, w, h, fill, alpha = 1, radius = 6) {
   return g;
 }
 
-// A frame whose rim is stretched by NineSlicePlane. Returns { node, painted, setTint }.
-export function addPaintedPanel(parent, kind, w, h, { tint = WHITE, fill = null, fillAlpha = 1, fallbackStroke = RELIC.brass, fallbackFill = RELIC.stone } = {}) {
-  const spec = NINE_SLICE_FRAMES[kind];
-  const tex = spec && texture(spec.file);
-  const node = new PIXI.Container(); node.eventMode = 'none'; parent.addChild(node);
-  if (!tex) {
-    const g = new PIXI.Graphics(); paintRelicPanel(g, 0, 0, w, h, fill ?? fallbackFill, fallbackStroke, 2, fillAlpha);
-    node.addChild(g);
-    return { node, painted: false, setTint() {} };
-  }
-  if (fill != null) underlay(node, spec.fillInset, spec.fillInset, w - 2 * spec.fillInset, h - 2 * spec.fillInset, fill, fillAlpha);
-  const [l, t, r, b] = spec.insets;
-  const plane = new PIXI.NineSlicePlane(tex, l, t, r, b);
-  // Corners keep their art size (spec.unit) while the rim stretches; width/height are in stored px.
-  plane.width = w / spec.unit; plane.height = h / spec.unit; plane.scale.set(spec.unit);
-  plane.tint = tint; plane.eventMode = 'none'; node.addChild(plane);
-  return { node, painted: true, setTint: value => { plane.tint = value; } };
+// All rectangular frames share fixed corners and tiled edges. No carved motif
+// is stretched, even on the long class-attribute panel.
+function rim(parent, w, h, unit, tint) {
+  const textures = Object.fromEntries(Object.entries(WINDOW_FRAME.pieces).map(([key, name]) => [key, texture(name)]));
+  if (Object.values(textures).some(entry => !entry)) return null;
+  const sprites = [], corner = WINDOW_FRAME.corner * unit;
+  const place = (sprite, x, y) => {
+    sprite.position.set(x, y); sprite.scale.set(unit); sprite.tint = tint;
+    sprite.eventMode = 'none'; parent.addChild(sprite); sprites.push(sprite);
+  };
+  const tile = (key, x, y, width, height) => place(new PIXI.TilingSprite(textures[key], width / unit, height / unit), x, y);
+  tile('edgeTop', corner, 0, w - 2 * corner, textures.edgeTop.height * unit);
+  tile('edgeBottom', corner, h - textures.edgeBottom.height * unit, w - 2 * corner, textures.edgeBottom.height * unit);
+  tile('edgeLeft', 0, corner, textures.edgeLeft.width * unit, h - 2 * corner);
+  tile('edgeRight', w - textures.edgeRight.width * unit, corner, textures.edgeRight.width * unit, h - 2 * corner);
+  place(new PIXI.Sprite(textures.cornerTl), 0, 0);
+  place(new PIXI.Sprite(textures.cornerTr), w - corner, 0);
+  place(new PIXI.Sprite(textures.cornerBl), 0, h - corner);
+  place(new PIXI.Sprite(textures.cornerBr), w - corner, h - corner);
+  return value => sprites.forEach(sprite => { sprite.tint = value; });
 }
 
-// The banner is the same nine-slice, but its aperture is a swallow-tail, so the
-// class-coloured underlay follows the silhouette instead of filling a rectangle.
-export function addPaintedBanner(parent, w, h, { tint = WHITE, fill = RELIC.stone } = {}) {
-  const spec = NINE_SLICE_FRAMES.banner;
-  const tex = texture(spec.file);
+export function addPaintedPanel(parent, kind, w, h, { tint = WHITE, fill = null, fillAlpha = 1, fallbackStroke = RELIC.brass, fallbackFill = RELIC.stone } = {}) {
+  const spec = PANEL_FRAMES[kind];
   const node = new PIXI.Container(); node.eventMode = 'none'; parent.addChild(node);
-  const tail = 36, i = 10;
-  // The painted tail's outer notch apex sits ~86 px above the bottom, so keep the underlay inside it.
-  const shape = [i, i, w - i, i, w - i, h - 108, w / 2, h - 92, i, h - 108];
-  const g = new PIXI.Graphics();
-  if (!tex) {
-    g.lineStyle(4, RELIC.gold, .95);
-    g.beginTextureFill({ texture: getStoneTexture(), color: fill, alpha: .96 }).drawPolygon([0, 0, w, 0, w, h, w / 2, h - tail, 0, h]).endFill();
-    g.lineStyle(2, RELIC.shadow, .9).beginFill(RELIC.gold).drawRoundedRect(-18, -12, w + 36, 16, 8).endFill();
-    node.addChild(g);
-    return { node, painted: false, setTint() {} };
-  }
-  g.beginTextureFill({ texture: getStoneTexture(), color: fill, alpha: .97 }).drawPolygon(shape).endFill();
+  if (fill != null) underlay(node, spec.fillInset, spec.fillInset, w - 2 * spec.fillInset, h - 2 * spec.fillInset, fill, fillAlpha);
+  const metalTint = kind === 'tabSelected' ? 0xffdc91 : kind === 'tabLocked' ? 0x777b79 : tint;
+  const setTint = rim(node, w, h, spec.unit, metalTint);
+  if (setTint) return { node, painted: true, setTint };
+  const g = new PIXI.Graphics(); paintRelicPanel(g, 0, 0, w, h, fill ?? fallbackFill, fallbackStroke, 2, fillAlpha);
   node.addChild(g);
-  const [l, t, r, b] = spec.insets;
-  const plane = new PIXI.NineSlicePlane(tex, l, t, r, b);
-  plane.width = w / spec.unit; plane.height = h / spec.unit; plane.scale.set(spec.unit);
-  plane.tint = tint; node.addChild(plane);
-  return { node, painted: true, setTint: value => { plane.tint = value; } };
+  return { node, painted: false, setTint() {} };
+}
+
+// The hero uses the same rectangular carving at a larger, readable scale.
+export function addPaintedBanner(parent, w, h, options = {}) {
+  return addPaintedPanel(parent, 'banner', w, h, { fill: RELIC.stone, ...options });
 }
 
 export function addPaintedSocket(parent, cx, cy, diameter, { tint = WHITE, fill = RELIC.shadow } = {}) {
@@ -77,39 +71,17 @@ export function addPaintedSocket(parent, cx, cy, diameter, { tint = WHITE, fill 
   return { node, painted: true, setTint: value => { ring.tint = value; } };
 }
 
-// The window: four corner caps, four tiled edge strips and a gem on the top and
-// bottom centres. Corner art keeps its size; only the tiled edges lengthen.
+// The window: four corner caps and four tiled carved edge strips. Corner art keeps its size; only the tiled edges lengthen.
 // backParent (optional) receives the stone fill so page content can sit between it and the rim.
 export function addPaintedWindow(parent, w, h, { tint = WHITE, fill = RELIC.night, backParent = null } = {}) {
-  const spec = WINDOW_FRAME, src = spec.source, pieces = spec.pieces;
-  const tex = Object.fromEntries(Object.entries(pieces).map(([key, name]) => [key, texture(name)]));
+  const spec = WINDOW_FRAME;
   const node = new PIXI.Container(); node.eventMode = 'none'; parent.addChild(node);
   const back = new PIXI.Graphics(); (backParent ?? node).addChild(back);
-  if (Object.values(tex).some(entry => !entry)) {
+  const setTint = rim(node, w, h, spec.unit, tint);
+  if (!setTint) {
     paintRelicPanel(back, 0, 0, w, h, fill, RELIC.brass, 3);
     return { node, painted: false, setTint() {}, inset: 4 };
   }
-  const s = spec.scale, u = spec.unit, tinted = [];
-  back.beginTextureFill({ texture: getStoneTexture(), color: fill, alpha: 1 }).drawRoundedRect(8, 8, w - 16, h - 16, 10).endFill();
-  const cw = src.corner[0] * s, ch = src.corner[1] * s;
-  const place = (sprite, x, y) => { sprite.position.set(x, y); sprite.scale.set(u); sprite.tint = tint; node.addChild(sprite); tinted.push(sprite); return sprite; };
-  const tile = (key, x, y, width, height) => {
-    const sprite = new PIXI.TilingSprite(tex[key], width / u, height / u);
-    return place(sprite, x, y);
-  };
-  const overlap = 6;
-  // Strips first so the corners' feathered inner edges dissolve onto them.
-  const sh = src.height;
-  tile('edgeTop', cw - overlap, src.top[0] * s, w - 2 * (cw - overlap), tex.edgeTop.height * u);
-  tile('edgeBottom', cw - overlap, h - (sh - src.bottom[0]) * s, w - 2 * (cw - overlap), tex.edgeBottom.height * u);
-  tile('edgeLeft', src.left[0] * s, ch - overlap, tex.edgeLeft.width * u, h - 2 * (ch - overlap));
-  tile('edgeRight', w - (src.width - src.right[0]) * s, ch - overlap, tex.edgeRight.width * u, h - 2 * (ch - overlap));
-  const gemTop = new PIXI.Sprite(tex.gemTop), gemBottom = new PIXI.Sprite(tex.gemBottom);
-  place(gemTop, w / 2 - tex.gemTop.width * u / 2, src.top[0] * s);
-  place(gemBottom, w / 2 - tex.gemBottom.width * u / 2, h - (sh - src.bottom[0]) * s);
-  place(new PIXI.Sprite(tex.cornerTl), 0, 0);
-  place(new PIXI.Sprite(tex.cornerTr), w - tex.cornerTr.width * u, 0);
-  place(new PIXI.Sprite(tex.cornerBl), 0, h - tex.cornerBl.height * u);
-  place(new PIXI.Sprite(tex.cornerBr), w - tex.cornerBr.width * u, h - tex.cornerBr.height * u);
-  return { node, painted: true, inset: spec.inset, setTint: value => tinted.forEach(sprite => { sprite.tint = value; }) };
+  back.beginTextureFill({ texture: getStoneTexture(), color: fill }).drawRoundedRect(8, 8, w - 16, h - 16, 10).endFill();
+  return { node, painted: true, inset: spec.inset, setTint };
 }

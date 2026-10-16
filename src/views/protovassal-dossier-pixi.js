@@ -105,7 +105,7 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
     view.glow = glow;
     const bannerHolder = new PIXI.Container(); bannerHolder.position.set(bx, top); view.addChild(bannerHolder);
     addPaintedBanner(bannerHolder, bw, bh, { tint: data.frameTint, fill: data.deep });
-    // The aperture is about 420 x 436 inside the rim; the hero and its caption sit inside it.
+    // Hero and caption sit inside the carved rectangular banner rim.
     const heroSize = 300;
     const art = createClassPortraitArt(classId, { size: heroSize, founder: true });
     if (art) { art.position.set(mid - heroSize / 2, top + 62); view.addChild(art); }
@@ -194,7 +194,7 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
       const tab = control(tabLayer, TAB_ROW_X + slot * (TAB.width + TAB.gap), TAB.y, TAB.width, TAB.height), g = new PIXI.Graphics(); tab.addChild(g);
       const kind = !candidate ? 'tabLocked' : isSelected ? 'tabSelected' : 'tab';
       if (isSelected) g.beginFill(data.glow, .3).drawRoundedRect(-5, -5, TAB.width + 10, TAB.height + 10, 14).endFill();
-      // The painted frame draws over this class-coloured stone; the selected frame brings its own amber glow.
+      // The carved frame draws over class-coloured stone; the selected tab uses warm bronze.
       addPaintedPanel(tab, kind, TAB.width, TAB.height, { tint: isSelected ? 0xffffff : candidate ? data.frameTint : 0xffffff, fill: isSelected ? data.deep : candidate ? RELIC.stone : 0x1d1e1b });
       if (candidate) {
         const emblem = createClassPortraitArt(candidate.founderClassId, { size: 56, founder: true, crest: false });

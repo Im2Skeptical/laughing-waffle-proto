@@ -1,164 +1,41 @@
 {
- "store": {
-  "window": 0.5,
-  "panel": 0.35,
-  "banner": 0.9,
-  "tab": 0.45,
-  "socket": 0.4
- },
- "groups": {
-  "window-corner-tl": "window",
-  "window-corner-tr": "window",
-  "window-corner-bl": "window",
-  "window-corner-br": "window",
-  "window-edge-top": "window",
-  "window-edge-bottom": "window",
-  "window-edge-left": "window",
-  "window-edge-right": "window",
-  "window-gem-top": "window",
-  "window-gem-bottom": "window",
-  "panel": "panel",
-  "banner": "banner",
-  "tab": "tab",
-  "tab-selected": "tab",
-  "tab-locked": "tab",
-  "socket": "socket"
- },
- "stored": {
-  "banner": [
-   407,
-   631
-  ],
-  "tab-selected": [
-   226,
-   161
-  ],
-  "tab": [
-   212,
-   149
-  ],
-  "tab-locked": [
-   210,
-   144
-  ],
-  "socket": [
-   128,
-   128
-  ],
-  "window-corner-tl": [
-   181,
-   107
-  ],
-  "window-corner-tr": [
-   181,
-   107
-  ],
-  "window-corner-bl": [
-   181,
-   107
-  ],
-  "window-corner-br": [
-   181,
-   107
-  ],
-  "window-edge-left": [
-   36,
-   60
-  ],
-  "window-edge-right": [
-   36,
-   60
-  ],
-  "panel": [
-   55,
-   55
-  ],
-  "window-edge-top": [
-   122,
-   37
-  ],
-  "window-gem-top": [
-   57,
-   37
-  ],
-  "window-edge-bottom": [
-   122,
-   32
-  ],
-  "window-gem-bottom": [
-   57,
-   32
-  ]
- },
- "source": {
-  "window": {
-   "sourceSize": [
-    1185,
-    581
-   ],
-   "corner": [
-    362,
-    214
-   ],
-   "top": [
-    22,
-    96
-   ],
-   "bottom": [
-    488,
-    553
-   ],
-   "left": [
-    20,
-    92
-   ],
-   "right": [
-    1093,
-    1165
-   ],
-   "gemX": [
-    536,
-    650
-   ]
-  },
-  "panel": {
-   "sourceSize": [
-    1156,
-    583
-   ],
-   "inset": 46
-  },
-  "banner": {
-   "sourceSize": [
-    452,
-    701
-   ],
-   "insets": [
-    64,
-    62,
-    64,
-    170
-   ]
-  },
-  "tabs": {
-   "sizes": {
-    "tab": [
-     470,
-     331
-    ],
-    "tab-selected": [
-     502,
-     358
-    ],
-    "tab-locked": [
-     466,
-     320
-    ],
+  "stored": {
     "socket": [
-     319,
-     319
+      128,
+      128
+    ],
+    "window-corner-tl": [
+      64,
+      64
+    ],
+    "window-corner-tr": [
+      64,
+      64
+    ],
+    "window-corner-bl": [
+      64,
+      64
+    ],
+    "window-corner-br": [
+      64,
+      64
+    ],
+    "window-edge-top": [
+      128,
+      64
+    ],
+    "window-edge-bottom": [
+      128,
+      64
+    ],
+    "window-edge-left": [
+      64,
+      128
+    ],
+    "window-edge-right": [
+      64,
+      128
     ]
-   }
-  }
- }
+  },
+  "packing": "npm run build:sprites -- class-picker-frames"
 }

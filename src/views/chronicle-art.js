@@ -1,5 +1,4 @@
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../defs/gamepieces/detailed-settlement-defs.js';
-import { preloadVassalClassArt, getVassalClassTextures } from './vassal-class-art.js';
 // Presentation assets only. Atlas choices never read or advance simulation RNG.
 const SPRITE_SHEET_ROOT = 'images/sprite-sheets/';
 const cells = new Map();
@@ -68,18 +67,21 @@ const PACKED_GROUPS = Object.freeze({
     files: Object.freeze(['vassal-portraits.json']),
     eager: true,
   }),
+  vassalClass: Object.freeze({
+    prefix: 'vassal-class-v1/',
+    files: Object.freeze(['vassal-class.json']),
+    eager: true,
+  }),
   chronicleGate: Object.freeze({
     prefix: 'chronicle-gate-v1/',
     files: Object.freeze(['chronicle-gate.json']),
     eager: true,
   }),
-  // Painted picker frames are downscaled paintings, so they filter smoothly
-  // instead of using the pixel-art nearest-neighbour default.
+  // The hand-illustrated picker shares the nearest-neighbour pixel-art treatment.
   classPickerFrames: Object.freeze({
     prefix: 'class-picker-frames-v1/',
     files: Object.freeze(['class-picker-frames.json']),
     eager: true,
-    smooth: true,
   }),
   timegraphChronicle: Object.freeze({
     prefix: 'timegraph-chronicle-v1/',
@@ -92,9 +94,9 @@ function bumpRevision() {
   revision += 1;
 }
 
-function configureTexture(texture, smooth = false) {
+function configureTexture(texture) {
   if (!texture?.baseTexture) return texture;
-  texture.baseTexture.scaleMode = smooth ? PIXI.SCALE_MODES.LINEAR : PIXI.SCALE_MODES.NEAREST;
+  texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
   texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
   return texture;
 }
@@ -169,7 +171,7 @@ async function loadPackedGroup(group, retryFailed = false) {
       loaded.add(name); linked.forEach(item => loaded.add(item));
       for (const sheet of sheets) Object.entries(sheet.textures).forEach(([name, texture]) => {
         const file = `${group.prefix}${name}`;
-        configureTexture(texture, group.smooth === true);
+        configureTexture(texture);
         packedTextures.set(file, texture);
       });
     }
@@ -189,7 +191,7 @@ export function preloadChronicleArt({ includeSettlementPieces = false } = {}) {
     .map(group => loadPackedGroup(group, true));
   // Warm the settlement atlases after HUD/map art has claimed the first
   // connections, so opening a settlement does not wait on their decode.
-  const ready = Promise.all([...eager, preloadVassalClassArt()]);
+  const ready = Promise.all(eager);
   const warm = ready.then(() => loadPackedGroup(PACKED_GROUPS.settlementPieces, true));
   if (includeSettlementPieces) return warm;
   void warm.catch(error => console.error('[art] background artwork preparation failed', error));
@@ -201,7 +203,7 @@ export function preloadChronicleArt({ includeSettlementPieces = false } = {}) {
 export function prepareChronicleArt(renderer) {
   if (rendererPreparations.has(renderer)) return rendererPreparations.get(renderer);
   const preparation = preloadChronicleArt({ includeSettlementPieces: true }).then(async () => {
-    const textures = new Map([...packedTextures.values(),...getVassalClassTextures()].map(texture => [texture.baseTexture, texture]));
+    const textures = new Map([...packedTextures.values()].map(texture => [texture.baseTexture, texture]));
     const gl = renderer.gl;
     const maxSize = gl?.getParameter(gl.MAX_TEXTURE_SIZE);
     if ([...textures.keys()].some(base => !base.valid || (maxSize && (base.realWidth > maxSize || base.realHeight > maxSize)))) {

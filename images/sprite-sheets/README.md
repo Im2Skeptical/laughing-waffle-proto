@@ -7,7 +7,10 @@ never a source PNG directly.
 
 `npm run build:sprites` is the authoritative rebuild. It packs resource
 symbols, settlement pieces, frames, chronicle illustrations, legacy vassal
-portraits, the menu gate, and the timegraph assembly. The two one-frame sheets
+portraits, named Vassal class art, pixel-illustrated picker frames, the menu gate,
+and the timegraph assembly. Pass one or more atlas names for a focused rebuild,
+e.g. `npm run build:sprites -- class-picker-frames vassal-class`. Only
+manifest-listed sources are packed; generated master sheets are excluded. The two one-frame sheets
 exist so the DOM menu backdrop and Pixi consume the same packed gate source.
 Every shipped atlas is indexed PNG-8 with low pngquant dithering; editable
 sources retain their native format so future art passes do not begin from a
