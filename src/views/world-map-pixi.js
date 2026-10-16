@@ -11,6 +11,8 @@ import { createChronicleEffects, addTimelineLandmark } from './chronicle-effects
 import { addRegionTerrain, getArtRevision } from './chronicle-art.js';
 import { addChaosPanelContent } from './chronicle-world-panels.js';
 import { createRegionPanelCache } from './world-map/region-panel-cache.js';
+import { createMapPolygonReader } from './world-map/geometry.js';
+import { createRetainedMapScene } from './world-map/retained-scene.js';
 import {
   getRegionDefinition,
   getRegionReference,
@@ -23,7 +25,7 @@ import {
   getDetailedSettlementViewModel,
   getDetailedVassalPrestige,
 } from "../model/detailed-settlements.js";
-import { getCurrentLifeMapVassal } from "../model/vassal-life-map.js";
+import { getCurrentLifeMapVassal, getVassalAge } from "../model/vassal-life-map.js";
 import {
   addCivilizationSurvivalStrip,
   getCivilizationSurvivalViewModel,
@@ -108,8 +110,8 @@ function addButton(parent, rect, label, onPress, disabled = false, textStyle = {
   return root;
 }
 
-function getRegionReferenceCorner(definition, regionDef, project = screenPoint) {
-  const points = getRegionPolygon(definition, regionDef);
+function getRegionReferenceCorner(definition, regionDef, project = screenPoint, polygon = region => getRegionPolygon(definition,region)) {
+  const points = polygon(regionDef);
   if (!points.length) return null;
   const corner = points.reduce((best, point) =>
     point.x + point.y < best.x + best.y ? point : best
@@ -242,6 +244,8 @@ export function createWorldMapView({
   const viewport = new PIXI.Container();
   const world = new PIXI.Container();
   const mapContent = new PIXI.Container();
+  const retained=createRetainedMapScene();
+  let retainedDefinition=null;
   const unavailableFilter = new PIXI.filters.ColorMatrixFilter();
   unavailableFilter.desaturate();
   unavailableFilter.brightness(.38, true);
@@ -533,7 +537,7 @@ export function createWorldMapView({
     const relationships = getMapRelationships(state, selectedRegionId, regionSelectionActive);
     const frameGroup = () => camera.frame(definition.regions
       .filter(entry => relationships?.groupRegionIds.includes(entry.id))
-      .flatMap(entry => getRegionPolygon(definition, entry).map(screenPoint)), GROUP_FRAME_RECT,
+      .flatMap(entry => polygon(entry).map(screenPoint)), GROUP_FRAME_RECT,
       sitePoint(getRegionDefinition(state, selectedRegionId)));
     const graphScope =
       getGraphScope?.() === "settlement" ? "settlement" : "civilization";
@@ -567,10 +571,11 @@ export function createWorldMapView({
     );
     if (!force && nextSignature === lastSignature) return;
     lastSignature = nextSignature;
-    clearChildren(root);
+    // Explicit refresh also covers editor changes to a definition in place.
+    if(force||retainedDefinition!==definition){retained.clear();retainedDefinition=definition;}
+    const polygon=createMapPolygonReader(definition);
     // Retain the last settlement's content until its dismissal completes.
     if (regionSelectionActive) detailRoot.removeChildren();
-    clearChildren(mapContent);
     if (regionSelectionActive && selectedRegionId !== lastRevealedRegionId) {
       if (!lastRevealedRegionId && !panelReveal.isClosing()) overviewCamera = camera.snapshot();
       const selected = getRegionDefinition(state, selectedRegionId);
@@ -590,13 +595,8 @@ export function createWorldMapView({
       tooltipView?.hide?.();
     }
     lastRevealedRegionId = regionSelectionActive ? selectedRegionId : null;
-    landmarks=[];
-    endDetailsTarget = null;
-
-    const bg = new PIXI.Graphics();
-    bg.beginFill(0x152426).drawRect(-3000, -2000, 8500, 5000).endFill();
-    bg.eventMode = "none";
-    if(!illustratedMap)mapContent.addChild(bg);else bg.destroy();
+    const chrome=display.chrome!==false;
+    retained.update(root,'header',[getArtRevision(),civilizationSummary.settlementCount,civilizationSummary.population.total,civilizationSummary.research],root=>{
     const civilizationHeader = new PIXI.Graphics();
     roundedRect(
       civilizationHeader,
@@ -625,12 +625,28 @@ export function createWorldMapView({
       { x: CIVILIZATION_HEADER_RECT.x + 336, y: CIVILIZATION_HEADER_RECT.y + 4, width: 176, height: 46 },
       `${civilizationSummary.research ?? 0}\nRESEARCH ↗`, onOpenResearch, false,
       { fontSize: 20, lineHeight: 22, align: 'center' });
-    endDetailsTarget = addCivilizationSurvivalStrip(root, {
+    }).node.visible=chrome;
+    const survivalSection=retained.update(root,'survival',[getArtRevision(),survivalTracker],root=>addCivilizationSurvivalStrip(root, {
       state,
       civilizationLossInfo,
       rect: { x: 590, y: 16, width: 1108, height: 54 },
       onOpenEndDetails,
-    }).detailsTarget;
+    }).detailsTarget);
+    endDetailsTarget=survivalSection.value;survivalSection.node.visible=chrome;
+
+    const monsterProgress=regionMapIndicators.some(i=>i.monster)
+      ? [civilizationSummary.chaos.expansionProgress,civilizationSummary.chaos.expansionThreshold] : null;
+    landmarks=retained.update(mapContent,'regions',{
+      art:getArtRevision(),display,illustratedMap,selectedRegionId,regionSelectionActive,relationships,vassalHighlight,
+      regions:state.world.regions.map(r=>[r.id,r.colour,r.controller,!!r.monster]),connections:state.world.connections,
+      indicators:regionMapIndicators.map(i=>({...i,monster:i.monster?{defense:i.monster.defense}:null,neutral:!!i.neutral})),
+      monsterProgress,
+    },mapContent=>{
+    const layerLandmarks=[];
+    if(!illustratedMap){
+      const bg=new PIXI.Graphics();bg.beginFill(0x152426).drawRect(-3000,-2000,8500,5000).endFill();
+      bg.eventMode='none';mapContent.addChild(bg);
+    }
 
     const territoryBorders = [];
     const highlightedRegionIds = new Set([
@@ -640,7 +656,7 @@ export function createWorldMapView({
     ].filter(Boolean));
     for (const regionDef of definition.regions) {
       const region = getRegionState(state, regionDef.id);
-      const points = getRegionPolygon(definition, regionDef).flatMap((point) => {
+      const points = polygon(regionDef).flatMap((point) => {
         const p = screenPoint(point);
         return [p.x, p.y];
       });
@@ -759,9 +775,9 @@ export function createWorldMapView({
         if (display.scenery !== false && !illustratedMap) {
           if (indicator.neutral) addNeutralMarketGlyph(regionContent, point);
           else {
-            landmarks.push(addTimelineLandmark(regionContent,{x:point.x-29,y:point.y-76,width:58,height:66},
+            layerLandmarks.push(addTimelineLandmark(regionContent,{x:point.x-29,y:point.y-76,width:58,height:66},
               {startSec:definition.regions.indexOf(regionDef)*.37}));
-            landmarks.push(addTimelineLandmark(regionContent,{x:point.x+29,y:point.y-17,width:20,height:17},
+            layerLandmarks.push(addTimelineLandmark(regionContent,{x:point.x+29,y:point.y-17,width:20,height:17},
               {kind:'fire',startSec:definition.regions.indexOf(regionDef)*.23}));
           }
         }
@@ -785,7 +801,7 @@ export function createWorldMapView({
       }
     }
     for (const regionDef of definition.regions) {
-      const point = getRegionReferenceCorner(definition, regionDef, screenPoint)
+      const point = getRegionReferenceCorner(definition, regionDef, screenPoint, polygon)
         ?? sitePoint(regionDef);
       const label = createText(getRegionReference(state, regionDef.id) ?? "R??", {
         ...TEXT_STYLES.chip,
@@ -794,13 +810,18 @@ export function createWorldMapView({
       }, point.x, point.y, 0, 0);
       mapContent.addChild(presentRegion(label, regionDef.id));
     }
+    return layerLandmarks;
+    }).value;
 
     const activeVassal = getCurrentLifeMapVassal(state);
+    retained.update(mapContent,'vassal',[getArtRevision(),display.actors,activeVassal?.locationRegionId,activeVassal?getVassalAge(state,activeVassal):null],mapContent=>{
     if (display.actors !== false && activeVassal?.locationRegionId) {
       const regionDef = definition.regions.find((entry) => entry.id === activeVassal.locationRegionId);
       if (regionDef) addActiveVassalMarker(mapContent, {x:sitePoint(regionDef).x-55,y:sitePoint(regionDef).y+12}, activeVassal, state);
     }
+    });
 
+    retained.update(root,'chaos',[getArtRevision(),chaosExpanded,graphScope,civilizationSummary.chaos,civilizationSummary.green],root=>{
     if (chaosExpanded) {
       const civilizationPanel = new PIXI.Graphics();
       roundedRect(
@@ -856,14 +877,16 @@ export function createWorldMapView({
       root.addChild(civilizationPanel);
       addChaosPanelContent(root, CIVILIZATION_RECT, civilizationSummary);
     }
+    }).node.visible=chrome;
+    retained.update(root,'controls',[getArtRevision(),chrome,chaosExpanded,chaosExpanded?null:civilizationSummary.chaos.chaosPower,regionSelectionActive,selectedRegionId,relationships],root=>{
+    if(chrome){
     addButton(root, { x: chaosExpanded ? CIVILIZATION_RECT.x + CIVILIZATION_RECT.width : 16, y: 92, width: chaosExpanded ? 44 : 180, height: 52 },
       chaosExpanded ? '<' : `Chaos ${civilizationSummary.chaos.chaosPower} >`, () => {
         chaosExpanded = !chaosExpanded;
         tooltipView?.hide?.();
         lastSignature = '';
       });
-    // Embedded maps retain camera controls while omitting civilization chrome.
-    if (display.chrome === false) clearChildren(root);
+    }
     const controlsX = regionSelectionActive ? DETAIL_RECT.x - 226 : MAP_VIEWPORT_RECT.x + MAP_VIEWPORT_RECT.width - 226;
     const cameraRight = regionSelectionActive ? DETAIL_RECT.x : MAP_VIEWPORT_RECT.x + MAP_VIEWPORT_RECT.width;
     addButton(root, {x: controlsX, y: 756, width: 52, height: 52}, '-', () => camera.zoomBy(1 / 1.2, cameraRight));
@@ -871,6 +894,7 @@ export function createWorldMapView({
     addButton(root, {x: controlsX + 116, y: 756, width: 98, height: 52}, 'Reset', () => {
       if (relationships) frameGroup();
       else fitOverview();
+    });
     });
     if (!regionSelectionActive) return;
 
@@ -950,6 +974,7 @@ export function createWorldMapView({
       return {
         visible: root.visible === true,
         illustratedTerrain:{...illustrated.stats},
+        retainedScene:retained.snapshot(),
         selectedRegionId: regionId,
         regionSelectionActive: getRegionSelectionActive?.() === true,
         relationships: getMapRelationships(state, regionId, root.visible && getRegionSelectionActive?.() === true),
@@ -971,7 +996,7 @@ export function createWorldMapView({
         civilizationSummary,
         civilizationHeader: {
           labels: ['SETTLEMENTS', 'SOULS', 'RESEARCH'],
-          researchPoint: root.visible && researchTarget && !researchTarget.destroyed
+          researchPoint: root.visible && researchTarget && !researchTarget.destroyed && researchTarget.worldVisible
             ? researchTarget.toGlobal(new PIXI.Point(
                 researchTarget.hitArea.x + researchTarget.hitArea.width / 2,
                 researchTarget.hitArea.y + researchTarget.hitArea.height / 2))
@@ -1047,7 +1072,7 @@ export function createWorldMapView({
         }),
       };
     },
-    getEndDetailsClickPoint: () => getSurvivalEndDetailsClickPoint(endDetailsTarget, root.visible),
+    getEndDetailsClickPoint: () => getSurvivalEndDetailsClickPoint(endDetailsTarget, root.visible && endDetailsTarget?.worldVisible!==false),
     getRegionClickPoint: (regionId) => {
       const region = getRegionDefinition(getState?.(), regionId);
       return region ? camera.project(sitePoint(region)) : null;
@@ -1055,6 +1080,7 @@ export function createWorldMapView({
     getPracticeClickPoint: () => null,
     getInstalledPracticeClickPoint: () => null,
     destroy: () => {
+      retained.clear();
       illustrated.destroy();
       unavailableFilter.destroy();
       regionPanels.clear();

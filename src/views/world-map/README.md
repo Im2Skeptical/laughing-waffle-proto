@@ -33,6 +33,25 @@ pixels in four passes, versus 6,472,468 in thirteen with full-image targets
 by small filtering-rounding differences; returning to the same camera/time is
 pixel-exact. This is workload evidence, not a measured Pixel 6 frame-rate claim.
 
+The map keeps separate retained sections for region markers/geometry, the active
+Vassal, population/research, calendar/survival, Chaos and camera controls. Sections
+replace their scene only when their visual inputs change. Calendar and Chaos
+updates do not rebuild unchanged regional labels and hit areas. Explicit refresh
+and a new definition clear the retained scene; disposal destroys every section.
+A redraw-local vertex index resolves jagged region outlines without repeated
+linear searches through the complete world vertex list.
+
+`npm run probe:map-retention` checks consecutive viewed seconds without spread,
+current population labels, pixel-exact rewind, and invalidation on occupation.
+It captures a CPU profile and allocation counts in `artifacts/map-retention/`.
+`--baseline --baseline-ref <ref>` compares the map view from a compatible Git
+revision; `PROBE_CPU_RATE=4` adds diagnostic CPU throttling after preparation.
+These are isolated rendering measurements, not a physical-phone smoothness gate.
+In the seed-1867 eight-second fixture, retaining the scene reduced destroyed Text
+objects from 225 to 14 and all destroyed display objects from 1,270 to 25. The
+baseline image is pixel-identical. Population and collapsed Chaos labels follow
+the current state; occupation invalidates the map, and rewind restores its image.
+
 `regional-tiles.js` prepares wilderness, settlement-ground and monster variants
 once, then combines regional pieces and exposed bone borders. Player and neutral
 villages use the prototype's biome-specific building atlas and layout planner.
