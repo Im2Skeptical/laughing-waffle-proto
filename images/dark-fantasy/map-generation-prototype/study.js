@@ -6,12 +6,13 @@ import { attachDevPreviewDisplay } from '../../../src/views/dev-preview-display.
 import { createMapCamera } from '../../../src/views/world-map/camera.js';
 import { bakePixelTerrain, pixelSpriteTextures, pixelSpriteFits, reliefSpriteTextures, destroyPixelTerrain, prepareIllustratedArt, ATLAS_COLOURS } from './pixel-terrain.js';
 import { createWheelZoom } from './wheel-zoom.js';
+import { prepareCloudArt } from './cloud-banks.js';
 import { createMapTimeline } from './map-timeline.js';
 import { createMapTimegraph } from './map-timegraph.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
-const MAP_VERSION = '1.0.23';
+const MAP_VERSION = '1.0.24';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
@@ -912,7 +913,7 @@ function prepareLiveGameArt() {
   return liveArtLoading;
 }
 Promise.all([prepareIllustratedArt(), state.siteArt === 'live' ? prepareLiveGameArt() : Promise.resolve(),
-  prepareLandmarkLods()]).then(([, , lods]) => {
+  prepareLandmarkLods(), prepareCloudArt()]).then(([, , lods]) => {
   landmarkArt = lods;
   fitMap(); render(); document.body.dataset.ready = 'true';
 }).catch(error => {

@@ -1,8 +1,8 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.23** — animated hinterland fog, drifting
-cloud banks and aligned cloud shadows, all following displayed time with separate
-toggles. Nearest remains the default and wheel zoom remains animated.
+Current published revision: **Map v1.0.24** ? large painted cumulus banks with
+broad dissipation around playable regions and matching shadow fade. The approved
+fog is unchanged. Nearest remains the default and wheel zoom remains animated.
 The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
 title, and as `mapWorkbench.version`. For each published map pass, increment
@@ -23,14 +23,17 @@ run `biome-clustering-check.mjs` alongside the terrain checks.
 
 ### Atmosphere study
 
-`atmosphere.js` samples seeded world-space density from absolute displayed time.
-Broad cloud banks drift along a gently varying wind path while their shapes
-evolve through continuous noise. Rotated detail and local displacement avoid
-obvious square cells. Slower threshold changes vary coverage over multi-year
-scrubs. Hinterland mist has its own slower density motion and a stationary,
-feathered mask that excludes playable regions and their immediate margin.
-The cloud field supplies a faint offset shadow, so it cannot detach from its cloud.
-Clouds are translucent and all three effects sit below region outlines and labels.
+`atmosphere.js` keeps the approved seeded fog field and colour treatment.
+`cloud-banks.js` draws four independently framed painted cumulus banks from
+`cloud-banks-v1.png`; generation provenance and prompt are in the adjacent JSON.
+Large rounded silhouettes, shaded interiors, varied spacing, sizes and slow
+opacity changes replace the former smoke-like cloud noise. Banks drift on a
+gently varying world-space wind path, derived directly from displayed time.
+A separate geographic distance mask gradually dissipates clouds over a wide
+apron around the union of playable regions, reaching zero before the border.
+This mask does not alter fog. Shadows sample the same cloud alpha and the same
+mask at the offset source position, so dissipation cannot leave orphan shadows.
+All effects sit below region outlines and labels.
 
 Fog, Clouds and Shadows have independent bottom-row toggles, enabled by default;
 share `fog=0`, `clouds=0` or `shadows=0` to disable each. These controls do not
@@ -39,17 +42,20 @@ including reduced-motion startup and hidden-tab suspension. Returning to a date
 restores the same field; no frame integration, gameplay weather or RNG is added.
 The graph's existing three curves still describe water, not weather forecasts.
 
-Two small GPU passes produce density and premultiplied atmosphere colour at
-788 x 258 for the canonical atlas. Mask, density and output total about 2.33 MiB.
+Three small GPU passes produce fog density, painted cloud colour and final
+premultiplied atmosphere colour at 788 x 258 for the canonical atlas. Mask and
+three targets total about 3.10 MiB, plus the shared 1254 x 1254 cloud atlas
+(about 6 MiB decoded; 1.4 MB PNG). The atlas is loaded once across terrain rebakes.
 Atmosphere is softly sampled independently of the terrain's Nearest setting.
 No full-screen blur or CPU texture upload runs each frame, and disabling all
-three effects skips density rendering. Initial shader compilation is separate
+three effects skips density and cloud rendering. Initial shader compilation is separate
 from steady-state update cost; desktop timings are not mobile guarantees.
 `mapWorkbench.atmosphere.stats` reports dimensions, time, controls and submission
 cost. Run `atmosphere-check.mjs`, then browser `verifyAtmosphereGpu()` from
 `atmosphere-check.js`, `verifyMapTimeline()` and the zoom persistence check.
-The GPU check covers the CPU field match, exact time restoration, mask exclusion,
-offset shadow alignment and fully transparent disabled output.
+The CPU check locks approved fog samples and checks cloud motion/coverage continuity.
+The GPU check covers fog field matching, exact time restoration, gradual cloud
+dissipation, mask exclusion, aligned fading shadows and transparent disabled output.
 
 ### Inland and ocean island waters
 

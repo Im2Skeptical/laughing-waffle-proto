@@ -1,0 +1,10 @@
+{
+  "generator": "OpenAI built-in image_gen",
+  "asset": "cloud-banks-v1.png",
+  "size": [
+    1254,
+    1254
+  ],
+  "purpose": "Four fluffy painted cloud banks for map atmosphere; independently framed in cloud-banks.js",
+  "prompt": "Use case: stylized-concept, production game sprite sheet. Create a 2 by 2 sprite atlas containing FOUR DIFFERENT large fluffy cumulus CLOUD BANKS viewed from high above (near top-down aerial, slight oblique). Each occupies its own equal quadrant on a genuinely transparent RGBA background. No sky, no ground, no text, no labels, no frames, no cast shadow outside the cloud. Keep generous fully transparent space between sprites and around all sheet edges; every cloud completely isolated and contained within its quadrant. Clouds must look like thick soft billowing piled cotton masses, many connected broad rounded domes with smaller scalloped puffs at silhouette, bright warm ivory upper surfaces lit upper left, subtle blue-grey shaded lower-right interior folds. Mature painted RTS fantasy atlas style: textured brush modelling with restrained fine grain, convincingly volumetric, soft feathered alpha at edges but substantial solid cores. NOT wispy smoke, NOT thin curls, NOT white linework, NOT flat emoji or vector circles, NOT photoreal photograph. Four organic asymmetrical compositions: one broad horizontal bank, one loose diagonal cluster, one round deep cumulus mass, one elongated bank with two large connected lobes. At game map scale clouds should read as big fluffy coherent masses even when reduced to 150 pixels wide. Low-contrast warm off-white and muted cool grey, no blue outline. Square image, exact evenly spaced two-column two-row layout."
+}

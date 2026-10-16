@@ -8,6 +8,7 @@ import { composeHinterland, paintHinterlandMass } from './hinterland-composition
 import { classifyWaterBodies, extendWaterEnvironment, waterColourAt, WATER_BODY, WATER_RAMPS } from './water-style.js';
 import { createWaterCycle } from './water-animation.js';
 import { createAtmosphere } from './atmosphere.js';
+import { cloudClearance } from './cloud-banks.js';
 import { waterDriftMask, waterDriftOffset } from './water-drift.js';
 import { composeTerrainLandscape, boneRidgeFits } from './terrain-composition.js';
 import { loadIllustratedArt } from './illustrated-art.js';
@@ -589,10 +590,11 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   const texture = PIXI.Texture.from(canvas); texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST; texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
   // One low-resolution atmospheric layer covers the fine atlas and hinterland.
   // Its stationary geographic mask keeps fog outside playable regions; cloud
-  // density and shadows move independently above the full landscape.
+  // banks and their aligned shadows dissipate through a wider playable apron.
   let atmosphere=null;
   if(detail===2) {
     const fw=Math.ceil(width/4),fh=Math.ceil(height/4),mask=new Uint8Array(fw*fh*4);
+    const cloudMask=cloudClearance(regionIds,width,height,fw,fh);
     for(let y=0;y<fh;y++)for(let x=0;x<fw;x++) {
       const px=Math.min(width-1,Math.floor((x+.5)*width/fw)),py=Math.min(height-1,Math.floor((y+.5)*height/fh));
       let distance=32;
@@ -604,6 +606,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       const edge=Math.min(1,Math.min(x,y,fw-1-x,fh-1-y)/16);
       const t=Math.max(0,Math.min(1,(distance-8)/16)),clearance=t*t*(3-2*t),i=(y*fw+x)*4;
       mask[i]=Math.round(clearance*(land[py*width+px]?110:25)*edge);
+      mask[i+1]=cloudMask[y*fw+x];
       mask[i+2]=Math.round(edge*255);mask[i+3]=255;
     }
     atmosphere=createAtmosphere({width:fw,height:fh,mask,seed:map.seed,
