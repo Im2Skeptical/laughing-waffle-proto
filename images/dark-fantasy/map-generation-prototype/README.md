@@ -1,8 +1,9 @@
 # Map generation Pixi workbench (disposable prototype)
 
-Current published revision: **Map v1.0.25**: overhead cloud-top artwork and
-soft density erosion around the playable area. Cloud edges dissolve into broken
-lobes and wisps instead of fading as a whole sheet. Approved fog is unchanged.
+Current published revision: **Map v1.0.26**: original moving cloud shadows
+restored over playable land alongside the current overhead clouds. A separate
+Wisps toggle adds the original procedural cloud field at low opacity (off by
+default). Fog, overhead cloud artwork and their dissolution are unchanged.
 Nearest remains the default and wheel zoom remains animated.
 The version appears under the title inside the
 canvas (including fullscreen and PNG exports), in the page status and browser
@@ -39,8 +40,14 @@ This does not alter fog. Shadows evaluate the identical erosion function at
 the offset cloud source, including every hole and wisp.
 All effects sit below region outlines and labels.
 
-Fog, Clouds and Shadows have independent bottom-row toggles, enabled by default;
-share `fog=0`, `clouds=0` or `shadows=0` to disable each. These controls do not
+Fog, Clouds and Shadows have independent bottom-row toggles, enabled by default.
+The original v1.0.23 cloud density and offset shadows are restored in the spare
+R/B channels of the fog target. These broad shadows use their original 10.5%
+maximum opacity and cross playable regions independently of visible clouds.
+Shadows controls both cloud families. Wisps is a separate toggle, off by default,
+that adds the original cloud field at 7% maximum opacity (previously 26%), under
+the current overhead clouds. Use `wisps=1` for this comparison; `fog=0`,
+`clouds=0` or `shadows=0` disables each other layer. These controls do not
 rebake terrain. All effects use the timegraph's Play/Pause, reverse and scrub,
 including reduced-motion startup and hidden-tab suspension. Returning to a date
 restores the same field; no frame integration, gameplay weather or RNG is added.
@@ -52,14 +59,17 @@ three targets total about 3.10 MiB, plus the shared 1254 x 1254 cloud atlas
 (about 6 MiB decoded; 1.9 MB PNG). The atlas is loaded once across terrain rebakes.
 Atmosphere is softly sampled independently of the terrain's Nearest setting.
 No full-screen blur or CPU texture upload runs each frame, and disabling all
-three effects skips density and cloud rendering. Initial shader compilation is separate
+four toggles skips density and cloud rendering. Initial shader compilation is separate
 from steady-state update cost; desktop timings are not mobile guarantees.
 `mapWorkbench.atmosphere.stats` reports dimensions, time, controls and submission
 cost. Run `atmosphere-check.mjs`, then browser `verifyAtmosphereGpu()` from
 `atmosphere-check.js`, `verifyMapTimeline()` and the zoom persistence check.
 The CPU check locks approved fog samples and checks cloud motion/coverage continuity,
 intact lobes plus holes within a dissolving bank, and monotonic erosion near land.
-The GPU check covers fog field matching, exact time restoration, GPU/CPU erosion agreement, mask exclusion, aligned broken shadows and transparent disabled output.
+The GPU check covers original density matching, exact time restoration,
+GPU/CPU erosion agreement, fog exclusion, aligned broken and broad shadows,
+playable-land shadows with both cloud layers off, independent low-opacity wisps,
+and unchanged overhead clouds after toggling wisps.
 
 ### Inland and ocean island waters
 

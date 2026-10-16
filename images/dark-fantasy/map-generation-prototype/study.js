@@ -12,7 +12,7 @@ import { createMapTimegraph } from './map-timegraph.js';
 import { settlementGround } from './settlement-ground.js';
 import { createZoomArt, prepareLandmarkLods, smoothRange, zoomArtStats } from './zoom-art.js';
 
-const MAP_VERSION = '1.0.25';
+const MAP_VERSION = '1.0.26';
 const VARIANTS = { C: 'Approved base structure', F: 'Dark fantasy atlas' };
 const FEATURE_NAMES = { river: 'River', ridge: 'Mountain range', chasm: 'Chasm', valley: 'Valley' };
 const params = new URL(location.href).searchParams;
@@ -26,7 +26,7 @@ const state = { seed: Math.floor(numberParam('seed', 1867, 0, 2147483647)),
   siteArt: ['live', 'sketch'].includes(params.get('siteArt')) ? params.get('siteArt') : 'atlas', actorScale: numberParam('actorScale', .75, .5, 1.5),
   islandStyle: params.get('islandStyle') === 'caldera' ? 'caldera' : 'basalt',
   siteLabels: params.get('siteLabels') !== '0',
-  clouds: params.get('clouds') !== '0', shadows: params.get('shadows') !== '0',
+  wisps: params.get('wisps') === '1', clouds: params.get('clouds') !== '0', shadows: params.get('shadows') !== '0',
   waterMotion:params.has('waterMotion')?params.get('waterMotion')!=='0':!matchMedia('(prefers-reduced-motion: reduce)').matches,
   smoothZoom: params.get('smoothZoom') === '1', detailMode: ['close', 'regional', 'overview'].includes(params.get('detailMode')) ? params.get('detailMode') : 'auto',
   flipX: params.get('flipX') === '1', flipY: params.get('flipY') === '1', selected: null };
@@ -798,19 +798,19 @@ function render() {
     text(root, `${biome.name}  ${map.quota[id]}`, x + 37, y, 29);
     text(root, `${(map.biomeAreas[id] * 100).toFixed(1)}% of playable area`, x + 37, y + 43, 21, 0xaec1b4, { fontFamily: 'Arial, sans-serif' });
   });
-  panel(root, 1004, 1003, 930, 62, 0x182e32, 0x778675);
+  panel(root, 1004, 1003, 784, 62, 0x182e32, 0x778675);
   button('Previous map view', 1012, 1008, 100, 52, () => cycle(-1), { copy: '←', size: 35 });
   if (pixelReview()) {
-    button('Toggle smooth pixel filtering', 1128, 1008, 330, 52, () => { state.smoothZoom = !state.smoothZoom; render(); }, { copy: state.smoothZoom ? 'Pixels: Smooth zoom' : 'Pixels: Nearest', active: state.smoothZoom, size: 23 });
-    button('Cycle map detail level', 1474, 1008, 334, 52, () => {
+    button('Toggle smooth pixel filtering', 1128, 1008, 256, 52, () => { state.smoothZoom = !state.smoothZoom; render(); }, { copy: state.smoothZoom ? 'Pixels: Smooth zoom' : 'Pixels: Nearest', active: state.smoothZoom, size: 23 });
+    button('Cycle map detail level', 1400, 1008, 272, 52, () => {
       const modes = ['auto', 'close', 'regional', 'overview']; state.detailMode = modes[(modes.indexOf(state.detailMode) + 1) % modes.length]; render();
     }, { copy: `Detail: ${state.detailMode}`, size: 23 });
   } else { const label = text(root, VARIANTS[state.variant], 1470, 1035, 29); label.anchor.set(.5); }
-  button('Next map view', 1826, 1008, 100, 52, () => cycle(1), { copy: '→', size: 35 });
+  button('Next map view', 1688, 1008, 92, 52, () => cycle(1), { copy: '→', size: 35 });
   text(root, `${map.matchingBorders}/${map.sharedBorders} borders share a biome · ${map.clusteringStudy.groups} groups`, 520, 1022, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
   if (state.variant === 'F') {
-    for(const [i,[key,label]] of [['fog','Fog'],['clouds','Clouds'],['shadows','Shadows']].entries())
-      button(`Toggle ${label.toLowerCase()}`,1944+i*146,1008,138,52,()=>{state[key]=!state[key];render();},
+    for(const [i,[key,label]] of [['fog','Fog'],['clouds','Clouds'],['wisps','Wisps'],['shadows','Shadows']].entries())
+      button(`Toggle ${label.toLowerCase()}`,1798+i*146,1008,138,52,()=>{state[key]=!state[key];render();},
         {copy:`${label}: ${state[key]?'On':'Off'}`,active:state[key],size:21});
   }
   else text(root, 'DISPOSABLE PROTOTYPE', 2010, 1023, 24, 0xa9bdaf, { fontFamily: 'Arial, sans-serif' });
@@ -822,7 +822,7 @@ function render() {
 function sync() {
   const url = new URL(location.href);
   for (const [key, value] of Object.entries({ seed: state.seed, clustering: state.clustering, size: state.sizeVariation,
-    islandStyle: state.islandStyle, roughness: state.roughness, features: state.featureSet, variant: state.variant, texel: state.texel, sites: state.sites ? 1 : 0, siteArt: state.siteArt, siteLabels: state.siteLabels ? 1 : 0, actorScale: state.actorScale, smoothZoom: state.smoothZoom ? 1 : 0, waterMotion:state.waterMotion?1:0, detailMode: state.detailMode, fog: state.fog ? 1 : 0, clouds: state.clouds ? 1 : 0, shadows: state.shadows ? 1 : 0, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
+    islandStyle: state.islandStyle, roughness: state.roughness, features: state.featureSet, variant: state.variant, texel: state.texel, sites: state.sites ? 1 : 0, siteArt: state.siteArt, siteLabels: state.siteLabels ? 1 : 0, actorScale: state.actorScale, smoothZoom: state.smoothZoom ? 1 : 0, waterMotion:state.waterMotion?1:0, detailMode: state.detailMode, fog: state.fog ? 1 : 0, clouds: state.clouds ? 1 : 0, wisps: state.wisps ? 1 : 0, shadows: state.shadows ? 1 : 0, flipX: state.flipX ? 1 : 0, flipY: state.flipY ? 1 : 0 })) url.searchParams.set(key, value);
   history.replaceState(null, '', url);
   document.title = `Map v${MAP_VERSION} · Pixi workbench`;
   document.getElementById('status').textContent = `Map v${MAP_VERSION} · Seed ${state.seed} · ${VARIANTS[state.variant]} · 20 regions · quota counts ${Object.values(map.quota).join(' / ')} · ${map.features.map(f => FEATURE_NAMES[f.type]).join(' + ')}`;
