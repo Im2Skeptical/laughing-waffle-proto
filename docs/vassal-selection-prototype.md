@@ -26,20 +26,34 @@ workbench controls or copy editor appear in the playable picker. Flavour is a
 single muted italic line; unique nodes are explained on encounter. The painted
 class frames also surround ordinary Vassals' existing stable portraits.
 
-## Painted picker frames - October 16
+## Pixel-illustrated picker frames - October 16
 
-The picker's window, banner, attribute chips, class attribute feature, ability cards,
-class tabs (normal, selected, locked) and icon sockets use painted stone-and-brass frames from
-`images/dark-fantasy/class-picker-frames-v1` (atlas `class-picker-frames`, loaded smoothly by
-`chronicle-art.js`). `painted-frames.js` provides `addPaintedWindow` (fixed corners, tiled
-carved edges, centre gems), `addPaintedPanel`, `addPaintedBanner` and `addPaintedSocket`
-(nine-slice, with a class-coloured stone underlay behind the transparent aperture); the art
-is neutral so each class tints it with `frameTint` in `protovassal-class-data.js` (Warlord
-crimson, Philosopher blue; the selected tab keeps its amber glow). Every helper falls back to
-the vector `paintRelicPanel` look while the atlas loads or if a piece is missing. To fit the
-painted rim, content sits slightly inside the old footprint: right-hand column x 616-2296
-(the four class slots stay centred on it), banner 530x598, chips 380x114, feature 778x168 and
-ability cards 420x424. `scripts/class-picker-frames-test.mjs` checks the spec against the atlas.
+The picker uses original carved limestone, dark bronze and acanthus relief inspired
+by the local Diablo II and Baldur's Gate II UI references. Fixed corner blocks and
+repeating carved edges frame the window, class banner, attributes, abilities and
+tabs; ornaments are never stretched. Selected tabs have warm bronze highlights;
+locked tabs use dull iron. Class tints remain crimson and blue. Icon sockets use a
+matching circular carving. Vector chrome remains the loading fallback.
+
+The nine named sources in `images/dark-fantasy/class-picker-frames-v1` are packed
+by TexturePacker through `npm run build:sprites -- class-picker-frames` into the
+PNG-8 `class-picker-frames` atlas. Sources retain genuine alpha; nearest filtering
+and disabled mipmaps preserve pixel clusters. The source extractor only crops and
+resizes the generated masters; it does not pack runtime sheets or key black JPEGs.
+Exact generation prompts and provenance are recorded beside the sources.
+
+Approved portrait frames, crests, silhouettes and founder faces are named sources
+in `images/dark-fantasy/vassal-class-v1`, packed with
+`npm run build:sprites -- vassal-class`. Production no longer loads prototype
+component sheets or hard-coded crop rectangles. Existing portrait art and crops
+are preserved. Both groups share the standard bounded download retry and GPU
+preparation path in `chronicle-art.js`.
+
+The layout retains the right-hand column at x 616-2296, banner 530x598, chips
+380x114, feature 778x168 and ability cards 420x424. Simulation state, RNG, schemas
+and replay are unchanged. `scripts/class-picker-frames-test.mjs` checks source
+sizes, named frames, PNG-8, padding and untrimmed/unrotated atlas geometry;
+`npm run probe:settlement` checks the live picker and navigation.
 
 | Rule | Warrior | Scholar |
 | --- | --- | --- |

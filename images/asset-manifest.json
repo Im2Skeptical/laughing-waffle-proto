@@ -431,22 +431,30 @@
       ],
       "source": "class-picker-frames-v1",
       "files": [
-        "banner.png",
-        "panel.png",
         "socket.png",
-        "tab-locked.png",
-        "tab-selected.png",
-        "tab.png",
-        "window-corner-bl.png",
-        "window-corner-br.png",
         "window-corner-tl.png",
         "window-corner-tr.png",
+        "window-corner-bl.png",
+        "window-corner-br.png",
+        "window-edge-top.png",
         "window-edge-bottom.png",
         "window-edge-left.png",
-        "window-edge-right.png",
-        "window-edge-top.png",
-        "window-gem-bottom.png",
-        "window-gem-top.png"
+        "window-edge-right.png"
+      ]
+    },
+    "vassal-class": {
+      "load": "eager",
+      "data": [
+        "images/sprite-sheets/vassal-class.json"
+      ],
+      "source": "vassal-class-v1",
+      "files": [
+        "warrior.png",
+        "scholar.png",
+        "crest.png",
+        "mystery.png",
+        "warrior-founder.png",
+        "scholar-founder.png"
       ]
     }
   },

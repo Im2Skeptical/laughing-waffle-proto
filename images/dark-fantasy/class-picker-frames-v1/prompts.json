@@ -1,11 +1,18 @@
 {
   "date": "2026-10-16",
-  "tool": "supplied by the project owner (original generation prompts were not recorded with the files)",
-  "direction": "Weathered dark stone, aged brass trim, neutral high-luminance so it can be tinted per class. Flat pure-black background so it can be luminance-keyed into real alpha. No baked text or numbers.",
+  "tool": "Built-in image_gen.imagegen",
+  "references": [
+    "ai/References/Diablo-II09052021-024202-52025.jpg",
+    "ai/References/Baldur039s-Gate-II05272023-105108-82687.jpg"
+  ],
   "sources": [
-    { "id": "window", "file": "generated/window-source.jpg", "subject": "16:9 carved stone window frame with brass corner caps and top/bottom gems" },
-    { "id": "panel", "file": "generated/panel-source.jpg", "subject": "thin-rim panel frame with corner studs and brass trim" },
-    { "id": "banner", "file": "generated/banner-source.jpg", "subject": "tall swallow-tail banner frame with a brass header rail" },
-    { "id": "tabs", "file": "generated/tabs-source.jpg", "subject": "2x2 sheet: normal tab, selected tab with amber inner glow, locked tab with iron bands, round icon socket" }
+    {
+      "file": "generated/frame-source.png",
+      "prompt": "Use case: stylized-concept.\nAsset type: original production sprite source for a dark fantasy RPG interface frame, transparent RGBA.\nPrimary request: a single square empty carved-stone UI frame, hand illustrated pixel painting in the late 1990s / early 2000s PC RPG tradition. The supplied Diablo II inventory and Baldur's Gate II map screenshots are STYLE REFERENCES ONLY. Create original carved winding acanthus/rope relief, worn grey limestone and dark bronze fine inner bevel, aged ivory edge highlights, tiny muted amber studs at the four corners. The frame itself has visible deliberate pixel clusters, limited earthy palette, subtle dithering and irregular hand painted wear. Readable silhouette and restrained ornament, not big angular armor plates.\nComposition: front facing orthographic perfectly square frame fills a 512x512 canvas with approximately 16 pixels empty margin on every side. Rim thickness approximately 48 pixels; each corner ornamental block fits within 80x80 pixels; straight sides have continuous carved texture. Entire central square aperture and outside the frame MUST be genuinely transparent. NO opaque panel fill. Keep the central aperture clear and square. No text, no symbols or icon in the centre. Light from upper left, recessed dark inner edge. Designed to be nine-sliced for panels and to crop fixed corners and repeat edges for a wide modal.\nConstraints: crisp low resolution hand painted art, not vector, not smooth photoreal material render, not glossy gold, no neon, no drop shadow spreading far outside the rim, no modern UI, no lettering, no watermark. True transparency."
+    },
+    {
+      "file": "generated/socket-source.png",
+      "prompt": "Use case: stylized-concept. Asset type: single original UI sprite, a circular empty stone-and-bronze icon socket with genuine alpha transparency. Style reference: the supplied Diablo II inventory carved ornament and Baldur's Gate II world-map UI, original new design in that old school hand illustrated pixel-painting tradition. Front-facing orthographic ring centred on a 256x256 canvas with 12 px empty outer margin, inner hole roughly 170px diameter, outside AND centre genuinely transparent. Chipped dark grey limestone with shallow winding acanthus relief, very thin worn bronze inner bevel, tiny aged ivory highlights upper-left, earthy limited palette and visible crisp pixel clusters, subtly dithered shaded areas. Restrained ornament suitable behind small class stat icons. No text, no centre icon, no solid background, no glossy gold, no smooth 3D render, no neon, no soft exterior glow. It must match a carved square stone UI frame from the same artist."
+    }
   ]
 }
