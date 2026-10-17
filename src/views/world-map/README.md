@@ -12,6 +12,20 @@ underlying natural biome, including the study's example monster regions.
 Only the viewed state's `region.monster` selects occupied terrain; clearing or
 rewinding restores the original biome, including island water topology.
 
+The one-time bake, the road/terrain composition and the three variant builds are
+generators (`bakePixelTerrainSteps`, `composePlayableTerrainSteps`,
+`composeTerrainLandscapeSteps`, `buildSteps`, `prepareRegionalTilesSteps`) that
+`yield` between phases. `bakePixelTerrain`, `composePlayableTerrain`, `build` and
+`prepareRegionalTiles` run them straight through for the study and checks, with
+identical output. `illustrated-terrain.js` drives them with `runCooperative`
+(`map-generation-prototype/cooperative.js`), which returns the main thread to the
+browser after about 50 ms of work so the loading screen keeps painting; the
+longest stretch between checkpoints is recorded in
+`stats.cooperation.longestStepMs`. A job always runs to completion: a request
+replaced or destroyed meanwhile discards the finished result and frees its
+textures. `update()` and `setState()` do nothing until `stats.ready`, which is
+set after the variants are built.
+
 Live water and atmosphere render to padded camera windows in source coordinates.
 Small pans reuse those windows; larger moves and zoom changes refresh them even
 while time is paused. Water resolves categorical palette data before reducing

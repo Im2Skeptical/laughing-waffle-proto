@@ -3,11 +3,12 @@
 import { canPlacePeak } from '../../../src/model/regional-map/generator.js';
 import { routeSampleRoads } from './roads.js';
 import { composeHinterland, paintHinterlandMass } from './hinterland-composition.js';
-import { composeTerrainLandscape, boneRidgeFits } from './terrain-composition.js';
+import { composeTerrainLandscapeSteps, boneRidgeFits } from './terrain-composition.js';
 import { SHORE_TREATMENTS } from './terrain-interactions.js';
 import { paintTerrainFoundations } from './terrain-foundations.js';
 import { paintRegionDivisions } from './terrain-divisions.js';
 import { bridgeSpans, paintBridge } from './road-crossings.js';
+import { runSync } from './cooperative.js';
 import { planSettlementSites, siteReliefContains, layOutSettlements, paintSettlementSites } from './settlement-sites.js';
 
 const footprints=new WeakMap();
@@ -20,7 +21,11 @@ function paintedPixels(art){
   return footprints.get(art);
 }
 
-export function composePlayableTerrain({map, texel, detail, ART, width, height, bounds, pixel, world,
+// The work is a generator so a cooperative driver can hand the main thread back
+// between its phases; composePlayableTerrain runs it straight through.
+export function composePlayableTerrain(options) { return runSync(composePlayableTerrainSteps(options)); }
+
+export function* composePlayableTerrainSteps({map, texel, detail, ART, width, height, bounds, pixel, world,
   land, waterIndices, regionIds, colours, waterBase, surfaces, materialAt, groundBank,
   noise, mixColour, sampleBackground, islandStyle, sites, settlementScale, interactions,
   anchors = null, connections = null, routedRoads = null, roadsOnly = false, background = null, isolatedMonsterBorders = false, peakMask = new Uint8Array(width*height)}) {
@@ -89,6 +94,7 @@ export function composePlayableTerrain({map, texel, detail, ART, width, height, 
     pairs, bounds: { minX: bx, minY: by, maxX: bx + borderCanvas.width, maxY: by + borderCanvas.height } });
   surfaces.registerPaths('road', roads);
   timings.routes=performance.now()-started;
+  yield;
   const roadCanvas = document.createElement('canvas'); roadCanvas.width = borderCanvas.width; roadCanvas.height = borderCanvas.height;
   const roadCtx = roadCanvas.getContext('2d');
   let bridges = 0;
@@ -150,6 +156,7 @@ export function composePlayableTerrain({map, texel, detail, ART, width, height, 
     bridges += spans.length;
     for (const [n, span] of spans.entries()) paintBridge(span, detail, roadDot, {
       art: ART[`terrain-bridge-${(n + bridges + map.seed) % 8}`], context: roadCtx, origin: { x: bx, y: by } });
+    yield;
   }
   // Compose playable terrain and imported hinterland instead of legacy scatter.
   if(roadsOnly){
@@ -159,11 +166,12 @@ export function composePlayableTerrain({map, texel, detail, ART, width, height, 
   // Coasts
   // use terrain profiles rather than isolated legacy cliff/rock stamps.
   const compositionStart=performance.now();
-  const composition = composeTerrainLandscape({ map, art: ART, pixel, world, detail, islandStyle, settlementPlans, monsterZones: !!sites, isolatedMonsterBorders,
+  const composition = yield* composeTerrainLandscapeSteps({ map, art: ART, pixel, world, detail, islandStyle, settlementPlans, monsterZones: !!sites, isolatedMonsterBorders,
     // Road corridors stencil individual pixels in reliefSpriteTextures; they
     // create passes instead of rejecting an entire connecting landscape piece.
     legal: fitsLand });
   timings.composition=performance.now()-compositionStart;
+  yield;
   const hinterland=background ?? composeHinterland({map,art:ART,pixel,world,detail,sampleBackground,
     legal:prop=>{
       const glyph=ART[prop.kind];let painted=0,outside=0,dry=0;
@@ -178,12 +186,16 @@ export function composePlayableTerrain({map, texel, detail, ART, width, height, 
       }
       return painted>0&&dry/painted>.96&&outside/painted>(prop.barrier?.72:.98);
     }});
+  yield;
   props.splice(0,props.length,...towns,...hinterland.props,...composition.props);
   if (!background) hinterland.stats.mass=paintHinterlandMass({props:hinterland.props,art:ART,width,height,colours,land,waterIndices,regionIds,detail,seed:map.seed,noise,mixColour});
+  yield;
   const foundations = paintTerrainFoundations({ props, art: ART, pixel, surfaces, materialAt, land, waterIndices,
     colours, width, height, detail, noise, seed: map.seed, mixColour, islandStyle });
+  yield;
   const divisions = paintRegionDivisions({ map, pixel, width, height, detail, land, regionIds,
     waterIndices, waterBase, colours, groundBank, noise, mixColour });
+  yield;
   paintSettlementSites(settlementPlans, { width, height, colours, waterIndices, regionIds, map, surfaces, mixColour, detail: siteDetail, dot: roadDot });
   interactions.bridge = bridges;
   interactions.rockyShore = props.filter(p => p.kind.startsWith('cliff')).length;

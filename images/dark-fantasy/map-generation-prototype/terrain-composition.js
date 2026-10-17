@@ -1,4 +1,5 @@
 import { decorationRandom, insidePolygon, polygonArea, isLand } from '../../../src/model/regional-map/generator.js';
+import { runSync } from './cooperative.js';
 
 export const CONTACT_PAIRS = [
   ['plains', 'forest'], ['plains', 'islands'], ['plains', 'swamp'], ['plains', 'mountains'], ['forest', 'islands'],
@@ -68,7 +69,10 @@ export function boneRidgeFits(glyph, left, top, sample) {
   return base>0&&dryBase/base>=.85&&monster/painted>=.18;
 }
 
-export function composeTerrainLandscape({ map, art, pixel, world, legal, detail, islandStyle = 'basalt', settlementPlans = [], monsterZones = false, isolatedMonsterBorders = false }) {
+export function composeTerrainLandscape(options) { return runSync(composeTerrainLandscapeSteps(options)); }
+
+// Yields between paths and regions so cooperative drivers can interleave other work.
+export function* composeTerrainLandscapeSteps({ map, art, pixel, world, legal, detail, islandStyle = 'basalt', settlementPlans = [], monsterZones = false, isolatedMonsterBorders = false }) {
   const islandFamily = `terrain-island-${islandStyle}`;
   const props = [], diagnostics = { paths: 0, coastalProfiles: 0, placements: 0, joined: 0, breaks: 0, interiors: 0, families: {} };
   diagnostics.forestPlacement={repeatRejects:0,footprintRejects:0,overlapRejects:0};
@@ -341,6 +345,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
   const priority=p=>p.context==='bone-boundary'?2:p.context==='ridge-boundary'?1:0;
   paths.sort((a, b) => priority(b)-priority(a));
   for (const path of paths) {
+    yield;
     diagnostics.paths++;
     let travelled = 0, next = rand(path.salt) * 12 * detail, previous = null, attempts = 0;
     let accepted=0;
@@ -386,6 +391,7 @@ export function composeTerrainLandscape({ map, art, pixel, world, legal, detail,
   // Correlated density fields form irregular masses and clearings in two
   // dimensions. Blue-noise-like candidate ordering avoids lines and stamp grids.
   for (const [index, region] of map.regions.entries()) {
+    yield;
     if(region.biome==='monster'&&!art['terrain-hellscape-0']) continue;
     const outline = region.outline.map(pixel), family = region.biome==='monster'?'terrain-hellscape':region.biome === 'islands' ? islandFamily : `terrain-${region.biome}`;
     const xs = outline.map(p => p.x), ys = outline.map(p => p.y), minX = Math.min(...xs), minY = Math.min(...ys);

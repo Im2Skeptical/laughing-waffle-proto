@@ -1,13 +1,15 @@
-import { prepareRegionalTiles } from './regional-tiles.js';
+import { prepareRegionalTiles, prepareRegionalTilesSteps } from './regional-tiles.js';
 import { naturalRegionalMap, regionalPresentationSpec, createRegionalPresentation } from './regional-presentation.js';
 import { getRegionalMap } from '../../model/regional-map/definition.js';
 import { sampleSurroundings } from '../../model/regional-map/generator.js';
-import { bakePixelTerrain, destroyPixelTerrain, prepareIllustratedArt, pixelSpriteTextures, reliefSpriteTextures, pixelSpriteFits } from '../../../images/dark-fantasy/map-generation-prototype/pixel-terrain.js';
+import { runCooperative } from '../../../images/dark-fantasy/map-generation-prototype/cooperative.js';
+import { bakePixelTerrainSteps, destroyPixelTerrain, prepareIllustratedArt, pixelSpriteTextures, reliefSpriteTextures, pixelSpriteFits } from '../../../images/dark-fantasy/map-generation-prototype/pixel-terrain.js';
 import { prepareCloudArt } from '../../../images/dark-fantasy/map-generation-prototype/cloud-banks.js';
 import { createZoomArt, prepareLandmarkLods } from '../../../images/dark-fantasy/map-generation-prototype/zoom-art.js';
 import { getIllustratedWorldBounds } from './world-bounds.js';
 
 let assets;
+const yieldToUi=()=>new Promise(resolve=>setTimeout(resolve,0));
 function prepareAssets(){return assets??=Promise.all([prepareIllustratedArt(),prepareCloudArt(),prepareLandmarkLods()]).catch(error=>{assets=null;throw error;});}
 
 // The workbench's sampled field, without its three unused background textures.
@@ -59,12 +61,19 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
       const loaded=await prepareAssets();if(request!==generation)return;landmarks=loaded[2];
       // Let the loading screen paint before the one-time CPU bake.
       await new Promise(resolve=>setTimeout(resolve,0));if(request!==generation)return;
-      const start=performance.now(),map=naturalRegionalMap(record.map);
-      terrain=bakePixelTerrain(map,{texel:2,sites:false,retainPresentation:true,sampleBackground:surroundingsSampler(map),windowedAnimation:!!getView,
-        worldBounds:getIllustratedWorldBounds(map)});
-      const art=terrain,density=art.stats.texel;
+      const start=performance.now(),map=naturalRegionalMap(record.map),cooperation={};
+      const stale=()=>request!==generation;
+      // The bake and variant builds are single-threaded CPU work. They hand the
+      // main thread back between phases so the loading screen keeps painting.
+      const art=await runCooperative(bakePixelTerrainSteps(map,{texel:2,sites:false,retainPresentation:true,sampleBackground:surroundingsSampler(map),windowedAnimation:!!getView,
+        worldBounds:getIllustratedWorldBounds(map)}),{stats:cooperation});
+      // A bake always finishes; a request replaced meanwhile discards the result.
+      if(stale()){destroyPixelTerrain(art);return;}
+      terrain=art;
+      const density=art.stats.texel;
       animated.push({cycle:art.waterCycle,bounds:art.bounds,texel:density,
         node:put(art.waterCycle.levels[0],art.bounds,density,art.waterCycle.levels)});
+      await yieldToUi();if(stale())return;
       // Flatten hundreds of immutable terrain paintings once. Live ownership,
       // settlements, roads, packets and selection remain separate overlays.
       const scenery=new PIXI.Container(),textures=pixelSpriteTextures(density),relief=reliefSpriteTextures(art,false,false);
@@ -79,9 +88,16 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
       renderer.render(scenery,{renderTexture:staticLevels[0],clear:true});scenery.destroy({children:true});
       for(let n=1;n<staticLevels.length;n++){const sprite=new PIXI.Sprite(staticLevels[n-1]);sprite.width=staticLevels[n].width;sprite.height=staticLevels[n].height;renderer.render(sprite,{renderTexture:staticLevels[n],clear:true});sprite.destroy();}
       put(staticLevels[0],art.bounds,density,staticLevels);
+      await yieldToUi();if(stale())return;
       presentation=createRegionalPresentation(terrain,map);
       presentationRoot=new PIXI.Container();container.addChild(presentationRoot);
       sky=new PIXI.Sprite(art.atmosphere.texture);container.addChild(sky);
+      await yieldToUi();if(stale())return;
+      // The three terrain variants are built here, not lazily by the first setState().
+      const built=await runCooperative(prepareRegionalTilesSteps(presentation,landmarks,renderer),{stats:cooperation});
+      if(stale()){built.destroy();return;}
+      variants=built;
+      Object.assign(stats,{variantBuilds:(stats.variantBuilds??0)+1,variantBuildMs:built.buildMs,cooperation});
       Object.assign(stats,{ready:true,bakes:stats.bakes+1,bakeMs:performance.now()-start,terrainBakeMs:art.stats.bakeMs,
         bounds:{...art.bounds},textureMiB:art.stats.textureMiB,flattenedProps:props.length,width:art.stats.width,height:art.stats.height});
       this.setState(state);
@@ -92,7 +108,7 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
       finally {if(pending===work)pending=null;}
     },
     update(seconds,zoom=1,force=false){
-      if(!terrain||!container.visible)return;
+      if(!terrain||!stats.ready||!container.visible)return;
       const view=getView?.(),density=terrain.stats.texel;
       zoom=view?.zoom??zoom;
       const effectiveZoom=zoom*renderer.resolution;
@@ -137,7 +153,7 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
     worldBounds(){return terrain?.bounds??null;},
     roadPoints(edge){return active?.roads.find(r=>r.id===[edge.regionAId,edge.regionBId].sort().join(':'))?.points;},
     setState(state,display={}){
-      if(!presentation)return;
+      if(!presentation||!stats.ready)return;
       const spec=regionalPresentationSpec(state,display),key=JSON.stringify(spec);
       if(active?.key===key)return;
       let entry=cache.get(key);
