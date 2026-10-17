@@ -24,6 +24,7 @@ export function classActionOptions(state, vassal, family) {
   ];
   if(family==='challenge') return [3,6,9].map(difficulty=>({id:`challenge-${difficulty}`,label:`Challenge ${difficulty}: ${Math.round(getVassalRiskDeathChance(vassal,difficulty*.05)*100)}% RISK`,phaseCost:difficulty*2,prestigeDelta:difficulty*3,immediateDeathChance:difficulty*.05,classAction:{kind:'challenge',difficulty}}));
   if(family==='campaign') {
+    if(vassal.classId!=='warrior')return [];
     const force=getMartialForce(state, vassal);
     const options=adjacentRegionIds(state,vassal.locationRegionId).flatMap(id=>{
       const site=state.world.sites.find(s=>s.regionId===id), region=getRegionState(state,id);

@@ -182,6 +182,7 @@ function openSession(seed, shop) {
   vassal.lifeMap.availableNodeIds = [nodeId];
   const entered = applyAction(state, { kind: ActionKinds.VASSAL_ENTER_LIFE_NODE, payload: { nodeId } }, { isReplay: true });
   assert.equal(entered.ok, true, entered.reason);
+  assert.equal(applyAction(state,{kind:ActionKinds.VASSAL_SELECT_LIFE_OPTION,payload:{nodeId,optionId:shop==='practice'?'random':'Housing'}},{isReplay:true}).ok,true);
   const site = state.world.sites.find((entry) => entry.regionId === vassal.locationRegionId).detailedState;
   if (shop === "practice") {
     site.practiceSlots = ["forage", "pastoralism", "logging", "surfaceMining", "barter"].map((practiceId) => (

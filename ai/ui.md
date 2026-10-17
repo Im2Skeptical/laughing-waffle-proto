@@ -256,11 +256,17 @@ Save/load preserves the generated map through its versioned seeded definition.
   practices show a segmented reservoir and trigger tray. Normal thresholds use one
   chamber per point; large custom thresholds group points and show a numeric count. The 188 runtime illustrations and retained earlier-card paintings load as v4 frame names from the settlement-pieces atlases; opaque full-bleed paintings replace the former vignettes. Illustrated frames
   load from the shared `piece-frames` atlas; Trade/Knowledge symbols remain code. Reduced motion keeps static fill/upgrade states.
-  Routes/Travel show a cropped polygon regional preview;
+  Crossroads, Warrior Campaign, and ordinary Legacy use a full regional map
+  with three illustrated mode cards, live costs, selectable legal targets, and
+  dimmed unavailable regions. Campaign adds Prowess, Retinue, Warriors, Arms and
+  total Force, highlighting only the components used by the current mode.
+  Campaign stays open between attempts, including real Relic acquisition.
+  Practice and Structure shops first show their specialty/category picker.
+  Ordinary route signature shops retain their cropped polygon regional preview;
   Patronage/Development show every option's gains, losses, and time cost on
   text-first cards without inspection overlays; tapping anywhere on a card
   selects it, while immediate and surviving-completion Vassal impact stays visible;
-  Crisis/Legacy and non-shop signature nodes center their choices without an
+  Crisis, Legacy+ and non-shop signature nodes center their choices without an
   irrelevant side panel. Lifegraph nodes use freestanding silhouettes with secondary color accents;
   signature nodes add a small four-point sparkle. Generated lane positions are
   preserved with collision spacing and a slight stable depth stagger, with no

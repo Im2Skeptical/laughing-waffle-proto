@@ -59,6 +59,9 @@ export function forceEnter(state, nodeId) {
   const vassal = getCurrentLifeMapVassal(state);
   vassal.lifeMap.availableNodeIds = [nodeId];
   dispatch(state, ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId });
+  const selection=vassal.lifeMap.nodeStates[nodeId].shopSelection;
+  if (selection && !selection.selectedTag) dispatch(state,ActionKinds.VASSAL_SELECT_LIFE_OPTION,
+    {nodeId,optionId:selection.kind==='practice'?'random':selection.choices.find(choice=>choice.enabled).id});
   return vassal.lifeMap.nodeStates[nodeId];
 }
 

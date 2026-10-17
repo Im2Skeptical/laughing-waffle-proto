@@ -235,6 +235,8 @@ function assertBoard(seed, state, tSec, spec) {
 
 function open(seed) {
   const { state, nodeId } = createLabNodeSandbox({ type: "publicWorks", classId: "unclassed", prestige: 100, seed });
+  const specialty=applyAction(state,{kind:ActionKinds.VASSAL_SELECT_LIFE_OPTION,payload:{nodeId,optionId:'Housing'}},{isReplay:true});
+  expect(specialty.ok,seed,'shop-specialty',{reason:specialty.reason});
   disableMonthlyDemographics(state);
   for (const site of getDetailedSettlementSites(state)) {
     site.detailedState.structureSlots = site.detailedState.structureSlots.map(() => null);

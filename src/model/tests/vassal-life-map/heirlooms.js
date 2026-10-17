@@ -315,7 +315,7 @@ for (let seed = 0; seed < 30; seed += 1) {
     const cost = VASSAL_HEIRLOOM_TUNING.relicCostsByQuality[offer.quality];
     const range = VASSAL_TIME_COST_RANGES[cost.timeCostTier];
     assert.equal(offer.timeCostTier, cost.timeCostTier);
-    assert.equal(offer.immediateDeathChance, cost.immediateDeathChance);
+    assert.equal(offer.immediateDeathChance, 0,'ordinary Relics have no direct death roll');
     assert.ok(offer.phaseCost >= range.min && offer.phaseCost <= range.max);
     if (!qualityCosts.has(offer.quality)) qualityCosts.set(offer.quality, new Set());
     qualityCosts.get(offer.quality).add(offer.phaseCost);

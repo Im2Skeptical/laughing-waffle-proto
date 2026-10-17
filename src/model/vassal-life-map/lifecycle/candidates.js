@@ -125,7 +125,8 @@ export function generateCandidatePool(state) {
       ) + legacyBonus,
       stats: Object.fromEntries(VASSAL_STAT_IDS.map((statId) => [
         statId,
-        state.rngNextVassalInt(VASSAL_LIFE_TUNING.candidateStatMin, VASSAL_LIFE_TUNING.candidateStatMax) + (statId === (classId==='scholar'?'cunning':'intelligence') ? academyBonus : 0),
+        state.rngNextVassalInt(VASSAL_LIFE_TUNING.candidateStatMin, VASSAL_LIFE_TUNING.candidateStatMax) + (statId === (classId==='scholar'?'cunning':'intelligence') ? academyBonus : 0)
+          + (state.civilization.vassalLegacy.futureStartingStatBonuses[statId] ?? 0),
       ])),
       portrait: generateVassalPortrait(state),
     }); }
@@ -139,7 +140,7 @@ export function generateCandidatePool(state) {
 }
 
 export function initializeVassalLifeMapCivilization(state) {
-  state.civilization.vassalLegacy = { futureStartingPrestigeBonus: 0 };
+  state.civilization.vassalLegacy = { futureStartingPrestigeBonus: 0, futureStartingStatBonuses:Object.fromEntries(VASSAL_STAT_IDS.map(id=>[id,0])) };
   state.civilization.heirloomVault = createEmptyHeirloomVault();
   state.civilization.vassalLineage = {
     nextVassalId: 1,
@@ -246,8 +247,8 @@ export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = nu
   }
   if (record.classId && ordinary[0]) ordinary[0].family = "training";
   let classIndex = 0;
-  for (const node of ordinary.slice(1)) if (lifeClassId && classIndex < 2 && ["patronage", "development"].includes(node.family)) {
-    node.family = lifeClassId === "scholar" ? ["discovery", "discovery"][classIndex++ % 2] : ["campaign", "challenge"][classIndex++ % 2];
+  for (const node of ordinary.slice(1)) if (lifeClassId && classIndex < (lifeClassId==='warrior'?1:2) && ["patronage", "development"].includes(node.family)) {
+    node.family = lifeClassId === "scholar" ? ["discovery", "discovery"][classIndex++ % 2] : ["campaign"][classIndex++ % 1];
   }
   if (record.founderClassId) {
     const graph = record.lifeMap.graph;

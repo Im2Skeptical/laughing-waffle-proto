@@ -190,7 +190,7 @@ const lifeDoc = starter.lifeMapLab;
 let detailedIndex = mapDoc.regions.findIndex((region) => region.detailedSettlementEnabled && region.detailedState?.populationByClass);
 must(detailedIndex >= 0, "starter map has no detailed settlement to mutate");
 must(mapDoc.schemaVersion === 8 && lifeDoc.schemaVersion === 2, "controller drafts are not current schema v8/v2");
-must(lifeDoc.generatorConfig?.schemaVersion === 6 && lifeDoc.generatorConfig?.weights?.early, "life generator is not current schema v6");
+must(lifeDoc.generatorConfig?.schemaVersion === 7 && lifeDoc.generatorConfig?.weights?.early, "life generator is not current schema v7");
 must(starter.gameSettings?.schemaVersion === 19 && starter.launch?.startMode === "randomRoad", "profile settings/launch are not the current contract");
 
 const vassalDraft = {
@@ -291,9 +291,9 @@ const rejects = [
   ["lifeMapLab", ["schemaVersion"], 1, "schemaVersion"],
   ["lifeMapLab", ["schemaVersion"], 3, "schemaVersion"],
   ["lifeMapLab", ["schemaVersion"], false, "schemaVersion"],
-  ["lifeMapLab", ["generatorConfig", "schemaVersion"], 5, "schemaVersion"],
-  ["lifeMapLab", ["generatorConfig", "schemaVersion"], 7, "schemaVersion"],
-  ["lifeMapLab", ["generatorConfig", "schemaVersion"], "6", "schemaVersion"],
+  ["lifeMapLab", ["generatorConfig", "schemaVersion"], 6, "schemaVersion"],
+  ["lifeMapLab", ["generatorConfig", "schemaVersion"], 8, "schemaVersion"],
+  ["lifeMapLab", ["generatorConfig", "schemaVersion"], "7", "schemaVersion"],
   ["vassalLibrary", ["schemaVersion"], 0, "schemaVersion"],
   ["vassalLibrary", ["schemaVersion"], 2, "schemaVersion"],
   ["vassalLibrary", ["presets", 0, "draft", "schemaVersion"], 4, "schemaVersion"],

@@ -28,7 +28,7 @@ chooser.closeSettlementVassalSelection();
 chooserState = selectedState(108);
 const legacy = forceEnter(chooserState, nodeIdForFamily(chooserState, 'legacy'));
 dispatch(chooserState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
-  nodeId: legacy.nodeId, optionId: 'humbleRemembrance',
+  nodeId: legacy.nodeId, optionId: 'accumulated-prestige',
 });
 dispatch(chooserState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: legacy.nodeId });
 if (getCurrentLifeMapVassal(chooserState)) resolvePending(chooserState);

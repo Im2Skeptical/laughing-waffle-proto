@@ -1,5 +1,6 @@
 import { ensureCommissionOffers } from '../vassal-life-map/commissions.js';
 import assert from 'node:assert/strict';
+import { ActionKinds, applyAction } from '../actions.js';
 import { LAB_EXHIBITS, createLabFixture } from '../dev-lab/fixtures.js';
 import { editLabState, advanceLabState, compareLabProjection, getLabObservation, previewLabShop, previewLabInstitutions } from '../dev-lab/sandbox.js';
 import { getLabCatalogue, filterLabCatalogue } from '../dev-lab/catalogue.js';
@@ -142,12 +143,15 @@ museum.advance('second');museum.reset();assert.deepEqual(data(museum.getSnapshot
 assert.throws(()=>ctl.setHorizon(3601));
 for (const classId of ['scholar','warrior','unclassed']) {
   for (const [type] of LAB_NODE_TYPES) {
+    if(type==='campaign'&&classId!=='warrior'){assert.throws(()=>createLabNodeSandbox({type,classId,seed:0}),/warriorRequired/);continue;}
     const mock = createLabNodeSandbox({type,classId,seed:0});
     assert.equal(getCurrentLifeMapVassal(mock.state).lifeMap.currentNodeId,mock.nodeId,`${classId} ${type} enters a validated real node`);
   }
 }
-const nodes=createNodeSandboxController(), nodeInitial=data(nodes.getSnapshot().state);
+const nodes=createNodeSandboxController(), nodeBeforeSelection=data(nodes.getSnapshot().state);
 const nodeId=nodes.getSnapshot().nodeId;
+nodes.select(nodeId,'random');
+const nodeInitial=data(nodes.getSnapshot().state);
 const offer=nodes.getDecision(nodeId).offers.find(offer=>offer.canStage);
 assert.ok(offer,'dummy can afford a real shop offer');
 assert.throws(()=>nodes.purchase(nodeId,'missing-offer'));
@@ -156,17 +160,22 @@ nodes.purchase(nodeId,offer.offerId);
 assert.equal(nodes.getDecision(nodeId).purchases.length,1);
 nodes.undo(nodeId,offer.offerId);
 assert.equal(nodes.getDecision(nodeId).purchases.length,0,'undo removes staged purchase');
-assert.equal(nodes.getDecision(nodeId).projectedPrestige,100,'undo restores projected Prestige');
+assert.equal(nodes.getDecision(nodeId).projectedPrestige,110,'undo restores projected Prestige');
 assert.deepEqual(nodes.getSnapshot().state.rng,nodeInitial.rng,'undo preserves RNG');
 assert.deepEqual(nodes.getSnapshot().state.world.sites[0].detailedState.practiceSlots,nodeInitial.world.sites[0].detailedState.practiceSlots,'staging and undo do not alter the real settlement');
 nodes.purchase(nodeId,offer.offerId);
 nodes.confirm(nodeId);
-assert.equal(nodes.getSnapshot().vassal.prestige,nodeInitial.civilization.vassalLineage.vassalsById[nodeInitial.civilization.vassalLineage.currentVassalId].prestige-offer.prestigeCost);
+const beforeCheckout=nodeInitial.civilization.vassalLineage.vassalsById[nodeInitial.civilization.vassalLineage.currentVassalId];
+const commissionPrize=(nodes.getSnapshot().vassal.completedCommissions??0)>(beforeCheckout.completedCommissions??0)?beforeCheckout.commission.prestige:0;
+assert.equal(nodes.getSnapshot().vassal.prestige,beforeCheckout.prestige-offer.prestigeCost+commissionPrize);
 assert.ok(nodes.getSnapshot().vassal.lifeMap.pendingResolution,'Confirm starts the real timed outcome');
-nodes.refresh();assert.ok(JSON.stringify(data(nodes.getSnapshot().state))===JSON.stringify(nodeInitial),'refresh restores identical content, state and RNG');
+nodes.refresh();assert.deepEqual(data(nodes.getSnapshot().state),nodeBeforeSelection,'refresh restores the unselected specialty picker');
+nodes.select(nodeId,'random');
 nodes.reroll(nodeId);assert.throws(()=>nodes.reroll(nodeId),'real reroll limit applies');
 nodes.refresh({seed:43});
-assert.notDeepEqual(nodes.getDecision(nodeId).offers.map(offer=>offer.intervention),createNodeSandboxController().getDecision(nodeId).offers.map(offer=>offer.intervention),'another content seed changes offers');
+nodes.select(nodeId,'random');
+const originalSeedNodes=createNodeSandboxController();originalSeedNodes.select(originalSeedNodes.getSnapshot().nodeId,'random');
+assert.notDeepEqual(nodes.getDecision(nodeId).offers.map(offer=>offer.intervention),originalSeedNodes.getDecision(originalSeedNodes.getSnapshot().nodeId).offers.map(offer=>offer.intervention),'another content seed changes offers');
 assert.deepEqual(nodes.getSnapshot().vassal.lifeMap.graph,nodeInitial.civilization.vassalLineage.vassalsById[nodeInitial.civilization.vassalLineage.currentVassalId].lifeMap.graph,'content refresh seed does not change topology');
 assert.equal(nodes.getSnapshot().state.rng.vassalLifeMapSeed,nodeInitial.rng.vassalLifeMapSeed);
 assert.equal(nodes.getSnapshot().state.rng.vassalPortraitSeed,nodeInitial.rng.vassalPortraitSeed);
@@ -177,8 +186,11 @@ assert.throws(()=>nodes.refresh({seed:-1}));assert.ok(JSON.stringify(data(nodes.
 const qualityIds=['bronze','silver','gold','diamond'];
 for (const [research,unlock] of [[0,0],[99,0],[100,1],[499,1],[500,2],[1999,2],[2000,3]]) {
   const seen=new Set();
-  for (let seed=0;seed<8;seed++) {
+  for (let seed=0;seed<8;seed++) for(const category of ['Housing','Stock','Special']) {
     const mock=createLabNodeSandbox({type:'publicWorks',classId:'scholar',cunning:0,research,seed});
+    const shop=getCurrentLifeMapVassal(mock.state).lifeMap.nodeStates[mock.nodeId];
+    const choice=shop.shopSelection.choices.find(c=>c.enabled&&c.id===category);if(!choice)continue;
+    const picked=applyAction(mock.state,{kind:ActionKinds.VASSAL_SELECT_LIFE_OPTION,payload:{nodeId:mock.nodeId,optionId:choice.id}},{isReplay:true});assert.equal(picked.ok,true);
     assert.equal(mock.state.civilization.research.total,research);
     for (const offer of getCurrentLifeMapVassal(mock.state).lifeMap.nodeStates[mock.nodeId].inventory) {
       const tier=qualityIds.indexOf(offer.intervention.tier);
@@ -188,14 +200,14 @@ for (const [research,unlock] of [[0,0],[99,0],[100,1],[499,1],[500,2],[1999,2],[
   }
   assert.ok(seen.has(unlock),`Research ${research} makes its unlocked tier available in real shops`);
 }
-nodes.refresh({classId:'unclassed',research:100});
+nodes.refresh({classId:'unclassed',research:100,seed:0});nodes.select(nodes.getSnapshot().nodeId,'random');
 const silverUnlockOffers=nodes.getDecision(nodes.getSnapshot().nodeId).offers;
-nodes.refresh({classId:'unclassed',research:300});
+nodes.refresh({classId:'unclassed',research:300,seed:0});nodes.select(nodes.getSnapshot().nodeId,'random');
 const researchOffers=nodes.getDecision(nodes.getSnapshot().nodeId).offers;
 assert.notDeepEqual(researchOffers.map(o=>o.intervention),silverUnlockOffers.map(o=>o.intervention),'Research within the Silver band affects real quality rolls');
 assert.ok(researchOffers.some(o=>o.intervention.mode==='learn' && o.intervention.resultingTier==='silver'));
 const researchState=JSON.stringify(data(nodes.getSnapshot().state));
-nodes.refresh({classId:'unclassed',research:300});
+nodes.refresh({classId:'unclassed',research:300,seed:0});nodes.select(nodes.getSnapshot().nodeId,'random');
 assert.equal(JSON.stringify(data(nodes.getSnapshot().state)),researchState,'seed and Research reproduce the complete fixture');
 for (const research of [-1,0.5,Infinity,NaN,Number.MAX_SAFE_INTEGER+1]) {
   assert.throws(()=>nodes.refresh({research}));

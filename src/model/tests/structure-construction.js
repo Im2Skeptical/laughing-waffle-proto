@@ -22,6 +22,7 @@ const equalState=(actual,expected,message)=>assert.equal(isDeepStrictEqual(actua
 
 const {state,nodeId}=createLabNodeSandbox({type:'publicWorks',classId:'unclassed',prestige:100});
 const v=getCurrentLifeMapVassal(state), node=v.lifeMap.nodeStates[nodeId];
+assert.equal(applyAction(state,{kind:ActionKinds.VASSAL_SELECT_LIFE_OPTION,payload:{nodeId,optionId:'Housing'}},{isReplay:true}).ok,true);
 for(const site of getDetailedSettlementSites(state)) {
   site.detailedState.structureSlots.fill(null);
   site.detailedState.practiceSlots=fiveSlots();

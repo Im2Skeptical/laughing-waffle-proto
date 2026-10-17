@@ -140,13 +140,15 @@ export function validateVassalLifeMapState(state) {
     }
     const graphValidation = validateVassalLifeMapGraph(vassal?.lifeMap?.graph);
     const pending = vassal?.lifeMap?.pendingResolution;
-    if (pending && (!['nodeResolution','shopDelve'].includes(pending.kind)
+    if (pending && (!['nodeResolution','shopDelve','campaignEncounter'].includes(pending.kind)
         || !Number.isFinite(pending.startSec) || !Number.isFinite(pending.resolveSec)
         || pending.resolveSec < pending.startSec || !Number.isInteger(pending.phaseCost)
         || pending.phaseCost < 0 || vassal.lifeMap.currentNodeId !== pending.nodeId
         || !vassal.lifeMap.nodeStates?.[pending.nodeId]?.resolving
         || (pending.kind === 'shopDelve' && (vassal.classId !== 'scholar'
-          || !isShopNodeState(vassal.lifeMap.nodeStates?.[pending.nodeId]))))) {
+          || !isShopNodeState(vassal.lifeMap.nodeStates?.[pending.nodeId])))
+        || (pending.kind === 'campaignEncounter' && (vassal.classId !== 'warrior'
+          || !vassal.lifeMap.nodeStates?.[pending.nodeId]?.campaign)))) {
       errors.push(`${vassalId}.lifeMap.pendingResolution: invalid timed action`);
     }
     if (!graphValidation.ok
@@ -167,6 +169,19 @@ export function validateVassalLifeMapState(state) {
       errors.push(`${vassalId}.lifeMap: unknown node id`);
     }
     for (const [nodeId, nodeState] of Object.entries(vassal?.lifeMap?.nodeStates ?? {})) {
+      if (nodeState.campaign && (nodeState.family!=='campaign' || vassal.classId!=='warrior'
+          || !['attack','duel','quest'].includes(nodeState.campaign.mode)
+          || typeof nodeState.campaign.failed!=='boolean' || typeof nodeState.campaign.duelDone!=='boolean'
+          || !Array.isArray(nodeState.campaign.questRegionIds)
+          || nodeState.campaign.questRegionIds.some(id=>!state.world.regions.some(region=>region.id===id)))) {
+        errors.push(`${vassalId}.${nodeId}: invalid Campaign visit`);
+      }
+      const specialty=nodeState.shopSelection;
+      if (specialty && (!['practice','structure'].includes(specialty.kind) || !Array.isArray(specialty.choices)
+          || specialty.choices.some(choice=>typeof choice.id!=='string'||typeof choice.enabled!=='boolean')
+          || (specialty.selectedTag!=null&&!specialty.choices.some(choice=>choice.id===specialty.selectedTag&&choice.enabled)))) {
+        errors.push(`${vassalId}.${nodeId}: invalid shop specialty`);
+      }
       if (!isShopNodeState(nodeState)) continue;
       const purchases = nodeState.purchasedOffers;
       if(!Number.isInteger(nodeState.nextCommissionId)||nodeState.nextCommissionId<0) errors.push(`${vassalId}.${nodeId}: invalid commission counter`);
@@ -178,6 +193,7 @@ export function validateVassalLifeMapState(state) {
       }
       const malformed = purchases.some(p => {
         if (!p?.intervention || !Number.isFinite(p.prestigeCost) || !Number.isFinite(p.phaseCost)
+            || (p.monsterPressureCost!=null&&(!Number.isInteger(p.monsterPressureCost)||p.monsterPressureCost<0))
             || !Number.isFinite(p.currencyCost)) return true;
         if (p.intervention.kind !== 'structure') return false;
         const placement = p.placement, def = getDetailedStructureDef(state, p.intervention.structureId);
@@ -194,8 +210,8 @@ export function validateVassalLifeMapState(state) {
     }
   }
   if (!legacy || !Number.isFinite(legacy.futureStartingPrestigeBonus)
-      || legacy.futureStartingPrestigeBonus < 0
-      || legacy.futureStartingPrestigeBonus > VASSAL_LIFE_TUNING.legacyStartingPrestigeBonusCap) {
+      || legacy.futureStartingPrestigeBonus < 0 || !legacy.futureStartingStatBonuses
+      || VASSAL_STAT_IDS.some(id=>!Number.isInteger(legacy.futureStartingStatBonuses[id])||legacy.futureStartingStatBonuses[id]<0)) {
     errors.push("civilization.vassalLegacy.futureStartingPrestigeBonus: invalid value");
   }
   errors.push(...validateHeirloomState(state).errors);

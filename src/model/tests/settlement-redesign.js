@@ -23,6 +23,7 @@ const vassal=getCurrentLifeMapVassal(state);vassal.prestige=1000;
 const nodeId=vassal.lifeMap.graph.nodes.find(node=>node.family==='publicWorks').id;
 vassal.lifeMap.availableNodeIds=[nodeId];
 dispatch(state,ActionKinds.VASSAL_ENTER_LIFE_NODE,{nodeId});
+dispatch(state,ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId,optionId:'Housing'});
 const site=state.world.sites.find(site=>site.regionId===vassal.locationRegionId).detailedState;
 state.world.regions.find(region=>region.id===vassal.locationRegionId).structureCapacity=8;
 site.structureSlots=normalizeStructureLayout([{structureId:'granary'},{structureId:'mudHouses'},null,null,{structureId:'longhouse',width:2}],8,id=>settlementStructureDefs[id]);
@@ -62,6 +63,7 @@ dispatch(practiceState,ActionKinds.SETTLEMENT_SELECT_VASSAL,{candidateIndex:0,ex
 const pv=getCurrentLifeMapVassal(practiceState); pv.prestige=1000;
 const pn=pv.lifeMap.graph.nodes.find(node=>node.family==='practiceReform').id;
 pv.lifeMap.availableNodeIds=[pn]; dispatch(practiceState,ActionKinds.VASSAL_ENTER_LIFE_NODE,{nodeId:pn});
+dispatch(practiceState,ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId:pn,optionId:'random'});
 const ps=practiceState.world.sites.find(site=>site.regionId===pv.locationRegionId).detailedState;
 ps.practiceSlots=['forage','pastoralism','logging','surfaceMining','barter'].map(practiceId=>({practiceId,tier:'bronze',stock:2,charge:0,work:0}));
 const originalPractices=structuredClone(ps.practiceSlots);

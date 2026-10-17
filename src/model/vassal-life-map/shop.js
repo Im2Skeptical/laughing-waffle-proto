@@ -1,4 +1,6 @@
 import { rollScholarQualityBonus, getVassalDelvePhaseCost } from './class-rules.js';
+import { getShopOfferPrice, structureShopCategory } from './shop-specialties.js';
+import { VASSAL_WORKSHOP_RULES } from '../../defs/vassal-workshop-rules.js';
 import { getMoonPhaseDurationSec } from '../moon-phases.js';
 import { stockTotal } from "../detailed-settlements/stock.js";
 import { getDetailedSettlement } from '../detailed-settlements/queries.js';
@@ -132,7 +134,9 @@ function buildCardOffers(state, vassal, nodeState, roll, { kind = null, required
     if (!def || !["common", vassal.classId].includes(def.pool)
         || !isDefinitionUnlocked(state, def, nodeState)
         || (requiredTag && !(def.tags ?? []).includes(requiredTag))
-        || (stockOutput && !isVassalStockOutputPractice(def, stockOutput))) return;
+        || (stockOutput && !isVassalStockOutputPractice(def, stockOutput))
+        || (cardKind === 'structure' && nodeState.shopSelection?.selectedTag
+          && structureShopCategory(def) !== nodeState.shopSelection.selectedTag)) return;
     if (cardKind === "practice" && reservation.practiceSlots.some(slot =>
       slot?.practiceId === definitionId && slot.tier === "diamond")) return;
     candidates.push({ kind: cardKind, definitionId, pool: def.pool });
@@ -232,6 +236,7 @@ function buildRouteOffers(state, vassal, nodeState, roll) {
 }
 
 export function generateShopInventory(state, vassal, nodeState) {
+  if (nodeState.shopSelection && !nodeState.shopSelection.selectedTag) return [];
   if (vassal.discoveryAccess && (CARD_SHOP_FAMILIES.has(nodeState.family)
       || nodeState.signatureNode?.groupId === "tagShop")) {
     nodeState.discoveryAccess=true;
@@ -247,7 +252,7 @@ export function generateShopInventory(state, vassal, nodeState) {
     : nodeState.signatureNode?.groupId === "removal"
       ? buildRemovalOffers(state, vassal, nodeState, roll, nodeState.signatureNode.removalKind)
       : nodeState.family === "practiceReform"
-    ? buildCardOffers(state, vassal, nodeState, roll, { kind: "practice" })
+    ? buildCardOffers(state, vassal, nodeState, roll, { kind: "practice", stockOutput: nodeState.shopSelection?.selectedTag === 'random' ? null : nodeState.shopSelection?.selectedTag })
     : nodeState.family === "publicWorks"
       ? buildCardOffers(state, vassal, nodeState, roll, { kind: "structure" })
       : ["neutralMarket", "classMarket"].includes(nodeState.family)
@@ -273,6 +278,16 @@ export function isShopNodeState(nodeState) {
   return nodeState?.contentMode === "shop" || SHOP_FAMILIES.has(nodeState?.family);
 }
 
+export function chooseShopSpecialty(state, vassal, nodeState, tagId) {
+  const selection = nodeState.shopSelection;
+  const choice = selection?.choices.find(entry => entry.id === tagId && entry.enabled);
+  if (!choice || selection.selectedTag || nodeState.resolving) return {ok:false,reason:'invalidShopSpecialty'};
+  selection.selectedTag = tagId;
+  nodeState.inventory = generateShopInventory(state,vassal,nodeState);
+  if (tagId === 'random') vassal.prestige += VASSAL_WORKSHOP_RULES.randomShopPrestige;
+  return {ok:true,shopSpecialty:tagId};
+}
+
 export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, toIndex = null, replacePracticeId = null) {
   const vassal = getCurrentLifeMapVassal(state);
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
@@ -285,9 +300,7 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
       || toIndex < 0 || toIndex >= (getDetailedSite(state, vassal.locationRegionId)?.detailedState?.practiceSlots.length ?? 0))) {
     return {ok:false,reason:'invalidPurchaseOrder'};
   }
-  const prestigeCost = getVassalActionPrestigeCost(vassal, offer.basePrestigeCost, {
-    isFirstShopPurchase: (nodeState.purchasedOffers ?? []).length === 0,
-  });
+  const {prestigeCost, monsterPressureCost} = getShopOfferPrice(vassal,nodeState,offer);
   const phaseCost = getVassalActionPhaseCost(vassal, offer.basePhaseCost, { nodeState });
   const currencyCost = Math.max(0, Number(offer.baseCurrencyCost) || 0);
   const stagedPrestigeCost = (nodeState.purchasedOffers ?? [])
@@ -306,7 +319,7 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
     ? prepareStructurePlacement(state, vassal, nodeState, offer, origin) : { ok: true };
   if (!prepared.ok) return prepared;
   const purchase = {
-    ...clone(offer), ...(prepared.placement ? { placement: prepared.placement } : {}), prestigeCost, phaseCost, currencyCost, purchasedSec: state.tSec,
+    ...clone(offer), ...(prepared.placement ? { placement: prepared.placement } : {}), prestigeCost, monsterPressureCost, phaseCost, currencyCost, purchasedSec: state.tSec,
     sourceInventoryRoll: Math.max(0, Math.floor(nodeState.inventoryRoll ?? 0)),
     sourceInventoryIndex: Math.max(0, Math.floor(offer.inventoryIndex ?? index)),
   };
@@ -373,6 +386,7 @@ export function undoVassalShopPurchase(state, nodeId, offerId) {
   delete restored.placement;
   delete restored.tableauIndex;
   delete restored.prestigeCost;
+  delete restored.monsterPressureCost;
   delete restored.phaseCost;
   delete restored.currencyCost;
   delete restored.purchasedSec;
@@ -467,6 +481,7 @@ export function rerollVassalShop(state, nodeId) {
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
   if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !isShopNodeState(nodeState)
       || nodeState.resolving) return { ok: false, reason: "shopUnavailable" };
+  if (nodeState.shopSelection && !nodeState.shopSelection.selectedTag) return {ok:false,reason:'shopSpecialtyRequired'};
   if (nodeState.rerollUsed && vassal.classId !== 'scholar') return { ok: false, reason: "rerollUsed" };
   if ((nodeState.purchasedOffers ?? []).length > 0) {
     return { ok: false, reason: "stagedPurchases" };

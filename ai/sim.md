@@ -98,10 +98,19 @@ registries here.
   node descriptor. Three candidates always advertise distinct broad signature
   groups. Generation replaces one mid-band node with that signature after the
   ordinary graph is built; Legacy+ instead upgrades the terminal Legacy node.
-  Ordinary graphs no longer roll Settlement nodes, and regular Route shops are
-  add-only and can connect adjacent frontier regions. Settlement choices remain
+  Ordinary graphs no longer roll Settlement or separate Route nodes. Crossroads
+  combines movement to connected player settlements (three moons), new incident
+  routes (15 Prestige/five years), and a two-year Tour (25% Bronze Relic, otherwise
+  +1 permanent random stat). Tour rewards roll only at commitment and use the
+  normal Relic acquisition flow. Custom first pathways remain experimental.
+  Settlement choices remain
   visible when unavailable and list their live Prestige, adult Villager, route,
   frontier, and structure-capacity requirements.
+  Practice Reform first offers two eligible Stock-output specialties and Random;
+  choosing Random grants 10 Prestige once. Public Works offers Housing, Stock
+  capacity, and Special categories. Existing class/Common eligibility remains.
+  A card purchase that exceeds remaining Prestige instead costs 10 Monster
+  expansion progress; staging and undo are inert, and checkout applies the cost.
   Shop purchases are ordered drafts: they reserve offers and project their
   Prestige/Phase costs but do not deduct Prestige or apply interventions until
   confirmation. Practice purchases can be placed throughout the fixed five-slot tableau. New consumers default after installed suppliers; new producers default left. Structure purchases retain explicit
@@ -125,8 +134,10 @@ registries here.
   persists a random phase cost from the shared `VASSAL_TIME_COST_RANGES`:
   Common (bronze) uses low, Silver medium, and Gold/Diamond high. The default
   ranges span 4-6, 7-9, and 7-10 years before existing time discounts. Gold and
-  Diamond also roll 35% immediate death risk before awarding the find; a newly
-  found Mandate cannot protect its own acquisition. All surviving choices still
+  Diamond have no direct death roll at ordinary sites. A quarter of generated
+  Relic sites are explicitly Special searches, whose finds have at least
+  35% immediate danger; a newly found Mandate cannot protect its own acquisition.
+  All surviving choices still
   face post-time natural mortality. An empty site uses the low range without
   immediate danger. Costs are measured before equipping the new Heirloom.
   Newly found relics are Sanctified and may be Equipped or Carried. Only one
@@ -161,13 +172,27 @@ registries here.
   Force per point and RISK success multiplied by (1 + 0.15 * Prowess), capped at
   100%. Every successful RISK grants +15 extra Prestige; prevented failed rolls
   do not. Retinue is floor(held Prestige/10), with direct institutional Force
-  bonuses and no population cap. Campaign and supplied automatic defense use the
-  same civilization-wide Force. Localized calculation is pinned for redesign.
+  bonuses and no population cap. Warrior-only Campaign is a continuous visit:
+  Honour duel uses Prowess; Quest adds Retinue; Attack also adds the smaller of
+  civilization-wide adult Warriors and hosted Arms. Defeat risk is Defence /
+  (Force + Defence); each attempt takes two phases. Attack costs 5 Prestige and
+  1 + map-distance Food; Quest costs the same Food, Duel none. Defeat ends the
+  visit without immediate death, while timed natural mortality still applies.
+  Clearing monsters resets expansion progress and exposes a stronger nest;
+  destroying it removes the Monster. Neutral targets use real conquest. Duels
+  award +1 permanent Prowess and 10 Prestige, quests a Relic and 10 Prestige,
+  plus the usual +15 Warrior reward for successful risk. Leave advances the
+  graph. Supplied automatic defense keeps its existing global Force formula.
   Challenge has no separate Prowess time/danger reduction. Natural aging remains
   separate. These rules also apply to class successors.
 - Crisis options inspect live Food shortages and adjacent Monsters. Mortality
   remains on the existing Vassal RNG substream. See
   `docs/civilization-milestone.md` for the implemented pool and tuning decisions.
+- Ordinary Legacy offers three free retirement choices: found a connected,
+  unoccupied frontier settlement with ten new Villagers; add floor(highest
+  effective stat / 3) to future Vassals' matching starting stat; or add floor(held
+  Prestige / 10) to future starting Prestige. Both lineage bonuses accumulate
+  without a cap. Legacy+ retains its separate signature choices.
 
 Boundary order is seasonal Practice activation followed by whichever lunar phase is due.
 Faith resolves chaos after faith changes. Vassal node time uses the same

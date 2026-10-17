@@ -17,6 +17,8 @@ closures stay in the orchestrator.
 - `mortality.js` — `renderMortalityEstimate`
 - `tableau.js` - full-size five-slot board, construction strip and recoverable discard pile
 - `regional-map.js` — dashed-line helper and `renderRegionalMap`
+- `world-screen.js` - full-map Crossroads, Warrior Campaign and ordinary Legacy;
+  emits selections/confirmation and renders model-owned costs, targets and forces.
 - `vassal-projection.js` — `renderVassalProjection`
 
 ## Intentionally not extracted

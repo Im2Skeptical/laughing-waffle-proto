@@ -200,6 +200,7 @@ for(const [id,family,kind] of [['practiceTag','practiceReform','practice'],['str
   const act=(kind,payload)=>{const result=applyAction(state,{kind,payload},{isReplay:true});assert.equal(result.ok,true,result.reason);};
   act(ActionKinds.VASSAL_ENTER_LIFE_NODE,{nodeId});
   const node=v.lifeMap.nodeStates[nodeId];
+  if(node.shopSelection)act(ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId,optionId:node.shopSelection.kind==='practice'?'random':node.shopSelection.choices.find(c=>c.enabled).id});
   const card=node.inventory.find(o=>o.intervention.kind===kind&&o.intervention.mode!=='upgrade');
   assert.ok(card);
   const definition=kind==='practice'?getDetailedPracticeDef(state,card.intervention.practiceId):getDetailedStructureDef(state,card.intervention.structureId);

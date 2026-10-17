@@ -96,6 +96,8 @@ shopVassal.lifeMap.availableNodeIds = [practiceNodeId];
 applyAction(shopState, { kind: ActionKinds.VASSAL_ENTER_LIFE_NODE,
   payload: { nodeId: practiceNodeId } }, { isReplay: true });
 const shopNode = shopVassal.lifeMap.nodeStates[practiceNodeId];
+applyAction(shopState, { kind: ActionKinds.VASSAL_SELECT_LIFE_OPTION,
+  payload: { nodeId: practiceNodeId, optionId: 'random' } }, { isReplay: true });
 assert.equal(shopNode.inventory.length, 3);
 const initialOfferIds = shopNode.inventory.map((offer) => offer.offerId);
 applyAction(shopState, { kind: ActionKinds.VASSAL_PURCHASE_SHOP_OFFER,

@@ -49,6 +49,7 @@ import { renderRegionalMap } from "./vassal-node-decision/regional-map.js";
 import { renderVassalProjection } from "./vassal-node-decision/vassal-projection.js";
 
 import { renderDecisionTableau } from './vassal-node-decision/tableau.js';
+import { createVassalWorldDecisionScreen } from './vassal-node-decision/world-screen.js';
 
 export function createVassalNodeDecisionModalView({
   app, layer, getState, getPresentation, getDecisionPresentation, onEnterNode, onSelectOption,
@@ -69,6 +70,16 @@ export function createVassalNodeDecisionModalView({
   root.zIndex = 170;
   root.eventMode = "none";
   layer?.addChild(backdrop, transitionGraphic, root);
+  const worldScreen=createVassalWorldDecisionScreen({app,layer,getState,
+    getVassal:()=>getPresentation?.()?.vassal,
+    onSelect:id=>onSelectOption?.(openNodeId,lastDecision?.campaign?`campaign-mode:${id}`:id),
+    onSelectSettlement:id=>onSelectOption?.(openNodeId,`legacy-target:${id}`),
+    onSelectCampaignTarget:id=>{
+      const option=lastDecision?.campaign?.targets.find(option=>option.regionId===id);
+      if(option)onSelectOption?.(openNodeId,option.id);
+    },
+    onLeaveCampaign:async()=>{const result=await onSelectOption?.(openNodeId,'campaign-leave');if(result?.ok!==false){onConfirmNode?.(openNodeId);close();}},
+    onConfirm:()=>onConfirmNode?.(openNodeId),onDismiss:()=>close(),tooltipView});
   const panelCenter = { x: PANEL.x + PANEL.width / 2, y: PANEL.y + PANEL.height / 2 };
   const MOTION_MS = 130;
   const START_SIZE = 72;
@@ -275,6 +286,7 @@ export function createVassalNodeDecisionModalView({
   }
 
   function close({ immediate = false } = {}) {
+    worldScreen.close();
     if (!logicalOpen && !immediate) return;
     logicalOpen = false;
     setInspectionAboveChrome(false);
@@ -499,7 +511,7 @@ export function createVassalNodeDecisionModalView({
     // Refresh callbacks can run several times for one entry. A matching layout
     // is already authoritative, including its selected/disabled controls.
     if (!prepared && nextSignature === signature) return;
-    const cached = !prepared && preparedLayouts.get(nextSignature);
+    const cached = !prepared && !decision?.liveWorld && preparedLayouts.get(nextSignature);
     if (cached) {
       inspectionRoot?.releaseKeywordFocus?.();
       clearChildren(root);
@@ -525,6 +537,14 @@ export function createVassalNodeDecisionModalView({
     undoRoots = [];
     tableauRoots = [];
     inspectionRoot = null;
+
+    if (!prepared && decision?.liveWorld && nodeState) {
+      root.visible=false;backdrop.visible=false;
+      worldScreen.refresh(decision,{id:node.id,kind:node.family==='legacy'?'legacy':node.family==='campaign'?'martial':'world'},
+        readOnly || !!nodeState.resolving || !!presentation.decisionProcessing);
+      return;
+    }
+    if (!prepared) worldScreen.refresh(null,null);
 
     const bg = new PIXI.Graphics();
     roundedRect(bg, PANEL.x, PANEL.y, PANEL.width, PANEL.height, 18,
@@ -837,7 +857,7 @@ export function createVassalNodeDecisionModalView({
       const canAcquire = canConfirm && !!selected && !selected.emptyRelic;
       const confirmRelic = (acquire) => {
         const result = onConfirmNode?.(node.id, acquire);
-        if (result?.ok !== false) close();
+        if (result?.ok !== false && !decision.continuousVisit) close();
       };
       acquireRoots.equip = button(root, {
         x: confirmRect.x, y: confirmRect.y - 8, width: confirmRect.width, height: 48,
@@ -983,13 +1003,15 @@ export function createVassalNodeDecisionModalView({
       }
       await app.renderer?.prepare?.upload();
     },
-    init: () => {}, update: () => { advanceMotion(); render(); },
+    init: () => {}, update: () => { advanceMotion(); render(); worldScreen.update(); },
     refresh: () => render(true), resize: () => render(true),
     open, close, isOpen: () => logicalOpen, getOpenNodeId: () => openNodeId,
+    getWorldDecisionPoint: (kind,id) => worldScreen.getPoint(kind,id),
     getEnterNodeClickPoint: () => logicalOpen && enterRoot?.toGlobal
       ? enterRoot.toGlobal(new PIXI.Point(enterRoot.hitArea.width / 2, enterRoot.hitArea.height / 2)) : null,
     getOptionClickPoint(index = 0) {
       if (!logicalOpen) return null;
+      if (worldScreen.isOpen()) return worldScreen.getPoint('option',index);
       const target = optionRoots[index];
       const point = target?.toGlobal?.(new PIXI.Point(target.hitArea.width / 2, target.hitArea.height - COST_FOOTER_HEIGHT / 2 - 6));
       return point ? { x: point.x, y: point.y } : null;
@@ -1005,6 +1027,7 @@ export function createVassalNodeDecisionModalView({
       return point ? { x: point.x, y: point.y } : null;
     },
     getConfirmClickPoint: () => {
+      if (worldScreen.isOpen()) return worldScreen.getPoint('confirm');
       if (!logicalOpen || !confirmRoot) return null;
       const rect = confirmRoot.getBounds();
       return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
@@ -1036,6 +1059,7 @@ export function createVassalNodeDecisionModalView({
       });
       return {
         open: logicalOpen, nodeId: openNodeId,
+        worldDecision:worldScreen.isOpen()?worldScreen.getSnapshot():null,
         layoutBuilds, preparedLayoutHits, preparedLayoutCount:preparedLayouts.size,
         tapFeedback: getTapFeedbackSnapshot(),
         interactionPending: root.pendingInteractionCount > 0,
@@ -1080,6 +1104,7 @@ export function createVassalNodeDecisionModalView({
       };
     },
     getHudDeltas() {
+      if (worldScreen.isOpen()) return worldScreen.getHudDeltas();
       if (!logicalOpen) return null;
       const decision = getDecisionPresentation?.(openNodeId, {
         previewOptionId, previewOfferId,

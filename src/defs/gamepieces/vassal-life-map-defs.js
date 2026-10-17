@@ -1,4 +1,4 @@
-export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 4;
+export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 5;
 export const VASSAL_PHASES_PER_YEAR = 30;
 const VASSAL_TIME_COST_MULTIPLIER = 3.6;
 const increasedPhaseCost = (baseCost) => Math.round(baseCost * VASSAL_TIME_COST_MULTIPLIER);
@@ -27,8 +27,8 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
     description: "Study to improve this Vassal's abilities.",
   }),
   travel: Object.freeze({
-    id: "travel", label: "Travel", glyph: "T", color: 0x62ad82,
-    description: "Move this Vassal to another player settlement.",
+    id: "travel", label: "Crossroads", glyph: "T", color: 0x62ad82,
+    description: "Move, build a route, or tour this region.",
   }),
   practiceReform: Object.freeze({
     id: "practiceReform", label: "Practice Reform", glyph: "PR", color: 0xa46fc4,
@@ -203,6 +203,7 @@ export function getVassalStockOutputIds(practiceDefs) {
 }
 
 export function getVassalLifeMapNodeFamily(node) {
+  if (node?.family === 'relic' && node.specialRelic) return {...VASSAL_NODE_FAMILIES.relic,label:'Special Relic',description:'A dangerous search with explicitly shown risk.'};
   if (node?.signatureNode?.variantId) return VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId] ?? null;
   const family = VASSAL_NODE_FAMILIES[node?.family];
   return node?.family === "stockShop" ? {

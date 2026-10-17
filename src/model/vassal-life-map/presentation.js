@@ -1,4 +1,7 @@
 import { getVassalRiskDeathChance } from './class-rules.js';
+import { getShopOfferPrice } from './shop-specialties.js';
+import { getCampaignPresentation } from './campaign.js';
+import { legacySettlementTargets } from './world-choices.js';
 import { stockTotal } from "../detailed-settlements/stock.js";
 import { evaluateDetailedPracticeSlot, assignDetailedSettlementWorkers } from "../detailed-settlements/practices.js";
 import { getGamepieceFace } from "../gamepiece-presentation.js";
@@ -275,7 +278,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     .reduce((sum, purchase) => sum + Math.max(0, purchase.prestigeCost ?? 0), 0);
   const stagedCurrencyCost = (nodeState?.purchasedOffers ?? [])
     .reduce((sum, purchase) => sum + Math.max(0, purchase.currencyCost ?? 0), 0);
-  const selectedOption = nodeState?.options?.find(
+  const selectedOption = nodeState?.rewardAcquisition ?? nodeState?.options?.find(
     (option) => option.id === (preview.previewOptionId ?? nodeState.selectedOptionId)
   ) ?? null;
   const optionPrestigeCost = selectedOption
@@ -283,7 +286,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
   const selectedOptionPhaseCost = selectedOption
     ? getVassalActionPhaseCost(vassal, selectedOption.phaseCost ?? 0, {
       nodeState,
-      isTravel: nodeState?.family === "travel",
+      isTravel: !!selectedOption?.locationRegionId,
     }) : 0;
   const accumulatedPhaseCost = Math.max(0, Math.floor(nodeState?.accumulatedPhaseCost ?? 0));
   const emptyShopConfirmPhaseCost = isShopNodeState(nodeState)
@@ -330,11 +333,8 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     const kind = intervention?.kind;
     const definitionId = kind === "practice" ? intervention.practiceId
       : kind === "structure" ? intervention.structureId : null;
-    const prestigeCost = purchased ? offer.prestigeCost : getVassalActionPrestigeCost(
-      vassal, offer.basePrestigeCost ?? 0, {
-        isFirstShopPurchase: (nodeState?.purchasedOffers ?? []).length === 0,
-      }
-    );
+    const quote = purchased ? offer : getShopOfferPrice(vassal,nodeState,offer);
+    const prestigeCost = quote.prestigeCost;
     const currencyCost = purchased ? offer.currencyCost : Math.max(0, Number(offer.baseCurrencyCost) || 0);
     const remaining = (nodeState?.purchasedOffers ?? []).filter(p => !purchased || p.offerId !== offer.offerId);
     const checkPlacement = origin => {
@@ -361,14 +361,36 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       constructionPresentation: kind === 'structure' ? getVassalGamepiecePresentation(state, kind, definitionId,
         intervention.tier, { ...intervention, construction: { completedCycles: 0 } }) : null,
       prestigeCost,
+      monsterPressureCost: quote.monsterPressureCost ?? 0,
       currencyCost,
       phaseCost: purchased ? offer.phaseCost
         : getVassalActionPhaseCost(vassal, offer.basePhaseCost ?? 0, { nodeState }),
     };
   };
   const displacedPractices = projected?.practices?.displaced ?? [];
+  const acquiring = !!nodeState?.rewardAcquisition;
+  const campaign = nodeState?.campaign && !acquiring ? getCampaignPresentation(state,vassal,nodeState) : null;
+  const worldOptions = (nodeState?.options ?? []).map(option=>({...clone(option),
+    ...(option.randomReward?{randomReward:{...option.randomReward,relicChance:100*option.randomReward.relicChance}}:{}),
+    cost:getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0),
+    phases:getVassalActionPhaseCost(vassal,option.phaseCost??0,{nodeState,isTravel:!!option.locationRegionId}),
+    blocked:getSettlementRequirements(state,vassal,option).some(entry=>!entry.met)?'Requirements not met':
+      getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0)>vassal.prestige?'Insufficient Prestige':null}));
+  const ordinaryLegacy = nodeState?.family==='legacy' && node.signatureNode?.variantId!=='legacyPlus';
+  const legacySettlement = ordinaryLegacy?{
+    selectedRegionId:nodeState.legacyDestinationRegionId??null,
+    targets:legacySettlementTargets(state,vassal).map(regionId=>({id:`legacy-target:${regionId}`,settlementRegionId:regionId,
+      label:`Found ${getRegionReference(state,regionId)}`,cost:0,phases:0,blocked:null})),
+  }:null;
   return {
-    node, nodeState: nodeState ? {...clone(nodeState), options:(nodeState.options ?? []).map(option => {
+    node:acquiring?{...node,family:'relic'}:node,
+    liveWorld:!acquiring && (['travel','campaign'].includes(nodeState?.family)||ordinaryLegacy),
+    continuousVisit:nodeState?.family==='campaign',
+    options:campaign?.options ?? worldOptions,
+    campaign,legacySettlement,
+    shopTag:nodeState?.shopSelection?.selectedTag??null,
+    ...(nodeState?.shopSelection&&!nodeState.shopSelection.selectedTag?{shopTagChoices:clone(nodeState.shopSelection.choices)}:{}),
+    nodeState: nodeState ? {...clone(nodeState), ...(acquiring?{family:'relic',selectedOptionId:nodeState.rewardAcquisition.id}:{}), options:(acquiring?[nodeState.rewardAcquisition]:nodeState.options ?? []).map(option => {
       const risk = getVassalRiskDeathChance(vassal, option.immediateDeathChance);
       return {...clone(option), ...(Number.isFinite(option.immediateDeathChance) ? {immediateDeathChance:risk,
         label:(option.label ?? '').replace(/\d+(?:\.\d+)?% Danger/g, `${Math.round(risk*100)}% RISK`)} : {})};

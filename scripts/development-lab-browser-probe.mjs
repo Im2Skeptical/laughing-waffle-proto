@@ -16,7 +16,7 @@ try {
   context.on('page',p=>p.on('pageerror',e=>errors.push(e.message)));
   page=await context.newPage();
   if(process.argv.includes('--nodes-only')) {
-    await page.goto(`${url}/#/dev/gym`);
+    await page.goto(`${url}/#/dev/gym?workspace=node`);
     await page.getByTestId('lab-workspace-node').waitFor();
     await checkNodeSandbox(page,context);
     assert.deepEqual(errors,[]);

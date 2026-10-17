@@ -6,6 +6,9 @@ re-exports the previous public lifecycle API from `../lifecycle.js`.
 
 Node confirmation also resolves timed Scholar Delve through the shared mortality
 path, without completing the shop or earning node income.
+Campaign encounters use the same timed path and keep the visit open; only Leave
+completes the node. Tour and Quest rewards enter the normal Relic acquisition
+step before their time advances.
 
 ## Files
 

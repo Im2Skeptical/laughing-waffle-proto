@@ -680,7 +680,7 @@ function runVassalLegacyRetirement(api, options) {
   const timeline = api.createTimelineFromInitialState(state);
   dispatch(api, state, actions, timeline, enterKind, { nodeId: legacyNode.id });
   const nodeState = vassal.lifeMap.nodeStates[legacyNode.id];
-  const option = nodeState.options?.find((entry) => entry.id === "humbleRemembrance")
+  const option = nodeState.options?.find((entry) => entry.id === "accumulated-prestige")
     ?? nodeState.options?.find((entry) => entry.prestigeCost === 0)
     ?? null;
   expect(intended, "free-legacy-option", !!option, nodeState.options?.map((entry) => entry.id) ?? []);

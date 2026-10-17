@@ -171,7 +171,10 @@ export function enterOpeningEncounter(session, id) {
   requireOk(enterVassalLifeNode(state, runtime.id));
   session.activeId = id; session.runtimeNodeId = runtime.id; session.availableIds = [];
   const current = nodeState(session);
+  // This workshop authors its own choices; the live specialty picker is separate.
+  current.shopSelection=null;
   if (spec.kind === 'world') {
+    current.options=current.options.filter(option=>option.locationRegionId);
     current.options.forEach(option => {
       option.phaseCost = spec.worldCosts?.movePhaseCost ?? spec.phaseCost ?? option.phaseCost;
       if (spec.worldCosts) option.prestigeDelta = spec.worldCosts.travelPrestigeByRegion[option.locationRegionId] ?? 0;
@@ -218,7 +221,7 @@ export function getOpeningDecision(session, preview = {}) {
   const vassal = openingVassal(session), current = nodeState(session);
   if(session.campaign) {
     const native=getVassalNodeDecisionPresentation(session.state,session.runtimeNodeId),campaign=getCampaignPresentation(session);
-    return {...native,campaign,options:campaign.options,offers:[],purchases:[],contextKind:'none',mortalityEstimate:null,
+    return {...native,liveWorld:false,campaign,options:campaign.options,offers:[],purchases:[],contextKind:'none',mortalityEstimate:null,
       node:{...native.node,family:'campaign',experimentId:note.id},nodeState:{...native.nodeState,family:'campaign',contentMode:'choice',options:campaign.options,selectedOptionId:campaign.mode}};
   }
   let priceState = session.state;
@@ -233,6 +236,10 @@ export function getOpeningDecision(session, preview = {}) {
   }
   const presentation = getVassalNodeDecisionPresentation(priceState, session.runtimeNodeId, preview);
   const spec = session.experiment.nodes.find(n => n.id === session.activeId);
+  for(const offer of presentation.offers) {
+    const authored=priceState.civilization.vassalLineage.vassalsById[session.vassalId].lifeMap.nodeStates[session.runtimeNodeId].inventory.find(item=>item.offerId===offer.offerId);
+    if(authored?.monsterPressureCost)offer.monsterPressureCost=authored.monsterPressureCost;
+  }
   const options = current.options.map(option => {
     const cost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
     const phases = getVassalActionPhaseCost(vassal, option.phaseCost ?? 0, { nodeState: current, isTravel: current.family === 'travel' && !!option.locationRegionId });
@@ -261,7 +268,7 @@ export function getOpeningDecision(session, preview = {}) {
     const unmet=legacyRequirements['found-settlement'].find(entry=>!entry.met);
     if(unmet)options.find(option=>option.id==='found-settlement').blocked=`Requires ${unmet.label}`;
   }
-  return { ...presentation, ...(legacyRequirements?{workshopLegacy:true,contextKind:'none',optionRequirements:legacyRequirements,legacySettlement:settlement}:{}), ...(session.shopSelection ? { shopTag: session.shopSelection.selectedTag,
+  return { ...presentation, liveWorld:false, ...(legacyRequirements?{workshopLegacy:true,contextKind:'none',optionRequirements:legacyRequirements,legacySettlement:settlement}:{}), ...(session.shopSelection ? { shopTag: session.shopSelection.selectedTag,
     ...(!session.shopSelection.selectedTag ? {shopTagChoices:session.shopSelection.tags.map(({cards,...tag})=>({...tag,enabled:cards.length>0}))} : {}) } : {}),
     node: { ...presentation.node, experimentId: spec.id,
     presentationLabel: spec.title, presentationDescription: spec.description },
@@ -321,9 +328,6 @@ export function commitOpeningEncounter(session, optionId = null, destination = '
     requireOk(selectVassalNodeOption(session.state, session.runtimeNodeId, optionId));
   }
   const result = requireOk(confirmVassalLifeNode(session.state, session.runtimeNodeId, typeof destination === 'object' ? destination : { destination }));
-  const effects = current.purchasedOffers.filter(purchase => purchase.monsterPressureCost > 0)
-    .map(purchase => ({op:'addMonsterPressure',amount:purchase.monsterPressureCost}));
-  requireOk(applyVassalNodeEffects(session.state, effects));
   return result;
 }
 

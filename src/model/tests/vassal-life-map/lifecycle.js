@@ -64,7 +64,7 @@ assert.deepEqual([
 assert.deepEqual(
   ["patronage", "development", "travel", "practiceReform", "publicWorks", "routes", "crisis", "relic"]
     .map((family) => generatorConfig.weights.early[family]),
-  [5, 5, 5, 1, 1, 1, 0, 2]
+  [5, 5, 6, 1, 1, 0, 0, 2]
 );
 assert.deepEqual(generatorConfig.nonRepeatFamilyIds, ["crisis"]);
 for (const band of ["early", "mid", "late"]) {
@@ -167,13 +167,10 @@ const travelVassal = getCurrentLifeMapVassal(travelState);
 const originalLocation = travelVassal.locationRegionId;
 const travelNode = forceEnter(travelState, nodeIdForFamily(travelState, "travel"));
 assert.ok(travelNode.options.length > 0);
-assert.equal(travelNode.options.length, VASSAL_LIFE_TUNING.travelOptionCount,
-  "Travel reveals the configured three closest deterministic destinations");
-assert.ok(travelNode.options.every((option) =>
-  option.locationRegionId !== originalLocation
-    && Number.isFinite(option.graphDistance)
-    && option.phaseCost === Math.max(1, option.graphDistance) * VASSAL_LIFE_TUNING.phasesPerTravelStep
-));
+const moves=travelNode.options.filter(option=>option.locationRegionId);
+assert.ok(moves.length>0);
+assert.ok(moves.every(option=>option.locationRegionId!==originalLocation&&Number.isFinite(option.graphDistance)&&option.phaseCost===18));
+assert.ok(travelNode.options.some(option=>option.randomReward),'Crossroads has a local Tour');
 const destination = travelNode.options[0];
 const travelPresentation = getVassalNodeDecisionPresentation(travelState, travelNode.nodeId, {
   previewOptionId: destination.id,
@@ -350,12 +347,11 @@ legacyVassal.prestige = 100;
 const legacyNode = forceEnter(legacyState, nodeIdForFamily(legacyState, "legacy"));
 dispatch(legacyState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
   nodeId: legacyNode.nodeId,
-  optionId: legacyNode.options.find((option) => option.id === "enduringOffice")?.id
-    ?? "humbleRemembrance",
+  optionId: 'accumulated-prestige',
 });
 dispatch(legacyState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: legacyNode.nodeId });
 assert.equal(legacyState.civilization.vassalLegacy.futureStartingPrestigeBonus,
-  legacyNode.options.find((option) => option.id === "enduringOffice")?.legacyStartingPrestigeBonus ?? 1,
+  10,
   "Legacy applies before the delayed mortality boundary");
 if (getCurrentLifeMapVassal(legacyState)) resolvePending(legacyState);
 assert.equal(getCurrentLifeMapVassal(legacyState), null);
@@ -368,7 +364,7 @@ const freeLegacyState = selectedState(1081);
 const freeLegacyVassal = getCurrentLifeMapVassal(freeLegacyState);
 freeLegacyVassal.prestige = 0;
 const freeLegacyNode = forceEnter(freeLegacyState, nodeIdForFamily(freeLegacyState, "legacy"));
-const freeLegacyOption = freeLegacyNode.options.find((option) => option.id === "humbleRemembrance");
+const freeLegacyOption = freeLegacyNode.options.find((option) => option.id === "accumulated-prestige");
 assert.equal(freeLegacyNode.options.length, 3);
 assert.equal(freeLegacyOption.prestigeCost, 0);
 assert.equal(freeLegacyOption.phaseCost, 0);
@@ -376,8 +372,8 @@ dispatch(freeLegacyState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
   nodeId: freeLegacyNode.nodeId, optionId: freeLegacyOption.id,
 });
 dispatch(freeLegacyState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: freeLegacyNode.nodeId });
-assert.equal(freeLegacyState.civilization.vassalLegacy.futureStartingPrestigeBonus, 1,
-  "the free Legacy choice grants its weaker future-Vassal benefit");
+assert.equal(freeLegacyState.civilization.vassalLegacy.futureStartingPrestigeBonus, 0,
+  "zero held Prestige leaves zero additional starting Prestige");
 assert.equal(getCurrentLifeMapVassal(freeLegacyState), null,
   "a zero-Prestige Vassal can always complete a terminal Legacy node");
 
@@ -446,7 +442,7 @@ assert.equal(new Set(pooledCrisis.options.map((option) => option.id)).size, 1,
 const pooledLegacyState = selectedState(1);
 const pooledLegacy = forceEnter(pooledLegacyState, nodeIdForFamily(pooledLegacyState, "legacy"));
 assert.equal(pooledLegacy.options.length, 3);
-assert.ok(pooledLegacy.options.some((option) => option.id === "humbleRemembrance"),
+assert.ok(pooledLegacy.options.some((option) => option.id === "accumulated-prestige"),
   "Legacy always keeps its free terminal choice");
 
 const serialized = serializeGameState(legacyState);
@@ -474,7 +470,7 @@ for (const option of plusNode.options) {
 
 const monsterState=selectedStateForSignature('monsterHunt');
 const monsterNode=forceEnter(monsterState,nodeIdForSignature(monsterState,'monsterHunt'));
-assert.equal(monsterNode.options[0].classAction.kind,'prepare','no invented Monster targets');
+assert.equal(monsterNode.options[0].id,'observe-frontier','non-Warriors observe instead of entering Campaign');
 
 const removalFallbackState = selectedStateForSignature("removePractice");
 const removalFallbackVassal = getCurrentLifeMapVassal(removalFallbackState);

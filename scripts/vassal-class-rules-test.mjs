@@ -81,7 +81,7 @@ for (const scenario of ['success','protectedFailure','safeCampaign']) {
   const protectedFailure=scenario==='protectedFailure';
   const state=selected('warrior'), v=getCurrentLifeMapVassal(state);
   v.stats.intelligence=100;
-  const node=v.lifeMap.graph.nodes.find(n=>n.family==='challenge');
+  const node=v.lifeMap.graph.nodes.find(n=>n.id===nodeIdForFamily(state,'challenge'));
   assert.ok(node);v.lifeMap.availableNodeIds=[node.id];
   assert.equal(applyAction(state,{kind:ActionKinds.VASSAL_ENTER_LIFE_NODE,payload:{nodeId:node.id}},{isReplay:true}).ok,true);
   const decision=v.lifeMap.nodeStates[node.id];
@@ -134,6 +134,7 @@ for(const [id,family,kind] of [['practice','practiceReform','practice'],['struct
   const action=(kind,payload)=>{const r=applyAction(state,{kind,payload},{isReplay:true});assert.equal(r.ok,true,r.reason);};
   action(ActionKinds.VASSAL_ENTER_LIFE_NODE,{nodeId});
   const shop=v.lifeMap.nodeStates[nodeId];
+  if(shop.shopSelection)action(ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId,optionId:shop.shopSelection.kind==='practice'?'random':shop.shopSelection.choices.find(c=>c.enabled).id});
   const offer=shop.inventory.find(o=>o.intervention.kind===kind && o.intervention.mode!=='upgrade');
   assert.ok(offer);const before=v.prestige;
   action(ActionKinds.VASSAL_PURCHASE_SHOP_OFFER,{nodeId,offerId:offer.offerId});
@@ -160,7 +161,9 @@ const act=(kind,payload)=>{
   const result=applyAction(state,{kind,payload},{isReplay:true});assert.equal(result.ok,true,result.reason);return result;
 };
 act(ActionKinds.VASSAL_ENTER_LIFE_NODE,{nodeId:node.id});
-const shop=v.lifeMap.nodeStates[node.id], inventory=structuredClone(shop.inventory);
+const shop=v.lifeMap.nodeStates[node.id];
+if(shop.shopSelection)act(ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId:node.id,optionId:shop.shopSelection.kind==='practice'?'random':shop.shopSelection.choices.find(c=>c.enabled).id});
+const inventory=structuredClone(shop.inventory);
 const prestige=v.prestige, cost=getVassalDelvePhaseCost(state,v,shop);
 assert.equal(cost,192,'10 years discounted by 40% at the default 32 phases/year');
 const prepared=await prepareLifeChoices(serializeGameState(state));

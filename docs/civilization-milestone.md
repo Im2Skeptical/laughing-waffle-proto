@@ -67,6 +67,15 @@ first-pass system notes below retain their original tuning context.
   Neutral Market and Class Market nodes mix Practices and Structures exclusively
   from their advertised pool; unclassed Life Maps replace Class Markets with
   Neutral Markets. Rerolls preserve these rules.
+- Practice Reform first chooses between two eligible Stock outputs and Random
+  (+10 Prestige once). Public Works chooses Housing, Stock capacity, or Special.
+  Insufficient Prestige substitutes 10 Monster expansion progress per card
+  purchase at checkout; staging and undo do not apply it.
+- Crossroads combines Move, Build route and Tour in one full-map node. Ordinary
+  Relics have no direct death roll; explicitly Special searches retain danger.
+  Ordinary Legacy has free founding, highest-stat / 3, and held-Prestige / 10
+  choices, with accumulating future bonuses. Custom opening pathways remain
+  in progress in the standalone workshop.
 - Food Shop and Housing Shop are also ordinary Life Map nodes, with equal
   weights across early, middle, and late life. Authored graphs average roughly
   three of these nodes combined; each offers only cards with its advertised tag
@@ -166,14 +175,20 @@ human playtest work.
   Effectiveness; offers refresh after real time and mortality resolve.
 - Retinue is floor(held Prestige/10), without a population cap. Former cap bonuses
   add Force directly. Global Martial Force sums owned Warrior/support strength,
-  active Warrior Prowess and Retinue. Campaigns and supplied automatic defense
-  use that same number. Localized calculation is pinned for redesign because it
-  may make personal and regional strength more satisfying.
+  active Warrior Prowess and Retinue. Supplied automatic defense retains this
+  formula. Campaign now has its own explicit mode-specific force panel.
 - Prowess increases all RISK success relatively by 15% per point, capped at 100%,
   and successful RISK earns 15 extra Prestige. Challenge-only time/danger bonuses
   are removed; protected failed rolls do not earn success rewards.
-- Campaign requires sufficient global Force and one hosted Edible. Advantage
-  reduces time/danger/collateral. At advantage three all neutral population
+- Campaign is Warrior-only and stays open between encounters. Duel uses Prowess,
+  Quest adds Retinue, and Attack adds min(adult Warriors, hosted Arms).
+  Defence / (Force + Defence) sets defeat risk; each attempt costs two phases.
+  Attack costs 5 Prestige; expeditions cost 1 + map-distance Edible. Defeat ends
+  the visit, with natural mortality after elapsed time. Duel victory adds one
+  permanent Prowess and 10 Prestige; Quest awards a Relic and 10 Prestige, with
+  the 15-Prestige Warrior risk prize added to successful encounters.
+  Monster clearing resets expansion progress and opens the stronger nest;
+  destroying the nest removes it. Neutral attacks use conquest. At advantage three all neutral population
   survives; below that, 80% population and Stock survive. Survivors become adult
   Strangers. Ruins retain dormant population/Stock for reconquest; no siege
   attrition or specialty-preserving ruin recovery has been added.

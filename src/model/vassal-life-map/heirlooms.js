@@ -212,7 +212,7 @@ function pickHeirloomDefinition(state, excludedIds) {
   return pickFrom[state.rngNextVassalInt(0, pickFrom.length - 1)] ?? null;
 }
 
-export function generateRelicOffers(state, vassal) {
+export function generateRelicOffers(state, vassal, {special=false} = {}) {
   const excluded = getOwnedHeirloomDefinitionIds(state, vassal);
   const offers = [];
   for (let index = 0; index < VASSAL_HEIRLOOM_TUNING.offerCount; index += 1) {
@@ -231,6 +231,7 @@ export function generateRelicOffers(state, vassal) {
       effects: [{op:"addMonsterPressure",amount:def.quality==='bronze'?0:getGameSetting(state,`${def.quality}RelicMonsterProgress`)}],
       prestigeCost: 0,
       ...cost,
+      immediateDeathChance: special ? Math.max(.35,cost.immediateDeathChance) : 0,
       phaseCost: state.rngNextVassalInt(range.min, range.max),
     });
   }

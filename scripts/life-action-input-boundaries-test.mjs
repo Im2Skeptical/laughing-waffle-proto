@@ -106,6 +106,8 @@ function accept(raw, kind, payload, read) {
 function lab(type) {
   const { state, nodeId } = createLabNodeSandbox({ type, classId: "unclassed", prestige: 100, seed: 4 });
   const vassal = getCurrentLifeMapVassal(state);
+  const selection=vassal.lifeMap.nodeStates[nodeId].shopSelection;
+  if(selection) {const r=applyAction(state,{kind:ActionKinds.VASSAL_SELECT_LIFE_OPTION,payload:{nodeId,optionId:selection.kind==='practice'?'random':selection.choices.find(c=>c.enabled).id}},{isReplay:true});if(!r.ok)throw new Error(r.reason);}
   const site = state.world.sites.find((entry) => entry.regionId === vassal.locationRegionId);
   site.detailedState.structureSlots.fill(null);
   return { state, nodeId, vassal };

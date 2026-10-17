@@ -1,6 +1,10 @@
 import { getVassalRiskDeathChance } from '../class-rules.js';
 import { VASSAL_CLASS_RULES } from '../../../defs/vassal-class-rules.js';
 import { ensureCommissionOffers, recordCommissionAction } from '../commissions.js';
+import { createShopSpecialties } from '../shop-specialties.js';
+import { buildCrossroadsOptions, buildLegacyOptions, legacySettlementTargets, rollTourReward } from '../world-choices.js';
+import { buildCampaignOptions, campaignBlockReason, resolveCampaignAttempt } from '../campaign.js';
+import { VASSAL_WORKSHOP_RULES } from '../../../defs/vassal-workshop-rules.js';
 import { getGameSetting } from '../../game-config.js';
 import { addMonsterPressure } from '../../detailed-settlements/external-world.js';
 import { addActionChaos } from '../../detailed-settlements/practice-events.js';
@@ -71,51 +75,11 @@ import {
 import {
   SHOP_FAMILIES,
   generateShopInventory,
+  chooseShopSpecialty,
   isShopNodeState,
   validatePurchaseInterventions,
 } from "../shop.js";
 import { generateCandidatePool } from "./candidates.js";
-
-function shortestDistance(state, startId, targetId) {
-  if (startId === targetId) return 0;
-  const adjacency = new Map();
-  for (const edge of state?.world?.connections ?? []) {
-    if (!adjacency.has(edge.regionAId)) adjacency.set(edge.regionAId, []);
-    if (!adjacency.has(edge.regionBId)) adjacency.set(edge.regionBId, []);
-    adjacency.get(edge.regionAId).push(edge.regionBId);
-    adjacency.get(edge.regionBId).push(edge.regionAId);
-  }
-  const queue = [{ id: startId, distance: 0 }];
-  const seen = new Set([startId]);
-  while (queue.length) {
-    const current = queue.shift();
-    for (const nextId of adjacency.get(current.id) ?? []) {
-      if (seen.has(nextId)) continue;
-      if (nextId === targetId) return current.distance + 1;
-      seen.add(nextId);
-      queue.push({ id: nextId, distance: current.distance + 1 });
-    }
-  }
-  return null;
-}
-
-function buildTravelOptions(state, vassal) {
-  return getPlayerDetailedSites(state)
-    .filter((site) => site.regionId !== vassal.locationRegionId)
-    .map((site) => ({
-      id: `travel-${site.regionId}`,
-      label: `Travel to ${getRegionReference(state, site.regionId) ?? site.name ?? site.regionId}`,
-      locationRegionId: site.regionId,
-      graphDistance: shortestDistance(state, vassal.locationRegionId, site.regionId),
-    }))
-    .filter((option) => Number.isFinite(option.graphDistance))
-    .map((option) => ({
-      ...option,
-      phaseCost: Math.max(1, option.graphDistance) * VASSAL_LIFE_TUNING.phasesPerTravelStep,
-    }))
-    .sort((a, b) => a.graphDistance - b.graphDistance || a.locationRegionId.localeCompare(b.locationRegionId))
-    .slice(0, VASSAL_LIFE_TUNING.travelOptionCount);
-}
 
 function applyPracticeIntervention(practiceSlots, intervention) {
   const existingIndex = practiceSlots.findIndex((slot) =>
@@ -179,6 +143,7 @@ function buildSettlementFallbackOptions(state, vassal) {
 }
 
 export function getSettlementRequirements(state, vassal, option) {
+  if (option?.legacyFounding) return [{label:'Connected, empty frontier destination',met:legacySettlementTargets(state,vassal).includes(option.settlementRegionId)}];
   if (!option?.settlementRegionId && option?.id !== "settlement-unavailable") return [];
   const targetId = option.settlementRegionId;
   const target = getRegionState(state, targetId);
@@ -268,7 +233,11 @@ function createNodeState(state, vassal, node) {
       legacyStartingPrestigeBonus: Math.max(0, option.legacyStartingPrestigeBonus ?? 0) * 2,
     }));
   } else if (node.signatureNode?.variantId === "monsterHunt") {
-    nodeState.options = classActionOptions(state,vassal,"campaign");
+    if(vassal.classId==='warrior') {
+      nodeState.family='campaign';
+      nodeState.campaign={mode:'attack',duelDone:false,failed:false,questRegionIds:[],lastResult:null};
+      nodeState.options=buildCampaignOptions(state,vassal,nodeState);
+    } else nodeState.options=[{id:'observe-frontier',label:'Observe the frontier',phaseCost:2,prestigeDelta:6}];
   } else if (["removal", "tagShop"].includes(node.signatureNode?.groupId)) {
     nodeState.contentMode = "shop";
     nodeState.inventory = generateShopInventory(state, vassal, nodeState);
@@ -290,13 +259,18 @@ function createNodeState(state, vassal, node) {
       };
     });
   } else if (node.family === "development") nodeState.options = buildDevelopmentOptions(state, vassal);
-  else if (node.family === "travel") nodeState.options = buildTravelOptions(state, vassal);
+  else if (node.family === "travel") nodeState.options = buildCrossroadsOptions(state, vassal);
   else if (node.family === "settlement") nodeState.options = buildSettlementOptions(state, vassal);
+  else if (node.family === 'campaign') {
+    nodeState.campaign={mode:'attack',duelDone:false,failed:false,questRegionIds:[],lastResult:null};
+    nodeState.options=buildCampaignOptions(state,vassal,nodeState);
+  }
   else if (classActionOptions(state, vassal, node.family)) nodeState.options = classActionOptions(state, vassal, node.family);
-  else if (node.family === "legacy") nodeState.options = clone(VASSAL_LEGACY_OPTIONS);
-  else if (node.family === "relic") nodeState.options = generateRelicOffers(state, vassal);
+  else if (node.family === "legacy") nodeState.options = buildLegacyOptions(state, vassal);
+  else if (node.family === "relic") nodeState.options = generateRelicOffers(state, vassal, {special:node.specialRelic===true});
   else if (SHOP_FAMILIES.has(node.family)) {
     nodeState.contentMode = "shop";
+    nodeState.shopSelection = createShopSpecialties(state,vassal,nodeState);
     nodeState.inventory = generateShopInventory(state, vassal, nodeState);
   }
   return nodeState;
@@ -315,6 +289,7 @@ export function enterVassalLifeNode(state, nodeId) {
   if (!(vassal.lifeMap.availableNodeIds ?? []).includes(nodeId)) return { ok: false, reason: "nodeUnavailable" };
   const node = getVassalLifeMapNode(vassal, nodeId);
   if (!node) return { ok: false, reason: "invalidNode" };
+  if (node.family === 'campaign' && vassal.classId !== 'warrior') return {ok:false,reason:'warriorRequired'};
   const nodeState = vassal.lifeMap.nodeStates[nodeId] ?? createNodeState(state, vassal, node);
   vassal.lifeMap.nodeStates[nodeId] = nodeState;
   vassal.lifeMap.currentNodeId = nodeId;
@@ -328,13 +303,34 @@ export function enterVassalLifeNode(state, nodeId) {
 }
 
 export function selectVassalNodeOption(state, nodeId, optionId) {
+  if (typeof optionId!=='string') return {ok:false,reason:'invalidOption'};
   const vassal = getCurrentLifeMapVassal(state);
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
   if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !nodeState || nodeState.resolving) {
     return { ok: false, reason: "nodeUnavailable" };
   }
+  if (nodeState.shopSelection && !nodeState.shopSelection.selectedTag) {
+    const result=chooseShopSpecialty(state,vassal,nodeState,optionId);
+    if (result.ok && optionId==='random') recordCommissionAction(state,vassal,{kind:'prestigeGained',amount:VASSAL_WORKSHOP_RULES.randomShopPrestige});
+    return result;
+  }
+  if (nodeState.family === 'campaign' && optionId.startsWith('campaign-mode:')) {
+    const mode=optionId.slice('campaign-mode:'.length);
+    if (vassal.classId !== 'warrior' || !['attack','duel','quest'].includes(mode) || nodeState.rewardAcquisition) return {ok:false,reason:'invalidCampaignMode'};
+    nodeState.campaign.mode=mode;
+    nodeState.options=buildCampaignOptions(state,vassal,nodeState);
+    nodeState.selectedOptionId=mode==='duel'?nodeState.options.find(option=>option.mode==='duel')?.id??null:null;
+    return {ok:true};
+  }
+  if (nodeState.family === 'legacy' && optionId.startsWith('legacy-target:')) {
+    const id=optionId.slice('legacy-target:'.length);
+    if (!legacySettlementTargets(state,vassal).includes(id)) return {ok:false,reason:'settlementUnavailable'};
+    nodeState.legacyDestinationRegionId=id;nodeState.selectedOptionId='found-settlement';
+    return {ok:true};
+  }
   const option = nodeState.options.find((entry) => entry.id === optionId);
   if (!option) return { ok: false, reason: "invalidOption" };
+  if (nodeState.family === 'campaign' && campaignBlockReason(state,vassal,option)) return {ok:false,reason:'campaignUnavailable'};
   if (getSettlementRequirements(state, vassal, option).some((entry) => !entry.met)) {
     return { ok: false, reason: "settlementUnavailable" };
   }
@@ -427,8 +423,8 @@ function applyOptionEffect(state, vassal, nodeState, option) {
   }
   if (option?.settlementRegionId) {
     const source = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
-    if (Math.floor(source?.populationByClass?.villager?.adults ?? 0) < 10
-        || !getSettlementTargets(state, vassal).includes(option.settlementRegionId)) {
+    if (!option.legacyFounding && (Math.floor(source?.populationByClass?.villager?.adults ?? 0) < 10
+        || !getSettlementTargets(state, vassal).includes(option.settlementRegionId))) {
       return { ok: false, reason: "settlementUnavailable" };
     }
   }
@@ -468,7 +464,7 @@ function applyOptionEffect(state, vassal, nodeState, option) {
     settlement.populationByClass.villager.children = 0;
     settlement.populationByClass.villager.adults = 10;
     settlement.populationByClass.villager.eldersByAge = [];
-    settlement.populationByClass.villager.specialists=settlers.villager.specialists;
+    if (!option.legacyFounding) settlement.populationByClass.villager.specialists=settlers.villager.specialists;
     settlement.populationByClass.stranger.children = 0;
     settlement.populationByClass.stranger.adults = 0;
     settlement.populationByClass.stranger.eldersByAge = [];
@@ -476,10 +472,10 @@ function applyOptionEffect(state, vassal, nodeState, option) {
     settlement.structureSlots = [
       { structureId: "granary" },
       { structureId: "mudHouses" },
-    ];
+    ].slice(0,getRegionState(state,targetRegionId).structureCapacity);
     const result = establishDetailedSettlement(state, targetRegionId, settlement);
     if (!result.ok) return result;
-    removePopulationComposition(source,settlers);
+    if (!option.legacyFounding) removePopulationComposition(source,settlers);
     vassal.locationRegionId = targetRegionId;
   }
   if (option?.intervention) {
@@ -499,11 +495,15 @@ function applyOptionEffect(state, vassal, nodeState, option) {
   }
   if (Number.isFinite(option?.legacyStartingPrestigeBonus)) {
     const legacy = state.civilization.vassalLegacy;
-    legacy.futureStartingPrestigeBonus = Math.min(
-      VASSAL_LIFE_TUNING.legacyStartingPrestigeBonusCap,
+    legacy.futureStartingPrestigeBonus = (
       Math.max(0, Math.floor(legacy.futureStartingPrestigeBonus ?? 0))
         + Math.max(0, Math.floor(option.legacyStartingPrestigeBonus))
     );
+  }
+  if (option?.legacyReward) {
+    const legacy=state.civilization.vassalLegacy,reward=option.legacyReward;
+    if (reward.kind==='stat') legacy.futureStartingStatBonuses[reward.statId]+=reward.amount;
+    else legacy.futureStartingPrestigeBonus+=reward.amount;
   }
   // Resolve the committed action at its validated location before its Monster
   // cost can destroy that town or evacuate the Vassal to a different supplier.
@@ -546,7 +546,7 @@ function applyOptionEffect(state, vassal, nodeState, option) {
   }
   const phaseCost = getVassalActionPhaseCost(vassal, option?.phaseCost ?? 0, {
     nodeState,
-    isTravel: nodeState.family === "travel",
+    isTravel: !!option?.locationRegionId,
   });
   markHeirloomTimeAction(nodeState, phaseCost);
   return { ok: true, prestigeCost, phaseCost };
@@ -574,10 +574,11 @@ function enqueueVassalDevelopmentChoices(state, vassal, count) {
 
 export function completeNodeResolution(state, vassal, nodeState) {
   const delve = vassal.lifeMap.pendingResolution?.kind === 'shopDelve';
+  const encounter = vassal.lifeMap.pendingResolution?.kind === 'campaignEncounter';
   const option = delve ? null : nodeState.options.find(entry => entry.id === nodeState.selectedOptionId);
   if (option?.classAction?.onCompletion) applyClassAction(state, vassal, option.classAction);
   ensureCommissionOffers(state, vassal);
-  const gains = delve ? {prestige:0,development:0} : getVassalNodeResolutionGains(vassal, nodeState.family);
+  const gains = delve || encounter ? {prestige:0,development:0} : getVassalNodeResolutionGains(vassal, nodeState.family);
   vassal.prestige += gains.prestige;
   if (gains.prestige > 0) recordCommissionAction(state, vassal, { kind: 'prestigeGained', amount: gains.prestige });
   vassal.developmentProgress += gains.development;
@@ -594,7 +595,7 @@ export function completeNodeResolution(state, vassal, nodeState) {
   nodeState.resolved = true;
   nodeState.resolvedSec = Math.max(0, Math.floor(state.tSec ?? 0));
   vassal.lifeMap.pendingResolution = null;
-  if (!delve && !vassal.lifeMap.completedNodeIds.includes(nodeState.nodeId)) {
+  if (!delve && !encounter && !vassal.lifeMap.completedNodeIds.includes(nodeState.nodeId)) {
     vassal.lifeMap.completedNodeIds.push(nodeState.nodeId);
   }
   if (mortalityRoll < mortalityChance) {
@@ -619,6 +620,11 @@ export function completeNodeResolution(state, vassal, nodeState) {
   addLifeEvent(state, vassal, "nodeResolved", {
     nodeId: nodeState.nodeId, result: nodeState.resolutionResult, age,
   });
+  if (encounter) {
+    nodeState.resolved=false;nodeState.accumulatedPhaseCost=0;nodeState.selectedOptionId=null;
+    nodeState.options=buildCampaignOptions(state,vassal,nodeState);
+    return {ok:true,ended:false,campaignEncounter:true};
+  }
   if (delve) {
     nodeState.resolved = false;
     nodeState.inventoryRoll += 1;
@@ -643,17 +649,34 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
   if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !nodeState || nodeState.resolving) {
     return { ok: false, reason: "nodeUnavailable" };
   }
+  if (nodeState.shopSelection && !nodeState.shopSelection.selectedTag) return {ok:false,reason:'shopSpecialtyRequired'};
   let option = null;
   if (!isShopNodeState(nodeState)) {
-    option = nodeState.options.find((entry) => entry.id === nodeState.selectedOptionId) ?? null;
+    option = nodeState.rewardAcquisition ?? nodeState.options.find((entry) => entry.id === nodeState.selectedOptionId) ?? null;
     if (!option) return { ok: false, reason: "optionRequired" };
+  }
+  if (nodeState.family==='legacy' && option.id==='found-settlement') {
+    if (!legacySettlementTargets(state,vassal).includes(nodeState.legacyDestinationRegionId)) return {ok:false,reason:'settlementUnavailable'};
+    option={...option,settlementRegionId:nodeState.legacyDestinationRegionId,legacyFounding:true};
+  }
+  if (option?.randomReward) {
+    option=rollTourReward(state,vassal,option);
+    nodeState.options[nodeState.options.findIndex(entry=>entry.id===option.id)]=option;
+    if (option.definitionId) {nodeState.rewardAcquisition=option;return {ok:true,needsAcquisition:true};}
+  }
+  if (nodeState.family==='campaign' && option.id!=='campaign-leave' && !nodeState.rewardAcquisition) {
+    const result=resolveCampaignAttempt(state,vassal,nodeState,option);
+    if (result.ok) flushPracticeEvents(state);
+    if (!result.ok || result.needsAcquisition) return result;
+    return beginCampaignResolution(state,vassal,nodeState,result.phaseCost);
   }
   // Charge the search before the new Heirloom is equipped, so a time-reducing
   // find cannot discount the choice that discovered it.
-  const relicPhaseCost = nodeState.family === "relic"
+  const isRelic = nodeState.family === 'relic' || !!nodeState.rewardAcquisition;
+  const relicPhaseCost = isRelic
     ? getVassalActionPhaseCost(vassal, option?.phaseCost ?? 0, { nodeState, isTravel: false })
     : null;
-  if (nodeState.family === "relic") {
+  if (isRelic) {
     if (option?.emptyRelic) {
       acquire = { destination: "decline" };
     } else if (!acquire?.destination) {
@@ -709,6 +732,8 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
     emitPracticeEvent(state,{kind:'settlementChanged',regionId:vassal.locationRegionId,reason:'shopConfirmed'});
     flushPracticeEvents(state);
   }
+  const monsterCost=nodeState.purchasedOffers.reduce((sum,purchase)=>sum+(purchase.monsterPressureCost??0),0);
+  if (monsterCost) addMonsterPressure(state,monsterCost);
   if (isShopNodeState(nodeState) && nodeState.purchasedOffers.length === 0) {
     const emptyCost = getVassalActionPhaseCost(
       vassal, VASSAL_LIFE_TUNING.emptyShopConfirmPhaseCost, { nodeState }
@@ -719,11 +744,16 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
   let optionResult = { ok: true, phaseCost: 0 };
   if (option) optionResult = applyOptionEffect(state, vassal, nodeState, option);
   if (!optionResult.ok || optionResult.immediateDeath) return optionResult;
-  if (nodeState.family === "relic" && option?.definitionId && acquire.destination !== "decline") {
+  if (isRelic && option?.definitionId && acquire.destination !== "decline") {
     const acquired = acquireHeirloom(state, vassal, option.definitionId, acquire);
     if (!acquired.ok) return acquired;
     recordCommissionAction(state, vassal, {kind:'relicAcquired',definitionId:option.definitionId});
   }
+  if (nodeState.family==='campaign' && nodeState.rewardAcquisition) {
+    delete nodeState.rewardAcquisition;
+    return beginCampaignResolution(state,vassal,nodeState,relicPhaseCost);
+  }
+  delete nodeState.rewardAcquisition;
   if (relicPhaseCost != null) optionResult = { ...optionResult, phaseCost: relicPhaseCost };
   nodeState.accumulatedPhaseCost += optionResult.phaseCost;
   nodeState.resolving = true;
@@ -738,6 +768,14 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
     return completeNodeResolution(state, vassal, nodeState);
   }
   return { ok: true, pendingResolution: clone(vassal.lifeMap.pendingResolution) };
+}
+
+function beginCampaignResolution(state,vassal,nodeState,phaseCost) {
+  nodeState.resolving=true;
+  nodeState.confirmedSec=Math.floor(state.tSec);
+  vassal.lifeMap.pendingResolution={kind:'campaignEncounter',nodeId:nodeState.nodeId,startSec:state.tSec,
+    phaseCost,resolveSec:state.tSec+phaseCost*getMoonPhaseDurationSec(state)};
+  return {ok:true,pendingResolution:clone(vassal.lifeMap.pendingResolution)};
 }
 
 export function chooseVassalDevelopmentStat(state, choiceId, statId) {

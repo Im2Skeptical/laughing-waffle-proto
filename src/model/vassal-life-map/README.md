@@ -22,6 +22,15 @@ re-exports the previous public API; internals live here.
   - Shared class founding, Discovery, Campaign/Challenge and live Crisis rules.
 - `class-rules.js`
   - Shared RISK success, surpassing quality rolls and Delve time calculations.
+- `campaign.js`
+  - Warrior visit modes, target validation, mode-specific forces, paid encounters,
+    real world victories, Relic rewards and continuous-visit presentation.
+- `world-choices.js`
+  - Crossroads movement/routes/Tour, commit-time random rewards, and free Legacy
+    choices and founding targets. Custom first pathways stay in the prototype.
+- `shop-specialties.js`
+  - Practice output choices, Structure categories, and deferred Monster-pressure
+    substitution for card purchases beyond available Prestige.
 - `commissions.js`
   - Continuous Scholar offers, actor-attributed node goals, completion, and validation.
     Eleven data-driven tasks pay 20/40/60 Prestige. Construction pays on committed

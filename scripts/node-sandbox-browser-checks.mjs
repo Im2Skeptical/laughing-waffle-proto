@@ -3,9 +3,17 @@ import assert from 'node:assert/strict';
 // Shared by the Development Lab probe; exercise the actual game's Pixi inputs.
 export async function checkNodeSandbox(page, context) {
   const before = await page.evaluate(()=>({state:JSON.stringify(__LAB_DEBUG__.getSnapshot().state),storage:JSON.stringify({...localStorage})}));
-  await page.getByTestId('lab-workspace-node').click();
+  const workspace=page.getByRole('button',{name:'Node',exact:true});
+  if(await workspace.getAttribute('aria-pressed')!=='true')await workspace.click();
   const canvas=page.getByTestId('lab-node-sandbox');
-  const snapshot=()=>page.evaluate(()=>{const s=__LAB_DEBUG__.getNodeSandbox();return {seed:s.settings.seed,research:s.settings.research,actualResearch:s.state.civilization.research.total,type:s.settings.type,tSec:s.state.tSec,modal:s.modal.open,staged:s.modal.purchaseOrder.length,prestige:s.modal.currentPrestige,projected:s.modal.projectedPrestige,inspected:s.modal.inspectedCardId,offers:s.modal.offers.map(o=>({label:o.label,kind:o.kind,canStage:o.canStage})),selected:s.modal.selectedOptionId,pending:!!s.vassal?.lifeMap.pendingResolution};});
+  const snapshot=async()=>{await chooseSpecialty();return page.evaluate(()=>{const s=__LAB_DEBUG__.getNodeSandbox();return {seed:s.settings.seed,research:s.settings.research,actualResearch:s.state.civilization.research.total,type:s.settings.type,tSec:s.state.tSec,modal:s.modal.open,staged:s.modal.purchaseOrder.length,prestige:s.modal.currentPrestige,projected:s.modal.projectedPrestige,inspected:s.modal.inspectedCardId,offers:s.modal.offers.map(o=>({label:o.label,kind:o.kind,canStage:o.canStage})),selected:s.modal.selectedOptionId,pending:!!s.vassal?.lifeMap.pendingResolution};});};
+  async function chooseSpecialty() {
+    const index=await page.evaluate(()=>{const choices=__LAB_DEBUG__.getNodeSandbox().modal.shopTagChoices;return choices.length?Math.max(0,choices.findIndex(c=>c.id==='random')):-1;});
+    if(index>=0){
+      await click('tag',index);
+      await page.waitForFunction(()=>__LAB_DEBUG__.getNodeSandbox().modal.shopTagChoices.length===0);
+    }
+  }
   async function point(kind,index=0) {
     await page.waitForFunction(()=>__LAB_DEBUG__.getNodeSandbox().modal.animation.phase==='open');
     await canvas.scrollIntoViewIfNeeded();
@@ -51,6 +59,7 @@ export async function checkNodeSandbox(page, context) {
   assert.equal((await snapshot()).seed,42,'invalid refresh preserves the fixture');
   await page.getByLabel('Refresh seed',{exact:true}).fill('42');
   await page.getByLabel('Dummy class',{exact:true}).selectOption('unclassed');
+  await page.getByLabel('Refresh seed',{exact:true}).fill('0');
   await page.getByLabel('Research',{exact:true}).fill('100');await page.getByTestId('lab-node-refresh').click();
   const silverUnlock=await snapshot();assert.equal(silverUnlock.actualResearch,100);
   await page.getByLabel('Research',{exact:true}).fill('300');await page.getByTestId('lab-node-refresh').click();
@@ -59,7 +68,7 @@ export async function checkNodeSandbox(page, context) {
   assert.ok(researchSetup.offers.some(o=>o.label.startsWith('Learn Silver')));
   await page.getByTestId('lab-node-refresh').click();assert.deepEqual((await snapshot()).offers,researchSetup.offers,'same seed and Research reproduce offers');
   await page.getByTestId('lab-node-next-seed').click();assert.equal((await snapshot()).research,300);
-  await page.getByLabel('Refresh seed',{exact:true}).fill('42');await page.getByTestId('lab-node-refresh').click();
+  await page.getByLabel('Refresh seed',{exact:true}).fill('0');await page.getByTestId('lab-node-refresh').click();
   assert.deepEqual((await snapshot()).offers,researchSetup.offers);
   await page.getByLabel('Research',{exact:true}).fill('-1');await page.getByTestId('lab-node-refresh').click();
   assert.equal((await snapshot()).actualResearch,300,'invalid Research preserves the fixture');
@@ -76,7 +85,20 @@ export async function checkNodeSandbox(page, context) {
   await click('option');assert.ok((await snapshot()).selected);
   await click('confirm');await page.getByTestId('lab-node-resolve').click();
   assert.ok((await snapshot()).tSec>0);assert.equal((await snapshot()).pending,false);
+  await page.getByLabel('Dummy class',{exact:true}).selectOption('warrior');
+  await page.getByLabel('Sandbox node type').selectOption('campaign');await page.getByTestId('lab-node-refresh').click();
+  await click('option',1);
+  await page.waitForFunction(()=>__LAB_DEBUG__.getNodeSandbox().modal.worldDecision?.mode==='duel');
+  assert.deepEqual(await page.evaluate(()=>__LAB_DEBUG__.getNodeSandbox().modal.worldDecision.forcePanel.components.filter(c=>c.active).map(c=>c.label)),['Prowess']);
+  await click('confirm');
+  assert.equal((await snapshot()).modal,true,'Campaign stays open during its timed encounter');
+  assert.equal((await snapshot()).pending,true);
+  await page.getByTestId('lab-node-resolve').click();
+  assert.equal((await snapshot()).pending,false);
+  assert.equal(await page.evaluate(()=>__LAB_DEBUG__.getNodeSandbox().modal.worldDecision.campaign.lastResult.stage),'duel');
+  await page.getByLabel('Dummy class',{exact:true}).selectOption('scholar');
   await page.getByLabel('Sandbox node type').selectOption('practiceReform');await page.getByTestId('lab-node-refresh').click();
+  await chooseSpecialty();
   await canvas.scrollIntoViewIfNeeded();await page.screenshot({path:'artifacts/development-lab-node-desktop.png'});
   await page.setViewportSize({width:390,height:844});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,'portrait page contains the wide canvas');
@@ -104,5 +126,7 @@ export async function checkNodeSandbox(page, context) {
   await page.getByRole('link',{name:'Museum',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('[data-mode="museum"]').getAttribute('aria-current')==='page');
   assert.equal(await canvas.count(),0,'node workspace is absent from Museum');
-  await page.getByRole('link',{name:'Gym',exact:true}).click();await page.getByTestId('lab-workspace-settlement').click();
+  // Restore the caller's workspace without another animated map interaction.
+  await page.evaluate(()=>{location.hash='/dev/gym?workspace=settlement';});
+  await page.waitForFunction(()=>document.querySelector('[data-testid="lab-workspace-settlement"]')?.getAttribute('aria-pressed')==='true');
 }

@@ -332,6 +332,12 @@ function laterDecision(session) {
     fail(session, "later-enter", { reason: entered?.reason ?? "enterFailed", detail: { nodeId, family } });
     return null;
   }
+  const specialty=getVassalNodeDecisionPresentation(session.state,nodeId)?.shopTagChoices;
+  if(specialty?.length){
+    const choice=specialty.find(c=>c.id==='random'&&c.enabled)??specialty.find(c=>c.enabled);
+    const selected=choice&&commit(session,ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId,optionId:choice.id});
+    if(!selected?.ok){fail(session,'shop-specialty',{reason:selected?.reason??'noSpecialty'});return null;}
+  }
   const rngBefore = JSON.stringify(session.state.rng);
   const presentation = getVassalNodeDecisionPresentation(session.state, nodeId);
   if (JSON.stringify(session.state.rng) !== rngBefore) {
