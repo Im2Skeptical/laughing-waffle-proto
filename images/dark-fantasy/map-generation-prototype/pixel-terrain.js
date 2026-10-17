@@ -175,14 +175,23 @@ function noise(seed, x, y, scale) {
 // with runCooperative so the loading screen can repaint between phases.
 export function bakePixelTerrain(map, options) { return runSync(bakePixelTerrainSteps(map, options)); }
 
-export function* bakePixelTerrainSteps(map, { texel = 2, sampleBackground, sites = true, settlementScale = .75, islandStyle = 'basalt', retainPresentation = false, windowedAnimation = false, worldBounds = null }) {
+// If a cooperative driver abandons the bake at a checkpoint, the textures and GPU
+// helpers it already made are released instead of lingering in Pixi's caches.
+export function* bakePixelTerrainSteps(map, options) {
+  const partial = {};
+  let finished = false;
+  try { const terrain = yield* bakeTerrain(map, options, partial); finished = true; return terrain; }
+  finally { if (!finished) destroyPixelTerrain(partial); }
+}
+
+function* bakeTerrain(map, { texel = 2, sampleBackground, sites = true, settlementScale = .75, islandStyle = 'basalt', retainPresentation = false, windowedAnimation = false, worldBounds = null }, partial) {
   const started = performance.now(), detail = texel === 2 ? 2 : 1, ART = ART_BANKS[detail];
   // The live game supplies a finite opaque extent. The standalone study keeps
   // its generous fine apron and cheap distant bake for unrestricted panning.
   const bounds = worldBounds ?? (texel === 2 ? { minX: -1.5, minY: -1.5, maxX: 2.5, maxY: 2.5 } : map.surroundings.bounds);
   let backdropTexture = null,backdropWaterCycle=null;
   if (texel === 2 && !worldBounds) {
-    const distant = yield* bakePixelTerrainSteps(map, { texel: 8, sampleBackground, sites: false, islandStyle, windowedAnimation });
+    const distant = yield* bakeTerrain(map, { texel: 8, sampleBackground, sites: false, islandStyle, windowedAnimation }, {});
     backdropTexture = distant.texture; distant.texture = null;
     backdropWaterCycle=distant.waterCycle;distant.waterCycle=null;destroyPixelTerrain(distant);
   }
@@ -396,6 +405,7 @@ export function* bakePixelTerrainSteps(map, { texel = 2, sampleBackground, sites
   const {settlementPlans,props,composition,hinterland,foundations,divisions,roads,bridges,roadTexture,roadClearance,borderTexture,borderBounds}
     = yield* composePlayableTerrainSteps({map,texel,detail,ART,width,height,bounds,pixel,world,land,waterIndices,regionIds,colours,waterBase,
       surfaces,materialAt,groundBank,noise,mixColour,sampleBackground,islandStyle,sites,settlementScale,interactions});
+  partial.roadTexture = roadTexture; partial.borderTexture = borderTexture;
   yield;
   const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
   const ctx = canvas.getContext('2d'), image = ctx.createImageData(width, height);
@@ -443,6 +453,7 @@ export function* bakePixelTerrainSteps(map, { texel = 2, sampleBackground, sites
   }
   yield;
   const texture = PIXI.Texture.from(canvas); texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST; texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
+  partial.texture = texture;
   // One low-resolution atmospheric layer covers the fine atlas and hinterland.
   // Its stationary geographic mask keeps fog outside playable regions; cloud
   // banks and their aligned shadows dissipate through a wider playable apron.
@@ -467,6 +478,7 @@ export function* bakePixelTerrainSteps(map, { texel = 2, sampleBackground, sites
     }
     atmosphere=createAtmosphere({width:fw,height:fh,mask,seed:map.seed,windowed:windowedAnimation,
       world:[bounds.minX*1576/2,bounds.minY*516/2,width*texel/2,height*texel/2]});
+    partial.atmosphere = atmosphere;
   }
 
   yield;

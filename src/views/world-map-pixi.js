@@ -931,6 +931,9 @@ export function createWorldMapView({
       illustrated.update(visualTime(),camera.snapshot().zoom);
     },
     refresh: () => { lastSignature = ""; render(true); },
+    // Bake a new world's terrain while its forecast is still running (New Game).
+    prefetch: state => illustrated.prefetch(state),
+    cancelPrefetch: () => illustrated.cancelPrefetch(),
     async prepare(renderer) {
       await illustrated.prepare(getState?.(),renderer);
       if(preparedWorldId!==getState?.()?.world?.definitionId){preparedWorldId=getState?.()?.world?.definitionId;fitOverview();lastRevealedRegionId=null;}

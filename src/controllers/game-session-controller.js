@@ -3,7 +3,7 @@ import { createLoadingDiagnostics } from './loading-diagnostics.js';
 import { importSaveToSlot, inspectSaveText, listSaveSlotSummaries, SAVE_SCHEMA_VERSION } from './sim-runner/save-slots.js';
 import { inspectSaveStorageUsage, saveFailureExplanation, saveFailureMessage } from './sim-runner/save-diagnostics.js';
 
-export function createGameSessionController({ runner, opening, onEnter, prepareEntry, onError, onSaved, onSaveStatusChange,
+export function createGameSessionController({ runner, opening, onEnter, prepareEntry, prefetchEntry, cancelPrefetch, onError, onSaved, onSaveStatusChange,
   getPresentationDiagnostics = () => [], getForecastDiagnostics = () => null,
   createState = () => createNewGameState(globalThis.crypto.getRandomValues(new Uint32Array(1))[0]) }) {
   let activeSlot = null;
@@ -19,6 +19,11 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
   let replacing = false;
   let runVersion = 0;
   const loadingDiagnostics = createLoadingDiagnostics();
+  // The new world's terrain bake overlaps the forecast wait (prefetchEntry). The
+  // entry step adopts it; every other way out of New Game releases it here.
+  async function withPrefetchCleanup(work) {
+    try { return await work(); } finally { cancelPrefetch?.(); }
+  }
   async function trackEntry(operation, isCurrent, action) {
     const loading = loadingDiagnostics.begin(operation);
     const onProgress = progress => { if (isCurrent()) loading.report(progress); };
@@ -196,9 +201,9 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
       return enter(null);
     },
     newGame(slot, { isCurrent = () => true } = {}) {
-      return trackEntry('newGame', isCurrent, async onProgress => {
+      return trackEntry('newGame', isCurrent, onProgress => withPrefetchCleanup(async () => {
         if (!canReplaceLiveGame()) return rejectUnsavedReplacement();
-        const prepared = opening ? await opening.prepare({ onProgress }) : null;
+        const prepared = opening ? await opening.prepare({ onProgress, onState: state => prefetchEntry?.(state) }) : null;
         if (!isCurrent()) return { ok: false, reason: "cancelled" };
         if (prepared && !prepared.ok) {
           onError?.("Could not prepare your chronicle. Retry or return to the menu.");
@@ -228,7 +233,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
           return saved;
         }
         return { ok: true };
-      });
+      }));
     },
     continueGame,
     openMenu() {

@@ -178,4 +178,48 @@ for (const entryKind of ['newGame', 'continueGame']) {
   artworkFails = false;
   assert.equal((await failedSession[entryKind](1)).ok, true, 'entry can recover on manual retry');
 }
+// The new world is announced as soon as it exists, so its terrain can bake during the forecast.
+{
+  const announced = [];
+  let constructed = 0;
+  const announcing = createNewGameOpeningController({
+    createState: () => { constructed++; return state; },
+    createCache: () => createProjectionCache(), searchLimitSec: 20,
+    createWorkerService: () => createTimegraphForecastWorkerService({
+      createWorker: () => { throw new Error('workers unavailable'); }, primeChunkSizeSec: 0 }),
+  });
+  const job = announcing.prepare({ onState: world => announced.push(world) });
+  assert.equal(announced.length, 0, 'the world is created after the menu has painted');
+  const result = await job;
+  assert.deepEqual(announced, [state], 'announced once, with the world the run will start from');
+  assert.equal(result.state, announced[0]);
+  // Attaching to a job whose world already exists announces immediately, and only to the new listener.
+  const late = [];
+  const second = announcing.prepare({ onState: world => late.push(world) });
+  assert.equal(second, job, 'the finished job is still shared');
+  assert.deepEqual(late, [state]);
+  assert.equal(announced.length, 1);
+  assert.equal(constructed, 1);
+  announcing.cancel();
+}
+
+// New Game starts the prefetch with the new world and always releases what it did not hand over.
+for (const outcome of ['success', 'cancelled', 'preparationFailed', 'entryFails']) {
+  const log = [];
+  const world = { world: { definitionId: 'regional-v1:1' } };
+  const session = createGameSessionController({
+    runner: { resetToState: () => ({ ok: true }), saveToSlot: async () => ({ ok: true }) },
+    opening: { prepare: ({ onState }) => { onState(world); return Promise.resolve(outcome === 'preparationFailed' ? { ok: false, reason: 'forecastIncomplete' } : prepared); }, reset() {} },
+    prefetchEntry: next => log.push(['prefetch', next]),
+    cancelPrefetch: () => log.push(['cancel']),
+    prepareEntry: async () => { log.push(['entry']); if (outcome === 'entryFails') throw new Error('artwork'); },
+    onError: () => {},
+  });
+  const attempt = session.newGame(1, { isCurrent: () => outcome !== 'cancelled' });
+  if (outcome === 'entryFails') await assert.rejects(attempt, /artwork/); else await attempt;
+  assert.deepEqual(log[0], ['prefetch', world], `${outcome}: prefetch starts from the opening's world`);
+  assert.deepEqual(log.at(-1), ['cancel'], `${outcome}: unadopted prefetch is released (a no-op once adopted)`);
+  assert.equal(log.filter(([kind]) => kind === 'prefetch').length, 1);
+  if (outcome === 'success') assert.deepEqual(log.map(([kind]) => kind), ['prefetch', 'entry', 'cancel']);
+}
 console.log('[new-game-opening] OK');

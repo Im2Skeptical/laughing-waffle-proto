@@ -19,11 +19,18 @@ generators (`bakePixelTerrainSteps`, `composePlayableTerrainSteps`,
 `prepareRegionalTiles` run them straight through for the study and checks, with
 identical output. `illustrated-terrain.js` drives them with `runCooperative`
 (`map-generation-prototype/cooperative.js`), which returns the main thread to the
-browser after about 50 ms of work so the loading screen keeps painting; the
-longest stretch between checkpoints is recorded in
-`stats.cooperation.longestStepMs`. A job always runs to completion: a request
-replaced or destroyed meanwhile discards the finished result and frees its
-textures. `update()` and `setState()` do nothing until `stats.ready`, which is
+browser once a 250 ms slice is used, so the loading screen keeps painting (a
+shorter slice repaints more often but, in the full app, cost seconds of total
+loading time); the longest stretch between checkpoints is recorded in
+`stats.cooperation.longestStepMs`. A request replaced or destroyed meanwhile
+discards the finished result and frees its textures.
+
+New Game starts the terrain bake early: the opening controller announces the new
+world as soon as it exists (`onState`), the session controller calls
+`prefetch(state)` on the view, and the forecast wait overlaps the bake. `prepare`
+adopts the early bake only for the same world id; any other world, a cancel, a
+failure or `destroy()` aborts it at its next checkpoint and releases its
+textures. Continue/Load never prefetch. `update()` and `setState()` do nothing until `stats.ready`, which is
 set after the variants are built.
 
 Live water and atmosphere render to padded camera windows in source coordinates.
