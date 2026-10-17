@@ -322,8 +322,35 @@ export function getWorldDefinition(state) {
   return typeof id === "string" ? getWorldDefinitionById(id) : null;
 }
 
+// Vertex lookups are the hot path of every map redraw (regional worlds hold
+// thousands of vertices). The id -> index table is derived, never serialized, and
+// keyed on the definition object so cloned definitions get their own table. It is
+// rebuilt when the vertex array is replaced or resized; every hit is re-checked
+// against the live array, so edits that move or replace a vertex stay correct.
+const vertexIndexByDefinition = new WeakMap();
+
+function getVertexIndex(definition, vertices) {
+  let entry = vertexIndexByDefinition.get(definition);
+  if (!entry || entry.vertices !== vertices || entry.size !== vertices.length) {
+    const indexById = new Map();
+    for (let index = 0; index < vertices.length; index += 1) {
+      const id = vertices[index]?.id;
+      if (typeof id === "string" && !indexById.has(id)) indexById.set(id, index);
+    }
+    entry = { vertices, size: vertices.length, indexById };
+    vertexIndexByDefinition.set(definition, entry);
+  }
+  return entry.indexById;
+}
+
 export function getWorldVertex(definition, vertexId) {
-  return definition?.geometry?.vertices?.find((entry) => entry?.id === vertexId) ?? null;
+  const vertices = definition?.geometry?.vertices;
+  if (typeof vertexId === "string" && Array.isArray(vertices)) {
+    const index = getVertexIndex(definition, vertices).get(vertexId);
+    if (index !== undefined && vertices[index]?.id === vertexId) return vertices[index];
+  }
+  // Unknown ids, non-string ids and non-array containers keep the original scan.
+  return vertices?.find?.((entry) => entry?.id === vertexId) ?? null;
 }
 
 export function getRegionDefinition(state, regionId) {
