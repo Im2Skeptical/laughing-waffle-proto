@@ -3,7 +3,8 @@
 ## Illustrated live worlds
 
 New games use the shared v1.0.34 regional geography and artwork. The saved
-`regional-v1:<seed>` definition ID fixes polygons, biomes and initial roads;
+`regional-v<revision>:<seed>` definition ID (revision 1 today, pinned by
+`scripts/regional-map-golden-test.mjs`) fixes polygons, biomes and initial roads;
 the same definition supplies simulation adjacency and view hit areas.
 Explicit authored Map Lab maps remain supported as authored layouts.
 `illustrated-terrain.js` retains one water/hinterland bake and updates water/clouds

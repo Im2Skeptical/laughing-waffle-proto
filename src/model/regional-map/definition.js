@@ -1,15 +1,28 @@
 import { generateMap, decorationRandom } from './generator.js';
 
 const cache=new Map();
-export const regionalMapId=seed=>`regional-v1:${Number(seed)>>>0}`;
+// The `v<N>` in `regional-v<N>:<seed>` is the generator revision. A saved id must
+// keep producing the same polygons, so a change to generator.js that alters the
+// geometry for any seed needs a NEW revision (and keeps the old generator for old
+// saves), never an edit in place. scripts/regional-map-golden-test.mjs pins
+// revision 1 and fails when its output moves.
+const GENERATORS={
+  1:seed=>generateMap({seed,clustering:.5,sizeVariation:.85,roughness:1,featureSet:0}),
+};
+export const CURRENT_GENERATOR_REVISION=1;
+export const regionalMapId=(seed,revision=CURRENT_GENERATOR_REVISION)=>`regional-v${revision}:${Number(seed)>>>0}`;
+function parseRegionalMapId(id) {
+  const match=/^regional-v([1-9]\d*):(\d+)$/.exec(id ?? '');
+  const revision=match?Number(match[1]):null;
+  return match&&Object.hasOwn(GENERATORS,revision)&&Number(match[2])<=4294967295?{revision,seed:Number(match[2])}:null;
+}
 export function regionalMapSeed(id) {
-  const match=/^regional-v1:(\d+)$/.exec(id ?? '');
-  return match && Number(match[1])<=4294967295 ? Number(match[1]) : null;
+  return parseRegionalMapId(id)?.seed??null;
 }
 export function getRegionalMap(id) {
-  const seed=regionalMapSeed(id);if(seed===null)return null;
+  const parsed=parseRegionalMapId(id);if(!parsed)return null;
   if(!cache.has(id)) {
-    const map=generateMap({seed,clustering:.5,sizeVariation:.85,roughness:1,featureSet:0});
+    const map=GENERATORS[parsed.revision](parsed.seed);
     cache.set(id,{map,definition:createDefinition(id,map)});
     if(cache.size>12)cache.delete(cache.keys().next().value);
   }
