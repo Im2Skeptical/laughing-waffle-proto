@@ -1,5 +1,14 @@
 # Regional map: pixel rendering and timeline animation proposal
 
+> **Update (17 October 2026): this is the original proposal and design record; the
+> renderer it proposed is live.** New games bake the pixel terrain, animate water
+> and atmosphere from viewed time, and draw settlements and roads above it, in
+> `src/views/world-map/` (see its [README](../src/views/world-map/README.md)), using
+> the generator and art under `images/dark-fantasy/map-generation-prototype/`. The
+> "pending" integration notes and the line "No live renderer or simulation changes
+> accompany this experiment" below describe the state on 13 October and no longer
+> hold. Where this plan and the code disagree, the code and that README win.
+
 Status: proposed, 13 October 2026. The first static rendering review is implemented
 in the isolated [Pixi workbench](../images/dark-fantasy/map-generation-prototype/README.md):
 C preserves the approved base structure; F is the current Atlas rendering.
