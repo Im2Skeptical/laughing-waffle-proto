@@ -1687,6 +1687,8 @@ const gameSession = createGameSessionController({
   createState:()=>newGameSettings.createNewGame(),
   runner,
   opening,
+  prefetchEntry: state => worldMapView.prefetch(state),
+  cancelPrefetch: () => worldMapView.cancelPrefetch(),
   prepareEntry: async (prepared, { isCurrent, onProgress }) => {
     const stage = async (id, label) => {
       if (!isCurrent()) return false;

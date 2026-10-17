@@ -3,7 +3,8 @@
 ## Illustrated live worlds
 
 New games use the shared v1.0.34 regional geography and artwork. The saved
-`regional-v1:<seed>` definition ID fixes polygons, biomes and initial roads;
+`regional-v<revision>:<seed>` definition ID (revision 1 today, pinned by
+`scripts/regional-map-golden-test.mjs`) fixes polygons, biomes and initial roads;
 the same definition supplies simulation adjacency and view hit areas.
 Explicit authored Map Lab maps remain supported as authored layouts.
 `illustrated-terrain.js` retains one water/hinterland bake and updates water/clouds
@@ -11,6 +12,27 @@ from viewed time at at most 30 fps. `regional-presentation.js` preserves the
 underlying natural biome, including the study's example monster regions.
 Only the viewed state's `region.monster` selects occupied terrain; clearing or
 rewinding restores the original biome, including island water topology.
+
+The one-time bake, the road/terrain composition and the three variant builds are
+generators (`bakePixelTerrainSteps`, `composePlayableTerrainSteps`,
+`composeTerrainLandscapeSteps`, `buildSteps`, `prepareRegionalTilesSteps`) that
+`yield` between phases. `bakePixelTerrain`, `composePlayableTerrain`, `build` and
+`prepareRegionalTiles` run them straight through for the study and checks, with
+identical output. `illustrated-terrain.js` drives them with `runCooperative`
+(`map-generation-prototype/cooperative.js`), which returns the main thread to the
+browser once a 250 ms slice is used, so the loading screen keeps painting (a
+shorter slice repaints more often but, in the full app, cost seconds of total
+loading time); the longest stretch between checkpoints is recorded in
+`stats.cooperation.longestStepMs`. A request replaced or destroyed meanwhile
+discards the finished result and frees its textures.
+
+New Game starts the terrain bake early: the opening controller announces the new
+world as soon as it exists (`onState`), the session controller calls
+`prefetch(state)` on the view, and the forecast wait overlaps the bake. `prepare`
+adopts the early bake only for the same world id; any other world, a cancel, a
+failure or `destroy()` aborts it at its next checkpoint and releases its
+textures. Continue/Load never prefetch. `update()` and `setState()` do nothing until `stats.ready`, which is
+set after the variants are built.
 
 Live water and atmosphere render to padded camera windows in source coordinates.
 Small pans reuse those windows; larger moves and zoom changes refresh them even

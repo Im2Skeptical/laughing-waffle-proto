@@ -1,13 +1,15 @@
-import { prepareRegionalTiles } from './regional-tiles.js';
+import { prepareRegionalTiles, prepareRegionalTilesSteps } from './regional-tiles.js';
 import { naturalRegionalMap, regionalPresentationSpec, createRegionalPresentation } from './regional-presentation.js';
 import { getRegionalMap } from '../../model/regional-map/definition.js';
 import { sampleSurroundings } from '../../model/regional-map/generator.js';
-import { bakePixelTerrain, destroyPixelTerrain, prepareIllustratedArt, pixelSpriteTextures, reliefSpriteTextures, pixelSpriteFits } from '../../../images/dark-fantasy/map-generation-prototype/pixel-terrain.js';
+import { runCooperative } from '../../../images/dark-fantasy/map-generation-prototype/cooperative.js';
+import { bakePixelTerrainSteps, destroyPixelTerrain, prepareIllustratedArt, pixelSpriteTextures, reliefSpriteTextures, pixelSpriteFits } from '../../../images/dark-fantasy/map-generation-prototype/pixel-terrain.js';
 import { prepareCloudArt } from '../../../images/dark-fantasy/map-generation-prototype/cloud-banks.js';
 import { createZoomArt, prepareLandmarkLods } from '../../../images/dark-fantasy/map-generation-prototype/zoom-art.js';
 import { getIllustratedWorldBounds } from './world-bounds.js';
 
 let assets;
+const yieldToUi=()=>new Promise(resolve=>setTimeout(resolve,0));
 function prepareAssets(){return assets??=Promise.all([prepareIllustratedArt(),prepareCloudArt(),prepareLandmarkLods()]).catch(error=>{assets=null;throw error;});}
 
 // The workbench's sampled field, without its three unused background textures.
@@ -34,6 +36,9 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
   let variants=null;
   let animated=[],sky=null;
   let lastView=null,lastZoom=null;
+  // A bake started ahead of prepare() for the world a New Game is about to enter.
+  // It owns its own textures and never touches the live terrain until adopted.
+  let prefetch=null;
   const stats={ready:false,bakes:0,flattenedProps:0,frames:0,updateMs:0};
   function clear(){
     for(const entry of cache.values()){entry.node.destroy();entry.levels.forEach(t=>t.destroy(true));}
@@ -42,6 +47,13 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
     staticLevels.forEach(t=>t.destroy(true));staticLevels=[];meshes=[];animated=[];sky=null;
     if(terrain)destroyPixelTerrain(terrain);terrain=null;stats.ready=false;lastTime=null;lastView=null;lastZoom=null;
   }
+  const bakeOptions=map=>({texel:2,sites:false,retainPresentation:true,sampleBackground:surroundingsSampler(map),windowedAnimation:!!getView,
+    worldBounds:getIllustratedWorldBounds(map)});
+  function discardPrefetch(){
+    const entry=prefetch;if(!entry)return;
+    prefetch=null;entry.cancelled=true;
+    entry.promise.then(baked=>{if(baked)destroyPixelTerrain(baked.art);},()=>{});
+  }
   function put(texture,bounds,texel,levels){
     const node=createZoomArt(texture,levels);meshes.push(node);
     node.position.set(rect.x+bounds.minX*rect.width,rect.y+bounds.minY*rect.height);
@@ -49,22 +61,59 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
   }
   return {container,stats,
     supports(state){return !!getRegionalMap(state?.world?.definitionId);},
+    // Starts baking a world's terrain early (the New Game forecast wait). Safe to
+    // call repeatedly; a different world, cancelPrefetch() and destroy() drop it.
+    prefetch(state){
+      const nextId=state?.world?.definitionId,record=getRegionalMap(nextId);
+      if(!record||(id===nextId&&(terrain||pending)))return false;
+      if(prefetch?.id===nextId)return true;
+      discardPrefetch();
+      const entry={id:nextId,cancelled:false,promise:null};
+      entry.promise=(async()=>{
+        await prepareAssets();if(entry.cancelled)return null;
+        await new Promise(resolve=>setTimeout(resolve,0));if(entry.cancelled)return null;
+        const map=naturalRegionalMap(record.map);
+        const art=await runCooperative(bakePixelTerrainSteps(map,bakeOptions(map)),{isCancelled:()=>entry.cancelled});
+        if(!art)return null;
+        if(entry.cancelled){destroyPixelTerrain(art);return null;}
+        return {art,map};
+      })();
+      entry.promise.catch(()=>{if(prefetch===entry)prefetch=null;});
+      prefetch=entry;return true;
+    },
+    cancelPrefetch(){discardPrefetch();},
     async prepare(state,targetRenderer){
       const nextId=state?.world?.definitionId,record=getRegionalMap(nextId);
       if(id===nextId&&pending)return pending;
       if(id===nextId&&terrain)return;
       const request=++generation;clear();id=nextId;renderer=targetRenderer;
+      // Adopt a matching early bake; a bake for any other world is dropped.
+      let adopted=null;
+      if(prefetch?.id===nextId){adopted=prefetch;prefetch=null;}else discardPrefetch();
       const work=(async()=>{
       if(!record)return;
-      const loaded=await prepareAssets();if(request!==generation)return;landmarks=loaded[2];
+      const stale=()=>request!==generation;
+      const early=adopted?await adopted.promise.catch(()=>null):null;
+      if(stale()){if(early)destroyPixelTerrain(early.art);return;}
+      const loaded=await prepareAssets();
+      if(stale()){if(early)destroyPixelTerrain(early.art);return;}
+      landmarks=loaded[2];
       // Let the loading screen paint before the one-time CPU bake.
-      await new Promise(resolve=>setTimeout(resolve,0));if(request!==generation)return;
-      const start=performance.now(),map=naturalRegionalMap(record.map);
-      terrain=bakePixelTerrain(map,{texel:2,sites:false,retainPresentation:true,sampleBackground:surroundingsSampler(map),windowedAnimation:!!getView,
-        worldBounds:getIllustratedWorldBounds(map)});
-      const art=terrain,density=art.stats.texel;
+      await new Promise(resolve=>setTimeout(resolve,0));
+      if(stale()){if(early)destroyPixelTerrain(early.art);return;}
+      const start=performance.now(),cooperation={};
+      // The bake and variant builds are single-threaded CPU work. They hand the
+      // main thread back between phases so the loading screen keeps painting.
+      const map=early?.map??naturalRegionalMap(record.map);
+      const art=early?.art??await runCooperative(bakePixelTerrainSteps(map,bakeOptions(map)),{stats:cooperation});
+      // A step-wise job finishes; a request replaced meanwhile discards the result.
+      if(stale()){destroyPixelTerrain(art);return;}
+      if(early)cooperation.prefetched=true;
+      terrain=art;
+      const density=art.stats.texel;
       animated.push({cycle:art.waterCycle,bounds:art.bounds,texel:density,
         node:put(art.waterCycle.levels[0],art.bounds,density,art.waterCycle.levels)});
+      await yieldToUi();if(stale())return;
       // Flatten hundreds of immutable terrain paintings once. Live ownership,
       // settlements, roads, packets and selection remain separate overlays.
       const scenery=new PIXI.Container(),textures=pixelSpriteTextures(density),relief=reliefSpriteTextures(art,false,false);
@@ -79,9 +128,16 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
       renderer.render(scenery,{renderTexture:staticLevels[0],clear:true});scenery.destroy({children:true});
       for(let n=1;n<staticLevels.length;n++){const sprite=new PIXI.Sprite(staticLevels[n-1]);sprite.width=staticLevels[n].width;sprite.height=staticLevels[n].height;renderer.render(sprite,{renderTexture:staticLevels[n],clear:true});sprite.destroy();}
       put(staticLevels[0],art.bounds,density,staticLevels);
+      await yieldToUi();if(stale())return;
       presentation=createRegionalPresentation(terrain,map);
       presentationRoot=new PIXI.Container();container.addChild(presentationRoot);
       sky=new PIXI.Sprite(art.atmosphere.texture);container.addChild(sky);
+      await yieldToUi();if(stale())return;
+      // The three terrain variants are built here, not lazily by the first setState().
+      const built=await runCooperative(prepareRegionalTilesSteps(presentation,landmarks,renderer),{stats:cooperation});
+      if(stale()){built.destroy();return;}
+      variants=built;
+      Object.assign(stats,{variantBuilds:(stats.variantBuilds??0)+1,variantBuildMs:built.buildMs,cooperation});
       Object.assign(stats,{ready:true,bakes:stats.bakes+1,bakeMs:performance.now()-start,terrainBakeMs:art.stats.bakeMs,
         bounds:{...art.bounds},textureMiB:art.stats.textureMiB,flattenedProps:props.length,width:art.stats.width,height:art.stats.height});
       this.setState(state);
@@ -92,7 +148,7 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
       finally {if(pending===work)pending=null;}
     },
     update(seconds,zoom=1,force=false){
-      if(!terrain||!container.visible)return;
+      if(!terrain||!stats.ready||!container.visible)return;
       const view=getView?.(),density=terrain.stats.texel;
       zoom=view?.zoom??zoom;
       const effectiveZoom=zoom*renderer.resolution;
@@ -137,7 +193,7 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
     worldBounds(){return terrain?.bounds??null;},
     roadPoints(edge){return active?.roads.find(r=>r.id===[edge.regionAId,edge.regionBId].sort().join(':'))?.points;},
     setState(state,display={}){
-      if(!presentation)return;
+      if(!presentation||!stats.ready)return;
       const spec=regionalPresentationSpec(state,display),key=JSON.stringify(spec);
       if(active?.key===key)return;
       let entry=cache.get(key);
@@ -167,6 +223,6 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
       Object.assign(stats,{biomes:entry.biomes,sites:entry.sites,roads:entry.roads.length,connections:spec.connections.length,
         monsterPieces:entry.monsterPieces,presentationCache:cache.size});
     },
-    destroy(){generation++;clear();container.destroy();},
+    destroy(){generation++;discardPrefetch();clear();container.destroy();},
   };
 }

@@ -23,14 +23,17 @@ export function createNewGameOpeningController({ createCache, createWorkerServic
     preparation = "idle";
   }
 
-  function prepare({ onProgress } = {}) {
+  // onState(state) receives the new world as soon as it exists (immediately if it
+  // already does), so presentation work can start during the forecast wait.
+  function prepare({ onProgress, onState } = {}) {
     const key=getPreparationKey();
     if (job && job.key===key) {
       if (onProgress) { job.onProgress = onProgress; onProgress(job.progress); }
+      if (onState) { job.onState = onState; if (job.state) onState(job.state); }
       return job.promise;
     }
     if (job) cancel();
-    const current = { timer: null, worker: null, key, onProgress,
+    const current = { timer: null, worker: null, key, onProgress, onState, state: null,
       progress: { stage: 'world', label: 'Creating your realm' } };
     function report(progress) { current.progress = progress; current.onProgress?.(progress); }
     current.promise = new Promise(resolve => { current.resolve = resolve; });
@@ -42,6 +45,8 @@ export function createNewGameOpeningController({ createCache, createWorkerServic
     current.timer = setTimeout(() => {
       try {
         const state = createState();
+        current.state = state;
+        current.onState?.(state);
         const timeline = createEmptyTimelineFromBase(state);
         const cache = createCache();
         report({ stage: 'forecast', label: 'Simulating your opening future',

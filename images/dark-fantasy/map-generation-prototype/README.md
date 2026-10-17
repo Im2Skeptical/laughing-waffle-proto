@@ -43,7 +43,8 @@ same substantial overhead billows. An eight-frame `cloud-cumulus-v1.png` layer
 returns specifically inside sparse weather openings. The rejected feather and
 necklace assets remain excluded. The companion introduces broad bays, uneven
 shoulders and a few internal openings, rather than necklace rings or isolated
-cloudlets. The v1.0.30 cirrus/stratocumulus sheets are no longer loaded: their
+cloudlets. The v1.0.30 banks-v1, cirrus and stratocumulus sheets are no longer loaded (and were
+deleted, still in git history at 4.1 MB): their
 feather-like grey membranes and fragmented shapes were baked into the artwork,
 not caused by the runtime alpha blend. A shader-versus-ordinary-sprite comparison
 locks the rendering/alpha path to the normal Pixi result.

@@ -1,5 +1,6 @@
-import { composePlayableTerrain } from '../../../images/dark-fantasy/map-generation-prototype/playable-terrain.js';
+import { composePlayableTerrain, composePlayableTerrainSteps } from '../../../images/dark-fantasy/map-generation-prototype/playable-terrain.js';
 import { createSurfaceSampler } from '../../../images/dark-fantasy/map-generation-prototype/terrain-surfaces.js';
+import { runSync } from '../../../images/dark-fantasy/map-generation-prototype/cooperative.js';
 import { planSettlementSites, layOutSettlements } from '../../../images/dark-fantasy/map-generation-prototype/settlement-sites.js';
 
 // The study's monster regions are examples, not permanent live-world biomes.
@@ -35,7 +36,7 @@ export function createRegionalPresentation(terrain, baseMap) {
   const crop={x,y,width:Math.min(width-x,Math.ceil(Math.max(...extent.map(p=>p.x)))+80-x),
     height:Math.min(height-y,Math.ceil(Math.max(...extent.map(p=>p.y)))+80-y)};
   const peakMask=new Uint8Array(width*height);
-  return {anchors,crop,map:baseMap,
+  const presentation={anchors,crop,map:baseMap,
     roads(connections){
       const names=Object.fromEntries(Object.entries(materialIds).map(([k,v])=>[v,k])),materials=terrain.materials;
       const materialAt=(x,y)=>names[materials.data[(y-materials.y)*materials.width+x-materials.x]];
@@ -50,7 +51,9 @@ export function createRegionalPresentation(terrain, baseMap) {
       ctx.putImageData(pixels,0,0);
       return {...result,maskTexture:PIXI.Texture.from(canvas),roads:result.roads.map(path=>({id:path.connectionId,points:path.map(p=>world(p.x,p.y))}))};
     },
-    build(spec){
+    build(spec){return runSync(presentation.buildSteps(spec));},
+    // The same work as build(), yielding between its phases for cooperative drivers.
+    *buildSteps(spec){
       const occupied=new Set(spec.monsters);
       const map={...baseMap,regions:baseMap.regions.map(r=>({...r,terrainBiome:r.biome,biome:occupied.has(r.id)?'monster':r.biome}))};
       const colours=source.colours.slice(),materials={...terrain.materials,data:terrain.materials.data.slice()};
@@ -63,13 +66,15 @@ export function createRegionalPresentation(terrain, baseMap) {
         colours[i]=mixColour(source.groundBank.monster[Math.min(3,Math.floor(shade*4))],surfaces.ground('monster',px,py),.72);
         materials.data[(py-materials.y)*materials.width+px-materials.x]=materialIds.monster;
       }
+      yield;
       const names=Object.fromEntries(Object.entries(materialIds).map(([k,v])=>[v,k]));
       const materialAt=(px,py)=>names[materials.data[(py-materials.y)*materials.width+px-materials.x]];
-      const art=composePlayableTerrain({...source,map,colours,materials,materialAt,surfaces,
+      const art=yield* composePlayableTerrainSteps({...source,map,colours,materials,materialAt,surfaces,
         waterIndices:terrain.waterIndices,waterBase:null,sites:spec.sites,anchors,connections:spec.connections,routedRoads:spec.routedRoads,
         background:{props:[],stats:{}},peakMask,isolatedMonsterBorders:spec.isolatedMonsterBorders,interactions:{mountainPass:0}});
       for(const site of art.settlementPlans)for(const b of site.buildings)
         if(b.role==='hall'||b.role==='market')b.role=site.kind==='player'?'hall':'market';
+      yield;
       const canvas=document.createElement('canvas');canvas.width=crop.width;canvas.height=crop.height;
       const ctx=canvas.getContext('2d'),pixels=ctx.createImageData(crop.width,crop.height);
       for(let py=0;py<crop.height;py++)for(let px=0;px<crop.width;px++){
@@ -85,4 +90,5 @@ export function createRegionalPresentation(terrain, baseMap) {
         biomes:map.regions.map(r=>({id:r.id,biome:r.biome,underlying:r.terrainBiome}))};
     },
   };
+  return presentation;
 }

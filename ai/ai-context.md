@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.8`.
+Game build version: `1.1.9`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. The game badge adds a source
 fingerprint and Local/Pages label. For preview, version bumps and deployment,
@@ -79,7 +79,9 @@ Authoritative numbers:
 
 Regular player New Game uses a seeded 20-region illustrated map, nine generated
 starting roads, and Starter_02 economic tuning. The serialized world definition
-ID captures the generator version and seed; gameplay and art share its geometry.
+ID captures the generator revision and seed (`regional-v<revision>:<seed>`); gameplay and art share its geometry.
+A generator change that moves any polygon needs a new revision with the old one kept for existing saves;
+`scripts/regional-map-golden-test.mjs` pins revision 1.
 New game seeds are random unless Developer tools specifies a seed override.
 The menu's Use dev settings toggle explicitly substitutes a saved combined profile. Each
 run chooses one existing road through `state.rng`; its two adjacent regions

@@ -23,7 +23,7 @@ const hash=(seed,col,row,family)=>seed^Math.imul(col,73856093)^Math.imul(row,193
 // Each cell uses every silhouette once before drawing a new shuffled bag.
 // The first/second swap prevents an immediate repeat at bag boundaries without
 // recursion, retained history, or changing the previous bag's last element.
-export function cloudFrame(cellSeed,generation,count=8) {
+export function computeCloudFrame(cellSeed,generation,count=8) {
   const bag=Math.floor(generation/count),index=((generation%count)+count)%count;
   const shuffled=n=>{
     const frames=Array.from({length:count},(_,i)=>i),salt=cellSeed^Math.imul(n,1013904223);
@@ -33,6 +33,22 @@ export function cloudFrame(cellSeed,generation,count=8) {
   const frames=shuffled(bag);
   if(frames[0]===shuffled(bag-1)[count-1])[frames[0],frames[1]]=[frames[1],frames[0]];
   return frames[index];
+}
+
+// A frame is a pure function of (cell, generation, count) and every update asks
+// again for each living bank, so repeats are answered from a bounded memo.
+// Clearing it only costs recomputation, never a different answer.
+const FRAME_MEMO_LIMIT=8192;
+const frameMemo=new Map();
+export function cloudFrame(cellSeed,generation,count=8) {
+  const key=`${cellSeed}/${generation}/${count}`;
+  let frame=frameMemo.get(key);
+  if(frame===undefined) {
+    frame=computeCloudFrame(cellSeed,generation,count);
+    if(frameMemo.size>=FRAME_MEMO_LIMIT)frameMemo.clear();
+    frameMemo.set(key,frame);
+  }
+  return frame;
 }
 
 export function cloudBanks(world,seconds,seed) {
@@ -59,7 +75,6 @@ export function cloudBanks(world,seconds,seed) {
         // Weather is sampled at the moving bank centre in the material.
         // Shared openings control local development, never slice the artwork.
         if(rng()>profile.chance)continue;
-        const frame=cloudFrame(cellSeed,generation,profile.frames);
         const lifetime=cadence*(1.05+.45*rng());
         const age=seconds-birth,fraction=age/lifetime;
         if(fraction<=0||fraction>=1)continue;
@@ -80,6 +95,7 @@ export function cloudBanks(world,seconds,seed) {
         // full-map queries give identical clouds at their shared edges.
         const radius=Math.hypot(width,height)/2;
         if(x+radius<world[0]||x-radius>world[0]+world[2]||y+radius<world[1]||y-radius>world[1]+world[3])continue;
+        const frame=cloudFrame(cellSeed,generation,profile.frames);
         banks.push({id:`${family}/${col}/${row}/${generation}`,family,frame,x,y,width,height,
           rotation,alpha:profile.alpha,life,phase,age:fraction,columns:profile.columns,rows:profile.rows,
           cover:true,sparse:!!profile.sparse,weatherTime:seconds,salt:(seed%997)*.0713,

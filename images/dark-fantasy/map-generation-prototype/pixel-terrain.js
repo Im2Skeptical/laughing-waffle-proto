@@ -8,7 +8,8 @@ import { createWaterCycle } from './water-animation.js';
 import { createAtmosphere } from './atmosphere.js';
 import { cloudDistanceField } from './cloud-banks.js';
 import { waterDriftMask, waterDriftOffset } from './water-drift.js';
-import { composePlayableTerrain } from './playable-terrain.js';
+import { composePlayableTerrainSteps } from './playable-terrain.js';
+import { runSync } from './cooperative.js';
 import { loadIllustratedArt } from './illustrated-art.js';
 import { releaseZoomArt } from './zoom-art.js';
 import { paintOcean, paintEcotones, SHORE_TREATMENTS } from './terrain-interactions.js';
@@ -169,14 +170,28 @@ function noise(seed, x, y, scale) {
   return (at(ix, iy) * (1 - u) + at(ix + 1, iy) * u) * (1 - v) + (at(ix, iy + 1) * (1 - u) + at(ix + 1, iy + 1) * u) * v;
 }
 
-export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = true, settlementScale = .75, islandStyle = 'basalt', retainPresentation = false, windowedAnimation = false, worldBounds = null }) {
+// The bake is a generator that yields between its phases. bakePixelTerrain runs it
+// straight through (the study and checks); the live game drives bakePixelTerrainSteps
+// with runCooperative so the loading screen can repaint between phases.
+export function bakePixelTerrain(map, options) { return runSync(bakePixelTerrainSteps(map, options)); }
+
+// If a cooperative driver abandons the bake at a checkpoint, the textures and GPU
+// helpers it already made are released instead of lingering in Pixi's caches.
+export function* bakePixelTerrainSteps(map, options) {
+  const partial = {};
+  let finished = false;
+  try { const terrain = yield* bakeTerrain(map, options, partial); finished = true; return terrain; }
+  finally { if (!finished) destroyPixelTerrain(partial); }
+}
+
+function* bakeTerrain(map, { texel = 2, sampleBackground, sites = true, settlementScale = .75, islandStyle = 'basalt', retainPresentation = false, windowedAnimation = false, worldBounds = null }, partial) {
   const started = performance.now(), detail = texel === 2 ? 2 : 1, ART = ART_BANKS[detail];
   // The live game supplies a finite opaque extent. The standalone study keeps
   // its generous fine apron and cheap distant bake for unrestricted panning.
   const bounds = worldBounds ?? (texel === 2 ? { minX: -1.5, minY: -1.5, maxX: 2.5, maxY: 2.5 } : map.surroundings.bounds);
   let backdropTexture = null,backdropWaterCycle=null;
   if (texel === 2 && !worldBounds) {
-    const distant = bakePixelTerrain(map, { texel: 8, sampleBackground, sites: false, islandStyle, windowedAnimation });
+    const distant = yield* bakeTerrain(map, { texel: 8, sampleBackground, sites: false, islandStyle, windowedAnimation }, {});
     backdropTexture = distant.texture; distant.texture = null;
     backdropWaterCycle=distant.waterCycle;distant.waterCycle=null;destroyPixelTerrain(distant);
   }
@@ -212,6 +227,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     fill(cluster.contours[0], islandLand, 1);
     for (const contour of cluster.contours.slice(1)) fill(contour, islandLand, insidePolygon(contour[0], cluster.contours[0]) ? 0 : 1);
   }
+  yield;
   const f = new Float32Array(4), p = { x: 0, y: 0 };
   const surfaces = createSurfaceSampler({ map, bounds, texel, width, height, land, regionIds });
   surfaces.registerPaths('river', map.features.filter(feature => feature.type === 'river').map(feature => feature.points.map(pixel)));
@@ -230,6 +246,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     colours[i] = region?bank[tone]:mixColour(bank[Math.min(2,Math.floor(shade*3))],bank[Math.min(3,Math.floor(shade*3)+1)],shade*3%1);
     if (region) colours[i] = mixColour(colours[i], surfaces.ground(region.biome, x, y), .72);
   }
+  yield;
   // Chamfer shore distances. Palette indices remain categorical.
   const seaDistance = new Uint16Array(size), dryDistance = new Uint16Array(size);
   const shoreTypes = new Uint8Array(size);
@@ -246,6 +263,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       if (y < height - 1) d[i] = Math.min(d[i], x ? d[i + width - 1] + 4 : cap, x < width - 1 ? d[i + width + 1] + 4 : cap);
     }
   }
+  yield;
   // Follow the decreasing distance field to carry coastal material into water.
   for (let pass = 0; pass < 2; pass++) for (let n = 0; n < size; n++) {
     const i = pass ? size - 1 - n : n; if (land[i]) continue;
@@ -255,6 +273,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       if (shoreTypes[j] && seaDistance[j] < best) { best = seaDistance[j]; shoreTypes[i] = shoreTypes[j]; }
     }
   }
+  yield;
   // Volcanic soil retains source texture detail; narrow beaches remain coastal.
   // This prepares the substrate before drawing the un-tinted illustrations.
   for (let y=0;y<height;y++) for(let x=0;x<width;x++) {
@@ -269,14 +288,17 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       : mixColour(material, 0x353b31, Math.min(.3, (145-light)/180));
     colours[i]=mixColour(colours[i],material,inland*.96);
   }
+  yield;
   const waterBase = new Uint32Array(size), waterStrength = new Uint8Array(size), waterOverlays = new Uint8Array(size*4);
   const waterBodies=classifyWaterBodies(land,width,height);
   extendWaterEnvironment(waterBodies,land,dryDistance,width,height);
   const surfaceTreatments = paintOcean({ map, width, height, texel, bounds, land, waterIndices, colours,
     regionIds, seaDistance, dryDistance, shoreTypes, waterBodies, waterBank, groundBank, noise, mixColour, waterBase, waterStrength, waterOverlays, surfaces });
+  yield;
   const wetlands = paintWetlandPools({ map, pixel, width, height, detail, texel, bounds, regionIds, land, dryDistance,
     colours, waterIndices, waterBase, waterStrength, noise, mixColour, surfaces, protectedCentres: sites ? map.regions.filter(r => r.biome !== 'islands')
       .filter((r, i) => i === 2 || i === 7 || i === 12).map(r => pixel(r.centre)) : [] });
+  yield;
   const put = (x, y, colour, water = 0, onlyDry = false) => {
     if (x < 0 || y < 0 || x >= width || y >= height) return;
     const i = y * width + x; if (onlyDry && !land[i]) return;
@@ -298,6 +320,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       travelled += length;
     }
   };
+  yield;
   for (let y = 3; y < height - 3; y++) for (let x = 3; x < width - 3; x++) {
     const i = y * width + x;
     if (!land[i] || regionIds[i] < 0 || dryDistance[i] > unit || (x + y * 3) % 11 !== 0) continue;
@@ -313,6 +336,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       colours[j] = rocky ? step < 3 ? 0x76634a : groundBank[biome][0] : 0xaa946a;
     }
   }
+  yield;
   if (detail === 2) for (let y = 5; y < height - 5; y++) for (let x = 5; x < width - 5; x++) {
     const i = y * width + x, region = map.regions[regionIds[i]], d = dryDistance[i];
     if (!land[i] || !region || d < 6 || d > 27) continue;
@@ -327,6 +351,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       colours[i] = bank[3]; if (land[i + width]) colours[i + width] = bank[0];
     }
   }
+  yield;
   for (const feature of map.features.filter(f => f.type === 'valley')) stroke(feature.points, 4, (x, y) => groundBank[materialAt(x, y) ?? 'badlands'][2]);
   for (const corridor of map.geography.corridors.filter(c => c.type === 'mountain-valley' || c.type === 'water-gap')) {
     stroke(corridor.points, corridor.type === 'mountain-valley' ? 3 : 2, (x, y) => groundBank[materialAt(x, y) ?? 'badlands'][2]);
@@ -335,6 +360,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     stroke(feature.points, 2.5, 0x8f7b5c); stroke(feature.points, 1.2, 0x403b31);
   }
   for (const coast of map.geography.coasts.filter(c => c.rocky)) stroke(coast.points, 1, 0x6c5e48);
+  yield;
   for (const river of map.features.filter(f => f.type === 'river')) {
     const widthAt = d => (.3 + Math.min(.65, d / 60)) * 4 / texel;
     stroke(river.points, d => widthAt(d) + 1.1 * detail, (x, y) => SHORE_TREATMENTS[materialAt(x, y)]?.bank ?? 0x444c3c);
@@ -347,6 +373,7 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
   }
   for (const creek of map.surroundings.continuations) stroke(creek.points, .5, 0, 16);
 
+  yield;
   const interactions = { bridge: 0, mountainPass: 0, gorge: map.geography.corridors.filter(c => c.type === 'water-gap').length,
     estuary: map.features.filter(f => f.type === 'river' && f.mouth?.treatment === 'estuary').length, rockyShore: 0, softShore: 0, woodlandFringe: 0 };
   for (let y = 4; y < height - 4; y++) for (let x = 4; x < width - 4; x++) {
@@ -370,12 +397,16 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
       colours[i] = groundBank.forest[grain < .12 ? 0 : 3]; interactions.woodlandFringe++;
     }
   }
+  yield;
   paintEcotones({ map, width, height, texel, regionIds, land, waterIndices, colours, groundBank, noise, mixColour, surfaceTreatments, surfaces });
+  yield;
   const presentationSource = retainPresentation ? {colours:colours.slice(), land, regionIds, pixel, world,
     width,height,bounds,texel,detail,ART,groundBank,materialIds:MATERIAL_IDS,noise,mixColour,sampleBackground,islandStyle,settlementScale} : null;
   const {settlementPlans,props,composition,hinterland,foundations,divisions,roads,bridges,roadTexture,roadClearance,borderTexture,borderBounds}
-    = composePlayableTerrain({map,texel,detail,ART,width,height,bounds,pixel,world,land,waterIndices,regionIds,colours,waterBase,
+    = yield* composePlayableTerrainSteps({map,texel,detail,ART,width,height,bounds,pixel,world,land,waterIndices,regionIds,colours,waterBase,
       surfaces,materialAt,groundBank,noise,mixColour,sampleBackground,islandStyle,sites,settlementScale,interactions});
+  partial.roadTexture = roadTexture; partial.borderTexture = borderTexture;
+  yield;
   const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
   const ctx = canvas.getContext('2d'), image = ctx.createImageData(width, height);
   const islandWater=map.islandClusters.map(c=>({id:c.id,regions:c.regionIds,oceanPixels:0,lakePixels:0}));
@@ -420,11 +451,14 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     else if (index >=112 && index<=127)coastalEffects.lakeRipples++;
     else if (index>=240)coastalEffects.lakeGlints++;
   }
+  yield;
   const texture = PIXI.Texture.from(canvas); texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST; texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
+  partial.texture = texture;
   // One low-resolution atmospheric layer covers the fine atlas and hinterland.
   // Its stationary geographic mask keeps fog outside playable regions; cloud
   // banks and their aligned shadows dissipate through a wider playable apron.
   let atmosphere=null;
+  yield;
   if(detail===2) {
     const fw=Math.ceil(width/4),fh=Math.ceil(height/4),mask=new Uint8Array(fw*fh*4);
     const cloudMask=cloudDistanceField(regionIds,width,height,fw,fh);
@@ -444,8 +478,10 @@ export function bakePixelTerrain(map, { texel = 2, sampleBackground, sites = tru
     }
     atmosphere=createAtmosphere({width:fw,height:fh,mask,seed:map.seed,windowed:windowedAnimation,
       world:[bounds.minX*1576/2,bounds.minY*516/2,width*texel/2,height*texel/2]});
+    partial.atmosphere = atmosphere;
   }
 
+  yield;
   const waterCycle=createWaterCycle(texture,waterIndices,waterStrength,waterBank,waterBase,
     (x,y)=>noise(map.seed^6719,(bounds.minX*1576+x*texel)/2,(bounds.minY*516+y*texel)/2,87),
     {windowed:windowedAnimation,world:[bounds.minX*1576/2+waterDriftOffset(map.seed)-texel/4,bounds.minY*516/2-texel/4,width*texel/2,height*texel/2],

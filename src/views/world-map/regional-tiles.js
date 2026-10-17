@@ -1,8 +1,12 @@
+import { runSync } from '../../../images/dark-fantasy/map-generation-prototype/cooperative.js';
 import { destroyPixelTerrain, pixelSpriteTextures, reliefSpriteTextures, pixelSpriteFits } from '../../../images/dark-fantasy/map-generation-prototype/pixel-terrain.js';
 
 // Three reusable terrain appearances: wilderness, village ground and occupied
 // terrain. Player/market buildings are selected from the approved biome atlas. A spread selects regional pieces; it never composes art.
-export function prepareRegionalTiles(presentation, landmarks, renderer) {
+export function prepareRegionalTiles(presentation, landmarks, renderer) { return runSync(prepareRegionalTilesSteps(presentation, landmarks, renderer)); }
+
+// The same work, yielding between the three terrain builds and their uploads.
+export function* prepareRegionalTilesSteps(presentation, landmarks, renderer) {
   const {crop,map}=presentation,started=performance.now();
   const textures=[],grounds=[],bones=[],monsterCounts=new Map(),roadCache=new Map();
   const connections=[];
@@ -31,16 +35,19 @@ export function prepareRegionalTiles(presentation, landmarks, renderer) {
     const scene=sceneFor(art),texture=PIXI.RenderTexture.create({width:crop.width,height:crop.height,resolution:1,scaleMode:PIXI.SCALE_MODES.LINEAR});
     renderer.render(scene,{renderTexture:texture,clear:true});scene.destroy({children:true});textures.push(texture);grounds.push(art.groundTexture);
   }
-  const empty=presentation.build({monsters:[],sites:[],connections});
+  const empty=yield* presentation.buildSteps({monsters:[],sites:[],connections});
   const routedRoads=empty.rasterRoads;
   flatten(empty);destroyPixelTerrain(empty);
-  const towns=presentation.build({monsters:[],sites:presentation.anchors.map(a=>({regionId:a.regionId,kind:'player'})),connections,routedRoads});
+  yield;
+  const towns=yield* presentation.buildSteps({monsters:[],sites:presentation.anchors.map(a=>({regionId:a.regionId,kind:'player'})),connections,routedRoads});
   sites=towns.settlementPlans.map(s=>({regionId:s.regionId,biome:s.biome,buildings:s.buildings.length,point:s.point}));
   buildings=towns.settlementPlans.flatMap(s=>s.buildings.map(b=>({...b,regionId:s.regionId}))).sort((a,b)=>a.point.y-b.point.y);
   flatten(towns);destroyPixelTerrain(towns);
-  monsterArt=presentation.build({monsters:map.regions.map(r=>r.id),sites:[],connections,routedRoads,isolatedMonsterBorders:true});
+  yield;
+  monsterArt=yield* presentation.buildSteps({monsters:map.regions.map(r=>r.id),sites:[],connections,routedRoads,isolatedMonsterBorders:true});
   for(const prop of monsterArt.props)if(prop.monster)monsterCounts.set(prop.regionId,(monsterCounts.get(prop.regionId)??0)+1);
   flatten(monsterArt);
+  yield;
   const density=monsterArt.stats.texel,bounds=monsterArt.bounds;
   return {buildMs:performance.now()-started,sites,
     compose(spec){
