@@ -24,7 +24,8 @@ re-exports the previous public API; internals live here.
   - Shared RISK success, surpassing quality rolls and Delve time calculations.
 - `commissions.js`
   - Continuous Scholar offers, actor-attributed node goals, completion, and validation.
-    Construction tracks only projects started by committed Vassal shop actions.
+    Eleven data-driven tasks pay 20/40/60 Prestige. Construction pays on committed
+    setup, stat tasks track permanent growth, and Prestige tasks track gross income.
 - `shop.js`
   - Shop inventory builders, purchase/undo/reorder/move/reroll, staged
     reservations, and structure placement helpers.

@@ -153,9 +153,15 @@ human playtest work.
   trains ten, both costing six phases. Ingenuity grants +5% shop-quality chance
   per point, with surplus tier rolls above 100% and a Diamond ceiling, without
   price increases. Discovery gives 25 or 60 Research plus Ingenuity.
-- Commissions are continuous objectives, selected from three and completed only
-  through Vassal nodes: install a Practice (20 Prestige), finish a commissioned
-  Structure (40), acquire a Relic (60). More node-driven goals remain future work.
+- Commissions are continuous simple tasks, selected from three and completed
+  through Vassal nodes. Easy (20 Prestige): install any Practice, start any
+  Structure, increase a named permanent stat, acquire any Relic, visit a named
+  node type. Medium (40): build any route, move to a named location, earn 30
+  Prestige after acceptance. Hard (60): install a tagged Practice, start a tagged
+  Structure, acquire a Gold-or-better Relic. Construction setup earns the reward
+  immediately on checkout; completion is unnecessary. Prestige tracks gross
+  income, so spending does not reduce progress. Targets use unlocked card tags,
+  reachable node types and connected player destinations.
   Delve is repeatable, costs 0 Prestige and 10 base years discounted by
   Effectiveness; offers refresh after real time and mortality resolve.
 - Retinue is floor(held Prestige/10), without a population cap. Former cap bonuses

@@ -126,7 +126,9 @@ assert.ok(getPracticeTags(scholarState,'logging',staffing[0]).includes('Knowledg
 assert.equal(stockTraits(scholarState,scholarSite.detailedState.practiceSlots[0]).includes('Knowledge'),false);
 trainSpecialists(scholarSite.detailedState,'warrior',10);
 assert.ok(getMartialSupport(scholarState,scholar.locationRegionId,true)>0,'shared Arms supplies hybrid civilization defense');
-ensureCommissionOffers(scholarState,scholar);
+for (let attempt=0; attempt<100 && !scholar.commissionOffers?.some(o=>o.id==='structure'); attempt++) {
+  scholar.commissionOffers=[]; ensureCommissionOffers(scholarState,scholar);
+}
 assert.equal(chooseVassalCommission(scholarState,scholar.commissionOffers.find(o=>o.id==='structure').offerId).ok,true);
 const prestigeBefore=scholar.prestige;
 assert.equal(tryCreateStructure(scholarState,scholar.locationRegionId,'workshop'),true);

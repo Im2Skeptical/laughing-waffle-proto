@@ -4,7 +4,7 @@ import { ActionKinds, applyAction } from '../src/model/actions.js';
 import { serializeGameState, deserializeGameState } from '../src/model/state.js';
 import { getCurrentLifeMapVassal, selectLifeMapVassal, getVassalCandidatePool, getVassalNodeDecisionPresentation } from '../src/model/vassal-life-map.js';
 import { getVassalRiskDeathChance, rollScholarQualityBonus, getVassalDelvePhaseCost } from '../src/model/vassal-life-map/class-rules.js';
-import { chooseVassalCommission, recordCommissionAction, stepVassalCommission } from '../src/model/vassal-life-map/commissions.js';
+import { ensureCommissionOffers, chooseVassalCommission, recordCommissionAction, stepVassalCommission } from '../src/model/vassal-life-map/commissions.js';
 import { getMartialForce, getRetinue, adjacentRegionIds, stepSpatialPressure } from '../src/model/detailed-settlements/external-world.js';
 import { getRegionState } from '../src/model/world-state.js';
 import { createDetailedPracticeSlot } from '../src/model/detailed-practice-tiers.js';
@@ -96,38 +96,40 @@ for (const scenario of ['success','protectedFailure','safeCampaign']) {
   assert.equal(decision.mandatePreventedDeath===true,protectedFailure);
 }
 
-// Continuously selected, actor-driven goals. Inheritance and autonomous changes
-// never submit a Commission action; only tracked vassal projects may finish.
-for(const id of ['practice','structure','relic']) {
-  const state=selected('scholar'), v=getCurrentLifeMapVassal(state);
-  assert.equal(v.commissionOffers.length,3);
-  const offer=v.commissionOffers.find(o=>o.id===id);
-  assert.equal(chooseVassalCommission(state,offer.offerId).ok,true);
-  assert.equal(chooseVassalCommission(state,offer.offerId).ok,false,'stale acceptance rejected');
-  const prestige=v.prestige;
-  const local=state.world.sites.find(s=>s.regionId===v.locationRegionId).detailedState;
-  local.structureSlots[0]={structureId:'workshop',placementId:'autonomous',origin:0,width:1};
+function chooseCommission(state, id) {
+  const v = getCurrentLifeMapVassal(state);
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const offer = v.commissionOffers.find(o => o.id === id);
+    if (offer) { assert.equal(chooseVassalCommission(state, offer.offerId).ok, true); return offer; }
+    v.commissionOffers = [];
+    ensureCommissionOffers(state, v);
+  }
+  throw new Error(`Missing commission ${id}`);
+}
+
+// Committed actions pay once; starting construction is sufficient.
+for (const id of ['practice','structure','relic']) {
+  const state = selected('scholar'), v = getCurrentLifeMapVassal(state);
+  const offer = chooseCommission(state, id), prestige = v.prestige;
+  assert.equal(chooseVassalCommission(state, offer.offerId).ok, false);
+  const local = state.world.sites.find(s => s.regionId === v.locationRegionId).detailedState;
+  local.structureSlots[0] = {structureId:'workshop',placementId:'autonomous',origin:0,width:1};
   stepVassalCommission(state,v);
-  assert.equal(v.prestige,prestige,'unrelated construction earns no reward');
-  if(id==='structure') {
-    const project={structureId:'workshop',placementId:'vassal-project',origin:0,width:1,construction:{completedCycles:0}};
-    local.structureSlots[0]=project;
-    recordCommissionAction(state,v,{kind:'structureStarted',regionId:v.locationRegionId,placementId:project.placementId});
-    stepVassalCommission(state,v);assert.equal(v.prestige,prestige,'starting is not completing');
-    delete project.construction;
-    stepVassalCommission(state,v);
-  } else recordCommissionAction(state,v,{kind:id==='practice'?'practiceInstalled':'relicAcquired'});
-  assert.equal(v.prestige,prestige+offer.prestige);
+  assert.equal(v.prestige,prestige,'autonomous changes earn no reward');
+  recordCommissionAction(state,v,{kind:offer.event});
+  assert.equal(v.prestige,prestige+20);
   assert.equal(v.completedCommissions,1);
-  assert.equal(v.commissionOffers.length,3,'completion immediately offers the next goal');
+  assert.equal(v.commissionOffers.length,3);
   assert.equal(v.commission,null);
-  stepVassalCommission(state,v);assert.equal(v.prestige,prestige+offer.prestige,'reward occurs once');
+  recordCommissionAction(state,v,{kind:offer.event});
+  stepVassalCommission(state,v);
+  assert.equal(v.prestige,prestige+20,'reward occurs once');
 }
 
 // Real checkout submits attribution only on commit, never staging or undo.
 for(const [id,family,kind] of [['practice','practiceReform','practice'],['structure','publicWorks','structure']]) {
   const state=selected('scholar'), v=getCurrentLifeMapVassal(state);
-  chooseVassalCommission(state,v.commissionOffers.find(o=>o.id===id).offerId);
+  chooseCommission(state,id);
   const nodeId=nodeIdForFamily(state,family);v.lifeMap.availableNodeIds=[nodeId];
   const action=(kind,payload)=>{const r=applyAction(state,{kind,payload},{isReplay:true});assert.equal(r.ok,true,r.reason);};
   action(ActionKinds.VASSAL_ENTER_LIFE_NODE,{nodeId});
@@ -137,22 +139,18 @@ for(const [id,family,kind] of [['practice','practiceReform','practice'],['struct
   action(ActionKinds.VASSAL_PURCHASE_SHOP_OFFER,{nodeId,offerId:offer.offerId});
   assert.equal(v.prestige,before);assert.equal(v.completedCommissions??0,0);
   action(ActionKinds.VASSAL_UNDO_SHOP_PURCHASE,{nodeId,offerId:offer.offerId});
-  assert.equal(v.commission.projects.length,0);
+  assert.equal(v.commission.id,id);
   action(ActionKinds.VASSAL_PURCHASE_SHOP_OFFER,{nodeId,offerId:offer.offerId});
   const purchase=structuredClone(shop.purchasedOffers[0]);
   action(ActionKinds.VASSAL_CONFIRM_LIFE_NODE,{nodeId});
-  if(id==='practice')assert.equal(v.prestige,before-purchase.prestigeCost+20);
-  else {
-    assert.equal(v.prestige,before-purchase.prestigeCost,'construction must actually finish');
-    assert.deepEqual(v.commission.projects,[{regionId:v.locationRegionId,placementId:purchase.placement.placementId}]);
-  }
+  assert.equal(v.prestige,before-purchase.prestigeCost+20,'committed Practice or construction setup pays immediately');
   assert.deepEqual(serializeGameState(deserializeGameState(serializeGameState(state))),serializeGameState(state));
 }
 
 // Real timed Delve: offers are hidden behind a pending action until ordinary
 // ticks resolve. Save continuation, worker preparation and timeline replay agree.
 const state=selected('scholar'), v=getCurrentLifeMapVassal(state);
-chooseVassalCommission(state,v.commissionOffers.find(o=>o.id==='relic').offerId);
+chooseCommission(state,'relic');
 v.stats.effectiveness=5;
 const node=v.lifeMap.graph.nodes.find(n=>['practiceReform','publicWorks','foodShop','housingShop','neutralMarket','classMarket'].includes(n.family));
 assert.ok(node);v.lifeMap.availableNodeIds=[node.id];

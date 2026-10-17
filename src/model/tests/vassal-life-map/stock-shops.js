@@ -122,7 +122,7 @@ for (const classId of [null, "scholar", "warrior"]) {
       assert.equal(appendActionAtCursor(shopTimeline, { kind, payload, tSec: state.tSec }, state).ok, true);
       dispatch(state, kind, payload);
     };
-    if(vassal.commissionOffers?.length) shopAct(ActionKinds.VASSAL_CHOOSE_COMMISSION,{offerId:vassal.commissionOffers.find(o=>o.id==='relic').offerId});
+    if(vassal.commissionOffers?.length) shopAct(ActionKinds.VASSAL_CHOOSE_COMMISSION,{offerId:vassal.commissionOffers[0].offerId});
     shopAct(ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId: target.id });
     const nodeState = vassal.lifeMap.nodeStates[target.id];
     const checkOffers = () => {

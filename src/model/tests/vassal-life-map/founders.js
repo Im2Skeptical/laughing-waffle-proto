@@ -15,7 +15,7 @@ import { dispatch, forceEnter } from './helpers.js';
 function endLife(state, die = false) {
   const vassal = getCurrentLifeMapVassal(state);
   vassal.developmentChoiceQueue = [];
-  if(vassal.commissionOffers?.length) dispatch(state,ActionKinds.VASSAL_CHOOSE_COMMISSION,{offerId:vassal.commissionOffers.find(o=>o.id==='relic').offerId});
+  if(vassal.commissionOffers?.length) dispatch(state,ActionKinds.VASSAL_CHOOSE_COMMISSION,{offerId:vassal.commissionOffers[0].offerId});
   const node = forceEnter(state, vassal.lifeMap.graph.bossNodeId);
   node.options = [{id: 'end-life-fixture', phaseCost: 0, ...(die ? {immediateDeathChance: 1} : {})}];
   dispatch(state, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {nodeId: node.nodeId, optionId: 'end-life-fixture'});

@@ -1,3 +1,4 @@
+import { ensureCommissionOffers } from '../vassal-life-map/commissions.js';
 import assert from 'node:assert/strict';
 import { LAB_EXHIBITS, createLabFixture } from '../dev-lab/fixtures.js';
 import { editLabState, advanceLabState, compareLabProjection, getLabObservation, previewLabShop, previewLabInstitutions } from '../dev-lab/sandbox.js';
@@ -66,6 +67,9 @@ const scholar=createLabFixture('scholar'),scholarData=data(scholar);
 assert.deepEqual(previewLabShop(scholar),previewLabShop(scholar));assert.deepEqual(data(scholar),scholarData);
 assert.ok(previewLabInstitutions(scholar).some(c=>c.ingenuity>c.baseIngenuity),'same RNG exposes institutional feedback');
 region=scholar.civilization.capitalRegionId;
+for (let attempt=0; attempt<100 && !getCurrentLifeMapVassal(scholar).commissionOffers.some(o=>o.id==='practice'); attempt++) {
+  getCurrentLifeMapVassal(scholar).commissionOffers=[];ensureCommissionOffers(scholar,getCurrentLifeMapVassal(scholar));
+}
 let commissioned=editLabState(scholar,region,{kind:'commissionChoose',payload:{goalId:'practice'}});
 commissioned=editLabState(commissioned,region,{kind:'practice',payload:{index:4,id:'forage',stock:0,tier:'bronze'}});
 commissioned=editLabState(commissioned,region,{kind:'commissionCheck'});

@@ -117,6 +117,7 @@ export function createVassalLifeHudView({
       vassalId: vassal?.vassalId ?? null,
       retinue: getRetinue(presentation.state, vassal),
       prestige: vassal?.prestige ?? null,
+      commission: vassal?.commission ?? null,
       stats: vassal?.stats ?? null,
       exp: vassal?.developmentProgress ?? null,
       location: vassal?.locationRegionId ?? null,
@@ -173,7 +174,7 @@ export function createVassalLifeHudView({
     if (vassal.classId === 'warrior') {
       const retinue = getRetinue(presentation.state,vassal);
       root.addChild(createText(`Retinue +${retinue.value} Force; next at ${retinue.nextPrestige} Prestige`, {...TEXT_STYLES.chip,fontSize:17,fill:PALETTE.accent},hudX+168,barY+76));
-    } else if (vassal.commission) root.addChild(createText(`Commission: ${vassal.commission.label} (+${vassal.commission.prestige} Prestige)`, {...TEXT_STYLES.chip,fontSize:17,fill:PALETTE.accent},hudX+168,barY+76));
+    } else if (vassal.commission) root.addChild(createText(`Commission: ${vassal.commission.label}${vassal.commission.amount ? ` (${vassal.commission.progress}/${vassal.commission.amount})` : ''} (+${vassal.commission.prestige} Prestige)`, {...TEXT_STYLES.chip,fontSize:17,fill:PALETTE.accent},hudX+168,barY+76));
     const expX = contentX + 118;
     root.addChild(
       createText("EXP", {

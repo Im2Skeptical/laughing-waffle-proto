@@ -18,7 +18,7 @@ export function createVassalCommissionPicker({layer,getPresentation,isVisible,on
       const card=new PIXI.Container();card.position.set(374+index*568,424);card.eventMode='static';card.cursor='pointer';card.hitArea=new PIXI.Rectangle(0,0,540,344);
       const g=new PIXI.Graphics();paintRelicPanel(g,0,0,540,344,RELIC.night,RELIC.brass,2);card.addChild(g);
       const t=(copy,y,size,fill=RELIC.bone)=>card.addChild(createText(copy,{fontFamily:'Georgia',fontSize:size,fill,wordWrap:true,wordWrapWidth:492},24,y));
-      t(offer.label,26,36);t(offer.description,96,28);t(`+${offer.prestige} Prestige`,248,34,RELIC.gold);t('ACCEPT ›',300,24,RELIC.gold);
+      t(offer.label,26,32);t(offer.description,116,26);t(`${offer.difficulty.toUpperCase()} · +${offer.prestige} Prestige`,248,30,RELIC.gold);t('ACCEPT ›',300,24,RELIC.gold);
       addInteractionFeedback(card,{x:0,y:0,width:540,height:344},{onActivate:()=>onChoose(offer.offerId)});root.addChild(card);return card;
     });
   }

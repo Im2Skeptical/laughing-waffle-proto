@@ -149,8 +149,14 @@ registries here.
   Discovery Research per point. Delve spends 10 base years, discounted by
   Effectiveness, before refreshing offers; it is repeatable and costs no Prestige.
   Continuous Commissions are selected from three and credit only committed Vassal
-  node actions: new Practice (20 Prestige), completed commissioned Structure (40),
-  acquired Relic (60). Construction attribution and history are serialized.
+  node actions. Easy (20 Prestige): install any Practice, start any Structure,
+  increase a randomly named permanent stat, acquire any Relic, or visit a named
+  node type. Medium (40): build any route, move to a named connected player
+  settlement, or earn 30 Prestige after acceptance (spending retains progress).
+  Hard (60): install a tagged Practice, start a tagged Structure, or acquire a
+  Gold-or-better Relic. Structure setup pays on committed checkout, never on
+  staging or autonomous completion. Targets, stat baselines, income progress and
+  history are serialized; existing possessions and inherited Relics do not count.
 - Warrior Prowess replaces the Intelligence price discount: +1 global Martial
   Force per point and RISK success multiplied by (1 + 0.15 * Prowess), capped at
   100%. Every successful RISK grants +15 extra Prestige; prevented failed rolls

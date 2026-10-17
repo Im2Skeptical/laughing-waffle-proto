@@ -1,4 +1,3 @@
-import { VASSAL_COMMISSION_DEFS } from '../../defs/vassal-class-rules.js';
 import { getDetailedSettlementViewModel } from '../../model/detailed-settlements.js';
 import { getCurrentLifeMapVassal, getVassalCandidatePool } from '../../model/vassal-life-map.js';
 import { classActionOptions } from '../../model/vassal-life-map/class-actions.js';
@@ -108,7 +107,7 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
       panel.append(group('Stats',stats));
     }
     controls.append(button('Spend 5 Prestige',()=>edit('spendPrestige',{})),button('Preview seeded shop',()=>run(()=>controller.shop())),button('Check Commission',()=>edit('commissionCheck',{})));
-    if (vassal.classId === 'scholar' && !vassal.commission) for (const goal of VASSAL_COMMISSION_DEFS) controls.append(button(`Choose Commission: ${goal.label} (+${goal.prestige})`,()=>edit('commissionChoose',{goalId:goal.id})));
+    if (vassal.classId === 'scholar' && !vassal.commission) for (const goal of vassal.commissionOffers ?? []) controls.append(button(`Choose Commission: ${goal.label} (+${goal.prestige})`,()=>edit('commissionChoose',{goalId:goal.id})));
     panel.append(group('Actions',controls));
     const effects=el('div','','lab-controls');
     for(const family of [...(vassal.classId==='scholar'?['discovery']:['campaign']),'crisis']) {

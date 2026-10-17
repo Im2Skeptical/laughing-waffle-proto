@@ -323,6 +323,7 @@ export function enterVassalLifeNode(state, nodeId) {
     eventId: `${vassal.vassalId}:enter:${nodeId}`,
     kind: "nodeEntered", nodeId, tSec: state.tSec, text: `Entered ${node.family}`,
   });
+  recordCommissionAction(state, vassal, { kind: 'nodeEntered', nodeFamily: node.family });
   return { ok: true, nodeState };
 }
 
@@ -343,7 +344,7 @@ export function selectVassalNodeOption(state, nodeId, optionId) {
   return { ok: true, optionId };
 }
 
-function applyIntervention(state, intervention) {
+function applyIntervention(state, intervention, vassal) {
   const settlement = getDetailedSite(state, intervention.targetRegionId)?.detailedState;
   if (intervention.kind === "practice" && settlement) {
     return applyPracticeIntervention(settlement.practiceSlots, intervention)
@@ -351,9 +352,11 @@ function applyIntervention(state, intervention) {
       : { ok: false, reason: "practiceUnavailable" };
   }
   if (intervention.kind === "connection") {
-    return intervention.mode === "add"
+    const result = intervention.mode === "add"
       ? addWorldConnection(state, intervention.regionAId, intervention.regionBId)
       : removeWorldConnection(state, intervention.regionAId, intervention.regionBId);
+    if (result.ok && intervention.mode === 'add') recordCommissionAction(state, vassal, { kind: 'routeBuilt' });
+    return result;
   }
   return { ok: false, reason: "interventionUnavailable" };
 }
@@ -418,6 +421,7 @@ function finishVassal(state, vassal, { reason, cause = null } = {}) {
 }
 
 function applyOptionEffect(state, vassal, nodeState, option) {
+  const previousLocation = vassal.locationRegionId;
   if (getSettlementRequirements(state, vassal, option).some((entry) => !entry.met)) {
     return { ok: false, reason: "settlementUnavailable" };
   }
@@ -439,6 +443,7 @@ function applyOptionEffect(state, vassal, nodeState, option) {
       delta = Math.floor(delta * getEquippedHeirloomModifiers(vassal).patronageOptionMultiplier);
     }
     vassal.prestige = Math.max(0, vassal.prestige + delta);
+    if (delta > 0) recordCommissionAction(state, vassal, { kind: 'prestigeGained', amount: delta });
   }
   if (option?.statId && Number.isFinite(option.statDelta)) {
     vassal.stats[option.statId] = Math.max(
@@ -478,7 +483,7 @@ function applyOptionEffect(state, vassal, nodeState, option) {
     vassal.locationRegionId = targetRegionId;
   }
   if (option?.intervention) {
-    const result = applyIntervention(state, option.intervention);
+    const result = applyIntervention(state, option.intervention, vassal);
     if (!result.ok) return result;
   }
   if (option?.forcedRelocation) {
@@ -530,8 +535,15 @@ function applyOptionEffect(state, vassal, nodeState, option) {
     applyVassalNodeEffects(state, monsterEffects);
   });
   flushPracticeEvents(state);
-  if (option?.classAction && Number.isFinite(option.prestigeDelta)) vassal.prestige+=option.prestigeDelta;
+  if (option?.classAction && Number.isFinite(option.prestigeDelta)) {
+    vassal.prestige += option.prestigeDelta;
+    if (option.prestigeDelta > 0) recordCommissionAction(state, vassal, { kind: 'prestigeGained', amount: option.prestigeDelta });
+  }
   if (vassal.classId === 'warrior' && isRisk && !riskFailed) vassal.prestige += VASSAL_CLASS_RULES.warrior.riskPrestige;
+  recordCommissionAction(state, vassal, { kind: 'statIncreased' });
+  if (vassal.locationRegionId !== previousLocation && !option?.forcedRelocation) {
+    recordCommissionAction(state, vassal, { kind: 'locationMoved', regionId: vassal.locationRegionId });
+  }
   const phaseCost = getVassalActionPhaseCost(vassal, option?.phaseCost ?? 0, {
     nodeState,
     isTravel: nodeState.family === "travel",
@@ -567,6 +579,7 @@ export function completeNodeResolution(state, vassal, nodeState) {
   ensureCommissionOffers(state, vassal);
   const gains = delve ? {prestige:0,development:0} : getVassalNodeResolutionGains(vassal, nodeState.family);
   vassal.prestige += gains.prestige;
+  if (gains.prestige > 0) recordCommissionAction(state, vassal, { kind: 'prestigeGained', amount: gains.prestige });
   vassal.developmentProgress += gains.development;
   let earnedDevelopmentChoices = 0;
   while (vassal.developmentProgress >= VASSAL_LIFE_TUNING.developmentThreshold) {
@@ -682,10 +695,10 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
   }
   for (const purchase of [...nodeState.purchasedOffers].reverse()) {
     const change = purchase.intervention;
-    if (change.kind === 'practice' && change.mode === 'learn') recordCommissionAction(state, vassal, {kind:'practiceInstalled'});
-    if (change.kind === 'structure' && purchase.placement) recordCommissionAction(state, vassal, {kind:'structureStarted',regionId:vassal.locationRegionId,placementId:purchase.placement.placementId});
+    if (change.kind === 'practice' && change.mode === 'learn') recordCommissionAction(state, vassal, {kind:'practiceInstalled',practiceId:change.practiceId});
+    if (change.kind === 'structure' && purchase.placement) recordCommissionAction(state, vassal, {kind:'structureStarted',structureId:change.structureId});
     if (purchase.intervention.kind === 'connection') {
-      const result = applyIntervention(state, purchase.intervention);
+      const result = applyIntervention(state, purchase.intervention, vassal);
       if (!result.ok) return result;
     }
     addLifeEvent(state, vassal, "interventionApplied", {
@@ -709,7 +722,7 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
   if (nodeState.family === "relic" && option?.definitionId && acquire.destination !== "decline") {
     const acquired = acquireHeirloom(state, vassal, option.definitionId, acquire);
     if (!acquired.ok) return acquired;
-    recordCommissionAction(state, vassal, {kind:'relicAcquired'});
+    recordCommissionAction(state, vassal, {kind:'relicAcquired',definitionId:option.definitionId});
   }
   if (relicPhaseCost != null) optionResult = { ...optionResult, phaseCost: relicPhaseCost };
   nodeState.accumulatedPhaseCost += optionResult.phaseCost;
@@ -737,6 +750,7 @@ export function chooseVassalDevelopmentStat(state, choiceId, statId) {
     return { ok: false, reason: "invalidStat" };
   }
   vassal.stats[statId] = Math.max(0, Math.floor(vassal.stats[statId] ?? 0)) + 1;
+  recordCommissionAction(state, vassal, { kind: 'statIncreased' });
   vassal.developmentChoiceQueue.shift();
   addLifeEvent(state, vassal, "developmentChosen", { choiceId, statId });
   return { ok: true, statId, value: vassal.stats[statId] };

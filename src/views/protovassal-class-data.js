@@ -50,8 +50,8 @@ const ABILITY_TIPS = Object.freeze({
     section('NOTE', 'Protection after a failed roll does not count as success.')] },
   commission: { title: 'Commissions', subtitle: 'Class ability', lines: [
     section('EFFECT', 'Always keep one Commission underway. Finish it through your nodes, then pick the next of 3.'),
-    section('REWARDS', 'Install a Practice 20 · Finish a Structure 40 · Acquire a Relic 60 Prestige.'),
-    section('NOTE', 'Inheritance and autonomous actions do not count.')] },
+    section('REWARDS', 'Easy 20 · Medium 40 · Hard 60 Prestige.'),
+    section('NOTE', 'Structures pay when construction starts. Gain 30 Prestige and Gold-or-better Relics are tiered tasks.')] },
   delve: { title: 'Delve', subtitle: 'Class ability', lines: [
     section('EFFECT', 'Spend 10 base years to refresh a shop’s offers, less Effectiveness. No Prestige cost.'),
     section('WHEN', 'Repeatable before purchases are staged.'),

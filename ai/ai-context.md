@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.6`.
+Game build version: `1.1.7`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. The game badge adds a source
 fingerprint and Local/Pages label. For preview, version bumps and deployment,
@@ -54,7 +54,7 @@ Routing skills live in `.grok/skills/`.
 
 Authoritative numbers:
 
-- Game state v33; runner saves v24. Older saves are rejected.
+- Game state v34; runner saves v25. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
 - Each run serializes schema-v19 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.

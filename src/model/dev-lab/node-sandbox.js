@@ -45,7 +45,7 @@ export function createLabNodeSandbox(options = {}) {
   state.rng.vassalSeed = settings.seed;
   state.rng.vassalDevelopmentSeed = settings.seed;
   ensureCommissionOffers(state,vassal);
-  if(vassal.commissionOffers?.length) chooseVassalCommission(state,vassal.commissionOffers.find(o=>o.id==='relic').offerId);
+  if(vassal.commissionOffers?.length) chooseVassalCommission(state,vassal.commissionOffers[0].offerId);
   const entered = enterVassalLifeNode(state, node.id);
   if (!entered.ok) throw new Error(entered.reason);
   return { settings, nodeId:node.id, state:deserializeGameState(serializeGameState(state)) };

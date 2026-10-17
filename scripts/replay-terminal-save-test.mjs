@@ -1,5 +1,5 @@
 // Direct live play versus authoritative rebuild, JSON fork, and save-slot reload.
-// Death fixture: new-game seeds 0, 3, 7 with every opening candidate age set to 90
+// Death fixture: new-game seeds 2, 5, 6 with every opening candidate age set to 90
 // before the timeline exists (bounded search 0..7 under the two-founder pool). Founding
 // train-estate then resolves at second 6. Terminal fixture: detailed-replay
 // terminalProjectionBase monsters (defense 100) plus monsterPressure 400,
@@ -23,7 +23,7 @@ import { createSaveTestStorage } from "./save-test-storage.mjs";
 
 const ARTIFACT_DIR = path.resolve("artifacts/replay-terminal-save");
 const REPRO = "node scripts/replay-terminal-save-test.mjs";
-const DEATH_SEEDS = [0, 3, 7];
+const DEATH_SEEDS = [2, 5, 6];
 const TERMINAL_SEEDS = [123, 124, 125];
 const DEATH_SEC = 6;
 const RNG_FIELDS = ["seed", "baseSeed", "vassalSeed", "vassalDevelopmentSeed", "vassalLifeMapSeed", "vassalPortraitSeed"];
