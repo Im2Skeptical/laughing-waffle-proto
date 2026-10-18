@@ -122,7 +122,7 @@ export const VASSAL_SIGNATURE_NODE_VARIANTS = Object.freeze({
   monsterHunt: Object.freeze({
     id: "monsterHunt", groupId: "monsterHunt", label: "Kill Monsters",
     glyph: "KM", color: 0xcf6b5d,
-    description: "Trade Prestige or immediate danger to reduce the redGod host.",
+    description: "Trade Prestige or immediate danger to reduce monsters.",
   }),
   removePractice: Object.freeze({
     id: "removePractice", groupId: "removal", removalKind: "practice",
@@ -204,17 +204,17 @@ export const VASSAL_MONSTER_HUNT_OPTIONS = Object.freeze([
   Object.freeze({
     id: "dangerousHunt", label: "Risk Immediate Death: Kill 15 Monsters",
     phaseCost: 0, immediateDeathChance: 0.35,
-    effects: Object.freeze([{ op: "AdjustSettlementChaosGodState", godId: "redGod", key: "monsterCount", amount: -15, min: 0 }]),
+    effects: Object.freeze([{ op: "AdjustCivilizationChaosState", key: "monsterCount", amount: -15, min: 0 }]),
   }),
   Object.freeze({
     id: "fundedHunt", label: "Pay Prestige: Kill 10 Monsters",
     prestigeCost: 10, phaseCost: 0,
-    effects: Object.freeze([{ op: "AdjustSettlementChaosGodState", godId: "redGod", key: "monsterCount", amount: -10, min: 0 }]),
+    effects: Object.freeze([{ op: "AdjustCivilizationChaosState", key: "monsterCount", amount: -10, min: 0 }]),
   }),
   Object.freeze({
     id: "recklessHunt", label: "Higher Risk: Kill 5 Monsters, Gain 30 Prestige",
     prestigeDelta: 30, phaseCost: 0, immediateDeathChance: 0.6,
-    effects: Object.freeze([{ op: "AdjustSettlementChaosGodState", godId: "redGod", key: "monsterCount", amount: -5, min: 0 }]),
+    effects: Object.freeze([{ op: "AdjustCivilizationChaosState", key: "monsterCount", amount: -5, min: 0 }]),
   }),
 ]);
 

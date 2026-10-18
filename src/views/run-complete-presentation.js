@@ -4,10 +4,11 @@ export function getRunCompleteInfo(state, { projected = false } = {}) {
   const status = state.runStatus;
   const year = Math.max(1, Math.floor(status.year ?? state.year ?? 1));
   const tSec = Math.max(0, Math.floor(status.tSec ?? state.tSec ?? 0));
-  const reason = status.reason ?? "unknown";
+  const reason = status.reason === "redGodMonsterOverrun"
+    ? "monsterOverrun" : status.reason ?? "unknown";
   let cause = "Civilization lost";
   let explanation = "Your civilization reached a loss condition.";
-  if (reason === "redGodMonsterOverrun") {
+  if (reason === "monsterOverrun") {
     cause = "Overrun by monsters";
     explanation = "Spatial Monster expansion has taken every player settlement. Supplied defenses can repel expansion while their Stock lasts.";
     explanation += " Chaos creates monsters over time; reducing its pressure can delay this outcome.";
