@@ -1,6 +1,6 @@
 import { RESOURCE_ART_IDS } from '../chronicle-art.js';
 import { addResourceIcon } from '../resource-cost-pixi.js';
-import { CIVILIZATION_RECT, MAP_VIEWPORT_RECT } from './constants.js';
+import { MAP_VIEWPORT_RECT } from './constants.js';
 
 // Recipe roles, not current inventory or activation readiness. Charge event
 // triggers are not Stock costs and must not appear as demand.
@@ -47,16 +47,14 @@ export function getSettlementStockTagLayout(tags, point) {
   const columns = Math.max(6, Math.ceil(tags.length / availableRows));
   const rows = Math.ceil(tags.length / columns);
   const top = point.y - 98 - (rows - 1) * gap;
-  const left = point.x - (Math.min(columns, tags.length) - 1) * gap / 2 - 18;
-  const drawerRight = CIVILIZATION_RECT.x + CIVILIZATION_RECT.width + 44;
-  const offsetX = top - 18 < CIVILIZATION_RECT.y + CIVILIZATION_RECT.height
-    ? Math.max(0, drawerRight + 4 - left) : 0;
   return tags.map((tag, index) => {
     const row = Math.floor(index / columns);
     const count = Math.min(columns, tags.length - row * columns);
     return { ...tag, size,
-      x: point.x + offsetX + (index % columns - (count - 1) / 2) * gap,
-      y: point.y - 98 - (rows - 1 - row) * gap,
+      // Map-local icons share their settlement's camera transform. Fixed HUD
+      // avoidance must not displace them into an unrelated region.
+      x: point.x + (index % columns - (count - 1) / 2) * gap,
+      y: top + row * gap,
     };
   });
 }

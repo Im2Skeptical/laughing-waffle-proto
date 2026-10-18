@@ -35,7 +35,14 @@ assert.equal(tagLayout[6].x, 800, 'wrapped rows are centered independently');
 assert.equal(tagLayout[6].y - tagLayout[0].y, 36, 'wrapped icons have separate rows above the settlement');
 const northernTags = getSettlementStockTagLayout([...stockTags, stockTags[0]], { x: 662, y: 214 });
 assert.ok(northernTags.every(tag => tag.y - 18 >= 78), 'northern icons widen their row to stay clear of the header');
-assert.ok(northernTags.every(tag => tag.x - 18 >= 580), 'northern icons stay clear of the Chaos drawer');
+for(const point of [{x:300,y:214},{x:662,y:214},{x:800,y:300}]){
+  const layout=getSettlementStockTagLayout([...stockTags,stockTags[0]],point);
+  for(const y of new Set(layout.map(tag=>tag.y))){
+    const row=layout.filter(tag=>tag.y===y);
+    assert.equal(row.reduce((sum,tag)=>sum+tag.x,0)/row.length,point.x,
+      'Each resource row stays centered on its settlement instead of shifting over another region');
+  }
+}
 
 // Exercise the real camera with a deterministic UI clock and input surface.
 // No renderer or simulation is needed to verify framing and gesture ownership.

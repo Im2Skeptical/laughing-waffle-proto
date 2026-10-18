@@ -144,6 +144,12 @@ stay in `createWorldMapView`.
   triggers do not. Recipes accepting alternatives use matching local tags when
   present. Roles describe installed recipes, independent of current inventory.
 
+Resource icon rows stay horizontally centered on their settlement anchor in map
+coordinates, including neutral markets. They inherit the same pan/zoom transform
+as the artwork and label; fixed HUD panels must not shift them into neighbouring
+regions. The camera and retention probes check row centering and rendered neutral
+market alignment.
+
 Supply packets use the same Stock Trait icons as Practice cards between the
 actual provider and consumer settlements. Each marker shows only the Trait
 requested or consumed: meals show Edible, and recipes accepting alternatives
