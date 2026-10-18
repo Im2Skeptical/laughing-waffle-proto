@@ -32,7 +32,7 @@ export const VASSAL_HEIRLOOM_TUNING = Object.freeze({
   foxMaskCunning: 1,
   abacusIntelligence: 1,
   courtiersBroochPatronageMultiplier: 2,
-  pilgrimsStaffTravelDevelopment: 6,
+  pilgrimsStaffCrossroadsDevelopment: 6,
   extraShopOffers: 1,
   hourglassFirstActionMultiplier: 0.5,
   royalWarrantFirstPurchaseDiscount: 0.8,
@@ -85,8 +85,8 @@ export const VASSAL_HEIRLOOM_DEFS = Object.freeze({
   ),
   pilgrimsStaff: heirloom(
     "pilgrimsStaff", "Pilgrim's Staff", "silver",
-    "Completing a Travel node grants additional development progress.",
-    { travelNodeDevelopment: VASSAL_HEIRLOOM_TUNING.pilgrimsStaffTravelDevelopment },
+    "Completing a Crossroads node grants additional development progress.",
+    { crossroadsNodeDevelopment: VASSAL_HEIRLOOM_TUNING.pilgrimsStaffCrossroadsDevelopment },
   ),
   merchantsLens: heirloom(
     "merchantsLens", "Merchant's Lens", "silver",

@@ -200,12 +200,21 @@ for (const [research,unlock] of [[0,0],[99,0],[100,1],[499,1],[500,2],[1999,2],[
   }
   assert.ok(seen.has(unlock),`Research ${research} makes its unlocked tier available in real shops`);
 }
-nodes.refresh({classId:'unclassed',research:100,seed:0});nodes.select(nodes.getSnapshot().nodeId,'random');
-const silverUnlockOffers=nodes.getDecision(nodes.getSnapshot().nodeId).offers;
+let improvedQuality=0;
+for(let seed=0;seed<16;seed++) {
+  nodes.refresh({classId:'unclassed',research:100,seed});nodes.select(nodes.getSnapshot().nodeId,'random');
+  const low=nodes.getDecision(nodes.getSnapshot().nodeId).offers.map(o=>o.intervention);
+  nodes.refresh({classId:'unclassed',research:300,seed});nodes.select(nodes.getSnapshot().nodeId,'random');
+  const high=nodes.getDecision(nodes.getSnapshot().nodeId).offers.map(o=>o.intervention);
+  assert.deepEqual(high.map(o=>o.practiceId),low.map(o=>o.practiceId),'Research within one unlock band preserves card eligibility');
+  for(let index=0;index<low.length;index++) {
+    const before=qualityIds.indexOf(low[index].resultingTier),after=qualityIds.indexOf(high[index].resultingTier);
+    assert.ok(after>=before,'more Research cannot reduce quality for the same roll');
+    improvedQuality+=Number(after>before);
+  }
+}
+assert.ok(improvedQuality>0,'Research within the Silver band improves real quality rolls across fixed seeds');
 nodes.refresh({classId:'unclassed',research:300,seed:0});nodes.select(nodes.getSnapshot().nodeId,'random');
-const researchOffers=nodes.getDecision(nodes.getSnapshot().nodeId).offers;
-assert.notDeepEqual(researchOffers.map(o=>o.intervention),silverUnlockOffers.map(o=>o.intervention),'Research within the Silver band affects real quality rolls');
-assert.ok(researchOffers.some(o=>o.intervention.mode==='learn' && o.intervention.resultingTier==='silver'));
 const researchState=JSON.stringify(data(nodes.getSnapshot().state));
 nodes.refresh({classId:'unclassed',research:300,seed:0});nodes.select(nodes.getSnapshot().nodeId,'random');
 assert.equal(JSON.stringify(data(nodes.getSnapshot().state)),researchState,'seed and Research reproduce the complete fixture');

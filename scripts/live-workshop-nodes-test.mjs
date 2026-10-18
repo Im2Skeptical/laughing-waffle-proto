@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { isDeepStrictEqual } from 'node:util';
 import { createInitialState } from '../src/model/init.js';
 import { ActionKinds as A, applyAction } from '../src/model/actions.js';
 import { serializeGameState, deserializeGameState } from '../src/model/state.js';
@@ -14,6 +15,9 @@ import { addWorldConnection, getWorldConnectionCandidates, getWorldDefinition } 
 import { VASSAL_INTERVENTION_PRACTICE_IDS } from '../src/defs/gamepieces/detailed-settlement-defs.js';
 import { seedNeutralSettlements, seedOpeningMonster } from '../src/model/detailed-settlements/external-world.js';
 import { generateRelicOffers } from '../src/model/vassal-life-map/heirlooms.js';
+import { LAB_NODE_TYPES, createLabNodeSandbox } from '../src/model/dev-lab/node-sandbox.js';
+import { createShopSpecialties } from '../src/model/vassal-life-map/shop-specialties.js';
+import { getVassalStockOutputIds } from '../src/defs/gamepieces/vassal-life-map-defs.js';
 
 function selected(classId='warrior',seed=42) {
   const state=createInitialState('devPlaytesting01',seed);
@@ -46,6 +50,12 @@ function boundary(state,node,success) {
     if((copy.rngNextVassalInt(1,100)>option.risk)===success)return;
   }
   throw new Error('No encounter roll fixture');
+}
+
+assert.ok(LAB_NODE_TYPES.some(([id,label])=>id==='crossroads'&&label==='Crossroads'));
+for(const type of ['travel','routes','signature:removeRoute']){
+  assert.ok(!LAB_NODE_TYPES.some(([id])=>id===type),'removed node types are absent from the Gym picker');
+  assert.throws(()=>createLabNodeSandbox({type}),/Choose a node type/);
 }
 
 {
@@ -87,16 +97,69 @@ for(const kind of ['practiceReform','publicWorks']) {
   for(const offer of node.inventory) {
     const change=offer.intervention;
     const def=change.kind==='practice'?getDetailedPracticeDef(state,change.practiceId):getDetailedStructureDef(state,change.structureId);
-    if(kind==='practiceReform')assert.ok(def.stockTraits.includes(choice.id));
+    if(kind==='practiceReform')assert.ok(choice.id==='Food' ? def.tags.includes('Food') : def.stockTraits.includes(choice.id));
     else if(choice.id==='Housing')assert.ok(def.housing||def.tags.includes('Housing'));
   }
+}
+
+// Every normal Practice shop starts with an eligible basic; the second stays a random Stock output.
+for(const classId of [null,'scholar','warrior']) {
+  const state=selected(classId),v=getCurrentLifeMapVassal(state),seen=new Set();
+  for(const research of [0,100000]) {
+    state.civilization.research.total=research;
+    for(let seed=0;seed<96;seed++) {
+      state.rng.vassalSeed=seed;
+      const choices=createShopSpecialties(state,v,{family:'practiceReform'}).choices;
+      assert.equal(choices.length,3);assert.ok(choices[0].enabled);
+      assert.ok(['Food','Construction','Currency'].includes(choices[0].id),'first specialty must be Food, Construction or Currency');seen.add(choices[0].id);
+      assert.ok(choices[1].enabled);assert.notEqual(choices[0].id,choices[1].id);
+      assert.ok(getVassalStockOutputIds(VASSAL_INTERVENTION_PRACTICE_IDS.map(id=>getDetailedPracticeDef(state,id))).includes(choices[1].id));
+      assert.equal(choices[2].id,'random');assert.equal(choices[2].prestigeGain,10);
+    }
+  }
+  assert.equal(seen.size,3,'each basic is reachable for every class');
+}
+for(const basic of ['Food','Construction','Currency']) {
+  const state=selected('scholar'),v=getCurrentLifeMapVassal(state);
+  // A single legal card makes the selected basic deterministic and checks thin pools.
+  const onlyId={Food:'forage',Construction:'logging',Currency:'barter'}[basic];
+  for(const id of VASSAL_INTERVENTION_PRACTICE_IDS)getDetailedPracticeDef(state,id).locked=id!==onlyId;
+  const nodeId=nodeIdForFamily(state,'practiceReform');v.lifeMap.availableNodeIds=[nodeId];
+  const base=serializeGameState(state),timeline=createTimelineFromInitialState(state),saved=deserializeGameState(base);
+  const actions=[{kind:A.VASSAL_ENTER_LIFE_NODE,payload:{nodeId}},
+    {kind:A.VASSAL_SELECT_LIFE_OPTION,payload:{nodeId,optionId:basic}}];
+  for(const action of actions) {
+    assert.equal(appendActionAtCursor(timeline,{...action,tSec:state.tSec},state).ok,true);
+    act(state,action.kind,action.payload);act(saved,action.kind,action.payload);
+  }
+  const node=v.lifeMap.nodeStates[nodeId];
+  assert.equal(node.shopSelection.choices[0].id,basic);assert.equal(node.inventory.length,1);
+  assert.equal(node.inventory[0].intervention.practiceId,onlyId);
+  assert.ok(isDeepStrictEqual(serializeGameState(saved),serializeGameState(state)),'basic selection survives save/reload');
+  const replay=rebuildStateAtSecond(timeline,state.tSec);assert.equal(replay.ok,true);
+  assert.ok(isDeepStrictEqual(serializeGameState(replay.state),serializeGameState(state)),'basic selection matches authoritative replay');
+  const messages=[];await runLifeDecisionJob({stateData:base,actions},m=>messages.push(m));
+  assert.ok(isDeepStrictEqual(messages.find(m=>m.kind==='ready')?.stateData,serializeGameState(state)),'basic selection matches worker preparation');
+}
+{
+  const state=selected('warrior'),v=getCurrentLifeMapVassal(state);
+  for(const id of VASSAL_INTERVENTION_PRACTICE_IDS)getDetailedPracticeDef(state,id).locked=true;
+  const barter=getDetailedPracticeDef(state,'barter');
+  barter.locked=false;barter.minimumQuality='silver';state.civilization.research.total=0;
+  let first=createShopSpecialties(state,v,{family:'practiceReform'}).choices[0];
+  assert.equal(first.id,'Food');assert.equal(first.enabled,false,'locked tiers cannot supply the guaranteed basic');
+  v.discoveryAccess=true;
+  first=createShopSpecialties(state,v,{family:'practiceReform'}).choices[0];
+  assert.equal(first.id,'Currency');assert.equal(first.enabled,true,'Discovery expands the eligible basics');
+  barter.pool='scholar';
+  assert.equal(createShopSpecialties(state,v,{family:'practiceReform'}).choices[0].enabled,false,'other classes cannot supply a basic');
 }
 
 // Tour is deterministic and can reveal a real Relic before its acquisition choice.
 for(const wantRelic of [false,true]) {
   let state,node;
   for(let seed=0;seed<40;seed++) {
-    state=selected('warrior',seed);node=enter(state,'travel');
+    state=selected('warrior',seed);node=enter(state,'crossroads');
     act(state,A.VASSAL_SELECT_LIFE_OPTION,{nodeId:node.nodeId,optionId:'tour'});
     const fork=deserializeGameState(serializeGameState(state));
     act(fork,A.VASSAL_CONFIRM_LIFE_NODE,{nodeId:node.nodeId});

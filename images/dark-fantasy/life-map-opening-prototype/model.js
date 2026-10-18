@@ -147,7 +147,7 @@ export function enterOpeningEncounter(session, id) {
   const { state } = session, vassal = getCurrentLifeMapVassal(state);
   if (!vassal || state.runStatus?.complete) throw new Error('This run has ended. Rewind or restart.');
   const spec = session.experiment.nodes.find(n => n.id === id), graph = vassal.lifeMap.graph;
-  const family = { world: 'travel', founding: 'warlordFounding', shop: 'practiceReform', structureShop: 'publicWorks', martial: 'challenge', supply: 'stockShop', specialRelic: 'relic' }[spec.kind] ?? spec.kind;
+  const family = { world: 'crossroads', founding: 'warlordFounding', shop: 'practiceReform', structureShop: 'publicWorks', martial: 'challenge', supply: 'stockShop', specialRelic: 'relic' }[spec.kind] ?? spec.kind;
   const specimens = graph.nodes.filter(n => n.depth > 0 && !n.signatureNode && !['legacy', 'signature'].includes(n.family));
   const runtime = spec.kind === 'founding' ? graph.nodes.find(n => n.id === graph.foundingNodeId)
     : spec.kind==='legacy'?graph.nodes.find(node=>node.family==='legacy')
@@ -174,14 +174,14 @@ export function enterOpeningEncounter(session, id) {
   // This workshop authors its own choices; the live specialty picker is separate.
   current.shopSelection=null;
   if (spec.kind === 'world') {
+    const routes=current.options.filter(option=>option.intervention?.kind==='connection').slice(0,3);
     current.options=current.options.filter(option=>option.locationRegionId);
     current.options.forEach(option => {
       option.phaseCost = spec.worldCosts?.movePhaseCost ?? spec.phaseCost ?? option.phaseCost;
       if (spec.worldCosts) option.prestigeDelta = spec.worldCosts.travelPrestigeByRegion[option.locationRegionId] ?? 0;
     });
-    const routes = generateShopInventory(state, vassal, { ...current, family: 'routes' });
-    current.options.push(...routes.map(offer => ({ id: offer.offerId, label: offer.label, phaseCost: spec.worldCosts?.routePhaseCost ?? spec.phaseCost ?? offer.basePhaseCost,
-      prestigeCost: spec.worldCosts?.routePrestigeCost ?? offer.basePrestigeCost, intervention: offer.intervention, experimentFamily: 'routes' })));
+    current.options.push(...routes.map(option => ({...option,phaseCost:spec.worldCosts?.routePhaseCost??spec.phaseCost??option.phaseCost,
+      prestigeCost:spec.worldCosts?.routePrestigeCost??option.prestigeCost})));
     current.options.push(...(spec.options ?? []).map(o => toOption(o, o.id)));
   } else if (spec.kind === 'martial') {
     session.campaign=createCampaignExperiment(state,vassal,spec.campaign);
@@ -242,7 +242,7 @@ export function getOpeningDecision(session, preview = {}) {
   }
   const options = current.options.map(option => {
     const cost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
-    const phases = getVassalActionPhaseCost(vassal, option.phaseCost ?? 0, { nodeState: current, isTravel: current.family === 'travel' && !!option.locationRegionId });
+    const phases = getVassalActionPhaseCost(vassal, option.phaseCost ?? 0, { nodeState: current, isTravel: current.family === 'crossroads' && !!option.locationRegionId });
     const projectedAge = getVassalAge(session.state, vassal, session.state.tSec + phases * getMoonPhaseDurationSec(session.state));
     const source = spec.options?.find(o => o.id === option.id);
     const buckets = source?.weightedOutcomes ? eligibleOutcomeBuckets(session, source) : [];
@@ -412,7 +412,7 @@ export function getOpeningGraphPresentation(session) {
   const maxDepth = Math.max(...Object.values(depths));
   const nodes = session.experiment.nodes.map(spec => {
     const peers = session.experiment.nodes.filter(n => depths[n.id] === depths[spec.id]);
-    const family = { world: 'travel', founding: 'warlordFounding', shop: 'practiceReform', structureShop: 'publicWorks', martial: 'challenge', supply: 'stockShop', specialRelic: 'relic', customNote: 'patronage' }[spec.kind] ?? spec.kind;
+    const family = { world: 'crossroads', founding: 'warlordFounding', shop: 'practiceReform', structureShop: 'publicWorks', martial: 'challenge', supply: 'stockShop', specialRelic: 'relic', customNote: 'patronage' }[spec.kind] ?? spec.kind;
     return { id: spec.id, experimentId: spec.id, presentationLabel: spec.title, presentationDescription: spec.description,
       family, depth: depths[spec.id], lane: peers.indexOf(spec),
       ...(family === 'stockShop' ? { stockOutput: spec.stockOutput === 'auto' ? 'Needed' : spec.stockOutput } : {}),

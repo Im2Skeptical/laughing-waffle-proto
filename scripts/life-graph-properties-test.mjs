@@ -116,7 +116,8 @@ function expectBand(config, depth) {
 function expectTopology(graph, config, seed) {
   const validation = validateVassalLifeMapGraph(graph);
   assert.deepEqual(validation, { ok: true, errors: [] }, `${seed} ${validation.errors?.join('; ')}`);
-  assert.equal(graph.schemaVersion, 5);
+  assert.equal(graph.schemaVersion, 6);
+  assert.ok(graph.nodes.every(node=>!['travel','routes'].includes(node.family)), 'obsolete node families never generate');
   assert.equal(graph.generationSeed, seed);
   assert.equal(graph.foundingNodeId ?? null, null);
   assert.ok(graph.entryNodeIds.length >= 2);
@@ -162,6 +163,9 @@ function rejectMalformed() {
     ['smoothing out of range', { ...SETTINGS.authored, layoutSmoothing: 1.1 }],
     ['duplicate non-repeat', { ...SETTINGS.authored, nonRepeatFamilyIds: ['crisis', 'crisis'] }],
     ['unknown family', { ...SETTINGS.authored, nonRepeatFamilyIds: ['not-a-family'] }],
+    ...['travel','routes'].map(family=>[`removed ${family} weight`,{
+      ...SETTINGS.authored,weights:{...SETTINGS.authored.weights,early:{...SETTINGS.authored.weights.early,[family]:10}},
+    }]),
     ['early weights empty', {
       ...SETTINGS.authored,
       weights: { ...SETTINGS.authored.weights, early: {} },

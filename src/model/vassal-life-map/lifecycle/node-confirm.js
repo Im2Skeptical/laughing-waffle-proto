@@ -259,7 +259,7 @@ function createNodeState(state, vassal, node) {
       };
     });
   } else if (node.family === "development") nodeState.options = buildDevelopmentOptions(state, vassal);
-  else if (node.family === "travel") nodeState.options = buildCrossroadsOptions(state, vassal);
+  else if (node.family === "crossroads") nodeState.options = buildCrossroadsOptions(state, vassal);
   else if (node.family === "settlement") nodeState.options = buildSettlementOptions(state, vassal);
   else if (node.family === 'campaign') {
     nodeState.campaign={mode:'attack',duelDone:false,failed:false,questRegionIds:[],lastResult:null};

@@ -1,4 +1,4 @@
-export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 5;
+export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 6;
 export const VASSAL_PHASES_PER_YEAR = 30;
 const VASSAL_TIME_COST_MULTIPLIER = 3.6;
 const increasedPhaseCost = (baseCost) => Math.round(baseCost * VASSAL_TIME_COST_MULTIPLIER);
@@ -26,8 +26,8 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
     id: "development", label: "Development", glyph: "D", color: 0x5e9bcf,
     description: "Study to improve this Vassal's abilities.",
   }),
-  travel: Object.freeze({
-    id: "travel", label: "Crossroads", glyph: "T", color: 0x62ad82,
+  crossroads: Object.freeze({
+    id: "crossroads", label: "Crossroads", glyph: "X", color: 0x62ad82,
     description: "Move, build a route, or tour this region.",
   }),
   practiceReform: Object.freeze({
@@ -59,10 +59,6 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
   stockShop: Object.freeze({
     id: "stockShop", label: "Stock Supply", glyph: "ST", color: 0xb88449,
     description: "Choose Practices that produce one specific Stock output.",
-  }),
-  routes: Object.freeze({
-    id: "routes", label: "Routes", glyph: "R", color: 0xd0ac55,
-    description: "Add a world connection at this Vassal's current settlement.",
   }),
   settlement: Object.freeze({
     id: "settlement", label: "Settlement", glyph: "S", color: 0x77aa65,
@@ -102,8 +98,8 @@ export const VASSAL_FOUNDING_OPTIONS = Object.freeze({
 });
 
 export const VASSAL_NORMAL_NODE_FAMILY_IDS = Object.freeze([
-  "patronage", "development", "travel", "practiceReform",
-  "publicWorks", "routes", "crisis", "relic", "training", "discovery", "campaign", "challenge",
+  "patronage", "development", "crossroads", "practiceReform",
+  "publicWorks", "crisis", "relic", "training", "discovery", "campaign", "challenge",
   "neutralMarket", "classMarket",
   "foodShop", "housingShop",
 ]);
@@ -133,11 +129,6 @@ export const VASSAL_SIGNATURE_NODE_VARIANTS = Object.freeze({
     label: "Remove Practice", glyph: "−P", color: 0xa46fc4,
     description: "Pay to remove Practices from the Vassal's current settlement.",
   }),
-  removeRoute: Object.freeze({
-    id: "removeRoute", groupId: "removal", removalKind: "connection",
-    label: "Remove Routes", glyph: "−R", color: 0xd0ac55,
-    description: "Pay to remove routes incident to the Vassal's current settlement.",
-  }),
   foodShop: Object.freeze({
     ...VASSAL_NODE_FAMILIES.foodShop, groupId: "tagShop",
   }),
@@ -155,7 +146,7 @@ export const VASSAL_SIGNATURE_VARIANT_IDS_BY_GROUP = Object.freeze({
   settlement: Object.freeze(["settlement"]),
   legacyPlus: Object.freeze(["legacyPlus"]),
   monsterHunt: Object.freeze(["monsterHunt"]),
-  removal: Object.freeze(["removePractice", "removeRoute"]),
+  removal: Object.freeze(["removePractice"]),
   tagShop: Object.freeze(["foodShop", "knowledgeShop", "housingShop"]),
 });
 
@@ -173,15 +164,12 @@ export const VASSAL_LIFE_TUNING = Object.freeze({
   developmentThreshold: 10,
   discountPerStat: 0.08,
   maximumDiscount: 0.6,
-  phasesPerTravelStep: increasedPhaseCost(VASSAL_PHASES_PER_YEAR),
-  travelOptionCount: 3,
   emptyShopConfirmPhaseCost: VASSAL_PHASES_PER_YEAR * 2,
   shopRerollPrestigeCost: 6,
   shopRerollPhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2),
   routeAddPrestigeCost: 16,
   routeAddPhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 3),
-  routeRemovePrestigeCost: 10,
-  routeRemovePhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2),
+  signatureRemovalPhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2),
   signatureRemovalPrestigeCost: 10,
   settlementPrestigeCost: 40,
   legacyPrestigeCost: 20,

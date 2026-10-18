@@ -106,7 +106,7 @@ try {
     layer.scale.set(.5);
     app.stage.addChild(layer);
     const vassal = {vassalId:'touch-check', lifeMap:{currentNodeId:'a', graph:{
-      nodes:[{id:'a',family:'travel',position:{x:0,y:.5}}, {id:'b',family:'travel',position:{x:1,y:.5}}],
+      nodes:[{id:'a',family:'crossroads',position:{x:0,y:.5}}, {id:'b',family:'crossroads',position:{x:1,y:.5}}],
       edges:[{fromNodeId:'a',toNodeId:'b'}],
     }}};
     const view = createVassalLifeMapView({layer, getPresentation:()=>({vassal,state}), isVisible:()=>true});

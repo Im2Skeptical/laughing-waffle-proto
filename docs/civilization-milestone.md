@@ -67,12 +67,17 @@ first-pass system notes below retain their original tuning context.
   Neutral Market and Class Market nodes mix Practices and Structures exclusively
   from their advertised pool; unclassed Life Maps replace Class Markets with
   Neutral Markets. Rerolls preserve these rules.
-- Practice Reform first chooses between two eligible Stock outputs and Random
-  (+10 Prestige once). Public Works chooses Housing, Stock capacity, or Special.
+- Practice Reform's first choice is randomly selected from eligible Food-tagged,
+  Construction-Stock-producing, or Currency-Stock-producing Practices. Its second
+  choice remains a random eligible Stock output (excluding the first choice),
+  with Random (+10 Prestige once) third. Edited content with no eligible basics
+  retains a disabled Food choice. Public Works chooses Housing, Stock capacity, or Special.
   Insufficient Prestige substitutes 10 Monster expansion progress per card
   purchase at checkout; staging and undo do not apply it.
-- Crossroads combines Move, Build route and Tour in one full-map node. Ordinary
-  Relics have no direct death roll; explicitly Special searches retain danger.
+- Crossroads combines Move, Build route and Tour in one full-map node.
+  Travel and Routes node types are removed from runtime definitions and tools.
+  The Remove Routes signature is removed as well.
+  Ordinary Relics have no direct death roll; explicitly Special searches retain danger.
   Ordinary Legacy has free founding, highest-stat / 3, and held-Prestige / 10
   choices, with accumulating future bonuses. Custom opening pathways remain
   in progress in the standalone workshop.

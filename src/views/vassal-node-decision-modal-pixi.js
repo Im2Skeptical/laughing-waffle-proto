@@ -674,7 +674,7 @@ export function createVassalNodeDecisionModalView({
         optionRoots = (nodeState.options ?? []).map((option, index) => {
           const prestigeCost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
           const phaseCost = getVassalActionPhaseCost(vassal, option.phaseCost ?? 0, {
-            nodeState, isTravel: nodeState.family === 'travel',
+            nodeState, isTravel: nodeState.family === 'crossroads',
           });
           const requirements = decision?.optionRequirements?.[option.id] ?? [];
           const unmet = requirements.filter((entry) => !entry.met);
@@ -943,7 +943,7 @@ export function createVassalNodeDecisionModalView({
         onReview,
         cost:inspectedOffer?{prestigeCost:piece.prestigeCost,currencyCost:piece.currencyCost,phaseCost:piece.phaseCost,monsterPressureCost:piece.monsterPressureCost??0,state,staged:piece.purchased,disabled:piece.purchased||readOnly||!piece.canStage}:inspectedOption?{
           prestigeCost:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0),chaosCost:getActionChaosCost(piece),monsterPressureCost:getActionMonsterPressureCost(piece),
-          phaseCost:getVassalActionPhaseCost(vassal,piece.phaseCost??0,{nodeState,isTravel:nodeState.family==='travel'}),state,
+          phaseCost:getVassalActionPhaseCost(vassal,piece.phaseCost??0,{nodeState,isTravel:nodeState.family==='crossroads'}),state,
           riskLabel:nodeState.family==='relic'?relicRiskLabel(piece):null,
         }:null,
         onActivate:!readOnly && inspectedOffer && !piece.purchased && piece.canStage

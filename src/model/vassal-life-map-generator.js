@@ -21,12 +21,12 @@ function isCanonicalSignatureDescriptor(descriptor) {
 }
 const DEFAULT_WEIGHTS = Object.freeze({
   // Equal Food/Housing weights yield roughly three basic supply shops per graph.
-  early: Object.freeze([5, 5, 6, 1, 1, 0, 0, 2, 0, 0, 0, 0, 0.25, 0.25, 1, 1]),
-  mid: Object.freeze([3, 3, 6, 3, 3, 0, 1, 4, 0, 0, 0, 0, 0.5, 0.5, 1, 1]),
-  late: Object.freeze([1, 2, 6, 4, 4, 0, 5, 3, 0, 0, 0, 0, 1, 1, 1, 1]),
+  early: Object.freeze([5, 5, 6, 1, 1, 0, 2, 0, 0, 0, 0, 0.25, 0.25, 1, 1]),
+  mid: Object.freeze([3, 3, 6, 3, 3, 1, 4, 0, 0, 0, 0, 0.5, 0.5, 1, 1]),
+  late: Object.freeze([1, 2, 6, 4, 4, 5, 3, 0, 0, 0, 0, 1, 1, 1, 1]),
 });
 
-export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 7;
+export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 8;
 
 export function createAuthoredVassalLifeMapGeneratorConfig() {
   return {
@@ -128,6 +128,9 @@ export function validateVassalLifeMapGeneratorConfig(value) {
       continue;
     }
     const positive = [];
+    for (const familyId of Object.keys(weights)) {
+      if (!VASSAL_NORMAL_NODE_FAMILY_IDS.includes(familyId)) errors.push(`weights.${band}.${familyId}: unknown node family`);
+    }
     for (const familyId of VASSAL_NORMAL_NODE_FAMILY_IDS) {
       const weight = weights[familyId];
       if (!Number.isFinite(weight) || weight < 0 || weight > 100) {

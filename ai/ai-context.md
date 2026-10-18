@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.8`.
+Game build version: `1.1.11`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. The game badge adds a source
 fingerprint and Local/Pages label. For preview, version bumps and deployment,
@@ -62,7 +62,7 @@ Authoritative numbers:
 - Vassal Lab draft/preset schema v5.
 - Life Map Lab drafts v2.
 - Card reviewer drafts/export v1; stable browser storage independent of game saves and builds.
-- Life Map generator settings v7; serialized Life Map graph v5.
+- Life Map generator settings v8; serialized Life Map graph v6.
 - Debug profile library/export v3 (fresh-run recipes; no live Vassal overrides).
 - Named debug draft libraries v1.
 - Debug drafts are inert until launched from Gym ? New run setup; saved combined

@@ -162,20 +162,19 @@ for (const def of VASSAL_COMMISSION_DEFS) {
 }
 
 // Real route checkout, intentional Travel and permanent Development hooks.
-for(const [id,family] of [['route','routes'],['travel','travel'],['stat','development']]) {
+for(const [id,family] of [['route','crossroads'],['travel','crossroads'],['stat','development']]) {
   const state=selected(),v=getCurrentLifeMapVassal(state),offer=accept(state,id);
   const nodeId=nodeIdForFamily(state,family);v.lifeMap.availableNodeIds=[nodeId];
   const act=(kind,payload)=>{const result=applyAction(state,{kind,payload},{isReplay:true});assert.equal(result.ok,true,result.reason);};
   act(ActionKinds.VASSAL_ENTER_LIFE_NODE,{nodeId});
   const node=v.lifeMap.nodeStates[nodeId];
   if(id==='route') {
-    assert.ok(node.inventory.length);
-    const offerId=node.inventory[0].offerId;
-    act(ActionKinds.VASSAL_PURCHASE_SHOP_OFFER,{nodeId,offerId});
+    const route=node.options.find(o=>o.intervention?.kind==='connection');assert.ok(route);
+    act(ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId,optionId:route.id});
     assert.equal(v.completedCommissions??0,0,'staged routes do not count');
-    act(ActionKinds.VASSAL_UNDO_SHOP_PURCHASE,{nodeId,offerId});
-    assert.equal(v.completedCommissions??0,0,'undone routes do not count');
-    act(ActionKinds.VASSAL_PURCHASE_SHOP_OFFER,{nodeId,offerId});
+    act(ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId,optionId:'tour'});
+    assert.equal(v.completedCommissions??0,0,'changing the selection does not count');
+    act(ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId,optionId:route.id});
   } else {
     const option=id==='travel'?node.options.find(o=>o.locationRegionId===offer.regionId):null;
     if(id==='stat') {

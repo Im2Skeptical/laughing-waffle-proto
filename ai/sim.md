@@ -98,15 +98,20 @@ registries here.
   node descriptor. Three candidates always advertise distinct broad signature
   groups. Generation replaces one mid-band node with that signature after the
   ordinary graph is built; Legacy+ instead upgrades the terminal Legacy node.
-  Ordinary graphs no longer roll Settlement or separate Route nodes. Crossroads
-  combines movement to connected player settlements (three moons), new incident
+  Travel and Routes are removed node families, including from generator settings
+  and the Gym picker; the Remove Routes signature is also removed.
+  Ordinary graphs no longer roll Settlement nodes. Crossroads
+  uses the canonical `crossroads` family and combines movement to connected player settlements (three moons), new incident
   routes (15 Prestige/five years), and a two-year Tour (25% Bronze Relic, otherwise
   +1 permanent random stat). Tour rewards roll only at commitment and use the
   normal Relic acquisition flow. Custom first pathways remain experimental.
   Settlement choices remain
   visible when unavailable and list their live Prestige, adult Villager, route,
   frontier, and structure-capacity requirements.
-  Practice Reform first offers two eligible Stock-output specialties and Random;
+  Practice Reform guarantees an eligible Food-tag, Construction-Stock, or
+  Currency-Stock specialty in its first slot, chosen at random. Its second
+  slot is a random eligible Stock output, excluding the first specialty;
+  edited content with no eligible basics keeps a disabled Food choice.
   choosing Random grants 10 Prestige once. Public Works offers Housing, Stock
   capacity, and Special categories. Existing class/Common eligibility remains.
   A card purchase that exceeds remaining Prestige instead costs 10 Monster

@@ -85,13 +85,13 @@ assert.equal(
 );
 equip(notebookState, "pilgrimsStaff");
 assert.equal(
-  getVassalNodeResolutionGains(notebookVassal, "travel").development,
+  getVassalNodeResolutionGains(notebookVassal, "crossroads").development,
   baseDev + 3 + 6
 );
 
 const travelState = selectedState(1104);
 const travelVassal = getCurrentLifeMapVassal(travelState);
-const travelNodeId = nodeIdForFamily(travelState, "travel");
+const travelNodeId = nodeIdForFamily(travelState, "crossroads");
 const travelNode = forceEnter(travelState, travelNodeId);
 const travelOption = travelNode.options[0];
 assert.ok(travelOption, "expected a travel option");

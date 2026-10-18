@@ -19,7 +19,7 @@ export function heirloomEffectText(item) {
   if (e.bonusCunning) return `+${e.bonusCunning} Cunning while equipped.`;
   if (e.bonusIntelligence) return `+${e.bonusIntelligence} Intelligence while equipped.`;
   if (e.patronageOptionMultiplier) return `×${e.patronageOptionMultiplier} Prestige from Patronage choices.`;
-  if (e.travelNodeDevelopment) return `+${e.travelNodeDevelopment} EXP after each Travel node.`;
+  if (e.crossroadsNodeDevelopment) return `+${e.crossroadsNodeDevelopment} EXP after each Crossroads node.`;
   if (e.extraShopOffers) return `+${e.extraShopOffers} offer in Practice Reform and Public Works shops.`;
   if (e.hourglassFirstActionMultiplier) return `The first action in each node takes ${percent(1-e.hourglassFirstActionMultiplier)} less time.`;
   if (e.wisdomDevelopmentMultiplier) return `×${e.wisdomDevelopmentMultiplier} EXP contributed by Wisdom.`;

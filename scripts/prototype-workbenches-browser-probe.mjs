@@ -124,7 +124,7 @@ try {
         const actual = await page.evaluate(() => {const s=openingWorkbench.getSnapshot();return {activeId:s.activeId,ready:document.body.dataset.ready,modalOpen:s.game?.modal.open,family:s.game?.modal.family};});
         assert.ok(held>0,'artwork is still pending during entry');
         assert.equal(actual.modalOpen,true,`First-load ${id} choices open before artwork finishes: ${JSON.stringify(actual)}`);
-        assert.equal(actual.family,id==='relic'?'relic':'travel');
+        assert.equal(actual.family,id==='relic'?'relic':'crossroads');
         assert.ok(await page.evaluate(()=>!!openingWorkbench.getPoint('option',0)),'choices have rendered controls');
       } finally {release();await page.unrouteAll({behavior:'wait'});}
       if(id==='explore')await page.waitForFunction(()=>openingWorkbench.getSnapshot().game.worldDecision.artworkReady,null,{timeout:10000});

@@ -71,7 +71,7 @@ assert.deepEqual(getEntryConsequences({node:{family:'training'}}), [], 'ordinary
 for (const node of [{family:'crisis'}, {family:'relic'}, {family:'signature', signatureNode:{variantId:'monsterHunt'}}]) {
   assert.deepEqual(getEntryConsequences({node}).map(row => row.id), ['risk'], `${node.family} warns about death risk`);
 }
-assert.deepEqual(getEntryConsequences({node:{family:'travel'}, blockedReason:'heirloomLoadoutRequired'}),
+assert.deepEqual(getEntryConsequences({node:{family:'crossroads'}, blockedReason:'heirloomLoadoutRequired'}),
   [{id:'blocked', label:"Can't enter", detail:'Finish equipping Heirlooms first.'}]);
 assert.equal(describeEntryBlockedReason('somethingNew'), "This node can't be entered right now.");
 assert.equal(describeEntryBlockedReason(null), null);

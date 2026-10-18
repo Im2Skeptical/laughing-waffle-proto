@@ -14,7 +14,7 @@ import { addInteractionFeedback } from '../../../src/views/interaction-feedback.
 
 // Experimental modal. Complete live map inside the shared node-decision body.
 const MAP_BODY = Object.freeze({ x: 986, y: 234, width: 1358, height: 520 });
-const FAMILY = { ...VASSAL_NODE_FAMILIES.travel, label: 'Crossroads', description: 'Move, connect, or explore your region.' };
+const FAMILY = { ...VASSAL_NODE_FAMILIES.crossroads, label: 'Crossroads', description: 'Move, connect, or explore your region.' };
 
 function renderCampaignForcePanel(parent,campaign) {
   const rect={x:390,y:858,width:1650,height:190},f=campaign.activeForce,army=campaign.forces.attack;

@@ -10,20 +10,20 @@ import { dispatch, forceEnter, nodeIdForFamily, selectedState } from "./helpers.
 import { ActionKinds } from "../../actions.js";
 import { getWorldDefinition } from "../../world-state.js";
 
-// Routes retains world context even when every offer is local.
+// Crossroads retains world context and previews its route-building choice.
 {
   const state = selectedState(1041);
-  const routes = forceEnter(state, nodeIdForFamily(state, 'routes'));
-  const map = getVassalNodeDecisionPresentation(state, routes.nodeId).regionalMap;
+  const current=getCurrentLifeMapVassal(state).locationRegionId;
+  const existing=state.world.connections.find(edge=>[edge.regionAId,edge.regionBId].includes(current));
+  assert.ok(existing);state.world.connections=state.world.connections.filter(edge=>edge!==existing);
+  const crossroads = forceEnter(state, nodeIdForFamily(state, 'crossroads'));
+  const map = getVassalNodeDecisionPresentation(state, crossroads.nodeId).regionalMap;
   assert.deepEqual(map.regions.map(region => region.regionId),
-    getWorldDefinition(state).regions.map(region => region.id), 'Routes shows the whole world');
-  const edge = state.world.connections[0];
-  const offer = {offerId:'route-preview', intervention:{kind:'connection', mode:'remove',
-    regionAId:edge.regionAId, regionBId:edge.regionBId}};
-  routes.inventory.push(offer);
-  const preview = getVassalNodeDecisionPresentation(state, routes.nodeId, {previewOfferId:offer.offerId}).regionalMap;
-  assert.ok(preview.connections.some(edge => edge.status === `preview-${offer.intervention.mode}`),
-    'the full map preserves the highlighted offer');
+    getWorldDefinition(state).regions.map(region => region.id), 'Crossroads shows the whole world');
+  const option=crossroads.options.find(option=>option.intervention?.kind==='connection');
+  assert.ok(option);
+  const preview=getVassalNodeDecisionPresentation(state,crossroads.nodeId,{previewOptionId:option.id}).regionalMap;
+  assert.ok(preview.connections.some(edge=>edge.status==='preview-add'),'the full map highlights the chosen route');
 }
 
 // Class stats replace their base stat's meaning throughout node choices.
