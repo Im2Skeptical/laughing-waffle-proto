@@ -174,13 +174,26 @@ assert.deepEqual(shop.inventory,inventory,'old offers are retained until time ha
 assert.equal(v.prestige,prestige);
 assert.equal(shop.resolving,true);
 const target=v.lifeMap.pendingResolution.resolveSec;
+const resolvedEventsBefore=v.lifeEvents.filter(event=>event.kind==='nodeResolved').length;
 const restored=deserializeGameState(serializeGameState(state));
+const dying=deserializeGameState(serializeGameState(state));
+const dyingVassal=getCurrentLifeMapVassal(dying);
+dyingVassal.initialAge=100;
+initializeReplayClock(dying,dying.tSec);
+assert.equal(advanceReplayStateToSecond(dying,target).ok,true);
+assert.equal(dyingVassal.endedReason,'died','Delve still resolves natural mortality');
+assert.equal(dyingVassal.deathCause,'naturalMortality');
+assert.equal(dyingVassal.lifeEvents.filter(event=>event.kind==='nodeResolved').length,resolvedEventsBefore,
+  'a fatal Delve must not emit a turning-point-resolved life event either');
 initializeReplayClock(state,state.tSec);initializeReplayClock(restored,restored.tSec);
 assert.equal(advanceReplayStateToSecond(state,target).ok,true);
 assert.equal(advanceReplayStateToSecond(restored,target).ok,true);
 assert.equal(shop.resolving,false);assert.equal(shop.inventoryRoll,1);
 assert.equal(v.lifeMap.currentNodeId,node.id);assert.equal(v.lifeMap.completedNodeIds.includes(node.id),false);
 assert.equal(v.prestige,prestige,'Delve earns no node income');
+assert.equal(v.lifeEvents.filter(event=>event.kind==='nodeResolved').length,resolvedEventsBefore,
+  'Delve must not emit a turning-point-resolved life event');
+assert.equal(v.lifeEvents.at(-1).kind,'shopDelved');
 assert.deepEqual(serializeGameState(restored),serializeGameState(state));
 const replay=rebuildStateAtSecond(timeline,target);assert.equal(replay.ok,true);
 assert.deepEqual(serializeGameState(replay.state),serializeGameState(state));

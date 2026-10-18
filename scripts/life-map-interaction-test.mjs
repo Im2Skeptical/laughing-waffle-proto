@@ -80,7 +80,8 @@ console.log('[life-map-interaction] entry confirmation shows only risk and block
 // A Vassal may die while the player is viewing the civilization map.
 // Exercise the real recap view with a minimal display surface.
 class Display {
-  constructor() {
+  constructor(text) {
+    this.text = text;
     this.children = []; this.visible = true;
     this.position = this.scale = this.anchor = {set() {}};
   }
@@ -102,3 +103,37 @@ const deathRecap = createVassalResolutionRecapView({
 });
 deathRecap.init();
 assert.equal(deathRecap.isOpen(), true, 'death screen opens before inheritance even outside Lifegraph');
+
+// Delve uses the same recap transport and renderer as a resolved turning point.
+const recapState = createNewGameState(131);
+const recapVassal = {vassalId:'recap-vassal',prestige:30,developmentProgress:2};
+recapState.civilization.vassalLineage.vassalsById[recapVassal.vassalId] = recapVassal;
+const recapFlow = createSettlementVassalFlow({
+  playback:{getSettlementFrontierState:()=>recapState},
+});
+recapFlow.noteResolutionSettled({
+  beforeState:recapState, beforeVassalId:recapVassal.vassalId,
+  pending:{kind:'shopDelve',phaseCost:320}, prestigeBefore:30,expBefore:2,ageBefore:18,
+});
+const recapLayer = new Display();
+const recapView = createVassalResolutionRecapView({
+  app:{screen:{width:2424,height:1080}},layer:recapLayer,isLifegraphVisible:()=>true,
+  // Clock rendering is covered by presentation-time-test; isolate the recap copy here.
+  getRecap:()=>({...recapFlow.getResolutionRecap(),clock:null}),
+});
+recapView.init();
+const renderedText = node => [node.text,...node.children.flatMap(renderedText)].filter(text=>typeof text==='string');
+const delveText = renderedText(recapLayer);
+assert.ok(delveText.includes('TIME PASSED'),'Delve recap identifies time passed');
+for(const label of ['TURNING POINT RESOLVED','AGE','PRESTIGE','EXP']) {
+  assert.ok(!delveText.includes(label),`Delve recap omits ${label}`);
+}
+recapFlow.noteResolutionSettled({
+  beforeState:recapState,beforeVassalId:recapVassal.vassalId,
+  pending:{phaseCost:6},prestigeBefore:30,expBefore:2,ageBefore:18,
+});
+recapView.refresh();
+const nodeText = renderedText(recapLayer);
+for(const label of ['TURNING POINT RESOLVED','AGE','PRESTIGE','EXP']) {
+  assert.ok(nodeText.includes(label),`ordinary turning point retains ${label}`);
+}

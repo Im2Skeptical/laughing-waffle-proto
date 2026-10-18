@@ -94,7 +94,7 @@ export function createVassalResolutionRecapView({
 
     const title = recap.endedReason === "died" ? "THE VASSAL HAS DIED"
       : recap.endedReason === "retired" ? "A LIFE COMPLETED"
-        : "TURNING POINT RESOLVED";
+        : recap.kind === 'shopDelve' ? "TIME PASSED" : "TURNING POINT RESOLVED";
     root.addChild(createText(title, {
       ...TEXT_STYLES.header, fontSize: 42,
       fill: recap.endedReason === "died" ? PALETTE.red : PALETTE.accent,
@@ -110,7 +110,7 @@ export function createVassalResolutionRecapView({
         ...TEXT_STYLES.body, fontSize: 28, fill: PALETTE.text,
         wordWrap: true, wordWrapWidth: PANEL.width - 88,
       }, PANEL.x + 44, PANEL.y + 88));
-    } else {
+    } else if (recap.kind !== 'shopDelve') {
       const threshold = recap.expThreshold ?? VASSAL_LIFE_TUNING.developmentThreshold;
       changeLine(root, PANEL.x + 44, PANEL.y + 592, "AGE", recap.ageBefore ?? 0, recap.ageAfter ?? 0);
       changeLine(root, PANEL.x + 360, PANEL.y + 592, "PRESTIGE", recap.prestigeBefore ?? 0, recap.prestigeAfter ?? 0);

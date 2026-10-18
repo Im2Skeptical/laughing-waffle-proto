@@ -122,7 +122,7 @@ export function createSettlementVassalFlow({
   }
 
   function captureResolutionRecap({
-    vassalId, beforeState, clock, prestigeIncome, developmentIncome, phaseCost,
+    vassalId, beforeState, clock, prestigeIncome, developmentIncome, phaseCost, kind,
     prestigeBefore, expBefore, ageBefore, afterState = playback.getSettlementFrontierState(), prepareOnly = false,
   } = {}) {
     const afterVassal = afterState?.civilization?.vassalLineage?.vassalsById?.[vassalId] ?? null;
@@ -133,6 +133,7 @@ export function createSettlementVassalFlow({
       ?? Math.floor((startExp + (developmentIncome ?? 0)) / threshold);
     const recap = {
       vassalId,
+      kind,
       timeLabel: formatVassalPhaseDuration(phaseCost ?? 0, beforeState),
       clock: clock ? { ...clock, toSec: Math.max(clock.fromSec, afterState.tSec) }
         : getClockTimePassage(beforeState, afterState),
@@ -166,7 +167,7 @@ export function createSettlementVassalFlow({
     if (!vassal || !pending) return;
     const gains = pending.kind === 'shopDelve' ? {prestige:0,development:0} : getVassalNodeResolutionGains(vassal,
       vassal.lifeMap?.nodeStates?.[vassal.lifeMap?.currentNodeId]?.family);
-    return captureResolutionRecap({vassalId:vassal.vassalId, beforeState, afterState, prepareOnly:true,
+    return captureResolutionRecap({vassalId:vassal.vassalId, beforeState, afterState, prepareOnly:true, kind:pending.kind,
       prestigeIncome:gains.prestige, developmentIncome:gains.development,
       prestigeBefore:vassal.prestige, expBefore:vassal.developmentProgress,
       ageBefore:getVassalAge(beforeState,vassal), phaseCost:pending.phaseCost});
@@ -179,6 +180,7 @@ export function createSettlementVassalFlow({
     if (!beforeVassalId) return;
     captureResolutionRecap({
       vassalId: beforeVassalId,
+      kind: pending?.kind,
       beforeState,
       clock,
       prestigeIncome: pending?.kind === 'shopDelve' ? 0 : prestigeIncome,
