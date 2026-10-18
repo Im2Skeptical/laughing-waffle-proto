@@ -1,19 +1,25 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:net';
 import { setTimeout as delay } from 'node:timers/promises';
 import { chromium } from 'playwright';
 import { BROWSER_PROBE_LAUNCH_OPTIONS } from './browser-probe-config.mjs';
 
-const url='http://127.0.0.1:8085', artifact='artifacts/settlement-draft-browser-probe.json';
+const portProbe=createServer();
+await new Promise(resolve=>portProbe.listen(0,'127.0.0.1',resolve));
+const port=portProbe.address().port;
+await new Promise(resolve=>portProbe.close(resolve));
+const url=`http://127.0.0.1:${port}`, artifact='artifacts/settlement-draft-browser-probe.json';
 mkdirSync('artifacts',{recursive:true});
 writeFileSync('artifacts/settlement-draft-probe.html','<!doctype html><base href="/"><style>body{margin:0;background:#111817}canvas{width:100vw;max-height:100vh;object-fit:contain;display:block}</style>');
-const server=spawn(process.execPath,['node_modules/serve/bin/serve.js','-l','8085','--no-clipboard','.'],{stdio:'ignore',windowsHide:true});
+const server=spawn(process.execPath,['node_modules/serve/bin/serve.js','-l',String(port),'--no-clipboard','.'],{stdio:'ignore',windowsHide:true});
 let browser,page;const errors=[],checks=[];
+const returnOnly=process.argv.includes('--construction-return');
 try {
   for(let i=0;i<100;i++){try{if((await fetch(url)).ok)break;}catch{}await delay(100);}
   browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
-  for(const mobile of [false,true]) for(const kind of ['practice','structure']) {
+  for(const mobile of [false,true]) for(const kind of returnOnly?['structure']:['practice','structure']) {
     page=await browser.newPage({viewport:mobile?{width:844,height:390}:{width:1280,height:800},hasTouch:mobile});
     page.on('pageerror',e=>errors.push(e.message));
     await page.goto(url+'/artifacts/settlement-draft-probe.html');
@@ -28,10 +34,12 @@ try {
       const v=life.getCurrentLifeMapVassal(state);v.prestige=1000;v.classId=null;
       const nodeId=v.lifeMap.graph.nodes.find(n=>n.family==='publicWorks').id;v.lifeMap.availableNodeIds=[nodeId];
       applyAction(state,{kind:K.VASSAL_ENTER_LIFE_NODE,payload:{nodeId}},{isReplay:true});
+      v.lifeMap.nodeStates[nodeId].shopSelection.selectedTag='Housing';
       const site=state.world.sites.find(s=>s.regionId===v.locationRegionId).detailedState;
       state.world.regions.find(r=>r.id===v.locationRegionId).structureCapacity=8;
       site.structureSlots=layout.normalizeStructureLayout([{structureId:'granary'},{structureId:'mudHouses'},null,null,{structureId:'timberHouse'}],8,id=>defs.settlementStructureDefs[id]);
       site.practiceSlots=[...['forage','pastoralism','logging','surfaceMining','barter'].map(practiceId=>({practiceId,tier:'bronze',stock:2,charge:0,work:0}))];
+      site.practiceSlots[4].stock=4;
       const actions=kind==='practice'?[
         {kind,mode:'learn',practiceId:'dryFarming',resultingTier:'bronze'},
         {kind,mode:'learn',practiceId:'quarrying',resultingTier:'bronze'},
@@ -42,7 +50,7 @@ try {
         {kind,mode:'add',structureId:'longhouse',tier:'bronze'},
         {kind,mode:'add',structureId:'granary',tier:'bronze'},
       ];
-      v.lifeMap.nodeStates[nodeId].inventory=actions.map((intervention,i)=>({offerId:'fixture:'+i,inventoryIndex:i,label:intervention.practiceId??intervention.structureId,basePrestigeCost:10,basePhaseCost:1,intervention:{...intervention,targetRegionId:v.locationRegionId}}));
+      v.lifeMap.nodeStates[nodeId].inventory=actions.map((intervention,i)=>({offerId:'fixture:'+i,inventoryIndex:i,label:intervention.practiceId??intervention.structureId,basePrestigeCost:10,basePhaseCost:1,baseCurrencyCost:kind==='structure'?1:0,intervention:{...intervention,targetRegionId:v.locationRegionId}}));
       const line=timeline.createTimelineFromInitialState(state), results=[];
       const dispatch=(kind,payload)=>{
         const replayAction={kind,payload,tSec:0};
@@ -62,6 +70,8 @@ try {
       });
       view.open(nodeId);app.ticker.add(()=>view.update());
       globalThis.probe={view,results,snapshot:()=>view.getSemanticSnapshot(),confirmed:()=>({practices:site.practiceSlots,structures:site.structureSlots}),
+        costs:()=>{const d=life.getVassalNodeDecisionPresentation(state,nodeId);return {currency:d.settlement.currency,phases:d.mortalityEstimate.totalPhaseCost};},
+        undoAfterConfirm:offerId=>dispatch(K.VASSAL_UNDO_SHOP_PURCHASE,{nodeId,offerId}),
         replay:()=>{const r=timeline.rebuildStateAtSecond(line,0);const s=r.state.world.sites.find(s=>s.regionId===v.locationRegionId).detailedState;return {ok:r.ok,practices:s.practiceSlots,structures:s.structureSlots};}};
     },kind);
     const point=async(method,index)=>{
@@ -131,6 +141,40 @@ try {
     s=await snapshot();assert.equal(s.purchaseOrder.length,1,'Cost plus chosen replacement stages one purchase');
     assert.equal(s.currentPrestige,1000);assert.equal(s.projectedPrestige,990);
     const stagedIndex=kind==='practice'?0:5+s.structures.filter(Boolean).findIndex(p=>p.staged);
+    if(returnOnly) {
+      const firstCommission=s.purchaseOrder[0];
+      const initialCosts=await page.evaluate(()=>probe.costs());
+      await drag(await point('getOfferFacePoint',0),await point('getConstructionPoint',3));
+      s=await snapshot();assert.equal(s.purchaseOrder.length,2,'One offer can stage multiple construction zones');
+      const secondCommission=s.purchaseOrder.find(id=>id!==firstCommission);
+      const secondIndex=5+s.structures.filter(Boolean).findIndex(piece=>piece.offerId===secondCommission);
+      assert.equal(s.projectedPrestige,980);
+      assert.equal((await page.evaluate(()=>probe.costs())).currency,initialCosts.currency-1);
+      await drag(await point('getTableauClickPoint',secondIndex),await point('getOfferFacePoint',0));
+      s=await snapshot();
+      assert.deepEqual(s.purchaseOrder,[firstCommission],'Return removes only the dragged commission from a repeated offer');
+      assert.equal(s.projectedPrestige,990);
+      assert.deepEqual(await page.evaluate(()=>probe.costs()),initialCosts,'Returning a repeat commission releases its reserved costs');
+      await drag(await point('getTableauClickPoint',stagedIndex),{x:600,y:880});
+      s=await snapshot();
+      assert.equal(s.purchaseOrder.length,1,'Dropping outside the shop cannot refund a construction commission');
+      await drag(await point('getTableauClickPoint',stagedIndex),await point('getOfferFacePoint',0));
+      s=await snapshot();
+      assert.equal(s.purchaseOrder.length,0,'Returning a construction zone to its source removes the commission');
+      assert.equal(s.projectedPrestige,1000,'Returning a construction zone releases its reserved Prestige');
+      assert.equal((await page.evaluate(()=>probe.costs())).currency,initialCosts.currency+1,'Returning a construction zone releases its reserved Currency');
+      assert.deepEqual(s.structures.map(piece=>piece?.structureId??null),initial.structures.map(piece=>piece?.structureId??null));
+      await drag(await point('getOfferFacePoint',0),await point('getConstructionPoint',2));
+      s=await snapshot();const committedId=s.purchaseOrder[0];
+      await tap(await point('getConfirmClickPoint'));
+      const confirmed=await page.evaluate(()=>probe.confirmed());
+      assert.equal((await page.evaluate(id=>probe.undoAfterConfirm(id),committedId)).ok,false,'Confirmed construction cannot be refunded');
+      assert.deepEqual(await page.evaluate(()=>probe.confirmed()),confirmed);
+      const replay=await page.evaluate(()=>probe.replay());
+      assert.equal(replay.ok,true);assert.deepEqual(replay.structures,confirmed.structures);
+      checks.push(`${mobile?'touch':'mouse'} construction return`);
+      await page.close();page=null;continue;
+    }
     await tap(await point('getTableauClickPoint',stagedIndex));
     s=await snapshot();
     if(s.quickCardId) {await tap(s.inspectionTitlePoint); s=await snapshot();}
@@ -169,13 +213,13 @@ try {
       await drag(await point('getTableauClickPoint',5+index),await point('getConstructionPoint',3));
       s=await snapshot();assert.equal(s.structures.find(p=>p?.structureId==='workshop').origin,3);
       index=s.structures.filter(Boolean).findIndex(p=>p.structureId==='greatDwelling');
-      await drag(await point('getTableauClickPoint',5+index),{x:600,y:380});
+      await drag(await point('getTableauClickPoint',5+index),await point('getOfferFacePoint',1));
       assert.equal((await snapshot()).demolishedStructures.length,0,'Undo restores the covered confirmed building');
       await drag(await point('getOfferFacePoint',1),await point('getConstructionPoint',0));
       s=await snapshot();assert.deepEqual(s.demolishedStructures.map(p=>p.structureId),['granary','mudHouses']);
       await page.screenshot({path:`artifacts/settlement-draft-${mobile?'mobile':'desktop'}-demolition.png`});
       index=s.structures.filter(Boolean).findIndex(p=>p.structureId==='greatDwelling');
-      await drag(await point('getTableauClickPoint',5+index),{x:600,y:380});
+      await drag(await point('getTableauClickPoint',5+index),await point('getOfferFacePoint',1));
       await drag(await point('getOfferFacePoint',3),await point('getConstructionPoint',0));
       s=await snapshot();assert.equal(s.structures[0].structureId,'granary');assert.equal(s.structures[0].staged,true);
     }
