@@ -69,6 +69,9 @@ Local instructions for agents working in this repo.
   verification; keep work local by default. Do not commit unrelated user changes
   or changes with unresolved verification failures.
 
+- Apply finished work to the local build first and report how to test it, then
+  automatically push the branch and open a PR (draft if untested).
+
 ## Context hygiene
 - Use targeted `rg`/file reads first; do not broadly inspect generated or artifact folders unless the task is specifically about them.
 - Treat `artifacts/`, `coverage/`, `test-results/`, `playwright-report/`, screenshots/videos/traces/logs, and `*.bak` files as generated output by default.
