@@ -19,6 +19,11 @@ closures stay in the orchestrator.
 - `regional-map.js` — dashed-line helper and `renderRegionalMap`
 - `world-screen.js` - full-map Crossroads, Warrior Campaign and ordinary Legacy;
   emits selections/confirmation and renders model-owned costs, targets and forces.
+  Its `prepare(renderer)` loads the embedded map's terrain and fits its overview
+  during game entry. Crossroads and ordinary Legacy close after accepted Confirm;
+  continuous Campaign visits stay open. `npm run probe:world-decision` checks
+  illustrated-map readiness, target input, rejected/accepted confirmation, and
+  desktop/phone rendering without writing player saves.
 - `vassal-projection.js` — `renderVassalProjection`
 
 ## Intentionally not extracted

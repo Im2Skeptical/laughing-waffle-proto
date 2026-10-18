@@ -54,6 +54,7 @@
     "test:region-map-camera": "node scripts/region-map-camera-test.mjs",
     "probe:region-map": "node scripts/region-map-browser-probe.mjs",
     "probe:life-map": "node scripts/life-map-interaction-browser-probe.mjs",
+    "probe:world-decision": "node scripts/world-decision-browser-probe.mjs",
     "probe:recap-input": "node scripts/node-recap-input-performance-probe.mjs",
     "probe:vassal-chooser": "node scripts/vassal-chooser-input-performance-probe.mjs",
     "probe:navigation": "node scripts/navigation-browser-probe.mjs",
