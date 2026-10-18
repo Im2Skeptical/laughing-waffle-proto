@@ -35,7 +35,7 @@ reserve the right side for inspection and enlarge the construction row.
 
 Frames in `piece-frames-v1/` distinguish scheduled and charge practices and give
 structures a shared brass/stone treatment. Dedicated opaque paintings cover all
-187 runtime pieces. Outputs sit at the bottom; Scheduled workers sit on the
+188 runtime pieces. Outputs sit at the bottom; Scheduled workers sit on the
 right, Charge workers on the left, and scheduled solar/lunar discs at the bottom. Disc rotation samples
 the existing readiness value from viewed simulation time. Reduced motion uses
 static readiness, while Charge pieces show their reservoir, current/threshold
@@ -81,7 +81,7 @@ and numeric effect copy. Inventory browsing does not change equipment rules.
 
 See [asset provenance and exact generation prompts](../images/dark-fantasy/README.md), including the approved [resource and timepiece family](../images/dark-fantasy/resource-language-v1/README.md).
 
-The settlement library includes a distinct painting for each of the 187 current
+The settlement library includes a distinct painting for each of the 188 current
 Practices and Structures, plus retained earlier-card paintings. The CivContent
 2.6 art pass adds 59 paintings and preserves the other 128 runtime paintings.
 The existing portrait, terrain, panorama and hamlet/fire assets remain available.
