@@ -31,6 +31,10 @@ closures stay in the orchestrator.
 - `createVassalNodeDecisionModalView` drag/confirm/hover/inspection closures
 - Shop staging, tableau pointerdown, and pinned-inspection wiring
 
+Before Confirm, staged Structure zones can be dragged back onto their shop
+to undo that individual commission and release its reserved costs.
+The drop target highlights without adding controls or text.
+
 Decision card faces, buttons, and cost footers use `../interaction-feedback.js`
 for hover, visible touch presses, and cancellation. Sliding a held touch onto a
 control highlights it; activation requires a press that began on that control.
