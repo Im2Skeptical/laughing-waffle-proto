@@ -608,7 +608,7 @@ export function completeNodeResolution(state, vassal, nodeState) {
       });
     } else {
       nodeState.resolutionResult = "naturalDeath";
-      addLifeEvent(state, vassal, "nodeResolved", {
+      if (!delve) addLifeEvent(state, vassal, "nodeResolved", {
         nodeId: nodeState.nodeId, result: nodeState.resolutionResult, age,
       });
       finishVassal(state, vassal, { reason: "died", cause: "naturalMortality" });
@@ -617,7 +617,7 @@ export function completeNodeResolution(state, vassal, nodeState) {
   } else {
     nodeState.resolutionResult = "survived";
   }
-  addLifeEvent(state, vassal, "nodeResolved", {
+  if (!delve) addLifeEvent(state, vassal, "nodeResolved", {
     nodeId: nodeState.nodeId, result: nodeState.resolutionResult, age,
   });
   if (encounter) {

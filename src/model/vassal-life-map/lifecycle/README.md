@@ -5,7 +5,7 @@ re-exports the previous public lifecycle API from `../lifecycle.js`.
 `getSettlementRequirements` stays on `lifecycle.js` for presentation.js.
 
 Node confirmation also resolves timed Scholar Delve through the shared mortality
-path, without completing the shop or earning node income.
+path, without completing the shop, earning node income, or emitting nodeResolved.
 Campaign encounters use the same timed path and keep the visit open; only Leave
 completes the node. Tour and Quest rewards enter the normal Relic acquisition
 step before their time advances.

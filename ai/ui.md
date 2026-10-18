@@ -313,7 +313,8 @@ Save/load preserves the generated map through its versioned seeded definition.
   Confirmation locks map input while its accumulated Phases auto-advance to the
   pending resolution boundary. When that boundary settles, a recap window
   reports time passed and from→to Age, Prestige, and EXP, and dismisses any
-  open node tooltip. Death or retirement replaces
+  open node tooltip. Delve uses TIME PASSED with only the time boxes, omitting
+  Age, Prestige, and EXP rows. Death or retirement replaces
   that recap; dismissing it returns to the Regional Map and resumes the
   civilization unveil after the navigation pause. Fresh runs clear old recaps.
 - Selecting a Vassal retains the prior timeline as a tinted comparison. Each
