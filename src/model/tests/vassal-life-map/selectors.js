@@ -9,6 +9,7 @@ import {
 import {
   getAdjustedVassalPrestigeCost,
   getAdjustedVassalPhaseCost,
+  getVassalYearPhaseCost,
   formatVassalPhaseDuration,
   getVassalPhaseDurationParts,
   getCurrentLifeMapVassal,
@@ -117,6 +118,17 @@ for (const phaseDurationSec of [1, 2, 3, 5, 20]) {
       if ((seasonDurationSec * 4) % phaseDurationSec !== 0) assert.equal(parts.years, 0);
     }
     assert.equal(JSON.stringify(calendarState), untouched, 'Formatting cannot change a run');
+  }
+}
+for (const [years, expected] of [[2, 64], [3.6, 115], [7.2, 230], [10.8, 346], [14.4, 461], [21.6, 691]]) {
+  assert.equal(getVassalYearPhaseCost(null, years), expected);
+}
+for (const seasonDurationSec of [1, 8, 17, 120]) {
+  for (const phaseDurationSec of [1, 3, 20]) {
+    const state = { seasons: ['spring', 'summer', 'autumn', 'winter'],
+      gameConfig: { settings: { values: { seasonDurationSec, phaseDurationSec } } } };
+    assert.equal(getVassalYearPhaseCost(state, 7.2), Math.max(1,
+      Math.round(7.2 * 4 * seasonDurationSec / phaseDurationSec)));
   }
 }
 assert.deepEqual(VASSAL_LEGACY_OPTIONS.map((option) => option.id), [

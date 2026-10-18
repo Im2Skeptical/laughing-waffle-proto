@@ -26,6 +26,7 @@ export {
   getVassalStatsPresentation,
   getAdjustedVassalPrestigeCost,
   getAdjustedVassalPhaseCost,
+  getVassalYearPhaseCost,
   getVassalPhaseDurationParts,
   formatVassalPhaseDuration,
   getVassalCandidatePool,

@@ -138,7 +138,10 @@ registries here.
   Confirmation applies the projected final order and layout atomically;
   rerolling is available only while the draft is empty.
 - Explicit node confirmation applies staged effects, advances accumulated Phases
-  through normal ticks, pays recurring Prestige/EXP once, and makes one
+  through normal ticks (year-based prices use four seasons times `seasonDurationSec`,
+  32 seconds by default; `VASSAL_TIME_COST_MULTIPLIER` scales authored Patronage,
+  Development, Crisis, Legacy, fallback-route, removal, and reroll year costs by 3.6 before
+  rounding to phases and applying discounts; empty-shop confirmation is unscaled), pays recurring Prestige/EXP once, and makes one
   post-age natural-mortality roll. Only surviving completion exposes outgoing
   nodes; terminal survival retires the Vassal and death or retirement persists
   the completed life before generating the next three candidates.
