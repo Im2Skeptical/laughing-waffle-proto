@@ -56,7 +56,7 @@ try {
   await page.waitForFunction(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runComplete?.open === true);
   const info = await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runComplete.info);
   assert.equal(info.projected, false);
-  assert.equal(info.reason, 'redGodMonsterOverrun');
+  assert.equal(info.reason, 'monsterOverrun');
   assert.match(info.explanation, /taken every player settlement/);
   await page.keyboard.press('Space');
   assert.equal(await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().playbackTarget), 0);

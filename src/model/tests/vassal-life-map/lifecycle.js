@@ -1,3 +1,4 @@
+import { applyVassalNodeEffects } from "../../vassal-life-map/lifecycle/node-confirm.js";
 import assert from "node:assert/strict";
 import { ActionKinds, applyAction } from "../../actions.js";
 import { createInitialState } from "../../init.js";
@@ -505,3 +506,24 @@ assert.equal(blockedRequirements[1].met, false);
 assert.equal(applyAction(blockedSettlementState, { kind: ActionKinds.VASSAL_SELECT_LIFE_OPTION,
   payload: { nodeId: blockedNode.nodeId, optionId: blockedChoice.id } }, { isReplay: true }).ok, false);
 assert.ok(blockedNode.options.some((option) => option.id === "settlement-favor"), "fallback allows progress");
+
+// Old pending Life Map choices keep their serialized effects after a JSON load.
+for (const option of VASSAL_MONSTER_HUNT_OPTIONS) {
+  const current = deserializeGameState(serializeGameState(monsterState));
+  current.civilization.chaos.monsterCount = 20;
+  const pendingNode = getCurrentLifeMapVassal(current).lifeMap.nodeStates[monsterNode.nodeId];
+  pendingNode.options = [JSON.parse(JSON.stringify(option))];
+  pendingNode.selectedOptionId = option.id;
+  const saved = serializeGameState(current);
+  const savedNode = getCurrentLifeMapVassal(saved).lifeMap.nodeStates[monsterNode.nodeId];
+  savedNode.options[0].effects = option.effects.map(effect => ({
+    ...effect, op: "AdjustSettlementChaosGodState", godId: "redGod",
+  }));
+  const legacy = deserializeGameState(saved);
+  const oldEffects = getCurrentLifeMapVassal(legacy).lifeMap.nodeStates[monsterNode.nodeId].options[0].effects;
+  assert.deepEqual(applyVassalNodeEffects(current, option.effects), { ok: true });
+  assert.deepEqual(applyVassalNodeEffects(legacy, oldEffects), { ok: true });
+  assert.deepEqual(legacy.civilization.chaos, current.civilization.chaos);
+  assert.equal(current.civilization.chaos.monsterCount, Math.max(0, 20 + option.effects[0].amount));
+  assert.deepEqual(serializeGameState(legacy).rng, serializeGameState(current).rng);
+}

@@ -29,25 +29,6 @@ export const AP_CAP_MAX = 120;
 export const AP_INCOME_PER_SEC = 1;
 export const AP_INCOME_MULT_WAXING = 8;
 export const AP_INCOME_MULT_WANING = 0;
-export const CHAOS_GOD_IDS = Object.freeze([
-  "redGod",
-  "greenGod",
-  "blueGod",
-  "blackGod",
-]);
-export const RED_GOD_ENABLED = true;
-export const RED_GOD_BASE_CHAOS_INCOME = 10;
-export const RED_GOD_CHAOS_INCOME_GROWTH_RATE = 0.03;
-export const RED_GOD_CHAOS_INCOME_GROWTH_YEARS = 12;
-export const RED_GOD_FAITH_MITIGATION_BY_TIER = Object.freeze({
-  gold: Object.freeze({ amount: 1, perPopulation: 5, rounding: "floor" }),
-  diamond: Object.freeze({ amount: 1, perPopulation: 2, rounding: "floor" }),
-});
-export const RED_GOD_SPAWN_CADENCE_MOONS = 14;
-export const RED_GOD_MONSTERS_PER_CHAOS = 100;
-export const RED_GOD_MONSTER_WIN_COUNT = 1000;
-
-
 // --- Prestige + Followers ---
 export const PRESTIGE_COST_PER_FOLLOWER = 10;
 export const HUNGER_THRESHOLD = 40;

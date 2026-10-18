@@ -10,7 +10,7 @@ import {
   getPopulationSummary as getDetailedPopulationSummary,
   getStoredFoodCapacity,
 } from "../detailed-settlements.js";
-import { getSettlementChaosGodSummary } from "../settlement-chaos.js";
+import { getCivilizationChaosSummary } from "../civilization-chaos.js";
 import {
   getSettlementFaithSummary,
   getSettlementHappinessSummary,
@@ -89,24 +89,14 @@ function finiteFloor(value, fallback = 0) {
 }
 
 export function getSettlementMonstersTooltipSpec(state) {
-  const redGod = getSettlementChaosGodSummary(state, "redGod");
-  const count = finiteFloor(redGod?.monsterCount, 0);
-  // Schema >= 9 leaves monsterWinCount null and cadenceSec at 0. Those are not a cap.
-  if (!Number.isFinite(redGod?.monsterWinCount)) {
-    return {
-      title: "Monsters",
-      lines: [
-        `Current monsters: ${count}`,
-        "The run ends when spatial monster expansion takes every player settlement.",
-      ],
-    };
-  }
-  const lines = [`Current monsters: ${count}/${finiteFloor(redGod.monsterWinCount, 0)}`];
-  if (Number.isFinite(redGod?.cadenceSec) && redGod.cadenceSec > 0) {
-    lines.push(`Spawn cadence: every ${finiteFloor(redGod.cadenceSec, 0)}s`);
-  }
-  lines.push("If monsters reach the win threshold, the run ends.");
-  return { title: "Monsters", lines };
+  const count = finiteFloor(getCivilizationChaosSummary(state).monsterCount, 0);
+  return {
+    title: "Monsters",
+    lines: [
+      `Current monsters: ${count}`,
+      "The run ends when spatial monster expansion takes every player settlement.",
+    ],
+  };
 }
 
 function formatPopulationTooltip(classId, cohort, assigned, free) {

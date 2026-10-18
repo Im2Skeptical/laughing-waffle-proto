@@ -4,9 +4,6 @@
 // Public names stay on src/model/settlement-state.js.
 
 import {
-  RED_GOD_ENABLED,
-  RED_GOD_SPAWN_CADENCE_MOONS,
-  MOON_CYCLE_SEC,
   FAITH_STARTING_TIER,
   SETTLEMENT_HAPPINESS_PARTIAL_MEMORY_LENGTH,
   SETTLEMENT_HAPPINESS_STARTING_LEVEL,
@@ -28,12 +25,6 @@ const DEFAULT_VASSAL_LINEAGE_STATE = Object.freeze({
   currentVassalId: null,
   vassalsById: {},
 });
-const DEFAULT_RED_GOD_SPAWN_CADENCE_SEC = Math.max(
-  1,
-  Math.max(1, Math.floor(RED_GOD_SPAWN_CADENCE_MOONS || 7)) *
-    Math.max(1, Math.floor(MOON_CYCLE_SEC || 6))
-);
-
 export const SETTLEMENT_STOCKPILE_KEYS = Object.freeze([
   "food",
   "redResource",
@@ -230,39 +221,6 @@ function normalizePopulationClasses(raw, classOrder, fallbackTier = null) {
     out[classId] = normalizePopulationClassState(value, fallbackTier);
   }
   return out;
-}
-
-function normalizeChaosGodInactiveState(raw) {
-  const next = raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
-  return {
-    enabled: next.enabled === true,
-  };
-}
-
-function normalizeRedGodState(raw) {
-  const next = raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
-  return {
-    enabled: typeof next.enabled === "boolean" ? next.enabled : RED_GOD_ENABLED === true,
-    chaosPower: Number.isFinite(next.chaosPower) ? Math.max(0, Math.floor(next.chaosPower)) : 0,
-    monsterCount: Number.isFinite(next.monsterCount) ? Math.max(0, Math.floor(next.monsterCount)) : 0,
-    nextSpawnSec: Number.isFinite(next.nextSpawnSec)
-      ? Math.max(0, Math.floor(next.nextSpawnSec))
-      : DEFAULT_RED_GOD_SPAWN_CADENCE_SEC,
-    lastSpawnSec: Number.isFinite(next.lastSpawnSec) ? Math.max(0, Math.floor(next.lastSpawnSec)) : null,
-    lastSpawnCount: Number.isFinite(next.lastSpawnCount)
-      ? Math.max(0, Math.floor(next.lastSpawnCount))
-      : 0,
-  };
-}
-
-function normalizeChaosGodsState(raw) {
-  const next = raw && typeof raw === "object" && !Array.isArray(raw) ? { ...raw } : {};
-  return {
-    redGod: normalizeRedGodState(next.redGod),
-    greenGod: normalizeChaosGodInactiveState(next.greenGod),
-    blueGod: normalizeChaosGodInactiveState(next.blueGod),
-    blackGod: normalizeChaosGodInactiveState(next.blackGod),
-  };
 }
 
 function normalizeVassalLifeEvent(raw, fallbackIndex = 0) {
@@ -466,7 +424,6 @@ export function createHubCore() {
     systemState: {
       stockpiles: normalizeStockpiles(null),
       populationClasses: normalizePopulationClasses(null, classOrder, getFaithStartingTier()),
-      chaosGods: normalizeChaosGodsState(null),
       vassalLineage: normalizeVassalLineageState(null),
     },
   };
@@ -521,7 +478,6 @@ export function ensureHubCoreShape(core) {
     null,
     fallbackTier
   );
-  target.systemState.chaosGods = normalizeChaosGodsState(target.systemState.chaosGods);
   target.systemState.vassalLineage = normalizeVassalLineageState(target.systemState.vassalLineage);
   delete target.systemState.population;
   delete target.systemState.faith;

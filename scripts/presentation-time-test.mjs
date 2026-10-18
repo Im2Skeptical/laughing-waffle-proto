@@ -1243,7 +1243,12 @@ assert.equal(resolveEffectiveSettlementGraphHorizonSec(2048), 2048);
   const { createEmptyState } = await import('../src/model/state.js');
   const alive = createEmptyState();
   const lost = createEmptyState();
-  lost.runStatus = { complete: true, reason: 'redGodMonsterOverrun', year: 12, tSec: 352 };
+  lost.runStatus = { complete: true, reason: 'monsterOverrun', year: 12, tSec: 352 };
+  assert.deepEqual(
+    getRunCompleteInfo({ ...lost, runStatus: { ...lost.runStatus, reason: 'redGodMonsterOverrun' } }),
+    getRunCompleteInfo(lost),
+    'saved legacy terminal reasons retain the same loss presentation',
+  );
   const before = JSON.stringify(lost);
   const ui = createRunCompletePresentation();
   const timeline = {};

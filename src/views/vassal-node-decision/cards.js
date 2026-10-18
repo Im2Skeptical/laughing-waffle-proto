@@ -52,7 +52,7 @@ export function optionEffect(option) {
   if (Number.isFinite(option?.legacyStartingPrestigeBonus)) parts.push(`Future Vassals +${option.legacyStartingPrestigeBonus} starting Prestige`);
   if (Number.isFinite(option?.immediateDeathChance) && !option.timeCostTier) parts.push(`${Math.round(option.immediateDeathChance * 100)}% immediate death risk`);
   for (const effect of option?.effects ?? []) {
-    if (effect.op === "AdjustSettlementChaosGodState" && effect.key === "monsterCount") {
+    if ((effect.op === "AdjustCivilizationChaosState" || effect.op === "AdjustSettlementChaosGodState") && effect.key === "monsterCount") {
       parts.push(`Kill up to ${Math.abs(Math.floor(effect.amount ?? 0))} monsters`);
     }
   }

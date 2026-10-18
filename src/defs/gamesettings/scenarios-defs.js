@@ -59,11 +59,6 @@ const devPlaytestingSetup = {
             blueResource: 0,
             blackResource: 0,
           },
-          chaosGods: {
-            redGod: {
-              enabled: true,
-            },
-          },
           populationClasses: {
             villager: {
               adults: 24,

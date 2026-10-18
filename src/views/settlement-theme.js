@@ -47,7 +47,6 @@ export const PALETTE = Object.freeze({
   chaosMeterTrack: 0x322d2a,
   chaosStatMeterTrack: 0x2f2a28,
   chaosSharedPanel: 0x4a433f,
-  chaosGodPanel: 0x443a37,
   chaosSpawnAccent: 0x9f8550,
   faithPanel: 0x3f3935,
   faithMitigationInactive: 0x43534a,

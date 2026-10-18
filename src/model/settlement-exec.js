@@ -2,7 +2,6 @@
 
 import { hubStructureDefs } from "../defs/gamepieces/hub-structure-defs.js";
 import { settlementPracticeDefs } from "../defs/gamepieces/settlement-practice-defs.js";
-import { getSettlementChaosGodState } from "./settlement-chaos.js";
 import { getCurrentSeasonKey } from "./state.js";
 import { TIER_ASC } from "./effects/core/tiers.js";
 import {
@@ -180,7 +179,7 @@ function resolvePracticeAmountValue(input, state, classSummary) {
     case "chaosGodValue": {
       const godId = typeof input.godId === "string" ? input.godId : null;
       const key = typeof input.key === "string" ? input.key : null;
-      const godState = godId ? getSettlementChaosGodState(state, godId) : null;
+      const godState = godId ? getHubCore(state)?.systemState?.chaosGods?.[godId] : null;
       baseValue =
         key && Number.isFinite(godState?.[key]) ? Math.max(0, Math.floor(godState[key])) : 0;
       break;
@@ -418,7 +417,7 @@ function practiceRequirementsPass(def, state, classSummary, seasonKey, classId) 
       const godId = typeof entry.godId === "string" ? entry.godId : null;
       const key = typeof entry.key === "string" ? entry.key : null;
       const amount = Number.isFinite(entry.amount) ? Math.max(0, Math.floor(entry.amount)) : 0;
-      const godState = godId ? getSettlementChaosGodState(state, godId) : null;
+      const godState = godId ? getHubCore(state)?.systemState?.chaosGods?.[godId] : null;
       const value = key && Number.isFinite(godState?.[key]) ? Math.floor(godState[key]) : 0;
       if (value < amount) {
         return { ok: false, reason: `chaosGod:${godId ?? "unknown"}:${key ?? "value"}` };
