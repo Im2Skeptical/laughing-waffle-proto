@@ -13,7 +13,7 @@ export function addChaosPanelContent(root, rect, summary) {
   const x=rect.x+132,y=rect.y+12;
   const text=(s,dy,size=22,fill=PALETTE.text)=>root.addChild(createText(s,{...TEXT_STYLES.body,fontSize:size,fill},x,y+dy));
   text('THE COMING DARK',0,24,PALETTE.accent);
-  text(`${summary.green.label} / ${summary.chaos.monsterCount} Monster ${summary.chaos.monsterCount===1?"region":"regions"}`,28,20);
+  text(`${summary.green.label} | Placeholder, visual only`,28,20);
   text(`Chaos ${formatChaosValue(summary.chaos.chaosPower)}   ·   Resistance ${formatChaosValue(summary.chaos.resistance)}`,55,18);
   text(`Expansion ${formatChaosValue(summary.chaos.expansionProgress)} / ${summary.chaos.expansionThreshold} | ${summary.chaos.progressPerMoon>0?"+"+formatChaosValue(summary.chaos.progressPerMoon)+" / moon":"Contained"}`,82,20);
 }

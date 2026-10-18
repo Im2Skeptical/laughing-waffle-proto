@@ -20,7 +20,6 @@ import {
 import {
   getDetailedSettlement,
   getDetailedSettlementSites,
-  getGreenAscendancySummary,
   getHousingCapacity,
   getPopulationSummary,
 } from "../queries.js";
@@ -346,19 +345,10 @@ function resolveMigrationIntents(state, intents, {
   deferArrival = false,
   tSec = state.tSec,
 } = {}) {
-  const green = getGreenAscendancySummary(state);
   const requestedIntents = intents.filter((intent) => intent.requested > 0);
-  const blocked = [];
-  const active = requestedIntents.map((intent, originalIndex) => {
-    const allowed = Math.floor(intent.requested * green.migrationSuccess / 100);
-    const remainder = clonePopulationComposition(intent.composition);
-    const composition = takeFromComposition(remainder, allowed);
-    if (compositionTotal(remainder) > 0) blocked.push({
-      reason: intent.reason, sourceRegionId: intent.sourceId, sourceClassId: intent.sourceClassId,
-      count: compositionTotal(remainder), composition: clonePopulationComposition(remainder),
-    });
-    return { ...intent, requested: allowed, composition, originalIndex };
-  }).filter((intent) => intent.requested > 0);
+  const active = requestedIntents.map((intent, originalIndex) => ({
+    ...intent, composition: clonePopulationComposition(intent.composition), originalIndex,
+  }));
   const emitterIds = new Set(requestedIntents.map((intent) => intent.sourceId));
   const { allocations, unresolved } = allocateMigrationHousing(state, active, emitterIds);
   const remainingCompositions = active.map((intent) =>
@@ -454,10 +444,10 @@ function resolveMigrationIntents(state, intents, {
       sourceClassId: intent.sourceClassId,
       count: unresolved[index],
       composition: clonePopulationComposition(remainingCompositions[index]),
-    })).filter((entry) => entry.count > 0), ...blocked],
+    })).filter((entry) => entry.count > 0)],
     intentSummaries: requestedIntents.map((intent, originalIndex) => {
       const activeIndex = active.findIndex((entry) => entry.originalIndex === originalIndex);
-      const eligible = Math.floor(intent.requested * green.migrationSuccess / 100);
+      const eligible = intent.requested;
       const unplaced = activeIndex < 0 ? 0 : unresolved[activeIndex];
       const external = externalMovements.filter((movement) => movement.originalIndex === originalIndex)
         .reduce((sum, movement) => sum + movement.amount, 0);
@@ -466,7 +456,7 @@ function resolveMigrationIntents(state, intents, {
       sourceRegionId: intent.sourceId,
       sourceClassId: intent.sourceClassId,
       requested: intent.requested,
-      eligible, greenBlocked: intent.requested - eligible,
+      eligible,
       admitted: eligible - unplaced, external,
       unresolved: unplaced + intent.requested - eligible,
       unresolvedOutcome: unresolvedAreLost ? "lost" : "stayed",

@@ -358,6 +358,8 @@ Probes and test routes: `ai/repository-map.md`.
 Monster map markers show the shared expansion tracker, not per-Monster ages.
 The civilization panel compares accumulated Chaos with current Resistance and
 shows expansion progress / threshold and passive progress per moon (or Contained).
+Its Green tier label and tooltip identify a placeholder with visual feedback only
+and no gameplay effects; default visual tiers begin at 100/200/300 years.
 Dangerous action costs use a Monster symbol plus expansion progress; Chaos is a
 separate permanent burden. Chaos and Resistance graph series share a scale.
 Chaos, Resistance, income and expansion readouts use compact units and at most

@@ -874,9 +874,8 @@ export function createWorldMapView({
         tooltipView?.show?.({
           title: `${green.label} · Chaos reckoning`,
           lines: [
-            `Stored-food decay reduction: ${green.storedFoodDecayReduction}%`,
-            `Elder old-age mortality reduction: ${green.elderMortalityReduction}%`,
-            `Migration success: ${green.migrationSuccess}%`,
+            "Green Ascendancy is a placeholder: visual feedback only, no gameplay effects.",
+            `Visual tiers: ${green.cadenceYears}/${green.cadenceYears * 2}/${green.cadenceYears * 3} years.`,
             `Primordial pressure: ${formatChaosValue(reckoning?.primordialPressure ?? 0)}`,
             `Premature deaths: ${reckoning?.prematureDeaths ?? 0} · External emigrants: ${reckoning?.externalEmigrants ?? 0}`,
             `Premature pressure: ${formatChaosValue(reckoning?.prematureDeathPressure ?? 0)} · Emigration pressure: ${formatChaosValue(reckoning?.externalEmigrationPressure ?? 0)}`,

@@ -1,3 +1,4 @@
+import { createAuthoredGameSettingsDraft } from '../../game-config.js';
 import assert from "node:assert/strict";
 import {
   assignDetailedSettlementWorkers,
@@ -19,10 +20,19 @@ assert.deepEqual(validateDetailedPracticeDefinitions().errors, [
   'distilling: missing provider Vessel',
   'embalming: missing provider Vessel',
 ], 'the bronze test set leaves only the documented later-tier recipes without providers');
+const settings = createAuthoredGameSettingsDraft().values;
+assert.deepEqual(Object.keys(settings).filter(key => key.startsWith('green')).sort(),
+  ['greenAutomaticTier', 'greenCadenceYears', 'greenForcedTier'], 'only visual Green settings remain');
 const state = fresh();
-assert.equal(getGreenAscendancySummary(state).tier, 0);
-state.year = 100;
-assert.equal(getGreenAscendancySummary(state).tier, 1, "Green I begins at Year 100");
+for (const [year, tier] of [[1, 0], [99, 0], [100, 1], [199, 1], [200, 2], [299, 2], [300, 3], [900, 3]]) {
+  state.year = year;
+  const green = getGreenAscendancySummary(state);
+  assert.equal(green.tier, tier, `visual Green tier at year ${year}`);
+  assert.equal(green.nextEscalationYears, tier < 3 ? 100 * (tier + 1) - year : null);
+  for (const key of ['storedFoodDecayReduction', 'elderMortalityReduction', 'migrationSuccess']) {
+    assert.equal(Object.hasOwn(green, key), false, `${key} is absent from the visual summary`);
+  }
+}
 state.gameConfig.settings.values.greenAutomaticTier = false;
 state.gameConfig.settings.values.greenForcedTier = 3;
 assert.equal(getGreenAscendancySummary(state).tier, 3, "debug can force Green tier");
