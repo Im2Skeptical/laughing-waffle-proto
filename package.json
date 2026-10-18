@@ -34,7 +34,7 @@
     "probe:chronicle": "node scripts/chronicle-browser-probe.mjs",
     "probe:settlement-draft": "node scripts/settlement-draft-browser-probe.mjs",
     "verify": "npm run check:docs && npm run check:architecture && npm run check:source && npm run check:assets && npm run build && npm run test:build-preview && npm test",
-    "test:build-preview": "node scripts/build-preview-test.mjs",
+    "test:build-preview": "node scripts/build-preview-test.mjs && node scripts/build-badge-test.mjs",
     "check:docs": "node scripts/check-docs.mjs",
     "audit:content-rules": "node scripts/civcontent-rule-audit.mjs",
     "check:architecture": "node scripts/check-architecture.mjs",

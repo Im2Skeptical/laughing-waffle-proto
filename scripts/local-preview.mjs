@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { root, workspaceId, getBuildInfo, stampBuildInfo } from './build-info.mjs';
 
-const protocol = 1;
+const protocol = 2;
 const firstPort = 5184;
 const ports = Array.from({ length: 12 }, (_, i) => firstPort + i);
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
@@ -29,7 +29,7 @@ async function serve(port) {
   let expiresAt = 0;
   const info = () => {
     if (cached && Date.now() < expiresAt) return Promise.resolve(cached);
-    return pending ??= getBuildInfo('local').then(value => {
+    return pending ??= getBuildInfo('local', String(port)).then(value => {
       cached = value;
       expiresAt = Date.now() + 5_000;
       return value;
