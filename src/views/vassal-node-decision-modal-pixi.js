@@ -79,7 +79,11 @@ export function createVassalNodeDecisionModalView({
       if(option)onSelectOption?.(openNodeId,option.id);
     },
     onLeaveCampaign:async()=>{const result=await onSelectOption?.(openNodeId,'campaign-leave');if(result?.ok!==false){onConfirmNode?.(openNodeId);close();}},
-    onConfirm:()=>onConfirmNode?.(openNodeId),onDismiss:()=>close(),tooltipView});
+    onConfirm:()=>{
+      const result=onConfirmNode?.(openNodeId);
+      if(result?.ok!==false&&!lastDecision?.continuousVisit)close();
+      return result;
+    },onDismiss:()=>close(),tooltipView});
   const panelCenter = { x: PANEL.x + PANEL.width / 2, y: PANEL.y + PANEL.height / 2 };
   const MOTION_MS = 130;
   const START_SIZE = 72;
@@ -355,6 +359,7 @@ export function createVassalNodeDecisionModalView({
     previewOptionId = null;
     previewOfferId = null;
     render(true);
+    if(lastDecision?.liveWorld)worldScreen.open();
     moveToVisibility(1);
   }
 
@@ -966,6 +971,7 @@ export function createVassalNodeDecisionModalView({
   }
 
   return {
+    prepare: renderer => worldScreen.prepare(renderer),
     async prepareChoices(nodes, baseState) {
       clearPreparedLayouts();
       for (const [nodeId, item] of Object.entries(nodes ?? {})) {

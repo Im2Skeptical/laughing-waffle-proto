@@ -260,6 +260,9 @@ Save/load preserves the generated map through its versioned seeded definition.
   with three illustrated mode cards, live costs, selectable legal targets, and
   dimmed unavailable regions. Campaign adds Prowess, Retinue, Warriors, Arms and
   total Force, highlighting only the components used by the current mode.
+  The embedded map prepares its illustrated terrain and overview camera behind
+  the game loading screen. Crossroads and ordinary Legacy minimise on accepted
+  confirmation; rejected confirmation preserves the current decision.
   Campaign stays open between attempts, including real Relic acquisition.
   Practice and Structure shops first show their specialty/category picker.
   Ordinary route signature shops retain their cropped polygon regional preview;

@@ -195,7 +195,7 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
   }
   function refresh(next, node, isBusy=false) {
     decision=next;spec=node;busy=isBusy;
-    if(!next){root.visible=false;activeKey=null;dismissed=false;key='';return;}
+    if(!next){root.visible=false;map.setVisible(false);activeKey=null;dismissed=false;key='';return;}
     if(activeKey!==node.id){activeKey=node.id;dismissed=false;mode=isCampaign()?decision.campaign.mode:isFounding()?'found':groups()[0].length?'move':groups()[1].length?'build':'tour';selection=null;message='';key='';overlayKey='';}
     if(isCampaign()){mode=decision.campaign.mode;selection=selected()?.regionId??null;message='';}
     if(isFounding()){selection=decision.legacySettlement.selectedRegionId;message='';}
@@ -205,18 +205,22 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
   const mapPoint=id=>{const p=map.getRegionClickPoint(id);return p?mapLayer.toGlobal(p):null;};
   const point=control=>{if(!root.visible||!control)return null;const r=control.getBounds();return{x:r.x+r.width/2,y:r.y+r.height/2};};
   const bounds=control=>{const r=control.getBounds();return{x:r.x,y:r.y,width:r.width,height:r.height};};
-  return {refresh,getHudDeltas:()=>{const choice=selected();return root.visible&&matchesChoice(choice)&&!choice.blocked?{prestige:(choice.prestigeDelta??0)-choice.cost,stats:{}}:null;},update:()=>{draw();updateOverlay();},isOpen:()=>root.visible,
-    open:()=>{dismissed=false;root.visible=!!decision;map.setVisible(root.visible);map.refresh();key='';draw();},close:()=>{dismissed=true;root.visible=false;},
+  return {refresh,
+    // Like the main map, this independent camera needs its terrain prepared
+    // behind the game's loading screen before any world decision is opened.
+    async prepare(renderer){await map.prepare(renderer);map.setVisible(root.visible);},
+    getHudDeltas:()=>{const choice=selected();return root.visible&&matchesChoice(choice)&&!choice.blocked?{prestige:(choice.prestigeDelta??0)-choice.cost,stats:{}}:null;},update:()=>{draw();updateOverlay();},isOpen:()=>root.visible,
+    open:()=>{dismissed=false;root.visible=!!decision;map.setVisible(root.visible);map.refresh();key='';draw();},close:()=>{dismissed=true;root.visible=false;map.setVisible(false);},
     getPoint:(kind,id)=>kind==='confirm'?point(confirmButton):kind==='campaignLeave'?point(leaveButton):kind==='option'?point(modeButtons[id]?.choiceButton??modeButtons[id]):kind==='worldMode'?point(modeButtons[['move','build','tour'].indexOf(id)]):kind==='worldCost'?point(modeButtons[(isCampaign()?['attack','duel','quest']:isFounding()?['found-settlement','highest-stat','accumulated-prestige']:['move','build','tour']).indexOf(id)]?.costPanel):kind==='worldTarget'?mapPoint(id):kind==='worldReward'?point(rewardBadges.find(b=>b.regionId===id)?.control):null,
-    getSnapshot:()=>({open:root.visible,mode,selectedOptionId:decision?.nodeState.selectedOptionId,selectedRegionId:selected()?target(selected())??null:null,
+    getSnapshot:()=>{const {illustratedTerrain,camera}=map.getSemanticSnapshot();return {open:root.visible,mode,selectedOptionId:decision?.nodeState.selectedOptionId,selectedRegionId:selected()?target(selected())??null:null,
       locationRegionId:currentRegion(),regionCount:getState()?.world?.regions?.length??0,
       connectionCount:getState()?.world?.connections?.length??0,
-      panel:PANEL,mapBody:MAP_BODY,artworkReady:modeButtons.length>0&&modeButtons.every(card=>card.illustration?.texture?.baseTexture.valid),brightRegionIds:brightRegions(),locationPlaque:locationPlaque?{label:locationLabel,rect:bounds(locationPlaque)}:null,
+      panel:PANEL,mapBody:MAP_BODY,map:{illustratedTerrain,camera},artworkReady:modeButtons.length>0&&modeButtons.every(card=>card.illustration?.texture?.baseTexture.valid),brightRegionIds:brightRegions(),locationPlaque:locationPlaque?{label:locationLabel,rect:bounds(locationPlaque)}:null,
       forcePanel,
       choiceButtons:(decision?modeButtons:[]).flatMap((card,index)=>card.choiceButton?[{id:decision.options[index].id,label:decision.nodeState.selectedOptionId===decision.options[index].id?'Selected':'Choose',rect:bounds(card.choiceButton)}]:[]),
       prices:(decision?modeButtons:[]).flatMap((card,index)=>card.costPanel?[{mode:isMenuMap()?decision.options[index].id:['move','build','tour'][index],optionId:card.priceOptionId,from:card.priceFrom,
         ...card.costPanel.costSummary,rect:bounds(card.costPanel),cardRect:bounds(card)}]:[]),feedback:feedback?{text:feedback.text,rect:bounds(feedback)}:null,
       dimmedRegionIds:(getState()?.world?.regions??[]).map(r=>r.id).filter(id=>!brightRegions().includes(id)),
       rewardBadges:rewardBadges.map(({control,...badge})=>({...badge,rect:bounds(control)})),
-      targets:available().map(o=>({id:o.id,regionId:target(o),blocked:o.blocked,cost:o.cost,foodCost:o.foodCost,stage:o.stage,risk:o.risk,force:o.force,defense:o.defense,distance:o.distance,phases:o.phases,prestigeGain:o.prestigeDelta??0})),campaign:decision?.campaign??null,tour:groups()[2][0]?.randomReward??null})};
+      targets:available().map(o=>({id:o.id,regionId:target(o),blocked:o.blocked,cost:o.cost,foodCost:o.foodCost,stage:o.stage,risk:o.risk,force:o.force,defense:o.defense,distance:o.distance,phases:o.phases,prestigeGain:o.prestigeDelta??0})),campaign:decision?.campaign??null,tour:groups()[2][0]?.randomReward??null};}};
 }

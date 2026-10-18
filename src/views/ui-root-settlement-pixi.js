@@ -1700,6 +1700,8 @@ const gameSession = createGameSessionController({
     await prepareChronicleArt(app.renderer);
     if (!await stage('map', 'Uploading map artwork')) return;
     await worldMapView.prepare(app.renderer);
+    if (!await stage('decisionMap', 'Preparing decision map artwork')) return;
+    await vassalNodeDecisionModalView.prepare(app.renderer);
     if (!await stage('settlement', 'Preparing settlement panels and artwork')) return;
     await prototypeView.prepare(app.renderer);
     if (!await stage('vassal', 'Preparing Vassal panels and artwork')) return;
