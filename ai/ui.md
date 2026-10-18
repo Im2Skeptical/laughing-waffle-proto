@@ -242,7 +242,8 @@ Save/load preserves the generated map through its versioned seeded definition.
   enlarged, dimmed inspection with its glossary on the right; Structure inspection
   retains its opposite-side panel. Inspection dismisses during dragging. Faces inspect; costs stage; an
   offer-to-tableau drag also stages. Staged practices drag within their prefix;
-  staged builds drag to valid origins; dragging back left undoes either. Incoming
+  staged builds drag to valid origins. Staged Practices drag back left to undo; staged
+  Structure zones undo when dropped back onto the shop, which highlights as the target. Incoming
   blueprints reveal cracked/faded buildings beneath them, and upgrades crossfade
   from the previous quality. Practice hover and expanded inspect share the same
   Activation renderer on every gamepiece surface. Structure reading panels stay

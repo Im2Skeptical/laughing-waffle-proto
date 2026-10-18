@@ -61,18 +61,21 @@ Local instructions for agents working in this repo.
   it reuses this checkout's LAN preview or starts one. Verify it serves the
   updated build and report its version, preview label (when present), fingerprint,
   branch, integration status, and live mobile URL.
-- Assign game versions on `main` after integrating changes; worktrees keep their
-  inherited version. Follow [development workflow](docs/development-workflow.md)
-  for integration, versioning, and AI documentation updates.
 - GitHub Pages publication requires explicit user confirmation for that update.
   Prepare and verify locally first; only dispatch deployment after confirmation.
   Committing or pushing source is not permission to publish Pages.
-- `main` remains the active development branch. Commit only task changes after
-  verification; keep work local by default. Do not commit unrelated user changes
-  or changes with unresolved verification failures.
+- Commit only verified task changes; leave unrelated user changes out.
 
-- Apply finished work to the local build first and report how to test it, then
-  automatically push the branch and open a PR (draft if untested).
+1. Every PR includes the next version bump in `package.json`, both package-lock
+   version fields, and `ai/ai-context.md`, per [development workflow](docs/development-workflow.md).
+2. Apply the verified changes to the local build first; report to Cam what changed
+   and how to test.
+3. Push the branch and open a PR to `main` (draft if untested).
+4. Once Cam says it is good in chat, the Dispatcher squash-merges the PR; Cam
+   never clicks merge.
+5. After a PR opens or merges, return the primary checkout to up-to-date `main`
+   with no uncommitted work; never leave it on a feature branch.
+6. Tell Notes & PM when a PR merges so Trello stays accurate.
 
 ## Context hygiene
 - Use targeted `rg`/file reads first; do not broadly inspect generated or artifact folders unless the task is specifically about them.

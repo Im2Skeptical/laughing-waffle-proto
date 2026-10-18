@@ -76,6 +76,7 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 ## 2. Monster Pressure, Chaos and chaos gods
 
 ### LOCKED
+- Green Ascendancy is a visual-only placeholder pending a chaos-god rework, with tiers at 100/200/300 years (capped at 3), no gameplay effects, and debug tier/cadence controls. Decision (Cam, 2026-10-18, c/OI0fWgOb); **[built]** (#38).
 - Replace the fixed 1000-Chaos monster spawn with deterministic Monster Pressure: smooth, log-style curve, pulses advance existing monster threat before spawning more. (c/Ip5xsBYi) [Done card] **[built]** Shared expansion tracker, one front per 100 progress.
 - Selected ambitious actions generate explicit Chaos (Raid, conquest/aggressive Campaign, powerful Discovery, esoteric knowledge, forbidden/ruin interactions) and show the Chaos cost in the action UI. (c/33DTojMF) [Done card] **[built, with a substitution]:** the cost is Monster expansion progress, not Chaos. 8 Practices carry `addMonsterPressure` (astronomy 5, forecasting 5, alchemy 10, charnelAlchemy 15, experimentation 10, ruinDelving 10, raidingParties 5, mountedRaiding 20); the `addChaos` op exists but no Practice uses it. Chaos itself only accrues passively via Faith-phase Primordial pressure. Whether the substitution is intended has not been confirmed by Cam.
 - Introduce monsters from the world to pressure the player once food is solved. (c/DE1YlyEu) [Done card]
@@ -99,7 +100,6 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 - Action costs are fixed numbers of Monster expansion progress (not Chaos): see the LOCKED item on ambitious actions. This answers c/33DTojMF's "flat vs scaled" for the current build (fixed), but no Trello decision confirms it. **[built]**
 - Monster rewards now: Campaign victories give 12 + 4xDefense Prestige and 3xDefense Research; automatic hunts give Loot/Record/Currency trophies and 6 Research; defense/diversion give Defense Research and diversion 6 Prestige. (docs/civilization-milestone.md) This answers c/97w8GxRT's "what do Monsters give now".
 - Settlement loss is the run-ending condition; loss history feeds later content. (ai/sim.md)
-- Green Ascendancy **[visual-only placeholder]**: tiers at 100/200/300 years (capped at 3), pending a chaos-god rework. No gameplay effects; mortality/migration modifiers and unused decay settings are removed. Debug retains automatic/forced tier and cadence controls. (c/OI0fWgOb)
 - Legacy Red God simulation removed; live graphs and Life Map effects use civilization Chaos. Saved effect and loss-reason aliases remain readable. (c/Gfij80No)
 - Built per Code Health: Chaos income, Resistance, shared expansion tracker, action risk, defense/loss, run end when no player settlement is left.
 
@@ -137,10 +137,13 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 ## 4. Life Map, Lifegraph, timegraph and time
 
 ### LOCKED
+- Life Map year = four seasons x season duration (32 s default), converted to phases. Decision (Cam, 2026-10-18, c/dnhO891i); **[built]** (#39). The 3.6x multiplier on authored Patronage/Development/Crisis/Legacy/route/removal/reroll costs is documented (CONTEXT.md, ai/sim.md); its balance value remains undecided.
+- Delve recap shows TIME PASSED with time boxes only, no Age/Prestige/EXP rows, and no `nodeResolved` event. (c/3Ii95dpM) [Done card] **[built]** (#34).
+- Lifegraph loading indicator sits above the timegraph. (c/f6RAY0lA) [Done card] **[built]** (#40).
 - Highest priority for making the game better: the protovassal Lifegraph design and an overall redesign to raise player agency even on the "worst path". (c/5hZZB8qo "Priority (Cam)", In progress)
 - Life Map node entry: pressing enter opens a small description modal then a big central confirm (two-step) to stop misclicks. (c/XgiOOke1) [Done card]
 - Selecting next node: the big modal shows only a very small description by design (player shouldn't see full node contents until they commit) but must not block quick comparison; keep some Enter-to-confirm. (c/9VyRXQ0u "Actual problem (Cam, clarified)") [Done card]
-- Routes node: just show the map. (c/746E03eY) [Done card] **[not built by default]:** `routes` has weight 0 in every band, so it is never rolled. (c/WW9JUNnb)
+- Routes node: just show the map. (c/746E03eY) [Done card] At the audited commit, `routes` had weight 0 in every band and was never rolled. (c/WW9JUNnb) Routes family since removed (ai/sim.md).
 - Time-passing modal themed as time passing with big clocks centred. (c/3cnCKxuW) [Done card]
 - Time icons Year, Moon, Phase labelled and animated on foreseen extinction and turning-point resolved modals; the extinction modal is where the icons are taught. (c/z0APbW8J) [Done card]
 - When pinning a node, dim nodes (or pathways) that would reset pins. (c/QRFah1js) [Done card]
@@ -156,17 +159,16 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 - Focus button overhaul: grey when one vassal, arrows between vassals, max/full-timeline control, skip buttons vs vassal arrows? Documented behaviour of focus button unchecked. (c/DpH4ZXMw)
 - Timeline play: big stockpile boosts that dwindle far in the future to make curves; which stockpiles, how far, how shown. (c/GtoOjsuv)
 - Timegraph shop icons: shared base + type indicator (glyph/colour/badge)? (c/mPd8KSbn)
-- Bugs: faded graph lost after switching out of lifegraph (c/yFLNqIQi); first Life Map node failed (c/oW5SonlM); crossroads modal doesn't close (c/RbIqp9Cb); these still need a runtime repro. Delve (c/3Ii95dpM): the model already passes 10 years, rolls natural mortality, stays on the node and does not mark it completed; what remains is the UI, which still emits a `nodeResolved` event and shows the recap titled "TURNING POINT RESOLVED". "delve" and "crossroads" are Cam's shorthand for node families.
-- Lifegraph loading indicator should move above the timegraph. (c/f6RAY0lA)
+- Bugs: faded graph lost after switching out of lifegraph (c/yFLNqIQi); first Life Map node failed (c/oW5SonlM); crossroads modal doesn't close (c/RbIqp9Cb); these still need a runtime repro.
 - Foreseen extinction modal pass, loading lag on first settlement examine (both Done): confirm they are really closed (c/X4yksYCd, c/HypVV9qP). Not verified.
 
 ### DOCS-ONLY CLAIMS
 - Timegraph brief (labelled "Status: Draft", records Cam's interview): irreversible vassal actions; every node costs time; unveil only to time spent; scrubbing the past is read-only; only the most recent previous projection is shown; unveil has no skip control ("decided by Cam"); New Game waits for the full opening forecast ("decided by Cam on 8 Oct 2026"); smooth scrubbing outranks unveil speed and horizon length; device floor Pixel 6 ("decided by Cam on 8 Oct 2026"), now also confirmed by Cam on Trello (section 0). Repo-doc claims; only the Pixel 6 one is locked on Trello.
 - Unveil target "about 1000 years in 1 s" is **not met** (reveal runs about 14 s; limits: 40-year window, 200-year cache, 600-year loss search). Cam has clarified it is a performance goal and narrative device, not a hard requirement (section 0). Phone performance is unmeasured apart from Cam's play test of PR #18; at 4x CPU mobile fails the smooth gate. By code reading, a forecast that survives 600 years makes New Game fail with `forecastIncomplete` (untested; c/Jn2BM22a).
 - Older projection survives only as a dimmed, view-only overlay (not browsable during a vassal's life) and "navigation and graph close/open retain it". The brief wants it browsable (c/vxhyqbEt). Relevant to bug c/yFLNqIQi.
-- Life Map is a DAG: six non-crossing route traces, six lanes, eleven normal depths, one twelfth-depth Legacy node; 22 node families (17 rollable); ordinary graphs no longer roll Settlement nodes; Route shops are add-only. Signature nodes: three candidates advertise distinct broad groups. (ai/sim.md, Code Health)
+- Life Map is a DAG: six non-crossing route traces, six lanes, eleven normal depths, one twelfth-depth Legacy node; 21 node families (15 normal); Travel and Routes removed; ordinary graphs no longer roll Settlement nodes. Signature nodes: three candidates advertise distinct broad groups. (ai/sim.md, Code Health)
 - Node confirmation: advances accumulated Phases, pays recurring Prestige/EXP once, one natural-mortality roll; EXP thresholds queue a three-of-four stat choice. (ai/sim.md)
-- Six fixed moon phases (Birth, Food, Housing, Faith, Migration, Death); 32-second year per docs. Code has `VASSAL_PHASES_PER_YEAR = 30` beside a comment saying 32, and time costs carry a hidden x3.6 inflation (c/STkDw2JT). Time-cost icons are sun, crescent, lunar-phase sprites. (CONTEXT.md, ai/sim.md, ai/ui.md)
+- Six fixed moon phases (Birth, Food, Housing, Faith, Migration, Death). Time-cost icons are sun, crescent, lunar-phase sprites. (ai/ui.md)
 - Dock: single-click Regional Map / Life Map / Settlement navigation; Present button returns to live second. (ai/ui.md, CONTEXT.md)
 
 ---
@@ -203,6 +205,7 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 ## 6. Structures, practices and cards
 
 ### LOCKED
+- Staged construction zones drag back onto the shop to undo, only before confirming; the shop highlights as the target. Decision (Cam, 2026-10-18, c/UavT2N8J); **[built]** (#37).
 - Terms: Stock, Ready, Activate ("Activate" names a card activating); don't name a specific stock in tooltip text, just "stock"; remove tooltip "inspect" text button (flavour text at bottom, maybe double-click to inspect). (c/v9kiwWwC "Design notes (Cam, Oct 3)") [Done card]
 - Bring charge cards back into the game; charge-card layout: triggers bottom left, subdivided charge bar. (c/oxdLd3h6, c/73AE811i) [Done cards] **[built]:** 110 Practices, 86 Scheduled and 24 Charge, with a Charge/Discharge resolver. The "94 practices, none use charge" text on c/oxdLd3h6 is stale.
 - Research click opens a card library grouped by tier with filters and tier odds; locked/hidden cards are out of scope. (c/ksp7EXxA) [Done card]
@@ -217,7 +220,6 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 - Common bronze Research charge card gaining Research on every practice install: new or change; amount; cap. (c/AjxkKGW5) Note: `observation` (+1 Research per Birth) is already a Common Bronze Research Practice, but it is scheduled, not charge.
 - Practice feedback hierarchy: cap-blocked less severe than missing-resource blocked. Failed activation animations. (c/Bpdhtdou, c/qWJqqQjJ)
 - Passive bonus text pass on structures; how much detail on card vs Full rules. (c/9FwTOJ0t)
-- Construction zones: no obvious undo for selecting too many. (c/UavT2N8J)
 - Threshold practice (keep a number near a limit) idea: which number/class. (c/VXA1kXBh)
 - Unlocks as tutorial (Balatro style) and account metaprogression: unscoped, "low, later". (c/NRxAcB5B, c/rGYsHYSE)
 - Playtest findings: rename "practice reform", prestige bank visibility, node info, text size. (c/4EK874Le)
@@ -289,14 +291,13 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 ## 9. Built but never decided (no Cam decision on record)
 
 Found in code at `4014a92`; Cam may not know about these. Cards exist for the first few.
-- Green Ascendancy escalation clock (c/OI0fWgOb) (legacy Red God layer removed; c/Gfij80No).
 - Scholar kit: 10-year Delve (rerolls the shop), ongoing Commissions at 20/40/60 Prestige, +5% quality chance per Ingenuity. Warrior kit: Prowess risk bonus, +15 Prestige on a successful risk, Retinue = floor(Prestige/10), campaign modes Duel/Quest/Attack/Honour duel. (c/6OioI8xc)
 - Founding numbers: Philosopher trains 2 Scholars plus a Lyceum, Warlord trains 10 Warriors, 6 phases each.
 - Class-action families (training, discovery, campaign, challenge) have weight 0 and are substituted into a class's graph after generation. (c/WW9JUNnb)
 - Heirloom mechanics: Mandate of Heaven blocks one fatal outcome per life, Fragile has a 50/50 break roll, the next vassal equips 0-3 Vault relics.
 - Observation Practice (Common Bronze, +1 Research per Birth).
 - Default minimal-bronze card pool. (c/Q1zwEwz5)
-- Dead or stub tunables: `localCurrencyCost`, the `addChaos` op, `legacyStartingPrestigeBonusCap` / `legacyPrestigeCost` / `legacyPhaseCost`, `ENV_EVENT_DRAW_CADENCE_SEC`. (c/STkDw2JT)
+- Dead or stub tunables: `localCurrencyCost`, the `addChaos` op, `legacyStartingPrestigeBonusCap`, `ENV_EVENT_DRAW_CADENCE_SEC`. (c/STkDw2JT)
 
 ---
 
@@ -316,7 +317,7 @@ Found in code at `4014a92`; Cam may not know about these. Cards exist for the fi
 9. Class names: Trello c/pWk7dIEn said "Warrior and Mage"; the code and docs say Scholar. Card fixed.
 10. Stat naming: Scholar +Cunning and Warrior +Intelligence is the intended key mapping (shown as Ingenuity and Prowess), not backwards. The card text never names the stat (c/9FwTOJ0t, fixed).
 11. Relic risk (c/UvHNbFbn) and stock-output nodes (c/ZdxHz1ai) are built, so those Inbox cards are stale; both carry a comment for Cam to confirm. Relic death risk is 35% for Gold/Diamond, not "always".
-12. Delve (c/3Ii95dpM): the model already does what the card asks; the UI recap and `nodeResolved` event remain.
+12. Delve (c/3Ii95dpM): **[built]** (#34); recap shows TIME PASSED with time boxes only, no Age/Prestige/EXP rows, and no `nodeResolved` event.
 13. Ambitious-action Chaos (c/33DTojMF, Done): built as Monster expansion progress, fixed numbers, not Chaos.
 14. Card reviewer (c/Cd7toHWG): a Reviewer already exists; the card needs trimming.
 15. Monster rewards (c/97w8GxRT): docs already list concrete rewards (campaign victories 12 + 4xDefense Prestige and 3xDefense Research; hunts give trophies and 6 Research).

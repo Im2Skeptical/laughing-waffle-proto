@@ -19,27 +19,24 @@ address or a link to another checkout.
 
 ## Versions
 
-`package.json` owns the integrated game version. Assign versions sequentially on
-`main`, once per integrated change or combined batch. A higher integrated version
-continues the previous `main` build, including any intentional reverts. Parallel
-worktrees inherit their starting version; their numbers do not describe which
-other threads' changes they contain. Update affected AI documentation while
-working, but leave the version fields unchanged in task branches.
+1. Every PR includes the next version bump in `package.json`, both package-lock
+   version fields, and `ai/ai-context.md`, following the version rule below.
+2. Apply the verified changes to the local build first; report to Cam what changed
+   and how to test.
+3. Push the branch and open a PR to `main` (draft if untested).
+4. Once Cam says it is good in chat, the Dispatcher squash-merges the PR; Cam
+   never clicks merge.
+5. After a PR opens or merges, return the primary checkout to up-to-date `main`
+   with no uncommitted work; never leave it on a feature branch.
+6. Tell Notes & PM when a PR merges so Trello stays accurate.
 
-When integrating:
-
-1. Verify the task branch, then integrate it onto the latest `main`. Preserve
-   `main`'s current version fields if an older branch carries a version bump from
-   the previous workflow. Keep `main` history cumulative rather than resetting it.
-2. On `main`, run `npm run version:game -- patch` once (or an explicit higher
-   `x.y.z`). The command rejects other branches and non-increasing versions. It
-   updates the package lock and the marker in `ai/ai-context.md` together.
-3. Run `npm run verify` on the combined result, then commit the integrated change
-   and version together. Keep failed verification local until resolved.
-
-`npm run check:docs` rejects version drift. Save schemas and standalone art
-prototype versions are separate. Integration stays local unless pushing or
-publication is authorized.
+`package.json` owns the game version. Bump it once per PR to the next patch
+(or an explicit higher `x.y.z`) beyond current `origin/main`, and update both
+`package-lock.json` version fields and the marker in `ai/ai-context.md` together.
+The existing `npm run version:game -- patch` helper only runs on `main`; on PR
+branches, update those same fields directly. Run `npm run verify` before committing;
+`npm run check:docs` rejects version drift. Keep failed verification local until
+resolved. Save schemas and standalone art prototype versions are separate.
 
 The badge remains visible in the menu and game. A clean `main` build shows only
 `v1.2.3`; a task branch, detached checkout, or modified `main` shows
