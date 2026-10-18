@@ -11,7 +11,7 @@ import { createAuthoredLifeMapLabDraft } from '../src/model/life-map-lab-draft.j
 const probeProfile={mapLab:createAuthoredMapLabDraft(),gameSettings:createAuthoredGameSettingsDraft(),gamepieces:createAuthoredGamepiecesDraft(),lifeMapLab:createAuthoredLifeMapLabDraft(),vassalLab:null,activePage:'mapLab'};
 // Leave a long runway for UI gestures; collapse itself has authoritative scenario tests.
 probeProfile.gameSettings.values.primordialBasePressure=1;
-probeProfile.gameSettings.values.primordialGrowthFactor=1.2;
+probeProfile.gameSettings.values.primordialGrowthFactor=1.1;
 
 const PORT = Number(process.env.PROBE_PORT ?? 8080);
 const URL = `http://127.0.0.1:${PORT}`;

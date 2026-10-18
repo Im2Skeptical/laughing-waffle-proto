@@ -1,4 +1,6 @@
 import { getChaosResistance } from '../detailed-settlements/phases/chaos.js';
+import { formatChaosValue } from '../chaos-values.js';
+import { getGameSetting } from '../game-config.js';
 import { stockTotal } from '../detailed-settlements/stock.js';
 import { getMoonPhaseDurationSec } from "../moon-phases.js";
 import {
@@ -70,10 +72,11 @@ export function getSettlementChaosPowerTooltipSpec(state) {
   return {
     title: "Chaos",
     lines: [
-      `Accumulated Chaos: ${chaos.chaosPower}`,
-      `Current Resistance: ${chaos.resistance}`,
+      `Accumulated Chaos: ${formatChaosValue(chaos.chaosPower)}`,
+      `Current Resistance: ${formatChaosValue(chaos.resistance)}`,
       `Expansion progress: ${formatChaosReckoningValue(chaos.expansionProgress)} / ${chaos.expansionThreshold}`,
       `Passive progress per moon: ${formatChaosReckoningValue(chaos.progressPerMoon)}`,
+      "Above containment, passive progress scales with uncovered Chaos divided by Resistance (minimum divisor 1).",
       "Resistance stops passive progress when it meets accumulated Chaos. Dangerous actions add progress directly.",
     ],
   };
@@ -221,8 +224,7 @@ export function getChaosReckoningValue(state, key) {
 }
 
 export function formatChaosReckoningValue(value) {
-  if (!Number.isFinite(value)) return "0";
-  return Number(value.toFixed(4)).toString();
+  return formatChaosValue(value);
 }
 
 export function getChaosRawPressureTooltipSpec(state) {
@@ -242,6 +244,8 @@ export function getChaosResistanceTooltipSpec(state) {
     lines: [
       `Current Resistance: ${formatChaosReckoningValue(getChaosResistance(state))}`,
       "Living population contributes resistance according to its Faith tier.",
+      `Resistance per person: ${['bronze','silver','gold','diamond'].map(tier => `${capitalizeLabel(tier)} ${formatChaosValue(getGameSetting(state, 'populationChaosResistanceMultiplier') / getGameSetting(state, `${tier}ChaosResistancePopulation`))}`).join(', ')}. Fractional contributions count.`,
+      "Greater Resistance also slows expansion after containment is exceeded.",
       "Resistance stops passive Monster progress when it meets accumulated Chaos. It never removes Chaos or saved progress; dangerous actions bypass it.",
     ],
   };

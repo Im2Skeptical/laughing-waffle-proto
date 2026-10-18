@@ -4,6 +4,8 @@ import { getDetailedSettlementSites } from '../detailed-settlements.js';
 import { emptySpecialists } from '../detailed-settlements/cohorts.js';
 import { trainSpecialists } from '../detailed-settlements/stock.js';
 import { adjacentRegionIds } from '../detailed-settlements/external-world.js';
+import { getChaosResistance } from '../detailed-settlements/phases/chaos.js';
+import { getGameSetting } from '../game-config.js';
 import { getRegionState, addWorldConnection } from '../world-state.js';
 import { getVassalCandidatePool, selectLifeMapVassal, getCurrentLifeMapVassal } from '../vassal-life-map.js';
 import { tryCreateStructure } from '../detailed-settlements/practices.js';
@@ -133,11 +135,14 @@ export function createLabFixture(id = 'stock', seed = 42) {
       for (const r of adjacentRegionIds(state, frontier)) if (r !== site.regionId) getRegionState(state,r).monster = { defense: 1 };
       getRegionState(state, frontier).monster = { defense: 2 };
       state.civilization.chaos.monsterPressure=99;
-      state.civilization.chaos.chaosPower=2000;
+      // Keep the defense specimen one Death phase away from expansion even
+      // when the regular game's passive pacing or Resistance tuning changes.
+      const resistance=getChaosResistance(state);
+      state.civilization.chaos.chaosPower=resistance+2*Math.max(1,resistance)/getGameSetting(state,'monsterProgressPerChaosRatio');
       state.civilization.chaos.lastPressureRegionId=state.world.regions[state.world.regions.findIndex(r=>r.id===frontier)-1]?.id??null;
       state.civilization.chaos.monsterCount = state.world.regions.filter(r => r.monster).length;
     }
   }
-  if (id === 'projection') state.gameConfig.settings.values.primordialBasePressure = 100;
+  if (id === 'projection') state.gameConfig.settings.values.primordialBasePressure = 10;
   return deserializeGameState(serializeGameState(state));
 }

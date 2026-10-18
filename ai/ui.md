@@ -356,3 +356,8 @@ The civilization panel compares accumulated Chaos with current Resistance and
 shows expansion progress / threshold and passive progress per moon (or Contained).
 Dangerous action costs use a Monster symbol plus expansion progress; Chaos is a
 separate permanent burden. Chaos and Resistance graph series share a scale.
+Chaos, Resistance, income and expansion readouts use compact units and at most
+two decimal places, retaining a significant digit for tiny positive values.
+Simulation values keep their full precision; rounding never controls containment.
+Chaos and Resistance tooltips explain relative expansion above containment and
+show Faith contributions using the run's Population Resistance effectiveness.

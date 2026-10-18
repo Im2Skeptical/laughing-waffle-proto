@@ -11,7 +11,7 @@ import {
   validateVassalLifeMapGeneratorConfig,
 } from "./vassal-life-map-generator.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 19;
+export const GAME_CONFIG_SCHEMA_VERSION = 21;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
@@ -93,26 +93,27 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
     fields: Object.freeze([
       field("faithStreakForShift", "Faith outcomes for tier shift", 3, 1, 100, 1, true),
       field("bronzeCollapseLossRate", "Bronze collapse displacement", 0.25, 0, 1, 0.01),
-      field("prematureDeathChaosWeight", "Chaos per premature death", 5, 0, 100000, 0.05),
-      field("externalEmigrationChaosWeight", "Chaos per external emigrant", 1, 0, 100000, 0.05),
+      field("prematureDeathChaosWeight", "Chaos per premature death", 0.5, 0, 100000, 0.01),
+      field("externalEmigrationChaosWeight", "Chaos per external emigrant", 0.1, 0, 100000, 0.01),
       field("oldAgeDeathChaosWeight", "Chaos per old-age death", 0, 0, 100000, 0.05),
       field("internalMigrationChaosWeight", "Chaos per internal migrant", 0, 0, 100000, 0.05),
-      field("primordialBasePressure", "Primordial base pressure", 100, 0, 1000000000, 0.05),
+      field("primordialBasePressure", "Primordial base pressure", 10, 0, 1000000000, 0.01),
       field("primordialGrowthFactor", "Primordial growth factor", 1.03, 1, 100, 0.001),
       field("primordialGrowthCadenceYears", "Primordial growth cadence (years)", 12, 1, 100000, 1, true),
       field("bronzeChaosResistancePopulation", "Bronze people per Chaos resistance", 10, 1, 100000, 1, true),
       field("silverChaosResistancePopulation", "Silver people per Chaos resistance", 5, 1, 100000, 1, true),
       field("goldChaosResistancePopulation", "Gold people per Chaos resistance", 2, 1, 100000, 1, true),
       field("diamondChaosResistancePopulation", "Diamond people per Chaos resistance", 1, 1, 100000, 1, true),
+      field("populationChaosResistanceMultiplier", "Population Resistance effectiveness", 1, 0, 1000, 0.1),
     ]),
   }),
   Object.freeze({
     id: "monsterExpansion",
     label: "Monster expansion",
-    description: "Resistance contains accumulated Chaos. Dangerous actions add expansion progress directly; a full tracker expands one Monster front.",
+    description: "Resistance contains accumulated Chaos. Excess Chaos divided by Resistance drives passive expansion; dangerous actions add progress directly. A full tracker expands one front.",
     fields: Object.freeze([
       field("monsterExpansionThreshold", "Progress per expansion", 100, 1, 100000, 1, true),
-      field("monsterProgressPerChaos", "Progress per uncovered Chaos each moon", 0.001, 0, 100, 0.001),
+      field("monsterProgressPerChaosRatio", "Progress per excess Chaos/Resistance ratio each moon", 0.8, 0, 100, 0.01),
       field("monsterDiversionProgress", "Progress removed by Crisis diversion", 25, 0, 100000, 1, true),
       field("discoveryMonsterProgress", "Forbidden Discovery progress", 40, 0, 100000, 1, true),
       field("conquestMonsterProgress", "Conquest base progress", 20, 0, 100000, 1, true),

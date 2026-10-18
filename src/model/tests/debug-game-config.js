@@ -51,9 +51,9 @@ import {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const authoredConfig = createAuthoredGameConfig();
-assert.equal(authoredConfig.schemaVersion, 19);
-assert.equal(authoredConfig.settings.schemaVersion, 19);
-assert.equal(authoredConfig.gamepieces.schemaVersion, 19);
+assert.equal(authoredConfig.schemaVersion, 21);
+assert.equal(authoredConfig.settings.schemaVersion, 21);
+assert.equal(authoredConfig.gamepieces.schemaVersion, 21);
 assert.equal(authoredConfig.lifeMapGenerator.laneCount, 6);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
@@ -67,7 +67,7 @@ assert.equal(
 );
 assert.equal(authoredConfig.gamepieces.practices.forage.stockCapacity,2);
 assert.ok(authoredConfig.gamepieces.practices.barter.stockTraits.includes('Currency'));
-assert.equal(authoredConfig.settings.values.primordialBasePressure, 100);
+assert.equal(authoredConfig.settings.values.primordialBasePressure, 10);
 assert.equal(authoredConfig.settings.values.primordialGrowthFactor, 1.03);
 assert.equal(authoredConfig.settings.values.primordialGrowthCadenceYears, 12);
 assert.deepEqual(
@@ -87,8 +87,8 @@ assert.deepEqual(
     childToAdultRate: 0.01,
     fullFeedStreakForIncrease: 12,
     partialFeedMemoryLength: 12,
-    prematureDeathChaosWeight: 5,
-    externalEmigrationChaosWeight: 1,
+    prematureDeathChaosWeight: 0.5,
+    externalEmigrationChaosWeight: 0.1,
     bronzeChaosResistancePopulation: 10,
     silverChaosResistancePopulation: 5,
     goldChaosResistancePopulation: 2,

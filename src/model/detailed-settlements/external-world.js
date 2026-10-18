@@ -203,8 +203,12 @@ export function conquerSettlement(state, targetId, edge = 0) {
 }
 
 export function getMonsterPressureRate(state) {
-  const uncoveredChaos = Math.max(0, (state?.civilization?.chaos?.chaosPower ?? 0) - getChaosResistance(state));
-  return uncoveredChaos * getGameSetting(state, 'monsterProgressPerChaos');
+  const resistance = getChaosResistance(state);
+  const uncoveredChaos = Math.max(0, (state?.civilization?.chaos?.chaosPower ?? 0) - resistance);
+  // Relative pressure keeps population useful even after Chaos exceeds its
+  // shield. A one-point denominator floor keeps empty/tiny civilizations finite.
+  const excessRatio = uncoveredChaos / Math.max(1, resistance);
+  return excessRatio * getGameSetting(state, 'monsterProgressPerChaosRatio');
 }
 
 function monsterExpansionTarget(state, region) {

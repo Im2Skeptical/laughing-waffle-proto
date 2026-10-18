@@ -70,8 +70,8 @@ export function createStarterBootProfile() {
   Object.assign(gameSettings.values, {
     prematureDeathChaosWeight: 0,
     externalEmigrationChaosWeight: 0,
-    primordialBasePressure: 1,
-    primordialGrowthFactor: 1.2,
+    primordialBasePressure: 0.1,
+    primordialGrowthFactor: 1.1,
   });
 
   const gamepieces = createAuthoredGamepiecesDraft();
