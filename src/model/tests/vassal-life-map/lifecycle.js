@@ -1,5 +1,7 @@
 import { applyVassalNodeEffects } from "../../vassal-life-map/lifecycle/node-confirm.js";
 import assert from "node:assert/strict";
+import { createTimelineFromInitialState, appendActionAtCursor, rebuildStateAtSecond } from "../../timeline/index.js";
+import { initializeReplayClock, advanceReplayStateOneSecond } from "../../replay-second-runner.js";
 import { ActionKinds, applyAction } from "../../actions.js";
 import { createInitialState } from "../../init.js";
 import { createRng } from "../../rng.js";
@@ -13,6 +15,7 @@ import {
 import {
   getCommittedVassalLifeMapNodeIds,
   getAdjustedVassalPrestigeCost,
+  getVassalYearPhaseCost,
   formatVassalPhaseDuration,
   getCurrentLifeMapVassal,
   getVassalCandidatePool,
@@ -38,6 +41,49 @@ import {
   selectedState,
   selectedStateForSignature,
 } from "./helpers.js";
+
+// Year prices use the saved calendar; entered offers and pending time survive loading.
+for (const [seasonDurationSec, phaseDurationSec] of [[8, 1], [17, 3]]) {
+  const calendarState = selectedState(876);
+  calendarState.gameConfig.settings.values.seasonDurationSec = seasonDurationSec;
+  calendarState.gameConfig.settings.values.phaseDurationSec = phaseDurationSec;
+  calendarState.seasonDurationSec = seasonDurationSec;
+  const calendarVassal = getCurrentLifeMapVassal(calendarState);
+  calendarVassal.stats.effectiveness = 0;
+  const nodeId = nodeIdForFamily(calendarState, 'patronage');
+  calendarVassal.lifeMap.availableNodeIds = [nodeId];
+  const replayTimeline = createTimelineFromInitialState(calendarState);
+  const actions = [
+    { kind: ActionKinds.VASSAL_ENTER_LIFE_NODE, payload: { nodeId } },
+    { kind: ActionKinds.VASSAL_SELECT_LIFE_OPTION, payload: { nodeId, optionId: 'immediateFavor' } },
+    { kind: ActionKinds.VASSAL_CONFIRM_LIFE_NODE, payload: { nodeId } },
+  ];
+  for (const action of actions) {
+    appendActionAtCursor(replayTimeline, { ...action, tSec: 0 }, calendarState);
+    dispatch(calendarState, action.kind, action.payload);
+  }
+  const pending = calendarVassal.lifeMap.pendingResolution;
+  assert.equal(pending.phaseCost, Math.round(3.6 * 4 * seasonDurationSec / phaseDurationSec));
+  assert.equal(pending.resolveSec, pending.phaseCost * phaseDurationSec);
+  const saved = deserializeGameState(JSON.parse(JSON.stringify(serializeGameState(calendarState))));
+  assert.deepEqual(getCurrentLifeMapVassal(saved).lifeMap.pendingResolution, pending);
+  initializeReplayClock(calendarState);
+  initializeReplayClock(saved);
+  for (let sec = 1; sec <= pending.resolveSec; sec += 1) {
+    assert.equal(advanceReplayStateOneSecond(calendarState).ok, true);
+    assert.equal(advanceReplayStateOneSecond(saved).ok, true);
+  }
+  assert.deepEqual(serializeGameState(saved), serializeGameState(calendarState), 'Pending save continuation matches uninterrupted ticks');
+  const replayed = rebuildStateAtSecond(replayTimeline, pending.resolveSec);
+  assert.equal(replayed.ok, true);
+  assert.deepEqual(serializeGameState(replayed.state), serializeGameState(calendarState), 'Replaying year-priced actions matches live ticks');
+}
+// Previously entered offers retain their captured phase prices without migration.
+const capturedCostState = selectedState(877);
+const capturedNode = forceEnter(capturedCostState, nodeIdForFamily(capturedCostState, 'patronage'));
+capturedNode.options[0].phaseCost = 108;
+const capturedReload = deserializeGameState(JSON.parse(JSON.stringify(serializeGameState(capturedCostState))));
+assert.equal(getCurrentLifeMapVassal(capturedReload).lifeMap.nodeStates[capturedNode.nodeId].options[0].phaseCost, 108);
 
 const isolatedMapState = createInitialState("devPlaytesting01", 8877);
 const isolatedPool = getVassalCandidatePool(isolatedMapState);
@@ -232,14 +278,14 @@ const zeroPurchaseNode = forceEnter(developmentState,
   nodeIdForFamily(developmentState, "practiceReform"));
 assert.equal(
   getVassalNodeDecisionPresentation(developmentState, zeroPurchaseNode.nodeId).mortalityEstimate.totalPhaseCost,
-  VASSAL_LIFE_TUNING.emptyShopConfirmPhaseCost,
+  getVassalYearPhaseCost(developmentState, VASSAL_LIFE_TUNING.emptyShopConfirmYearCost),
   "empty-shop presentation includes the confirmation time"
 );
 const seedBeforeMortality = developmentState.rng.vassalSeed;
 const developmentSeedBeforeLevel = developmentState.rng.vassalDevelopmentSeed;
 dispatch(developmentState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: zeroPurchaseNode.nodeId });
 assert.equal(developmentVassal.lifeMap.pendingResolution.phaseCost,
-  VASSAL_LIFE_TUNING.emptyShopConfirmPhaseCost,
+  getVassalYearPhaseCost(developmentState, VASSAL_LIFE_TUNING.emptyShopConfirmYearCost),
   "empty shops charge their two-year confirmation time");
 resolvePending(developmentState);
 assert.equal(zeroPurchaseNode.mortality.roll >= 0, true, "zero-purchase shop still resolves once");
@@ -432,7 +478,7 @@ assert.notEqual(hardLesson.statId, hardLesson.lossStatId);
 assert.equal(hardLesson.statDelta, 2);
 assert.equal(hardLesson.lossStatDelta, -1);
 assert.equal(developmentNode.options.find((option) => option.id === "deepStudy").phaseCost,
-  hardLesson.phaseCost * 3, "Deep Study costs three times normal Development time");
+  691, "Deep Study rounds its six scaled years once");
 
 const pooledCrisisState = selectedState(1);
 const pooledCrisis = forceEnter(pooledCrisisState, nodeIdForFamily(pooledCrisisState, "crisis"));
@@ -465,7 +511,8 @@ const plusNode = forceEnter(plusPlacementState, plusNodeDef.id);
 for (const option of plusNode.options) {
   const standard = VASSAL_LEGACY_OPTIONS.find((entry) => entry.id === option.id);
   assert.equal(option.prestigeCost, standard.prestigeCost);
-  assert.equal(option.phaseCost, standard.phaseCost);
+  assert.equal(option.phaseCost, standard.yearCost == null ? standard.phaseCost
+    : getVassalYearPhaseCost(plusPlacementState, standard.yearCost));
   assert.equal(option.legacyStartingPrestigeBonus, standard.legacyStartingPrestigeBonus * 2);
 }
 

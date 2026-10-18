@@ -54,6 +54,7 @@ import {
   getDetailedSite,
   getPlayerDetailedSites,
   getVassalActionPhaseCost,
+  getVassalYearPhaseCost,
   getVassalAge,
   getVassalStatPresentation,
   getVassalLifeMapNode,
@@ -136,7 +137,7 @@ function buildSettlementFallbackOptions(state, vassal) {
     id: `settlement-edge:${edge.regionAId}:${edge.regionBId}`,
     label: `Open Route to ${getRegionReference(state, edge.regionAId === currentId ? edge.regionBId : edge.regionAId)}`,
     prestigeCost: VASSAL_LIFE_TUNING.routeAddPrestigeCost,
-    phaseCost: VASSAL_LIFE_TUNING.routeAddPhaseCost,
+    phaseCost: getVassalYearPhaseCost(state, VASSAL_LIFE_TUNING.routeAddYearCost),
     intervention: { kind: "connection", mode: "add", regionAId: edge.regionAId, regionBId: edge.regionBId },
   }];
   return [{ id: "settlement-favor", label: "Seek Settlement Favor", prestigeDelta: 10, phaseCost: 0 }];
@@ -273,6 +274,8 @@ function createNodeState(state, vassal, node) {
     nodeState.shopSelection = createShopSpecialties(state,vassal,nodeState);
     nodeState.inventory = generateShopInventory(state, vassal, nodeState);
   }
+  nodeState.options = nodeState.options.map(({ yearCost, ...option }) => yearCost == null
+    ? option : { ...option, phaseCost: getVassalYearPhaseCost(state, yearCost) });
   return nodeState;
 }
 
@@ -740,7 +743,7 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
   if (monsterCost) addMonsterPressure(state,monsterCost);
   if (isShopNodeState(nodeState) && nodeState.purchasedOffers.length === 0) {
     const emptyCost = getVassalActionPhaseCost(
-      vassal, VASSAL_LIFE_TUNING.emptyShopConfirmPhaseCost, { nodeState }
+      vassal, getVassalYearPhaseCost(state, VASSAL_LIFE_TUNING.emptyShopConfirmYearCost), { nodeState }
     );
     nodeState.accumulatedPhaseCost += emptyCost;
     markHeirloomTimeAction(nodeState, emptyCost);

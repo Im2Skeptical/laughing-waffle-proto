@@ -28,7 +28,7 @@ Ubiquitous language for this prototype. Engine invariants and schema numbers:
 | **provider** | Practice Stock host supplying a complete recipe: local first, then adjacent-and-connected player settlements. | Administration transport, global wallet |
 | **Villager / Stranger** | Local cohorts. Villagers feed and assign before Strangers. | citizen, peasant, population (when a cohort is meant) |
 | **moon phase** | One of six named phases: Birth, Food, Housing, Faith, Migration, Death. | newMoon, fullMoon, moon-cycle midpoint, `MOON_CYCLE_SEC` clock |
-| **year / season** | Solar calendar independent of the moon, 32 seconds per year by default; seasonal Practices follow authored season filters. | moon as year, season as moon phase |
+| **year / season** | Four seasons times configured season duration, shared by the Life Map and solar calendar, independent of phases/moons; 32 seconds per year by default; seasonal Practices follow authored season filters. | moon as year, season as moon phase |
 | **Happiness** | Cohort mood from food and housing, consumed as Faith evidence. | morale, loyalty, approval |
 | **Faith** | Moon phase that applies happiness evidence, faith streak, social displacement, and Primordial pressure. | religion meter, piety resource |
 | **Chaos** | Civilization-global Primordial pressure, monsters, and loss. | local unrest, site-only threat |
@@ -38,7 +38,7 @@ Ubiquitous language for this prototype. Engine invariants and schema numbers:
 | **Heirloom** | Temporary inheritable relic with Equipped, Carry, and Vault slots. Sanctified, then Unmarked, then Fragile. | inventory item, crafted gear, permanent relic |
 | **Lifegraph** | Full-topology Life Map screen and playfield. | Regional Map, timegraph |
 | **Prestige** | Vassal currency for Life Map purchases and recurring income. | gold, money, fame |
-| **Phase cost** | Vassal node time paid as accumulated moon phases through normal ticks. | skipping time, free years, newMoon waits |
+| **Phase cost** | Vassal node time paid as accumulated moon phases through normal ticks; year-based prices convert solar years to phases, with a 3.6x multiplier on authored Patronage, Development, Crisis, Legacy, fallback-route, removal, and reroll costs. | skipping time, free years, newMoon waits |
 | **confirmation** | Atomic apply of a staged Life Map node or shop draft. | hover-preview as commit, auto-buy |
 | **forecast unveil** | Read-only viewed-time advance that does not commit history or consume RNG. | simulating the future, spending RNG on preview |
 | **viewed time** | Read-only playhead preview of an existing snapshot. | committed `tSec`, presentation-only time as authority |
