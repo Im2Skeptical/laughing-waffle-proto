@@ -29,8 +29,14 @@ export function createLifeProcessingView({ app, layer, getStatus, onRetry, onRet
     if (root.parent.getChildIndex(root) !== root.parent.children.length - 1) {
       root.parent.setChildIndex(root, root.parent.children.length - 1);
     }
-    root.position.set((app.screen.width-520)/2,app.screen.height-332);
-    retry.visible=status.phase==='error';
+    const failed=status.phase==='error';
+    const height=failed?82:48;
+    // Keep a 12px gap above the timegraph's fixed design-space top (828).
+    root.position.set((app.screen.width-520)/2,828-height-12);
+    bg.clear(); roundedRect(bg,0,0,520,height,12,0x202923,0xd5b777,2);
+    label.y=failed?16:8;
+    progress.y=failed?0:-24;
+    retry.visible=failed;
     back.visible=retry.visible && status.canReturn;
     label.text=status.phase==='error'?'Preparation failed':status.phase==='preparing'?'Preparing next choices…'
       :status.phase==='revealing'?'Unveiling the next chapter…':status.phase==='committing'?'Committing decision…':'Resolving the chapter…';
