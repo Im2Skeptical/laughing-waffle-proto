@@ -18,7 +18,6 @@ import {
 import {
   getDetailedSettlement,
   getDetailedSettlementSites,
-  getGreenAscendancySummary,
 } from "../queries.js";
 import { recordChaosLosses } from "./chaos.js";
 import {
@@ -77,9 +76,7 @@ export function runDeathPhase(state, phase) {
       let naturalDeaths = 0;
       const parts = splitSpecialistCohorts(classState);
       for(const part of Object.values(parts)) part.eldersByAge = (part.eldersByAge ?? []).map((cohort) => {
-        const green = getGreenAscendancySummary(state);
-        const mortality = getElderMortalityRate(cohort.age, state)
-          * (1 - Math.min(1, green.elderMortalityReduction / 100));
+        const mortality = getElderMortalityRate(cohort.age, state);
         const deaths = rollCount(state, cohort.count, mortality);
         naturalDeaths += deaths;
         return { ...cohort, count: cohort.count - deaths };

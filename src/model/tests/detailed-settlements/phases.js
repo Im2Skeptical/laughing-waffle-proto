@@ -63,3 +63,27 @@ for(const sec of [1,2,3])stepDetailedSettlementsSecond(mid,sec);
 const copy=deserializeGameState(serializeGameState(mid));
 for(const sec of [4,5,6]){stepDetailedSettlementsSecond(mid,sec);stepDetailedSettlementsSecond(copy,sec);}
 assert.deepEqual(serializeGameState(mid),serializeGameState(copy),'mid-moon reservations survive reload');
+
+// Visual tiers must not alter mortality, migration, Stock, Chaos, or RNG.
+const greenRuns = [];
+for (const tier of [0, 1, 2, 3]) {
+ const state = fixture();
+ Object.assign(state.gameConfig.settings.values, {greenAutomaticTier:false, greenForcedTier:tier, elderMortality75Plus:1});
+ const settlement = getDetailedSettlement(state, 'cedar-woods');
+ settlement.populationByClass.villager.adults = 20;
+ settlement.populationByClass.villager.eldersByAge = [{age:75,count:10}];
+ for (let sec=1; sec<=18; sec++) {
+  stepDetailedSettlementsSecond(state, sec);
+  if (sec===17) {
+   const intents = state.civilization.currentMoonTurn.migrationIntentSummaries;
+   assert.ok(intents.some(intent => intent.requested > 0), 'fixture exercises migration');
+   for (const intent of intents) assert.equal(intent.eligible, intent.requested, 'Green blocks no migrants');
+  }
+  if (sec===6) assert.equal(settlement.populationByClass.villager.eldersByAge.length, 0, 'Green cannot reduce certain elder mortality');
+ }
+ const data = serializeGameState(state);
+ delete data.gameConfig.settings.values.greenForcedTier;
+ delete data.civilization.green;
+ greenRuns.push(data);
+}
+for (const data of greenRuns.slice(1)) assert.deepEqual(data, greenRuns[0], 'all tiers produce identical gameplay and RNG');

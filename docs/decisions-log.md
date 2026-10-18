@@ -99,7 +99,7 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 - Action costs are fixed numbers of Monster expansion progress (not Chaos): see the LOCKED item on ambitious actions. This answers c/33DTojMF's "flat vs scaled" for the current build (fixed), but no Trello decision confirms it. **[built]**
 - Monster rewards now: Campaign victories give 12 + 4xDefense Prestige and 3xDefense Research; automatic hunts give Loot/Record/Currency trophies and 6 Research; defense/diversion give Defense Research and diversion 6 Prestige. (docs/civilization-milestone.md) This answers c/97w8GxRT's "what do Monsters give now".
 - Settlement loss is the run-ending condition; loss history feeds later content. (ai/sim.md)
-- Green Ascendancy **[built, undocumented, never decided]**: a timed external escalation clock, tier = floor(year/100) capped at 3, with 12 settings. Elder-mortality and migration effects apply; `storedFoodDecayReduction` has no consumer. It may be the seed of a chaos-god system. (src/model/detailed-settlements/queries.js:127-160; c/OI0fWgOb)
+- Green Ascendancy **[visual-only placeholder]**: tiers at 100/200/300 years (capped at 3), pending a chaos-god rework. No gameplay effects; mortality/migration modifiers and unused decay settings are removed. Debug retains automatic/forced tier and cadence controls. (c/OI0fWgOb)
 - Legacy Red God simulation removed; live graphs and Life Map effects use civilization Chaos. Saved effect and loss-reason aliases remain readable. (c/Gfij80No)
 - Built per Code Health: Chaos income, Resistance, shared expansion tracker, action risk, defense/loss, run end when no player settlement is left.
 

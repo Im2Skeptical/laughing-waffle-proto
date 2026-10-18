@@ -132,11 +132,6 @@ function getGreenTierValue(state) {
   return Math.max(0, Math.min(3, Math.floor(Math.max(1, state?.year ?? 1) / cadence)));
 }
 
-function getGreenTierSetting(state, prefix, tier) {
-  if (tier <= 0) return 0;
-  return Math.max(0, getGameSetting(state, `${prefix}${["I", "II", "III"][tier - 1]}`));
-}
-
 export function getGreenAscendancySummary(state) {
   const tier = getGreenTierValue(state);
   const automatic = getBooleanGameSetting(state, "greenAutomaticTier");
@@ -150,9 +145,6 @@ export function getGreenAscendancySummary(state) {
     nextEscalationYears: automatic && tier < 3
       ? Math.max(0, cadenceYears * (tier + 1) - year)
       : null,
-    storedFoodDecayReduction: getGreenTierSetting(state, "greenStoredDecayReduction", tier),
-    elderMortalityReduction: getGreenTierSetting(state, "greenElderMortalityReduction", tier),
-    migrationSuccess: tier <= 0 ? 100 : getGreenTierSetting(state, "greenMigrationSuccess", tier),
   };
 }
 

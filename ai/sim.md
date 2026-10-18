@@ -98,7 +98,7 @@ registries here.
 - Migration resolves all food, housing, and faith causes identically using
   snapshot-based, globally reserved housing. Death then resolves arrival meals,
   unplaced-migrant hardship, monthly elder mortality, and spatial Monster pressure. Hosted Stock does not rot.
-  Surviving migrants join the destination Stranger cohort.
+  Surviving migrants join the destination Stranger cohort. Green Ascendancy is a visual-only placeholder (tiers at 100/200/300 years); it affects neither migration nor elder mortality and has no decay settings.
 - Elder Orders remain aggregate cohort state but do not affect Vassal candidates,
   prices, inventories, or resolutions. Each selected Vassal owns a deterministic,
   serialized Life Map DAG generated from six non-crossing route traces across six

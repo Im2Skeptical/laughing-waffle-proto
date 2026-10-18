@@ -133,20 +133,11 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
   Object.freeze({
     id: "greenAscendancy",
     label: "Green Ascendancy",
-    description: "An external escalation clock. Forced tier is for debug only and never depends on Chaos.",
+    description: "Placeholder with visual feedback only; no gameplay effects. Tiers begin at 100/200/300 years by default. Forced tier is for debug only.",
     fields: Object.freeze([
       booleanField("greenAutomaticTier", "Automatic Green tier", true),
       field("greenForcedTier", "Forced Green tier (0-3)", 0, 0, 3, 1, true),
       field("greenCadenceYears", "Years per Green tier", 100, 1, 100000, 1, true),
-      field("greenStoredDecayReductionI", "Green I stored-food decay reduction (%)", 25, 0, 100, 1),
-      field("greenStoredDecayReductionII", "Green II stored-food decay reduction (%)", 50, 0, 100, 1),
-      field("greenStoredDecayReductionIII", "Green III stored-food decay reduction (%)", 75, 0, 100, 1),
-      field("greenElderMortalityReductionI", "Green I elder mortality reduction (%)", 20, 0, 100, 1),
-      field("greenElderMortalityReductionII", "Green II elder mortality reduction (%)", 40, 0, 100, 1),
-      field("greenElderMortalityReductionIII", "Green III elder mortality reduction (%)", 60, 0, 100, 1),
-      field("greenMigrationSuccessI", "Green I migration success (%)", 90, 0, 100, 1),
-      field("greenMigrationSuccessII", "Green II migration success (%)", 75, 0, 100, 1),
-      field("greenMigrationSuccessIII", "Green III migration success (%)", 60, 0, 100, 1),
     ]),
   }),
   Object.freeze({
