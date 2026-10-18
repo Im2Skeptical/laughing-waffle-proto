@@ -248,6 +248,6 @@ const production = spawnSync(process.execPath, ['--input-type=module', '-e', `
   run.listeners.get('message')({data:message});
   assert.equal(serializations,1,'explicit profiling retains message-size diagnostics');
   run.service.dispose();
-`], { env: { ...process.env, NODE_ENV: 'production' }, encoding: 'utf8' });
+`], { windowsHide: true, env: { ...process.env, NODE_ENV: 'production' }, encoding: 'utf8' });
 assert.equal(production.status, 0, production.stderr || production.stdout);
 console.log('[forecast-worker-service] slow startup, bounded silence, progress stalls, errors and stale results OK');

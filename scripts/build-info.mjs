@@ -15,7 +15,7 @@ export const workspaceId = digest(root).slice(0, 16);
 export async function getBuildInfo(channel) {
   const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z', '--',
     'src', 'images', 'scripts', 'ai', 'docs', '.github', 'AGENTS.md', 'README.md',
-    'index.html', 'styles.css', 'package.json', 'package-lock.json'], { cwd: root, encoding: 'utf8' });
+    'index.html', 'styles.css', 'package.json', 'package-lock.json'], { cwd: root, encoding: 'utf8', windowsHide: true });
   const fingerprint = createHash('sha256');
   for (const file of [...new Set(files.split('\0').filter(Boolean))].sort()) {
     const full = path.join(root, file);
@@ -40,7 +40,7 @@ export async function getBuildInfo(channel) {
     fingerprint.update(`${file}\0${cached.hash}\n`);
   }
   const { version } = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
-  const revision = execFileSync('git', ['rev-parse', '--short=12', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
+  const revision = execFileSync('git', ['rev-parse', '--short=12', 'HEAD'], { cwd: root, encoding: 'utf8', windowsHide: true }).trim();
   return { version, build: fingerprint.digest('hex').slice(0, 12), revision, channel };
 }
 

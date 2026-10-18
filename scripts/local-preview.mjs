@@ -25,7 +25,16 @@ function urls(port) {
 
 async function serve(port) {
   let pending;
-  const info = () => pending ??= getBuildInfo('local').finally(() => { pending = null; });
+  let cached;
+  let expiresAt = 0;
+  const info = () => {
+    if (cached && Date.now() < expiresAt) return Promise.resolve(cached);
+    return pending ??= getBuildInfo('local').then(value => {
+      cached = value;
+      expiresAt = Date.now() + 5_000;
+      return value;
+    }).finally(() => { pending = null; });
+  };
   await info();
   const server = http.createServer(async (request, response) => {
     response.setHeader('Cache-Control', 'no-store');

@@ -44,8 +44,8 @@ export function prepareRevisionRoots(args, scriptDir) {
     for (const role of ["baseline", "refactor"]) {
       if (args[role]) continue;
       const destination = path.join(temporaryRoot, role);
-      execFileSync("git", ["clone", "--quiet", "--shared", "--no-checkout", "--", repository, destination], { stdio: "pipe" });
-      execFileSync("git", ["-C", destination, "checkout", "--quiet", "--detach", PINNED[role]], { stdio: "pipe" });
+      execFileSync("git", ["clone", "--quiet", "--shared", "--no-checkout", "--", repository, destination], { stdio: "pipe", windowsHide: true });
+      execFileSync("git", ["-C", destination, "checkout", "--quiet", "--detach", PINNED[role]], { stdio: "pipe", windowsHide: true });
       args[role] = destination;
     }
     return cleanup;
@@ -58,13 +58,14 @@ export function prepareRevisionRoots(args, scriptDir) {
 export function gitRevParse(root) {
   try {
     const sha = execFileSync("git", ["-C", root, "rev-parse", "HEAD"], {
+      windowsHide: true,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     }).trim();
     const subject = execFileSync(
       "git",
       ["-C", root, "log", "-1", "--format=%s"],
-      { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
+      { windowsHide: true, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }
     ).trim();
     return { ok: true, sha, subject };
   } catch (error) {

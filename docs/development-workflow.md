@@ -30,6 +30,7 @@ The badge remains visible in the menu and game: Local/Pages, game version and a
 save/menu controls, over the game view. The fingerprint includes uncommitted source,
 assets, tooling and documentation, with text line endings normalized. It is
 independent of the Git revision; metadata also records that revision for lookup.
+Local preview caches build identity for five seconds and hides child-process windows on Windows.
 Local HTML and Pages artifacts embed their identity at load/build time. Pages
 writes the same metadata to `dist/build-info.json` and `dist/build-manifest.json`.
 The local badge checks for edits every 30 seconds and when the tab becomes

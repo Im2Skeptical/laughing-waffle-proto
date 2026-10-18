@@ -12,7 +12,7 @@ import {buildEdgeTransferBatchAtBoundary} from '../src/model/edge-transfers.js';
 // Use a compatible gameplay/schema revision. Only the packet reconstructor is
 // loaded from Git; its imports use the current model in both measurements.
 const baselineRef=process.argv[2]??'12c67e1',output='artifacts/edge-transfer-performance';
-let source=execFileSync('git',['show',`${baselineRef}:src/model/edge-transfers.js`],{encoding:'utf8'});
+let source=execFileSync('git',['show',`${baselineRef}:src/model/edge-transfers.js`],{encoding:'utf8',windowsHide:true});
 source=source.replace(/from "([^"]+)"/g,(_,specifier)=>`from ${JSON.stringify(pathToFileURL(path.resolve('src/model',specifier)).href)}`);
 const baseline=(await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`)).buildEdgeTransferBatchAtBoundary;
 const fixtures=[];

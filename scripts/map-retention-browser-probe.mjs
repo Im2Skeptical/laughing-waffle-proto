@@ -21,7 +21,7 @@ try{
   const page=await browser.newPage({viewport:{width:844,height:390}});page.on('pageerror',e=>errors.push(e.message));
   const reference=process.argv.indexOf('--baseline-ref');
   if(reference>=0){
-    const body=execFileSync('git',['show',`${process.argv[reference+1]}:src/views/world-map-pixi.js`],{encoding:'utf8'});
+    const body=execFileSync('git',['show',`${process.argv[reference+1]}:src/views/world-map-pixi.js`],{encoding:'utf8',windowsHide:true});
     await page.route('**/src/views/world-map-pixi.js',route=>route.fulfill({contentType:'text/javascript',body}));
   }
   await page.goto(url);await page.waitForFunction(()=>!!globalThis.PIXI);
