@@ -225,7 +225,7 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 ### DOCS-ONLY CLAIMS
 - Practice slots fixed at five, "reaffirmed after the content pass; the temporary twelve-slot expansion was reverted". (docs/civilization-milestone.md, ai/ai-context.md, README.md, CONTEXT.md)
 - The default New Game pool is a trimmed "minimal bronze" set (4 Practices locked, 10+ moved to Silver); never decided by Cam. (docs/minimal-bronze-test-set.md, commit `6dfa46a`; c/Q1zwEwz5)
-- Pool: 110 Practices (86 Scheduled / 24 Charge) and 78 Structures, 188 runtime pieces. The docs' 109 / 85 / 187 are off by one. 101 of 110 Practices still carry `provisionalNotes`. **[built]**
+- Pool: 110 Practices (86 Scheduled / 24 Charge) and 78 Structures, 188 runtime pieces. 101 of 110 Practices still carry `provisionalNotes`. **[built]**
 - Charge is a private per-practice meter, not Stock; discharges at most once per root chain; workers multiply incoming Charge; all 24 Charge practices have empty Consume/Require. (ai/sim.md, civcontent doc)
 - Construction: each commission reserves a site; paid Housing-phase cycles consume Stock Traits; unfinished sites supply no Housing/modifiers. No standalone demolition, refund or salvage. (ai/sim.md)
 - Quality tiers in code: bronze, silver, gold, diamond (src/model/vassal-life-map/shop.js, phases/faith.js). Docs refer to Common (bronze), Silver, Gold/Diamond. (ai/sim.md)
@@ -311,7 +311,7 @@ Found in code at `4014a92`; Cam may not know about these. Cards exist for the fi
 
 **Resolved by code check at `4014a92` (no Cam decision needed)**
 6. Neutral towns: the billboard is built; neutrals cannot hold Practices or Structures. The docs' "five practice slots including neutrals" was a stale-checkout error.
-7. Charge cards: Trello c/oxdLd3h6 says 94 practices and none charge; code has 110 Practices, 86 Scheduled and 24 Charge. Docs say 109 / 85 / 24 (off by one).
+7. Charge cards: Trello c/oxdLd3h6 says 94 practices and none charge; code has 110 Practices, 86 Scheduled and 24 Charge.
 8. Opening neutral: Trello says one small connected neutral; code seeds 4 neutrals (one adjacent and force-connected) plus 1 opening Monster.
 9. Class names: Trello c/pWk7dIEn said "Warrior and Mage"; the code and docs say Scholar. Card fixed.
 10. Stat naming: Scholar +Cunning and Warrior +Intelligence is the intended key mapping (shown as Ingenuity and Prowess), not backwards. The card text never names the stat (c/9FwTOJ0t, fixed).
@@ -320,7 +320,7 @@ Found in code at `4014a92`; Cam may not know about these. Cards exist for the fi
 13. Ambitious-action Chaos (c/33DTojMF, Done): built as Monster expansion progress, fixed numbers, not Chaos.
 14. Card reviewer (c/Cd7toHWG): a Reviewer already exists; the card needs trimming.
 15. Monster rewards (c/97w8GxRT): docs already list concrete rewards (campaign victories 12 + 4xDefense Prestige and 3xDefense Research; hunts give trophies and 6 Research).
-16. Housing ladder: code is 30/60/90/210/360/630; `docs/civcontent-2.6-implementation.md` is stale.
+16. Housing ladder: code is 30/60/90/210/360/630; `docs/civcontent-2.6-implementation.md` matches.
 17. Monster Pressure source: ambitious actions and no-Prestige purchases add Monster progress directly; Chaos is a separate passive stat driven by Faith-phase Primordial pressure.
 
 **Still open**

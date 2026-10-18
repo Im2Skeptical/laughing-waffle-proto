@@ -1,6 +1,6 @@
 # Current simulation
 
-CivContent 2.6 adds 24 declarative Charge Practices to the full 109-Practice /
+CivContent 2.6 adds 24 declarative Charge Practices to the full 110-Practice /
 78-Structure registry. Charge is Practice-local integer state, separate from
 Stock. The authoritative Practice event queue grants Charge and automatically
 resolves legal full recipes in deterministic tableau order; blocked meters retain
