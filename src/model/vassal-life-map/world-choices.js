@@ -64,7 +64,7 @@ export function buildLegacyOptions(state, vassal) {
   const highest = VASSAL_STAT_IDS.reduce((best, id) => stats[id] > stats[best] ? id : best, VASSAL_STAT_IDS[0]);
   const label = getVassalStatPresentation(vassal, highest).label;
   return [
-    {id:'found-settlement',label:'Found a settlement',description:'Establish a frontier settlement. No Prestige or population cost.',prestigeCost:0,phaseCost:0},
+    {id:'found-settlement',label:'Found a settlement',description:'Establish a frontier settlement. Move 10 adult Villagers. No Prestige cost.',prestigeCost:0,phaseCost:0},
     {id:'highest-stat',label:`Teach ${label}`,description:`Future Vassals start with +${Math.floor(stats[highest]/RULES.legacyStatDivisor)} ${label}.`,
       prestigeCost:0,phaseCost:0,legacyReward:{kind:'stat',statId:highest,amount:Math.floor(stats[highest]/RULES.legacyStatDivisor)}},
     {id:'accumulated-prestige',label:'Leave renown',description:`Future Vassals start with +${Math.floor(vassal.prestige/RULES.legacyPrestigeDivisor)} Prestige.`,
