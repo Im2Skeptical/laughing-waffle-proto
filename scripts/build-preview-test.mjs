@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdtemp, mkdir, copyFile, writeFile, readFile, rm } from 'node:fs/promises';
+import { setTimeout as delay } from 'node:timers/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -19,7 +20,7 @@ try {
   await writeFile(path.join(fixture, 'ai/ai-context.md'), 'Game build version: `1.0.0`.\n');
   await writeFile(path.join(fixture, 'index.html'), '<script id="game-build-info" type="application/json">null</script>');
   await writeFile(path.join(fixture, 'src/example.js'), 'export const value = 1;\n');
-  const git = args => execFileSync('git', args, { cwd: fixture, stdio: 'pipe' });
+  const git = args => execFileSync('git', args, { cwd: fixture, stdio: 'pipe', windowsHide: true });
   git(['init', '-q']); git(['add', '.']);
   git(['-c', 'user.name=Preview test', '-c', 'user.email=preview@example.invalid', 'commit', '-qm', 'Fixture']);
   const start = () => execFileSync(process.execPath, ['scripts/local-preview.mjs'], {
@@ -47,10 +48,14 @@ try {
   await writeFile(path.join(fixture, 'src/example.js'), 'export const value = 1;\r\n');
   assert.equal((await (await fetch(`${address}build-info.json`)).json()).build, original.build, 'CRLF does not alter identity');
   await writeFile(path.join(fixture, 'src/added.js'), 'export const value = 2;\n');
-  assert.notEqual((await (await fetch(`${address}build-info.json`)).json()).build, original.build, 'Untracked edits change identity');
+  assert.deepEqual(await (await fetch(`${address}build-info.json`)).json(), original, 'Repeated polling reuses the cached identity');
+  await delay(5_100);
+  assert.notEqual((await (await fetch(`${address}build-info.json`)).json()).build, original.build, 'Untracked edits change identity after cache expiry');
   await rm(path.join(fixture, 'src/added.js'));
-  assert.equal((await (await fetch(`${address}build-info.json`)).json()).build, original.build, 'Reverting restores identity');
-  execFileSync(process.execPath, ['scripts/version-game.mjs', 'patch'], { cwd: fixture });
+  await delay(5_100);
+  assert.equal((await (await fetch(`${address}build-info.json`)).json()).build, original.build, 'Reverting restores identity after cache expiry');
+  execFileSync(process.execPath, ['scripts/version-game.mjs', 'patch'], { cwd: fixture, windowsHide: true });
+  await delay(5_100);
   const updated = await (await fetch(`${address}build-info.json`)).json();
   assert.equal(updated.version, '1.0.1');
   assert.notEqual(updated.build, original.build);

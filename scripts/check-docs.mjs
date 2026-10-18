@@ -9,7 +9,7 @@ const read = (file) => readFileSync(path.resolve(root, file), "utf8");
 const scripts = JSON.parse(read("package.json")).scripts;
 const documents = [...new Set(execFileSync("git", [
   "ls-files", "--cached", "--others", "--exclude-standard", "-z", "--", "*.md",
-], { cwd: root, encoding: "utf8" }).split("\0"))]
+], { cwd: root, encoding: "utf8", windowsHide: true }).split("\0"))]
   .filter((file) => file && !file.startsWith("ai/history/") && existsSync(path.resolve(root, file)));
 const failures = [];
 const fail = (file, line, message) => failures.push(`${file}:${line}: ${message}`);
