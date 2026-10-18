@@ -1,9 +1,8 @@
 export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 6;
-export const VASSAL_PHASES_PER_YEAR = 30;
 const VASSAL_TIME_COST_MULTIPLIER = 3.6;
-const increasedPhaseCost = (baseCost) => Math.round(baseCost * VASSAL_TIME_COST_MULTIPLIER);
+const increasedYearCost = (baseCost) => baseCost * VASSAL_TIME_COST_MULTIPLIER;
 
-// Inclusive phase ranges; 32 phases make one year on the default clock.
+// Inclusive phase ranges; solar years use four seasons, independently of moons.
 export const VASSAL_TIME_COST_RANGES = Object.freeze({
   low: Object.freeze({ min: 128, max: 192 }),
   medium: Object.freeze({ min: 224, max: 288 }),
@@ -164,16 +163,16 @@ export const VASSAL_LIFE_TUNING = Object.freeze({
   developmentThreshold: 10,
   discountPerStat: 0.08,
   maximumDiscount: 0.6,
-  emptyShopConfirmPhaseCost: VASSAL_PHASES_PER_YEAR * 2,
+  emptyShopConfirmYearCost: 2,
   shopRerollPrestigeCost: 6,
-  shopRerollPhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2),
+  shopRerollYearCost: increasedYearCost(2),
   routeAddPrestigeCost: 16,
-  routeAddPhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 3),
-  signatureRemovalPhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2),
+  routeAddYearCost: increasedYearCost(3),
+  signatureRemovalYearCost: increasedYearCost(2),
   signatureRemovalPrestigeCost: 10,
   settlementPrestigeCost: 40,
   legacyPrestigeCost: 20,
-  legacyPhaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 4),
+  legacyYearCost: increasedYearCost(4),
   legacyStartingPrestigeBonus: 3,
   legacyStartingPrestigeBonusCap: 12,
   crisisImmediateDeathChance: 0.35,
@@ -219,21 +218,21 @@ export const VASSAL_MONSTER_HUNT_OPTIONS = Object.freeze([
 ]);
 
 export const VASSAL_PATRONAGE_OPTIONS = Object.freeze([
-  Object.freeze({ id: "immediateFavor", label: "Immediate Favor", prestigeDelta: 8, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR) }),
-  Object.freeze({ id: "longAppointment", label: "Long Appointment", prestigeDelta: 20, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 4) }),
-  Object.freeze({ id: "cultivateConnections", label: "Cultivate Connections", prestigeDelta: 5, statId: "cunning", statDelta: 1, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 3) }),
+  Object.freeze({ id: "immediateFavor", label: "Immediate Favor", prestigeDelta: 8, yearCost: increasedYearCost(1) }),
+  Object.freeze({ id: "longAppointment", label: "Long Appointment", prestigeDelta: 20, yearCost: increasedYearCost(4) }),
+  Object.freeze({ id: "cultivateConnections", label: "Cultivate Connections", prestigeDelta: 5, statId: "cunning", statDelta: 1, yearCost: increasedYearCost(3) }),
 ]);
 
 export const VASSAL_DEVELOPMENT_OPTIONS = Object.freeze([
-  Object.freeze({ id: "deepStudy", label: "Deep Study", statDelta: 2, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 6) }),
-  Object.freeze({ id: "hardLesson", label: "Hard Lesson", statDelta: 2, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2), lossStatDelta: -1 }),
-  Object.freeze({ id: "steadyPractice", label: "Steady Practice", statDelta: 1, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2) }),
+  Object.freeze({ id: "deepStudy", label: "Deep Study", statDelta: 2, yearCost: increasedYearCost(6) }),
+  Object.freeze({ id: "hardLesson", label: "Hard Lesson", statDelta: 2, yearCost: increasedYearCost(2), lossStatDelta: -1 }),
+  Object.freeze({ id: "steadyPractice", label: "Steady Practice", statDelta: 1, yearCost: increasedYearCost(2) }),
 ]);
 
 export const VASSAL_CRISIS_OPTIONS = Object.freeze([
-  Object.freeze({ id: "negotiate", label: "Negotiate", prestigeCost: 8, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 3) }),
-  Object.freeze({ id: "rallyLoyalists", label: "Rally Loyalists", prestigeDelta: 25, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR * 2), immediateDeathChance: VASSAL_LIFE_TUNING.crisisImmediateDeathChance }),
-  Object.freeze({ id: "flee", label: "Flee", prestigeDelta: -6, phaseCost: increasedPhaseCost(VASSAL_PHASES_PER_YEAR), forcedRelocation: true }),
+  Object.freeze({ id: "negotiate", label: "Negotiate", prestigeCost: 8, yearCost: increasedYearCost(3) }),
+  Object.freeze({ id: "rallyLoyalists", label: "Rally Loyalists", prestigeDelta: 25, yearCost: increasedYearCost(2), immediateDeathChance: VASSAL_LIFE_TUNING.crisisImmediateDeathChance }),
+  Object.freeze({ id: "flee", label: "Flee", prestigeDelta: -6, yearCost: increasedYearCost(1), forcedRelocation: true }),
 ]);
 
 export const VASSAL_LEGACY_OPTIONS = Object.freeze([
@@ -241,14 +240,14 @@ export const VASSAL_LEGACY_OPTIONS = Object.freeze([
     id: "foundDynasty",
     label: "Found a Dynasty",
     prestigeCost: VASSAL_LIFE_TUNING.legacyPrestigeCost * 2,
-    phaseCost: VASSAL_LIFE_TUNING.legacyPhaseCost,
+    yearCost: VASSAL_LIFE_TUNING.legacyYearCost,
     legacyStartingPrestigeBonus: VASSAL_LIFE_TUNING.legacyStartingPrestigeBonus * 2,
   }),
   Object.freeze({
     id: "enduringOffice",
     label: "Enduring Office",
     prestigeCost: VASSAL_LIFE_TUNING.legacyPrestigeCost,
-    phaseCost: VASSAL_LIFE_TUNING.legacyPhaseCost,
+    yearCost: VASSAL_LIFE_TUNING.legacyYearCost,
     legacyStartingPrestigeBonus: VASSAL_LIFE_TUNING.legacyStartingPrestigeBonus,
   }),
   Object.freeze({

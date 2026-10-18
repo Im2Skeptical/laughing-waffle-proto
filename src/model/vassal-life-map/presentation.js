@@ -23,6 +23,7 @@ import {
   getCurrentLifeMapVassal,
   getDetailedSite,
   getVassalActionPhaseCost,
+  getVassalYearPhaseCost,
   getVassalActionPrestigeCost,
   getVassalAge,
   getVassalLifeMapNode,
@@ -288,7 +289,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
   const accumulatedPhaseCost = Math.max(0, Math.floor(nodeState?.accumulatedPhaseCost ?? 0));
   const emptyShopConfirmPhaseCost = isShopNodeState(nodeState)
     && (nodeState?.purchasedOffers ?? []).length === 0
-    ? getVassalActionPhaseCost(vassal, VASSAL_LIFE_TUNING.emptyShopConfirmPhaseCost, { nodeState })
+    ? getVassalActionPhaseCost(vassal, getVassalYearPhaseCost(state, VASSAL_LIFE_TUNING.emptyShopConfirmYearCost), { nodeState })
     : 0;
   const totalPhaseCost = accumulatedPhaseCost + emptyShopConfirmPhaseCost + (isShopNodeState(nodeState)
     ? 0 : selectedOptionPhaseCost);

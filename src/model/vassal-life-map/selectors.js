@@ -396,6 +396,14 @@ export function getAdjustedVassalPrestigeCost(vassal, baseCost) {
   return adjustedCost(baseCost, vassal?.classId === "warrior" ? 0 : getVassalEffectiveStats(vassal).intelligence, { allowZero: true });
 }
 
+// Convert authored solar years to spendable phases before stat/Heirloom discounts.
+export function getVassalYearPhaseCost(state, years) {
+  const seasonCount = state?.seasons?.length || 4;
+  return Math.max(years > 0 ? 1 : 0, Math.round(
+    years * seasonCount * getGameSetting(state, "seasonDurationSec") / getMoonPhaseDurationSec(state)
+  ));
+}
+
 export function getAdjustedVassalPhaseCost(vassal, baseCost) {
   return adjustedCost(baseCost, getVassalEffectiveStats(vassal).effectiveness, { allowZero: false });
 }

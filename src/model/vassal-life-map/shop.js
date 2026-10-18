@@ -28,6 +28,7 @@ import {
   getCurrentLifeMapVassal,
   getDetailedSite,
   getVassalActionPhaseCost,
+  getVassalYearPhaseCost,
   getVassalActionPrestigeCost,
   markHeirloomTimeAction,
   shuffle,
@@ -191,7 +192,7 @@ function buildRemovalOffers(state, vassal, nodeState, roll, removalKind) {
     offerId: `${nodeState.nodeId}:r${roll}:remove:${index}`,
     ...target,
     basePrestigeCost: VASSAL_LIFE_TUNING.signatureRemovalPrestigeCost,
-    basePhaseCost: VASSAL_LIFE_TUNING.signatureRemovalPhaseCost,
+    basePhaseCost: getVassalYearPhaseCost(state, VASSAL_LIFE_TUNING.signatureRemovalYearCost),
   }));
 }
 
@@ -455,7 +456,7 @@ export function rerollVassalShop(state, nodeId) {
   }
   const prestigeCost = getVassalShopRerollCost(vassal);
   const phaseCost = getVassalActionPhaseCost(
-    vassal, VASSAL_LIFE_TUNING.shopRerollPhaseCost, { nodeState }
+    vassal, getVassalYearPhaseCost(state, VASSAL_LIFE_TUNING.shopRerollYearCost), { nodeState }
   );
   if (prestigeCost > vassal.prestige) return { ok: false, reason: "insufficientPrestige" };
   vassal.prestige -= prestigeCost;
