@@ -86,5 +86,5 @@ export function createLabCards({onReview} = {}) {
     if (!onClick) wrapper.append(details('Rules and providers',face.detailLines.join('\n')));
     return wrapper;
   }
-  return {card,image,icon,dismissReading:reading.close,getReadingSnapshot:reading.getSnapshot,destroy(){clearInterval(timer);reading.destroy();renderer.destroy();}};
+  return {card,image,icon,inspect:reading.inspect,dismissReading:reading.close,getReadingSnapshot:reading.getSnapshot,destroy(){clearInterval(timer);reading.destroy();renderer.destroy();}};
 }

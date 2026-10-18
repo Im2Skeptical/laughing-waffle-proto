@@ -30,7 +30,7 @@ export function getLabCatalogue(state) {
 
 export function filterLabCatalogue(entries, filters = {}) {
   return entries.filter(e => (!filters.category || e.category === filters.category)
-    && (!filters.pool || e.pool === filters.pool) && matchesQualityFilter(e.maturity, filters)
+    && (Array.isArray(filters.pool) ? !filters.pool.length || filters.pool.includes(e.pool) : !filters.pool || e.pool === filters.pool) && matchesQualityFilter(e.maturity, filters)
     && (!filters.mode || e.mode===filters.mode)
     && (!filters.hideLocked || !e.locked)
     && (!filters.tag || e.tags?.includes(filters.tag)) && (!filters.trait || e.traits?.includes(filters.trait))

@@ -59,7 +59,9 @@ export async function checkNodeSandbox(page, context) {
   assert.equal((await snapshot()).seed,42,'invalid refresh preserves the fixture');
   await page.getByLabel('Refresh seed',{exact:true}).fill('42');
   await page.getByLabel('Dummy class',{exact:true}).selectOption('unclassed');
-  await page.getByLabel('Refresh seed',{exact:true}).fill('0');
+  // Research changes roll probabilities, not every seeded result. Seed 1
+  // distinguishes 100 from 300 Research with the current authored catalogue.
+  await page.getByLabel('Refresh seed',{exact:true}).fill('1');
   await page.getByLabel('Research',{exact:true}).fill('100');await page.getByTestId('lab-node-refresh').click();
   const silverUnlock=await snapshot();assert.equal(silverUnlock.actualResearch,100);
   await page.getByLabel('Research',{exact:true}).fill('300');await page.getByTestId('lab-node-refresh').click();
@@ -68,7 +70,7 @@ export async function checkNodeSandbox(page, context) {
   assert.ok(researchSetup.offers.some(o=>o.label.startsWith('Learn Silver')));
   await page.getByTestId('lab-node-refresh').click();assert.deepEqual((await snapshot()).offers,researchSetup.offers,'same seed and Research reproduce offers');
   await page.getByTestId('lab-node-next-seed').click();assert.equal((await snapshot()).research,300);
-  await page.getByLabel('Refresh seed',{exact:true}).fill('0');await page.getByTestId('lab-node-refresh').click();
+  await page.getByLabel('Refresh seed',{exact:true}).fill('1');await page.getByTestId('lab-node-refresh').click();
   assert.deepEqual((await snapshot()).offers,researchSetup.offers);
   await page.getByLabel('Research',{exact:true}).fill('-1');await page.getByTestId('lab-node-refresh').click();
   assert.equal((await snapshot()).actualResearch,300,'invalid Research preserves the fixture');

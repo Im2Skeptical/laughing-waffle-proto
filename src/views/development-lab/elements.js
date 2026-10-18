@@ -128,12 +128,16 @@ export function badge(text, tone = '') {
 }
 // Segmented control for short, fixed choice sets. Each button carries its
 // value so tests and keyboard users can pick directly.
-export function segmented(label, entries, value, onChange, {testid} = {}) {
+export function segmented(label, entries, value, onChange, {testid, multiple = false} = {}) {
   const node = el('div','','lab-segmented'); node.setAttribute('role','group'); node.setAttribute('aria-label',label);
   if (testid) node.dataset.testid = testid;
   for (const [id, text, count] of entries) {
-    const choice = button('',() => { if (id !== value) onChange(id); });
-    choice.dataset.value = id; choice.setAttribute('aria-pressed',String(id === value));
+    const pressed = multiple ? (id === '' ? !value.length : value.includes(id)) : id === value;
+    const choice = button('',() => {
+      if (multiple) onChange(id === '' ? [] : pressed ? value.filter(item=>item!==id) : [...value,id]);
+      else if (id !== value) onChange(id);
+    });
+    choice.dataset.value = id; choice.setAttribute('aria-pressed',String(pressed));
     choice.append(el('span',text));
     if (count !== undefined) choice.append(badge(String(count)));
     node.append(choice);

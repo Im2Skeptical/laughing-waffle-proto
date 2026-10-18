@@ -299,12 +299,43 @@ the way up (instantly with reduced motion; never while typing a search).
 Full filters are a sticky sidebar on wide screens, a side drawer in landscape
 and a bottom sheet in portrait (**Done**, the scrim or Escape closes it). They
 hold Show (Card versions: Live / With edits / Edited only, Hide locked) and Card
-details (Class tabs plus maturity, mode, tag, trait and slot size), offering
+details (Class buttons plus maturity, mode, tag, trait and slot size), offering
 only values that apply to the current category. Active filters and the search
 appear as removable chips beside the result count, with **Clear all** once
 there are two or more. Practices and Structures are grouped by class under
 sticky headers with counts. Coverage is a collapsed table unless runtime
 content is missing.
+Class buttons support any combination, including **Common + Warrior**. Tap a
+selected class to remove it; **All** clears the class selection. Selected classes
+are combined as alternatives, while the other filters still apply together.
+
+**Stock summary** below the result count analyses every matching Practice and
+Structure across all pages, using the selected Live / With edits / Edited only
+definitions and respecting Hide locked. **Stock flow** compares Produced and
+Consumed quantities side by side in one row per Stock trait. Each column also
+lists how many distinct filtered cards can produce or consume that trait,
+regardless of their individual quantities; repeated effects and activations do
+not add extra cards. This count follows **When**, with **All timings** including
+every matching card in the filtered set. Consumer counts include either/or inputs
+and deduplicate cards with several matching costs. **When** focuses the
+table on a phase, season or Discharge; **All timings** counts each card once and
+shows a range for differing yields. A **+** marks variable bonuses. Alternative
+inputs appear separately as **either/or**, rather than mandatory costs for every
+accepted trait. Tap a trait to see its contributing cards, quantities and timings;
+only one breakdown opens at once. Card names open a preview beside the list on
+desktop or in a bottom pane on phones, preserving the list, filters and phone
+scroll position. Previous / Next steps through the distinct cards in the open
+breakdown; clicking another name switches directly. Close returns focus to that
+name. Full rules opens the shared inspection and returns to the preview. Faces
+use the selected card version and quality, including construction plans for
+Build costs. Missing producers are labelled within the
+selected timing or filter. **Required** shows Stock checked but kept; **Build
+costs** lists completion totals and per-cycle details. Stock carrying several
+traits appears in each trait row, so different trait rows must not be summed.
+**How to read these quantities** explains the notation. These are base recipes
+before workers,
+institutions, capacity limits and additional action costs, rather than a forecast
+of a playable board or an income balance.
 Comparison shows four Practice qualities or four Structure quality uplifts,
 capacity, timing, DSL effects, Consume/Require, gates, modifiers, and stacking.
 Zoo samples have no workers or institutions; Museum/Gym faces use the complete
