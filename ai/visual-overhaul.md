@@ -83,7 +83,7 @@ See [asset provenance and exact generation prompts](../images/dark-fantasy/READM
 
 The settlement library includes a distinct painting for each of the 188 current
 Practices and Structures, plus retained earlier-card paintings. The CivContent
-2.6 art pass adds 59 paintings and preserves the other 128 runtime paintings.
+2.6 art pass adds 59 paintings and preserves the other 128 runtime paintings; Observation's painting (added 2026-10-08) makes 188.
 The existing portrait, terrain, panorama and hamlet/fire assets remain available.
 Asset checks require every runtime card's named source and packed texture;
 presentation tests require distinct illustration references. Additional terrain

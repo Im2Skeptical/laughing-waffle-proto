@@ -1,5 +1,7 @@
 # CivContent current rule audit
 
+> **Historical note.** Dated measurement/research record written against the commit and date stated below. Current schema numbers are in ai/ai-context.md; do not treat numbers here as current.
+
 Audit baseline: `99ae62ae`, 10 October 2026. Runtime definitions in `src/defs/gamepieces/detailed-settlement-defs.js` are the comparison source. Findings below describe that baseline; supervised corrections and the resulting current audit are recorded at the end. Gameplay values were preserved.
 
 Reusable audit: `npm run audit:content-rules` ([script](../../scripts/civcontent-rule-audit.mjs)).

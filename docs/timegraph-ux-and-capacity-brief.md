@@ -31,7 +31,7 @@ The timegraph is the main feedback and gameplay loop. The player sees when their
 
 ## 5. Unveil and capacity
 - Ideal: the simulation is instant, and as soon as a vassal dies the player can travel as far into the future as they want.
-- An aesthetic unveil animation stays. The target is about 1000 years unveiled in a second or less. It must not lock out interaction (see section 4).
+- An aesthetic unveil animation stays. The target is about 1000 years unveiled in a second or less. It must not lock out interaction (see section 4). The "1000 years in 1 second" target is a performance goal (make the engine as performant as possible) and a narrative device for how the player should feel: change something and see the effect across time almost instantly. It is not a hard requirement. (Cam, 2026-10-18; docs/decisions-log.md). Currently the default reveal takes about 14 s.
 - The unveil animation has no skip control (decided by Cam).
 - The horizon should be as long as possible. The year counts in the code (40-year graph window, 200-year forecast cache, 600-year loss search) are tuning values, not fixed requirements. Gameplay will be tuned to whatever speed and performance tradeoff is achievable.
 - Device floor: a Pixel 6 phone (public specs: 8 GB RAM, Google Tensor; decided by Cam on 8 Oct 2026, replacing the Pixel 3). The usable memory budget for the page is not published and is to be measured on a real device: play first and note any stutter, then use Chrome DevTools over USB via `chrome://inspect` if needed. The target is no tab crashes and smooth scrubbing.

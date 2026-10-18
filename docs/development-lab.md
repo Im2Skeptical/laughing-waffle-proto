@@ -5,7 +5,7 @@ on the normal app URL. These hash routes survive direct loading and refresh on
 GitHub Pages, including the repository path. The live workshop (hold its seal or
 Ctrl+Shift+D) also has **New run setup in Gym** and **Open current state in Gym**.
 Only live Vassal candidate replacement and save diagnostics remain in that workshop.
-Fresh-run editing lives in **Gym ? New run setup**.
+Fresh-run editing lives in **Gym → New run setup**.
 
 ## New run setup
 
@@ -32,7 +32,7 @@ Drafts survive refresh. **Default in workshop** chooses the recipe for the next
 workshop opening and clears the remembered draft. The main menu has its own
 profile selection; a workshop default does not change it or a live game.
 
-**Regular game ? random connected pair** uses roads from Map Lab and its first
+**Regular game → random connected pair** uses roads from Map Lab and its first
 detailed settlement as the shared starting tableau; per-region placement is
 rolled. Choose **Exact Map Lab placement** to use each region's assignment and
 tableau. Neutral seeding can be disabled for focused authored scenarios. The
@@ -40,7 +40,7 @@ explicit seed makes launches reproducible. A launch fails visibly if the edited
 map has no eligible road or insufficient frontier space for four neutrals.
 Life Map's preview seed only changes its preview; the launch seed drives the run.
 **Apply reviewed cards to draft** captures reviewer proposals in this recipe.
-**Main menu ? Developer tools ? Use dev settings** makes the normal **New Game**
+**Main menu → Developer tools → Use dev settings** makes the normal **New Game**
 button use the chosen saved combined profile, with the usual save-slot selection.
 Unticking it uses Regular game. The preference and profile selection survive
 refresh. **Edit profiles in Gym** opens the editor; save the profile there before
@@ -377,7 +377,7 @@ in the Museum's fixture selector and survive refresh. Saving an existing name
 asks for confirmation before replacing that exhibit. Storage is local to this browser; JSON export/import is
 available for sharing between devices.
 
-Gym?s **Settlement sandbox** (`#/dev/gym?workspace=settlement`) supports settlement/fixture selection; explicit adult-cohort population,
+Gym’s **Settlement sandbox** (`#/dev/gym?workspace=settlement`) supports settlement/fixture selection; explicit adult-cohort population,
 Scholar and Warrior setup; Prestige, Ingenuity, Prowess and Chaos; Practice
 install/remove/reorder, quality and hosted Stock; Structure add/remove/quality;
 neutral-template spawning, road connection, Monster spawn/remove/age/defense,
@@ -395,7 +395,7 @@ Candidate selection needs no currently active Vassal; use a fresh fixture to
 construct a different lineage. Named fixtures use a separate browser-storage key.
 
 Class-effect buttons invoke `classActionOptions`, `validateClassAction`, and
-`applyClassAction`; Commission checks call `completeCommission`. They explicitly
+`applyClassAction`; Commission checks call `stepVassalCommission`. They explicitly
 resolve only the effect: they do not simulate the Life Map's journey, Prestige
 reward, or danger roll. **Play from here** uses normal gameplay for that complete
 flow. Shop and institutional previews operate on clones and do not consume the

@@ -35,7 +35,7 @@ registries here.
   moon by default. Relative pressure keeps population useful above containment;
   the one-point denominator floor keeps zero/tiny Resistance finite.
   Chaos uses compact units (one tenth of the former unit). Starter income begins
-  at 0.1 per moon and grows 10% every 12 years. Population contributes
+  at 0.1 per moon and grows 10% every 12 years. Game Settings authored defaults differ from Starter_02: Primordial base 10, growth 1.03 per 12 years, premature-death weight 0.5, external-emigrant weight 0.1 (`src/model/game-config.js`:96-107). Population contributes
   fractional Resistance at Bronze/Silver/Gold/Diamond ratios of 1 per 10/5/2/1
   people, multiplied by the serialized Population Resistance effectiveness setting
   (default 1). Temporary Practice bonuses are added after this multiplier.

@@ -1,5 +1,7 @@
 # Settlement supply performance follow-up
 
+> **Historical note.** Dated measurement/research record written against the commit and date stated below. Current schema numbers are in ai/ai-context.md; do not treat numbers here as current.
+
 Measured 2026-10-02 against `055b8eb`, the adjacent-and-connected supply build.
 
 The new provider resolver rebuilt the complete polygon adjacency graph for

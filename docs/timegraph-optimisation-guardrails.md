@@ -29,7 +29,7 @@
 - New Game waits for the full opening forecast (Cam's decision, 8 Oct 2026); do not propose a progressive opening.
 
 ## Intent (stated by Cam; Draft, see the brief)
-Ideally the simulation is effectively instant, with ~1000 years unveiled in about a second or less, without locking out interaction. The September 25 fixture measured ~200 years in ~18.4 s; that is a dated measurement, not a current performance guarantee. October 2 supply/cache measurements are in `docs/research/settlement-supply-performance.md`.
+Ideally the simulation is effectively instant, with ~1000 years unveiled in about a second or less, without locking out interaction. The September 25 fixture measured ~200 years in ~18.4 s; that is a dated measurement, not a current performance guarantee. October 2 supply/cache measurements are in `docs/research/settlement-supply-performance.md`. The "1000 years in 1 second" target is a performance goal (make the engine as performant as possible) and a narrative device for how the player should feel: change something and see the effect across time almost instantly. It is not a hard requirement. (Cam, 2026-10-18; docs/decisions-log.md). Currently the default reveal takes about 14 s.
 
 ## Measured baseline (8 Oct 2026, Node worker-path replica, not a device)
 - `gameConfig` was ~230 KB of a ~350 KB serialized snapshot, copied into every anchor, slice tail and wire message. It is now shared and frozen per generation.

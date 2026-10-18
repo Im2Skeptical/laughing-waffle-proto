@@ -1,5 +1,7 @@
 # Regional map pixel rendering: source findings
 
+> **Historical note.** Dated measurement/research record written against the commit and date stated below. Current schema numbers are in ai/ai-context.md; do not treat numbers here as current.
+
 Research date: 2026-10-13. Scope: first-party rendering and art references for
 the accepted geography prototype. This note records evidence and recommendations;
 the [implementation proposal](../regional-map-rendering-plan.md) owns the project

@@ -18,7 +18,7 @@ The currently packed groups are:
 - `piece-frames-v1` — structure, practice, and time frames.
 - `vassal-class-v1` - named production crops of the approved class frames, crest, silhouette and founder portraits; [notes](vassal-class-v1/README.md).
 - `class-picker-frames-v1` — pixel-illustrated carved stone and bronze frames for the class picker (window, panels, banner, tabs, socket); [notes](class-picker-frames-v1/README.md).
-- `region-landmarks-v1` ? generated neutral market village and billboard, monster lair, and scorched ground; [source prompts](region-landmarks-v1/README.md).
+- `region-landmarks-v1` — generated neutral market village and billboard, monster lair, and scorched ground; [source prompts](region-landmarks-v1/README.md).
 - `chronicle-illustrations-v1` — named card art, terrain tiles, and landmark animation frames.
 - `vassal-portraits-v1` — the established portrait set, with youth, middle-age, and elder frames for each identity.
 - `chronicle-gate-v1` — the shared menu and Life Map backdrop.

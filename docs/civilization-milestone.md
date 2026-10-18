@@ -155,8 +155,8 @@ human playtest work.
   (Practice/Structure). Every Practice is Scheduled or Charge; full pool and
   per-card deviations are in `docs/civcontent-2.6-implementation.md`.
 - Practice purchases use 10 Prestige / 12 phases. Structure plans remain available
-  for repeat commissions during the shop visit, cost 2?5 Prestige / 1?2 phases, and
-  need 3?7 paid Housing-phase construction cycles with broad Stock Trait recipes.
+  for repeat commissions during the shop visit, cost 2–5 Prestige / 1–2 phases, and
+  need 3–8 paid Housing-phase construction cycles with broad Stock Trait recipes.
   Common Housing scales from raw Construction through Tool and Metal chains; higher
   homes give more Housing per footprint cell. Existing
   Research thresholds gate maturity; Discovery grants the next shop one higher maturity.
@@ -214,7 +214,7 @@ human playtest work.
   income is 0.1, population Resistance retains fractional 1-per-10/5/2/1 Faith
   ratios, and Forecasting grants 0.3. Population Resistance effectiveness is a
   serialized multiplier (default 1), applied before temporary Practice bonuses.
-  Starter Chaos income grows 10% per 12 years. The paired nine-road regression
+  Starter Chaos income grows 10% per 12 years. Game Settings authored defaults differ from Starter_02: Primordial base 10, growth 1.03 per 12 years, premature-death weight 0.5, external-emigrant weight 0.1 (`src/model/game-config.js`:96-107). The paired nine-road regression
   requires sustained 3x effective population to buy at least 100 additional years
   per start. It isolates the Resistance contribution; played population growth
   still needs Food, Housing and Faith support.

@@ -1,5 +1,7 @@
 # Game entry and first-settlement latency
 
+> **Historical note.** Dated measurement/research record written against the commit and date stated below. Current schema numbers are in ai/ai-context.md; do not treat numbers here as current.
+
 Investigated 2026-10-06 against `ce326c1`. The reproducible cold-save fixture
 starts with seed 123 and advances 1,024 seconds through all official ticks,
 using ordinary checkpoint maintenance and the real save serializer. It has

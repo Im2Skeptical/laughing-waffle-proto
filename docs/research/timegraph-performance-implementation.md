@@ -1,5 +1,7 @@
 # Timegraph performance: audit and implementation
 
+> **Historical note.** Dated measurement/research record written against the commit and date stated below. Current schema numbers are in ai/ai-context.md; do not treat numbers here as current.
+
 Measured 2026-09-24; finalized 2026-09-25. Based on main `6556f38`, implemented on isolated branch
 `codex/timegraph-performance`. The original checkout and its unrelated work are
 untouched. This work does not use the abandoned refactor.

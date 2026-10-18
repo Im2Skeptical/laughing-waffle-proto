@@ -1,5 +1,7 @@
 # Regional settlement switching investigation
 
+> **Historical note.** Dated measurement/research record written against the commit and date stated below. Current schema numbers are in ai/ai-context.md; do not treat numbers here as current.
+
 Investigated 2026-10-05 against `f5b6a3b`, using the user's second-4845 save
 and reported Pixel 6 / R11-specific slowdown.
 
