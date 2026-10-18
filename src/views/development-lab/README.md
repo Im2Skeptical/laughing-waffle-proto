@@ -48,6 +48,26 @@ JSON draft/path operations live in
 `zoo.js` can project edited definitions into its display snapshot, including
 filters, shared readings and quality comparisons. Live/edited/edited-only modes
 leave the controller fixture unchanged; notes-only reviews remain live cards.
+Zoo Class buttons allow multiple pools at once; All clears that selection and
+each pool has its own removable chip. `catalogue-summary.js` renders a Stock
+summary from every filtered definition across all pages, through the pure
+`model/dev-lab/catalogue-summary.js` adapter. Stock flow compares Produced and
+Consumed amounts in one row per trait; Required and Build costs switch the table.
+Produced and Consumed also show their distinct card counts beneath the Stock
+quantities, following the timing selection and counting each filtered card once.
+Consumer counts include both mandatory and either/or inputs without duplication.
+When selects a phase, season or Discharge; All timings shows per-card yield ranges
+without summing repeated activations. The in-memory Zoo preferences preserve the
+view, timing and selected trait through filtering/paging. Controls update only
+the summary's table; one card breakdown opens at once. Alternative inputs stay
+separate as either/or quantities, variable bonuses use +, and help explains why
+multi-trait rows cannot be summed. Construction shows per-cycle/completion costs.
+`stock-card-preview.js` owns a non-modal reader inside the expanded breakdown:
+sticky beside the desktop source list and fixed at the bottom on phones. Source
+buttons, Previous / Next and Close preserve the list and phone scroll position;
+the sequence deduplicates cards across the breakdown's sections. `zoo.js` resolves
+the selected runtime/draft face and construction side. The reader reuses the
+shared image renderer and full inspection, with no fixture or route changes.
 Reviewer Lock/Unlock controls save availability proposals alongside value edits.
 Clear all reviews removes the entire queue, drafts and notes in one storage
 transaction after a two-tap confirmation, and resets selection and bulk undo.

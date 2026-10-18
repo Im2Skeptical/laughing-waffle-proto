@@ -4,6 +4,7 @@ import { stockCapacity } from '../../model/detailed-settlements/stock.js';
 import { practiceSlot } from '../../model/dev-lab/fixtures.js';
 import { constructionCopy, getLabStructureFace } from './structure-plan.js';
 import { qualityFilterFields, qualityFilterLabel } from './quality-filter.js';
+import { catalogueSummary } from './catalogue-summary.js';
 import { DETAILED_QUALITY_IDS } from '../../model/detailed-practice-tiers.js';
 import { el, select, field, input, section, details, button, table, disclosure, info, badge, segmented, group } from './elements.js';
 
@@ -15,6 +16,7 @@ const HIDE_AFTER = 160;
 
 export function createZooView({controller,cards,run,review}) {
   const filters = {category:'practice'}, pageSize = 12;
+  const summaryPreferences = {};
   let page = 0, selected = null, versionsMode='live', hideLocked=false, scrollToSelected = false, structureSide='built';
   // Flag in place: the reviewer keeps the queue, so browsing continues here.
   const liveDefinition = face => controller.getSnapshot().state.gameConfig.gamepieces[face.kind==='practice'?'practices':'structures'][face.definitionId];
@@ -103,7 +105,10 @@ export function createZooView({controller,cards,run,review}) {
       mode:values('mode'), produces:values('produces'), consumes:values('consumes'), requires:values('requires'), tag:values('tags'), trait:values('traits'), size:values('size').length > 1 ? values('size') : [],
     };
     const labels = {pool:'Class',maturity:'Maturity',mode:'Practice mode',produces:'Produces',consumes:'Consumes',requires:'Requires',tag:'Card Tag',trait:'Stock Trait',size:'Slot size'};
-    for (const key of Object.keys(options)) if (filters[key] && !options[key].includes(filters[key])) filters[key] = '';
+    for (const key of Object.keys(options)) {
+      if (key === 'pool') filters.pool = (filters.pool ?? []).filter(value=>options.pool.includes(value));
+      else if (filters[key] && !options[key].includes(filters[key])) filters[key] = '';
+    }
     if (!options.maturity.length) { filters.maturityFrom=''; filters.maturityTo=''; }
 
     // One compact bar: category tabs, search and the Filters button. It slides
@@ -115,7 +120,7 @@ export function createZooView({controller,cards,run,review}) {
     const search = input('Search runtime content',filters.search ?? '','search'); search.placeholder = 'Search names, rules, ids…'; search.enterKeyHint = 'search';
     let searchTimer;
     search.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{filters.search=search.value;changed();},250);});
-    const active = [hideLocked, versionsMode !== 'live', filters.maturityFrom, filters.maturityTo, ...Object.keys(options).map(key=>!!filters[key])].filter(Boolean).length;
+    const active = [hideLocked, versionsMode !== 'live', filters.maturityFrom, filters.maturityTo, ...Object.keys(options).map(key=>key==='pool'?filters.pool.length>0:!!filters[key])].filter(Boolean).length;
     const filtersButton = button('',()=>setFiltersOpen(!filtersOpen),'zoo-filters-button');
     filtersButton.classList.add('lab-filters-button');
     filtersButton.append(el('span','Filters'),badge(String(active),active?'accent':''));
@@ -135,7 +140,9 @@ export function createZooView({controller,cards,run,review}) {
     viewGroup.push(field('Hide locked',hide));
     if (review) viewGroup.push(info('zoo-versions','Live shows this build. With edits swaps in reviewer drafts where they exist; Edited only lists just the drafted cards. Locked cards are excluded from shop offers once reviewed cards are applied.',{label:'About card versions'}));
     const cardGroup = [];
-    if (options.pool.length) cardGroup.push(segmented('Class',[['','All'],...options.pool.map(pool=>[pool,title(pool)])],filters.pool ?? '',value=>{filters.pool=value;changed();}));
+    if (options.pool.length) cardGroup.push(
+      segmented('Class',[['','All'],...options.pool.map(pool=>[pool,title(pool)])],filters.pool,value=>{filters.pool=value;changed();},{multiple:true,testid:'zoo-pools'}),
+      el('p','Choose one or more classes. All clears the class selection.','lab-note'));
     const selects = el('div','','lab-filter-selects');
     if (options.maturity.length) selects.append(...qualityFilterFields(filters,changed));
     // Produces/Consumes/Requires list each value with how many cards in this category match.
@@ -162,7 +169,7 @@ export function createZooView({controller,cards,run,review}) {
 
     let matches = filterLabCatalogue(catalogue,{...filters,hideLocked}).filter(entry=>versionsMode!=='edited-only'||edited.has(`${entry.category}:${entry.id}`));
     // Cards are grouped by class; sorting keeps each group contiguous across pages.
-    const grouped = ['practice','structure'].includes(filters.category) && !filters.pool;
+    const grouped = ['practice','structure'].includes(filters.category) && filters.pool.length !== 1;
     if (grouped) matches = POOLS.flatMap(pool=>matches.filter(e=>e.pool===pool)).concat(matches.filter(e=>!POOLS.includes(e.pool)));
 
     const coverage = [], missing = [];
@@ -189,7 +196,8 @@ export function createZooView({controller,cards,run,review}) {
     if (filters.search) chip(`“${filters.search}”`,()=>{filters.search='';});
     if (versionsMode !== 'live') chip(VERSION_LABELS[versionsMode],()=>{versionsMode='live';});
     if (hideLocked) chip('Hide locked',()=>{hideLocked=false;});
-    for (const key of Object.keys(options)) if (filters[key]) chip(`${labels[key]}: ${title(filters[key])}`,()=>{filters[key]='';});
+    for (const pool of filters.pool) chip(`Class: ${title(pool)}`,()=>{filters.pool=filters.pool.filter(value=>value!==pool);});
+    for (const key of Object.keys(options)) if (key !== 'pool' && filters[key]) chip(`${labels[key]}: ${title(filters[key])}`,()=>{filters[key]='';});
     for (const key of ['maturityFrom','maturityTo']) if (filters[key]) chip(`Maturity: ${qualityFilterLabel(filters[key])}`,()=>{filters[key]='';});
     if (chips.children.length > 1) {
       const clear = button('Clear all',clearAll,'zoo-clear-filters','quiet'); clear.classList.add('lab-chip-clear'); chips.append(clear);
@@ -214,6 +222,14 @@ export function createZooView({controller,cards,run,review}) {
     layout.append(drawer, main); parent.append(layout, scrim);
     if(versionsMode!=='live')main.append(el('p',`${edited.size} edited cards shown; other cards use live values.${issues.length?` Some drafts could not be shown: ${issues.join('; ')}.`:''}`,'lab-note'));
     main.append(results);
+    if (!filters.category || ['practice','structure'].includes(filters.category)) main.append(catalogueSummary(matches,versionsMode==='live'?'Live':VERSION_LABELS[versionsMode],summaryPreferences,{
+      cards,faceForKey:(key,{construction=false}={})=>{
+        const entry=matches.find(e=>`${e.category}:${e.id}`===key);if(!entry)return null;
+        if(entry.category==='structure')return getLabStructureFace(state,entry.id,entry.maturity,{plan:construction||structureSide==='plan'});
+        const slot=practiceSlot(entry.id,0,entry.maturity),face=getGamepieceFace(state,'practice',entry.id,entry.maturity,{slot});
+        face.stockCapacity=stockCapacity(state,{structureSlots:[]},slot);return face;
+      },
+    }));
     if (addedGroup) {
       const note = el('div','','lab-added-note'); note.setAttribute('role','status'); note.dataset.testid = 'zoo-added-note';
       note.append(el('p',addedGroup.added?`Added ${addedGroup.added} card${addedGroup.added===1?'':'s'} to review.`:'Already in review.'));

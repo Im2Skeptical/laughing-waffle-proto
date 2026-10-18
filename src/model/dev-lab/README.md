@@ -5,6 +5,19 @@
 edit is transactional and passes the normal deserialize validation before commit.
 `catalogue.js` reads the active run's registries; it owns no content definitions.
 No module runs work at import time or adds rules to the simulation.
+`catalogue-summary.js` inventories base Stock recipes from filtered catalogue
+entries without evaluating or changing a settlement. It groups exact produced
+trait sets and accepted input alternatives by activation timing, preserves
+seasonal/activation-specific amounts, marks variable additions, and reports
+construction totals separately. `compareLabStock` projects that inventory to one
+row per trait, with independent produced/consumed/required/construction sources.
+Each source total includes a distinct-card count by card key, independent of
+quantities, multiple effects or repeated activations.
+All timings collapses each card's differing activations to a min/max yield range;
+a selected timing uses only its own amounts. Alternative input amounts remain
+separate from mandatory trait costs. Multi-trait output contributes to each trait
+row, never an economy-wide grand total. It consumes the projected entries supplied by
+Zoo, so Live and edited modes use the same calculation.
 
 `node-sandbox.js` authors a disposable dummy/settlement fixture for the Gym's
 real node modal. Refresh reseeds content streams while keeping the authored
