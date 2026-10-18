@@ -1,5 +1,7 @@
 # Cloud families for the regional map
 
+> **Historical note.** Dated measurement/research record written against the commit and date stated below. Current schema numbers are in ai/ai-context.md; do not treat numbers here as current.
+
 Research date: 2026-10-16. Scope: overhead cloud art and decorative motion for the map prototype. This is a visual weather study, not an atmospheric simulation. The recommendations below do not change simulation state, RNG, schemas or replay.
 
 ## Observational basis

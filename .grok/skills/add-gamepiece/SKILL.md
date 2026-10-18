@@ -39,10 +39,7 @@ adding a DSL op.
 
 Live moon order is the six phases in
 `src/defs/gamesettings/moon-phase-defs.js`: birth, food, housing, faith,
-migration, death. Current `activation.type` values include `season`,
-`food` (`preRouting` / `postRouting`), `birth`, `housing`, `faith`, and
-`trigger`. Do not invent `newMoon` / `passive` activations from older
-Designer Docs unless they exist in defs and the barrel.
+migration, death. Current Practice `activation.type` values: the six moon phases (`birth`, `food`, `housing`, `faith`, `migration`, `death`), `season`, `passive`, `crisis`, and `charge` for Charge Practices (`src/model/game-config.js:19`). `food` uses a `preRouting`/`postRouting` stage. `passive` exists and is consulted by the consuming rule (Designer Docs/Trigger-Dictionary.md). `trigger` and `newMoon` are not activation types.
 
 ## Do not
 

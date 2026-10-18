@@ -1003,7 +1003,7 @@ ivory horns/rust flags distinguish gameplay kinds. Vegetation clears around site
 
 **Detail** cycles Auto, Close, Regional and Overview. Auto uses projected CSS
 size: strategic/regional fade at 14–22px, regional/close at 54–68px. Terrain uses one canonical 2-unit bake. Fine/Coarse select reductions of
-that artwork, relaxing to full detail at 0.40?0.68 CSS pixels per design unit.
+that artwork, relaxing to full detail at 0.40–0.68 CSS pixels per design unit.
 Forests, relief, roads and coastal features therefore retain their world positions;
 camera movement never bakes terrain, regenerates geography or consumes RNG.
 LOD is sampled directly from camera/display scale; returning to a zoom restores

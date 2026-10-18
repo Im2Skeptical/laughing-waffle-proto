@@ -34,7 +34,7 @@ Ubiquitous language for this prototype. Engine invariants and schema numbers:
 | **Chaos** | Civilization-global Primordial pressure, monsters, and loss. | local unrest, site-only threat |
 | **Elder Order** | Aggregate local elder cohort state; it does not affect Vassal candidates or prices. | Vassal council, candidate resistance |
 | **Vassal** | The single civilization-wide lineage character with Prestige, four stats, and a Life Map. | hero, champion, leader, Elder |
-| **Life Map** | Deterministic serialized DAG of Vassal nodes (Patronage, Development, Travel, shops, Crisis, Relic, Legacy). | skill tree, tech tree, random event deck |
+| **Life Map** | Deterministic serialized DAG of Vassal nodes (Patronage, Development, Crossroads, shops, Crisis, Relic, Legacy). | skill tree, tech tree, random event deck |
 | **Heirloom** | Temporary inheritable relic with Equipped, Carry, and Vault slots. Sanctified, then Unmarked, then Fragile. | inventory item, crafted gear, permanent relic |
 | **Lifegraph** | Full-topology Life Map screen and playfield. | Regional Map, timegraph |
 | **Prestige** | Vassal currency for Life Map purchases and recurring income. | gold, money, fame |

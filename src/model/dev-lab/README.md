@@ -32,3 +32,5 @@ from the edited activation without replacing unrelated definition fields.
 Card locks use boolean `locked` edits in the same stable review document. Runs
 capture that optional definition field; absent flags mean unlocked. Shop pools
 and Stock Supply generation read only the run snapshot, never review storage.
+
+- `quality-filter.js` — bounds use the shared Bronze < Silver < Gold < Diamond order; a missing quality matches only when no quality filter is active.

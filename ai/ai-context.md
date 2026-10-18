@@ -67,7 +67,7 @@ Authoritative numbers:
 - Life Map generator settings v8; serialized Life Map graph v6.
 - Debug profile library/export v3 (fresh-run recipes; no live Vassal overrides).
 - Named debug draft libraries v1.
-- Debug drafts are inert until launched from Gym ? New run setup; saved combined
+- Debug drafts are inert until launched from Gym → New run setup; saved combined
   profiles can also initialize New Game through the menu's Use dev settings toggle.
   Card-review proposals require the menu's Use edited cards in new games toggle;
   new runs capture them in gameConfig. Existing runs and deterministic replay
@@ -113,7 +113,7 @@ knowledge, and the single vassal lineage are civilization-global.
   before prompting, including requests that name only a Practice or Structure.
 - Routing skills: [`.grok/skills/`](../.grok/skills/)
 
-Gym ? New run setup owns Map Lab, Game Settings and Life Map Lab under one
+Gym → New run setup owns Map Lab, Game Settings and Life Map Lab under one
 combined launch profile. Gamepiece editing belongs to the card reviewer; reviewed
 cards can be captured in the launch profile. Regular game is a read-only current-build baseline;
 copies launch through the same initializer as player New Game, including road

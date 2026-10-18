@@ -109,7 +109,7 @@ presentations and road layouts have bounded caches owned/disposed by the view.
 The shared `playable-terrain.js` compositor serves both the standalone study and
 live game. Raster town reservations and cached peak checks avoid repeating expensive
 per-building checks for every candidate illustration pixel. Local headless probes
-measured roughly 10?32 ms to assemble changed regional appearances; a new road
+measured roughly 10–32 ms to assemble changed regional appearances; a new road
 layout took about 62 ms. These CPU submission timings exclude GPU readback and
 are not mobile-device measurements. Cold art preparation remains the main cost
 and stays behind the loading screen. Hidden maps do not animate; presentation
@@ -250,3 +250,5 @@ resolution. Complete town/lair cutouts preserve aspect ratio. The market
 billboard uses a nine-slice wooden frame behind live quantities and prices;
 monster region panels show the same lair painting. Source masters and exact
 prompts are in `images/dark-fantasy/region-landmarks-v1/README.md`.
+
+- `retained-scene.js` — view-owned scene sections; replacing a section disposes its old objects, while unchanged sections retain text textures, graphics, hit areas and listeners.

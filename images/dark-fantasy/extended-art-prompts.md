@@ -1,5 +1,7 @@
 # Additional unique gamepiece illustrations
 
+> Historical provenance (2026-09-07). The combined sheets were split and removed; see chronicle-illustrations-v1 and settlement-pieces-v4.
+
 Generated with the built-in image generation tool on 2026-09-07; native PNGs were copied into this directory. These extend the original card atlas so all 30 current Practices and Structures have different illustrations.
 
 ## chronicle-practices.png

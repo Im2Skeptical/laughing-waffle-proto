@@ -11,3 +11,5 @@ chaos series values stay in that file.
   UI groups; Gold remains the unscoped controller fallback.
 - `tooltips.js` — legend tooltip copy. Detailed Food describes
   hosted Edible Stock and its actual meal demand, shortage and providers.
+
+- `read-context.js` — a context belongs to one synchronous read, never to a mutable state's lifetime.

@@ -1,7 +1,5 @@
 # Protovassal picker and class rules
 
-## Approved implementation pass - October 12
-
 ## Class picker polish - October 15
 
 The live Pixi picker (`protovassal-dossier-pixi.js`) is a centred modal that reuses
@@ -84,23 +82,7 @@ Delve is available before staged purchases. Its time passes through normal
 simulation ticks, aging and natural mortality before refreshed offers appear.
 It keeps the same shop open and earns no completed-node income or development.
 
-## Commissions
-
-Only the Vassal's committed node actions count. The initial pool is deliberately
-small; future content must also be directly accomplishable through nodes.
-
-| Goal | Prestige | Completion |
-| --- | ---: | --- |
-| Install a Practice | 20 | Commit a newly learned Practice through a shop node; upgrades do not count |
-| Finish a Structure | 40 | Complete construction of a Structure initiated by this Vassal through a shop node after accepting the goal |
-| Acquire a Relic | 60 | Find and keep a Relic through a Relic node; inheritance and inventory movements do not count |
-
-There is no Commission node. A Scholar receives the first offer set after class
-establishment/selection, immediately receives Prestige on completion, and chooses
-the next from three. Offer selection prefers less recently completed goals when
-the pool grows; with only three goals all three necessarily remain available.
-Autonomous simulation, regional editing, and arbitrary construction cannot earn
-Commission credit. Outstanding projects and offer history are serialized.
+Commissions: see ai/sim.md (Scholar kit). The pool has 11 goal types in three difficulties (`src/defs/vassal-class-rules.js`:8-18); a Scholar chooses from 3 offers; `commissions.js` owns offer selection and completion.
 
 ## Pinned redesign: localized Martial Force
 

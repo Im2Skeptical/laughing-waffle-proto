@@ -8,3 +8,5 @@ bounded caches avoid rebuilding geography during replay and forecasts.
 
 No renderer, texture, or browser object enters game state. The renderer uses
 the exact same generated outlines as the model.
+
+- `boot-profile.js` — keeps the approved opening economy/tableau on the new seeded geography.

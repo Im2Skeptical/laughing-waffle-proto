@@ -1,5 +1,7 @@
 ﻿# Node-resolution / IndexedDB investigation — 2026-10-04
 
+> **Historical note.** Dated measurement/research record written against the commit and date stated below. Current schema numbers are in ai/ai-context.md; do not treat numbers here as current.
+
 ## Follow-up: first-vassal death and actual history plotting
 
 The physical Pixel 6 retest disproved the seven-node result as a complete fix.

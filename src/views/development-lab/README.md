@@ -103,3 +103,5 @@ on change, and rejected edits leave the authoritative controller branch untouche
 The controller owns an isolated timeline and projection cache. Scrubbing calls
 authoritative replay; editing establishes a new snapshot-origin branch. Forecast
 coverage is bounded by the explicit span. No live runner or player save is attached.
+
+- `quality-filter.js` — maturity filter labels and fields for exact tiers and lower/upper bounds.

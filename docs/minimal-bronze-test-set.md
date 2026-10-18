@@ -24,7 +24,7 @@ for inspection and editing; this is a provisional bronze balance test.
 - Record Keeping runs every season, retaining population scaling; Surveying runs
   at Migration with one Stock and one Research, without Stock inputs.
 - Raiding Parties produces base 10 Stock in Summer and 5 in Autumn, retaining
-  its existing target scaling and inputs, and adds one Chaos per successful Raid.
+  its existing target scaling and inputs, and adds 5 Monster expansion progress per successful Raid.
 - Granary gives Edible Practices +5 capacity. Timber House takes eight paid
   Housing cycles; Sheepfold and Storehouse take four. Storehouse consumes two
   Construction per cycle.

@@ -17,3 +17,6 @@
   cases live here.
 - `presentation.js` — `getVassalNodeDecisionPresentation` projections.
 - `heirlooms.js` — inventory, unique copies, Relic offers, inheritance, loadout, and equipped effects.
+
+- `founders.js` — class founding, candidate progression, save/reload and authoritative replay checks.
+- `stock-shops.js` — unmet-output guarantees, Stock Supply generation, rerolls, checkout and deterministic save/replay checks.
