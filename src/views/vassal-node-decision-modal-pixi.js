@@ -376,6 +376,7 @@ export function createVassalNodeDecisionModalView({
     event.stopPropagation();
     const presentation = getPresentation?.();
     if(presentation?.readOnly) { onReadOnlyAction?.(); return; }
+    if(lastDecision?.nodeState?.resolving) return;
     if(!fromOffer && !piece.staged && !piece.practiceId && !piece.placementId) return;
     if(fromOffer && piece.canStage === false) return;
     if(fromOffer && piece.purchased) return;
@@ -393,6 +394,8 @@ export function createVassalNodeDecisionModalView({
 
   function dragMove(local, drag) {
     const kind = drag.piece.intervention?.kind ?? drag.piece.presentation?.kind;
+    const target = returnTarget(local, drag);
+    if (target) return {kind:'undo', id:drag.piece.offerId, targetOfferId:target.offerId};
     const id = !drag.fromOffer ? kind === 'practice' ? 'practice:' + drag.piece.practiceId : 'structure:' + drag.piece.placementId : drag.piece.offerId;
     if (!drag.fromOffer && local.x >= TABLEAU.discardX - 8
       && local.x <= PANEL.x + PANEL.width && local.y >= TABLEAU.discardY - 25 && local.y < PANEL.y + PANEL.height) {
@@ -407,6 +410,15 @@ export function createVassalNodeDecisionModalView({
       return {kind, id, fromOffer:drag.fromOffer, origin:Math.floor((local.x - tableau.x) / construction().cell)};
     }
     return null;
+  }
+
+  function returnTarget(local, drag) {
+    if (drag.fromOffer || !drag.piece.staged || drag.piece.presentation?.kind !== 'structure') return null;
+    const global = root.toGlobal(new PIXI.Point(local.x, local.y));
+    return shopCardRoots.find(card => {
+      const point = card.toLocal(global);
+      return card.hitArea.contains(point.x, point.y);
+    }) ?? null;
   }
 
   function finishDrag(event) {
@@ -424,11 +436,13 @@ export function createVassalNodeDecisionModalView({
       drag.card.dragConsumed = true;
       setTimeout(() => {if (!drag.card.destroyed) drag.card.dragConsumed = false;}, 0);
     }
+    if (getPresentation?.()?.readOnly || lastDecision?.nodeState?.resolving) { render(true); return; }
     if (move) {
-      if (move.fromOffer) onPurchaseOffer?.(openNodeId, move.id, move.origin, move.toIndex);
+      if (move.kind === 'undo') onUndoPurchase?.(openNodeId, move.id);
+      else if (move.fromOffer) onPurchaseOffer?.(openNodeId, move.id, move.origin, move.toIndex);
       else if (move.kind === 'structure') onMoveStructure?.(openNodeId, move.id, move.origin);
       else onReorderPurchase?.(openNodeId, move.id, move.toIndex);
-    } else if (!drag.fromOffer && drag.piece.staged && local.x < tableau.x - 30) {
+    } else if (!drag.fromOffer && drag.piece.staged && drag.piece.presentation?.kind === 'practice' && local.x < tableau.x - 30) {
       onUndoPurchase?.(openNodeId, drag.piece.offerId);
     }
     render(true);
@@ -455,6 +469,14 @@ export function createVassalNodeDecisionModalView({
     clearDragPreview();
     placementGuide?.destroy(); placementGuide = null;
     if (!move) return;
+    if (move.kind === 'undo') {
+      const card = returnTarget(local, dragged);
+      placementGuide = new PIXI.Graphics().lineStyle(4, 0xb7e3d7)
+        .beginFill(0xb7e3d7, .12).drawRoundedRect(card.x, card.y, card.hitArea.width, card.hitArea.height, 8).endFill();
+      placementGuide.eventMode = 'none'; root.addChild(placementGuide);
+      root.setChildIndex(dragGhost, root.children.length - 1);
+      return;
+    }
     const decision = getDecisionPresentation?.(openNodeId, {draftMove:move});
     dragPreview = decision;
     if (decision?.draftPreview?.ok && decision.settlement) {
