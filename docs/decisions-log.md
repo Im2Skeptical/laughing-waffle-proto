@@ -100,7 +100,7 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 - Monster rewards now: Campaign victories give 12 + 4xDefense Prestige and 3xDefense Research; automatic hunts give Loot/Record/Currency trophies and 6 Research; defense/diversion give Defense Research and diversion 6 Prestige. (docs/civilization-milestone.md) This answers c/97w8GxRT's "what do Monsters give now".
 - Settlement loss is the run-ending condition; loss history feeds later content. (ai/sim.md)
 - Green Ascendancy **[visual-only placeholder]**: tiers at 100/200/300 years (capped at 3), pending a chaos-god rework. No gameplay effects; mortality/migration modifiers and unused decay settings are removed. Debug retains automatic/forced tier and cadence controls. (c/OI0fWgOb)
-- Legacy "Red God" chaos layer (`src/model/settlement-chaos.js`, 384 lines) still feeds graph metrics, tooltips and `node-confirm.js`; live or dead is unconfirmed. (c/Gfij80No)
+- Legacy Red God simulation removed; live graphs and Life Map effects use civilization Chaos. Saved effect and loss-reason aliases remain readable. (c/Gfij80No)
 - Built per Code Health: Chaos income, Resistance, shared expansion tracker, action risk, defense/loss, run end when no player settlement is left.
 
 ---
@@ -289,7 +289,7 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 ## 9. Built but never decided (no Cam decision on record)
 
 Found in code at `4014a92`; Cam may not know about these. Cards exist for the first few.
-- Green Ascendancy escalation clock (c/OI0fWgOb) and the legacy Red God layer (c/Gfij80No).
+- Green Ascendancy escalation clock (c/OI0fWgOb) (legacy Red God layer removed; c/Gfij80No).
 - Scholar kit: 10-year Delve (rerolls the shop), ongoing Commissions at 20/40/60 Prestige, +5% quality chance per Ingenuity. Warrior kit: Prowess risk bonus, +15 Prestige on a successful risk, Retinue = floor(Prestige/10), campaign modes Duel/Quest/Attack/Honour duel. (c/6OioI8xc)
 - Founding numbers: Philosopher trains 2 Scholars plus a Lyceum, Warlord trains 10 Warriors, 6 phases each.
 - Class-action families (training, discovery, campaign, challenge) have weight 0 and are substituted into a class's graph after generation. (c/WW9JUNnb)

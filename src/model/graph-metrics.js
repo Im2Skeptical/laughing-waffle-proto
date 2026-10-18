@@ -3,7 +3,7 @@ import { stockTotal } from "./detailed-settlements/stock.js";
 // src/model/graph-metrics.js
 // Metric definitions for time graphs.
 
-import { getSettlementChaosGodSummary } from "./settlement-chaos.js";
+import { getCivilizationChaosSummary } from "./civilization-chaos.js";
 import { getSettlementClassIds } from "./settlement-state.js";
 import { getRegionDefinition } from "./world-state.js";
 import {
@@ -369,9 +369,9 @@ const CIVILIZATION_RESOURCE_SERIES = Object.freeze([
     scaleMode: "dynamic",
     scaleMin: 0,
     pickerGroup: "global",
-    getValue: (state) => getSettlementChaosGodSummary(state, "redGod").chaosPower,
+    getValue: (state) => getCivilizationChaosSummary(state).chaosPower,
     getValueFromSnapshot: (snapshot) =>
-      getSettlementChaosGodSummary(snapshot, "redGod").chaosPower,
+      getCivilizationChaosSummary(snapshot).chaosPower,
     getValueFromSummary: (summary) =>
       getCivilizationGraphValueFromSummary(summary, "chaosPower"),
     getLegendTooltipSpec: (state) => getSettlementChaosPowerTooltipSpec(state),
@@ -419,9 +419,9 @@ const CIVILIZATION_RESOURCE_SERIES = Object.freeze([
     scaleMin: 0,
     scaleMax: 15,
     pickerGroup: "global",
-    getValue: (state) => getSettlementChaosGodSummary(state, "redGod").monsterCount,
+    getValue: (state) => getCivilizationChaosSummary(state).monsterCount,
     getValueFromSnapshot: (snapshot) =>
-      getSettlementChaosGodSummary(snapshot, "redGod").monsterCount,
+      getCivilizationChaosSummary(snapshot).monsterCount,
     getValueFromSummary: (summary) =>
       getCivilizationGraphValueFromSummary(summary, "monsterCount"),
     getLegendTooltipSpec: (state) => getSettlementMonstersTooltipSpec(state),

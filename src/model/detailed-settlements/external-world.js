@@ -298,7 +298,7 @@ function resolveMonsterPressure(state) {
       text:`Evacuated ${from} after territorial loss.`,fromRegionId:from,toRegionId:active.locationRegionId});
   }
   chaos.monsterCount=regions.filter(r=>r.monster).length;
-  if(!playerSites(state).length) { state.runStatus={complete:true,reason:'redGodMonsterOverrun',year:state.year,tSec:state.tSec};state.paused=true; }
+  if(!playerSites(state).length) { state.runStatus={complete:true,reason:'monsterOverrun',year:state.year,tSec:state.tSec};state.paused=true; }
 }
 
 // Both passive pressure and fixed action costs use this authoritative resolver.
