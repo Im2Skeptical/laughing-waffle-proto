@@ -262,7 +262,7 @@ Save/load preserves the generated map through its versioned seeded definition.
   total Force, highlighting only the components used by the current mode.
   Campaign stays open between attempts, including real Relic acquisition.
   Practice and Structure shops first show their specialty/category picker.
-  Ordinary route signature shops retain their cropped polygon regional preview;
+  The Found Settlement signature retains its cropped polygon regional preview;
   Patronage/Development show every option's gains, losses, and time cost on
   text-first cards without inspection overlays; tapping anywhere on a card
   selects it, while immediate and surviving-completion Vassal impact stays visible;

@@ -21,7 +21,7 @@ function offerContext(state, vassal) {
   const practices = VASSAL_INTERVENTION_PRACTICE_IDS.map(id => getDetailedPracticeDef(state, id)).filter(unlocked);
   const structures = Object.keys(settlementStructureDefs).map(id => getDetailedStructureDef(state, id)).filter(unlocked);
   const connected = new Set([vassal.locationRegionId]);
-  // Travel uses the same existing-road reachability as the live Travel node.
+  // Movement uses the same existing-road reachability as Crossroads.
   for (const id of connected) for (const edge of state.world.connections) {
     if (edge.regionAId === id) connected.add(edge.regionBId);
     if (edge.regionBId === id) connected.add(edge.regionAId);
@@ -34,7 +34,7 @@ function parametersFor(def, context) {
   if (def.parameter === 'statId') return VASSAL_STAT_IDS.map(statId => ({ statId }));
   if (def.parameter === 'nodeFamily') return [...new Set(context.nodes.map(node => node.family))]
     .filter(family => VASSAL_NODE_FAMILIES[family]).sort().map(nodeFamily => ({ nodeFamily }));
-  if (def.parameter === 'regionId') return context.nodes.some(node => node.family === 'travel')
+  if (def.parameter === 'regionId') return context.nodes.some(node => node.family === 'crossroads')
     ? context.destinations.map(site => ({ regionId: site.regionId })) : [];
   if (def.parameter === 'tag') return tags(def.event === 'practiceInstalled' ? context.practices : context.structures).map(tag => ({ tag }));
   return [{}];

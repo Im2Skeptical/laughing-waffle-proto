@@ -116,7 +116,7 @@ export function getEquippedHeirloomModifiers(vassal) {
     bonusCunning: 0,
     bonusIntelligence: 0,
     patronageOptionMultiplier: 1,
-    travelNodeDevelopment: 0,
+    crossroadsNodeDevelopment: 0,
     extraShopOffers: 0,
     hourglassFirstActionMultiplier: 1,
     wisdomDevelopmentMultiplier: 1,
@@ -129,7 +129,7 @@ export function getEquippedHeirloomModifiers(vassal) {
     const effects = def?.effects ?? {};
     mods.patronageNodePrestige += Math.max(0, Math.floor(effects.patronageNodePrestige ?? 0));
     mods.nodeDevelopment += Math.max(0, Math.floor(effects.nodeDevelopment ?? 0));
-    mods.travelNodeDevelopment += Math.max(0, Math.floor(effects.travelNodeDevelopment ?? 0));
+    mods.crossroadsNodeDevelopment += Math.max(0, Math.floor(effects.crossroadsNodeDevelopment ?? 0));
     mods.bonusCunning += Math.max(0, Math.floor(effects.bonusCunning ?? 0));
     mods.bonusIntelligence += Math.max(0, Math.floor(effects.bonusIntelligence ?? 0));
     mods.extraShopOffers += Math.max(0, Math.floor(effects.extraShopOffers ?? 0));

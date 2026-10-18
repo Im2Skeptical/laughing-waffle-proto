@@ -62,7 +62,7 @@ Authoritative numbers:
 - Vassal Lab draft/preset schema v5.
 - Life Map Lab drafts v2.
 - Card reviewer drafts/export v1; stable browser storage independent of game saves and builds.
-- Life Map generator settings v7; serialized Life Map graph v5.
+- Life Map generator settings v8; serialized Life Map graph v6.
 - Debug profile library/export v3 (fresh-run recipes; no live Vassal overrides).
 - Named debug draft libraries v1.
 - Debug drafts are inert until launched from Gym ? New run setup; saved combined

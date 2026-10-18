@@ -109,8 +109,7 @@ function buildRegionalMapPresentation(state, vassal, nodeState, {
   previewOptionId = null,
   previewOfferId = null,
 } = {}) {
-  if (!vassal || !nodeState || !["travel", "routes", "settlement", "crisis", "legacy"].includes(nodeState.family)
-      && nodeState.signatureNode?.removalKind !== "connection"
+  if (!vassal || !nodeState || !["crossroads", "settlement", "crisis", "legacy"].includes(nodeState.family)
       && nodeState.signatureNode?.variantId !== "settlement") return null;
   const definition = getWorldDefinition(state);
   const currentRegionId = vassal.locationRegionId;
@@ -125,20 +124,18 @@ function buildRegionalMapPresentation(state, vassal, nodeState, {
     if (edge.regionBId === currentRegionId) return [edge.regionAId];
     return [];
   });
-  const offeredRegionIds = nodeState.family === "travel"
-    ? (nodeState.options ?? []).map((option) => option.locationRegionId)
-    : [
+  const offeredRegionIds = [
       ...(nodeState.options ?? []).flatMap((option) => [
-        option.settlementRegionId, option.intervention?.regionAId, option.intervention?.regionBId,
+        option.locationRegionId, option.settlementRegionId, option.intervention?.regionAId, option.intervention?.regionBId,
       ]),
       ...[...(nodeState.inventory ?? []), ...(nodeState.purchasedOffers ?? [])]
         .flatMap((offer) => [offer.intervention?.regionAId, offer.intervention?.regionBId]),
     ].filter(Boolean);
-  const selectedPath = nodeState.family === "travel" && selectedOption?.locationRegionId
+  const selectedPath = nodeState.family === "crossroads" && selectedOption?.locationRegionId
     ? buildShortestRegionPath(state, currentRegionId, selectedOption.locationRegionId)
     : [];
   const includedIds = new Set([
-    ...(nodeState.family === 'routes' ? (definition?.regions ?? []).map(region => region.id) : []),
+    ...(nodeState.family === 'crossroads' ? (definition?.regions ?? []).map(region => region.id) : []),
     currentRegionId,
     ...geographicAdjacentIds,
     ...offeredRegionIds,
@@ -169,8 +166,8 @@ function buildRegionalMapPresentation(state, vassal, nodeState, {
       getWorldConnectionKey(purchase.intervention.regionAId, purchase.intervention.regionBId),
       purchase.intervention.mode,
     ]));
-  const previewIntervention = previewOffer?.intervention?.kind === "connection"
-    ? previewOffer.intervention : null;
+  const previewIntervention = selectedOption?.intervention?.kind === "connection"
+    ? selectedOption.intervention : previewOffer?.intervention?.kind === "connection" ? previewOffer.intervention : null;
   const previewKey = previewIntervention
     ? getWorldConnectionKey(previewIntervention.regionAId, previewIntervention.regionBId) : null;
   const candidateEdges = new Map();
@@ -384,7 +381,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
   }:null;
   return {
     node:acquiring?{...node,family:'relic'}:node,
-    liveWorld:!acquiring && (['travel','campaign'].includes(nodeState?.family)||ordinaryLegacy),
+    liveWorld:!acquiring && (['crossroads','campaign'].includes(nodeState?.family)||ordinaryLegacy),
     continuousVisit:nodeState?.family==='campaign',
     options:campaign?.options ?? worldOptions,
     campaign,legacySettlement,
@@ -433,12 +430,11 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     contextKind: nodeState?.signatureNode?.groupId === "tagShop"
       || ["practice", "structure"].includes(nodeState?.signatureNode?.removalKind)
       ? "settlement"
-      : nodeState?.signatureNode?.removalKind === "connection"
-        || nodeState?.signatureNode?.variantId === "settlement"
+      : nodeState?.signatureNode?.variantId === "settlement"
         ? "regionalMap"
         : CARD_SHOP_FAMILIES.has(nodeState?.family)
       ? "settlement"
-      : ["travel", "routes"].includes(nodeState?.family)
+      : nodeState?.family === "crossroads"
         ? "regionalMap"
         : ["patronage", "development"].includes(nodeState?.family)
           ? "vassal"

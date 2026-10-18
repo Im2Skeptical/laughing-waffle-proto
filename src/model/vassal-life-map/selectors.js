@@ -319,7 +319,7 @@ export function getVassalNodeResolutionGains(vassal, nodeFamily = null) {
       + (nodeFamily === "patronage" ? modifiers.patronageNodePrestige : 0),
     development: getVassalDevelopmentIncome(vassal)
       + modifiers.nodeDevelopment
-      + (nodeFamily === "travel" ? modifiers.travelNodeDevelopment : 0),
+      + (nodeFamily === "crossroads" ? modifiers.crossroadsNodeDevelopment : 0),
   };
 }
 

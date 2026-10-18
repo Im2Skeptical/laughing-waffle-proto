@@ -1,5 +1,5 @@
 import { rollScholarQualityBonus, getVassalDelvePhaseCost } from './class-rules.js';
-import { getShopOfferPrice, structureShopCategory } from './shop-specialties.js';
+import { getShopOfferPrice, matchesPracticeShopSpecialty, structureShopCategory } from './shop-specialties.js';
 import { VASSAL_WORKSHOP_RULES } from '../../defs/vassal-workshop-rules.js';
 import { getMoonPhaseDurationSec } from '../moon-phases.js';
 import { stockTotal } from "../detailed-settlements/stock.js";
@@ -18,10 +18,7 @@ import {
   getNextDetailedPracticeTier,
 } from "../detailed-practice-tiers.js";
 import {
-  getRegionReference,
-  getWorldConnectionCandidates,
   getWorldConnectionKey,
-  getWorldDefinition,
 } from "../world-state.js";
 import {
   clone,
@@ -38,7 +35,7 @@ import {
 import { getShopOfferCount } from "./heirlooms.js";
 
 export const CARD_SHOP_FAMILIES = new Set(["practiceReform", "publicWorks", "neutralMarket", "classMarket", "foodShop", "housingShop", "stockShop"]);
-export const SHOP_FAMILIES = new Set([...CARD_SHOP_FAMILIES, "routes"]);
+export const SHOP_FAMILIES = new Set(CARD_SHOP_FAMILIES);
 const QUALITY_IDS = Object.freeze(["bronze", "silver", "gold", "diamond"]);
 
 function qualityLabel(tier) { return `${tier[0].toUpperCase()}${tier.slice(1)}`; }
@@ -127,7 +124,7 @@ function selectShopCandidates(state, vassal, nodeState, candidates) {
   return [...selected, ...remaining.slice(0, count - selected.length)];
 }
 
-function buildCardOffers(state, vassal, nodeState, roll, { kind = null, requiredTag = null, stockOutput = null } = {}) {
+function buildCardOffers(state, vassal, nodeState, roll, { kind = null, requiredTag = null, stockOutput = null, specialty = null } = {}) {
   const reservation = buildReservation(state, vassal, nodeState);
   const candidates = [];
   const addCandidate = (cardKind, definitionId, def) => {
@@ -135,6 +132,7 @@ function buildCardOffers(state, vassal, nodeState, roll, { kind = null, required
         || !isDefinitionUnlocked(state, def, nodeState)
         || (requiredTag && !(def.tags ?? []).includes(requiredTag))
         || (stockOutput && !isVassalStockOutputPractice(def, stockOutput))
+        || (specialty && !matchesPracticeShopSpecialty(def, specialty))
         || (cardKind === 'structure' && nodeState.shopSelection?.selectedTag
           && structureShopCategory(def) !== nodeState.shopSelection.selectedTag)) return;
     if (cardKind === "practice" && reservation.practiceSlots.some(slot =>
@@ -188,51 +186,13 @@ function buildRemovalOffers(state, vassal, nodeState, roll, removalKind) {
       intervention: { kind: "practice", mode: "remove", targetRegionId: vassal.locationRegionId,
         practiceId: slot.practiceId, tier: slot.tier ?? "bronze" },
     }] : []);
-  } else {
-    targets = (state?.world?.connections ?? []).flatMap((edge) => {
-      if (edge.regionAId !== vassal.locationRegionId && edge.regionBId !== vassal.locationRegionId) return [];
-      const left = getRegionReference(state, edge.regionAId) ?? edge.regionAId;
-      const right = getRegionReference(state, edge.regionBId) ?? edge.regionBId;
-      return [{
-        label: `Remove ${left} ↔ ${right}`,
-        intervention: { kind: "connection", mode: "remove", regionAId: edge.regionAId, regionBId: edge.regionBId },
-      }];
-    });
   }
   return shuffle(state, targets).slice(0, getShopOfferCount(vassal, nodeState.family)).map((target, index) => ({
     offerId: `${nodeState.nodeId}:r${roll}:remove:${index}`,
     ...target,
     basePrestigeCost: VASSAL_LIFE_TUNING.signatureRemovalPrestigeCost,
-    basePhaseCost: VASSAL_LIFE_TUNING.routeRemovePhaseCost,
+    basePhaseCost: VASSAL_LIFE_TUNING.signatureRemovalPhaseCost,
   }));
-}
-
-function buildRouteOffers(state, vassal, nodeState, roll) {
-  const reservation = buildReservation(state, vassal, nodeState);
-  const currentId = vassal.locationRegionId;
-  const candidates = getWorldConnectionCandidates(getWorldDefinition(state)).flatMap((edge) => {
-    if (edge.regionAId !== currentId && edge.regionBId !== currentId) return [];
-    const key = getWorldConnectionKey(edge.regionAId, edge.regionBId);
-    const exists = reservation.connectionKeys.has(key);
-    if (!exists) {
-      return [{ mode: "add", edge }];
-    }
-    return [];
-  });
-  return shuffle(state, candidates).slice(0, getShopOfferCount(vassal, nodeState.family)).map((candidate, index) => {
-    const { edge, mode } = candidate;
-    const left = getRegionReference(state, edge.regionAId) ?? edge.regionAId;
-    const right = getRegionReference(state, edge.regionBId) ?? edge.regionBId;
-    return {
-      offerId: `${nodeState.nodeId}:r${roll}:route:${index}`,
-      label: `${mode === "add" ? "Connect" : "Remove"} ${left} ↔ ${right}`,
-      basePrestigeCost: mode === "add"
-        ? VASSAL_LIFE_TUNING.routeAddPrestigeCost : VASSAL_LIFE_TUNING.routeRemovePrestigeCost,
-      basePhaseCost: mode === "add"
-        ? VASSAL_LIFE_TUNING.routeAddPhaseCost : VASSAL_LIFE_TUNING.routeRemovePhaseCost,
-      intervention: { kind: "connection", mode, regionAId: edge.regionAId, regionBId: edge.regionBId },
-    };
-  });
 }
 
 export function generateShopInventory(state, vassal, nodeState) {
@@ -252,12 +212,12 @@ export function generateShopInventory(state, vassal, nodeState) {
     : nodeState.signatureNode?.groupId === "removal"
       ? buildRemovalOffers(state, vassal, nodeState, roll, nodeState.signatureNode.removalKind)
       : nodeState.family === "practiceReform"
-    ? buildCardOffers(state, vassal, nodeState, roll, { kind: "practice", stockOutput: nodeState.shopSelection?.selectedTag === 'random' ? null : nodeState.shopSelection?.selectedTag })
+    ? buildCardOffers(state, vassal, nodeState, roll, { kind: "practice", specialty: nodeState.shopSelection?.selectedTag === 'random' ? null : nodeState.shopSelection?.selectedTag })
     : nodeState.family === "publicWorks"
       ? buildCardOffers(state, vassal, nodeState, roll, { kind: "structure" })
       : ["neutralMarket", "classMarket"].includes(nodeState.family)
         ? buildCardOffers(state, vassal, nodeState, roll)
-        : buildRouteOffers(state, vassal, nodeState, roll);
+        : [];
   const local=getDetailedSettlement(state,vassal.locationRegionId);
   const bonus=vassal.classId==='scholar' && offers.some(o=>['practice','structure'].includes(o.intervention?.kind)) ? local?.shopQualityBonus??0 : 0;
   if (bonus) {

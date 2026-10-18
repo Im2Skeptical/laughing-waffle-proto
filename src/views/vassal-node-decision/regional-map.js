@@ -1,4 +1,4 @@
-// Regional-preview panel for travel/route node decisions.
+// Regional-preview panel for Crossroads and settlement decisions.
 
 import { addRegionTerrain } from "../chronicle-art.js";
 import { createText } from "../settlement-view-primitives.js";

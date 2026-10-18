@@ -62,9 +62,9 @@ assert.deepEqual([
   generatorConfig.normalDepthCount - generatorConfig.earlyDepthCount - generatorConfig.midDepthCount,
 ], [4, 4, 3]);
 assert.deepEqual(
-  ["patronage", "development", "travel", "practiceReform", "publicWorks", "routes", "crisis", "relic"]
+  ["patronage", "development", "crossroads", "practiceReform", "publicWorks", "crisis", "relic"]
     .map((family) => generatorConfig.weights.early[family]),
-  [5, 5, 6, 1, 1, 0, 0, 2]
+  [5, 5, 6, 1, 1, 0, 2]
 );
 assert.deepEqual(generatorConfig.nonRepeatFamilyIds, ["crisis"]);
 for (const band of ["early", "mid", "late"]) {
@@ -165,7 +165,7 @@ assert.equal(new Set(entrySignatures).size, entrySignatures.length,
 const travelState = selectedState(101);
 const travelVassal = getCurrentLifeMapVassal(travelState);
 const originalLocation = travelVassal.locationRegionId;
-const travelNode = forceEnter(travelState, nodeIdForFamily(travelState, "travel"));
+const travelNode = forceEnter(travelState, nodeIdForFamily(travelState, "crossroads"));
 assert.ok(travelNode.options.length > 0);
 const moves=travelNode.options.filter(option=>option.locationRegionId);
 assert.ok(moves.length>0);

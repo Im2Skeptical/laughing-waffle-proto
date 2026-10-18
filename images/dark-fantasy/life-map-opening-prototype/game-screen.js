@@ -67,7 +67,7 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
     viewedSec: state().tSec, frontierSec: state().tSec, profileSec: state().tSec });
   const usesWorldDecision=()=>{
     const kind=snapshot.experiment.nodes.find(node=>node.id===snapshot.session.activeId)?.kind;
-    return kind==='world'&&snapshot.decision?.node.family==='travel'||kind==='legacy'||kind==='martial';
+    return kind==='world'&&snapshot.decision?.node.family==='crossroads'||kind==='legacy'||kind==='martial';
   };
   const tooltip = createTooltipView({ app, layer: layers.tooltip });
   const family = (node, compact = false) => {

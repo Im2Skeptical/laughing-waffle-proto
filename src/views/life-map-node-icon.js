@@ -13,7 +13,7 @@ export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline, x =
   const family = variant ?? node.family;
   const specialty = SHOP_SPECIALTIES[family];
   const kind = specialty ? 'shop' : ({ legacyPlus: 'legacy', removePractice: 'practiceReform',
-    removeStructure: 'publicWorks', removeRoute: 'routes' })[variant] ?? family;
+    removeStructure: 'publicWorks' })[variant] ?? family;
   drawSilhouette(graphics, kind, { fill, accent, outline, x, y, scale });
   if (specialty) {
     const badgeX = x + 20 * scale, badgeY = y + 16 * scale;
@@ -70,9 +70,12 @@ function drawSilhouette(graphics, kind, { fill, accent, outline, x, y, scale }) 
       line([0,-17,0,24]); line([-22,-12,-9,-11]); line([9,-11,22,-12]);
       line([-22,0,-9,1],3,accent); line([9,1,22,0],3,accent);
       break;
-    case 'travel': // Walking boot.
-      polygon([-19,-29,7,-29,7,0,23,9,29,13,29,26,-26,26,-26,12,-19,3]);
-      line([-24,18,27,18],4,accent); line([-14,-18,3,-18]); line([-14,-8,3,-8]);
+    case 'crossroads': // Branching paths.
+      line([-23,27,0,4,23,27],9,outline);
+      line([0,4,0,-28],9,outline);
+      line([-23,27,0,4,23,27],5,fill);
+      line([0,4,0,-28],5,fill);
+      polygon([-8,-21,0,-33,8,-21]);
       break;
     case 'practiceReform': // Open hand with a cuff — a governor's hand.
       polygon([-8,10,-16,-2,-12,-22,-6,-30,0,-18,4,-32,12,-24,16,-6,10,12,4,20,-4,20]);
@@ -112,10 +115,6 @@ function drawSilhouette(graphics, kind, { fill, accent, outline, x, y, scale }) 
       polygon([-26,-25,26,-25,26,25,-26,25]);
       line([-19,-18,19,18],5,accent);
       line([19,-18,-19,18],5,accent);
-      break;
-    case 'routes': // Bridge with a visible arch and piers.
-      polygon([-31,24,-31,-3,-25,-3,-25,-22,-18,-22,-18,-7,18,-7,18,-22,25,-22,25,-3,31,-3,31,24,17,24,17,12,10,2,-10,2,-17,12,-17,24]);
-      line([-29,-3,29,-3],4,accent);
       break;
     case 'settlement':
       polygon([-31,-3,0,-30,31,-3,23,2,23,27,7,27,7,9,-7,9,-7,27,-23,27,-23,2]);

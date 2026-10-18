@@ -381,39 +381,14 @@ assert.equal(applyAction(shopState, {
   kind: ActionKinds.VASSAL_REROLL_SHOP, payload: { nodeId: shopNode.nodeId },
 }, { isReplay: true }).ok, false, "reroll remains unavailable after resolution");
 
-for (const [family, seed] of [["publicWorks", 103], ["routes", 104]]) {
-  const state = selectedState(seed);
-  const nodeId = nodeIdForFamily(state, family);
+{
+  const state = selectedState(103);
   const vassal = getCurrentLifeMapVassal(state);
   vassal.prestige = 500;
-  const node = forceEnter(state, nodeId);
+  const node = forceEnter(state, nodeIdForFamily(state, "publicWorks"));
   assert.ok(node.inventory.length <= 3);
-  assert.ok(node.inventory.every((offer) =>
-    offer.intervention.kind === (node.family === "publicWorks" ? "structure" : "connection")
-  ));
-  if (node.family === "routes") {
-    assert.ok(node.inventory.every((offer) => offer.intervention.mode === "add"),
-      "ordinary Route shops never offer removal");
-  }
-  if (node.family === "publicWorks") {
-    assert.ok(node.inventory.every((offer) =>
-      offer.intervention.targetRegionId === vassal.locationRegionId
-    ));
-  } else {
-    assert.ok(node.inventory.every((offer) =>
-      [offer.intervention.regionAId, offer.intervention.regionBId]
-        .includes(vassal.locationRegionId)
-    ));
-    const routePreview = getVassalNodeDecisionPresentation(state, node.nodeId, {
-      previewOfferId: node.inventory[0]?.offerId,
-    });
-    assert.equal(routePreview.contextKind, "regionalMap");
-    assert.ok(routePreview.regionalMap.regions.some((region) => region.current));
-    if (node.inventory[0]) {
-      assert.ok(routePreview.regionalMap.connections.some((connection) =>
-        connection.status.startsWith("preview-")));
-    }
-  }
+  assert.ok(node.inventory.every(offer => offer.intervention.kind === "structure"
+    && offer.intervention.targetRegionId === vassal.locationRegionId));
 }
 
 let stoneHouseShop = null;
@@ -575,22 +550,6 @@ dispatch(removalState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: removalNo
 assert.equal(removalSite.practiceSlots.some((slot) => slot?.practiceId === removedPracticeId), false,
   "a staged signature removal is applied on confirmation");
 
-const routeRemovalState = selectedStateForSignature("removeRoute");
-const routeRemovalVassal = getCurrentLifeMapVassal(routeRemovalState);
-routeRemovalVassal.prestige = 500;
-const routeRemovalNode = forceEnter(routeRemovalState,
-  nodeIdForSignature(routeRemovalState, "removeRoute"));
-assert.ok(routeRemovalNode.inventory.length > 0);
-const initialConnectionCount = routeRemovalState.world.connections.length;
-dispatch(routeRemovalState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
-  nodeId: routeRemovalNode.nodeId, offerId: routeRemovalNode.inventory[0].offerId,
-});
-dispatch(routeRemovalState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, {
-  nodeId: routeRemovalNode.nodeId,
-});
-assert.equal(routeRemovalState.world.connections.length, initialConnectionCount - 1,
-  "Route removal is available only through its signature shop");
-
 const foodShopState = selectedStateForSignature("foodShop");
 const foodShopVassal = getCurrentLifeMapVassal(foodShopState);
 foodShopVassal.prestige = 500;
@@ -615,12 +574,12 @@ frontierRouteState.world.connections = [];
 for (const region of frontierRouteState.world.regions) {
   if (region.id !== frontierVassal.locationRegionId) region.controller = "frontier";
 }
-const frontierRouteNode = forceEnter(frontierRouteState, nodeIdForFamily(frontierRouteState, "routes"));
-assert.ok(frontierRouteNode.inventory.length > 0, "Routes offers adjacent frontier connections");
+const frontierRouteNode = forceEnter(frontierRouteState, nodeIdForFamily(frontierRouteState, "crossroads"));
+assert.ok(frontierRouteNode.options.some(option=>option.intervention?.kind==='connection'), "Crossroads offers adjacent frontier connections");
 frontierVassal.prestige = 500;
-const frontierOffer = frontierRouteNode.inventory[0];
-dispatch(frontierRouteState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER,
-  { nodeId: frontierRouteNode.nodeId, offerId: frontierOffer.offerId });
+const frontierOffer = frontierRouteNode.options.find(option=>option.intervention?.kind==='connection');
+dispatch(frontierRouteState, ActionKinds.VASSAL_SELECT_LIFE_OPTION,
+  { nodeId: frontierRouteNode.nodeId, optionId: frontierOffer.id });
 dispatch(frontierRouteState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: frontierRouteNode.nodeId });
 assert.ok(frontierRouteState.world.connections.some((edge) =>
   edge.regionAId === frontierOffer.intervention.regionAId && edge.regionBId === frontierOffer.intervention.regionBId));
