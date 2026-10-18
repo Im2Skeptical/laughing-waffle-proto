@@ -1,3 +1,4 @@
+import { getHubCore } from "../../settlement-state.js";
 import { getVassalRiskDeathChance } from '../class-rules.js';
 import { VASSAL_CLASS_RULES } from '../../../defs/vassal-class-rules.js';
 import { ensureCommissionOffers, recordCommissionAction } from '../commissions.js';
@@ -35,7 +36,6 @@ import {
   createDetailedPracticeSlot,
 } from "../../detailed-practice-tiers.js";
 import { getMoonPhaseDurationSec } from "../../moon-phases.js";
-import { getSettlementChaosGodState } from "../../settlement-chaos.js";
 import {
   addWorldConnection,
   establishDetailedSettlement,
@@ -363,16 +363,20 @@ export function applyVassalNodeEffects(state, effects = []) {
       addActionChaos(state,effect.amount);
     } else if (effect?.op === "addMonsterPressure") {
       addMonsterPressure(state,effect.amount);
-    } else if (effect?.op === "AdjustSettlementChaosGodState") {
-      const god = getSettlementChaosGodState(state, effect.godId)
-        ?? (effect.godId === "redGod" ? state?.civilization?.chaos : null);
-      if (!god || typeof effect.key !== "string" || !Number.isFinite(god[effect.key])) {
-        return { ok: false, reason: "chaosGodStateUnavailable" };
+    } else if (effect?.op === "AdjustCivilizationChaosState"
+      || effect?.op === "AdjustSettlementChaosGodState") {
+      // Existing run configs retain their captured node effects for replay.
+      const chaos = effect.op === "AdjustCivilizationChaosState"
+        ? state?.civilization?.chaos
+        : getHubCore(state)?.systemState?.chaosGods?.[effect.godId]
+          ?? (effect.godId === "redGod" ? state?.civilization?.chaos : null);
+      if (!chaos || typeof effect.key !== "string" || !Number.isFinite(chaos[effect.key])) {
+        return { ok: false, reason: "civilizationChaosStateUnavailable" };
       }
       const minimum = Number.isFinite(effect.min) ? effect.min : Number.NEGATIVE_INFINITY;
       const maximum = Number.isFinite(effect.max) ? effect.max : Number.POSITIVE_INFINITY;
-      god[effect.key] = Math.floor(Math.min(maximum, Math.max(
-        minimum, Math.floor(god[effect.key]) + Math.floor(effect.amount ?? 0)
+      chaos[effect.key] = Math.floor(Math.min(maximum, Math.max(
+        minimum, Math.floor(chaos[effect.key]) + Math.floor(effect.amount ?? 0)
       )));
     } else {
       return { ok: false, reason: "unsupportedVassalNodeEffect" };

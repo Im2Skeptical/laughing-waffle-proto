@@ -405,7 +405,7 @@ export const settlementPracticeDefs = {
         "Consume 1 food + 1 red per citizen",
         "Kill 10 monsters and reduce chaos by 10 per citizen on return",
       ],
-      description: "A long organized campaign that suppresses both the redGod host and its mounting pressure.",
+      description: "A long organized campaign that suppresses both monsters and its mounting pressure.",
     },
     requires: {
       freePopulationAtLeast: 1,

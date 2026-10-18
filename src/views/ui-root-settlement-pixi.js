@@ -1866,7 +1866,7 @@ app.ticker.add((delta) => {
   runCompleteView.update(frameDt);
   const lossPanel = runCompleteView.getSemanticSnapshot();
   settlementGraphView.setMonsterEmphasis(lossPanel.open && lossPanel.info?.projected &&
-    lossPanel.info.reason === "redGodMonsterOverrun", lossPanel.info ? {
+    lossPanel.info.reason === "monsterOverrun", lossPanel.info ? {
       tSec: lossPanel.info.tSec, value: lossPanel.info.monsterCount,
     } : null);
   settlementDebugMenu.update(frameDt);

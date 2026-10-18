@@ -71,7 +71,7 @@ for (const seed of [1, 2, 4, 6, 7, 8, 12, 18, 30]) {
   while (!opening.runStatus?.complete && opening.year <= 300) {
     assert.equal(advanceReplayStateOneSecond(opening).ok, true, `opening ${seed} advances`);
   }
-  assert.equal(opening.runStatus?.reason, 'redGodMonsterOverrun', `opening ${seed} ends through Monster expansion`);
+  assert.equal(opening.runStatus?.reason, 'monsterOverrun', `opening ${seed} ends through Monster expansion`);
   assert.ok(opening.year >= 200 && opening.year <= 300,
     `opening ${seed} extinction year ${opening.year} must be within 200–300`);
   extinctionYears.push(opening.year);
@@ -83,7 +83,7 @@ for (const seed of [1, 2, 4, 6, 7, 8, 12, 18, 30]) {
   while (!tripled.runStatus?.complete && tripled.year <= 600) {
     assert.equal(advanceReplayStateOneSecond(tripled).ok, true, `tripled ${seed} advances`);
   }
-  assert.equal(tripled.runStatus?.reason, 'redGodMonsterOverrun');
+  assert.equal(tripled.runStatus?.reason, 'monsterOverrun');
   const gain = tripled.year - opening.year;
   assert.ok(gain >= 100, `opening ${seed}: sustained 3x population must buy 100+ years; actual ${gain}`);
   tripledYears.push(tripled.year);
