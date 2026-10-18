@@ -195,15 +195,24 @@ human playtest work.
 - Each fresh launch seeds one Defense-2 frontier Monster, preferably one frontier
   step away from player settlements, and connects the adjacent small neutral.
   Chaos accumulates permanently from Faith income, without subtracting Resistance.
-  At Death, the amount of accumulated Chaos above current Resistance adds Monster
-  expansion progress (default 1 per 1,000 uncovered points per moon). Resistance freezes saved
+  At Death, uncovered Chaos divided by current Resistance adds Monster expansion
+  progress, with a default coefficient of 0.8 and a minimum divisor of 1.
+  Greater population slows expansion even above containment. Resistance freezes saved
   progress while it contains Chaos. One shared tracker fills at 100 by default;
   a full tracker immediately expands one front in rotating authored order and retains
   overflow. Empty frontier has priority. Only blocked/absent fronts allow another
   spawn; a fully occupied map instead strengthens a blocked Monster. Supplied
   interception retains Support and Edible requirements; settlement loss remains
   the run-ending condition.
-- Untouched Starter_02 openings target extinction between years 150 and 250.
+- Untouched Starter_02 openings target extinction between years 200 and 300.
+  Chaos and Resistance use one tenth of their former unit: Starter primordial
+  income is 0.1, population Resistance retains fractional 1-per-10/5/2/1 Faith
+  ratios, and Forecasting grants 0.3. Population Resistance effectiveness is a
+  serialized multiplier (default 1), applied before temporary Practice bonuses.
+  Starter Chaos income grows 10% per 12 years. The paired nine-road regression
+  requires sustained 3x effective population to buy at least 100 additional years
+  per start. It isolates the Resistance contribution; played population growth
+  still needs Food, Housing and Faith support.
   Passive Monster progress is tuned against the real simulation over each starting
   road; dangerous-action costs and the 100-progress threshold stay independent.
 - Authored Raid, conquest, forbidden Discovery, selected advanced/esoteric

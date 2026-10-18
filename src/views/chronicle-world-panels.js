@@ -1,4 +1,5 @@
 import { addIllustration, addRegionLandmark } from './chronicle-art.js';
+import { formatChaosValue } from '../model/chaos-values.js';
 import { addSettlementPiece, addConstructionStrip } from './settlement-piece-pixi.js';
 import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES, PALETTE } from './settlement-theme.js';
@@ -13,8 +14,8 @@ export function addChaosPanelContent(root, rect, summary) {
   const text=(s,dy,size=22,fill=PALETTE.text)=>root.addChild(createText(s,{...TEXT_STYLES.body,fontSize:size,fill},x,y+dy));
   text('THE COMING DARK',0,24,PALETTE.accent);
   text(`${summary.green.label} / ${summary.chaos.monsterCount} Monster ${summary.chaos.monsterCount===1?"region":"regions"}`,28,20);
-  text(`Chaos ${summary.chaos.chaosPower}   ·   Resistance ${summary.chaos.resistance}`,55,18);
-  text(`Expansion ${Math.round(summary.chaos.expansionProgress*10)/10} / ${summary.chaos.expansionThreshold} | ${summary.chaos.progressPerMoon>0?"+"+(Math.round(summary.chaos.progressPerMoon*10)/10)+" / moon":"Contained"}`,82,20);
+  text(`Chaos ${formatChaosValue(summary.chaos.chaosPower)}   ·   Resistance ${formatChaosValue(summary.chaos.resistance)}`,55,18);
+  text(`Expansion ${formatChaosValue(summary.chaos.expansionProgress)} / ${summary.chaos.expansionThreshold} | ${summary.chaos.progressPerMoon>0?"+"+formatChaosValue(summary.chaos.progressPerMoon)+" / moon":"Contained"}`,82,20);
 }
 
 export function addRegionPanelContent(root, rect, {region, reference, name, vm, defense, tooltipView}) {

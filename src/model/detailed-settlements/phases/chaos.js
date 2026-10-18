@@ -2,9 +2,9 @@
 
 import { POPULATION_CLASS_ORDER } from "../../../defs/gamepieces/detailed-settlement-defs.js";
 import { getGameSetting } from "../../game-config.js";
+import { roundChaos } from '../../chaos-values.js';
 import {
   classPopulationTotal,
-  roundFood,
 } from "../helpers.js";
 import {
   getDetailedSettlementSites,
@@ -19,7 +19,7 @@ export function getPrimordialChaosPressure(state) {
   );
   const elapsedYears = Math.max(0, Math.floor(state?.year ?? 1) - 1);
   const growthSteps = Math.floor(elapsedYears / growthCadenceYears);
-  return roundFood(basePressure * (growthFactor ** growthSteps));
+  return roundChaos(basePressure * (growthFactor ** growthSteps));
 }
 
 export function getChaosResistanceBreakdown(state) {
@@ -33,11 +33,14 @@ export function getChaosResistanceBreakdown(state) {
       }
     }
   }
-  const populationResistance = Object.entries(faithPopulation).reduce((sum, [tier, population]) => {
-    return sum + Math.floor(population / getGameSetting(state, `${tier}ChaosResistancePopulation`));
+  const faithResistance = Object.entries(faithPopulation).reduce((sum, [tier, population]) => {
+    // Fractional contributions preserve every person in the compact units.
+    // Relative to Chaos, these unchanged ratios now provide 10x protection.
+    return sum + population / getGameSetting(state, `${tier}ChaosResistancePopulation`);
   }, 0);
-  const resistance = roundFood(populationResistance + (state?.civilization?.phaseModifiers?.faithResistance ?? 0));
-  return { faithPopulation, populationResistance, resistance };
+  const populationResistance = faithResistance * getGameSetting(state, 'populationChaosResistanceMultiplier');
+  const resistance = roundChaos(populationResistance + (state?.civilization?.phaseModifiers?.faithResistance ?? 0));
+  return { faithPopulation, populationResistance: roundChaos(populationResistance), resistance };
 }
 
 export const getChaosResistance = state => getChaosResistanceBreakdown(state).resistance;
@@ -64,7 +67,7 @@ export function runGlobalChaos(state) {
     + internalMigrationPressure;
   // Resistance contains accumulated Chaos's monster threat, never its income.
   const totalIncome = Math.max(0, rawPressure);
-  civilization.chaos.chaosPower = roundFood(
+  civilization.chaos.chaosPower = roundChaos(
     civilization.chaos.chaosPower + totalIncome
   );
   const spawned = 0;
@@ -73,17 +76,17 @@ export function runGlobalChaos(state) {
     oldAgeDeaths: pending.oldAgeDeaths,
     externalEmigrants: pending.externalEmigrants,
     primordialPressure,
-    prematureDeathPressure: roundFood(prematureDeathPressure),
-    prematureDeathMitigation: roundFood(pending.prematureDeathMitigation??0),
-    externalEmigrationPressure: roundFood(externalEmigrationPressure),
-    oldAgeDeathPressure: roundFood(oldAgeDeathPressure),
-    internalMigrationPressure: roundFood(internalMigrationPressure),
-    rawPressure: roundFood(rawPressure),
+    prematureDeathPressure: roundChaos(prematureDeathPressure),
+    prematureDeathMitigation: roundChaos(pending.prematureDeathMitigation??0),
+    externalEmigrationPressure: roundChaos(externalEmigrationPressure),
+    oldAgeDeathPressure: roundChaos(oldAgeDeathPressure),
+    internalMigrationPressure: roundChaos(internalMigrationPressure),
+    rawPressure: roundChaos(rawPressure),
     faithPopulation,
     resistance,
     populationResistance,
-    incomingChaos: roundFood(totalIncome),
-    totalIncome: roundFood(totalIncome),
+    incomingChaos: roundChaos(totalIncome),
+    totalIncome: roundChaos(totalIncome),
     accumulatedChaos: civilization.chaos.chaosPower,
     spawned,
   };

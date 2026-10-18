@@ -97,7 +97,7 @@ export function generateCandidatePool(state) {
       const classHistory=(state.civilization.retiredVassals??[]).filter(v=>v.classId===classId);
       const historyValues={
         retired:classHistory.length,commissions:classHistory.reduce((n,v)=>n+(v.completedCommissions??0),0),
-        age:Math.floor(Math.max(0,(state.year??1)-1)/10),chaos:Math.floor((state.civilization.chaos.chaosPower??0)/1000),
+        age:Math.floor(Math.max(0,(state.year??1)-1)/10),chaos:Math.floor((state.civilization.chaos.chaosPower??0)/100),
         losses:state.civilization.history?.lostSettlements??0,conquests:state.civilization.history?.conquests??0,victories:state.civilization.history?.victories??0,
         records:local?.practiceSlots.filter(s=>s?.stock>0&&getDetailedPracticeDef(state,s.practiceId)?.stockTraits.includes('Record')).length??0,
         knowledgeStructures:new Set((local?.structureSlots??[]).filter(s=>!s?.construction&&getDetailedStructureDef(state,s?.structureId)?.tags.includes('Knowledge')).map(s=>s.structureId)).size,

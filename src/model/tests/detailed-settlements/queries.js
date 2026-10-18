@@ -27,12 +27,12 @@ state.gameConfig.settings.values.greenAutomaticTier = false;
 state.gameConfig.settings.values.greenForcedTier = 3;
 assert.equal(getGreenAscendancySummary(state).tier, 3, "debug can force Green tier");
 const primordial = fresh(8896);
-assert.equal(getPrimordialChaosPressure(primordial), 100);
+assert.equal(getPrimordialChaosPressure(primordial), 10);
 primordial.year = 12;
-assert.equal(getPrimordialChaosPressure(primordial), 100,
+assert.equal(getPrimordialChaosPressure(primordial), 10,
   "Primordial growth waits until a full cadence has elapsed");
 primordial.year = 13;
-assert.equal(getPrimordialChaosPressure(primordial), 103);
+assert.equal(getPrimordialChaosPressure(primordial), 10.3);
 primordial.gameConfig.settings.values.primordialBasePressure = 4;
 primordial.gameConfig.settings.values.primordialGrowthFactor = 2;
 primordial.gameConfig.settings.values.primordialGrowthCadenceYears = 3;

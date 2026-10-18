@@ -51,7 +51,7 @@ initial.paused = false;
 initial.gameConfig.settings.values.primordialBasePressure = 100;
 // Keep this cache/restore fixture alive through its 192-second comparison window,
 // while still reaching a real terminal boundary before 2100 seconds.
-initial.gameConfig.settings.values.monsterProgressPerChaos = .001;
+initial.gameConfig.settings.values.monsterProgressPerChaosRatio = .06;
 // Pin this terminal-boundary scenario's production tuning. Higher authored
 // worker yields can keep it alive past the 2100-second projection horizon.
 for (const practice of Object.values(initial.gameConfig.gamepieces.practices)) practice.workerBonus = .25;

@@ -1,3 +1,5 @@
+import { roundChaos } from '../chaos-values.js';
+
 // JSON event journal. Emitters never resolve reactions or call back into views.
 export function practiceEventJournal(state) {
   return state.civilization.practiceEvents ??= { nextId: 1, pending: [], trace: [] };
@@ -26,7 +28,7 @@ export function getActionMonsterPressureCost(action) {
 export function addActionChaos(state, amount, context = {}) {
   const cost = Math.max(0, amount);
   if (!cost) return;
-  state.civilization.chaos.chaosPower = Math.round((state.civilization.chaos.chaosPower + cost) * 100) / 100;
+  state.civilization.chaos.chaosPower = roundChaos(state.civilization.chaos.chaosPower + cost);
   emitPracticeEvent(state, { ...context, kind: 'chaosIncreased', amount: cost });
 }
 

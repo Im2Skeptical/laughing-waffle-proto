@@ -31,7 +31,19 @@ registries here.
   Practice Resistance bonuses last until the next Birth phase.
   Resistance is compared with accumulated Chaos: sufficient Resistance freezes
   passive Monster expansion progress without erasing saved progress. At Death,
-  uncovered Chaos adds configurable progress (default 1 per 1,000 points per moon).
+  passive progress is `0.8 * max(0, Chaos - Resistance) / max(1, Resistance)` per
+  moon by default. Relative pressure keeps population useful above containment;
+  the one-point denominator floor keeps zero/tiny Resistance finite.
+  Chaos uses compact units (one tenth of the former unit). Starter income begins
+  at 0.1 per moon and grows 10% every 12 years. Population contributes
+  fractional Resistance at Bronze/Silver/Gold/Diamond ratios of 1 per 10/5/2/1
+  people, multiplied by the serialized Population Resistance effectiveness setting
+  (default 1). Temporary Practice bonuses are added after this multiplier.
+  Forecasting grants 0.3 Resistance; fixed Monster progress costs stay unchanged.
+  Untouched new games target extinction at years 200–300.
+  Sustained 3x population effectiveness must add at least 100 years on each of
+  the nine paired opening seeds. This isolates Resistance; physical population
+  growth must still be supported by Food, Housing and Faith in an actual run.
   One shared tracker fills at 100 progress by default; each full tracker expands
   one existing front in rotating authored order and retains overflow. Dangerous
   actions add fixed progress directly and can trigger expansion immediately even

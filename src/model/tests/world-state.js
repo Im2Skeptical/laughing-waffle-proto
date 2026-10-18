@@ -66,7 +66,7 @@ import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
 assert.equal(validateWorldState(state).ok, true);
-assert.equal(state.gameStateSchemaVersion, 35);
+assert.equal(state.gameStateSchemaVersion, 36);
 const invalidPracticeTierState = serializeGameState(state);
 invalidPracticeTierState.world.sites[0].detailedState.practiceSlots.find(Boolean).tier = "platinum";
 assert.equal(validateWorldState(invalidPracticeTierState).ok, false,
@@ -401,7 +401,7 @@ assert.equal(
 );
 assert.equal(
   civilizationSeries.find((series) => series.id === "chaosResistance").getValue(state),
-  57
+  57.5
 );
 assert.equal(
   civilizationSeries.find((series) => series.id === "chaosPower").scaleGroupId,
@@ -494,7 +494,7 @@ assert.equal(
 );
 assert.equal(projectionSummary.graphValues.civilization.totalPopulation, 115);
 assert.equal(projectionSummary.graphValues.civilization.chaosRawPressure, 12.5);
-assert.equal(projectionSummary.graphValues.civilization.chaosResistance, 57);
+assert.equal(projectionSummary.graphValues.civilization.chaosResistance, 57.5);
 assert.equal(
   projectionSummary.graphValues.settlementByRegion["cedar-woods"]
     .totalPopulation,
@@ -512,8 +512,8 @@ for (const removedKey of ["elderCouncil", "agendaByClass", "installedPracticeIds
   assert.equal(serializedText.includes(removedKey), false, `legacy state absent: ${removedKey}`);
 }
 const old = serializeGameState(state);
-old.gameStateSchemaVersion = 26;
-assert.throws(() => deserializeGameState(old), /expected v35/);
+old.gameStateSchemaVersion = 35;
+assert.throws(() => deserializeGameState(old), /expected v36/);
 
 const forecastState = createInitialState("devPlaytesting01", 24680);
 const forecastTimeline = { revision: 0 };

@@ -1,12 +1,13 @@
 import { initializeReplayClock, advanceReplayStateToSecond } from '../replay-second-runner.js';
 import { getChaosResistance, runGlobalChaos } from '../detailed-settlements/phases/chaos.js';
+import { formatChaosValue, roundChaos } from '../chaos-values.js';
 import { getGameSetting } from '../game-config.js';
 import { getDetailedCivilizationSummary } from '../detailed-settlements/view-model.js';
 import assert from 'node:assert/strict';
 import { createNewGameState } from '../new-game.js';
 import { serializeGameState, deserializeGameState } from '../state.js';
 import { getMonsterPressureRate, stepSpatialPressure, addMonsterPressure, adjacentRegionIds } from '../detailed-settlements/external-world.js';
-import { getActionChaosCost, getActionMonsterPressureCost } from '../detailed-settlements/practice-events.js';
+import { addActionChaos, getActionChaosCost, getActionMonsterPressureCost } from '../detailed-settlements/practice-events.js';
 import { runPracticeActivation } from '../detailed-settlements/practices.js';
 import { getGamepieceFace } from '../gamepiece-presentation.js';
 import { getRegionState } from '../world-state.js';
@@ -17,11 +18,50 @@ import { classActionOptions, applyClassAction } from '../vassal-life-map/class-a
 import { trainSpecialists } from '../detailed-settlements/stock.js';
 import { practiceSlot } from '../dev-lab/fixtures.js';
 
+// Compact units retain each person's contribution, including small cohorts.
+const compact=createNewGameState(433);
+const compactSites=compact.world.sites.filter(site=>compact.world.regions.find(r=>r.id===site.regionId)?.controller==='player');
+for(const site of compactSites) for(const cohort of Object.values(site.detailedState.populationByClass)) {
+  cohort.children=0;cohort.adults=0;cohort.eldersByAge=[];
+}
+const cohort=compactSites[0].detailedState.populationByClass.villager;
+cohort.adults=1;
+for(const [tier,expected] of [['bronze',.1],['silver',.2],['gold',.5],['diamond',1]]) {
+  cohort.faith.tier=tier;
+  assert.equal(getChaosResistance(compact),expected,`one ${tier} person contributes fractional Resistance`);
+}
+cohort.adults=100;
+compact.civilization.chaos.chaosPower=150;
+assert.equal(getMonsterPressureRate(compact),.4);
+assert.equal(getMonsterPressureRate(compact),(1500-1000)/1000*.8,
+  'relative pressure is unchanged by the choice of Chaos/Resistance units');
+compact.civilization.chaos.chaosPower=600;
+compact.gameConfig.settings.values.populationChaosResistanceMultiplier=3;
+assert.equal(getChaosResistance(compact),300,'population effectiveness scales the Faith-weighted contribution');
+assert.equal(getMonsterPressureRate(compact),.8,'population remains useful far above containment');
+assert.deepEqual(serializeGameState(deserializeGameState(serializeGameState(compact))),serializeGameState(compact),
+  'the population-effectiveness experiment uses a valid serialized setting');
+compact.gameConfig.settings.values.populationChaosResistanceMultiplier=1;
+compact.civilization.phaseModifiers.faithResistance=.3;
+assert.equal(getChaosResistance(compact),100.3,'authored temporary Resistance uses the same units');
+compact.civilization.chaos.chaosPower=.00001;
+addActionChaos(compact,.00002);
+assert.equal(compact.civilization.chaos.chaosPower,.00003,'tiny Chaos costs retain simulation precision');
+assert.equal(roundChaos(.123456),.12346);
+assert.equal(formatChaosValue(63.84996),'63.85');
+assert.equal(formatChaosValue(.00003),'0.00003','positive progress must never display as zero');
+cohort.adults=0;
+compact.civilization.phaseModifiers.faithResistance=0;
+compact.civilization.chaos.chaosPower=2;
+assert.equal(getMonsterPressureRate(compact),1.6,'zero Resistance uses the finite one-point denominator floor');
+compact.civilization.chaos.chaosPower=0;
+assert.equal(getMonsterPressureRate(compact),0,'zero Chaos never creates passive progress');
+
 const state=createNewGameState(420), chaos=state.civilization.chaos;
 const initialRng={...state.rng}, first=state.world.regions.find(region=>region.monster);
 assert.equal(first.monster.defense,2);
 assert.equal(getGameSetting(state,'monsterExpansionThreshold'),100);
-assert.equal(getGameSetting(state,'monsterProgressPerChaos'),.001);
+assert.equal(getGameSetting(state,'monsterProgressPerChaosRatio'),.8);
 // Containment freezes existing progress, including at exact equality.
 chaos.monsterPressure=80;
 for (const delta of [-10,0]) {
@@ -38,16 +78,17 @@ assert.equal(summary.progressPerMoon,0);
 state.civilization.phaseModifiers.faithResistance=1000;
 chaos.chaosPower=0;
 runGlobalChaos(state);
-assert.equal(chaos.chaosPower,1);
-assert.equal(chaos.lastMoonIncome.totalIncome,1);
+assert.equal(chaos.chaosPower,0.1);
+assert.equal(chaos.lastMoonIncome.totalIncome,0.1);
 state.year=13;runGlobalChaos(state);
-assert.equal(chaos.chaosPower,2.2);
+assert.equal(chaos.chaosPower,0.21);
 state.year=25;runGlobalChaos(state);
-assert.equal(chaos.chaosPower,3.64);
+assert.equal(chaos.chaosPower,0.331);
 assert.equal(getMonsterPressureRate(state),0);
-// Linear, tunable uncovered-Chaos rate. A full tracker expands directly.
+// Tunable excess Chaos/Resistance ratio. A full tracker expands directly.
 state.civilization.phaseModifiers.faithResistance=0;
-chaos.chaosPower=getChaosResistance(state)+1000;
+state.civilization.phaseModifiers.faithResistance=100-getChaosResistance(state);
+chaos.chaosPower=225;
 assert.equal(getMonsterPressureRate(state),1);
 chaos.monsterPressure=99;
 const saved=serializeGameState(state), restored=deserializeGameState(saved);
@@ -59,8 +100,8 @@ assert.equal(chaos.spatialSpawns,1,'the full tracker expands an existing front i
 assert.deepEqual(serializeGameState(state),serializeGameState(restored),'saved pressure resumes exactly');
 assert.deepEqual(state.rng,initialRng,'pressure never consumes RNG');
 assert.equal(state.tSec,0,'direct pressure stepping never advances simulation time');
-state.gameConfig.settings.values.monsterProgressPerChaos=.2;
-assert.equal(getMonsterPressureRate(state),200);
+state.gameConfig.settings.values.monsterProgressPerChaosRatio=.2;
+assert.equal(getMonsterPressureRate(state),.25);
 // Dangerous actions bypass complete containment, retain overflow, and do not add Chaos.
 const danger=createNewGameState(424), dc=danger.civilization.chaos;
 danger.civilization.phaseModifiers.faithResistance=1000;
@@ -95,7 +136,7 @@ forecastHome.detailedState.practiceSlots=[practiceSlot('forecasting'),practiceSl
 trainSpecialists(forecastHome.detailedState,'scholar',1);
 initializeReplayClock(forecast,0);
 advanceReplayStateToSecond(forecast,6);
-assert.equal(forecast.civilization.phaseModifiers.faithResistance,3,'Birth Resistance must survive Faith until Death');
+assert.equal(forecast.civilization.phaseModifiers.faithResistance,0.3,'Birth Resistance must survive Faith until Death');
 forecastHome.detailedState.practiceSlots[0]=null;
 advanceReplayStateToSecond(forecast,7);
 assert.equal(forecast.civilization.phaseModifiers.faithResistance,0,'Resistance expires at the next Birth');

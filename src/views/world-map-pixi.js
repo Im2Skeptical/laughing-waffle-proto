@@ -10,6 +10,7 @@ import { sampleEventProgress } from './timeline-presentation.js';
 import { createChronicleEffects, addTimelineLandmark } from './chronicle-effects-pixi.js';
 import { addRegionTerrain, getArtRevision } from './chronicle-art.js';
 import { addChaosPanelContent } from './chronicle-world-panels.js';
+import { formatChaosValue } from '../model/chaos-values.js';
 import { createRegionPanelCache } from './world-map/region-panel-cache.js';
 import { createMapPolygonReader } from './world-map/geometry.js';
 import { createRetainedMapScene } from './world-map/retained-scene.js';
@@ -876,15 +877,15 @@ export function createWorldMapView({
             `Stored-food decay reduction: ${green.storedFoodDecayReduction}%`,
             `Elder old-age mortality reduction: ${green.elderMortalityReduction}%`,
             `Migration success: ${green.migrationSuccess}%`,
-            `Primordial pressure: ${reckoning?.primordialPressure ?? 0}`,
+            `Primordial pressure: ${formatChaosValue(reckoning?.primordialPressure ?? 0)}`,
             `Premature deaths: ${reckoning?.prematureDeaths ?? 0} · External emigrants: ${reckoning?.externalEmigrants ?? 0}`,
-            `Premature pressure: ${reckoning?.prematureDeathPressure ?? 0} · Emigration pressure: ${reckoning?.externalEmigrationPressure ?? 0}`,
-            `Old-age pressure: ${reckoning?.oldAgeDeathPressure ?? 0} · Internal migration pressure: ${reckoning?.internalMigrationPressure ?? 0}`,
-            `Chaos income: ${reckoning?.rawPressure ?? 0} · Resistance: ${civilizationSummary.chaos.resistance}`,
-            `Incoming Chaos: ${reckoning?.incomingChaos ?? 0} · Accumulated: ${civilizationSummary.chaos.chaosPower}`,
+            `Premature pressure: ${formatChaosValue(reckoning?.prematureDeathPressure ?? 0)} · Emigration pressure: ${formatChaosValue(reckoning?.externalEmigrationPressure ?? 0)}`,
+            `Old-age pressure: ${formatChaosValue(reckoning?.oldAgeDeathPressure ?? 0)} · Internal migration pressure: ${formatChaosValue(reckoning?.internalMigrationPressure ?? 0)}`,
+            `Chaos income: ${formatChaosValue(reckoning?.rawPressure ?? 0)} · Resistance: ${formatChaosValue(civilizationSummary.chaos.resistance)}`,
+            `Incoming Chaos: ${formatChaosValue(reckoning?.incomingChaos ?? 0)} · Accumulated: ${formatChaosValue(civilizationSummary.chaos.chaosPower)}`,
             `Monster regions: ${civilizationSummary.chaos.monsterCount}`,
-            `Expansion progress: ${civilizationSummary.chaos.expansionProgress} / ${civilizationSummary.chaos.expansionThreshold}`,
-            "Resistance contains accumulated Chaos; dangerous actions bypass it.",
+            `Expansion progress: ${formatChaosValue(civilizationSummary.chaos.expansionProgress)} / ${civilizationSummary.chaos.expansionThreshold}`,
+            "Resistance contains Chaos and reduces its relative expansion rate; dangerous actions bypass it.",
           ],
         }, civilizationPanel.getBounds(), { dismissOnExit: true });
       });
@@ -896,7 +897,7 @@ export function createWorldMapView({
     retained.update(root,'controls',[getArtRevision(),chrome,chaosExpanded,chaosExpanded?null:civilizationSummary.chaos.chaosPower,regionSelectionActive,selectedRegionId,relationships],root=>{
     if(chrome){
     addButton(root, { x: chaosExpanded ? CIVILIZATION_RECT.x + CIVILIZATION_RECT.width : 16, y: 92, width: chaosExpanded ? 44 : 180, height: 52 },
-      chaosExpanded ? '<' : `Chaos ${civilizationSummary.chaos.chaosPower} >`, () => {
+      chaosExpanded ? '<' : `Chaos ${formatChaosValue(civilizationSummary.chaos.chaosPower)} >`, () => {
         chaosExpanded = !chaosExpanded;
         tooltipView?.hide?.();
         lastSignature = '';

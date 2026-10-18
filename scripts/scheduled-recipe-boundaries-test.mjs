@@ -360,7 +360,7 @@ runCase('forecasting', () => {
   proseHas(def, 'Require 1 stocked [Record] from a Knowledge-tagged Practice');
   proseHas(def, 'Scholar worker');
   proseHas(def, '5 Monster expansion progress');
-  assert.equal(def.effects.find(effect => effect.op === 'addFaithChaosResistance').amount, 3);
+  assert.equal(def.effects.find(effect => effect.op === 'addFaithChaosResistance').amount, 0.3);
   assert.equal(def.effects.find(effect => effect.op === 'addMonsterPressure').amount, 5);
   const progress = blocked.state.civilization.chaos.monsterPressure;
   runPracticeActivation(blocked.state, 'birth');
@@ -376,7 +376,7 @@ runCase('forecasting', () => {
   runPracticeActivation(staffed.state, 'birth');
   runPracticeActivation(staffed.state, 'birth');
   assert.equal(staffed.local.practiceSlots[1].stock, 0);
-  assert.equal(getPhaseModifiers(staffed.state).faithResistance, 6);
+  assert.equal(getPhaseModifiers(staffed.state).faithResistance, 0.6);
   const progressDelta = staffed.state.civilization.chaos.monsterPressure - progress;
   assert.equal(progressDelta, 10, 'two Birth activations add 5 expansion progress each');
   assert.equal(staffed.state.civilization.chaos.chaosPower, 0);
@@ -385,7 +385,7 @@ runCase('forecasting', () => {
   assert.deepEqual(third.missing, { kind: 'require', traits: ['Record'], amount: 1 });
   runPracticeActivation(staffed.state, 'birth');
   assert.equal(staffed.local.practiceSlots[1].stock, 0);
-  assert.equal(getPhaseModifiers(staffed.state).faithResistance, 6);
+  assert.equal(getPhaseModifiers(staffed.state).faithResistance, 0.6);
   assert.equal(staffed.state.civilization.chaos.monsterPressure - progress, 10);
   return { repeats: 2, faith: 6, progressAdded: 10, thirdBlocked: true };
 });
