@@ -59,9 +59,11 @@ Local instructions for agents working in this repo.
 ## Development deployment
 - Local previews are the default. Before handing back changes, run `npm start`:
   it reuses this checkout's LAN preview or starts one. Verify it serves the
-  updated build and include the live mobile URL and game version in the response.
-- Bump the game version once per completed change and keep AI documentation in
-  sync using [development workflow](docs/development-workflow.md).
+  updated build and report its version, preview label (when present), fingerprint,
+  branch, integration status, and live mobile URL.
+- Assign game versions on `main` after integrating changes; worktrees keep their
+  inherited version. Follow [development workflow](docs/development-workflow.md)
+  for integration, versioning, and AI documentation updates.
 - GitHub Pages publication requires explicit user confirmation for that update.
   Prepare and verify locally first; only dispatch deployment after confirmation.
   Committing or pushing source is not permission to publish Pages.

@@ -12,10 +12,11 @@ export const workspaceId = digest(root).slice(0, 16);
 
 // Include uncommitted/untracked inputs. Cache file hashes, not the file list, so
 // edits, additions and deletions all change the next page's build identity.
-export async function getBuildInfo(channel) {
+export async function getBuildInfo(channel, previewLabel = null) {
+  const inputs = ['src', 'images', 'scripts', 'ai', 'docs', '.github', 'AGENTS.md', 'README.md',
+    'index.html', 'styles.css', 'package.json', 'package-lock.json'];
   const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z', '--',
-    'src', 'images', 'scripts', 'ai', 'docs', '.github', 'AGENTS.md', 'README.md',
-    'index.html', 'styles.css', 'package.json', 'package-lock.json'], { cwd: root, encoding: 'utf8' });
+    ...inputs], { cwd: root, encoding: 'utf8' });
   const fingerprint = createHash('sha256');
   for (const file of [...new Set(files.split('\0').filter(Boolean))].sort()) {
     const full = path.join(root, file);
@@ -41,7 +42,12 @@ export async function getBuildInfo(channel) {
   }
   const { version } = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   const revision = execFileSync('git', ['rev-parse', '--short=12', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
-  return { version, build: fingerprint.digest('hex').slice(0, 12), revision, channel };
+  const branch = execFileSync('git', ['branch', '--show-current'], { cwd: root, encoding: 'utf8' }).trim() || null;
+  const dirty = Boolean(execFileSync('git', ['status', '--porcelain', '--untracked-files=all', '--', ...inputs],
+    { cwd: root, encoding: 'utf8' }).trim());
+  const preview = branch !== 'main' || dirty;
+  return { version, build: fingerprint.digest('hex').slice(0, 12), revision, channel,
+    branch, dirty, preview, previewLabel: preview ? previewLabel : null };
 }
 
 export function stampBuildInfo(html, info) {

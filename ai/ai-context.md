@@ -2,8 +2,10 @@
 
 Game build version: `1.1.9`.
 This checked marker matches `package.json`; app versions are independent of save
-schemas and isolated art prototype versions. The game badge adds a source
-fingerprint and Local/Pages label. For preview, version bumps and deployment,
+schemas and isolated art prototype versions. Versions advance on integration
+into `main`; worktrees keep their inherited version and show a compact Preview
+label. Source fingerprints and branch details stay in the badge tooltip and
+build metadata. For preview, version bumps and deployment,
 follow [development workflow](../docs/development-workflow.md).
 
 Concise invariants for agents. Always read this file. Which other docs to

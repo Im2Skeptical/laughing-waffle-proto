@@ -19,24 +19,49 @@ address or a link to another checkout.
 
 ## Versions
 
-`package.json` owns the game version. Before verifying a completed change, run
-`npm run version:game -- patch` once (or supply an explicit `x.y.z`). This updates
-the package lock and the build-version marker in `ai/ai-context.md` together.
-Update affected AI documentation in the same change. `npm run check:docs` rejects
-version drift. Save schemas and standalone art prototype versions are separate.
+`package.json` owns the integrated game version. Assign versions sequentially on
+`main`, once per integrated change or combined batch. A higher integrated version
+continues the previous `main` build, including any intentional reverts. Parallel
+worktrees inherit their starting version; their numbers do not describe which
+other threads' changes they contain. Update affected AI documentation while
+working, but leave the version fields unchanged in task branches.
 
-The badge remains visible in the menu and game: Local/Pages, game version and a
-12-character source fingerprint. During play it sits faintly below the top-right
-save/menu controls, over the game view. The fingerprint includes uncommitted source,
-assets, tooling and documentation, with text line endings normalized. It is
+When integrating:
+
+1. Verify the task branch, then integrate it onto the latest `main`. Preserve
+   `main`'s current version fields if an older branch carries a version bump from
+   the previous workflow. Keep `main` history cumulative rather than resetting it.
+2. On `main`, run `npm run version:game -- patch` once (or an explicit higher
+   `x.y.z`). The command rejects other branches and non-increasing versions. It
+   updates the package lock and the marker in `ai/ai-context.md` together.
+3. Run `npm run verify` on the combined result, then commit the integrated change
+   and version together. Keep failed verification local until resolved.
+
+`npm run check:docs` rejects version drift. Save schemas and standalone art
+prototype versions are separate. Integration stays local unless pushing or
+publication is authorized.
+
+The badge remains visible in the menu and game. A clean `main` build shows only
+`v1.2.3`; a task branch, detached checkout, or modified `main` shows
+`v1.2.3 · Preview 5184` locally. The preview number is the server port: a compact
+identifier for that running checkout, not an ordered version. Pages builds of
+unintegrated sources show `Preview` without a local port. During play the badge
+sits faintly below the top-right save/menu controls, over the game view. Hover or
+focus it for the full fingerprint, branch, revision, and Local/Pages channel;
+these details are also available in `/build-info.json`. The fingerprint includes
+uncommitted source, assets, tooling and documentation, with text line endings normalized. It is
 independent of the Git revision; metadata also records that revision for lookup.
 Local HTML and Pages artifacts embed their identity at load/build time. Pages
 writes the same metadata to `dist/build-info.json` and `dist/build-manifest.json`.
 The local badge checks for edits every 30 seconds and when the tab becomes
 visible, and prompts the player to save then reload when the loaded build is old.
 
-Verify `npm run verify`, check the local page's badge against `/build-info.json`,
-and include its version and live mobile URL with the completed change.
+Verify `npm run verify` and check the loaded page's badge against
+`/build-info.json`. In the completion report include the inherited or integrated
+version, preview label when present, full fingerprint, branch, live mobile URL,
+and whether the task is still isolated or integrated into `main`. Read these from
+the actual preview rather than reconstructing them from memory. A preview label
+can be reused after a server stops; the fingerprint identifies the exact source.
 
 ## GitHub Pages (confirmed publication only)
 

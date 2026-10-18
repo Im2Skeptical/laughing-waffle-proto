@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { root, workspaceId, getBuildInfo, stampBuildInfo } from './build-info.mjs';
 
-const protocol = 1;
+const protocol = 2;
 const firstPort = 5184;
 const ports = Array.from({ length: 12 }, (_, i) => firstPort + i);
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
@@ -25,7 +25,8 @@ function urls(port) {
 
 async function serve(port) {
   let pending;
-  const info = () => pending ??= getBuildInfo('local').finally(() => { pending = null; });
+  // The port is a compact, unique label among previews running on this computer.
+  const info = () => pending ??= getBuildInfo('local', String(port)).finally(() => { pending = null; });
   await info();
   const server = http.createServer(async (request, response) => {
     response.setHeader('Cache-Control', 'no-store');
