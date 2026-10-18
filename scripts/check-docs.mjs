@@ -76,7 +76,7 @@ for (const file of documents) {
       const route = match[1];
       if (!/^(?:src|scripts|ai|docs|images|\.grok)\//u.test(route)
         || /[\s*<>=()#?]/u.test(route)) continue;
-      if (!existsSync(path.resolve(root, route))) fail(file, index + 1, `missing repository route ${route}`);
+      if (!existsSync(path.resolve(root, route.replace(/:\d+$/u, "")))) fail(file, index + 1, `missing repository route ${route}`);
     }
   }
 }
