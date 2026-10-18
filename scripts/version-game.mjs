@@ -2,7 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 
 const requested = process.argv[2];
-const branch = execFileSync('git', ['branch', '--show-current'], { encoding: 'utf8' }).trim();
+const branch = execFileSync('git', ['branch', '--show-current'], { encoding: 'utf8', windowsHide: true }).trim();
 if (branch !== 'main') throw new Error('Game versions are assigned on main after integration. Keep the inherited version in worktrees; see docs/development-workflow.md.');
 const pkg = JSON.parse(await readFile('package.json', 'utf8'));
 const lock = JSON.parse(await readFile('package-lock.json', 'utf8'));

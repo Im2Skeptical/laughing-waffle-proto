@@ -93,7 +93,7 @@ try {
   assert.notEqual(tasks[0].build, tasks[1].build, 'Different parallel changes have distinct fingerprints');
   assert.equal(tasks[0].version, tasks[1].version, 'Parallel tasks intentionally retain the inherited version');
 
-  execFileSync(process.execPath, ['scripts/version-game.mjs', 'patch'], { cwd: fixture });
+  execFileSync(process.execPath, ['scripts/version-game.mjs', 'patch'], { cwd: fixture, windowsHide: true });
   await delay(5_100);
   const updated = await (await fetch(`${address}build-info.json`)).json();
   assert.equal(updated.version, '1.0.1');
@@ -102,17 +102,19 @@ try {
   assert.equal(updated.preview, true, 'A version bump is a preview until committed on main');
   git(['add', 'package.json', 'package-lock.json', 'ai/ai-context.md']);
   git(['-c', 'user.name=Preview test', '-c', 'user.email=preview@example.invalid', 'commit', '-qm', 'Integrated change']);
+  await delay(5_100);
   assert.equal((await (await fetch(`${address}build-info.json`)).json()).preview, false);
   assert.throws(() => execFileSync(process.execPath, ['scripts/version-game.mjs', '1.0.0'],
     { cwd: fixture, stdio: 'pipe', windowsHide: true }), error => /must increase/.test(error.stderr.toString()));
   assert.throws(() => execFileSync(process.execPath, ['scripts/version-game.mjs', '1.0.1'],
     { cwd: fixture, stdio: 'pipe', windowsHide: true }), error => /must increase/.test(error.stderr.toString()));
-  execFileSync(process.execPath, ['scripts/version-game.mjs', 'patch'], { cwd: fixture });
+  execFileSync(process.execPath, ['scripts/version-game.mjs', 'patch'], { cwd: fixture, windowsHide: true });
   assert.equal(JSON.parse(await readFile(path.join(fixture, 'package.json'), 'utf8')).version, '1.0.2');
   assert.equal((await (await fetch(`${taskAddresses[0]}build-info.json`)).json()).version, '1.0.0',
     'Main advances without relabeling an isolated task');
   const detached = path.join(fixture, 'worktrees/task-b');
-  execFileSync('git', ['checkout', '-q', '--detach'], { cwd: detached });
+  execFileSync('git', ['checkout', '-q', '--detach'], { cwd: detached, windowsHide: true });
+  await delay(5_100);
   const detachedInfo = await (await fetch(`${taskAddresses[1]}build-info.json`)).json();
   assert.equal(detachedInfo.branch, null);
   assert.equal(detachedInfo.preview, true);

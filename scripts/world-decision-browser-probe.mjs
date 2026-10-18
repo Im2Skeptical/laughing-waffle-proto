@@ -77,7 +77,7 @@ try {
     await page.mouse.click(bounds.x+point.x*bounds.width/2424,bounds.y+point.y*bounds.height/1080);
     await page.waitForTimeout(180);
   }
-  for (const family of ['travel','campaign','legacy']) {
+  for (const family of ['crossroads','campaign','legacy']) {
     await page.evaluate(family=>probe.enter(family),family);
     await page.waitForTimeout(200);
     let s=await snapshot();
@@ -90,7 +90,7 @@ try {
     await page.setViewportSize({width:844,height:390});
     await page.screenshot({path:`${output}/${family}-phone.png`});
     await page.setViewportSize({width:1280,height:800});
-    if(family==='travel') {
+    if(family==='crossroads') {
       const target=s.worldDecision.targets.find(t=>!t.blocked);
       assert.ok(target,'reachable travel target');
       await click('worldTarget',target.regionId);
