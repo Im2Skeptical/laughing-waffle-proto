@@ -8,6 +8,7 @@ import {
   getVassalLifeMapNodes,
 } from "../../vassal-life-map.js";
 import { stepDetailedSettlementsSecond } from "../../detailed-settlements.js";
+import { getVassalLifeMapNodeType } from '../../../defs/gamepieces/vassal-life-map-defs.js';
 
 export function dispatch(state, kind, payload = {}) {
   const result = applyAction(state, { kind, payload }, { isReplay: true });
@@ -74,11 +75,13 @@ export function forceEnter(state, nodeId) {
 export function nodeIdForFamily(state, family, index = 0) {
   if(family==='legacy'){const node=getVassalLifeMapNodes(getCurrentLifeMapVassal(state)).find(n=>n.family==='legacy');delete node.signatureNode;return node.id;}
   const nodes = getVassalLifeMapNodes(getCurrentLifeMapVassal(state))
-    .filter((node) => node.family === family);
+    .filter((node) => getVassalLifeMapNodeType(node) === family);
   if (!nodes[index]) {
     const graph=getCurrentLifeMapVassal(state).lifeMap.graph;
     const fixtureNode=graph.nodes.find(n=>n.id!==graph.foundingNodeId&&!n.signatureNode && !["legacy","signature"].includes(n.family));
-    fixtureNode.family=family;nodes[index]=fixtureNode;
+    fixtureNode.family=family==='specialRelic'?'relic':family;
+    if(fixtureNode.family==='relic')fixtureNode.specialRelic=family==='specialRelic';else delete fixtureNode.specialRelic;
+    nodes[index]=fixtureNode;
   }
   return nodes[index].id;
 }

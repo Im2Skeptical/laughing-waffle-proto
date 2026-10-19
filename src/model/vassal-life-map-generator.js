@@ -5,6 +5,7 @@ import {
   VASSAL_SIGNATURE_NODE_VARIANTS,
   VASSAL_LIFE_TUNING,
   getVassalStockOutputIds,
+  getVassalLifeMapNodeType,
 } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { detailedSettlementPracticeDefs } from "../defs/gamepieces/detailed-settlement-defs.js";
 import { canonicalizeLifeMapDesign, validateLifeMapDesign, populatePooledLifeMap } from './life-map-design.js';
@@ -21,7 +22,7 @@ function isCanonicalSignatureDescriptor(descriptor) {
     && descriptor.color === variant.color && descriptor.description === variant.description
     && descriptor.removalKind === variant.removalKind && descriptor.tag === variant.tag;
 }
-export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 12;
+export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 13;
 
 export function createAuthoredVassalLifeMapGeneratorConfig() {
   return clone(LIFEGRAPH_DEFAULT_GENERATOR);
@@ -374,14 +375,16 @@ export function generateVassalLifeMap(rawConfig, rng, {
     if(config.design.enabled)continue;
     const excluded = new Set();
     for (const parentId of incoming.get(node.id) ?? []) {
-      const family = nodeById.get(parentId)?.family;
+      const family = getVassalLifeMapNodeType(nodeById.get(parentId));
       if (config.nonRepeatFamilyIds.includes(family)) excluded.add(family);
     }
     if (node.depth === 0 && entryNodes.indexOf(node) === 1 && entryNodes[0]?.family) {
-      excluded.add(entryNodes[0].family);
+      excluded.add(getVassalLifeMapNodeType(entryNodes[0]));
     }
     node.family = rollFamily(rng, config.weights[node.band], excluded);
-    if (node.family === 'relic') node.specialRelic = rng.nextFloat() < .25;
+    if (node.family === 'relic' || node.family === 'specialRelic') {
+      node.specialRelic=node.family==='specialRelic';node.family='relic';
+    }
   }
   const bossNodeId = `life-d${String(config.normalDepthCount + 1).padStart(2, "0")}-boss`;
   nodes.push({
@@ -440,6 +443,7 @@ export function generateVassalLifeMap(rawConfig, rng, {
   }
   if(classId!==undefined)customizeAuthoredLifeMapClass(nodes,classId,trainingOpening);
   }
+  for(const node of nodes)if(node.family!=='relic')delete node.specialRelic;
   nodes = applyLayout(config, nodes, deduped.edges);
   edges = deduped.edges.sort((a, b) =>
     a.fromNodeId.localeCompare(b.fromNodeId) || a.toNodeId.localeCompare(b.toNodeId));
@@ -496,7 +500,8 @@ export function validateVassalLifeMapGraph(graph) {
     ids.add(node?.id);
     nodeById.set(node?.id, node);
     if (!Number.isInteger(node?.depth) || !Number.isInteger(node?.lane)) errors.push(`nodes[${index}]: invalid grid position`);
-    if (![...VASSAL_NORMAL_NODE_FAMILY_IDS, ...Object.keys(VASSAL_FOUNDING_OPTIONS), "legacy", "signature", "stockShop"].includes(node?.family)) errors.push(`nodes[${index}].family: invalid`);
+    if (![...VASSAL_NORMAL_NODE_FAMILY_IDS.filter(id=>id!=='specialRelic'), ...Object.keys(VASSAL_FOUNDING_OPTIONS), "legacy", "signature", "stockShop"].includes(node?.family)) errors.push(`nodes[${index}].family: invalid`);
+    if(node.specialRelic!=null&&typeof node.specialRelic!=='boolean')errors.push(`nodes[${index}].specialRelic: expected a boolean`);
     if (node?.family === "stockShop" && (typeof node.stockOutput !== "string" || !node.stockOutput.trim())) {
       errors.push(`nodes[${index}].stockOutput: expected a Stock output`);
     }
@@ -566,7 +571,7 @@ export function validateVassalLifeMapGraph(graph) {
     if (from.id !== graph.foundingNodeId && to.id !== graph.bossNodeId && Math.abs(to.lane - from.lane) > 1) {
       errors.push(`edges[${index}]: normal edges must use shared or adjacent lanes`);
     }
-    if (config?.nonRepeatFamilyIds?.includes(from.family) && from.family === to.family) {
+    if (config?.nonRepeatFamilyIds?.includes(getVassalLifeMapNodeType(from)) && getVassalLifeMapNodeType(from) === getVassalLifeMapNodeType(to)) {
       errors.push(`edges[${index}]: prohibited sequential ${from.family}`);
     }
   }

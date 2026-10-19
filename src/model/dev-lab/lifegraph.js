@@ -5,10 +5,12 @@ import { getVassalShopCandidatePool } from '../vassal-life-map/shop.js';
 import { getDetailedPracticeDef, getDetailedStructureDef } from '../game-config.js';
 import { VASSAL_INTERVENTION_PRACTICE_IDS } from '../../defs/gamepieces/detailed-settlement-defs.js';
 import { getCurrentLifeMapVassal, enterVassalLifeNode } from '../vassal-life-map.js';
+import { getOwnedHeirloomDefinitionIds } from '../vassal-life-map/heirlooms.js';
+import { getRelicPoolAppearance } from '../vassal-life-map/relic-pools.js';
 import { getStockShopGenerationContext } from '../vassal-life-map/stock-shops.js';
 import { serializeGameState, deserializeGameState } from '../state.js';
 import { LIFEGRAPH_NODE_IDS, lifeMapAllowedScopes, lifeMapScopeMatches } from '../life-map-design.js';
-import { getLifeMapOptionSpecs, LIFEGRAPH_SHOP_SERVICE_SPECS, lifeMapOptionKey, getLifeMapBalanceValue, lifeMapPhasesPerYear } from '../life-map-balance.js';
+import { getLifeMapOptionSpecs, LIFEGRAPH_SHOP_SERVICE_SPECS, lifeMapOptionKey, lifeMapDesignNodeId, getLifeMapBalanceValue, lifeMapPhasesPerYear } from '../life-map-balance.js';
 import { LIFEGRAPH_PREVIOUS_GENERATOR } from '../../defs/lifegraph-defaults.js';
 import { getVassalActionPhaseCost, getAdjustedVassalPrestigeCost } from '../vassal-life-map/selectors.js';
 import { getVassalRiskDeathChance } from '../vassal-life-map/class-rules.js';
@@ -41,7 +43,7 @@ export function validateLifegraphDraft(value){
   return errors;
 }
 
-export function nodeDesignId(node){return node.signatureNode?`signature:${node.signatureNode.variantId}`:node.family;}
+export const nodeDesignId=lifeMapDesignNodeId;
 export function lifegraphNodeLabel(id){return id.startsWith('signature:')?VASSAL_SIGNATURE_NODE_VARIANTS[id.slice(10)]?.label:VASSAL_NODE_FAMILIES[id]?.label??id;}
 
 // Reuse one captured fixture; graph batches never initialize hundreds of worlds.
@@ -79,12 +81,13 @@ export function openLifegraphNodeType(state,graph,designId,settings){
   const classId=getCurrentLifeMapVassal(state).classId;
   if(!lifeMapAllowedScopes(designId).some(scope=>lifeMapScopeMatches(scope,classId)))throw new Error('Switch to the compatible class to play this node type.');
   const copy=clone(graph),variant=designId.startsWith('signature:')?VASSAL_SIGNATURE_NODE_VARIANTS[designId.slice(10)]:null;
-  const family=variant?variant.id==='legacyPlus'?'legacy':'signature':designId;
+  const family=variant?variant.id==='legacyPlus'?'legacy':'signature':designId==='specialRelic'?'relic':designId;
   const target=copy.nodes.find(n=>nodeDesignId(n)===designId)??(family==='legacy'?copy.nodes.find(n=>n.family==='legacy'):family==='signature'?copy.nodes.find(n=>n.family==='signature'):null)
-    ??copy.nodes.find(n=>!n.signatureNode&&n.family!=='legacy'&&!copy.edges.some(e=>(e.fromNodeId===n.id&&copy.nodes.find(x=>x.id===e.toNodeId).family===family||e.toNodeId===n.id&&copy.nodes.find(x=>x.id===e.fromNodeId).family===family)&&copy.generatorConfig.nonRepeatFamilyIds.includes(family)));
+    ??copy.nodes.find(n=>!n.signatureNode&&n.family!=='legacy'&&!copy.edges.some(e=>(e.fromNodeId===n.id&&nodeDesignId(copy.nodes.find(x=>x.id===e.toNodeId))===designId||e.toNodeId===n.id&&nodeDesignId(copy.nodes.find(x=>x.id===e.fromNodeId))===designId)&&copy.generatorConfig.nonRepeatFamilyIds.includes(designId)));
   if(!target)throw new Error('No suitable node slot for this isolated type preview.');
   target.family=family;delete target.signatureNode;delete target.specialRelic;delete target.generationRuleId;delete target.stockOutput;
   if(variant)target.signatureNode={...variant,variantId:variant.id};
+  if(family==='relic')target.specialRelic=designId==='specialRelic';
   if(family==='stockShop')target.stockOutput='Timber';
   return openLifegraphNode(state,copy,target.id,settings);
 }
@@ -94,7 +97,8 @@ export function getLifegraphChoiceReview(state,graph,designId,settings){
   try{scenario=openLifegraphNodeType(state,graph,designId,settings);}catch(e){error=e.message;}
   const vassal=scenario?getCurrentLifeMapVassal(scenario.state):getCurrentLifeMapVassal(state);
   const node=scenario?vassal.lifeMap.nodeStates[scenario.nodeId]:null,design=state.gameConfig.lifeMapGenerator.design;
-  return {error,choices:getLifeMapOptionSpecs(designId).map(spec=>{
+  const relicPool=['relic','specialRelic'].includes(designId)?getRelicPoolAppearance(design,designId,getOwnedHeirloomDefinitionIds(scenario?.state??state,vassal)):null;
+  return {error,relicPool,offers:relicPool?(node?.options??[]).filter(option=>option.definitionId).map(option=>({id:option.definitionId,label:option.label,quality:option.quality})):null,choices:getLifeMapOptionSpecs(designId).map(spec=>{
     const option=node?.options.find(option=>lifeMapOptionKey(node,option)===spec.id);
     const shared=LIFEGRAPH_SHOP_SERVICE_SPECS.some(s=>s.id===spec.id);
     const rule=shared?design.shopServices[spec.id]:design.optionCosts[designId][spec.id];
@@ -158,5 +162,10 @@ export function diagnoseLifegraphCardPools(state){
   for(const tag of ['Food','Housing','Knowledge'])add(`tag:${tag}`,`Mixed shop · ${tag}`,stateFor('foodShop'),{requiredTag:tag});
   for(const category of ['Housing','Stock','Special'])add(`structure:${category}`,`Structure · ${category}`,{...stateFor('publicWorks'),shopSelection:{selectedTag:category}},{kind:'structure'});
   for(const family of vassal.classId?['neutralMarket','classMarket']:['neutralMarket'])add(family,lifegraphNodeLabel(family),stateFor(family),{});
+  for(const id of ['relic','specialRelic']){
+    const cards=getRelicPoolAppearance(state.gameConfig.lifeMapGenerator.design,id,getOwnedHeirloomDefinitionIds(state,vassal))
+      .filter(row=>row.available).map(row=>({...row,kind:'Relic',pool:row.quality}));
+    rows.push({id,label:lifegraphNodeLabel(id),relicPool:true,count:cards.length,common:0,specific:0,status:cards.length===0?'empty':cards.length<3?'thin':'varied',cards});
+  }
   return rows;
 }

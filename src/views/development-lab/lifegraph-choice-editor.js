@@ -24,7 +24,7 @@ export function renderLifegraphChoices(parent,{controller,designId,servicesOnly=
       const name=kind==='risk'?option.riskLabel:title(kind);
       const assignment=option.rule[kind],label=`${option.label} · ${name}`;
       const entries=LIFEGRAPH_COST_CHOICES.map(tier=>[tier,tier==='free'?'Free · 0':`${title(tier)} · ${display(kind,design.costBands[kind][tier])}`]);
-      if(getLifeMapOptionSpecs(designId).find(o=>o.id===option.id).defaults[kind]==='calculated')entries.push(['calculated',kind==='risk'?'Encounter risk · Force / Defence':designId==='relic'?'By Relic quality':'By rolled stat']);
+      if(getLifeMapOptionSpecs(designId).find(o=>o.id===option.id).defaults[kind]==='calculated')entries.push(['calculated',kind==='risk'?'Encounter risk · Force / Defence':['relic','specialRelic'].includes(designId)?'By Relic quality':'By rolled stat']);
       entries.push(['custom','Custom base value']);
       const band=select(`${label} band`,entries,typeof assignment==='number'?'custom':assignment);
       band.addEventListener('change',()=>controller.setOptionCost(designId,option.id,kind,band.value==='custom'?option.base[kind]:band.value));

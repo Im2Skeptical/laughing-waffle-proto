@@ -2,6 +2,7 @@ import { createLifegraphController } from '../../controllers/lifegraph-controlle
 import { LIFEGRAPH_NODE_IDS, LIFEGRAPH_RARITIES, lifeMapAllowedScopes } from '../../model/life-map-design.js';
 import { LIFEGRAPH_COST_TIERS } from '../../model/life-map-balance.js';
 import { renderLifegraphChoices, renderLifegraphShopPricing } from './lifegraph-choice-editor.js';
+import { renderLifegraphRelicPool } from './lifegraph-relic-editor.js';
 import { nodeDesignId, lifegraphNodeLabel } from '../../model/dev-lab/lifegraph.js';
 import { VASSAL_SIGNATURE_NODE_VARIANTS } from '../../defs/gamepieces/vassal-life-map-defs.js';
 import { createLifegraphPreview } from './lifegraph-preview.js';
@@ -103,6 +104,7 @@ export function createLifegraphView({controller=createLifegraphController()}={})
     const row=s.diagnostics?.families[id];if(row)editor.append(el('p',`This graph: ${row.count} nodes · early ${row.early}, middle ${row.mid}, late ${row.late} · ${row.minOnRoute}–${row.maxOnRoute} on a complete route.`,'lab-summary'));
     const example=s.graph?.nodes.find(n=>nodeDesignId(n)===id);editor.append(button(example?'Play an example from this graph':'Try this node in isolation',()=>example?play(example.id):play(id,{type:true}),'lifegraph-play-type','primary'));
     if(!example)editor.append(el('p','This node is absent from the graph. The isolated preview replaces one slot for this test only; enable and guarantee rules remain unchanged. Stock Supply uses Timber in this isolated test.','lab-note'));
+    renderLifegraphRelicPool(editor,{controller,designId:id});
     renderLifegraphChoices(editor,{controller,designId:id});
     if(['practiceReform','stockShop','publicWorks','neutralMarket','classMarket','foodShop','housingShop','signature:foodShop','signature:housingShop','signature:knowledgeShop'].includes(id))renderLifegraphShopPricing(editor,{controller,types:['practiceReform','stockShop'].includes(id)?['practice']:id==='publicWorks'?['structure']:['practice','structure']});
     const review=s.draft.reviews[id],notes=el('textarea');notes.value=review?.notes??'';notes.rows=7;notes.maxLength=20000;notes.setAttribute('aria-label','Node review notes');notes.placeholder='What feels wrong? What should change? Include content gaps or a seed to reproduce.';
@@ -146,7 +148,7 @@ export function createLifegraphView({controller=createLifegraphController()}={})
     const thinOnly=check('Only empty / thin pools',false,v=>{for(const row of parent.querySelectorAll('[data-pool-status=varied]'))row.hidden=v;});parent.append(thinOnly);
     for(const row of s.cardPools){
       const members=row.cards.map(c=>`${c.label} (${c.pool}; ${c.kind})`);
-      const detail=disclosure(row.label,[el('p',`${row.count} distinct cards · ${row.common} Common · ${row.specific} class-specific`),...members.map(name=>el('p',name,'lab-note')),button('Note this content gap',()=>{selectedDesign=row.id.startsWith('structure:')?'publicWorks':row.id.startsWith('tag:')?row.id==='tag:Housing'?'housingShop':row.id==='tag:Food'?'foodShop':'signature:knowledgeShop':row.id.startsWith('stock:')?'stockShop':'practiceReform';const old=s.draft.reviews[selectedDesign];controller.setReview(selectedDesign,`${old?.notes?`${old.notes}\n\n`:''}${row.label}: ${row.count} eligible cards (${s.draft.preview.classId}, Research ${s.draft.preview.research}). ${row.cards.map(c=>c.label).join(', ')}`);tab='nodes';render();})],{key:`lifegraph:pool:${row.id}`,open:false,badges:[badge(`${row.count} · ${row.status}`,row.status==='varied'?'ok':'warn')]});detail.dataset.poolStatus=row.status;parent.append(detail);
+      const detail=disclosure(row.label,[el('p',row.relicPool?`${row.count} distinct eligible Relics; up to three different offers per visit.`:`${row.count} distinct cards · ${row.common} Common · ${row.specific} class-specific`),...members.map(name=>el('p',name,'lab-note')),button('Note this content gap',()=>{selectedDesign=['relic','specialRelic'].includes(row.id)?row.id:row.id.startsWith('structure:')?'publicWorks':row.id.startsWith('tag:')?row.id==='tag:Housing'?'housingShop':row.id==='tag:Food'?'foodShop':'signature:knowledgeShop':row.id.startsWith('stock:')?'stockShop':'practiceReform';const old=s.draft.reviews[selectedDesign];controller.setReview(selectedDesign,`${old?.notes?`${old.notes}\n\n`:''}${row.label}: ${row.count} eligible cards (${s.draft.preview.classId}, Research ${s.draft.preview.research}). ${row.cards.map(c=>c.label).join(', ')}`);tab='nodes';render();})],{key:`lifegraph:pool:${row.id}`,open:false,badges:[badge(`${row.count} · ${row.status}`,row.status==='varied'?'ok':'warn')]});detail.dataset.poolStatus=row.status;parent.append(detail);
     }
     const count=input('Batch seed count',100);count.min='1';count.max='500';
     const run=button(s.batchRunning?'Checking seeds…':'Check seed batch',()=>void controller.runBatch(Number(count.value)),'lifegraph-run-batch','primary');run.disabled=s.batchRunning;

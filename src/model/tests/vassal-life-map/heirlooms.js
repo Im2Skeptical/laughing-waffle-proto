@@ -276,8 +276,7 @@ emptyRelicState.civilization.vassalLineage.pendingVaultOverflow = Object.keys(VA
 const emptyOffers = generateRelicOffers(emptyRelicState, getCurrentLifeMapVassal(emptyRelicState));
 assert.equal(emptyOffers.length, 1);
 assert.equal(emptyOffers[0].emptyRelic, true);
-assert.ok(emptyOffers[0].phaseCost >= VASSAL_TIME_COST_RANGES.low.min
-  && emptyOffers[0].phaseCost <= VASSAL_TIME_COST_RANGES.low.max);
+assert.equal(emptyOffers[0].phaseCost,0,'an exhausted pool offers a free exit');
 assert.equal(emptyOffers[0].immediateDeathChance, 0);
 
 const crownState = selectedState(1115);
@@ -369,7 +368,7 @@ for (const [definitionId, deathRoll, protectedByMandate, destination] of [
 let replayRelicState;
 for (let seed = 1117; seed < 1140; seed += 1) {
   const trial = selectedState(seed);
-  const trialNode = forceEnter(trial, nodeIdForFamily(trial, 'relic'));
+  const trialNode = forceEnter(trial, nodeIdForFamily(trial, 'specialRelic'));
   if (trialNode.options.some(option => option.immediateDeathChance > 0)) {
     replayRelicState = selectedState(seed);
     break;
@@ -377,7 +376,7 @@ for (let seed = 1117; seed < 1140; seed += 1) {
 }
 assert.ok(replayRelicState, "replay fixture offers a dangerous relic");
 const replayRelicVassal = getCurrentLifeMapVassal(replayRelicState);
-const replayRelicId = nodeIdForFamily(replayRelicState, 'relic');
+const replayRelicId = nodeIdForFamily(replayRelicState, 'specialRelic');
 replayRelicVassal.lifeMap.availableNodeIds = [replayRelicId];
 const relicTimeline = createTimelineFromInitialState(replayRelicState);
 const appendRelicAction = (kind, payload) => appendActionAtCursor(relicTimeline, {

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {checkLifegraphRelicPools} from './lifegraph-relic-browser-checks.mjs';
 
 export async function checkLifegraphWorkspace(page,context,{reload=false}={}){
   const gymBefore=await page.evaluate(()=>JSON.stringify(__LAB_DEBUG__.getSnapshot().state));
@@ -27,6 +28,7 @@ export async function checkLifegraphWorkspace(page,context,{reload=false}={}){
   await page.getByTestId('lifegraph-load-defaults').click();
   await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().draft.generatorConfig.laneCount===3);
   await page.getByTestId('lifegraph-tab-nodes').click();
+  await checkLifegraphRelicPools(page);
   await page.getByTestId('lifegraph-node-development').click();
   const choice=page.locator('[data-option-id="deepStudy"]');
   assert.equal(await page.locator('.lab-lifegraph-choice-card').count(),3);

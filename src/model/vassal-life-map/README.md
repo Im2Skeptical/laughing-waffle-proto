@@ -48,6 +48,9 @@ re-exports the previous public API; internals live here.
 - `heirlooms.js`
   - Equipped/Carry/Vault inventory, unique copies, Relic offers, inheritance,
     loadout, overflow, and equipped modifiers.
+- `relic-pools.js`
+  - Captured ordinary quality rules and Special Relic item weights, validation,
+    owned/exhausted exclusions, and first-draw appearance probabilities.
 - `decision-preparation.js`
   - Isolated worker transaction validation, tick resolution, and speculative
     reachable-node/reroll preparation, including presentations before and after

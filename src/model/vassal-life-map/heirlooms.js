@@ -1,10 +1,10 @@
 import { getGameSetting } from '../game-config.js';
+import { getRelicPoolAppearance } from './relic-pools.js';
 import {
   HEIRLOOM_CARRY_SLOTS,
   HEIRLOOM_EQUIPPED_SLOTS,
   HEIRLOOM_VAULT_SLOTS,
   VASSAL_HEIRLOOM_DEFS,
-  VASSAL_HEIRLOOM_DEFINITION_IDS,
   VASSAL_HEIRLOOM_INHERITANCE_STATES,
   VASSAL_HEIRLOOM_QUALITIES,
   VASSAL_HEIRLOOM_TUNING,
@@ -189,23 +189,25 @@ function firstEmptyIndex(slots) {
 function rollHeirloomQuality(state, eligible) {
   const present = new Set(eligible.map((def) => def.quality));
   const weights = VASSAL_HEIRLOOM_QUALITIES.map((quality) =>
-    present.has(quality) ? Math.max(0, VASSAL_HEIRLOOM_TUNING.rarityWeights[quality] ?? 0) : 0
+    present.has(quality) ? state.gameConfig.lifeMapGenerator.design.relicPools.relic.qualities[quality].weight : 0
   );
   const total = weights.reduce((sum, value) => sum + value, 0);
-  if (total <= 0) return eligible[0]?.quality ?? "bronze";
   let roll = state.rngNextVassalFloat() * total;
   for (let index = 0; index < VASSAL_HEIRLOOM_QUALITIES.length; index += 1) {
     roll -= weights[index];
     if (roll < 0) return VASSAL_HEIRLOOM_QUALITIES[index];
   }
-  return VASSAL_HEIRLOOM_QUALITIES.at(-1);
+  return eligible.at(-1).quality;
 }
 
-function pickHeirloomDefinition(state, excludedIds) {
-  const eligible = VASSAL_HEIRLOOM_DEFINITION_IDS
-    .map((id) => VASSAL_HEIRLOOM_DEFS[id])
-    .filter((def) => def && !excludedIds.has(def.id));
+function pickHeirloomDefinition(state, excludedIds, special) {
+  const eligible=getRelicPoolAppearance(state.gameConfig.lifeMapGenerator.design,special?'specialRelic':'relic',excludedIds).filter(row=>row.available);
   if (!eligible.length) return null;
+  if(special){
+    let roll=state.rngNextVassalFloat()*eligible.reduce((sum,row)=>sum+row.weight,0);
+    const pick=eligible.find(row=>(roll-=row.weight)<0)??eligible.at(-1);
+    return VASSAL_HEIRLOOM_DEFS[pick.id];
+  }
   const quality = rollHeirloomQuality(state, eligible);
   const pool = eligible.filter((def) => def.quality === quality);
   const pickFrom = pool.length ? pool : eligible;
@@ -216,7 +218,7 @@ export function generateRelicOffers(state, vassal, {special=false} = {}) {
   const excluded = getOwnedHeirloomDefinitionIds(state, vassal);
   const offers = [];
   for (let index = 0; index < VASSAL_HEIRLOOM_TUNING.offerCount; index += 1) {
-    const def = pickHeirloomDefinition(state, excluded);
+    const def = pickHeirloomDefinition(state, excluded, special);
     if (!def) break;
     excluded.add(def.id);
     const cost = VASSAL_HEIRLOOM_TUNING.relicCostsByQuality[def.quality];
@@ -239,12 +241,12 @@ export function generateRelicOffers(state, vassal, {special=false} = {}) {
     offers.push({
       id: "relic-empty",
       emptyRelic: true,
-      label: "The site holds nothing",
-      description: "No eligible Heirloom remains to be found.",
+      label: "No eligible Relics remain",
+      description: "Leave this empty pool without spending time or risking death.",
       prestigeCost: 0,
       timeCostTier: "low",
       immediateDeathChance: 0,
-      phaseCost: state.rngNextVassalInt(VASSAL_TIME_COST_RANGES.low.min, VASSAL_TIME_COST_RANGES.low.max),
+      phaseCost: 0,
     });
   }
   return offers;

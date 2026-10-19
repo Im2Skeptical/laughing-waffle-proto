@@ -1,6 +1,6 @@
 // Authored from Cam's first-pass Lifegraph export. Previous tuning remains an explicit Lab profile.
 export const LIFEGRAPH_DEFAULT_GENERATOR = {
-  "schemaVersion": 12,
+  "schemaVersion": 13,
   "laneCount": 3,
   "normalDepthCount": 10,
   "routeCount": 6,
@@ -121,7 +121,7 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
         "enabled": true,
         "poolId": "relics",
         "scope": "common",
-        "occurrence": "common",
+        "occurrence": "uncommon",
         "timings": [
           "early",
           "mid",
@@ -309,6 +309,17 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
         "poolId": "journey",
         "scope": "common",
         "occurrence": "common",
+        "timings": [
+          "early",
+          "mid",
+          "late"
+        ]
+      },
+      "specialRelic": {
+        "enabled": true,
+        "poolId": "relics",
+        "scope": "common",
+        "occurrence": "rare",
         "timings": [
           "early",
           "mid",
@@ -530,12 +541,6 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "prestige": "free",
           "risk": "free",
           "monsterPressure": "calculated"
-        },
-        "dangerousSearch": {
-          "time": "fair",
-          "prestige": "free",
-          "risk": "expensive",
-          "monsterPressure": "calculated"
         }
       },
       "signature:legacyPlus": {
@@ -627,7 +632,15 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
       "stockShop": {},
       "signature:foodShop": {},
       "signature:housingShop": {},
-      "signature:knowledgeShop": {}
+      "signature:knowledgeShop": {},
+      "specialRelic": {
+        "search": {
+          "time": "fair",
+          "prestige": "free",
+          "risk": "expensive",
+          "monsterPressure": "calculated"
+        }
+      }
     },
     "shopPricing": {
       "enabled": true,
@@ -754,6 +767,88 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
       "emptyConfirm": {
         "time": 5
       }
+    },
+    "relicPools": {
+      "relic": {
+        "qualities": {
+          "bronze": {
+            "enabled": true,
+            "weight": 55
+          },
+          "silver": {
+            "enabled": true,
+            "weight": 28
+          },
+          "gold": {
+            "enabled": true,
+            "weight": 13
+          },
+          "diamond": {
+            "enabled": true,
+            "weight": 4
+          }
+        }
+      },
+      "specialRelic": {
+        "entries": {
+          "signetRing": {
+            "enabled": true,
+            "weight": 110
+          },
+          "travellersBoots": {
+            "enabled": true,
+            "weight": 110
+          },
+          "tutorsNotebook": {
+            "enabled": true,
+            "weight": 110
+          },
+          "minorSeal": {
+            "enabled": true,
+            "weight": 110
+          },
+          "foxMask": {
+            "enabled": true,
+            "weight": 110
+          },
+          "abacus": {
+            "enabled": true,
+            "weight": 110
+          },
+          "courtiersBrooch": {
+            "enabled": true,
+            "weight": 84
+          },
+          "pilgrimsStaff": {
+            "enabled": true,
+            "weight": 84
+          },
+          "merchantsLens": {
+            "enabled": true,
+            "weight": 84
+          },
+          "hourglass": {
+            "enabled": true,
+            "weight": 84
+          },
+          "royalWarrant": {
+            "enabled": true,
+            "weight": 78
+          },
+          "scholarsCodex": {
+            "enabled": true,
+            "weight": 78
+          },
+          "crownOfAges": {
+            "enabled": true,
+            "weight": 24
+          },
+          "mandateOfHeaven": {
+            "enabled": true,
+            "weight": 24
+          }
+        }
+      }
     }
   },
   "weights": {
@@ -764,7 +859,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
       "practiceReform": 1,
       "publicWorks": 1,
       "crisis": 0,
-      "relic": 2,
+      "relic": 1.5,
+      "specialRelic": 0.5,
       "training": 0,
       "discovery": 0,
       "campaign": 0,
@@ -781,7 +877,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
       "practiceReform": 3,
       "publicWorks": 3,
       "crisis": 1,
-      "relic": 4,
+      "relic": 3,
+      "specialRelic": 1,
       "training": 0,
       "discovery": 0,
       "campaign": 0,
@@ -798,7 +895,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
       "practiceReform": 4,
       "publicWorks": 4,
       "crisis": 5,
-      "relic": 3,
+      "relic": 2.25,
+      "specialRelic": 0.75,
       "training": 0,
       "discovery": 0,
       "campaign": 0,
@@ -812,7 +910,7 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
 };
 
 export const LIFEGRAPH_PREVIOUS_GENERATOR = {
-  "schemaVersion": 12,
+  "schemaVersion": 13,
   "laneCount": 6,
   "normalDepthCount": 11,
   "routeCount": 6,
@@ -933,7 +1031,7 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
         "enabled": true,
         "poolId": "relics",
         "scope": "common",
-        "occurrence": "common",
+        "occurrence": "uncommon",
         "timings": [
           "early",
           "mid",
@@ -1121,6 +1219,17 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
         "poolId": "journey",
         "scope": "common",
         "occurrence": "common",
+        "timings": [
+          "early",
+          "mid",
+          "late"
+        ]
+      },
+      "specialRelic": {
+        "enabled": true,
+        "poolId": "relics",
+        "scope": "common",
+        "occurrence": "rare",
         "timings": [
           "early",
           "mid",
@@ -1342,12 +1451,6 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "prestige": "free",
           "risk": "free",
           "monsterPressure": "calculated"
-        },
-        "dangerousSearch": {
-          "time": "fair",
-          "prestige": "free",
-          "risk": "expensive",
-          "monsterPressure": "calculated"
         }
       },
       "signature:legacyPlus": {
@@ -1439,7 +1542,15 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
       "stockShop": {},
       "signature:foodShop": {},
       "signature:housingShop": {},
-      "signature:knowledgeShop": {}
+      "signature:knowledgeShop": {},
+      "specialRelic": {
+        "search": {
+          "time": "fair",
+          "prestige": "free",
+          "risk": "expensive",
+          "monsterPressure": "calculated"
+        }
+      }
     },
     "shopPricing": {
       "enabled": true,
@@ -1536,6 +1647,88 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
       "emptyConfirm": {
         "time": 2
       }
+    },
+    "relicPools": {
+      "relic": {
+        "qualities": {
+          "bronze": {
+            "enabled": true,
+            "weight": 55
+          },
+          "silver": {
+            "enabled": true,
+            "weight": 28
+          },
+          "gold": {
+            "enabled": true,
+            "weight": 13
+          },
+          "diamond": {
+            "enabled": true,
+            "weight": 4
+          }
+        }
+      },
+      "specialRelic": {
+        "entries": {
+          "signetRing": {
+            "enabled": true,
+            "weight": 110
+          },
+          "travellersBoots": {
+            "enabled": true,
+            "weight": 110
+          },
+          "tutorsNotebook": {
+            "enabled": true,
+            "weight": 110
+          },
+          "minorSeal": {
+            "enabled": true,
+            "weight": 110
+          },
+          "foxMask": {
+            "enabled": true,
+            "weight": 110
+          },
+          "abacus": {
+            "enabled": true,
+            "weight": 110
+          },
+          "courtiersBrooch": {
+            "enabled": true,
+            "weight": 84
+          },
+          "pilgrimsStaff": {
+            "enabled": true,
+            "weight": 84
+          },
+          "merchantsLens": {
+            "enabled": true,
+            "weight": 84
+          },
+          "hourglass": {
+            "enabled": true,
+            "weight": 84
+          },
+          "royalWarrant": {
+            "enabled": true,
+            "weight": 78
+          },
+          "scholarsCodex": {
+            "enabled": true,
+            "weight": 78
+          },
+          "crownOfAges": {
+            "enabled": true,
+            "weight": 24
+          },
+          "mandateOfHeaven": {
+            "enabled": true,
+            "weight": 24
+          }
+        }
+      }
     }
   },
   "weights": {
@@ -1546,7 +1739,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
       "practiceReform": 1,
       "publicWorks": 1,
       "crisis": 0,
-      "relic": 2,
+      "relic": 1.5,
+      "specialRelic": 0.5,
       "training": 0,
       "discovery": 0,
       "campaign": 0,
@@ -1563,7 +1757,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
       "practiceReform": 3,
       "publicWorks": 3,
       "crisis": 1,
-      "relic": 4,
+      "relic": 3,
+      "specialRelic": 1,
       "training": 0,
       "discovery": 0,
       "campaign": 0,
@@ -1580,7 +1775,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
       "practiceReform": 4,
       "publicWorks": 4,
       "crisis": 5,
-      "relic": 3,
+      "relic": 2.25,
+      "specialRelic": 0.75,
       "training": 0,
       "discovery": 0,
       "campaign": 0,

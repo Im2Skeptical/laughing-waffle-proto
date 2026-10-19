@@ -1,5 +1,6 @@
-import { VASSAL_NORMAL_NODE_FAMILY_IDS, VASSAL_SIGNATURE_NODE_VARIANTS } from '../defs/gamepieces/vassal-life-map-defs.js';
+import { VASSAL_NORMAL_NODE_FAMILY_IDS, VASSAL_SIGNATURE_NODE_VARIANTS, getVassalLifeMapNodeType } from '../defs/gamepieces/vassal-life-map-defs.js';
 import { validateLifeMapBalance } from './life-map-balance.js';
+import { validateRelicPools } from './vassal-life-map/relic-pools.js';
 import { LIFEGRAPH_DEFAULT_GENERATOR } from '../defs/lifegraph-defaults.js';
 
 export const LIFEGRAPH_RARITIES = Object.freeze(['common', 'uncommon', 'rare']);
@@ -56,6 +57,7 @@ export function validateLifeMapDesign(design, depthCount) {
     const n=design[key]?.[tier];if(!Number.isFinite(n)||n<=0||n>100)fail(`${key}.${tier}: expected more than 0, up to 100`);
   }
   errors.push(...validateLifeMapBalance(design));
+  errors.push(...validateRelicPools(design.relicPools));
   for(const id of LIFEGRAPH_NODE_IDS){
     const rule=design.nodes?.[id];
     if(!rule||typeof rule.enabled!=='boolean'){fail(`nodes.${id}: enabled must be a boolean`);continue;}
@@ -98,11 +100,11 @@ export function populatePooledLifeMap(config, nodes, edges, rng, {classId=null,s
   const design=config.design, byId=new Map(nodes.map(n=>[n.id,n]));
   const randomIds=[...VASSAL_NORMAL_NODE_FAMILY_IDS,'stockShop'];
   const parents=id=>edges.filter(e=>e.toNodeId===id).map(e=>byId.get(e.fromNodeId));
-  const poolFor=n=>design.nodes[n.signatureNode?`signature:${n.signatureNode.variantId}`:n.family]?.poolId;
+  const poolFor=n=>design.nodes[n.signatureNode?`signature:${n.signatureNode.variantId}`:getVassalLifeMapNodeType(n)]?.poolId;
   const eligible=(node,ids=randomIds)=>ids.filter(id=>lifeMapNodeEnabled(design,id,classId,node.band)
     &&!(id==='stockShop'&&!stockOutputs.length)
-    &&!edges.some(e=>(e.toNodeId===node.id&&byId.get(e.fromNodeId).family===id
-      ||e.fromNodeId===node.id&&byId.get(e.toNodeId).family===id)&&config.nonRepeatFamilyIds.includes(id)));
+    &&!edges.some(e=>(e.toNodeId===node.id&&getVassalLifeMapNodeType(byId.get(e.fromNodeId))===id
+      ||e.fromNodeId===node.id&&getVassalLifeMapNodeType(byId.get(e.toNodeId))===id)&&config.nonRepeatFamilyIds.includes(id)));
   const choose=(node,ids)=>{
     const runs=new Map();
     const poolRun=(n,poolId)=>{
@@ -117,16 +119,16 @@ export function populatePooledLifeMap(config, nodes, edges, rng, {classId=null,s
     return pool?weighted(rng,candidates.filter(id=>design.nodes[id].poolId===pool.id),id=>design.occurrence[design.nodes[id].occurrence]):null;
   };
   const assign=(node,family)=>{
-    node.family=family;
+    node.family=family==='specialRelic'?'relic':family;
     if(family==='stockShop')node.stockOutput=stockOutputs[rng.nextInt(0,stockOutputs.length-1)];
-    if(family==='relic')node.specialRelic=rng.nextFloat()<0.25;
+    if(node.family==='relic')node.specialRelic=family==='specialRelic';
   };
   const reserve=(node,family,ruleId)=>{assign(node,family);node.generationRuleId=ruleId;};
   if(signatureNode&&lifeMapNodeEnabled(design,`signature:${signatureNode.variantId}`,classId)){
     if(signatureNode.variantId==='legacyPlus')nodes.find(n=>n.family==='legacy').signatureNode=clone(signatureNode);
     else {const rule=design.nodes[`signature:${signatureNode.variantId}`];const candidates=nodes.filter(n=>n.family!=='legacy'&&rule.timings.includes(n.band));if(candidates.length){const preferred=candidates.filter(n=>n.band==='mid'),available=preferred.length?preferred:candidates;const n=available[rng.nextInt(0,available.length-1)];n.family='signature';n.signatureNode=clone(signatureNode);n.generationRuleId='signature';}}
   }
-  const matches=(n,g)=>n.depth>=g.minDepth-1&&n.depth<=g.maxDepth-1&&(g.targetType==='node'?n.family===g.targetId:poolFor(n)===g.targetId);
+  const matches=(n,g)=>n.depth>=g.minDepth-1&&n.depth<=g.maxDepth-1&&(g.targetType==='node'?getVassalLifeMapNodeType(n)===g.targetId:poolFor(n)===g.targetId);
   const minPath=g=>{
     const scores=new Map(),paths=new Map();
     for(const n of nodes){const ps=parents(n.id);const p=ps.sort((a,b)=>(scores.get(a.id)??0)-(scores.get(b.id)??0))[0];scores.set(n.id,(p?scores.get(p.id):0)+(matches(n,g)?1:0));paths.set(n.id,[...(p?paths.get(p.id):[]),n]);}

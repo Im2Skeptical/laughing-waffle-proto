@@ -1,4 +1,4 @@
-import { VASSAL_PATRONAGE_OPTIONS, VASSAL_DEVELOPMENT_OPTIONS } from '../defs/gamepieces/vassal-life-map-defs.js';
+import { VASSAL_PATRONAGE_OPTIONS, VASSAL_DEVELOPMENT_OPTIONS, getVassalLifeMapNodeType } from '../defs/gamepieces/vassal-life-map-defs.js';
 
 export const LIFEGRAPH_COST_TIERS = Object.freeze(['cheap','fair','expensive']);
 export const LIFEGRAPH_COST_CHOICES = Object.freeze(['free',...LIFEGRAPH_COST_TIERS]);
@@ -26,7 +26,8 @@ export const LIFEGRAPH_OPTION_SPECS = Object.freeze({
   campaign,
   crisis:[spec('relief','Relief expedition','cheap','free','fair'),spec('buy-relief','Procure relief','cheap'),spec('delay','Divert a Monster','cheap','free','fair'),spec('rescue','Rescue population','cheap'),spec('observe-crisis','Leave the response to the civilization')],
   legacy:[spec('found-settlement','Found a settlement'),spec('highest-stat','Teach the highest stat'),spec('accumulated-prestige','Leave renown')],
-  relic:[spec('search','Search for an ordinary Relic','fair','free','free','calculated'),spec('dangerousSearch','Search for a Special Relic','fair','free','expensive','calculated')],
+  relic:[spec('search','Search for an ordinary Relic','fair','free','free','calculated')],
+  specialRelic:[spec('search','Search for a Special Relic','fair','free','expensive','calculated')],
   'signature:legacyPlus':[spec('foundDynasty','Found a Dynasty','fair','expensive'),spec('enduringOffice','Enduring Office','fair','fair'),spec('humbleRemembrance','Humble Remembrance')],
   'signature:settlement':settlement,
   'signature:monsterHunt':campaign,
@@ -36,7 +37,7 @@ export const LIFEGRAPH_OPTION_SPECS = Object.freeze({
 
 export const getLifeMapOptionSpecs=nodeId=>[...(LIFEGRAPH_OPTION_SPECS[nodeId]??[]),...(LIFEGRAPH_SHOP_NODE_IDS.includes(nodeId)?LIFEGRAPH_SHOP_SERVICE_SPECS:[])];
 
-export function lifeMapDesignNodeId(node){return node?.signatureNode?`signature:${node.signatureNode.variantId}`:node?.family;}
+export function lifeMapDesignNodeId(node){return node?.signatureNode?`signature:${node.signatureNode.variantId}`:getVassalLifeMapNodeType(node);}
 
 export function lifeMapOptionKey(node,option){
   if(option.balanceKey)return option.balanceKey;
@@ -45,7 +46,7 @@ export function lifeMapOptionKey(node,option){
   if(family==='crossroads')return id.startsWith('travel-')?'travel':id.startsWith('crossroads-route:')?'route':id;
   if(family==='signature:settlement')return id.startsWith('small-settlement:')||id==='settlement-unavailable'?'found':id.startsWith('settlement-edge:')?'route':id;
   if(family==='crisis')return ['buy-relief','relief','delay','rescue'].find(prefix=>id.startsWith(`${prefix}-`))??id;
-  if(family==='relic')return option.immediateDeathChance>0?'dangerousSearch':'search';
+  if(family==='relic'||family==='specialRelic')return 'search';
   return id;
 }
 
@@ -60,6 +61,7 @@ export function lifeMapPhasesPerYear(state){
 const yearPhases=(state,years)=>Math.max(years>0?1:0,Math.round(years*lifeMapPhasesPerYear(state)));
 
 export function resolveLifeMapOptionCosts(state,node,option){
+  if(option.emptyRelic)return option;
   const design=state.gameConfig.lifeMapGenerator.design;
   const key=lifeMapOptionKey(node,option),shared=LIFEGRAPH_SHOP_NODE_IDS.includes(lifeMapDesignNodeId(node))?design.shopServices[key]:null;
   if(!design.enabled&&!shared)return option;

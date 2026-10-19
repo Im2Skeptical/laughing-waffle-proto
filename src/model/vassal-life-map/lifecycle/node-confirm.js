@@ -211,6 +211,7 @@ function createNodeState(state, vassal, node) {
   const nodeState = {
     nodeId: node.id,
     family: node.family,
+    ...(node.family==='relic'?{specialRelic:node.specialRelic===true}:{}),
     ...(node.stockOutput ? { stockOutput: node.stockOutput } : {}),
     signatureNode: node.signatureNode ? clone(node.signatureNode) : null,
     contentMode: "choice",

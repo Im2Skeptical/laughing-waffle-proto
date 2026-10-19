@@ -111,7 +111,7 @@ assert.deepEqual([
 assert.deepEqual(
   ["patronage", "development", "crossroads", "practiceReform", "publicWorks", "crisis", "relic"]
     .map((family) => generatorConfig.weights.early[family]),
-  [5, 5, 6, 1, 1, 0, 2]
+  [5, 5, 6, 1, 1, 0, 1.5]
 );
 assert.deepEqual(generatorConfig.nonRepeatFamilyIds, ["crisis"]);
 for (const band of ["early", "mid", "late"]) {
