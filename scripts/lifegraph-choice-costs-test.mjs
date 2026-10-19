@@ -41,7 +41,7 @@ const obsolete=JSON.parse(exported);obsolete.generatorConfig.schemaVersion=9;obs
 const oldStore={getItem:key=>key==='civsurvivor.lifegraph-workbench.v1'?JSON.stringify(obsolete):null,setItem:()=>{}};
 const fresh=createLifegraphController({store:oldStore});
 assert.equal(fresh.getSnapshot().draft.reviews.development.notes,obsolete.reviews.development.notes,'independent notes survive replacement of obsolete cost rules');
-assert.equal(fresh.getSnapshot().draft.generatorConfig.schemaVersion,13);assert.equal(fresh.getChoiceReview('development').choices[0].rule.time,'expensive');
+assert.equal(fresh.getSnapshot().draft.generatorConfig.schemaVersion,14);assert.equal(fresh.getChoiceReview('development').choices[0].rule.time,'expensive');
 
 // Preview and payment use the resolved option, not a node-wide multiplier or a
 // different selected option. Stop at t=0 to inspect the committed reservation.

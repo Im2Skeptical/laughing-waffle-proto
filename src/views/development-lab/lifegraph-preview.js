@@ -26,9 +26,12 @@ export function createLifegraphPreview({controller,onPlay}){
     const byId=new Map(graph.nodes.map(n=>[n.id,n])),lines=new PIXI.Graphics();app.stage.addChild(lines);
     for(const e of graph.edges){const a=points.get(e.fromNodeId),b=points.get(e.toNodeId);const selected=e.fromNodeId===selectedNodeId||e.toNodeId===selectedNodeId;
       lines.lineStyle(selected?4:2,selected?0xe0c785:0x576c69,selected?1:0.65).moveTo(a.x,a.y).lineTo(b.x,b.y);}
-    for(let depth=0;depth<=graph.generatorConfig.normalDepthCount;depth++){
+    for(let depth=Math.min(...graph.nodes.map(n=>n.depth));depth<=Math.max(...graph.nodes.map(n=>n.depth));depth++){
       const n=graph.nodes.find(n=>n.depth===depth);if(!n)continue;const x=points.get(n.id).x;
-      const text=new PIXI.Text(depth===graph.generatorConfig.normalDepthCount?'Legacy':`${depth+1} · ${n.band==='mid'?'middle':n.band}`,{fontFamily:'Arial',fontSize:15,fill:0xc7cbb8});text.anchor.set(.5);text.position.set(x,28);app.stage.addChild(text);
+      const column=graph.generatorConfig.design.columns.find(c=>c.id===n.milestoneId);
+      const heading=n.bookend==='founding'?(depth===-1?'Founding':`${depth+1} · Founding`):n.bookend==='legacy'?(depth===graph.generatorConfig.normalDepthCount?'Legacy':`${depth+1} · Legacy`):column?`${depth+1} · ${column.label}`:`${depth+1} · ${n.band==='mid'?'middle':n.band}`;
+      if(column||n.bookend){const band=new PIXI.Graphics();band.beginFill(0xc3a45e,.08).drawRoundedRect(x-54,72,108,555,12).endFill();app.stage.addChild(band);}
+      const text=new PIXI.Text(heading,{fontFamily:'Arial',fontSize:15,fill:column?0xe5cd8a:0xc7cbb8,wordWrap:true,wordWrapWidth:140,align:'center'});text.anchor.set(.5);text.position.set(x,28);app.stage.addChild(text);
     }
     for(const n of graph.nodes){
       const p=points.get(n.id),family=getVassalLifeMapNodeFamily(n),selected=n.id===selectedNodeId;

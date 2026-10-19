@@ -3,6 +3,7 @@ import { LIFEGRAPH_NODE_IDS, LIFEGRAPH_RARITIES, lifeMapAllowedScopes } from '..
 import { LIFEGRAPH_COST_TIERS } from '../../model/life-map-balance.js';
 import { renderLifegraphChoices, renderLifegraphShopPricing } from './lifegraph-choice-editor.js';
 import { renderLifegraphRelicPool } from './lifegraph-relic-editor.js';
+import { renderLifegraphColumns } from './lifegraph-columns.js';
 import { nodeDesignId, lifegraphNodeLabel } from '../../model/dev-lab/lifegraph.js';
 import { VASSAL_SIGNATURE_NODE_VARIANTS } from '../../defs/gamepieces/vassal-life-map-defs.js';
 import { createLifegraphPreview } from './lifegraph-preview.js';
@@ -11,7 +12,7 @@ import { el, button, confirmButton, input, select, field, section, disclosure, b
 
 const clone=value=>JSON.parse(JSON.stringify(value));
 const title=value=>value[0].toUpperCase()+value.slice(1);
-const TAB_OPTIONS=[['graph','Graph'],['families','Families'],['nodes','Nodes & review'],['guarantees','Guarantees'],['bands','Balance bands'],['diagnostics','Diagnostics'],['share','Save & share']];
+const TAB_OPTIONS=[['graph','Graph'],['columns','Milestone columns'],['families','Families'],['nodes','Nodes & review'],['guarantees','Guarantees'],['bands','Balance bands'],['diagnostics','Diagnostics'],['share','Save & share']];
 
 export function createLifegraphView({controller=createLifegraphController()}={}){
   const root=el('section','','lab-lifegraph');root.dataset.testid='lab-lifegraph';
@@ -40,7 +41,7 @@ export function createLifegraphView({controller=createLifegraphController()}={})
     const head=el('div','','lab-page-head'),text=el('div');text.append(el('h2','Lifegraph'),el('p','Build families, balance opportunities and play the resulting nodes.','lab-subtitle'));head.append(text);
     parent.append(head);
     const settings=s.draft.preview,classes=el('div','','lab-segmented');classes.setAttribute('role','group');classes.setAttribute('aria-label','Lifegraph class');
-    for(const id of ['unclassed','scholar','warrior']){const b=button(title(id),()=>edit(['preview','classId'],id),`lifegraph-class-${id}`);b.setAttribute('aria-pressed',String(settings.classId===id));classes.append(b);}
+    for(const id of ['unclassed','scholar','warrior']){const b=button(title(id),()=>edit(['preview'],{...settings,classId:id,founding:id!=='unclassed'&&settings.founding}),`lifegraph-class-${id}`);b.setAttribute('aria-pressed',String(settings.classId===id));classes.append(b);}
     const mode=select('Generation rules',[['pooled','Pooled draft'],['baseline','Legacy independent generation']],s.draft.generatorConfig.design.enabled?'pooled':'baseline');
     mode.addEventListener('change',()=>edit(designPath('enabled'),mode.value==='pooled'));
     const undo=button('Undo edit',()=>controller.undo(),'lifegraph-undo','quiet');undo.disabled=!s.canUndo;
@@ -61,7 +62,8 @@ export function createLifegraphView({controller=createLifegraphController()}={})
     if(!s.graph)return;
     const n=s.graph.nodes.find(n=>n.id===s.selectedNodeId),id=n?nodeDesignId(n):null;
     if(n){const detail=section(lifegraphNodeLabel(id),el('p',`Depth ${n.depth+1} · lane ${n.lane+1} · ${n.band==='mid'?'middle':n.band}${n.generationRuleId?` · reserved by ${n.generationRuleId}`:''}`));
-      detail.append(controlRow(button('Play this node',()=>play(n.id),'lifegraph-play-selected','primary'),button('Edit / comment on this node',()=>{selectedDesign=id;tab='nodes';render();},'lifegraph-review-selected'),badge(s.draft.generatorConfig.design.nodes[id]?.scope??'common'),badge(s.draft.generatorConfig.design.pools.find(p=>p.id===s.draft.generatorConfig.design.nodes[id]?.poolId)?.label??'')));
+      detail.append(controlRow(button('Play this node',()=>play(n.id),'lifegraph-play-selected','primary'),button(n.band==='founding'?'View Founding settings':'Edit / comment on this node',()=>{if(n.band==='founding')tab='columns';else{selectedDesign=id;tab='nodes';}render();},'lifegraph-review-selected'),badge(s.draft.generatorConfig.design.nodes[id]?.scope??'common'),badge(s.draft.generatorConfig.design.pools.find(p=>p.id===s.draft.generatorConfig.design.nodes[id]?.poolId)?.label??'')));
+      if(n.milestoneId)detail.append(button('Edit milestone column',()=>{tab='columns';render();},'lifegraph-edit-column','quiet'));
       const notes=s.draft.reviews[id]?.notes;if(notes)detail.append(el('p',notes,'lab-lifegraph-notes'));parent.append(detail);}
     const d=s.diagnostics;
     parent.append(controlRow(badge(`${s.graph.nodes.length} nodes`),badge(`Shops per route: ${d.shopRange.min}–${d.shopRange.max}`),badge(`Longest shop run: ${d.longestShopRun}`,d.longestShopRun>=3?'warn':''),badge(`${d.warnings.length} flags`,d.warnings.length?'warn':'ok')));
@@ -96,11 +98,12 @@ export function createLifegraphView({controller=createLifegraphController()}={})
     const scopeOptions=lifeMapAllowedScopes(id).map(t=>[t,t==='common'?'Common · all classes':t==='specialist'?'Both specialist classes':title(t)]);
     generation.append(controlRow(check('Enabled',rule.enabled,v=>controller.setNode(id,{enabled:v}),{disabled:id==='legacy'}),choice('Node family',design.pools.map(p=>[p.id,p.label]),rule.poolId,v=>controller.setNode(id,{poolId:v})),choice('Class availability',scopeOptions,rule.scope,v=>controller.setNode(id,{scope:v})),choice('Node occurrence within family',LIFEGRAPH_RARITIES.map(t=>[t,title(t)]),rule.occurrence,v=>controller.setNode(id,{occurrence:v}))));
     const timings=controlRow();for(const t of ['early','mid','late'])timings.append(check(`Available ${t==='mid'?'middle':t}`,rule.timings.includes(t),v=>controller.setNode(id,{timings:v?[...rule.timings,t]:rule.timings.filter(x=>x!==t)})));
+    if(!id.startsWith('signature:'))timings.append(check('Milestones only',rule.milestonesOnly,value=>controller.setNode(id,{milestonesOnly:value})));
     const repeats=s.draft.generatorConfig.nonRepeatFamilyIds;
     timings.append(check('Prevent this node repeating consecutively',repeats.includes(id),v=>edit(['generatorConfig','nonRepeatFamilyIds'],v?[...repeats,id]:repeats.filter(x=>x!==id)),{disabled:id.startsWith('signature:')||['stockShop','legacy'].includes(id)}));generation.append(timings);
     const settings=disclosure('Generation settings',[generation],{open:generationOpen});settings.dataset.testid='lifegraph-generation';editor.append(settings);
     }
-    if(id==='legacy')editor.append(el('p','Legacy is the compulsory terminal node.','lab-note'));
+    if(id==='legacy')editor.append(el('p','Set Legacy’s position or switch it off in Milestone columns. At an interior depth its rewards resolve and the life continues.','lab-note'),button('Legacy column settings',()=>{tab='columns';render();},'','quiet'));
     const row=s.diagnostics?.families[id];if(row)editor.append(el('p',`This graph: ${row.count} nodes · early ${row.early}, middle ${row.mid}, late ${row.late} · ${row.minOnRoute}–${row.maxOnRoute} on a complete route.`,'lab-summary'));
     const example=s.graph?.nodes.find(n=>nodeDesignId(n)===id);editor.append(button(example?'Play an example from this graph':'Try this node in isolation',()=>example?play(example.id):play(id,{type:true}),'lifegraph-play-type','primary'));
     if(!example)editor.append(el('p','This node is absent from the graph. The isolated preview replaces one slot for this test only; enable and guarantee rules remain unchanged. Stock Supply uses Timber in this isolated test.','lab-note'));
@@ -179,9 +182,9 @@ export function createLifegraphView({controller=createLifegraphController()}={})
   function render(){
     const active=document.activeElement,label=active?.getAttribute('aria-label'),start=active?.selectionStart,end=active?.selectionEnd,scroll=window.scrollY;
     const generation=root.querySelector('[data-testid=lifegraph-generation]');if(generation)generationOpen=generation.open;
-    const s=controller.getSnapshot();if(s.selectedNodeId!==lastSelected){lastSelected=s.selectedNodeId;const n=s.graph?.nodes.find(n=>n.id===s.selectedNodeId);if(n)selectedDesign=nodeDesignId(n);}
+    const s=controller.getSnapshot();if(s.selectedNodeId!==lastSelected){lastSelected=s.selectedNodeId;const n=s.graph?.nodes.find(n=>n.id===s.selectedNodeId);if(n&&n.band!=='founding')selectedDesign=nodeDesignId(n);}
     root.replaceChildren();renderHeader(root,s);
-    ({graph:renderGraph,families:renderFamilies,nodes:renderNodes,guarantees:renderGuarantees,bands:renderBands,diagnostics:renderDiagnostics,share:renderShare})[tab](root,s);
+    ({graph:renderGraph,columns:parent=>renderLifegraphColumns(parent,{controller,play,onReview:id=>{selectedDesign=id;tab='nodes';render();}}),families:renderFamilies,nodes:renderNodes,guarantees:renderGuarantees,bands:renderBands,diagnostics:renderDiagnostics,share:renderShare})[tab](root,s);
     preview.setVisible(tab==='graph'&&root.isConnected);
     if(label){const next=[...root.querySelectorAll('[aria-label]')].find(n=>n.getAttribute('aria-label')===label);if(next){next.focus({preventScroll:true});if(start!=null&&['text','search'].includes(next.type)||next?.tagName==='TEXTAREA')try{next.setSelectionRange(start,end);}catch{}}}
     window.scrollTo(0,scroll);

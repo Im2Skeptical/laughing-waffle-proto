@@ -1,6 +1,6 @@
 // Authored from Cam's first-pass Lifegraph export. Previous tuning remains an explicit Lab profile.
 export const LIFEGRAPH_DEFAULT_GENERATOR = {
-  "schemaVersion": 13,
+  "schemaVersion": 14,
   "laneCount": 3,
   "normalDepthCount": 10,
   "routeCount": 6,
@@ -61,7 +61,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "development": {
         "enabled": true,
@@ -72,7 +73,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "crossroads": {
         "enabled": true,
@@ -83,7 +85,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "practiceReform": {
         "enabled": true,
@@ -94,7 +97,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "publicWorks": {
         "enabled": true,
@@ -105,7 +109,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "crisis": {
         "enabled": true,
@@ -115,7 +120,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
         "timings": [
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "relic": {
         "enabled": true,
@@ -126,7 +132,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "training": {
         "enabled": true,
@@ -137,7 +144,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "discovery": {
         "enabled": true,
@@ -148,7 +156,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "campaign": {
         "enabled": true,
@@ -159,7 +168,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "challenge": {
         "enabled": true,
@@ -170,7 +180,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "neutralMarket": {
         "enabled": true,
@@ -181,7 +192,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "classMarket": {
         "enabled": true,
@@ -192,7 +204,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "foodShop": {
         "enabled": true,
@@ -203,7 +216,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "housingShop": {
         "enabled": true,
@@ -214,7 +228,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "stockShop": {
         "enabled": true,
@@ -225,7 +240,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "legacy": {
         "enabled": true,
@@ -236,7 +252,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "signature:settlement": {
         "enabled": true,
@@ -247,7 +264,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "signature:legacyPlus": {
         "enabled": true,
@@ -258,7 +276,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "signature:monsterHunt": {
         "enabled": true,
@@ -269,7 +288,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "signature:removePractice": {
         "enabled": true,
@@ -280,7 +300,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "signature:foodShop": {
         "enabled": true,
@@ -291,7 +312,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "signature:knowledgeShop": {
         "enabled": true,
@@ -302,7 +324,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "signature:housingShop": {
         "enabled": true,
@@ -313,7 +336,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "specialRelic": {
         "enabled": true,
@@ -324,7 +348,8 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       }
     },
     "occurrence": {
@@ -849,6 +874,17 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           }
         }
       }
+    },
+    "columns": [],
+    "bookends": {
+      "founding": {
+        "enabled": true,
+        "depth": 0
+      },
+      "legacy": {
+        "enabled": true,
+        "depth": "end"
+      }
     }
   },
   "weights": {
@@ -910,7 +946,7 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
 };
 
 export const LIFEGRAPH_PREVIOUS_GENERATOR = {
-  "schemaVersion": 13,
+  "schemaVersion": 14,
   "laneCount": 6,
   "normalDepthCount": 11,
   "routeCount": 6,
@@ -971,7 +1007,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "development": {
         "enabled": true,
@@ -982,7 +1019,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "crossroads": {
         "enabled": true,
@@ -993,7 +1031,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "practiceReform": {
         "enabled": true,
@@ -1004,7 +1043,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "publicWorks": {
         "enabled": true,
@@ -1015,7 +1055,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "crisis": {
         "enabled": true,
@@ -1025,7 +1066,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
         "timings": [
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "relic": {
         "enabled": true,
@@ -1036,7 +1078,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "training": {
         "enabled": true,
@@ -1047,7 +1090,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "discovery": {
         "enabled": true,
@@ -1058,7 +1102,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "campaign": {
         "enabled": true,
@@ -1069,7 +1114,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "challenge": {
         "enabled": true,
@@ -1080,7 +1126,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "neutralMarket": {
         "enabled": true,
@@ -1091,7 +1138,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "classMarket": {
         "enabled": true,
@@ -1102,7 +1150,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "foodShop": {
         "enabled": true,
@@ -1113,7 +1162,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "housingShop": {
         "enabled": true,
@@ -1124,7 +1174,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "stockShop": {
         "enabled": true,
@@ -1135,7 +1186,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "legacy": {
         "enabled": true,
@@ -1146,7 +1198,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "signature:settlement": {
         "enabled": true,
@@ -1157,7 +1210,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "signature:legacyPlus": {
         "enabled": true,
@@ -1168,7 +1222,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "signature:monsterHunt": {
         "enabled": true,
@@ -1179,7 +1234,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "signature:removePractice": {
         "enabled": true,
@@ -1190,7 +1246,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "signature:foodShop": {
         "enabled": true,
@@ -1201,7 +1258,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "signature:knowledgeShop": {
         "enabled": true,
@@ -1212,7 +1270,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "signature:housingShop": {
         "enabled": true,
@@ -1223,7 +1282,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       },
       "specialRelic": {
         "enabled": true,
@@ -1234,7 +1294,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "early",
           "mid",
           "late"
-        ]
+        ],
+        "milestonesOnly": false
       }
     },
     "occurrence": {
@@ -1728,6 +1789,17 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
             "weight": 24
           }
         }
+      }
+    },
+    "columns": [],
+    "bookends": {
+      "founding": {
+        "enabled": true,
+        "depth": 0
+      },
+      "legacy": {
+        "enabled": true,
+        "depth": "end"
       }
     }
   },

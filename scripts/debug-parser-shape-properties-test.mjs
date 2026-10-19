@@ -190,8 +190,8 @@ const lifeDoc = starter.lifeMapLab;
 let detailedIndex = mapDoc.regions.findIndex((region) => region.detailedSettlementEnabled && region.detailedState?.populationByClass);
 must(detailedIndex >= 0, "starter map has no detailed settlement to mutate");
 must(mapDoc.schemaVersion === 8 && lifeDoc.schemaVersion === 2, "controller drafts are not current schema v8/v2");
-must(lifeDoc.generatorConfig?.schemaVersion === 13 && lifeDoc.generatorConfig?.weights?.early, "life generator is not current schema v13");
-must(starter.gameSettings?.schemaVersion === 26 && starter.launch?.startMode === "randomRoad", "profile settings/launch are not the current contract");
+must(lifeDoc.generatorConfig?.schemaVersion === 14 && lifeDoc.generatorConfig?.weights?.early, "life generator is not current schema v14");
+must(starter.gameSettings?.schemaVersion === 27 && starter.launch?.startMode === "randomRoad", "profile settings/launch are not the current contract");
 
 const vassalDraft = {
   schemaVersion: 5,
@@ -292,7 +292,7 @@ const rejects = [
   ["lifeMapLab", ["schemaVersion"], 3, "schemaVersion"],
   ["lifeMapLab", ["schemaVersion"], false, "schemaVersion"],
   ["lifeMapLab", ["generatorConfig", "schemaVersion"], 7, "schemaVersion"],
-  ["lifeMapLab", ["generatorConfig", "schemaVersion"], 14, "schemaVersion"],
+  ["lifeMapLab", ["generatorConfig", "schemaVersion"], lifeDoc.generatorConfig.schemaVersion + 1, "schemaVersion"],
   ["lifeMapLab", ["generatorConfig", "schemaVersion"], "8", "schemaVersion"],
   ["vassalLibrary", ["schemaVersion"], 0, "schemaVersion"],
   ["vassalLibrary", ["schemaVersion"], 2, "schemaVersion"],
@@ -303,7 +303,7 @@ const rejects = [
   ["profileExport", ["schemaVersion"], 4, "schemaVersion"],
   ["profileExport", ["schemaVersion"], true, "schemaVersion"],
   ["profileExport", ["profile", "gameSettings", "schemaVersion"], 20, "schemaVersion"],
-  ["profileExport", ["profile", "gameSettings", "schemaVersion"], 27, "schemaVersion"],
+  ["profileExport", ["profile", "gameSettings", "schemaVersion"], starter.gameSettings.schemaVersion + 1, "schemaVersion"],
   ["profileExport", ["profile", "gameSettings", "schemaVersion"], null, "schemaVersion"],
   ["profileLibrary", ["schemaVersion"], 2, "schemaVersion"],
   ["profileLibrary", ["schemaVersion"], 4, "schemaVersion"],

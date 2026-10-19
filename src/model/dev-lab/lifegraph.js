@@ -25,7 +25,7 @@ export function createLifegraphDraft(){
   const generatorConfig=createAuthoredVassalLifeMapGeneratorConfig();
   generatorConfig.design.enabled=true;
   return {schemaVersion:LIFEGRAPH_DRAFT_SCHEMA,kind:'lifegraph-workbench',name:'Lifegraph experiment',generatorConfig,
-    preview:{classId:'scholar',seed:1,research:0,prestige:100,age:18,stats:4,signature:'none'},reviews:{}};
+    preview:{classId:'scholar',founding:false,seed:1,research:0,prestige:100,age:18,stats:4,signature:'none'},reviews:{}};
 }
 export function createPreviousLifegraphDraft(){return {...createLifegraphDraft(),name:'Previous defaults',generatorConfig:clone(LIFEGRAPH_PREVIOUS_GENERATOR)};}
 
@@ -36,6 +36,7 @@ export function validateLifegraphDraft(value){
   errors.push(...validateVassalLifeMapGeneratorConfig(value.generatorConfig).errors);
   const p=value.preview;
   if(!p||!['scholar','warrior','unclassed'].includes(p.classId))errors.push('Choose a preview class.');
+  if(typeof p?.founding!=='boolean'||p.founding&&p.classId==='unclassed')errors.push('Founding previews require Scholar or Warrior.');
   for(const [key,max]of [['seed',4294967295],['research',1000000],['prestige',10000],['age',100],['stats',100]])if(!Number.isInteger(p?.[key])||p[key]<0||p[key]>max)errors.push(`Preview ${key} must be an integer from 0 to ${max}.`);
   if(p?.signature!=='none'&&!VASSAL_SIGNATURE_NODE_VARIANTS[p?.signature])errors.push('Unknown signature.');
   if(!value.reviews||typeof value.reviews!=='object'||Array.isArray(value.reviews))errors.push('Invalid review notes.');
@@ -53,7 +54,7 @@ export function createLifegraphPreviewState(baseState,draft){
   state.gameConfig.lifeMapGenerator=clone(draft.generatorConfig);
   state.civilization.research.total=draft.preview.research;
   const vassal=getCurrentLifeMapVassal(state),p=draft.preview;
-  vassal.classId=p.classId==='unclassed'?null:p.classId;vassal.founderClassId=null;
+  vassal.classId=p.classId==='unclassed'?null:p.classId;vassal.founderClassId=p.founding?vassal.classId:null;
   vassal.archetype=vassal.classId??'Unclassed';vassal.prestige=p.prestige;vassal.initialAge=p.age;
   vassal.stats=Object.fromEntries(Object.keys(vassal.stats).map(key=>[key,p.stats]));
   vassal.commission=null;vassal.commissionOffers=[];vassal.developmentChoiceQueue=[];
@@ -64,12 +65,22 @@ export function createLifegraphPreviewState(baseState,draft){
 export function generateLifegraphPreview(state,draft,seed=draft.preview.seed){
   const vassal=getCurrentLifeMapVassal(state),signature=draft.preview.signature;
   const context=getStockShopGenerationContext(state,vassal);
-  return generateVassalLifeMap(draft.generatorConfig,createRng(seed),{graphId:`lifegraph-${draft.preview.classId}-${seed}`,generationSeed:seed,
-    classId:vassal.classId,signatureNode:signature==='none'?null:{...VASSAL_SIGNATURE_NODE_VARIANTS[signature],variantId:signature},...context});
+  const result=generateVassalLifeMap(draft.generatorConfig,createRng(seed),{graphId:`lifegraph-${draft.preview.classId}-${seed}`,generationSeed:seed,
+    classId:vassal.classId,founderClassId:draft.preview.founding?vassal.classId:null,signatureNode:signature==='none'?null:{...VASSAL_SIGNATURE_NODE_VARIANTS[signature],variantId:signature},...context});
+  return result;
 }
 
 export function openLifegraphNode(state,graph,nodeId,settings){
   const next=deserializeGameState(serializeGameState(state)),vassal=getCurrentLifeMapVassal(next);
+  const target=graph.nodes.find(n=>n.id===nodeId);
+  if(vassal.founderClassId){
+    const lineage=next.civilization.vassalLineage;
+    const founding=graph.nodes.find(n=>n.id===graph.foundingNodeId),established=founding&&target.depth>founding.depth;
+    vassal.classId=established?vassal.founderClassId:null;
+    vassal.archetype=vassal.founderClassId==='scholar'?'Philosopher':'Warlord';
+    lineage.founderClassId=vassal.founderClassId;lineage.establishedClassId=vassal.classId;lineage.pendingCandidates=[];
+    if(!vassal.classId){vassal.commission=null;vassal.commissionOffers=[];}
+  }
   vassal.lifeMap={graph:clone(graph),currentNodeId:null,completedNodeIds:[],availableNodeIds:[nodeId],nodeStates:{},pendingResolution:null};
   vassal.commissionOffers=[];
   const result=enterVassalLifeNode(next,nodeId);
@@ -82,9 +93,17 @@ export function openLifegraphNodeType(state,graph,designId,settings){
   if(!lifeMapAllowedScopes(designId).some(scope=>lifeMapScopeMatches(scope,classId)))throw new Error('Switch to the compatible class to play this node type.');
   const copy=clone(graph),variant=designId.startsWith('signature:')?VASSAL_SIGNATURE_NODE_VARIANTS[designId.slice(10)]:null;
   const family=variant?variant.id==='legacyPlus'?'legacy':'signature':designId==='specialRelic'?'relic':designId;
+  if(family==='legacy'&&!copy.bossNodeId){
+    const depth=copy.generatorConfig.normalDepthCount,min=Math.min(...copy.nodes.map(n=>n.depth));
+    copy.generatorConfig.design.bookends.legacy={enabled:true,depth:'end'};
+    copy.bossNodeId='life-isolated-legacy';
+    for(const n of copy.nodes){n.position.x*=(depth-1-min)/(depth-min);if(n.depth===depth-1)copy.edges.push({fromNodeId:n.id,toNodeId:copy.bossNodeId});}
+    copy.nodes.push({id:copy.bossNodeId,depth,lane:Math.floor((copy.generatorConfig.laneCount-1)/2),band:'legacy',family:'legacy',bookend:'legacy',generationRuleId:'legacy',position:{x:1,y:.5}});
+  }
   const target=copy.nodes.find(n=>nodeDesignId(n)===designId)??(family==='legacy'?copy.nodes.find(n=>n.family==='legacy'):family==='signature'?copy.nodes.find(n=>n.family==='signature'):null)
-    ??copy.nodes.find(n=>!n.signatureNode&&n.family!=='legacy'&&!copy.edges.some(e=>(e.fromNodeId===n.id&&nodeDesignId(copy.nodes.find(x=>x.id===e.toNodeId))===designId||e.toNodeId===n.id&&nodeDesignId(copy.nodes.find(x=>x.id===e.fromNodeId))===designId)&&copy.generatorConfig.nonRepeatFamilyIds.includes(designId)));
+    ??copy.nodes.find(n=>!n.signatureNode&&!n.bookend&&!n.milestoneId&&n.family!=='legacy'&&!copy.edges.some(e=>(e.fromNodeId===n.id&&nodeDesignId(copy.nodes.find(x=>x.id===e.toNodeId))===designId||e.toNodeId===n.id&&nodeDesignId(copy.nodes.find(x=>x.id===e.fromNodeId))===designId)&&copy.generatorConfig.nonRepeatFamilyIds.includes(designId)));
   if(!target)throw new Error('No suitable node slot for this isolated type preview.');
+  if(nodeDesignId(target)===designId)return openLifegraphNode(state,copy,target.id,settings);
   target.family=family;delete target.signatureNode;delete target.specialRelic;delete target.generationRuleId;delete target.stockOutput;
   if(variant)target.signatureNode={...variant,variantId:variant.id};
   if(family==='relic')target.specialRelic=designId==='specialRelic';
@@ -118,6 +137,7 @@ export function getLifegraphChoiceReview(state,graph,designId,settings){
 
 export function diagnoseLifegraph(graph){
   const byId=new Map(graph.nodes.map(n=>[n.id,n])),design=graph.generatorConfig.design;
+  const finalDepth=Math.max(...graph.nodes.map(n=>n.depth));
   const isShop=n=>['practiceReform','publicWorks','neutralMarket','classMarket','foodShop','housingShop','stockShop'].includes(n.family)||n.signatureNode?.groupId==='tagShop';
   const families=Object.fromEntries(LIFEGRAPH_NODE_IDS.map(id=>[id,{count:0,early:0,mid:0,late:0,minOnRoute:0,maxOnRoute:0}]));
   const warnings=[];let longestShopRun=0;
@@ -126,13 +146,14 @@ export function diagnoseLifegraph(graph){
     const min=new Map(),max=new Map();
     for(const n of graph.nodes){const parents=graph.edges.filter(e=>e.toNodeId===n.id).map(e=>e.fromNodeId);const hit=predicate(n)?1:0;
       min.set(n.id,hit+(parents.length?Math.min(...parents.map(id=>min.get(id))):0));max.set(n.id,hit+(parents.length?Math.max(...parents.map(id=>max.get(id))):0));}
-    return {min:min.get(graph.bossNodeId),max:max.get(graph.bossNodeId)};
+    const terminals=graph.nodes.filter(n=>!graph.edges.some(e=>e.fromNodeId===n.id));
+    return {min:Math.min(...terminals.map(n=>min.get(n.id))),max:Math.max(...terminals.map(n=>max.get(n.id)))};
   };
   for(const node of graph.nodes){
     const id=nodeDesignId(node),row=families[id];if(row){row.count++;if(node.band in row)row[node.band]++;}
     const parents=graph.edges.filter(e=>e.toNodeId===node.id).map(e=>e.fromNodeId);
     run.set(node.id,isShop(node)?1+Math.max(0,...parents.map(id=>run.get(id))):0);longestShopRun=Math.max(longestShopRun,run.get(node.id));
-    if(node.family!=='legacy'&&!graph.edges.some(e=>e.fromNodeId===node.id))warnings.push({code:'deadEnd',nodeId:node.id,message:`${node.id} has no onward route.`});
+    if(node.depth<finalDepth&&!graph.edges.some(e=>e.fromNodeId===node.id))warnings.push({code:'deadEnd',nodeId:node.id,message:`${node.id} has no onward route.`});
   }
   for(const [id,row]of Object.entries(families)){const range=extrema(n=>nodeDesignId(n)===id);row.minOnRoute=range.min;row.maxOnRoute=range.max;}
   if(longestShopRun>=3)warnings.push({code:'shopCluster',message:`A route contains ${longestShopRun} consecutive shops.`});

@@ -117,7 +117,7 @@ function expectBand(config, depth) {
 function expectTopology(graph, config, seed) {
   const validation = validateVassalLifeMapGraph(graph);
   assert.deepEqual(validation, { ok: true, errors: [] }, `${seed} ${validation.errors?.join('; ')}`);
-  assert.equal(graph.schemaVersion, 6);
+  assert.equal(graph.schemaVersion, 7);
   assert.ok(graph.nodes.every(node=>!['travel','routes'].includes(node.family)), 'obsolete node families never generate');
   assert.equal(graph.generationSeed, seed);
   assert.equal(graph.foundingNodeId ?? null, null);

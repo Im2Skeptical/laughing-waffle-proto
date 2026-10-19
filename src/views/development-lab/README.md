@@ -28,6 +28,8 @@ Museum fixtures describe a captured state. The hold-button workshop retains
 live Vassal tools and save diagnostics only.
 
 `lifegraph.js` owns the dedicated Lifegraph workspace and node reviewer.
+`lifegraph-columns.js` edits single-node milestone columns, their class/content
+rules, milestones-only node generation, and Founding/Legacy placement or removal.
 `lifegraph-preview.js` reuses game node icons and layout in one Pixi stage.
 `node-sandbox.js` supplies its playable decision modal, independently of the Gym
 timeline, Museum, Zoo and player saves. Rules, review persistence, preset/export

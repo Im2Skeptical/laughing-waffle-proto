@@ -66,7 +66,7 @@ The profile/export schema is v3; obsolete profiles are unsupported.
 ## Lifegraph
 
 Open **Lifegraph** in the Development Lab navigation. Class and seed stay
-available across Graph, Families, Nodes & review, Guarantees, Balance bands,
+available across Graph, Milestone columns, Families, Nodes & review, Guarantees, Balance bands,
 Diagnostics and Save & share. Preview context sets Research, Prestige, age,
 stats and a signature. The fixed disposable settlement makes comparisons repeatable.
 
@@ -77,7 +77,25 @@ only that dummy through authoritative ticks. **Reset this node** restores the
 same seeded context. The reviewer can also try a disabled or absent type in
 isolation. Such a test substitutes one preview slot; it does not edit the graph.
 
-**Pooled draft** first reserves signature, class and Stock Supply opportunities,
+**Milestone columns** makes all routes meet at one node, then branch again.
+Add a named column at an existing depth, choose a node type or family, and set
+its class scope. Family columns roll one eligible member for that whole column.
+**Milestones only** excludes a node type from random rolls and other reservations;
+matching milestones still satisfy guarantees. This supports scheduled Practice
+Reform shops without extra copies between them. Conflicting depths and unavailable
+class/timing pools report errors instead of silently replacing another reservation.
+
+Founding and Legacy have independent enable and position controls. Founding depth
+0 precedes the graph; numbered depths replace a normal column. It is first-life
+only and still establishes the class when completed. Disabling it leaves that
+founder unclassed. Use **Preview life stage** to inspect either founder or a
+successor, and **Play Founding** to try the real action. Legacy can stay after the
+final depth, replace a numbered column, or be disabled. Interior Legacy grants its
+reward and continues. Any terminal node retires the Vassal; without Legacy there
+is no Legacy reward. These experiments apply only in Pooled draft mode and retain
+the normal bookends by default. New settings require fresh runs/saves.
+
+**Pooled draft** reserves milestone columns, then signature, class and Stock Supply opportunities,
 then chooses a family and a node within it. Families and nodes use named
 Common/Uncommon/Rare occurrence tiers. Enable switches and class scopes are
 separate from those tiers. Family repetition limits are preferred maxima;
@@ -119,6 +137,7 @@ an editable profile, choose Life Map Lab, and **Use Lifegraph draft**. Save/laun
 captures those rules; later edits cannot affect an existing run or replay.
 Verify with `npm run verify`, `npm run probe:lifegraph` after `npm start`, or
 `npm run probe:development-lab -- --lifegraph-only` against a built bundle.
+Milestone generation, lifecycle and replay checks: `npm run test:lifegraph-columns`.
 
 ## Card reviewer
 

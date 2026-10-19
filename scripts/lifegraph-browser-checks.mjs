@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import {checkLifegraphRelicPools} from './lifegraph-relic-browser-checks.mjs';
+import {checkLifegraphColumns} from './lifegraph-columns-browser-checks.mjs';
 
 export async function checkLifegraphWorkspace(page,context,{reload=false}={}){
   const gymBefore=await page.evaluate(()=>JSON.stringify(__LAB_DEBUG__.getSnapshot().state));
   await page.getByRole('link',{name:'Lifegraph',exact:true}).click();
   await page.getByTestId('lab-lifegraph').waitFor();
+  await checkLifegraphColumns(page);
   await page.getByTestId('lifegraph-class-warrior').click();
   await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().draft.preview.classId==='warrior');
   assert.ok(await page.evaluate(()=>__LAB_DEBUG__.getLifegraph().diagnostics.families.campaign.minOnRoute>=1));

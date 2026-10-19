@@ -10,6 +10,7 @@ import {
 import { detailedSettlementPracticeDefs } from "../defs/gamepieces/detailed-settlement-defs.js";
 import { canonicalizeLifeMapDesign, validateLifeMapDesign, populatePooledLifeMap } from './life-map-design.js';
 import { LIFEGRAPH_DEFAULT_GENERATOR } from '../defs/lifegraph-defaults.js';
+import { applyLifeMapColumns } from './life-map-columns.js';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const BANDS = Object.freeze(["early", "mid", "late"]);
@@ -22,7 +23,7 @@ function isCanonicalSignatureDescriptor(descriptor) {
     && descriptor.color === variant.color && descriptor.description === variant.description
     && descriptor.removalKind === variant.removalKind && descriptor.tag === variant.tag;
 }
-export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 13;
+export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 14;
 
 export function createAuthoredVassalLifeMapGeneratorConfig() {
   return clone(LIFEGRAPH_DEFAULT_GENERATOR);
@@ -280,12 +281,12 @@ function applyLayout(config, nodes, edges) {
   }
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
   for (const node of nodes) {
-    node._baseY = node.family === "legacy"
+    node._baseY = node.bookend || node.milestoneId
       ? 0.5 : 0.08 + 0.84 * node.lane / (config.laneCount - 1);
     node._y = node._baseY;
   }
-  const maxDepth = config.normalDepthCount;
-  for (let depth = 1; depth <= maxDepth; depth += 1) {
+  const minDepth=Math.min(...nodes.map(node=>node.depth)),maxDepth=Math.max(...nodes.map(node=>node.depth));
+  for (let depth = minDepth+1; depth <= maxDepth; depth += 1) {
     for (const node of nodes.filter((entry) => entry.depth === depth)) {
       const linked = parents.get(node.id).map((id) => nodeById.get(id)?._y).filter(Number.isFinite);
       if (linked.length) {
@@ -295,7 +296,7 @@ function applyLayout(config, nodes, edges) {
     }
     enforceDepthGap(nodes, depth, config.minimumNodeGap);
   }
-  for (let depth = maxDepth - 1; depth >= 0; depth -= 1) {
+  for (let depth = maxDepth - 1; depth >= minDepth; depth -= 1) {
     for (const node of nodes.filter((entry) => entry.depth === depth)) {
       const linked = children.get(node.id).map((id) => nodeById.get(id)?._y).filter(Number.isFinite);
       if (linked.length) {
@@ -310,8 +311,8 @@ function applyLayout(config, nodes, edges) {
     return {
       ...clean,
       position: {
-        x: Math.round((node.depth / config.normalDepthCount) * 1000000) / 1000000,
-        y: Math.round(_y * 1000000) / 1000000,
+        x: Math.round(((node.depth-minDepth) / (maxDepth-minDepth)) * 1000000) / 1000000,
+        y: node.milestoneId || node.bookend ? 0.5 : Math.round(_y * 1000000) / 1000000,
       },
     };
   });
@@ -323,6 +324,8 @@ export function generateVassalLifeMap(rawConfig, rng, {
   unmetStockOutputs = [],
   classId,
   trainingOpening = true,
+  founderClassId = null,
+  foundingNodeId = 'life-founding',
 } = {}) {
   const config = canonicalizeVassalLifeMapGeneratorConfig(rawConfig);
   const validation = validateVassalLifeMapGeneratorConfig(config);
@@ -386,14 +389,9 @@ export function generateVassalLifeMap(rawConfig, rng, {
       node.specialRelic=node.family==='specialRelic';node.family='relic';
     }
   }
-  const bossNodeId = `life-d${String(config.normalDepthCount + 1).padStart(2, "0")}-boss`;
-  nodes.push({
-    id: bossNodeId, depth: config.normalDepthCount, lane: Math.floor((config.laneCount - 1) / 2),
-    band: "legacy", family: "legacy",
-  });
-  for (const node of nodes.filter((entry) => entry.depth === config.normalDepthCount - 1)) {
-    edges.push({ fromNodeId: node.id, toNodeId: bossNodeId });
-  }
+  const columns=applyLifeMapColumns(config,nodes,edges,{classId,founderClassId,foundingNodeId});
+  nodes=columns.nodes;edges=columns.edges;
+  const bossNodeId=columns.bossNodeId;
   if(config.design.enabled){
     const populated=populatePooledLifeMap(config,nodes,edges,rng,{classId,signatureNode,stockOutputs,unmetStockOutputs});
     if(!populated.ok)return populated;
@@ -401,7 +399,7 @@ export function generateVassalLifeMap(rawConfig, rng, {
   const deduped = dedupeEquivalentChoices(
     nodes,
     edges,
-    nodes.filter((node) => node.depth === 0).map((node) => node.id)
+    nodes.filter((node) => node.depth === Math.min(...nodes.map(n=>n.depth))).map((node) => node.id)
   );
   nodes = deduped.nodes;
   if (!config.design.enabled) {
@@ -458,6 +456,7 @@ export function generateVassalLifeMap(rawConfig, rng, {
       edges,
       entryNodeIds: deduped.entryNodeIds,
       bossNodeId,
+      ...(columns.foundingNodeId?{foundingNodeId:columns.foundingNodeId}:{}),
     },
     routeTraces: clone(routeTraces),
   };
@@ -465,7 +464,7 @@ export function generateVassalLifeMap(rawConfig, rng, {
 
 // The baseline and its preview use exactly the same class substitutions.
 function customizeAuthoredLifeMapClass(nodes,classId,trainingOpening){
-  const ordinary=nodes.filter(n=>!n.signatureNode&&!['legacy','signature'].includes(n.family));
+  const ordinary=nodes.filter(n=>!n.signatureNode&&!n.bookend&&!['legacy','signature'].includes(n.family));
   const classFamilies={training:null,discovery:'scholar',campaign:'warrior',challenge:'warrior'};
   for(const node of ordinary){
     if(node.family==='classMarket'&&!classId)node.family='neutralMarket';
@@ -535,51 +534,59 @@ export function validateVassalLifeMapGraph(graph) {
   const foundingNode = nodeById.get(graph.foundingNodeId);
   const foundingNodes = graph.nodes.filter(node => VASSAL_FOUNDING_OPTIONS[node.family]);
   if (graph.foundingNodeId != null || foundingNodes.length) {
+    const settings=graph.generatorConfig?.design?.enabled?graph.generatorConfig.design.bookends?.founding:{enabled:true,depth:0};
     if (!foundingNode || !VASSAL_FOUNDING_OPTIONS[foundingNode.family]
-        || foundingNodes.length !== 1 || foundingNode.depth !== -1
-        || graph.entryNodeIds.length !== 1 || graph.entryNodeIds[0] !== foundingNode.id
-        || graph.edges.some(edge => edge.toNodeId === foundingNode.id)
-        || graph.nodes.filter(node => node.depth === 0).some(node =>
-          !edgeKeys.has(`${foundingNode.id}>${node.id}`))) {
-      errors.push("foundingNodeId: expected a single founding entry preceding all normal entries");
+        || foundingNodes.length !== 1 || !settings?.enabled || foundingNode.depth !== settings.depth-1
+        || foundingNode.bookend!=='founding') {
+      errors.push("foundingNodeId: expected one Founding node at its configured depth");
     }
-  } else if (graph.entryNodeIds.length < 2 || graph.entryNodeIds.some((id) => !ids.has(id))) {
-    errors.push("entryNodeIds: expected at least two known nodes");
   }
-  if (!ids.has(graph.bossNodeId)
-      || graph.nodes.find((node) => node.id === graph.bossNodeId)?.family !== "legacy") {
-    errors.push("bossNodeId: expected the Legacy node");
-  }
+  if (!graph.entryNodeIds.length || graph.entryNodeIds.some(id=>!ids.has(id))) errors.push('entryNodeIds: expected at least one known node');
   const configValidation = validateVassalLifeMapGeneratorConfig(graph.generatorConfig);
   errors.push(...configValidation.errors.map((error) => `generatorConfig.${error}`));
   const config = graph.generatorConfig;
+  const legacyRule=config?.design?.enabled?config.design.bookends?.legacy:{enabled:true,depth:'end'};
   const boss = nodeById.get(graph.bossNodeId);
-  if (boss && boss.depth !== config?.normalDepthCount) errors.push("bossNodeId: invalid depth");
-  if (graph.nodes.filter((node) => node.family === "legacy").length !== 1) {
-    errors.push("nodes: expected exactly one Legacy node");
+  if(legacyRule?.enabled){
+    const depth=legacyRule.depth==='end'?config.normalDepthCount:legacyRule.depth-1;
+    if(!boss||boss.family!=='legacy'||boss.bookend!=='legacy'||boss.depth!==depth)errors.push('bossNodeId: expected Legacy at its configured depth');
+  }else if(graph.bossNodeId!=null)errors.push('bossNodeId: Legacy is disabled');
+  for(const node of graph.nodes.filter(n=>n.milestoneId!=null)){
+    const column=config?.design?.columns?.find(c=>c.id===node.milestoneId&&c.enabled);
+    if(!column||node.depth!==column.depth-1||node.generationRuleId!==`milestone:${column.id}`
+      ||graph.nodes.filter(n=>n.depth===node.depth).length!==1
+      ||column.targetType==='node'&&getVassalLifeMapNodeType(node)!==column.targetId
+      ||column.targetType==='pool'&&config.design.nodes[getVassalLifeMapNodeType(node)]?.poolId!==column.targetId){
+      errors.push(`${node.id}: invalid milestone column`);
+    }
+    for(const parent of graph.nodes.filter(n=>n.depth===node.depth-1))if(!edgeKeys.has(`${parent.id}>${node.id}`))errors.push(`${node.id}: milestone must join every incoming branch`);
+    for(const child of graph.nodes.filter(n=>n.depth===node.depth+1))if(!edgeKeys.has(`${node.id}>${child.id}`))errors.push(`${node.id}: milestone must reach every outgoing branch`);
+  }
+  if (graph.nodes.filter((node) => node.family === "legacy").length !== (legacyRule?.enabled?1:0)) {
+    errors.push("nodes: Legacy count must match its enabled state");
   }
   if (graph.nodes.filter((node) => node.family === "signature").length > 1) {
     errors.push("nodes: expected at most one inserted signature node");
   }
   for (const entryId of graph.entryNodeIds) {
-    if (nodeById.get(entryId)?.depth !== (foundingNode ? -1 : 0)) errors.push("entryNodeIds: invalid entry depth");
+    if (nodeById.get(entryId)?.depth !== Math.min(...graph.nodes.map(n=>n.depth))) errors.push("entryNodeIds: invalid entry depth");
   }
   for (const [index, edge] of graph.edges.entries()) {
     const from = nodeById.get(edge.fromNodeId);
     const to = nodeById.get(edge.toNodeId);
     if (!from || !to) continue;
-    if (from.id !== graph.foundingNodeId && to.id !== graph.bossNodeId && Math.abs(to.lane - from.lane) > 1) {
+    if (!from.bookend && !to.bookend && !from.milestoneId && !to.milestoneId && Math.abs(to.lane - from.lane) > 1) {
       errors.push(`edges[${index}]: normal edges must use shared or adjacent lanes`);
     }
     if (config?.nonRepeatFamilyIds?.includes(getVassalLifeMapNodeType(from)) && getVassalLifeMapNodeType(from) === getVassalLifeMapNodeType(to)) {
       errors.push(`edges[${index}]: prohibited sequential ${from.family}`);
     }
   }
-  if (graph.edges.some((edge) => edge.fromNodeId === graph.bossNodeId)) {
-    errors.push("bossNodeId: boss must be terminal");
-  }
-  for (const node of graph.nodes.filter((entry) => entry.depth === (config?.normalDepthCount ?? 0) - 1)) {
-    if (!edgeKeys.has(`${node.id}>${graph.bossNodeId}`)) errors.push(`${node.id}: final node must connect to boss`);
+  for(const node of graph.nodes.filter(n=>n.bookend)){
+    if(!['founding','legacy'].includes(node.bookend)||node.bookend==='legacy'&&node.id!==graph.bossNodeId||node.bookend==='founding'&&node.id!==graph.foundingNodeId)errors.push(`${node.id}: invalid bookend`);
+    if(graph.nodes.filter(n=>n.depth===node.depth).length!==1)errors.push(`${node.id}: expected a single-node bookend column`);
+    for(const parent of graph.nodes.filter(n=>n.depth===node.depth-1))if(!edgeKeys.has(`${parent.id}>${node.id}`))errors.push(`${node.id}: bookend must join every incoming branch`);
+    for(const child of graph.nodes.filter(n=>n.depth===node.depth+1))if(!edgeKeys.has(`${node.id}>${child.id}`))errors.push(`${node.id}: bookend must reach every outgoing branch`);
   }
   const reachable = new Set(graph.entryNodeIds);
   const queue = [...graph.entryNodeIds];
@@ -590,6 +597,8 @@ export function validateVassalLifeMapGraph(graph) {
     }
   }
   if (graph.nodes.some((node) => !reachable.has(node.id))) errors.push("nodes: every node must be entry-reachable");
+  const finalDepth=Math.max(...graph.nodes.map(n=>n.depth));
+  for(const node of graph.nodes)if(node.depth<finalDepth&&!graph.edges.some(e=>e.fromNodeId===node.id))errors.push(`${node.id}: only the final depth may be terminal`);
   for (let depth = 0; depth < (config?.normalDepthCount ?? 0) - 1; depth += 1) {
     const depthEdges = graph.edges.filter((edge) => nodeById.get(edge.fromNodeId)?.depth === depth);
     for (let a = 0; a < depthEdges.length; a += 1) {

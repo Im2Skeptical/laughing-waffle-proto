@@ -193,6 +193,8 @@ function createLifeMapState(state, vassalId, candidate) {
     generationSeed,
     signatureNode: candidate.signatureNode,
     classId: candidate.founderClassId ?? candidate.classId,
+    founderClassId:candidate.founderClassId,
+    foundingNodeId:`${vassalId}-founding`,
     trainingOpening: !!candidate.classId,
     ...getStockShopGenerationContext(state, candidate),
   });
@@ -252,20 +254,6 @@ export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = nu
     heirlooms: createEmptyHeirloomInventory(),
   };
   if (record.founderClassId) {
-    const graph = record.lifeMap.graph;
-    const entryNodeIds = [...graph.entryNodeIds];
-    const foundingNodeId = `${vassalId}-founding`;
-    const normalDepthCount = graph.generatorConfig.normalDepthCount;
-    for (const node of graph.nodes) node.position.x = (node.position.x * normalDepthCount + 1) / (normalDepthCount + 1);
-    graph.nodes.unshift({
-      id: foundingNodeId, depth: -1, lane: Math.floor(graph.generatorConfig.laneCount / 2), band: "founding",
-      family: record.founderClassId === "scholar" ? "philosopherFounding" : "warlordFounding",
-      position: { x: 0, y: 0.5 },
-    });
-    graph.edges.unshift(...entryNodeIds.map(toNodeId => ({ fromNodeId: foundingNodeId, toNodeId })));
-    graph.foundingNodeId = foundingNodeId;
-    graph.entryNodeIds = [foundingNodeId];
-    record.lifeMap.availableNodeIds = [foundingNodeId];
     lineage.founderClassId = record.founderClassId;
   }
   ensureCommissionOffers(state, record);

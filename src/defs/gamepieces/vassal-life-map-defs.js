@@ -1,4 +1,4 @@
-export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 6;
+export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 7;
 const VASSAL_TIME_COST_MULTIPLIER = 3.6;
 const increasedYearCost = (baseCost) => baseCost * VASSAL_TIME_COST_MULTIPLIER;
 

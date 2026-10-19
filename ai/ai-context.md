@@ -56,15 +56,15 @@ Routing skills live in `.grok/skills/`.
 
 Authoritative numbers:
 
-- Game state v36; runner saves v26. Older saves are rejected.
+- Game state v37; runner saves v27. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
-- Each run serializes schema-v26 Game Settings, Gamepieces, and Life Map
+- Each run serializes schema-v27 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.
 - Map Lab drafts v8; scenario libraries v4.
 - Vassal Lab draft/preset schema v5.
 - Life Map Lab drafts v2.
 - Card reviewer drafts/export v1; stable browser storage independent of game saves and builds.
-- Life Map generator settings v13; serialized Life Map graph v6.
+- Life Map generator settings v14; serialized Life Map graph v7.
 - Lifegraph workbench drafts/reviews/exports v1 are independent browser documents.
   Pooled experiments capture families, class eligibility, guarantees and named
   option-level absolute cost presets and shared card-type/quality shop prices in
@@ -78,6 +78,11 @@ Authoritative numbers:
   types. Ordinary quality weights and Special Relic per-item weights are captured
   in the generator config; disabled entries never backfill an exhausted pool.
   Gym profiles explicitly copy a Lifegraph draft before launch.
+  Milestone columns join every route at an authored depth before branching again.
+  Node types can be limited to milestones; columns select a node or pooled family
+  with class scopes. Founding and Legacy can be disabled or relocated in pooled
+  experiments. Interior Legacy grants its reward then continues; any terminal
+  node retires normally. Disabled Founding does not establish a specialist class.
 - Debug profile library/export v3 (fresh-run recipes; no live Vassal overrides).
 - Named debug draft libraries v1.
 - Debug drafts are inert until launched from Gym → New run setup; saved combined

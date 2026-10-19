@@ -66,10 +66,17 @@ export function createLifegraphController({baseSandbox=null,store=storage()}={})
     openType(id){if(!graph)throw new Error(generationErrors[0]);const scenario=openLifegraphNodeType(state,graph,id,settings());sandbox.loadScenario(scenario);return scenario;},
     addPool(label){const next=clone(draft);let n=1;while(next.generatorConfig.design.pools.some(p=>p.id===`family-${n}`))n++;
       next.generatorConfig.design.pools.push({id:`family-${n}`,label:label.trim()||`Family ${n}`,occurrence:'uncommon',maxConsecutive:2});return commit(next,'Family added. Assign nodes in the node reviewer.');},
-    removePool(id){const design=draft.generatorConfig.design;if(Object.values(design.nodes).some(n=>n.poolId===id)||design.guarantees.some(g=>g.targetType==='pool'&&g.targetId===id)){message='Move this family’s nodes and guarantees before removing it.';notify();return {ok:false};}
+    removePool(id){const design=draft.generatorConfig.design;if(Object.values(design.nodes).some(n=>n.poolId===id)||design.guarantees.some(g=>g.targetType==='pool'&&g.targetId===id)||design.columns.some(c=>c.targetType==='pool'&&c.targetId===id)){message='Move this family’s nodes, guarantees and milestone columns before removing it.';notify();return {ok:false};}
       return commit(replacePath(draft,['generatorConfig','design','pools'],design.pools.filter(p=>p.id!==id)),'Family removed.');},
     addGuarantee(){const next=clone(draft),rules=next.generatorConfig.design.guarantees;let n=1;while(rules.some(g=>g.id===`guarantee-${n}`))n++;
       rules.push({id:`guarantee-${n}`,targetType:'pool',targetId:next.generatorConfig.design.pools[0].id,scope:'common',count:1,minDepth:1,maxDepth:Math.min(4,next.generatorConfig.normalDepthCount),coverage:'map'});return commit(next,'Guarantee added.');},
+    addColumn(){const next=clone(draft),columns=next.generatorConfig.design.columns;let n=1;while(columns.some(c=>c.id===`milestone-${n}`))n++;
+      const occupied=new Set(columns.filter(c=>c.enabled).map(c=>c.depth));
+      for(const rule of Object.values(next.generatorConfig.design.bookends))if(rule.enabled&&Number.isInteger(rule.depth)&&rule.depth>0)occupied.add(rule.depth);
+      const depths=Array.from({length:next.generatorConfig.normalDepthCount},(_,i)=>i+1),depth=depths.find(d=>d>=3&&!occupied.has(d))??depths.find(d=>!occupied.has(d));
+      if(depth==null){message='Every depth already has a milestone. Remove or disable one first.';notify();return {ok:false};}
+      columns.push({id:`milestone-${n}`,label:`Milestone ${n}`,enabled:true,depth,targetType:'node',targetId:'practiceReform',scope:'common'});
+      return commit(next,'Milestone added. All routes meet at this node, then branch again.');},
     savePreset(name){name=name.trim();if(name===previousPreset.name){message='Previous defaults is a built-in profile. Save a copy under another name.';notify();return {ok:false};}if(!name||name.length>120){message='Choose a preset name (up to 120 characters).';notify();return {ok:false};}
       const next=presets.filter(p=>p.name!==name);next.push({name,draft:clone({...draft,name})});try{if(!store)throw new Error();store.setItem(LIFEGRAPH_PRESETS_KEY,JSON.stringify(next));presets=next;message=`Saved “${name}”.`;notify();return {ok:true};}catch{message='Preset could not be stored. Export this draft instead.';notify();return {ok:false};}},
     loadPreset(name){const preset=presets.find(p=>p.name===name);return preset?commit(name===previousPreset.name?{...preset.draft,reviews:draft.reviews}:preset.draft,`Loaded “${name}”.`):{ok:false};},
