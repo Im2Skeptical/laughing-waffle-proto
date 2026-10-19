@@ -60,7 +60,22 @@ try{
       for(const child of node.children??[]){const found=findText(test,child);if(found)return found;}
       return null;
     }
+    function checkNeutralTags(){
+      let rows=0;const offsets=[];
+      function visit(node){
+        const children=node.children??[],label=children.find(child=>child instanceof PIXI.Text&&child.text==='NEUTRAL');
+        const tags=children.filter(child=>child.stockTag);
+        if(label&&tags.length)for(const y of new Set(tags.map(tag=>tag.y))){
+          const row=tags.filter(tag=>tag.y===y),center=row.reduce((sum,tag)=>sum+tag.getGlobalPosition().x,0)/row.length;
+          const offset=center-label.getGlobalPosition().x;rows++;
+          if(Math.abs(offset)>.01)offsets.push(offset);
+        }
+        children.forEach(visit);
+      }
+      visit(app.stage);return {rows,offsets};
+    }
     try{
+      const neutralTags=[checkNeutralTags()];
       const pausedBefore=map.getSemanticSnapshot(),pausedStart=performance.now();
       for(let i=0;i<60;i++)map.update();
       const pausedMs=(performance.now()-pausedStart)/60,pausedAfter=map.getSemanticSnapshot();
@@ -94,7 +109,9 @@ try{
       const reads=map.getSemanticSnapshot().presentationReads;
       fixture.setLoss({resolved:true,lossYear:77});map.update();
       const forecastInvalidates=map.getSemanticSnapshot().presentationReads>reads;
-      return {...allocations,paused,samples,semantics,rewind,invalidates,difference,collapsed,editInvalidates,forecastInvalidates,retained:after.retainedScene,unchanged:states.every((s,i)=>JSON.stringify(s)===originals[i])};
+      findText(t=>t.text==='+').parent.emit('pointerdown');map.update();app.render();
+      neutralTags.push(checkNeutralTags());
+      return {...allocations,paused,samples,semantics,rewind,invalidates,difference,collapsed,editInvalidates,forecastInvalidates,neutralTags,retained:after.retainedScene,unchanged:states.every((s,i)=>JSON.stringify(s)===originals[i])};
     }finally{PIXI.Text.prototype.destroy=textDestroy;PIXI.DisplayObject.prototype.destroy=objectDestroy;map.destroy();app.destroy(true);}
   });
   const {profile}=await cdp.send('Profiler.stop');
@@ -107,6 +124,7 @@ try{
   assert.equal(result.rewind,true,'Rewind restores all retained map and HUD pixels');
   assert.equal(result.invalidates,true);assert.ok(result.difference>500,'Monster changes replace retained map content');
   assert.equal(result.collapsed,true,'Collapsed Chaos counter updates during playback');
+  assert.ok(result.neutralTags.every(check=>check.rows>=4&&check.offsets.length===0),'Neutral resource rows stay centered on their settlement labels through camera zoom');
   if(!process.argv.includes('--baseline')){
     assert.equal(result.paused.reads,0,'Paused frames reuse map summaries and signatures');
     assert.equal(result.paused.cameraUpdates,0,'Stationary frames reuse camera uniforms');
