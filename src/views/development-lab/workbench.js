@@ -130,7 +130,7 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
   if(gym) {
     const panel=disclosure('External actors & Chaos',[],{key:'gym:external',open:!isNarrow(),className:'lab-panel'});
     const regions=state.world.regions.map(r=>[r.id,`${r.id} · ${r.controller}${r.monster?' · Monster':''}`]);
-    const target=select('Target region',regions,regions.find(([id])=>id!==regionId)?.[0]), defense=input('Monster defense',3), progress=input('Monster expansion progress',state.civilization.chaos.monsterPressure), chaos=input('Chaos power',observation.chaos);
+    const target=select('Target region',regions,regions.find(([id])=>id!==regionId)?.[0]), defense=input('Monster defense',3), progress=input('Monster Pressure',state.civilization.chaos.monsterPressure), chaos=input('Chaos power',observation.chaos);
     const row=el('div','','lab-controls');row.append(field('Region',target),field('Defense',defense),field('Expansion progress',progress),button('Spawn / set Monster',()=>edit('monster',{regionId:target.value,defense:defense.value})),button('Remove Monster',()=>edit('monster',{regionId:target.value,remove:true})));
     auto([progress],()=>edit('monsterProgress',{amount:progress.value}));
     const templates=select('Neutral template',NEUTRAL_TEMPLATES.map((t,i)=>[i,t.name]),0);

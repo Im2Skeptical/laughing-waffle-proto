@@ -320,7 +320,7 @@ for (let seed = 0; seed < 100; seed += 1) {
     if (!qualityCosts.has(offer.quality)) qualityCosts.set(offer.quality, new Set());
     qualityCosts.get(offer.quality).add(offer.phaseCost);
     assert.match(relicRiskLabel(offer), /Age-based death roll after time/);
-    assert.match(relicRiskLabel(offer), offer.immediateDeathChance ? /35% immediate death risk/ : /No immediate death risk/);
+    assert.doesNotMatch(relicRiskLabel(offer), /0%|No immediate death risk/);
   }
   for (const key of Object.keys(beforeRng).filter(key => key !== 'vassalSeed')) {
     assert.equal(state.rng[key], beforeRng[key], `relic rolls preserve ${key}`);

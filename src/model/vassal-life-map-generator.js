@@ -21,7 +21,7 @@ function isCanonicalSignatureDescriptor(descriptor) {
     && descriptor.color === variant.color && descriptor.description === variant.description
     && descriptor.removalKind === variant.removalKind && descriptor.tag === variant.tag;
 }
-export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 11;
+export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 12;
 
 export function createAuthoredVassalLifeMapGeneratorConfig() {
   return clone(LIFEGRAPH_DEFAULT_GENERATOR);

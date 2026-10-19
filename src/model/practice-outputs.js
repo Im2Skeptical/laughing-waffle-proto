@@ -22,7 +22,7 @@ const AMOUNT_KEYS = ['amount','seasonAmounts'];
 export const isPracticeOutput = effect => Object.hasOwn(PRACTICE_OUTPUTS, effect?.op);
 export const practiceOutputKey = effect => `${effect.op}${PRACTICE_OUTPUTS[effect.op]?.param ? `:${effect[PRACTICE_OUTPUTS[effect.op].param]}` : ''}`;
 // What a card produces, for filters: Stock, Chaos or the output's label.
-export const practiceEffectProduct = effect => effect?.op === 'generateStock' ? 'Stock' : effect?.op === 'addChaos' ? 'Chaos' : effect?.op === 'addMonsterPressure' ? 'Monster expansion progress' : PRACTICE_OUTPUTS[effect?.op]?.label ?? null;
+export const practiceEffectProduct = effect => effect?.op === 'generateStock' ? 'Stock' : effect?.op === 'addChaos' ? 'Chaos' : effect?.op === 'addMonsterPressure' ? 'Monster Pressure' : PRACTICE_OUTPUTS[effect?.op]?.label ?? null;
 
 const validSeasonAmounts = value => value === undefined || (value && typeof value === 'object' && !Array.isArray(value)
   && Object.entries(value).every(([key,amount])=>SEASONS.includes(key)&&Number.isFinite(amount)));

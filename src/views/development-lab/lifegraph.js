@@ -127,13 +127,14 @@ export function createLifegraphView({controller=createLifegraphController()}={})
   function renderBands(parent,s){
     const design=s.draft.generatorConfig.design;
     parent.append(section('Occurrence tiers',el('p','These are relative chances. Changing Common updates every family and node assigned to Common; switching a node off is separate.'),controlRow(...LIFEGRAPH_RARITIES.map(t=>number(title(t),design.occurrence[t],designPath('occurrence',t),{min:.01,max:100,step:.25})))));
-    for(const kind of ['time','prestige','risk']){
+    for(const kind of ['time','prestige','risk','monsterPressure']){
+      const name=kind==='risk'?'Death / defeat risk':kind==='monsterPressure'?'Monster Pressure':title(kind);
       const controls=controlRow();
       for(const tier of LIFEGRAPH_COST_TIERS){
-        const value=input(`${title(kind)} · ${tier}`,design.costBands[kind][tier]*(kind==='risk'?100:1));value.min='0';value.max=kind==='risk'?'100':kind==='time'?'1000':'100000';value.step=kind==='prestige'?'1':'.1';
+        const value=input(`${name} · ${tier}`,design.costBands[kind][tier]*(kind==='risk'?100:1));value.min='0';value.max=kind==='risk'?'100':kind==='time'?'1000':'100000';value.step=kind==='prestige'?'1':'.1';
         value.addEventListener('change',()=>edit(designPath('costBands',kind,tier),Number(value.value)/(kind==='risk'?100:1)));controls.append(field(`${title(tier)}${kind==='risk'?' · %':kind==='time'?' · years':''}`,value));
       }
-      parent.append(section(`${title(kind)} base cost presets`,el('p',kind==='time'?'Absolute solar years before discounts. Every choice using a preset shares its value.':kind==='risk'?'Absolute risk percentage before class bonuses. Free is always 0%.':'Absolute Prestige cost before discounts. Free is always 0.','lab-note'),controls));
+      parent.append(section(`${name} base cost presets`,el('p',kind==='time'?'Absolute solar years before discounts. Every choice using a preset shares its value.':kind==='risk'?'Chance of death before class bonuses, or defeat in Campaigns. Separate from Monster Pressure.':kind==='monsterPressure'?'Points added to the shared Monster tracker, independently of death risk. A full tracker triggers Monster activity.':'Absolute Prestige cost before discounts. Free is always 0.','lab-note'),controls));
     }
     renderLifegraphShopPricing(parent,{controller});
     renderLifegraphChoices(parent,{controller,designId:'stockShop',servicesOnly:true});

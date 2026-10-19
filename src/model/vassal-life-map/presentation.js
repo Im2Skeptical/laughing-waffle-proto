@@ -1,4 +1,5 @@
 import { getVassalRiskDeathChance } from './class-rules.js';
+import { getActionMonsterPressureCost } from '../detailed-settlements/practice-events.js';
 import { resolveLifeMapOptionCosts } from '../life-map-balance.js';
 import { getShopOfferPrice } from './shop-specialties.js';
 import { getCampaignPresentation } from './campaign.js';
@@ -370,6 +371,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
   const acquiring = !!nodeState?.rewardAcquisition;
   const campaign = nodeState?.campaign && !acquiring ? getCampaignPresentation(state,vassal,nodeState) : null;
   const worldOptions = (nodeState?.options ?? []).map(option=>({...clone(option),
+    monsterPressureCost:getActionMonsterPressureCost(option),
     ...(option.randomReward?{randomReward:{...option.randomReward,relicChance:100*option.randomReward.relicChance}}:{}),
     cost:getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0),
     phases:getVassalActionPhaseCost(vassal,option.phaseCost??0,{nodeState,isTravel:!!option.locationRegionId}),
@@ -392,8 +394,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     ...(nodeState?.shopSelection&&!nodeState.shopSelection.selectedTag?{shopTagChoices:clone(nodeState.shopSelection.choices)}:{}),
     nodeState: nodeState ? {...clone(nodeState), ...(acquiring?{family:'relic',selectedOptionId:nodeState.rewardAcquisition.id}:{}), options:(acquiring?[nodeState.rewardAcquisition]:nodeState.options ?? []).map(option => {
       const risk = getVassalRiskDeathChance(vassal, option.immediateDeathChance);
-      return {...clone(option), ...(Number.isFinite(option.immediateDeathChance) ? {immediateDeathChance:risk,
-        label:(option.label ?? '').replace(/\d+(?:\.\d+)?% (?:Danger|RISK)/g, `${Math.round(risk*100)}% RISK`)} : {})};
+      return {...clone(option), ...(Number.isFinite(option.immediateDeathChance) ? {immediateDeathChance:risk} : {})};
     })} : null,
     optionRequirements: Object.fromEntries((nodeState?.options ?? []).map((option) =>
       [option.id, getSettlementRequirements(state, vassal, option)])),

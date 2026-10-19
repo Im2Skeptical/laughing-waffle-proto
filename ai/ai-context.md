@@ -58,19 +58,22 @@ Authoritative numbers:
 
 - Game state v36; runner saves v26. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
-- Each run serializes schema-v24 Game Settings, Gamepieces, and Life Map
+- Each run serializes schema-v25 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.
 - Map Lab drafts v8; scenario libraries v4.
 - Vassal Lab draft/preset schema v5.
 - Life Map Lab drafts v2.
 - Card reviewer drafts/export v1; stable browser storage independent of game saves and builds.
-- Life Map generator settings v11; serialized Life Map graph v6.
+- Life Map generator settings v12; serialized Life Map graph v6.
 - Lifegraph workbench drafts/reviews/exports v1 are independent browser documents.
   Pooled experiments capture families, class eligibility, guarantees and named
   option-level absolute cost presets and shared card-type/quality shop prices in
   the run's generator config. Normal New Game uses Cam's first-pass pooled tuning.
   Previous tuning remains a built-in Lifegraph profile. Shop Delve and empty-exit
   times are shared across all shops; only Scholars can refresh shops through Delve.
+  Choice death/defeat chances and Monster Pressure points have independent presets.
+  Rolled-stat Development and quality-based Relic pressure can retain their dynamic
+  rules or use an explicit per-choice pressure value. Zero death risk is omitted.
   Gym profiles explicitly copy a Lifegraph draft before launch.
 - Debug profile library/export v3 (fresh-run recipes; no live Vassal overrides).
 - Named debug draft libraries v1.

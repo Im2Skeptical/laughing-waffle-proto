@@ -8,6 +8,9 @@ import {serializeGameState,deserializeGameState} from '../src/model/state.js';
 import {createTimelineFromInitialState,appendActionAtCursor,rebuildStateAtSecond} from '../src/model/timeline/index.js';
 import {ActionKinds,applyAction} from '../src/model/actions.js';
 import {initializeReplayClock,advanceReplayStateToSecond} from '../src/model/replay-second-runner.js';
+import {getActionMonsterPressureCost} from '../src/model/detailed-settlements/practice-events.js';
+import {optionEffect,relicRiskLabel} from '../src/views/vassal-node-decision/cards.js';
+import {renderMortalityEstimate} from '../src/views/vassal-node-decision/mortality.js';
 
 const memory=new Map(),store={getItem:key=>memory.get(key)??null,setItem:(key,value)=>memory.set(key,value)};
 const c=createLifegraphController({store});c.update(['preview','stats'],0);
@@ -38,7 +41,7 @@ const obsolete=JSON.parse(exported);obsolete.generatorConfig.schemaVersion=9;obs
 const oldStore={getItem:key=>key==='civsurvivor.lifegraph-workbench.v1'?JSON.stringify(obsolete):null,setItem:()=>{}};
 const fresh=createLifegraphController({store:oldStore});
 assert.equal(fresh.getSnapshot().draft.reviews.development.notes,obsolete.reviews.development.notes,'independent notes survive replacement of obsolete cost rules');
-assert.equal(fresh.getSnapshot().draft.generatorConfig.schemaVersion,11);assert.equal(fresh.getChoiceReview('development').choices[0].rule.time,'expensive');
+assert.equal(fresh.getSnapshot().draft.generatorConfig.schemaVersion,12);assert.equal(fresh.getChoiceReview('development').choices[0].rule.time,'expensive');
 
 // Preview and payment use the resolved option, not a node-wide multiplier or a
 // different selected option. Stop at t=0 to inspect the committed reservation.
@@ -93,17 +96,22 @@ const structure=resolveLifeMapShopPrice(s.state,{intervention:{kind:'structure',
 assert.equal(structure.priceQuality,'gold');assert.equal(structure.basePrestigeCost,structurePrice.prestige);
 
 c.update(['preview','classId'],'warrior');c.setOptionCost('campaign','duel','risk',.2);c.setOptionCost('campaign','duel','time',1);c.openType('campaign');s=c.sandbox.getSnapshot();
+assert.equal(c.setOptionCost('campaign','leave','risk',.2).ok,false,'leaving a Campaign cannot acquire an encounter risk');
+assert.ok(!c.getChoiceReview('campaign').choices.find(o=>o.id==='leave').costKinds.includes('risk'));
 const duel=s.vassal.lifeMap.nodeStates[s.nodeId].options.find(o=>o.mode==='duel');assert.equal(duel.risk,20);assert.equal(duel.phaseCost,lifeMapPhasesPerYear(s.state));
-c.update(['preview','stats'],10);c.setOptionCost('campaign','duel','risk','free');c.setOptionCost('campaign','duel','prestige',7);c.openType('campaign');s=c.sandbox.getSnapshot();
+c.update(['preview','stats'],10);c.setOptionCost('campaign','duel','risk','free');c.setOptionCost('campaign','duel','prestige',7);c.setOptionCost('campaign','duel','monsterPressure',7);c.openType('campaign');s=c.sandbox.getSnapshot();
 node=s.vassal.lifeMap.nodeStates[s.nodeId];
 const paidDuel=node.options.find(o=>o.mode==='duel'),campaignTime=getVassalActionPhaseCost(s.vassal,paidDuel.phaseCost,{nodeState:node});
 assert.ok(campaignTime<paidDuel.phaseCost,'authored Campaign base times receive ordinary discounts');
 const campaignTimeline=createTimelineFromInitialState(s.state);
+const campaignPressure=s.state.civilization.chaos.monsterPressure;
+assert.equal(getVassalNodeDecisionPresentation(s.state,s.nodeId).campaign.allTargets.find(o=>o.mode==='duel').monsterPressureCost,7,'Campaign quote includes its independent pressure charge');
 for(const [kind,payload]of [[ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId:s.nodeId,optionId:paidDuel.id}],[ActionKinds.VASSAL_CONFIRM_LIFE_NODE,{nodeId:s.nodeId}]]){
   assert.equal(appendActionAtCursor(campaignTimeline,{kind,payload,tSec:s.state.tSec},s.state).ok,true);
   assert.equal(applyAction(s.state,{kind,payload},{isReplay:true}).ok,true);
 }
 assert.equal(s.vassal.lifeMap.pendingResolution.phaseCost,campaignTime,'Campaign resolution uses the same discounted cost as its preview');
+assert.equal(s.state.civilization.chaos.monsterPressure,campaignPressure+7,'Campaign pressure is paid independently of defeat risk');
 initializeReplayClock(s.state,s.state.tSec);assert.equal(advanceReplayStateToSecond(s.state,s.vassal.lifeMap.pendingResolution.resolveSec).ok,true);
 const campaignReplay=rebuildStateAtSecond(campaignTimeline,s.state.tSec);assert.equal(campaignReplay.ok,true);assert.ok(snapshot(campaignReplay.state)===snapshot(s.state),'authored Campaign costs match authoritative replay');
 c.update(['preview','stats'],0);
@@ -113,4 +121,44 @@ assert.equal(applyAction(s.state,{kind:ActionKinds.VASSAL_REROLL_SHOP,payload:{n
 assert.deepEqual(serializeGameState(s.state),beforeReject,'rejected non-Scholar rerolls spend no resources or RNG');
 const baseline=deserializeGameState(serializeGameState(s.state));baseline.gameConfig.lifeMapGenerator.design.enabled=false;
 assert.equal(resolveLifeMapOptionCosts(baseline,{family:'development'},{id:'deepStudy',phaseCost:17}).phaseCost,17,'baseline retains existing authored behavior');
+
+// Pressure and immediate death use independent authored values and channels.
+c.update(['preview','classId'],'scholar');
+c.setOptionCost('development','deepStudy','risk','free');
+c.setOptionCost('development','deepStudy','monsterPressure','fair');
+c.update(['generatorConfig','design','costBands','monsterPressure','fair'],23);
+assert.equal(c.getChoiceReview('development').choices[0].base.monsterPressure,23);
+assert.equal(c.getChoiceReview('development').choices[0].base.risk,0);
+c.setOptionCost('development','deepStudy','risk',.25);
+assert.equal(c.getChoiceReview('development').choices[0].base.monsterPressure,23,'changing death risk does not change pressure');
+c.setOptionCost('development','deepStudy','risk','free');
+c.setOptionCost('development','deepStudy','time','free');
+c.openType('development');s=c.sandbox.getSnapshot();node=s.vassal.lifeMap.nodeStates[s.nodeId];
+deep=node.options.find(o=>o.id==='deepStudy');
+assert.equal(deep.immediateDeathChance,0);assert.equal(getActionMonsterPressureCost(deep),23);
+const pressureBefore=s.state.civilization.chaos.monsterPressure,pressureTimeline=createTimelineFromInitialState(s.state);
+for(const [kind,payload]of [[ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId:s.nodeId,optionId:deep.id}],[ActionKinds.VASSAL_CONFIRM_LIFE_NODE,{nodeId:s.nodeId}]]){
+  assert.equal(appendActionAtCursor(pressureTimeline,{kind,payload,tSec:s.state.tSec},s.state).ok,true);
+  assert.equal(applyAction(s.state,{kind,payload},{isReplay:true}).ok,true);
+}
+assert.equal(s.state.civilization.chaos.monsterPressure,pressureBefore+23,'pressure is paid even with zero immediate death risk');
+const pressureReplay=rebuildStateAtSecond(pressureTimeline,s.state.tSec);assert.equal(pressureReplay.ok,true);
+assert.equal(snapshot(pressureReplay.state),snapshot(s.state),'pressure authoring is captured by authoritative replay');
+assert.equal(c.setOptionCost('development','deepStudy','monsterPressure',-1).ok,false);
+assert.equal(c.setOptionCost('development','deepStudy','monsterPressure',100001).ok,false);
+const dynamic=deserializeGameState(serializeGameState(s.state));
+dynamic.gameConfig.lifeMapGenerator.design.optionCosts.development.deepStudy.monsterPressure='calculated';
+const dynamicOption={id:'deepStudy',effects:[{op:'addMonsterPressure',amount:20},{op:'addChaos',amount:2}]};
+assert.equal(getActionMonsterPressureCost(resolveLifeMapOptionCosts(dynamic,{family:'development'},dynamicOption)),20);
+dynamic.gameConfig.lifeMapGenerator.design.optionCosts.development.deepStudy.monsterPressure=7;
+const resolved=resolveLifeMapOptionCosts(dynamic,{family:'development'},dynamicOption);
+assert.equal(getActionMonsterPressureCost(resolved),7,'explicit pressure replaces the dynamic charge instead of stacking');
+assert.deepEqual(resolved.effects.find(e=>e.op==='addChaos'),{op:'addChaos',amount:2},'unrelated effects survive pressure authoring');
+assert.equal(getActionMonsterPressureCost(resolveLifeMapOptionCosts(dynamic,{family:'development'},resolved)),7,'re-resolving costs cannot double pressure');
+assert.doesNotMatch(optionEffect({immediateDeathChance:0,statId:'wisdom',statDelta:1}),/death|0%/);
+assert.match(optionEffect({immediateDeathChance:.2}),/20% immediate death risk/);
+assert.equal(relicRiskLabel({immediateDeathChance:0,phaseCost:0}),'');
+assert.doesNotMatch(relicRiskLabel({immediateDeathChance:0,phaseCost:3}),/0%|No immediate/);
+renderMortalityEstimate({addChild(){assert.fail('zero death risk must not render a mortality panel');}},{totalDeathChance:0},{},true);
+assert.equal(c.importJson(c.exportJson()).ok,true,'independent pressure settings survive export/import');
 console.log('[lifegraph-choice-costs] independent choice bases/presets, effects, custom values, validation, persistence, shop quality/bonuses, checkout and authoritative replay OK');

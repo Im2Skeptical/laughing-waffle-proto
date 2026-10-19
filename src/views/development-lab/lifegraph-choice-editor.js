@@ -1,9 +1,9 @@
 import { LIFEGRAPH_COST_CHOICES, LIFEGRAPH_SHOP_TYPES, LIFEGRAPH_CARD_QUALITIES, getLifeMapOptionSpecs } from '../../model/life-map-balance.js';
 import { el, input, select, field, badge } from './elements.js';
 
-const title=value=>value[0].toUpperCase()+value.slice(1);
+const title=value=>value==='monsterPressure'?'Monster Pressure':value[0].toUpperCase()+value.slice(1);
 const format=value=>Number(value.toFixed(2)).toString();
-const display=(kind,value)=>kind==='risk'?`${format(value*100)}%`:kind==='time'?`${format(value)} years`:`${format(value)} Prestige`;
+const display=(kind,value)=>kind==='risk'?`${format(value*100)}%`:kind==='time'?`${format(value)} years`:kind==='monsterPressure'?`+${format(value)} Monster Pressure`:`${format(value)} Prestige`;
 
 export function renderLifegraphChoices(parent,{controller,designId,servicesOnly=false}){
   const review=controller.getChoiceReview(designId),design=controller.getSnapshot().draft.generatorConfig.design;
@@ -21,19 +21,25 @@ export function renderLifegraphChoices(parent,{controller,designId,servicesOnly=
     if(!option.available&&!option.shared&&option.id!=='remove')card.append(el('p','Not offered in this preview context; its base costs can still be authored.','lab-note'));
     const controls=el('div','','lab-lifegraph-choice-costs');
     for(const kind of option.costKinds){
-      const assignment=option.rule[kind],label=`${option.label} · ${title(kind)}`;
+      const name=kind==='risk'?option.riskLabel:title(kind);
+      const assignment=option.rule[kind],label=`${option.label} · ${name}`;
       const entries=LIFEGRAPH_COST_CHOICES.map(tier=>[tier,tier==='free'?'Free · 0':`${title(tier)} · ${display(kind,design.costBands[kind][tier])}`]);
-      if(getLifeMapOptionSpecs(designId).find(o=>o.id===option.id).defaults[kind]==='calculated')entries.push(['calculated','Encounter risk · Force / Defence']);
+      if(getLifeMapOptionSpecs(designId).find(o=>o.id===option.id).defaults[kind]==='calculated')entries.push(['calculated',kind==='risk'?'Encounter risk · Force / Defence':designId==='relic'?'By Relic quality':'By rolled stat']);
       entries.push(['custom','Custom base value']);
       const band=select(`${label} band`,entries,typeof assignment==='number'?'custom':assignment);
       band.addEventListener('change',()=>controller.setOptionCost(designId,option.id,kind,band.value==='custom'?option.base[kind]:band.value));
-      const row=el('div','','lab-lifegraph-choice-cost');row.append(field(`${title(kind)} preset`,band));
+      const row=el('div','','lab-lifegraph-choice-cost');row.append(field(`${name} preset`,band));
       const value=input(`${label} base value`,kind==='risk'?option.base[kind]*100:option.base[kind]);value.min='0';value.max=kind==='risk'?'100':kind==='time'?'1000':'100000';value.step=kind==='prestige'?'1':'.1';
       value.addEventListener('change',()=>controller.setOptionCost(designId,option.id,kind,Number(value.value)/(kind==='risk'?100:1)));
-      row.append(field(kind==='risk'?'Base risk (%)':kind==='time'?'Base years':'Base Prestige',value));controls.append(row);
+      row.append(field(kind==='risk'?`Base ${name.toLowerCase()} (%)`:kind==='time'?'Base years':`Base ${name}`,value));controls.append(row);
     }
     card.append(controls);
-    if(option.preview)card.append(el('p',`This preview after discounts: ${display('time',option.preview.years)} · ${display('prestige',option.preview.prestige)} · ${display('risk',option.preview.risk)} risk`,'lab-lifegraph-choice-preview'));
+    if(option.preview){
+      const values=[display('time',option.preview.years),display('prestige',option.preview.prestige)];
+      if(option.preview.risk>0)values.push(`${display('risk',option.preview.risk)} ${option.riskLabel.toLowerCase()}`);
+      if(option.preview.monsterPressure>0)values.push(display('monsterPressure',option.preview.monsterPressure));
+      card.append(el('p',`This preview after discounts: ${values.join(' · ')}`,'lab-lifegraph-choice-preview'));
+    }
     grid.append(card);
   }
   section.append(grid);parent.append(section);

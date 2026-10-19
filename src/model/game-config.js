@@ -11,7 +11,7 @@ import {
   validateVassalLifeMapGeneratorConfig,
 } from "./vassal-life-map-generator.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 24;
+export const GAME_CONFIG_SCHEMA_VERSION = 25;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
@@ -109,10 +109,10 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
   }),
   Object.freeze({
     id: "monsterExpansion",
-    label: "Monster expansion",
+    label: "Monster Pressure",
     description: "Resistance contains accumulated Chaos. Excess Chaos divided by Resistance drives passive expansion; dangerous actions add progress directly. A full tracker expands one front.",
     fields: Object.freeze([
-      field("monsterExpansionThreshold", "Progress per expansion", 100, 1, 100000, 1, true),
+      field("monsterExpansionThreshold", "Pressure per Monster activity", 100, 1, 100000, 1, true),
       field("monsterProgressPerChaosRatio", "Progress per excess Chaos/Resistance ratio each moon", 0.8, 0, 100, 0.01),
       field("monsterDiversionProgress", "Progress removed by Crisis diversion", 25, 0, 100000, 1, true),
       field("discoveryMonsterProgress", "Forbidden Discovery progress", 40, 0, 100000, 1, true),

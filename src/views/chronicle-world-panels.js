@@ -15,7 +15,7 @@ export function addChaosPanelContent(root, rect, summary) {
   text('THE COMING DARK',0,24,PALETTE.accent);
   text(`${summary.green.label} | Placeholder, visual only`,28,20);
   text(`Chaos ${formatChaosValue(summary.chaos.chaosPower)}   ·   Resistance ${formatChaosValue(summary.chaos.resistance)}`,55,18);
-  text(`Expansion ${formatChaosValue(summary.chaos.expansionProgress)} / ${summary.chaos.expansionThreshold} | ${summary.chaos.progressPerMoon>0?"+"+formatChaosValue(summary.chaos.progressPerMoon)+" / moon":"Contained"}`,82,20);
+  text(`Monster Pressure ${formatChaosValue(summary.chaos.expansionProgress)} / ${summary.chaos.expansionThreshold} | ${summary.chaos.progressPerMoon>0?"+"+formatChaosValue(summary.chaos.progressPerMoon)+" / moon":"Contained"}`,82,20);
 }
 
 export function addRegionPanelContent(root, rect, {region, reference, name, vm, defense, tooltipView}) {

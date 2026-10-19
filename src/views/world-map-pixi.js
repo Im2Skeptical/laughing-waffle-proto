@@ -883,7 +883,7 @@ export function createWorldMapView({
             `Chaos income: ${formatChaosValue(reckoning?.rawPressure ?? 0)} · Resistance: ${formatChaosValue(civilizationSummary.chaos.resistance)}`,
             `Incoming Chaos: ${formatChaosValue(reckoning?.incomingChaos ?? 0)} · Accumulated: ${formatChaosValue(civilizationSummary.chaos.chaosPower)}`,
             `Monster regions: ${civilizationSummary.chaos.monsterCount}`,
-            `Expansion progress: ${formatChaosValue(civilizationSummary.chaos.expansionProgress)} / ${civilizationSummary.chaos.expansionThreshold}`,
+            `Monster Pressure: ${formatChaosValue(civilizationSummary.chaos.expansionProgress)} / ${civilizationSummary.chaos.expansionThreshold}`,
             "Resistance contains Chaos and reduces its relative expansion rate; dangerous actions bypass it.",
           ],
         }, civilizationPanel.getBounds(), { dismissOnExit: true });

@@ -12,6 +12,7 @@ import { getLifeMapOptionSpecs, LIFEGRAPH_SHOP_SERVICE_SPECS, lifeMapOptionKey, 
 import { LIFEGRAPH_PREVIOUS_GENERATOR } from '../../defs/lifegraph-defaults.js';
 import { getVassalActionPhaseCost, getAdjustedVassalPrestigeCost } from '../vassal-life-map/selectors.js';
 import { getVassalRiskDeathChance } from '../vassal-life-map/class-rules.js';
+import { getActionMonsterPressureCost } from '../detailed-settlements/practice-events.js';
 
 export const LIFEGRAPH_STORAGE_KEY='civsurvivor.lifegraph-workbench.v1';
 export const LIFEGRAPH_PRESETS_KEY='civsurvivor.lifegraph-workbench.presets.v1';
@@ -97,7 +98,7 @@ export function getLifegraphChoiceReview(state,graph,designId,settings){
     const option=node?.options.find(option=>lifeMapOptionKey(node,option)===spec.id);
     const shared=LIFEGRAPH_SHOP_SERVICE_SPECS.some(s=>s.id===spec.id);
     const rule=shared?design.shopServices[spec.id]:design.optionCosts[designId][spec.id];
-    const base=Object.fromEntries(['time','prestige','risk'].map(kind=>[kind,rule[kind]==='calculated'?(option?.risk??0)/100:getLifeMapBalanceValue(design,kind,rule[kind]??'free')]));
+    const base=Object.fromEntries(['time','prestige','risk','monsterPressure'].map(kind=>[kind,rule[kind]==='calculated'?(kind==='risk'?(option?.risk??0)/100:getActionMonsterPressureCost(option)):getLifeMapBalanceValue(design,kind,rule[kind]??'free')]));
     const effects=[];
     if(spec.description)effects.push(spec.description);
     if(option?.description)effects.push(option.description);
@@ -106,9 +107,8 @@ export function getLifegraphChoiceReview(state,graph,designId,settings){
     if(option?.prestigeDelta)effects.push(`${option.prestigeDelta>0?'+':''}${option.prestigeDelta} Prestige`);
     if(option?.classAction?.research)effects.push(`+${option.classAction.research} Research before class bonuses`);
     const phases=option?.mode&&!design.enabled?option.phaseCost:getVassalActionPhaseCost(vassal,option?.phaseCost??0,{nodeState:node,isTravel:!!option?.locationRegionId});
-    const preview=option?{years:phases/lifeMapPhasesPerYear(state),prestige:getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0),risk:option.mode?(option.risk??0)/100:getVassalRiskDeathChance(vassal,option.immediateDeathChance??0)}:null;
-    const sampleLabel=(option?.label??'').replace(/\d+(?:\.\d+)?% (?:Danger|RISK)/g,`${Math.round((preview?.risk??0)*100)}% RISK`);
-    return {id:spec.id,label:spec.label,sampleLabel,costKinds:spec.costKinds??['time','prestige','risk'],effects,rule,base,preview,available:!!option,shared};
+    const preview=option?{years:phases/lifeMapPhasesPerYear(state),prestige:getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0),risk:option.mode?(option.risk??0)/100:getVassalRiskDeathChance(vassal,option.immediateDeathChance??0),monsterPressure:getActionMonsterPressureCost(option)}:null;
+    return {id:spec.id,label:spec.label,sampleLabel:option?.label??'',riskLabel:['campaign','signature:monsterHunt'].includes(designId)?'Defeat risk':'Death risk',costKinds:spec.costKinds??['time','prestige','risk','monsterPressure'],effects,rule,base,preview,available:!!option,shared};
   })};
 }
 

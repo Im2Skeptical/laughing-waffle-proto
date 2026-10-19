@@ -1,6 +1,6 @@
 // Authored from Cam's first-pass Lifegraph export. Previous tuning remains an explicit Lab profile.
 export const LIFEGRAPH_DEFAULT_GENERATOR = {
-  "schemaVersion": 11,
+  "schemaVersion": 12,
   "laneCount": 3,
   "normalDepthCount": 10,
   "routeCount": 6,
@@ -336,6 +336,11 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
         "cheap": 0.05,
         "fair": 0.15,
         "expensive": 0.35
+      },
+      "monsterPressure": {
+        "cheap": 10,
+        "fair": 20,
+        "expensive": 40
       }
     },
     "optionCosts": {
@@ -343,233 +348,274 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
         "immediateFavor": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "longAppointment": {
           "time": "expensive",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "cultivateConnections": {
           "time": "fair",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "development": {
         "deepStudy": {
           "time": "expensive",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "calculated"
         },
         "hardLesson": {
           "time": "fair",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "steadyPractice": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "crossroads": {
         "travel": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "route": {
           "time": "fair",
           "prestige": "fair",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "tour": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "training": {
         "train-estate": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "discovery": {
         "discovery-research": {
           "time": "fair",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "discovery-frontier": {
           "time": "expensive",
           "prestige": "free",
-          "risk": "cheap"
+          "risk": "cheap",
+          "monsterPressure": "expensive"
         }
       },
       "challenge": {
         "challenge-3": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "cheap"
+          "risk": "cheap",
+          "monsterPressure": "free"
         },
         "challenge-6": {
           "time": "fair",
           "prestige": "free",
-          "risk": "fair"
+          "risk": "fair",
+          "monsterPressure": "free"
         },
         "challenge-9": {
           "time": "expensive",
           "prestige": "free",
-          "risk": "expensive"
+          "risk": "expensive",
+          "monsterPressure": "free"
         }
       },
       "campaign": {
         "attack": {
           "time": "fair",
           "prestige": "expensive",
-          "risk": "calculated"
+          "risk": "calculated",
+          "monsterPressure": "free"
         },
         "duel": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "calculated"
+          "risk": "calculated",
+          "monsterPressure": "free"
         },
         "quest": {
           "time": "fair",
           "prestige": "free",
-          "risk": "calculated"
+          "risk": "calculated",
+          "monsterPressure": "free"
         },
         "leave": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "crisis": {
         "relief": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "fair"
+          "risk": "fair",
+          "monsterPressure": "free"
         },
         "buy-relief": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "delay": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "fair"
+          "risk": "fair",
+          "monsterPressure": "free"
         },
         "rescue": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "observe-crisis": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "legacy": {
         "found-settlement": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "highest-stat": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "accumulated-prestige": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "relic": {
         "search": {
           "time": "fair",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "calculated"
         },
         "dangerousSearch": {
           "time": "fair",
           "prestige": "free",
-          "risk": "expensive"
+          "risk": "expensive",
+          "monsterPressure": "calculated"
         }
       },
       "signature:legacyPlus": {
         "foundDynasty": {
           "time": "fair",
           "prestige": "expensive",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "enduringOffice": {
           "time": "fair",
           "prestige": "fair",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "humbleRemembrance": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "signature:settlement": {
         "found": {
           "time": "free",
           "prestige": "expensive",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "route": {
           "time": "cheap",
           "prestige": "fair",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "settlement-favor": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "signature:monsterHunt": {
         "attack": {
           "time": "fair",
           "prestige": "expensive",
-          "risk": "calculated"
+          "risk": "calculated",
+          "monsterPressure": "free"
         },
         "duel": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "calculated"
+          "risk": "calculated",
+          "monsterPressure": "free"
         },
         "quest": {
           "time": "fair",
           "prestige": "free",
-          "risk": "calculated"
+          "risk": "calculated",
+          "monsterPressure": "free"
         },
         "leave": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "signature:removePractice": {
         "remove": {
           "time": "cheap",
           "prestige": "fair",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "removalFallback": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "practiceReform": {},
@@ -766,7 +812,7 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
 };
 
 export const LIFEGRAPH_PREVIOUS_GENERATOR = {
-  "schemaVersion": 11,
+  "schemaVersion": 12,
   "laneCount": 6,
   "normalDepthCount": 11,
   "routeCount": 6,
@@ -1102,6 +1148,11 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
         "cheap": 0.05,
         "fair": 0.15,
         "expensive": 0.35
+      },
+      "monsterPressure": {
+        "cheap": 10,
+        "fair": 20,
+        "expensive": 40
       }
     },
     "optionCosts": {
@@ -1109,233 +1160,274 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
         "immediateFavor": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "longAppointment": {
           "time": "expensive",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "cultivateConnections": {
           "time": "fair",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "development": {
         "deepStudy": {
           "time": "expensive",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "calculated"
         },
         "hardLesson": {
           "time": "fair",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "steadyPractice": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "crossroads": {
         "travel": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "route": {
           "time": "fair",
           "prestige": "fair",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "tour": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "training": {
         "train-estate": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "discovery": {
         "discovery-research": {
           "time": "fair",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "discovery-frontier": {
           "time": "expensive",
           "prestige": "free",
-          "risk": "cheap"
+          "risk": "cheap",
+          "monsterPressure": "expensive"
         }
       },
       "challenge": {
         "challenge-3": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "cheap"
+          "risk": "cheap",
+          "monsterPressure": "free"
         },
         "challenge-6": {
           "time": "fair",
           "prestige": "free",
-          "risk": "fair"
+          "risk": "fair",
+          "monsterPressure": "free"
         },
         "challenge-9": {
           "time": "expensive",
           "prestige": "free",
-          "risk": "expensive"
+          "risk": "expensive",
+          "monsterPressure": "free"
         }
       },
       "campaign": {
         "attack": {
           "time": "fair",
           "prestige": "expensive",
-          "risk": "calculated"
+          "risk": "calculated",
+          "monsterPressure": "free"
         },
         "duel": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "calculated"
+          "risk": "calculated",
+          "monsterPressure": "free"
         },
         "quest": {
           "time": "fair",
           "prestige": "free",
-          "risk": "calculated"
+          "risk": "calculated",
+          "monsterPressure": "free"
         },
         "leave": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "crisis": {
         "relief": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "fair"
+          "risk": "fair",
+          "monsterPressure": "free"
         },
         "buy-relief": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "delay": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "fair"
+          "risk": "fair",
+          "monsterPressure": "free"
         },
         "rescue": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "observe-crisis": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "legacy": {
         "found-settlement": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "highest-stat": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "accumulated-prestige": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "relic": {
         "search": {
           "time": "fair",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "calculated"
         },
         "dangerousSearch": {
           "time": "fair",
           "prestige": "free",
-          "risk": "expensive"
+          "risk": "expensive",
+          "monsterPressure": "calculated"
         }
       },
       "signature:legacyPlus": {
         "foundDynasty": {
           "time": "fair",
           "prestige": "expensive",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "enduringOffice": {
           "time": "fair",
           "prestige": "fair",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "humbleRemembrance": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "signature:settlement": {
         "found": {
           "time": "free",
           "prestige": "expensive",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "route": {
           "time": "cheap",
           "prestige": "fair",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "settlement-favor": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "signature:monsterHunt": {
         "attack": {
           "time": "fair",
           "prestige": "expensive",
-          "risk": "calculated"
+          "risk": "calculated",
+          "monsterPressure": "free"
         },
         "duel": {
           "time": "cheap",
           "prestige": "free",
-          "risk": "calculated"
+          "risk": "calculated",
+          "monsterPressure": "free"
         },
         "quest": {
           "time": "fair",
           "prestige": "free",
-          "risk": "calculated"
+          "risk": "calculated",
+          "monsterPressure": "free"
         },
         "leave": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "signature:removePractice": {
         "remove": {
           "time": "cheap",
           "prestige": "fair",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         },
         "removalFallback": {
           "time": "free",
           "prestige": "free",
-          "risk": "free"
+          "risk": "free",
+          "monsterPressure": "free"
         }
       },
       "practiceReform": {},
