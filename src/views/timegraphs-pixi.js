@@ -2469,6 +2469,7 @@ export function createMetricGraphView({
     getPlotScreenRect,
     getPlotStageRect,
     getDebugState,
+    getVisibleTimeSpanSec: () => Math.max(1, maxSec - minSec),
     getForecastScrubCapSec: () => getVisibleForecastScrubCapSec(),
     getForecastRevealTargetEndSec: () => Math.max(0, Math.floor(reveal.targetEndSec ?? 0)),
     render,
