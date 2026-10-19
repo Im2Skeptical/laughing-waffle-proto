@@ -302,7 +302,7 @@ assert.equal(crowned.lifeMap.pendingResolution?.phaseCost, crownExpected,
   "the Heirloom found by a Relic choice does not discount that choice");
 
 const qualityCosts = new Map();
-for (let seed = 0; seed < 30; seed += 1) {
+for (let seed = 0; seed < 100; seed += 1) {
   const state = selectedState(seed);
   const restored = deserializeGameState(serializeGameState(state));
   const beforeRng = { ...state.rng };

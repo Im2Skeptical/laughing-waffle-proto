@@ -65,7 +65,7 @@ const initial=serializeGameState(state);const pool=getVassalCandidatePool(state)
 deserializeGameState(serializeGameState(state));
 const timeline=createTimelineFromInitialState(deserializeGameState(initial));
 assert.equal(rebuildStateAtSecond(timeline,0).state.gameConfig.lifeMapGenerator.design.enabled,true);
-assert.equal(createAuthoredVassalLifeMapGeneratorConfig().design.enabled,false,'normal New Game retains the current baseline until a profile is explicitly selected');
+assert.equal(createAuthoredVassalLifeMapGeneratorConfig().design.enabled,true,'normal New Game uses the approved pooled defaults');
 
 controller.update(['preview','classId'],'scholar');controller.setOptionCost('discovery','discovery-research','time',1);controller.openType('discovery');
 const timed=controller.sandbox.getSnapshot().state,timedVassal=getCurrentLifeMapVassal(timed);

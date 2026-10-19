@@ -40,7 +40,7 @@ export function createLifegraphView({controller=createLifegraphController()}={})
     parent.append(head);
     const settings=s.draft.preview,classes=el('div','','lab-segmented');classes.setAttribute('role','group');classes.setAttribute('aria-label','Lifegraph class');
     for(const id of ['unclassed','scholar','warrior']){const b=button(title(id),()=>edit(['preview','classId'],id),`lifegraph-class-${id}`);b.setAttribute('aria-pressed',String(settings.classId===id));classes.append(b);}
-    const mode=select('Generation rules',[['pooled','Pooled draft'],['baseline','Current game baseline']],s.draft.generatorConfig.design.enabled?'pooled':'baseline');
+    const mode=select('Generation rules',[['pooled','Pooled draft'],['baseline','Legacy independent generation']],s.draft.generatorConfig.design.enabled?'pooled':'baseline');
     mode.addEventListener('change',()=>edit(designPath('enabled'),mode.value==='pooled'));
     const undo=button('Undo edit',()=>controller.undo(),'lifegraph-undo','quiet');undo.disabled=!s.canUndo;
     const top=controlRow(classes,field('Generation',mode),number('Seed',settings.seed,['preview','seed'],{max:4294967295}),button('Next seed',()=>edit(['preview','seed'],(settings.seed+1)>>>0),'lifegraph-next-seed'),undo);
@@ -49,7 +49,7 @@ export function createLifegraphView({controller=createLifegraphController()}={})
     const context=controlRow(number('Research',settings.research,['preview','research'],{max:1000000}),number('Prestige',settings.prestige,['preview','prestige'],{max:10000}),number('Age',settings.age,['preview','age']),number('All four stats',settings.stats,['preview','stats']),choice('Signature',signatureOptions,settings.signature,value=>edit(['preview','signature'],value)));
     parent.append(disclosure('Preview context',[context,el('p','A fixed disposable settlement makes seed and class comparisons reproducible. Each node opens fresh; playing it does not change the graph or other nodes.','lab-note')],{key:'lifegraph:context',open:false}));
     const status=el('p',s.message,'lab-status');status.dataset.testid='lifegraph-status';status.setAttribute('role','status');parent.append(status);
-    if(!s.draft.generatorConfig.design.enabled)parent.append(el('p','Baseline uses the current game’s independent weights and class substitutions. Switch to Pooled draft to test family, guarantee and balance edits.','lab-callout'));
+    if(!s.draft.generatorConfig.design.enabled)parent.append(el('p','Legacy mode uses independent weights and class substitutions. Switch to Pooled draft to test family, guarantee and balance edits.','lab-callout'));
     for(const error of s.generationErrors)parent.append(el('p',error,'lab-callout lab-warning'));
     const tabs=el('div','','lab-segmented lab-lifegraph-tabs');tabs.setAttribute('role','group');tabs.setAttribute('aria-label','Lifegraph tools');
     for(const [id,label]of TAB_OPTIONS){const b=button(label,()=>{tab=id;render();},`lifegraph-tab-${id}`);b.setAttribute('aria-pressed',String(tab===id));tabs.append(b);}parent.append(tabs);
@@ -136,6 +136,7 @@ export function createLifegraphView({controller=createLifegraphController()}={})
       parent.append(section(`${title(kind)} base cost presets`,el('p',kind==='time'?'Absolute solar years before discounts. Every choice using a preset shares its value.':kind==='risk'?'Absolute risk percentage before class bonuses. Free is always 0%.':'Absolute Prestige cost before discounts. Free is always 0.','lab-note'),controls));
     }
     renderLifegraphShopPricing(parent,{controller});
+    renderLifegraphChoices(parent,{controller,designId:'stockShop',servicesOnly:true});
     parent.append(section('Timing bands',el('p','Assign nodes to Early, Middle or Late in Nodes & review. Change the shared depth boundaries here.'),controlRow(number('Early depth count',s.draft.generatorConfig.earlyDepthCount,['generatorConfig','earlyDepthCount'],{min:1,max:18}),number('Middle depth count',s.draft.generatorConfig.midDepthCount,['generatorConfig','midDepthCount'],{min:1,max:18}))));
   }
 
@@ -160,6 +161,7 @@ export function createLifegraphView({controller=createLifegraphController()}={})
     const name=input('Experiment name',s.draft.name,'text');name.addEventListener('change',()=>edit(['name'],name.value));
     const preset=input('Preset name',presetName||s.draft.name,'text');preset.addEventListener('input',()=>{presetName=preset.value;});
     const saved=select('Saved Lifegraph experiment',[['','Choose a saved experiment'],...s.presets], '');
+    parent.append(button('Load current defaults',()=>controller.reset(),'lifegraph-load-defaults','quiet'));
     parent.append(section('Experiments',controlRow(field('Experiment name',name),field('Save as',preset),button('Save experiment',()=>controller.savePreset(preset.value),'lifegraph-save-preset','primary')),controlRow(field('Saved experiment',saved),button('Load experiment',()=>controller.loadPreset(saved.value)),confirmButton('Delete saved experiment','Delete this experiment?',()=>controller.deletePreset(saved.value))),el('p','Drafts and notes save locally. Named experiments capture the rules, class context and reviews together. Export JSON to move them between devices.','lab-note')));
     const area=el('textarea');area.rows=13;area.value=ioText;area.setAttribute('aria-label','Lifegraph JSON');area.addEventListener('input',()=>{ioText=area.value;});
     const refresh=()=>{ioText=controller.exportJson();area.value=ioText;};

@@ -8,7 +8,8 @@ import { getCurrentLifeMapVassal, enterVassalLifeNode } from '../vassal-life-map
 import { getStockShopGenerationContext } from '../vassal-life-map/stock-shops.js';
 import { serializeGameState, deserializeGameState } from '../state.js';
 import { LIFEGRAPH_NODE_IDS, lifeMapAllowedScopes, lifeMapScopeMatches } from '../life-map-design.js';
-import { LIFEGRAPH_OPTION_SPECS, lifeMapOptionKey, getLifeMapBalanceValue, lifeMapPhasesPerYear } from '../life-map-balance.js';
+import { getLifeMapOptionSpecs, LIFEGRAPH_SHOP_SERVICE_SPECS, lifeMapOptionKey, getLifeMapBalanceValue, lifeMapPhasesPerYear } from '../life-map-balance.js';
+import { LIFEGRAPH_PREVIOUS_GENERATOR } from '../../defs/lifegraph-defaults.js';
 import { getVassalActionPhaseCost, getAdjustedVassalPrestigeCost } from '../vassal-life-map/selectors.js';
 import { getVassalRiskDeathChance } from '../vassal-life-map/class-rules.js';
 
@@ -23,6 +24,7 @@ export function createLifegraphDraft(){
   return {schemaVersion:LIFEGRAPH_DRAFT_SCHEMA,kind:'lifegraph-workbench',name:'Lifegraph experiment',generatorConfig,
     preview:{classId:'scholar',seed:1,research:0,prestige:100,age:18,stats:4,signature:'none'},reviews:{}};
 }
+export function createPreviousLifegraphDraft(){return {...createLifegraphDraft(),name:'Previous defaults',generatorConfig:clone(LIFEGRAPH_PREVIOUS_GENERATOR)};}
 
 export function validateLifegraphDraft(value){
   const errors=[];
@@ -91,10 +93,11 @@ export function getLifegraphChoiceReview(state,graph,designId,settings){
   try{scenario=openLifegraphNodeType(state,graph,designId,settings);}catch(e){error=e.message;}
   const vassal=scenario?getCurrentLifeMapVassal(scenario.state):getCurrentLifeMapVassal(state);
   const node=scenario?vassal.lifeMap.nodeStates[scenario.nodeId]:null,design=state.gameConfig.lifeMapGenerator.design;
-  return {error,choices:(LIFEGRAPH_OPTION_SPECS[designId]??[]).map(spec=>{
+  return {error,choices:getLifeMapOptionSpecs(designId).map(spec=>{
     const option=node?.options.find(option=>lifeMapOptionKey(node,option)===spec.id);
-    const rule=design.optionCosts[designId][spec.id];
-    const base=Object.fromEntries(['time','prestige','risk'].map(kind=>[kind,rule[kind]==='calculated'?(option?.risk??0)/100:getLifeMapBalanceValue(design,kind,rule[kind])]));
+    const shared=LIFEGRAPH_SHOP_SERVICE_SPECS.some(s=>s.id===spec.id);
+    const rule=shared?design.shopServices[spec.id]:design.optionCosts[designId][spec.id];
+    const base=Object.fromEntries(['time','prestige','risk'].map(kind=>[kind,rule[kind]==='calculated'?(option?.risk??0)/100:getLifeMapBalanceValue(design,kind,rule[kind]??'free')]));
     const effects=[];
     if(spec.description)effects.push(spec.description);
     if(option?.description)effects.push(option.description);
@@ -105,7 +108,7 @@ export function getLifegraphChoiceReview(state,graph,designId,settings){
     const phases=option?.mode&&!design.enabled?option.phaseCost:getVassalActionPhaseCost(vassal,option?.phaseCost??0,{nodeState:node,isTravel:!!option?.locationRegionId});
     const preview=option?{years:phases/lifeMapPhasesPerYear(state),prestige:getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0),risk:option.mode?(option.risk??0)/100:getVassalRiskDeathChance(vassal,option.immediateDeathChance??0)}:null;
     const sampleLabel=(option?.label??'').replace(/\d+(?:\.\d+)?% (?:Danger|RISK)/g,`${Math.round((preview?.risk??0)*100)}% RISK`);
-    return {id:spec.id,label:spec.label,sampleLabel,costKinds:spec.costKinds??['time','prestige','risk'],effects,rule,base,preview,available:!!option};
+    return {id:spec.id,label:spec.label,sampleLabel,costKinds:spec.costKinds??['time','prestige','risk'],effects,rule,base,preview,available:!!option,shared};
   })};
 }
 

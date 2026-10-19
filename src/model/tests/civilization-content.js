@@ -13,7 +13,7 @@ import { getDetailedPracticeDef } from '../game-config.js';
 import { classActionOptions, applyClassAction } from '../vassal-life-map/class-actions.js';
 import { getCurrentLifeMapVassal, getVassalCandidatePool, selectLifeMapVassal } from '../vassal-life-map.js';
 import { ActionKinds, applyAction } from '../actions.js';
-import { generateShopInventory, getVassalShopRerollCost } from '../vassal-life-map/shop.js';
+import { generateShopInventory } from '../vassal-life-map/shop.js';
 import { buildProjectionChunkFromStateData } from '../projection-chunk.js';
 import { canonicalizeSnapshot } from '../canonicalize.js';
 import { stockTraits, specialistCount } from '../detailed-settlements/stock.js';
@@ -138,7 +138,6 @@ applyClassAction(scholarState,scholar,{kind:'discovery',research:60,frontier:tru
 const inventoryNode={nodeId:'discovery-fixture',family:'practiceReform',purchasedOffers:[]};
 generateShopInventory(scholarState,scholar,inventoryNode);
 assert.equal(inventoryNode.discoveryAccess,true);assert.equal(scholar.discoveryAccess,undefined);
-assert.equal(getVassalShopRerollCost(scholar),0,'Scholar Delve costs no Prestige');
 
 // Institutions and retirement strengthen later local candidates, from identical RNG.
 const baseCandidates=createNewGameState(91),educated=deserializeGameState(serializeGameState(baseCandidates));

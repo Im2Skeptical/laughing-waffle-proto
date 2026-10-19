@@ -9,6 +9,24 @@ export async function checkLifegraphWorkspace(page,context,{reload=false}={}){
   assert.ok(await page.evaluate(()=>__LAB_DEBUG__.getLifegraph().diagnostics.families.campaign.minOnRoute>=1));
   await page.getByTestId('lifegraph-class-scholar').click();
   await page.getByTestId('lifegraph-tab-nodes').click();
+  await page.getByTestId('lifegraph-node-stockShop').click();
+  assert.equal(await page.getByLabel('Scholar Delve · Time base value',{exact:true}).inputValue(),'10');
+  assert.equal(await page.getByLabel('Leave without a purchase · Time base value',{exact:true}).inputValue(),'5');
+  assert.equal(await page.locator('[data-option-id=reroll]').count(),0);
+  await page.getByLabel('Scholar Delve · Time base value',{exact:true}).fill('12');
+  await page.getByLabel('Scholar Delve · Time base value',{exact:true}).press('Tab');
+  await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().draft.generatorConfig.design.shopServices.delve.time===12);
+  await page.getByTestId('lifegraph-node-publicWorks').click();
+  assert.equal(await page.getByLabel('Scholar Delve · Time base value',{exact:true}).inputValue(),'12');
+  await page.getByLabel('Scholar Delve · Time base value',{exact:true}).fill('10');
+  await page.getByLabel('Scholar Delve · Time base value',{exact:true}).press('Tab');
+  await page.getByTestId('lifegraph-tab-share').click();
+  await page.getByLabel('Saved Lifegraph experiment',{exact:true}).selectOption('Previous defaults');
+  await page.getByRole('button',{name:'Load experiment',exact:true}).click();
+  await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().draft.generatorConfig.laneCount===6);
+  await page.getByTestId('lifegraph-load-defaults').click();
+  await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().draft.generatorConfig.laneCount===3);
+  await page.getByTestId('lifegraph-tab-nodes').click();
   await page.getByTestId('lifegraph-node-development').click();
   const choice=page.locator('[data-option-id="deepStudy"]');
   assert.equal(await page.locator('.lab-lifegraph-choice-card').count(),3);
@@ -96,6 +114,11 @@ export async function checkLifegraphWorkspace(page,context,{reload=false}={}){
   await page.getByTestId('lifegraph-play-type').click();await page.locator('dialog[open]').waitFor();
   await page.getByTestId('lifegraph-close-player').click();
   await page.setViewportSize({width:1280,height:800});
+  await page.getByTestId('lifegraph-class-warrior').click();
+  await page.getByTestId('lifegraph-play-type').click();
+  await page.waitForFunction(()=>__LAB_DEBUG__.getNodeSandbox()?.modal.animation.phase==='open');
+  await page.screenshot({path:'artifacts/lifegraph-warrior-shop.png'});
+  await page.getByTestId('lifegraph-close-player').click();
   await page.getByRole('link',{name:'Gym',exact:true}).click();
   await page.getByTestId('lab-workspace-settlement').click();
 }

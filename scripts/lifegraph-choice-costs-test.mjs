@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import {createLifegraphController} from '../src/controllers/lifegraph-controller.js';
 import {getCurrentLifeMapVassal, getVassalNodeDecisionPresentation} from '../src/model/vassal-life-map.js';
 import {generateShopInventory} from '../src/model/vassal-life-map/shop.js';
-import {getVassalShopRerollCost} from '../src/model/vassal-life-map/shop.js';
 import {getVassalActionPhaseCost} from '../src/model/vassal-life-map/selectors.js';
 import {resolveLifeMapOptionCosts,resolveLifeMapShopPrice,lifeMapPhasesPerYear} from '../src/model/life-map-balance.js';
 import {serializeGameState,deserializeGameState} from '../src/model/state.js';
@@ -39,7 +38,7 @@ const obsolete=JSON.parse(exported);obsolete.generatorConfig.schemaVersion=9;obs
 const oldStore={getItem:key=>key==='civsurvivor.lifegraph-workbench.v1'?JSON.stringify(obsolete):null,setItem:()=>{}};
 const fresh=createLifegraphController({store:oldStore});
 assert.equal(fresh.getSnapshot().draft.reviews.development.notes,obsolete.reviews.development.notes,'independent notes survive replacement of obsolete cost rules');
-assert.equal(fresh.getSnapshot().draft.generatorConfig.schemaVersion,10);assert.equal(fresh.getChoiceReview('development').choices[0].rule.time,'expensive');
+assert.equal(fresh.getSnapshot().draft.generatorConfig.schemaVersion,11);assert.equal(fresh.getChoiceReview('development').choices[0].rule.time,'expensive');
 
 // Preview and payment use the resolved option, not a node-wide multiplier or a
 // different selected option. Stop at t=0 to inspect the committed reservation.
@@ -108,7 +107,10 @@ assert.equal(s.vassal.lifeMap.pendingResolution.phaseCost,campaignTime,'Campaign
 initializeReplayClock(s.state,s.state.tSec);assert.equal(advanceReplayStateToSecond(s.state,s.vassal.lifeMap.pendingResolution.resolveSec).ok,true);
 const campaignReplay=rebuildStateAtSecond(campaignTimeline,s.state.tSec);assert.equal(campaignReplay.ok,true);assert.ok(snapshot(campaignReplay.state)===snapshot(s.state),'authored Campaign costs match authoritative replay');
 c.update(['preview','stats'],0);
-c.setOptionCost('stockShop','reroll','prestige',13);c.openType('stockShop');s=c.sandbox.getSnapshot();assert.equal(getVassalShopRerollCost(s.vassal),13);
+c.openType('stockShop');s=c.sandbox.getSnapshot();
+const beforeReject=serializeGameState(s.state);
+assert.equal(applyAction(s.state,{kind:ActionKinds.VASSAL_REROLL_SHOP,payload:{nodeId:s.nodeId}},{isReplay:true}).reason,'scholarRequired');
+assert.deepEqual(serializeGameState(s.state),beforeReject,'rejected non-Scholar rerolls spend no resources or RNG');
 const baseline=deserializeGameState(serializeGameState(s.state));baseline.gameConfig.lifeMapGenerator.design.enabled=false;
 assert.equal(resolveLifeMapOptionCosts(baseline,{family:'development'},{id:'deepStudy',phaseCost:17}).phaseCost,17,'baseline retains existing authored behavior');
 console.log('[lifegraph-choice-costs] independent choice bases/presets, effects, custom values, validation, persistence, shop quality/bonuses, checkout and authoritative replay OK');

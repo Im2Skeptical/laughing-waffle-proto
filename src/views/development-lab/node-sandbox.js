@@ -81,7 +81,7 @@ export function createLabNodeSandboxView({controller:providedController=null,emb
   actions.append(button('Open node',()=>modal.open(controller.getSnapshot().nodeId),'lab-node-open'),button('Close node',()=>modal.close(),'','quiet'),resolve);
   const setup = section('Setup', group('Contents',controls), disclosure('Dummy stats',[stats],{key:'node:stats',open:!isNarrow()}), researchSummary,
     info('node-sandbox',['An isolated dummy and settlement using the real game decision screen. Refresh restores the setup; the same settings and seed reproduce the same contents. Research also unlocks eligible shop cards; class bonuses and upgrades still apply.',
-      'Stage offers with their costs, drag cards onto the settlement and inspect faces. The in-game reroll keeps its normal cost and limit. Resolve outcome advances only this dummy through the decision’s duration. Fullscreen gives the game screen more room on phones.']));
+      'Stage offers with their costs, drag cards onto the settlement and inspect faces. Scholars can Delve using the shared shop time cost. Resolve outcome advances only this dummy through the decision’s duration. Fullscreen gives the game screen more room on phones.']));
   if(embedded){
     actions.prepend(button('Reset this node',()=>{onReset?.();updateStatus();modal.open(controller.getSnapshot().nodeId);},'lifegraph-reset-node'));
     node.append(status,summary,actions,viewport);

@@ -9,7 +9,7 @@ export function createLifeMapLabDom({controller,readOnly=()=>false,applyLifegrap
     root.replaceChildren(el('h2','Lifegraph rules in this profile'),el('p','This is the captured launch recipe. The Lifegraph workspace owns graph editing, playable nodes, review notes and diagnostics.'));
     const link=el('a','Open Lifegraph workspace','lab-quiet-link');link.href='#/dev/lifegraph';
     const apply=button('Use Lifegraph draft',()=>{applyLifegraph?.();render();},'lab-setup-lifegraph','primary');apply.disabled=readOnly();
-    root.append(link,apply,badge(design.enabled?'Pooled generation':'Current game baseline'),table(['Setting','Captured value'],[
+    root.append(link,apply,badge(design.enabled?'Pooled generation':'Legacy independent generation'),table(['Setting','Captured value'],[
       ['Topology',`${config.laneCount} lanes · ${config.normalDepthCount} normal depths · ${config.routeCount} route traces`],
       ['Timing',`${config.earlyDepthCount} early · ${config.midDepthCount} middle · ${config.normalDepthCount-config.earlyDepthCount-config.midDepthCount} late`],
       ['Families',design.pools.map(p=>p.label).join(', ')],['Guarantees',design.enabled?design.guarantees.length:'Baseline class substitutions'],

@@ -95,9 +95,14 @@ Prestige and risk percentages; editing a preset updates all assigned choices.
 Ordinary stat and Heirloom discounts apply afterwards. Campaign risk can retain
 its Force/Defence calculation. Shop prices use shared Practice/Structure rows for
 Bronze/Silver/Gold/Diamond quality, including upgrades and quality bonuses. No
-per-card price editing is needed. Early/Middle/Late use the shared depth boundaries. **Current game baseline**
-compares the existing independent family weights and class substitutions without
-applying pooled-draft changes. Normal player New Game retains that baseline.
+per-card price editing is needed. Scholar Delve and leaving without a purchase
+share one base time each across every shop, editable here or from any shop's
+choice list. Defaults are 10 and 5 years respectively, before discounts.
+Other classes cannot reroll shops. Early/Middle/Late use shared depth boundaries.
+Normal New Game uses Cam's approved first-pass pooled tuning, including its
+3-lane, 10-depth layout and shop guarantees at depths 1, 4 and 8. Save & share
+includes a built-in **Previous defaults** experiment for the preceding tuning.
+**Legacy independent generation** remains an explicit comparison mode.
 
 Diagnostics show distinct eligible cards before random offer sampling, including
 empty and fewer-than-three-card pools and the contributing card names. **Note this

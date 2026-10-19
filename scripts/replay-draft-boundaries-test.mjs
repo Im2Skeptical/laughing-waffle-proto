@@ -15,6 +15,7 @@ import { normalizeStructureLayout } from "../src/model/structure-layout.js";
 import { appendActionAtCursor, createTimelineFromInitialState, rebuildStateAtSecond } from "../src/model/timeline/index.js";
 import { getCurrentLifeMapVassal, getVassalCandidatePool, getVassalNodeDecisionPresentation } from "../src/model/vassal-life-map.js";
 import { settlementStructureDefs } from "../src/defs/gamepieces/detailed-settlement-defs.js";
+import { nodeIdForFamily } from '../src/model/tests/vassal-life-map/helpers.js';
 
 const ARTIFACT_DIR = path.resolve("artifacts/replay-draft-boundaries");
 const SEEDS = [101, 202, 303];
@@ -178,7 +179,7 @@ function openSession(seed, shop) {
   const vassal = getCurrentLifeMapVassal(state);
   vassal.prestige = 1000;
   const family = shop === "practice" ? "practiceReform" : "publicWorks";
-  const nodeId = vassal.lifeMap.graph.nodes.find((node) => node.family === family).id;
+  const nodeId = nodeIdForFamily(state,family);
   vassal.lifeMap.availableNodeIds = [nodeId];
   const entered = applyAction(state, { kind: ActionKinds.VASSAL_ENTER_LIFE_NODE, payload: { nodeId } }, { isReplay: true });
   assert.equal(entered.ok, true, entered.reason);

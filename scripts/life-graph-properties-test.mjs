@@ -40,6 +40,7 @@ const PAIRS = Object.freeze([
 
 function variant(patch) {
   const config = { ...createAuthoredVassalLifeMapGeneratorConfig(), ...patch };
+  if(patch.normalDepthCount){config.design.guarantees=config.design.guarantees.filter(g=>g.maxDepth<=config.normalDepthCount);config.design.stockSupply.maxDepth=Math.min(config.design.stockSupply.maxDepth,config.normalDepthCount);}
   const validation = validateVassalLifeMapGeneratorConfig(config);
   if (!validation.ok) throw new Error(`fixture config illegal: ${validation.errors.join('; ')}`);
   return config;

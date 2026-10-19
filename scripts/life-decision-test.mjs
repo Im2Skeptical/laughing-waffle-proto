@@ -185,13 +185,13 @@ const shopNode=forceEnter(shop,nodeIdForFamily(shop,'practiceReform'));
 const shopBase=serializeGameState(shop);
 const shopChoices=await prepareLifeChoices(shopBase);
 const cachedReroll=shopChoices[shopNode.nodeId].reroll;
-assert.ok(cachedReroll,'legal paid reroll is prepared');
+assert.equal(cachedReroll,undefined,'non-Scholar rerolls are not prepared');
 assert.deepEqual(shopChoices[shopNode.nodeId].presentation.nodeState,shopNode,
   'preparing a reroll must not mutate the original shop presentation');
 assert.deepEqual(serializeGameState(shop),shopBase,'paid reroll preview spends nothing');
 const rerolled=deserializeGameState(shopBase);
-assert.equal(applyAction(rerolled,cachedReroll.actions[0],{isReplay:true}).ok,true);
-assert.deepEqual(serializeGameState(rerolled),cachedReroll.stateData,'cached reroll matches exact paid transaction');
+assert.equal(applyAction(rerolled,{kind:ActionKinds.VASSAL_REROLL_SHOP,payload:{nodeId:shopNode.nodeId}},{isReplay:true}).reason,'scholarRequired');
+assert.deepEqual(serializeGameState(rerolled),shopBase,'rejected rerolls do not mutate state');
 const shopActions=[{kind:ActionKinds.VASSAL_PURCHASE_SHOP_OFFER,payload:{nodeId:shopNode.nodeId,offerId:shopNode.inventory[0].offerId}},
  {kind:ActionKinds.VASSAL_CONFIRM_LIFE_NODE,payload:{nodeId:shopNode.nodeId}}];
 const shopMessages=[];
@@ -203,7 +203,7 @@ const shopReplay=serializeGameState(rebuildStateAtSecond(shopTimeline,shopReady.
 assert.deepEqual(shopReady.stateData.world,shopReplay.world,'committed shop settlement effects match replay');
 assert.deepEqual(shopReady.stateData.civilization,shopReplay.civilization);
 assert.deepEqual(shopReady.stateData.rng,shopReplay.rng);
-console.log('[life-decision] paid reroll isolation and shop resolution replay OK');
+console.log('[life-decision] non-Scholar reroll rejection and shop resolution replay OK');
 import { createSettlementForecastController } from '../src/controllers/settlement-forecast-controller.js';
 let revealed=ready.stateData.tSec, commits=0;
 const preparedResolution={ready:false,targetSec:revealed,revealSec:revealed,stateData:ready.stateData};
@@ -258,8 +258,9 @@ if (nextNode) {
  assert.equal(realRunner.getTimeline().actions.length,beforeCount+1);
  assert.deepEqual(getCurrentLifeMapVassal(realRunner.getState()).lifeMap.nodeStates[nextNode],ready.nodes[nextNode].presentation.nodeState);
 }
-// Worker prepared current shops retain the original presentation and offer instant paid rerolls.
-realRunner.resetToState(shop);
+// Scholar Delve uses the timed worker path and retains the original shop visit.
+const delveShop=deserializeGameState(shopBase);getCurrentLifeMapVassal(delveShop).classId='scholar';
+realRunner.resetToState(delveShop);
 let shopWorker;
 const shopController=createLifeDecisionController({getRunner:()=>realRunner,getState:()=>realRunner.getState(),
  createWorker:()=>shopWorker={terminate(){},postMessage(message){this.message=message;}}});
@@ -267,6 +268,8 @@ const directReroll=shopController.dispatch(ActionKinds.VASSAL_REROLL_SHOP,{nodeI
 assert.equal(directReroll.pending,true);
 const rerollRequest=shopWorker.message;
 await runLifeDecisionJob(rerollRequest,m=>shopWorker.onmessage({data:{...m,requestId:rerollRequest.requestId}}));
+assert.equal(shopController.getResolution().ready,true,'timed Delve is ready for reveal completion');
+assert.equal(shopController.commitResolution().ok,true);
 assert.equal(shopController.getStatus(),null);
 assert.deepEqual(shopController.getPresentation(shopNode.nodeId).nodeState,
  getCurrentLifeMapVassal(realRunner.getState()).lifeMap.nodeStates[shopNode.nodeId]);

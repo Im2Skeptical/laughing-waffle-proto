@@ -107,7 +107,7 @@ assert.deepEqual([
   generatorConfig.earlyDepthCount,
   generatorConfig.midDepthCount,
   generatorConfig.normalDepthCount - generatorConfig.earlyDepthCount - generatorConfig.midDepthCount,
-], [4, 4, 3]);
+], [3, 4, 3]);
 assert.deepEqual(
   ["patronage", "development", "crossroads", "practiceReform", "publicWorks", "crisis", "relic"]
     .map((family) => generatorConfig.weights.early[family]),
@@ -171,7 +171,7 @@ assert.notEqual(generatedA.routeTraces[0][0], generatedA.routeTraces[1][0]);
 const generatedGraph = generatedA.graph;
 assert.equal(validateVassalLifeMapGraph(generatedGraph).ok, true);
 assert.equal(generatedGraph.nodes.filter((node) => node.family === "legacy").length, 1);
-assert.equal(generatedGraph.nodes.find((node) => node.id === generatedGraph.bossNodeId).depth, 11);
+assert.equal(generatedGraph.nodes.find((node) => node.id === generatedGraph.bossNodeId).depth, generatorConfig.normalDepthCount);
 assert.ok(generatedGraph.entryNodeIds.length >= 2);
 assert.notEqual(
   generatedGraph.nodes.find((node) => node.id === generatedGraph.entryNodeIds[0]).family,
@@ -379,11 +379,12 @@ naturalDeathVassal.developmentProgress = 9;
 const naturalDeathNode = forceEnter(naturalDeathState,
   nodeIdForFamily(naturalDeathState, "practiceReform"));
 naturalDeathState.rng.vassalSeed = findSeed((roll) => roll < getVassalMortalityChance(80));
+const projectedNaturalAge=getVassalNodeDecisionPresentation(naturalDeathState,naturalDeathNode.nodeId).mortalityEstimate.projectedAge;
 dispatch(naturalDeathState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: naturalDeathNode.nodeId });
 resolvePending(naturalDeathState);
 assert.equal(getCurrentLifeMapVassal(naturalDeathState), null);
 assert.equal(naturalDeathVassal.deathCause, "naturalMortality");
-assert.equal(naturalDeathNode.mortality.age, 81,
+assert.equal(naturalDeathNode.mortality.age, projectedNaturalAge,
   "empty-shop confirmation time advances age before mortality");
 assert.equal(naturalDeathVassal.developmentChoiceQueue.length, 0,
   "fatal completion never queues unusable level-up decisions");

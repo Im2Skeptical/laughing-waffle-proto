@@ -1,5 +1,5 @@
 import { rollScholarQualityBonus, getVassalDelvePhaseCost } from './class-rules.js';
-import { resolveLifeMapShopPrice, resolveLifeMapOptionCosts, lifeMapDesignNodeId, getLifeMapBalanceValue } from '../life-map-balance.js';
+import { resolveLifeMapShopPrice, resolveLifeMapOptionCosts } from '../life-map-balance.js';
 import { getShopOfferPrice, matchesPracticeShopSpecialty, structureShopCategory } from './shop-specialties.js';
 import { VASSAL_WORKSHOP_RULES } from '../../defs/vassal-workshop-rules.js';
 import { getMoonPhaseDurationSec } from '../moon-phases.js';
@@ -456,38 +456,14 @@ export function rerollVassalShop(state, nodeId) {
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
   if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !isShopNodeState(nodeState)
       || nodeState.resolving) return { ok: false, reason: "shopUnavailable" };
+  if(vassal.classId!=='scholar')return {ok:false,reason:'scholarRequired'};
   if (nodeState.shopSelection && !nodeState.shopSelection.selectedTag) return {ok:false,reason:'shopSpecialtyRequired'};
-  if (nodeState.rerollUsed && vassal.classId !== 'scholar') return { ok: false, reason: "rerollUsed" };
   if ((nodeState.purchasedOffers ?? []).length > 0) {
     return { ok: false, reason: "stagedPurchases" };
   }
-  if (vassal.classId === 'scholar') {
-    const phaseCost = getVassalDelvePhaseCost(state, vassal, nodeState);
-    markHeirloomTimeAction(nodeState, phaseCost);
-    nodeState.resolving = true;
-    vassal.lifeMap.pendingResolution = {kind:'shopDelve',nodeId,startSec:state.tSec,resolveSec:state.tSec + phaseCost * getMoonPhaseDurationSec(state),phaseCost};
-    return {ok:true,prestigeCost:0,phaseCost,pendingResolution:clone(vassal.lifeMap.pendingResolution)};
-  }
-  const prestigeCost = getVassalShopRerollCost(vassal);
-  const reroll=resolveLifeMapOptionCosts(state,nodeState,{id:'reroll',phaseCost:getVassalYearPhaseCost(state,VASSAL_LIFE_TUNING.shopRerollYearCost)});
-  const phaseCost = getVassalActionPhaseCost(
-    vassal, reroll.phaseCost, { nodeState }
-  );
-  if (prestigeCost > vassal.prestige) return { ok: false, reason: "insufficientPrestige" };
-  vassal.prestige -= prestigeCost;
-  nodeState.accumulatedPhaseCost += phaseCost;
+  const phaseCost = getVassalDelvePhaseCost(state, vassal, nodeState);
   markHeirloomTimeAction(nodeState, phaseCost);
-  nodeState.rerollUsed = true;
-  nodeState.inventoryRoll += 1;
-  nodeState.inventory = generateShopInventory(state, vassal, nodeState);
-  return { ok: true, prestigeCost, phaseCost, inventory: clone(nodeState.inventory) };
-}
-
-export function getVassalShopRerollCost(vassal) {
-  const design=vassal?.lifeMap?.graph?.generatorConfig?.design;
-  const node=vassal?.lifeMap?.nodeStates?.[vassal.lifeMap.currentNodeId];
-  const assignment=design?.optionCosts?.[lifeMapDesignNodeId(node)]?.reroll?.prestige;
-  const base=design?.enabled&&assignment!==undefined?getLifeMapBalanceValue(design,'prestige',assignment):VASSAL_LIFE_TUNING.shopRerollPrestigeCost;
-  return vassal?.classId === 'scholar' ? 0
-    : getAdjustedVassalPrestigeCost(vassal, base);
+  nodeState.resolving = true;
+  vassal.lifeMap.pendingResolution = {kind:'shopDelve',nodeId,startSec:state.tSec,resolveSec:state.tSec + phaseCost * getMoonPhaseDurationSec(state),phaseCost};
+  return {ok:true,prestigeCost:0,phaseCost,pendingResolution:clone(vassal.lifeMap.pendingResolution)};
 }

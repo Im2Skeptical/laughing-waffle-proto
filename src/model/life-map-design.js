@@ -1,45 +1,15 @@
 import { VASSAL_NORMAL_NODE_FAMILY_IDS, VASSAL_SIGNATURE_NODE_VARIANTS } from '../defs/gamepieces/vassal-life-map-defs.js';
-import { createLifeMapBalance, validateLifeMapBalance } from './life-map-balance.js';
+import { validateLifeMapBalance } from './life-map-balance.js';
+import { LIFEGRAPH_DEFAULT_GENERATOR } from '../defs/lifegraph-defaults.js';
 
 export const LIFEGRAPH_RARITIES = Object.freeze(['common', 'uncommon', 'rare']);
 export const LIFEGRAPH_TIMINGS = Object.freeze(['early', 'mid', 'late']);
 export const LIFEGRAPH_NODE_IDS = Object.freeze([...VASSAL_NORMAL_NODE_FAMILY_IDS, 'stockShop', 'legacy',
   ...Object.keys(VASSAL_SIGNATURE_NODE_VARIANTS).map(id => `signature:${id}`)]);
-const SHOPS = ['practiceReform', 'publicWorks', 'neutralMarket', 'classMarket', 'foodShop', 'housingShop', 'stockShop'];
 const clone = value => JSON.parse(JSON.stringify(value));
 
 export function createLifeMapDesign() {
-  const pools = [
-    { id:'shops', label:'Shops', occurrence:'common', maxConsecutive:2 },
-    { id:'growth', label:'Personal growth', occurrence:'common', maxConsecutive:2 },
-    { id:'journey', label:'Journey', occurrence:'common', maxConsecutive:2 },
-    { id:'class', label:'Class actions', occurrence:'uncommon', maxConsecutive:1 },
-    { id:'danger', label:'Danger', occurrence:'uncommon', maxConsecutive:1 },
-    { id:'relics', label:'Relics', occurrence:'uncommon', maxConsecutive:1 },
-  ];
-  const nodes = Object.fromEntries(LIFEGRAPH_NODE_IDS.map(id => [id, {
-    enabled:true,
-    poolId:SHOPS.includes(id) ? 'shops' : ['patronage','development'].includes(id) ? 'growth'
-      : ['training','discovery','campaign','challenge'].includes(id) ? 'class'
-      : id === 'crisis' ? 'danger' : id === 'relic' ? 'relics' : 'journey',
-    scope:['discovery'].includes(id) ? 'scholar' : ['campaign','challenge','signature:monsterHunt'].includes(id) ? 'warrior'
-      : ['training','classMarket'].includes(id) ? 'specialist' : 'common',
-    occurrence:['neutralMarket','classMarket'].includes(id) ? 'rare' : 'common',
-    timings:id === 'crisis' ? ['mid','late'] : [...LIFEGRAPH_TIMINGS],
-  }]));
-  return {
-    enabled:false,
-    pools,
-    nodes,
-    occurrence:{common:6,uncommon:3,rare:1},
-    ...createLifeMapBalance(),
-    stockSupply:{enabled:true,randomCount:2,unmetCount:1,minDepth:2,maxDepth:11},
-    guarantees:[
-      {id:'training',targetType:'node',targetId:'training',scope:'specialist',count:1,minDepth:1,maxDepth:3,coverage:'map'},
-      {id:'discovery',targetType:'node',targetId:'discovery',scope:'scholar',count:1,minDepth:4,maxDepth:7,coverage:'eachRoute'},
-      {id:'campaign',targetType:'node',targetId:'campaign',scope:'warrior',count:1,minDepth:4,maxDepth:8,coverage:'eachRoute'},
-    ],
-  };
+  return clone(LIFEGRAPH_DEFAULT_GENERATOR.design);
 }
 
 export function canonicalizeLifeMapDesign(value) {
@@ -162,7 +132,11 @@ export function populatePooledLifeMap(config, nodes, edges, rng, {classId=null,s
     for(const n of nodes){const ps=parents(n.id);const p=ps.sort((a,b)=>(scores.get(a.id)??0)-(scores.get(b.id)??0))[0];scores.set(n.id,(p?scores.get(p.id):0)+(matches(n,g)?1:0));paths.set(n.id,[...(p?paths.get(p.id):[]),n]);}
     const boss=nodes.find(n=>n.family==='legacy');return {count:scores.get(boss.id),path:paths.get(boss.id)};
   };
-  for(const g of design.guarantees.filter(g=>lifeMapScopeMatches(g.scope,classId))){
+  // Place the tightest depth windows first so flexible route coverage cannot
+  // consume an entire row requested by an exact-depth guarantee.
+  const guarantees=design.guarantees.filter(g=>lifeMapScopeMatches(g.scope,classId))
+    .sort((a,b)=>(a.maxDepth-a.minDepth)-(b.maxDepth-b.minDepth));
+  for(const g of guarantees){
     for(let attempt=0;attempt<nodes.length;attempt++){
       const path=minPath(g),count=g.coverage==='map'?nodes.filter(n=>matches(n,g)).length:path.count;
       if(count>=g.count)break;

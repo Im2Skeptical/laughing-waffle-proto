@@ -107,15 +107,14 @@ assert.equal(shopNode.purchasedOfferIds.length, 1);
 assert.equal(shopNode.mortality, undefined, "purchase does not resolve mortality");
 applyAction(shopState, { kind: ActionKinds.VASSAL_REROLL_SHOP,
   payload: { nodeId: practiceNodeId } }, { isReplay: true });
-assert.equal(shopNode.rerollUsed, false, "reroll is blocked while a purchase is staged");
+assert.equal(shopNode.inventory.length,2,'non-Scholar reroll cannot alter staged inventory');
 applyAction(shopState, { kind: ActionKinds.VASSAL_UNDO_SHOP_PURCHASE,
   payload: { nodeId: practiceNodeId, offerId: initialOfferIds[0] } }, { isReplay: true });
-applyAction(shopState, { kind: ActionKinds.VASSAL_REROLL_SHOP,
-  payload: { nodeId: practiceNodeId } }, { isReplay: true });
-assert.equal(shopNode.rerollUsed, true);
-assert.equal(shopNode.inventory.length, 3, "reroll refills remaining inventory to three");
+assert.equal(shopNode.inventory.length,3,'undo restores the original offers');
+const beforeReroll=serializeGameState(shopState);
 assert.equal(applyAction(shopState, { kind: ActionKinds.VASSAL_REROLL_SHOP,
-  payload: { nodeId: practiceNodeId } }, { isReplay: true }).reason, "rerollUsed");
+  payload: { nodeId: practiceNodeId } }, { isReplay: true }).reason, 'scholarRequired');
+assert.deepEqual(serializeGameState(shopState),beforeReroll,'non-Scholar rerolls leave state and RNG unchanged');
 assert.deepEqual(
   deserializeGameState(serializeGameState(shopState)).civilization.vassalLineage,
   shopState.civilization.vassalLineage,

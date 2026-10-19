@@ -1,9 +1,10 @@
 import { createLabNodeSandbox } from '../model/dev-lab/node-sandbox.js';
 import { createNodeSandboxController } from './node-sandbox-controller.js';
-import { createLifegraphDraft, validateLifegraphDraft, createLifegraphPreviewState, generateLifegraphPreview,
+import { createLifegraphDraft, createPreviousLifegraphDraft, validateLifegraphDraft, createLifegraphPreviewState, generateLifegraphPreview,
   openLifegraphNode, openLifegraphNodeType, getLifegraphChoiceReview, diagnoseLifegraph, diagnoseLifegraphCardPools, LIFEGRAPH_STORAGE_KEY, LIFEGRAPH_PRESETS_KEY } from '../model/dev-lab/lifegraph.js';
 import { getCurrentLifeMapVassal } from '../model/vassal-life-map.js';
 import { serializeGameState, deserializeGameState } from '../model/state.js';
+import { LIFEGRAPH_SHOP_SERVICE_SPECS } from '../model/life-map-balance.js';
 
 const clone=value=>JSON.parse(JSON.stringify(value));
 function storage(){try{return globalThis.localStorage??null;}catch{return null;}}
@@ -13,7 +14,8 @@ export function createLifegraphController({baseSandbox=null,store=storage()}={})
   const base=baseSandbox??createLabNodeSandbox();
   const baseJson=serializeGameState(base.state);
   const sandbox=createNodeSandboxController({initialSandbox:base});
-  let draft=createLifegraphDraft(),presets=[],history=[],state=null,graph=null,diagnostics=null,cardPools=[],generationErrors=[],selectedNodeId=null;
+  const previousPreset={name:'Previous defaults',draft:createPreviousLifegraphDraft()};
+  let draft=createLifegraphDraft(),presets=[previousPreset],history=[],state=null,graph=null,diagnostics=null,cardPools=[],generationErrors=[],selectedNodeId=null;
   let message='Drafts and notes save on this device. Launching is explicit.',batch=null,batchRunning=false,batchToken=0;
   const listeners=new Set();
   const choiceReviews=new Map();
@@ -41,7 +43,7 @@ export function createLifegraphController({baseSandbox=null,store=storage()}={})
     if(value.schemaVersion===draft.schemaVersion&&!validateLifegraphDraft(notes).length){draft=notes;message='Cost rules changed schema. A fresh experiment is loaded; your independent review notes are retained.';}
     else message='Stored draft is from another schema. The current default is loaded; your stored export was not applied.';
   }}
-    const savedPresets=JSON.parse(store?.getItem(LIFEGRAPH_PRESETS_KEY)??'[]');if(Array.isArray(savedPresets))presets=savedPresets.filter(p=>typeof p.name==='string'&&!validateLifegraphDraft(p.draft).length);
+    const savedPresets=JSON.parse(store?.getItem(LIFEGRAPH_PRESETS_KEY)??'[]');if(Array.isArray(savedPresets))presets=[previousPreset,...savedPresets.filter(p=>p.name!==previousPreset.name&&typeof p.name==='string'&&!validateLifegraphDraft(p.draft).length)];
   }catch{message='Stored draft could not be read. Export before leaving if storage is unavailable.';}
   rebuild();
   return {
@@ -52,10 +54,10 @@ export function createLifegraphController({baseSandbox=null,store=storage()}={})
     getChoiceReview(id){if(!choiceReviews.has(id))choiceReviews.set(id,graph?getLifegraphChoiceReview(state,graph,id,settings()):{error:generationErrors[0],choices:[]});return choiceReviews.get(id);},
     update(path,value){return commit(replacePath(draft,path,value),'Draft updated. Preview and diagnostics use these rules.');},
     setNode(id,changes){return commit(replacePath(draft,['generatorConfig','design','nodes',id],{...draft.generatorConfig.design.nodes[id],...changes}),'Node rules updated.');},
-    setOptionCost(nodeId,optionId,kind,value){return commit(replacePath(draft,['generatorConfig','design','optionCosts',nodeId,optionId,kind],value),'Choice base cost updated. Other choices keep their own assignments.');},
+    setOptionCost(nodeId,optionId,kind,value){const shared=LIFEGRAPH_SHOP_SERVICE_SPECS.some(s=>s.id===optionId);return commit(replacePath(draft,['generatorConfig','design',...(shared?['shopServices',optionId,kind]:['optionCosts',nodeId,optionId,kind])],value),shared?'Shared shop action updated across every shop.':'Choice base cost updated. Other choices keep their own assignments.');},
     setShopPrice(kind,quality,cost,value){const next=replacePath(draft,['generatorConfig','design','shopPricing','prices',kind,quality,cost],value);next.generatorConfig.design.shopPricing.enabled=true;return commit(next,'Shared shop price updated for this card type and quality.');},
     setReview(id,notes,status='open'){const next=clone(draft);if(notes.trim()||status==='resolved')next.reviews[id]={notes,status};else delete next.reviews[id];return commit(next,'Review saved.',{preview:false});},
-    reset(){return commit(createLifegraphDraft(),'Loaded the default pooled experiment.');},
+    reset(){return commit({...createLifegraphDraft(),reviews:draft.reviews},'Loaded the current defaults; review notes retained.');},
     undo(){if(!history.length)return;draft=history.pop();rebuild();persist();message='Undid the last edit.';notify();},
     selectNode(id){if(!graph?.nodes.some(n=>n.id===id))return;selectedNodeId=id;notify();},
     openNode(id=selectedNodeId){if(!graph)throw new Error(generationErrors[0]);selectedNodeId=id;
@@ -67,10 +69,10 @@ export function createLifegraphController({baseSandbox=null,store=storage()}={})
       return commit(replacePath(draft,['generatorConfig','design','pools'],design.pools.filter(p=>p.id!==id)),'Family removed.');},
     addGuarantee(){const next=clone(draft),rules=next.generatorConfig.design.guarantees;let n=1;while(rules.some(g=>g.id===`guarantee-${n}`))n++;
       rules.push({id:`guarantee-${n}`,targetType:'pool',targetId:next.generatorConfig.design.pools[0].id,scope:'common',count:1,minDepth:1,maxDepth:Math.min(4,next.generatorConfig.normalDepthCount),coverage:'map'});return commit(next,'Guarantee added.');},
-    savePreset(name){name=name.trim();if(!name||name.length>120){message='Choose a preset name (up to 120 characters).';notify();return {ok:false};}
+    savePreset(name){name=name.trim();if(name===previousPreset.name){message='Previous defaults is a built-in profile. Save a copy under another name.';notify();return {ok:false};}if(!name||name.length>120){message='Choose a preset name (up to 120 characters).';notify();return {ok:false};}
       const next=presets.filter(p=>p.name!==name);next.push({name,draft:clone({...draft,name})});try{if(!store)throw new Error();store.setItem(LIFEGRAPH_PRESETS_KEY,JSON.stringify(next));presets=next;message=`Saved “${name}”.`;notify();return {ok:true};}catch{message='Preset could not be stored. Export this draft instead.';notify();return {ok:false};}},
-    loadPreset(name){const preset=presets.find(p=>p.name===name);return preset?commit(preset.draft,`Loaded “${name}”.`):{ok:false};},
-    deletePreset(name){try{const next=presets.filter(p=>p.name!==name);if(!store)throw new Error();store.setItem(LIFEGRAPH_PRESETS_KEY,JSON.stringify(next));presets=next;message='Preset deleted.';notify();return {ok:true};}catch{message='Preset could not be removed from storage.';notify();return {ok:false};}},
+    loadPreset(name){const preset=presets.find(p=>p.name===name);return preset?commit(name===previousPreset.name?{...preset.draft,reviews:draft.reviews}:preset.draft,`Loaded “${name}”.`):{ok:false};},
+    deletePreset(name){if(name===previousPreset.name){message='Previous defaults is a built-in profile and stays available.';notify();return {ok:false};}try{const next=presets.filter(p=>p.name!==name);if(!store)throw new Error();store.setItem(LIFEGRAPH_PRESETS_KEY,JSON.stringify(next));presets=next;message='Preset deleted.';notify();return {ok:true};}catch{message='Preset could not be removed from storage.';notify();return {ok:false};}},
     exportJson(){return JSON.stringify({...draft,evidence:{seed:draft.preview.seed,classId:draft.preview.classId,diagnostics,cardPools,batch,generationErrors}},null,2);},
     importJson(text){try{const value=JSON.parse(text);delete value.evidence;return commit(value,'Imported experiment, rules and review notes.');}catch(error){message=`Import failed: ${error.message}`;notify();return {ok:false,errors:[message]};}},
     async runBatch(count=100){

@@ -1,27 +1,29 @@
-import { LIFEGRAPH_COST_CHOICES, LIFEGRAPH_SHOP_TYPES, LIFEGRAPH_CARD_QUALITIES, LIFEGRAPH_OPTION_SPECS } from '../../model/life-map-balance.js';
+import { LIFEGRAPH_COST_CHOICES, LIFEGRAPH_SHOP_TYPES, LIFEGRAPH_CARD_QUALITIES, getLifeMapOptionSpecs } from '../../model/life-map-balance.js';
 import { el, input, select, field, badge } from './elements.js';
 
 const title=value=>value[0].toUpperCase()+value.slice(1);
 const format=value=>Number(value.toFixed(2)).toString();
 const display=(kind,value)=>kind==='risk'?`${format(value*100)}%`:kind==='time'?`${format(value)} years`:`${format(value)} Prestige`;
 
-export function renderLifegraphChoices(parent,{controller,designId}){
+export function renderLifegraphChoices(parent,{controller,designId,servicesOnly=false}){
   const review=controller.getChoiceReview(designId),design=controller.getSnapshot().draft.generatorConfig.design;
-  const section=el('section','','lab-lifegraph-choice-section');section.append(el('h3','Choices & base costs'));
+  const section=el('section','','lab-lifegraph-choice-section');section.append(el('h3',servicesOnly?'Shared shop actions':'Choices & base costs'));
   section.append(el('p','These are the actual base costs. Choose a shared band or enter a custom value for this choice. Stat and Heirloom discounts apply afterwards.','lab-note'));
   if(review.error)section.append(el('p',review.error,'lab-note'));
   const grid=el('div','','lab-lifegraph-choice-grid');
   for(const option of review.choices){
+    if(servicesOnly&&!option.shared)continue;
     const card=el('article','','lab-lifegraph-choice-card');card.dataset.optionId=option.id;
     card.append(el('h4',option.label));
+    if(option.shared)card.append(badge('Shared across every shop','ok'));
     if(option.sampleLabel&&option.sampleLabel!==option.label)card.append(el('p',option.sampleLabel,'lab-note'));
     for(const effect of option.effects)card.append(el('p',effect,'lab-lifegraph-choice-effect'));
-    if(!option.available&&!['reroll','delve','emptyConfirm','remove'].includes(option.id))card.append(el('p','Not offered in this preview context; its base costs can still be authored.','lab-note'));
+    if(!option.available&&!option.shared&&option.id!=='remove')card.append(el('p','Not offered in this preview context; its base costs can still be authored.','lab-note'));
     const controls=el('div','','lab-lifegraph-choice-costs');
     for(const kind of option.costKinds){
       const assignment=option.rule[kind],label=`${option.label} · ${title(kind)}`;
       const entries=LIFEGRAPH_COST_CHOICES.map(tier=>[tier,tier==='free'?'Free · 0':`${title(tier)} · ${display(kind,design.costBands[kind][tier])}`]);
-      if(LIFEGRAPH_OPTION_SPECS[designId].find(o=>o.id===option.id).defaults[kind]==='calculated')entries.push(['calculated','Encounter risk · Force / Defence']);
+      if(getLifeMapOptionSpecs(designId).find(o=>o.id===option.id).defaults[kind]==='calculated')entries.push(['calculated','Encounter risk · Force / Defence']);
       entries.push(['custom','Custom base value']);
       const band=select(`${label} band`,entries,typeof assignment==='number'?'custom':assignment);
       band.addEventListener('change',()=>controller.setOptionCost(designId,option.id,kind,band.value==='custom'?option.base[kind]:band.value));

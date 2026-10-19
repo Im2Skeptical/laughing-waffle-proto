@@ -7,9 +7,11 @@ export const LIFEGRAPH_SHOP_TYPES = Object.freeze(['practice','structure']);
 const spec=(id,label,time='free',prestige='free',risk='free')=>({id,label,defaults:{time,prestige,risk}});
 const campaign=[spec('attack','Attack','fair','expensive','calculated'),spec('duel','Honour duel','cheap','free','calculated'),
   spec('quest','Quest','fair','free','calculated'),spec('leave','Leave Campaign')];
-const shop=[{...spec('reroll','Reroll shop','cheap','cheap'),costKinds:['time','prestige'],description:'Other classes pay these costs to refresh offers. Scholars use Delve instead.'},
-  {...spec('delve','Scholar Delve','cheap'),costKinds:['time'],description:'Scholar only. Spend time, then reopen the shop with improved quality and a new Commission.'},
-  {...spec('emptyConfirm','Leave without a purchase','cheap'),costKinds:['time'],description:'Time spent when confirming an empty purchase list.'}];
+export const LIFEGRAPH_SHOP_NODE_IDS=Object.freeze(['practiceReform','publicWorks','neutralMarket','classMarket','foodShop','housingShop','stockShop','signature:foodShop','signature:housingShop','signature:knowledgeShop','signature:removePractice']);
+export const LIFEGRAPH_SHOP_SERVICE_SPECS=Object.freeze([
+  {...spec('delve','Scholar Delve',10),costKinds:['time'],description:'Scholar only. Spend time, then reopen the shop with improved quality and a new Commission.'},
+  {...spec('emptyConfirm','Leave without a purchase',5),costKinds:['time'],description:'Time spent when confirming an empty purchase list.'},
+]);
 const settlement=[spec('found','Found a settlement','free','expensive'),spec('route','Open a settlement route','cheap','fair'),spec('settlement-favor','Seek Settlement Favor')];
 
 // Stable gameplay action IDs, independent of rolled stats, target regions and
@@ -28,18 +30,11 @@ export const LIFEGRAPH_OPTION_SPECS = Object.freeze({
   'signature:legacyPlus':[spec('foundDynasty','Found a Dynasty','fair','expensive'),spec('enduringOffice','Enduring Office','fair','fair'),spec('humbleRemembrance','Humble Remembrance')],
   'signature:settlement':settlement,
   'signature:monsterHunt':campaign,
-  'signature:removePractice':[{...spec('remove','Remove an installed Practice','cheap','fair'),costKinds:['time','prestige']},spec('removalFallback','Reorganize Local Affairs'),...shop],
-  ...Object.fromEntries(['practiceReform','publicWorks','neutralMarket','classMarket','foodShop','housingShop','stockShop','signature:foodShop','signature:housingShop','signature:knowledgeShop'].map(id=>[id,shop])),
+  ...Object.fromEntries(LIFEGRAPH_SHOP_NODE_IDS.map(id=>[id,[]])),
+  'signature:removePractice':[{...spec('remove','Remove an installed Practice','cheap','fair'),costKinds:['time','prestige']},spec('removalFallback','Reorganize Local Affairs')],
 });
 
-export function createLifeMapBalance(){
-  return {
-    // Absolute base values, never multipliers. Time is solar years; risk is 0–1.
-    costBands:{time:{cheap:2,fair:4,expensive:8},prestige:{cheap:5,fair:10,expensive:20},risk:{cheap:.05,fair:.15,expensive:.35}},
-    optionCosts:Object.fromEntries(Object.entries(LIFEGRAPH_OPTION_SPECS).map(([nodeId,options])=>[nodeId,Object.fromEntries(options.map(o=>[o.id,{...o.defaults}]))])),
-    shopPricing:{enabled:true,prices:Object.fromEntries(LIFEGRAPH_SHOP_TYPES.map((kind)=>[kind,Object.fromEntries(LIFEGRAPH_CARD_QUALITIES.map((quality,index)=>[quality,{prestige:(kind==='practice'?10:12)*(index+1),time:2+index,currency:0}]))]))},
-  };
-}
+export const getLifeMapOptionSpecs=nodeId=>[...(LIFEGRAPH_OPTION_SPECS[nodeId]??[]),...(LIFEGRAPH_SHOP_NODE_IDS.includes(nodeId)?LIFEGRAPH_SHOP_SERVICE_SPECS:[])];
 
 export function lifeMapDesignNodeId(node){return node?.signatureNode?`signature:${node.signatureNode.variantId}`:node?.family;}
 
@@ -66,14 +61,15 @@ const yearPhases=(state,years)=>Math.max(years>0?1:0,Math.round(years*lifeMapPha
 
 export function resolveLifeMapOptionCosts(state,node,option){
   const design=state.gameConfig.lifeMapGenerator.design;
-  if(!design.enabled)return option;
-  const key=lifeMapOptionKey(node,option),rule=design.optionCosts[lifeMapDesignNodeId(node)]?.[key];
+  const key=lifeMapOptionKey(node,option),shared=LIFEGRAPH_SHOP_NODE_IDS.includes(lifeMapDesignNodeId(node))?design.shopServices[key]:null;
+  if(!design.enabled&&!shared)return option;
+  const rule=shared??design.optionCosts[lifeMapDesignNodeId(node)]?.[key];
   if(!rule)return option;
   const next={...option,balanceKey:key};
   next.phaseCost=yearPhases(state,getLifeMapBalanceValue(design,'time',rule.time));
-  next.prestigeCost=getLifeMapBalanceValue(design,'prestige',rule.prestige);
+  next.prestigeCost=getLifeMapBalanceValue(design,'prestige',rule.prestige??'free');
   if(rule.risk!=='calculated'){
-    const risk=getLifeMapBalanceValue(design,'risk',rule.risk);
+    const risk=getLifeMapBalanceValue(design,'risk',rule.risk??'free');
     if(option.mode)next.risk=Math.round(risk*100);
     else {next.immediateDeathChance=risk;if('baseDanger' in option)next.baseDanger=risk;}
   }
@@ -98,6 +94,8 @@ export function validateLifeMapBalance(design){
     else if(option.costKinds&&!option.costKinds.includes(kind)&&assignment!=='free')errors.push(`design.optionCosts.${nodeId}.${option.id}.${kind}: this service has no ${kind} charge`);
   }
   for(const [nodeId,options]of Object.entries(design.optionCosts??{}))for(const id of Object.keys(options??{}))if(!LIFEGRAPH_OPTION_SPECS[nodeId]?.some(o=>o.id===id))errors.push(`design.optionCosts.${nodeId}.${id}: unknown action`);
+  for(const {id}of LIFEGRAPH_SHOP_SERVICE_SPECS){const time=design.shopServices?.[id]?.time;if(!(LIFEGRAPH_COST_CHOICES.includes(time)||valid('time',time)))errors.push(`design.shopServices.${id}.time: choose a band or a valid base value`);}
+  for(const [id,rule]of Object.entries(design.shopServices??{}))if(!LIFEGRAPH_SHOP_SERVICE_SPECS.some(s=>s.id===id)||!rule||Object.keys(rule).some(kind=>kind!=='time'))errors.push(`design.shopServices.${id}: unknown service or cost`);
   if(typeof design.shopPricing?.enabled!=='boolean')errors.push('design.shopPricing.enabled: expected a boolean');
   for(const kind of LIFEGRAPH_SHOP_TYPES)for(const quality of LIFEGRAPH_CARD_QUALITIES)for(const cost of ['time','prestige'])if(!valid(cost,design.shopPricing?.prices?.[kind]?.[quality]?.[cost]))errors.push(`design.shopPricing.${kind}.${quality}.${cost}: invalid shared price`);
   for(const kind of LIFEGRAPH_SHOP_TYPES)for(const quality of LIFEGRAPH_CARD_QUALITIES){const n=design.shopPricing?.prices?.[kind]?.[quality]?.currency;if(!Number.isInteger(n)||n<0||n>100000)errors.push(`design.shopPricing.${kind}.${quality}.currency: expected a nonnegative whole amount`);}

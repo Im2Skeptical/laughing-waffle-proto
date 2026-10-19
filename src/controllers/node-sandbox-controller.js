@@ -26,7 +26,7 @@ export function createNodeSandboxController({initialSandbox=null}={}) {
     undo: (...args) => transact(state => undoVassalShopPurchase(state, ...args), 'Purchase undone'),
     reorder: (...args) => transact(state => reorderVassalShopPurchase(state, ...args), 'Practice order updated'),
     move: (...args) => transact(state => moveVassalShopStructure(state, ...args), 'Structure placement updated'),
-    reroll: (...args) => transact(state => rerollVassalShop(state, ...args), 'In-game reroll · normal cost and limit apply'),
+    reroll: (...args) => transact(state => rerollVassalShop(state, ...args), 'Scholar Delve · shared time cost applies'),
     confirm(...args) {
       const result=transact(state => confirmVassalLifeNode(state, ...args), 'Decision committed');
       message=getCurrentLifeMapVassal(sandbox.state)?.lifeMap.pendingResolution

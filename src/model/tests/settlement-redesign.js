@@ -8,6 +8,7 @@ import { normalizeStructureLayout, occupiedCells } from '../structure-layout.js'
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../../defs/gamepieces/detailed-settlement-defs.js';
 import { stepDetailedSettlementsSecond } from '../detailed-settlements.js';
 import { getGamepieceFace } from '../gamepiece-presentation.js';
+import { nodeIdForFamily } from './vassal-life-map/helpers.js';
 
 function owned(target) {
   const v=getCurrentLifeMapVassal(target);
@@ -20,7 +21,7 @@ state.gameConfig.settings.values.primordialBasePressure=0;
 function dispatch(target,kind,payload){const result=applyAction(target,{kind,payload},{isReplay:true});assert.equal(result.ok,true,`${kind}: ${result.reason}`);return result;}
 dispatch(state,ActionKinds.SETTLEMENT_SELECT_VASSAL,{candidateIndex:0,expectedPoolHash:getVassalCandidatePool(state).expectedPoolHash});
 const vassal=getCurrentLifeMapVassal(state);vassal.prestige=1000;
-const nodeId=vassal.lifeMap.graph.nodes.find(node=>node.family==='publicWorks').id;
+const nodeId=nodeIdForFamily(state,'publicWorks');
 vassal.lifeMap.availableNodeIds=[nodeId];
 dispatch(state,ActionKinds.VASSAL_ENTER_LIFE_NODE,{nodeId});
 dispatch(state,ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId,optionId:'Housing'});
@@ -61,7 +62,7 @@ const practiceState = createInitialState('devPlaytesting01', 422);
 practiceState.paused=true; practiceState.phase='planning';
 dispatch(practiceState,ActionKinds.SETTLEMENT_SELECT_VASSAL,{candidateIndex:0,expectedPoolHash:getVassalCandidatePool(practiceState).expectedPoolHash});
 const pv=getCurrentLifeMapVassal(practiceState); pv.prestige=1000;
-const pn=pv.lifeMap.graph.nodes.find(node=>node.family==='practiceReform').id;
+const pn=nodeIdForFamily(practiceState,'practiceReform');
 pv.lifeMap.availableNodeIds=[pn]; dispatch(practiceState,ActionKinds.VASSAL_ENTER_LIFE_NODE,{nodeId:pn});
 dispatch(practiceState,ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId:pn,optionId:'random'});
 const ps=practiceState.world.sites.find(site=>site.regionId===pv.locationRegionId).detailedState;

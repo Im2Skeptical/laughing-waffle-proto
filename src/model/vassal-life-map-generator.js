@@ -7,7 +7,8 @@ import {
   getVassalStockOutputIds,
 } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { detailedSettlementPracticeDefs } from "../defs/gamepieces/detailed-settlement-defs.js";
-import { createLifeMapDesign, canonicalizeLifeMapDesign, validateLifeMapDesign, populatePooledLifeMap } from './life-map-design.js';
+import { canonicalizeLifeMapDesign, validateLifeMapDesign, populatePooledLifeMap } from './life-map-design.js';
+import { LIFEGRAPH_DEFAULT_GENERATOR } from '../defs/lifegraph-defaults.js';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const BANDS = Object.freeze(["early", "mid", "late"]);
@@ -20,34 +21,10 @@ function isCanonicalSignatureDescriptor(descriptor) {
     && descriptor.color === variant.color && descriptor.description === variant.description
     && descriptor.removalKind === variant.removalKind && descriptor.tag === variant.tag;
 }
-const DEFAULT_WEIGHTS = Object.freeze({
-  // Equal Food/Housing weights yield roughly three basic supply shops per graph.
-  early: Object.freeze([5, 5, 6, 1, 1, 0, 2, 0, 0, 0, 0, 0.25, 0.25, 1, 1]),
-  mid: Object.freeze([3, 3, 6, 3, 3, 1, 4, 0, 0, 0, 0, 0.5, 0.5, 1, 1]),
-  late: Object.freeze([1, 2, 6, 4, 4, 5, 3, 0, 0, 0, 0, 1, 1, 1, 1]),
-});
-
-export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 10;
+export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 11;
 
 export function createAuthoredVassalLifeMapGeneratorConfig() {
-  return {
-    schemaVersion: VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION,
-    laneCount: 6,
-    normalDepthCount: 11,
-    routeCount: 6,
-    earlyDepthCount: 4,
-    midDepthCount: 4,
-    layoutSmoothing: 0.5,
-    minimumNodeGap: 0.12,
-    nonRepeatFamilyIds: ["crisis"],
-    design: createLifeMapDesign(),
-    weights: Object.fromEntries(BANDS.map((band) => [
-      band,
-      Object.fromEntries(VASSAL_NORMAL_NODE_FAMILY_IDS.map((familyId, index) => [
-        familyId, DEFAULT_WEIGHTS[band][index] ?? 0,
-      ])),
-    ])),
-  };
+  return clone(LIFEGRAPH_DEFAULT_GENERATOR);
 }
 
 export function canonicalizeVassalLifeMapGeneratorConfig(value) {

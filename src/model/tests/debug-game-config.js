@@ -51,10 +51,10 @@ import {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const authoredConfig = createAuthoredGameConfig();
-assert.equal(authoredConfig.schemaVersion, 23);
-assert.equal(authoredConfig.settings.schemaVersion, 23);
-assert.equal(authoredConfig.gamepieces.schemaVersion, 23);
-assert.equal(authoredConfig.lifeMapGenerator.laneCount, 6);
+assert.equal(authoredConfig.schemaVersion, 24);
+assert.equal(authoredConfig.settings.schemaVersion, 24);
+assert.equal(authoredConfig.gamepieces.schemaVersion, 24);
+assert.equal(authoredConfig.lifeMapGenerator.laneCount, 3);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
 assert.equal(validateGamepiecesDraft(createAuthoredGamepiecesDraft()).ok, true);
