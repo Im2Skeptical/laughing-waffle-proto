@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {createLifegraphController} from '../src/controllers/lifegraph-controller.js';
+import {VASSAL_CLASS_RULES} from '../src/defs/vassal-class-rules.js';
 import {getCurrentLifeMapVassal, getVassalNodeDecisionPresentation} from '../src/model/vassal-life-map.js';
 import {generateShopInventory} from '../src/model/vassal-life-map/shop.js';
 import {getVassalActionPhaseCost} from '../src/model/vassal-life-map/selectors.js';
@@ -75,7 +76,9 @@ assert.equal(s.vassal.lifeMap.pendingResolution.phaseCost,quotedTime,'the author
 // Pricing uses the bought quality, not minimum maturity, source definition price
 // or the old installed tier. A Scholar bonus is included before quoting.
 c.setShopPrice('practice','diamond','prestige',37);c.setShopPrice('practice','diamond','time',1.5);
-c.openType('stockShop');s=c.sandbox.getSnapshot();s.vassal.stats.cunning=40;s.vassal.stats.intelligence=0;s.vassal.stats.effectiveness=0;
+c.openType('stockShop');s=c.sandbox.getSnapshot();
+// Guarantee all three tier steps for Bronze learn offers as well as upgrades.
+s.vassal.stats.cunning=Math.ceil(3/VASSAL_CLASS_RULES.scholar.qualityChancePerPoint);s.vassal.stats.intelligence=0;s.vassal.stats.effectiveness=0;
 node=s.vassal.lifeMap.nodeStates[s.nodeId];node.inventory=generateShopInventory(s.state,s.vassal,node);
 assert.ok(node.inventory.length>0);assert.ok(node.inventory.every(o=>o.priceQuality==='diamond'));
 for(const offer of node.inventory){assert.equal(offer.basePrestigeCost,37);assert.equal(offer.basePhaseCost,Math.round(1.5*lifeMapPhasesPerYear(s.state)));}
