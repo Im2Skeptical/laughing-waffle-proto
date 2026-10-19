@@ -1,7 +1,7 @@
 import { createLabNodeSandbox } from '../model/dev-lab/node-sandbox.js';
 import { createNodeSandboxController } from './node-sandbox-controller.js';
 import { createLifegraphDraft, validateLifegraphDraft, createLifegraphPreviewState, generateLifegraphPreview,
-  openLifegraphNode, openLifegraphNodeType, diagnoseLifegraph, diagnoseLifegraphCardPools, LIFEGRAPH_STORAGE_KEY, LIFEGRAPH_PRESETS_KEY } from '../model/dev-lab/lifegraph.js';
+  openLifegraphNode, openLifegraphNodeType, getLifegraphChoiceReview, diagnoseLifegraph, diagnoseLifegraphCardPools, LIFEGRAPH_STORAGE_KEY, LIFEGRAPH_PRESETS_KEY } from '../model/dev-lab/lifegraph.js';
 import { getCurrentLifeMapVassal } from '../model/vassal-life-map.js';
 import { serializeGameState, deserializeGameState } from '../model/state.js';
 
@@ -16,11 +16,13 @@ export function createLifegraphController({baseSandbox=null,store=storage()}={})
   let draft=createLifegraphDraft(),presets=[],history=[],state=null,graph=null,diagnostics=null,cardPools=[],generationErrors=[],selectedNodeId=null;
   let message='Drafts and notes save on this device. Launching is explicit.',batch=null,batchRunning=false,batchToken=0;
   const listeners=new Set();
+  const choiceReviews=new Map();
   const notify=()=>{for(const listener of listeners)listener();};
   const settings=()=>{const p=draft.preview;return {...base.settings,classId:p.classId,seed:p.seed,research:p.research,prestige:p.prestige,age:p.age,
     cunning:p.stats,wisdom:p.stats,intelligence:p.stats,effectiveness:p.stats};};
   function persist(){try{store?.setItem(LIFEGRAPH_STORAGE_KEY,JSON.stringify(draft));if(!store)message='Storage unavailable. Export your draft before leaving.';}catch{message='Storage unavailable. Export your draft before leaving.';}}
   function rebuild(){
+    choiceReviews.clear();
     batchToken++;batchRunning=false;batch=null;
     state=createLifegraphPreviewState(deserializeGameState(baseJson),draft);
     const result=generateLifegraphPreview(state,draft);
@@ -34,7 +36,11 @@ export function createLifegraphController({baseSandbox=null,store=storage()}={})
     history.push(draft);history=history.slice(-30);draft=clone(next);message=label;
     if(preview)rebuild();persist();notify();return {ok:true};
   }
-  try{const saved=store?.getItem(LIFEGRAPH_STORAGE_KEY);if(saved){const value=JSON.parse(saved);if(!validateLifegraphDraft(value).length)draft=value;else message='Stored draft is from another schema. The current default is loaded; your stored export was not applied.';}
+  try{const saved=store?.getItem(LIFEGRAPH_STORAGE_KEY);if(saved){const value=JSON.parse(saved);if(!validateLifegraphDraft(value).length)draft=value;else {
+    const notes={...draft,reviews:value.reviews};
+    if(value.schemaVersion===draft.schemaVersion&&!validateLifegraphDraft(notes).length){draft=notes;message='Cost rules changed schema. A fresh experiment is loaded; your independent review notes are retained.';}
+    else message='Stored draft is from another schema. The current default is loaded; your stored export was not applied.';
+  }}
     const savedPresets=JSON.parse(store?.getItem(LIFEGRAPH_PRESETS_KEY)??'[]');if(Array.isArray(savedPresets))presets=savedPresets.filter(p=>typeof p.name==='string'&&!validateLifegraphDraft(p.draft).length);
   }catch{message='Stored draft could not be read. Export before leaving if storage is unavailable.';}
   rebuild();
@@ -43,8 +49,11 @@ export function createLifegraphController({baseSandbox=null,store=storage()}={})
     subscribe(listener){listeners.add(listener);return()=>listeners.delete(listener);},
     getSnapshot:()=>({draft,state,graph,diagnostics,cardPools,generationErrors,selectedNodeId,message,batch,batchRunning,presets:presets.map(p=>p.name),canUndo:!!history.length}),
     getGeneratorConfig:()=>clone(draft.generatorConfig),
+    getChoiceReview(id){if(!choiceReviews.has(id))choiceReviews.set(id,graph?getLifegraphChoiceReview(state,graph,id,settings()):{error:generationErrors[0],choices:[]});return choiceReviews.get(id);},
     update(path,value){return commit(replacePath(draft,path,value),'Draft updated. Preview and diagnostics use these rules.');},
     setNode(id,changes){return commit(replacePath(draft,['generatorConfig','design','nodes',id],{...draft.generatorConfig.design.nodes[id],...changes}),'Node rules updated.');},
+    setOptionCost(nodeId,optionId,kind,value){return commit(replacePath(draft,['generatorConfig','design','optionCosts',nodeId,optionId,kind],value),'Choice base cost updated. Other choices keep their own assignments.');},
+    setShopPrice(kind,quality,cost,value){const next=replacePath(draft,['generatorConfig','design','shopPricing','prices',kind,quality,cost],value);next.generatorConfig.design.shopPricing.enabled=true;return commit(next,'Shared shop price updated for this card type and quality.');},
     setReview(id,notes,status='open'){const next=clone(draft);if(notes.trim()||status==='resolved')next.reviews[id]={notes,status};else delete next.reviews[id];return commit(next,'Review saved.',{preview:false});},
     reset(){return commit(createLifegraphDraft(),'Loaded the default pooled experiment.');},
     undo(){if(!history.length)return;draft=history.pop();rebuild();persist();message='Undid the last edit.';notify();},

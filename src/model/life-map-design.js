@@ -1,7 +1,7 @@
 import { VASSAL_NORMAL_NODE_FAMILY_IDS, VASSAL_SIGNATURE_NODE_VARIANTS } from '../defs/gamepieces/vassal-life-map-defs.js';
+import { createLifeMapBalance, validateLifeMapBalance } from './life-map-balance.js';
 
 export const LIFEGRAPH_RARITIES = Object.freeze(['common', 'uncommon', 'rare']);
-export const LIFEGRAPH_COST_TIERS = Object.freeze(['cheap', 'fair', 'expensive']);
 export const LIFEGRAPH_TIMINGS = Object.freeze(['early', 'mid', 'late']);
 export const LIFEGRAPH_NODE_IDS = Object.freeze([...VASSAL_NORMAL_NODE_FAMILY_IDS, 'stockShop', 'legacy',
   ...Object.keys(VASSAL_SIGNATURE_NODE_VARIANTS).map(id => `signature:${id}`)]);
@@ -26,14 +26,13 @@ export function createLifeMapDesign() {
       : ['training','classMarket'].includes(id) ? 'specialist' : 'common',
     occurrence:['neutralMarket','classMarket'].includes(id) ? 'rare' : 'common',
     timings:id === 'crisis' ? ['mid','late'] : [...LIFEGRAPH_TIMINGS],
-    costs:{time:'fair',prestige:'fair',risk:'fair'},
   }]));
   return {
     enabled:false,
     pools,
     nodes,
     occurrence:{common:6,uncommon:3,rare:1},
-    costBands:{time:{cheap:0.5,fair:1,expensive:1.5},prestige:{cheap:0.5,fair:1,expensive:1.5},risk:{cheap:0.5,fair:1,expensive:1.5}},
+    ...createLifeMapBalance(),
     stockSupply:{enabled:true,randomCount:2,unmetCount:1,minDepth:2,maxDepth:11},
     guarantees:[
       {id:'training',targetType:'node',targetId:'training',scope:'specialist',count:1,minDepth:1,maxDepth:3,coverage:'map'},
@@ -86,7 +85,7 @@ export function validateLifeMapDesign(design, depthCount) {
   for(const [key,tiers]of [['occurrence',LIFEGRAPH_RARITIES]])for(const tier of tiers){
     const n=design[key]?.[tier];if(!Number.isFinite(n)||n<=0||n>100)fail(`${key}.${tier}: expected more than 0, up to 100`);
   }
-  for(const kind of ['time','prestige','risk'])for(const tier of LIFEGRAPH_COST_TIERS){const n=design.costBands?.[kind]?.[tier];if(!Number.isFinite(n)||n<0||n>10)fail(`costBands.${kind}.${tier}: expected 0–10`);}
+  errors.push(...validateLifeMapBalance(design));
   for(const id of LIFEGRAPH_NODE_IDS){
     const rule=design.nodes?.[id];
     if(!rule||typeof rule.enabled!=='boolean'){fail(`nodes.${id}: enabled must be a boolean`);continue;}
@@ -95,7 +94,6 @@ export function validateLifeMapDesign(design, depthCount) {
     else if(!lifeMapAllowedScopes(id).includes(rule.scope))fail(`nodes.${id}.scope: incompatible with this action’s class rules`);
     if(!LIFEGRAPH_RARITIES.includes(rule.occurrence))fail(`nodes.${id}.occurrence: choose a tier`);
     if(!Array.isArray(rule.timings)||!rule.timings.length||rule.timings.some(t=>!LIFEGRAPH_TIMINGS.includes(t))||new Set(rule.timings).size!==rule.timings.length)fail(`nodes.${id}.timings: select unique timing bands`);
-    for(const kind of ['time','prestige','risk'])if(!LIFEGRAPH_COST_TIERS.includes(rule.costs?.[kind]))fail(`nodes.${id}.costs.${kind}: choose a cost tier`);
   }
   if(design.nodes?.legacy?.enabled!==true)fail('nodes.legacy: the terminal node must stay enabled');
   const supply=design.stockSupply;
@@ -196,13 +194,4 @@ export function populatePooledLifeMap(config, nodes, edges, rng, {classId=null,s
     assign(node,family);
   }
   return {ok:true};
-}
-
-export function getLifeMapCostMultiplier(vassal, kind, nodeState=null) {
-  const graph=vassal?.lifeMap?.graph,design=graph?.generatorConfig?.design;
-  if(!design?.enabled)return 1;
-  const node=nodeState??vassal.lifeMap.nodeStates?.[vassal.lifeMap.currentNodeId];
-  const id=node?.signatureNode?`signature:${node.signatureNode.variantId}`:node?.family;
-  const tier=design.nodes[id]?.costs?.[kind]??'fair';
-  return design.costBands[kind][tier];
 }

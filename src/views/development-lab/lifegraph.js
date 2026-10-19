@@ -1,5 +1,7 @@
 import { createLifegraphController } from '../../controllers/lifegraph-controller.js';
-import { LIFEGRAPH_NODE_IDS, LIFEGRAPH_RARITIES, LIFEGRAPH_COST_TIERS, lifeMapAllowedScopes } from '../../model/life-map-design.js';
+import { LIFEGRAPH_NODE_IDS, LIFEGRAPH_RARITIES, lifeMapAllowedScopes } from '../../model/life-map-design.js';
+import { LIFEGRAPH_COST_TIERS } from '../../model/life-map-balance.js';
+import { renderLifegraphChoices, renderLifegraphShopPricing } from './lifegraph-choice-editor.js';
 import { nodeDesignId, lifegraphNodeLabel } from '../../model/dev-lab/lifegraph.js';
 import { VASSAL_SIGNATURE_NODE_VARIANTS } from '../../defs/gamepieces/vassal-life-map-defs.js';
 import { createLifegraphPreview } from './lifegraph-preview.js';
@@ -12,7 +14,7 @@ const TAB_OPTIONS=[['graph','Graph'],['families','Families'],['nodes','Nodes & r
 
 export function createLifegraphView({controller=createLifegraphController()}={}){
   const root=el('section','','lab-lifegraph');root.dataset.testid='lab-lifegraph';
-  let tab='graph',selectedDesign='practiceReform',search='',reviewOnly=false,lastSelected=null,frame=0,player=null,playerReset=null,ioText='',presetName='';
+  let tab='graph',selectedDesign='practiceReform',search='',reviewOnly=false,lastSelected=null,frame=0,player=null,playerReset=null,ioText='',presetName='',generationOpen=false;
   const playerDialog=el('dialog','','lab-lifegraph-player'),playerBody=el('div');
   playerDialog.setAttribute('aria-label','Play Lifegraph node');
   playerDialog.addEventListener('close',()=>player?.setVisible(false));
@@ -89,17 +91,20 @@ export function createLifegraphView({controller=createLifegraphController()}={})
       b.dataset.nodeName=lifegraphNodeLabel(id).toLowerCase();b.hidden=!b.dataset.nodeName.includes(search.toLowerCase());b.setAttribute('aria-pressed',String(selectedDesign===id));list.append(b);}
     const id=selectedDesign,rule=design.nodes[id];editor.append(el('h2',lifegraphNodeLabel(id)));
     if(id!=='legacy'){
+    const generation=el('div');
     const scopeOptions=lifeMapAllowedScopes(id).map(t=>[t,t==='common'?'Common · all classes':t==='specialist'?'Both specialist classes':title(t)]);
-    editor.append(controlRow(check('Enabled',rule.enabled,v=>controller.setNode(id,{enabled:v}),{disabled:id==='legacy'}),choice('Node family',design.pools.map(p=>[p.id,p.label]),rule.poolId,v=>controller.setNode(id,{poolId:v})),choice('Class availability',scopeOptions,rule.scope,v=>controller.setNode(id,{scope:v})),choice('Node occurrence within family',LIFEGRAPH_RARITIES.map(t=>[t,title(t)]),rule.occurrence,v=>controller.setNode(id,{occurrence:v}))));
+    generation.append(controlRow(check('Enabled',rule.enabled,v=>controller.setNode(id,{enabled:v}),{disabled:id==='legacy'}),choice('Node family',design.pools.map(p=>[p.id,p.label]),rule.poolId,v=>controller.setNode(id,{poolId:v})),choice('Class availability',scopeOptions,rule.scope,v=>controller.setNode(id,{scope:v})),choice('Node occurrence within family',LIFEGRAPH_RARITIES.map(t=>[t,title(t)]),rule.occurrence,v=>controller.setNode(id,{occurrence:v}))));
     const timings=controlRow();for(const t of ['early','mid','late'])timings.append(check(`Available ${t==='mid'?'middle':t}`,rule.timings.includes(t),v=>controller.setNode(id,{timings:v?[...rule.timings,t]:rule.timings.filter(x=>x!==t)})));
     const repeats=s.draft.generatorConfig.nonRepeatFamilyIds;
-    timings.append(check('Prevent this node repeating consecutively',repeats.includes(id),v=>edit(['generatorConfig','nonRepeatFamilyIds'],v?[...repeats,id]:repeats.filter(x=>x!==id)),{disabled:id.startsWith('signature:')||['stockShop','legacy'].includes(id)}));editor.append(timings);
+    timings.append(check('Prevent this node repeating consecutively',repeats.includes(id),v=>edit(['generatorConfig','nonRepeatFamilyIds'],v?[...repeats,id]:repeats.filter(x=>x!==id)),{disabled:id.startsWith('signature:')||['stockShop','legacy'].includes(id)}));generation.append(timings);
+    const settings=disclosure('Generation settings',[generation],{open:generationOpen});settings.dataset.testid='lifegraph-generation';editor.append(settings);
     }
-    const costs=controlRow();for(const kind of ['time','prestige','risk'])costs.append(choice(`${title(kind)} band`,LIFEGRAPH_COST_TIERS.map(t=>[t,title(t)]),rule.costs[kind],v=>controller.setNode(id,{costs:{...rule.costs,[kind]:v}})));editor.append(costs);
-    editor.append(el('p',id==='legacy'?'Legacy is the compulsory terminal node. Its enable switch is fixed.':id.startsWith('signature:')?'Signature nodes are placed only when selected in Preview context or offered by a candidate. Their occurrence tier does not add random signatures.':'Time and Prestige bands multiply authored costs before normal discounts. Risk multiplies death or Campaign defeat probability and is capped at 100%. Free actions remain free.','lab-note'));
+    if(id==='legacy')editor.append(el('p','Legacy is the compulsory terminal node.','lab-note'));
     const row=s.diagnostics?.families[id];if(row)editor.append(el('p',`This graph: ${row.count} nodes · early ${row.early}, middle ${row.mid}, late ${row.late} · ${row.minOnRoute}–${row.maxOnRoute} on a complete route.`,'lab-summary'));
     const example=s.graph?.nodes.find(n=>nodeDesignId(n)===id);editor.append(button(example?'Play an example from this graph':'Try this node in isolation',()=>example?play(example.id):play(id,{type:true}),'lifegraph-play-type','primary'));
     if(!example)editor.append(el('p','This node is absent from the graph. The isolated preview replaces one slot for this test only; enable and guarantee rules remain unchanged. Stock Supply uses Timber in this isolated test.','lab-note'));
+    renderLifegraphChoices(editor,{controller,designId:id});
+    if(['practiceReform','stockShop','publicWorks','neutralMarket','classMarket','foodShop','housingShop','signature:foodShop','signature:housingShop','signature:knowledgeShop'].includes(id))renderLifegraphShopPricing(editor,{controller,types:['practiceReform','stockShop'].includes(id)?['practice']:id==='publicWorks'?['structure']:['practice','structure']});
     const review=s.draft.reviews[id],notes=el('textarea');notes.value=review?.notes??'';notes.rows=7;notes.maxLength=20000;notes.setAttribute('aria-label','Node review notes');notes.placeholder='What feels wrong? What should change? Include content gaps or a seed to reproduce.';
     notes.addEventListener('change',()=>controller.setReview(id,notes.value,review?.status??'open'));
     editor.append(field('Review notes · saved on this device',notes),controlRow(choice('Review status',[['open','Open'],['resolved','Resolved']],review?.status??'open',v=>controller.setReview(id,notes.value,v)),button('Save note',()=>controller.setReview(id,notes.value,review?.status??'open'),'lifegraph-save-note')));
@@ -122,7 +127,15 @@ export function createLifegraphView({controller=createLifegraphController()}={})
   function renderBands(parent,s){
     const design=s.draft.generatorConfig.design;
     parent.append(section('Occurrence tiers',el('p','These are relative chances. Changing Common updates every family and node assigned to Common; switching a node off is separate.'),controlRow(...LIFEGRAPH_RARITIES.map(t=>number(title(t),design.occurrence[t],designPath('occurrence',t),{min:.01,max:100,step:.25})))));
-    for(const kind of ['time','prestige','risk'])parent.append(section(`${title(kind)} cost bands`,el('p','Multipliers of the existing authored cost or probability. A value of 1 preserves it; 0.5 halves it.','lab-note'),controlRow(...LIFEGRAPH_COST_TIERS.map(t=>number(`${title(kind)} · ${t}`,design.costBands[kind][t],designPath('costBands',kind,t),{min:0,max:10,step:.1})))));
+    for(const kind of ['time','prestige','risk']){
+      const controls=controlRow();
+      for(const tier of LIFEGRAPH_COST_TIERS){
+        const value=input(`${title(kind)} · ${tier}`,design.costBands[kind][tier]*(kind==='risk'?100:1));value.min='0';value.max=kind==='risk'?'100':kind==='time'?'1000':'100000';value.step=kind==='prestige'?'1':'.1';
+        value.addEventListener('change',()=>edit(designPath('costBands',kind,tier),Number(value.value)/(kind==='risk'?100:1)));controls.append(field(`${title(tier)}${kind==='risk'?' · %':kind==='time'?' · years':''}`,value));
+      }
+      parent.append(section(`${title(kind)} base cost presets`,el('p',kind==='time'?'Absolute solar years before discounts. Every choice using a preset shares its value.':kind==='risk'?'Absolute risk percentage before class bonuses. Free is always 0%.':'Absolute Prestige cost before discounts. Free is always 0.','lab-note'),controls));
+    }
+    renderLifegraphShopPricing(parent,{controller});
     parent.append(section('Timing bands',el('p','Assign nodes to Early, Middle or Late in Nodes & review. Change the shared depth boundaries here.'),controlRow(number('Early depth count',s.draft.generatorConfig.earlyDepthCount,['generatorConfig','earlyDepthCount'],{min:1,max:18}),number('Middle depth count',s.draft.generatorConfig.midDepthCount,['generatorConfig','midDepthCount'],{min:1,max:18}))));
   }
 
@@ -160,6 +173,7 @@ export function createLifegraphView({controller=createLifegraphController()}={})
 
   function render(){
     const active=document.activeElement,label=active?.getAttribute('aria-label'),start=active?.selectionStart,end=active?.selectionEnd,scroll=window.scrollY;
+    const generation=root.querySelector('[data-testid=lifegraph-generation]');if(generation)generationOpen=generation.open;
     const s=controller.getSnapshot();if(s.selectedNodeId!==lastSelected){lastSelected=s.selectedNodeId;const n=s.graph?.nodes.find(n=>n.id===s.selectedNodeId);if(n)selectedDesign=nodeDesignId(n);}
     root.replaceChildren();renderHeader(root,s);
     ({graph:renderGraph,families:renderFamilies,nodes:renderNodes,guarantees:renderGuarantees,bands:renderBands,diagnostics:renderDiagnostics,share:renderShare})[tab](root,s);

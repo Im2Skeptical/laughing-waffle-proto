@@ -1,4 +1,5 @@
 import { getVassalRiskDeathChance } from './class-rules.js';
+import { resolveLifeMapOptionCosts } from '../life-map-balance.js';
 import { getShopOfferPrice } from './shop-specialties.js';
 import { getCampaignPresentation } from './campaign.js';
 import { legacySettlementTargets } from './world-choices.js';
@@ -289,7 +290,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
   const accumulatedPhaseCost = Math.max(0, Math.floor(nodeState?.accumulatedPhaseCost ?? 0));
   const emptyShopConfirmPhaseCost = isShopNodeState(nodeState)
     && (nodeState?.purchasedOffers ?? []).length === 0
-    ? getVassalActionPhaseCost(vassal, getVassalYearPhaseCost(state, VASSAL_LIFE_TUNING.emptyShopConfirmYearCost), { nodeState })
+    ? getVassalActionPhaseCost(vassal, resolveLifeMapOptionCosts(state,nodeState,{id:'emptyConfirm',phaseCost:getVassalYearPhaseCost(state,VASSAL_LIFE_TUNING.emptyShopConfirmYearCost)}).phaseCost, { nodeState })
     : 0;
   const totalPhaseCost = accumulatedPhaseCost + emptyShopConfirmPhaseCost + (isShopNodeState(nodeState)
     ? 0 : selectedOptionPhaseCost);
@@ -375,10 +376,11 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     blocked:getSettlementRequirements(state,vassal,option).some(entry=>!entry.met)?'Requirements not met':
       getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0)>vassal.prestige?'Insufficient Prestige':null}));
   const ordinaryLegacy = nodeState?.family==='legacy' && node.signatureNode?.variantId!=='legacyPlus';
+  const legacyFound=(nodeState?.options??[]).find(option=>option.id==='found-settlement');
   const legacySettlement = ordinaryLegacy?{
     selectedRegionId:nodeState.legacyDestinationRegionId??null,
     targets:legacySettlementTargets(state,vassal).map(regionId=>({id:`legacy-target:${regionId}`,settlementRegionId:regionId,
-      label:`Found ${getRegionReference(state,regionId)}`,cost:0,phases:0,blocked:null})),
+      label:`Found ${getRegionReference(state,regionId)}`,cost:getAdjustedVassalPrestigeCost(vassal,legacyFound?.prestigeCost??0),phases:getVassalActionPhaseCost(vassal,legacyFound?.phaseCost??0,{nodeState}),blocked:null})),
   }:null;
   return {
     node:acquiring?{...node,family:'relic'}:node,
@@ -391,7 +393,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     nodeState: nodeState ? {...clone(nodeState), ...(acquiring?{family:'relic',selectedOptionId:nodeState.rewardAcquisition.id}:{}), options:(acquiring?[nodeState.rewardAcquisition]:nodeState.options ?? []).map(option => {
       const risk = getVassalRiskDeathChance(vassal, option.immediateDeathChance);
       return {...clone(option), ...(Number.isFinite(option.immediateDeathChance) ? {immediateDeathChance:risk,
-        label:(option.label ?? '').replace(/\d+(?:\.\d+)?% Danger/g, `${Math.round(risk*100)}% RISK`)} : {})};
+        label:(option.label ?? '').replace(/\d+(?:\.\d+)?% (?:Danger|RISK)/g, `${Math.round(risk*100)}% RISK`)} : {})};
     })} : null,
     optionRequirements: Object.fromEntries((nodeState?.options ?? []).map((option) =>
       [option.id, getSettlementRequirements(state, vassal, option)])),

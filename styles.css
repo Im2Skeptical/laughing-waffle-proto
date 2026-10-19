@@ -809,3 +809,15 @@ html:has(.review-bulk-sheet[open]) { overflow:hidden; }
   .development-lab .lab-lifegraph-preview { padding:6px; }
   .development-lab dialog.lab-lifegraph-player { width:100vw; max-width:100vw; max-height:100dvh; margin:auto; border-radius:0; padding:6px; }
 }
+.development-lab .lab-lifegraph-choice-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr)); gap:12px; margin:14px 0 22px; }
+.development-lab .lab-lifegraph-choice-card { padding:16px; background:#102226; border:1px solid #527369; border-radius:10px; min-width:0; }
+.development-lab .lab-lifegraph-choice-card h4 { font-size:18px; margin:0 0 10px; color:#ece4c9; }
+.development-lab .lab-lifegraph-choice-effect { color:#a7c99b; font-weight:600; }
+.development-lab .lab-lifegraph-choice-costs { display:grid; gap:12px; margin-top:18px; }
+.development-lab .lab-lifegraph-choice-cost { display:grid; gap:6px; padding-top:10px; border-top:1px solid var(--lab-line); }
+.development-lab .lab-lifegraph-choice-cost label { display:block; min-width:0; }
+.development-lab .lab-lifegraph-choice-cost input,.development-lab .lab-lifegraph-choice-cost select { display:block; width:100%; margin-top:5px; }
+.development-lab .lab-lifegraph-choice-preview { font-size:12px; color:var(--lab-muted); padding-top:12px; }
+.development-lab .lab-lifegraph-shop-pricing { border-top:1px solid var(--lab-line); margin:20px 0; padding-top:8px; }
+.development-lab .lab-lifegraph-shop-pricing table { min-width:550px; width:100%; }
+.development-lab .lab-lifegraph-shop-pricing input { width:100%; min-width:80px; }

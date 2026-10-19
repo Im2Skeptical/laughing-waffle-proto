@@ -53,7 +53,7 @@ export function rollTourReward(state, vassal, option) {
   const pool = Object.values(VASSAL_HEIRLOOM_DEFS).filter(def => def.quality === 'bronze' && !owned.has(def.id));
   if (state.rngNextVassalFloat() < option.randomReward.relicChance && pool.length) {
     const def = pool[state.rngNextVassalInt(0, pool.length - 1)];
-    return {...option,randomReward:null,definitionId:def.id,label:def.label,quality:def.quality,description:def.description,immediateDeathChance:0};
+    return {...option,randomReward:null,definitionId:def.id,label:def.label,quality:def.quality,description:def.description,immediateDeathChance:option.immediateDeathChance??0};
   }
   const statId = VASSAL_STAT_IDS[state.rngNextVassalInt(0, VASSAL_STAT_IDS.length - 1)];
   return {...option,randomReward:null,statId,statDelta:option.randomReward.statDelta};

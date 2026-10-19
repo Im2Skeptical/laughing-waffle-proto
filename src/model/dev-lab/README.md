@@ -28,8 +28,11 @@ Life Map rules; the independent controller validates cloned transactions.
 single-type experiments and diagnoses complete-route coverage and actual shop
 eligibility. It calls the shared shop candidate selector without RNG or writes.
 Workbench review/export v1 is independent of GameState. Runs capture the pooled
-design in generator config v9; baseline and pooled rules both use the topology
+design in generator config v10; baseline and pooled rules both use the topology
 substream. Review storage is never consulted by a running simulation or replay.
+Choice review uses real isolated node entry to show seeded effects and costs;
+absolute per-choice presets and shared type/quality shop prices live in
+`model/life-map-balance.js` and are captured before a run starts.
 
 `card-review.js` defines the independent review schema, editable definition
 values, non-mutating draft projection and export/import data. Imports validate

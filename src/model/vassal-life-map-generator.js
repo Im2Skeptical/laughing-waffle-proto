@@ -27,7 +27,7 @@ const DEFAULT_WEIGHTS = Object.freeze({
   late: Object.freeze([1, 2, 6, 4, 4, 5, 3, 0, 0, 0, 0, 1, 1, 1, 1]),
 });
 
-export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 9;
+export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 10;
 
 export function createAuthoredVassalLifeMapGeneratorConfig() {
   return {

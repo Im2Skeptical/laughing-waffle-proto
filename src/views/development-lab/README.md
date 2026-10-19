@@ -33,8 +33,10 @@ live Vassal tools and save diagnostics only.
 timeline, Museum, Zoo and player saves. Rules, review persistence, preset/export
 and seed batches belong to `controllers/lifegraph-controller.js`; pure fixtures,
 coverage and inventory diagnostics live in `model/dev-lab/lifegraph.js`.
-`model/life-map-design.js` owns pooled generation, class scopes, route guarantees
-and named cost bands. Profiles capture those rules explicitly; `life-map-lab-dom.js`
+`model/life-map-design.js` owns pooled generation, class scopes and route guarantees.
+`lifegraph-choice-editor.js` lists choice effects, absolute base costs and shared
+type/quality shop prices from `model/life-map-balance.js`.
+Profiles capture those rules explicitly; `life-map-lab-dom.js`
 is now a profile summary and copy action rather than a second graph editor.
 
 `card-reviewer.js` renders the persistent review queue, face value targets,

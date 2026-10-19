@@ -9,9 +9,27 @@ export async function checkLifegraphWorkspace(page,context,{reload=false}={}){
   assert.ok(await page.evaluate(()=>__LAB_DEBUG__.getLifegraph().diagnostics.families.campaign.minOnRoute>=1));
   await page.getByTestId('lifegraph-class-scholar').click();
   await page.getByTestId('lifegraph-tab-nodes').click();
+  await page.getByTestId('lifegraph-node-development').click();
+  const choice=page.locator('[data-option-id="deepStudy"]');
+  assert.equal(await page.locator('.lab-lifegraph-choice-card').count(),3);
+  await choice.getByLabel('Deep Study · Time base value',{exact:true}).fill('3');
+  await choice.getByLabel('Deep Study · Time base value',{exact:true}).press('Tab');
+  await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().draft.generatorConfig.design.optionCosts.development.deepStudy.time===3);
+  await choice.getByLabel('Deep Study · Prestige band',{exact:true}).selectOption('fair');
+  await page.getByTestId('lifegraph-tab-bands').click();
+  await page.getByLabel('Prestige · fair',{exact:true}).fill('17');
+  await page.getByLabel('Prestige · fair',{exact:true}).press('Tab');
+  await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().draft.generatorConfig.design.costBands.prestige.fair===17);
+  await page.getByLabel('Practice Gold Prestige price',{exact:true}).fill('31');
+  await page.getByLabel('Practice Gold Prestige price',{exact:true}).press('Tab');
+  await page.getByTestId('lifegraph-tab-nodes').click();
+  assert.equal(await choice.getByLabel('Deep Study · Prestige base value',{exact:true}).inputValue(),'17');
+  assert.equal(await page.locator('[data-option-id="hardLesson"]').getByLabel('Hard Lesson · Prestige base value',{exact:true}).inputValue(),'0');
+  await page.screenshot({path:'artifacts/lifegraph-choice-editor.png',fullPage:true});
   await page.getByTestId('lifegraph-node-practiceReform').click();
   await page.getByLabel('Node review notes').fill('Browser check: Timber has one supplier; add another choice.');
   await page.getByTestId('lifegraph-save-note').click();
+  await page.getByText('Generation settings',{exact:true}).click();
   await page.getByLabel('Node family',{exact:true}).selectOption('growth');
   await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().draft.generatorConfig.design.nodes.practiceReform.poolId==='growth');
   await page.getByLabel('Node family',{exact:true}).selectOption('shops');
@@ -51,9 +69,12 @@ export async function checkLifegraphWorkspace(page,context,{reload=false}={}){
   await page.getByRole('button',{name:'Show current export',exact:true}).click();
   const exported=await page.getByLabel('Lifegraph JSON',{exact:true}).inputValue();
   const doc=JSON.parse(exported);assert.equal(doc.reviews.practiceReform.status,'open');assert.equal(doc.evidence.batch.completed,100);
+  assert.equal(doc.generatorConfig.design.optionCosts.development.deepStudy.time,3);
+  assert.equal(doc.generatorConfig.design.shopPricing.prices.practice.gold.prestige,31);
   await page.getByTestId('lifegraph-save-preset').click();
   if(reload){await page.reload();await page.getByTestId('lab-lifegraph').waitFor();}
   assert.ok(await page.evaluate(()=>__LAB_DEBUG__.getLifegraph().draft.reviews.practiceReform.notes.includes('Timber')));
+  assert.equal(await page.evaluate(()=>__LAB_DEBUG__.getLifegraph().draft.generatorConfig.design.optionCosts.development.deepStudy.time),3);
   await page.getByTestId('lifegraph-tab-share').click();
   await page.getByLabel('Lifegraph JSON',{exact:true}).fill(exported);await page.getByTestId('lifegraph-import-json').click();
   await page.getByTestId('lifegraph-tab-graph').click();
@@ -69,6 +90,7 @@ export async function checkLifegraphWorkspace(page,context,{reload=false}={}){
   await page.setViewportSize({width:390,height:844});
   await page.getByTestId('lifegraph-tab-nodes').click();
   await page.getByTestId('lifegraph-node-stockShop').click();
+  await page.getByLabel('Practice Gold Prestige price',{exact:true}).waitFor();
   await page.screenshot({path:'artifacts/lifegraph-mobile.png',fullPage:true});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'mobile tools fit the viewport');
   await page.getByTestId('lifegraph-play-type').click();await page.locator('dialog[open]').waitFor();

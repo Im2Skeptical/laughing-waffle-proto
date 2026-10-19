@@ -71,3 +71,6 @@ Import these from `src/model/vassal-life-map.js`:
   `getVassalGamepiecePresentation`
 
 Topology generation stays in `src/model/vassal-life-map-generator.js`.
+`src/model/life-map-balance.js` resolves captured per-choice absolute costs and
+shared Practice/Structure quality prices before ordinary discounts. It does not
+read review storage or consume RNG. A disabled design preserves baseline rules.

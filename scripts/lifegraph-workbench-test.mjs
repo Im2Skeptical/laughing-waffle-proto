@@ -4,8 +4,6 @@ import { createLifegraphDraft, diagnoseLifegraph, validateLifegraphDraft, LIFEGR
 import { createAuthoredVassalLifeMapGeneratorConfig, generateVassalLifeMap, validateVassalLifeMapGraph } from '../src/model/vassal-life-map-generator.js';
 import { createRng } from '../src/model/rng.js';
 import { serializeGameState, deserializeGameState } from '../src/model/state.js';
-import { getAdjustedVassalPhaseCost, getAdjustedVassalPrestigeCost } from '../src/model/vassal-life-map/selectors.js';
-import { getVassalRiskDeathChance } from '../src/model/vassal-life-map/class-rules.js';
 import { getCurrentLifeMapVassal, getVassalCandidatePool, selectLifeMapVassal } from '../src/model/vassal-life-map.js';
 import { createConfiguredNewGameState } from '../src/model/new-game.js';
 import { createRegionalBootProfile } from '../src/model/regional-map/boot-profile.js';
@@ -42,18 +40,9 @@ const controller=createLifegraphController({store});
 assert.equal(controller.setReview('practiceReform','Timber has only one eligible card.').ok,true);
 assert.equal(controller.savePreset('Content gaps').ok,true);
 assert.equal(controller.update(['preview','classId'],'warrior').ok,true);
-controller.openType('campaign');const original=serializeGameState(controller.sandbox.getSnapshot().state);
-const reloaded=deserializeGameState(original),vassal=getCurrentLifeMapVassal(reloaded);
-vassal.stats.effectiveness=0;vassal.stats.intelligence=0;
-const design=vassal.lifeMap.graph.generatorConfig.design;
-design.nodes.campaign.costs={time:'cheap',prestige:'expensive',risk:'expensive'};
-design.costBands.time.cheap=.5;design.costBands.prestige.expensive=2;design.costBands.risk.expensive=2;
-assert.equal(getAdjustedVassalPhaseCost(vassal,10),5);
-assert.equal(getAdjustedVassalPrestigeCost(vassal,10),20);
-assert.equal(getVassalRiskDeathChance(vassal,.2),.4);
-assert.equal(getAdjustedVassalPhaseCost(vassal,0),0,'free actions stay free');
-assert.equal(getVassalRiskDeathChance(vassal,.8),1,'risk is capped');
-assert.equal(getCurrentLifeMapVassal(deserializeGameState(serializeGameState(reloaded))).lifeMap.graph.generatorConfig.design.costBands.prestige.expensive,2);
+controller.setOptionCost('campaign','duel','time',1.5);controller.openType('campaign');
+const reloaded=deserializeGameState(serializeGameState(controller.sandbox.getSnapshot().state));
+assert.equal(reloaded.gameConfig.lifeMapGenerator.design.optionCosts.campaign.duel.time,1.5);
 
 const exported=controller.exportJson();assert.equal(controller.importJson(exported).ok,true);
 const exportedValue=JSON.parse(exported);exportedValue.generatorConfig.design.nodes.campaign.scope='common';assert.equal(controller.importJson(JSON.stringify(exportedValue)).ok,false,'class action permissions cannot be broadened beyond the actual rule');
@@ -78,10 +67,8 @@ const timeline=createTimelineFromInitialState(deserializeGameState(initial));
 assert.equal(rebuildStateAtSecond(timeline,0).state.gameConfig.lifeMapGenerator.design.enabled,true);
 assert.equal(createAuthoredVassalLifeMapGeneratorConfig().design.enabled,false,'normal New Game retains the current baseline until a profile is explicitly selected');
 
-controller.update(['preview','classId'],'scholar');controller.openType('discovery');
+controller.update(['preview','classId'],'scholar');controller.setOptionCost('discovery','discovery-research','time',1);controller.openType('discovery');
 const timed=controller.sandbox.getSnapshot().state,timedVassal=getCurrentLifeMapVassal(timed);
-timedVassal.lifeMap.graph.generatorConfig.design.nodes.discovery.costs.time='cheap';
-timedVassal.lifeMap.graph.generatorConfig.design.costBands.time.cheap=.5;
 const timedTimeline=createTimelineFromInitialState(timed),nodeId=timedVassal.lifeMap.currentNodeId;
 for(const [kind,payload]of [[ActionKinds.VASSAL_SELECT_LIFE_OPTION,{nodeId,optionId:'discovery-research'}],[ActionKinds.VASSAL_CONFIRM_LIFE_NODE,{nodeId}]]){
   assert.equal(appendActionAtCursor(timedTimeline,{kind,payload,tSec:timed.tSec},timed).ok,true);

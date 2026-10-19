@@ -88,10 +88,14 @@ Supply reservations only select unlocked outputs and prefer separate depths.
 The underlying unmet-need analysis still considers producers across all player
 settlements; it does not yet prove local supply reach or recipe sustainability.
 
-Balance bands share Cheap/Fair/Expensive multipliers for time, Prestige and risk.
-Each node assigns a tier; edits to a tier update all its assigned nodes. Multipliers
-apply before ordinary discounts; free actions remain free and risk is capped at
-100%. Early/Middle/Late use the shared depth boundaries. **Current game baseline**
+Nodes & review lists each choice, its seeded effects and its base costs. Each
+choice assigns Free/Cheap/Fair/Expensive independently for time, Prestige and risk,
+or takes a custom numeric base value. Balance bands author absolute solar years,
+Prestige and risk percentages; editing a preset updates all assigned choices.
+Ordinary stat and Heirloom discounts apply afterwards. Campaign risk can retain
+its Force/Defence calculation. Shop prices use shared Practice/Structure rows for
+Bronze/Silver/Gold/Diamond quality, including upgrades and quality bonuses. No
+per-card price editing is needed. Early/Middle/Late use the shared depth boundaries. **Current game baseline**
 compares the existing independent family weights and class substitutions without
 applying pooled-draft changes. Normal player New Game retains that baseline.
 

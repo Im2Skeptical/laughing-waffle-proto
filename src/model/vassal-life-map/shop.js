@@ -1,4 +1,5 @@
 import { rollScholarQualityBonus, getVassalDelvePhaseCost } from './class-rules.js';
+import { resolveLifeMapShopPrice, resolveLifeMapOptionCosts, lifeMapDesignNodeId, getLifeMapBalanceValue } from '../life-map-balance.js';
 import { getShopOfferPrice, matchesPracticeShopSpecialty, structureShopCategory } from './shop-specialties.js';
 import { VASSAL_WORKSHOP_RULES } from '../../defs/vassal-workshop-rules.js';
 import { getMoonPhaseDurationSec } from '../moon-phases.js';
@@ -239,7 +240,13 @@ export function generateShopInventory(state, vassal, nodeState) {
     }
     local.shopQualityBonus=0;
   }
-  return offers.map((offer, inventoryIndex) => ({ ...offer, inventoryIndex }));
+  return offers.map((offer, inventoryIndex) => {
+    if(offer.intervention?.mode==='remove'){
+      const costs=resolveLifeMapOptionCosts(state,nodeState,{id:'remove',phaseCost:offer.basePhaseCost,prestigeCost:offer.basePrestigeCost});
+      return {...offer,basePhaseCost:costs.phaseCost,basePrestigeCost:costs.prestigeCost,inventoryIndex};
+    }
+    return {...resolveLifeMapShopPrice(state,offer),inventoryIndex};
+  });
 }
 
 export function isShopNodeState(nodeState) {
@@ -462,8 +469,9 @@ export function rerollVassalShop(state, nodeId) {
     return {ok:true,prestigeCost:0,phaseCost,pendingResolution:clone(vassal.lifeMap.pendingResolution)};
   }
   const prestigeCost = getVassalShopRerollCost(vassal);
+  const reroll=resolveLifeMapOptionCosts(state,nodeState,{id:'reroll',phaseCost:getVassalYearPhaseCost(state,VASSAL_LIFE_TUNING.shopRerollYearCost)});
   const phaseCost = getVassalActionPhaseCost(
-    vassal, getVassalYearPhaseCost(state, VASSAL_LIFE_TUNING.shopRerollYearCost), { nodeState }
+    vassal, reroll.phaseCost, { nodeState }
   );
   if (prestigeCost > vassal.prestige) return { ok: false, reason: "insufficientPrestige" };
   vassal.prestige -= prestigeCost;
@@ -476,6 +484,10 @@ export function rerollVassalShop(state, nodeId) {
 }
 
 export function getVassalShopRerollCost(vassal) {
+  const design=vassal?.lifeMap?.graph?.generatorConfig?.design;
+  const node=vassal?.lifeMap?.nodeStates?.[vassal.lifeMap.currentNodeId];
+  const assignment=design?.optionCosts?.[lifeMapDesignNodeId(node)]?.reroll?.prestige;
+  const base=design?.enabled&&assignment!==undefined?getLifeMapBalanceValue(design,'prestige',assignment):VASSAL_LIFE_TUNING.shopRerollPrestigeCost;
   return vassal?.classId === 'scholar' ? 0
-    : getAdjustedVassalPrestigeCost(vassal, VASSAL_LIFE_TUNING.shopRerollPrestigeCost);
+    : getAdjustedVassalPrestigeCost(vassal, base);
 }
