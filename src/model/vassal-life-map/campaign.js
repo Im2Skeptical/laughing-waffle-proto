@@ -1,10 +1,11 @@
 import { VASSAL_WORKSHOP_RULES as RULES } from '../../defs/vassal-workshop-rules.js';
+import { resolveLifeMapOptionCosts } from '../life-map-balance.js';
 import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
 import { getRegionState, getRegionReference } from '../world-state.js';
 import { stockTotal, consumeStock } from '../detailed-settlements/stock.js';
-import { getRetinue, conquerSettlement } from '../detailed-settlements/external-world.js';
-import { emitPracticeEvent, withPracticeRoot } from '../detailed-settlements/practice-events.js';
-import { getPlayerDetailedSites, getDetailedSite, getVassalEffectiveStats, getAdjustedVassalPrestigeCost } from './selectors.js';
+import { getRetinue, conquerSettlement, addMonsterPressure } from '../detailed-settlements/external-world.js';
+import { emitPracticeEvent, withPracticeRoot, getActionMonsterPressureCost } from '../detailed-settlements/practice-events.js';
+import { getPlayerDetailedSites, getDetailedSite, getVassalEffectiveStats, getAdjustedVassalPrestigeCost, getVassalActionPhaseCost, markHeirloomTimeAction } from './selectors.js';
 import { generateRelicOffers } from './heirlooms.js';
 import { connectedDistance } from './world-choices.js';
 
@@ -27,11 +28,12 @@ export function buildCampaignOptions(state,vassal,nodeState) {
   const targets = [];
   const add = (mode,regionId,defense,stage,label) => {
     const distance = connectedDistance(state,vassal.locationRegionId,regionId,true);
-    const risk = Math.round(defense/Math.max(1,forces[mode].total+defense)*100);
+    const baseRisk = Math.min(100,Math.round(defense/Math.max(1,forces[mode].total+defense)*100));
+    const risk=resolveLifeMapOptionCosts(state,nodeState,{id:`${mode}:${regionId}`,mode,risk:baseRisk}).risk;
     const foodCost = mode === 'duel' ? 0 : RULES.campaignFoodBase+distance*RULES.campaignFoodPerDistance;
     const warriorBonus=risk>0?VASSAL_CLASS_RULES.warrior.riskPrestige:0;
     targets.push({id:`${mode}:${regionId}`,regionId,mode,stage,defense,force:forces[mode].total,risk,distance,foodCost,
-      label:`${label}: ${getRegionReference(state,regionId)}`,description:mode==='duel'?'+1 Prowess and 10 Prestige, plus the Warrior risk bonus.':mode==='quest'?'A Relic and 10 Prestige.':stage==='clear'?'Reset Monster expansion progress; the nest remains.':stage==='nest'?'Destroy this Monster nest.':'Bring this settlement into your civilization.',
+      label:`${label}: ${getRegionReference(state,regionId)}`,description:mode==='duel'?'+1 Prowess and 10 Prestige, plus the Warrior risk bonus.':mode==='quest'?'A Relic and 10 Prestige.':stage==='clear'?'Reset Monster Pressure; the nest remains.':stage==='nest'?'Destroy this Monster nest.':'Bring this settlement into your civilization.',
       phaseCost:RULES.campaignPhases,prestigeCost:mode==='attack'?RULES.campaignPrestige:0,
       warriorBonus,prestigeDelta:mode==='duel'?RULES.duelPrestige+warriorBonus:mode==='quest'?RULES.questPrestige+warriorBonus:
         stage==='nest'?12+defense*4+warriorBonus:warriorBonus});
@@ -45,7 +47,7 @@ export function buildCampaignOptions(state,vassal,nodeState) {
     if (!visit.duelDone) add('duel',vassal.locationRegionId,RULES.duelDefense,'duel','Honour duel');
     if (!targets.some(target=>target.mode==='quest') && !visit.questRegionIds.includes(vassal.locationRegionId)) add('quest',vassal.locationRegionId,RULES.questDefense,'quest','Quest');
   }
-  return [...targets,{id:'campaign-leave',label:'Leave Campaign',phaseCost:0,prestigeCost:0}];
+  return [...targets,{id:'campaign-leave',label:'Leave Campaign',phaseCost:0,prestigeCost:0}].map(option=>resolveLifeMapOptionCosts(state,nodeState,option));
 }
 
 export function campaignBlockReason(state,vassal,option) {
@@ -65,6 +67,8 @@ export function resolveCampaignAttempt(state,vassal,nodeState,selected) {
 }
 
 function applyCampaignAttempt(state,vassal,nodeState,option) {
+  const authored=state.gameConfig.lifeMapGenerator.design.enabled;
+  const phaseCost=authored?getVassalActionPhaseCost(vassal,option.phaseCost,{nodeState}):option.phaseCost;
   const source = getDetailedSite(state,vassal.locationRegionId).detailedState;
   vassal.prestige -= getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0);
   consumeStock(state,source,'Edible',option.foodCost);
@@ -75,7 +79,7 @@ function applyCampaignAttempt(state,vassal,nodeState,option) {
   else if (option.stage === 'clear') {
     state.civilization.chaos.monsterPressure = 0;
     getRegionState(state,option.regionId).monster.cleared = true;
-    result.text='Monsters cleared. Expansion progress reset; the nest remains.';
+    result.text='Monsters cleared. Monster Pressure reset; the nest remains.';
   } else if (option.stage === 'nest') {
     delete getRegionState(state,option.regionId).monster;
     const site = state.world.sites.find(site=>site.regionId===option.regionId);
@@ -95,7 +99,7 @@ function applyCampaignAttempt(state,vassal,nodeState,option) {
   } else {
     visit.questRegionIds.push(option.regionId);
     const reward = generateRelicOffers(state,vassal).find(offer=>offer.definitionId);
-    if (reward) nodeState.rewardAcquisition={...reward,id:'campaign-reward',phaseCost:RULES.campaignPhases,effects:[],immediateDeathChance:0};
+    if (reward) nodeState.rewardAcquisition={...reward,id:'campaign-reward',phaseCost:option.phaseCost,effects:[],immediateDeathChance:0};
     result.text=`Quest complete. +${option.prestigeDelta} Prestige and a Relic.`;
   }
   if(success) {
@@ -104,20 +108,24 @@ function applyCampaignAttempt(state,vassal,nodeState,option) {
   }
   if (success && option.mode === 'attack') emitPracticeEvent(state,{kind:'campaignWon',regionId:vassal.locationRegionId,classId:'warrior'});
   visit.lastResult=result;
-  return {ok:true,phaseCost:RULES.campaignPhases,needsAcquisition:!!nodeState.rewardAcquisition};
+  if(authored&&!nodeState.rewardAcquisition)markHeirloomTimeAction(nodeState,phaseCost);
+  const pressure=getActionMonsterPressureCost(option);
+  if(pressure>0)addMonsterPressure(state,pressure);
+  return {ok:true,phaseCost,needsAcquisition:!!nodeState.rewardAcquisition};
 }
 
 export function getCampaignPresentation(state,vassal,nodeState) {
   const forces=campaignForces(state,vassal), mode=nodeState.campaign.mode;
   const allTargets=buildCampaignOptions(state,vassal,nodeState).filter(option=>option.mode).map(option=>({...option,
-    cost:getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0),phases:option.phaseCost,
+    monsterPressureCost:getActionMonsterPressureCost(option),
+    cost:getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0),phases:state.gameConfig.lifeMapGenerator.design.enabled?getVassalActionPhaseCost(vassal,option.phaseCost,{nodeState}):option.phaseCost,
     blocked:campaignBlockReason(state,vassal,option),riskLabel:`${option.risk}% defeat risk\nForce ${option.force} vs Defence ${option.defense}`}));
   const selected=allTargets.find(target=>target.id===nodeState.selectedOptionId);
   const options=[{id:'attack',label:'Attack',description:'Attack a monster region or neutral settlement.'},
     {id:'duel',label:'Honour duel',description:'Prowess only. Victory: +1 Prowess and a Prestige prize.'},
     {id:'quest',label:'Quest',description:'Prowess + Retinue. Victory: a Relic and 10 Prestige.'}].map(option=>{
       const targets=allTargets.filter(target=>target.mode===option.id), priced=selected?.mode===option.id?selected:targets.filter(target=>!target.blocked).sort((a,b)=>a.foodCost-b.foodCost)[0]??targets[0];
-      return {...option,cost:priced?.cost??0,phases:priced?.phases??0,foodCost:priced?.foodCost??0,
+      return {...option,cost:priced?.cost??0,phases:priced?.phases??0,foodCost:priced?.foodCost??0,monsterPressureCost:priced?.monsterPressureCost??0,
         prestigeDelta:priced?.prestigeDelta??0,blocked:!targets.length?'No remaining encounters':targets.every(target=>target.blocked)?priced.blocked:null,
         riskLabel:selected?.mode===option.id?selected.riskLabel:'Choose a target',from:!selected&&targets.some(target=>target.foodCost!==priced?.foodCost)};
     });

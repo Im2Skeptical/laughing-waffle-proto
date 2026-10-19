@@ -10,6 +10,7 @@ import { getHousingCapacity, stepDetailedSettlementsSecond } from "../../detaile
 import { getDetailedPracticeDef, getDetailedStructureDef } from "../../game-config.js";
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from "../../../defs/gamepieces/detailed-settlement-defs.js";
 import { VASSAL_SIGNATURE_NODE_VARIANTS } from "../../../defs/gamepieces/vassal-life-map-defs.js";
+import { getVassalShopCandidatePool } from '../../vassal-life-map/shop.js';
 import { appendActionAtCursor, createTimelineFromInitialState, rebuildStateAtSecond } from "../../timeline/index.js";
 import { advanceReplayStateToSecond, initializeReplayClock } from "../../replay-second-runner.js";
 import {
@@ -70,9 +71,9 @@ for (const classId of [null, "scholar", "warrior"]) {
       };
       checkInventory();
       const restored = deserializeGameState(serializeGameState(state));
-      act(ActionKinds.VASSAL_REROLL_SHOP, { nodeId });
-      dispatch(restored, ActionKinds.VASSAL_REROLL_SHOP, { nodeId });
       if (classId === 'scholar') {
+        act(ActionKinds.VASSAL_REROLL_SHOP, { nodeId });
+        dispatch(restored, ActionKinds.VASSAL_REROLL_SHOP, { nodeId });
         const end = vassal.lifeMap.pendingResolution.resolveSec;
         initializeReplayClock(state, state.tSec);initializeReplayClock(restored, restored.tSec);
         assert.equal(advanceReplayStateToSecond(state, end).ok, true);
@@ -140,9 +141,9 @@ for (const classId of [null, "scholar", "warrior"]) {
         };
         checkInventory();
         const restored = deserializeGameState(serializeGameState(state));
-        act(ActionKinds.VASSAL_REROLL_SHOP, { nodeId });
-        dispatch(restored, ActionKinds.VASSAL_REROLL_SHOP, { nodeId });
         if (classId === 'scholar') {
+          act(ActionKinds.VASSAL_REROLL_SHOP, { nodeId });
+          dispatch(restored, ActionKinds.VASSAL_REROLL_SHOP, { nodeId });
           const end = vassal.lifeMap.pendingResolution.resolveSec;
           initializeReplayClock(state,state.tSec);initializeReplayClock(restored,restored.tSec);
           assert.equal(advanceReplayStateToSecond(state,end).ok,true);
@@ -183,7 +184,8 @@ for (const classId of ["scholar", "warrior"]) {
     const vassal = getCurrentLifeMapVassal(state);
     vassal.classId = classId;
     state.civilization.research.total = 100000;
-    const node = vassal.lifeMap.graph.nodes.find(entry => entry.family === "signature");
+    const node = vassal.lifeMap.graph.nodes.find(entry => entry.family === 'signature')??vassal.lifeMap.graph.nodes.find(entry=>entry.family!=='legacy');
+    node.family='signature';
     node.signatureNode = { ...VASSAL_SIGNATURE_NODE_VARIANTS[variantId], variantId };
     const shop = forceEnter(state, node.id);
     assert.equal(shop.inventory.length, 3);
@@ -272,7 +274,8 @@ for (const classId of [null, "scholar", "warrior"]) {
     vassal.prestige = 500;
     vassal.initialAge = 20;
     state.civilization.research.total = research;
-    const node = vassal.lifeMap.graph.nodes.find(entry => entry.family === "signature");
+    const node = vassal.lifeMap.graph.nodes.find(entry => entry.family === 'signature')??vassal.lifeMap.graph.nodes.find(entry=>entry.family!=='legacy');
+    node.family='signature';
     const nodeId = node.id;
     node.signatureNode = { ...VASSAL_SIGNATURE_NODE_VARIANTS.housingShop, variantId: "housingShop" };
     vassal.lifeMap.availableNodeIds = [nodeId];
@@ -337,22 +340,24 @@ assert.equal(stagedPresentation.mortalityEstimate.totalPhaseCost,
 assert.equal(shopNode.inventory.length, 1, "purchases remove offers without replenishment");
 assert.equal(applyAction(shopState, {
   kind: ActionKinds.VASSAL_REROLL_SHOP, payload: { nodeId: shopNode.nodeId },
-}, { isReplay: true }).reason, "stagedPurchases", "reroll requires an empty draft");
+}, { isReplay: true }).reason, 'scholarRequired', 'non-Scholars cannot reroll even with a draft');
 for (const purchase of [...shopNode.purchasedOffers]) {
   dispatch(shopState, ActionKinds.VASSAL_UNDO_SHOP_PURCHASE, {
     nodeId: shopNode.nodeId, offerId: purchase.offerId,
   });
 }
 assert.equal(shopNode.inventory.length, 3, "undo restores offers to their original inventory");
-dispatch(shopState, ActionKinds.VASSAL_REROLL_SHOP, { nodeId: shopNode.nodeId });
-assert.equal(shopNode.inventory.length, 3, "the single reroll discards and refills to three");
+const beforeRejectedReroll=serializeGameState(shopState);
+assert.equal(applyAction(shopState,{kind:ActionKinds.VASSAL_REROLL_SHOP,payload:{nodeId:shopNode.nodeId}},{isReplay:true}).reason,'scholarRequired');
+assert.deepEqual(serializeGameState(shopState),beforeRejectedReroll,'rejected rerolls preserve the entire state');
+assert.deepEqual(shopNode.inventory.map(o=>o.offerId),entryInventory.map(o=>o.offerId),'undo retains the original offers');
 for (const offerId of shopNode.inventory.map((offer) => offer.offerId)) {
   dispatch(shopState, ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, {
     nodeId: shopNode.nodeId, offerId,
   });
 }
 assert.equal(shopNode.purchasedOffers.length, 3);
-assert.notDeepEqual(shopNode.inventory, entryInventory, "rerolled inventory persists as new content");
+assert.equal(shopNode.inventory.length,0,'purchased offers leave the inventory');
 dispatch(shopState, ActionKinds.VASSAL_REORDER_SHOP_PURCHASE, {
   nodeId: shopNode.nodeId,
   offerId: shopNode.purchasedOffers[2].offerId,
@@ -362,8 +367,8 @@ const purchasedOrder = shopNode.purchasedOffers.map((purchase) => purchase.offer
 const stagedCost = shopNode.purchasedOffers.reduce((sum, purchase) => sum + purchase.prestigeCost, 0);
 const rngBeforeShopConfirm = shopState.rng.vassalSeed;
 dispatch(shopState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: shopNode.nodeId });
-assert.equal(shopVassal.prestige, 510 - 6 - stagedCost,
-  "confirm commits reroll and staged purchase Prestige exactly once");
+assert.equal(shopVassal.prestige, 510 - stagedCost,
+  'confirm commits staged purchase Prestige exactly once');
 assert.equal(shopNode.mortality, undefined, "shop confirmation does not roll before accumulated time");
 resolvePending(shopState);
 assert.deepEqual(
@@ -563,10 +568,9 @@ assert.ok(foodShopNode.inventory.every((offer) => {
     : getDetailedStructureDef(foodShopState, intervention.structureId);
   return def.tags.includes("Food");
 }), "tagged shops contain only gamepieces carrying their advertised tag");
-dispatch(foodShopState, ActionKinds.VASSAL_REROLL_SHOP, { nodeId: foodShopNode.nodeId });
-foodShopNode.inventory.forEach((offer) => taggedOfferKinds.add(offer.intervention.kind));
+getVassalShopCandidatePool(foodShopState,getCurrentLifeMapVassal(foodShopState),foodShopNode,{requiredTag:'Food'}).forEach(card=>taggedOfferKinds.add(card.kind));
 assert.deepEqual([...taggedOfferKinds].sort(), ["practice", "structure"],
-  "tagged shops mix eligible Practices and Structures across their draft and reroll");
+  'tagged shop pools include eligible Practices and Structures');
 
 const frontierRouteState = selectedState(104);
 const frontierVassal = getCurrentLifeMapVassal(frontierRouteState);

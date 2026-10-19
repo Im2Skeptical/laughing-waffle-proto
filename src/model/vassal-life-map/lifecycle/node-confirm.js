@@ -1,4 +1,5 @@
 import { getHubCore } from "../../settlement-state.js";
+import { resolveLifeMapOptionCosts } from '../../life-map-balance.js';
 import { getVassalRiskDeathChance } from '../class-rules.js';
 import { VASSAL_CLASS_RULES } from '../../../defs/vassal-class-rules.js';
 import { ensureCommissionOffers, recordCommissionAction } from '../commissions.js';
@@ -121,7 +122,9 @@ function getSettlementTargets(state, vassal) {
 }
 
 function buildSettlementFallbackOptions(state, vassal) {
-  if (vassal.prestige < VASSAL_LIFE_TUNING.settlementPrestigeCost) {
+  const found=resolveLifeMapOptionCosts(state,{family:'signature',signatureNode:{variantId:'settlement'}},{id:'settlement-unavailable',prestigeCost:VASSAL_LIFE_TUNING.settlementPrestigeCost});
+  const foundCost=state.gameConfig.lifeMapGenerator.design.enabled?getAdjustedVassalPrestigeCost(vassal,found.prestigeCost):VASSAL_LIFE_TUNING.settlementPrestigeCost;
+  if (vassal.prestige < foundCost) {
     return [{ id: "settlement-favor", label: "Seek Settlement Favor", prestigeDelta: 10, phaseCost: 0 }];
   }
   const currentId = vassal.locationRegionId;
@@ -171,7 +174,7 @@ function buildSettlementOptions(state, vassal) {
         : edge.regionBId === vassal.locationRegionId ? edge.regionAId : null;
       return otherId && getRegionState(state, otherId)?.controller === "frontier" ? [otherId] : [];
     });
-  const options = shuffle(state, targets).slice(0, 3).map((targetRegionId) => ({
+  const options = shuffle(state, targets).slice(0, 3).map((targetRegionId) => resolveLifeMapOptionCosts(state,{family:'signature',signatureNode:{variantId:'settlement'}},{
     id: `small-settlement:${targetRegionId}`,
     label: `Found ${getRegionReference(state, targetRegionId)}`,
     prestigeCost: VASSAL_LIFE_TUNING.settlementPrestigeCost,
@@ -208,6 +211,7 @@ function createNodeState(state, vassal, node) {
   const nodeState = {
     nodeId: node.id,
     family: node.family,
+    ...(node.family==='relic'?{specialRelic:node.specialRelic===true}:{}),
     ...(node.stockOutput ? { stockOutput: node.stockOutput } : {}),
     signatureNode: node.signatureNode ? clone(node.signatureNode) : null,
     contentMode: "choice",
@@ -220,7 +224,6 @@ function createNodeState(state, vassal, node) {
     purchasedOffers: [],
     purchasedOfferIds: [],
     nextCommissionId: 0,
-    rerollUsed: false,
     inventoryRoll: 0,
     selectedOptionId: null,
     accumulatedPhaseCost: 0,
@@ -274,8 +277,8 @@ function createNodeState(state, vassal, node) {
     nodeState.shopSelection = createShopSpecialties(state,vassal,nodeState);
     nodeState.inventory = generateShopInventory(state, vassal, nodeState);
   }
-  nodeState.options = nodeState.options.map(({ yearCost, ...option }) => yearCost == null
-    ? option : { ...option, phaseCost: getVassalYearPhaseCost(state, yearCost) });
+  nodeState.options = nodeState.options.map(({ yearCost, ...option }) => resolveLifeMapOptionCosts(state,nodeState,yearCost == null
+    ? option : { ...option, phaseCost: getVassalYearPhaseCost(state, yearCost) }));
   return nodeState;
 }
 
@@ -437,6 +440,11 @@ function applyOptionEffect(state, vassal, nodeState, option) {
   }
   const classValidation = validateClassAction(state, vassal, option?.classAction);
   if (!classValidation.ok) return classValidation;
+  // Authored base costs use the quoted, pre-reward stats. A choice that grants
+  // Effectiveness or Prowess must not change its own payment or risk on commit.
+  const authored=state.gameConfig.lifeMapGenerator.design.enabled;
+  const quotedPhaseCost=authored?getVassalActionPhaseCost(vassal,option?.phaseCost??0,{nodeState,isTravel:!!option?.locationRegionId}):null;
+  const quotedRisk=authored?getVassalRiskDeathChance(vassal,option?.immediateDeathChance):null;
   const prestigeCost = getAdjustedVassalPrestigeCost(vassal, option?.prestigeCost ?? 0);
   if (prestigeCost > vassal.prestige) return { ok: false, reason: "insufficientPrestige" };
   vassal.prestige -= prestigeCost;
@@ -518,7 +526,7 @@ function applyOptionEffect(state, vassal, nodeState, option) {
   const effectsResult = applyVassalNodeEffects(state, (option?.effects ?? []).filter(effect => effect.op !== 'addMonsterPressure'));
   if (!effectsResult.ok) return effectsResult;
   const isRisk = Math.max(option?.baseDanger ?? 0, option?.immediateDeathChance ?? 0) > 0;
-  const riskFailed = isRisk && state.rngNextVassalFloat() < getVassalRiskDeathChance(vassal, option.immediateDeathChance);
+  const riskFailed = isRisk && state.rngNextVassalFloat() < (quotedRisk??getVassalRiskDeathChance(vassal, option.immediateDeathChance));
   if (riskFailed) {
     const cause = nodeState.family === "relic" ? "relic" : "crisis";
     if (spendMandateProtection(vassal)) {
@@ -551,7 +559,7 @@ function applyOptionEffect(state, vassal, nodeState, option) {
   if (vassal.locationRegionId !== previousLocation && !option?.forcedRelocation) {
     recordCommissionAction(state, vassal, { kind: 'locationMoved', regionId: vassal.locationRegionId });
   }
-  const phaseCost = getVassalActionPhaseCost(vassal, option?.phaseCost ?? 0, {
+  const phaseCost = quotedPhaseCost??getVassalActionPhaseCost(vassal, option?.phaseCost ?? 0, {
     nodeState,
     isTravel: !!option?.locationRegionId,
   });
@@ -742,8 +750,9 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
   const monsterCost=nodeState.purchasedOffers.reduce((sum,purchase)=>sum+(purchase.monsterPressureCost??0),0);
   if (monsterCost) addMonsterPressure(state,monsterCost);
   if (isShopNodeState(nodeState) && nodeState.purchasedOffers.length === 0) {
+    const empty=resolveLifeMapOptionCosts(state,nodeState,{id:'emptyConfirm',phaseCost:getVassalYearPhaseCost(state,VASSAL_LIFE_TUNING.emptyShopConfirmYearCost)});
     const emptyCost = getVassalActionPhaseCost(
-      vassal, getVassalYearPhaseCost(state, VASSAL_LIFE_TUNING.emptyShopConfirmYearCost), { nodeState }
+      vassal, empty.phaseCost, { nodeState }
     );
     nodeState.accumulatedPhaseCost += emptyCost;
     markHeirloomTimeAction(nodeState, emptyCost);

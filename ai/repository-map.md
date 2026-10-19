@@ -142,6 +142,12 @@ not use the root file as the default location for new rendering or model rules.
 
 ### Debug tools
 
+- Lifegraph workspace: `src/views/development-lab/lifegraph.js` and
+  `lifegraph-preview.js`; controller: `src/controllers/lifegraph-controller.js`;
+  pure preview/diagnostics: `src/model/dev-lab/lifegraph.js`; pooled generation
+  and named balance rules: `src/model/life-map-design.js`.
+  Hash entry: `#/dev/lifegraph`. Probe: `npm run probe:lifegraph`.
+
 - Development Lab (Zoo / Museum / Gym / Prototypes): `src/views/development-lab-dom.js`,
   `src/views/development-lab/`, `src/controllers/development-lab-controller.js`,
   `src/controllers/development-lab-bridge.js`, and `src/model/dev-lab/`.

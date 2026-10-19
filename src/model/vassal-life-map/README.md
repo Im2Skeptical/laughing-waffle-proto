@@ -48,6 +48,9 @@ re-exports the previous public API; internals live here.
 - `heirlooms.js`
   - Equipped/Carry/Vault inventory, unique copies, Relic offers, inheritance,
     loadout, overflow, and equipped modifiers.
+- `relic-pools.js`
+  - Captured ordinary quality rules and Special Relic item weights, validation,
+    owned/exhausted exclusions, and first-draw appearance probabilities.
 - `decision-preparation.js`
   - Isolated worker transaction validation, tick resolution, and speculative
     reachable-node/reroll preparation, including presentations before and after
@@ -71,3 +74,8 @@ Import these from `src/model/vassal-life-map.js`:
   `getVassalGamepiecePresentation`
 
 Topology generation stays in `src/model/vassal-life-map-generator.js`.
+`src/model/life-map-balance.js` resolves captured per-choice absolute costs and
+shared Practice/Structure quality prices before ordinary discounts. It does not
+read review storage or consume RNG. Shop service times are shared, captured rules;
+only Scholars can refresh shops, through timed Delve. Disabling pooled generation
+selects the legacy independent generator and its authored option costs.

@@ -6,7 +6,7 @@ import { createLabCards } from './development-lab/cards.js';
 import { createZooView } from './development-lab/zoo.js';
 import { renderWorkbench } from './development-lab/workbench.js';
 import { renderPrototypes } from './development-lab/prototypes.js';
-import { createLabNodeSandboxView } from './development-lab/node-sandbox.js';
+import { createLifegraphView } from './development-lab/lifegraph.js';
 import { createCardReviewController } from '../controllers/card-review-controller.js';
 import { createCardReviewerView } from './development-lab/card-reviewer.js';
 import { createNewRunSetupView } from './development-lab/new-run-setup.js';
@@ -22,7 +22,7 @@ const EXHIBIT_GROUPS = [
 ];
 const NAV = [
   ['Content',[['zoo','Zoo'],['reviewer','Reviewer']]],
-  ['Simulation',[['museum','Museum'],['gym','Gym']]],
+  ['Simulation',[['museum','Museum'],['gym','Gym'],['lifegraph','Lifegraph']]],
   ['Design',[['prototypes','Prototypes']]],
 ];
 const firstSentence = text => text.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? text;
@@ -34,7 +34,8 @@ export function mountDevelopmentLab() {
   try { initialState = readLabHandoff(); } catch(e) { error = e.message; }
   const gym = createDevelopmentLabController({initialState}), museum = createDevelopmentLabController();
   let mode = 'zoo', seedValue = 42, storageOpen = false, scene = null, renderFrame = 0;
-  let gymWorkspace = 'settlement', nodeSandbox = null, newRunSetup = null;
+  let gymWorkspace = 'settlement', lifegraph = null, newRunSetup = null;
+  const getLifegraph=()=>lifegraph??=createLifegraphView();
   const header = el('header','','lab-header'), title = el('div','','lab-brand');
   title.append(el('h1','Development Lab'));
   const nav = el('nav');
@@ -80,6 +81,7 @@ export function mountDevelopmentLab() {
     const head=el('div','','lab-page-head'),text=el('div');text.append(el('h2',heading),el('p',subtitle,'lab-subtitle'));head.append(text,...extra);return head;
   };
   function render() {
+    if(mode!=='lifegraph')lifegraph?.hide();
     document.body.classList.toggle('reviewer-active',mode==='reviewer');
     const flagged=review.list().length;reviewCount.textContent=String(flagged);reviewCount.hidden=!flagged;
     const active=document.activeElement, key=active?.getAttribute('aria-label'), start=active?.selectionStart;
@@ -88,7 +90,7 @@ export function mountDevelopmentLab() {
     content.replaceChildren();
     if(mode==='gym') {
       const workspaces=el('div','','lab-segmented');workspaces.setAttribute('role','group');workspaces.setAttribute('aria-label','Gym workspace');
-      for(const [id,label] of [['settlement','Settlement'],['node','Node'],['setup','New run']]) {
+      for(const [id,label] of [['settlement','Settlement'],['setup','New run']]) {
         const control=button(label,()=>{
           const params=new URLSearchParams(location.hash.split('?')[1]??'');
           params.set('workspace',id);location.hash=`/dev/gym?${params}`;
@@ -106,15 +108,15 @@ export function mountDevelopmentLab() {
     if(mode==='zoo') zoo.render(content);
     else if(mode==='reviewer') {try{reviewer.render(content);}catch(e){status.textContent=`Card reviews unavailable: ${e.message}`;status.classList.add('lab-warning');}}
     else if(mode==='prototypes') renderPrototypes(content);
+    else if(mode==='lifegraph') {
+      getLifegraph().render(content);
+      status.textContent='Lifegraph drafts and notes stay local · player saves are unchanged';
+    }
     else if(mode==='gym' && gymWorkspace==='setup') {
-      newRunSetup??=createNewRunSetupView({getGymState:()=>gym.getSnapshot().state, review,
+      newRunSetup??=createNewRunSetupView({getGymState:()=>gym.getSnapshot().state, review,getLifegraphConfig:()=>getLifegraph().controller.getGeneratorConfig(),
         openInGym:state=>{gym.importState(JSON.stringify(state));openLabHandoff(state,'gym',{sameTab:true});}});
       newRunSetup.render(content);
       status.textContent='Profiles are launch recipes · player saves are unchanged';
-    }
-    else if(mode==='gym' && gymWorkspace==='node') {
-      nodeSandbox??=createLabNodeSandboxView();nodeSandbox.render(content);
-      status.textContent='Disposable dummy · no saves or Gym timeline edits';
     }
     else {
       const ctl=controller(), snapshot=ctl.getSnapshot();
@@ -216,16 +218,17 @@ export function mountDevelopmentLab() {
   }
   function route() {
     cancelAnimationFrame(renderFrame);
-    const next=location.hash.split('?')[0].split('/')[2];mode=['zoo','reviewer','museum','gym','prototypes'].includes(next)?next:'zoo';
+    const next=location.hash.split('?')[0].split('/')[2];mode=['zoo','reviewer','museum','gym','prototypes','lifegraph'].includes(next)?next:'zoo';
     if(mode==='gym') {
       const params=new URLSearchParams(location.hash.split('?')[1]??'');
       const workspace=params.get('workspace');
+      if(workspace==='node'){location.hash='/dev/lifegraph';return;}
       gymWorkspace=['setup','settlement','node'].includes(workspace)?workspace:'settlement';
     }
     render();window.scrollTo(0,0);
   }
   window.addEventListener('hashchange',route);
-  window.addEventListener('pagehide',()=>{cards.destroy();scene?.destroy();nodeSandbox?.destroy();newRunSetup?.destroy();},{once:true});
-  globalThis.__LAB_DEBUG__={getSnapshot:()=>controller().getSnapshot(),getCardReading:()=>cards.getReadingSnapshot(),getScene:()=>scene?.getSnapshot(),getRegionClickPoint:id=>scene?.getRegionClickPoint(id),getNodeSandbox:()=>nodeSandbox?.getSnapshot(),getNodeSandboxPoint:(kind,index)=>nodeSandbox?.getPoint(kind,index)};
+  window.addEventListener('pagehide',()=>{cards.destroy();scene?.destroy();lifegraph?.destroy();newRunSetup?.destroy();},{once:true});
+  globalThis.__LAB_DEBUG__={getSnapshot:()=>controller().getSnapshot(),getCardReading:()=>cards.getReadingSnapshot(),getScene:()=>scene?.getSnapshot(),getRegionClickPoint:id=>scene?.getRegionClickPoint(id),getLifegraph:()=>lifegraph?.getSnapshot(),getLifegraphPoint:id=>lifegraph?.getPoint(id),getNodeSandbox:()=>lifegraph?.getPlayer(),getNodeSandboxPoint:(kind,index)=>lifegraph?.getPlayerPoint(kind,index)};
   route();
 }

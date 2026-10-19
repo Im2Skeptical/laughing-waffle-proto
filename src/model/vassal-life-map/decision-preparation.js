@@ -25,11 +25,6 @@ export async function prepareLifeChoices(stateData, yieldTask = async () => {}) 
     const entered = serializeGameState(state);
     const item = {actions, stateData: entered, presentation: getVassalNodeDecisionPresentation(state, nodeId),
       entryPresentation: actions.length ? getVassalNodeDecisionPresentation(base, nodeId) : null};
-    const reroll = {kind: ActionKinds.VASSAL_REROLL_SHOP, payload: {nodeId}};
-    const rerolled = deserializeGameState(entered);
-    if (vassal.classId !== 'scholar' && applyAction(rerolled, reroll, {isReplay:true}).ok) {
-      item.reroll = {actions:[reroll], stateData:serializeGameState(rerolled), presentation:getVassalNodeDecisionPresentation(rerolled,nodeId)};
-    }
     nodes[nodeId] = item;
   }
   return nodes;

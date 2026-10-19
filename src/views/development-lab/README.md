@@ -27,11 +27,21 @@ player New Game use `model/new-game.js`. Profiles describe initialization;
 Museum fixtures describe a captured state. The hold-button workshop retains
 live Vassal tools and save diagnostics only.
 
-`node-sandbox.js` is a Gym-only workspace with one persistent Pixi stage using
-the game's node-decision modal. Its dummy controller is independent of the
-settlement Gym timeline, Museum, Zoo and player saves. Refresh settings and
-status stay in DOM; staging, inspection, drag/undo/reroll and Confirm use the
-shared game view and model APIs.
+`lifegraph.js` owns the dedicated Lifegraph workspace and node reviewer.
+`lifegraph-columns.js` edits single-node milestone columns, their class/content
+rules, milestones-only node generation, and Founding/Legacy placement or removal.
+`lifegraph-preview.js` reuses game node icons and layout in one Pixi stage.
+`node-sandbox.js` supplies its playable decision modal, independently of the Gym
+timeline, Museum, Zoo and player saves. Rules, review persistence, preset/export
+and seed batches belong to `controllers/lifegraph-controller.js`; pure fixtures,
+coverage and inventory diagnostics live in `model/dev-lab/lifegraph.js`.
+`model/life-map-design.js` owns pooled generation, class scopes and route guarantees.
+`lifegraph-choice-editor.js` lists choice effects, absolute base costs and shared
+type/quality shop prices from `model/life-map-balance.js`.
+`lifegraph-relic-editor.js` authors ordinary Relic quality weights and the
+independent Special Relic item pool, with actual seeded offers and eligibility.
+Profiles capture those rules explicitly; `life-map-lab-dom.js`
+is now a profile summary and copy action rather than a second graph editor.
 
 `card-reviewer.js` renders the persistent review queue, face value targets,
 inline fields, live comparison and notes. `cards.js` exposes the shared rendered

@@ -5,8 +5,8 @@ import { createVassalNodeDecisionModalView } from '../vassal-node-decision-modal
 import { attachDevPreviewDisplay } from '../dev-preview-display.js';
 import { el, button, field, input, select, section, disclosure, info, group, isNarrow } from './elements.js';
 
-export function createLabNodeSandboxView() {
-  const controller = createNodeSandboxController();
+export function createLabNodeSandboxView({controller:providedController=null,embedded=false,onReset=null}={}) {
+  const controller = providedController ?? createNodeSandboxController();
   const node = el('section','','lab-node-sandbox');
   const settings = controller.getSnapshot().settings, fields = {};
   const controls = el('div','','lab-controls');
@@ -81,12 +81,17 @@ export function createLabNodeSandboxView() {
   actions.append(button('Open node',()=>modal.open(controller.getSnapshot().nodeId),'lab-node-open'),button('Close node',()=>modal.close(),'','quiet'),resolve);
   const setup = section('Setup', group('Contents',controls), disclosure('Dummy stats',[stats],{key:'node:stats',open:!isNarrow()}), researchSummary,
     info('node-sandbox',['An isolated dummy and settlement using the real game decision screen. Refresh restores the setup; the same settings and seed reproduce the same contents. Research also unlocks eligible shop cards; class bonuses and upgrades still apply.',
-      'Stage offers with their costs, drag cards onto the settlement and inspect faces. The in-game reroll keeps its normal cost and limit. Resolve outcome advances only this dummy through the decision’s duration. Fullscreen gives the game screen more room on phones.']));
-  node.append(setup,status,summary,actions,viewport);
+      'Stage offers with their costs, drag cards onto the settlement and inspect faces. Scholars can Delve using the shared shop time cost. Resolve outcome advances only this dummy through the decision’s duration. Fullscreen gives the game screen more room on phones.']));
+  if(embedded){
+    actions.prepend(button('Reset this node',()=>{onReset?.();updateStatus();modal.open(controller.getSnapshot().nodeId);},'lifegraph-reset-node'));
+    node.append(status,summary,actions,viewport);
+  } else node.append(setup,status,summary,actions,viewport);
   app.view.addEventListener('keydown',event=>{if(modal.handleInspectionKey(event)){event.preventDefault();return;}if(event.key==='Escape')modal.close();});
   app.ticker.add(()=>{if(node.isConnected)modal.update();});
   updateStatus();modal.open(controller.getSnapshot().nodeId);
   return {node,render(parent){parent.append(node);},
+    refreshFromController(){updateStatus();modal.open(controller.getSnapshot().nodeId);},
+    setVisible(visible){visible?app.start():app.stop();},
     getSnapshot:()=>({...controller.getSnapshot(),modal:modal.getSemanticSnapshot()}),
     getPoint:(kind,index=0)=>({tag:()=>modal.getShopTagConfirmPoint(index),worldTarget:()=>modal.getWorldDecisionPoint('worldTarget',index),offer:()=>modal.getOfferClickPoint(index),face:()=>modal.getOfferFacePoint(index),undo:()=>modal.getUndoClickPoint(index),option:()=>modal.getOptionClickPoint(index),confirm:()=>modal.getConfirmClickPoint(),tableau:()=>modal.getTableauClickPoint(index),discard:()=>modal.getDiscardClickPoint(index),construction:()=>modal.getConstructionPoint(index),inspectClose:()=>modal.getInspectionClosePoint()})[kind]?.(),
     destroy(){modal.close({immediate:true});display.destroy();app.destroy(true,{children:true});},

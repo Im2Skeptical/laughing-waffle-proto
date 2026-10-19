@@ -24,6 +24,23 @@ real node modal. Refresh reseeds content streams while keeping the authored
 world, portrait and topology fixed. Node entry and all interactions use normal
 Life Map rules; the independent controller validates cloned transactions.
 
+`lifegraph.js` prepares isolated class/Research contexts, opens generated nodes or
+single-type experiments and diagnoses complete-route coverage and actual shop
+eligibility. It calls the shared shop candidate selector without RNG or writes.
+Workbench review/export v1 is independent of GameState. Runs capture the pooled
+design in generator config v14; baseline and pooled rules both use the topology
+substream. Review storage is never consulted by a running simulation or replay.
+Choice review uses real isolated node entry to show seeded effects and costs;
+absolute per-choice presets and shared type/quality shop prices live in
+`model/life-map-balance.js` and are captured before a run starts.
+`defs/lifegraph-defaults.js` contains the approved first-pass tuning used by
+normal New Game and the Lab, plus the built-in Previous defaults profile.
+Shop services share one authored time per action across every shop.
+`model/life-map-columns.js` joins routes at custom milestone columns before content
+reservation. It also places configurable Founding and Legacy columns. The shared
+generator creates both first-life previews and live founder graphs; diagnostics
+measure all terminal routes even when Legacy is absent or no longer terminal.
+
 `card-review.js` defines the independent review schema, editable definition
 values, non-mutating draft projection and export/import data. Imports validate
 persisted drafts against their original baselines and discard derived export

@@ -1,4 +1,4 @@
-export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 6;
+export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 7;
 const VASSAL_TIME_COST_MULTIPLIER = 3.6;
 const increasedYearCost = (baseCost) => baseCost * VASSAL_TIME_COST_MULTIPLIER;
 
@@ -79,6 +79,10 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
     id: "relic", label: "Relic", glyph: "H", color: 0xc9a35a,
     description: "Discover a temporary Heirloom and choose to Equip or Carry it.",
   }),
+  specialRelic: Object.freeze({
+    id: 'specialRelic', label: 'Special Relic', glyph: 'H', color: 0xc887c9,
+    description: 'Search a separately authored Relic pool with explicitly shown danger.',
+  }),
 });
 
 export const VASSAL_FOUNDING_OPTIONS = Object.freeze({
@@ -98,7 +102,7 @@ export const VASSAL_FOUNDING_OPTIONS = Object.freeze({
 
 export const VASSAL_NORMAL_NODE_FAMILY_IDS = Object.freeze([
   "patronage", "development", "crossroads", "practiceReform",
-  "publicWorks", "crisis", "relic", "training", "discovery", "campaign", "challenge",
+  "publicWorks", "crisis", "relic", "specialRelic", "training", "discovery", "campaign", "challenge",
   "neutralMarket", "classMarket",
   "foodShop", "housingShop",
 ]);
@@ -163,9 +167,7 @@ export const VASSAL_LIFE_TUNING = Object.freeze({
   developmentThreshold: 10,
   discountPerStat: 0.08,
   maximumDiscount: 0.6,
-  emptyShopConfirmYearCost: 2,
-  shopRerollPrestigeCost: 6,
-  shopRerollYearCost: increasedYearCost(2),
+  emptyShopConfirmYearCost: 5,
   routeAddPrestigeCost: 16,
   routeAddYearCost: increasedYearCost(3),
   signatureRemovalYearCost: increasedYearCost(2),
@@ -190,13 +192,17 @@ export function getVassalStockOutputIds(practiceDefs) {
 }
 
 export function getVassalLifeMapNodeFamily(node) {
-  if (node?.family === 'relic' && node.specialRelic) return {...VASSAL_NODE_FAMILIES.relic,label:'Special Relic',description:'A dangerous search with explicitly shown risk.'};
+  if (node?.family === 'relic' && node.specialRelic) return VASSAL_NODE_FAMILIES.specialRelic;
   if (node?.signatureNode?.variantId) return VASSAL_SIGNATURE_NODE_VARIANTS[node.signatureNode.variantId] ?? null;
   const family = VASSAL_NODE_FAMILIES[node?.family];
   return node?.family === "stockShop" ? {
     ...family, label: `${node.stockOutput} Stock Supply`,
     description: `Choose Practices that produce ${node.stockOutput} Stock.`,
   } : family ?? null;
+}
+
+export function getVassalLifeMapNodeType(node){
+  return node?.family==='relic'&&node.specialRelic?'specialRelic':node?.family;
 }
 
 export const VASSAL_MONSTER_HUNT_OPTIONS = Object.freeze([

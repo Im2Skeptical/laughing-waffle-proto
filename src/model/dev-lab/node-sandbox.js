@@ -2,7 +2,7 @@ import { ensureCommissionOffers, chooseVassalCommission } from '../vassal-life-m
 import { createLabFixture, fiveSlots, practiceSlot } from './fixtures.js';
 import { serializeGameState, deserializeGameState } from '../state.js';
 import { getCurrentLifeMapVassal, enterVassalLifeNode } from '../vassal-life-map.js';
-import { VASSAL_NODE_FAMILIES, VASSAL_SIGNATURE_NODE_VARIANTS } from '../../defs/gamepieces/vassal-life-map-defs.js';
+import { VASSAL_NODE_FAMILIES, VASSAL_SIGNATURE_NODE_VARIANTS, getVassalLifeMapNodeType } from '../../defs/gamepieces/vassal-life-map-defs.js';
 
 export const LAB_NODE_TYPES = Object.freeze([
   ...Object.values(VASSAL_NODE_FAMILIES).filter(node => !['signature', 'settlement', 'philosopherFounding', 'warlordFounding'].includes(node.id)).map(node => [node.id, node.label]),
@@ -34,12 +34,13 @@ export function createLabNodeSandbox(options = {}) {
   for (const key of ['effectiveness','intelligence','cunning','wisdom']) vassal.stats[key] = settings[key];
   const graph = vassal.lifeMap.graph;
   const variant = VASSAL_SIGNATURE_NODE_VARIANTS[settings.type.split(':')[1]];
-  const family = variant ? variant.id === 'legacyPlus' ? 'legacy' : 'signature' : settings.type;
-  let node = graph.nodes.find(node => node.family === family);
+  const family = variant ? variant.id === 'legacyPlus' ? 'legacy' : 'signature' : settings.type==='specialRelic'?'relic':settings.type;
+  let node = graph.nodes.find(node => variant ? node.family === family : getVassalLifeMapNodeType(node) === settings.type);
   if (!node) node = graph.nodes.find(node => node.family !== 'legacy' && !node.signatureNode
     && !graph.edges.some(edge => (edge.fromNodeId === node.id && graph.nodes.find(n => n.id === edge.toNodeId)?.family === family)
       || (edge.toNodeId === node.id && graph.nodes.find(n => n.id === edge.fromNodeId)?.family === family)));
   node.family = family;
+  if(family==='relic')node.specialRelic=settings.type==='specialRelic';else delete node.specialRelic;
   node.signatureNode = variant ? { ...variant, variantId:variant.id } : null;
   vassal.lifeMap.availableNodeIds = [node.id];
   state.rng.vassalSeed = settings.seed;

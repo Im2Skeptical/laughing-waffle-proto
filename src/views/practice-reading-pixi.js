@@ -66,7 +66,7 @@ export function addPracticeReading(parent, width, face, {fontSize = 28, onInspec
   if (reading.trigger || reading.requirements.length || face.blocked || face.chaosCost || face.monsterPressureCost) {
     y+=18;
     if(face.monsterPressureCost) {
-      addResourceAmount(root,'monster',`+${face.monsterPressureCost} expansion progress`,{x:pad,y,fontSize:fontSize*.82,iconSize:fontSize*1.25});
+      addResourceAmount(root,'monster',`+${face.monsterPressureCost} Monster Pressure`,{x:pad,y,fontSize:fontSize*.82,iconSize:fontSize*1.25});
       y+=fontSize*1.25+12;
     }
     if(face.chaosCost) {

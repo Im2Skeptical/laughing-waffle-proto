@@ -40,6 +40,7 @@ const PAIRS = Object.freeze([
 
 function variant(patch) {
   const config = { ...createAuthoredVassalLifeMapGeneratorConfig(), ...patch };
+  if(patch.normalDepthCount){config.design.guarantees=config.design.guarantees.filter(g=>g.maxDepth<=config.normalDepthCount);config.design.stockSupply.maxDepth=Math.min(config.design.stockSupply.maxDepth,config.normalDepthCount);}
   const validation = validateVassalLifeMapGeneratorConfig(config);
   if (!validation.ok) throw new Error(`fixture config illegal: ${validation.errors.join('; ')}`);
   return config;
@@ -116,7 +117,7 @@ function expectBand(config, depth) {
 function expectTopology(graph, config, seed) {
   const validation = validateVassalLifeMapGraph(graph);
   assert.deepEqual(validation, { ok: true, errors: [] }, `${seed} ${validation.errors?.join('; ')}`);
-  assert.equal(graph.schemaVersion, 6);
+  assert.equal(graph.schemaVersion, 7);
   assert.ok(graph.nodes.every(node=>!['travel','routes'].includes(node.family)), 'obsolete node families never generate');
   assert.equal(graph.generationSeed, seed);
   assert.equal(graph.foundingNodeId ?? null, null);

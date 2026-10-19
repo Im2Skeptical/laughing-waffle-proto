@@ -28,6 +28,7 @@ function assertReplayMatches(actual, expected, message) {
 
 function supplyGapState(seed = 1, classId = null) {
   const state = createInitialState("devPlaytesting01", seed);
+  state.gameConfig.lifeMapGenerator.design.enabled=false; // This fixture covers legacy unmet-output behavior, including locked producers.
   state.paused = true;
   state.phase = "planning";
   state.gameConfig.settings.values.primordialBasePressure = 0;
@@ -73,6 +74,7 @@ assert.deepEqual(getStockShopGenerationContext(alternatives, candidate).unmetSto
   "populated settlements need an Edible producer even without explicit recipe inputs");
 
 const config = createAuthoredVassalLifeMapGeneratorConfig();
+config.design.enabled=false; // Preserve explicit coverage of legacy Supply placement.
 for (let seed = 0; seed < 100; seed += 1) {
   for (const unmetStockOutputs of [[], ["Tool"]]) {
     const result = generateVassalLifeMap(config, createRng(seed), { generationSeed: seed, stockOutputs: ["Stone", "Ore"], unmetStockOutputs });
@@ -135,9 +137,9 @@ for (const classId of [null, "scholar", "warrior"]) {
     };
     checkOffers();
     const restored = deserializeGameState(serializeGameState(state));
-    shopAct(ActionKinds.VASSAL_REROLL_SHOP, { nodeId: target.id });
-    dispatch(restored, ActionKinds.VASSAL_REROLL_SHOP, { nodeId: target.id });
     if (classId === 'scholar') {
+      shopAct(ActionKinds.VASSAL_REROLL_SHOP, { nodeId: target.id });
+      dispatch(restored, ActionKinds.VASSAL_REROLL_SHOP, { nodeId: target.id });
       const end=vassal.lifeMap.pendingResolution.resolveSec;
       initializeReplayClock(state,state.tSec);initializeReplayClock(restored,restored.tSec);
       assert.equal(advanceReplayStateToSecond(state,end).ok,true);

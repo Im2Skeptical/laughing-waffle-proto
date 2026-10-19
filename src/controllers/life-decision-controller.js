@@ -263,17 +263,14 @@ export function createLifeDecisionController({
         return result;
       }
       const cached = nodes[payload.nodeId];
-      const prepared = kind === ActionKinds.VASSAL_ENTER_LIFE_NODE ? cached
-        : kind === ActionKinds.VASSAL_REROLL_SHOP && actions.length === 0 ? cached?.reroll : null;
+      const prepared = kind === ActionKinds.VASSAL_ENTER_LIFE_NODE ? cached : null;
       if (prepared?.actions.length) {
         const result = adopt(prepared.actions, prepared.stateData, options);
         if (!result.ok) return result;
         base = token();
         draft = null;
         actions = [];
-        nodes = kind === ActionKinds.VASSAL_ENTER_LIFE_NODE
-          ? { [payload.nodeId]: { ...cached, actions: [] } }
-          : { [payload.nodeId]: { ...prepared, actions: [] } };
+        nodes = { [payload.nodeId]: { ...cached, actions: [] } };
         changed();
         accept?.(result);
         return result;

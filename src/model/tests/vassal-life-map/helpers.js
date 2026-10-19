@@ -8,6 +8,7 @@ import {
   getVassalLifeMapNodes,
 } from "../../vassal-life-map.js";
 import { stepDetailedSettlementsSecond } from "../../detailed-settlements.js";
+import { getVassalLifeMapNodeType } from '../../../defs/gamepieces/vassal-life-map-defs.js';
 
 export function dispatch(state, kind, payload = {}) {
   const result = applyAction(state, { kind, payload }, { isReplay: true });
@@ -17,6 +18,10 @@ export function dispatch(state, kind, payload = {}) {
 
 export function selectedState(seed = 1, candidateIndex = 0) {
   const state = createInitialState("devPlaytesting01", seed);
+  // These mechanics fixtures exercise legacy authored option arithmetic.
+  // Current pooled defaults and shared shop costs have dedicated workbench tests.
+  state.gameConfig.lifeMapGenerator.design.enabled=false;
+  Object.assign(state.gameConfig.lifeMapGenerator,{laneCount:6,normalDepthCount:11,earlyDepthCount:4});
   state.paused = true;
   state.phase = "planning";
   state.gameConfig.settings.values.primordialBasePressure = 0;
@@ -33,6 +38,8 @@ export function selectedState(seed = 1, candidateIndex = 0) {
 export function selectedStateForSignature(variantId) {
   for (let seed = 0; seed < 1000; seed += 1) {
     const state = createInitialState("devPlaytesting01", seed);
+    state.gameConfig.lifeMapGenerator.design.enabled=false;
+    Object.assign(state.gameConfig.lifeMapGenerator,{laneCount:6,normalDepthCount:11,earlyDepthCount:4});
     state.civilization.vassalLineage.pendingCandidates.forEach(candidate=>{
       candidate.classId=null; candidate.founderClassId=null; candidate.archetype='Unclassed';
     });
@@ -66,11 +73,15 @@ export function forceEnter(state, nodeId) {
 }
 
 export function nodeIdForFamily(state, family, index = 0) {
+  if(family==='legacy'){const node=getVassalLifeMapNodes(getCurrentLifeMapVassal(state)).find(n=>n.family==='legacy');delete node.signatureNode;return node.id;}
   const nodes = getVassalLifeMapNodes(getCurrentLifeMapVassal(state))
-    .filter((node) => node.family === family);
+    .filter((node) => getVassalLifeMapNodeType(node) === family);
   if (!nodes[index]) {
-    const fixtureNode=getCurrentLifeMapVassal(state).lifeMap.graph.nodes.find(n=>!n.signatureNode && !["legacy","signature"].includes(n.family));
-    fixtureNode.family=family;nodes[index]=fixtureNode;
+    const graph=getCurrentLifeMapVassal(state).lifeMap.graph;
+    const fixtureNode=graph.nodes.find(n=>n.id!==graph.foundingNodeId&&!n.signatureNode && !["legacy","signature"].includes(n.family));
+    fixtureNode.family=family==='specialRelic'?'relic':family;
+    if(fixtureNode.family==='relic')fixtureNode.specialRelic=family==='specialRelic';else delete fixtureNode.specialRelic;
+    nodes[index]=fixtureNode;
   }
   return nodes[index].id;
 }

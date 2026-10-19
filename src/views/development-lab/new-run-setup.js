@@ -8,7 +8,7 @@ import { createLifeMapLabDom } from '../life-map-lab-dom.js';
 import { createDebugConfigurationDom } from '../debug-configuration-dom.js';
 import { el, button, confirmButton, select, input, field, section, info, group, badge } from './elements.js';
 
-export function createNewRunSetupView({ getGymState, openInGym, review }) {
+export function createNewRunSetupView({ getGymState, openInGym, review, getLifegraphConfig }) {
   const map = createMapLabController({ runner: { getState: getGymState } });
   const lifeMap = createLifeMapLabController();
   const config = createDebugConfigurationController({ lifeMapLabController: lifeMap });
@@ -18,7 +18,8 @@ export function createNewRunSetupView({ getGymState, openInGym, review }) {
   const pages = {
     mapLab: createMapLabDom({ controller: map, readOnly: () => profiles.getSnapshot().readOnly }),
     gameSettings: createDebugConfigurationDom({ controller: config, readOnly: () => profiles.getSnapshot().readOnly }),
-    lifeMapLab: createLifeMapLabDom({ controller: lifeMap, readOnly: () => profiles.getSnapshot().readOnly }),
+    lifeMapLab: createLifeMapLabDom({ controller: lifeMap, readOnly: () => profiles.getSnapshot().readOnly,
+      applyLifegraph:()=>lifeMap.replaceDraftFromProfile({...lifeMap.getSnapshot().draft,generatorConfig:getLifegraphConfig()}) }),
   };
   for (const page of Object.values(pages)) page.init();
   const seed = input('New run seed', 42); seed.min = '-2147483648'; seed.max = '2147483647';

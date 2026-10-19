@@ -138,7 +138,7 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
         title:label,artId:(campaign?['crisis','vigil','legacy']:founding?['settlement','development','legacy']:['travel','settlement','patronage'])[index],summary:details[index],
         actionLabel:from?'FROM':'CHOOSE',faceLabel:from?'From':active?'Selected':'Choose',
         enabled,showCost:!founding,selected:active,costUnmet:!!option&&option.cost>(getVassal()?.prestige??0),
-        cost:{phaseCost:option?.phases??0,prestigeCost:option?.cost??0,foodCost:option?.foodCost??0,riskLabel:option?.riskLabel,prestigeGain:!selectedOption&&varyingReward?0:option?.prestigeDelta??0,state:getState()},
+        cost:{phaseCost:option?.phases??0,prestigeCost:option?.cost??0,foodCost:option?.foodCost??0,monsterPressureCost:option?.monsterPressureCost??0,riskLabel:option?.riskLabel,prestigeGain:!selectedOption&&varyingReward?0:option?.prestigeDelta??0,state:getState()},
         onClick:choose,onInspect:choose,
       });
       if(founding)card.choiceButton=button(chrome,{x:card.x,y:PANEL.y+CONTENT.cardY+OPTION_COLUMN.height+12,width:OPTION_COLUMN.width,height:78},

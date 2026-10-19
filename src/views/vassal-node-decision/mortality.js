@@ -4,7 +4,7 @@ import { createText, roundedRect } from "../settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "../settlement-theme.js";
 
 export function renderMortalityEstimate(parent, estimate, rect, enabled) {
-  if (!estimate) return;
+  if (!estimate || estimate.totalDeathChance <= 0) return;
   const totalPercent = Math.round(estimate.totalDeathChance * 1000) / 10;
   const naturalPercent = Math.round(estimate.naturalDeathChance * 1000) / 10;
   const immediatePercent = Math.round(estimate.immediateDeathChance * 1000) / 10;

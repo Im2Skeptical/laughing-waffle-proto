@@ -141,7 +141,7 @@ export function createEmptyState(
   );
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
-    gameStateSchemaVersion: 36,
+    gameStateSchemaVersion: 37,
     phase: "simulation",
     turn: 0,
     seasons: SEASONS,
@@ -449,8 +449,8 @@ export function serializeGameState(state) {
 }
 
 function validateDeserializedStateBody(state) {
-  if (state?.gameStateSchemaVersion !== 36) {
-    throw new Error("Unsupported game-state schema: expected v36");
+  if (state?.gameStateSchemaVersion !== 37) {
+    throw new Error("Unsupported game-state schema: expected v37");
   }
   const chaos=state?.civilization?.chaos;
   if (!chaos || !Number.isFinite(chaos.monsterPressure) || chaos.monsterPressure<0
@@ -533,8 +533,8 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
-  if (state?.gameStateSchemaVersion !== 36) {
-    throw new Error("Unsupported game-state schema: expected v36");
+  if (state?.gameStateSchemaVersion !== 37) {
+    throw new Error("Unsupported game-state schema: expected v37");
   }
   const gameConfigValidation = validateGameConfig(state.gameConfig);
   if (!gameConfigValidation.ok) {

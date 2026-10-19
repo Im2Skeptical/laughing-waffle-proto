@@ -1,5 +1,4 @@
 import { ensureCommissionOffers } from './commissions.js';
-import { getVassalRiskDeathChance } from './class-rules.js';
 import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
 import { getVassalEffectiveStats } from './selectors.js';
 import { getDetailedSettlement, getDetailedSettlementSites, getPopulationSummary } from '../detailed-settlements/queries.js';
@@ -20,9 +19,9 @@ export function classActionOptions(state, vassal, family) {
   if(family==='training') return [{id:'train-estate',label:`Train ${vassal.classId==='scholar'?'Scholars':'Warriors'}`,description:`Convert up to ${vassal.classId==='scholar'?2:10} existing adults into ${vassal.classId==='scholar'?'Scholars':'Warriors'}.`,phaseCost:6,prestigeCost:0,classAction:{kind:'train'}}];
   if(family==='discovery') return [
     {id:'discovery-research',label:'Discovery: develop technique (+25 Research)',phaseCost:6,classAction:{kind:'discovery',research:25}},
-    {id:'discovery-frontier',label:'Discovery: forbidden observation (+60 Research, next shop accesses one maturity higher, 10% Danger)',phaseCost:8,immediateDeathChance:.1,effects:[{op:'addMonsterPressure',amount:getGameSetting(state,'discoveryMonsterProgress')}],classAction:{kind:'discovery',research:60,frontier:true}},
+    {id:'discovery-frontier',label:'Discovery: forbidden observation (+60 Research, next shop accesses one maturity higher)',phaseCost:8,immediateDeathChance:.1,effects:[{op:'addMonsterPressure',amount:getGameSetting(state,'discoveryMonsterProgress')}],classAction:{kind:'discovery',research:60,frontier:true}},
   ];
-  if(family==='challenge') return [3,6,9].map(difficulty=>({id:`challenge-${difficulty}`,label:`Challenge ${difficulty}: ${Math.round(getVassalRiskDeathChance(vassal,difficulty*.05)*100)}% RISK`,phaseCost:difficulty*2,prestigeDelta:difficulty*3,immediateDeathChance:difficulty*.05,classAction:{kind:'challenge',difficulty}}));
+  if(family==='challenge') return [3,6,9].map(difficulty=>({id:`challenge-${difficulty}`,label:`Challenge ${difficulty}`,phaseCost:difficulty*2,prestigeDelta:difficulty*3,immediateDeathChance:difficulty*.05,classAction:{kind:'challenge',difficulty}}));
   if(family==='campaign') {
     if(vassal.classId!=='warrior')return [];
     const force=getMartialForce(state, vassal);
@@ -42,12 +41,12 @@ export function classActionOptions(state, vassal, family) {
       if(stockTotal(state,target,'Edible')<pop.mealDemand) {
         const room=target.practiceSlots.some(p=>stockTraits(state,p).includes('Edible')&&(p.stock??0)<stockCapacity(state,target,p));
         if(room) {
-          incidents.push({id:`relief-${site.regionId}`,label:`Food shortage at ${label}: relief expedition (15% Danger)`,phaseCost:2,immediateDeathChance:.15,classAction:{kind:'relief',targetId:site.regionId}});
+          incidents.push({id:`relief-${site.regionId}`,label:`Food shortage at ${label}: relief expedition`,phaseCost:2,immediateDeathChance:.15,classAction:{kind:'relief',targetId:site.regionId}});
           if(stockTotal(state,target,'Currency')>=1) incidents.push({id:`buy-relief-${site.regionId}`,label:`Food shortage at ${label}: procure relief for 1 Currency Stock`,phaseCost:1,classAction:{kind:'relief',targetId:site.regionId,currency:1}});
         }
       }
       const threat=adjacentRegionIds(state,site.regionId).find(id=>getRegionState(state,id)?.monster);
-      if(threat) incidents.push({id:`delay-${threat}`,label:`Monster threatens ${label}: reduce expansion progress by ${getGameSetting(state,'monsterDiversionProgress')} (20% Danger)`,phaseCost:1,prestigeDelta:6,immediateDeathChance:.2,classAction:{kind:'delay',targetId:threat}});
+      if(threat) incidents.push({id:`delay-${threat}`,label:`Monster threatens ${label}: reduce Monster Pressure by ${getGameSetting(state,'monsterDiversionProgress')}`,phaseCost:1,prestigeDelta:6,immediateDeathChance:.2,classAction:{kind:'delay',targetId:threat}});
       if (threat||stockTotal(state,target,'Edible')<pop.mealDemand) {
         const response=target.practiceSlots.find(p=>getDetailedPracticeDef(state,p?.practiceId)?.responseAction==='rescue');
         const def=getDetailedPracticeDef(state,response?.practiceId);

@@ -50,7 +50,7 @@ export function optionEffect(option) {
   if (option?.locationRegionId) parts.push("Move to this settlement");
   if (option?.forcedRelocation) parts.push("Relocate to a safe settlement");
   if (Number.isFinite(option?.legacyStartingPrestigeBonus)) parts.push(`Future Vassals +${option.legacyStartingPrestigeBonus} starting Prestige`);
-  if (Number.isFinite(option?.immediateDeathChance) && !option.timeCostTier) parts.push(`${Math.round(option.immediateDeathChance * 100)}% immediate death risk`);
+  if (option?.immediateDeathChance > 0 && !option.timeCostTier) parts.push(`${Number((option.immediateDeathChance * 100).toFixed(2))}% immediate death risk`);
   for (const effect of option?.effects ?? []) {
     if ((effect.op === "AdjustCivilizationChaosState" || effect.op === "AdjustSettlementChaosGodState") && effect.key === "monsterCount") {
       parts.push(`Kill up to ${Math.abs(Math.floor(effect.amount ?? 0))} monsters`);
@@ -60,9 +60,7 @@ export function optionEffect(option) {
 }
 
 export function relicRiskLabel(option) {
-  return `${option.immediateDeathChance > 0
-    ? `${Math.round(option.immediateDeathChance * 100)}% immediate death risk`
-    : 'No immediate death risk'}\nAge-based death roll after time`;
+  return option.immediateDeathChance > 0 ? `${Number((option.immediateDeathChance * 100).toFixed(2))}% immediate death risk` : '';
 }
 
 export function offerEffect(offer) {

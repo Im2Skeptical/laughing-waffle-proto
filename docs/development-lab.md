@@ -1,6 +1,6 @@
 # Development Lab
 
-Open `#/dev` (defaults to Zoo), `#/dev/zoo`, `#/dev/reviewer`, `#/dev/museum`, `#/dev/gym`, or `#/dev/prototypes`
+Open `#/dev` (defaults to Zoo), `#/dev/zoo`, `#/dev/reviewer`, `#/dev/museum`, `#/dev/gym`, `#/dev/lifegraph`, or `#/dev/prototypes`
 on the normal app URL. These hash routes survive direct loading and refresh on
 GitHub Pages, including the repository path. The live workshop (hold its seal or
 Ctrl+Shift+D) also has **New run setup in Gym** and **Open current state in Gym**.
@@ -20,8 +20,9 @@ Map Lab, Game Settings and Life Map Lab are its three editor tabs. They use
 the Lab's shared styles: fields are grouped into collapsible sections with
 counts (Map Lab: Region, Connections, Population, Practices, Structures; Game
 Settings: one section per simulation stage, with **Find a setting** and a
-“not default” badge plus the default under each changed value; Life Map Lab:
-Topology & layout, Sequential repeats, Room-family weights beside a Preview).
+“not default” badge plus the default under each changed value). Life Map Lab
+summarizes the profile's captured recipe and explicitly copies a draft from
+the dedicated Lifegraph workspace with **Use Lifegraph draft**.
 Explanations sit behind **How it works**, **What this controls** and field (i)
 help, which stay usable on the read-only baseline. The single
 **Combined profile** toolbar saves and loads every section together, including
@@ -62,25 +63,81 @@ including RNG, and use the existing fixture library. These workflows share
 normal state validation and handoff; they do not write player save slots.
 The profile/export schema is v3; obsolete profiles are unsupported.
 
-## Gym node sandbox
+## Lifegraph
 
-In **Gym**, select the **Node** workspace to open a mock node/shop with a
-dummy Vassal and settlement. Choose a node family or signature, dummy class,
-Research, Prestige, age and stats, then **Refresh contents**. Research uses the
-normal civilization unlocks and base quality rolls when generating shop contents;
-the setup shows the current quality chances and next milestone. Dummy class
-bonuses and installed-card upgrades still apply. The real game modal supports
-card quick reads/full inspection, staging, drag placement, undo, shop reroll and
-Confirm. **Open node** reopens it after closing or confirming. **Resolve outcome**
-advances the dummy through real simulation ticks, including costs and danger.
+Open **Lifegraph** in the Development Lab navigation. Class and seed stay
+available across Graph, Milestone columns, Families, Nodes & review, Guarantees, Balance bands,
+Diagnostics and Save & share. Preview context sets Research, Prestige, age,
+stats and a signature. The fixed disposable settlement makes comparisons repeatable.
 
-Refresh resets the complete mock setup and staged changes. Identical settings
-and **Refresh seed** reproduce identical contents; **Next seed** increments the
-seed and refreshes. The in-game reroll retains its own costs and limits. The
-Fullscreen control supports mobile landscape. This workspace exists only in
-Gym and does not alter its settlement timeline, Zoo, Museum or player saves.
-Verify with `npm run verify` and `npm run probe:development-lab -- --nodes-only`;
-the full Development Lab probe includes the same node checks.
+The graph uses the game's node graphics and layout. Select a node and **Play
+selected node** to open the real decision screen, including card inspection,
+staging, drag placement, undo, reroll and Confirm. **Resolve outcome** advances
+only that dummy through authoritative ticks. **Reset this node** restores the
+same seeded context. The reviewer can also try a disabled or absent type in
+isolation. Such a test substitutes one preview slot; it does not edit the graph.
+
+**Milestone columns** makes all routes meet at one node, then branch again.
+Add a named column at an existing depth, choose a node type or family, and set
+its class scope. Family columns roll one eligible member for that whole column.
+**Milestones only** excludes a node type from random rolls and other reservations;
+matching milestones still satisfy guarantees. This supports scheduled Practice
+Reform shops without extra copies between them. Conflicting depths and unavailable
+class/timing pools report errors instead of silently replacing another reservation.
+
+Founding and Legacy have independent enable and position controls. Founding depth
+0 precedes the graph; numbered depths replace a normal column. It is first-life
+only and still establishes the class when completed. Disabling it leaves that
+founder unclassed. Use **Preview life stage** to inspect either founder or a
+successor, and **Play Founding** to try the real action. Legacy can stay after the
+final depth, replace a numbered column, or be disabled. Interior Legacy grants its
+reward and continues. Any terminal node retires the Vassal; without Legacy there
+is no Legacy reward. These experiments apply only in Pooled draft mode and retain
+the normal bookends by default. New settings require fresh runs/saves.
+
+**Pooled draft** reserves milestone columns, then signature, class and Stock Supply opportunities,
+then chooses a family and a node within it. Families and nodes use named
+Common/Uncommon/Rare occurrence tiers. Enable switches and class scopes are
+separate from those tiers. Family repetition limits are preferred maxima;
+guarantees and thin pools can exceed them, which diagnostics report. Guarantees
+target a node or family, a depth range, a class, and either the map as a whole or
+every complete route. Impossible placement is an explicit generation conflict.
+Supply reservations only select unlocked outputs and prefer separate depths.
+The underlying unmet-need analysis still considers producers across all player
+settlements; it does not yet prove local supply reach or recipe sustainability.
+
+Nodes & review lists each choice, its seeded effects and its base costs. Each
+choice assigns Free/Cheap/Fair/Expensive independently for time, Prestige and risk,
+or takes a custom numeric base value. Balance bands author absolute solar years,
+Prestige and risk percentages; editing a preset updates all assigned choices.
+Ordinary stat and Heirloom discounts apply afterwards. Campaign risk can retain
+its Force/Defence calculation. Shop prices use shared Practice/Structure rows for
+Bronze/Silver/Gold/Diamond quality, including upgrades and quality bonuses. No
+per-card price editing is needed. Scholar Delve and leaving without a purchase
+share one base time each across every shop, editable here or from any shop's
+choice list. Defaults are 10 and 5 years respectively, before discounts.
+Other classes cannot reroll shops. Early/Middle/Late use shared depth boundaries.
+Normal New Game uses Cam's approved first-pass pooled tuning, including its
+3-lane, 10-depth layout and shop guarantees at depths 1, 4 and 8. Save & share
+includes a built-in **Previous defaults** experiment for the preceding tuning.
+**Legacy independent generation** remains an explicit comparison mode.
+
+Diagnostics show distinct eligible cards before random offer sampling, including
+empty and fewer-than-three-card pools and the contributing card names. **Note this
+content gap** adds context to the node review queue. Seed batches report missing
+families, route minimum/maximum counts, shop clustering, bypassed Supply and
+generation conflicts, with reproducible example seeds. Counts do not assert that
+three distinct eligible cards produce three useful or affordable choices.
+
+Drafts and review notes persist on this device independently of game saves.
+Named experiments capture rules and preview context; JSON export includes notes,
+pool evidence and the latest seed batch for an agent handoff. Import validates
+the current schema before replacing anything. In **Gym → New run setup**, copy
+an editable profile, choose Life Map Lab, and **Use Lifegraph draft**. Save/launch
+captures those rules; later edits cannot affect an existing run or replay.
+Verify with `npm run verify`, `npm run probe:lifegraph` after `npm start`, or
+`npm run probe:development-lab -- --lifegraph-only` against a built bundle.
+Milestone generation, lifecycle and replay checks: `npm run test:lifegraph-columns`.
 
 ## Card reviewer
 
