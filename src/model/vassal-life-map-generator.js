@@ -7,6 +7,7 @@ import {
   getVassalStockOutputIds,
 } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { detailedSettlementPracticeDefs } from "../defs/gamepieces/detailed-settlement-defs.js";
+import { createLifeMapDesign, canonicalizeLifeMapDesign, validateLifeMapDesign, populatePooledLifeMap } from './life-map-design.js';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const BANDS = Object.freeze(["early", "mid", "late"]);
@@ -26,7 +27,7 @@ const DEFAULT_WEIGHTS = Object.freeze({
   late: Object.freeze([1, 2, 6, 4, 4, 5, 3, 0, 0, 0, 0, 1, 1, 1, 1]),
 });
 
-export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 8;
+export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 9;
 
 export function createAuthoredVassalLifeMapGeneratorConfig() {
   return {
@@ -39,6 +40,7 @@ export function createAuthoredVassalLifeMapGeneratorConfig() {
     layoutSmoothing: 0.5,
     minimumNodeGap: 0.12,
     nonRepeatFamilyIds: ["crisis"],
+    design: createLifeMapDesign(),
     weights: Object.fromEntries(BANDS.map((band) => [
       band,
       Object.fromEntries(VASSAL_NORMAL_NODE_FAMILY_IDS.map((familyId, index) => [
@@ -68,6 +70,7 @@ export function canonicalizeVassalLifeMapGeneratorConfig(value) {
     nonRepeatFamilyIds: [...new Set(Array.isArray(source.nonRepeatFamilyIds)
       ? source.nonRepeatFamilyIds.filter((id) => VASSAL_NORMAL_NODE_FAMILY_IDS.includes(id))
       : fallback.nonRepeatFamilyIds)],
+    design: canonicalizeLifeMapDesign(source.design),
     weights: Object.fromEntries(BANDS.map((band) => [
       band,
       Object.fromEntries(VASSAL_NORMAL_NODE_FAMILY_IDS.map((familyId) => [
@@ -87,6 +90,7 @@ export function validateVassalLifeMapGeneratorConfig(value) {
   if (value.schemaVersion !== VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION) {
     errors.push(`schemaVersion: expected ${VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION}`);
   }
+  errors.push(...validateLifeMapDesign(value.design,value.normalDepthCount));
   const integers = [
     ["laneCount", 2, 12], ["normalDepthCount", 3, 20], ["routeCount", 2, 24],
     ["earlyDepthCount", 1, 18], ["midDepthCount", 1, 18],
@@ -243,7 +247,7 @@ function dedupeEquivalentChoices(nodes, edges, entryNodeIds) {
       });
       const childSignatures = activeEdges.filter((edge) => edge.fromNodeId === node.id)
         .map((edge) => signatures.get(edge.toNodeId) ?? edge.toNodeId).sort();
-      signatures.set(node.id, `${node.family}[${childSignatures.join("|")}]`);
+      signatures.set(node.id, `${node.family}:${node.specialRelic===true}:${node.stockOutput??''}:${node.signatureNode?.variantId??''}:${node.generationRuleId?node.id:''}[${childSignatures.join("|")}]`);
     }
   }
   const retainedEntries = [];
@@ -339,6 +343,8 @@ export function generateVassalLifeMap(rawConfig, rng, {
   graphId = "generated-life-map", generationSeed = null, signatureNode = null,
   stockOutputs = getVassalStockOutputIds(Object.values(detailedSettlementPracticeDefs).filter(def => def.pool === "common")),
   unmetStockOutputs = [],
+  classId,
+  trainingOpening = true,
 } = {}) {
   const config = canonicalizeVassalLifeMapGeneratorConfig(rawConfig);
   const validation = validateVassalLifeMapGeneratorConfig(config);
@@ -388,6 +394,7 @@ export function generateVassalLifeMap(rawConfig, rng, {
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const entryNodes = nodes.filter((node) => node.depth === 0);
   for (const node of nodes) {
+    if(config.design.enabled)continue;
     const excluded = new Set();
     for (const parentId of incoming.get(node.id) ?? []) {
       const family = nodeById.get(parentId)?.family;
@@ -407,12 +414,17 @@ export function generateVassalLifeMap(rawConfig, rng, {
   for (const node of nodes.filter((entry) => entry.depth === config.normalDepthCount - 1)) {
     edges.push({ fromNodeId: node.id, toNodeId: bossNodeId });
   }
+  if(config.design.enabled){
+    const populated=populatePooledLifeMap(config,nodes,edges,rng,{classId,signatureNode,stockOutputs,unmetStockOutputs});
+    if(!populated.ok)return populated;
+  }
   const deduped = dedupeEquivalentChoices(
     nodes,
     edges,
     nodes.filter((node) => node.depth === 0).map((node) => node.id)
   );
   nodes = deduped.nodes;
+  if (!config.design.enabled) {
   if (signatureNode?.variantId === "legacyPlus") {
     const boss = nodes.find((node) => node.id === bossNodeId);
     if (boss) boss.signatureNode = clone(signatureNode);
@@ -449,6 +461,8 @@ export function generateVassalLifeMap(rawConfig, rng, {
     target.family = "stockShop";
     target.stockOutput = stockOutput;
   }
+  if(classId!==undefined)customizeAuthoredLifeMapClass(nodes,classId,trainingOpening);
+  }
   nodes = applyLayout(config, nodes, deduped.edges);
   edges = deduped.edges.sort((a, b) =>
     a.fromNodeId.localeCompare(b.fromNodeId) || a.toNodeId.localeCompare(b.toNodeId));
@@ -466,6 +480,21 @@ export function generateVassalLifeMap(rawConfig, rng, {
     },
     routeTraces: clone(routeTraces),
   };
+}
+
+// The baseline and its preview use exactly the same class substitutions.
+function customizeAuthoredLifeMapClass(nodes,classId,trainingOpening){
+  const ordinary=nodes.filter(n=>!n.signatureNode&&!['legacy','signature'].includes(n.family));
+  const classFamilies={training:null,discovery:'scholar',campaign:'warrior',challenge:'warrior'};
+  for(const node of ordinary){
+    if(node.family==='classMarket'&&!classId)node.family='neutralMarket';
+    if(Object.hasOwn(classFamilies,node.family)&&(!classId||classFamilies[node.family]&&classFamilies[node.family]!==classId))node.family='development';
+  }
+  if(classId&&trainingOpening&&ordinary[0])ordinary[0].family='training';
+  let index=0;
+  for(const node of ordinary.slice(1))if(classId&&index<(classId==='warrior'?1:2)&&['patronage','development'].includes(node.family)){
+    node.family=classId==='scholar'?'discovery':'campaign';index++;
+  }
 }
 
 export function validateVassalLifeMapGraph(graph) {

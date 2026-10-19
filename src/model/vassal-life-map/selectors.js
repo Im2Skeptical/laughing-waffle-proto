@@ -1,3 +1,4 @@
+import { getLifeMapCostMultiplier } from '../life-map-design.js';
 import {
   VASSAL_LIFE_TUNING,
   VASSAL_STAT_IDS,
@@ -393,7 +394,7 @@ function adjustedCost(base, stat, { allowZero = true } = {}) {
 }
 
 export function getAdjustedVassalPrestigeCost(vassal, baseCost) {
-  return adjustedCost(baseCost, vassal?.classId === "warrior" ? 0 : getVassalEffectiveStats(vassal).intelligence, { allowZero: true });
+  return adjustedCost(baseCost * getLifeMapCostMultiplier(vassal,'prestige'), vassal?.classId === "warrior" ? 0 : getVassalEffectiveStats(vassal).intelligence, { allowZero: true });
 }
 
 // Convert authored solar years to spendable phases before stat/Heirloom discounts.
@@ -405,7 +406,7 @@ export function getVassalYearPhaseCost(state, years) {
 }
 
 export function getAdjustedVassalPhaseCost(vassal, baseCost) {
-  return adjustedCost(baseCost, getVassalEffectiveStats(vassal).effectiveness, { allowZero: false });
+  return adjustedCost(baseCost * getLifeMapCostMultiplier(vassal,'time'), getVassalEffectiveStats(vassal).effectiveness, { allowZero: false });
 }
 
 export function getVassalActionPrestigeCost(vassal, baseCost, context = {}) {

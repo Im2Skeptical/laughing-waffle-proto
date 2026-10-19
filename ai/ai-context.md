@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.18`.
+Game build version: `1.1.19`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -58,13 +58,17 @@ Authoritative numbers:
 
 - Game state v36; runner saves v26. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
-- Each run serializes schema-v21 Game Settings, Gamepieces, and Life Map
+- Each run serializes schema-v22 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.
 - Map Lab drafts v8; scenario libraries v4.
 - Vassal Lab draft/preset schema v5.
 - Life Map Lab drafts v2.
 - Card reviewer drafts/export v1; stable browser storage independent of game saves and builds.
-- Life Map generator settings v8; serialized Life Map graph v6.
+- Life Map generator settings v9; serialized Life Map graph v6.
+- Lifegraph workbench drafts/reviews/exports v1 are independent browser documents.
+  Pooled experiments capture families, class eligibility, guarantees and named
+  cost bands in the run's generator config. The default player game retains
+  baseline generation. Gym profiles explicitly copy a Lifegraph draft before launch.
 - Debug profile library/export v3 (fresh-run recipes; no live Vassal overrides).
 - Named debug draft libraries v1.
 - Debug drafts are inert until launched from Gym → New run setup; saved combined
@@ -113,8 +117,10 @@ knowledge, and the single vassal lineage are civilization-global.
   before prompting, including requests that name only a Practice or Structure.
 - Routing skills: [`.grok/skills/`](../.grok/skills/)
 
-Gym → New run setup owns Map Lab, Game Settings and Life Map Lab under one
-combined launch profile. Gamepiece editing belongs to the card reviewer; reviewed
+Gym → New run setup owns Map Lab, Game Settings and the captured Lifegraph recipe
+under one combined launch profile. The dedicated Development Lab Lifegraph section
+owns graph generation, node review, playable previews and diagnostics. Its drafts
+are explicitly copied into launch profiles. Gamepiece editing belongs to the card reviewer; reviewed
 cards can be captured in the launch profile. Regular game is a read-only current-build baseline;
 copies launch through the same initializer as player New Game, including road
 randomization and neutral seeding. Museum owns saved states at specific seconds.

@@ -90,9 +90,11 @@ export function validateVassalLifeMapState(state) {
     const groups = new Set();
     for (const [index, candidate] of lineage.pendingCandidates.entries()) {
       const variant = VASSAL_SIGNATURE_NODE_VARIANTS[candidate?.signatureNode?.variantId];
-      if (!isValidSignatureDescriptor(candidate?.signatureNode)) {
+      if (candidate?.signatureNode==null && state.gameConfig.lifeMapGenerator.design.enabled) {
+        // Pooled experiments may disable every signature compatible with a class.
+      } else if (!isValidSignatureDescriptor(candidate?.signatureNode)) {
         errors.push(`vassalLineage.pendingCandidates[${index}].signatureNode: invalid`);
-      } else if (groups.has(variant.groupId)) {
+      } else if (groups.has(variant.groupId) && !state.gameConfig.lifeMapGenerator.design.enabled) {
         errors.push("vassalLineage.pendingCandidates: duplicate signature group");
       } else groups.add(variant.groupId);
       if (!isValidPortraitDescriptor(candidate?.portrait)) {
@@ -120,7 +122,7 @@ export function validateVassalLifeMapState(state) {
     if (!VASSAL_STAT_IDS.every((statId) => Number.isFinite(vassal?.stats?.[statId]))) {
       errors.push(`${vassalId}.stats: expected all four finite stats`);
     }
-    if (!isValidSignatureDescriptor(vassal?.signatureNode)
+    if (!(vassal?.signatureNode==null && state.gameConfig.lifeMapGenerator.design.enabled) && !isValidSignatureDescriptor(vassal?.signatureNode)
         || !isValidPortraitDescriptor(vassal?.portrait)) {
       errors.push(`${vassalId}: invalid signature node or portrait`);
     }

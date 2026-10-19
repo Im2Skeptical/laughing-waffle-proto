@@ -125,7 +125,7 @@ function selectShopCandidates(state, vassal, nodeState, candidates) {
   return [...selected, ...remaining.slice(0, count - selected.length)];
 }
 
-function buildCardOffers(state, vassal, nodeState, roll, { kind = null, requiredTag = null, stockOutput = null, specialty = null } = {}) {
+export function getVassalShopCandidatePool(state, vassal, nodeState, { kind = null, requiredTag = null, stockOutput = null, specialty = null } = {}) {
   const reservation = buildReservation(state, vassal, nodeState);
   const candidates = [];
   const addCandidate = (cardKind, definitionId, def) => {
@@ -150,6 +150,13 @@ function buildCardOffers(state, vassal, nodeState, roll, { kind = null, required
       addCandidate("structure", id, getDetailedStructureDef(state, id));
     }
   }
+  return candidates;
+}
+
+function buildCardOffers(state, vassal, nodeState, roll, options = {}) {
+  const reservation=buildReservation(state,vassal,nodeState);
+  const candidates=getVassalShopCandidatePool(state,vassal,nodeState,options);
+  const {requiredTag=null}=options;
   return selectShopCandidates(state, vassal, nodeState, candidates).map((candidate, index) => {
     const category = requiredTag ? "tag" : candidate.kind;
     if (candidate.kind === "structure") {

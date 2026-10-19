@@ -1,4 +1,5 @@
 import { getHubCore } from "../../settlement-state.js";
+import { getLifeMapCostMultiplier } from '../../life-map-design.js';
 import { getVassalRiskDeathChance } from '../class-rules.js';
 import { VASSAL_CLASS_RULES } from '../../../defs/vassal-class-rules.js';
 import { ensureCommissionOffers, recordCommissionAction } from '../commissions.js';
@@ -517,7 +518,7 @@ function applyOptionEffect(state, vassal, nodeState, option) {
   const monsterEffects = (option?.effects ?? []).filter(effect => effect.op === 'addMonsterPressure');
   const effectsResult = applyVassalNodeEffects(state, (option?.effects ?? []).filter(effect => effect.op !== 'addMonsterPressure'));
   if (!effectsResult.ok) return effectsResult;
-  const isRisk = Math.max(option?.baseDanger ?? 0, option?.immediateDeathChance ?? 0) > 0;
+  const isRisk = Math.max(option?.baseDanger ?? 0, option?.immediateDeathChance ?? 0) * getLifeMapCostMultiplier(vassal,'risk') > 0;
   const riskFailed = isRisk && state.rngNextVassalFloat() < getVassalRiskDeathChance(vassal, option.immediateDeathChance);
   if (riskFailed) {
     const cause = nodeState.family === "relic" ? "relic" : "crisis";

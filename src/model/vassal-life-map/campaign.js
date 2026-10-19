@@ -1,4 +1,5 @@
 import { VASSAL_WORKSHOP_RULES as RULES } from '../../defs/vassal-workshop-rules.js';
+import { getLifeMapCostMultiplier } from '../life-map-design.js';
 import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
 import { getRegionState, getRegionReference } from '../world-state.js';
 import { stockTotal, consumeStock } from '../detailed-settlements/stock.js';
@@ -27,7 +28,7 @@ export function buildCampaignOptions(state,vassal,nodeState) {
   const targets = [];
   const add = (mode,regionId,defense,stage,label) => {
     const distance = connectedDistance(state,vassal.locationRegionId,regionId,true);
-    const risk = Math.round(defense/Math.max(1,forces[mode].total+defense)*100);
+    const risk = Math.min(100,Math.round(defense/Math.max(1,forces[mode].total+defense)*100*getLifeMapCostMultiplier(vassal,'risk')));
     const foodCost = mode === 'duel' ? 0 : RULES.campaignFoodBase+distance*RULES.campaignFoodPerDistance;
     const warriorBonus=risk>0?VASSAL_CLASS_RULES.warrior.riskPrestige:0;
     targets.push({id:`${mode}:${regionId}`,regionId,mode,stage,defense,force:forces[mode].total,risk,distance,foodCost,

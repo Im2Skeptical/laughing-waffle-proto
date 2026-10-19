@@ -1,10 +1,11 @@
 import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
+import { getLifeMapCostMultiplier } from '../life-map-design.js';
 import { getVassalEffectiveStats, getVassalActionPhaseCost } from './selectors.js';
 import { getGameSetting } from '../game-config.js';
 import { getMoonPhaseDurationSec } from '../moon-phases.js';
 
 export function getVassalRiskDeathChance(vassal, baseDeathChance) {
-  const base = Math.max(0, Math.min(1, Number(baseDeathChance) || 0));
+  const base = Math.max(0, Math.min(1, (Number(baseDeathChance) || 0) * getLifeMapCostMultiplier(vassal,'risk')));
   if (vassal?.classId !== 'warrior') return base;
   return Math.max(0, 1 - (1 - base) * (1
     + VASSAL_CLASS_RULES.warrior.riskSuccessPerPoint * getVassalEffectiveStats(vassal).intelligence));

@@ -5,7 +5,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 import {chromium} from 'playwright';
 import {createServer} from 'node:net';
 import {BROWSER_PROBE_LAUNCH_OPTIONS} from './browser-probe-config.mjs';
-import {checkNodeSandbox} from './node-sandbox-browser-checks.mjs';
+import {checkLifegraphWorkspace} from './lifegraph-browser-checks.mjs';
 const port=await new Promise((resolve,reject)=>{
   const listener=createServer();listener.once('error',reject);
   listener.listen(0,'127.0.0.1',()=>{
@@ -26,14 +26,14 @@ try {
   const context=await browser.newContext({viewport:{width:1280,height:800}});
   context.on('page',p=>p.on('pageerror',e=>errors.push(e.message)));
   page=await context.newPage();
-  if(process.argv.includes('--nodes-only')) {
-    await page.goto(`${url}/#/dev/gym?workspace=node`);
-    await page.getByTestId('lab-workspace-node').waitFor();
-    await checkNodeSandbox(page,context);
+  if(process.argv.includes('--lifegraph-only')) {
+    await page.goto(`${url}/#/dev/lifegraph`);
+    await page.getByTestId('lab-lifegraph').waitFor();
+    await checkLifegraphWorkspace(page,context,{reload:true});
     assert.deepEqual(errors,[]);
-    checks.push('Gym-only nodes, seeded refresh, inspection, staging/drag/undo, Confirm/outcomes and mobile touch/fullscreen');
+    checks.push('Lifegraph class/edit/review, isolated node play, staging/undo/inspection/reset, seed diagnostics, profile capture and mobile');
     writeFileSync(artifact,JSON.stringify({ok:true,checks,errors},null,2));
-    console.log('[probe:development-lab] OK: node sandbox desktop/mobile');
+    console.log('[probe:development-lab] OK: Lifegraph desktop/mobile');
     process.exitCode=0;
   } else {
   await page.goto(`${url}/#/dev/zoo`);
@@ -806,8 +806,8 @@ try {
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,'no page-level horizontal overflow');
   await page.setViewportSize({width:1280,height:800});
   await page.evaluate(()=>localStorage.setItem('civsurvivor.save.slot1','sentinel-original-save'));
-  await checkNodeSandbox(page,context);
-  checks.push('Gym-only node sandbox, real inspection/stage/drag/undo/Confirm, seeded refresh, structure shop, outcome ticks and mobile touch/fullscreen');
+  await checkLifegraphWorkspace(page,context);
+  checks.push('Lifegraph class/edit/review, isolated node play, staging/undo/inspection/reset, seed diagnostics, profile capture and mobile');
   const playPromise=context.waitForEvent('page');
   await page.getByTestId('lab-play').click();
   const play=await playPromise;

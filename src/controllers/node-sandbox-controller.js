@@ -5,8 +5,8 @@ import { getCurrentLifeMapVassal, getVassalNodeDecisionPresentation, enterVassal
   selectVassalNodeOption, purchaseVassalShopOffer, undoVassalShopPurchase,
   reorderVassalShopPurchase, moveVassalShopStructure, rerollVassalShop, confirmVassalLifeNode } from '../model/vassal-life-map.js';
 
-export function createNodeSandboxController() {
-  let sandbox = createLabNodeSandbox(), message = 'Dummy ready. Inspect cards, stage offers or select an option, then Confirm.';
+export function createNodeSandboxController({initialSandbox=null}={}) {
+  let sandbox = initialSandbox ?? createLabNodeSandbox(), message = 'Dummy ready. Inspect cards, stage offers or select an option, then Confirm.';
   function transact(operation, label) {
     const next = deserializeGameState(serializeGameState(sandbox.state));
     const result = operation(next);
@@ -18,6 +18,7 @@ export function createNodeSandboxController() {
   return {
     getSnapshot: () => ({ ...sandbox, message, vassal:getCurrentLifeMapVassal(sandbox.state) }),
     getDecision: (id, preview) => getVassalNodeDecisionPresentation(sandbox.state, id, preview),
+    loadScenario(next) { sandbox={...next,state:deserializeGameState(serializeGameState(next.state))};message='Fresh graph node. Actions affect only this disposable preview.';return {ok:true}; },
     refresh(settings) { const next = createLabNodeSandbox(settings); sandbox = next; message = `Fresh ${next.settings.type} · seed ${next.settings.seed} · dummy and settlement reset`; },
     enter: (...args) => transact(state => enterVassalLifeNode(state, ...args), 'Entered node'),
     select: (...args) => transact(state => selectVassalNodeOption(state, ...args), 'Selected option'),

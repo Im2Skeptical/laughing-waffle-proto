@@ -1,6 +1,6 @@
 # Development Lab
 
-Open `#/dev` (defaults to Zoo), `#/dev/zoo`, `#/dev/reviewer`, `#/dev/museum`, `#/dev/gym`, or `#/dev/prototypes`
+Open `#/dev` (defaults to Zoo), `#/dev/zoo`, `#/dev/reviewer`, `#/dev/museum`, `#/dev/gym`, `#/dev/lifegraph`, or `#/dev/prototypes`
 on the normal app URL. These hash routes survive direct loading and refresh on
 GitHub Pages, including the repository path. The live workshop (hold its seal or
 Ctrl+Shift+D) also has **New run setup in Gym** and **Open current state in Gym**.
@@ -20,8 +20,9 @@ Map Lab, Game Settings and Life Map Lab are its three editor tabs. They use
 the Lab's shared styles: fields are grouped into collapsible sections with
 counts (Map Lab: Region, Connections, Population, Practices, Structures; Game
 Settings: one section per simulation stage, with **Find a setting** and a
-“not default” badge plus the default under each changed value; Life Map Lab:
-Topology & layout, Sequential repeats, Room-family weights beside a Preview).
+“not default” badge plus the default under each changed value). Life Map Lab
+summarizes the profile's captured recipe and explicitly copies a draft from
+the dedicated Lifegraph workspace with **Use Lifegraph draft**.
 Explanations sit behind **How it works**, **What this controls** and field (i)
 help, which stay usable on the read-only baseline. The single
 **Combined profile** toolbar saves and loads every section together, including
@@ -62,25 +63,53 @@ including RNG, and use the existing fixture library. These workflows share
 normal state validation and handoff; they do not write player save slots.
 The profile/export schema is v3; obsolete profiles are unsupported.
 
-## Gym node sandbox
+## Lifegraph
 
-In **Gym**, select the **Node** workspace to open a mock node/shop with a
-dummy Vassal and settlement. Choose a node family or signature, dummy class,
-Research, Prestige, age and stats, then **Refresh contents**. Research uses the
-normal civilization unlocks and base quality rolls when generating shop contents;
-the setup shows the current quality chances and next milestone. Dummy class
-bonuses and installed-card upgrades still apply. The real game modal supports
-card quick reads/full inspection, staging, drag placement, undo, shop reroll and
-Confirm. **Open node** reopens it after closing or confirming. **Resolve outcome**
-advances the dummy through real simulation ticks, including costs and danger.
+Open **Lifegraph** in the Development Lab navigation. Class and seed stay
+available across Graph, Families, Nodes & review, Guarantees, Balance bands,
+Diagnostics and Save & share. Preview context sets Research, Prestige, age,
+stats and a signature. The fixed disposable settlement makes comparisons repeatable.
 
-Refresh resets the complete mock setup and staged changes. Identical settings
-and **Refresh seed** reproduce identical contents; **Next seed** increments the
-seed and refreshes. The in-game reroll retains its own costs and limits. The
-Fullscreen control supports mobile landscape. This workspace exists only in
-Gym and does not alter its settlement timeline, Zoo, Museum or player saves.
-Verify with `npm run verify` and `npm run probe:development-lab -- --nodes-only`;
-the full Development Lab probe includes the same node checks.
+The graph uses the game's node graphics and layout. Select a node and **Play
+selected node** to open the real decision screen, including card inspection,
+staging, drag placement, undo, reroll and Confirm. **Resolve outcome** advances
+only that dummy through authoritative ticks. **Reset this node** restores the
+same seeded context. The reviewer can also try a disabled or absent type in
+isolation. Such a test substitutes one preview slot; it does not edit the graph.
+
+**Pooled draft** first reserves signature, class and Stock Supply opportunities,
+then chooses a family and a node within it. Families and nodes use named
+Common/Uncommon/Rare occurrence tiers. Enable switches and class scopes are
+separate from those tiers. Family repetition limits are preferred maxima;
+guarantees and thin pools can exceed them, which diagnostics report. Guarantees
+target a node or family, a depth range, a class, and either the map as a whole or
+every complete route. Impossible placement is an explicit generation conflict.
+Supply reservations only select unlocked outputs and prefer separate depths.
+The underlying unmet-need analysis still considers producers across all player
+settlements; it does not yet prove local supply reach or recipe sustainability.
+
+Balance bands share Cheap/Fair/Expensive multipliers for time, Prestige and risk.
+Each node assigns a tier; edits to a tier update all its assigned nodes. Multipliers
+apply before ordinary discounts; free actions remain free and risk is capped at
+100%. Early/Middle/Late use the shared depth boundaries. **Current game baseline**
+compares the existing independent family weights and class substitutions without
+applying pooled-draft changes. Normal player New Game retains that baseline.
+
+Diagnostics show distinct eligible cards before random offer sampling, including
+empty and fewer-than-three-card pools and the contributing card names. **Note this
+content gap** adds context to the node review queue. Seed batches report missing
+families, route minimum/maximum counts, shop clustering, bypassed Supply and
+generation conflicts, with reproducible example seeds. Counts do not assert that
+three distinct eligible cards produce three useful or affordable choices.
+
+Drafts and review notes persist on this device independently of game saves.
+Named experiments capture rules and preview context; JSON export includes notes,
+pool evidence and the latest seed batch for an agent handoff. Import validates
+the current schema before replacing anything. In **Gym → New run setup**, copy
+an editable profile, choose Life Map Lab, and **Use Lifegraph draft**. Save/launch
+captures those rules; later edits cannot affect an existing run or replay.
+Verify with `npm run verify`, `npm run probe:lifegraph` after `npm start`, or
+`npm run probe:development-lab -- --lifegraph-only` against a built bundle.
 
 ## Card reviewer
 

@@ -32,6 +32,7 @@ import {
   hasPendingHeirloomOverflow,
 } from "../heirlooms.js";
 import { getStockShopGenerationContext } from "../stock-shops.js";
+import { lifeMapNodeEnabled } from '../../life-map-design.js';
 
 const VASSAL_PORTRAIT_KEYS = Object.freeze([
   "skinTone", "hairStyle", "hairColor", "faceShape",
@@ -69,7 +70,21 @@ function generateVassalPortrait(state) {
   };
 }
 
-function generateSignatureNodes(state) {
+function generateSignatureNodes(state,candidates) {
+  const design=state.gameConfig.lifeMapGenerator.design;
+  if(design.enabled){
+    const usedGroups=new Set();
+    return candidates.map(candidate=>{
+      const classId=candidate.founderClassId??candidate.classId;
+      const available=Object.values(VASSAL_SIGNATURE_NODE_VARIANTS).filter(v=>lifeMapNodeEnabled(design,`signature:${v.id}`,classId));
+      const unused=available.filter(v=>!usedGroups.has(v.groupId)),pool=unused.length?unused:available;
+      if(!pool.length)return null;
+      const weight=v=>design.occurrence[design.nodes[`signature:${v.id}`].occurrence];
+      let roll=state.rngNextVassalFloat()*pool.reduce((sum,v)=>sum+weight(v),0);
+      let variant=pool.at(-1);for(const v of pool){roll-=weight(v);if(roll<0){variant=v;break;}}
+      usedGroups.add(variant.groupId);return {...clone(variant),variantId:variant.id};
+    });
+  }
   const groups = shuffle(state, VASSAL_SIGNATURE_NODE_GROUP_IDS).slice(0, VASSAL_LIFE_TUNING.candidateCount);
   return groups.map((groupId) => {
     const variants = VASSAL_SIGNATURE_VARIANT_IDS_BY_GROUP[groupId];
@@ -131,7 +146,7 @@ export function generateCandidatePool(state) {
       portrait: generateVassalPortrait(state),
     }); }
   );
-  const signatureNodes = generateSignatureNodes(state);
+  const signatureNodes = generateSignatureNodes(state,candidates);
   lineage.pendingCandidates = candidates.map((candidate, index) => ({
     ...candidate,
     signatureNode: signatureNodes[index],
@@ -177,6 +192,8 @@ function createLifeMapState(state, vassalId, candidate) {
     graphId: `${vassalId}-life-map`,
     generationSeed,
     signatureNode: candidate.signatureNode,
+    classId: candidate.founderClassId ?? candidate.classId,
+    trainingOpening: !!candidate.classId,
     ...getStockShopGenerationContext(state, candidate),
   });
   if (!generated.ok) {
@@ -234,22 +251,6 @@ export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = nu
     endSec: null,
     heirlooms: createEmptyHeirloomInventory(),
   };
-  const ordinary = record.lifeMap.graph.nodes.filter(n => !n.signatureNode && !["legacy", "signature"].includes(n.family));
-  const lifeClassId = record.founderClassId ?? record.classId;
-  // Custom generator weights must not grant another class's actions.
-  const classFamilies = { training: null, discovery: 'scholar', campaign: 'warrior', challenge: 'warrior' };
-  for (const node of ordinary) {
-    if (node.family === "classMarket" && !lifeClassId) node.family = "neutralMarket";
-    if (Object.hasOwn(classFamilies, node.family)
-        && (!lifeClassId || (classFamilies[node.family] && classFamilies[node.family] !== lifeClassId))) {
-      node.family = 'development';
-    }
-  }
-  if (record.classId && ordinary[0]) ordinary[0].family = "training";
-  let classIndex = 0;
-  for (const node of ordinary.slice(1)) if (lifeClassId && classIndex < (lifeClassId==='warrior'?1:2) && ["patronage", "development"].includes(node.family)) {
-    node.family = lifeClassId === "scholar" ? ["discovery", "discovery"][classIndex++ % 2] : ["campaign"][classIndex++ % 1];
-  }
   if (record.founderClassId) {
     const graph = record.lifeMap.graph;
     const entryNodeIds = [...graph.entryNodeIds];
