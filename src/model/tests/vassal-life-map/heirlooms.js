@@ -318,7 +318,7 @@ for (let seed = 0; seed < 100; seed += 1) {
     assert.ok(offer.phaseCost >= range.min && offer.phaseCost <= range.max);
     if (!qualityCosts.has(offer.quality)) qualityCosts.set(offer.quality, new Set());
     qualityCosts.get(offer.quality).add(offer.phaseCost);
-    assert.match(relicRiskLabel(offer), /Age-based death roll after time/);
+    assert.equal(relicRiskLabel(offer),'');
     assert.doesNotMatch(relicRiskLabel(offer), /0%|No immediate death risk/);
   }
   for (const key of Object.keys(beforeRng).filter(key => key !== 'vassalSeed')) {

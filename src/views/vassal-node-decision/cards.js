@@ -60,8 +60,7 @@ export function optionEffect(option) {
 }
 
 export function relicRiskLabel(option) {
-  return [option.immediateDeathChance > 0 ? `${Number((option.immediateDeathChance * 100).toFixed(2))}% immediate death risk` : '',
-    option.phaseCost > 0 ? 'Age-based death roll after time' : ''].filter(Boolean).join('\n');
+  return option.immediateDeathChance > 0 ? `${Number((option.immediateDeathChance * 100).toFixed(2))}% immediate death risk` : '';
 }
 
 export function offerEffect(offer) {

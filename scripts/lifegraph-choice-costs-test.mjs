@@ -158,7 +158,7 @@ assert.equal(getActionMonsterPressureCost(resolveLifeMapOptionCosts(dynamic,{fam
 assert.doesNotMatch(optionEffect({immediateDeathChance:0,statId:'wisdom',statDelta:1}),/death|0%/);
 assert.match(optionEffect({immediateDeathChance:.2}),/20% immediate death risk/);
 assert.equal(relicRiskLabel({immediateDeathChance:0,phaseCost:0}),'');
-assert.doesNotMatch(relicRiskLabel({immediateDeathChance:0,phaseCost:3}),/0%|No immediate/);
+assert.equal(relicRiskLabel({immediateDeathChance:0,phaseCost:3}),'');
 renderMortalityEstimate({addChild(){assert.fail('zero death risk must not render a mortality panel');}},{totalDeathChance:0},{},true);
 assert.equal(c.importJson(c.exportJson()).ok,true,'independent pressure settings survive export/import');
 console.log('[lifegraph-choice-costs] independent choice bases/presets, effects, custom values, validation, persistence, shop quality/bonuses, checkout and authoritative replay OK');
