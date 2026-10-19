@@ -11,11 +11,22 @@ export function clampSettlementPlaybackSpeed(speed) {
   return Math.max(-4, Math.min(4, Number(speed)));
 }
 
+// The outer lever travel crosses the visible graph in eight seconds at full
+// throw. The inner travel retains absolute pause and 1x control.
+export function getSettlementPlaybackRate(speed, spanSec) {
+  const control = clampSettlementPlaybackSpeed(speed);
+  const magnitude = Math.abs(control);
+  if (magnitude <= 1) return control;
+  const maxRate = Math.max(1, (Number.isFinite(spanSec) ? spanSec : 32) / 8);
+  return Math.sign(control) * (1 + (magnitude - 1) / 3 * (maxRate - 1));
+}
+
 export function createSettlementPlayback({
   getRunner,
   getForecastController,
   getGraphController,
   getGraphView,
+  getPlaybackSpanSec,
   onInvalidateProjectedLoss,
   onSyncGraphHorizon,
 } = {}) {
@@ -44,6 +55,10 @@ export function createSettlementPlayback({
 
   function getSettlementVisualTime() {
     return resolveVisualTime(getSettlementViewedSec(), settlementPlaybackViewSecFloat);
+  }
+
+  function setSettlementVisualTime(timeSec) {
+    settlementPlaybackViewSecFloat = Number.isFinite(timeSec) ? Math.max(0, timeSec) : null;
   }
 
   function ensureSettlementRunnerPaused() {
@@ -107,6 +122,7 @@ export function createSettlementPlayback({
       current: settlementPlaybackSpeedCurrent,
       target: settlementPlaybackSpeedTarget,
       max: 4,
+      rate: getSettlementPlaybackRate(settlementPlaybackSpeedCurrent, getPlaybackSpanSec?.()),
     };
   }
 
@@ -293,7 +309,7 @@ export function createSettlementPlayback({
   }
 
   function updateSettlementPreviewPlayback(frameDt) {
-    const speed = clampSettlementPlaybackSpeed(settlementPlaybackSpeedTarget);
+    const speed = getSettlementPlaybackRate(settlementPlaybackSpeedTarget, getPlaybackSpanSec?.());
     if (speed === 0) return;
     const dt = Number.isFinite(frameDt) ? Math.max(0, Number(frameDt)) : 0;
     const currentFloat = Number.isFinite(settlementPlaybackViewSecFloat)
@@ -339,6 +355,7 @@ export function createSettlementPlayback({
     getSettlementPreviewCapSec,
     getSettlementViewedSec,
     getSettlementVisualTime,
+    setSettlementVisualTime,
     ensureSettlementRunnerPaused,
     getSettlementPlaybackTarget,
     promoteSettlementPreviewToLive,

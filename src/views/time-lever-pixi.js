@@ -93,7 +93,6 @@ export function createTimeLeverView({
     for (const value of source) {
       if (!Number.isFinite(value)) continue;
       const speed = Number(value);
-      if (speed === 0) continue;
       if (Math.abs(speed) > maxSpeed) continue;
       unique.add(speed);
     }
@@ -191,7 +190,8 @@ export function createTimeLeverView({
     }
 
     const speedAbs = Math.abs(displaySpeed);
-    const speedText = `${displaySpeed < 0 ? "-" : ""}x${speedAbs.toFixed(1)}`;
+    const rate = Number.isFinite(ts?.rate) ? ts.rate : displaySpeed;
+    const speedText = `${rate < 0 ? "-" : ""}x${Math.abs(rate).toFixed(1)}`;
     const showPauseHint = speedAbs < stickySpeed && !leverDragging;
     leverLabel.text = state?.followingForecast ? 'AUTO' :
       showPauseHint || state?.paused ? 'HOLD' : speedText;

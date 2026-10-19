@@ -5,7 +5,7 @@ import { createTimeLeverView } from "./time-lever-pixi.js";
 import { VIEWPORT_DESIGN_WIDTH } from "./layout-pixi.js";
 
 const BASIC_TIME_LEVER_UI_MAX_ABS_SPEED = 4;
-const BASIC_TIME_LEVER_LOCK_SPEEDS = Object.freeze([-4, -2, 2, 4]);
+const BASIC_TIME_LEVER_LOCK_SPEEDS = Object.freeze([-1, 0, 1]);
 const BASIC_TIME_LEVER_LOCK_SNAP_NORM_RADIUS = 0.07;
 
 export const TIME_CONTROLS_LAYOUT = {

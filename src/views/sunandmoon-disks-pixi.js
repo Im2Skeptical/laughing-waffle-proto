@@ -26,6 +26,12 @@ const DISK_ID_SEASON = "season";
 const ROTATION_CLOCKWISE = "clockwise";
 const ROTATION_ANTICLOCKWISE = "anticlockwise";
 
+export function sampleDiskMomentum(velocity, dt) {
+  const decay = Math.log(2) / .18;
+  const remaining = Math.exp(-decay * Math.max(0, dt));
+  return { deltaSec: velocity * (1 - remaining) / decay, velocity: velocity * remaining };
+}
+
 // Recaps retain only clock presentation values, never a mutable simulation state.
 export function getClockTimePassage(beforeState, afterState) {
   const fromSec = getTSecInt(beforeState);
@@ -182,29 +188,30 @@ function getMoonOrbitPhase01AtTime(state, timeSec) {
 
 function getSeasonProgress01(state, timeSec) {
   const seasonLen = Math.max(1, getGameSetting(state, "seasonDurationSec"));
-  const fraction=Number.isFinite(timeSec)?timeSec-Math.floor(timeSec):0;
+  const fraction = Number.isFinite(timeSec) ? timeSec - getTimeSecForRotation(state) : 0;
+
+  const clock = state?.seasonClockSec;
+  if (Number.isFinite(clock)) return (clock + fraction) / seasonLen;
 
   const remaining = state?.seasonTimeRemaining;
   if (Number.isFinite(remaining)) {
-    return clamp01(1 - remaining / seasonLen + fraction / seasonLen);
-  }
-
-  const clock = state?.seasonClockSec;
-  if (Number.isFinite(clock)) {
-    return clamp01(clock / seasonLen - Math.floor(clock / seasonLen) + fraction / seasonLen);
+    return 1 - remaining / seasonLen + fraction / seasonLen;
   }
 
   const t = Math.max(0, Number.isFinite(timeSec) ? timeSec : 0);
   return clamp01(((t % seasonLen) / seasonLen) || 0);
 }
 
-function getSeasonWheelPhase01(state, timeSec, quadrants) {
+export function getSeasonWheelPhase01(state, timeSec, quadrants) {
   const q = Math.max(1, clampInt(quadrants, 4));
   const idxRaw = state?.currentSeasonIndex;
   const idx = Number.isFinite(idxRaw) ? Math.floor(idxRaw) : 0;
   const wrappedIdx = ((idx % q) + q) % q;
   const progress = getSeasonProgress01(state, timeSec);
-  return clamp01((wrappedIdx + progress) / q);
+  // A replay snapshot can sit a few floating-point ulps before the season
+  // transition. Fractional presentation must carry across that boundary,
+  // rather than clamping to its last angle until the next snapshot arrives.
+  return wrap01((wrappedIdx + progress) / q);
 }
 
 function getDiskPhase01AtTime(diskId, state, timeSec, layout) {
@@ -345,6 +352,7 @@ export function createSunAndMoonDisksView({
   layer,
   getState,
   getVisualTime,
+  setVisualTime,
   getDiskVisibility,
   getTimeline,
   getEditableHistoryBounds,
@@ -391,6 +399,7 @@ let feedbackText = null;
   let pendingPreviewSec = null;
 
   let stageMoveHandler = null;
+  let stageDownHandler = null;
   let stageUpHandler = null;
   let stageListenersBound = false;
   let lastStageMovePointerId = null;
@@ -538,8 +547,9 @@ let feedbackText = null;
     if (!Number.isFinite(pointerAngleRad)) return;
 
     requestPauseBeforeDrag?.();
+    endDrag();
 
-    const dragStartSec = getTSecInt(state);
+    const dragStartSec = getVisualTime?.() ?? getTimeSecForRotation(state);
     const markerAnchorRad = Number.isFinite(ringMarkerAngleByDisk[diskId])
       ? ringMarkerAngleByDisk[diskId]
       : getDiskPlayheadAngleRad(diskId, layout);
@@ -553,6 +563,9 @@ let feedbackText = null;
       accumSec: 0,
       visualTargetSec: dragStartSec,
       lastRotationDirection: ROTATION_CLOCKWISE,
+      lastMoveMs: performance.now(),
+      velocity: 0,
+      coasting: false,
     };
 
     if (moonSprite) moonSprite.cursor = "grabbing";
@@ -592,7 +605,7 @@ let feedbackText = null;
   }
 
   function updateDragFromPointerEvent(event) {
-    if (!dragSession || !event) return;
+    if (!dragSession || dragSession.coasting || !event) return;
 
     if (
       dragSession.pointerId != null &&
@@ -630,15 +643,30 @@ let feedbackText = null;
     const direction = diskLayout.clockwise ? 1 : -1;
     const deltaPhase = (angleDeltaRad / TWO_PI) * direction;
     const deltaSec = deltaPhase * secPerRev;
+    const now = performance.now();
+    const elapsed = (now - dragSession.lastMoveMs) / 1000;
+    if (elapsed > 0) {
+      const measured = Math.max(-secPerRev * .75, Math.min(secPerRev * .75, deltaSec / elapsed));
+      const weight = 1 - Math.exp(-elapsed / .04);
+      dragSession.velocity += (measured - dragSession.velocity) * weight;
+    }
+    dragSession.lastMoveMs = now;
+    moveDragBySeconds(deltaSec);
+  }
+
+  function moveDragBySeconds(deltaSec) {
     dragSession.accumSec += deltaSec;
 
     const frontierSec = getFrontierSec({ getTimeline, getState });
-    const dragSec = Math.round(dragSession.dragStartSec + dragSession.accumSec);
+    const dragSec = dragSession.dragStartSec + dragSession.accumSec;
+    const cap = getForecastPreviewCapSec?.() ?? frontierSec;
+    dragSession.visualTargetSec = Math.max(0, Math.min(cap, dragSec));
+    setVisualTime?.(dragSession.visualTargetSec);
+    if (dragSec < 0 || dragSec > cap) dragSession.velocity = 0;
     if (dragSec <= frontierSec) {
       // Browsing recorded history must not be limited by editability rules.
       // Edit-window gates apply to mutations, not to read-only time travel.
       const clampedSec = clampDiskHistoryBrowseTargetSec(dragSec, frontierSec);
-      dragSession.visualTargetSec = clampedSec;
       clearPreviewState?.();
       queueBrowseSecond(clampedSec);
       return;
@@ -653,7 +681,6 @@ let feedbackText = null;
       frontierSec,
       forecastPreviewCapSec
     );
-    dragSession.visualTargetSec = clampedFutureSec;
     if (clampedFutureSec <= frontierSec) {
       clearPreviewState?.();
       queueBrowseSecond(frontierSec);
@@ -669,6 +696,10 @@ let feedbackText = null;
   function bindStageInput() {
     if (stageListenersBound) return;
     if (!app?.stage) return;
+
+    // Finish queued wheel input before another control handles its new press.
+    stageDownHandler = () => { if (dragSession?.coasting) endDrag(); };
+    app.stage.on('pointerdowncapture', stageDownHandler);
 
     stageMoveHandler = (event) => {
       if (centrePress && !dragSession && event.pointerId === centrePress.pointerId) {
@@ -696,12 +727,20 @@ let feedbackText = null;
       event.stopPropagation?.();
     };
 
-    stageUpHandler = () => {
+    stageUpHandler = (event) => {
+      if (dragSession?.pointerId != null && Number.isFinite(event?.pointerId)
+        && event.pointerId !== dragSession.pointerId) return;
       centrePress = null;
       lastStageMovePointerId = null;
       lastStageMoveX = null;
       lastStageMoveY = null;
-      endDrag();
+      if (dragSession && event?.type !== 'pointercancel'
+        && performance.now() - dragSession.lastMoveMs < 80
+        && Math.abs(dragSession.velocity) > .1) {
+        dragSession.coasting = true;
+        if (moonSprite) moonSprite.cursor = 'grab';
+        if (seasonSprite) seasonSprite.cursor = 'grab';
+      } else endDrag();
     };
 
     // Keep disk scrubbing responsive even when the pointer leaves the disk sprite
@@ -716,6 +755,7 @@ let feedbackText = null;
 
   function unbindStageInput() {
     if (!stageListenersBound || !app?.stage) return;
+    if (stageDownHandler) app.stage.off('pointerdowncapture', stageDownHandler);
     if (stageMoveHandler) app.stage.off("globalpointermove", stageMoveHandler);
     if (stageMoveHandler) app.stage.off("pointermove", stageMoveHandler);
     if (stageUpHandler) {
@@ -724,6 +764,7 @@ let feedbackText = null;
       app.stage.off("pointercancel", stageUpHandler);
     }
     stageMoveHandler = null;
+    stageDownHandler = null;
     stageUpHandler = null;
     lastStageMovePointerId = null;
     lastStageMoveX = null;
@@ -875,6 +916,7 @@ let feedbackText = null;
     });
     phaseCentre.on('pointerout', () => { hoveredCentre = false; tooltipView?.hide?.(); });
     phaseCentre.on('pointerdown', event => {
+      if (dragSession?.coasting) endDrag();
       event.stopPropagation();
       suppressCentreTap = false;
       centrePress = { pointerId: event.pointerId, x: event.global.x, y: event.global.y };
@@ -948,6 +990,16 @@ let feedbackText = null;
   function update(_frameDt) {
     if (!root || !getState) return;
 
+    if (dragSession?.coasting) {
+      const dt = Number.isFinite(_frameDt) ? Math.max(0, _frameDt) : 0;
+      if (dt > .5) endDrag();
+      else {
+        const coast = sampleDiskMomentum(dragSession.velocity, dt);
+        dragSession.velocity = coast.velocity;
+        moveDragBySeconds(coast.deltaSec);
+        if (Math.abs(dragSession.velocity) < .1) endDrag();
+      }
+    }
     const state = getState();
     if (!state) return;
 
@@ -977,7 +1029,7 @@ let feedbackText = null;
       return;
     }
 
-    const baseTimeSec = getVisualTime?.() ?? getTimeSecForRotation(state);
+    const baseTimeSec = dragSession?.visualTargetSec ?? getVisualTime?.() ?? getTimeSecForRotation(state);
 
     if (moonSprite && moonSprite.visible !== false) {
       const orbit01 = getMoonOrbitPhase01AtTime(state, baseTimeSec);
@@ -1060,6 +1112,7 @@ let feedbackText = null;
     destroy,
     getRoot: () => root,
     isDragging: () => !!dragSession,
+    stopMomentum: () => { if (dragSession?.coasting) endDrag(); },
     getPhaseReferenceSnapshot: () => phaseReference?.getSnapshot() ?? null,
     getPhaseReferenceClickPoint: id => phaseReference?.getClickPoint(id) ?? null,
     getSemanticSnapshot: () => ({

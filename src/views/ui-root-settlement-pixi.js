@@ -361,6 +361,7 @@ const settlementPlayback = createSettlementPlayback({
   getForecastController: () => settlementForecastController,
   getGraphController: () => settlementGraphController,
   getGraphView: () => settlementGraphView,
+  getPlaybackSpanSec: () => settlementGraphView?.getVisibleTimeSpanSec?.(),
   onInvalidateProjectedLoss: invalidateSettlementProjectedLossCache,
   onSyncGraphHorizon: syncSettlementGraphHorizon,
 });
@@ -368,6 +369,7 @@ const {
   getSettlementPreviewCapSec,
   getSettlementViewedSec,
   getSettlementVisualTime,
+  setSettlementVisualTime,
   ensureSettlementRunnerPaused,
   getSettlementPlaybackTarget,
   setSettlementPlaybackTarget,
@@ -960,6 +962,7 @@ const timeControlsView = createTimeControlsView({
   getTimeScale: () => getSettlementPlaybackState(),
   setTimeScaleTarget: (speed, opts) => {
     if (lifeDecisionController.getStatus()) return {ok:false,reason:"decisionProcessing"};
+    sunMoonDisksView.stopMomentum();
     settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
     return setSettlementPlaybackTarget(speed, opts);
   },
@@ -978,6 +981,7 @@ const sunMoonDisksView = createSunAndMoonDisksView({
   referenceLayer: modalLayer,
   getState: () => getSettlementViewedState(),
   getVisualTime: getSettlementVisualTime,
+  setVisualTime: setSettlementVisualTime,
   getTimeline: () => runner.getTimeline?.(),
   getEditableHistoryBounds: () => runner.getEditableHistoryBounds?.(),
   getForecastPreviewCapSec: () => getSettlementPreviewCapSec(),
@@ -1431,6 +1435,7 @@ settlementDebugMenu = createSettlementDebugMenuDom({
 });
 
 function requestPauseBeforeDrag() {
+  sunMoonDisksView.stopMomentum();
   settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
   setSettlementPlaybackTarget(0);
   ensureSettlementRunnerPaused();
@@ -1439,7 +1444,7 @@ function requestPauseBeforeDrag() {
 function togglePause() {
   const following = settlementGraphView?.isFollowingForecastReveal?.() === true;
   settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
-  if (following || getSettlementPlaybackTarget() !== 0) return requestPauseBeforeDrag();
+  if (following || getSettlementPlaybackTarget() !== 0 || sunMoonDisksView.isDragging()) return requestPauseBeforeDrag();
   return setSettlementPlaybackTarget(1);
 }
 
@@ -1764,7 +1769,7 @@ window.addEventListener("keydown", handleGlobalKeyDown);
 
 const timelineAudio = createTimelineAudio({
   getTime:getSettlementVisualTime,
-  getRate:getSettlementPlaybackTarget,
+  getRate:()=>getSettlementPlaybackState().rate,
   isSuspended:()=>gameSession.isInMenu()||gameMenu.requiresLandscape()||researchLibrary.isOpen(),
   parent:document.querySelector('[data-testid="utility-controls"]'),
 });
