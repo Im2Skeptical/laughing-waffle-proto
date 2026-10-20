@@ -58,11 +58,11 @@ strangerSite.populationByClass.villager.eldersByAge = [];
 strangerSite.populationByClass.stranger.adults = 20;
 assert.equal(assignDetailedSettlementWorkers(strangerWorkers, "river-crown")[0].effectiveWorkers, 0.5);
 
-assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 7);
+assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 4);
 assert.equal(getHousingCapacity(state, "upper-floodplain"), 30);
 getDetailedSettlement(state, "upper-floodplain").structureSlots[3] = { structureId: "granary" };
 getDetailedSettlement(state, "upper-floodplain").structureSlots[4] = { structureId: "mudHouses" };
-assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 12);
+assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 6);
 assert.equal(getHousingCapacity(state, "upper-floodplain"), 60);
 // Direct query seam only. Real commissions stay in the construction continuation tests.
 const floodplain = getDetailedSettlement(state, "upper-floodplain");
@@ -72,11 +72,11 @@ const pendingGranary = floodplain.structureSlots[3];
 const pendingHouses = floodplain.structureSlots[4];
 pendingGranary.construction = { completedCycles: 0 };
 pendingHouses.construction = { completedCycles: 0 };
-assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 7, "an unfinished granary adds no food capacity");
+assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 4, "an unfinished granary adds no food capacity");
 assert.equal(getHousingCapacity(state, "upper-floodplain"), 30, "unfinished houses add no housing");
 delete pendingGranary.construction;
 delete pendingHouses.construction;
-assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 12);
+assert.equal(getStoredFoodCapacity(state, "upper-floodplain"), 6);
 assert.equal(getHousingCapacity(state, "upper-floodplain"), 60);
 
 assert.deepEqual(['mudHouses','timberHouse','stoneHouse','longhouse','tenement','greatDwelling'].map(id=>settlementStructureDefs[id]?.housing),[30,60,90,210,360,630]);

@@ -59,8 +59,12 @@ registries here.
   production, using local hosts before adjacent connected neighbours. Only paid cycles
   advance progress; completion activates the building. Unfinished sites supply no
   Housing, modifiers, tags, institutional bonuses or capabilities.
-  Numeric capacities are additive. The Common Housing ladder is 30/60/90/210/360/630.
-  Gated query modifiers supply capacity, output, defense and Retinue Force bonuses.
+  Housing capacities are additive. The Common Housing ladder is 30/60/90/210/360/630.
+  Gated query modifiers supply Stock Power, output, defense and Retinue Force bonuses.
+  Stock Power starts at 1 per host; Structures add 1/2/3/4 at Bronze/Silver/Gold/Diamond, then
+  multiply base capacity including Practice quality and Scholar staffing bonuses.
+  Capacity rounds down once after multiplication. Upgrades add one Power per tier,
+  capped at Diamond; other numeric Structure bonuses retain percentage quality scaling.
 - Scholars and Warriors are mutually exclusive specialties inside Villager/Stranger
   age cohorts. Aging, migration and mortality preserve those identities.
 - Four deterministic neutral templates are fixed-demography external actors.

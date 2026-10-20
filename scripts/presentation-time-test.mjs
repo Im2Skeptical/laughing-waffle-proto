@@ -188,9 +188,9 @@ for(const definition of Object.values(settlementStructureDefs)) {
   assert.ok(!getPracticeSymbols(face).some(entry=>/^(Cycle|Charge|Worker|Worker multiplier)$/.test(entry.name)),'Structures explain their own symbols');
 }
 const granaryFace=getGamepieceFace(faceClock,'structure','granary','bronze',{slot:{qualityBonus:1}});
-assert.equal(granaryFace.reading.effects[0].text,'+6.25 to Edible Stock Capacity');
+assert.equal(granaryFace.reading.effects[0].text,'+2 Stock Power for Edible');
 assert.deepEqual(granaryFace.structureBonuses[0].traits,['Edible']);
-assert.deepEqual(getPracticeSymbols(granaryFace).map(entry=>entry.name),['Edible','Stock capacity bonus','Construction footprint','Quality']);
+assert.deepEqual(getPracticeSymbols(granaryFace).map(entry=>entry.name),['Edible','Stock Power','Construction footprint','Quality']);
 const kilnTerms=getInspectionTerms(getGamepieceFace(faceClock,'structure','kiln')).terms;
 assert.ok(kilnTerms.Construction&&kilnTerms.Vessel&&kilnTerms.Glass,'References cover Stock traits in Structure rules, including traits absent from its face');
 assert.equal(getGamepieceFace(faceClock,'structure','mudHouses','bronze',{slot:{qualityBonus:1}}).structureBonuses[0].amount,37,'Housing rounds per Structure');
@@ -213,7 +213,7 @@ assert.equal(getGamepieceFace(faceClock,'structure','archive','bronze',{settleme
 assert.equal(getGamepieceFace(faceClock,'structure','archive').reading.active,null,'Catalogue faces do not invent local staffing');
 const configuredStructureState={...faceClock,gameConfig:{gamepieces:{structures:{granary:{...settlementStructureDefs.granary,modifiers:[{kind:'capacity',amount:7,query:{traitsAny:['Water']}}]}}}}};
 const configuredStructureBefore=JSON.stringify(configuredStructureState);
-assert.equal(getGamepieceFace(configuredStructureState,'structure','granary').reading.effects[0].text,'+7 to Water Stock Capacity','Reading uses configured runtime definitions');
+assert.equal(getGamepieceFace(configuredStructureState,'structure','granary').reading.effects[0].text,'+7 Stock Power for Water','Reading uses configured runtime definitions');
 assert.equal(JSON.stringify(configuredStructureState),configuredStructureBefore);
 assert.equal(JSON.stringify(faceClock),structureFaceState,'Structure presentation never mutates state');
 assert.equal(workerFace.workerMultiplier,1.5,'Worker multiplier uses effective workers, not occupied socket count');
