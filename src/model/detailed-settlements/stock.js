@@ -11,15 +11,24 @@ export const stockTotal = (state, settlement, trait) => localStockSlots(state, s
 export const specialistCount = (settlement, classId) => Object.values(settlement?.populationByClass ?? {}).reduce((sum, cohort) => sum + ageCohortTotal(cohort.specialists?.[classId]), 0);
 export const structureQualityMultiplier = slot => 1 + .25 * Math.max(0,slot?.qualityBonus??0);
 
+// Stock Power gains one point per quality tier; other numeric bonuses keep
+// their existing percentage scaling. Authored amounts remain editable data.
+export function structureModifierAmount(def, mod, slot) {
+  if (!Number.isFinite(mod.amount)) return mod.amount;
+  if (mod.kind !== 'capacity') return mod.amount * structureQualityMultiplier(slot);
+  const baseTier = Math.max(0, ['bronze', 'silver', 'gold', 'diamond'].indexOf(def.minimumQuality));
+  return mod.amount + Math.min(3 - baseTier, Math.max(0, slot?.qualityBonus ?? 0));
+}
+
 export function structureModifiers(state, settlement) {
   return (settlement?.structureSlots ?? []).flatMap(slot => {
     if (slot?.construction) return [];
     const def = getDetailedStructureDef(state, slot?.structureId);
     if (def?.specialistGate && specialistCount(settlement, def.pool) < def.specialistGate) return [];
     return (def?.modifiers ?? []).filter(mod => modifierCondition(state, settlement, mod.query)).map(mod => {
-      let amount = mod.amount;
+      let amount = structureModifierAmount(def, mod, slot);
       if (mod.query?.scholarScale) amount *= Math.min(mod.query.cap ?? 3, Math.floor(specialistCount(settlement, 'scholar') / mod.query.scholarScale));
-      return Number.isFinite(amount) ? {...mod,amount:amount*structureQualityMultiplier(slot)} : mod;
+      return Number.isFinite(amount) ? {...mod,amount,sourceId:def.id,sourceLabel:def.label} : mod;
     });
   }).filter((mod,index,all) => !mod.query?.unique || all.findIndex(m => m.kind === mod.kind && JSON.stringify(m.query) === JSON.stringify(mod.query)) === index);
 }
@@ -53,12 +62,21 @@ export function matchesPractice(state, slot, query = {}, staffed = false) {
     && (!query.triggerKindsAny || def.charge?.trigger.any.some(c => query.triggerKindsAny.includes(c.kind) && (!query.triggerTraitsAny || c.kind !== 'stockGenerated' || c.traitsAny?.some(t => query.triggerTraitsAny.includes(t)))));
 }
 
-export function stockCapacity(state, settlement, slot, staffed = false) {
+// Stock Power starts at one, then adds every matching contribution per host.
+export function stockCapacityBreakdown(state, settlement, slot, staffed = false) {
   const def = getDetailedPracticeDef(state, slot?.practiceId);
-  if (!(def?.stockCapacity > 0)) return 0;
-  const quality = Math.max(0, ['bronze', 'silver', 'gold', 'diamond'].indexOf(slot.tier));
-  return Math.floor(def.stockCapacity + quality + (staffed ? def.scholarCapacityBonus ?? 0 : 0)
-    + structureModifiers(state, settlement).reduce((sum, mod) => sum + (mod.kind === 'capacity' && matchesPractice(state, slot, mod.query, staffed) ? mod.amount : 0), 0));
+  const base = def?.stockCapacity ?? 0;
+  const quality = Math.max(0, ['bronze', 'silver', 'gold', 'diamond'].indexOf(slot?.tier));
+  const scholar = staffed ? def?.scholarCapacityBonus ?? 0 : 0;
+  const sources = base > 0 ? structureModifiers(state, settlement)
+    .filter(mod => mod.kind === 'capacity' && matchesPractice(state, slot, mod.query, staffed))
+    .map(mod => ({ id: mod.sourceId, label: mod.sourceLabel, amount: mod.amount })) : [];
+  const power = 1 + sources.reduce((sum, source) => sum + source.amount, 0);
+  return { base, quality, scholar, power, sources, total: base > 0 ? Math.floor((base + quality + scholar) * power) : 0 };
+}
+
+export function stockCapacity(state, settlement, slot, staffed = false) {
+  return stockCapacityBreakdown(state, settlement, slot, staffed).total;
 }
 
 export function generateStock(state, settlement, slot, amount, staffed = false) {

@@ -36,7 +36,7 @@ const FIRST_PAY_SEC = 3;
 const RNG_STREAMS = ["seed", "baseSeed", "vassalSeed", "vassalDevelopmentSeed", "vassalLifeMapSeed", "vassalPortraitSeed"];
 // Current card rules, held as literals so a wrong def cannot supply its own oracle.
 const MUD_HOUSING = 30;
-const GRANARY_EDIBLE_BONUS = 5;
+const GRANARY_STOCK_POWER = 1;
 const FORAGE_CAP = 2;
 const FORAGE_FOOD = 1;
 const LOGGING_CAP = 6;
@@ -264,8 +264,8 @@ function open(seed) {
   expect(settlementStructureDefs.mudHouses.housing === MUD_HOUSING, seed, "mud-housing-rule", {
     expected: MUD_HOUSING, actual: settlementStructureDefs.mudHouses.housing,
   });
-  expect(granaryMod?.amount === GRANARY_EDIBLE_BONUS && granaryMod.query?.traitsAny?.includes("Edible") === true, seed, "granary-rule", {
-    expected: `Edible +${GRANARY_EDIBLE_BONUS}`, actual: JSON.stringify(granaryMod ?? null),
+  expect(granaryMod?.amount === GRANARY_STOCK_POWER && granaryMod.query?.traitsAny?.includes("Edible") === true, seed, "granary-rule", {
+    expected: `Edible +${GRANARY_STOCK_POWER}`, actual: JSON.stringify(granaryMod ?? null),
   });
   expect(stoneCost.length === 2
     && stoneCost[0].amount === STONE_CONSTRUCTION && stoneCost[0].traits.includes("Construction")
@@ -328,8 +328,8 @@ async function play(seed) {
   match(seed, { logging: hosted(siteOf(state), "logging"), tool: hosted(siteOf(state), "toolmaking"), forage: hosted(siteOf(state), "forage") }, idle, "stock-placed");
   const effects = (done) => ({
     housing: done ? MUD_HOUSING : 0,
-    edibleCapacity: done ? FORAGE_CAP + GRANARY_EDIBLE_BONUS : FORAGE_CAP,
-    granaryBonus: done ? GRANARY_EDIBLE_BONUS : 0,
+    edibleCapacity: done ? FORAGE_CAP * (1 + GRANARY_STOCK_POWER) : FORAGE_CAP,
+    granaryBonus: done ? GRANARY_STOCK_POWER : 0,
     workers: [0, 0, 0, 0, 0],
   });
   const stockAt = (tSec) => ({ logging: loggingAfter(tSec), tool: 0, forage: forageAfter(tSec) });

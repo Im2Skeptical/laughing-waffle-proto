@@ -1,24 +1,25 @@
 // Quality, staffing, and two structure capacity modifiers, plus Charge clamps.
 // Contracts already in stock.js / practices.js, charge-content.js, and
 // docs/civilization-milestone.md: tier index 0..3 adds capacity; structure
-// qualityBonus scales numeric modifiers by 1+0.25*bonus; summed capacity is
-// floored once; workers scale private Charge gain only.
+// Stock Power starts at 1 and Structures add their quality rank; pooled Power multiplies
+// base plus tier capacity, then floors once; workers scale private Charge gain only.
 // A practice takes one Scholar socket, then ordinary tokens from
 // floor((adults - scholars) / populationPerToken). Academy gate is 3 Scholars.
-// Its scale is floor(scholars / 2), cap 3, then × quality; scholarStaffed is separate.
+// Knowledge-tagged and Scholar-staffed Practices receive the same Academy contribution.
 // Sheep Husbandry's hook text mentions extra staffed capacity, but no practice
 // def has scholarCapacityBonus. That mismatch is not pinned here.
 // Training Yard and Black Archive add chargeGain, not chargeThresholdReduction.
 // These fixtures do not claim that no future card can reduce a threshold.
 // node scripts/quality-modifier-interactions-test.mjs
+import { getInspectionTerms } from '../src/views/inspection-terms.js';
 import fs from "node:fs";
 import path from "node:path";
 import { settlementStructureDefs } from "../src/defs/gamepieces/detailed-settlement-defs.js";
 import { fiveSlots, practiceSlot, setFixturePopulation, createLabFixture } from "../src/model/dev-lab/fixtures.js";
-import { getDetailedSettlementSites } from "../src/model/detailed-settlements.js";
+import { getDetailedSettlementSites, getDetailedSettlementViewModel } from "../src/model/detailed-settlements.js";
 import { evaluateDetailedPracticeSlot, flushPracticeEvents } from "../src/model/detailed-settlements/practices.js";
 import { emitPracticeEvent } from "../src/model/detailed-settlements/practice-events.js";
-import { stockCapacity, structureQualityMultiplier } from "../src/model/detailed-settlements/stock.js";
+import { stockCapacity, stockCapacityBreakdown, structureQualityMultiplier, structureModifierAmount } from "../src/model/detailed-settlements/stock.js";
 import { assignDetailedSettlementWorkers, isScholarStaffed } from "../src/model/detailed-settlements/workers.js";
 import { applyBuild } from "../src/model/structure-layout.js";
 import { deserializeGameState, serializeGameState } from "../src/model/state.js";
@@ -123,18 +124,59 @@ function sockets(assigned) {
 }
 
 try {
+for (const def of Object.values(settlementStructureDefs)) {
+  const rank = TIERS.indexOf(def.minimumQuality) + 1;
+  for (const mod of def.modifiers ?? []) {
+    if (mod.kind !== 'capacity') continue;
+    expect(mod.amount, rank, `${def.id}:authored-power-matches-quality`);
+    for (const qualityBonus of [0,1,2,3]) expect(structureModifierAmount(def,mod,{qualityBonus}), Math.min(4,rank+qualityBonus), `${def.id}:quality-power-${qualityBonus}`);
+  }
+}
+for (const qualityBonus of [0,1,2,3]) {
+  const granary = prepared({population:0,slots:[{id:'forage'}],structures:[{id:'granary',origin:0,qualityBonus}]});
+  expect(stockCapacity(granary.state,granary.local,granary.local.practiceSlots[0]),2*(2+qualityBonus),`granary-solo-quality-${qualityBonus}`);
+}
+const twoGranaries = prepared({population:0,slots:[{id:'forage'}],structures:[{id:'granary',origin:0,qualityBonus:0},{id:'granary',origin:1,qualityBonus:0}]});
+expect(stockCapacity(twoGranaries.state,twoGranaries.local,twoGranaries.local.practiceSlots[0]),6,'two-bronze-granaries-times-three');
+
+// Authored-value checks: base 1 + Bronze 1 + Silver 2 = x4.
+const pool = prepared({population:0, slots:[{id:'carpentry'}], structures:[
+  {id:'storehouse',origin:0,qualityBonus:0},{id:'workshop',origin:1,qualityBonus:0},
+]});
+const beforePool = serializeGameState(pool.state);
+const detail = stockCapacityBreakdown(pool.state,pool.local,pool.local.practiceSlots[0]);
+expect([detail.base,detail.power,detail.total],[5,4,20],'power-adds-to-base-one');
+expect(detail.sources.map(source=>[source.label,source.amount]),[['Storehouse',1],['Workshop',2]],'named-power-sources');
+const powerFace = getDetailedSettlementViewModel(pool.state,pool.regionId).practices[0].face;
+expect([powerFace.stockCapacity,powerFace.stockCapacityBreakdown.power],[20,4],'live-face-matches-model');
+const powerTerms = getInspectionTerms(powerFace).terms;
+expect(powerTerms['Stock Power'].includes('1 + Storehouse 1 + Workshop 2 = \u00d74'),true,'tooltip-names-summed-sources');
+expect(powerTerms['Stock capacity'].startsWith('(5) \u00d7 4 Stock Power = 20'),true,'tooltip-base-times-total');
+expect(serializeGameState(pool.state),beforePool,'capacity-and-reading-do-not-mutate-state-or-rng');
+pool.local.structureSlots[0].construction={completedCycles:0};
+expect(stockCapacity(pool.state,pool.local,pool.local.practiceSlots[0]),15,'unfinished-source-excluded');
+pool.local.structureSlots=pool.local.structureSlots.map(()=>null);
+expect(stockCapacity(pool.state,pool.local,pool.local.practiceSlots[0]),5,'empty-pool-is-times-one');
+const gatedPower = prepared({population:0, slots:[{id:'anatomicalStudy'}],structures:[{id:'archive',origin:0,qualityBonus:0}]});
+expect(stockCapacity(gatedPower.state,gatedPower.local,gatedPower.local.practiceSlots[0]),5,'specialist-gate-excludes-power');
+const duplicatePower = prepared({population:4,scholars:4,slots:[{id:'toolmaking'}],structures:[{id:'academy',origin:0,qualityBonus:0},{id:'academy',origin:3,qualityBonus:0}]});
+expect(stockCapacity(duplicatePower.state,duplicatePower.local,duplicatePower.local.practiceSlots[0],true),28,'every-academy-contributes-to-one-pool');
+const multipliedBase = prepared({population:1,scholars:1,slots:[{id:'carpentry',tier:'silver'}],structures:[{id:'storehouse',origin:0,qualityBonus:0}]});
+multipliedBase.state.gameConfig.gamepieces.practices.carpentry.scholarCapacityBonus=2;
+expect(stockCapacity(multipliedBase.state,multipliedBase.local,multipliedBase.local.practiceSlots[0],true),16,'quality-and-scholar-are-inside-multiplied-base');
+
 expect([0, 1, 2, 3].map(bonus => structureQualityMultiplier({ qualityBonus: bonus })), [1, 1.25, 1.5, 1.75], "quality-multiplier");
 
 for (const [index, tier] of TIERS.entries()) {
   const structures = [{ id: "workshop", origin: 0, qualityBonus: 1 }, { id: "storehouse", origin: 1, qualityBonus: 1 }];
-  pinCapacity(`carpentry-${tier}`, { population: 0, slots: [{ id: "carpentry", tier }], structures }, 0, 8 + index);
+  pinCapacity(`carpentry-${tier}`, { population: 0, slots: [{ id: "carpentry", tier }], structures }, 0, (5 + index) * 6);
   pinCapacity(`carpentry-bare-${tier}`, { population: 0, slots: [{ id: "carpentry", tier }] }, 0, 5 + index);
   pinCapacity(`forage-ignores-construction-${tier}`, { population: 0, slots: [{ id: "forage", tier }], structures }, 0, 2 + index);
   pinCapacity(`anatomical-record-${tier}`, {
     population: 2, scholars: 2,
     slots: [{ id: "anatomicalStudy", tier }],
     structures: [{ id: "blackArchive", origin: 0, qualityBonus: 1 }, { id: "library", origin: 2, qualityBonus: 1 }],
-  }, 0, 8 + index);
+  }, 0, (5 + index) * 8);
 }
 
 pinCapacity("logging-construction-not-tool", {
@@ -145,7 +187,7 @@ pinCapacity("logging-construction-not-tool", {
     { id: "storehouse", origin: 1, qualityBonus: 1 },
     { id: "technicalWorkshop", origin: 2, qualityBonus: 3 },
   ],
-}, 0, 10);
+}, 0, 42);
 
 pinCapacity("toolmaking-tool-not-construction", {
   population: 0,
@@ -155,10 +197,10 @@ pinCapacity("toolmaking-tool-not-construction", {
     { id: "foundry", origin: 1, qualityBonus: 3 },
     { id: "storehouse", origin: 3, qualityBonus: 3 },
   ],
-}, 0, 9);
+}, 0, 48);
 
-// Academy quality 1: scale floor(4/2)*1*1.25 = 2.5, staffed socket +1.25.
-// Bronze Toolmaking base 4. Staffed floor(4+2.5+1.25)=7. Unstaffed floor(4+2.5)=6.
+// A Gold Academy upgraded once is Diamond: base 1 + 4 = x5.
+// Bronze Toolmaking base 4 reaches 20, whether naturally Knowledge-tagged or staffed.
 // Two required cards cannot soak four Scholars: each practice takes one socket.
 const academy = [{ id: "academy", origin: 0, qualityBonus: 1 }];
 const academyStaffed = measure({
@@ -167,8 +209,8 @@ const academyStaffed = measure({
   structures: academy,
 }, 0);
 expect(sockets(academyStaffed.assigned), { scholars: 1, tokens: 1, effective: 1 }, "academy-staffed-assignment");
-expect(academyStaffed.capacity, 7, "academy-staffed:direct");
-expect(academyStaffed.evaluation.stockCapacity, 7, "academy-staffed:evaluation");
+expect(academyStaffed.capacity, 20, "academy-staffed:direct");
+expect(academyStaffed.evaluation.stockCapacity, 20, "academy-staffed:evaluation");
 
 const academyScaleOnly = measure({
   population: 4, scholars: 4,
@@ -180,8 +222,8 @@ const academyScaleOnly = measure({
 }, 4);
 expect(sockets(academyScaleOnly.assigned), { scholars: 0, tokens: 0, effective: 0 }, "academy-scale-only-assignment");
 expect(sockets(assignDetailedSettlementWorkers(academyScaleOnly.fixture.state, academyScaleOnly.fixture.regionId)[0]), { scholars: 1, tokens: 1, effective: 1 }, "academy-sink-took-scholar");
-expect(academyScaleOnly.capacity, 6, "academy-scale-only:direct");
-expect(academyScaleOnly.evaluation.stockCapacity, 6, "academy-scale-only:evaluation");
+expect(academyScaleOnly.capacity, 20, "academy-scale-only:direct");
+expect(academyScaleOnly.evaluation.stockCapacity, 20, "academy-scale-only:evaluation");
 
 function chargeProbe(spec) {
   const fixture = prepared(spec);
@@ -227,7 +269,7 @@ expect(sockets(assignDetailedSettlementWorkers(anatomical.state, anatomical.regi
 expect(anatomical.evaluation.chargeThreshold, 2, "anatomical-threshold-stays-authored");
 expect(anatomical.evaluation.chargeGain, 6, "anatomical-worker-and-archive-gain");
 expect(anatomical.evaluation.effects.map(effect => effect.scaledValue.effectiveValue), [2, 2], "anatomical-discharge-not-worker-scaled");
-expect(anatomical.evaluation.stockCapacity, 9, "anatomical-silver-record-capacity");
+expect(anatomical.evaluation.stockCapacity, 48, "anatomical-silver-record-capacity");
 
 const before = serializeGameState(anatomical.state);
 const timeline = createTimelineFromInitialState(anatomical.state);
@@ -268,4 +310,4 @@ if (failures.length) {
   console.error(`${failures.length} failed; ${file}`);
   process.exit(1);
 }
-console.log("[quality-modifier-interactions] tier, scholar, fractional structure capacity, charge clamps, json continuation ok");
+console.log("[quality-modifier-interactions] tier, scholar, quality-ranked Stock Power, charge clamps, json continuation ok");

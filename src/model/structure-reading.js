@@ -1,4 +1,4 @@
-import { specialistCount, structureQualityMultiplier } from './detailed-settlements/stock.js';
+import { specialistCount, structureQualityMultiplier, structureModifierAmount } from './detailed-settlements/stock.js';
 
 const title = value => value ? value[0].toUpperCase() + value.slice(1) : '';
 const fmt = value => String(Math.round(value * 100) / 100);
@@ -42,8 +42,8 @@ function modifierText(mod, amount) {
   const history = { age:'civilization age', records:'stocked Record Practices', losses:'lost settlements', retired:'retired Vassals of the candidate class', commissions:'completed Commissions by retired Vassals of the candidate class', chaos:'Chaos Power', conquests:'completed conquests', victories:'martial victories', knowledgeStructures:'distinct local Knowledge Structures' };
   const lines = {
     capacity: mod.query?.traitsAny?.length && !mod.query.tagsAny?.length
-      ? `+${n} to ${mod.query.traitsAny.join(' / ')} Stock Capacity`
-      : `+${n} to Stock Capacity on ${scope}`,
+      ? `+${n} Stock Power for ${mod.query.traitsAny.join(' / ')}`
+      : `+${n} Stock Power for ${scope}`,
     output: `+${n} Stock output from ${scope}`,
     chargeGain: `+${n} incoming Charge for ${scope}`,
     effectBonus: `+${n} to numeric effects of ${scope}`,
@@ -78,9 +78,9 @@ export function getStructureReading(def, { slot = null, settlement = null } = {}
     bonuses.push({ kind:'housingCapacity', amount, label:'Housing capacity', traits:[] });
   }
   for (const mod of def.modifiers ?? []) {
-    const amount = Number.isFinite(mod.amount) ? mod.amount * factor : 0;
+    const amount = Number.isFinite(mod.amount) ? structureModifierAmount(def, mod, slot) : 0;
     effects.push({ timing:'', text:modifierText(mod, amount) });
-    if (mod.kind === 'capacity') bonuses.push({ kind:'stock', amount, label:'Stock capacity', traits:[...(mod.query?.traitsAny ?? [])], scope:practiceScope(mod.query) });
+    if (mod.kind === 'capacity') bonuses.push({ kind:'stock', amount, label:'Stock Power', traits:[...(mod.query?.traitsAny ?? [])], scope:practiceScope(mod.query) });
     if (mod.kind === 'support') bonuses.push({ kind:'population', amount:amount * 100, unit:'%', label:'Martial Support', traits:[] });
   }
   if (def.pool !== 'common' && def.candidateBonus) effects.push({ timing:'', text:`+${def.candidateBonus} to future ${title(def.pool)} candidates from this settlement (combined institutional bonus capped at +5)` });

@@ -191,7 +191,7 @@ let detailedIndex = mapDoc.regions.findIndex((region) => region.detailedSettleme
 must(detailedIndex >= 0, "starter map has no detailed settlement to mutate");
 must(mapDoc.schemaVersion === 8 && lifeDoc.schemaVersion === 2, "controller drafts are not current schema v8/v2");
 must(lifeDoc.generatorConfig?.schemaVersion === 14 && lifeDoc.generatorConfig?.weights?.early, "life generator is not current schema v14");
-must(starter.gameSettings?.schemaVersion === 27 && starter.launch?.startMode === "randomRoad", "profile settings/launch are not the current contract");
+must(starter.gameSettings?.schemaVersion === 28 && starter.launch?.startMode === "randomRoad", "profile settings/launch are not the current contract");
 
 const vassalDraft = {
   schemaVersion: 5,
