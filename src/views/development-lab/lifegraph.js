@@ -8,6 +8,7 @@ import { nodeDesignId, lifegraphNodeLabel } from '../../model/dev-lab/lifegraph.
 import { VASSAL_SIGNATURE_NODE_VARIANTS } from '../../defs/gamepieces/vassal-life-map-defs.js';
 import { createLifegraphPreview } from './lifegraph-preview.js';
 import { createLabNodeSandboxView } from './node-sandbox.js';
+import { attachDevPreviewDisplay } from '../dev-preview-display.js';
 import { el, button, confirmButton, input, select, field, section, disclosure, badge, table, info } from './elements.js';
 
 const clone=value=>JSON.parse(JSON.stringify(value));
@@ -16,13 +17,14 @@ const TAB_OPTIONS=[['graph','Graph'],['columns','Milestone columns'],['families'
 
 export function createLifegraphView({controller=createLifegraphController()}={}){
   const root=el('section','','lab-lifegraph');root.dataset.testid='lab-lifegraph';
+  const display=attachDevPreviewDisplay(root);
   let tab='graph',selectedDesign='practiceReform',search='',reviewOnly=false,lastSelected=null,frame=0,player=null,playerReset=null,ioText='',presetName='',generationOpen=false;
   const playerDialog=el('dialog','','lab-lifegraph-player'),playerBody=el('div');
   playerDialog.setAttribute('aria-label','Play Lifegraph node');
   playerDialog.addEventListener('close',()=>player?.setVisible(false));
   playerDialog.append(button('Close node player',()=>playerDialog.close(),'lifegraph-close-player','primary'),playerBody);document.body.append(playerDialog);
-  function play(id,{type=false}={}){
-    try{playerReset=()=>type?controller.openType(id):controller.openNode(id);playerReset();player??=createLabNodeSandboxView({controller:controller.sandbox,embedded:true,onReset:()=>playerReset?.()});
+  async function play(id,{type=false}={}){
+    try{await display.exit();playerReset=()=>type?controller.openType(id):controller.openNode(id);playerReset();player??=createLabNodeSandboxView({controller:controller.sandbox,embedded:true,onReset:()=>playerReset?.()});
       playerBody.replaceChildren(player.node);player.setVisible(true);player.refreshFromController();if(!playerDialog.open)playerDialog.showModal();}
     catch(error){showError(error.message);}
   }
@@ -180,16 +182,18 @@ export function createLifegraphView({controller=createLifegraphController()}={})
   }
 
   function render(){
-    const active=document.activeElement,label=active?.getAttribute('aria-label'),start=active?.selectionStart,end=active?.selectionEnd,scroll=window.scrollY;
+    const active=document.activeElement,label=active?.getAttribute('aria-label'),start=active?.selectionStart,end=active?.selectionEnd,scroll=window.scrollY,workshopScroll=root.scrollTop;
     const generation=root.querySelector('[data-testid=lifegraph-generation]');if(generation)generationOpen=generation.open;
     const s=controller.getSnapshot();if(s.selectedNodeId!==lastSelected){lastSelected=s.selectedNodeId;const n=s.graph?.nodes.find(n=>n.id===s.selectedNodeId);if(n&&n.band!=='founding')selectedDesign=nodeDesignId(n);}
-    root.replaceChildren();renderHeader(root,s);
+    const fullscreen=root.querySelector(':scope > .dev-preview-fullscreen');
+    root.replaceChildren();if(fullscreen)root.append(fullscreen);renderHeader(root,s);
     ({graph:renderGraph,columns:parent=>renderLifegraphColumns(parent,{controller,play,onReview:id=>{selectedDesign=id;tab='nodes';render();}}),families:renderFamilies,nodes:renderNodes,guarantees:renderGuarantees,bands:renderBands,diagnostics:renderDiagnostics,share:renderShare})[tab](root,s);
     preview.setVisible(tab==='graph'&&root.isConnected);
     if(label){const next=[...root.querySelectorAll('[aria-label]')].find(n=>n.getAttribute('aria-label')===label);if(next){next.focus({preventScroll:true});if(start!=null&&['text','search'].includes(next.type)||next?.tagName==='TEXTAREA')try{next.setSelectionRange(start,end);}catch{}}}
     window.scrollTo(0,scroll);
+    root.scrollTop=workshopScroll;
   }
   const unsubscribe=controller.subscribe(()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(render);});render();
-  return {controller,render(parent){parent.append(root);preview.setVisible(tab==='graph');},hide(){preview.setVisible(false);playerDialog.close();player?.setVisible(false);},getSnapshot:()=>controller.getSnapshot(),getPoint:id=>preview.getPoint(id),
-    getPlayer:()=>player?.getSnapshot(),getPlayerPoint:(...args)=>player?.getPoint(...args),destroy(){cancelAnimationFrame(frame);unsubscribe();controller.destroy();preview.destroy();player?.destroy();playerDialog.remove();root.remove();}};
+  return {controller,render(parent){parent.append(root);preview.setVisible(tab==='graph');},hide(){void display.exit();preview.setVisible(false);playerDialog.close();player?.setVisible(false);},getSnapshot:()=>controller.getSnapshot(),getPoint:id=>preview.getPoint(id),
+    getPlayer:()=>player?.getSnapshot(),getPlayerPoint:(...args)=>player?.getPoint(...args),destroy(){cancelAnimationFrame(frame);unsubscribe();display.destroy();controller.destroy();preview.destroy();player?.destroy();playerDialog.remove();root.remove();}};
 }

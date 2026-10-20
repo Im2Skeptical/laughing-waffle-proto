@@ -790,6 +790,10 @@ html:has(.review-bulk-sheet[open]) { overflow:hidden; }
 .development-lab .lab-lifegraph-tabs { overflow-x:auto; flex-wrap:nowrap; margin:16px 0; padding-bottom:6px; }
 .development-lab .lab-lifegraph-tabs button { white-space:nowrap; }
 .development-lab .lab-lifegraph-preview { background:#111c21; border:1px solid var(--lab-line); border-radius:12px; padding:12px; }
+.development-lab .lab-lifegraph > .lab-page-head { padding-right:130px; }
+.development-lab .lab-lifegraph.dev-preview-expanded { display:block!important; overflow:auto!important; padding:12px!important; }
+.development-lab .lab-lifegraph.dev-preview-expanded > .dev-preview-fullscreen { position:fixed; }
+.development-lab .lab-lifegraph.dev-preview-expanded .lab-lifegraph-graph-scroll canvas { width:calc(100% * var(--lifegraph-zoom,1))!important; height:auto!important; max-width:none!important; max-height:none!important; }
 .development-lab .lab-lifegraph-graph-scroll { overflow:auto; max-height:70vh; border-radius:8px; }
 .development-lab .lab-lifegraph-graph-scroll canvas { display:block; width:calc(100% * var(--lifegraph-zoom,1)); min-width:1100px; height:auto; }
 .development-lab .lab-lifegraph-node-layout { display:grid; grid-template-columns:260px minmax(0,1fr); gap:18px; align-items:start; }
@@ -801,6 +805,8 @@ html:has(.review-bulk-sheet[open]) { overflow:hidden; }
 .development-lab .lab-lifegraph-review-entry { border-top:1px solid var(--lab-line); padding:10px 0; }
 .development-lab dialog.lab-lifegraph-player { background:#111c21; color:var(--lab-text); width:98vw; max-width:1800px; max-height:97dvh; border:1px solid var(--lab-line); border-radius:12px; padding:12px; overflow:auto; }
 .development-lab dialog.lab-lifegraph-player::backdrop { background:#050c11d9; }
+/* A top-layer dialog must also release its bounds around the fixed landscape surface. */
+.development-lab dialog.lab-lifegraph-player:has(.dev-preview-expanded) { width:100vw; height:100dvh; max-width:none; max-height:none; margin:0; padding:0; border:0; border-radius:0; overflow:visible; }
 .development-lab .lab-lifegraph-player .lab-node-viewport { max-height:none; }
 .development-lab .lab-lifegraph-player .lab-node-viewport canvas { width:100%; height:auto; }
 @media(max-width:700px) {

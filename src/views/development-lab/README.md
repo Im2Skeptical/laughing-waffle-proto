@@ -31,6 +31,9 @@ live Vassal tools and save diagnostics only.
 `lifegraph-columns.js` edits single-node milestone columns, their class/content
 rules, milestones-only node generation, and Founding/Legacy placement or removal.
 `lifegraph-preview.js` reuses game node icons and layout in one Pixi stage.
+The Lifegraph header's Fullscreen control shares the phone landscape display
+mode across every editing tab. Opening a node exits workshop fullscreen;
+the node player has its own Fullscreen control and releases it when hidden.
 `node-sandbox.js` supplies its playable decision modal, independently of the Gym
 timeline, Museum, Zoo and player saves. Rules, review persistence, preset/export
 and seed batches belong to `controllers/lifegraph-controller.js`; pure fixtures,
