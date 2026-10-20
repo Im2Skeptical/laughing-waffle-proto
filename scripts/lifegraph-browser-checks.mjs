@@ -6,6 +6,7 @@ export async function checkLifegraphWorkspace(page,context,{reload=false}={}){
   const gymBefore=await page.evaluate(()=>JSON.stringify(__LAB_DEBUG__.getSnapshot().state));
   await page.getByRole('link',{name:'Lifegraph',exact:true}).click();
   await page.getByTestId('lab-lifegraph').waitFor();
+  await checkLifegraphFullscreen(page,context);
   await checkLifegraphColumns(page);
   await page.getByTestId('lifegraph-class-warrior').click();
   await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().draft.preview.classId==='warrior');
@@ -138,4 +139,52 @@ export async function checkLifegraphWorkspace(page,context,{reload=false}={}){
   await page.getByTestId('lifegraph-close-player').click();
   await page.getByRole('link',{name:'Gym',exact:true}).click();
   await page.getByTestId('lab-workspace-settlement').click();
+}
+
+async function checkLifegraphFullscreen(page,context){
+  const graph=page.getByTestId('lab-lifegraph');
+  const before=await page.evaluate(()=>JSON.stringify(__LAB_DEBUG__.getLifegraph().draft));
+  await graph.getByRole('button',{name:'Enter preview fullscreen',exact:true}).click();
+  await graph.getByRole('button',{name:'Exit preview fullscreen',exact:true}).waitFor();
+  const box=await page.getByTestId('lifegraph-preview').boundingBox();
+  await graph.getByRole('button',{name:'Zoom in',exact:true}).click();
+  assert.ok((await page.getByTestId('lifegraph-preview').boundingBox()).width>box.width,'fullscreen zoom enlarges the graph');
+  await graph.getByRole('button',{name:'Fit graph',exact:true}).click();
+  await graph.getByRole('button',{name:'Exit preview fullscreen',exact:true}).click();
+  assert.equal(await page.evaluate(()=>JSON.stringify(__LAB_DEBUG__.getLifegraph().draft)),before,'display mode preserves the draft');
+  const phone=await context.browser().newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  try{
+    // Exercise the browser fallback, including devices without either native API.
+    await phone.addInitScript(()=>{
+      document.documentElement.requestFullscreen=()=>Promise.reject(new Error('Fullscreen unavailable'));
+      if(screen.orientation)screen.orientation.lock=()=>Promise.reject(new Error('Orientation unavailable'));
+    });
+    const mobile=await phone.newPage();await mobile.goto(page.url());
+    await mobile.getByTestId('lab-lifegraph').waitFor();
+    const surface=mobile.getByTestId('lab-lifegraph');
+    await surface.getByRole('button',{name:'Enter preview fullscreen',exact:true}).tap();
+    await mobile.waitForFunction(()=>!document.querySelector('.lab-lifegraph > .dev-preview-fullscreen').disabled);
+    const rotated=await surface.boundingBox();
+    assert.ok(Math.abs(rotated.width-390)<2&&Math.abs(rotated.height-844)<2,'portrait fallback covers the phone');
+    await mobile.screenshot({path:'artifacts/lifegraph-fullscreen-phone-portrait.png'});
+    await mobile.getByTestId('lifegraph-tab-families').tap();
+    await surface.getByRole('button',{name:'Exit preview fullscreen',exact:true}).waitFor();
+    await mobile.getByTestId('lifegraph-tab-graph').tap();
+    await surface.getByRole('button',{name:'Exit preview fullscreen',exact:true}).tap();
+    await mobile.setViewportSize({width:844,height:390});
+    await surface.getByRole('button',{name:'Enter preview fullscreen',exact:true}).tap();
+    await mobile.waitForFunction(()=>!document.querySelector('.lab-lifegraph > .dev-preview-fullscreen').disabled);
+    await mobile.getByTestId('lifegraph-play-node').tap();
+    await mobile.locator('dialog[open]').waitFor();
+    const player=mobile.locator('.lab-node-viewport');
+    await player.getByRole('button',{name:'Enter preview fullscreen',exact:true}).tap();
+    await mobile.waitForFunction(()=>!document.querySelector('.lab-node-viewport .dev-preview-fullscreen').disabled);
+    const canvas=await mobile.getByTestId('lab-node-sandbox').boundingBox();
+    assert.ok(canvas.x>=-1&&canvas.y>=-1&&canvas.x+canvas.width<=845&&canvas.y+canvas.height<=391,'node player fits phone landscape without clipping');
+    await mobile.screenshot({path:'artifacts/lifegraph-player-fullscreen-phone.png'});
+    await player.getByRole('button',{name:'Exit preview fullscreen',exact:true}).tap();
+    await mobile.getByTestId('lifegraph-close-player').tap();
+    await surface.getByRole('button',{name:'Enter preview fullscreen',exact:true}).waitFor();
+    assert.equal(await mobile.evaluate(()=>document.body.style.overflow),'','returning from the node player restores page scrolling');
+  }finally{await phone.close();}
 }
