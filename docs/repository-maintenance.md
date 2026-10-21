@@ -8,6 +8,8 @@ permanent agent checkout.
 
 ## Documentation ownership
 
+- `docs/game-design.md`: agreed gameplay pillars, themes and non-goals;
+  authority for gameplay design decisions.
 - `ai/ai-context.md`: current invariants and schema numbers.
 - `ai/sim.md` and `ai/ui.md`: current simulation and interface behavior.
 - `CONTEXT.md`: current domain terms.

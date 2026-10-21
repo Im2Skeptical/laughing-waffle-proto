@@ -4,6 +4,10 @@ Local instructions for agents working in this repo.
 
 ## Project context
 - Always read `ai/ai-context.md` (invariants and schema numbers).
+- Before proposing or changing gameplay rules, gamepiece behavior, balance,
+  progression or projection behavior, read [game design](docs/game-design.md).
+  It governs gameplay direction; subsystem docs describe current behavior and
+  milestone docs define implementation coverage and scope.
 - Illustration requests for a Practice, Structure, or gamepiece card (including
   "please generate a new illustration for the observation practice") must read
   [illustrate-gamepiece](.agents/skills/illustrate-gamepiece/SKILL.md) before

@@ -9,6 +9,7 @@ iteratively. The Practice board is intentionally fixed at five slots.
 Player New Game starts with two player settlements and four authored neutrals on
 Starter_02. Debug fixtures and labs can replace that setup.
 
+- Gameplay design authority: [Game design](docs/game-design.md)
 - Current coverage, provisional decisions, and follow-up work:
   [Civilization milestone](docs/civilization-milestone.md)
 
