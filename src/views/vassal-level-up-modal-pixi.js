@@ -9,15 +9,22 @@ import { PANEL as GRAPH_AREA } from './vassal-node-decision/constants.js';
 import { FOUNDER_CLASSES, STAT_ICONS } from './protovassal-class-data.js';
 import { addResourceIcon } from './resource-cost-pixi.js';
 
+// Presentation after one more point. Raising the stored stat (rather than passing
+// a value override) keeps derived effects such as Wisdom's EXP income correct.
+function raised(vassal, statId) {
+  const next = { ...vassal, stats: { ...vassal.stats, [statId]: Math.max(0, Math.floor(vassal?.stats?.[statId] ?? 0)) + 1 } };
+  return getVassalStatPresentation(next, statId);
+}
+
 // "Rite of Ascension": the Lifegraph level-up. A class-tinted carved window sits
 // over the graph area (top bar and dock stay visible). Three carved stat tablets
 // show only the change; the current effect and formula live in the shared
 // tooltip (hover on mouse, tap to pin on touch), as Practices and the class
 // picker do. The queue and its blocking rules are owned by the model.
 const FONT = 'Georgia';
-const WIN = Object.freeze({ width: 1560, height: 700 });
-const TABLET = Object.freeze({ y: 104, width: 440, height: 400, gap: 40 });
-const PLAQUE = Object.freeze({ width: 560, slotY: 528, slotHeight: 136 });
+const WIN = Object.freeze({ width: 1560, height: 684 });
+const TABLET = Object.freeze({ y: 102, width: 440, height: 390, gap: 40 });
+const PLAQUE = Object.freeze({ width: 560, slotY: 510, slotHeight: 136 });
 const BANNER = Object.freeze({ width: 600, height: 84, y: 12 });
 const STAT_COLORS = Object.freeze({
   cunning: 0xd69a62, wisdom: 0x7fb2de, effectiveness: 0x8fbf79, intelligence: 0xb994d8,
@@ -58,7 +65,7 @@ const para = (title, body) => ({ type: 'paragraph', title, text: body });
 // Tooltip spec for one offered stat: what it does now, what it becomes, and why.
 export function levelUpTooltipSpec(vassal, statId) {
   const before = getVassalStatPresentation(vassal, statId);
-  const after = getVassalStatPresentation(vassal, statId, before.value + 1);
+  const after = raised(vassal, statId);
   return {
     sourceKind: 'vassalLevelUp', sourceId: statId, maxWidth: 300, scale: 2.6, pin: true,
     title: before.label, subtitle: `Attribute · ${before.value} → ${after.value}`,
@@ -98,14 +105,14 @@ export function createVassalLevelUpModalView({
     return rect?.width > 0 ? rect.width / w : 1;
   }
   const hideTip = () => { tipStatId = null; tooltipView?.hide?.({ force: true }); };
-  const anchorFor = node => {
+  const anchorFor = (node, side = 'right') => {
     const b = node.getBounds();
-    return { x: b.x, y: b.y, width: b.width, height: b.height, side: 'right', alignY: 'top', coordinateSpace: 'screen' };
+    return { x: b.x, y: b.y, width: b.width, height: b.height, side, alignY: 'top', coordinateSpace: 'screen' };
   };
 
-  function addTablet(parent, vassal, statId, x, y, sizes, stud) {
+  function addTablet(parent, vassal, statId, x, y, sizes, stud, side) {
     const before = getVassalStatPresentation(vassal, statId);
-    const after = getVassalStatPresentation(vassal, statId, before.value + 1);
+    const after = raised(vassal, statId);
     const color = STAT_COLORS[statId] ?? RELIC.gold;
     const { width: w, height: h } = TABLET;
     const node = new PIXI.Container(); node.position.set(x + w / 2, y + h / 2); node.pivot.set(w / 2, h / 2);
@@ -132,14 +139,14 @@ export function createVassalLevelUpModalView({
     const spec = levelUpTooltipSpec(vassal, statId);
     node.on('pointerover', event => {
       node.hovered = true; paintTablet(node);
-      if (event.pointerType !== 'touch' && tipStatId === null) tooltipView?.show?.(spec, anchorFor(node));
+      if (event.pointerType !== 'touch' && tipStatId === null) tooltipView?.show?.(spec, anchorFor(node, side));
     });
     node.on('pointerout', () => { node.hovered = false; paintTablet(node); if (tipStatId === null) tooltipView?.hide?.(); });
     node.on('pointertap', event => {
       if (event.pointerType !== 'touch') return;
       // Touch: the tap that selects also pins the details; tapping again unpins.
       tipStatId = tipStatId === statId ? null : statId;
-      tooltipView?.pin?.(spec, anchorFor(node), `levelUp:${statId}`);
+      tooltipView?.pin?.(spec, anchorFor(node, side), `levelUp:${statId}`);
     });
     addInteractionFeedback(node, { x: 0, y: 0, width: w, height: h }, { onActivate: () => select(statId) });
     parent.addChild(node);
@@ -166,7 +173,7 @@ export function createVassalLevelUpModalView({
     const node = new PIXI.Container(); node.position.set(x, y);
     node.hitArea = new PIXI.Rectangle(0, 0, w, h);
     const frameHolder = new PIXI.Container(); node.addChild(frameHolder);
-    const label = text(node, '', w / 2, h / 2, sizes.button, { fill: RELIC.bone, fontWeight: 'bold', letterSpacing: 2 }, .5, .5);
+    const label = node.labelNode = text(node, '', w / 2, h / 2, sizes.button, { fill: RELIC.bone, fontWeight: 'bold', letterSpacing: 2 }, .5, .5);
     let enabled = false;
     addInteractionFeedback(node, { x: 0, y: 0, width: w, height: h }, { enabled: false, onActivate: () => { if (enabled) onPress(); } });
     node.setLabel = statId => {
@@ -228,7 +235,8 @@ export function createVassalLevelUpModalView({
 
     shell = new PIXI.Container();
     shell.pivot.set(WIN.width / 2, WIN.height / 2);
-    shell.position.set(GRAPH_AREA.x + GRAPH_AREA.width / 2, GRAPH_AREA.y + GRAPH_AREA.height / 2);
+    // Bottom-aligned in the graph area so the top bar's age and Prestige chips stay clear.
+    shell.position.set(GRAPH_AREA.x + GRAPH_AREA.width / 2, GRAPH_AREA.y + GRAPH_AREA.height - WIN.height / 2 - 4);
     shell.eventMode = 'static'; shell.hitArea = new PIXI.Rectangle(0, 0, WIN.width, WIN.height);
     shell.on('pointerdown', event => event.stopPropagation());
     root.addChild(shell);
@@ -241,7 +249,7 @@ export function createVassalLevelUpModalView({
     const bannerBack = new PIXI.Graphics();
     bannerBack.beginTextureFill({ texture: getStoneTexture(), color: classData?.deep ?? RELIC.stone }).drawRect(5, 5, BANNER.width - 10, BANNER.height - 10).endFill();
     banner.addChild(bannerBack);
-    addPaintedPanel(banner, 'banner', BANNER.width, BANNER.height, { tint, fallbackStroke: RELIC.gold });
+    addPaintedPanel(banner, 'panel', BANNER.width, BANNER.height, { tint, fallbackStroke: RELIC.gold });
     let age = null;
     try { if (presentation.state) age = getVassalAge(presentation.state, vassal, presentation.profileSec); } catch { age = null; }
     const title = text(banner, age != null ? `ASCENSION · AGE ${age}` : 'ASCENSION', 34, BANNER.height / 2, sizes.banner,
@@ -257,7 +265,8 @@ export function createVassalLevelUpModalView({
     const totalW = choice.offeredStatIds.length * TABLET.width + (choice.offeredStatIds.length - 1) * TABLET.gap;
     const startX = (WIN.width - totalW) / 2;
     tablets = choice.offeredStatIds.map((statId, index) => addTablet(content, vassal, statId,
-      startX + index * (TABLET.width + TABLET.gap), TABLET.y, sizes, stud));
+      startX + index * (TABLET.width + TABLET.gap), TABLET.y, sizes, stud,
+      index === choice.offeredStatIds.length - 1 ? 'left' : 'right'));
     tablets.forEach(node => { node.lift = node.liftTo = node.statId === selectedStatId ? -LIFT_PX : 0; });
     const plaqueH = Math.min(PLAQUE.slotHeight, Math.max(88, min(MIN_CSS_BUTTON)));
     const labelOf = statId => getVassalStatPresentation(vassal, statId).label;
@@ -321,7 +330,7 @@ export function createVassalLevelUpModalView({
       selectedStatId,
       choiceStates: tablets.map(card => card.interactionState),
       confirmState: confirmRoot?.interactionState ?? null,
-      confirmLabel: confirmRoot?.children?.at(-1)?.text ?? null,
+      confirmLabel: confirmRoot?.labelNode?.text ?? null,
       tooltipPinned: tipStatId,
       confirmCssHeight: confirmRoot ? confirmRoot.hitArea.height * cssScale() : null,
     }),
