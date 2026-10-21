@@ -8,6 +8,8 @@ Local instructions for agents working in this repo.
   progression or projection behavior, read [game design](docs/game-design.md).
   It governs gameplay direction; subsystem docs describe current behavior and
   milestone docs define implementation coverage and scope.
+- Before proposing or changing layouts, interactions, UI copy or art direction,
+  read [aesthetic and UX guidance](docs/aesthetic-ux-design.md).
 - Illustration requests for a Practice, Structure, or gamepiece card (including
   "please generate a new illustration for the observation practice") must read
   [illustrate-gamepiece](.agents/skills/illustrate-gamepiece/SKILL.md) before
