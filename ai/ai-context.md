@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.21`.
+Game build version: `1.1.22`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -119,6 +119,7 @@ knowledge, and the single vassal lineage are civilization-global.
 
 ## Pointers
 
+- Gameplay design authority: [`docs/game-design.md`](../docs/game-design.md).
 - Simulation (six named moon phases, food/housing/faith/migration/death,
   practices, construction, Vassal Life Map): [`ai/sim.md`](sim.md)
 - UI (screens, map, settlement, timegraph, dock, Life Map chrome, menu/saves):
