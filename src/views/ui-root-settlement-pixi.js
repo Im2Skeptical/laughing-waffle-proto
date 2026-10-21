@@ -1183,6 +1183,7 @@ const vassalCommissionPicker = createVassalCommissionPicker({
 vassalLevelUpModalView = createVassalLevelUpModalView({
   app,
   layer: modalLayer,
+  tooltipView,
   getPresentation: () => lifeDecisionController.overlay(getSettlementLifeMapPresentation()),
   isLifegraphVisible: () => worldViewMode === "vassalLife",
   isRecapOpen: () => vassalResolutionRecapView?.isOpen?.() === true,
