@@ -1219,6 +1219,7 @@ vassalHeirloomFlowView = createVassalHeirloomFlowView({
 });
 
 vassalLifeHudView = createVassalLifeHudView({
+  app,
   onOpenHeirlooms: (tab) => vassalHeirloomFlowView?.openInventory?.(tab),
   layer: modalLayer,
   tooltipView,

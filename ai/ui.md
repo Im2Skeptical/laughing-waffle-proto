@@ -311,11 +311,11 @@ Save/load preserves the generated map through its versioned seeded definition.
   an accepted transaction twice. Option, recap, and level-up buttons use immediate
   hover/pressed/selected feedback instead of per-selection loading labels.
   EXP level-ups use a separate non-dismissible modal while the Lifegraph is
-  visible, after the recap is dismissed if a level was earned. The "Rite of Ascension"
+  visible, after the recap is dismissed if a level was earned. The level-up
   window (class-tinted carved frame atlas, level pips cut from its amber stud) shows three
   stat tablets: icon, old→new value and the new effect only; current effect and formula
   are in the shared tooltip (hover; touch tap pins). A tablet tap selects a stat (bronze
-  rim, lift) and the centred plaque "Ascend in <Stat>" applies it. Text and the plaque
+  rim, lift) and the centred plaque "Level up <Stat>" applies it. Text and the plaque
   keep CSS minimums (12 px text, 46 px button) at small canvas scales. Press feedback guards against click-through. The
   HUD previews the selected stat. The player may inspect the Regional Map or a settlement, but returning to the Lifegraph
   restores the unresolved choice before further node entry.

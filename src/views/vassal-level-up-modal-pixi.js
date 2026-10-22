@@ -8,6 +8,7 @@ import { FRAME_PREFIX, WINDOW_FRAME } from './painted-frame-spec.js';
 import { PANEL as GRAPH_AREA } from './vassal-node-decision/constants.js';
 import { FOUNDER_CLASSES, STAT_ICONS } from './protovassal-class-data.js';
 import { addResourceIcon } from './resource-cost-pixi.js';
+import { getCrestLayout } from './vassal-life-hud-pixi.js';
 
 // Presentation after one more point. Raising the stored stat (rather than passing
 // a value override) keeps derived effects such as Wisdom's EXP income correct.
@@ -16,16 +17,17 @@ function raised(vassal, statId) {
   return getVassalStatPresentation(next, statId);
 }
 
-// "Rite of Ascension": the Lifegraph level-up. A class-tinted carved window sits
+// The Lifegraph level-up. A class-tinted carved window sits
 // over the graph area (top bar and dock stay visible). Three carved stat tablets
 // show only the change; the current effect and formula live in the shared
 // tooltip (hover on mouse, tap to pin on touch), as Practices and the class
 // picker do. The queue and its blocking rules are owned by the model.
 const FONT = 'Georgia';
-// Starts at y=204, below the crest-bar HUD (LIFE_HUD_BOTTOM = 200).
-const WIN = Object.freeze({ width: 1560, height: 634 });
-const TABLET = Object.freeze({ y: 96, width: 440, height: 350, gap: 40 });
-const PLAQUE = Object.freeze({ width: 560, slotY: 458, slotHeight: 136 });
+// The window starts just below the crest-bar HUD (getCrestLayout().bottom) and
+// runs to the graph area's bottom; tablets give up height on small canvases.
+let WIN = { width: 1560, height: 634 };
+let TABLET = { y: 96, width: 440, height: 350, gap: 40, socketY: 62, socketD: 100, nameY: 120 };
+let PLAQUE = { width: 560, slotY: 458, slotHeight: 136 };
 const BANNER = Object.freeze({ width: 420, height: 84, y: 12 });
 const STAT_COLORS = Object.freeze({
   cunning: 0xd69a62, wisdom: 0x7fb2de, effectiveness: 0x8fbf79, intelligence: 0xb994d8,
@@ -119,22 +121,27 @@ export function createVassalLevelUpModalView({
     const node = new PIXI.Container(); node.position.set(x + w / 2, y + h / 2); node.pivot.set(w / 2, h / 2);
     node.eventMode = "static"; node.cursor = "pointer"; node.hitArea = new PIXI.Rectangle(0, 0, w, h);
     const frame = addPaintedPanel(node, 'panel', w, h, { tint: 0xffffff, fill: RELIC.stone, fallbackStroke: color });
-    const glow = new PIXI.Graphics(); glow.position.set(w / 2, 62); glow.eventMode = 'none';
-    for (let r = 0; r < 4; r++) glow.beginFill(color, .12 + r * .05).drawCircle(0, 0, 62 - r * 8).endFill();
+    const glow = new PIXI.Graphics(); glow.position.set(w / 2, TABLET.socketY); glow.eventMode = 'none';
+    for (let r = 0; r < 4; r++) glow.beginFill(color, .12 + r * .05).drawCircle(0, 0, TABLET.socketD * .62 - r * 8).endFill();
     glow.visible = false; node.addChild(glow);
-    const socket = addPaintedSocket(node, w / 2, 62, 100, {});
-    addResourceIcon(node, STAT_ICONS[before.label] ?? 'prestige', w / 2, 62, 58);
-    text(node, before.label.toUpperCase(), w / 2, 120, sizes.name, { fill: color, fontWeight: 'bold', letterSpacing: 3 }, .5, 0);
-    const numY = 120 + sizes.name * 1.25 + sizes.number * .55;
+    const socket = addPaintedSocket(node, w / 2, TABLET.socketY, TABLET.socketD, {});
+    addResourceIcon(node, STAT_ICONS[before.label] ?? 'prestige', w / 2, TABLET.socketY, TABLET.socketD * .58);
+    text(node, before.label.toUpperCase(), w / 2, TABLET.nameY, sizes.name, { fill: color, fontWeight: 'bold', letterSpacing: 3 }, .5, 0);
+    const numY = TABLET.nameY + sizes.name * 1.25 + sizes.number * .55;
     const oldN = text(node, `${before.value}`, 0, numY, sizes.number, { fill: RELIC.ash }, .5, .5);
     const arrow = text(node, '→', 0, numY, sizes.number * .6, { fill: RELIC.brass }, .5, .5);
     const newN = text(node, `${after.value}`, 0, numY, sizes.number, { fill: color, fontWeight: 'bold',
       dropShadow: true, dropShadowColor: 0x000000, dropShadowDistance: 3, dropShadowAlpha: .7 }, .5, .5);
     const spread = sizes.number * .9;
     oldN.x = w / 2 - spread; arrow.x = w / 2; newN.x = w / 2 + spread;
-    text(node, after.powerLabel, w / 2, numY + sizes.number * .6 + 8, sizes.effect, {
-      fill: RELIC.bone, align: 'center', wordWrap: true, wordWrapWidth: w - 56, lineHeight: sizes.effect * 1.15,
+    const effectY = numY + sizes.number * .6 + 8;
+    const effect = text(node, after.powerLabel, w / 2, effectY, sizes.effect, {
+      fill: RELIC.bone, align: 'center', wordWrap: true, wordWrapWidth: w - 36, lineHeight: sizes.effect * 1.12,
     }, .5, 0);
+    // Shrink rather than spill past the tablet's carved bottom edge.
+    while (effect.height > h - effectY - 14 && effect.style.fontSize > 18) {
+      effect.style.fontSize -= 1; effect.style.lineHeight = effect.style.fontSize * 1.12;
+    }
     node.statId = statId; node.frame = frame; node.glow = glow; node.socket = socket; node.baseY = node.y;
     node.lift = 0; node.liftFrom = 0; node.liftTo = 0; node.liftAt = 0; node.hovered = false;
     const spec = levelUpTooltipSpec(vassal, statId);
@@ -182,7 +189,7 @@ export function createVassalLevelUpModalView({
       frameHolder.removeChildren().forEach(c => c.destroy({ children: true }));
       addPaintedPanel(frameHolder, enabled ? 'tabSelected' : 'tabLocked', w, h,
         { fill: enabled ? 0x3a3020 : 0x1d1e1b, fallbackStroke: enabled ? RELIC.gold : RELIC.brass });
-      label.text = enabled ? `Ascend in ${choiceLabelFor(statId)}` : 'Choose an attribute';
+      label.text = enabled ? `Level up ${choiceLabelFor(statId)}` : 'Choose an attribute';
       label.style.fill = enabled ? 0xffe3a6 : RELIC.ash;
       label.scale.set(1); if (label.width > w - 48) label.scale.set((w - 48) / label.width);
       node.eventMode = enabled ? 'static' : 'none'; node.cursor = enabled ? 'pointer' : 'default';
@@ -225,6 +232,16 @@ export function createVassalLevelUpModalView({
       effect: Math.max(26, min(MIN_CSS_TEXT)), banner: Math.max(30, min(MIN_CSS_TEXT + 1)),
       button: Math.max(32, min(MIN_CSS_TEXT + 2)),
     };
+    // Fit between the HUD's lowest point and the graph area's bottom.
+    const top = Math.round(getCrestLayout(k).bottom + 6);
+    const bottom = GRAPH_AREA.y + GRAPH_AREA.height - 4;
+    const plaqueH = Math.min(132, Math.max(88, min(MIN_CSS_BUTTON)));
+    WIN = { width: 1560, height: bottom - top };
+    const slot = plaqueH + 8;
+    const tabletH = WIN.height - TABLET.y - slot - 34 - 6;
+    const compact = tabletH < 340;
+    TABLET = { ...TABLET, height: tabletH, socketY: compact ? 50 : 62, socketD: compact ? 82 : 100, nameY: compact ? 98 : 120 };
+    PLAQUE = { ...PLAQUE, slotY: TABLET.y + tabletH + 6, slotHeight: slot };
     const classData = FOUNDER_CLASSES[vassal.classId] ?? null;
     const tint = classData?.frameTint ?? 0xffffff;
 
@@ -237,7 +254,7 @@ export function createVassalLevelUpModalView({
     shell = new PIXI.Container();
     shell.pivot.set(WIN.width / 2, WIN.height / 2);
     // Bottom-aligned in the graph area so the top bar's age and Prestige chips stay clear.
-    shell.position.set(GRAPH_AREA.x + GRAPH_AREA.width / 2, GRAPH_AREA.y + GRAPH_AREA.height - WIN.height / 2 - 4);
+    shell.position.set(GRAPH_AREA.x + GRAPH_AREA.width / 2, top + WIN.height / 2);
     shell.eventMode = 'static'; shell.hitArea = new PIXI.Rectangle(0, 0, WIN.width, WIN.height);
     shell.on('pointerdown', event => event.stopPropagation());
     root.addChild(shell);
@@ -252,7 +269,7 @@ export function createVassalLevelUpModalView({
     banner.addChild(bannerBack);
     addPaintedPanel(banner, 'panel', BANNER.width, BANNER.height, { tint, fallbackStroke: RELIC.gold });
     // Age lives in the HUD above; the banner names the rite and counts levels.
-    const title = text(banner, 'ASCENSION', 34, BANNER.height / 2, sizes.banner,
+    const title = text(banner, 'LEVEL UP', 34, BANNER.height / 2, sizes.banner,
       { fill: 0xf1d79a, fontWeight: 'bold', letterSpacing: 4, dropShadow: true, dropShadowDistance: 2, dropShadowAlpha: .8 }, 0, .5);
     const stud = studTexture();
     const pipSize = Math.max(26, min(9)), pipCount = Math.min(queue.length, 5);
@@ -268,7 +285,6 @@ export function createVassalLevelUpModalView({
       startX + index * (TABLET.width + TABLET.gap), TABLET.y, sizes, stud,
       index === choice.offeredStatIds.length - 1 ? 'left' : 'right'));
     tablets.forEach(node => { node.lift = node.liftTo = node.statId === selectedStatId ? -LIFT_PX : 0; });
-    const plaqueH = Math.min(PLAQUE.slotHeight, Math.max(88, min(MIN_CSS_BUTTON)));
     const labelOf = statId => getVassalStatPresentation(vassal, statId).label;
     confirmRoot = addPlaque(content, (WIN.width - PLAQUE.width) / 2, PLAQUE.slotY + (PLAQUE.slotHeight - plaqueH) / 2,
       PLAQUE.width, plaqueH, sizes, labelOf, () => {

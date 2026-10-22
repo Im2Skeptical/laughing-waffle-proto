@@ -1,10 +1,13 @@
+import { getCrestLayout } from './vassal-life-hud-pixi.js';
 import { addInteractionFeedback } from "./interaction-feedback.js";
 import { VASSAL_LIFE_TUNING } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 import { createConsequentialTimeView } from './consequential-time-pixi.js';
 
-const PANEL = Object.freeze({ x: 612, y: 130, width: 1200, height: 810 });
+// The panel starts just under the crest-bar HUD so its title is never covered.
+const PANEL_BASE = Object.freeze({ x: 612, y: 130, width: 1200, height: 810 });
+let PANEL = PANEL_BASE;
 
 function addButton(parent, rect, label, onPress) {
   const root = new PIXI.Container();
@@ -78,6 +81,12 @@ export function createVassalResolutionRecapView({
     signature = nextSignature;
     clearChildren(root);
     clockView = null;
+    {
+      const rect = app?.view?.getBoundingClientRect?.();
+      const k = rect?.width > 0 ? rect.width / (app.screen?.width || 2424) : 1;
+      const y = Math.max(PANEL_BASE.y, Math.round(getCrestLayout(k).bottom - 26));
+      PANEL = { ...PANEL_BASE, y, height: Math.min(PANEL_BASE.height, 1060 - y) };
+    }
     dismissRoot = null;
 
     const blocker = new PIXI.Graphics();
