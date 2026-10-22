@@ -3,7 +3,7 @@
   "exp-groove-empty.png": {
    "frame": {
     "x": 128,
-    "y": 220,
+    "y": 337,
     "w": 122,
     "h": 23
    },
@@ -23,7 +23,7 @@
   "exp-groove-full.png": {
    "frame": {
     "x": 2,
-    "y": 220,
+    "y": 337,
     "w": 122,
     "h": 23
    },
@@ -42,8 +42,8 @@
   },
   "lintel-cap-left.png": {
    "frame": {
-    "x": 147,
-    "y": 2,
+    "x": 2,
+    "y": 151,
     "w": 89,
     "h": 113
    },
@@ -62,8 +62,8 @@
   },
   "lintel-cap-right.png": {
    "frame": {
-    "x": 240,
-    "y": 2,
+    "x": 95,
+    "y": 151,
     "w": 81,
     "h": 113
    },
@@ -83,7 +83,7 @@
   "lintel-mid.png": {
    "frame": {
     "x": 2,
-    "y": 151,
+    "y": 268,
     "w": 256,
     "h": 65
    },
@@ -120,10 +120,50 @@
     "h": 145
    }
   },
+  "medallion-scholar.png": {
+   "frame": {
+    "x": 292,
+    "y": 2,
+    "w": 141,
+    "h": 145
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 141,
+    "h": 145
+   },
+   "sourceSize": {
+    "w": 141,
+    "h": 145
+   }
+  },
+  "medallion-warrior.png": {
+   "frame": {
+    "x": 147,
+    "y": 2,
+    "w": 141,
+    "h": 145
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 141,
+    "h": 145
+   },
+   "sourceSize": {
+    "w": 141,
+    "h": 145
+   }
+  },
   "pendant.png": {
    "frame": {
     "x": 262,
-    "y": 151,
+    "y": 268,
     "w": 90,
     "h": 65
    },
@@ -143,7 +183,7 @@
   "stat-plaque.png": {
    "frame": {
     "x": 356,
-    "y": 151,
+    "y": 268,
     "w": 62,
     "h": 57
    },
@@ -162,8 +202,8 @@
   },
   "tab.png": {
    "frame": {
-    "x": 325,
-    "y": 2,
+    "x": 180,
+    "y": 151,
     "w": 80,
     "h": 81
    },
@@ -188,7 +228,7 @@
   "format": "RGBA8888",
   "size": {
    "w": 512,
-   "h": 256
+   "h": 512
   },
   "scale": "1"
  }

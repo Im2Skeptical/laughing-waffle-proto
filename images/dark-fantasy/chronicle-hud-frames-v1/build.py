@@ -48,18 +48,91 @@ def lintel():
 
 pieces = lintel()
 pieces.update({
-    'medallion': piece((36, 636, 332, 944)),
     'pendant': piece((352, 690, 550, 832)),
     'stat-plaque': piece((568, 700, 708, 828)),
     'exp-groove-full': piece((732, 704, 988, 762)),
     'tab': piece((768, 782, 944, 958)),
 })
+# Empty groove: repaint the whole inner track (not just amber-looking pixels) so
+# no ember residue survives; a two-tone recess with a darker upper lip.
 empty = pieces['exp-groove-full'].copy(); px = empty.load()
-for y in range(empty.height):
-    for x in range(empty.width):
-        rr, gg, bb, aa = px[x, y]
-        if aa and rr > 85 and rr - bb > 45: px[x, y] = (34, 29, 24, 255)
+for y in range(7, 16):
+    for x in range(7, 116):
+        if px[x, y][3]: px[x, y] = (16, 12, 9, 255) if y < 9 else (30, 24, 19, 255) if (x + y) % 7 else (36, 29, 23, 255)
 pieces['exp-groove-empty'] = empty
+
+
+def thin_medallion():
+    """Radially compress the carved band so the ring is visibly thinner.
+
+    Source pixels (2x stored) at radius 76..139 are resampled into 100..139, the
+    loops and outer lip beyond 139 are untouched, and the four amber studs are
+    pasted back unsquashed at the new band centre. Nearest sampling only.
+    """
+    region = sheet.crop((36, 636, 332, 944)); bounds = region.getchannel('A').getbbox()
+    region = region.crop(bounds)
+    cx, cy = 140.5, 141.5          # ring centre in the cropped source
+    R_IN, R_OUT, NEW_IN = 76.0, 139.0, 100.0
+    src = region.load(); out = Image.new('RGBA', region.size); dst = out.load()
+    for y in range(region.height):
+        for x in range(region.width):
+            dx, dy = x - cx, y - cy; r = (dx * dx + dy * dy) ** .5
+            if r >= R_OUT: dst[x, y] = src[x, y]; continue
+            if r < NEW_IN or r == 0: continue
+            sr = R_IN + (r - NEW_IN) * (R_OUT - R_IN) / (R_OUT - NEW_IN)
+            sx, sy = round(cx + dx / r * sr), round(cy + dy / r * sr)
+            if 0 <= sx < region.width and 0 <= sy < region.height: dst[x, y] = src[sx, sy]
+    for ux, uy in ((0, -1), (1, 0), (0, 1), (-1, 0)):
+        stud = region.crop((round(cx + ux * 112 - 14), round(cy + uy * 112 - 14), round(cx + ux * 112 + 14), round(cy + uy * 112 + 14)))
+        disc = Image.new('L', stud.size, 0); ImageDraw.Draw(disc).ellipse((1, 1, 26, 26), fill=255)
+        out.paste(stud, (round(cx + ux * 120 - 14), round(cy + uy * 120 - 14)), disc)
+    return out.resize((out.width // REDUCE, out.height // REDUCE), Image.Resampling.NEAREST)
+
+
+def recolor_studs(image, hue):
+    """Re-gem only the four stud discs (warm pixels inside each disc)."""
+    import colorsys
+    out = image.copy(); px = out.load()
+    for ux, uy in ((0, -1), (1, 0), (0, 1), (-1, 0)):
+        sx, sy = 70.25 + ux * 60, 70.75 + uy * 60
+        for y in range(int(sy - 8), int(sy + 9)):
+            for x in range(int(sx - 8), int(sx + 9)):
+                if (x - sx) ** 2 + (y - sy) ** 2 > 42: continue
+                r, g, b, a = px[x, y]
+                if not a or r < b + 25: continue
+                h, l, s_ = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
+                nr, ng, nb = colorsys.hls_to_rgb(hue, l, min(1, s_ * 1.1))
+                px[x, y] = (round(nr * 255), round(ng * 255), round(nb * 255), a)
+    return out
+
+
+def jagged_rim(image, teeth=16):
+    """Warlord: iron teeth biting into the aperture (drawn crisply at stored size)."""
+    import math
+    out = image.copy(); d = ImageDraw.Draw(out)
+    cx, cy, r = 70.25, 70.75, 50.5
+    for i in range(teeth):
+        a = i * 2 * math.pi / teeth + math.pi / teeth
+        half = math.pi / teeth * .55
+        base1 = (cx + math.cos(a - half) * (r + 1), cy + math.sin(a - half) * (r + 1))
+        base2 = (cx + math.cos(a + half) * (r + 1), cy + math.sin(a + half) * (r + 1))
+        tip = (cx + math.cos(a) * (r - 6), cy + math.sin(a) * (r - 6))
+        d.polygon([base1, tip, base2], fill=(58, 44, 30, 255), outline=(150, 118, 76, 255))
+    return out
+
+
+def smooth_rim(image):
+    """Philosopher: a fine ivory inner bead line on the smooth bevel."""
+    out = image.copy(); d = ImageDraw.Draw(out)
+    cx, cy, r = 70.25, 70.75, 50.5
+    d.ellipse((cx - r, cy - r, cx + r, cy + r), outline=(214, 198, 160, 255), width=1)
+    return out
+
+
+thin = thin_medallion()
+pieces['medallion'] = thin
+pieces['medallion-warrior'] = jagged_rim(recolor_studs(thin, 0.995))
+pieces['medallion-scholar'] = smooth_rim(recolor_studs(thin, 0.60))
 
 for name, image in pieces.items(): image.save(HERE / f'{name}.png', optimize=True)
 
