@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-22",
+  "tool": "Built-in image generation",
+  "references": [
+    "ai/References/Diablo-II09052021-024202-52025.jpg",
+    "ai/References/Baldur039s-Gate-II05272023-105108-82687.jpg",
+    "images/dark-fantasy/class-picker-frames-v1/generated/frame-source.png"
+  ],
+  "sources": [
+    {
+      "file": "generated/hud-source.png",
+      "prompt": "Sprite sheet for a dark fantasy RPG top HUD, hand-illustrated pixel painting in the late 1990s / early 2000s PC RPG tradition, matching the supplied carved limestone and worn bronze frame (style reference only). Flat pure black background. Top: one long horizontal carved-stone lintel with ornamental end caps and a repeatable middle of winding acanthus relief, thin dark-bronze rails, small muted amber studs. Bottom row, left to right: a circular stone-and-bronze portrait medallion ring with four amber studs and two hanging bronze loops; a small horizontal pendant plaque hung from two bronze rings with a recessed dark centre; a small stat plaque with one amber stud on its top edge; a thin EXP groove channel with glowing molten amber fill inside; a hanging oxblood leather tab with a swallowtail bottom under a small carved bracket. Visible deliberate pixel clusters, limited earthy palette, subtle dithering, light from upper left. No text, no icons, no glossy gold, no neon, no soft glows outside pieces."
+    }
+  ]
+}

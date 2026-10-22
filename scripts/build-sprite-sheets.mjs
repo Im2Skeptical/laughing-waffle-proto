@@ -9,6 +9,8 @@ const jobs = [
   ['settlement-pieces', 'images/dark-fantasy/settlement-pieces-v4', ['--scale', '0.3', '--scale-mode', 'Fast', '--max-size', '4096', '--multipack']],
   ['piece-frames', 'images/dark-fantasy/piece-frames-v1', ['--scale', '0.5', '--max-size', '2048']],
   ['class-picker-frames', 'images/dark-fantasy/class-picker-frames-v1', ['--scale', '1', '--scale-mode', 'Fast', '--max-size', '2048']],
+  // Normally packed by its own build.py (Pillow); TexturePacker output is equivalent.
+  ['chronicle-hud-frames', 'images/dark-fantasy/chronicle-hud-frames-v1', ['--scale', '1', '--scale-mode', 'Fast', '--max-size', '2048']],
   ['vassal-class', 'images/dark-fantasy/vassal-class-v1', ['--scale', '1', '--scale-mode', 'Fast', '--max-size', '2048']],
   ['chronicle-illustrations', 'images/dark-fantasy/chronicle-illustrations-v1', ['--scale', '1', '--max-size', '4096']],
   ['region-landmarks', 'images/dark-fantasy/region-landmarks-v1', ['--scale', '0.4', '--scale-mode', 'Fast', '--max-size', '2048']],

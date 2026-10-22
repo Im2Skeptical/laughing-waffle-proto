@@ -456,6 +456,24 @@
         "warrior-founder.png",
         "scholar-founder.png"
       ]
+    },
+    "chronicle-hud-frames": {
+      "load": "eager",
+      "data": [
+        "images/sprite-sheets/chronicle-hud-frames.json"
+      ],
+      "source": "chronicle-hud-frames-v1",
+      "files": [
+        "exp-groove-empty.png",
+        "exp-groove-full.png",
+        "lintel-cap-left.png",
+        "lintel-cap-right.png",
+        "lintel-mid.png",
+        "medallion.png",
+        "pendant.png",
+        "stat-plaque.png",
+        "tab.png"
+      ]
     }
   },
   "standalone": [
