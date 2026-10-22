@@ -1,4 +1,5 @@
 import { addInteractionFeedback } from '../interaction-feedback.js';
+import { flashPrestigeShortfall } from '../prestige-feedback-pixi.js';
 // Buttons, option/offer copy, and choice/shop cards.
 
 import { addIllustration } from "../chronicle-art.js";
@@ -164,6 +165,12 @@ export function pieceOfferCard(parent, rect, spec) {
 }
 
 // Simple personal choices expose every tradeoff without an inspection overlay.
+function unavailableChoice(spec, root) {
+  if (spec.costUnmet && spec.cost?.prestigeCost > 0 && spec.cost?.prestigeFeedback !== false) {
+    flashPrestigeShortfall(root.costPanel);
+  } else spec.onUnavailable?.();
+}
+
 export function outcomeCard(parent, rect, spec) {
   const root = new PIXI.Container();
   root.position.set(rect.x, rect.y);
@@ -207,7 +214,7 @@ export function outcomeCard(parent, rect, spec) {
   });
   addInteractionFeedback(root, {x:0,y:0,width:rect.width,height:rect.height}, {
     enabled: !!(spec.enabled || spec.onUnavailable),
-    onActivate: spec.enabled ? spec.onClick : spec.onUnavailable,
+    onActivate: spec.enabled ? spec.onClick : () => unavailableChoice(spec, root),
   });
   parent.addChild(root);
   return root;
@@ -216,7 +223,7 @@ export function outcomeCard(parent, rect, spec) {
 export function heirloomChoiceCard(parent, rect, spec) {
   const root=addHeirloomCard(parent,rect,spec.item,{selected:spec.selected,
     status:spec.selected?'Chosen · confirm to take':'Choose this heirloom',
-    enabled:spec.enabled||!!spec.onUnavailable,onActivate:spec.enabled?spec.onClick:spec.onUnavailable});
+    enabled:spec.enabled||!!spec.onUnavailable,onActivate:spec.enabled?spec.onClick:()=>unavailableChoice(spec,root)});
   const footerHeight = spec.cost?.riskLabel ? 148 : COST_FOOTER_HEIGHT;
   root.hitArea.height=rect.height+footerHeight+8;
   root.costPanel=addCostPanel(root,{x:6,y:rect.height+8,width:rect.width-12,height:footerHeight},{

@@ -51,7 +51,7 @@ function addPracticeInspection(parent, rect, {face,cost,onActivate,onClose,onRev
   const top=88,bottom=rect.height-56;
   const fitted=fitPiece({x:pad,y:top+20,width:cardWidth,height:bottom-top-(cost?160:10)},face.kind,face.footprint);
   addSettlementPiece(root,{x:fitted.x,y:fitted.y,width:fitted.width*fitted.scale,height:fitted.height*fitted.scale},{face});
-  if(cost)root.costPanel=addCostPanel(root,{x:pad,y:bottom-146,width:cardWidth,height:140},{...cost,interactive:!!onActivate,onActivate,fontSize:30,iconSize:38});
+  if(cost)root.costPanel=addCostPanel(root,{x:pad,y:bottom-146,width:cardWidth,height:140},{...cost,interactive:!!onActivate||cost.unaffordable&&cost.prestigeFeedback!==false,onActivate,fontSize:30,iconSize:38});
   const size=Math.max(26,Math.min(40,rulesWidth/20));
   const rules=addPracticeReading(root,rulesWidth,face,{fontSize:size});
   // Transaction-specific blockers remain inspect-only, outside the shared rules.
@@ -87,7 +87,7 @@ export function addChronicleInspection(parent, rect, {title, artId, face, cost, 
   else addIllustration(root,artId,artRect);
   root.addChild(createText(title,{...TEXT_STYLES.header,fontSize:30,wordWrap:true,wordWrapWidth:rect.width-120},22,20));
   if(cost)root.costPanel=addCostPanel(root,{x:22,y:artHeight+100,width:columnWidth,height:130},{
-    ...cost, interactive:!!onActivate, onActivate, fontSize:30, iconSize:38,
+    ...cost, interactive:!!onActivate||cost.unaffordable&&cost.prestigeFeedback!==false, onActivate, fontSize:30, iconSize:38,
   });
   const close=new PIXI.Container();close.position.set(rect.width-66,14);
   const closeFrame=new PIXI.Graphics();paintRelicPanel(closeFrame,0,0,50,50,RELIC.stone,RELIC.brass,1);

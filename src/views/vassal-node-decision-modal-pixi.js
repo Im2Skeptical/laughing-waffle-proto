@@ -2,6 +2,7 @@ import { getActionChaosCost, getActionMonsterPressureCost } from '../model/detai
 import { getVassalDelvePhaseCost } from '../model/vassal-life-map/class-rules.js';
 import { formatVassalPhaseDuration } from '../model/vassal-life-map/selectors.js';
 import { getTapFeedbackSnapshot } from './interaction-feedback.js';
+import { flashPrestigeShortfall } from './prestige-feedback-pixi.js';
 import { deserializeGameState } from '../model/state.js';
 import { addSettlementPiece, animatePieceUpgrade, PIECE_SIZE } from "./settlement-piece-pixi.js";
 import { constructionGeometry } from './piece-geometry.js';
@@ -678,8 +679,8 @@ export function createVassalNodeDecisionModalView({
             title:offer.label,artId:node.family,presentation:offer.presentation,constructionPresentation:offer.constructionPresentation,
             actionLabel:offer.purchased?'STAGED':'STAGE',staged:offer.purchased,onInspect:inspect,
             onCompletedInspect:event=>inspectPiece('completed:'+offer.offerId,offer.presentation,event),
-            cost:{prestigeCost:offer.prestigeCost,currencyCost:offer.currencyCost,phaseCost:offer.phaseCost,monsterPressureCost:offer.monsterPressureCost??0,state},enabled,
-            costUnmet:!offer.purchased && String(offer.stageBlockedReason ?? '').startsWith('Insufficient'),
+            cost:{prestigeCost:offer.prestigeCost,currencyCost:offer.currencyCost,phaseCost:offer.phaseCost,monsterPressureCost:offer.monsterPressureCost??0,state,prestigeFeedback:!readOnly},enabled,
+            costUnmet:!offer.purchased && offer.prestigeCost>projected,
             onClick:()=>stageOffer(offer),selected:replacementOfferId===offer.offerId,
             onUnavailable:readOnly?onReadOnlyAction:!enabled&&!offer.purchased&&blockedReason?()=>explainBlocked(blockedReason):null,
             onHover:()=>{hoveredOfferId=offer.offerId;scheduleHoverRender();},
@@ -714,7 +715,7 @@ export function createVassalNodeDecisionModalView({
             expanded:pinnedInspectionId===option.id||previewOptionId===option.id,actionLabel:'CHOOSE',
             onInspect:event=>inspectPiece(option.id,option.presentation,event),
             title: requirements.some((entry) => !entry.met) ? `${option.label} · Unavailable` : option.label,
-            cost: { prestigeCost, phaseCost, chaosCost:getActionChaosCost(option),monsterPressureCost:getActionMonsterPressureCost(option), state,
+            cost: { prestigeCost, phaseCost, chaosCost:getActionChaosCost(option),monsterPressureCost:getActionMonsterPressureCost(option), state, prestigeFeedback:!readOnly,
               riskLabel: nodeState.family === 'relic' ? relicRiskLabel(option) : null },
             costUnmet: prestigeCost > vassal.prestige,
             effect: decision?.workshopLegacy ? [option.description,...requirements.map(entry=>`${entry.met?'✓':'✗'} ${entry.label}`)].join(' · ') : requirements.length
@@ -911,6 +912,8 @@ export function createVassalNodeDecisionModalView({
         label: "Confirm",
         showCheck: true,
         onClick: () => {
+          const unpaid = optionRoots.find(card => card.costPanel?.costSummary.selected && card.costPanel.costSummary.unaffordable);
+          if (unpaid) { flashPrestigeShortfall(unpaid.costPanel); return; }
           const result = onConfirmNode?.(node.id);
           if (result?.ok !== false) close();
         },
@@ -959,10 +962,11 @@ export function createVassalNodeDecisionModalView({
       inspectionRoot=addChronicleInspection(root,practiceInspect?{x:112,y:90,width:2200,height:880}:{x:inspectedTableau||displaced?PANEL.x+36:PANEL.x+1170,y:PANEL.y+108,width:inspectedTableau||displaced?1092:970,height:572},{
         title:face?.label??piece?.label,face,artId:face?.definitionId??node.family,
         onReview,
-        cost:inspectedOffer?{prestigeCost:piece.prestigeCost,currencyCost:piece.currencyCost,phaseCost:piece.phaseCost,monsterPressureCost:piece.monsterPressureCost??0,state,staged:piece.purchased,disabled:piece.purchased||readOnly||!piece.canStage}:inspectedOption?{
+        cost:inspectedOffer?{prestigeCost:piece.prestigeCost,currencyCost:piece.currencyCost,phaseCost:piece.phaseCost,monsterPressureCost:piece.monsterPressureCost??0,state,staged:piece.purchased,disabled:piece.purchased||readOnly||!piece.canStage,unaffordable:!piece.purchased&&piece.prestigeCost>projected,prestigeFeedback:!readOnly}:inspectedOption?{
           prestigeCost:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0),chaosCost:getActionChaosCost(piece),monsterPressureCost:getActionMonsterPressureCost(piece),
           phaseCost:getVassalActionPhaseCost(vassal,piece.phaseCost??0,{nodeState,isTravel:nodeState.family==='crossroads'}),state,
           riskLabel:nodeState.family==='relic'?relicRiskLabel(piece):null,
+          unaffordable:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0)>vassal.prestige,prestigeFeedback:!readOnly,
         }:null,
         onActivate:!readOnly && inspectedOffer && !piece.purchased && piece.canStage
           ? ()=>{pinnedInspectionId=null;previewOfferId=null;const result=stageOffer(piece);if(result?.ok!==true)render(true);}
