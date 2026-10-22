@@ -1231,6 +1231,7 @@ vassalLifeHudView = createVassalLifeHudView({
       ?? null;
   },
   getCountUp: () => getResolutionRecap?.() ?? null,
+  getLevelUp: () => vassalLevelUpModalView?.getHudState?.() ?? null,
 });
 
 function getSettlementVassalInterventionMarkers(state) {

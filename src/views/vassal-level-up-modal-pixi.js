@@ -1,5 +1,5 @@
 import { addInteractionFeedback } from "./interaction-feedback.js";
-import { getVassalAge, getVassalStatPresentation } from "../model/vassal-life-map.js";
+import { getVassalStatPresentation } from "../model/vassal-life-map.js";
 import { clearChildren } from "./settlement-view-primitives.js";
 import { getArtRevision, getChronicleTexture } from './chronicle-art.js';
 import { RELIC, getStoneTexture } from './chronicle-skin.js';
@@ -22,10 +22,11 @@ function raised(vassal, statId) {
 // tooltip (hover on mouse, tap to pin on touch), as Practices and the class
 // picker do. The queue and its blocking rules are owned by the model.
 const FONT = 'Georgia';
-const WIN = Object.freeze({ width: 1560, height: 684 });
-const TABLET = Object.freeze({ y: 102, width: 440, height: 390, gap: 40 });
-const PLAQUE = Object.freeze({ width: 560, slotY: 510, slotHeight: 136 });
-const BANNER = Object.freeze({ width: 600, height: 84, y: 12 });
+// Starts at y=204, below the crest-bar HUD (LIFE_HUD_BOTTOM = 200).
+const WIN = Object.freeze({ width: 1560, height: 634 });
+const TABLET = Object.freeze({ y: 96, width: 440, height: 350, gap: 40 });
+const PLAQUE = Object.freeze({ width: 560, slotY: 458, slotHeight: 136 });
+const BANNER = Object.freeze({ width: 420, height: 84, y: 12 });
 const STAT_COLORS = Object.freeze({
   cunning: 0xd69a62, wisdom: 0x7fb2de, effectiveness: 0x8fbf79, intelligence: 0xb994d8,
 });
@@ -118,13 +119,13 @@ export function createVassalLevelUpModalView({
     const node = new PIXI.Container(); node.position.set(x + w / 2, y + h / 2); node.pivot.set(w / 2, h / 2);
     node.eventMode = "static"; node.cursor = "pointer"; node.hitArea = new PIXI.Rectangle(0, 0, w, h);
     const frame = addPaintedPanel(node, 'panel', w, h, { tint: 0xffffff, fill: RELIC.stone, fallbackStroke: color });
-    const glow = new PIXI.Graphics(); glow.position.set(w / 2, 74); glow.eventMode = 'none';
-    for (let r = 0; r < 4; r++) glow.beginFill(color, .12 + r * .05).drawCircle(0, 0, 70 - r * 8).endFill();
+    const glow = new PIXI.Graphics(); glow.position.set(w / 2, 62); glow.eventMode = 'none';
+    for (let r = 0; r < 4; r++) glow.beginFill(color, .12 + r * .05).drawCircle(0, 0, 62 - r * 8).endFill();
     glow.visible = false; node.addChild(glow);
-    const socket = addPaintedSocket(node, w / 2, 74, 112, {});
-    addResourceIcon(node, STAT_ICONS[before.label] ?? 'prestige', w / 2, 74, 66);
-    text(node, before.label.toUpperCase(), w / 2, 142, sizes.name, { fill: color, fontWeight: 'bold', letterSpacing: 3 }, .5, 0);
-    const numY = 142 + sizes.name * 1.25 + sizes.number * .55;
+    const socket = addPaintedSocket(node, w / 2, 62, 100, {});
+    addResourceIcon(node, STAT_ICONS[before.label] ?? 'prestige', w / 2, 62, 58);
+    text(node, before.label.toUpperCase(), w / 2, 120, sizes.name, { fill: color, fontWeight: 'bold', letterSpacing: 3 }, .5, 0);
+    const numY = 120 + sizes.name * 1.25 + sizes.number * .55;
     const oldN = text(node, `${before.value}`, 0, numY, sizes.number, { fill: RELIC.ash }, .5, .5);
     const arrow = text(node, '→', 0, numY, sizes.number * .6, { fill: RELIC.brass }, .5, .5);
     const newN = text(node, `${after.value}`, 0, numY, sizes.number, { fill: color, fontWeight: 'bold',
@@ -250,10 +251,9 @@ export function createVassalLevelUpModalView({
     bannerBack.beginTextureFill({ texture: getStoneTexture(), color: classData?.deep ?? RELIC.stone }).drawRect(5, 5, BANNER.width - 10, BANNER.height - 10).endFill();
     banner.addChild(bannerBack);
     addPaintedPanel(banner, 'panel', BANNER.width, BANNER.height, { tint, fallbackStroke: RELIC.gold });
-    let age = null;
-    try { if (presentation.state) age = getVassalAge(presentation.state, vassal, presentation.profileSec); } catch { age = null; }
-    const title = text(banner, age != null ? `ASCENSION · AGE ${age}` : 'ASCENSION', 34, BANNER.height / 2, sizes.banner,
-      { fill: 0xf1d79a, fontWeight: 'bold', letterSpacing: 3, dropShadow: true, dropShadowDistance: 2, dropShadowAlpha: .8 }, 0, .5);
+    // Age lives in the HUD above; the banner names the rite and counts levels.
+    const title = text(banner, 'ASCENSION', 34, BANNER.height / 2, sizes.banner,
+      { fill: 0xf1d79a, fontWeight: 'bold', letterSpacing: 4, dropShadow: true, dropShadowDistance: 2, dropShadowAlpha: .8 }, 0, .5);
     const stud = studTexture();
     const pipSize = Math.max(26, min(9)), pipCount = Math.min(queue.length, 5);
     const pipsW = pipCount * pipSize + (pipCount - 1) * 8;
@@ -334,6 +334,7 @@ export function createVassalLevelUpModalView({
       tooltipPinned: tipStatId,
       confirmCssHeight: confirmRoot ? confirmRoot.hitArea.height * cssScale() : null,
     }),
+    getHudState: () => ({ open, selectedStatId: open ? selectedStatId : null }),
     getHudDeltas() {
       if (!open || !selectedStatId) return null;
       return { prestige: 0, stats: { [selectedStatId]: 1 } };
