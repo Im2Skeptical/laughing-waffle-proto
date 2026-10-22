@@ -192,9 +192,13 @@ Save/load preserves the generated map through its versioned seeded definition.
   opening node and its sole choice name that founder; completing it establishes
   the chosen class. Later candidate cards show Unclassed or the established class,
   with no recurring founder identities. Later Lifegraphs use a Vassal Chronicle
-  label. The compact centered HUD shows:
-  circular portrait, Age over Prestige, EXP `n/10`, four stat chips, and Location
-  on the right, aligned under the year strip. The HUD stays
+  label. The compact centered HUD is a carved "crest bar" (`chronicle-hud-frames`
+  atlas, class-tinted): a portrait medallion breaking the lintel's left end, a
+  hanging Prestige pendant, Age over an amber EXP groove with quarter studs, four
+  icon stat plaques (full label in the tooltip), heirloom sockets and bag, and
+  hanging Commission/Retinue and Location tabs. It ends above y=200 so the
+  level-up window never overlaps it; during level-up the chosen stat's plaque
+  stud pulses and heirloom controls dim and lock. The HUD stays
   fully lit above recap and decision modals and shows signed Prestige and stat deltas
   for the hovered or selected choice; recap counts those values up from before to after. Stat hover/tap
   details show the current

@@ -10,7 +10,7 @@ black), holds every piece; exact prompts are in `prompts.json`.
 keys the outside black (and the medallion aperture) to transparency by flood fill,
 crops each piece, reduces 2:1 with nearest sampling, derives `exp-groove-empty`
 by replacing the amber fill with dark track, and packs
-`images/sprite-sheets/chronicle-hud-frames.{png,json}` (no trim/rotation, 2px
+`images/sprite-sheets/chronicle-hud-frames.png` and `images/sprite-sheets/chronicle-hud-frames.json` (no trim/rotation, 2px
 extrusion). Sizes are recorded in `layout.json`.
 
 Pieces: `lintel-cap-left/right` (fixed), `lintel-mid` (mirrored, tiles
