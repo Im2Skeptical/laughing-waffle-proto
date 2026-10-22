@@ -1,4 +1,5 @@
 import { addInteractionFeedback } from './interaction-feedback.js';
+import { flashPrestigeShortfall } from './prestige-feedback-pixi.js';
 import { getResourceTexture, getChronicleTexture } from './chronicle-art.js';
 import { getVassalPhaseDurationParts, formatVassalPhaseDuration } from '../model/vassal-life-map.js';
 import { createText } from './settlement-view-primitives.js';
@@ -91,7 +92,7 @@ export function addTimeCostTokens(parent, phaseCost, state, {
 export function addCostPanel(parent, rect, {
   phaseCost = 0, prestigeCost = 0, prestigeGain = 0, currencyCost = 0, foodCost = 0, chaosCost = 0, monsterPressureCost = 0, state = null, selected = false, staged = false,
   disabled = false, unaffordable = false, label = 'Choose', onActivate, onUnavailable,
-  interactive = true, fontSize = 40, iconSize = 52, riskLabel = null,
+  interactive = true, prestigeFeedback = true, fontSize = 40, iconSize = 52, riskLabel = null,
 } = {}) {
   const root = new PIXI.Container();
   root.position.set(rect.x, rect.y);
@@ -142,7 +143,8 @@ export function addCostPanel(parent, rect, {
       divider.lineStyle(1, 0x829078, .3).moveTo(inset, y-gap/2).lineTo(rect.width - inset, y-gap/2);
       root.addChild(divider);
       const amount = addResourceAmount(root, resource.id, resource.value, {
-        fontSize: fontSize * .82, iconSize: iconSize * .76, fill: unaffordable ? 0xf0ad97 : resource.fill ?? ink,
+        fontSize: fontSize * .82, iconSize: iconSize * .76,
+        fill: unaffordable && resource.id === 'prestige' && prestigeCost > 0 && resource.value === prestigeCost ? 0xf0ad97 : resource.fill ?? ink,
       });
       const scale = Math.min(1, (rect.width - inset * 2) / amount.width, resourceHeight / amount.height);
       amount.scale.set(scale);
@@ -171,9 +173,10 @@ export function addCostPanel(parent, rect, {
   root.costSummary = { phaseCost, prestigeCost, prestigeGain, currencyCost, foodCost, chaosCost, monsterPressureCost, description, riskLabel, selected, staged, disabled, unaffordable };
   root.eventMode = interactive ? 'static' : 'none';
   root.cursor = disabled ? 'default' : 'pointer';
+  const prestigeUnmet = prestigeFeedback && unaffordable && prestigeCost > 0 && !staged;
   addInteractionFeedback(root, { x: 0, y: 0, width: rect.width, height: rect.height }, {
-    enabled: interactive && (!disabled || !!onUnavailable),
-    onActivate: disabled ? onUnavailable : onActivate,
+    enabled: interactive && (!disabled || prestigeUnmet || !!onUnavailable),
+    onActivate: prestigeUnmet ? () => flashPrestigeShortfall(root) : disabled ? onUnavailable : onActivate,
   });
   parent.addChild(root);
   return root;

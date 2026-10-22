@@ -1,3 +1,4 @@
+import { addPrestigeBankFeedback, flashPrestigeShortfall } from '../prestige-feedback-pixi.js';
 import { getArtRevision } from '../chronicle-art.js';
 import { createWorldMapView } from '../world-map-pixi.js';
 import { getRegionDefinition, getRegionReference } from '../../model/world-state.js';
@@ -138,7 +139,7 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
         title:label,artId:(campaign?['crisis','vigil','legacy']:founding?['settlement','development','legacy']:['travel','settlement','patronage'])[index],summary:details[index],
         actionLabel:from?'FROM':'CHOOSE',faceLabel:from?'From':active?'Selected':'Choose',
         enabled,showCost:!founding,selected:active,costUnmet:!!option&&option.cost>(getVassal()?.prestige??0),
-        cost:{phaseCost:option?.phases??0,prestigeCost:option?.cost??0,foodCost:option?.foodCost??0,monsterPressureCost:option?.monsterPressureCost??0,riskLabel:option?.riskLabel,prestigeGain:!selectedOption&&varyingReward?0:option?.prestigeDelta??0,state:getState()},
+        cost:{phaseCost:option?.phases??0,prestigeCost:option?.cost??0,foodCost:option?.foodCost??0,monsterPressureCost:option?.monsterPressureCost??0,riskLabel:option?.riskLabel,prestigeGain:!selectedOption&&varyingReward?0:option?.prestigeDelta??0,state:getState(),prestigeFeedback:!busy},
         onClick:choose,onInspect:choose,
       });
       if(founding)card.choiceButton=button(chrome,{x:card.x,y:PANEL.y+CONTENT.cardY+OPTION_COLUMN.height+12,width:OPTION_COLUMN.width,height:78},
@@ -157,9 +158,13 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
     if(campaign) {
       forcePanel=renderCampaignForcePanel(chrome,decision.campaign);
       addResourceAmount(chrome,'stock-edible',decision.campaign.resources.food,{x:PANEL.x+30,y:778,fontSize:28,iconSize:34});
-      addResourceAmount(chrome,'prestige',decision.campaign.resources.prestige,{x:PANEL.x+220,y:778,fontSize:28,iconSize:34});
+      const bank = addResourceAmount(chrome,'prestige',decision.campaign.resources.prestige,{x:PANEL.x+220,y:778,fontSize:28,iconSize:34});
+      addPrestigeBankFeedback(bank, {x:0,y:0,width:bank.width,height:bank.height});
     }
-    confirmButton=confirmDockButton(chrome,app,{label:busy?'Resolving...':'Confirm',enabled:!busy&&!!matching&&!choice.blocked,onClick:()=>onConfirm(founding&&decision.nodeState.selectedOptionId==='found-settlement'?'found-settlement':choice.id)});
+    confirmButton=confirmDockButton(chrome,app,{label:busy?'Resolving...':'Confirm',enabled:!busy&&!!matching&&!choice.blocked,
+      onUnavailable:!busy&&matching&&choice.cost>(getVassal()?.prestige??0)
+        ? ()=>flashPrestigeShortfall(modeButtons.find(card=>card.priceOptionId===choice.id)?.costPanel) : null,
+      onClick:()=>onConfirm(founding&&decision.nodeState.selectedOptionId==='found-settlement'?'found-settlement':choice.id)});
   }
   function updateOverlay() {
     if(!root.visible)return; map.update();
