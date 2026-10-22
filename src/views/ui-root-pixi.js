@@ -9,7 +9,9 @@ window.addEventListener('hashchange', () => {
   if (isLabRoute() !== startsInLab) location.reload();
 });
 
-if (new URLSearchParams(location.search).get('prototype') === 'vassal-selection') {
+if (new URLSearchParams(location.search).get('prototype') === 'prestige-shortfall') {
+  import('./prestige-shortfall-prototype.js').then(module => module.mountPrestigeShortfallPrototype());
+} else if (new URLSearchParams(location.search).get('prototype') === 'vassal-selection') {
   import('./vassal-selection-prototype.js').then(module => module.mountVassalSelectionPrototype());
 } else if (startsInLab) {
   import('./development-lab-dom.js').then(module => module.mountDevelopmentLab());
