@@ -1,58 +1,58 @@
-// Throwaway visual capture. Start npm start first, then pass its origin.
+// Throwaway linked-flash capture. Run npm start, then pass the reported origin.
 import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'node:fs/promises';
 const origin = process.argv[2] ?? 'http://localhost:5190';
 const folder = 'docs/prototypes/prestige-shortfall-feedback';
 await mkdir(folder, { recursive: true });
 const browser = await chromium.launch({ headless: true });
-const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true });
+const page = await browser.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true, reducedMotion: 'no-preference' });
 const errors = [];
 page.on('pageerror', error => errors.push(error.message));
-const checks = [];
+const snapshot = () => page.evaluate(() => window.prestigePrototype.snapshot());
 async function tapCanvas(x, y) {
-  const canvas = page.locator('canvas');
-  const box = await canvas.boundingBox();
+  const canvas = page.locator('canvas'), box = await canvas.boundingBox();
   await canvas.tap({ position: { x: x * box.width / 2424, y: y * box.height / 1080 } });
 }
+function checkPair(state, visible) {
+  if (state.bankFlash.visible !== visible || state.costFlash.visible !== visible || state.bankFlash.alpha !== state.costFlash.alpha) throw new Error('Bank and cost flashes diverged');
+}
 try {
-  for (const variant of ['A', 'B', 'C']) {
-    await page.goto(`${origin}/?prototype=prestige-shortfall&variant=${variant}&screen=shop`);
-    await page.waitForFunction(() => !!window.prestigePrototype);
-    await page.getByLabel('Hold feedback').check();
-    await tapCanvas(320, 710); // Real framed cost footer, including touch rejection.
-    const state = await page.evaluate(() => window.prestigePrototype.snapshot());
-    if (state.available !== 12 || state.shortfall !== 8 || !state.attempted || state.bank !== 18 || state.reserved !== 6) throw new Error(`${variant}: refused reserve mutated fixture or wrong deficit`);
-    if (variant === 'C' && !state.receipt) throw new Error('C: receipt missing');
-    await page.screenshot({ path: `${folder}/option-${variant.toLowerCase()}.png` });
+  await page.goto(`${origin}/?prototype=prestige-shortfall&screen=shop`);
+  await page.waitForFunction(() => !!window.prestigePrototype);
+  checkPair(await snapshot(), false);
+  await tapCanvas(320, 710);
+  const rejected = await snapshot();
+  checkPair(rejected, true);
+  if (rejected.bank !== 18 || rejected.reserved !== 6) throw new Error('Refusal mutated bank/draft');
+  await page.waitForFunction(() => { const s = window.prestigePrototype.snapshot(); return s.attempted && s.bankFlash.alpha < .9; });
+  const pulsed = await snapshot();
+  checkPair(pulsed, true);
+  if (pulsed.bankFlash.alpha >= .99) throw new Error('Highlight did not animate');
+  await tapCanvas(320, 710);
+  await page.waitForTimeout(650);
+  checkPair(await snapshot(), true);
+  await page.waitForFunction(() => !window.prestigePrototype.snapshot().attempted);
+  checkPair(await snapshot(), false);
+  await page.getByLabel('Hold feedback').check();
+  await tapCanvas(320, 710);
+  await page.screenshot({ path: `${folder}/selected-feedback.png` });
+  for (const screen of ['shop', 'life', 'routes', 'settlement', 'campaign']) {
+    await page.getByRole('combobox', { name: 'Screen' }).selectOption(screen);
+    await tapCanvas(320, 710);
+    checkPair(await snapshot(), true);
     await page.getByRole('button', { name: 'Exact funds', exact: true }).click();
-    await tapCanvas(1925, 886); // Real action control, at the equality boundary.
-    const exact = await page.evaluate(() => window.prestigePrototype.snapshot());
-    if (exact.shortfall !== 0 || exact.attempted || !exact.result.startsWith('Affordable')) throw new Error(`${variant}: exact funds rejected`);
-    checks.push(`${variant}: rejected reserve preserves bank/draft; exact funds accepted`);
-    await page.getByRole('button', { name: 'Reset', exact: true }).click();
-    await tapCanvas(1300, 535);
-    const undone = await page.evaluate(() => window.prestigePrototype.snapshot());
-    if (undone.reserved !== 0 || undone.available !== 18 || undone.shortfall !== 2) throw new Error(`${variant}: undo did not refresh availability`);
-    for (const screen of ['life', 'routes', 'settlement', 'campaign']) {
-      await page.getByRole('combobox', { name: 'Screen' }).selectOption(screen);
-      await tapCanvas(1925, 886);
-      const result = await page.evaluate(() => window.prestigePrototype.snapshot());
-      if (result.available !== 12 || result.shortfall !== 8 || !result.attempted || result.bank !== 12) throw new Error(`${variant}/${screen}: wrong spend feedback`);
-    }
-    checks.push(`${variant}: Life Map, route, settlement and campaign spend refusal`);
+    await tapCanvas(1925, 886);
+    const exact = await snapshot();
+    checkPair(exact, false);
+    if (exact.shortfall || exact.attempted) throw new Error(`${screen}: exact funds rejected`);
   }
   await page.getByRole('button', { name: 'Reset', exact: true }).click();
-  await page.getByLabel('Hold feedback').uncheck();
-  await page.getByRole('button', { name: 'Try action', exact: true }).click();
-  await page.waitForFunction(() => !window.prestigePrototype.snapshot().attempted);
-  checks.push('Feedback expiry; reduced-motion toggle; keyboard/URL variants');
   await page.getByLabel('Still', { exact: true }).check();
-  await page.locator('canvas').click({ position: { x: 15, y: 15 } });
-  await page.keyboard.press('ArrowRight');
-  if (!page.url().includes('variant=A')) throw new Error('Keyboard cycle did not wrap C to A');
-  await page.setViewportSize({ width: 1280, height: 800 });
-  await page.screenshot({ path: 'artifacts/prestige-desktop.png' });
+  await tapCanvas(320, 710);
+  checkPair(await snapshot(), true);
+  await page.waitForTimeout(150);
+  if ((await snapshot()).bankFlash.alpha !== 1) throw new Error('Reduced motion animated');
   if (errors.length) throw new Error(errors.join('; '));
-  await writeFile('artifacts/prestige-probe.json', JSON.stringify({ checks, errors, build: await (await page.request.get(`${origin}/build-info.json`)).json() }, null, 2));
-  console.log(`PASS: ${checks.length} grouped checks; 3 PNGs in ${folder}; details artifacts/prestige-probe.json`);
+  await writeFile('artifacts/prestige-probe.json', JSON.stringify({ result: 'PASS', checks: ['synchronized animated alpha', 'repeat click restarts both', 'both expire together', 'refusal preserves bank/draft', 'five screen fixtures', 'exact funds produce no flash', 'reduced motion is steady'], errors }, null, 2));
+  console.log('PASS: linked flash, repeat, expiry, five screens, exact funds, reduced motion; selected-feedback.png');
 } finally { await browser.close(); }
