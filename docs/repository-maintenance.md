@@ -10,6 +10,8 @@ permanent agent checkout.
 
 - `docs/game-design.md`: agreed gameplay pillars, themes and non-goals;
   authority for gameplay design decisions.
+- `docs/aesthetic-ux-design.md`: working aesthetic and UX guidance, refined
+  through Cam's design feedback.
 - `ai/ai-context.md`: current invariants and schema numbers.
 - `ai/sim.md` and `ai/ui.md`: current simulation and interface behavior.
 - `CONTEXT.md`: current domain terms.
