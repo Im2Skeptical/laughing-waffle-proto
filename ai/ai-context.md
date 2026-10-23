@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.27`.
+Game build version: `1.1.28`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch

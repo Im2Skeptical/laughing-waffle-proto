@@ -1,19 +1,20 @@
 // Founder class picker copy and tooltip specs. Pure data (no Pixi) so the picker
 // view, its probe and tests read the same rules text. Numbers mirror
 // docs/vassal-selection-prototype.md and getVassalStatPresentation().
+import { VASSAL_STAT_DEFS, VASSAL_CLASS_STAT_REPLACEMENTS } from '../defs/vassal-stat-defs.js';
 
 // Face art for each stat, from the resource-language atlas the HUD already uses.
-export const STAT_ICONS = Object.freeze({
-  Cunning: 'prestige', Intelligence: 'stock-instrument', Wisdom: 'faith', Effectiveness: 'phase',
-  Prowess: 'stock-arms', Ingenuity: 'stock-knowledge',
-});
+export const STAT_ICONS = Object.freeze(Object.fromEntries(
+  Object.values(VASSAL_STAT_DEFS).map(stat => [stat.label, stat.iconId])
+));
 // Same four stats, in the order every Vassal lists them.
-export const BASE_STATS = Object.freeze([
-  Object.freeze({ name: 'Cunning', statId: 'cunning' }),
-  Object.freeze({ name: 'Intelligence', statId: 'intelligence' }),
-  Object.freeze({ name: 'Wisdom', statId: 'wisdom' }),
-  Object.freeze({ name: 'Effectiveness', statId: 'effectiveness' }),
-]);
+export const BASE_STATS = Object.freeze(['cunning', 'intelligence', 'wisdom', 'effectiveness']
+  .map(statId => Object.freeze({ name: VASSAL_STAT_DEFS[statId].label, statId })));
+
+function classStat(classId) {
+  const [statKey, id] = Object.entries(VASSAL_CLASS_STAT_REPLACEMENTS[classId])[0];
+  return { replaces: VASSAL_STAT_DEFS[statKey].label, stat: VASSAL_STAT_DEFS[id].label, statKey };
+}
 
 const section = (title, text) => ({ type: 'paragraph', title, text });
 
@@ -61,7 +62,7 @@ const ABILITY_TIPS = Object.freeze({
 export const FOUNDER_CLASSES = Object.freeze({
   warrior: Object.freeze({
     name: 'WARLORD', unlocks: 'Warrior', flavour: 'Their courage outlives their name.',
-    replaces: 'Intelligence', stat: 'Prowess', statKey: 'intelligence',
+    ...classStat('warrior'),
     effects: ['+1 Martial Force per point', '15% increased RISK success chance per point'],
     abilities: Object.freeze([
       { id: 'retinue', name: 'Personal Retinue', summary: '+1 Martial Force per 10 held Prestige', art: 'vigil' },
@@ -72,7 +73,7 @@ export const FOUNDER_CLASSES = Object.freeze({
   }),
   scholar: Object.freeze({
     name: 'PHILOSOPHER', unlocks: 'Scholar', flavour: 'A patient mind leaves its mark.',
-    replaces: 'Cunning', stat: 'Ingenuity', statKey: 'cunning',
+    ...classStat('scholar'),
     effects: ['+5% shop-quality chance per point', '+1 Research on DISCOVERY per point'],
     abilities: Object.freeze([
       { id: 'commission', name: 'Commissions', summary: 'Gain Prestige each Commission completion', art: 'patronage' },

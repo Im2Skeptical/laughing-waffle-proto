@@ -2,6 +2,7 @@ import { createProtovassalDossier } from './protovassal-dossier-pixi.js';
 import { getVassalClassArtRevision } from './vassal-class-art.js';
 import { VASSAL_SIGNATURE_NODE_VARIANTS } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { getRegionReference } from "../model/world-state.js";
+import { getVassalStatsPresentation } from '../model/vassal-life-map.js';
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 import { createVassalPortraitView } from "./vassal-portrait-pixi.js";
@@ -33,7 +34,7 @@ function candidateCard(parent, rect, state, candidate, selected, { onPreview, on
   portrait.position.set(18, 15);
   root.addChild(portrait);
   const locationRef = getRegionReference(state, candidate.locationRegionId) ?? candidate.locationRegionId;
-  const stats = candidate.stats ?? {};
+  const stats = getVassalStatsPresentation(candidate);
   const signature = VASSAL_SIGNATURE_NODE_VARIANTS[candidate.signatureNode?.variantId]
     ?? candidate.signatureNode ?? {};
   root.addChild(
@@ -43,7 +44,7 @@ function candidateCard(parent, rect, state, candidate, selected, { onPreview, on
     createText(`${candidate.archetype ?? "Unclassed"} · ${locationRef}  ·  Age ${candidate.age}  ·  Prestige ${candidate.prestige}`, {
       ...TEXT_STYLES.body, fontSize: 19, fill: PALETTE.textMuted,
     }, 168, 59),
-    createText(`${candidate.classId === "scholar" ? "ING" : "CUN"} ${stats.cunning ?? 0}   WIS ${stats.wisdom ?? 0}   EFF ${stats.effectiveness ?? 0}   ${candidate.classId === "warrior" ? "PRO" : "INT"} ${stats.intelligence ?? 0}`, {
+    createText(stats.map(stat => `${stat.label.slice(0, 3).toUpperCase()} ${stat.value}`).join('   '), {
       ...TEXT_STYLES.chip, fontSize: 18, fill: PALETTE.text,
       wordWrap:true,wordWrapWidth:rect.width-188,
     }, 168, 96),

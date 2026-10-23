@@ -6,7 +6,7 @@ import { RELIC, getStoneTexture } from './chronicle-skin.js';
 import { addPaintedPanel, addPaintedSocket, addPaintedWindow } from './painted-frames.js';
 import { FRAME_PREFIX, WINDOW_FRAME } from './painted-frame-spec.js';
 import { PANEL as GRAPH_AREA } from './vassal-node-decision/constants.js';
-import { FOUNDER_CLASSES, STAT_ICONS } from './protovassal-class-data.js';
+import { FOUNDER_CLASSES } from './protovassal-class-data.js';
 import { addResourceIcon } from './resource-cost-pixi.js';
 import { getCrestLayout } from './vassal-life-hud-pixi.js';
 
@@ -125,7 +125,8 @@ export function createVassalLevelUpModalView({
     for (let r = 0; r < 4; r++) glow.beginFill(color, .12 + r * .05).drawCircle(0, 0, TABLET.socketD * .62 - r * 8).endFill();
     glow.visible = false; node.addChild(glow);
     const socket = addPaintedSocket(node, w / 2, TABLET.socketY, TABLET.socketD, {});
-    addResourceIcon(node, STAT_ICONS[before.label] ?? 'prestige', w / 2, TABLET.socketY, TABLET.socketD * .58);
+    node.statPresentation = before;
+    addResourceIcon(node, before.iconId, w / 2, TABLET.socketY, TABLET.socketD * .58);
     text(node, before.label.toUpperCase(), w / 2, TABLET.nameY, sizes.name, { fill: color, fontWeight: 'bold', letterSpacing: 3 }, .5, 0);
     const numY = TABLET.nameY + sizes.name * 1.25 + sizes.number * .55;
     const oldN = text(node, `${before.value}`, 0, numY, sizes.number, { fill: RELIC.ash }, .5, .5);
@@ -219,7 +220,9 @@ export function createVassalLevelUpModalView({
     if (selectedStatId && !choice.offeredStatIds.includes(selectedStatId)) selectedStatId = null;
     const k = cssScale();
     const nextSignature = getArtRevision() + JSON.stringify({
-      vassalId: vassal.vassalId, stats: vassal.stats, queue, k: Math.round(k * 1000),
+      vassalId: vassal.vassalId, classId: vassal.classId, founderClassId: vassal.founderClassId,
+      stats: vassal.stats, heirlooms: vassal.heirlooms,
+      queue, k: Math.round(k * 1000),
       w: app.screen.width, h: app.screen.height,
     });
     if (!force && nextSignature === signature) return;
@@ -345,6 +348,7 @@ export function createVassalLevelUpModalView({
       queue: getPresentation?.()?.vassal?.developmentChoiceQueue ?? [],
       selectedStatId,
       choiceStates: tablets.map(card => card.interactionState),
+      stats: tablets.map(card => card.statPresentation),
       confirmState: confirmRoot?.interactionState ?? null,
       confirmLabel: confirmRoot?.labelNode?.text ?? null,
       tooltipPinned: tipStatId,

@@ -1,4 +1,4 @@
-import { getCurrentLifeMapVassal, getVassalEffectiveStats } from '../vassal-life-map/selectors.js';
+import { getCurrentLifeMapVassal, getVassalEffectiveStats, getVassalStatDefinition } from '../vassal-life-map/selectors.js';
 import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
 import { emptySpecialists } from "./cohorts.js";
 import { NEUTRAL_MARKETS } from './neutral-market.js';
@@ -97,7 +97,7 @@ export function getRetinue(state, vassal) {
 // Provisional global calculation. Keep the single seam for a localized redesign.
 export function getMartialForce(state, vassal = getCurrentLifeMapVassal(state)) {
   const support = getCivilizationSupportSources(state).reduce((n, source) => n + source.amount, 0);
-  return support + (vassal?.classId === 'warrior'
+  return support + (getVassalStatDefinition(vassal, 'intelligence').id === 'prowess'
     ? getVassalEffectiveStats(vassal).intelligence + getRetinue(state, vassal).value : 0);
 }
 
