@@ -125,7 +125,7 @@ export const VASSAL_SIGNATURE_NODE_VARIANTS = Object.freeze({
   monsterHunt: Object.freeze({
     id: "monsterHunt", groupId: "monsterHunt", label: "Kill Monsters",
     glyph: "KM", color: 0xcf6b5d,
-    description: "Campaign against an adjacent target using Martial Force and 1 Edible.",
+    description: "Choose Campaign targets across the map. Encounter mode determines Force; Food costs also depend on distance.",
   }),
   removePractice: Object.freeze({
     id: "removePractice", groupId: "removal", removalKind: "practice",
