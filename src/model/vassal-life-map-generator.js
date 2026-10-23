@@ -10,7 +10,7 @@ import {
 import { detailedSettlementPracticeDefs } from "../defs/gamepieces/detailed-settlement-defs.js";
 import { canonicalizeLifeMapDesign, validateLifeMapDesign, populatePooledLifeMap } from './life-map-design.js';
 import { LIFEGRAPH_DEFAULT_GENERATOR } from '../defs/lifegraph-defaults.js';
-import { applyLifeMapColumns } from './life-map-columns.js';
+import { applyLifeMapColumns, resolveLifeMapColumns } from './life-map-columns.js';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const BANDS = Object.freeze(["early", "mid", "late"]);
@@ -23,7 +23,7 @@ function isCanonicalSignatureDescriptor(descriptor) {
     && descriptor.color === variant.color && descriptor.description === variant.description
     && descriptor.removalKind === variant.removalKind && descriptor.tag === variant.tag;
 }
-export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 14;
+export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 15;
 
 export function createAuthoredVassalLifeMapGeneratorConfig() {
   return clone(LIFEGRAPH_DEFAULT_GENERATOR);
@@ -393,7 +393,7 @@ export function generateVassalLifeMap(rawConfig, rng, {
   nodes=columns.nodes;edges=columns.edges;
   const bossNodeId=columns.bossNodeId;
   if(config.design.enabled){
-    const populated=populatePooledLifeMap(config,nodes,edges,rng,{classId,signatureNode,stockOutputs,unmetStockOutputs});
+    const populated=populatePooledLifeMap(config,nodes,edges,rng,{classId,founderClassId,signatureNode,stockOutputs,unmetStockOutputs});
     if(!populated.ok)return populated;
   }
   const deduped = dedupeEquivalentChoices(
@@ -452,6 +452,7 @@ export function generateVassalLifeMap(rawConfig, rng, {
       graphId,
       generationSeed,
       generatorConfig: clone(config),
+      generationContext: {classId:classId??null,founderClassId:founderClassId??null},
       nodes,
       edges,
       entryNodeIds: deduped.entryNodeIds,
@@ -485,6 +486,9 @@ export function validateVassalLifeMapGraph(graph) {
   if (graph.schemaVersion !== VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION) {
     errors.push(`schemaVersion: expected ${VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION}`);
   }
+  const context=graph.generationContext;
+  if(!context||![null,'scholar','warrior'].includes(context.classId)||![null,'scholar','warrior'].includes(context.founderClassId)
+    ||context.founderClassId&&context.founderClassId!==context.classId)errors.push('generationContext: expected the captured class and founder class');
   if (typeof graph.graphId !== "string" || !graph.graphId) errors.push("graphId: expected a string");
   if (!Number.isInteger(graph.generationSeed)) errors.push("generationSeed: expected an integer");
   if (!Array.isArray(graph.nodes) || !Array.isArray(graph.edges)
@@ -545,6 +549,9 @@ export function validateVassalLifeMapGraph(graph) {
   const configValidation = validateVassalLifeMapGeneratorConfig(graph.generatorConfig);
   errors.push(...configValidation.errors.map((error) => `generatorConfig.${error}`));
   const config = graph.generatorConfig;
+  const selectedColumns=configValidation.ok?resolveLifeMapColumns(config,context??{}):[];
+  const expectedFounding=selectedColumns.find(column=>column.kind==='founding');
+  if(!!foundingNode!==!!expectedFounding)errors.push('foundingNodeId: must match the winning Founding rule');
   const legacyRule=config?.design?.enabled?config.design.bookends?.legacy:{enabled:true,depth:'end'};
   const boss = nodeById.get(graph.bossNodeId);
   if(legacyRule?.enabled){
@@ -552,7 +559,7 @@ export function validateVassalLifeMapGraph(graph) {
     if(!boss||boss.family!=='legacy'||boss.bookend!=='legacy'||boss.depth!==depth)errors.push('bossNodeId: expected Legacy at its configured depth');
   }else if(graph.bossNodeId!=null)errors.push('bossNodeId: Legacy is disabled');
   for(const node of graph.nodes.filter(n=>n.milestoneId!=null)){
-    const column=config?.design?.columns?.find(c=>c.id===node.milestoneId&&c.enabled);
+    const column=selectedColumns.find(c=>c.id===node.milestoneId&&c.kind==='milestone');
     if(!column||node.depth!==column.depth-1||node.generationRuleId!==`milestone:${column.id}`
       ||graph.nodes.filter(n=>n.depth===node.depth).length!==1
       ||column.targetType==='node'&&getVassalLifeMapNodeType(node)!==column.targetId
@@ -561,6 +568,9 @@ export function validateVassalLifeMapGraph(graph) {
     }
     for(const parent of graph.nodes.filter(n=>n.depth===node.depth-1))if(!edgeKeys.has(`${parent.id}>${node.id}`))errors.push(`${node.id}: milestone must join every incoming branch`);
     for(const child of graph.nodes.filter(n=>n.depth===node.depth+1))if(!edgeKeys.has(`${node.id}>${child.id}`))errors.push(`${node.id}: milestone must reach every outgoing branch`);
+  }
+  for(const column of selectedColumns.filter(c=>c.kind==='milestone')){
+    if(graph.nodes.filter(node=>node.milestoneId===column.id).length!==1)errors.push(`milestone:${column.id}: expected exactly one node for the winning rule`);
   }
   if (graph.nodes.filter((node) => node.family === "legacy").length !== (legacyRule?.enabled?1:0)) {
     errors.push("nodes: Legacy count must match its enabled state");

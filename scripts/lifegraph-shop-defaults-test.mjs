@@ -11,7 +11,7 @@ import {initializeReplayClock,advanceReplayStateToSecond} from '../src/model/rep
 
 const c=createLifegraphController({store:null}),current=c.getGeneratorConfig();
 assert.deepEqual(createAuthoredGameConfig().lifeMapGenerator,current,'normal New Game and Lab use identical defaults');
-assert.equal(current.laneCount,3);assert.equal(current.normalDepthCount,10);assert.equal(current.design.enabled,true);
+assert.equal(current.laneCount,5);assert.equal(current.normalDepthCount,13);assert.equal(current.design.enabled,true);
 assert.deepEqual(current.design.costBands.time,{cheap:3,fair:5,expensive:10});
 assert.deepEqual(current.design.costBands.prestige,{cheap:10,fair:15,expensive:30});
 assert.deepEqual(current.design.shopPricing.prices.structure,current.design.shopPricing.prices.practice);

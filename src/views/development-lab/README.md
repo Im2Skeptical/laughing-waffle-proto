@@ -29,7 +29,8 @@ live Vassal tools and save diagnostics only.
 
 `lifegraph.js` owns the dedicated Lifegraph workspace and node reviewer.
 `lifegraph-columns.js` edits single-node milestone columns, their class/content
-rules, milestones-only node generation, and Founding/Legacy placement or removal.
+rules, class/life-stage filters, ordered alternatives with winner explanations,
+fallback creation, milestones-only generation, and Founding/Legacy placement.
 `lifegraph-preview.js` reuses game node icons and layout in one Pixi stage.
 The Lifegraph header's Fullscreen control shares the phone landscape display
 mode across every editing tab. Opening a node exits workshop fullscreen;

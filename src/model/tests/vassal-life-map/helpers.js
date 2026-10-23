@@ -78,8 +78,9 @@ export function nodeIdForFamily(state, family, index = 0) {
     .filter((node) => getVassalLifeMapNodeType(node) === family);
   if (!nodes[index]) {
     const graph=getCurrentLifeMapVassal(state).lifeMap.graph;
-    const fixtureNode=graph.nodes.find(n=>n.id!==graph.foundingNodeId&&!n.signatureNode && !["legacy","signature"].includes(n.family));
+    const fixtureNode=graph.nodes.find(n=>n.id!==graph.foundingNodeId&&!n.signatureNode&&!n.milestoneId&&!n.bookend && !["legacy","signature"].includes(n.family));
     fixtureNode.family=family==='specialRelic'?'relic':family;
+    if(fixtureNode.family!=='stockShop')delete fixtureNode.stockOutput;
     if(fixtureNode.family==='relic')fixtureNode.specialRelic=family==='specialRelic';else delete fixtureNode.specialRelic;
     nodes[index]=fixtureNode;
   }

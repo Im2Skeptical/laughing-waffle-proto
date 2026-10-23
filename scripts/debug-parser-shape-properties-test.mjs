@@ -190,7 +190,7 @@ const lifeDoc = starter.lifeMapLab;
 let detailedIndex = mapDoc.regions.findIndex((region) => region.detailedSettlementEnabled && region.detailedState?.populationByClass);
 must(detailedIndex >= 0, "starter map has no detailed settlement to mutate");
 must(mapDoc.schemaVersion === 8 && lifeDoc.schemaVersion === 2, "controller drafts are not current schema v8/v2");
-must(lifeDoc.generatorConfig?.schemaVersion === 14 && lifeDoc.generatorConfig?.weights?.early, "life generator is not current schema v14");
+must(lifeDoc.generatorConfig?.schemaVersion === 15 && lifeDoc.generatorConfig?.weights?.early, "life generator is not current schema v15");
 must(starter.gameSettings?.schemaVersion === 28 && starter.launch?.startMode === "randomRoad", "profile settings/launch are not the current contract");
 
 const vassalDraft = {

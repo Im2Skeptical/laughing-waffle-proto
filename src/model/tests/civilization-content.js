@@ -108,6 +108,7 @@ assert.ok(stockTotal(common,commonSite.detailedState,'Currency')>0);
 
 // B/F: ordinary Stock acquires Knowledge identity through Scholar staffing only.
 const scholarState=createNewGameState(47);scholarState.paused=true;
+scholarState.gameConfig.lifeMapGenerator.design.bookends.founding.depth=0;
 let pool=getVassalCandidatePool(scholarState);
 assert.equal(selectLifeMapVassal(scholarState,0,pool.expectedPoolHash).ok,true);
 const scholar=getCurrentLifeMapVassal(scholarState),scholarSite=scholarState.world.sites.find(s=>s.regionId===scholar.locationRegionId);
@@ -196,6 +197,7 @@ assert.ok(stockTotal(relations,home.detailedState,'Loot')>0);
 
 // Warrior founding uses the same public Life Map command route as Scholar founding.
 const warriorStart=createNewGameState(48);warriorStart.paused=true;
+warriorStart.gameConfig.lifeMapGenerator.design.bookends.founding.depth=0;
 const warriorPool=getVassalCandidatePool(warriorStart);
 assert.equal(selectLifeMapVassal(warriorStart,1,warriorPool.expectedPoolHash).ok,true);
 const founder=getCurrentLifeMapVassal(warriorStart);

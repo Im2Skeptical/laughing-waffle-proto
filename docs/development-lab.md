@@ -79,21 +79,39 @@ isolation. Such a test substitutes one preview slot; it does not edit the graph.
 
 **Milestone columns** makes all routes meet at one node, then branch again.
 Add a named column at an existing depth, choose a node type or family, and set
-its class scope. Family columns roll one eligible member for that whole column.
+its class and life-stage conditions. Rules are checked in displayed priority
+order at each depth; the first enabled matching rule wins. **Move earlier/later**
+changes priority, including Founding's position. **Add fallback at this depth**
+creates a lower-priority alternative. The preview identifies selected rules,
+ineligible rules, and the rule overriding each fallback. Family columns roll one
+eligible member for that whole column. A winning rule with unavailable content
+reports an error instead of silently selecting a different rule. With no matching
+rule at a depth, random generation applies.
 **Milestones only** excludes a node type from random rolls and other reservations;
 matching milestones still satisfy guarantees. This supports scheduled Practice
-Reform shops without extra copies between them. Conflicting depths and unavailable
-class/timing pools report errors instead of silently replacing another reservation.
+Reform shops without extra copies between them. Legacy reserves its depth;
+milestone rules can share depths with each other and with Founding.
 
 Founding and Legacy have independent enable and position controls. Founding depth
-0 precedes the graph; numbered depths replace a normal column. It is first-life
+0 precedes the graph; numbered depths replace a normal column. At a shared depth,
+the first matching rule wins. Put Founding before a Crossroads fallback to give
+protovassals Founding and successors Crossroads. Reversing that order can suppress
+Founding for that life. Founding and Legacy cannot share a depth. Founding is first-life
 only and still establishes the class when completed. Disabling it leaves that
 founder unclassed. Use **Preview life stage** to inspect either founder or a
 successor, and **Play Founding** to try the real action. Legacy can stay after the
 final depth, replace a numbered column, or be disabled. Interior Legacy grants its
 reward and continues. Any terminal node retires the Vassal; without Legacy there
 is no Legacy reward. These experiments apply only in Pooled draft mode and retain
-the normal bookends by default. New settings require fresh runs/saves.
+their authored bookends. New settings require fresh runs/saves.
+
+Normal New Game and Lifegraph reset use the same recipe: five lanes, thirteen
+depths (4 Early / 5 Middle / 4 Late), Practice Reform at depth 1, Founding ahead
+of Crossroads at depth 5, Relic at depth 10, and terminal Legacy. Discovery is
+Rare without a guarantee and cannot repeat consecutively. First-life maps use
+Common content before Founding; class-only content becomes eligible afterwards.
+The early Training guarantee applies to successors only. Guarantees expose the
+same Any life / First life / Successors filter.
 
 **Pooled draft** reserves milestone columns, then signature, class and Stock Supply opportunities,
 then chooses a family and a node within it. Families and nodes use named
@@ -102,6 +120,12 @@ separate from those tiers. Family repetition limits are preferred maxima;
 guarantees and thin pools can exceed them, which diagnostics report. Guarantees
 target a node or family, a depth range, a class, and either the map as a whole or
 every complete route. Impossible placement is an explicit generation conflict.
+Guarantees reserve nodes independently of rarity: an Every route Discovery
+guarantee can force several copies on separate branches even with Rare selected.
+Use Whole map for a graph-wide minimum, or remove that guarantee for random
+occurrence alone. These are minimums, not caps. Consecutive-repeat prevention only
+blocks adjacent copies along a route. Nodes & review shows reserved versus random
+placement counts and links to Guarantees.
 Supply reservations only select unlocked outputs and prefer separate depths.
 The underlying unmet-need analysis still considers producers across all player
 settlements; it does not yet prove local supply reach or recipe sustainability.

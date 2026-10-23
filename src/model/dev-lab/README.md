@@ -28,16 +28,22 @@ Life Map rules; the independent controller validates cloned transactions.
 single-type experiments and diagnoses complete-route coverage and actual shop
 eligibility. It calls the shared shop candidate selector without RNG or writes.
 Workbench review/export v1 is independent of GameState. Runs capture the pooled
-design in generator config v14; baseline and pooled rules both use the topology
+design in generator config v15; baseline and pooled rules both use the topology
 substream. Review storage is never consulted by a running simulation or replay.
 Choice review uses real isolated node entry to show seeded effects and costs;
 absolute per-choice presets and shared type/quality shop prices live in
 `model/life-map-balance.js` and are captured before a run starts.
 `defs/lifegraph-defaults.js` contains the approved first-pass tuning used by
-normal New Game and the Lab, plus the built-in Previous defaults profile.
+normal New Game and the Lab, plus the built-in Previous defaults profile. The
+current recipe has five lanes, thirteen depths, milestone rules at 1/5/10 and
+Rare Discovery without a minimum. Before a first life's Founding depth, class
+actions are ineligible; the early Training guarantee is successor-only.
 Shop services share one authored time per action across every shop.
 `model/life-map-columns.js` joins routes at custom milestone columns before content
-reservation. It also places configurable Founding and Legacy columns. The shared
+reservation. Custom rules have class/life-stage filters and array order; Founding
+has an editable insertion position in that order. The first match at each depth
+wins. Legacy reserves its separate depth. The graph captures its generation
+class and founder class so validation checks the effective winners. The shared
 generator creates both first-life previews and live founder graphs; diagnostics
 measure all terminal routes even when Legacy is absent or no longer terminal.
 
