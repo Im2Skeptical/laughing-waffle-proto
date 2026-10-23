@@ -3,7 +3,8 @@
 Implementation scope confirmed with Cam on 2026-10-23. The visual primary source
 is local branch `proto/output-multi-pool`, commit `ec72f622`; that branch remains
 the throwaway experiment. This implementation starts from local `main`
-`e1d7da6d` in its own worktree and does not publish or integrate the prototype.
+`e1d7da6d` in its own worktree. Cam approved merging and publishing the selected
+implementation on 2026-10-23; the throwaway prototype remains a separate record.
 
 ## Agreed mechanics
 
@@ -22,7 +23,7 @@ the throwaway experiment. This implementation starts from local `main`
   +2 Output bonus, Edible output scope and +0.5 biome coefficient are discarded.
 - Existing flat output bonuses retain their place in the base-yield calculation;
   they do not become multiplier contributions. Scheduled Stock uses that base
-  yield ? Output Multiplier ? workers, rounded down, then the existing post-yield
+  yield × Output Multiplier × workers, rounded down, then the existing post-yield
   numeric bonuses; Charge Stock uses no worker output multiplier. Capacity limits
   retained Stock afterward. New multiplier effects use a distinct data operation;
   neither pool automatically contributes to the other.

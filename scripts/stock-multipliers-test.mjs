@@ -100,4 +100,25 @@ const pending=getVassalNodeDecisionPresentation(shop.state,shop.nodeId).settleme
 assert.equal(pending.rows[0].capacity.multiplier,2,'reservation keeps completed-result preview');
 assert.equal(stockCapacityBreakdown(shop.state,board,board.practiceSlots[0]).multiplier,1,'reservation never activates a live bonus');
 assert.ok(board.structureSlots.every(slot=>!slot),'live board remains unchanged before Confirm');
+
+// Mixed shops: a newly reserved Practice must participate in Structure hover,
+// including its baseline, delta and completion marker before either is committed.
+const mixed=createLabNodeSandbox({type:'foodShop',prestige:200,seed:1});
+const mixedOffers=getVassalNodeDecisionPresentation(mixed.state,mixed.nodeId).offers;
+const sheep=mixedOffers.find(o=>o.intervention.practiceId==='sheepHusbandry');
+const granary=mixedOffers.find(o=>o.intervention.structureId==='granary');
+assert.ok(sheep&&granary);
+assert.ok(purchaseVassalShopOffer(mixed.state,mixed.nodeId,sheep.offerId).ok);
+const beforeMixedHover=JSON.stringify(serializeGameState(mixed.state));
+const mixedHover=getVassalNodeDecisionPresentation(mixed.state,mixed.nodeId,{previewOfferId:granary.offerId})
+  .settlement.multiplierPreview.rows.find(row=>row.practiceId==='sheepHusbandry');
+assert.equal(mixedHover.capacity.multiplier,3,'Granary hover includes a newly staged Practice');
+assert.equal(mixedHover.before.capacity.multiplier,1,'new Practice has a meaningful pre-Structure baseline');
+assert.ok(mixedHover.capacity.sources.some(source=>source.pending),'new Practice hover marks pending contributions');
+assert.equal(JSON.stringify(serializeGameState(mixed.state)),beforeMixedHover,'mixed-shop hover remains pure');
+assert.ok(purchaseVassalShopOffer(mixed.state,mixed.nodeId,granary.offerId).ok);
+const mixedReserved=getVassalNodeDecisionPresentation(mixed.state,mixed.nodeId).settlement.multiplierPreview.rows
+  .find(row=>row.practiceId==='sheepHusbandry');
+assert.equal(mixedReserved.capacity.multiplier,3);
+assert.equal(mixedReserved.before.capacity.multiplier,1,'reservation keeps the new Practice delta visible');
 console.log('[stock-multipliers] OK: biome scopes/components, independent pools, construction, preview purity, RNG, save, replay and forecast');
