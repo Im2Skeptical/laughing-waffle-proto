@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.24`.
+Game build version: `1.1.27`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -48,7 +48,7 @@ Routing skills live in `.grok/skills/`.
 - Practices explicitly use Scheduled or Charge mode. Private Charge is not Stock;
   full legal recipes Discharge automatically through the authoritative event queue.
   Each Practice can Discharge once per root chain; refilled Charge is retained.
-  Output and Capacity Multipliers are independent additive pools, base ?1.
+  Output and Capacity Multipliers are independent additive pools, base ×1.
   Biome Output contributions use the containing shared-edge component, +1 per
   region: plains/Grain (including Milling), mountains/Stone, forest/Construction.
   Ownership does not restrict the component. See `docs/output-capacity-multipliers.md`.
@@ -132,6 +132,7 @@ knowledge, and the single vassal lineage are civilization-global.
 ## Pointers
 
 - Gameplay design authority: [`docs/game-design.md`](../docs/game-design.md).
+- Aesthetic and UX guidance: [`docs/aesthetic-ux-design.md`](../docs/aesthetic-ux-design.md).
 - Simulation (six named moon phases, food/housing/faith/migration/death,
   practices, construction, Vassal Life Map): [`ai/sim.md`](sim.md)
 - UI (screens, map, settlement, timegraph, dock, Life Map chrome, menu/saves):

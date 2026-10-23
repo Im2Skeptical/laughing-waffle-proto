@@ -25,7 +25,18 @@ export function multiplierBoardPreview(state, regionId, before, after, completeI
     if (!slot || !completeIds.includes(slot.placementId)) return slot;
     const {construction,...finished} = slot; return finished;
   })};
-  return {afterCompletion:completeIds.length>0,rows:read(completed,true).map(row => ({...row,before:current.find(old => old.practiceId === row.practiceId) ?? null}))};
+  let introduced=null;
+  return {afterCompletion:completeIds.length>0,rows:read(completed,true).map(row => {
+    let baseline=current.find(old=>old.practiceId===row.practiceId);
+    if(!baseline) {
+      // A newly staged Practice was absent from the original board. Read its
+      // multipliers with the original Structures so hover/reservation can still
+      // show the prospective Structure delta, rather than dropping that row.
+      introduced??=read({...after,structureSlots:before.structureSlots});
+      baseline=introduced.find(old=>old.practiceId===row.practiceId);
+    }
+    return {...row,before:baseline??null};
+  })};
 }
 
 export function multiplierShopPreview(state, regionId, before, reservation, action, placementId, stagedIds = []) {
