@@ -84,7 +84,7 @@ export function createVassalResolutionRecapView({
     {
       const rect = app?.view?.getBoundingClientRect?.();
       const k = rect?.width > 0 ? rect.width / (app.screen?.width || 2424) : 1;
-      const y = Math.max(PANEL_BASE.y, Math.round(getCrestLayout(k).bottom - 26));
+      const y = Math.max(PANEL_BASE.y, Math.round(getCrestLayout(k).bottom + 4));
       PANEL = { ...PANEL_BASE, y, height: Math.min(PANEL_BASE.height, 1060 - y) };
     }
     dismissRoot = null;

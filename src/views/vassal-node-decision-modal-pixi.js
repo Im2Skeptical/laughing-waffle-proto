@@ -41,7 +41,6 @@ import {
   confirmDockButton,
   confirmDockRect,
   renderTitlePlaque,
-  renderLocationPlaque,
 } from "./vassal-node-decision/chrome.js";
 import { renderMortalityEstimate } from "./vassal-node-decision/mortality.js";
 import { renderRegionalMap } from "./vassal-node-decision/regional-map.js";
@@ -687,7 +686,7 @@ export function createVassalNodeDecisionModalView({
           });
           card.offerId = offer.offerId;
           card.faceRoot?.on('pointerdown',event=>beginDrag(event,card.faceRoot,{...offer,presentation:offer.constructionPresentation??offer.presentation},true));
-          if(offer.purchased)undoRoots.push(button(root,{x,y:cardY+cardHeight+OPTION_COLUMN.costGap+COST_FOOTER_HEIGHT+8,width:offerWidth,height:44},'UNDO',!readOnly,()=>onUndoPurchase?.(node.id,offer.offerId)));
+          if(offer.purchased){const undo=button(root,{x,y:cardY+cardHeight+OPTION_COLUMN.costGap+COST_FOOTER_HEIGHT+2,width:offerWidth,height:32},'UNDO',!readOnly,()=>onUndoPurchase?.(node.id,offer.offerId));undo.hitArea=new PIXI.Rectangle(0,-12,offerWidth,44);undoRoots.push(undo);}
           return card;
         });
         offerRoots=shopCardRoots.filter((_,index)=>!shopCards[index].purchased);
@@ -742,7 +741,6 @@ export function createVassalNodeDecisionModalView({
     const sx = hasSettlementContext ? TABLEAU.x : PANEL.x + 1200;
     const settlement = decision?.settlement;
     if (decision?.contextKind === "settlement" && settlement) {
-      renderLocationPlaque(root, `SETTLEMENT \u00b7 ${decision.previewRegionLabel ?? vassal.locationRegionId}`, family.color);
       const rendered = renderDecisionTableau(root, settlement, {
         time:state?.tSec ?? 0, readOnly, choosing:!!replacementOfferId,
         onChoose:(index, piece) => {
@@ -769,16 +767,16 @@ export function createVassalNodeDecisionModalView({
         ...TEXT_STYLES.header, fontSize: 22,
       }, sx, PANEL.y + CONTENT.labelY));
       const heirlooms = decision.heirlooms ?? { equipped: [null, null, null], carry: [null, null, null] };
-      button(root,{x:sx+600,y:PANEL.y+CONTENT.labelY,width:230,height:44},'OPEN BAG',true,()=>onOpenHeirlooms?.('carry'));
+      button(root,{x:sx+600,y:PANEL.y+CONTENT.labelY-8,width:230,height:44},'OPEN BAG',true,()=>onOpenHeirlooms?.('carry'));
       const pickingEquip = acquirePicker?.destination === "equip" && acquirePicker.step !== "discard";
       const pickingCarry = acquirePicker?.destination === "carry"
         || acquirePicker?.step === "discard";
       heirlooms.equipped.forEach((item, index) => {
         const picking = pickingEquip;
         const label = `${picking?'Move to bag:':'Active '+(index+1)+':'} ${item ? `${item.label} · ${item.inheritanceLabel}` : "Empty"}`;
-        addHeirloomSlot(root,{x:sx,y:PANEL.y+114+index*56,width:48,height:48},item,{tooltipView});
+        addHeirloomSlot(root,{x:sx,y:PANEL.y+142+index*56,width:48,height:48},item,{tooltipView});
         if (picking) {
-          button(root, { x: sx+60, y: PANEL.y + 114 + index * 56, width: 770, height: 48 },
+          button(root, { x: sx+60, y: PANEL.y + 142 + index * 56, width: 770, height: 48 },
             label, true, () => {
               const carryFull = (heirlooms.carry ?? []).every(Boolean);
               if (carryFull) {
@@ -794,15 +792,15 @@ export function createVassalNodeDecisionModalView({
         } else {
           root.addChild(createText(label, {
             ...TEXT_STYLES.body, fontSize: 20, fill: item ? PALETTE.text : PALETTE.textMuted,
-          }, sx+60, PANEL.y + 120 + index * 56));
+          }, sx+60, PANEL.y + 148 + index * 56));
         }
       });
       heirlooms.carry.forEach((item, index) => {
         const picking = pickingCarry;
         const label = `${picking?'Discard:':'Bag '+(index+1)+':'} ${item ? `${item.label} · ${item.inheritanceLabel}` : "Empty"}`;
-        addHeirloomSlot(root,{x:sx,y:PANEL.y+300+index*56,width:48,height:48},item,{tooltipView});
+        addHeirloomSlot(root,{x:sx,y:PANEL.y+328+index*56,width:48,height:48},item,{tooltipView});
         if (picking) {
-          button(root, { x: sx+60, y: PANEL.y + 300 + index * 56, width: 770, height: 48 },
+          button(root, { x: sx+60, y: PANEL.y + 328 + index * 56, width: 770, height: 48 },
             label, true, () => {
               const acquire = acquirePicker.destination === "carry"
                 ? { destination: "carry", replaceCarryIndex: index }
@@ -817,7 +815,7 @@ export function createVassalNodeDecisionModalView({
         } else {
           root.addChild(createText(label, {
             ...TEXT_STYLES.body, fontSize: 20, fill: item ? PALETTE.text : PALETTE.textMuted,
-          }, sx+60, PANEL.y + 306 + index * 56));
+          }, sx+60, PANEL.y + 334 + index * 56));
         }
       });
       if (acquirePicker) {
@@ -828,13 +826,13 @@ export function createVassalNodeDecisionModalView({
             : "All active slots are full. Choose which heirloom moves to the bag.", {
           ...TEXT_STYLES.header, fontSize: 20, fill: PALETTE.accent,
           wordWrap: true, wordWrapWidth: 800,
-        }, sx, PANEL.y + 480));
-        button(root,{x:sx,y:PANEL.y+560,width:260,height:48},'CANCEL',true,()=>{acquirePicker=null;render(true);});
+        }, sx, PANEL.y + 508));
+        button(root,{x:sx,y:PANEL.y+588,width:260,height:48},'CANCEL',true,()=>{acquirePicker=null;render(true);});
       } else {
         const selected=nodeState?.options?.find(option=>option.id===nodeState.selectedOptionId);
         root.addChild(createText(selected&&!selected.emptyRelic?`${selected.label}: ${heirloomEffectText(selected)}\nEquip to activate its effect, or stow it in the bag for inheritance.`:'Choose one heirloom, then Equip now or Stow in bag. Carried heirlooms grant no effects.',{
           ...TEXT_STYLES.body,fontSize:24,fill:PALETTE.textMuted,wordWrap:true,wordWrapWidth:830,
-        },sx,PANEL.y+492));
+        },sx,PANEL.y+520));
       }
     }
 
@@ -851,13 +849,13 @@ export function createVassalNodeDecisionModalView({
     if (isShop && vassal.classId==='scholar' && !selectingTag && nodeState && !nodeState.resolving && showShopReroll(node)) {
       const rerollEnabled = !readOnly && (nodeState.purchasedOffers ?? []).length === 0;
       const rerollBlocked = (nodeState.purchasedOffers ?? []).length ? 'Undo staged offers before delving.' : null;
-      const reroll = button(root, { x: PANEL.x + 54, y: PANEL.y + PANEL.height - 72, width: 440, height: 50 },
+      const reroll = button(root, { x: PANEL.x + 54, y: PANEL.y + PANEL.height - 54, width: 440, height: 46 },
         'DELVE', rerollEnabled,
         () => {replacementOfferId=null; onRerollShop?.(node.id);}, false,
         { onUnavailable: !readOnly && rerollBlocked ? () => explainBlocked(rerollBlocked) : null });
       reroll.children[1].x=70;reroll.children[1].style.fontSize = 20;
       const cost=getVassalDelvePhaseCost(state,vassal,nodeState);
-      reroll.addChild(createText(formatVassalPhaseDuration(cost,state),{...TEXT_STYLES.body,fontSize:18,fill:PALETTE.accent},128,16));
+      reroll.addChild(createText(formatVassalPhaseDuration(cost,state),{...TEXT_STYLES.body,fontSize:18,fill:PALETTE.accent},128,14));
       explainReadOnly(reroll, readOnly);
     }
     renderTitlePlaque(root, selectingTag ? {...family,description:''} : family);

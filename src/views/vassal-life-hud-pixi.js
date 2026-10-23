@@ -29,15 +29,15 @@ const TWEEN_MS = 700;
 const CREST = Object.freeze({
   // Pivot chosen so the scaled crest keeps clear of the decision title plaque (x ≤ 408)
   // on the left and the Save & menu button (x ≥ 2010) on the right.
-  pivot: Object.freeze({ x: 723, y: 76 }),
-  bar: Object.freeze({ x: 620, y: 76, width: 1080, height: 65 }),
-  medallion: Object.freeze({ cx: 560, cy: 137, ring: 141, portrait: 98 }),
-  life: Object.freeze({ x: 652, y: 68, width: 170, unit: 1.4 }),
-  pendant: Object.freeze({ x: 836, y: 128, unit: 1.15, minWidth: 104, maxWidth: 200 }),
-  stats: Object.freeze({ x: 1000, y: 70, width: 68, height: 63, gap: 6, unit: 1.1, studY: 7, bodyY: 41 }),
-  heirlooms: Object.freeze({ x: 1306, cy: 108, size: 54, step: 62 }),
-  tabs: Object.freeze({ right: 1690, y: 132, minWidth: 76, maxWidth: 190, height: 77, gap: 8, unit: .95 }),
-  bottom: 214,
+  pivot: Object.freeze({ x: 712, y: 74 }),
+  bar: Object.freeze({ x: 620, y: 74, width: 1080, height: 65 }),
+  medallion: Object.freeze({ cx: 560, cy: 111, ring: 141, portrait: 98 }),
+  life: Object.freeze({ x: 652, y: 66, width: 170, unit: 1.4 }),
+  pendant: Object.freeze({ x: 836, y: 111, unit: 1.15, minWidth: 104, maxWidth: 200 }),
+  stats: Object.freeze({ x: 1000, y: 68, width: 68, height: 63, gap: 6, unit: 1.1, studY: 7, bodyY: 41 }),
+  heirlooms: Object.freeze({ x: 1306, cy: 100, size: 54, step: 62 }),
+  tabs: Object.freeze({ right: 1690, y: 113, minWidth: 76, maxWidth: 190, height: 73, gap: 8, unit: .9 }),
+  bottom: 188,
 });
 const BASE_VALUE_FONT = 24, MIN_CSS_VALUE = 11, MAX_SCALE = 1.3;
 // Scale for a canvas at k CSS px per design px, and the crest's lowest y.
@@ -320,7 +320,7 @@ export function createVassalLifeHudView({
     const amountText = amount.children[0];
     const prestigeCut = fitText(amountText, pendantW - 12 - 34 - 12, 18);
     const prestigeDelta = signedDelta(deltas?.prestige);
-    if (prestigeDelta) pendant.addChild(createText(prestigeDelta, { ...TEXT_STYLES.chip, fontSize: 16, fill: deltas.prestige > 0 ? PALETTE.green : PALETTE.red, stroke: 0x101314, strokeThickness: 3 }, pendantW - 4, 22, 1, 1));
+    if (prestigeDelta) pendant.addChild(createText(prestigeDelta, { ...TEXT_STYLES.chip, fontSize: 16, fill: deltas.prestige > 0 ? PALETTE.green : PALETTE.red, stroke: 0x101314, strokeThickness: 3 }, pendantW - 4, 28, 1, 1));
     pendant.hitArea = new PIXI.Rectangle(0, 0, pendantW, 75);
     tipOn(pendant, () => ({ title: `Prestige ${shown.prestige.toLocaleString('en-US')}`, scale: 2, lines: [
       prestigeDelta ? `Selected choice: ${prestigeDelta}` : 'Spent on Lifegraph choices; earned by completed nodes.',
