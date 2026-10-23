@@ -401,6 +401,8 @@ function laterDecision(session) {
 
 function openSession(seed, horizonSec) {
   const state = createNewGameState(seed);
+  // Isolate the scripted Founding-resolution boundary from authored placement.
+  state.gameConfig.lifeMapGenerator.design.bookends.founding.depth=0;
   initializeReplayClock(state, 0);
   return {
     seed, horizonSec, state, failed: false, terminal: null,

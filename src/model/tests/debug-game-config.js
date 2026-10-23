@@ -54,7 +54,7 @@ const authoredConfig = createAuthoredGameConfig();
 assert.equal(authoredConfig.schemaVersion, 28);
 assert.equal(authoredConfig.settings.schemaVersion, 28);
 assert.equal(authoredConfig.gamepieces.schemaVersion, 28);
-assert.equal(authoredConfig.lifeMapGenerator.laneCount, 3);
+assert.equal(authoredConfig.lifeMapGenerator.laneCount, 5);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
 assert.equal(validateGamepiecesDraft(createAuthoredGamepiecesDraft()).ok, true);

@@ -1,8 +1,11 @@
 import { addInteractionFeedback } from '../interaction-feedback.js';
+import { flashPrestigeShortfall } from '../prestige-feedback-pixi.js';
 // Buttons, option/offer copy, and choice/shop cards.
 
 import { addIllustration } from "../chronicle-art.js";
 import { addSettlementPiece, PIECE_SIZE } from '../settlement-piece-pixi.js';
+import { addMultiplierFitting } from '../multiplier-fitting.js';
+import { multiplierTooltip } from '../multiplier-breakdown.js';
 import { addCostPanel } from "../resource-cost-pixi.js";
 import { addHeirloomCard } from '../vassal-heirloom-pixi.js';
 import { createText, roundedRect } from "../settlement-view-primitives.js";
@@ -126,19 +129,26 @@ export function pieceOfferCard(parent, rect, spec) {
   const root=new PIXI.Container();root.position.set(rect.x,rect.y);
   root.hitArea=new PIXI.Rectangle(0,0,rect.width,rect.height+COST_FOOTER_HEIGHT+8);
   root.eventMode='static';root.cursor='pointer';
+  // One hover target includes the plan, completed artwork, frame and price.
+  // enter/leave do not fire again while crossing the column's child controls.
+  root.on('pointerenter',event=>{if(event.pointerType!=='touch')spec.onHover?.();});
+  root.on('pointerleave',event=>{if(event.pointerType!=='touch')spec.onOut?.();});
+  const poolPreview=spec.multiplierPreview;
+  const showPools=poolPreview?.kind==='practice' && poolPreview.rows.length>0;
   const title = createText(spec.presentation?.label ?? spec.title, {
     ...TEXT_STYLES.cardTitle, fontSize: 26, lineHeight: 30,
-    wordWrap: true, wordWrapWidth: rect.width - 36,
-  }, 18, 14);
+    wordWrap: !showPools, wordWrapWidth: rect.width - 36,
+  }, 18, showPools?6:14);
   root.addChild(title);
-  title.scale.set(Math.min(1, 62 / Math.max(1, title.height)));
+  root.titleRoot=title;
+  title.scale.set(Math.min(1, (showPools?30:62) / Math.max(1, title.height),showPools?(rect.width-36)/Math.max(1,title.width):1));
   const isStructure = spec.presentation?.kind === 'structure';
   const aspect = PIECE_SIZE.cellWidth * (spec.presentation.footprint ?? 1) / PIECE_SIZE.structureHeight;
   const faceHeight = isStructure ? Math.min(172, (rect.width - 48) / aspect) : 308;
   const faceWidth = isStructure ? faceHeight * aspect : 220;
   const staggerX = isStructure ? Math.min(28, (rect.width - faceWidth) / 3) : 0;
   const staggerY = isStructure ? faceHeight - Math.max(faceHeight * .14, faceHeight * 2 - 300) : 0;
-  const faceY = 84 + (308 - faceHeight - staggerY) / 2;
+  const faceY = (showPools?94:84) + (308 - faceHeight - staggerY) / 2;
   const faceX = (rect.width - faceWidth - staggerX) / 2;
   if(isStructure) {
     // Use the Practice column's height: the plan overlaps the completed
@@ -152,9 +162,20 @@ export function pieceOfferCard(parent, rect, spec) {
     }
   }
   root.faceRoot=addSettlementPiece(root,{x:faceX,y:faceY,width:faceWidth,height:faceHeight},{
-    face:isStructure?spec.constructionPresentation:spec.presentation,state:spec.staged?'withdrawn':'confirmed',onInspect:spec.onInspect,onHover:spec.onHover,onOut:spec.onOut,
+    face:isStructure?spec.constructionPresentation:spec.presentation,state:spec.staged?'withdrawn':'confirmed',onInspect:spec.onInspect,
   });
   root.faceRoot.alpha = spec.staged ? .3 : spec.enabled ? 1 : .65;
+  root.poolFittings=[];
+  if(showPools) {
+    const row=poolPreview.rows[0];
+    for(const [index,kind] of ['output','capacity'].entries()) {
+      const scale=36/48;
+      const fitting=addMultiplierFitting(root,{x:12+index*((rect.width-32)/2+8),y:38,width:(rect.width-32)/2/scale,height:48},{kind,multiplier:row[kind].multiplier,
+        tooltipView:spec.tooltipView,spec:multiplierTooltip(row,kind,poolPreview)});
+      fitting.scale.set(scale);
+      root.poolFittings.push({kind,root:fitting});
+    }
+  }
   root.costPanel=addCostPanel(root,{x:6,y:rect.height+8,width:rect.width-12,height:COST_FOOTER_HEIGHT},{
     ...spec.cost,selected:spec.selected,staged:spec.staged,disabled:!spec.enabled,unaffordable:spec.costUnmet,
     label:'Stage '+spec.title,onActivate:spec.onClick,onUnavailable:spec.onUnavailable,
@@ -164,6 +185,12 @@ export function pieceOfferCard(parent, rect, spec) {
 }
 
 // Simple personal choices expose every tradeoff without an inspection overlay.
+function unavailableChoice(spec, root) {
+  if (spec.costUnmet && spec.cost?.prestigeCost > 0 && spec.cost?.prestigeFeedback !== false) {
+    flashPrestigeShortfall(root.costPanel);
+  } else spec.onUnavailable?.();
+}
+
 export function outcomeCard(parent, rect, spec) {
   const root = new PIXI.Container();
   root.position.set(rect.x, rect.y);
@@ -207,7 +234,7 @@ export function outcomeCard(parent, rect, spec) {
   });
   addInteractionFeedback(root, {x:0,y:0,width:rect.width,height:rect.height}, {
     enabled: !!(spec.enabled || spec.onUnavailable),
-    onActivate: spec.enabled ? spec.onClick : spec.onUnavailable,
+    onActivate: spec.enabled ? spec.onClick : () => unavailableChoice(spec, root),
   });
   parent.addChild(root);
   return root;
@@ -216,7 +243,7 @@ export function outcomeCard(parent, rect, spec) {
 export function heirloomChoiceCard(parent, rect, spec) {
   const root=addHeirloomCard(parent,rect,spec.item,{selected:spec.selected,
     status:spec.selected?'Chosen · confirm to take':'Choose this heirloom',
-    enabled:spec.enabled||!!spec.onUnavailable,onActivate:spec.enabled?spec.onClick:spec.onUnavailable});
+    enabled:spec.enabled||!!spec.onUnavailable,onActivate:spec.enabled?spec.onClick:()=>unavailableChoice(spec,root)});
   const footerHeight = spec.cost?.riskLabel ? 148 : COST_FOOTER_HEIGHT;
   root.hitArea.height=rect.height+footerHeight+8;
   root.costPanel=addCostPanel(root,{x:6,y:rect.height+8,width:rect.width-12,height:footerHeight},{

@@ -54,7 +54,12 @@ first-pass system notes below retain their original tuning context.
   and old Map Lab drafts are unsupported; no installed content is silently truncated
   during save loading. Current schema numbers live in `ai/ai-context.md`.
 - The first selected Vassal is a Philosopher or Warlord, initially unclassed.
-  A compulsory single-choice founding node precedes their generated Life Map.
+  The default Life Map starts with Practice Reform and puts single-choice Founding
+  at depth 5. Ordered milestone rules choose Founding for protovassals and
+  Crossroads for successors at that depth. Common content precedes Founding;
+  class-only content becomes eligible afterwards. Devtools can change rule
+  order, class/life-stage conditions, content and depths. Discovery is Rare with
+  no guaranteed minimum in the default recipe.
   Completing its six phases establishes Scholars or Warriors through adult
   training (and a Lyceum for Scholars where space permits); Warlord founding
   requires no conquest. That life retains its founder identity. Successors are

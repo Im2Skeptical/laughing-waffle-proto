@@ -707,7 +707,8 @@ try {
     91,
     "save/load restores the record"
   );
-  const session = createGameSessionController({ runner });
+  // This exercises save-slot round trips, not random Life Map generation.
+  const session = createGameSessionController({ runner, createState: () => createNewGameState(735) });
   assert.equal(session.isInMenu(), true);
   assert.equal((await session.newGame(2)).ok, true);
   assert.equal(session.getActiveSlot(), 2);

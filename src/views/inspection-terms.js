@@ -35,7 +35,8 @@ const TERMS = {
   Preview: 'A local preview bonus. Read the card’s rules for its amount and cap.',
   'Meal saving': 'An effect that reduces Edible Stock needed at the settlement’s next meal.',
   'Construction footprint': 'The horizontal cells occupied in the construction strip. This capacity is separate from the settlement’s five Practice slots.',
-  'Stock Power': 'Stock Power starts at 1. Bronze adds 1, Silver 2, Gold 3, Diamond 4. Contributions add, then multiply capacity once: 1 + 1 + 1 = \u00d73.',
+  'Capacity Multiplier': 'Capacity Multiplier starts at 1. Bronze adds 1, Silver 2, Gold 3, Diamond 4. Contributions add, then multiply capacity once: 1 + 1 + 1 = \u00d73.',
+  'Output Multiplier': 'Starts at ×1; matching contributions add. Multiplies Stock produced, not capacity, recipes, cadence or incoming Charge. Plains increase Grain, mountains Stone and forest Construction, by +1 per contiguous region.',
   Chaos: 'A source of pressure on settlements. Read the selected card for the event or condition that refers to Chaos.',
   Monster: 'A threat in a region. Practice triggers distinguish pressure from destruction; the selected rules give the qualifying event.',
   Defense: 'A settlement’s defensive strength. The selected rules specify the contribution or successful-defense trigger.',
@@ -58,12 +59,14 @@ export function getInspectionTerms(face, symbols = []) {
   for (const phase of ['Birth','Food','Housing','Faith','Migration','Death']) terms[`${phase} phase`] = `A named moon phase. A Cycle Practice with this timing checks its requirements and Activates here.${phase==='Food'?' The settlement also uses Edible Stock for its meal.':''}`;
   for (const symbol of symbols) terms[symbol.name] ??= 'A symbol on this gamepiece. Read the selected card’s rules for its effect, scope and requirements.';
   const capacity = face.stockCapacityBreakdown;
+  const output=face.outputMultiplierBreakdown;
+  if(output)terms['Output Multiplier']=`1${output.sources.map(source=>` + ${source.label} ${source.amount}`).join('')} = ×${output.multiplier}. Contributions add; the total multiplies generated Stock before capacity limits.`;
   if (capacity?.base > 0) {
     const fmt = value => String(Math.round(value * 100) / 100);
     const base = [String(capacity.base), ...(capacity.quality ? [`${capacity.quality} Quality`] : []), ...(capacity.scholar ? [`${capacity.scholar} Scholar`] : [])].join(' + ');
-    terms['Stock capacity'] = `(${base}) \u00d7 ${fmt(capacity.power)} Stock Power = ${capacity.total}. Rounded down.`;
-    terms['Stock Power'] = capacity.sources.length
-      ? `1 + ${capacity.sources.map(source => `${source.label} ${fmt(source.amount)}`).join(' + ')} = \u00d7${fmt(capacity.power)}. Contributions add; the total multiplies base capacity once.`
+    terms['Stock capacity'] = `(${base}) \u00d7 ${fmt(capacity.multiplier)} Capacity Multiplier = ${capacity.total}. Rounded down.`;
+    terms['Capacity Multiplier'] = capacity.sources.length
+      ? `1 + ${capacity.sources.map(source => `${source.label} ${fmt(source.amount)}`).join(' + ')} = \u00d7${fmt(capacity.multiplier)}. Contributions add; the total multiplies base capacity once.`
       : 'Base 1 = \u00d71. No matching Structures.';
   }
   return {terms, aliases:ALIASES};

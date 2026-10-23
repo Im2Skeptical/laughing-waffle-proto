@@ -12,6 +12,21 @@ complete pool counts; the Charge Museum exhibit uses five real Practices and
 normal authoritative stepping. Its causal sequence exposes root/parent event IDs,
 gains, blocked retries and Discharges. See `docs/civcontent-2.6-implementation.md`.
 
+Regional, detailed and shop settlement boards show symbol-only per-Practice pairs
+for Output Multiplier (brass/up arrow) and Capacity Multiplier (iron/retaining crate).
+Practice offers show the same pair. Hover reads a compact contribution ledger;
+click/tap pins it, and grouped trait rows open nested individual sources on hover
+or tap. Both source lists scroll within bounded viewports. Pinned ledgers update
+through shopping; Escape, the close cross or the same fitting dismiss them.
+Structure offers have no pair: whole-slot/frame/price hover previews their completed
+contributions on the settlement board. Reserved construction keeps affected values
+highlighted with an attached hourglass. This is an isolated current-conditions
+reading, not an active bonus or forecast of future staffing. Hover readings anchor
+beside and scale with their buy slot; overlap to the right is accepted. Construction
+readings include actual per-phase Stock costs, with enlarged recipe icons on the
+site card. Dragging new construction to discard undoes its reservation; completed
+Structures retain demolition behavior. See `docs/output-capacity-multipliers.md`.
+
 Practice faces show hosted Stock count/capacity and Trait glyphs. Hover translates
 the recipe into plain English: class/type/tags, separate Activation effects,
 Charge triggers or inline Cycle timings, necessary requirements, and short

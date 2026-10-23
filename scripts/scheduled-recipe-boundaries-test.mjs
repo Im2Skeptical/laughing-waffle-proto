@@ -202,7 +202,8 @@ runCase('rationing', () => {
 });
 
 runCase('dryFarming', () => {
-  const amounts = { spring: 0, summer: 2, autumn: 6, winter: 0 };
+  // Seed 42: six contiguous plains give Grain x7, capped at 10 retained Stock.
+  const amounts = { spring: 0, summer: 10, autumn: 10, winter: 0 };
   const seen = {};
   for (const [season, index] of [['spring', 0], ['summer', 1], ['autumn', 2], ['winter', 3]]) {
     const f = board([practiceSlot('dryFarming')], { season: index });
@@ -300,14 +301,14 @@ runCase('cropRotation', () => {
   ]);
   runPracticeActivation(summer.state, 'season');
   runPracticeActivation(summer.state, 'season');
-  assert.deepEqual(stocks(summer), [4, 1, null, null, null], 'Record require is reusable across activations');
+  assert.deepEqual(stocks(summer), [8, 1, null, null, null], 'Record require is reusable across activations');
   const winter = open(3);
   runPracticeActivation(winter.state, 'season');
   assert.deepEqual(stocks(winter), [0, 1, null, null, null]);
   const autumn = open(2);
   runPracticeActivation(autumn.state, 'season');
-  assert.deepEqual(stocks(autumn), [3, 1, null, null, null]);
-  return { repeatedSummer: 4, recordStock: 1, winter: 0, autumn: 3 };
+  assert.deepEqual(stocks(autumn), [8, 1, null, null, null]);
+  return { repeatedSummer: 8, recordStock: 1, winter: 0, autumn: 8 };
 });
 
 runCase('goatHerding', () => {

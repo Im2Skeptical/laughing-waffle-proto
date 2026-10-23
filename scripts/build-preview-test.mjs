@@ -4,6 +4,7 @@ import { mkdtemp, mkdir, copyFile, writeFile, readFile, rm } from 'node:fs/promi
 import { setTimeout as delay } from 'node:timers/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import {createServer} from 'node:net';
 
 const fixture = await mkdtemp(path.join(tmpdir(), 'civilization-build-preview-'));
 const serverPids = [];
@@ -14,6 +15,14 @@ try {
   for (const file of ['build-info.mjs', 'local-preview.mjs', 'version-game.mjs']) {
     await copyFile(`scripts/${file}`, path.join(fixture, 'scripts', file));
   }
+  // Fixture servers must not compete with the user's running review previews.
+  // Reserve an ephemeral candidate, then give only this copied preview its range.
+  const probe=createServer();
+  await new Promise((resolve,reject)=>{probe.once('error',reject);probe.listen(0,'127.0.0.1',resolve);});
+  const fixturePort=Math.min(probe.address().port,65_524);
+  await new Promise(resolve=>probe.close(resolve));
+  const previewPath=path.join(fixture,'scripts/local-preview.mjs');
+  await writeFile(previewPath,(await readFile(previewPath,'utf8')).replace('const firstPort = 5184;',`const firstPort = ${fixturePort};`));
   const pkg = { version: '1.0.0' };
   await writeFile(path.join(fixture, 'package.json'), JSON.stringify(pkg));
   await writeFile(path.join(fixture, 'package-lock.json'), JSON.stringify({ ...pkg, packages: { '': pkg } }));

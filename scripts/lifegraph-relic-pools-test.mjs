@@ -50,6 +50,7 @@ const extra=clone(draft.generatorConfig.design.relicPools);extra.specialRelic.en
 
 // Independent node switches and guarantees work across classes and seeds.
 const config=clone(draft.generatorConfig);config.design.nodes.relic.enabled=false;
+config.design.columns.filter(c=>c.targetId==='relic').forEach(c=>c.enabled=false);
 config.design.guarantees.push({id:'special-route',targetType:'node',targetId:'specialRelic',scope:'common',count:1,minDepth:2,maxDepth:3,coverage:'eachRoute'});
 for(const classId of [null,'scholar','warrior'])for(let seed=1;seed<=20;seed++){
  const result=generateVassalLifeMap(config,createRng(seed),{classId,generationSeed:seed,stockOutputs:['Edible']});

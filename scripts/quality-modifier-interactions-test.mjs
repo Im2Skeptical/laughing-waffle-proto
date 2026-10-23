@@ -1,7 +1,7 @@
 // Quality, staffing, and two structure capacity modifiers, plus Charge clamps.
 // Contracts already in stock.js / practices.js, charge-content.js, and
 // docs/civilization-milestone.md: tier index 0..3 adds capacity; structure
-// Stock Power starts at 1 and Structures add their quality rank; pooled Power multiplies
+// Capacity Multiplier starts at 1 and Structures add their quality rank; pooled Power multiplies
 // base plus tier capacity, then floors once; workers scale private Charge gain only.
 // A practice takes one Scholar socket, then ordinary tokens from
 // floor((adults - scholars) / populationPerToken). Academy gate is 3 Scholars.
@@ -145,13 +145,13 @@ const pool = prepared({population:0, slots:[{id:'carpentry'}], structures:[
 ]});
 const beforePool = serializeGameState(pool.state);
 const detail = stockCapacityBreakdown(pool.state,pool.local,pool.local.practiceSlots[0]);
-expect([detail.base,detail.power,detail.total],[5,4,20],'power-adds-to-base-one');
+expect([detail.base,detail.multiplier,detail.total],[5,4,20],'power-adds-to-base-one');
 expect(detail.sources.map(source=>[source.label,source.amount]),[['Storehouse',1],['Workshop',2]],'named-power-sources');
 const powerFace = getDetailedSettlementViewModel(pool.state,pool.regionId).practices[0].face;
-expect([powerFace.stockCapacity,powerFace.stockCapacityBreakdown.power],[20,4],'live-face-matches-model');
+expect([powerFace.stockCapacity,powerFace.stockCapacityBreakdown.multiplier],[20,4],'live-face-matches-model');
 const powerTerms = getInspectionTerms(powerFace).terms;
-expect(powerTerms['Stock Power'].includes('1 + Storehouse 1 + Workshop 2 = \u00d74'),true,'tooltip-names-summed-sources');
-expect(powerTerms['Stock capacity'].startsWith('(5) \u00d7 4 Stock Power = 20'),true,'tooltip-base-times-total');
+expect(powerTerms['Capacity Multiplier'].includes('1 + Storehouse 1 + Workshop 2 = \u00d74'),true,'tooltip-names-summed-sources');
+expect(powerTerms['Stock capacity'].startsWith('(5) \u00d7 4 Capacity Multiplier = 20'),true,'tooltip-base-times-total');
 expect(serializeGameState(pool.state),beforePool,'capacity-and-reading-do-not-mutate-state-or-rng');
 pool.local.structureSlots[0].construction={completedCycles:0};
 expect(stockCapacity(pool.state,pool.local,pool.local.practiceSlots[0]),15,'unfinished-source-excluded');
@@ -310,4 +310,4 @@ if (failures.length) {
   console.error(`${failures.length} failed; ${file}`);
   process.exit(1);
 }
-console.log("[quality-modifier-interactions] tier, scholar, quality-ranked Stock Power, charge clamps, json continuation ok");
+console.log("[quality-modifier-interactions] tier, scholar, quality-ranked Capacity Multiplier, charge clamps, json continuation ok");

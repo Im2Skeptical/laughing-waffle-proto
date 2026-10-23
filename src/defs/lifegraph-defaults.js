@@ -1,15 +1,16 @@
-// Authored from Cam's first-pass Lifegraph export. Previous tuning remains an explicit Lab profile.
+// Cam's milestone layout and Rare Discovery defaults. Previous tuning remains a Lab profile.
 export const LIFEGRAPH_DEFAULT_GENERATOR = {
-  "schemaVersion": 14,
-  "laneCount": 3,
-  "normalDepthCount": 10,
+  "schemaVersion": 15,
+  "laneCount": 5,
+  "normalDepthCount": 13,
   "routeCount": 6,
-  "earlyDepthCount": 3,
-  "midDepthCount": 4,
+  "earlyDepthCount": 4,
+  "midDepthCount": 5,
   "layoutSmoothing": 0.5,
   "minimumNodeGap": 0.12,
   "nonRepeatFamilyIds": [
-    "crisis"
+    "crisis",
+    "discovery"
   ],
   "design": {
     "enabled": true,
@@ -151,7 +152,7 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
         "enabled": true,
         "poolId": "class",
         "scope": "scholar",
-        "occurrence": "common",
+        "occurrence": "rare",
         "timings": [
           "early",
           "mid",
@@ -726,6 +727,7 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
     "guarantees": [
       {
         "id": "training",
+        "lifeStage": "successor",
         "targetType": "node",
         "targetId": "training",
         "scope": "specialist",
@@ -733,16 +735,6 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
         "minDepth": 2,
         "maxDepth": 3,
         "coverage": "map"
-      },
-      {
-        "id": "discovery",
-        "targetType": "node",
-        "targetId": "discovery",
-        "scope": "scholar",
-        "count": 1,
-        "minDepth": 4,
-        "maxDepth": 7,
-        "coverage": "eachRoute"
       },
       {
         "id": "campaign",
@@ -753,36 +745,6 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
         "minDepth": 4,
         "maxDepth": 8,
         "coverage": "eachRoute"
-      },
-      {
-        "id": "guarantee-1",
-        "targetType": "pool",
-        "targetId": "shops",
-        "scope": "common",
-        "count": 1,
-        "minDepth": 1,
-        "maxDepth": 1,
-        "coverage": "map"
-      },
-      {
-        "id": "guarantee-2",
-        "targetType": "pool",
-        "targetId": "shops",
-        "scope": "common",
-        "count": 1,
-        "minDepth": 4,
-        "maxDepth": 4,
-        "coverage": "map"
-      },
-      {
-        "id": "guarantee-3",
-        "targetType": "pool",
-        "targetId": "shops",
-        "scope": "common",
-        "count": 1,
-        "minDepth": 8,
-        "maxDepth": 8,
-        "coverage": "map"
       }
     ],
     "shopServices": {
@@ -875,11 +837,43 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
         }
       }
     },
-    "columns": [],
+    "columns": [
+      {
+        "id": "milestone-1",
+        "label": "Milestone 1",
+        "enabled": true,
+        "depth": 1,
+        "targetType": "node",
+        "targetId": "practiceReform",
+        "scope": "common",
+        "lifeStage": "any"
+      },
+      {
+        "id": "milestone-3",
+        "label": "Milestone 3",
+        "enabled": true,
+        "depth": 5,
+        "targetType": "node",
+        "targetId": "crossroads",
+        "scope": "common",
+        "lifeStage": "any"
+      },
+      {
+        "id": "milestone-4",
+        "label": "Milestone 4",
+        "enabled": true,
+        "depth": 10,
+        "targetType": "node",
+        "targetId": "relic",
+        "scope": "common",
+        "lifeStage": "any"
+      }
+    ],
     "bookends": {
       "founding": {
         "enabled": true,
-        "depth": 0
+        "depth": 5,
+        "priority": 1
       },
       "legacy": {
         "enabled": true,
@@ -946,7 +940,7 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
 };
 
 export const LIFEGRAPH_PREVIOUS_GENERATOR = {
-  "schemaVersion": 14,
+  "schemaVersion": 15,
   "laneCount": 6,
   "normalDepthCount": 11,
   "routeCount": 6,
@@ -1795,7 +1789,8 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
     "bookends": {
       "founding": {
         "enabled": true,
-        "depth": 0
+        "depth": 0,
+        "priority": 0
       },
       "legacy": {
         "enabled": true,

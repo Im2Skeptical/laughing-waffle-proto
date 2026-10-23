@@ -2,6 +2,7 @@ import { paintRelicPanel, RELIC } from './chronicle-skin.js';
 import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES } from './settlement-theme.js';
 import { addResourceAmount } from './resource-cost-pixi.js';
+import { getStockTraitTexture } from './chronicle-art.js';
 export { getPracticeSymbols, addPracticeGlossary } from './inspection-symbols-pixi.js';
 
 const FLAVOUR = {
@@ -45,6 +46,28 @@ export function addPracticeReading(parent, width, face, {fontSize = 28, onInspec
   y+=Math.max(onInspect?132:0,title.height+36);
   paintRelicPanel(frame,0,titleY,width,y-titleY,0x302414,RELIC.brass,2);
   const titleHeight=y-titleY;
+  if(face.construction) {
+    const start=y, {completedCycles,requiredCycles,activation}=face.construction;
+    y+=14;
+    const phase=activation.type[0].toUpperCase()+activation.type.slice(1);
+    y+=copy(root,`CONSTRUCTION · ${completedCycles}/${requiredCycles} paid ${phase} phases`,pad,y,width-pad*2,fontSize*.8,{fill:RELIC.gold,fontWeight:'bold'}).height+8;
+    const costs=(face.inputs??[]).filter(input=>input.kind==='consume');
+    for(const input of costs) {
+      const size=fontSize*1.2;
+      let x=pad;
+      for(const trait of input.traits) {
+        const texture=getStockTraitTexture(trait);
+        if(texture?.baseTexture.valid) {
+          const icon=new PIXI.Sprite(texture);icon.scale.set(Math.min(size/texture.width,size/texture.height));icon.position.set(x,y);icon.eventMode='none';root.addChild(icon);
+        }
+        x+=size+6;
+      }
+      y+=Math.max(size,copy(root,`−${input.amount} ${input.traits.join(' / ')} Stock per phase`,x,y,width-pad-x,fontSize).height)+8;
+    }
+    y+=6;
+    const bg=new PIXI.Graphics();paintRelicPanel(bg,0,start,width,y-start,0x28251c,RELIC.brass,1);root.addChildAt(bg,1);
+    root.constructionSummary={completedCycles,requiredCycles,phase:activation.type,costs:costs.map(input=>({amount:input.amount,traits:input.traits}))};
+  }
   const blockY=y;
   y+=22;
   const activation=new PIXI.Graphics();root.addChildAt(activation,1);
@@ -96,6 +119,6 @@ export function addPracticeReading(parent, width, face, {fontSize = 28, onInspec
     control.on('pointertap',event=>{event.stopPropagation();onInspect();});
     root.addChild(control);root.titleControl=control;
   }
-  root.readingHeight=y;root.reading=reading;
+  root.readingHeight=y;root.reading=reading;root.readingLabel=face.label;
   parent.addChild(root);return root;
 }

@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.23`.
+Game build version: `1.1.26`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -48,6 +48,10 @@ Routing skills live in `.grok/skills/`.
 - Practices explicitly use Scheduled or Charge mode. Private Charge is not Stock;
   full legal recipes Discharge automatically through the authoritative event queue.
   Each Practice can Discharge once per root chain; refilled Charge is retained.
+  Output and Capacity Multipliers are independent additive pools, base ×1.
+  Biome Output contributions use the containing shared-edge component, +1 per
+  region: plains/Grain (including Milling), mountains/Stone, forest/Construction.
+  Ownership does not restrict the component. See `docs/output-capacity-multipliers.md`.
   CivContent 2.6 coverage/deviations: `docs/civcontent-2.6-implementation.md`.
 
 `npm run check:architecture` guards the first and layering rules.
@@ -64,11 +68,13 @@ Authoritative numbers:
 - Vassal Lab draft/preset schema v5.
 - Life Map Lab drafts v2.
 - Card reviewer drafts/export v1; stable browser storage independent of game saves and builds.
-- Life Map generator settings v14; serialized Life Map graph v7.
+- Life Map generator settings v15; serialized Life Map graph v8.
 - Lifegraph workbench drafts/reviews/exports v1 are independent browser documents.
   Pooled experiments capture families, class eligibility, guarantees and named
   option-level absolute cost presets and shared card-type/quality shop prices in
-  the run's generator config. Normal New Game uses Cam's first-pass pooled tuning.
+  the run's generator config. Normal New Game uses Cam's five-lane, thirteen-depth
+  layout: Practice Reform at 1, Founding / Crossroads at 5, Relic at 10.
+  Discovery is Rare with no guaranteed minimum; consecutive repeats are prevented.
   Previous tuning remains a built-in Lifegraph profile. Shop Delve and empty-exit
   times are shared across all shops; only Scholars can refresh shops through Delve.
   Choice death/defeat chances and Monster Pressure points have independent presets.
@@ -80,8 +86,14 @@ Authoritative numbers:
   Gym profiles explicitly copy a Lifegraph draft before launch.
   Milestone columns join every route at an authored depth before branching again.
   Node types can be limited to milestones; columns select a node or pooled family
-  with class scopes. Founding and Legacy can be disabled or relocated in pooled
-  experiments. Interior Legacy grants its reward then continues; any terminal
+  with class and life-stage conditions. Ordered rules select the first matching
+  rule at each depth; Founding participates in that editable order. Defaults place
+  Founding before the Crossroads fallback. Graphs capture their generation class
+  and founder class so validation checks the winning rules. Class-only nodes
+  become eligible after Founding; the early Training minimum is successor-only.
+  Guarantees also support a life-stage filter. Founding and Legacy can be disabled
+  or relocated in pooled experiments. Interior Legacy grants its reward then
+  continues; any terminal
   node retires normally. Disabled Founding does not establish a specialist class.
 - Debug profile library/export v3 (fresh-run recipes; no live Vassal overrides).
 - Named debug draft libraries v1.
