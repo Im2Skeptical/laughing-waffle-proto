@@ -32,7 +32,7 @@ const CREST = Object.freeze({
   // on the left and the Save & menu button (x ≥ 2010) on the right.
   pivot: Object.freeze({ x: 712, y: 74 }),
   bar: Object.freeze({ x: 620, y: 74, width: 1080, height: 65 }),
-  medallion: Object.freeze({ cx: 560, cy: 111, ring: 141, portrait: 98 }),
+  medallion: Object.freeze({ cx: 560, cy: 111, ring: 154, portrait: 106 }),
   life: Object.freeze({ x: 652, y: 66, width: 170, unit: 1.4 }),
   pendant: Object.freeze({ x: 836, y: 111, unit: 1.15, minWidth: 104, maxWidth: 200 }),
   stats: Object.freeze({ x: 1000, y: 68, width: 68, height: 63, gap: 6, unit: 1.1, studY: 7, bodyY: 41 }),
@@ -52,7 +52,6 @@ const HUD_PIECES = Object.freeze(['lintel-cap-left', 'lintel-cap-right', 'lintel
 // Class identity lives in the portrait ring: Warlord gets ruby studs and iron
 // teeth on a jagged aperture, Philosopher sapphire studs and a smooth ivory bead.
 const MEDALLION = Object.freeze({ warrior: 'medallion-warrior', scholar: 'medallion-scholar' });
-const MEDALLION_TINT = Object.freeze({ warrior: 0xffe2da, scholar: 0xe2e8ff });
 // 5-slice cuts in stored px: [fixed | stretch | fixed centre | stretch | fixed].
 const SLICES = Object.freeze({
   'stat-plaque': [12, 20, 42, 50], pendant: [28, 45, 45, 60], tab: [16, 28, 52, 64],
@@ -248,18 +247,21 @@ export function createVassalLifeHudView({
       crest.addChild(bar);
     }
 
-    // ---- portrait medallion breaking the bar's left end, shaped per class ----
+    // ---- portrait medallion breaking the bar's left end, custom-illustrated per class ----
     const m = CREST.medallion;
+    const ringTex = tex(MEDALLION[classId] ?? 'medallion') ?? tex('medallion');
+    const hasPaintedRing = painted && !!ringTex;
     const portrait = createVassalPortraitView(vassal.portrait, {
       size: m.portrait, classId, founder: !!vassal.founderClassId,
-      borderColor: PALETTE.accent, shape: "circle", age: shown.age,
+      borderColor: PALETTE.accent, shape: "circle", bare: hasPaintedRing, age: shown.age,
     });
     portrait.position.set(m.cx - m.portrait / 2, m.cy - m.portrait / 2);
     crest.addChild(portrait);
-    const ringTex = tex(MEDALLION[classId] ?? 'medallion') ?? tex('medallion');
-    if (painted && ringTex) {
-      const ring = new PIXI.Sprite(ringTex); ring.position.set(m.cx - 70.25, m.cy - 70.75);
-      ring.tint = MEDALLION_TINT[classId] ?? 0xffffff; crest.addChild(ring);
+    if (hasPaintedRing) {
+      const ring = new PIXI.Sprite(ringTex);
+      ring.anchor.set(0.5);
+      ring.position.set(m.cx, m.cy);
+      crest.addChild(ring);
     } else {
       const ring = new PIXI.Graphics(); ring.lineStyle(5, FOUNDER_CLASSES[classId]?.accent ?? PALETTE.accent, 1).drawCircle(m.cx, m.cy, m.portrait / 2 + 2);
       crest.addChild(ring);

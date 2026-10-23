@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Key, crop and nearest-reduce the Chronicle crest-bar HUD and multiplier sheets, then pack the atlas.
+"""Key, crop and nearest-reduce the Chronicle crest-bar HUD, class medallions and multiplier sheets, then pack the atlas.
 
     python images/dark-fantasy/chronicle-hud-frames-v1/build.py
 
-The generator returned flat-black sheets (`generated/hud-source.png` and
-`generated/multiplier-source.png`). The outside black and the medallion hole are
-keyed to transparency; dark recessed stone inside each piece stays opaque.
-Pieces are reduced 2:1 with nearest sampling and packed (2px extrusion, no
-trim/rotation) into images/sprite-sheets/chronicle-hud-frames.{png,json}.
-Requires Pillow.
+The generator returned flat-black sheets (`generated/hud-source.png`,
+`generated/class-medallions-source.png` and `generated/multiplier-source.png`).
+The outside black and the medallion apertures are keyed to transparency; dark
+recessed stone/metal inside each piece stays opaque. Pieces are reduced with
+nearest sampling and packed (2px extrusion, no trim/rotation) into
+images/sprite-sheets/chronicle-hud-frames.{png,json}. Requires Pillow.
 """
 import json
 from pathlib import Path
@@ -62,12 +62,7 @@ pieces['exp-groove-empty'] = empty
 
 
 def thin_medallion():
-    """Radially compress the carved band so the ring is visibly thinner.
-
-    Source pixels (2x stored) at radius 76..139 are resampled into 100..139, the
-    loops and outer lip beyond 139 are untouched, and the four amber studs are
-    pasted back unsquashed at the new band centre. Nearest sampling only.
-    """
+    """Radially compress the carved band so the neutral fallback ring is visibly thinner."""
     region = sheet.crop((36, 636, 332, 944)); bounds = region.getchannel('A').getbbox()
     region = region.crop(bounds)
     cx, cy = 140.5, 141.5          # ring centre in the cropped source
@@ -88,50 +83,38 @@ def thin_medallion():
     return out.resize((out.width // REDUCE, out.height // REDUCE), Image.Resampling.NEAREST)
 
 
-def recolor_studs(image, hue):
-    """Re-gem only the four stud discs (warm pixels inside each disc)."""
-    import colorsys
-    out = image.copy(); px = out.load()
-    for ux, uy in ((0, -1), (1, 0), (0, 1), (-1, 0)):
-        sx, sy = 70.25 + ux * 60, 70.75 + uy * 60
-        for y in range(int(sy - 8), int(sy + 9)):
-            for x in range(int(sx - 8), int(sx + 9)):
-                if (x - sx) ** 2 + (y - sy) ** 2 > 42: continue
-                r, g, b, a = px[x, y]
-                if not a or r < b + 25: continue
-                h, l, s_ = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
-                nr, ng, nb = colorsys.hls_to_rgb(hue, l, min(1, s_ * 1.1))
-                px[x, y] = (round(nr * 255), round(ng * 255), round(nb * 255), a)
-    return out
+# Custom-illustrated class portrait medallions (`generated/class-medallions-source.png`).
+class_med_source = Image.open(HERE / 'generated' / 'class-medallions-source.png').convert('RGB')
 
+def extract_class_medallion(box, hole_cx, hole_cy, r_in, r_out, extra_seeds=()):
+    crop = class_med_source.crop(box)
+    w, h = crop.size
+    cr, cg, cb = [band.point(lambda v: 255 if v >= 20 else 0) for band in crop.split()]
+    fg = Image.merge('RGB', (cr, cg, cb)).convert('L').point(lambda v: 255 if v > 0 else 0)
+    m = fg.copy()
+    # Solidify the main ring core (r_in..r_out) so dark pits inside the metal stay opaque
+    # and the inner/outer floodfills cannot leak across the ring.
+    ImageDraw.Draw(m).ellipse((hole_cx - r_out, hole_cy - r_out, hole_cx + r_out, hole_cy + r_out), fill=255)
+    inner_restore = Image.new('L', (w, h), 0)
+    ImageDraw.Draw(inner_restore).ellipse((hole_cx - r_in, hole_cy - r_in, hole_cx + r_in, hole_cy + r_in), fill=255)
+    m.paste(fg, mask=inner_restore)
+    for sx, sy in ((0, 0), (int(hole_cx), int(hole_cy)), *extra_seeds):
+        ImageDraw.floodfill(m, (sx, sy), 128)
+    rgba = crop.convert('RGBA')
+    rgba.putalpha(m.point(lambda v: 0 if v == 128 else 255))
+    # Center on the circular aperture so anchor (0.5, 0.5) aligns with (m.cx, m.cy).
+    R_CANVAS = 316
+    centered = Image.new('RGBA', (R_CANVAS * 2, R_CANVAS * 2), (0, 0, 0, 0))
+    centered.paste(rgba, (round(R_CANVAS - hole_cx), round(R_CANVAS - hole_cy)))
+    return centered.resize((154, 154), Image.Resampling.NEAREST)
 
-def jagged_rim(image, teeth=16):
-    """Warlord: iron teeth biting into the aperture (drawn crisply at stored size)."""
-    import math
-    out = image.copy(); d = ImageDraw.Draw(out)
-    cx, cy, r = 70.25, 70.75, 50.5
-    for i in range(teeth):
-        a = i * 2 * math.pi / teeth + math.pi / teeth
-        half = math.pi / teeth * .55
-        base1 = (cx + math.cos(a - half) * (r + 1), cy + math.sin(a - half) * (r + 1))
-        base2 = (cx + math.cos(a + half) * (r + 1), cy + math.sin(a + half) * (r + 1))
-        tip = (cx + math.cos(a) * (r - 6), cy + math.sin(a) * (r - 6))
-        d.polygon([base1, tip, base2], fill=(58, 44, 30, 255), outline=(150, 118, 76, 255))
-    return out
-
-
-def smooth_rim(image):
-    """Philosopher: a fine ivory inner bead line on the smooth bevel."""
-    out = image.copy(); d = ImageDraw.Draw(out)
-    cx, cy, r = 70.25, 70.75, 50.5
-    d.ellipse((cx - r, cy - r, cx + r, cy + r), outline=(214, 198, 160, 255), width=1)
-    return out
-
-
-thin = thin_medallion()
-pieces['medallion'] = thin
-pieces['medallion-warrior'] = jagged_rim(recolor_studs(thin, 0.995))
-pieces['medallion-scholar'] = smooth_rim(recolor_studs(thin, 0.60))
+pieces['medallion'] = thin_medallion()
+pieces['medallion-warrior'] = extract_class_medallion(
+    (20, 20, 618, 645), 299.1, 313.3, 202, 255, extra_seeds=((87, 87), (524, 86))
+)
+pieces['medallion-scholar'] = extract_class_medallion(
+    (653, 32, 1257, 668), 302.0, 306.1, 202, 262
+)
 
 
 # Multiplier twin-socket bar and emblem seals (`generated/multiplier-source.png`).

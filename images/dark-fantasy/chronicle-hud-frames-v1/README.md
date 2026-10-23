@@ -24,3 +24,7 @@ Multiplier twin-socket bar and emblem seals (`generated/multiplier-source.png`):
 `mult-twin-left-{active,dormant}`, `mult-twin-right-{active,dormant}`,
 `mult-seal-output-{active,dormant}`, and `mult-seal-capacity-{active,dormant}`
 for `src/views/multiplier-fitting.js`.
+
+Custom class HUD portrait medallions (`generated/class-medallions-source.png`):
+`medallion-warrior` (hammered iron ring with crossed broadswords and ruby settings)
+and `medallion-scholar` (engraved bronze scrollwork ring with open codex and sapphire settings).

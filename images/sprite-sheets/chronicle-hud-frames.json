@@ -3,7 +3,7 @@
   "exp-groove-empty.png": {
    "frame": {
     "x": 128,
-    "y": 603,
+    "y": 608,
     "w": 122,
     "h": 23
    },
@@ -23,7 +23,7 @@
   "exp-groove-full.png": {
    "frame": {
     "x": 2,
-    "y": 603,
+    "y": 608,
     "w": 122,
     "h": 23
    },
@@ -43,7 +43,7 @@
   "lintel-cap-left.png": {
    "frame": {
     "x": 147,
-    "y": 317,
+    "y": 322,
     "w": 89,
     "h": 113
    },
@@ -63,7 +63,7 @@
   "lintel-cap-right.png": {
    "frame": {
     "x": 240,
-    "y": 317,
+    "y": 322,
     "w": 81,
     "h": 113
    },
@@ -83,7 +83,7 @@
   "lintel-mid.png": {
    "frame": {
     "x": 2,
-    "y": 466,
+    "y": 471,
     "w": 256,
     "h": 65
    },
@@ -102,8 +102,8 @@
   },
   "medallion.png": {
    "frame": {
-    "x": 149,
-    "y": 164,
+    "x": 2,
+    "y": 322,
     "w": 141,
     "h": 145
    },
@@ -123,41 +123,41 @@
   "medallion-scholar.png": {
    "frame": {
     "x": 2,
-    "y": 317,
-    "w": 141,
-    "h": 145
+    "y": 164,
+    "w": 154,
+    "h": 154
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 141,
-    "h": 145
+    "w": 154,
+    "h": 154
    },
    "sourceSize": {
-    "w": 141,
-    "h": 145
+    "w": 154,
+    "h": 154
    }
   },
   "medallion-warrior.png": {
    "frame": {
-    "x": 294,
-    "y": 164,
-    "w": 141,
-    "h": 145
+    "x": 254,
+    "y": 2,
+    "w": 154,
+    "h": 154
    },
    "rotated": false,
    "trimmed": false,
    "spriteSourceSize": {
     "x": 0,
     "y": 0,
-    "w": 141,
-    "h": 145
+    "w": 154,
+    "h": 154
    },
    "sourceSize": {
-    "w": 141,
-    "h": 145
+    "w": 154,
+    "h": 154
    }
   },
   "mult-seal-capacity-active.png": {
@@ -202,8 +202,8 @@
   },
   "mult-seal-output-active.png": {
    "frame": {
-    "x": 254,
-    "y": 2,
+    "x": 160,
+    "y": 164,
     "w": 146,
     "h": 150
    },
@@ -222,7 +222,7 @@
   },
   "mult-seal-output-dormant.png": {
    "frame": {
-    "x": 2,
+    "x": 310,
     "y": 164,
     "w": 143,
     "h": 149
@@ -243,7 +243,7 @@
   "mult-twin-left-active.png": {
    "frame": {
     "x": 2,
-    "y": 535,
+    "y": 540,
     "w": 143,
     "h": 64
    },
@@ -263,7 +263,7 @@
   "mult-twin-left-dormant.png": {
    "frame": {
     "x": 356,
-    "y": 466,
+    "y": 471,
     "w": 143,
     "h": 64
    },
@@ -283,7 +283,7 @@
   "mult-twin-right-active.png": {
    "frame": {
     "x": 296,
-    "y": 535,
+    "y": 540,
     "w": 143,
     "h": 64
    },
@@ -303,7 +303,7 @@
   "mult-twin-right-dormant.png": {
    "frame": {
     "x": 149,
-    "y": 535,
+    "y": 540,
     "w": 143,
     "h": 64
    },
@@ -323,7 +323,7 @@
   "pendant.png": {
    "frame": {
     "x": 262,
-    "y": 466,
+    "y": 471,
     "w": 90,
     "h": 65
    },
@@ -343,7 +343,7 @@
   "stat-plaque.png": {
    "frame": {
     "x": 443,
-    "y": 535,
+    "y": 540,
     "w": 62,
     "h": 57
    },
@@ -363,7 +363,7 @@
   "tab.png": {
    "frame": {
     "x": 325,
-    "y": 317,
+    "y": 322,
     "w": 80,
     "h": 81
    },

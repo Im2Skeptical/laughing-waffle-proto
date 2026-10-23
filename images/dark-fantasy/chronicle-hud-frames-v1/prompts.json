@@ -14,6 +14,10 @@
     {
       "file": "generated/multiplier-source.png",
       "prompt": "Sprite sheet for dark fantasy RPG settlement Practice multiplier sockets and emblem seals, hand-illustrated pixel painting in the Diablo II / Baldur's Gate II carved limestone and worn bronze tradition. Flat pure black background. Top row: horizontal carved limestone and worn-bronze twin-socket bar (two recessed compartments separated by a riveted vertical bronze clasp) and single recessed stone socket plaque. Bottom row: four metallic emblem seals with dark circular center wells — active bronze octagonal sunburst seal (Output), dormant dark steel octagonal sunburst seal, active bronze riveted vault shield seal (Capacity), and dormant dark hammered steel riveted vault shield seal."
+    },
+    {
+      "file": "generated/class-medallions-source.png",
+      "prompt": "Sprite sheet for two dark fantasy RPG class-specific circular HUD portrait medallion frames in the Diablo II / Baldur's Gate II carved stone and metal pixel-art tradition. Flat pure black background and hollow circular center aperture. Left: Soldier / Warlord circular medallion ring in hammered dark iron with crossed broadswords behind the ring and four cardinal ruby gemstones. Right: Scholar / Philosopher circular medallion ring in burnished bronze with engraved scrollwork filigree, an open codex book at the bottom, and cardinal sapphire gemstones."
     }
   ]
 }
