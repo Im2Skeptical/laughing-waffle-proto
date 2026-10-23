@@ -332,3 +332,19 @@ Found in code at `4014a92`; Cam may not know about these. Cards exist for the fi
 22. Dead-end chains: Trello says early shops have too many dead practices; docs describe no gating of complex chains. 101 of 110 Practices carry `provisionalNotes`. (c/t8QX1qpP)
 23. Warrior purpose is split across c/hsInbn7l (forced campaign), c/ksjmhFae (class-gated systems) and c/97w8GxRT (Monster rewards); none locked. Consider one umbrella card.
 24. Billboard political prestige: card mentions it, nothing in code, Cam has not said.
+
+
+## 2026-10-23 ? Independent Output and Capacity Multipliers
+
+Cam confirmed the first biome Output rules: +1 per region in the settlement's
+contiguous same-biome shared-edge patch, including its own region regardless of
+ownership. Plains target the existing Grain Stock Trait, including Milling;
+mountains target Stone; forest targets Construction. Both additive pools start
+at ?1. Granary retains Capacity only. ?Stock Power? becomes ?Capacity Multiplier?.
+
+The selected UI is per-Practice symbolic pairs, compact pinnable ledgers with
+nested individual sources, Practice shop readings and completed-result Structure
+previews on the settlement board. Construction reservations remain inactive until
+real completion. See [implementation scope](output-capacity-multipliers.md) for
+the accepted interaction fixes and excluded prototype scaffolding. This records
+local implementation scope; it does not imply publication or integration.

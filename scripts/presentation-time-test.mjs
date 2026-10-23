@@ -18,6 +18,7 @@ import { WATER_VARIANTS, waterPaletteColour, writeWaterPalette } from '../images
 import { normalizeEventMarkers } from '../src/views/timegraphs-helpers.js';
 import { fitPiece, constructionGeometry, regionalConstructionRect } from '../src/views/piece-geometry.js';
 import { getGamepieceFace } from '../src/model/gamepiece-presentation.js';
+import { getPracticeBaseStockProduction } from '../src/model/practice-reading.js';
 import { getPracticeSymbols } from '../src/views/practice-reading-pixi.js';
 import { getInspectionTerms } from '../src/views/inspection-terms.js';
 import { getMoonCycleDurationSec, getMoonPhaseDurationSec } from '../src/model/moon-phases.js';
@@ -37,6 +38,17 @@ import {
   SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC,
   SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_YEARS,
 } from '../src/views/ui-root/settlement-graph-session.js';
+
+{
+  const state=createNewGameState(123),before=JSON.stringify(state);
+  assert.deepEqual(getGamepieceFace(state,'practice','dryFarming').baseStockProduction,
+    [{timing:'Summer',amount:2},{timing:'Autumn',amount:6}], 'ledger uses authored seasonal base yields');
+  assert.deepEqual(getGamepieceFace(state,'practice','milling').baseStockProduction,
+    [{timing:'',amount:3}], 'Charge base yield excludes workers and multipliers');
+  assert.deepEqual(getPracticeBaseStockProduction(state.gameConfig.gamepieces.practices.corpseGarden),
+    [{timing:'Spring',amount:2},{timing:'Death phase',amount:1}], 'base reading respects activation-specific amounts');
+  assert.equal(JSON.stringify(state)===before,true,'ledger base readings do not mutate simulation state or RNG');
+}
 
 {
   const before = createNewGameState(123);
@@ -188,9 +200,9 @@ for(const definition of Object.values(settlementStructureDefs)) {
   assert.ok(!getPracticeSymbols(face).some(entry=>/^(Cycle|Charge|Worker|Worker multiplier)$/.test(entry.name)),'Structures explain their own symbols');
 }
 const granaryFace=getGamepieceFace(faceClock,'structure','granary','bronze',{slot:{qualityBonus:1}});
-assert.equal(granaryFace.reading.effects[0].text,'+2 Stock Power for Edible');
+assert.equal(granaryFace.reading.effects[0].text,'+2 Capacity Multiplier for Edible');
 assert.deepEqual(granaryFace.structureBonuses[0].traits,['Edible']);
-assert.deepEqual(getPracticeSymbols(granaryFace).map(entry=>entry.name),['Edible','Stock Power','Construction footprint','Quality']);
+assert.deepEqual(getPracticeSymbols(granaryFace).map(entry=>entry.name),['Edible','Capacity Multiplier','Construction footprint','Quality']);
 const kilnTerms=getInspectionTerms(getGamepieceFace(faceClock,'structure','kiln')).terms;
 assert.ok(kilnTerms.Construction&&kilnTerms.Vessel&&kilnTerms.Glass,'References cover Stock traits in Structure rules, including traits absent from its face');
 assert.equal(getGamepieceFace(faceClock,'structure','mudHouses','bronze',{slot:{qualityBonus:1}}).structureBonuses[0].amount,37,'Housing rounds per Structure');
@@ -213,7 +225,7 @@ assert.equal(getGamepieceFace(faceClock,'structure','archive','bronze',{settleme
 assert.equal(getGamepieceFace(faceClock,'structure','archive').reading.active,null,'Catalogue faces do not invent local staffing');
 const configuredStructureState={...faceClock,gameConfig:{gamepieces:{structures:{granary:{...settlementStructureDefs.granary,modifiers:[{kind:'capacity',amount:7,query:{traitsAny:['Water']}}]}}}}};
 const configuredStructureBefore=JSON.stringify(configuredStructureState);
-assert.equal(getGamepieceFace(configuredStructureState,'structure','granary').reading.effects[0].text,'+7 Stock Power for Water','Reading uses configured runtime definitions');
+assert.equal(getGamepieceFace(configuredStructureState,'structure','granary').reading.effects[0].text,'+7 Capacity Multiplier for Water','Reading uses configured runtime definitions');
 assert.equal(JSON.stringify(configuredStructureState),configuredStructureBefore);
 assert.equal(JSON.stringify(faceClock),structureFaceState,'Structure presentation never mutates state');
 assert.equal(workerFace.workerMultiplier,1.5,'Worker multiplier uses effective workers, not occupied socket count');

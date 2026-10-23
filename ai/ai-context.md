@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.24`.
+Game build version: `1.1.25`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -48,6 +48,10 @@ Routing skills live in `.grok/skills/`.
 - Practices explicitly use Scheduled or Charge mode. Private Charge is not Stock;
   full legal recipes Discharge automatically through the authoritative event queue.
   Each Practice can Discharge once per root chain; refilled Charge is retained.
+  Output and Capacity Multipliers are independent additive pools, base ×1.
+  Biome Output contributions use the containing shared-edge component, +1 per
+  region: plains/Grain (including Milling), mountains/Stone, forest/Construction.
+  Ownership does not restrict the component. See `docs/output-capacity-multipliers.md`.
   CivContent 2.6 coverage/deviations: `docs/civcontent-2.6-implementation.md`.
 
 `npm run check:architecture` guards the first and layering rules.

@@ -1,3 +1,4 @@
+import { addPracticeMultiplierPair } from './multiplier-fitting.js';
 import { addSettlementPiece, addConstructionStrip, PIECE_SIZE } from './settlement-piece-pixi.js';
 import { addIllustration, getArtRevision } from './chronicle-art.js';
 import { addResourceIcon } from './resource-cost-pixi.js';
@@ -184,6 +185,7 @@ export function createSettlementPrototypeView({
         width: practiceCardWidth,
         height: PIECE_SIZE.practiceHeight,
       }, entry, index, tooltipView));
+      vm.practices.forEach((entry,index)=>addPracticeMultiplierPair(root,{x:practiceRect.x+18+index*(practiceCardWidth+practiceGap),y:practiceRect.y+56+PIECE_SIZE.practiceHeight+16,width:practiceCardWidth,height:44},entry,index,tooltipView));
       addIllustration(root,"settlement",{x:48,y:356,width:540,height:410},{alpha:.7});
       const order = vm.elderOrder;
       root.addChild(

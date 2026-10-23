@@ -3,6 +3,20 @@
 const title = value => value ? value[0].toUpperCase() + value.slice(1) : '';
 const traits = values => values.join(' or ') + ' Stock';
 
+// Authored Stock yield before workers, local bonuses and Output Multiplier.
+// Presentation data only; the activation evaluator remains authoritative.
+export function getPracticeBaseStockProduction(def) {
+  const effects=(def.effects??[]).filter(effect=>effect.op==='generateStock');
+  if(!effects.length)return [];
+  const activation=def.activation??{};
+  const times=def.mode==='charge'?[{type:activation.type,timing:''}]
+    :[activation.type,...(activation.also??[])].flatMap(type=>type==='season'
+      ?(activation.seasonKeys?.length?activation.seasonKeys:['spring','summer','autumn','winter']).map(season=>({type,season,timing:title(season)}))
+      :[{type,timing:`${title(type)} phase`}]);
+  return times.map(({type,season,timing})=>({timing,amount:effects.reduce((sum,effect)=>sum+
+    (effect.activationAmounts?.[type]??(season?effect.seasonAmounts?.[season]:undefined)??effect.amount??0),0)}));
+}
+
 function effectText(effect, amount) {
   const names = { scholar: 'Scholar', warrior: 'Warrior' };
   const text = {

@@ -32,7 +32,7 @@ closures stay in the orchestrator.
 - Shop staging, tableau pointerdown, and pinned-inspection wiring
 
 Before Confirm, staged Structure zones can be dragged back onto their shop
-to undo that individual commission and release its reserved costs.
+or discard to undo that individual commission and release its reserved costs.
 The drop target highlights without adding controls or text.
 
 Decision card faces, buttons, and cost footers use `../interaction-feedback.js`
@@ -54,3 +54,8 @@ Layouts match the full presentation, preview state, art revision, and viewport;
 entry consumes the matching layout instead of building new text and graphics.
 Unchanged refreshes reuse the current layout. The Life Map browser probe checks
 that prepared entry causes no additional layout builds.
+
+Practice pairs use `../multiplier-fitting.js`; the shared tooltip inspector renders
+compact, pinnable contribution ledgers and nested, scrollable source lists via
+`../multiplier-breakdown.js`. Structure hover and staged construction read model
+`multiplierPreview` DTOs; the view never computes game effects.

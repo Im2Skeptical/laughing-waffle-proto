@@ -1,4 +1,5 @@
 import { getVassalRiskDeathChance } from './class-rules.js';
+import { multiplierBoardPreview, multiplierShopPreview } from './multiplier-preview.js';
 import { getActionMonsterPressureCost } from '../detailed-settlements/practice-events.js';
 import { resolveLifeMapOptionCosts } from '../life-map-balance.js';
 import { getShopOfferPrice } from './shop-specialties.js';
@@ -311,6 +312,9 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     ? validatePurchaseInterventions(state, vassal, nodeState?.purchasedOffers ?? []) : null;
   const afterPractices = projected?.reservation?.practiceSlots ?? beforePractices;
   const afterStructures = projected?.reservation?.structureSlots ?? beforeStructures;
+  const stagedIds=(nodeState?.purchasedOffers??[]).filter(p=>p.intervention.kind==='structure').map(p=>p.placement?.placementId).filter(Boolean);
+  const poolBefore={practiceSlots:beforePractices,structureSlots:beforeStructures};
+  const poolAfter={practiceSlots:afterPractices,structureSlots:afterStructures};
   const tableauState = previewSite ? {...state,world:{...state.world,sites:state.world.sites.map(site=>site===previewSite?{...site,detailedState:{...site.detailedState,practiceSlots:afterPractices,structureSlots:afterStructures}}:site)}} : state;
   const assignments = assignDetailedSettlementWorkers(tableauState, previewRegionId);
   const decorate = (kind, slots, active = true) => slots.map((slot, slotIndex) => {
@@ -340,15 +344,17 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     const checkPlacement = origin => {
       const prepared = kind === 'structure' ? prepareStructurePlacement(state, vassal, nodeState, offer, origin, remaining) : { ok: true };
       if (!prepared.ok) return prepared;
-      return validatePurchaseInterventions(state, vassal, [{ ...offer, ...(prepared.placement ? { placement: prepared.placement } : {}) }, ...remaining]);
+      return {...validatePurchaseInterventions(state, vassal, [{ ...offer, ...(prepared.placement ? { placement: prepared.placement } : {}) }, ...remaining]), previewPlacementId:prepared.placement?.placementId};
     };
     const legality = checkPlacement(null);
     const prestigeAffordable = purchased || prestigeCost <= vassal.prestige - stagedPrestigeCost;
     const currencyAffordable = purchased || currencyCost <= Math.max(0,
       stockTotal(state, previewSite?.detailedState, "Currency")) - stagedCurrencyCost;
     const affordable = prestigeAffordable && currencyAffordable;
+    const multiplierPreview=multiplierShopPreview(state,previewRegionId,kind==='structure'?poolBefore:poolAfter,legality.reservation,intervention,legality.previewPlacementId,stagedIds);
     return {
       ...clone(offer),
+      ...(multiplierPreview?{multiplierPreview}:{}),
       purchased,
       canStage: affordable && legality.ok,
       stageBlockedReason: !prestigeAffordable ? 'Insufficient Prestige'
@@ -384,6 +390,16 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     targets:legacySettlementTargets(state,vassal).map(regionId=>({id:`legacy-target:${regionId}`,settlementRegionId:regionId,
       label:`Found ${getRegionReference(state,regionId)}`,cost:getAdjustedVassalPrestigeCost(vassal,legacyFound?.prestigeCost??0),phases:getVassalActionPhaseCost(vassal,legacyFound?.phaseCost??0,{nodeState}),blocked:null})),
   }:null;
+  const offers=(nodeState?.inventory??[]).map(offer=>decorateOffer(offer));
+  const purchases=(nodeState?.purchasedOffers??[]).map(offer=>decorateOffer(offer,true));
+  const boardPools=multiplierBoardPreview(state,previewRegionId,poolBefore,poolAfter,stagedIds);
+  const hovered=offers.find(offer=>offer.offerId===preview.previewOfferId&&offer.intervention?.kind==='structure'&&!offer.purchased&&offer.canStage);
+  if(boardPools&&hovered?.multiplierPreview) {
+    const changed=hovered.multiplierPreview.rows;
+    boardPools.rows=boardPools.rows.map(row=>changed.find(r=>r.practiceId===row.practiceId)??row);
+    boardPools.afterCompletion=true;
+    boardPools.sourceLabel=hovered.label;
+  }
   return {
     node:acquiring?{...node,family:'relic'}:node,
     liveWorld:!acquiring && (['crossroads','campaign'].includes(nodeState?.family)||ordinaryLegacy),
@@ -414,6 +430,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     previewRegionId,
     previewRegionLabel: getRegionReference(state, previewRegionId) ?? previewSite?.name ?? previewRegionId,
     settlement: previewSite ? {
+      multiplierPreview:boardPools,
       storedFood: stockTotal(state, previewSite.detailedState, "Edible"),
       looseFood: 0,
       currentCurrency: stockTotal(state, previewSite.detailedState, "Currency"),
@@ -429,8 +446,8 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
         presentation: getVassalGamepiecePresentation(state, 'structure', slot.structureId,
           getDetailedStructureDef(state, slot.structureId)?.minimumQuality, slot, previewSite?.detailedState) })),
     } : null,
-    offers: (nodeState?.inventory ?? []).map((offer) => decorateOffer(offer)),
-    purchases: (nodeState?.purchasedOffers ?? []).map((offer) => decorateOffer(offer, true)),
+    offers,
+    purchases,
     contextKind: nodeState?.signatureNode?.groupId === "tagShop"
       || ["practice", "structure"].includes(nodeState?.signatureNode?.removalKind)
       ? "settlement"
