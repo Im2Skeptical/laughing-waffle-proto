@@ -11,6 +11,11 @@ re-exports the previous public API; internals live here.
     age, prestige/development income, stat presentation, cost helpers,
     and candidate-pool reads. Also holds shared clone/shuffle/site
     helpers so shop, lifecycle, and presentation stay acyclic.
+  - `getVassalStatDefinition` resolves personal attributes from the established
+    class, then the founder identity. Shared definitions in
+    `src/defs/vassal-stat-defs.js` bind stable stat slots to class names and icons;
+    stat effects, the picker, HUD and level-up read that identity. Founding still
+    gates specialist populations, class-only content and class abilities.
   - Id-keyed Life Map reads (`getCurrentLifeMapVassal`,
     `getSelectedLifeMapVassals`) resolve only `currentVassalId` /
     `selectedVassalIds` through `vassalsById`. Internals use these.

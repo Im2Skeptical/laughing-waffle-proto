@@ -54,6 +54,8 @@ first-pass system notes below retain their original tuning context.
   and old Map Lab drafts are unsupported; no installed content is silently truncated
   during save loading. Current schema numbers live in `ai/ai-context.md`.
 - The first selected Vassal is a Philosopher or Warlord, initially unclassed.
+  Their personal attribute is already Ingenuity or Prowess, including its effects;
+  the unclassed state gates specialist populations and class-only content until Founding.
   The default Life Map starts with Practice Reform and puts single-choice Founding
   at depth 5. Ordered milestone rules choose Founding for protovassals and
   Crossroads for successors at that depth. Common content precedes Founding;

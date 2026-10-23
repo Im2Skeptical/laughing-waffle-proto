@@ -7,6 +7,8 @@ import { getGameSetting } from "../game-config.js";
 import { getMoonPhaseDurationSec } from "../moon-phases.js";
 import { getRegionState } from "../world-state.js";
 import { getEquippedHeirloomModifiers } from "./heirlooms.js";
+import { VASSAL_STAT_DEFS, VASSAL_CLASS_STAT_REPLACEMENTS } from '../../defs/vassal-stat-defs.js';
+import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
 
 export const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -303,7 +305,7 @@ export function getVassalEffectiveStats(vassal) {
 
 export function getVassalPrestigeIncome(vassal) {
   return VASSAL_LIFE_TUNING.basePrestigeIncome
-    + (vassal?.classId === "scholar" ? 0 : Math.max(0, Math.floor(getVassalEffectiveStats(vassal).cunning ?? 0)));
+    + (getVassalStatDefinition(vassal, 'cunning').id === 'ingenuity' ? 0 : Math.max(0, Math.floor(getVassalEffectiveStats(vassal).cunning ?? 0)));
 }
 
 export function getVassalDevelopmentIncome(vassal) {
@@ -323,14 +325,16 @@ export function getVassalNodeResolutionGains(vassal, nodeFamily = null) {
   };
 }
 
-const VASSAL_STAT_LABELS = Object.freeze({
-  cunning: "Cunning",
-  wisdom: "Wisdom",
-  effectiveness: "Effectiveness",
-  intelligence: "Intelligence",
-});
+// Founders already have their promised attribute; Founding separately unlocks
+// the civilization's specialist population and class-only content.
+export function getVassalStatDefinition(vassal, statId) {
+  const classId = vassal?.classId ?? vassal?.founderClassId;
+  const id = VASSAL_CLASS_STAT_REPLACEMENTS[classId]?.[statId] ?? statId;
+  return VASSAL_STAT_DEFS[id];
+}
 
 export function getVassalStatPresentation(vassal, statId, valueOverride = null) {
+  const definition = getVassalStatDefinition(vassal, statId);
   const effective = getVassalEffectiveStats(vassal);
   const value = Number.isFinite(valueOverride)
     ? Math.max(0, Math.floor(valueOverride))
@@ -343,12 +347,12 @@ export function getVassalStatPresentation(vassal, statId, valueOverride = null) 
   const baseValue = Math.max(0, Math.floor(vassal?.stats?.[statId] ?? 0));
   const heirloomBonus = value - (Number.isFinite(valueOverride) ? value : baseValue);
   const bonusNote = heirloomBonus > 0 ? ` · Heirloom +${heirloomBonus}` : "";
-  if (statId === "cunning" && vassal?.classId === "scholar") return { statId, label: "Ingenuity", value, powerLabel: `${Math.round(value * .05 * 100)}% quality uplift`, formula: "Price-neutral shop uplift and Discovery Research", pointsToCap: null };
-  if (statId === "intelligence" && vassal?.classId === "warrior") return { statId, label: "Prowess", value, powerLabel: `+${value} Martial Force`, formula: "Global Martial Force; RISK success × (1 + 15% per point)", pointsToCap: null };
+  if (definition.id === 'ingenuity') return { ...definition, value, powerLabel: `${Math.round(value * VASSAL_CLASS_RULES.scholar.qualityChancePerPoint * 100)}% quality uplift`, formula: "Price-neutral shop uplift and Discovery Research", pointsToCap: null };
+  if (definition.id === 'prowess') return { ...definition, value, powerLabel: `+${value} Martial Force`, formula: `Global Martial Force; RISK success × (1 + ${Math.round(VASSAL_CLASS_RULES.warrior.riskSuccessPerPoint * 100)}% per point)`, pointsToCap: null };
   if (statId === "cunning") {
     const power = VASSAL_LIFE_TUNING.basePrestigeIncome + value;
     return {
-      statId, label: VASSAL_STAT_LABELS[statId], value,
+      ...definition, value,
       powerLabel: `+${power} Prestige per completed node`,
       formula: `${VASSAL_LIFE_TUNING.basePrestigeIncome} base + ${value} Cunning${bonusNote}`,
       pointsToCap: null,
@@ -360,7 +364,7 @@ export function getVassalStatPresentation(vassal, statId, valueOverride = null) 
     const codexNote = modifiers.wisdomDevelopmentMultiplier > 1
       ? ` · Scholar's Codex ×${modifiers.wisdomDevelopmentMultiplier}` : "";
     return {
-      statId, label: VASSAL_STAT_LABELS[statId], value,
+      ...definition, value,
       powerLabel: `+${power} EXP per completed node`,
       formula: `${VASSAL_LIFE_TUNING.baseDevelopmentIncome} base + Wisdom${codexNote}${bonusNote}`,
       pointsToCap: null,
@@ -369,7 +373,7 @@ export function getVassalStatPresentation(vassal, statId, valueOverride = null) 
   const percent = Math.round(discount * 100);
   const noun = statId === "effectiveness" ? "Phase" : "Prestige";
   return {
-    statId, label: VASSAL_STAT_LABELS[statId] ?? statId, value,
+    ...definition, value,
     powerLabel: `${percent}% ${noun}-cost discount`,
     formula: `${Math.round(VASSAL_LIFE_TUNING.discountPerStat * 100)}% per point · ${Math.round(cap * 100)}% cap · costs round up`,
     pointsToCap,
@@ -393,7 +397,7 @@ function adjustedCost(base, stat, { allowZero = true } = {}) {
 }
 
 export function getAdjustedVassalPrestigeCost(vassal, baseCost) {
-  return adjustedCost(baseCost, vassal?.classId === "warrior" ? 0 : getVassalEffectiveStats(vassal).intelligence, { allowZero: true });
+  return adjustedCost(baseCost, getVassalStatDefinition(vassal, 'intelligence').id === 'prowess' ? 0 : getVassalEffectiveStats(vassal).intelligence, { allowZero: true });
 }
 
 // Convert authored solar years to spendable phases before stat/Heirloom discounts.

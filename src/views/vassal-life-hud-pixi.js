@@ -18,7 +18,7 @@ import { getChronicleTexture } from './chronicle-art.js';
 import { addResourceIcon } from './resource-cost-pixi.js';
 import { addPaintedSocket } from './painted-frames.js';
 import { FRAME_PREFIX, WINDOW_FRAME } from './painted-frame-spec.js';
-import { FOUNDER_CLASSES, STAT_ICONS } from './protovassal-class-data.js';
+import { FOUNDER_CLASSES } from './protovassal-class-data.js';
 import { RELIC } from './chronicle-skin.js';
 
 const TWEEN_MS = 700;
@@ -201,6 +201,8 @@ export function createVassalLifeHudView({
     const inventory = vassal ? getVassalHeirloomInventory(vassal) : { equipped: [], carry: [] };
     const nextSignature = getArtRevision() + JSON.stringify({
       vassalId: vassal?.vassalId ?? null,
+      classId: vassal?.classId ?? null,
+      founderClassId: vassal?.founderClassId ?? null,
       retinue: getRetinue(presentation.state, vassal),
       prestige: vassal?.prestige ?? null,
       commission: vassal?.commission ?? null,
@@ -362,7 +364,8 @@ export function createVassalLifeHudView({
       for (let r = 0; r < 3; r++) glow.beginFill(0xffb347, .18 + r * .14).drawCircle(0, 0, 13 - r * 4).endFill();
       glow.blendMode = PIXI.BLEND_MODES.ADD; glow.visible = pinned || chosen; chip.addChild(glow);
       if (chosen) litPlaque = { chip, glow, plate };
-      addResourceIcon(chip, STAT_ICONS[stat.label] ?? 'prestige', 19, sp.bodyY, 26);
+      chip.statPresentation = stat;
+      addResourceIcon(chip, stat.iconId, 19, sp.bodyY, 26);
       const delta = signedDelta(deltas?.stats?.[stat.statId]);
       const value = createText(String(stat.value + (delta ? Number(deltas.stats[stat.statId]) : 0)),
         { ...TEXT_STYLES.header, fontSize: BASE_VALUE_FONT, fill: delta ? PALETTE.green : PALETTE.text }, 49, sp.bodyY, .5, .5);
@@ -455,6 +458,7 @@ export function createVassalLifeHudView({
     getSemanticSnapshot: () => {
       const p=getPresentation?.()??{},v=p.profileVassal??p.vassal;
       return {visible:root.visible===true,prestigeDelta:getDeltas?.()?.prestige??0,
+        stats:root.children.flatMap(child => child.children ?? []).filter(child => child.statPresentation).map(child => child.statPresentation),
         retinue:getRetinue(p.state,v),bagRect:bagControl?.getBounds?.(),
         activeSlotRects:activeSlots.map(slot=>slot.getBounds()),
         equipped:(v?.heirlooms?.equipped??[]).map(item=>item?.definitionId??null)};

@@ -23,6 +23,7 @@ export {
   getVassalActionPrestigeCost,
   getVassalActionPhaseCost,
   getVassalStatPresentation,
+  getVassalStatDefinition,
   getVassalStatsPresentation,
   getAdjustedVassalPrestigeCost,
   getAdjustedVassalPhaseCost,
