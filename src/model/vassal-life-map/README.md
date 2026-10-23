@@ -55,6 +55,10 @@ re-exports the previous public API; internals live here.
   - Isolated worker transaction validation, tick resolution, and speculative
     reachable-node/reroll preparation, including presentations before and after
     entry for every legal next node. No authoritative state is mutated here.
+- `multiplier-preview.js`
+  - Isolated completed-board multiplier readings for shop hover and staged
+    construction. Only staged/prospective sites are completed for this reading;
+    actual construction, RNG and simulation ticks are untouched.
 - `presentation.js`
   - `getVassalNodeDecisionPresentation`, `getVassalGamepiecePresentation`,
     regional map presentation, and option projection.

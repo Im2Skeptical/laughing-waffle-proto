@@ -9,6 +9,8 @@ import { getDisplayObjectWorldScale } from "./ui-helpers/display-object-scale.js
 import { normalizeTooltipSpec } from "./tooltip-spec.js";
 import { addChronicleInspection } from './chronicle-inspection.js';
 import { addPracticeReading } from './practice-reading-pixi.js';
+import { addMultiplierBreakdown, addMultiplierSources } from './multiplier-breakdown.js';
+import { paintRelicPanel, RELIC } from './chronicle-skin.js';
 
 const BG_FILL = MUCHA_UI_COLORS?.surfaces?.panelDeep ?? 0x2a241d;
 const BG_STROKE = MUCHA_UI_COLORS?.surfaces?.border ?? 0x8f7c60;
@@ -62,15 +64,83 @@ export function createTooltipView({ layer, interaction, app, layout = null, onRe
   let pieceInspection = null;
   let quickReading = null;
   let activePinHandler = null;
+  let poolReading=null,sourcePane=null,sourceEntry=null,sourceSize=null,sourceTimer=null;
+  let lastPointer=null;
+  function clearSources() {
+    if(sourceTimer!==null)clearTimeout(sourceTimer);sourceTimer=null;
+    sourcePane?.destroy({children:true});sourcePane=null;sourceEntry=null;sourceSize=null;
+  }
+  function leaveSources() {
+    if(sourceTimer!==null)clearTimeout(sourceTimer);
+    sourceTimer=setTimeout(()=>{
+      sourceTimer=null;
+      // A live ledger rebuild replaces its rows. A synthetic leave from the
+      // old row must not close the reading still under the actual pointer.
+      if(!sourceContainsPointer())clearSources();
+    },260);
+  }
+  function sourceContainsPointer() {
+    if(!lastPointer||!sourceEntry)return false;
+    const row=poolReading?.rows.controls.find(({entry})=>entry.key===sourceEntry.key)?.control;
+    return [row,sourcePane].some(control=>{
+      if(!control?.hitArea)return false;
+      const p=control.toLocal(new PIXI.Point(lastPointer.x,lastPointer.y));
+      return control.hitArea.contains(p.x,p.y);
+    });
+  }
+  function syncSourceHover() {
+    if(!lastPointer||pinnedKey===null||!poolReading)return;
+    const point=new PIXI.Point(lastPointer.x,lastPointer.y),{viewport,controls}=poolReading.rows;
+    const local=viewport.toLocal(point);
+    const hovered=viewport.hitArea.contains(local.x,local.y)
+      ?controls.find(({control})=>{const p=control.toLocal(point);return control.hitArea.contains(p.x,p.y);})?.entry:null;
+    if(hovered?.count>1) {
+      if(sourceEntry?.key!==hovered.key)showSources(hovered);
+      else if(sourceTimer!==null){clearTimeout(sourceTimer);sourceTimer=null;}
+    } else if(sourceEntry) {
+      if(sourceContainsPointer()){if(sourceTimer!==null)clearTimeout(sourceTimer);sourceTimer=null;}
+      else if(sourceTimer===null)leaveSources();
+    }
+  }
+  function placeSources() {
+    if(!sourcePane||!sourceSize)return;
+    const bounds=container.getBounds(),screen=getScreenSize(),scale=activeScale*getTooltipLayerWorldScale();
+    const w=sourceSize.width*scale,h=sourceSize.height*scale;
+    let x=bounds.x-w-12;
+    if(x<clampMargin)x=bounds.x+bounds.width+12;
+    x=Math.max(clampMargin,Math.min(screen.width-w-clampMargin,x));
+    const y=Math.max(clampMargin,Math.min(screen.height-h-clampMargin,bounds.y+90*scale));
+    const p=layer.toLocal({x,y});sourcePane.position.set(p.x,p.y);sourcePane.scale.set(activeScale);
+  }
+  function showSources(entry) {
+    if(sourceTimer!==null)clearTimeout(sourceTimer);sourceTimer=null;
+    if(!entry||pinnedKey===null){clearSources();return;}
+    const scroll=sourceEntry?.key===entry.key?sourceSize?.rows.getScroll()??0:0;
+    clearSources();sourceEntry=entry;
+    sourcePane=new PIXI.Container();sourcePane.eventMode='static';layer.addChild(sourcePane);
+    const background=new PIXI.Graphics();sourcePane.addChild(background);
+    sourceSize=addMultiplierSources(sourcePane,entry);sourceSize.rows.setScroll(scroll);
+    paintRelicPanel(background,0,0,sourceSize.width,sourceSize.height,RELIC.night,RELIC.brass,2);
+    sourcePane.hitArea=new PIXI.Rectangle(0,0,sourceSize.width,sourceSize.height);
+    sourcePane.on('pointerover',()=>{if(sourceTimer!==null)clearTimeout(sourceTimer);sourceTimer=null;});
+    sourcePane.on('pointerout',leaveSources);
+    sourcePane.on('pointerdown',event=>{pinRevision++;event.stopPropagation();});
+    sourcePane.on('pointertap',event=>event.stopPropagation());
+    placeSources();
+  }
   // Cards may be replaced during a redraw, so their old Pixi pointerout
   // handler cannot reliably dismiss a hover. Track its retained screen bounds.
   document.addEventListener('pointermove', (event) => {
-    if (!dismissOnPointerExit || pinnedKey !== null || event.pointerType === 'touch') return;
-    const anchor = resolveAnchor(activeAnchor);
+    if(event.pointerType==='touch'){lastPointer=null;return;}
     const canvas = app?.view?.getBoundingClientRect();
-    if (!anchor || !canvas?.width || !canvas?.height) return;
+    if (!canvas?.width || !canvas?.height) return;
     const x = (event.clientX - canvas.x) / canvas.width * app.screen.width;
     const y = (event.clientY - canvas.y) / canvas.height * app.screen.height;
+    lastPointer={x,y};
+    syncSourceHover();
+    if (!dismissOnPointerExit || pinnedKey !== null) return;
+    const anchor = resolveAnchor(activeAnchor);
+    if(!anchor)return;
     if (x < anchor.x || x > anchor.x + anchor.width ||
         y < anchor.y || y > anchor.y + anchor.height) hide();
   });
@@ -81,12 +151,15 @@ export function createTooltipView({ layer, interaction, app, layout = null, onRe
   // Otherwise it was an outside press, which dismisses the retained details.
   document.addEventListener('pointerdown', () => {
     if(pinnedKey===null)return;
+    // A pinned contribution ledger is a live inspector while shopping.
+    if(activeSpec?.poolBreakdown)return;
     const revision=pinRevision;
     setTimeout(()=>{
       if(pinRevision===revision)hide({force:true});
     },0);
   },true);
   container.on('pointerdown',()=>{pinRevision++;});
+  container.on('pointertap',event=>{if(activeSpec?.poolBreakdown)event.stopPropagation();});
   // The reading viewport stops bubbling so scrolling cannot act on the scene.
   container.on('pointerdowncapture',()=>{pinRevision++;});
   document.addEventListener('keydown',event=>{
@@ -153,6 +226,12 @@ export function createTooltipView({ layer, interaction, app, layout = null, onRe
     if (anchor.aboveRect) {
       posX = anchor.x + anchor.width / 2 - scaledWidth / 2;
       posY = anchor.aboveRect.y - margin - scaledHeight;
+    }
+
+    if(activeSpec?.poolBreakdown&&pinnedKey!==null) {
+      const screen=getScreenSize();
+      posX=screen.width-scaledWidth-22;
+      posY=Math.max(clampMargin,Math.min(190,screen.height-scaledHeight-clampMargin));
     }
 
     if (anchor.side !== "right" && posX < clampMargin) {
@@ -547,6 +626,11 @@ export function createTooltipView({ layer, interaction, app, layout = null, onRe
     const retainedScroll=activeSpec?.inspectionKey===spec.inspectionKey?pieceInspection?.getScroll?.()??0:0;
     const retainedGlossaryScroll=activeSpec?.inspectionKey===spec.inspectionKey?pieceInspection?.getGlossaryScroll?.()??0:0;
     const retainedReference=activeSpec?.inspectionKey===spec.inspectionKey?pieceInspection?.getReferenceState?.():null;
+    const sourceKey=activeSpec?.poolKey===spec.poolKey?sourceEntry?.key:null;
+    const sourceScroll=sourceKey?sourceSize?.rows.getScroll()??0:0;
+    const sourceLeaving=sourceTimer!==null;
+    const poolScroll=activeSpec?.poolKey===spec.poolKey?poolReading?.rows.getScroll()??0:0;
+    clearSources();poolReading=null;
     pieceInspection?.releaseKeywordFocus?.();
     clearChildren();
     container.hitArea=null;
@@ -595,19 +679,32 @@ export function createTooltipView({ layer, interaction, app, layout = null, onRe
     container.eventMode = "none";
     container.interactiveChildren = false;
 
-    const normalizedSpec = normalizeTooltipSpec(spec);
+    const normalizedSpec = spec.poolBreakdown ? spec : normalizeTooltipSpec(spec);
     activePinHandler = typeof spec?.onPin === "function" ? spec.onPin : null;
     const scale =
       normalizedSpec.scale ??
       resolvedAnchor.scale ??
       1;
     const padding = 10;
-    const contentSize = renderSections(normalizedSpec, padding, scale);
+    const contentSize = spec.poolBreakdown ? addMultiplierBreakdown(container,spec,{pinned:pinnedKey!==null,onSources:showSources,onLeave:leaveSources}) : renderSections(normalizedSpec, padding, scale);
+    if(spec.poolBreakdown) {
+      poolReading=contentSize;poolReading.rows.setScroll(poolScroll);
+      if(pinnedKey!==null) {
+        container.eventMode='static';container.interactiveChildren=true;
+        container.hitArea=new PIXI.Rectangle(0,0,contentSize.width,contentSize.height);
+        const close=createTextNode('×',{fontSize:38,fill:BODY_TEXT},1);close.position.set(contentSize.width-42,10);
+        close.eventMode='static';close.cursor='pointer';close.hitArea=new PIXI.Rectangle(-7,0,44,44);
+        close.on('pointertap',event=>{event.stopPropagation();hide({force:true});});container.addChild(close);
+      }
+    }
 
-    bg.beginFill(BG_FILL, 0.96);
-    bg.lineStyle(2, normalizedSpec.accentColor ?? BG_STROKE, 0.9);
-    bg.drawRoundedRect(0, 0, contentSize.width, contentSize.height, 10);
-    bg.endFill();
+    if(spec.poolBreakdown)paintRelicPanel(bg,0,0,contentSize.width,contentSize.height,RELIC.night,RELIC.brass,2);
+    else {
+      bg.beginFill(BG_FILL, 0.96);
+      bg.lineStyle(2, normalizedSpec.accentColor ?? BG_STROKE, 0.9);
+      bg.drawRoundedRect(0, 0, contentSize.width, contentSize.height, 10);
+      bg.endFill();
+    }
     if (normalizedSpec.activeChoice) {
       bg.lineStyle(1.5, BODY_TEXT, 0.9)
         .drawRoundedRect(4, 4, contentSize.width - 8, contentSize.height - 8, 6);
@@ -631,10 +728,19 @@ export function createTooltipView({ layer, interaction, app, layout = null, onRe
     positionTooltip(resolvedAnchor, activeScale, activeWidth, activeHeight);
     container.scale.set(activeScale);
     container.visible = true;
+    if(sourceKey) {
+      const entry=poolReading?.rows.controls.find(row=>row.entry.key===sourceKey)?.entry;
+      if(entry?.count>1){showSources(entry);sourceSize.rows.setScroll(sourceScroll);}
+      if(sourceLeaving)leaveSources();
+    }
+    // Refresh can replace a row underneath a stationary mouse without Pixi
+    // emitting a new enter. Restore its source reading from the real pointer.
+    syncSourceHover();
   }
 
   function hide({force=false}={}) {
     if(pinnedKey!==null&&!force)return;
+    clearSources();
     if(force){pinnedKey=null;quickPinned=false;}
     activePinHandler = null;
     if (hideTimeoutId !== null) clearTimeout(hideTimeoutId);
@@ -662,6 +768,7 @@ export function createTooltipView({ layer, interaction, app, layout = null, onRe
     if (!resolvedAnchor) return;
     activeResolvedAnchor = summarizeAnchor(resolvedAnchor);
     positionTooltip(resolvedAnchor, activeScale, activeWidth, activeHeight);
+    placeSources();
   }
 
   function init() {}
@@ -683,6 +790,11 @@ export function createTooltipView({ layer, interaction, app, layout = null, onRe
       activeAnchor=anchor;
       if(JSON.stringify(spec)!==JSON.stringify(activeSpec))show(spec,anchor,{force:true,dismissOnExit:pinnedKey===null,quick:quickPinned});
     },
+    refreshMultiplier(spec,anchor) {
+      if(!container.visible||!spec.poolKey||activeSpec?.poolKey!==spec.poolKey)return;
+      activeAnchor=anchor;
+      if(JSON.stringify(spec)!==JSON.stringify(activeSpec))show(spec,anchor,{force:true,dismissOnExit:pinnedKey===null});
+    },
     hide,
     isVisible: () => container.visible,
     getContainer: () => container,
@@ -703,6 +815,9 @@ export function createTooltipView({ layer, interaction, app, layout = null, onRe
       sourceKind: activeSpec?.sourceKind ?? null,
       sourceId: activeSpec?.sourceId ?? null,
       title: activeSpec?.title ?? "",
+      poolMultiplier:activeSpec?.poolBreakdown?.pool.multiplier??null,
+      poolRows:poolReading?.rows.controls.map(({entry,control})=>{const p=control.toGlobal(new PIXI.Point(200,24));return{key:entry.key,label:entry.label,count:entry.count,amount:entry.amount,x:p.x,y:p.y};})??[],
+      poolSources:sourceEntry?{label:sourceEntry.label,sources:sourceEntry.sources.map(s=>({label:s.label,amount:s.amount,pending:s.pending===true})),scroll:sourceSize.rows.getScroll(),rect:sourcePane.getBounds()}:null,
       reading: activeSpec?.face?.reading ?? null,
       expanded: !!pieceInspection && !!activeSpec?.face?.reading,
       titlePoint: quickReading?.titleControl?.toGlobal?.(new PIXI.Point(activeWidth/2,quickReading.titleControl.hitArea.height/2)) ?? null,

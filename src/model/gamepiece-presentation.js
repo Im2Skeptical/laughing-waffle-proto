@@ -4,7 +4,7 @@ import { getDetailedPracticeWorkerCapacity, getQualityMultiplier } from './detai
 import { getMoonPhaseDurationSec, getMoonCycleDurationSec } from './moon-phases.js';
 import { MOON_PHASE_INDEX_BY_ID } from '../defs/gamesettings/moon-phase-defs.js';
 import { getRegionReference } from './world-state.js';
-import { stockCapacityBreakdown } from './detailed-settlements/stock.js';
+import { stockCapacityBreakdown, stockOutputBreakdown } from './detailed-settlements/stock.js';
 import { getPracticeReading } from './practice-reading.js';
 import { getStructureReading } from './structure-reading.js';
 
@@ -113,12 +113,13 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
   const producesStock = (def.effects ?? []).some(effect => effect.op === 'generateStock');
   const workerMultiplier = producesStock || def.mode==='charge' ? number(1 + (workers?.effectiveWorkers ?? 0) * (def.workerBonus ?? 1)) : 1;
   const capacity = kind === 'practice' ? stockCapacityBreakdown(state, settlement, slot ?? {practiceId:id,tier}, workers?.tokens?.some(token => token.specialist === 'scholar')) : null;
+  const outputMultiplier = kind==='practice'&&producesStock ? stockOutputBreakdown(state,settlement,slot??{practiceId:id,tier},workers?.tokens?.some(token=>token.specialist==='scholar')) : null;
   const reading = kind === 'practice' ? getPracticeReading(def) : getStructureReading(def, {slot, settlement});
   return { kind, definitionId: id, label: def.label, tier, tags: [...new Set([...(def.tags ?? []),...(workers?.tokens?.some(t=>t.specialist==='scholar')?['Knowledge']:[])])], qualityLabel: tier, rule: def.ui?.rule ?? '',
     inputs, chaosCost, monsterPressureCost, production, workerMultiplier, chargeTriggers:chargeTriggerSymbols(def), construction,
     reading, structureBonuses: kind === 'structure' ? reading.bonuses : [], structureQualityBonus: kind === 'structure' ? slot?.qualityBonus ?? 0 : 0,
     chargeGain:def.mode==='charge'?(evaluation?.chargeGain??Math.floor(def.charge.gain*workerMultiplier)):null,
-    stock: evaluation?.stock ?? slot?.stock ?? 0, stockCapacity: evaluation?.stockCapacity ?? capacity?.total ?? 0, stockCapacityBreakdown: capacity, stockTraits: def.stockTraits ?? [],
+    stock: evaluation?.stock ?? slot?.stock ?? 0, stockCapacity: evaluation?.stockCapacity ?? capacity?.total ?? 0, stockCapacityBreakdown: capacity, outputMultiplierBreakdown:outputMultiplier, stockTraits: def.stockTraits ?? [],
     providers: evaluation?.providers ?? [],
     mode:def.mode??null,charge:evaluation?.charge??slot?.charge??0,chargeThreshold:def.mode==='charge'?threshold:null,
     chargeTrigger:def.charge?.triggerText??null,dischargeEffect:def.charge?.dischargeText??null,

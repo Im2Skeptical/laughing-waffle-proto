@@ -11,7 +11,7 @@ export function getPracticeSymbols(face) {
   if(face.kind==='structure') {
     for(const bonus of face.construction ? [] : face.structureBonuses??[]) {
       for(const trait of bonus.traits??[])add(trait,{trait});
-      add(bonus.kind==='stock'?'Stock Power':bonus.label,bonus.kind==='stock'?{drawing:'capacity'}:{icon:bonus.kind});
+      add(bonus.kind==='stock'?'Capacity Multiplier':bonus.label,bonus.kind==='stock'?{drawing:'capacity'}:bonus.kind==='outputMultiplier'?{glyph:'↑'}:{icon:bonus.kind});
     }
     // Footprint is the width of the illustrated Structure itself.
     add('Construction footprint',{glyph:String(face.footprint)});
@@ -24,9 +24,10 @@ export function getPracticeSymbols(face) {
     }
   } else {
     if(face.stockCapacity>0) {
-      add('Stock',{icon:'stock'});add('Stock capacity',{glyph:`${face.stock}/${face.stockCapacity}`});add('Stock Power',{glyph:`\u00d7${face.stockCapacityBreakdown?.power ?? 1}`});
+      add('Stock',{icon:'stock'});add('Stock capacity',{glyph:`${face.stock}/${face.stockCapacity}`});add('Capacity Multiplier',{glyph:`\u00d7${face.stockCapacityBreakdown?.multiplier ?? 1}`});
       for(const trait of face.stockTraits??[])add(trait,{trait});
     }
+    if(face.outputMultiplierBreakdown)add('Output Multiplier',{glyph:`×${face.outputMultiplierBreakdown.multiplier}`});
     if(face.workerCapacity>0) {
       add('Worker',{drawing:'worker'});add('Worker multiplier',{glyph:`×${face.workerMultiplier}`});
     }

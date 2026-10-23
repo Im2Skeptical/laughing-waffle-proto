@@ -3,6 +3,7 @@ import { getDetailedPracticeDef, getDetailedStructureDef } from '../game-config.
 import { ageCohortTotal, emptySpecialists } from './cohorts.js';
 import { emitPracticeEvent, practiceEventJournal } from './practice-events.js';
 import { getConnectedRegionIds, getRegionState, getAdjacentRegionIds } from '../world-state.js';
+import { biomeMultiplierModifiers } from './biome-multipliers.js';
 
 export const CIV_CONTENT_TUNING = Object.freeze({ populationPerEdible: 30, warriorsPerSupport: 5, monsterDefense: 3 });
 export const stockTraits = (state, slot) => slot?.traits ?? getDetailedPracticeDef(state, slot?.practiceId)?.stockTraits ?? [];
@@ -11,11 +12,11 @@ export const stockTotal = (state, settlement, trait) => localStockSlots(state, s
 export const specialistCount = (settlement, classId) => Object.values(settlement?.populationByClass ?? {}).reduce((sum, cohort) => sum + ageCohortTotal(cohort.specialists?.[classId]), 0);
 export const structureQualityMultiplier = slot => 1 + .25 * Math.max(0,slot?.qualityBonus??0);
 
-// Stock Power gains one point per quality tier; other numeric bonuses keep
+// Multiplier contributions gain one point per quality tier; other bonuses keep
 // their existing percentage scaling. Authored amounts remain editable data.
 export function structureModifierAmount(def, mod, slot) {
   if (!Number.isFinite(mod.amount)) return mod.amount;
-  if (mod.kind !== 'capacity') return mod.amount * structureQualityMultiplier(slot);
+  if (!['capacity','outputMultiplier'].includes(mod.kind)) return mod.amount * structureQualityMultiplier(slot);
   const baseTier = Math.max(0, ['bronze', 'silver', 'gold', 'diamond'].indexOf(def.minimumQuality));
   return mod.amount + Math.min(3 - baseTier, Math.max(0, slot?.qualityBonus ?? 0));
 }
@@ -28,7 +29,7 @@ export function structureModifiers(state, settlement) {
     return (def?.modifiers ?? []).filter(mod => modifierCondition(state, settlement, mod.query)).map(mod => {
       let amount = structureModifierAmount(def, mod, slot);
       if (mod.query?.scholarScale) amount *= Math.min(mod.query.cap ?? 3, Math.floor(specialistCount(settlement, 'scholar') / mod.query.scholarScale));
-      return Number.isFinite(amount) ? {...mod,amount,sourceId:def.id,sourceLabel:def.label} : mod;
+      return Number.isFinite(amount) ? {...mod,amount,sourceId:def.id,sourceLabel:def.label,sourceInstanceId:slot.placementId} : mod;
     });
   }).filter((mod,index,all) => !mod.query?.unique || all.findIndex(m => m.kind === mod.kind && JSON.stringify(m.query) === JSON.stringify(mod.query)) === index);
 }
@@ -62,7 +63,7 @@ export function matchesPractice(state, slot, query = {}, staffed = false) {
     && (!query.triggerKindsAny || def.charge?.trigger.any.some(c => query.triggerKindsAny.includes(c.kind) && (!query.triggerTraitsAny || c.kind !== 'stockGenerated' || c.traitsAny?.some(t => query.triggerTraitsAny.includes(t)))));
 }
 
-// Stock Power starts at one, then adds every matching contribution per host.
+// Capacity Multiplier starts at one, adding matching contributions per host.
 export function stockCapacityBreakdown(state, settlement, slot, staffed = false) {
   const def = getDetailedPracticeDef(state, slot?.practiceId);
   const base = def?.stockCapacity ?? 0;
@@ -70,9 +71,20 @@ export function stockCapacityBreakdown(state, settlement, slot, staffed = false)
   const scholar = staffed ? def?.scholarCapacityBonus ?? 0 : 0;
   const sources = base > 0 ? structureModifiers(state, settlement)
     .filter(mod => mod.kind === 'capacity' && matchesPractice(state, slot, mod.query, staffed))
-    .map(mod => ({ id: mod.sourceId, label: mod.sourceLabel, amount: mod.amount })) : [];
-  const power = 1 + sources.reduce((sum, source) => sum + source.amount, 0);
-  return { base, quality, scholar, power, sources, total: base > 0 ? Math.floor((base + quality + scholar) * power) : 0 };
+    .map(multiplierSource) : [];
+  const multiplier = 1 + sources.reduce((sum, source) => sum + source.amount, 0);
+  return { base, quality, scholar, multiplier, sources, total: base > 0 ? Math.floor((base + quality + scholar) * multiplier) : 0 };
+}
+
+function multiplierSource(mod) {
+  return {id:mod.sourceId,label:mod.sourceLabel,amount:mod.amount,query:mod.query??{},
+    ...(mod.sourceInstanceId?{instanceId:mod.sourceInstanceId}:{}),...(mod.regionIds?{regionIds:[...mod.regionIds]}:{})};
+}
+
+export function stockOutputBreakdown(state, settlement, slot, staffed=false, modifiers=structureModifiers(state,settlement)) {
+  const sources=[...modifiers,...biomeMultiplierModifiers(state,settlement)]
+    .filter(mod=>mod.kind==='outputMultiplier'&&matchesPractice(state,slot,mod.query,staffed)).map(multiplierSource);
+  return {multiplier:1+sources.reduce((sum,source)=>sum+source.amount,0),sources};
 }
 
 export function stockCapacity(state, settlement, slot, staffed = false) {

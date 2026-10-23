@@ -60,11 +60,19 @@ registries here.
   advance progress; completion activates the building. Unfinished sites supply no
   Housing, modifiers, tags, institutional bonuses or capabilities.
   Housing capacities are additive. The Common Housing ladder is 30/60/90/210/360/630.
-  Gated query modifiers supply Stock Power, output, defense and Retinue Force bonuses.
-  Stock Power starts at 1 per host; Structures add 1/2/3/4 at Bronze/Silver/Gold/Diamond, then
+  Gated query modifiers supply Capacity Multiplier, flat output, defense and Retinue Force bonuses.
+  Capacity Multiplier starts at 1 per host; Structures add 1/2/3/4 at Bronze/Silver/Gold/Diamond, then
   multiply base capacity including Practice quality and Scholar staffing bonuses.
-  Capacity rounds down once after multiplication. Upgrades add one Power per tier,
+  Capacity rounds down once after multiplication. Upgrades add one multiplier point per tier,
   capped at Diamond; other numeric Structure bonuses retain percentage quality scaling.
+  Output Multiplier is a separate additive pool starting at 1, using the generalized
+  `outputMultiplier` modifier kind. It scales generated Stock before retention is
+  capped; recipes, cadence and incoming Charge are unchanged. Plains add +1 per
+  region to Grain (including Milling), mountains to Stone, forest to Construction.
+  Count the containing shared-edge same-biome component, including its own region
+  regardless of ownership. Existing flat output modifiers retain their place in
+  the base-yield calculation; they are not multiplier contributions. See
+  `docs/output-capacity-multipliers.md`.
 - Scholars and Warriors are mutually exclusive specialties inside Villager/Stranger
   age cohorts. Aging, migration and mortality preserve those identities.
 - Four deterministic neutral templates are fixed-demography external actors.

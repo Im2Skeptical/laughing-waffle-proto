@@ -82,6 +82,9 @@ for (const [id, producerId, miss, expectedStock] of CASES) {
     assert.equal(column, id === 'borderSkirmishing' ? 2 : expectedStock, `${id} workbook Stock column`);
     const f = board(id);
     const capacityBefore = def.stockCapacity;
+    // Seed 42 starts on six contiguous plains: Grain's pool is x7.
+    // Keep the authored base/prose checks above, then check the retained yield.
+    const retainedStock=id==='milling'?16:expectedStock;
     fire(f, withProducerTags(miss));
     assert.equal(f.slot.charge, 0, `${id} unrelated event`);
     assert.equal(f.slot.stock, 0, `${id} unrelated event adds no stock`);
@@ -95,7 +98,7 @@ for (const [id, producerId, miss, expectedStock] of CASES) {
     assert.equal(f.slot.charge, def.charge.threshold - 1, `${id} near-full ignores unrelated event`);
     fire(f, producerEvent(producerId));
     record.runtimeStock = f.slot.stock;
-    assert.equal(f.slot.stock, expectedStock, `${id} discharge stock follows current rule`);
+    assert.equal(f.slot.stock, retainedStock, `${id} discharge stock follows current rule`);
     assert.equal(f.slot.charge, 0, `${id} discharge resets Charge`);
     assert.equal(def.stockCapacity, capacityBefore, `${id} capacity definition unchanged`);
     assert.deepEqual(def.consume, []);
@@ -117,7 +120,7 @@ for (const [id, producerId, miss, expectedStock] of CASES) {
     flushPracticeEvents(restored);
     assert.ok(JSON.stringify(serializeGameState(pending.state)) === JSON.stringify(serializeGameState(restored)), `${id} deserialize continues the same discharge`);
     const restoredSlot = getDetailedSettlementSites(restored, { playerOnly: true })[0].detailedState.practiceSlots[0];
-    assert.equal(restoredSlot.stock, expectedStock, `${id} restored discharge stock`);
+    assert.equal(restoredSlot.stock, retainedStock, `${id} restored discharge stock`);
     assert.equal(restoredSlot.charge, 0, `${id} restored Charge reset`);
     record.ok = true;
   } catch (error) {

@@ -96,9 +96,9 @@ function stockTray(parent, face, w) {
   capacity.anchor.x=0;
   const bounds=count.getLocalBounds(), scale=Math.min(1,(counterWidth-3)/bounds.width);
   count.scale.set(scale);count.position.set(cx-(bounds.x+bounds.width/2)*scale,cy);
-  if (face.stockCapacityBreakdown?.power > 1) {
+  if (face.stockCapacityBreakdown?.multiplier > 1) {
     count.y -= 5;
-    numeral(parent,`\u00d7${Math.round(face.stockCapacityBreakdown.power*100)/100}`,cx,cy+height*.32,12,counterWidth-4);
+    numeral(parent,`\u00d7${Math.round(face.stockCapacityBreakdown.multiplier*100)/100}`,cx,cy+height*.32,12,counterWidth-4);
   }
   parent.addChild(count);
   return {x,y,width,height};
@@ -259,8 +259,9 @@ function structureCapacityTray(parent, face, w, h) {
   const tray=new PIXI.Container(), contents=new PIXI.Container(), height=34, inset=4, iconSize=26;
   let width=inset;
   for(const bonus of face.structureBonuses) {
-    const symbols=bonus.kind==='stock'&&bonus.traits.length?bonus.traits.map(trait=>({trait})):[{icon:bonus.kind}];
-    const symbolsWidth=symbols.length*iconSize;
+    const output=bonus.kind==='outputMultiplier';
+    const symbols=(bonus.kind==='stock'||output)&&bonus.traits.length?bonus.traits.map(trait=>({trait})):[{icon:output?'stock':bonus.kind}];
+    const symbolsWidth=symbols.length*iconSize+(output?18:0);
     const value=createText(`+${Math.round(bonus.amount*100)/100}${bonus.unit??''}`,{...TEXT_STYLES.header,fontSize:23,fill:INK,stroke:0x221b14,strokeThickness:3,trim:true},width+symbolsWidth+5,height/2,0,.5);
     const cellWidth=symbolsWidth+9+Math.ceil(value.width);
     recess(contents,width,inset,cellWidth,height-inset*2);
@@ -270,6 +271,11 @@ function structureCapacityTray(parent, face, w, h) {
       const scale=Math.min((value.width+4)/32,(height-4)/32);
       crate.scale.set(scale);crate.position.set(value.x+(value.width-32*scale)/2,(height-32*scale)/2);
       crate.eventMode='none';contents.addChild(crate);
+    }
+    if(output) {
+      const x=width+symbolsWidth-8;
+      const arrow=new PIXI.Graphics().lineStyle(2,INK).moveTo(x,26).lineTo(x,8).moveTo(x-6,14).lineTo(x,8).lineTo(x+6,14);
+      arrow.eventMode='none';contents.addChild(arrow);
     }
     contents.addChild(value);
     symbols.forEach((symbol,i)=>{
@@ -289,9 +295,14 @@ function structureCapacityTray(parent, face, w, h) {
 
 export function addPieceFaceChrome(parent, face, w, h, {time=0,reducedMotion=false}={}) {
   if(face.construction) {
-    const width=Math.min(w,40+(face.inputs??[]).reduce((n,input)=>n+Math.max(25,input.traits.length*21+4),0));
-    const cycle=addPieceFaceChrome(parent,{...face,kind:'practice',construction:null,stockCapacity:0,workerCapacity:0,
-      production:[],outputs:[],lane:'scheduled',source:{icon:face.construction.activation.type}},width,h,{time,reducedMotion});
+    // Enlarge only the construction recipe; keep the phase dial, card and
+    // illustration at their existing size.
+    const scale=1.45,dock=new PIXI.Container();dock.scale.set(scale);parent.addChild(dock);
+    const costWidth=Math.min(w-40,(4+(face.inputs??[]).reduce((n,input)=>n+Math.max(25,input.traits.length*21+4),0))*scale);
+    const inputs=inputTray(dock,face.inputs??[],costWidth/scale,h/scale);
+    const cycle=addPieceFaceChrome(parent,{...face,kind:'practice',construction:null,stockCapacity:0,workerCapacity:0,inputs:[],
+      production:[],outputs:[],lane:'scheduled',source:{icon:face.construction.activation.type}},costWidth+36,h,{time,reducedMotion});
+    if(inputs)cycle.inputs=Object.fromEntries(Object.entries(inputs).map(([key,value])=>[key,value*scale]));
     // A pegged timber tally with a mason's square, rather than a Stock crate.
     const marker=new PIXI.Graphics().lineStyle(1,0xc5a571).beginFill(0x493625,.97);
     const x=w-68,y=5;
