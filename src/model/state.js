@@ -497,8 +497,12 @@ export function createProjectionAnchorReader() {
     for (const child of Object.values(value)) freeze(child);
     return Object.freeze(value);
   }
+  function isDeepFrozen(value) {
+    return !value || typeof value !== "object"
+      || (Object.isFrozen(value) && Object.values(value).every(isDeepFrozen));
+  }
   function rememberFrozen(rawConfig) {
-    if (rawConfig && typeof rawConfig === "object" && Object.isFrozen(rawConfig)) {
+    if (rawConfig && typeof rawConfig === "object" && isDeepFrozen(rawConfig)) {
       matchedFrozenConfigs.add(rawConfig);
     }
   }
