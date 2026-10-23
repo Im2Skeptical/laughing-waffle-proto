@@ -46,10 +46,10 @@ export function renderDecisionTableau(parent, settlement, {
   const poolFittings=[];
   if(pools) {
     for(const row of pools.rows) {
-      const x=TABLEAU.x+row.index*(TABLEAU.cardWidth+TABLEAU.gap), w=(TABLEAU.cardWidth-8)/2;
+      const x=TABLEAU.x+row.index*(TABLEAU.cardWidth+TABLEAU.gap), w=TABLEAU.cardWidth/2;
       for(const [offset,kind] of ['output','capacity'].entries()) {
         const changed=row.before && row.before[kind].multiplier!==row[kind].multiplier;
-        const fitting=addMultiplierFitting(layer,{x:x+offset*(w+8),y:550,width:w,height:48},{kind,multiplier:row[kind].multiplier,
+        const fitting=addMultiplierFitting(layer,{x:x+offset*w,y:548,width:w,height:50},{kind,multiplier:row[kind].multiplier,
           tooltipView,spec:multiplierTooltip(row,kind,pools)});
         if(changed) {
           const glow=new PIXI.Graphics().lineStyle(3,0xb9e8ae).drawRoundedRect(-2,-2,w+4,52,5);

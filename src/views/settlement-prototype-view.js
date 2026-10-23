@@ -183,7 +183,7 @@ export function createSettlementPrototypeView({
         const slotX = practiceRect.x + 18 + index * (practiceCardWidth + practiceGap), slotY = practiceRect.y + 64;
         const hasPools = !!entry?.face?.outputMultiplierBreakdown;
         const slot = new PIXI.Graphics().lineStyle(1.5, 0x685c44, .85).beginFill(0x101815, .88)
-          .drawRoundedRect(slotX - 5, slotY - 5, practiceCardWidth + 10, PIECE_SIZE.practiceHeight + (hasPools ? 44 + 24 : 10), 6).endFill();
+          .drawRoundedRect(slotX - 5, slotY - 5, practiceCardWidth + 10, PIECE_SIZE.practiceHeight + (hasPools ? 46 + 18 : 10), 6).endFill();
         slot.eventMode = 'none'; root.addChild(slot);
         drawPracticeSlotCard(root, {
           x: slotX,
@@ -191,7 +191,7 @@ export function createSettlementPrototypeView({
           width: practiceCardWidth,
           height: PIECE_SIZE.practiceHeight,
         }, entry, index, tooltipView);
-        addPracticeMultiplierPair(root, { x: slotX, y: slotY + PIECE_SIZE.practiceHeight + 13, width: practiceCardWidth, height: 44 }, entry, index, tooltipView);
+        addPracticeMultiplierPair(root, { x: slotX, y: slotY + PIECE_SIZE.practiceHeight + 8, width: practiceCardWidth, height: 46 }, entry, index, tooltipView);
       });
       addIllustration(root,"settlement",{x:48,y:356,width:540,height:410},{alpha:.7});
       const order = vm.elderOrder;

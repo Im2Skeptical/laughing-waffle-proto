@@ -94,16 +94,16 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
   root.addChild(createText(defenseLines.join('\n'),{...TEXT_STYLES.chip,fontSize:21,lineHeight:24,fill:PALETTE.textMuted},x+1000,y+20));
   const divider=new PIXI.Graphics().lineStyle(1,PALETTE.stroke,.55).moveTo(x,y+98).lineTo(x+rect.width-44,y+98);
   divider.eventMode='none';root.addChild(divider);
-  const gap=PIECE_SIZE.gap, practiceSize=regionalPracticeSize(rect.width), cardHeight=346, pairHeight=44;
+  const gap=PIECE_SIZE.gap, practiceSize=regionalPracticeSize(rect.width), cardHeight=340, pairHeight=50;
   vm.practices.forEach((p,i)=>{
-    const slotX=x+i*(practiceSize.width+gap), cardW=cardHeight*PIECE_SIZE.practiceWidth/PIECE_SIZE.practiceHeight;
+    const slotX=x+i*(practiceSize.width+gap), cardW=Math.min(practiceSize.width,cardHeight*PIECE_SIZE.practiceWidth/PIECE_SIZE.practiceHeight);
     const cardX=slotX+(practiceSize.width-cardW)/2, cardY=y+122;
     const hasPools=!!p.face?.outputMultiplierBreakdown;
     const slot=new PIXI.Graphics().lineStyle(1.5,0x685c44,.85).beginFill(0x101815,.88)
-      .drawRoundedRect(cardX-5,cardY-5,cardW+10,cardHeight+(hasPools?pairHeight+24:10),6).endFill();
+      .drawRoundedRect(cardX-5,cardY-5,cardW+10,cardHeight+(hasPools?pairHeight+18:10),6).endFill();
     slot.eventMode='none';root.addChild(slot);
     addSettlementPiece(root,{x:cardX,y:cardY,width:cardW,height:cardHeight},{face:p.face,empty:!p.practiceId,tooltipView,compact:true});
-    addPracticeMultiplierPair(root,{x:cardX,y:cardY+cardHeight+13,width:cardW,height:pairHeight},p,i,tooltipView);
+    addPracticeMultiplierPair(root,{x:cardX,y:cardY+cardHeight+8,width:cardW,height:pairHeight},p,i,tooltipView);
   });
   const constructionRect=regionalConstructionRect({x,y:y+554,width:rect.width-44,height:rect.height-572},DEFAULT_REGION_STRUCTURE_CAPACITY_MAX);
   addConstructionStrip(root,constructionRect,{slots:vm.structures,capacity:vm.structureCapacity,displayCapacity:DEFAULT_REGION_STRUCTURE_CAPACITY_MAX,tooltipView,compact:true});

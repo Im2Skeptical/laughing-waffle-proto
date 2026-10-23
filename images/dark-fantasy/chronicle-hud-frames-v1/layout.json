@@ -32,6 +32,38 @@
       141,
       145
     ],
+    "mult-seal-capacity-active": [
+      122,
+      158
+    ],
+    "mult-seal-capacity-dormant": [
+      122,
+      157
+    ],
+    "mult-seal-output-active": [
+      146,
+      150
+    ],
+    "mult-seal-output-dormant": [
+      143,
+      149
+    ],
+    "mult-twin-left-active": [
+      143,
+      64
+    ],
+    "mult-twin-left-dormant": [
+      143,
+      64
+    ],
+    "mult-twin-right-active": [
+      143,
+      64
+    ],
+    "mult-twin-right-dormant": [
+      143,
+      64
+    ],
     "pendant": [
       90,
       65

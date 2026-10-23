@@ -19,3 +19,8 @@ horizontally), `medallion` (portrait ring with hanging loops), `pendant`
 level-up selection), `exp-groove-empty/full` (full is masked to progress), `tab`
 (oxblood hanging tab with bracket). `vassal-life-hud-pixi.js` tints by class and
 keeps the vector HUD while the atlas loads; textures use nearest filtering.
+
+Multiplier twin-socket bar and emblem seals (`generated/multiplier-source.png`):
+`mult-twin-left-{active,dormant}`, `mult-twin-right-{active,dormant}`,
+`mult-seal-output-{active,dormant}`, and `mult-seal-capacity-{active,dormant}`
+for `src/views/multiplier-fitting.js`.

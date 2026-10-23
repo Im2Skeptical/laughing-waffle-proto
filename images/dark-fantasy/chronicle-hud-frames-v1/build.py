@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Key, crop and nearest-reduce the Chronicle crest-bar HUD sheet, then pack the atlas.
+"""Key, crop and nearest-reduce the Chronicle crest-bar HUD and multiplier sheets, then pack the atlas.
 
     python images/dark-fantasy/chronicle-hud-frames-v1/build.py
 
-The generator returned a flat-black JPG sheet (`generated/hud-source.png`). The
-outside black and the medallion hole are flood-filled to transparency; dark
-recessed stone inside each piece stays opaque. Pieces are reduced 2:1 with
-nearest sampling and packed (2px extrusion, no trim/rotation) into
-images/sprite-sheets/chronicle-hud-frames.{png,json}. Requires Pillow.
+The generator returned flat-black sheets (`generated/hud-source.png` and
+`generated/multiplier-source.png`). The outside black and the medallion hole are
+keyed to transparency; dark recessed stone inside each piece stays opaque.
+Pieces are reduced 2:1 with nearest sampling and packed (2px extrusion, no
+trim/rotation) into images/sprite-sheets/chronicle-hud-frames.{png,json}.
+Requires Pillow.
 """
 import json
 from pathlib import Path
@@ -20,8 +21,6 @@ DARK = 30          # max channel below this counts as background black
 REDUCE = 2
 
 source = Image.open(HERE / 'generated' / 'hud-source.png').convert('RGB')
-mask = source.point(lambda v: 255 if v >= DARK else 0).convert('L')
-# A pixel is material when any channel is bright enough.
 r, g, b = [band.point(lambda v: 255 if v >= DARK else 0) for band in source.split()]
 mask = Image.merge('RGB', (r, g, b)).convert('L').point(lambda v: 255 if v > 0 else 0)
 ImageDraw.floodfill(mask, (0, 0), 128)
@@ -133,6 +132,80 @@ thin = thin_medallion()
 pieces['medallion'] = thin
 pieces['medallion-warrior'] = jagged_rim(recolor_studs(thin, 0.995))
 pieces['medallion-scholar'] = smooth_rim(recolor_studs(thin, 0.60))
+
+
+# Multiplier twin-socket bar and emblem seals (`generated/multiplier-source.png`).
+mult_source = Image.open(HERE / 'generated' / 'multiplier-source.png').convert('RGB')
+MULT_DARK = 26
+
+def extract_solid_piece(src_img, box):
+    crop = src_img.crop(box)
+    w, h = crop.size
+    px_in = crop.load()
+    fg = [[max(px_in[x, y]) >= MULT_DARK for x in range(w)] for y in range(h)]
+    row_span = [[False] * w for _ in range(h)]
+    for y in range(h):
+        xs = [x for x in range(w) if fg[y][x]]
+        if len(xs) >= 2:
+            for x in range(xs[0], xs[-1] + 1): row_span[y][x] = True
+    col_span = [[False] * w for _ in range(h)]
+    for x in range(w):
+        ys = [y for y in range(h) if fg[y][x]]
+        if len(ys) >= 2:
+            for y in range(ys[0], ys[-1] + 1): col_span[y][x] = True
+    rgba = crop.convert('RGBA')
+    alpha_im = Image.new('L', (w, h), 0)
+    apx = alpha_im.load()
+    for y in range(h):
+        for x in range(w):
+            if row_span[y][x] and col_span[y][x]: apx[x, y] = 255
+    rgba.putalpha(alpha_im)
+    rgba = rgba.crop(alpha_im.getbbox())
+    return rgba.resize((max(1, rgba.width // REDUCE), max(1, rgba.height // REDUCE)), Image.Resampling.NEAREST)
+
+def compact_vertical(img, top_keep=26, mid_keep=12, bot_keep=26):
+    w, h = img.size
+    out = Image.new('RGBA', (w, top_keep + mid_keep + bot_keep))
+    out.paste(img.crop((0, 0, w, top_keep)), (0, 0))
+    mid_y = (h - mid_keep) // 2
+    out.paste(img.crop((0, mid_y, w, mid_y + mid_keep)), (0, top_keep))
+    out.paste(img.crop((0, h - bot_keep, w, h)), (0, top_keep + mid_keep))
+    return out
+
+def warm_socket(img, is_output=True):
+    out = img.copy(); px_io = out.load()
+    w, h = out.size
+    for y in range(h):
+        for x in range(w):
+            r0, g0, b0, a0 = px_io[x, y]
+            if a0 > 0 and (r0 + g0 + b0) / 3.0 > 28:
+                if is_output:
+                    nr = min(255, max(0, round(r0 * 1.32 + 16)))
+                    ng = min(255, max(0, round(g0 * 1.14 + 6)))
+                    nb = min(255, max(0, round(b0 * 0.85)))
+                else:
+                    nr = min(255, max(0, round(r0 * 1.24 + 12)))
+                    ng = min(255, max(0, round(g0 * 1.12 + 8)))
+                    nb = min(255, max(0, round(b0 * 0.92 + 2)))
+                px_io[x, y] = (nr, ng, nb, a0)
+    return out
+
+twin_raw = extract_solid_piece(mult_source, (110, 50, 692, 298))
+twin_compact = compact_vertical(twin_raw, 26, 12, 26)
+mid_x = twin_compact.width // 2
+twin_left_dormant = twin_compact.crop((0, 0, mid_x, twin_compact.height))
+twin_right_dormant = twin_compact.crop((mid_x, 0, twin_compact.width, twin_compact.height))
+
+pieces.update({
+    'mult-seal-output-active': extract_solid_piece(mult_source, (38, 330, 340, 640)),
+    'mult-seal-output-dormant': extract_solid_piece(mult_source, (346, 330, 644, 640)),
+    'mult-seal-capacity-active': extract_solid_piece(mult_source, (670, 330, 926, 656)),
+    'mult-seal-capacity-dormant': extract_solid_piece(mult_source, (964, 330, 1220, 656)),
+    'mult-twin-left-dormant': twin_left_dormant,
+    'mult-twin-left-active': warm_socket(twin_left_dormant, True),
+    'mult-twin-right-dormant': twin_right_dormant,
+    'mult-twin-right-active': warm_socket(twin_right_dormant, False),
+})
 
 for name, image in pieces.items(): image.save(HERE / f'{name}.png', optimize=True)
 
