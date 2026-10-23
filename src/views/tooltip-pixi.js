@@ -109,7 +109,8 @@ export function createTooltipView({ layer, interaction, app, layout = null, onRe
     let x=bounds.x-w-12;
     if(x<clampMargin)x=bounds.x+bounds.width+12;
     x=Math.max(clampMargin,Math.min(screen.width-w-clampMargin,x));
-    const y=Math.max(clampMargin,Math.min(screen.height-h-clampMargin,bounds.y+90*scale));
+    const row=poolReading?.rows.controls.find(({entry})=>entry.key===sourceEntry?.key)?.control;
+    const y=Math.max(clampMargin,Math.min(screen.height-h-clampMargin,row?.getBounds().y??bounds.y+90*scale));
     const p=layer.toLocal({x,y});sourcePane.position.set(p.x,p.y);sourcePane.scale.set(activeScale);
   }
   function showSources(entry) {
@@ -816,6 +817,7 @@ export function createTooltipView({ layer, interaction, app, layout = null, onRe
       sourceId: activeSpec?.sourceId ?? null,
       title: activeSpec?.title ?? "",
       poolMultiplier:activeSpec?.poolBreakdown?.pool.multiplier??null,
+      poolBaseLines:poolReading?.baseLines??[],
       poolRows:poolReading?.rows.controls.map(({entry,control})=>{const p=control.toGlobal(new PIXI.Point(200,24));return{key:entry.key,label:entry.label,count:entry.count,amount:entry.amount,x:p.x,y:p.y};})??[],
       poolSources:sourceEntry?{label:sourceEntry.label,sources:sourceEntry.sources.map(s=>({label:s.label,amount:s.amount,pending:s.pending===true})),scroll:sourceSize.rows.getScroll(),rect:sourcePane.getBounds()}:null,
       reading: activeSpec?.face?.reading ?? null,

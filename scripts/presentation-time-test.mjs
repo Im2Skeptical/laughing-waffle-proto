@@ -18,6 +18,7 @@ import { WATER_VARIANTS, waterPaletteColour, writeWaterPalette } from '../images
 import { normalizeEventMarkers } from '../src/views/timegraphs-helpers.js';
 import { fitPiece, constructionGeometry, regionalConstructionRect } from '../src/views/piece-geometry.js';
 import { getGamepieceFace } from '../src/model/gamepiece-presentation.js';
+import { getPracticeBaseStockProduction } from '../src/model/practice-reading.js';
 import { getPracticeSymbols } from '../src/views/practice-reading-pixi.js';
 import { getInspectionTerms } from '../src/views/inspection-terms.js';
 import { getMoonCycleDurationSec, getMoonPhaseDurationSec } from '../src/model/moon-phases.js';
@@ -37,6 +38,17 @@ import {
   SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC,
   SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_YEARS,
 } from '../src/views/ui-root/settlement-graph-session.js';
+
+{
+  const state=createNewGameState(123),before=JSON.stringify(state);
+  assert.deepEqual(getGamepieceFace(state,'practice','dryFarming').baseStockProduction,
+    [{timing:'Summer',amount:2},{timing:'Autumn',amount:6}], 'ledger uses authored seasonal base yields');
+  assert.deepEqual(getGamepieceFace(state,'practice','milling').baseStockProduction,
+    [{timing:'',amount:3}], 'Charge base yield excludes workers and multipliers');
+  assert.deepEqual(getPracticeBaseStockProduction(state.gameConfig.gamepieces.practices.corpseGarden),
+    [{timing:'Spring',amount:2},{timing:'Death phase',amount:1}], 'base reading respects activation-specific amounts');
+  assert.equal(JSON.stringify(state)===before,true,'ledger base readings do not mutate simulation state or RNG');
+}
 
 {
   const before = createNewGameState(123);

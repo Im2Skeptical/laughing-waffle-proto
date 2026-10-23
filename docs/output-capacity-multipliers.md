@@ -42,6 +42,10 @@ the throwaway experiment. This implementation starts from local `main`
   reorder, undo and discard update the reading through existing controllers.
 - Compact carved contribution ledgers support hover, click/tap pinning, nested
   source inspection, bounded scrolling, source identities and pending markers.
+- A distinct base-amount block sits above multiplier contributors. Output shows
+  authored Stock yields by season/activation; Capacity shows its amount before
+  multiplication, with Practice/Quality/Scholar parts when applicable. The header
+  shows the accumulated multiplier and no longer repeats a tiny “Base ×1”.
 - Hovering any part of an offer, including price/frame, shows its compact reading
   immediately beside that buy slot. Overlap to its right is an accepted tradeoff.
 - Discarding newly reserved construction undoes its purchase and releases its
@@ -74,6 +78,7 @@ Actual game captures (844 ? 390 phone landscape, plus desktop):
 - [Compact ledger and pending sources](prototypes/output-capacity-multipliers/phone-ledger.png)
 - [Buy-slot construction preview](prototypes/output-capacity-multipliers/phone-building-preview.png)
 - [Regional settlement panel](prototypes/output-capacity-multipliers/phone-region.png)
+- [Seasonal output base ledger](prototypes/output-capacity-multipliers/phone-output-ledger.png)
 - [Detailed settlement](prototypes/output-capacity-multipliers/phone-settlement.png)
 - [Practice shop](prototypes/output-capacity-multipliers/phone-practice-shop.png)
 - [Desktop ledger](prototypes/output-capacity-multipliers/desktop-ledger.png)

@@ -51,7 +51,7 @@ export function addMultiplierFitting(parent,box,{kind,multiplier,label=null,tool
 export function addPracticeMultiplierPair(parent,box,entry,index,tooltipView) {
   const face=entry?.face;
   if(!face?.outputMultiplierBreakdown)return [];
-  const row={index,practiceId:entry.practiceId??face.definitionId,name:face.label,
+  const row={index,practiceId:entry.practiceId??face.definitionId,name:face.label,baseOutput:face.baseStockProduction,
     output:face.outputMultiplierBreakdown,capacity:face.stockCapacityBreakdown};
   return ['output','capacity'].map((kind,i)=>{
     const scale=box.height/48,width=(box.width-8)/2;
@@ -66,5 +66,5 @@ export function multiplierTooltip(row,kind,{afterCompletion=false}={}) {
   const pending=afterCompletion&&(pool.sources.some(source=>source.pending)||before!==undefined&&before!==pool.multiplier);
   return {title:`${row.name} \u00b7 ${kind==='output'?'Output':'Capacity'} Multiplier \u00d7${row[kind].multiplier}`,
     poolKey:`pool:${row.practiceId??row.index??row.name}:${kind}`,
-    poolBreakdown:{name:row.name,kind,pool,before,afterCompletion:pending},scale:1};
+    poolBreakdown:{name:row.name,kind,pool,before,baseOutput:row.baseOutput,afterCompletion:pending},scale:1};
 }

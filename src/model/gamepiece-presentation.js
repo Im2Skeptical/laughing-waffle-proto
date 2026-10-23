@@ -5,7 +5,7 @@ import { getMoonPhaseDurationSec, getMoonCycleDurationSec } from './moon-phases.
 import { MOON_PHASE_INDEX_BY_ID } from '../defs/gamesettings/moon-phase-defs.js';
 import { getRegionReference } from './world-state.js';
 import { stockCapacityBreakdown, stockOutputBreakdown } from './detailed-settlements/stock.js';
-import { getPracticeReading } from './practice-reading.js';
+import { getPracticeReading, getPracticeBaseStockProduction } from './practice-reading.js';
 import { getStructureReading } from './structure-reading.js';
 
 export const GAMEPIECE_OUTPUTS = Object.freeze({
@@ -116,7 +116,7 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
   const outputMultiplier = kind==='practice'&&producesStock ? stockOutputBreakdown(state,settlement,slot??{practiceId:id,tier},workers?.tokens?.some(token=>token.specialist==='scholar')) : null;
   const reading = kind === 'practice' ? getPracticeReading(def) : getStructureReading(def, {slot, settlement});
   return { kind, definitionId: id, label: def.label, tier, tags: [...new Set([...(def.tags ?? []),...(workers?.tokens?.some(t=>t.specialist==='scholar')?['Knowledge']:[])])], qualityLabel: tier, rule: def.ui?.rule ?? '',
-    inputs, chaosCost, monsterPressureCost, production, workerMultiplier, chargeTriggers:chargeTriggerSymbols(def), construction,
+    inputs, chaosCost, monsterPressureCost, production, baseStockProduction:kind==='practice'?getPracticeBaseStockProduction(def):[], workerMultiplier, chargeTriggers:chargeTriggerSymbols(def), construction,
     reading, structureBonuses: kind === 'structure' ? reading.bonuses : [], structureQualityBonus: kind === 'structure' ? slot?.qualityBonus ?? 0 : 0,
     chargeGain:def.mode==='charge'?(evaluation?.chargeGain??Math.floor(def.charge.gain*workerMultiplier)):null,
     stock: evaluation?.stock ?? slot?.stock ?? 0, stockCapacity: evaluation?.stockCapacity ?? capacity?.total ?? 0, stockCapacityBreakdown: capacity, outputMultiplierBreakdown:outputMultiplier, stockTraits: def.stockTraits ?? [],

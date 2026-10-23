@@ -71,6 +71,7 @@ try {
   const fitting=()=>d.boardPoolFittings.find(p=>p.practiceId==='logging'&&p.kind==='capacity');
   await tap(fitting());
   await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState().poolMultiplier===3);
+  assert.deepEqual((await tooltip()).poolBaseLines,['6 Base Capacity'],'capacity ledger shows the amount before multiplication');
   await hover((await tooltip()).poolRows[0]);
   await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState().poolSources?.sources.length===2);
   const store=d.offers.findIndex(offer=>offer.label.includes('Storehouse'));
@@ -160,7 +161,9 @@ try {
   const box=regional.layout.detail,pieceWidth=(box.width-44-12*4)/5;
   await touch({x:box.x+22+pieceWidth/4,y:box.y+134});
   await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState().poolMultiplier===7);
+  assert.deepEqual((await tooltip()).poolBaseLines,['Summer \u203a Base 2 Stock','Autumn \u203a Base 6 Stock'],'output ledger shows both seasonal base yields');
   await page.screenshot({path:`${captures}/phone-region.png`});
+  await page.screenshot({path:`${captures}/phone-output-ledger.png`});
   await page.keyboard.press('Escape');
   // Practice offers expose the same pair before purchase, without moving Delve.
   const practice=createLabNodeSandbox({type:'practiceReform',prestige:200,seed:1867});
@@ -179,7 +182,7 @@ try {
   await page.evaluate(async()=>{await (await import('/src/views/chronicle-art.js')).preloadChronicleArt({includeSettlementPieces:true});__SETTLEMENT_DEBUG__.forceRender();});
   await page.screenshot({path:`${captures}/phone-practice-shop.png`});
   mkdirSync(committedCaptures,{recursive:true});
-  for(const name of ['desktop-ledger','phone-ledger','phone-building-preview','phone-settlement','phone-region','phone-practice-shop'])copyFileSync(`${captures}/${name}.png`,`${committedCaptures}/${name}.png`);
+  for(const name of ['desktop-ledger','phone-ledger','phone-building-preview','phone-settlement','phone-region','phone-output-ledger','phone-practice-shop'])copyFileSync(`${captures}/${name}.png`,`${committedCaptures}/${name}.png`);
   writeFileSync(`${output}/result.json`,JSON.stringify({ok:true,errors,identity,checks:['Grain includes Milling','live capacity-only Structure hover','whole-slot/price construction reading','pinned nested sources','reservation marker','discard refunds','seven-source bounded scrolling','regional/detailed pairs','Practice offer pairs','mouse/touch','phone landscape'],captures:committedCaptures},null,2));
   console.log('[multiplier-browser] OK: real game shop, live/pinned/nested ledgers, construction reservation/discard, regional/detailed pairs, mouse/touch and phone landscape');
   assert.deepEqual(errors,[]);

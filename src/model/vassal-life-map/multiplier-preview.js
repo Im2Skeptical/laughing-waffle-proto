@@ -2,6 +2,7 @@
 import { getDetailedPracticeDef } from '../game-config.js';
 import { stockOutputBreakdown, stockCapacityBreakdown } from '../detailed-settlements/stock.js';
 import { assignDetailedSettlementWorkers, isScholarStaffed } from '../detailed-settlements/workers.js';
+import { getPracticeBaseStockProduction } from '../practice-reading.js';
 
 export function multiplierBoardPreview(state, regionId, before, after, completeIds = []) {
   completeIds=completeIds.filter(Boolean);
@@ -16,7 +17,7 @@ export function multiplierBoardPreview(state, regionId, before, after, completeI
       if (!def?.effects.some(effect => effect.op === 'generateStock')) return [];
       const staffed = isScholarStaffed(workers[index]);
       const mark=pool=>({...pool,sources:pool.sources.map(source=>({...source,pending:predict&&!!source.instanceId&&completeIds.includes(source.instanceId)}))});
-      return [{index,practiceId:slot.practiceId,name:def.label,output:mark(stockOutputBreakdown(projected,settlement,slot,staffed)),capacity:mark(stockCapacityBreakdown(projected,settlement,slot,staffed))}];
+      return [{index,practiceId:slot.practiceId,name:def.label,baseOutput:getPracticeBaseStockProduction(def),output:mark(stockOutputBreakdown(projected,settlement,slot,staffed)),capacity:mark(stockCapacityBreakdown(projected,settlement,slot,staffed))}];
     });
   };
   const current = read(before);

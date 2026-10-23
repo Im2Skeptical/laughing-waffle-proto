@@ -79,7 +79,7 @@ function contributionRows(parent,entries,{width,top,maxRows=5,onSources=()=>{},o
 }
 
 export function addMultiplierBreakdown(parent,spec,{pinned=false,onSources,onLeave}={}) {
-  const {name,pool,kind,before,afterCompletion}=spec.poolBreakdown;
+  const {name,pool,kind,before,baseOutput=[],afterCompletion}=spec.poolBreakdown;
   const groups=poolContributions(pool),width=540,accent=kind==='output'?0xe6bc70:0xb3cfdd;
   const header=new PIXI.Graphics();paintRelicPanel(header,7,7,width-14,63,kind==='output'?0x302619:0x25302e,RELIC.brass,1);header.eventMode='none';parent.addChild(header);
   addResourceIcon(parent,'stock',29,37,25);
@@ -87,15 +87,26 @@ export function addMultiplierBreakdown(parent,spec,{pinned=false,onSources,onLea
   if(kind==='output')mark.moveTo(29,29).lineTo(29,15).moveTo(23,21).lineTo(29,15).lineTo(35,21);
   else mark.moveTo(16,24).lineTo(16,51).lineTo(42,51).lineTo(42,24);
   mark.eventMode='none';parent.addChild(mark);
-  const heading=label(parent,name,56,13,28,RELIC.bone);heading.scale.set(Math.min(1,(width-265)/heading.width));
-  const base=label(parent,'Base \u00d71',56,44,20,RELIC.ash);
+  const heading=label(parent,name,56,24,28,RELIC.bone);heading.scale.set(Math.min(1,(width-265)/heading.width));
   const number=label(parent,`\u00d7${pool.multiplier}`,width-(pinned?56:20),15,43,accent);number.anchor.x=1;number.scale.set(Math.min(1,112/number.width));
   if(before!==undefined&&before!==pool.multiplier) {
     const previous=label(parent,`\u00d7${before} \u2192`,number.x-number.width-10,33,21,RELIC.ash);previous.anchor.x=1;
   }
-  if(afterCompletion)addMultiplierCompletionBadge(parent,56+base.width+16,55,21);
-  const rows=contributionRows(parent,groups,{width,top:80,onSources,onLeave});
-  return {width,height:92+rows.height,rows};
+  const baseLines=kind==='capacity'
+    ?[`${pool.base+pool.quality+pool.scholar} Base Capacity`]
+    :baseOutput.map(row=>baseOutput.length>1?`${row.timing} \u203a Base ${row.amount} Stock`:`${row.amount} Base Stock`);
+  const capacityParts=kind==='capacity'&&(pool.quality||pool.scholar)
+    ?[`${pool.base} Practice`,...(pool.quality?[`+${pool.quality} Quality`]:[]),...(pool.scholar?[`+${pool.scholar} Scholar`]:[])].join('  '):null;
+  const top=80,baseHeight=baseLines.length*40+16+(capacityParts?26:0);
+  const basePanel=new PIXI.Graphics();paintRelicPanel(basePanel,14,top,width-28,baseHeight,0x242c26,RELIC.brass,1);basePanel.eventMode='none';parent.addChild(basePanel);
+  for(const [index,line] of baseLines.entries()) {
+    const text=label(parent,line,28,top+8+index*40,29,RELIC.bone);
+    text.scale.set(Math.min(1,(width-(afterCompletion?88:56))/text.width));
+  }
+  if(capacityParts)label(parent,capacityParts,28,top+8+baseLines.length*40,21,RELIC.ash);
+  if(afterCompletion)addMultiplierCompletionBadge(parent,width-36,top+26,22);
+  const rows=contributionRows(parent,groups,{width,top:top+baseHeight+10,onSources,onLeave});
+  return {width,height:top+baseHeight+22+rows.height,rows,baseLines};
 }
 
 export function addMultiplierSources(parent,entry) {
