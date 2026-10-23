@@ -33,7 +33,7 @@ const CREST = Object.freeze({
   pivot: Object.freeze({ x: 712, y: 74 }),
   bar: Object.freeze({ x: 620, y: 74, width: 1080, height: 65 }),
   medallion: Object.freeze({ cx: 560, cy: 111, ring: 154, portrait: 106 }),
-  life: Object.freeze({ x: 652, y: 66, width: 170, unit: 1.4 }),
+  life: Object.freeze({ x: 646, y: 56, width: 180, height: 86, unit: 1.15 }),
   pendant: Object.freeze({ x: 836, y: 111, unit: 1.15, minWidth: 104, maxWidth: 200 }),
   stats: Object.freeze({ x: 1000, y: 68, width: 68, height: 63, gap: 6, unit: 1.1, studY: 7, bodyY: 41 }),
   heirlooms: Object.freeze({ x: 1306, cy: 100, size: 54, step: 62 }),
@@ -72,21 +72,29 @@ function studTexture() {
 }
 // Draws a carved piece `width` design px wide: ends and centre ornament stay
 // fixed, plain runs either side stretch (nearest), so studs and rings never warp.
-function addSliced(parent, tex, x, y, width, unit, cuts) {
+function addSliced(parent, tex, x, y, width, unit, cuts, height = null, yCuts = null) {
   const node = new PIXI.Container(); node.position.set(x, y); parent.addChild(node);
   const W = tex.frame.width, H = tex.frame.height, [a, b, c, d] = cuts;
   const fixed = (a + (c - b) + (W - d)) * unit;
   const extra = Math.max(0, width - fixed - ((b - a) + (d - c)) * unit);
   const spans = [[0, a, 0], [a, b, .5], [b, c, 0], [c, d, .5], [d, W, 0]];
-  let at = 0;
-  for (const [from, to, share] of spans) {
-    if (to <= from && !share) continue;
-    const srcW = Math.max(1, to - from);
-    const piece = new PIXI.Sprite(new PIXI.Texture(tex.baseTexture, new PIXI.Rectangle(tex.frame.x + from, tex.frame.y, srcW, H)));
-    const w = (to - from) * unit + extra * share;
-    piece.position.set(at, 0); piece.width = w; piece.height = H * unit; node.addChild(piece); at += w;
+  const vSpans = height && yCuts
+    ? [[0, yCuts[0], yCuts[0] * unit], [yCuts[0], yCuts[1], Math.max(1, height - (yCuts[0] + (H - yCuts[1])) * unit)], [yCuts[1], H, (H - yCuts[1]) * unit]]
+    : [[0, H, H * unit]];
+  let atY = 0, atX = 0;
+  for (const [yFrom, yTo, dstH] of vSpans) {
+    atX = 0;
+    const srcH = Math.max(1, yTo - yFrom);
+    for (const [from, to, share] of spans) {
+      if (to <= from && !share) continue;
+      const srcW = Math.max(1, to - from);
+      const piece = new PIXI.Sprite(new PIXI.Texture(tex.baseTexture, new PIXI.Rectangle(tex.frame.x + from, tex.frame.y + yFrom, srcW, srcH)));
+      const w = (to - from) * unit + extra * share;
+      piece.position.set(atX, atY); piece.width = w; piece.height = dstH; node.addChild(piece); atX += w;
+    }
+    atY += dstH;
   }
-  node.sliceWidth = at;
+  node.sliceWidth = atX;
   return node;
 }
 // Fit text to a holder: shrink to a minimum size, then ellipsize. Returns true
@@ -272,18 +280,18 @@ export function createVassalLifeHudView({
     const level = Math.max(0, Math.floor((vassal.nextDevelopmentChoiceId ?? 1) - 1));
     const pending = (vassal.developmentChoiceQueue ?? []).length;
     const life = new PIXI.Container(); life.position.set(lf.x, lf.y); crest.addChild(life);
-    const lifeH = 57 * lf.unit;
-    if (painted) addSliced(life, tex('stat-plaque'), 0, 0, lf.width, lf.unit, SLICES['stat-plaque']);
-    else { const g = new PIXI.Graphics(); roundedRect(g, 0, 12, lf.width, lifeH - 12, 8, 0x39413b, PALETTE.accent, 1.5); life.addChild(g); }
-    const lifeGlow = new PIXI.Graphics(); lifeGlow.position.set(lf.width / 2, 9);
+    const lifeH = lf.height;
+    if (painted) addSliced(life, tex('stat-plaque'), 0, 0, lf.width, lf.unit, SLICES['stat-plaque'], lifeH, [24, 46]);
+    else { const g = new PIXI.Graphics(); roundedRect(g, 0, 16, lf.width, lifeH - 16, 8, 0x39413b, PALETTE.accent, 1.5); life.addChild(g); }
+    const lifeGlow = new PIXI.Graphics(); lifeGlow.position.set(lf.width / 2, 8);
     for (let r = 0; r < 3; r++) lifeGlow.beginFill(0xffb347, .2 + r * .14).drawCircle(0, 0, 14 - r * 4).endFill();
     lifeGlow.blendMode = PIXI.BLEND_MODES.ADD; lifeGlow.visible = pending > 0; life.addChild(lifeGlow);
-    const ageText = createText(`AGE ${shown.age}`, valueStyle(22), 14, 32, 0, .5);
-    const levelText = createText(`LV ${level}`, valueStyle(22, 0xf1d79a), lf.width - 14, 32, 1, .5);
+    const ageText = createText(`AGE ${shown.age}`, valueStyle(20), 15, 38, 0, .5);
+    const levelText = createText(`LV ${level}`, valueStyle(20, 0xf1d79a), lf.width - 15, 38, 1, .5);
     life.addChild(ageText, levelText);
-    fitText(ageText, lf.width * .58 - 14, 16); fitText(levelText, lf.width * .42 - 18, 16);
+    fitText(ageText, lf.width * .58 - 18, 15); fitText(levelText, lf.width * .42 - 18, 15);
     const ratio = Math.max(0, Math.min(1, shown.exp / threshold));
-    const gw = lf.width - 24, gx = 12, gy = 47, gh = 22;
+    const gw = lf.width - 28, gx = 14, gy = 52, gh = 20;
     if (painted) {
       const empty = addSliced(life, tex('exp-groove-empty'), gx, gy, gw, gh / 23, [8, 60, 62, 114]);
       const full = addSliced(life, tex('exp-groove-full'), gx, gy, gw, gh / 23, [8, 60, 62, 114]);
