@@ -68,6 +68,24 @@ for(const founding of [{enabled:true,depth:0},{enabled:true,depth:2},{enabled:tr
 }
 const bad=structuredClone(config);bad.design.columns.push(column('collision',3));
 assert.equal(generateVassalLifeMap(bad,createRng(1)).reason,'invalidConfiguration');
+// Founding overrides a custom column only for a first-life Vassal.
+const sharedFounding=structuredClone(config);
+sharedFounding.design.columns=[column('crossroads',5,'crossroads')];
+sharedFounding.design.bookends.founding={enabled:true,depth:5};
+for(const classId of ['scholar','warrior'])for(const firstLife of [true,false])for(let seed=1;seed<=30;seed++){
+  const options={classId,founderClassId:firstLife?classId:null,generationSeed:seed,stockOutputs:['Edible','Timber','Stone']};
+  const result=generateVassalLifeMap(sharedFounding,createRng(seed),options);
+  assert.equal(result.ok,true,result.errors?.join('; '));
+  assert.deepEqual(result,generateVassalLifeMap(sharedFounding,createRng(seed),options));
+  assert.deepEqual(validateVassalLifeMapGraph(result.graph),{ok:true,errors:[]});
+  const atDepth=result.graph.nodes.filter(n=>n.depth===4);
+  assert.equal(atDepth.length,1);
+  assert.equal(atDepth[0].family,firstLife?(classId==='scholar'?'philosopherFounding':'warlordFounding'):'crossroads');
+  assert.equal(result.graph.nodes.some(n=>n.milestoneId==='crossroads'),!firstLife);
+}
+const bookendCollision=structuredClone(sharedFounding);
+bookendCollision.design.bookends.legacy.depth=5;
+assert.equal(generateVassalLifeMap(bookendCollision,createRng(1)).reason,'invalidConfiguration','Founding cannot override Legacy');
 bad.design.columns=[column('collision',4)];bad.design.bookends.legacy.depth=4;
 assert.equal(generateVassalLifeMap(bad,createRng(1)).reason,'invalidConfiguration');
 bad.design.columns=[column('disabled',3)];bad.design.bookends.legacy.depth='end';bad.design.nodes.practiceReform.enabled=false;
@@ -82,14 +100,15 @@ supply.design.stockSupply={enabled:true,randomCount:1,unmetCount:0,minDepth:1,ma
 assert.equal(generateVassalLifeMap(supply,createRng(4),{stockOutputs:['Edible']}).ok,true,'Stock Supply reservations count an existing milestone');
 
 for(const enabled of [true,false]){
-  const profile=createRegionalBootProfile(42),captured=structuredClone(config);
-  captured.design.bookends.founding={enabled,depth:9};captured.design.bookends.legacy.enabled=false;
+  const profile=createRegionalBootProfile(42),captured=structuredClone(sharedFounding);
+  captured.design.bookends.founding={enabled,depth:5};captured.design.bookends.legacy.enabled=false;
   profile.lifeMapLab.generatorConfig=captured;
   const state=createConfiguredNewGameState(42,profile),pool=getVassalCandidatePool(state);
   assert.ok(pool.candidates.every(c=>c.signatureNode?.variantId!=='legacyPlus'));
   assert.equal(selectLifeMapVassal(state,0,pool.expectedPoolHash).ok,true);
   const graph=getCurrentLifeMapVassal(state).lifeMap.graph;
-  assert.equal(graph.nodes.find(n=>n.id===graph.foundingNodeId)?.depth,enabled?8:undefined);
+  assert.equal(graph.nodes.find(n=>n.id===graph.foundingNodeId)?.depth,enabled?4:undefined);
+  assert.equal(graph.nodes.some(n=>n.milestoneId==='crossroads'),!enabled);
   assert.equal(graph.bossNodeId,null);
   deserializeGameState(serializeGameState(state));
 }
@@ -100,6 +119,12 @@ assert.equal(positioned.update(['generatorConfig','design','bookends','legacy','
 assert.equal(positioned.addColumn().ok,true);
 assert.equal(positioned.getSnapshot().draft.generatorConfig.design.columns[0].depth,4,'Add column skips relocated bookends');
 const controller=createLifegraphController({store});
+assert.equal(controller.importJson(JSON.stringify({...createLifegraphDraft(),generatorConfig:sharedFounding})).ok,true);
+assert.equal(controller.update(['preview','founding'],true).ok,true);
+assert.equal(controller.getSnapshot().graph.nodes.find(n=>n.depth===4).bookend,'founding');
+assert.equal(controller.update(['preview','founding'],false).ok,true);
+assert.equal(controller.getSnapshot().graph.nodes.find(n=>n.depth===4).family,'crossroads');
+assert.equal(controller.importJson(JSON.stringify(createLifegraphDraft())).ok,true);
 assert.equal(controller.addColumn().ok,true);
 assert.equal(controller.update(['generatorConfig','design','columns'],config.design.columns).ok,true);
 assert.equal(controller.setNode('practiceReform',{milestonesOnly:true}).ok,true);

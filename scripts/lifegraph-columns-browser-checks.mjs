@@ -24,6 +24,14 @@ export async function checkLifegraphColumns(page){
   await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().generationErrors.some(error=>error.includes('training')));
   await fill('Founding depth','7');
   await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().graph?.nodes.find(n=>n.bookend==='founding')?.depth===6);
+  await fill('Founding depth','3');
+  await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().graph?.nodes.find(n=>n.bookend==='founding')?.depth===2);
+  assert.match(await page.getByTestId('lifegraph-column-milestone-1').textContent(),/Founding takes priority at this depth/);
+  await page.getByLabel('Preview life stage',{exact:true}).selectOption('successor');
+  await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().graph?.nodes.some(n=>n.milestoneId==='milestone-1'));
+  await page.getByLabel('Preview life stage',{exact:true}).selectOption('scholar');
+  await page.waitForFunction(()=>!__LAB_DEBUG__.getLifegraph().graph?.nodes.some(n=>n.milestoneId==='milestone-1'));
+  await fill('Founding depth','7');
   await page.getByTestId('lifegraph-play-founding').click();
   await page.waitForFunction(()=>__LAB_DEBUG__.getNodeSandbox()?.modal.animation.phase==='open');
   assert.equal(await page.evaluate(()=>__LAB_DEBUG__.getNodeSandbox().vassal.classId),null);

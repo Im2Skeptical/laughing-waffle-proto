@@ -86,7 +86,9 @@ Reform shops without extra copies between them. Conflicting depths and unavailab
 class/timing pools report errors instead of silently replacing another reservation.
 
 Founding and Legacy have independent enable and position controls. Founding depth
-0 precedes the graph; numbered depths replace a normal column. It is first-life
+0 precedes the graph; numbered depths replace a normal column. At a shared depth,
+Founding overrides a custom milestone for the first life; successors keep that
+milestone. Founding and Legacy cannot share a depth. Founding is first-life
 only and still establishes the class when completed. Disabling it leaves that
 founder unclassed. Use **Preview life stage** to inspect either founder or a
 successor, and **Play Founding** to try the real action. Legacy can stay after the
@@ -102,6 +104,12 @@ separate from those tiers. Family repetition limits are preferred maxima;
 guarantees and thin pools can exceed them, which diagnostics report. Guarantees
 target a node or family, a depth range, a class, and either the map as a whole or
 every complete route. Impossible placement is an explicit generation conflict.
+Guarantees reserve nodes independently of rarity: an Every route Discovery
+guarantee can force several copies on separate branches even with Rare selected.
+Use Whole map for a graph-wide minimum, or remove that guarantee for random
+occurrence alone. These are minimums, not caps. Consecutive-repeat prevention only
+blocks adjacent copies along a route. Nodes & review shows reserved versus random
+placement counts and links to Guarantees.
 Supply reservations only select unlocked outputs and prefer separate depths.
 The underlying unmet-need analysis still considers producers across all player
 settlements; it does not yet prove local supply reach or recipe sustainability.

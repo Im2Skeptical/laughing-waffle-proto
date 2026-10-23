@@ -8,6 +8,12 @@ export async function checkLifegraphWorkspace(page,context,{reload=false}={}){
   await page.getByTestId('lab-lifegraph').waitFor();
   await checkLifegraphFullscreen(page,context);
   await checkLifegraphColumns(page);
+  await page.getByTestId('lifegraph-tab-nodes').click();
+  await page.getByTestId('lifegraph-node-discovery').click();
+  assert.match(await page.getByTestId('lifegraph-generation').textContent(),/Guarantees reserve nodes separately/);
+  assert.match(await page.locator('.lab-lifegraph-node-layout').textContent(),/Placement sources: \d+ reserved/);
+  await page.getByTestId('lifegraph-edit-guarantees').click();
+  assert.match(await page.getByTestId('lab-lifegraph').textContent(),/Every route.*several copies on separate branches/);
   await page.getByTestId('lifegraph-class-warrior').click();
   await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().draft.preview.classId==='warrior');
   assert.ok(await page.evaluate(()=>__LAB_DEBUG__.getLifegraph().diagnostics.families.campaign.minOnRoute>=1));

@@ -14,7 +14,7 @@ export function renderLifegraphColumns(parent,{controller,play,onReview}){
   const editBookend=(kind,changes)=>controller.update(['generatorConfig','design','bookends',kind],{...bookends[kind],...changes});
   parent.append(el('p','Milestone columns contain one node shared by every route. Branches join before the milestone and open out again afterwards. Each custom milestone replaces an existing depth, so it does not lengthen a life.','lab-summary'));
   const stage=draft.preview.founding?draft.preview.classId:'successor';
-  const founding=section('Founding',badge('First life only'),el('p','Founding establishes the chosen specialist class. Depth 0 adds it before the graph; another depth replaces that column. Disabling it leaves the founder unclassed and does not establish a class. Successors never receive Founding.','lab-note'),
+  const founding=section('Founding',badge('First life only'),el('p','Founding establishes the chosen specialist class. Depth 0 adds it before the graph; another depth replaces that column. If a custom milestone shares its depth, Founding takes priority for the first life; successors keep the custom milestone. Disabling it leaves the founder unclassed and does not establish a class. Successors never receive Founding.','lab-note'),
     row(toggle('Founding enabled',bookends.founding.enabled,enabled=>editBookend('founding',{enabled})),number('Founding depth',bookends.founding.depth,0,config.normalDepthCount,depth=>editBookend('founding',{depth}))),
     choice('Preview life stage',[['successor','Successor · no Founding'],['scholar','First life · Philosopher'],['warrior','First life · Warlord']],stage,value=>controller.update(['preview'],{...draft.preview,founding:value!=='successor',classId:value==='successor'?draft.preview.classId:value})));
   if(draft.preview.founding){const family=draft.preview.classId==='scholar'?'philosopherFounding':'warlordFounding',option=VASSAL_FOUNDING_OPTIONS[family];
@@ -37,7 +37,8 @@ export function renderLifegraphColumns(parent,{controller,play,onReview}){
       button('Remove milestone',()=>controller.update(['generatorConfig','design','columns'],columns.filter((_,i)=>i!==index)),'','quiet')));
     card.dataset.testid=`lifegraph-column-${column.id}`;
     const actual=graph?.nodes.find(node=>node.milestoneId===column.id);
-    card.append(el('p',actual?`This preview: ${lifegraphNodeLabel(actual.family==='relic'&&actual.specialRelic?'specialRelic':actual.family)} · every complete route visits this node.`:'Not present in this preview. Check its class, enabled state and any generation error above.','lab-note'));
+    const replacedByFounding=column.enabled&&draft.preview.founding&&bookends.founding.enabled&&column.depth===bookends.founding.depth;
+    card.append(el('p',actual?`This preview: ${lifegraphNodeLabel(actual.family==='relic'&&actual.specialRelic?'specialRelic':actual.family)} · every complete route visits this node.`:replacedByFounding?'This preview: Founding takes priority at this depth. Successors keep this milestone when its class scope matches.':'Not present in this preview. Check its class, enabled state and any generation error above.','lab-note'));
     if(column.targetType==='node')card.append(row(toggle(`${lifegraphNodeLabel(column.targetId)} milestones only`,design.nodes[column.targetId].milestonesOnly,value=>controller.setNode(column.targetId,{milestonesOnly:value})),button('Edit node choices',()=>onReview(column.targetId),'','quiet')));
     if(actual)card.append(button('Play milestone',()=>play(actual.id),'','primary'));
     parent.append(card);

@@ -34,7 +34,6 @@ export function validateLifeMapColumns(design, depthCount) {
     if(bookends?.legacy?.enabled&&bookends.legacy.depth!=='end')depths.add(bookends.legacy.depth);
     if(classId&&bookends?.founding?.enabled&&bookends.founding.depth>0){
       if(depths.has(bookends.founding.depth))errors.push('design.bookends: Founding and Legacy cannot share a depth');
-      depths.add(bookends.founding.depth);
     }
     for (const column of design.columns.filter(c => c?.enabled && lifeMapScopeMatches(c.scope, classId))) {
       if (depths.has(column.depth)) errors.push(`design.columns: two milestone columns occupy depth ${column.depth} for ${classId ?? 'unclassed'}`);
@@ -48,7 +47,10 @@ export function validateLifeMapColumns(design, depthCount) {
 // meets here; every outgoing branch remains reachable. No additional RNG draws.
 export function applyLifeMapColumns(config, nodes, edges, {classId,founderClassId,foundingNodeId='life-founding'}={}) {
   const settings=config.design.enabled?config.design.bookends:{founding:{enabled:true,depth:0},legacy:{enabled:true,depth:'end'}};
-  const columns=getLifeMapColumns(config,classId).map(column=>({...column,kind:'milestone'}));
+  // Founding owns its depth for first lives. Successors keep the authored column.
+  const columns=getLifeMapColumns(config,classId)
+    .filter(column=>!(founderClassId&&settings.founding.enabled&&column.depth===settings.founding.depth))
+    .map(column=>({...column,kind:'milestone'}));
   if(settings.legacy.enabled)columns.push({id:'legacy',kind:'legacy',depth:settings.legacy.depth==='end'?config.normalDepthCount+1:settings.legacy.depth});
   if(founderClassId&&settings.founding.enabled)columns.push({id:'founding',kind:'founding',depth:settings.founding.depth});
   let bossNodeId=null,placedFoundingId=null;

@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.23`.
+Game build version: `1.1.24`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -80,7 +80,8 @@ Authoritative numbers:
   Gym profiles explicitly copy a Lifegraph draft before launch.
   Milestone columns join every route at an authored depth before branching again.
   Node types can be limited to milestones; columns select a node or pooled family
-  with class scopes. Founding and Legacy can be disabled or relocated in pooled
+  with class scopes. Founding takes priority over a custom milestone at the same
+  depth for first lives; successors keep that milestone. Founding and Legacy can be disabled or relocated in pooled
   experiments. Interior Legacy grants its reward then continues; any terminal
   node retires normally. Disabled Founding does not establish a specialist class.
 - Debug profile library/export v3 (fresh-run recipes; no live Vassal overrides).

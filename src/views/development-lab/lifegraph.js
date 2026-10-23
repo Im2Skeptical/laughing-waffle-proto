@@ -103,10 +103,15 @@ export function createLifegraphView({controller=createLifegraphController()}={})
     if(!id.startsWith('signature:'))timings.append(check('Milestones only',rule.milestonesOnly,value=>controller.setNode(id,{milestonesOnly:value})));
     const repeats=s.draft.generatorConfig.nonRepeatFamilyIds;
     timings.append(check('Prevent this node repeating consecutively',repeats.includes(id),v=>edit(['generatorConfig','nonRepeatFamilyIds'],v?[...repeats,id]:repeats.filter(x=>x!==id)),{disabled:id.startsWith('signature:')||['stockShop','legacy'].includes(id)}));generation.append(timings);
+    generation.append(el('p','Occurrence controls random rolls within this family. Guarantees reserve nodes separately, even when Rare is selected. Preventing consecutive repeats still allows this node elsewhere on a route.','lab-note'));
     const settings=disclosure('Generation settings',[generation],{open:generationOpen});settings.dataset.testid='lifegraph-generation';editor.append(settings);
     }
     if(id==='legacy')editor.append(el('p','Set Legacy’s position or switch it off in Milestone columns. At an interior depth its rewards resolve and the life continues.','lab-note'),button('Legacy column settings',()=>{tab='columns';render();},'','quiet'));
     const row=s.diagnostics?.families[id];if(row)editor.append(el('p',`This graph: ${row.count} nodes · early ${row.early}, middle ${row.mid}, late ${row.late} · ${row.minOnRoute}–${row.maxOnRoute} on a complete route.`,'lab-summary'));
+    if(design.enabled&&row){
+      const nodes=s.graph.nodes.filter(node=>nodeDesignId(node)===id),reserved=nodes.filter(node=>node.generationRuleId).length;
+      editor.append(el('p',`Placement sources: ${reserved} reserved by milestones, guarantees or other rules; ${nodes.length-reserved} random. To reduce forced appearances, edit Guarantees. “Every route” can reserve several copies on separate branches; “Whole map” sets a minimum across the graph. Neither sets a maximum.`, 'lab-note'),button('Edit guarantees',()=>{tab='guarantees';render();},'lifegraph-edit-guarantees','quiet'));
+    }
     const example=s.graph?.nodes.find(n=>nodeDesignId(n)===id);editor.append(button(example?'Play an example from this graph':'Try this node in isolation',()=>example?play(example.id):play(id,{type:true}),'lifegraph-play-type','primary'));
     if(!example)editor.append(el('p','This node is absent from the graph. The isolated preview replaces one slot for this test only; enable and guarantee rules remain unchanged. Stock Supply uses Timber in this isolated test.','lab-note'));
     renderLifegraphRelicPool(editor,{controller,designId:id});
@@ -120,7 +125,7 @@ export function createLifegraphView({controller=createLifegraphController()}={})
 
   function renderGuarantees(parent,s){
     const design=s.draft.generatorConfig.design;
-    parent.append(el('p','Reserve opportunities before rolling the remaining nodes. Map coverage counts the whole graph; Every route enforces a minimum on each complete path. Impossible combinations report an error.','lab-summary'));
+    parent.append(el('p','Reserve opportunities before rolling the remaining nodes. Guarantees apply independently of occurrence tiers, including Rare. Whole map sets a minimum across the graph; Every route enforces a minimum on each complete path and may reserve several copies on separate branches. These are minimums, not maximums; random rolls can add more. Remove a guarantee to use random occurrence alone. Impossible combinations report an error.','lab-summary'));
     for(const [index,g]of design.guarantees.entries()){
       const update=changes=>edit(designPath('guarantees',index),{...g,...changes});
       const targets=[{group:'Families',entries:design.pools.map(p=>[`pool:${p.id}`,p.label])},{group:'Node types',entries:LIFEGRAPH_NODE_IDS.filter(id=>!id.startsWith('signature:')&&id!=='legacy').map(id=>[`node:${id}`,lifegraphNodeLabel(id)])}];
