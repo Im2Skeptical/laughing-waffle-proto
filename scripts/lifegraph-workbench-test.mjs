@@ -10,8 +10,22 @@ import { createRegionalBootProfile } from '../src/model/regional-map/boot-profil
 import { createTimelineFromInitialState, rebuildStateAtSecond, appendActionAtCursor } from '../src/model/timeline/index.js';
 import { ActionKinds, applyAction } from '../src/model/actions.js';
 import { initializeReplayClock, advanceReplayStateToSecond } from '../src/model/replay-second-runner.js';
+import { createLabNodeSandbox } from '../src/model/dev-lab/node-sandbox.js';
 
 const config=createLifegraphDraft().generatorConfig;
+const isolatedDiscovery=createLabNodeSandbox({type:'discovery',classId:'scholar'});
+assert.equal(getCurrentLifeMapVassal(isolatedDiscovery.state).lifeMap.graph.nodes.find(n=>n.milestoneId==='milestone-1').family,'practiceReform','isolated Gym previews preserve authored milestones');
+assert.equal(config.laneCount,5);assert.equal(config.normalDepthCount,13);
+assert.deepEqual(config.design.columns.map(c=>[c.depth,c.targetId]),[[1,'practiceReform'],[5,'crossroads'],[10,'relic']]);
+assert.equal(config.design.nodes.discovery.occurrence,'rare');
+assert.ok(!config.design.guarantees.some(g=>g.targetId==='discovery'));
+for(const classId of ['scholar','warrior']){
+  const result=generateVassalLifeMap(config,createRng(10),{classId,founderClassId:classId,generationSeed:10,stockOutputs:['Edible']});
+  assert.equal(result.ok,true,result.errors?.join('; '));
+  const founding=result.graph.nodes.find(n=>n.id===result.graph.foundingNodeId);
+  assert.ok(result.graph.nodes.filter(n=>n.depth<founding.depth).every(n=>!['training','discovery','campaign','challenge','classMarket'].includes(n.family)),'class-only actions must not appear before Founding establishes a class');
+}
+let scholarMapsWithoutDiscovery=0,randomDiscoveries=0;
 for(const classId of [null,'scholar','warrior'])for(let seed=1;seed<=100;seed++){
   const options={classId,generationSeed:seed,stockOutputs:['Edible','Stone','Timber'],unmetStockOutputs:['Tool','Edible']};
   const result=generateVassalLifeMap(config,createRng(seed),options);
@@ -19,7 +33,11 @@ for(const classId of [null,'scholar','warrior'])for(let seed=1;seed<=100;seed++)
   assert.deepEqual(validateVassalLifeMapGraph(result.graph),{ok:true,errors:[]});
   assert.deepEqual(result,generateVassalLifeMap(config,createRng(seed),options),'same seed and context reproduce every node and output');
   const d=diagnoseLifegraph(result.graph);
-  if(classId==='scholar')assert.ok(d.families.discovery.minOnRoute>=1,'every Scholar route crosses a Discovery guarantee');
+  if(classId==='scholar'){
+    scholarMapsWithoutDiscovery+=d.families.discovery.count===0?1:0;
+    randomDiscoveries+=d.families.discovery.count;
+    assert.ok(result.graph.nodes.filter(n=>n.family==='discovery').every(n=>!n.generationRuleId),'Discovery is random with no guaranteed minimum');
+  }
   if(classId==='warrior')assert.ok(d.families.campaign.minOnRoute>=1,'every Warrior route crosses a Campaign guarantee');
   for(const node of result.graph.nodes){
     assert.notEqual(node.stockOutput,'Tool','an unmet but locked output cannot create an empty Supply guarantee');
@@ -27,8 +45,11 @@ for(const classId of [null,'scholar','warrior'])for(let seed=1;seed<=100;seed++)
     if(classId!=='scholar')assert.notEqual(node.family,'discovery');
   }
 }
+assert.ok(scholarMapsWithoutDiscovery>=75,'Rare Discovery is absent from most Scholar maps in this pinned batch');
+assert.ok(randomDiscoveries>0&&randomDiscoveries<30,'Rare Discovery remains available at low frequency');
 
 const off=structuredClone(config);off.design.nodes.practiceReform.enabled=false;
+off.design.columns.filter(c=>c.targetId==='practiceReform').forEach(c=>c.enabled=false);
 for(let seed=1;seed<=30;seed++)assert.ok(!generateVassalLifeMap(off,createRng(seed),{classId:'scholar',stockOutputs:['Edible']}).graph.nodes.some(n=>n.family==='practiceReform'));
 const impossible=structuredClone(config);impossible.design.guarantees=[{id:'impossible',targetType:'node',targetId:'discovery',scope:'common',count:1,minDepth:1,maxDepth:1,coverage:'eachRoute'}];
 assert.equal(generateVassalLifeMap(impossible,createRng(1),{classId:null}).reason,'guaranteeImpossible','a class-incompatible guarantee reports its conflict');
@@ -37,6 +58,10 @@ for(let seed=1;seed<=30;seed++){const result=generateVassalLifeMap(byPool,create
 
 const memory=new Map(),store={getItem:key=>memory.get(key)??null,setItem:(key,value)=>memory.set(key,value)};
 const controller=createLifegraphController({store});
+assert.equal(controller.update(['preview','founding'],true).ok,true);
+controller.openType('training');
+assert.equal(controller.sandbox.getSnapshot().vassal.classId,'scholar','isolated class actions choose a slot after Founding');
+assert.equal(controller.update(['preview','founding'],false).ok,true);
 assert.equal(controller.setReview('practiceReform','Timber has only one eligible card.').ok,true);
 assert.equal(controller.savePreset('Content gaps').ok,true);
 assert.equal(controller.update(['preview','classId'],'warrior').ok,true);

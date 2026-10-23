@@ -5,6 +5,7 @@ import { createLifegraphDraft, createPreviousLifegraphDraft, validateLifegraphDr
 import { getCurrentLifeMapVassal } from '../model/vassal-life-map.js';
 import { serializeGameState, deserializeGameState } from '../model/state.js';
 import { LIFEGRAPH_SHOP_SERVICE_SPECS } from '../model/life-map-balance.js';
+import { getLifeMapColumnRules } from '../model/life-map-columns.js';
 
 const clone=value=>JSON.parse(JSON.stringify(value));
 function storage(){try{return globalThis.localStorage??null;}catch{return null;}}
@@ -40,7 +41,7 @@ export function createLifegraphController({baseSandbox=null,store=storage()}={})
   }
   try{const saved=store?.getItem(LIFEGRAPH_STORAGE_KEY);if(saved){const value=JSON.parse(saved);if(!validateLifegraphDraft(value).length)draft=value;else {
     const notes={...draft,reviews:value.reviews};
-    if(value.schemaVersion===draft.schemaVersion&&!validateLifegraphDraft(notes).length){draft=notes;message='Cost rules changed schema. A fresh experiment is loaded; your independent review notes are retained.';}
+    if(value.schemaVersion===draft.schemaVersion&&!validateLifegraphDraft(notes).length){draft=notes;message='Lifegraph rules changed. Current defaults are loaded; your independent review notes are retained.';}
     else message='Stored draft is from another schema. The current default is loaded; your stored export was not applied.';
   }}
     const savedPresets=JSON.parse(store?.getItem(LIFEGRAPH_PRESETS_KEY)??'[]');if(Array.isArray(savedPresets))presets=[previousPreset,...savedPresets.filter(p=>p.name!==previousPreset.name&&typeof p.name==='string'&&!validateLifegraphDraft(p.draft).length)];
@@ -70,12 +71,30 @@ export function createLifegraphController({baseSandbox=null,store=storage()}={})
       return commit(replacePath(draft,['generatorConfig','design','pools'],design.pools.filter(p=>p.id!==id)),'Family removed.');},
     addGuarantee(){const next=clone(draft),rules=next.generatorConfig.design.guarantees;let n=1;while(rules.some(g=>g.id===`guarantee-${n}`))n++;
       rules.push({id:`guarantee-${n}`,targetType:'pool',targetId:next.generatorConfig.design.pools[0].id,scope:'common',count:1,minDepth:1,maxDepth:Math.min(4,next.generatorConfig.normalDepthCount),coverage:'map'});return commit(next,'Guarantee added.');},
-    addColumn(){const next=clone(draft),columns=next.generatorConfig.design.columns;let n=1;while(columns.some(c=>c.id===`milestone-${n}`))n++;
+    moveColumnRule(id,direction){
+      const next=clone(draft),design=next.generatorConfig.design,rules=getLifeMapColumnRules(design),index=rules.findIndex(rule=>rule.id===id),target=index+direction;
+      if(![-1,1].includes(direction)||index<0||target<0||target>=rules.length)return {ok:false};
+      [rules[index],rules[target]]=[rules[target],rules[index]];
+      design.bookends.founding.priority=rules.findIndex(rule=>rule.kind==='founding');
+      design.columns=rules.filter(rule=>rule.kind==='milestone').map(({kind,...column})=>column);
+      return commit(next,'Rule priority updated. At each depth, the first matching rule wins.');
+    },
+    removeColumn(id){
+      const next=clone(draft),design=next.generatorConfig.design,rules=getLifeMapColumnRules(design).filter(rule=>rule.id!==id);
+      design.columns=design.columns.filter(column=>column.id!==id);
+      design.bookends.founding.priority=rules.findIndex(rule=>rule.kind==='founding');
+      return commit(next,'Milestone rule removed.');
+    },
+    addColumn({depth:requestedDepth=null,afterId=null}={}){const next=clone(draft),design=next.generatorConfig.design,columns=design.columns;let n=1;while(columns.some(c=>c.id===`milestone-${n}`))n++;
       const occupied=new Set(columns.filter(c=>c.enabled).map(c=>c.depth));
       for(const rule of Object.values(next.generatorConfig.design.bookends))if(rule.enabled&&Number.isInteger(rule.depth)&&rule.depth>0)occupied.add(rule.depth);
-      const depths=Array.from({length:next.generatorConfig.normalDepthCount},(_,i)=>i+1),depth=depths.find(d=>d>=3&&!occupied.has(d))??depths.find(d=>!occupied.has(d));
+      const depths=Array.from({length:next.generatorConfig.normalDepthCount},(_,i)=>i+1),depth=requestedDepth??depths.find(d=>d>=3&&!occupied.has(d))??depths.find(d=>!occupied.has(d));
       if(depth==null){message='Every depth already has a milestone. Remove or disable one first.';notify();return {ok:false};}
-      columns.push({id:`milestone-${n}`,label:`Milestone ${n}`,enabled:true,depth,targetType:'node',targetId:'practiceReform',scope:'common'});
+      const rule={id:`milestone-${n}`,label:`Milestone ${n}`,enabled:true,depth,targetType:'node',targetId:'practiceReform',scope:'common',lifeStage:'any'};
+      const rules=getLifeMapColumnRules(design),after=rules.findIndex(rule=>rule.id===afterId);
+      rules.splice(after<0?rules.length:after+1,0,{...rule,kind:'milestone'});
+      design.bookends.founding.priority=rules.findIndex(rule=>rule.kind==='founding');
+      design.columns=rules.filter(rule=>rule.kind==='milestone').map(({kind,...column})=>column);
       return commit(next,'Milestone added. All routes meet at this node, then branch again.');},
     savePreset(name){name=name.trim();if(name===previousPreset.name){message='Previous defaults is a built-in profile. Save a copy under another name.';notify();return {ok:false};}if(!name||name.length>120){message='Choose a preset name (up to 120 characters).';notify();return {ok:false};}
       const next=presets.filter(p=>p.name!==name);next.push({name,draft:clone({...draft,name})});try{if(!store)throw new Error();store.setItem(LIFEGRAPH_PRESETS_KEY,JSON.stringify(next));presets=next;message=`Saved “${name}”.`;notify();return {ok:true};}catch{message='Preset could not be stored. Export this draft instead.';notify();return {ok:false};}},

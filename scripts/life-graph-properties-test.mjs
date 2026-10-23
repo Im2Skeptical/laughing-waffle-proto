@@ -40,7 +40,7 @@ const PAIRS = Object.freeze([
 
 function variant(patch) {
   const config = { ...createAuthoredVassalLifeMapGeneratorConfig(), ...patch };
-  if(patch.normalDepthCount){config.design.guarantees=config.design.guarantees.filter(g=>g.maxDepth<=config.normalDepthCount);config.design.stockSupply.maxDepth=Math.min(config.design.stockSupply.maxDepth,config.normalDepthCount);}
+  if(patch.normalDepthCount){config.design.columns=config.design.columns.filter(c=>c.depth<=config.normalDepthCount);if(config.design.bookends.founding.depth>config.normalDepthCount)config.design.bookends.founding.depth=0;config.design.guarantees=config.design.guarantees.filter(g=>g.maxDepth<=config.normalDepthCount);config.design.stockSupply.maxDepth=Math.min(config.design.stockSupply.maxDepth,config.normalDepthCount);}
   const validation = validateVassalLifeMapGeneratorConfig(config);
   if (!validation.ok) throw new Error(`fixture config illegal: ${validation.errors.join('; ')}`);
   return config;
@@ -117,11 +117,12 @@ function expectBand(config, depth) {
 function expectTopology(graph, config, seed) {
   const validation = validateVassalLifeMapGraph(graph);
   assert.deepEqual(validation, { ok: true, errors: [] }, `${seed} ${validation.errors?.join('; ')}`);
-  assert.equal(graph.schemaVersion, 7);
+  assert.equal(graph.schemaVersion, 8);
   assert.ok(graph.nodes.every(node=>!['travel','routes'].includes(node.family)), 'obsolete node families never generate');
   assert.equal(graph.generationSeed, seed);
   assert.equal(graph.foundingNodeId ?? null, null);
-  assert.ok(graph.entryNodeIds.length >= 2);
+  assert.ok(graph.entryNodeIds.length >= 1);
+  if(config.design.columns.some(c=>c.enabled&&c.depth===1&&c.scope==='common'))assert.equal(graph.entryNodeIds.length,1);
   assert.deepEqual(graph.generatorConfig, canonicalizeVassalLifeMapGeneratorConfig(config));
   const ids = new Set();
   for (const node of graph.nodes) {
@@ -134,6 +135,8 @@ function expectTopology(graph, config, seed) {
       assert.equal(node.family, 'legacy');
       assert.equal(node.depth, config.normalDepthCount);
       assert.match(node.id, /^life-d\d{2}-boss$/);
+    } else if(node.milestoneId) {
+      assert.equal(node.id,`life-milestone-${node.milestoneId}`);
     } else {
       assert.match(node.id, /^life-d\d{2}-r\d{2}$/);
     }
@@ -159,7 +162,7 @@ function rejectMalformed() {
     ['lane above max', { ...SETTINGS.authored, laneCount: 13 }],
     ['fractional lane', { ...SETTINGS.authored, laneCount: 6.2 }],
     ['routes over twice lanes', { ...SETTINGS.authored, routeCount: 13 }],
-    ['no late depth', { ...SETTINGS.authored, earlyDepthCount: 6, midDepthCount: 5 }],
+    ['no late depth', { ...SETTINGS.authored, earlyDepthCount: SETTINGS.authored.normalDepthCount-5, midDepthCount: 5 }],
     ['gap too wide', { ...SETTINGS.authored, minimumNodeGap: 0.5 }],
     ['smoothing out of range', { ...SETTINGS.authored, layoutSmoothing: 1.1 }],
     ['duplicate non-repeat', { ...SETTINGS.authored, nonRepeatFamilyIds: ['crisis', 'crisis'] }],
@@ -239,7 +242,9 @@ function expectStreamIsolation(seed) {
   assert.deepEqual(liveValidation, { ok: true, errors: [] }, liveValidation.errors?.join('; '));
   assert.equal(live.foundingNodeId != null, true);
   assert.equal(live.entryNodeIds.length, 1);
-  assert.equal(live.entryNodeIds[0], live.foundingNodeId);
+  assert.equal(live.nodes.find(n=>n.id===live.foundingNodeId).depth,4);
+  assert.equal(live.nodes.find(n=>n.id===live.entryNodeIds[0]).family,'practiceReform');
+  assert.ok(reachableFromEntries(live).has(live.foundingNodeId));
   assert.equal(reachableFromEntries(live).has(live.bossNodeId), true);
   assert.equal(live.edges.some((edge) => edge.fromNodeId === live.bossNodeId), false);
   const selectedBytes = JSON.stringify(serializeGameState(selected));

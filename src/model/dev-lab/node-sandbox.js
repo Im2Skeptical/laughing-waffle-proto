@@ -36,10 +36,11 @@ export function createLabNodeSandbox(options = {}) {
   const variant = VASSAL_SIGNATURE_NODE_VARIANTS[settings.type.split(':')[1]];
   const family = variant ? variant.id === 'legacyPlus' ? 'legacy' : 'signature' : settings.type==='specialRelic'?'relic':settings.type;
   let node = graph.nodes.find(node => variant ? node.family === family : getVassalLifeMapNodeType(node) === settings.type);
-  if (!node) node = graph.nodes.find(node => node.family !== 'legacy' && !node.signatureNode
+  if (!node) node = graph.nodes.find(node => node.family !== 'legacy' && !node.signatureNode && !node.milestoneId && !node.bookend
     && !graph.edges.some(edge => (edge.fromNodeId === node.id && graph.nodes.find(n => n.id === edge.toNodeId)?.family === family)
       || (edge.toNodeId === node.id && graph.nodes.find(n => n.id === edge.fromNodeId)?.family === family)));
   node.family = family;
+  if(family!=='stockShop')delete node.stockOutput;
   if(family==='relic')node.specialRelic=settings.type==='specialRelic';else delete node.specialRelic;
   node.signatureNode = variant ? { ...variant, variantId:variant.id } : null;
   vassal.lifeMap.availableNodeIds = [node.id];

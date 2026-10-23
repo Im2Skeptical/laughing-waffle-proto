@@ -107,13 +107,13 @@ assert.deepEqual([
   generatorConfig.earlyDepthCount,
   generatorConfig.midDepthCount,
   generatorConfig.normalDepthCount - generatorConfig.earlyDepthCount - generatorConfig.midDepthCount,
-], [3, 4, 3]);
+], [4, 5, 4]);
 assert.deepEqual(
   ["patronage", "development", "crossroads", "practiceReform", "publicWorks", "crisis", "relic"]
     .map((family) => generatorConfig.weights.early[family]),
   [5, 5, 6, 1, 1, 0, 1.5]
 );
-assert.deepEqual(generatorConfig.nonRepeatFamilyIds, ["crisis"]);
+assert.deepEqual(generatorConfig.nonRepeatFamilyIds, ["crisis", "discovery"]);
 for (const band of ["early", "mid", "late"]) {
   for (const family of ["neutralMarket", "classMarket"]) {
     assert.ok(generatorConfig.weights[band][family] > 0,
@@ -172,20 +172,17 @@ const generatedGraph = generatedA.graph;
 assert.equal(validateVassalLifeMapGraph(generatedGraph).ok, true);
 assert.equal(generatedGraph.nodes.filter((node) => node.family === "legacy").length, 1);
 assert.equal(generatedGraph.nodes.find((node) => node.id === generatedGraph.bossNodeId).depth, generatorConfig.normalDepthCount);
-assert.ok(generatedGraph.entryNodeIds.length >= 2);
-assert.notEqual(
-  generatedGraph.nodes.find((node) => node.id === generatedGraph.entryNodeIds[0]).family,
-  generatedGraph.nodes.find((node) => node.id === generatedGraph.entryNodeIds[1]).family
-);
+assert.equal(generatedGraph.entryNodeIds.length,1);
+assert.equal(generatedGraph.nodes.find(node=>node.id===generatedGraph.entryNodeIds[0]).family,"practiceReform");
 const generatedNodeById = new Map(generatedGraph.nodes.map((node) => [node.id, node]));
 for (const edge of generatedGraph.edges) {
   const from = generatedNodeById.get(edge.fromNodeId);
   const to = generatedNodeById.get(edge.toNodeId);
   assert.equal(to.depth, from.depth + 1);
-  if (to.family !== "legacy") assert.ok(Math.abs(to.lane - from.lane) <= 1);
+  if (!to.bookend && !from.bookend && !to.milestoneId && !from.milestoneId) assert.ok(Math.abs(to.lane - from.lane) <= 1);
   assert.equal(from.family === "crisis" && to.family === "crisis", false);
 }
-for (let depth = 0; depth < 10; depth += 1) {
+for (let depth = 0; depth < generatorConfig.normalDepthCount; depth += 1) {
   const edges = generatedGraph.edges.filter((edge) => generatedNodeById.get(edge.fromNodeId).depth === depth);
   for (const edgeA of edges) for (const edgeB of edges) {
     const a0 = generatedNodeById.get(edgeA.fromNodeId).lane;
@@ -196,7 +193,7 @@ for (let depth = 0; depth < 10; depth += 1) {
   }
 }
 const branchSignatures = new Map();
-for (let depth = 11; depth >= 0; depth -= 1) {
+for (let depth = generatorConfig.normalDepthCount; depth >= 0; depth -= 1) {
   for (const node of generatedGraph.nodes.filter((entry) => entry.depth === depth)) {
     const childSignatures = generatedGraph.edges.filter((edge) => edge.fromNodeId === node.id)
       .map((edge) => branchSignatures.get(edge.toNodeId)).sort();

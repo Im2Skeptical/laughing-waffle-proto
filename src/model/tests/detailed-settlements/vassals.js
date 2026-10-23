@@ -31,6 +31,7 @@ import { nodeIdForFamily } from '../vassal-life-map/helpers.js';
 
 const lifeMapState = fresh(777);
 lifeMapState.paused = true;
+lifeMapState.gameConfig.lifeMapGenerator.design.bookends.founding.depth=0;
 lifeMapState.gameConfig.settings.values.primordialBasePressure = 0;
 const lifePool = getVassalCandidatePool(lifeMapState);
 assert.equal(lifePool.candidates.length, 2);

@@ -172,6 +172,8 @@ async function saveSlot(seed, timeline, tSec, data, label) {
 
 function openDeath(seed) {
   const state = createNewGameState(seed);
+  // Isolate the scripted Founding-resolution boundary from authored placement.
+  state.gameConfig.lifeMapGenerator.design.bookends.founding.depth=0;
   for (const candidate of state.civilization.vassalLineage.pendingCandidates) candidate.age = 90;
   initializeReplayClock(state, 0);
   return { state, timeline: createTimelineFromInitialState(state) };
@@ -255,6 +257,8 @@ async function playDeath(seed) {
 
 function openTerminal(seed) {
   const state = createNewGameState(seed);
+  // Isolate the scripted Founding-resolution boundary from authored placement.
+  state.gameConfig.lifeMapGenerator.design.bookends.founding.depth=0;
   state.civilization.chaos.monsterPressure = 400;
   for (const region of state.world.regions) {
     if (region.controller !== "player") region.monster = { defense: 100 };
