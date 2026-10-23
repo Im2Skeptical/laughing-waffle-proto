@@ -207,8 +207,13 @@ not use the root file as the default location for new rendering or model rules.
 - World definitions/state: `src/defs/world/` and `src/model/world-state.js`
 - Timeline and authoritative rebuild: `src/model/timeline/index.js`
 - One-second replay path: `src/model/replay-second-runner.js`
+- Replay boundary checks: `scripts/regional-branch-replay-test.mjs` checks exact
+  cutoffs and alternate branches; `scripts/edge-transfer-isolation-test.mjs`
+  guards retained packet ownership. Both compare raw serialized state and RNG.
 - Serialization and schema validation: `src/model/state.js`
   (`createEmptyState`, serialize/deserialize, validate, load, season/RNG).
+  `scripts/captured-config-isolation-test.mjs` checks detached reader bodies,
+  mutable/shallow-frozen input revalidation and deeply frozen config reuse.
   Legacy hub/board/env constructors and occupancy rebuilders live in
   `src/model/state/board-legacy.js`; pawn field helpers in
   `src/model/state/pawn-legacy.js`. Public names stay on `state.js`.

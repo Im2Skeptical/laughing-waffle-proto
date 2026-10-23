@@ -67,6 +67,26 @@ assert.ok(small.every(s=>s.rx<23));
 layOutSettlements(small,{detail:2,world:args.world,seed:map.seed,dry:(x,y)=>x>=0&&y>=45&&x<width&&y<=55});
 assert.ok(small.every(s=>s.buildings.length>=5),'Compact layouts scale their buildings with the footprint');
 
+// Retained from the paused site audit: a fully flooded region cannot receive a
+// town, and narrow dry strips must select the largest fitting fallback footprint.
+assert.deepEqual(planSettlementSites({...args,waterIndices:new Uint8Array(width*height).fill(128),perRegion:true}),[]);
+assert.deepEqual(planSettlementSites({...args,land:new Uint8Array(width*height),perRegion:true}),[]);
+assert.ok(small.every(site=>site.rx===23*.3&&site.ry===16*.3),'11-pixel strips use the .3 footprint');
+const landBefore=land.slice(),regionsBefore=regionIds.slice();
+for(const seed of [0,1,7,42,1867,4294967295]) {
+  const seededArgs={...args,map:{...map,seed},perRegion:true};
+  const planned=planSettlementSites(seededArgs);
+  assert.equal(planned.length,5);
+  assert.deepEqual(planSettlementSites(seededArgs),planned,`Repeatable sites for seed ${seed}`);
+  const normal=structuredClone(planned),zoomed=structuredClone(planned);
+  layOutSettlements(normal,{detail:1,dry,world:args.world,seed});
+  layOutSettlements(zoomed,{detail:9,dry,world:args.world,seed});
+  assert.deepEqual(zoomed,normal,`Camera detail cannot move towns for seed ${seed}`);
+}
+assert.deepEqual(land,landBefore,'Planning and layout preserve land');
+assert.deepEqual(regionIds,regionsBefore,'Planning and layout preserve region identities');
+console.log('Settlement boundaries: flooded/empty land, compact fallback, six seeds and camera-independent layouts.');
+
 const straight=Array.from({length:201},(_,x)=>({x,y:50}));
 const bowed=windRoad(straight,{scale:1,clear:()=>true,wet:()=>false,inTown:()=>false});
 assert.ok(Math.max(...bowed.map(p=>Math.abs(p.y-50)))>7,'Roads must retain broad winding character');

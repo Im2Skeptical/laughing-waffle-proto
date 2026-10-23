@@ -72,12 +72,13 @@ export function buildEdgeTransferBatchAtBoundary(
       ...serializeGameState({ ...preBoundaryState, gameConfig: undefined }),
       gameConfig: preBoundaryState.gameConfig,
     });
+    // Retain packets from the private copy before the next tick replaces its journal.
+    const previousStockBatch = replayState.civilization.practiceEvents?.stockTransfers;
     replayState.paused = false;
     const advanceResult = advanceReplayStateOneSecond(replayState);
     if (advanceResult?.ok && Math.floor(replayState.tSec ?? 0) === sec) {
       // Practice transfers can precede Food by one second. Keep that still-visible
       // packet when the next boundary replaces the batch, using its own timestamp.
-      const previousStockBatch = preBoundaryState.civilization.practiceEvents?.stockTransfers;
       const stockBatch = replayState.civilization.practiceEvents?.stockTransfers;
       transfers = [...(previousStockBatch?.tSec > sec - 2 && previousStockBatch.tSec < sec ? previousStockBatch.transfers : []),
         ...(stockBatch?.tSec === sec ? stockBatch.transfers : []),

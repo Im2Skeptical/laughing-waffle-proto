@@ -18,8 +18,8 @@ export function classActionOptions(state, vassal, family) {
   if (VASSAL_FOUNDING_OPTIONS[family]) return [structuredClone(VASSAL_FOUNDING_OPTIONS[family])];
   if(family==='training') return [{id:'train-estate',label:`Train ${vassal.classId==='scholar'?'Scholars':'Warriors'}`,description:`Convert up to ${vassal.classId==='scholar'?2:10} existing adults into ${vassal.classId==='scholar'?'Scholars':'Warriors'}.`,phaseCost:6,prestigeCost:0,classAction:{kind:'train'}}];
   if(family==='discovery') return [
-    {id:'discovery-research',label:'Discovery: develop technique (+25 Research)',phaseCost:6,classAction:{kind:'discovery',research:25}},
-    {id:'discovery-frontier',label:'Discovery: forbidden observation (+60 Research, next shop accesses one maturity higher)',phaseCost:8,immediateDeathChance:.1,effects:[{op:'addMonsterPressure',amount:getGameSetting(state,'discoveryMonsterProgress')}],classAction:{kind:'discovery',research:60,frontier:true}},
+    {id:'discovery-research',label:'Discovery: develop technique (+25 Research +1 per Ingenuity)',phaseCost:6,classAction:{kind:'discovery',research:25}},
+    {id:'discovery-frontier',label:'Discovery: forbidden observation (+60 Research +1 per Ingenuity, next shop accesses one maturity higher)',phaseCost:8,immediateDeathChance:.1,effects:[{op:'addMonsterPressure',amount:getGameSetting(state,'discoveryMonsterProgress')}],classAction:{kind:'discovery',research:60,frontier:true}},
   ];
   if(family==='challenge') return [3,6,9].map(difficulty=>({id:`challenge-${difficulty}`,label:`Challenge ${difficulty}`,phaseCost:difficulty*2,prestigeDelta:difficulty*3,immediateDeathChance:difficulty*.05,classAction:{kind:'challenge',difficulty}}));
   if(family==='campaign') {

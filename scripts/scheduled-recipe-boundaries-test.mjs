@@ -358,7 +358,8 @@ runCase('forecasting', () => {
   const blocked = open(0, 2);
   const def = defOf(blocked, 'forecasting');
   proseHas(def, 'Consume 1 [Record]');
-  proseHas(def, 'Require 1 stocked [Record] from a Knowledge-tagged Practice');
+  proseHas(def, 'Require 1 stocked [Record]');
+  assert.ok(!def.ui.rule.includes('Knowledge-tagged'), 'Record host has no Knowledge-tag requirement');
   proseHas(def, 'Scholar worker');
   proseHas(def, '5 Monster Pressure');
   assert.equal(def.effects.find(effect => effect.op === 'addFaithChaosResistance').amount, 0.3);
@@ -397,7 +398,7 @@ const limitations = [
   'Goat Herding is the official-tick case: advanceReplayStateToSecond against rebuildStateAtSecond, full serialized state including rng.',
   'The pending Mud House cycle is continued through runConstructionCycles on a saved snapshot. Definitions are not rewritten.',
   'Selective Breeding prose prints +2. One Scholar at effectiveness 1 doubles generateStock to 4. The test expects 4.',
-  'Forecasting prose asks for a Knowledge-tagged Record host. This slice uses Record Keeping, which is Knowledge-tagged, so the tag clause is not isolated. Resolver links are practice slot identities; market stock ids are not used.',
+  'Forecasting requires stocked Record and a Scholar worker. This slice uses Record Keeping. Resolver links are practice slot identities; market stock ids are not used.',
 ];
 
 mkdirSync(new URL('../artifacts/', import.meta.url), { recursive: true });
