@@ -159,7 +159,7 @@ try {
   await page.waitForFunction(()=>{const w=__SETTLEMENT_DEBUG__.getSnapshot().worldMap;return w.detailPanelVisible&&!w.focusAnimating;});
   const regional=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getSnapshot().worldMap);
   const box=regional.layout.detail,pieceWidth=(box.width-44-12*4)/5;
-  await touch({x:box.x+22+pieceWidth/4,y:box.y+134});
+  await touch({x:box.x+22+pieceWidth/4,y:box.y+504});
   await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState().poolMultiplier===7);
   assert.deepEqual((await tooltip()).poolBaseLines,['Summer \u203a Base 2 Stock','Autumn \u203a Base 6 Stock'],'output ledger shows both seasonal base yields');
   await page.screenshot({path:`${captures}/phone-region.png`});

@@ -92,9 +92,19 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
     vm.lastDefense ? `Last defense: ${vm.lastDefense.result}` : '',
     `${vm.usedStructureCapacity} / ${vm.structureCapacity} construction cells`].filter(Boolean);
   root.addChild(createText(defenseLines.join('\n'),{...TEXT_STYLES.chip,fontSize:21,lineHeight:24,fill:PALETTE.textMuted},x+1000,y+20));
-  const gap=PIECE_SIZE.gap, practiceSize=regionalPracticeSize(rect.width);
-  vm.practices.forEach((p,i)=>addSettlementPiece(root,{x:x+i*(practiceSize.width+gap),y:y+168,...practiceSize},{face:p.face,empty:!p.practiceId,tooltipView,compact:true}));
-  vm.practices.forEach((p,i)=>addPracticeMultiplierPair(root,{x:x+i*(practiceSize.width+gap),y:y+110,width:practiceSize.width,height:48},p,i,tooltipView));
-  const constructionRect=regionalConstructionRect({x,y:y+564,width:rect.width-44,height:rect.height-582},DEFAULT_REGION_STRUCTURE_CAPACITY_MAX);
+  const divider=new PIXI.Graphics().lineStyle(1,PALETTE.stroke,.55).moveTo(x,y+98).lineTo(x+rect.width-44,y+98);
+  divider.eventMode='none';root.addChild(divider);
+  const gap=PIECE_SIZE.gap, practiceSize=regionalPracticeSize(rect.width), cardHeight=340, pairHeight=50;
+  vm.practices.forEach((p,i)=>{
+    const slotX=x+i*(practiceSize.width+gap), cardW=Math.min(practiceSize.width,cardHeight*PIECE_SIZE.practiceWidth/PIECE_SIZE.practiceHeight);
+    const cardX=slotX+(practiceSize.width-cardW)/2, cardY=y+122;
+    const hasPools=!!p.face?.outputMultiplierBreakdown;
+    const slot=new PIXI.Graphics().lineStyle(1.5,0x685c44,.85).beginFill(0x101815,.88)
+      .drawRoundedRect(cardX-5,cardY-5,cardW+10,cardHeight+(hasPools?pairHeight+18:10),6).endFill();
+    slot.eventMode='none';root.addChild(slot);
+    addSettlementPiece(root,{x:cardX,y:cardY,width:cardW,height:cardHeight},{face:p.face,empty:!p.practiceId,tooltipView,compact:true});
+    addPracticeMultiplierPair(root,{x:cardX,y:cardY+cardHeight+8,width:cardW,height:pairHeight},p,i,tooltipView);
+  });
+  const constructionRect=regionalConstructionRect({x,y:y+554,width:rect.width-44,height:rect.height-572},DEFAULT_REGION_STRUCTURE_CAPACITY_MAX);
   addConstructionStrip(root,constructionRect,{slots:vm.structures,capacity:vm.structureCapacity,displayCapacity:DEFAULT_REGION_STRUCTURE_CAPACITY_MAX,tooltipView,compact:true});
 }

@@ -96,10 +96,6 @@ function stockTray(parent, face, w) {
   capacity.anchor.x=0;
   const bounds=count.getLocalBounds(), scale=Math.min(1,(counterWidth-3)/bounds.width);
   count.scale.set(scale);count.position.set(cx-(bounds.x+bounds.width/2)*scale,cy);
-  if (face.stockCapacityBreakdown?.multiplier > 1) {
-    count.y -= 5;
-    numeral(parent,`\u00d7${Math.round(face.stockCapacityBreakdown.multiplier*100)/100}`,cx,cy+height*.32,12,counterWidth-4);
-  }
   parent.addChild(count);
   return {x,y,width,height};
 }

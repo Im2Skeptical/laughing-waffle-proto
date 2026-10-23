@@ -169,8 +169,8 @@ export function pieceOfferCard(parent, rect, spec) {
   if(showPools) {
     const row=poolPreview.rows[0];
     for(const [index,kind] of ['output','capacity'].entries()) {
-      const scale=36/48;
-      const fitting=addMultiplierFitting(root,{x:12+index*((rect.width-32)/2+8),y:38,width:(rect.width-32)/2/scale,height:48},{kind,multiplier:row[kind].multiplier,
+      const scale=38/50, halfW=(rect.width-24)/2;
+      const fitting=addMultiplierFitting(root,{x:12+index*halfW,y:38,width:halfW/scale,height:50},{kind,multiplier:row[kind].multiplier,
         tooltipView:spec.tooltipView,spec:multiplierTooltip(row,kind,poolPreview)});
       fitting.scale.set(scale);
       root.poolFittings.push({kind,root:fitting});

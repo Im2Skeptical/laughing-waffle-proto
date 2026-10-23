@@ -207,9 +207,13 @@ Save/load preserves the generated map through its versioned seeded definition.
   opening node and its sole choice name that founder; completing it establishes
   the chosen class. Later candidate cards show Unclassed or the established class,
   with no recurring founder identities. Later Lifegraphs use a Vassal Chronicle
-  label. The compact centered HUD shows:
-  circular portrait, Age over Prestige, EXP `n/10`, four stat chips, and Location
-  on the right, aligned under the year strip. The HUD stays
+  label. The compact centered HUD is a carved "crest bar" (`chronicle-hud-frames`
+  atlas, class-tinted): a portrait medallion breaking the lintel's left end, a
+  hanging Prestige pendant, Age over an amber EXP groove with quarter studs, four
+  icon stat plaques (full label in the tooltip), heirloom sockets and bag, and
+  hanging Commission/Retinue and Location tabs. It ends above y=200 so the
+  level-up window never overlaps it; during level-up the chosen stat's plaque
+  stud pulses and heirloom controls dim and lock. The HUD stays
   fully lit above recap and decision modals and shows signed Prestige and stat deltas
   for the hovered or selected choice; recap counts those values up from before to after. Stat hover/tap
   details show the current
@@ -322,8 +326,12 @@ Save/load preserves the generated map through its versioned seeded definition.
   an accepted transaction twice. Option, recap, and level-up buttons use immediate
   hover/pressed/selected feedback instead of per-selection loading labels.
   EXP level-ups use a separate non-dismissible modal while the Lifegraph is
-  visible, after the recap is dismissed if a level was earned; a card tap selects a stat
-  and Confirm applies it. Press feedback guards against click-through. The
+  visible, after the recap is dismissed if a level was earned. The level-up
+  window (class-tinted carved frame atlas, level pips cut from its amber stud) shows three
+  stat tablets: icon, old→new value and the new effect only; current effect and formula
+  are in the shared tooltip (hover; touch tap pins). A tablet tap selects a stat (bronze
+  rim, lift) and the centred plaque "Level up <Stat>" applies it. Text and the plaque
+  keep CSS minimums (12 px text, 46 px button) at small canvas scales. Press feedback guards against click-through. The
   HUD previews the selected stat. The player may inspect the Regional Map or a settlement, but returning to the Lifegraph
   restores the unresolved choice before further node entry.
   Confirmation locks map input while its accumulated Phases auto-advance to the

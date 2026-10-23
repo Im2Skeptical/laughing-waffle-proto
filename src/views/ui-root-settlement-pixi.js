@@ -1183,6 +1183,7 @@ const vassalCommissionPicker = createVassalCommissionPicker({
 vassalLevelUpModalView = createVassalLevelUpModalView({
   app,
   layer: modalLayer,
+  tooltipView,
   getPresentation: () => lifeDecisionController.overlay(getSettlementLifeMapPresentation()),
   isLifegraphVisible: () => worldViewMode === "vassalLife",
   isRecapOpen: () => vassalResolutionRecapView?.isOpen?.() === true,
@@ -1218,6 +1219,7 @@ vassalHeirloomFlowView = createVassalHeirloomFlowView({
 });
 
 vassalLifeHudView = createVassalLifeHudView({
+  app,
   onOpenHeirlooms: (tab) => vassalHeirloomFlowView?.openInventory?.(tab),
   layer: modalLayer,
   tooltipView,
@@ -1230,6 +1232,7 @@ vassalLifeHudView = createVassalLifeHudView({
       ?? null;
   },
   getCountUp: () => getResolutionRecap?.() ?? null,
+  getLevelUp: () => vassalLevelUpModalView?.getHudState?.() ?? null,
 });
 
 function getSettlementVassalInterventionMarkers(state) {

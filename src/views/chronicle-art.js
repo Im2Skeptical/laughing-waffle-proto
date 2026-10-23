@@ -83,6 +83,12 @@ const PACKED_GROUPS = Object.freeze({
     files: Object.freeze(['class-picker-frames.json']),
     eager: true,
   }),
+  // Chronicle crest-bar HUD: lintel, medallion, pendant, plaques, EXP groove, tabs.
+  chronicleHudFrames: Object.freeze({
+    prefix: 'chronicle-hud-frames-v1/',
+    files: Object.freeze(['chronicle-hud-frames.json']),
+    eager: true,
+  }),
   timegraphChronicle: Object.freeze({
     prefix: 'timegraph-chronicle-v1/',
     files: Object.freeze(['timegraph-chronicle.json']),

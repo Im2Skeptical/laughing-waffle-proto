@@ -3,7 +3,7 @@ import { getArtRevision } from '../chronicle-art.js';
 import { createWorldMapView } from '../world-map-pixi.js';
 import { getRegionDefinition, getRegionReference } from '../../model/world-state.js';
 import { PANEL, CONTENT, OPTION_COLUMN, MORTALITY_PLATE } from './constants.js';
-import { confirmDockButton, confirmDockRect, renderTitlePlaque, renderLocationPlaque } from './chrome.js';
+import { confirmDockButton, confirmDockRect, renderTitlePlaque, locationPlaqueRect } from './chrome.js';
 import { MAP_VIEWPORT_RECT } from '../world-map/constants.js';
 import { actionCard, button } from './cards.js';
 import { VASSAL_NODE_FAMILIES } from '../../defs/gamepieces/vassal-life-map-defs.js';
@@ -14,7 +14,7 @@ import { addResourceAmount } from '../resource-cost-pixi.js';
 import { addInteractionFeedback } from '../interaction-feedback.js';
 
 // Live full-map node decisions, promoted from the opening workshop.
-const MAP_BODY = Object.freeze({ x: 986, y: 234, width: 1358, height: 520 });
+const MAP_BODY = Object.freeze({ x: 986, y: 268, width: 1358, height: 496 });
 const FAMILY = { ...VASSAL_NODE_FAMILIES.crossroads, label: 'Crossroads', description: 'Move, connect, or explore your region.' };
 
 function renderCampaignForcePanel(parent,campaign) {
@@ -109,7 +109,7 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
     const region = getRegionDefinition(getState(),currentRegion());
     const name=region?.name&&!/^Region\d+$/i.test(region.name)?region.name:null;
     locationLabel=`CURRENT REGION - ${getRegionReference(getState(),currentRegion())}${name?`\n${name}`:''}`;
-    locationPlaque=renderLocationPlaque(chrome,locationLabel,family.color);
+    locationPlaque=locationPlaqueRect();
     const divider = new PIXI.Graphics().lineStyle(2,PALETTE.stroke,.9)
       .moveTo(958,PANEL.y+CONTENT.labelY).lineTo(958,PANEL.y+PANEL.height-28);
     chrome.addChild(divider);
@@ -220,7 +220,7 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
     getSnapshot:()=>{const {illustratedTerrain,camera}=map.getSemanticSnapshot();return {open:root.visible,mode,selectedOptionId:decision?.nodeState.selectedOptionId,selectedRegionId:selected()?target(selected())??null:null,
       locationRegionId:currentRegion(),regionCount:getState()?.world?.regions?.length??0,
       connectionCount:getState()?.world?.connections?.length??0,
-      panel:PANEL,mapBody:MAP_BODY,map:{illustratedTerrain,camera},artworkReady:modeButtons.length>0&&modeButtons.every(card=>card.illustration?.texture?.baseTexture.valid),brightRegionIds:brightRegions(),locationPlaque:locationPlaque?{label:locationLabel,rect:bounds(locationPlaque)}:null,
+      panel:PANEL,mapBody:MAP_BODY,map:{illustratedTerrain,camera},artworkReady:modeButtons.length>0&&modeButtons.every(card=>card.illustration?.texture?.baseTexture.valid),brightRegionIds:brightRegions(),locationPlaque:locationPlaque?{label:locationLabel,rect:locationPlaque}:null,
       forcePanel,
       choiceButtons:(decision?modeButtons:[]).flatMap((card,index)=>card.choiceButton?[{id:decision.options[index].id,label:decision.nodeState.selectedOptionId===decision.options[index].id?'Selected':'Choose',rect:bounds(card.choiceButton)}]:[]),
       prices:(decision?modeButtons:[]).flatMap((card,index)=>card.costPanel?[{mode:isMenuMap()?decision.options[index].id:['move','build','tour'][index],optionId:card.priceOptionId,from:card.priceFrom,

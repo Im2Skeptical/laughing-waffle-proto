@@ -1,0 +1,81 @@
+{
+  "stored": {
+    "exp-groove-empty": [
+      122,
+      23
+    ],
+    "exp-groove-full": [
+      122,
+      23
+    ],
+    "lintel-cap-left": [
+      89,
+      113
+    ],
+    "lintel-cap-right": [
+      81,
+      113
+    ],
+    "lintel-mid": [
+      256,
+      65
+    ],
+    "medallion": [
+      141,
+      145
+    ],
+    "medallion-scholar": [
+      154,
+      154
+    ],
+    "medallion-warrior": [
+      154,
+      154
+    ],
+    "mult-seal-capacity-active": [
+      122,
+      158
+    ],
+    "mult-seal-capacity-dormant": [
+      122,
+      157
+    ],
+    "mult-seal-output-active": [
+      146,
+      150
+    ],
+    "mult-seal-output-dormant": [
+      143,
+      149
+    ],
+    "mult-twin-left-active": [
+      143,
+      64
+    ],
+    "mult-twin-left-dormant": [
+      143,
+      64
+    ],
+    "mult-twin-right-active": [
+      143,
+      64
+    ],
+    "mult-twin-right-dormant": [
+      143,
+      64
+    ],
+    "pendant": [
+      90,
+      65
+    ],
+    "stat-plaque": [
+      62,
+      57
+    ],
+    "tab": [
+      80,
+      81
+    ]
+  },
+  "packing": "python images/dark-fantasy/chronicle-hud-frames-v1/build.py"
+}

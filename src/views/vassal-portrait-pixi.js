@@ -17,6 +17,7 @@ export function createVassalPortraitView(portrait, {
   founder = false,
   borderColor,
   shape = "square",
+  bare = false,
   age = null,
   stage = getVassalPortraitStage(age),
 } = {}) {
@@ -27,16 +28,19 @@ export function createVassalPortraitView(portrait, {
   const portraitId=`legacy-0${index%8+1}`;
   root.portraitStage = stage;
   const texture=getChronicleTexture(`vassal-portraits-v1/${portraitId}${stage === "middle" ? "" : `-${stage}`}.png`);
-  const classArt = createClassPortraitArt(classId, {size,founder,texture});
-  if (classArt) {classArt.portraitStage=stage;return classArt;}
+  if (!bare) {
+    const classArt = createClassPortraitArt(classId, {size,founder,texture});
+    if (classArt) {classArt.portraitStage=stage;return classArt;}
+  }
   const ink = borderColor ?? RELIC.brass;
   if (shape === "circle") {
     const radius = size / 2;
-    if (texture) {
-      const sprite = new PIXI.Sprite(texture);
+    const painting = (founder && classId && getChronicleTexture(`vassal-class-v1/${classId}-founder.png`)) || texture;
+    if (painting) {
+      const sprite = new PIXI.Sprite(painting);
       sprite.width = sprite.height = size;
       const mask = new PIXI.Graphics();
-      mask.beginFill(0xffffff).drawCircle(radius, radius, radius - 3).endFill();
+      mask.beginFill(0xffffff).drawCircle(radius, radius, bare ? radius : radius - 3).endFill();
       sprite.mask = mask;
       root.addChild(sprite, mask);
     } else {
@@ -44,10 +48,12 @@ export function createVassalPortraitView(portrait, {
         outlineColor: ink,
       });
     }
-    const ring = new PIXI.Graphics();
-    ring.lineStyle(3.5, ink, 1).drawCircle(radius, radius, radius - 2);
-    ring.lineStyle(1.5, 0x111714, 0.55).drawCircle(radius, radius, radius - 5);
-    root.addChild(ring);
+    if (!bare) {
+      const ring = new PIXI.Graphics();
+      ring.lineStyle(3.5, ink, 1).drawCircle(radius, radius, radius - 2);
+      ring.lineStyle(1.5, 0x111714, 0.55).drawCircle(radius, radius, radius - 5);
+      root.addChild(ring);
+    }
     root.hitArea = new PIXI.Circle(radius, radius, radius);
     return root;
   }

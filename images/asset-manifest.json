@@ -456,6 +456,34 @@
         "warrior-founder.png",
         "scholar-founder.png"
       ]
+    },
+    "chronicle-hud-frames": {
+      "load": "eager",
+      "data": [
+        "images/sprite-sheets/chronicle-hud-frames.json"
+      ],
+      "source": "chronicle-hud-frames-v1",
+      "files": [
+        "exp-groove-empty.png",
+        "exp-groove-full.png",
+        "lintel-cap-left.png",
+        "lintel-cap-right.png",
+        "lintel-mid.png",
+        "medallion.png",
+        "medallion-scholar.png",
+        "medallion-warrior.png",
+        "mult-seal-capacity-active.png",
+        "mult-seal-capacity-dormant.png",
+        "mult-seal-output-active.png",
+        "mult-seal-output-dormant.png",
+        "mult-twin-left-active.png",
+        "mult-twin-left-dormant.png",
+        "mult-twin-right-active.png",
+        "mult-twin-right-dormant.png",
+        "pendant.png",
+        "stat-plaque.png",
+        "tab.png"
+      ]
     }
   },
   "standalone": [
