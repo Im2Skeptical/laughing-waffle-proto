@@ -1,3 +1,4 @@
+import { addPrestigeBankFeedback } from "./prestige-feedback-pixi.js";
 import { getRetinue } from "../model/detailed-settlements/external-world.js";
 import { VASSAL_LIFE_TUNING } from "../defs/gamepieces/vassal-life-map-defs.js";
 import {
@@ -314,6 +315,7 @@ export function createVassalLifeHudView({
     const pendant = new PIXI.Container(); pendant.position.set(pd.x, pd.y); crest.addChild(pendant);
     if (painted) addSliced(pendant, tex('pendant'), 0, 0, pendantW, pd.unit, SLICES.pendant);
     else { const g = new PIXI.Graphics(); roundedRect(g, 0, 20, pendantW, 54, 9, 0x423d2c, PALETTE.accent, 3); pendant.addChild(g); }
+    addPrestigeBankFeedback(pendant, { x: 2, y: 18, width: pendantW - 4, height: 54 });
     const amount = addResourceAmount(pendant, "prestige", prestigeLabel, {
       x: 12, y: 33, fontSize: 26, iconSize: 28, fill: shown.flashing ? PALETTE.green : PALETTE.accent,
     });

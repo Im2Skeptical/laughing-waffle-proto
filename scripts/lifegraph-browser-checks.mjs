@@ -8,6 +8,12 @@ export async function checkLifegraphWorkspace(page,context,{reload=false}={}){
   await page.getByTestId('lab-lifegraph').waitFor();
   await checkLifegraphFullscreen(page,context);
   await checkLifegraphColumns(page);
+  await page.getByTestId('lifegraph-tab-nodes').click();
+  await page.getByTestId('lifegraph-node-discovery').click();
+  assert.match(await page.getByTestId('lifegraph-generation').textContent(),/Guarantees reserve nodes separately/);
+  assert.match(await page.locator('.lab-lifegraph-node-layout').textContent(),/Placement sources: \d+ reserved/);
+  await page.getByTestId('lifegraph-edit-guarantees').click();
+  assert.match(await page.getByTestId('lab-lifegraph').textContent(),/Every route.*several copies on separate branches/);
   await page.getByTestId('lifegraph-class-warrior').click();
   await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().draft.preview.classId==='warrior');
   assert.ok(await page.evaluate(()=>__LAB_DEBUG__.getLifegraph().diagnostics.families.campaign.minOnRoute>=1));
@@ -29,7 +35,7 @@ export async function checkLifegraphWorkspace(page,context,{reload=false}={}){
   await page.getByRole('button',{name:'Load experiment',exact:true}).click();
   await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().draft.generatorConfig.laneCount===6);
   await page.getByTestId('lifegraph-load-defaults').click();
-  await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().draft.generatorConfig.laneCount===3);
+  await page.waitForFunction(()=>__LAB_DEBUG__.getLifegraph().draft.generatorConfig.laneCount===5);
   await page.getByTestId('lifegraph-tab-nodes').click();
   await checkLifegraphRelicPools(page);
   await page.getByTestId('lifegraph-node-development').click();
@@ -62,6 +68,9 @@ export async function checkLifegraphWorkspace(page,context,{reload=false}={}){
   assert.equal(await choice.getByLabel('Deep Study · Prestige base value',{exact:true}).inputValue(),'17');
   assert.equal(await page.locator('[data-option-id="hardLesson"]').getByLabel('Hard Lesson · Prestige base value',{exact:true}).inputValue(),'0');
   await page.screenshot({path:'artifacts/lifegraph-choice-editor.png',fullPage:true});
+  await page.getByTestId('lifegraph-tab-columns').click();
+  await page.getByTestId('lifegraph-column-milestone-1').getByRole('button',{name:'Remove milestone',exact:true}).click();
+  await page.getByTestId('lifegraph-tab-nodes').click();
   await page.getByTestId('lifegraph-node-practiceReform').click();
   await page.getByLabel('Node review notes').fill('Browser check: Timber has one supplier; add another choice.');
   await page.getByTestId('lifegraph-save-note').click();

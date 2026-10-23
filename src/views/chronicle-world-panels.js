@@ -1,3 +1,4 @@
+import { addPracticeMultiplierPair } from './multiplier-fitting.js';
 import { addIllustration, addRegionLandmark } from './chronicle-art.js';
 import { formatChaosValue } from '../model/chaos-values.js';
 import { addSettlementPiece, addConstructionStrip } from './settlement-piece-pixi.js';
@@ -47,7 +48,7 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
     ];
     const cell=290;
     stats.forEach((stat,i)=>{
-      const group=new PIXI.Container();group.position.set(x+380,y+22+i*40);
+      const group=new PIXI.Container();group.position.set(x+380,y+16+i*36);
       const colour=stat.warning?(stat.severe?red:amber):PALETTE.text;
       group.addChild(new PIXI.Graphics().beginFill(stat.warning?0x392820:0x111d19,.8).lineStyle(1,stat.warning?colour:0x514d3a).drawRoundedRect(0,0,cell-7,34,4).endFill());
       addResourceIcon(group,stat.icon,18,17,28);
@@ -86,13 +87,24 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
   }
   const specialistX=x+730;
   root.addChild(createText(`Scholars ${vm.specialists.scholar}\nWarriors ${vm.specialists.warrior}\nMartial Force ${vm.martialForce}`,{
-    ...TEXT_STYLES.chip,fontSize:21,lineHeight:28,fill:PALETTE.textMuted},specialistX,y+20));
+    ...TEXT_STYLES.chip,fontSize:21,lineHeight:24,fill:PALETTE.textMuted},specialistX,y+20));
   const defenseLines=[`Defense ${defense ?? vm.martialForce}`,
     vm.lastDefense ? `Last defense: ${vm.lastDefense.result}` : '',
     `${vm.usedStructureCapacity} / ${vm.structureCapacity} construction cells`].filter(Boolean);
-  root.addChild(createText(defenseLines.join('\n'),{...TEXT_STYLES.chip,fontSize:21,lineHeight:28,fill:PALETTE.textMuted},x+1000,y+20));
-  const gap=PIECE_SIZE.gap, practiceSize=regionalPracticeSize(rect.width);
-  vm.practices.forEach((p,i)=>addSettlementPiece(root,{x:x+i*(practiceSize.width+gap),y:y+140,...practiceSize},{face:p.face,empty:!p.practiceId,tooltipView,compact:true}));
-  const constructionRect=regionalConstructionRect({x,y:y+548,width:rect.width-44,height:rect.height-566},DEFAULT_REGION_STRUCTURE_CAPACITY_MAX);
+  root.addChild(createText(defenseLines.join('\n'),{...TEXT_STYLES.chip,fontSize:21,lineHeight:24,fill:PALETTE.textMuted},x+1000,y+20));
+  const divider=new PIXI.Graphics().lineStyle(1,PALETTE.stroke,.55).moveTo(x,y+98).lineTo(x+rect.width-44,y+98);
+  divider.eventMode='none';root.addChild(divider);
+  const gap=PIECE_SIZE.gap, practiceSize=regionalPracticeSize(rect.width), cardHeight=346, pairHeight=44;
+  vm.practices.forEach((p,i)=>{
+    const slotX=x+i*(practiceSize.width+gap), cardW=cardHeight*PIECE_SIZE.practiceWidth/PIECE_SIZE.practiceHeight;
+    const cardX=slotX+(practiceSize.width-cardW)/2, cardY=y+122;
+    const hasPools=!!p.face?.outputMultiplierBreakdown;
+    const slot=new PIXI.Graphics().lineStyle(1.5,0x685c44,.85).beginFill(0x101815,.88)
+      .drawRoundedRect(cardX-5,cardY-5,cardW+10,cardHeight+(hasPools?pairHeight+24:10),6).endFill();
+    slot.eventMode='none';root.addChild(slot);
+    addSettlementPiece(root,{x:cardX,y:cardY,width:cardW,height:cardHeight},{face:p.face,empty:!p.practiceId,tooltipView,compact:true});
+    addPracticeMultiplierPair(root,{x:cardX,y:cardY+cardHeight+13,width:cardW,height:pairHeight},p,i,tooltipView);
+  });
+  const constructionRect=regionalConstructionRect({x,y:y+554,width:rect.width-44,height:rect.height-572},DEFAULT_REGION_STRUCTURE_CAPACITY_MAX);
   addConstructionStrip(root,constructionRect,{slots:vm.structures,capacity:vm.structureCapacity,displayCapacity:DEFAULT_REGION_STRUCTURE_CAPACITY_MAX,tooltipView,compact:true});
 }

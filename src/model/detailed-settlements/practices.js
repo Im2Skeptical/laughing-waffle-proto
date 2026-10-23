@@ -9,7 +9,7 @@ import { stockCapacity, planStock, applyStockPlan, generateStock, specialistCoun
 import { resolveExternalPractice, adjacentRegionIds, addMonsterPressure } from './external-world.js';
 import { applyBuild, findStructurePlacement } from '../structure-layout.js';
 import { addActionChaos, emitPracticeEvent, practiceEventJournal, tracePracticeEvent, withPracticeRoot } from './practice-events.js';
-import { stockTraits, stockProviderSlots, stockProviderSlot } from './stock.js';
+import { stockTraits, stockProviderSlots, stockProviderSlot, stockOutputBreakdown } from './stock.js';
 import { getConnectedRegionIds } from '../world-state.js';
 
 export function validateDetailedPracticeDefinitions() {
@@ -81,7 +81,7 @@ function practiceEffectAmount(state, site, assignment, effect, activationType = 
     const seasonal=settlement.seasonalFoodBoost;
     if (def.activation.type==='season' && def.tags.includes('Food') && def.stockTraits.includes('Edible') && seasonal?.year===state.year
       && seasonal.practiceId===def.id && !seasonal.seasons.includes(getCurrentSeasonKey(state))) amount+=seasonal.amount;
-    amount=Math.floor(amount*(def.mode==='charge'?1:1+assignment.effectiveWorkers*def.workerBonus));
+    amount=Math.floor(amount*stockOutputBreakdown(state,settlement,slot,isScholarStaffed(assignment),modifiers).multiplier*(def.mode==='charge'?1:1+assignment.effectiveWorkers*def.workerBonus));
   }
   amount+=modifiers.reduce((n,m)=>n+(m.kind==='effectBonus'&&matchesPractice(state,slot,m.query,isScholarStaffed(assignment))?m.amount:0),0);
   return amount;

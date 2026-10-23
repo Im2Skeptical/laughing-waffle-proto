@@ -25,9 +25,11 @@ import {
 
 const base = createInitialState("devPlaytesting01", 99117);
 base.gameConfig.settings.values.primordialBasePressure = 0;
+base.gameConfig.lifeMapGenerator.design.bookends.founding.depth=0;
 const initialPool = getVassalCandidatePool(base);
 const timeline = createTimelineFromInitialState(base);
 const selectedPreview = createInitialState("devPlaytesting01", 99117);
+selectedPreview.gameConfig.lifeMapGenerator.design.bookends.founding.depth=0;
 const previewPool = getVassalCandidatePool(selectedPreview);
 const previewSelection = selectLifeMapVassal(
   selectedPreview, 1, previewPool.expectedPoolHash

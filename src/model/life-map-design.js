@@ -2,7 +2,7 @@ import { VASSAL_NORMAL_NODE_FAMILY_IDS, VASSAL_SIGNATURE_NODE_VARIANTS, getVassa
 import { validateLifeMapBalance } from './life-map-balance.js';
 import { validateRelicPools } from './vassal-life-map/relic-pools.js';
 import { LIFEGRAPH_DEFAULT_GENERATOR } from '../defs/lifegraph-defaults.js';
-import { lifeMapScopeMatches, validateLifeMapColumns } from './life-map-columns.js';
+import { lifeMapScopeMatches, lifeMapLifeStageMatches, validateLifeMapColumns, resolveLifeMapColumns } from './life-map-columns.js';
 export { lifeMapScopeMatches } from './life-map-columns.js';
 
 export const LIFEGRAPH_RARITIES = Object.freeze(['common', 'uncommon', 'rare']);
@@ -78,11 +78,12 @@ export function validateLifeMapDesign(design, depthCount) {
     if(!g||typeof g!=='object'){fail('guarantees: expected rule objects');continue;}
     if(typeof g.id!=='string'||!g.id||ruleIds.has(g.id))fail('guarantees: unique rule ids required');ruleIds.add(g.id);
     if(!['map','eachRoute'].includes(g.coverage)||!['common','scholar','warrior','specialist','unclassed'].includes(g.scope)||!Number.isInteger(g.count)||g.count<1||g.count>10)fail(`guarantees.${g.id}: invalid coverage, class or count`);
+    if(g.lifeStage!==undefined&&!['any','firstLife','successor'].includes(g.lifeStage))fail(`guarantees.${g.id}: choose a life stage`);
     if(!Number.isInteger(g.minDepth)||!Number.isInteger(g.maxDepth)||g.minDepth<1||g.maxDepth<g.minDepth||design.enabled&&g.maxDepth>depthCount)fail(`guarantees.${g.id}: depth range must fit the graph`);
     if(g.targetType==='pool'?!ids.has(g.targetId):g.targetType!=='node'||!VASSAL_NORMAL_NODE_FAMILY_IDS.includes(g.targetId)&&g.targetId!=='stockShop')fail(`guarantees.${g.id}: unknown target`);
   }
   if(design.enabled&&!errors.length)for(const classId of [null,'scholar','warrior'])for(const band of LIFEGRAPH_TIMINGS){
-    const reserved=new Set(design.columns.filter(c=>c.enabled&&lifeMapScopeMatches(c.scope,classId)).map(c=>c.depth));
+    const reserved=new Set(resolveLifeMapColumns({design},{classId}).map(c=>c.depth));
     if(design.bookends.legacy.enabled&&design.bookends.legacy.depth!=='end')reserved.add(design.bookends.legacy.depth);
     const depths=Number.isInteger(depthCount)&&depthCount<=20?Array.from({length:depthCount},(_,i)=>i+1):[];
     // A wholly authored graph needs no random pool. Timing bands are resolved
@@ -102,12 +103,15 @@ function weighted(rng, entries, weight) {
 
 // Assign content after topology. Reserved opportunities are never overwritten by
 // later class/supply passes. All random choices use the caller's topology stream.
-export function populatePooledLifeMap(config, nodes, edges, rng, {classId=null,signatureNode=null,stockOutputs=[],unmetStockOutputs=[]}={}) {
+export function populatePooledLifeMap(config, nodes, edges, rng, {classId=null,founderClassId=null,signatureNode=null,stockOutputs=[],unmetStockOutputs=[]}={}) {
   const design=config.design, byId=new Map(nodes.map(n=>[n.id,n]));
   const randomIds=[...VASSAL_NORMAL_NODE_FAMILY_IDS,'stockShop'];
+  const founding=nodes.find(node=>node.bookend==='founding');
+  const availableClass=founderClassId&&!founding?null:classId;
+  const classAt=node=>founderClassId&&(!founding||node.depth<founding.depth)?null:classId;
   const parents=id=>edges.filter(e=>e.toNodeId===id).map(e=>byId.get(e.fromNodeId));
   const poolFor=n=>design.nodes[n.signatureNode?`signature:${n.signatureNode.variantId}`:getVassalLifeMapNodeType(n)]?.poolId;
-  const eligible=(node,ids=randomIds,atMilestone=false)=>ids.filter(id=>(atMilestone||!design.nodes[id].milestonesOnly)&&lifeMapNodeEnabled(design,id,classId,node.band)
+  const eligible=(node,ids=randomIds,atMilestone=false)=>ids.filter(id=>(atMilestone||!design.nodes[id].milestonesOnly)&&lifeMapNodeEnabled(design,id,classAt(node),node.band)
     &&!(id==='stockShop'&&!stockOutputs.length)
     &&!edges.some(e=>(e.toNodeId===node.id&&getVassalLifeMapNodeType(byId.get(e.fromNodeId))===id
       ||e.fromNodeId===node.id&&getVassalLifeMapNodeType(byId.get(e.toNodeId))===id)&&config.nonRepeatFamilyIds.includes(id)));
@@ -137,9 +141,9 @@ export function populatePooledLifeMap(config, nodes, edges, rng, {classId=null,s
     if(!family)return {ok:false,reason:'milestoneImpossible',errors:[`Milestone “${column.label}” has no eligible node at depth ${column.depth} for ${classId??'unclassed'}. Check enabled nodes, class, timing and Stock outputs.`]};
     reserve(node,family,`milestone:${column.id}`);
   }
-  if(signatureNode&&lifeMapNodeEnabled(design,`signature:${signatureNode.variantId}`,classId)){
+  if(signatureNode&&lifeMapNodeEnabled(design,`signature:${signatureNode.variantId}`,availableClass)){
     if(signatureNode.variantId==='legacyPlus'){const legacy=nodes.find(n=>n.family==='legacy');if(legacy)legacy.signatureNode=clone(signatureNode);}
-    else {const rule=design.nodes[`signature:${signatureNode.variantId}`];const candidates=nodes.filter(n=>!n.family&&rule.timings.includes(n.band));if(!candidates.length)return {ok:false,reason:'signatureImpossible',errors:['The signature cannot fit without replacing a milestone. Change its timing, free a depth or disable this signature.']};const preferred=candidates.filter(n=>n.band==='mid'),available=preferred.length?preferred:candidates;const n=available[rng.nextInt(0,available.length-1)];n.family='signature';n.signatureNode=clone(signatureNode);n.generationRuleId='signature';}
+    else {const rule=design.nodes[`signature:${signatureNode.variantId}`];const candidates=nodes.filter(n=>!n.family&&rule.timings.includes(n.band)&&lifeMapNodeEnabled(design,`signature:${signatureNode.variantId}`,classAt(n),n.band));if(!candidates.length)return {ok:false,reason:'signatureImpossible',errors:['The signature cannot fit without replacing a milestone. Change its timing, free a depth or disable this signature.']};const preferred=candidates.filter(n=>n.band==='mid'),available=preferred.length?preferred:candidates;const n=available[rng.nextInt(0,available.length-1)];n.family='signature';n.signatureNode=clone(signatureNode);n.generationRuleId='signature';}
   }
   const matches=(n,g)=>n.depth>=g.minDepth-1&&n.depth<=g.maxDepth-1&&(g.targetType==='node'?getVassalLifeMapNodeType(n)===g.targetId:poolFor(n)===g.targetId);
   const minPath=g=>{
@@ -151,7 +155,7 @@ export function populatePooledLifeMap(config, nodes, edges, rng, {classId=null,s
   };
   // Place the tightest depth windows first so flexible route coverage cannot
   // consume an entire row requested by an exact-depth guarantee.
-  const guarantees=design.guarantees.filter(g=>lifeMapScopeMatches(g.scope,classId))
+  const guarantees=design.guarantees.filter(g=>lifeMapScopeMatches(g.scope,availableClass)&&lifeMapLifeStageMatches(g.lifeStage??'any',founderClassId))
     .sort((a,b)=>(a.maxDepth-a.minDepth)-(b.maxDepth-b.minDepth));
   for(const g of guarantees){
     for(let attempt=0;attempt<nodes.length;attempt++){

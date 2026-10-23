@@ -89,7 +89,9 @@ export function openLifegraphNode(state,graph,nodeId,settings){
 }
 
 export function openLifegraphNodeType(state,graph,designId,settings){
-  const classId=getCurrentLifeMapVassal(state).classId;
+  const vassal=getCurrentLifeMapVassal(state),classId=vassal.classId;
+  const founding=graph.nodes.find(n=>n.id===graph.foundingNodeId);
+  const classAt=node=>vassal.founderClassId&&(!founding||node.depth<=founding.depth)?null:classId;
   if(!lifeMapAllowedScopes(designId).some(scope=>lifeMapScopeMatches(scope,classId)))throw new Error('Switch to the compatible class to play this node type.');
   const copy=clone(graph),variant=designId.startsWith('signature:')?VASSAL_SIGNATURE_NODE_VARIANTS[designId.slice(10)]:null;
   const family=variant?variant.id==='legacyPlus'?'legacy':'signature':designId==='specialRelic'?'relic':designId;
@@ -101,7 +103,7 @@ export function openLifegraphNodeType(state,graph,designId,settings){
     copy.nodes.push({id:copy.bossNodeId,depth,lane:Math.floor((copy.generatorConfig.laneCount-1)/2),band:'legacy',family:'legacy',bookend:'legacy',generationRuleId:'legacy',position:{x:1,y:.5}});
   }
   const target=copy.nodes.find(n=>nodeDesignId(n)===designId)??(family==='legacy'?copy.nodes.find(n=>n.family==='legacy'):family==='signature'?copy.nodes.find(n=>n.family==='signature'):null)
-    ??copy.nodes.find(n=>!n.signatureNode&&!n.bookend&&!n.milestoneId&&n.family!=='legacy'&&!copy.edges.some(e=>(e.fromNodeId===n.id&&nodeDesignId(copy.nodes.find(x=>x.id===e.toNodeId))===designId||e.toNodeId===n.id&&nodeDesignId(copy.nodes.find(x=>x.id===e.fromNodeId))===designId)&&copy.generatorConfig.nonRepeatFamilyIds.includes(designId)));
+    ??copy.nodes.find(n=>!n.signatureNode&&!n.bookend&&!n.milestoneId&&n.family!=='legacy'&&lifeMapAllowedScopes(designId).some(scope=>lifeMapScopeMatches(scope,classAt(n)))&&!copy.edges.some(e=>(e.fromNodeId===n.id&&nodeDesignId(copy.nodes.find(x=>x.id===e.toNodeId))===designId||e.toNodeId===n.id&&nodeDesignId(copy.nodes.find(x=>x.id===e.fromNodeId))===designId)&&copy.generatorConfig.nonRepeatFamilyIds.includes(designId)));
   if(!target)throw new Error('No suitable node slot for this isolated type preview.');
   if(nodeDesignId(target)===designId)return openLifegraphNode(state,copy,target.id,settings);
   target.family=family;delete target.signatureNode;delete target.specialRelic;delete target.generationRuleId;delete target.stockOutput;

@@ -24,6 +24,8 @@ function endLife(state, die = false) {
 
 for (const [candidateIndex, classId, archetype, count] of [[0, 'scholar', 'Philosopher', 2], [1, 'warrior', 'Warlord', 10]]) {
   const state = createNewGameState(701 + candidateIndex);
+  // Isolate Founding resolution at the opening; default depth-5 placement has separate coverage.
+  state.gameConfig.lifeMapGenerator.design.bookends.founding.depth=0;
   state.paused = true;
   state.gameConfig.settings.values.primordialBasePressure = 0;
   const lineage = state.civilization.vassalLineage;

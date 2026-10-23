@@ -23,6 +23,9 @@ Ubiquitous language for this prototype. Engine invariants and schema numbers:
 | **Structure** | Placed construction with origin, width, definition, and quality. | practice, tile improvement |
 | **Stock** | Integer material hosted by an installed Practice, with capacity and Stock Traits. | settlement wallet, loose food, private Charge |
 | **Stock Trait** | Material property used to match providers; Edible and Currency derive Food and purchasing totals. | Card Tag, class, worker specialty |
+| **Output Multiplier** | Additive multiplier on matching Stock production, starting at ×1. It does not change capacity, recipes, cadence or Charge gain. | Stock Power, capacity bonus, flat output bonus |
+| **Capacity Multiplier** | Additive multiplier on matching hosted Stock capacity, starting at ×1. It does not increase production. | Stock Power, Output Multiplier, structure capacity |
+| **multiplier contribution** | A source's additive change to one named multiplier pool, optionally scoped by Stock Traits or other explicit conditions. | multiplying the multipliers, automatic bonus to both pools |
 | **Card Tag** | Piece classification used by definition queries; Scholar staffing can add Knowledge. | Stock Trait, resource type |
 | **Charge / Discharge** | Private Practice meter and its automatic cost-free effect at a legal full threshold, once per root chain. | Stock, Currency, worker-multiplied Discharge output |
 | **provider** | Practice Stock host supplying a complete recipe: local first, then adjacent-and-connected player settlements. | Administration transport, global wallet |

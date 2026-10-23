@@ -1,11 +1,15 @@
 import { addSettlementPiece, addConstructionStrip } from '../settlement-piece-pixi.js';
 import { TABLEAU } from './constants.js';
+import { addMultiplierFitting, addMultiplierCompletionBadge } from '../multiplier-fitting.js';
+import { multiplierTooltip } from '../multiplier-breakdown.js';
+import { createText } from '../settlement-view-primitives.js';
+import { TEXT_STYLES } from '../settlement-theme.js';
 
 // Board and discard share physical faces. Frames remain visible around occupied
 // cards, so both empty targets and the selected replacement read as slots.
 export function renderDecisionTableau(parent, settlement, {
   time = 0, readOnly = false, choosing = false, onChoose, onInspect, onHover,
-  onOut, onDrag, onUpgrade, preview = false, targetIndex = null,
+  onOut, onDrag, onUpgrade, preview = false, targetIndex = null, tooltipView,
 } = {}) {
   const layer = new PIXI.Container();
   parent.addChild(layer);
@@ -38,6 +42,33 @@ export function renderDecisionTableau(parent, settlement, {
     onUpgrade?.(card, piece);
     roots.push({card, piece});
   }
+  const pools=settlement.multiplierPreview;
+  const poolFittings=[];
+  if(pools) {
+    for(const row of pools.rows) {
+      const x=TABLEAU.x+row.index*(TABLEAU.cardWidth+TABLEAU.gap), w=(TABLEAU.cardWidth-8)/2;
+      for(const [offset,kind] of ['output','capacity'].entries()) {
+        const changed=row.before && row.before[kind].multiplier!==row[kind].multiplier;
+        const fitting=addMultiplierFitting(layer,{x:x+offset*(w+8),y:550,width:w,height:48},{kind,multiplier:row[kind].multiplier,
+          tooltipView,spec:multiplierTooltip(row,kind,pools)});
+        if(changed) {
+          const glow=new PIXI.Graphics().lineStyle(3,0xb9e8ae).drawRoundedRect(-2,-2,w+4,52,5);
+          glow.eventMode='none';fitting.addChild(glow);
+          const delta=row[kind].multiplier-row.before[kind].multiplier;
+          const tick=createText(`${delta>0?'↑':'↓'}${Math.abs(delta)}`,{...TEXT_STYLES.chip,fontSize:20,fill:0xc7eebc},w-3,-18,1,0);
+          tick.eventMode='none';fitting.addChild(tick);
+          if(pools.afterCompletion) {
+            addMultiplierCompletionBadge(fitting,w/2,55);
+            fitting.hitArea=new PIXI.Rectangle(0,0,w,71);
+            fitting.completionPreview=true;
+            fitting.accessibleTitle+=' after construction';
+          }
+        }
+        poolFittings.push({kind,practiceId:row.practiceId,root:fitting});
+      }
+    }
+  }
+  layer.poolFittings=poolFittings;
   const discard = new PIXI.Graphics().lineStyle(2, 0xb56e5f, .8)
     .beginFill(0x241a18, .85).drawRoundedRect(TABLEAU.discardX - 6, TABLEAU.discardY - 18,
       TABLEAU.discardWidth + 12, 530, 9).endFill();

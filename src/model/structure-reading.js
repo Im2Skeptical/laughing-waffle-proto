@@ -42,9 +42,10 @@ function modifierText(mod, amount) {
   const history = { age:'civilization age', records:'stocked Record Practices', losses:'lost settlements', retired:'retired Vassals of the candidate class', commissions:'completed Commissions by retired Vassals of the candidate class', chaos:'Chaos Power', conquests:'completed conquests', victories:'martial victories', knowledgeStructures:'distinct local Knowledge Structures' };
   const lines = {
     capacity: mod.query?.traitsAny?.length && !mod.query.tagsAny?.length
-      ? `+${n} Stock Power for ${mod.query.traitsAny.join(' / ')}`
-      : `+${n} Stock Power for ${scope}`,
+      ? `+${n} Capacity Multiplier for ${mod.query.traitsAny.join(' / ')}`
+      : `+${n} Capacity Multiplier for ${scope}`,
     output: `+${n} Stock output from ${scope}`,
+    outputMultiplier: `+${n} Output Multiplier for ${mod.query?.traitsAny?.length?mod.query.traitsAny.join(' / '):scope}`,
     chargeGain: `+${n} incoming Charge for ${scope}`,
     effectBonus: `+${n} to numeric effects of ${scope}`,
     requireSubstitution: `${mod.from} Stock can satisfy ${mod.to} requirements${mod.providerTagsAny?.length ? ` from Practices tagged ${mod.providerTagsAny.join(' or ')}` : ''}`,
@@ -80,7 +81,8 @@ export function getStructureReading(def, { slot = null, settlement = null } = {}
   for (const mod of def.modifiers ?? []) {
     const amount = Number.isFinite(mod.amount) ? structureModifierAmount(def, mod, slot) : 0;
     effects.push({ timing:'', text:modifierText(mod, amount) });
-    if (mod.kind === 'capacity') bonuses.push({ kind:'stock', amount, label:'Stock Power', traits:[...(mod.query?.traitsAny ?? [])], scope:practiceScope(mod.query) });
+    if (mod.kind === 'capacity') bonuses.push({ kind:'stock', amount, label:'Capacity Multiplier', traits:[...(mod.query?.traitsAny ?? [])], scope:practiceScope(mod.query) });
+    if (mod.kind === 'outputMultiplier') bonuses.push({kind:'outputMultiplier',amount,label:'Output Multiplier',traits:[...(mod.query?.traitsAny??[])],scope:practiceScope(mod.query)});
     if (mod.kind === 'support') bonuses.push({ kind:'population', amount:amount * 100, unit:'%', label:'Martial Support', traits:[] });
   }
   if (def.pool !== 'common' && def.candidateBonus) effects.push({ timing:'', text:`+${def.candidateBonus} to future ${title(def.pool)} candidates from this settlement (combined institutional bonus capped at +5)` });
