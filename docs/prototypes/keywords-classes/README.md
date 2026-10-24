@@ -1,5 +1,11 @@
 # Keywords and classes — throwaway experiment
 
+**Current direction:** [A revised to use existing Practice Output Multipliers](multiplier-a/README.md).
+Cam leaned toward A and suggested multipliers instead of tracker strips. A now contributes
+to the existing multiplier pool, with counts explained through its ledger and
+linked inspection. A is the default. B/C remain comparison options; the report
+and screenshots below preserve the original flat-output experiment at `e126d844`.
+
 Question: can a named rule bundle carry a live, inspectable score across cards,
 without turning a class into a compulsory civilisation build?
 

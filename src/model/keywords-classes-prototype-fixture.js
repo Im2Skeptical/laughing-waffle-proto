@@ -5,7 +5,7 @@ import { getDetailedSettlementSites } from './detailed-settlements/queries.js';
 import { adjacentRegionIds } from './detailed-settlements/external-world.js';
 import { canonicalKeywordPrototype } from './keywords-classes-prototype.js';
 
-export function createKeywordPrototypeState(mode='lenses', classId='scholar', {inherited=true}={}) {
+export function createKeywordPrototypeState(mode='disciplines', classId='scholar', {inherited=true}={}) {
   const state=createNewGameState(1867);
   state.gameConfig.keywordPrototype=canonicalKeywordPrototype({mode,classId,taught:mode==='teachings'&&inherited?['economicRegions']:[]});
   const sites=getDetailedSettlementSites(state,{playerOnly:true});

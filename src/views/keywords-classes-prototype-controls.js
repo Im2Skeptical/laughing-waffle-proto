@@ -10,7 +10,7 @@ export function addKeywordPrototypeControls(host) {
     input.value=current;field.append(input);section.append(field);return input;
   };
   section.append(heading);
-  const mode=select('Keyword option',[['disciplines','A · Class disciplines'],['lenses','B · Shared lenses'],['teachings','C · Inherited teachings']],params.get('variant')??'lenses');
+  const mode=select('Keyword option',[['disciplines','A · Class disciplines'],['lenses','B · Shared lenses'],['teachings','C · Inherited teachings']],params.get('variant')??'disciplines');
   const role=select('Keyword class',[['scholar','Scholar'],['warrior','Warrior'],['priest','Priest (planned)'],['merchant','Merchant (planned)']],params.get('class')??'scholar');
   const teaching=select('Prior teaching',[['1','Economic Regions inherited'],['0','No inherited teaching']],params.get('inherited')??'1');
   const launch=document.createElement('button');launch.textContent='Open fresh keyword experiment';

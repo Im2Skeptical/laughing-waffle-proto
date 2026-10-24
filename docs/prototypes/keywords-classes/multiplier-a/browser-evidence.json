@@ -1,0 +1,151 @@
+{
+  "viewport": {
+    "width": 844,
+    "height": 390
+  },
+  "results": [
+    {
+      "mode": "disciplines",
+      "role": "scholar",
+      "keyword": "economicRegions",
+      "state": {
+        "mode": "disciplines",
+        "classId": "scholar",
+        "taught": [],
+        "tSec": 12,
+        "capital": "R10"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "economicRegions",
+        "name": "Economic Regions",
+        "score": 3,
+        "bonus": 3,
+        "inMultiplierPool": true,
+        "active": true,
+        "emphasised": true,
+        "text": "Economic Regions contributes to Output Multiplier.",
+        "definition": "Count occupied settlements in this road-connected trade zone, including this one and neutral towns. Frontier and ruins break the zone. Each counts once; connecting two zones joins them. Scholar discipline. 3 counted; +3 to this Practice's Output Multiplier, capped at +6. This contribution adds to the base 1 and other multiplier sources. Base Stock yields, recipes, Research, Charge gain and capacity are unchanged.",
+        "lens": ""
+      },
+      "referenceOpened": "Economic Regions",
+      "multiplier": {
+        "total": 4,
+        "base": [
+          "1 Base Stock"
+        ],
+        "rows": [
+          {
+            "label": "Economic Regions",
+            "amount": 3
+          }
+        ]
+      }
+    },
+    {
+      "mode": "disciplines",
+      "role": "scholar",
+      "keyword": "monsterTrophies",
+      "state": {
+        "mode": "disciplines",
+        "classId": "scholar",
+        "taught": [],
+        "tSec": 12,
+        "capital": "R10"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "monsterTrophies",
+        "name": "Monster Trophies",
+        "score": 1,
+        "bonus": 0,
+        "inMultiplierPool": true,
+        "active": false,
+        "emphasised": false,
+        "text": "Monster Trophies contributes to Output Multiplier.",
+        "definition": "Count monsters actually destroyed by this civilisation, by Hunt or Campaign. Neutral conquests and successful defenses do not count. Trophies survive Vassal death; they are a count, not spendable Stock. Dormant outside Warrior / Priest. 1 counted; +0 to this Practice's Output Multiplier, capped at +6. This contribution adds to the base 1 and other multiplier sources. Base Stock yields, recipes, Research, Charge gain and capacity are unchanged.",
+        "lens": ""
+      },
+      "referenceOpened": "Monster Trophies",
+      "multiplier": {
+        "total": 1,
+        "base": [
+          "3 Base Stock"
+        ],
+        "rows": []
+      }
+    },
+    {
+      "mode": "disciplines",
+      "role": "warrior",
+      "keyword": "economicRegions",
+      "state": {
+        "mode": "disciplines",
+        "classId": "warrior",
+        "taught": [],
+        "tSec": 12,
+        "capital": "R10"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "economicRegions",
+        "name": "Economic Regions",
+        "score": 3,
+        "bonus": 0,
+        "inMultiplierPool": true,
+        "active": false,
+        "emphasised": false,
+        "text": "Economic Regions contributes to Output Multiplier.",
+        "definition": "Count occupied settlements in this road-connected trade zone, including this one and neutral towns. Frontier and ruins break the zone. Each counts once; connecting two zones joins them. Dormant outside Scholar / Merchant. 3 counted; +0 to this Practice's Output Multiplier, capped at +6. This contribution adds to the base 1 and other multiplier sources. Base Stock yields, recipes, Research, Charge gain and capacity are unchanged.",
+        "lens": ""
+      },
+      "referenceOpened": "Economic Regions",
+      "multiplier": {
+        "total": 1,
+        "base": [
+          "1 Base Stock"
+        ],
+        "rows": []
+      }
+    },
+    {
+      "mode": "disciplines",
+      "role": "warrior",
+      "keyword": "monsterTrophies",
+      "state": {
+        "mode": "disciplines",
+        "classId": "warrior",
+        "taught": [],
+        "tSec": 12,
+        "capital": "R10"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "monsterTrophies",
+        "name": "Monster Trophies",
+        "score": 1,
+        "bonus": 1,
+        "inMultiplierPool": true,
+        "active": true,
+        "emphasised": true,
+        "text": "Monster Trophies contributes to Output Multiplier.",
+        "definition": "Count monsters actually destroyed by this civilisation, by Hunt or Campaign. Neutral conquests and successful defenses do not count. Trophies survive Vassal death; they are a count, not spendable Stock. Warrior discipline. 1 counted; +1 to this Practice's Output Multiplier, capped at +6. This contribution adds to the base 1 and other multiplier sources. Base Stock yields, recipes, Research, Charge gain and capacity are unchanged.",
+        "lens": ""
+      },
+      "referenceOpened": "Monster Trophies",
+      "multiplier": {
+        "total": 2,
+        "base": [
+          "3 Base Stock"
+        ],
+        "rows": [
+          {
+            "label": "Monster Trophies",
+            "amount": 1
+          }
+        ]
+      }
+    }
+  ],
+  "errors": []
+}

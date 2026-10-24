@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, copyFileSync } from 'node:fs';
+import path from 'node:path';
 import { chromium } from 'playwright';
 import { BROWSER_PROBE_LAUNCH_OPTIONS } from './browser-probe-config.mjs';
 const base=process.env.KEYWORD_PREVIEW_URL??'http://localhost:5186/';
 const output='docs/prototypes/keywords-classes';mkdirSync(output,{recursive:true});
 const browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
-const results=[],errors=[];let page;
-const cases=[['disciplines','scholar'],['disciplines','warrior'],['lenses','scholar'],['lenses','priest'],['teachings','warrior']].filter(([mode,role])=>!process.env.KEYWORD_CASE||`${mode}-${role}`===process.env.KEYWORD_CASE);
+const results=[],errors=[],captures=[];let page;
+const capture=async relative=>{const temporary=path.join('artifacts/keywords-captures',relative),destination=path.join(output,relative);mkdirSync(path.dirname(temporary),{recursive:true});await page.screenshot({path:temporary});captures.push({temporary,destination});};
+const cases=[['disciplines','scholar'],['disciplines','warrior'],['lenses','scholar'],['lenses','priest'],['teachings','warrior']].filter(([mode,role])=>process.env.KEYWORD_CASE?`${mode}-${role}`===process.env.KEYWORD_CASE:mode==='disciplines');
 try {
  for(const [mode,role] of cases) {
   page=await browser.newPage({viewport:{width:844,height:390},hasTouch:true});
@@ -19,6 +21,7 @@ try {
     await page.waitForTimeout(250);
   };
   const click=async(method,arg)=>tap(await page.evaluate(([method,arg])=>__SETTLEMENT_DEBUG__[method](arg),[method,arg]));
+  const directory=mode==='disciplines'?'multiplier-a/':'';
   console.log('Opening',mode,role);
   await page.goto(`${base}?prototype=keywords&variant=${mode}&class=${role}`);
   await page.getByTestId('game-new').click();await page.getByTestId('game-slot-1').click();
@@ -35,8 +38,8 @@ try {
   const state={...current.gameConfig.keywordPrototype,tSec:current.viewedSec,capital:current.worldMap.regionMapIndicators.find(r=>r.controller==='player').regionId};
   console.log(mode,role,JSON.stringify(state));
   await click('getWorldMapClickPoint',state.capital);
-  await page.screenshot({path:`${output}/${mode}-${role}-board.png`});
-  for(const [index,keyword] of [[1,'economicRegions'],[2,'monsterTrophies']]) {
+  await capture(`${directory}${mode}-${role}-board.png`);
+  for(const [index,keyword] of [[1,'economicRegions'],[mode==='disciplines'?3:2,'monsterTrophies']]) {
     await page.keyboard.press('Escape');
     const point=await page.evaluate(index=>{const m=__SETTLEMENT_DEBUG__.getSnapshot().worldMap,r=m.layout.detail;const width=(r.width-44-12*4)/5;return {x:r.x+22+index*(width+12)+width/2,y:r.y+122+170};},index);
     await tap(point);
@@ -46,16 +49,29 @@ try {
     tooltip=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState());
     assert.equal(tooltip.reading?.keyword?.id,keyword,'inspection uses the real named score');
     if(keyword==='monsterTrophies')assert.equal(tooltip.reading.keyword.score,1,'the inspected simulation state contains a real kill');
-    await page.screenshot({path:`${output}/${mode}-${role}-${keyword}.png`});
+    await capture(`${directory}${mode}-${role}-${keyword}.png`);
     assert.equal(tooltip.expanded,true,'full inspection is open');
     const target=tooltip.keywords.targets.find(target=>target.action===`term:${tooltip.reading.keyword.name}`);
     assert.ok(target,'keyword has a recursive inspection link');
     await tap({x:target.x+target.width/2,y:target.y+target.height/2});
     const reference=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState());
     assert.equal(reference.keywords.term,tooltip.reading.keyword.name,'tap opens the real keyword definition');
-    await page.screenshot({path:`${output}/${mode}-${role}-${keyword}-definition.png`});
+    await capture(`${directory}${mode}-${role}-${keyword}-definition.png`);
     await page.keyboard.press('Escape');
-    results.push({mode,role,keyword,state,expanded:tooltip.expanded,reading:tooltip.reading.keyword,referenceOpened:reference.keywords.term});
+    let multiplier=null;
+    if(mode==='disciplines') {
+      assert.equal(tooltip.reading.keyword.inMultiplierPool,true);
+      assert.ok(tooltip.reading.effects[0].text.includes('Output Multiplier'));
+      await tap(tooltip.closePoint);
+      const fitting=await page.evaluate(index=>{const r=__SETTLEMENT_DEBUG__.getSnapshot().worldMap.layout.detail,width=(r.width-44-12*4)/5,cardWidth=Math.min(width,340*170/238);return{x:r.x+22+index*(width+12)+(width-cardWidth)/2+cardWidth/4,y:r.y+122+340+8+25};},index);
+      await tap(fitting);
+      multiplier=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState());
+      assert.equal(multiplier.poolMultiplier,1+tooltip.reading.keyword.bonus,'the existing fitting shows the keyword contribution');
+      assert.deepEqual(multiplier.poolBaseLines,[keyword==='economicRegions'?'1 Base Stock':'3 Base Stock'],'authored Stock amount stays unchanged');
+      if(tooltip.reading.keyword.active)assert.ok(multiplier.poolRows.some(row=>row.label===tooltip.reading.keyword.name));
+      await capture(`${directory}${mode}-${role}-${keyword}-multiplier.png`);
+    }
+    results.push({mode,role,keyword,state,expanded:tooltip.expanded,reading:tooltip.reading.keyword,referenceOpened:reference.keywords.term,multiplier:multiplier?{total:multiplier.poolMultiplier,base:multiplier.poolBaseLines,rows:multiplier.poolRows.map(({label,amount})=>({label,amount}))}:null});
   }
   // The switch lives in the existing live workshop, outside the card design.
   await page.keyboard.press('Escape');
@@ -66,8 +82,10 @@ try {
   await page.close();
  }
  assert.deepEqual(errors,[],'no browser errors');
- writeFileSync(`${output}/browser-evidence.json`,JSON.stringify({viewport:{width:844,height:390},results,errors},null,2));
- console.log('[keywords-browser] OK: five playable role/option states; real board and inspection captures');
+ for(const {temporary,destination} of captures){mkdirSync(path.dirname(destination),{recursive:true});copyFileSync(temporary,destination);}
+ const evidence=cases.every(([mode])=>mode==='disciplines')?`${output}/multiplier-a/browser-evidence.json`:`${output}/browser-evidence.json`;
+ writeFileSync(evidence,JSON.stringify({viewport:{width:844,height:390},results,errors},null,2));
+ console.log('[keywords-browser] OK: playable class states, named inspection links and existing multiplier ledgers');
 }catch(error){
  if(page)await page.screenshot({path:'artifacts/keywords-browser-failure.png'}).catch(()=>{});
  writeFileSync('artifacts/keywords-browser-failure.json',JSON.stringify({message:error.message,errors,results},null,2));

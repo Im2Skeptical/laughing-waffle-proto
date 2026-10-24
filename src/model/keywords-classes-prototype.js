@@ -64,10 +64,14 @@ export function keywordScaledAmount(state, regionId, scale) {
 
 export function keywordPrototypePractice(state, def) {
   if (!state?.gameConfig?.keywordPrototype||!def) return def;
-  const keyword={barter:'economicRegions',observation:'monsterTrophies'}[def.id];
+  const multiplierMode=state.gameConfig.keywordPrototype.mode==='disciplines';
+  const keyword=(multiplierMode?{barter:'economicRegions',monsterHunting:'monsterTrophies'}:{barter:'economicRegions',observation:'monsterTrophies'})[def.id];
   if (!keyword) return def;
   const name=KEYWORD_PROTOTYPE_NAMES[keyword];
   const scale={keyword,per:1,amount:1,cap:6};
+  if(multiplierMode)return {...def,
+    ...(def.id==='barter'?{condition:null,externalAction:null}:{}),
+    tags:[...def.tags,name],keywordOutputScale:scale,prototypeKeyword:keyword};
   const classId=keywordPrototypeClass(state);
   const lens=state.gameConfig.keywordPrototype.mode==='lenses'&&affinity[classId]===keyword
     ? {scholar:{op:'research'},merchant:{op:'generateStock'},warrior:{op:'bankSupport',bank:'formation'},priest:{op:'addFaithChaosResistance'}}[classId] : null;
@@ -82,13 +86,24 @@ export function keywordPrototypeReading(state, regionId, def) {
   const id=def?.prototypeKeyword;
   if (!id) return null;
   const name=KEYWORD_PROTOTYPE_NAMES[id],score=keywordPrototypeScore(state,regionId,id),access=keywordPrototypeAccess(state,id);
-  const bonus=keywordScaledAmount(state,regionId,def.effects[0].keywordScale);
+  const inMultiplierPool=!!def.keywordOutputScale;
+  const bonus=keywordScaledAmount(state,regionId,def.keywordOutputScale??def.effects[0].keywordScale);
   const definition=id==='economicRegions'
     ? 'Count occupied settlements in this road-connected trade zone, including this one and neutral towns. Frontier and ruins break the zone. Each counts once; connecting two zones joins them.'
     : 'Count monsters actually destroyed by this civilisation, by Hunt or Campaign. Neutral conquests and successful defenses do not count. Trophies survive Vassal death; they are a count, not spendable Stock.';
   const lens=state.gameConfig.keywordPrototype.mode==='lenses'&&access.emphasised
     ? {scholar:`Also gain ${bonus} Research.`,merchant:`Also produce ${bonus} Stock before workers.`,warrior:`Also bank ${bonus} formation Support (bank cap 10).`,priest:`Also gain ${bonus} Chaos resistance until next Birth.`}[keywordPrototypeClass(state)] : '';
+  if(inMultiplierPool)return {id,name,score,bonus,inMultiplierPool,active:access.active,emphasised:access.emphasised,
+    text:`${name} contributes to Output Multiplier.`,
+    definition:`${definition} ${access.reason} ${score} counted; +${bonus} to this Practice's Output Multiplier, capped at +6. This contribution adds to the base 1 and other multiplier sources. Base Stock yields, recipes, Research, Charge gain and capacity are unchanged.`,lens:''};
   return {id,name,score,bonus,active:access.active,emphasised:access.emphasised,
     text:`${name} ${score} → +${bonus}. ${access.reason}`,
     definition:`${definition} ${access.reason} This card adds 1 per count, capped at 6. Base 1 + bonus ${bonus} = ${1+bonus}${def.id==='barter'?' Stock before workers and Output Multiplier, then limited by capacity.':' Research per Birth.'} ${lens}`,lens};
+}
+
+export function keywordPrototypeOutputSource(state, regionId, def) {
+  const scale=def?.keywordOutputScale;
+  if(!scale)return null;
+  const amount=keywordScaledAmount(state,regionId,scale);
+  return amount?{id:`keyword:${scale.keyword}`,label:KEYWORD_PROTOTYPE_NAMES[scale.keyword],amount,query:{}}:null;
 }

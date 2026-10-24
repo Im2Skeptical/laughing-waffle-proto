@@ -4,6 +4,7 @@ import { ageCohortTotal, emptySpecialists } from './cohorts.js';
 import { emitPracticeEvent, practiceEventJournal } from './practice-events.js';
 import { getConnectedRegionIds, getRegionState, getAdjacentRegionIds } from '../world-state.js';
 import { biomeMultiplierModifiers } from './biome-multipliers.js';
+import { keywordPrototypeOutputSource } from '../keywords-classes-prototype.js';
 
 export const CIV_CONTENT_TUNING = Object.freeze({ populationPerEdible: 30, warriorsPerSupport: 5, monsterDefense: 3 });
 export const stockTraits = (state, slot) => slot?.traits ?? getDetailedPracticeDef(state, slot?.practiceId)?.stockTraits ?? [];
@@ -84,6 +85,9 @@ function multiplierSource(mod) {
 export function stockOutputBreakdown(state, settlement, slot, staffed=false, modifiers=structureModifiers(state,settlement)) {
   const sources=[...modifiers,...biomeMultiplierModifiers(state,settlement)]
     .filter(mod=>mod.kind==='outputMultiplier'&&matchesPractice(state,slot,mod.query,staffed)).map(multiplierSource);
+  const regionId=state?.world?.sites.find(site=>site.detailedState===settlement)?.regionId??state?.civilization?.capitalRegionId;
+  const keyword=keywordPrototypeOutputSource(state,regionId,getDetailedPracticeDef(state,slot?.practiceId));
+  if(keyword)sources.push(keyword);
   return {multiplier:1+sources.reduce((sum,source)=>sum+source.amount,0),sources};
 }
 
