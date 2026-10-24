@@ -32,7 +32,7 @@ export function buildCampaignOptions(state,vassal,nodeState) {
     const risk=resolveLifeMapOptionCosts(state,nodeState,{id:`${mode}:${regionId}`,mode,risk:baseRisk}).risk;
     const foodCost = mode === 'duel' ? 0 : RULES.campaignFoodBase+distance*RULES.campaignFoodPerDistance;
     const warriorBonus=risk>0?VASSAL_CLASS_RULES.warrior.riskPrestige:0;
-    targets.push({id:`${mode}:${regionId}`,regionId,mode,stage,defense,force:forces[mode].total,risk,distance,foodCost,
+    targets.push({id:`${mode}:${regionId}`,regionId,mode,stage,defense,force:forces[mode].total,risk,baseRisk,distance,foodCost,
       label:`${label}: ${getRegionReference(state,regionId)}`,description:mode==='duel'?'+1 Prowess and 10 Prestige, plus the Warrior risk bonus.':mode==='quest'?'A Relic and 10 Prestige.':stage==='clear'?'Reset Monster Pressure; the nest remains.':stage==='nest'?'Destroy this Monster nest.':'Bring this settlement into your civilization.',
       phaseCost:RULES.campaignPhases,prestigeCost:mode==='attack'?RULES.campaignPrestige:0,
       warriorBonus,prestigeDelta:mode==='duel'?RULES.duelPrestige+warriorBonus:mode==='quest'?RULES.questPrestige+warriorBonus:
@@ -123,7 +123,7 @@ export function getCampaignPresentation(state,vassal,nodeState) {
   const selected=allTargets.find(target=>target.id===nodeState.selectedOptionId);
   const options=[{id:'attack',label:'Attack',description:'Attack a monster region or neutral settlement.'},
     {id:'duel',label:'Honour duel',description:'Prowess only. Victory: +1 Prowess and a Prestige prize.'},
-    {id:'quest',label:'Quest',description:'Prowess + Retinue. Victory: a Relic and 10 Prestige.'}].map(option=>{
+    {id:'quest',label:'Quest',description:'Prowess + Retinue. Victory: a Relic and Prestige.'}].map(option=>{
       const targets=allTargets.filter(target=>target.mode===option.id), priced=selected?.mode===option.id?selected:targets.filter(target=>!target.blocked).sort((a,b)=>a.foodCost-b.foodCost)[0]??targets[0];
       return {...option,cost:priced?.cost??0,phases:priced?.phases??0,foodCost:priced?.foodCost??0,monsterPressureCost:priced?.monsterPressureCost??0,
         prestigeDelta:priced?.prestigeDelta??0,blocked:!targets.length?'No remaining encounters':targets.every(target=>target.blocked)?priced.blocked:null,

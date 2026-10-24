@@ -6,7 +6,7 @@ import {
   VASSAL_SIGNATURE_NODE_VARIANTS,
   VASSAL_STAT_IDS,
 } from "../../../defs/gamepieces/vassal-life-map-defs.js";
-import { getDetailedStructureDef } from "../../game-config.js";
+import { getDetailedPracticeDef, getDetailedStructureDef } from "../../game-config.js";
 import {
   validateVassalLifeMapGraph,
 } from "../../vassal-life-map-generator.js";
@@ -197,6 +197,12 @@ export function validateVassalLifeMapState(state) {
         if (!p?.intervention || !Number.isFinite(p.prestigeCost) || !Number.isFinite(p.phaseCost)
             || (p.monsterPressureCost!=null&&(!Number.isInteger(p.monsterPressureCost)||p.monsterPressureCost<0))
             || !Number.isFinite(p.currencyCost)) return true;
+        if (p.replacedPracticeId != null && (p.intervention.kind !== 'practice' || p.intervention.mode !== 'learn'
+            || typeof p.replacedPracticeId !== 'string' || p.replacedPracticeId === p.intervention.practiceId
+            || !getDetailedPracticeDef(state, p.replacedPracticeId)
+            || !Array.isArray(p.practiceDraftBeforeReplacement)
+            || !p.practiceDraftBeforeReplacement.includes(p.replacedPracticeId)
+            || p.practiceDraftBeforeReplacement.some(id => id != null && (typeof id !== 'string' || !getDetailedPracticeDef(state, id))))) return true;
         if (p.intervention.kind !== 'structure') return false;
         const placement = p.placement, def = getDetailedStructureDef(state, p.intervention.structureId);
         return !placement || !def || placement.structureId !== def.id || placement.width !== def.footprint

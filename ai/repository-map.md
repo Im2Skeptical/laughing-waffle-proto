@@ -276,6 +276,14 @@ Do not paste their full artifact JSON into chat.
 Run browser probes sequentially: software rendering under concurrent load can
 let forecast unveiling outlive a settlement used as an interaction target.
 
+Campaign interaction contracts are included in the normal suites: Lifegraph
+rule precedence (`scripts/lifegraph-interactions-test.mjs`), Relic draw
+boundaries (`scripts/relic-pool-contracts-test.mjs`), staged multiplier reads
+(`scripts/shop-preview-properties-test.mjs`), replacement cancellation and
+replay (`scripts/shop-undo-replay-test.mjs`), player-facing reward/risk facts
+(`scripts/choice-display-contracts-test.mjs`), and shared-edge biome membership
+(`scripts/biome-component-contracts-test.mjs`).
+
 ## Maintenance guards
 
 - `npm run check:docs` checks current Markdown links, source routes, npm commands,
