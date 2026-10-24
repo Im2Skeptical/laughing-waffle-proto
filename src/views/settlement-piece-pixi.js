@@ -1,3 +1,4 @@
+import { createText } from './settlement-view-primitives.js';
 import { addIllustration, getArtRevision } from './chronicle-art.js';
 import { addPieceRim, addPieceFaceChrome } from './piece-face-chrome.js';
 import { PIECE_SIZE, fitPiece, constructionGeometry } from './piece-geometry.js';
@@ -36,6 +37,13 @@ export function addSettlementPiece(parent, rect, {
     }
     addPieceRim(root, w, h);
     root.faceSections = addPieceFaceChrome(root, face, w, h, {time, reducedMotion});
+    if(face.keywordReading) {
+      const k=face.keywordReading;
+      const text=k.id==='economicRegions'?'ER':'MT';
+      const ribbon=new PIXI.Graphics().beginFill(0x181d19,.95).lineStyle(.7,k.active?0xc3a464:0x655d50).drawRoundedRect(7,h*.39,w-14,28,2).endFill();
+      const label=createText(`${text} ${k.score}  +${k.bonus}`,{fontFamily:'Arial',__preserveFontFamily:true,__disableTitleSmallCaps:true,fontWeight:'bold',fontSize:18,fill:k.active?0xe2c889:0x948a77},w/2,h*.39+14,.5,.5);
+      label.resolution=3;root.addChild(ribbon,label);
+    }
     // A small inset jewel identifies quality without widening the picture rim.
     const jewelY = root.faceSections.stock?.x < 12 ? root.faceSections.stock.y + root.faceSections.stock.height + 6 : 10;
     root.addChild(new PIXI.Graphics().beginFill(border).lineStyle(.7,0xf0dbae).drawPolygon([8,jewelY-3,11,jewelY,8,jewelY+3,5,jewelY]).endFill());

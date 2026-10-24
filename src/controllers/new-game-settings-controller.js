@@ -1,3 +1,4 @@
+import { createKeywordPrototypeState } from '../model/keywords-classes-prototype-fixture.js';
 import { createConfiguredNewGameState } from '../model/new-game.js';
 import { createRegionalBootProfile } from '../model/regional-map/boot-profile.js';
 import { validateGamepiecesDraft } from '../model/game-config.js';
@@ -68,6 +69,8 @@ export function createNewGameSettingsController({ storage = browserStorage(), ca
       return JSON.stringify([preferences().seed,profile, cardReviews.getLaunchKey()]);
     },
     createNewGame(seed = preferences().seed ?? globalThis.crypto.getRandomValues(new Uint32Array(1))[0]) {
+      const params=new URLSearchParams(globalThis.location?.search??'');
+      if(params.get('prototype')==='keywords')return createKeywordPrototypeState(params.get('variant')??'lenses',params.get('class')??'scholar',{inherited:params.get('inherited')!=='0'});
       if (!preferences().enabled) return cardReviews.createNewGame(seed);
       const profile = preferences().profileId===REGULAR_GAME_PROFILE_ID ? createRegionalBootProfile(seed) : selectedProfile();
       if (cardReviews.useInNewGames()) {

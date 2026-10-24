@@ -84,6 +84,11 @@ export function addPracticeReading(parent, width, face, {fontSize = 28, onInspec
     y+=Math.max(line.height,inline?(timing?.height??0):0)+10;
   }
   if (!reading.effects.length) y+=copy(root,reading.passive?'No ongoing effect.':'No Activation effect.',pad,y,width-pad*2,fontSize).height+10;
+  if(reading.keyword) {
+    const keyword=copy(root,reading.keyword.text,pad,y,width-pad*2,fontSize*.85,{fill:reading.keyword.active?RELIC.gold:RELIC.ash});
+    keyword.inspectionKeyword=reading.keyword.name;
+    y+=keyword.height+12;
+  }
   y+=8;
   paintRelicPanel(activation,0,blockY,width,y-blockY,reading.type==='Charge'?0x152321:0x1b2017,RELIC.brass,1);
   if (reading.trigger || reading.requirements.length || face.blocked || face.chaosCost || face.monsterPressureCost) {

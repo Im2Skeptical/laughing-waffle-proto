@@ -1,3 +1,4 @@
+import { addKeywordPrototypeControls } from '../keywords-classes-prototype-controls.js';
 import { el } from './elements.js';
 
 const WORKBENCHES = [
@@ -19,6 +20,7 @@ const WORKBENCHES = [
 ];
 
 export function renderPrototypes(host) {
+  addKeywordPrototypeControls(host);
   const intro = el('div', '', 'lab-page-head lab-prototype-intro'), text = el('div');
   text.append(el('h2', 'Prototype workbenches'), el('p', 'Gameplay experiments and visual studies. Edits stay in each workbench.', 'lab-subtitle'));
   intro.append(text); host.append(intro);

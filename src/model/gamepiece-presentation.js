@@ -1,3 +1,4 @@
+import { keywordPrototypeReading } from './keywords-classes-prototype.js';
 import { getActionChaosCost, getActionMonsterPressureCost } from './detailed-settlements/practice-events.js';
 import { getDetailedPracticeDef, getDetailedStructureDef } from './game-config.js';
 import { getDetailedPracticeWorkerCapacity, getQualityMultiplier } from './detailed-practice-tiers.js';
@@ -115,9 +116,15 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
   const capacity = kind === 'practice' ? stockCapacityBreakdown(state, settlement, slot ?? {practiceId:id,tier}, workers?.tokens?.some(token => token.specialist === 'scholar')) : null;
   const outputMultiplier = kind==='practice'&&producesStock ? stockOutputBreakdown(state,settlement,slot??{practiceId:id,tier},workers?.tokens?.some(token=>token.specialist==='scholar')) : null;
   const reading = kind === 'practice' ? getPracticeReading(def) : getStructureReading(def, {slot, settlement});
+  const keywordReading=keywordPrototypeReading(state,(state?.world?.sites??[]).find(site=>site.detailedState===settlement)?.regionId??state?.civilization?.capitalRegionId,def);
+  if(keywordReading) {
+    reading.effects=reading.effects.slice(0,1).map(effect=>({...effect,text:effect.text+' + '+keywordReading.name+'.'}));
+    if(keywordReading.lens)reading.effects.push({timing:'Birth phase',text:keywordReading.lens});
+    reading.keyword=keywordReading;
+  }
   return { kind, definitionId: id, label: def.label, tier, tags: [...new Set([...(def.tags ?? []),...(workers?.tokens?.some(t=>t.specialist==='scholar')?['Knowledge']:[])])], qualityLabel: tier, rule: def.ui?.rule ?? '',
     inputs, chaosCost, monsterPressureCost, production, baseStockProduction:kind==='practice'?getPracticeBaseStockProduction(def):[], workerMultiplier, chargeTriggers:chargeTriggerSymbols(def), construction,
-    reading, structureBonuses: kind === 'structure' ? reading.bonuses : [], structureQualityBonus: kind === 'structure' ? slot?.qualityBonus ?? 0 : 0,
+    reading, keywordReading, structureBonuses: kind === 'structure' ? reading.bonuses : [], structureQualityBonus: kind === 'structure' ? slot?.qualityBonus ?? 0 : 0,
     chargeGain:def.mode==='charge'?(evaluation?.chargeGain??Math.floor(def.charge.gain*workerMultiplier)):null,
     stock: evaluation?.stock ?? slot?.stock ?? 0, stockCapacity: evaluation?.stockCapacity ?? capacity?.total ?? 0, stockCapacityBreakdown: capacity, outputMultiplierBreakdown:outputMultiplier, stockTraits: def.stockTraits ?? [],
     providers: evaluation?.providers ?? [],

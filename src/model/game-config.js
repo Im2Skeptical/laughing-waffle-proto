@@ -1,3 +1,4 @@
+import { canonicalKeywordPrototype, keywordPrototypePractice } from './keywords-classes-prototype.js';
 import {
   detailedSettlementPracticeDefs,
   settlementStructureDefs,
@@ -488,7 +489,9 @@ export function createAuthoredGameConfig() {
 }
 
 export function canonicalizeGameConfig(value) {
+  const keywordPrototype=canonicalKeywordPrototype(value?.keywordPrototype);
   return {
+    ...(keywordPrototype?{keywordPrototype}:{}),
     schemaVersion: GAME_CONFIG_SCHEMA_VERSION,
     settings: canonicalizeGameSettingsDraft(value?.settings),
     gamepieces: canonicalizeGamepiecesDraft(value?.gamepieces),
@@ -528,6 +531,10 @@ export function getDetailedStructureDef(state, id) {
 }
 
 export function getDetailedPracticeDef(state, id) {
+  return keywordPrototypePractice(state, getBaseDetailedPracticeDef(state,id));
+}
+
+function getBaseDetailedPracticeDef(state, id) {
   return state?.gameConfig?.gamepieces?.practices?.[id]
     ?? detailedSettlementPracticeDefs[id]
     ?? null;

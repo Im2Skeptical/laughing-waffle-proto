@@ -1,3 +1,4 @@
+import { keywordScaledAmount } from '../keywords-classes-prototype.js';
 import { assignDetailedSettlementWorkers, isScholarStaffed } from './workers.js';
 // Shared declarative Practice resolution; all temporal material state belongs to slots.
 import { detailedSettlementPracticeDefs, detailedSettlementEffectOps } from '../../defs/gamepieces/detailed-settlement-defs.js';
@@ -68,6 +69,7 @@ function practiceEffectAmount(state, site, assignment, effect, activationType = 
   const def=getDetailedPracticeDef(state,slot.practiceId);
   activationType??=def.activation.type;
   let amount=effect.activationAmounts?.[activationType] ?? (activationType==='season'?effect.seasonAmounts?.[getCurrentSeasonKey(state)]:undefined) ?? effect.amount ?? 0;
+  amount+=keywordScaledAmount(state,site.regionId,effect.keywordScale);
   if (['addChaos','addMonsterPressure'].includes(effect.op)) return Math.max(0, amount);
   const modifiers=structureModifiers(state,settlement);
   if (effect.populationBand) amount+=Math.min(3+modifiers.reduce((n,m)=>n+(m.kind==='scalingCap'&&matchesPractice(state,slot,m.query,isScholarStaffed(assignment))?m.amount:0),0),Math.floor(getPopulationSummary(state,site.regionId).total/effect.populationBand));

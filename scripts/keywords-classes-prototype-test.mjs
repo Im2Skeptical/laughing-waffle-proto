@@ -1,0 +1,62 @@
+import assert from 'node:assert/strict';
+import { createKeywordPrototypeState as create } from '../src/model/keywords-classes-prototype-fixture.js';
+import { keywordPrototypeScore as score, keywordScaledAmount as bonus, keywordPrototypeAccess as access } from '../src/model/keywords-classes-prototype.js';
+import { advanceReplayStateToSecond as advance, initializeReplayClock } from '../src/model/replay-second-runner.js';
+import { createTimelineFromInitialState, rebuildStateAtSecond } from '../src/model/timeline/index.js';
+import { serializeGameState, deserializeGameState } from '../src/model/state.js';
+import { getDetailedPracticeDef } from '../src/model/game-config.js';
+import { getDetailedSettlementSites } from '../src/model/detailed-settlements/queries.js';
+import { emitPracticeEvent } from '../src/model/detailed-settlements/practice-events.js';
+import { getVassalCandidatePool, selectLifeMapVassal } from '../src/model/vassal-life-map.js';
+
+for(const mode of ['disciplines','lenses','teachings'])for(const classId of ['scholar','warrior','priest','merchant']) {
+  const state=create(mode,classId),home=state.civilization.capitalRegionId;
+  initializeReplayClock(state);
+  const timeline=createTimelineFromInitialState(state);
+  const count=score(state,home,'economicRegions');
+  assert.equal(count,3,'two allies and a connected neutral form one trade zone');
+  const disconnected=deserializeGameState(serializeGameState(state));
+  disconnected.world.connections=[];
+  assert.equal(score(disconnected,home,'economicRegions'),1,'disconnecting roads breaks zones');
+  const a=access(state,'economicRegions'),b=access(state,'monsterTrophies');
+  assert.equal(a.active,mode!=='disciplines'||['scholar','merchant'].includes(classId));
+  assert.equal(b.active,mode==='lenses'||(mode==='teachings'?['warrior','scholar']:['warrior','priest']).includes(classId));
+  assert.equal(advance(state,12).ok,true);
+  assert.equal(score(state,home,'monsterTrophies'),1,'a real Hunt kills and records one monster');
+  const scale={keyword:'monsterTrophies',per:1,amount:1,cap:6};
+  assert.equal(bonus(state,home,scale),b.active?1:0);
+  const rebuilt=rebuildStateAtSecond(timeline,12);
+  assert.equal(rebuilt.ok,true);
+  assert.deepEqual(serializeGameState(rebuilt.state),serializeGameState(state),'authoritative replay equals live state including RNG');
+  const resumed=deserializeGameState(JSON.parse(JSON.stringify(serializeGameState(state))));
+  assert.equal(advance(resumed,18).ok,true);assert.equal(advance(state,18).ok,true);
+  assert.deepEqual(serializeGameState(resumed),serializeGameState(state),'JSON resume preserves rules, history, and RNG');
+  if(mode==='lenses') {
+    const def=getDetailedPracticeDef(state,['scholar','merchant'].includes(classId)?'barter':'observation');
+    assert.equal(def.effects.length,2,'class lens adds another DSL effect');
+    if(classId==='warrior')assert.ok(getDetailedSettlementSites(state,{playerOnly:true}).some(s=>s.detailedState.supportBank?.formation>0),'trophies actually bank Support');
+  }
+}
+const taught=create('teachings','warrior');
+assert.equal(access(taught,'economicRegions').active,true,'a Warrior inherits the earlier economic teaching');
+const untaught=create('teachings','warrior',{inherited:false});
+assert.equal(access(untaught,'economicRegions').active,false,'no teacher means no economic bonus');
+untaught.civilization.vassalLineage.selectedVassalIds=['teacher'];
+untaught.civilization.vassalLineage.vassalsById.teacher={classId:'merchant',isDead:true};
+assert.equal(access(untaught,'economicRegions').active,true,'a dead teacher still passes the discipline on');
+const initial=score(untaught,untaught.civilization.capitalRegionId,'monsterTrophies');
+emitPracticeEvent(untaught,{kind:'defenseSucceeded'});
+emitPracticeEvent(untaught,{kind:'campaignWon'});
+assert.equal(score(untaught,null,'monsterTrophies'),initial,'defenses and neutral conquests are not monster kills');
+emitPracticeEvent(untaught,{kind:'monsterDestroyed'});
+assert.equal(score(untaught,null,'monsterTrophies'),initial+1);
+const selected=create('disciplines','scholar');
+const warrior={...getVassalCandidatePool(selected).candidates[1],founderClassId:null,classId:'warrior'};
+assert.equal(selectLifeMapVassal(selected,1,null,warrior).ok,true);
+assert.equal(access(selected,'economicRegions').active,false,'actual selected class takes over from launch role');
+assert.equal(access(selected,'monsterTrophies').active,true);
+selected.civilization.vassalLineage.currentVassalId=null;
+assert.equal(access(selected,'monsterTrophies').active,false,'exclusive bonuses become dormant between lives');
+selected.gameConfig.keywordPrototype.mode='teachings';
+assert.equal(access(selected,'monsterTrophies').active,true,'the recorded teacher still grants an inherited bonus between lives');
+console.log('[keywords-prototype] OK: 12 mode/class combinations, real Hunt, connected components, class effects, inherited teaching, JSON and authoritative replay');
