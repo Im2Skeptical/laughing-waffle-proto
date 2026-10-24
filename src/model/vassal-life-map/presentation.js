@@ -3,6 +3,7 @@ import { multiplierBoardPreview, multiplierShopPreview } from './multiplier-prev
 import { getActionMonsterPressureCost } from '../detailed-settlements/practice-events.js';
 import { resolveLifeMapOptionCosts } from '../life-map-balance.js';
 import { getShopOfferPrice } from './shop-specialties.js';
+import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
 import { getCampaignPresentation } from './campaign.js';
 import { legacySettlementTargets } from './world-choices.js';
 import { stockTotal } from "../detailed-settlements/stock.js";
@@ -410,7 +411,8 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     ...(nodeState?.shopSelection&&!nodeState.shopSelection.selectedTag?{shopTagChoices:clone(nodeState.shopSelection.choices)}:{}),
     nodeState: nodeState ? {...clone(nodeState), ...(acquiring?{family:'relic',selectedOptionId:nodeState.rewardAcquisition.id}:{}), options:(acquiring?[nodeState.rewardAcquisition]:nodeState.options ?? []).map(option => {
       const risk = getVassalRiskDeathChance(vassal, option.immediateDeathChance);
-      return {...clone(option), ...(Number.isFinite(option.immediateDeathChance) ? {immediateDeathChance:risk} : {})};
+      const bonus = riskPrestigeBonus(vassal, option);
+      return {...clone(option), ...(bonus ? {riskPrestigeBonus:bonus} : {}), ...(Number.isFinite(option.immediateDeathChance) ? {immediateDeathChance:risk} : {})};
     })} : null,
     optionRequirements: Object.fromEntries((nodeState?.options ?? []).map((option) =>
       [option.id, getSettlementRequirements(state, vassal, option)])),
@@ -469,4 +471,11 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       vassal, nodeState, preview.previewOptionId ?? null
     ),
   };
+}
+
+// Use the raw danger predicate from confirmation, before Prowess reduces mortality.
+function riskPrestigeBonus(vassal, option) {
+  return option?.classAction?.kind === 'challenge' && vassal.classId === 'warrior'
+    && Math.max(option?.baseDanger ?? 0, option?.immediateDeathChance ?? 0) > 0
+    ? VASSAL_CLASS_RULES.warrior.riskPrestige : 0;
 }
