@@ -61,7 +61,8 @@ try {
     let multiplier=null;
     if(mode==='disciplines') {
       assert.equal(tooltip.reading.keyword.inMultiplierPool,true);
-      assert.ok(tooltip.reading.effects[0].text.includes('Output Multiplier'));
+      assert.ok(tooltip.reading.effects.filter(effect=>effect.timing).every(effect=>!effect.text.includes('Output Multiplier')),'timed rows contain only activation effects');
+      assert.ok(tooltip.reading.effects.some(effect=>effect.passive===true&&!effect.timing&&effect.text.includes('Output Multiplier')),'passive multiplier has a separate untimed row');
       await tap(tooltip.closePoint);
       const fitting=await page.evaluate(index=>{const r=__SETTLEMENT_DEBUG__.getSnapshot().worldMap.layout.detail,width=(r.width-44-12*4)/5,cardWidth=Math.min(width,340*170/238);return{x:r.x+22+index*(width+12)+(width-cardWidth)/2+cardWidth/4,y:r.y+122+340+8+25};},index);
       await tap(fitting);

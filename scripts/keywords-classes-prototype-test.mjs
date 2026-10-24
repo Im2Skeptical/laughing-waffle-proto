@@ -90,5 +90,7 @@ assert.equal(hunting.effects[0].scaledValue.effectiveValue,3*3*hunting.effects[0
 assert.equal(hunting.effects[1].scaledValue.effectiveValue,6,'Research output is unchanged');
 const face=getGamepieceFace(martial,'practice','monsterHunting',huntSlot.tier,{slot:huntSlot,settlement:martialSite.detailedState});
 assert.equal(face.reading.keyword.inMultiplierPool,true,'inspection routes the keyword to the existing multiplier');
+assert.ok(face.reading.effects.filter(effect=>effect.timing).every(effect=>!effect.text.includes('Output Multiplier')),'timed effects do not include the passive modifier');
+assert.deepEqual(face.reading.effects.at(-1),{timing:'',passive:true,text:'Monster Trophies contributes to Output Multiplier.'},'passive effect has its own untimed row');
 assert.deepEqual(face.baseStockProduction.map(row=>row.amount),[huntDef.effects[0].amount]);
 console.log('[keywords-prototype] OK: 12 mode/class combinations, real Hunt, connected components, class effects, inherited teaching, JSON and authoritative replay');

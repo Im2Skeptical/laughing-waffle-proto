@@ -119,7 +119,7 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
   const keywordReading=keywordPrototypeReading(state,(state?.world?.sites??[]).find(site=>site.detailedState===settlement)?.regionId??state?.civilization?.capitalRegionId,def);
   if(keywordReading) {
     reading.effects=keywordReading.inMultiplierPool
-      ?reading.effects.map((effect,index)=>index?effect:{...effect,text:effect.text+'. '+keywordReading.text})
+      ?[...reading.effects,{timing:'',passive:true,text:keywordReading.text}]
       :reading.effects.slice(0,1).map(effect=>({...effect,text:effect.text+' + '+keywordReading.name+'.'}));
     if(keywordReading.lens)reading.effects.push({timing:'Birth phase',text:keywordReading.lens});
     reading.keyword=keywordReading;

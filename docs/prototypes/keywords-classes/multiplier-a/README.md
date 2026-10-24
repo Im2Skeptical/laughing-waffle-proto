@@ -29,6 +29,8 @@ authorize production integration, a PR, publication, or a complete class kit.
   Its normal ledger identifies Economic Regions or Monster Trophies as a source.
   Card inspection links the named keyword to its definition and current count.
   The ER/MT tracker strips have been removed from card art across all options.
+- The passive multiplier rule has its own untimed line in the card reading,
+  without a phase label or activation arrow. Timed yields remain separate.
 
 The class associations and +1 coefficient remain proposals. This revision serves
 **pillar 1, powerful interacting engines**, by composing with an established pool,
