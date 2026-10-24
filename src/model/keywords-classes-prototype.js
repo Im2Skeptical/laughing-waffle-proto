@@ -20,7 +20,7 @@ export function canonicalKeywordPrototype(value) {
 // Actual selected classes take over from the launch role. Priest/Merchant are
 // explicitly experimental lenses: their full classes are outside this spike.
 export function keywordPrototypeClass(state) {
-  const config=state.gameConfig?.keywordPrototype;
+  const config=state?.gameConfig?.keywordPrototype;
   if (!config) return null;
   if (['priest','merchant'].includes(config.classId)) return config.classId;
   const lineage=state.civilization?.vassalLineage;
@@ -29,7 +29,7 @@ export function keywordPrototypeClass(state) {
 }
 
 export function keywordPrototypeAccess(state, id) {
-  const config=state.gameConfig?.keywordPrototype;
+  const config=state?.gameConfig?.keywordPrototype;
   if (!config) return {active:false, emphasised:false, reason:''};
   const classId=keywordPrototypeClass(state), emphasised=(config.mode==='teachings'?teaching:config.mode==='disciplines'?disciplines:affinity)[classId]===id;
   if (config.mode==='lenses') return {active:true,emphasised,reason:emphasised?`${title(classId)} adds a second use for this count.`:'Shared by every class.'};
@@ -87,7 +87,7 @@ export function keywordPrototypePractice(state, def) {
 
 export function keywordPrototypeReading(state, regionId, def) {
   const id=def?.prototypeKeyword;
-  if (!id) return null;
+  if (!id||!state) return null;
   const name=KEYWORD_PROTOTYPE_NAMES[id],score=keywordPrototypeScore(state,regionId,id,def.id),access=keywordPrototypeAccess(state,id);
   const inMultiplierPool=!!def.keywordOutputScale;
   const bonus=keywordScaledAmount(state,regionId,def.keywordOutputScale??def.effects[0].keywordScale,def.id);
@@ -96,7 +96,7 @@ export function keywordPrototypeReading(state, regionId, def) {
     :id==='synthesis'
       ? `Count other Scholar-staffed Practices in this settlement whose Consume and Require inputs can currently be supplied. Each counts once; this Practice never counts itself. Empty Stock recipes qualify. Check each recipe independently through normal local, allied and neutral supply, without spending or reserving Stock. Timing and Charge readiness are not conditions. Currently counted: ${synthesisContributors(state,regionId,def.id).map(source=>source.label).join(', ')||'none'}.`
       : 'Count monsters actually destroyed by this civilisation, by Hunt or Campaign. Neutral conquests and successful defenses do not count. Trophies survive Vassal death; they are a count, not spendable Stock.';
-  const lens=state.gameConfig.keywordPrototype.mode==='lenses'&&access.emphasised
+  const lens=state.gameConfig?.keywordPrototype?.mode==='lenses'&&access.emphasised
     ? {scholar:`Also gain ${bonus} Research.`,merchant:`Also produce ${bonus} Stock before workers.`,warrior:`Also bank ${bonus} formation Support (bank cap 10).`,priest:`Also gain ${bonus} Chaos resistance until next Birth.`}[keywordPrototypeClass(state)] : '';
   if(inMultiplierPool)return {id,name,score,bonus,inMultiplierPool,active:access.active,emphasised:access.emphasised,
     text:`${name} contributes to Output Multiplier.`,

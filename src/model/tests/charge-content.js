@@ -23,7 +23,7 @@ import { getCurrentLifeMapVassal } from '../vassal-life-map.js';
 import { getGamepieceFace } from '../gamepiece-presentation.js';
 
 const source=JSON.parse(readFileSync(new URL('../../../docs/civcontent-2.6-source.json',import.meta.url),'utf8'));
-for (const [pool,p,s,c] of [['common',14,14,4],['scholar',48,32,10],['warrior',48,32,10]]) {
+for (const [pool,p,s,c] of [['common',14,14,4],['scholar',52,32,11],['warrior',52,32,11]]) {
   assert.equal(Object.values(practices).filter(d=>d.pool===pool).length,p);
   assert.equal(Object.values(structures).filter(d=>d.pool===pool).length,s);
   assert.equal(Object.values(practices).filter(d=>d.pool===pool&&d.mode==='charge').length,c);
@@ -181,7 +181,7 @@ for(let i=0;i<3;i++) event(development,{kind:'stockGenerated',practiceId:'record
 assert.equal(development.state.civilization.candidateDevelopment.scholar,1);
 development.state.civilization.vassalLineage.selectedVassalIds=['previous'];development.state.civilization.vassalLineage.establishedClassId='scholar';
 generateCandidatePool(development.state);assert.equal(development.state.civilization.candidateDevelopment.scholar,0);
-assert.equal(getLabCatalogue(engine).filter(e=>e.category==='practice').length,110);assert.equal(getLabCatalogue(engine).filter(e=>e.category==='structure').length,78);
+assert.equal(getLabCatalogue(engine).filter(e=>e.category==='practice').length,118);assert.equal(getLabCatalogue(engine).filter(e=>e.category==='structure').length,78);
 const bad=serializeGameState(createLabFixture('charge'));bad.world.sites[0].detailedState.practiceSlots.push(practiceSlot('forage'));
 assert.throws(()=>deserializeGameState(bad),/5 practice slots/);assert.throws(()=>fiveSlots(...Array(6).fill(practiceSlot('forage'))),/five/);
 const malformed=serializeGameState(createLabFixture('charge'));malformed.world.sites.find(site=>site.detailedState.practiceSlots[0]).detailedState.practiceSlots[0].charge=-1;
@@ -233,4 +233,4 @@ const rescueOption=classActionOptions(rescue,rescuer,'crisis').find(o=>o.classAc
 const adultsBefore=rescueSite.detailedState.populationByClass.villager.adults;
 applyClassAction(rescue,rescuer,rescueOption.classAction);assert.equal(rescueSite.detailedState.populationByClass.villager.adults,adultsBefore-5);
 assert.equal(rescueSite.detailedState.practiceSlots[0].stock,0,'rescue pays its real supply recipe');
-console.log('[charge-content] 187 workbook rows, 24 Charge modes, real five-slot cascade, cost-free Discharges, worker Charge scaling, safeguards, passive modifiers, replay/save/projection parity OK');
+console.log('[charge-content] 187 original workbook rows, 8 prototype additions, 26 Charge modes, real five-slot cascade, cost-free Discharges, worker Charge scaling, safeguards, passive modifiers, replay/save/projection parity OK');

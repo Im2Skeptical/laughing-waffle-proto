@@ -286,7 +286,15 @@
         "weaponsmithing.webp",
         "weaving.webp",
         "weighHouse.webp",
-        "workshop.webp"
+        "workshop.webp",
+        "floodAlmanacs.webp",
+        "marginalia.webp",
+        "measuredRations.webp",
+        "patternCarving.webp",
+        "beastRendering.webp",
+        "scarredShields.webp",
+        "trailProvisioning.webp",
+        "trophyRubbings.webp"
       ]
     },
     "piece-frames": {

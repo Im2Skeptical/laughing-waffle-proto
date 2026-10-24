@@ -23,7 +23,7 @@
     "build:sprites": "node scripts/build-sprite-sheets.mjs",
     "check:assets": "node scripts/check-asset-manifest.mjs",
     "check:build": "node scripts/build-pages.mjs",
-    "test:keywords": "node scripts/keywords-classes-prototype-test.mjs",
+    "test:keywords": "node scripts/keywords-classes-prototype-test.mjs && node scripts/bronze-keyword-cards-test.mjs",
     "test": "npm run test:keywords && npm run test:save-recovery && npm run test:world && npm run test:detailed-settlements && npm run test:vassal-life-map && npm run test:debug-config && npm run test:map-lab && npm run test:map && npm run test:detailed-replay && npm run test:invariants && npm run test:presentation && npm run test:card-review && npm run test:replay-stress",
     "test:card-review": "node scripts/card-review-test.mjs && node scripts/catalogue-summary-test.mjs && node scripts/locked-stock-context-test.mjs",
     "test:save-recovery": "node scripts/save-recovery-test.mjs && node scripts/save-indexeddb-test.mjs && node scripts/save-load-worker-test.mjs && node scripts/save-import-boundaries-test.mjs",

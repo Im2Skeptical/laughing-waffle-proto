@@ -8,6 +8,10 @@ workbook tuning, with subsequent explicit design decisions recorded below.
 
 ## CivContent 2.6 update
 
+The local keywords prototype additionally tests [eight new Bronze Practices](prototypes/keywords-classes/bronze-cards/README.md),
+bringing this branch to 118 Practices. The original content-pass counts below
+describe the existing pool; the new designs are not accepted milestone tuning.
+
 The full 110-Practice / 78-Structure pool (including the later Observation addition) and 24 Charge engines now supersede
 the representative subset. See [the implementation report](civcontent-2.6-implementation.md)
 for exact runtime coverage, tests and remaining provisional clauses. The

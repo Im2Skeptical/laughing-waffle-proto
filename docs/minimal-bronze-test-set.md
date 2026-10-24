@@ -1,5 +1,9 @@
 # Minimal bronze defaults
 
+On the local keywords prototype branch, [eight experimental cards](prototypes/keywords-classes/bronze-cards/README.md)
+add a Bronze Scholar Tool pathway through Pattern Carving. Original tuning below
+is preserved for the existing cards; the all-Silver Tool claim excludes this addition.
+
 The 2026-10-08 `card-reviews (1).json` export is now the authored default:
 33 cards have proposals, and the other 14 flagged cards have no edits.
 New games use these definitions without enabling edited cards. Existing runs

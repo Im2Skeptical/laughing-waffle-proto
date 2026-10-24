@@ -129,7 +129,11 @@ for (const classId of [null, "scholar", "warrior"]) {
     const nodeState = vassal.lifeMap.nodeStates[target.id];
     const checkOffers = () => {
       assert.equal(nodeState.stockOutput, "Tool");
-      if(research===0)assert.equal(nodeState.inventory.length,0,'Tool suppliers now require Silver Research; no unrelated filler');
+      if(research===0&&classId==='scholar') {
+        assert.equal(nodeState.inventory.length,1,'the prototype adds one Bronze Scholar Tool pathway');
+        assert.equal(nodeState.inventory[0].intervention.practiceId,'patternCarving');
+      }
+      else if(research===0)assert.equal(nodeState.inventory.length,0,'other classes still require Silver Tool suppliers; no unrelated filler');
       else assert.ok(nodeState.inventory.length > 0 && nodeState.inventory.length <= 3);
       assert.ok(nodeState.inventory.every(offer => offer.intervention.kind === "practice"
         && isVassalStockOutputPractice(getDetailedPracticeDef(state, offer.intervention.practiceId), "Tool")));

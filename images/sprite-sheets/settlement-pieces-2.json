@@ -1,16 +1,472 @@
 {"frames": {
 
-"watchtower.webp":
+"examinationCoaching.webp":
 {
-	"frame": {"x":2,"y":2,"w":326,"h":434},
+	"frame": {"x":2,"y":2,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"goatHerding.webp":
+{
+	"frame": {"x":2,"y":451,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"graveSurveying.webp":
+{
+	"frame": {"x":324,"y":2,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"greatHost.webp":
+{
+	"frame": {"x":2,"y":900,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"harvestFestival.webp":
+{
+	"frame": {"x":324,"y":451,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"herbalism.webp":
+{
+	"frame": {"x":646,"y":2,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"herdingTrain.webp":
+{
+	"frame": {"x":2,"y":1349,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"heresiography.webp":
+{
+	"frame": {"x":2,"y":1798,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"heroicCompany.webp":
+{
+	"frame": {"x":324,"y":900,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"homesteading.webp":
+{
+	"frame": {"x":646,"y":451,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"horseRelays.webp":
+{
+	"frame": {"x":968,"y":2,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"housebuilding.webp":
+{
+	"frame": {"x":324,"y":1349,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"huntingParties.webp":
+{
+	"frame": {"x":324,"y":1798,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"mixedFarming.webp":
+{
+	"frame": {"x":646,"y":900,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"monsterHunting.webp":
+{
+	"frame": {"x":968,"y":451,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"mountedDrill.webp":
+{
+	"frame": {"x":1290,"y":2,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"mountedRaiding.webp":
+{
+	"frame": {"x":646,"y":1349,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"observation.webp":
+{
+	"frame": {"x":646,"y":1798,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"ossuaryKeeping.webp":
+{
+	"frame": {"x":968,"y":900,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"packTrains.webp":
+{
+	"frame": {"x":1290,"y":451,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"papermaking.webp":
+{
+	"frame": {"x":1612,"y":2,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"pastoralism.webp":
+{
+	"frame": {"x":968,"y":1349,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"patrolling.webp":
+{
+	"frame": {"x":968,"y":1798,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"patternCarving.webp":
+{
+	"frame": {"x":1290,"y":900,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"plagueLedger.webp":
+{
+	"frame": {"x":1612,"y":451,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"saltCuring.webp":
+{
+	"frame": {"x":1934,"y":2,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"saltGathering.webp":
+{
+	"frame": {"x":1290,"y":1349,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"scarredShields.webp":
+{
+	"frame": {"x":1290,"y":1798,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"scavengerArmourers.webp":
+{
+	"frame": {"x":1612,"y":900,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"scholarship.webp":
+{
+	"frame": {"x":1934,"y":451,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"scouting.webp":
+{
+	"frame": {"x":2256,"y":2,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"selectiveBreeding.webp":
+{
+	"frame": {"x":1612,"y":1349,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"sheepHusbandry.webp":
+{
+	"frame": {"x":1612,"y":1798,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"shieldmaking.webp":
+{
+	"frame": {"x":1934,"y":900,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"siegecraft.webp":
+{
+	"frame": {"x":2256,"y":451,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"siegeTraining.webp":
+{
+	"frame": {"x":2578,"y":2,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"skirmishingDrill.webp":
+{
+	"frame": {"x":1934,"y":1349,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"storehouse.webp":
+{
+	"frame": {"x":3544,"y":2,"w":326,"h":434},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
 	"sourceSize": {"w":326,"h":434}
 },
+"supplyDepot.webp":
+{
+	"frame": {"x":3222,"y":451,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"surveyOffice.webp":
+{
+	"frame": {"x":3222,"y":889,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"technicalWorkshop.webp":
+{
+	"frame": {"x":2900,"y":1349,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"timberHouse.webp":
+{
+	"frame": {"x":2900,"y":1787,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"townhouse.webp":
+{
+	"frame": {"x":3552,"y":440,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"trainingYard.webp":
+{
+	"frame": {"x":3552,"y":878,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"tributeTaking.webp":
+{
+	"frame": {"x":1934,"y":1798,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"trophyRubbings.webp":
+{
+	"frame": {"x":2256,"y":900,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"veteranInstruction.webp":
+{
+	"frame": {"x":2578,"y":451,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"vigil.webp":
+{
+	"frame": {"x":2900,"y":2,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"warbandMarching.webp":
+{
+	"frame": {"x":2256,"y":1349,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"warCouncil.webp":
+{
+	"frame": {"x":2256,"y":1798,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"warMarket.webp":
+{
+	"frame": {"x":3230,"y":1327,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"warriorTraining.webp":
+{
+	"frame": {"x":2578,"y":900,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"warWagons.webp":
+{
+	"frame": {"x":2900,"y":451,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"watchkeeping.webp":
+{
+	"frame": {"x":3222,"y":2,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"watchtower.webp":
+{
+	"frame": {"x":3230,"y":1765,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"waterManagement.webp":
+{
+	"frame": {"x":2578,"y":1349,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"weaponsmithing.webp":
+{
+	"frame": {"x":2578,"y":1798,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"weaving.webp":
+{
+	"frame": {"x":2900,"y":900,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
 "weighHouse.webp":
 {
-	"frame": {"x":332,"y":2,"w":326,"h":434},
+	"frame": {"x":3560,"y":1316,"w":326,"h":434},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
@@ -18,7 +474,7 @@
 },
 "workshop.webp":
 {
-	"frame": {"x":662,"y":2,"w":326,"h":434},
+	"frame": {"x":3560,"y":1754,"w":326,"h":434},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
@@ -29,9 +485,9 @@
 	"version": "1.0",
 	"image": "settlement-pieces-2.png",
 	"format": "RGBA8888",
-	"size": {"w":990,"h":438},
+	"size": {"w":3888,"h":2245},
 	"scale": "0.3",
 	"related_multi_packs": [ "settlement-pieces-0.json", "settlement-pieces-1.json" ],
-	"smartupdate": "$TexturePacker:SmartUpdate:1ef280c0ec9693970305060e4e9c620c:b1a16aa6c73e630653f3c676e0919996:e4c8b35e61250632ef8ea3104e602998$"
+	"smartupdate": "$TexturePacker:SmartUpdate:e1d8eaefc1b4dbbb5e8eb982f9817a7b:ed5cba8c006af7ec0b2da71cd7c27c68:e4c8b35e61250632ef8ea3104e602998$"
 }
 }

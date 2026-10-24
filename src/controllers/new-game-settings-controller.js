@@ -70,7 +70,7 @@ export function createNewGameSettingsController({ storage = browserStorage(), ca
     },
     createNewGame(seed = preferences().seed ?? globalThis.crypto.getRandomValues(new Uint32Array(1))[0]) {
       const params=new URLSearchParams(globalThis.location?.search??'');
-      if(params.get('prototype')==='keywords')return createKeywordPrototypeState(params.get('variant')??'disciplines',params.get('class')??'scholar',{inherited:params.get('inherited')!=='0',synthesisSupply:params.get('supply')??'ready'});
+      if(params.get('prototype')==='keywords')return createKeywordPrototypeState(params.get('variant')??'disciplines',params.get('class')??'scholar',{inherited:params.get('inherited')!=='0',synthesisSupply:params.get('supply')??'ready',cards:params.get('cards')??'classic'});
       if (!preferences().enabled) return cardReviews.createNewGame(seed);
       const profile = preferences().profileId===REGULAR_GAME_PROFILE_ID ? createRegionalBootProfile(seed) : selectedProfile();
       if (cardReviews.useInNewGames()) {

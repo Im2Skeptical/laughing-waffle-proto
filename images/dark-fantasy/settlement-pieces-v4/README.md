@@ -59,6 +59,12 @@ adjectives. The generation workflow is
 
 ## Existing production pass
 
+The local keywords prototype adds eight original Bronze Practice paintings.
+[Their provenance](bronze-keywords-prompts.json) records each generation and
+overlay-framing correction; [the card briefs](../../../docs/prototypes/keywords-classes/bronze-cards/README.md)
+explain the scenes' gameplay roles. Accepted sources use the same registered
+WebP/settlement-pieces atlas path as the existing pool.
+
 The current Observation painting is a fresh composition recorded in
 [`observation-prompts.json`](observation-prompts.json). That record supersedes
 the earlier Observation brief; shared historical prompt records remain below
