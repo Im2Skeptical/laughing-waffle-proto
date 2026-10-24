@@ -43,6 +43,9 @@ re-exports the previous public API; internals live here.
 - `shop.js`
   - Shop inventory builders, purchase/undo/reorder/move/reroll, staged
     reservations, and structure placement helpers.
+    Replacement-learn receipts capture the displaced Practice and prior draft
+    order. Undo restores its relative position and relinks dependent receipts;
+    receipt-only fields are removed when the offer returns to inventory.
 - `stock-shops.js`
   - Pure generation context: class-compatible Stock outputs and unmet recipe
     inputs across all surviving player settlements.

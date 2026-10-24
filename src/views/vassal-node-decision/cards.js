@@ -45,10 +45,14 @@ export function optionEffect(option) {
   if (option?.quality) parts.push(option.quality[0].toUpperCase() + option.quality.slice(1));
   if (option?.inheritanceState === "sanctified") parts.push("Sanctified");
   if (option?.inheritanceState === "fragile") parts.push("Fragile");
-  if (Number.isFinite(option?.prestigeDelta)) parts.push(`${option.prestigeDelta >= 0 ? "+" : ""}${option.prestigeDelta} Prestige`);
+  const bonus = option?.riskPrestigeBonus ?? 0, base = option?.prestigeDelta ?? 0;
+  if (Number.isFinite(option?.prestigeDelta) || bonus) {
+    const total = base + bonus;
+    parts.push(`${total >= 0 ? "+" : ""}${total} Prestige${bonus ? ` (${base} base + ${bonus} Warrior bonus)` : ""}`);
+  }
   if (option?.statId && Number.isFinite(option?.statDelta)) parts.push(`${option.statDelta >= 0 ? "+" : ""}${option.statDelta} ${option.statLabel??option.statId}`);
   if (option?.lossStatId && Number.isFinite(option?.lossStatDelta)) parts.push(`${option.lossStatDelta} ${option.lossStatLabel??option.lossStatId}`);
-  if (option?.settlementRegionId) parts.push("Move 10 Villager adults and found this settlement");
+  if (option?.settlementRegionId) parts.push("Found this settlement with 10 Villager adults");
   if (option?.intervention?.kind === "connection") parts.push("Create this route");
   if (option?.locationRegionId) parts.push("Move to this settlement");
   if (option?.forcedRelocation) parts.push("Relocate to a safe settlement");
