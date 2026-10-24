@@ -1,5 +1,8 @@
 # A revision — keywords contribute to Practice multipliers
 
+Archived stage. The current Scholar association is
+[Synthesis](../synthesis-a/README.md); Economic Regions now belongs to Merchant.
+
 Cam's feedback: A is the closest useful direction. Apply the mechanic to each
 Practice's multiplier, rather than adding to its base Stock output and introducing
 another tracker on its face. B/C's presentation is harder to keep clean; retain

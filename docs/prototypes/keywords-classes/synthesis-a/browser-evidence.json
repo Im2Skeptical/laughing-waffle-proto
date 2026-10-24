@@ -1,0 +1,243 @@
+{
+  "viewport": {
+    "width": 844,
+    "height": 390
+  },
+  "results": [
+    {
+      "mode": "disciplines",
+      "role": "scholar",
+      "keyword": "synthesis",
+      "state": {
+        "mode": "disciplines",
+        "classId": "scholar",
+        "taught": [],
+        "tSec": 1,
+        "capital": "R10",
+        "supply": "ready"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "synthesis",
+        "name": "Synthesis",
+        "score": 3,
+        "bonus": 3,
+        "inMultiplierPool": true,
+        "active": true,
+        "emphasised": true,
+        "text": "Synthesis contributes to Output Multiplier.",
+        "definition": "Count other Scholar-staffed Practices in this settlement whose Consume and Require inputs can currently be supplied. Each counts once; this Practice never counts itself. Empty Stock recipes qualify. Check each recipe independently through normal local, allied and neutral supply, without spending or reserving Stock. Timing and Charge readiness are not conditions. Currently counted: Irrigating, Scholarship, Papermaking. Scholar discipline. 3 counted; +3 to this Practice's Output Multiplier, capped at +4. This contribution adds to the base 1 and other multiplier sources. Base Stock yields, recipes, Research, Charge gain and capacity are unchanged.",
+        "lens": ""
+      },
+      "referenceOpened": "Synthesis",
+      "recovery": null,
+      "multiplier": {
+        "total": 4,
+        "base": [
+          "3 Base Stock"
+        ],
+        "rows": [
+          {
+            "label": "Synthesis",
+            "amount": 3
+          }
+        ]
+      }
+    },
+    {
+      "mode": "disciplines",
+      "role": "scholar",
+      "keyword": "synthesis",
+      "state": {
+        "mode": "disciplines",
+        "classId": "scholar",
+        "taught": [],
+        "tSec": 1,
+        "capital": "R10",
+        "supply": "blocked"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "synthesis",
+        "name": "Synthesis",
+        "score": 2,
+        "bonus": 2,
+        "inMultiplierPool": true,
+        "active": true,
+        "emphasised": true,
+        "text": "Synthesis contributes to Output Multiplier.",
+        "definition": "Count other Scholar-staffed Practices in this settlement whose Consume and Require inputs can currently be supplied. Each counts once; this Practice never counts itself. Empty Stock recipes qualify. Check each recipe independently through normal local, allied and neutral supply, without spending or reserving Stock. Timing and Charge readiness are not conditions. Currently counted: Irrigating, Scholarship. Scholar discipline. 2 counted; +2 to this Practice's Output Multiplier, capped at +4. This contribution adds to the base 1 and other multiplier sources. Base Stock yields, recipes, Research, Charge gain and capacity are unchanged.",
+        "lens": ""
+      },
+      "referenceOpened": "Synthesis",
+      "recovery": {
+        "tSec": 12,
+        "score": 3,
+        "multiplier": 4
+      },
+      "multiplier": {
+        "total": 3,
+        "base": [
+          "3 Base Stock"
+        ],
+        "rows": [
+          {
+            "label": "Synthesis",
+            "amount": 2
+          }
+        ]
+      }
+    },
+    {
+      "mode": "disciplines",
+      "role": "merchant",
+      "keyword": "economicRegions",
+      "state": {
+        "mode": "disciplines",
+        "classId": "merchant",
+        "taught": [],
+        "tSec": 12,
+        "capital": "R10",
+        "supply": "ready"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "economicRegions",
+        "name": "Economic Regions",
+        "score": 3,
+        "bonus": 3,
+        "inMultiplierPool": true,
+        "active": true,
+        "emphasised": true,
+        "text": "Economic Regions contributes to Output Multiplier.",
+        "definition": "Count occupied settlements in this road-connected trade zone, including this one and neutral towns. Frontier and ruins break the zone. Each counts once; connecting two zones joins them. Merchant discipline. 3 counted; +3 to this Practice's Output Multiplier, capped at +6. This contribution adds to the base 1 and other multiplier sources. Base Stock yields, recipes, Research, Charge gain and capacity are unchanged.",
+        "lens": ""
+      },
+      "referenceOpened": "Economic Regions",
+      "recovery": null,
+      "multiplier": {
+        "total": 4,
+        "base": [
+          "1 Base Stock"
+        ],
+        "rows": [
+          {
+            "label": "Economic Regions",
+            "amount": 3
+          }
+        ]
+      }
+    },
+    {
+      "mode": "disciplines",
+      "role": "merchant",
+      "keyword": "monsterTrophies",
+      "state": {
+        "mode": "disciplines",
+        "classId": "merchant",
+        "taught": [],
+        "tSec": 12,
+        "capital": "R10",
+        "supply": "ready"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "monsterTrophies",
+        "name": "Monster Trophies",
+        "score": 1,
+        "bonus": 0,
+        "inMultiplierPool": true,
+        "active": false,
+        "emphasised": false,
+        "text": "Monster Trophies contributes to Output Multiplier.",
+        "definition": "Count monsters actually destroyed by this civilisation, by Hunt or Campaign. Neutral conquests and successful defenses do not count. Trophies survive Vassal death; they are a count, not spendable Stock. Dormant outside Warrior / Priest. 1 counted; +0 to this Practice's Output Multiplier, capped at +6. This contribution adds to the base 1 and other multiplier sources. Base Stock yields, recipes, Research, Charge gain and capacity are unchanged.",
+        "lens": ""
+      },
+      "referenceOpened": "Monster Trophies",
+      "recovery": null,
+      "multiplier": {
+        "total": 1,
+        "base": [
+          "3 Base Stock"
+        ],
+        "rows": []
+      }
+    },
+    {
+      "mode": "disciplines",
+      "role": "warrior",
+      "keyword": "economicRegions",
+      "state": {
+        "mode": "disciplines",
+        "classId": "warrior",
+        "taught": [],
+        "tSec": 12,
+        "capital": "R10",
+        "supply": "ready"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "economicRegions",
+        "name": "Economic Regions",
+        "score": 3,
+        "bonus": 0,
+        "inMultiplierPool": true,
+        "active": false,
+        "emphasised": false,
+        "text": "Economic Regions contributes to Output Multiplier.",
+        "definition": "Count occupied settlements in this road-connected trade zone, including this one and neutral towns. Frontier and ruins break the zone. Each counts once; connecting two zones joins them. Dormant outside Merchant. 3 counted; +0 to this Practice's Output Multiplier, capped at +6. This contribution adds to the base 1 and other multiplier sources. Base Stock yields, recipes, Research, Charge gain and capacity are unchanged.",
+        "lens": ""
+      },
+      "referenceOpened": "Economic Regions",
+      "recovery": null,
+      "multiplier": {
+        "total": 1,
+        "base": [
+          "1 Base Stock"
+        ],
+        "rows": []
+      }
+    },
+    {
+      "mode": "disciplines",
+      "role": "warrior",
+      "keyword": "monsterTrophies",
+      "state": {
+        "mode": "disciplines",
+        "classId": "warrior",
+        "taught": [],
+        "tSec": 12,
+        "capital": "R10",
+        "supply": "ready"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "monsterTrophies",
+        "name": "Monster Trophies",
+        "score": 1,
+        "bonus": 1,
+        "inMultiplierPool": true,
+        "active": true,
+        "emphasised": true,
+        "text": "Monster Trophies contributes to Output Multiplier.",
+        "definition": "Count monsters actually destroyed by this civilisation, by Hunt or Campaign. Neutral conquests and successful defenses do not count. Trophies survive Vassal death; they are a count, not spendable Stock. Warrior discipline. 1 counted; +1 to this Practice's Output Multiplier, capped at +6. This contribution adds to the base 1 and other multiplier sources. Base Stock yields, recipes, Research, Charge gain and capacity are unchanged.",
+        "lens": ""
+      },
+      "referenceOpened": "Monster Trophies",
+      "recovery": null,
+      "multiplier": {
+        "total": 2,
+        "base": [
+          "3 Base Stock"
+        ],
+        "rows": [
+          {
+            "label": "Monster Trophies",
+            "amount": 1
+          }
+        ]
+      }
+    }
+  ],
+  "errors": []
+}

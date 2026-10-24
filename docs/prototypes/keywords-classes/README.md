@@ -1,6 +1,8 @@
 # Keywords and classes — throwaway experiment
 
-**Current direction:** [A revised to use existing Practice Output Multipliers](multiplier-a/README.md).
+**Current direction:** [A with Scholar Synthesis and Merchant Economic Regions](synthesis-a/README.md).
+Synthesis counts other supplied, Scholar-staffed Practices. The preceding
+[multiplier-A revision](multiplier-a/README.md) is preserved as an earlier stage.
 Cam leaned toward A and suggested multipliers instead of tracker strips. A now contributes
 to the existing multiplier pool, with counts explained through its ledger and
 linked inspection. A is the default. B/C remain comparison options; the report

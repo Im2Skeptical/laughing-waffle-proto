@@ -4,8 +4,9 @@ import { createDetailedPracticeSlot } from './detailed-practice-tiers.js';
 import { getDetailedSettlementSites } from './detailed-settlements/queries.js';
 import { adjacentRegionIds } from './detailed-settlements/external-world.js';
 import { canonicalKeywordPrototype } from './keywords-classes-prototype.js';
+import { trainSpecialists } from './detailed-settlements/stock.js';
 
-export function createKeywordPrototypeState(mode='disciplines', classId='scholar', {inherited=true}={}) {
+export function createKeywordPrototypeState(mode='disciplines', classId='scholar', {inherited=true,synthesisSupply='ready'}={}) {
   const state=createNewGameState(1867);
   state.gameConfig.keywordPrototype=canonicalKeywordPrototype({mode,classId,taught:mode==='teachings'&&inherited?['economicRegions']:[]});
   const sites=getDetailedSettlementSites(state,{playerOnly:true});
@@ -14,6 +15,13 @@ export function createKeywordPrototypeState(mode='disciplines', classId='scholar
     site.detailedState.practiceSlots=['forage','barter','observation','monsterHunting','weaponsmithing'].map(id=>createDetailedPracticeSlot(id,'silver'));
     site.detailedState.practiceSlots[0].stock=8;
     site.detailedState.practiceSlots[4].stock=8;
+    if(mode==='disciplines'&&classId==='scholar') {
+      site.detailedState.practiceSlots=['irrigating','copyingTexts','scholarship','papermaking','logging'].map(id=>createDetailedPracticeSlot(id,'silver'));
+      site.detailedState.practiceSlots[0].stock=synthesisSupply==='blocked'?0:8;
+      site.detailedState.practiceSlots[1].stock=4;
+      site.detailedState.practiceSlots[4].stock=6;
+      trainSpecialists(site.detailedState,'scholar',4);
+    }
   }
   // An immediately huntable real Monster; Death consumes real Arms and Food.
   const target=sites.flatMap(site=>adjacentRegionIds(state,site.regionId)).map(id=>state.world.regions.find(r=>r.id===id)).find(r=>r.controller==='frontier');

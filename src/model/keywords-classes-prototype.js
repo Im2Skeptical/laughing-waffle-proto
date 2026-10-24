@@ -1,9 +1,11 @@
 // THROWAWAY: compare exclusive disciplines, shared lenses and inherited teachings.
 // Captured run config is the only switch. These selectors also run in replay/workers.
+import { synthesisContributors } from './detailed-settlements/synthesis-prototype.js';
 export const KEYWORD_PROTOTYPE_MODES = ['disciplines', 'lenses', 'teachings'];
 export const KEYWORD_PROTOTYPE_CLASSES = ['scholar', 'warrior', 'priest', 'merchant'];
-export const KEYWORD_PROTOTYPE_NAMES = {economicRegions:'Economic Regions', monsterTrophies:'Monster Trophies'};
+export const KEYWORD_PROTOTYPE_NAMES = {economicRegions:'Economic Regions', monsterTrophies:'Monster Trophies',synthesis:'Synthesis'};
 const affinity = {scholar:'economicRegions', merchant:'economicRegions', warrior:'monsterTrophies', priest:'monsterTrophies'};
+const disciplines={...affinity,scholar:'synthesis'};
 // The bold option treats knowledge as transmission, not a job monopoly:
 // Scholars study trophies; Priests carry economic knowledge along pilgrim roads.
 const teaching = {scholar:'monsterTrophies', warrior:'monsterTrophies', priest:'economicRegions', merchant:'economicRegions'};
@@ -29,15 +31,16 @@ export function keywordPrototypeClass(state) {
 export function keywordPrototypeAccess(state, id) {
   const config=state.gameConfig?.keywordPrototype;
   if (!config) return {active:false, emphasised:false, reason:''};
-  const classId=keywordPrototypeClass(state), emphasised=(config.mode==='teachings'?teaching:affinity)[classId]===id;
+  const classId=keywordPrototypeClass(state), emphasised=(config.mode==='teachings'?teaching:config.mode==='disciplines'?disciplines:affinity)[classId]===id;
   if (config.mode==='lenses') return {active:true,emphasised,reason:emphasised?`${title(classId)} adds a second use for this count.`:'Shared by every class.'};
-  if (config.mode==='disciplines') return {active:emphasised,emphasised,reason:emphasised?`${title(classId)} discipline.`:`Dormant outside ${id==='economicRegions'?'Scholar / Merchant':'Warrior / Priest'}.`};
+  if (config.mode==='disciplines') return {active:emphasised,emphasised,reason:emphasised?`${title(classId)} discipline.`:`Dormant outside ${{economicRegions:'Merchant',synthesis:'Scholar',monsterTrophies:'Warrior / Priest'}[id]}.`};
   const teachers=(state.civilization?.vassalLineage?.selectedVassalIds??[]).map(vassalId=>state.civilization.vassalLineage.vassalsById[vassalId]?.classId);
   const inherited=config.taught.includes(id)||teachers.some(teacher=>teaching[teacher]===id);
   return {active:emphasised||inherited,emphasised,reason:inherited?'Taught to this civilisation; survives the teacher.':emphasised?`${title(classId)} teaches this discipline.`:'Untaught: select a teacher of this discipline.'};
 }
 
-export function keywordPrototypeScore(state, regionId, id) {
+export function keywordPrototypeScore(state, regionId, id, excludePracticeId=null) {
+  if(id==='synthesis')return synthesisContributors(state,regionId,excludePracticeId).length;
   if (id==='monsterTrophies') return state.civilization?.history?.monsterTrophies??0;
   if (id!=='economicRegions') return 0;
   // A contiguous trade zone: roads through occupied settlements, including
@@ -54,21 +57,21 @@ export function keywordPrototypeScore(state, regionId, id) {
 }
 
 // Generalized named-score scaling, interpreted alongside existing DSL amounts.
-export function keywordScaledAmount(state, regionId, scale) {
+export function keywordScaledAmount(state, regionId, scale, practiceId=null) {
   if (!scale) return 0;
   const access=keywordPrototypeAccess(state,scale.keyword);
   if (!access.active) return 0;
-  const score=keywordPrototypeScore(state,regionId,scale.keyword);
+  const score=keywordPrototypeScore(state,regionId,scale.keyword,practiceId);
   return Math.min(scale.cap??Infinity,Math.floor(score/(scale.per??1)))*(scale.amount??1);
 }
 
 export function keywordPrototypePractice(state, def) {
   if (!state?.gameConfig?.keywordPrototype||!def) return def;
   const multiplierMode=state.gameConfig.keywordPrototype.mode==='disciplines';
-  const keyword=(multiplierMode?{barter:'economicRegions',monsterHunting:'monsterTrophies'}:{barter:'economicRegions',observation:'monsterTrophies'})[def.id];
+  const keyword=(multiplierMode?{barter:'economicRegions',monsterHunting:'monsterTrophies',copyingTexts:'synthesis'}:{barter:'economicRegions',observation:'monsterTrophies'})[def.id];
   if (!keyword) return def;
   const name=KEYWORD_PROTOTYPE_NAMES[keyword];
-  const scale={keyword,per:1,amount:1,cap:6};
+  const scale={keyword,per:1,amount:1,cap:keyword==='synthesis'?4:6};
   if(multiplierMode)return {...def,
     ...(def.id==='barter'?{condition:null,externalAction:null}:{}),
     tags:[...def.tags,name],keywordOutputScale:scale,prototypeKeyword:keyword};
@@ -85,25 +88,30 @@ export function keywordPrototypePractice(state, def) {
 export function keywordPrototypeReading(state, regionId, def) {
   const id=def?.prototypeKeyword;
   if (!id) return null;
-  const name=KEYWORD_PROTOTYPE_NAMES[id],score=keywordPrototypeScore(state,regionId,id),access=keywordPrototypeAccess(state,id);
+  const name=KEYWORD_PROTOTYPE_NAMES[id],score=keywordPrototypeScore(state,regionId,id,def.id),access=keywordPrototypeAccess(state,id);
   const inMultiplierPool=!!def.keywordOutputScale;
-  const bonus=keywordScaledAmount(state,regionId,def.keywordOutputScale??def.effects[0].keywordScale);
+  const bonus=keywordScaledAmount(state,regionId,def.keywordOutputScale??def.effects[0].keywordScale,def.id);
   const definition=id==='economicRegions'
     ? 'Count occupied settlements in this road-connected trade zone, including this one and neutral towns. Frontier and ruins break the zone. Each counts once; connecting two zones joins them.'
-    : 'Count monsters actually destroyed by this civilisation, by Hunt or Campaign. Neutral conquests and successful defenses do not count. Trophies survive Vassal death; they are a count, not spendable Stock.';
+    :id==='synthesis'
+      ? `Count other Scholar-staffed Practices in this settlement whose Consume and Require inputs can currently be supplied. Each counts once; this Practice never counts itself. Empty Stock recipes qualify. Check each recipe independently through normal local, allied and neutral supply, without spending or reserving Stock. Timing and Charge readiness are not conditions. Currently counted: ${synthesisContributors(state,regionId,def.id).map(source=>source.label).join(', ')||'none'}.`
+      : 'Count monsters actually destroyed by this civilisation, by Hunt or Campaign. Neutral conquests and successful defenses do not count. Trophies survive Vassal death; they are a count, not spendable Stock.';
   const lens=state.gameConfig.keywordPrototype.mode==='lenses'&&access.emphasised
     ? {scholar:`Also gain ${bonus} Research.`,merchant:`Also produce ${bonus} Stock before workers.`,warrior:`Also bank ${bonus} formation Support (bank cap 10).`,priest:`Also gain ${bonus} Chaos resistance until next Birth.`}[keywordPrototypeClass(state)] : '';
   if(inMultiplierPool)return {id,name,score,bonus,inMultiplierPool,active:access.active,emphasised:access.emphasised,
     text:`${name} contributes to Output Multiplier.`,
-    definition:`${definition} ${access.reason} ${score} counted; +${bonus} to this Practice's Output Multiplier, capped at +6. This contribution adds to the base 1 and other multiplier sources. Base Stock yields, recipes, Research, Charge gain and capacity are unchanged.`,lens:''};
+    definition:`${definition} ${access.reason} ${score} counted; +${bonus} to this Practice's Output Multiplier, capped at +${def.keywordOutputScale.cap}. This contribution adds to the base 1 and other multiplier sources. Base Stock yields, recipes, Research, Charge gain and capacity are unchanged.`,lens:''};
   return {id,name,score,bonus,active:access.active,emphasised:access.emphasised,
     text:`${name} ${score} → +${bonus}. ${access.reason}`,
     definition:`${definition} ${access.reason} This card adds 1 per count, capped at 6. Base 1 + bonus ${bonus} = ${1+bonus}${def.id==='barter'?' Stock before workers and Output Multiplier, then limited by capacity.':' Research per Birth.'} ${lens}`,lens};
 }
 
-export function keywordPrototypeOutputSource(state, regionId, def) {
+export function keywordPrototypeOutputSources(state, regionId, def) {
   const scale=def?.keywordOutputScale;
-  if(!scale)return null;
-  const amount=keywordScaledAmount(state,regionId,scale);
-  return amount?{id:`keyword:${scale.keyword}`,label:KEYWORD_PROTOTYPE_NAMES[scale.keyword],amount,query:{}}:null;
+  if(!scale)return [];
+  const amount=keywordScaledAmount(state,regionId,scale,def.id);
+  if(!amount)return [];
+  if(scale.keyword==='synthesis')return synthesisContributors(state,regionId,def.id).slice(0,scale.cap).map(source=>({
+    id:`keyword:synthesis:${source.slotIndex}`,label:source.label,amount:1,query:{tagsAny:['Synthesis']}}));
+  return [{id:`keyword:${scale.keyword}`,label:KEYWORD_PROTOTYPE_NAMES[scale.keyword],amount,query:{}}];
 }
