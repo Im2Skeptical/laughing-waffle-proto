@@ -54,13 +54,18 @@ Routing skills live in `.grok/skills/`.
   Ownership does not restrict the component. See `docs/output-capacity-multipliers.md`.
   CivContent 2.6 coverage/deviations: `docs/civcontent-2.6-implementation.md`.
 
+- On `proto/keywords-classes`, Synthesis (Scholar) and Monster Trophies (Warrior)
+  are ordinary captured Practice Output Multiplier contributions. No keyword
+  experiment setting is required. See `docs/practice-keywords.md`; main remains
+  unchanged. Real monster destructions update persistent civilization history.
+
 `npm run check:architecture` guards the first and layering rules.
 
 ## Current schemas
 
 Authoritative numbers:
 
-- Game state v38; runner saves v28. Older saves are rejected.
+- Game state v39; runner saves v29. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
 - Each run serializes schema-v28 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.

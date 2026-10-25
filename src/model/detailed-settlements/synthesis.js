@@ -1,4 +1,4 @@
-// THROWAWAY derived score. Uses the real worker assignment and atomic Stock
+// Pure derived score. Uses the real worker assignment and atomic Stock
 // planner; inspecting eligibility never pays, reserves, activates or rolls RNG.
 import { getDetailedPracticeDef } from '../game-config.js';
 import { getDetailedSettlement } from './queries.js';

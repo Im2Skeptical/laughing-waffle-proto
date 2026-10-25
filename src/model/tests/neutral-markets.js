@@ -120,5 +120,5 @@ malformed.world.sites.find(site=>site.neutral).neutral.stocks[0].price=0;
 assert.throws(()=>deserializeGameState(malformed),/invalid neutral Stock/);
 assert.equal(conquerSettlement(live.state,live.neutral.regionId,4).ok,true);
 assert.equal(getDetailedSettlementViewModel(live.state,live.neutral.regionId).neutral,false,'conquest switches to the player board');
-assert.equal(deserializeGameState(serializeGameState(live.state)).gameStateSchemaVersion,38);
+assert.equal(deserializeGameState(serializeGameState(live.state)).gameStateSchemaVersion,39);
 console.log('[neutral-markets] paid priority, atomic recipes, affordable meals, links, capacity, conquest and replay parity OK');

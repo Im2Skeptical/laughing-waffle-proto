@@ -5,6 +5,24 @@ import { getDetailedSettlementSites } from './detailed-settlements/queries.js';
 import { adjacentRegionIds } from './detailed-settlements/external-world.js';
 import { canonicalKeywordPrototype } from './keywords-classes-prototype.js';
 import { trainSpecialists, stockCapacity } from './detailed-settlements/stock.js';
+import { getVassalCandidatePool, selectLifeMapVassal } from './vassal-life-map.js';
+
+// Viewing deck only: real selected Vassal and ordinary keyword rules, without an
+// experiment flag. Normal New Game still uses its ordinary starting board.
+export function createKeywordCardsState(classId='scholar', options={}) {
+  const state=createKeywordPrototypeState('disciplines',classId,{...options,cards:'bronze'});
+  delete state.gameConfig.keywordPrototype;
+  const candidate={...getVassalCandidatePool(state).candidates[classId==='scholar'?0:1],
+    classId,founderClassId:null,locationRegionId:state.civilization.capitalRegionId};
+  const selected=selectLifeMapVassal(state,1,null,candidate);
+  if(!selected.ok)throw new Error(`Keyword viewing deck: ${selected.reason}`);
+  const lineage=state.civilization.vassalLineage;
+  lineage.founderClassId=classId;lineage.establishedClassId=classId;
+  // Viewing fixture only: a zero-Prowess, zero-Retinue Warrior lets the normal
+  // opening forecast reach extinction rather than defend forever at its cap.
+  if(classId==='warrior') {selected.vassal.stats.intelligence=0;selected.vassal.prestige=0;}
+  return state;
+}
 
 export function createKeywordPrototypeState(mode='disciplines', classId='scholar', {inherited=true,synthesisSupply='ready',cards='classic'}={}) {
   const state=createNewGameState(1867);

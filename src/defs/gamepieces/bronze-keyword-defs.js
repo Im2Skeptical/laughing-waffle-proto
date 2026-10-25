@@ -1,5 +1,5 @@
-// THROWAWAY content: eight new Bronze Practices for the keywords/classes branch.
-// Ordinary runs retain the base recipes; keyword scaling needs captured prototype config.
+// Bronze class Practices. Recipes and keyword coefficients are ordinary captured
+// gamepiece data; they do not depend on a development experiment or launch URL.
 const input=(trait,amount=1)=>({traits:[trait],amount});
 function practice(id,label,pool,traits,amount,capacity,activation,extra={}) {
   const keyword=pool==='scholar'?'synthesis':'monsterTrophies';
@@ -7,7 +7,7 @@ function practice(id,label,pool,traits,amount,capacity,activation,extra={}) {
     workerCapacity:1,workerBonus:1,workerCapacityPerQuality:0,vassalPrestigeCost:10,vassalPhaseCost:12,
     mode:'scheduled',lane:'scheduled',activation,source:{icon:activation.type,cadence:activation.type},
     costs:[],consume:[],require:[],stockTraits:traits,stockCapacity:capacity,
-    effects:[{op:'generateStock',amount}],prototypeKeyword:keyword,
+    effects:[{op:'generateStock',amount}],
     keywordOutputScale:{keyword,per:1,amount:1,cap:keyword==='synthesis'?4:6},...extra};
 }
 function charged(id,label,pool,traits,amount,capacity,threshold,clause,triggerText) {
@@ -16,7 +16,7 @@ function charged(id,label,pool,traits,amount,capacity,threshold,clause,triggerTe
       dischargeText:`Generate ${amount} Stock.`,trigger:{any:[clause],anotherPractice:true}},
     ui:{rule:`${triggerText} Gain 1 base Charge. At ${threshold} Charge, Discharge: Generate ${amount} Stock.`}});
 }
-export const bronzeKeywordPrototypeDefs=Object.freeze({
+export const bronzeKeywordDefs=Object.freeze({
   floodAlmanacs:practice('floodAlmanacs','Flood Almanacs','scholar',['Record'],2,12,
     {type:'season',seasonKeys:['spring']},{require:[input('Water')],
       ui:{rule:'Spring: Require 1 [Water]. Generate 2 [Record] Stock.'}}),

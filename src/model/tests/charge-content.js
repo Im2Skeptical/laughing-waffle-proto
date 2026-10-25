@@ -42,7 +42,8 @@ for (const row of source.entries) {
   assert.ok(def,`${row.pool}/${row.id}: missing runtime row`);
   assert.equal(def.label,row.fields.Practice??row.fields.Structure);assert.equal(def.pool,row.pool);assert.equal(def.workbook.row,row.row);
   const authoredTags=(row.fields['Card Tags']??'').split(',').map(t=>t.trim()).filter(Boolean);
-  assert.deepEqual(def.tags,authoredTags.filter(tag=>tag!=='Housing'||housingCardIds.has(row.id)));
+  const keywordTag={copyingTexts:'Synthesis',monsterHunting:'Monster Trophies'}[row.id];
+  assert.deepEqual(def.tags,[...authoredTags.filter(tag=>tag!=='Housing'||housingCardIds.has(row.id)),...(keywordTag?[keywordTag]:[])]);
   if (row.kind==='practices') {
     const traits=(row.fields['Stock Traits']??'').split(',').map(t=>t.trim()).filter(Boolean);
     assert.deepEqual(def.stockTraits,reviewedTraits[row.id]??(row.id==='monsterHunting'?[...traits,'Currency']:traits));

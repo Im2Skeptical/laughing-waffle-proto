@@ -1,6 +1,7 @@
 // THROWAWAY: compare exclusive disciplines, shared lenses and inherited teachings.
 // Captured run config is the only switch. These selectors also run in replay/workers.
-import { synthesisContributors } from './detailed-settlements/synthesis-prototype.js';
+import { synthesisContributors } from './detailed-settlements/synthesis.js';
+import { keywordScore } from './practice-keywords.js';
 export const KEYWORD_PROTOTYPE_MODES = ['disciplines', 'lenses', 'teachings'];
 export const KEYWORD_PROTOTYPE_CLASSES = ['scholar', 'warrior', 'priest', 'merchant'];
 export const KEYWORD_PROTOTYPE_NAMES = {economicRegions:'Economic Regions', monsterTrophies:'Monster Trophies',synthesis:'Synthesis'};
@@ -40,20 +41,7 @@ export function keywordPrototypeAccess(state, id) {
 }
 
 export function keywordPrototypeScore(state, regionId, id, excludePracticeId=null) {
-  if(id==='synthesis')return synthesisContributors(state,regionId,excludePracticeId).length;
-  if (id==='monsterTrophies') return state.civilization?.history?.monsterTrophies??0;
-  if (id!=='economicRegions') return 0;
-  // A contiguous trade zone: roads through occupied settlements, including
-  // neutral towns. Frontier and ruined settlements break the component.
-  const eligible=new Set((state.world?.sites??[]).filter(site=>site.detailedState||site.neutral).map(site=>site.regionId)
-    .filter(id=>['player','external-a'].includes(state.world.regions.find(region=>region.id===id)?.controller)));
-  if (!eligible.has(regionId)) return 0;
-  const seen=new Set([regionId]), queue=[regionId];
-  for (const current of queue) for (const edge of state.world.connections) {
-    const next=edge.regionAId===current?edge.regionBId:edge.regionBId===current?edge.regionAId:null;
-    if (eligible.has(next)&&!seen.has(next)) {seen.add(next);queue.push(next);}
-  }
-  return seen.size;
+  return keywordScore(state,regionId,id,excludePracticeId);
 }
 
 // Generalized named-score scaling, interpreted alongside existing DSL amounts.
@@ -86,7 +74,7 @@ export function keywordPrototypePractice(state, def) {
 }
 
 export function keywordPrototypeReading(state, regionId, def) {
-  const id=def?.prototypeKeyword;
+  const id=def?.prototypeKeyword??def?.keywordOutputScale?.keyword;
   if (!id||!state) return null;
   const name=KEYWORD_PROTOTYPE_NAMES[id],score=keywordPrototypeScore(state,regionId,id,def.id),access=keywordPrototypeAccess(state,id);
   const inMultiplierPool=!!def.keywordOutputScale;

@@ -11,7 +11,7 @@ import { getVassalCandidatePool, selectLifeMapVassal } from '../src/model/vassal
 import { stockOutputBreakdown, stockCapacity } from '../src/model/detailed-settlements/stock.js';
 import { evaluateDetailedPracticeSlot } from '../src/model/detailed-settlements/practices.js';
 import { getGamepieceFace } from '../src/model/gamepiece-presentation.js';
-import { synthesisContributors } from '../src/model/detailed-settlements/synthesis-prototype.js';
+import { synthesisContributors } from '../src/model/detailed-settlements/synthesis.js';
 
 for(const mode of ['disciplines','lenses','teachings'])for(const classId of ['scholar','warrior','priest','merchant']) {
   const state=create(mode,classId),home=state.civilization.capitalRegionId;

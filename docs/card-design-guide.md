@@ -48,8 +48,9 @@ Make dependency failures and contributor identities available through inspection
 Class identity should emerge from the decisions and dependencies. A keyword can
 support food, equipment, construction or trade when the activity explains that
 relationship. Avoid giving every card the same mandatory keyword payoff.
-Experimental keyword definitions belong in the relevant experiment report until
-accepted; this guide does not promote prototype rules into universal design.
+Use [Practice keywords](practice-keywords.md) for the integrated Synthesis and
+Monster Trophies rules and captured coefficients. Unselected keyword alternatives
+remain in their experiment reports; they do not define ordinary-game behavior.
 
 ## Artwork and integration
 

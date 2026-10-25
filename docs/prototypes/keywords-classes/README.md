@@ -1,5 +1,11 @@
 # Keywords and classes — throwaway experiment
 
+**Integration update:** the selected [Practice keyword rules](../../practice-keywords.md)
+now work in ordinary games on this branch without experiment configuration.
+The reports below preserve the comparison history; A/B/C remain explicit dev
+comparisons. Main is untouched. The earlier version was published for testing;
+that publication does not automatically include this later integration.
+
 **Current direction:** [A with Scholar Synthesis and Merchant Economic Regions](synthesis-a/README.md).
 The [eight new Bronze card designs](bronze-cards/README.md) test the shared card
 creation workflow with four new Practices for each of Scholar and Warrior.

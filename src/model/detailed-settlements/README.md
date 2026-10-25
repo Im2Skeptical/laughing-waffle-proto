@@ -24,14 +24,13 @@ file is the legacy tick substrate.
   automatic Charge Discharges, full blocked retries and root-chain safeguards.
 - `stock.js` - Trait queries, atomic provider plans, independent Output and Capacity
   Multiplier pools, capacities and specialist training.
-- `synthesis-prototype.js` ? throwaway read-only Scholar-staffing/Stock-supply
-  contributors for the keyword experiment; no activation or reservation occurs.
 - `biome-multipliers.js` - Cached same-biome shared-edge components; pure generic
   Output contributions (+1 per region) for Grain/plains, Stone/mountains and
   Construction/forest. The containing component includes unowned regions.
   See `docs/output-capacity-multipliers.md`.
-- `synthesis-prototype.js` — throwaway read-only Scholar-staffing/Stock-supply
-  contributors for the keyword experiment; no activation or reservation occurs.
+- `synthesis.js` — pure Scholar-staffing/Stock-supply contributors for ordinary
+  Synthesis; no activation or reservation occurs.
+- Stock supply rules:
   Food and Practice inputs use local Stock first, then player-controlled detailed
   settlements sharing both a polygon edge and a live connection, in authored
   region order. Require preserves the provider's Stock; Consume debits its host.

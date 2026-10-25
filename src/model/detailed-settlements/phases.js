@@ -27,7 +27,7 @@ export { getElderMortalityRate, resolveProbability } from "./phases/shared.js";
 export { getPrimordialChaosPressure } from "./phases/chaos.js";
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 38;
+  state.gameStateSchemaVersion = 39;
   state.civilization.practiceEvents={nextId:1,pending:[],trace:[]};
   state.civilization.candidateDevelopment={scholar:0,warrior:0};
   for (const legacyCounter of [
@@ -57,7 +57,7 @@ export function initializeDetailedSettlementCivilization(state) {
       internalMigrants: 0,
     },
   };
-  state.civilization.history = { lostSettlements: 0, victories: 0, raids: 0, conquests: 0 };
+  state.civilization.history = { lostSettlements: 0, victories: 0, raids: 0, conquests: 0, monsterTrophies: 0 };
   state.civilization.research = { total: Math.max(0, getGameSetting(state, "startingResearch") || 0) };
   state.civilization.retiredVassals = [];
   state.civilization.phaseModifiers = { housingByRegion: {}, foodByRegion: {}, faithResistance: 0 };

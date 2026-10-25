@@ -6,7 +6,7 @@ export function practiceEventJournal(state) {
 }
 
 export function emitPracticeEvent(state, event) {
-  if (state.gameConfig?.keywordPrototype && event.kind==='monsterDestroyed') {
+  if (event.kind==='monsterDestroyed') {
     state.civilization.history.monsterTrophies=(state.civilization.history.monsterTrophies??0)+1;
   }
   const journal = practiceEventJournal(state);

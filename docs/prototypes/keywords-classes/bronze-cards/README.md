@@ -1,5 +1,11 @@
 # Eight new Bronze keyword cards
 
+**Integration update:** these cards and their [keyword mechanics](../../../practice-keywords.md)
+now work in ordinary games on `proto/keywords-classes`. No experiment flag is
+required. The design briefs, provisional tuning and original fixture evidence
+below remain; [new ordinary-rules captures](../integrated/README.md) verify the
+integrated path. Main remains unchanged.
+
 Throwaway content on `proto/keywords-classes`, using the new shared
 [card creation skill](../../../../.agents/skills/add-gamepiece/SKILL.md) and
 [design brief](../../../card-design-guide.md). Four new Scholar Practices and
