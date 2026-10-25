@@ -22,7 +22,8 @@ concurrency:
 
 jobs:
   build:
-    if: github.ref == 'refs/heads/main' && inputs.confirm_publish
+    # Explicitly approved prototype publication; keep the branch allowlist exact.
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/proto/keywords-classes') && inputs.confirm_publish
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
