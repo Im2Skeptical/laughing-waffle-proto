@@ -1,8 +1,8 @@
 # Laughing Waffle: decisions log
 
-**Audited commit:** `origin/main` `4014a92` (merge of PR #23, game v1.1.9). **Date:** 2026-10-18 (Australia/Sydney, UTC+11).
+**Updated through 82a68da** (2026-10-26). Original audit: `4014a92`, 2026-10-18.
 
-Corrected on 2026-10-18 after the design-vs-implementation audit. The first draft was built from a local checkout (`45745e5`, 8 Oct) that was 200 commits behind `origin/main`, so several of its "contradictions" were already fixed in code and have been updated below. Cam's answers of 2026-10-18 are recorded as LOCKED in section 0 and in the area sections. This is a read-only record: it is not a full code audit.
+Corrected on 2026-10-18 after the design-vs-implementation audit. The first draft was built from a local checkout (`45745e5`, 8 Oct) that was 200 commits behind `origin/main`, so several of its "contradictions" were already fixed in code and have been updated below. Cam's answers of 2026-10-18 are recorded as LOCKED in section 0 and in the area sections. This living log is not a full code audit.
 
 **Sources**
 - Trello board "Laughing Waffle Ideas" (read 2026-10-18: Inbox 51, In progress 2, Ready 0, Done 44, before the audit follow-up cards). Short links are `https://trello.com/c/<id>`; below only the id is shown, e.g. `c/6qqmQxbx`.
@@ -24,7 +24,7 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 ### LOCKED
 - Device floor is Pixel 6 (it replaces Pixel 3). (c/3UX7cTZf updated)
 - Priest and Merchant are still planned as the next classes after Scholar and Warrior. (c/pWk7dIEn updated)
-- Buying at a shop with no Prestige adds a flat +10 Monster progress; Cam: "its fine for now". (c/6qqmQxbx)
+- Buying at a shop with no Prestige adds a flat +10 Monster Pressure; Cam: "its fine for now". (c/6qqmQxbx)
 - Keep the Random +10 Prestige option as the third slot in shops (practice shops: 2 stock tags plus Random). It works well in current playtesting. (c/Ab6XVvDM)
 - Chaos gods, as design direction only (the exact implementation is still to be narrowed down): a flavourful way of creating different kinds of pressure. Philosophically they map to dimensions, probably relatable to the Magic: The Gathering colours. They are necessary components of a complex system; pushed too far they lead to a destructive failure state, narratively like the chaos gods in Warhammer lore. In gameplay they work like the bosses in Balatro or Slay the Spire, testing a deck's ability to handle stress along certain dimensions. (c/3OngyRBs; recorded on c/jtlmCOzz, c/tjM2LfrT, c/VSzy2CRd)
 - Neutral-town billboard prices should ideally move eventually, but that is low priority. Higher priority: neater, nicer UX, showing fewer options, and more variety in each settlement's wares. (c/YGXLJ05z, c/vY4qkNuU)
@@ -39,7 +39,7 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 ## 1. Economy and shops
 
 ### LOCKED
-- Buying at shops with no Prestige stays possible; the penalty is a pushed monster wave (Monster Pressure), not Chaos. Cam: "I think we already decided that penalties were not to chaos but to pushing for a monster wave. So we do it that way." (c/6qqmQxbx) **Built [built]:** if an add-Practice or add-Structure offer costs more Prestige than the vassal has, its Prestige cost becomes 0 and confirming adds a flat +10 Monster expansion progress (all-or-nothing per offer, not scaled; shown in the cost box). Numbers locked by Cam on 2026-10-18 (section 0). The Inbox card c/6qqmQxbx is now effectively built; it has a comment for Cam to confirm.
+- Buying at shops with no Prestige stays possible; the penalty is a pushed monster wave (Monster Pressure), not Chaos. Cam: "I think we already decided that penalties were not to chaos but to pushing for a monster wave. So we do it that way." (c/6qqmQxbx) **Built [built]:** if an add-Practice or add-Structure offer costs more Prestige than the vassal has, its Prestige cost becomes 0 and confirming adds a flat +10 Monster Pressure (all-or-nothing per offer, not scaled; shown in the cost box). Numbers locked by Cam on 2026-10-18 (section 0). The Inbox card c/6qqmQxbx is now effectively built; it has a comment for Cam to confirm.
 - Every early chain should greatly increase food capacity, housing capacity or research. (c/t8QX1qpP, "Decision:")
 - Shop card replacement is the player's free choice of any card, and the removed card must be visible. (c/KxLXLA7M "Decision (Cam)"; c/88oVAj2s)
 - Shops communicate that several offers can be bought per visit; discard pile is interactive and cards can be dragged back; avoid adding text, no invented titles/subheadings. (c/88oVAj2s, "Constraint (Cam)") [Done card]
@@ -62,13 +62,13 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 - No card found for "the first slot in practice shops" (Cam asked in chat; still unanswered).
 
 ### DOCS-ONLY CLAIMS
-- Practice purchases cost 10 Prestige / 12 phases; structure plans cost 2-5 Prestige / 1-2 phases and need 3-8 paid Housing-phase construction cycles (the data goes to 8). 110 Practices and 78 Structures in code. **[built]** (docs/civilization-milestone.md, Code Health)
-- Common Housing ladder in code: 30/60/90/210/360/630. `docs/civcontent-2.6-implementation.md` (150/240/360 for the top three) is stale. **[built]**
+- Default New Game shared prices for both Practice and Structure purchases are Bronze–Diamond 10/20/30/40 Prestige and 2/3/4/5 years. With shared pricing disabled, card-definition bases remain 10 Prestige / 12 phases for Practices and 2–5 Prestige / 1–2 phases for Structures; construction needs 3–8 paid Housing-phase cycles. 110 Practices and 78 Structures in code. **[built]** (docs/civilization-milestone.md, Code Health)
+- Common Housing ladder in code: 30/60/90/210/360/630. **[built]**
 - Hosted Stock only: Food and Currency are derived by Trait; no loose wallets; providers chosen local-first then adjacent-and-connected. **[built]** (Code Health; ai/sim.md, ai/ai-context.md). `localCurrencyCost` exists but is 0 on every Structure (stub).
 - Worker bonus is +100% per effective worker. Existing flat purchase prices remain "provisional". (docs/civilization-milestone.md, civcontent doc)
 - Currency purchases and Crisis procurement debit hosts; Trade is a bonus to Barter, not a rival buying strategy. (docs/civilization-milestone.md)
 - Food Shop and Housing Shop are ordinary Life Map nodes with equal early/mid/late weights, about three per graph. Naming trap: the Life Map node family `neutralMarket` is the unclassed Common-pool card shop, **not** a neutral-town visit; unclassed Life Maps swap Class Markets for it. (docs/civilization-milestone.md, Code Health)
-- Shop purchases are ordered drafts; a shop allows one free reconsideration (reroll) only while the draft is empty. (ai/sim.md, ai/ui.md) **[built]** Reroll costs 6 Prestige.
+- Shop purchases are ordered drafts; only Scholars can refresh offers through Delve while the draft is empty, at a shared base 10 years before discounts. (ai/sim.md, ai/ui.md) **[built]**
 - Stock Supply nodes (`stockShop`) focus on one named output; each Life Map inserts 2 random outputs and guarantees one the player lacks. **[built]** The Inbox card c/ZdxHz1ai is effectively built (comment added for Cam to confirm).
 
 ---
@@ -77,8 +77,8 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 
 ### LOCKED
 - Green Ascendancy is a visual-only placeholder pending a chaos-god rework, with tiers at 100/200/300 years (capped at 3), no gameplay effects, and debug tier/cadence controls. Decision (Cam, 2026-10-18, c/OI0fWgOb); **[built]** (#38).
-- Replace the fixed 1000-Chaos monster spawn with deterministic Monster Pressure: smooth, log-style curve, pulses advance existing monster threat before spawning more. (c/Ip5xsBYi) [Done card] **[built]** Shared expansion tracker, one front per 100 progress.
-- Selected ambitious actions generate explicit Chaos (Raid, conquest/aggressive Campaign, powerful Discovery, esoteric knowledge, forbidden/ruin interactions) and show the Chaos cost in the action UI. (c/33DTojMF) [Done card] **[built, with a substitution]:** the cost is Monster expansion progress, not Chaos. 8 Practices carry `addMonsterPressure` (astronomy 5, forecasting 5, alchemy 10, charnelAlchemy 15, experimentation 10, ruinDelving 10, raidingParties 5, mountedRaiding 20); the `addChaos` op exists but no Practice uses it. Chaos itself only accrues passively via Faith-phase Primordial pressure. Whether the substitution is intended has not been confirmed by Cam.
+- Replace the fixed 1000-Chaos monster spawn with deterministic Monster Pressure: smooth, log-style curve, pulses advance existing monster threat before spawning more. (c/Ip5xsBYi) [Done card] **[built]** Shared Monster Pressure tracker, one front per 100 progress.
+- Selected ambitious actions generate explicit Chaos (Raid, conquest/aggressive Campaign, powerful Discovery, esoteric knowledge, forbidden/ruin interactions) and show the Chaos cost in the action UI. (c/33DTojMF) [Done card] **[built, with a substitution]:** the cost is Monster Pressure, not Chaos. 8 Practices carry `addMonsterPressure` (astronomy 5, forecasting 5, alchemy 10, charnelAlchemy 15, experimentation 10, ruinDelving 10, raidingParties 5, mountedRaiding 20); the `addChaos` op exists but no Practice uses it. Chaos itself only accrues passively via Faith-phase Primordial pressure. Whether the substitution is intended has not been confirmed by Cam.
 - Introduce monsters from the world to pressure the player once food is solved. (c/DE1YlyEu) [Done card]
 - An early monster or martial pressure point: the purpose is to pressure martial/defence earlier than now. (c/jtlmCOzz "Decision (Cam)")
 - Every game starts with one small neutral settlement connected to the start, playtested for Growth vs Opportunity vs Monster Threat. (c/mUhzjpPK) [Done card] **[built, different count]:** the code seeds 4 neutral towns (one adjacent to the capital and force-connected by road) plus 1 weak opening Monster.
@@ -97,11 +97,11 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 - At Death, Monster Pressure gains `(1 + ln(1 + Chaos/100)) / 24` pulses; fractional pressure is saved; Chaos stays accumulated. A pulse rotates among expandable fronts, three advances expand one; new Monster spawns only if no front can expand; if map full, a blocked Monster strengthens. (ai/sim.md, docs/civilization-milestone.md)
 - Each fresh game seeds one weak Defense-2 frontier Monster, ideally one frontier step from player settlements. (ai/ai-context.md, docs/civilization-milestone.md)
 - Faith phase adds uncapped civilization-wide "Primordial pressure" (cadence-based exponentiation); loss pressure and population/Faith resistance set the Chaos that arrives. (ai/sim.md)
-- Action costs are fixed numbers of Monster expansion progress (not Chaos): see the LOCKED item on ambitious actions. This answers c/33DTojMF's "flat vs scaled" for the current build (fixed), but no Trello decision confirms it. **[built]**
+- Action costs are fixed numbers of Monster Pressure (not Chaos): see the LOCKED item on ambitious actions. This answers c/33DTojMF's "flat vs scaled" for the current build (fixed), but no Trello decision confirms it. **[built]**
 - Monster rewards now: Campaign victories give 12 + 4xDefense Prestige and 3xDefense Research; automatic hunts give Loot/Record/Currency trophies and 6 Research; defense/diversion give Defense Research and diversion 6 Prestige. (docs/civilization-milestone.md) This answers c/97w8GxRT's "what do Monsters give now".
 - Settlement loss is the run-ending condition; loss history feeds later content. (ai/sim.md)
 - Legacy Red God simulation removed; live graphs and Life Map effects use civilization Chaos. Saved effect and loss-reason aliases remain readable. (c/Gfij80No)
-- Built per Code Health: Chaos income, Resistance, shared expansion tracker, action risk, defense/loss, run end when no player settlement is left.
+- Built per Code Health: Chaos income, Resistance, shared Monster Pressure tracker, action risk, defense/loss, run end when no player settlement is left.
 
 ---
 
@@ -137,7 +137,9 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 ## 4. Life Map, Lifegraph, timegraph and time
 
 ### LOCKED
-- Life Map year = four seasons x season duration (32 s default), converted to phases. Decision (Cam, 2026-10-18, c/dnhO891i); **[built]** (#39). The 3.6x multiplier on authored Patronage/Development/Crisis/Legacy/route/removal/reroll costs is documented (CONTEXT.md, ai/sim.md); its balance value remains undecided.
+- Normal New Game Lifegraph: five lanes, thirteen normal depths (4/5/4); Practice Reform at 1, Founding before Crossroads at 5, Relic at 10, Discovery Rare without a guaranteed minimum. Cam first-pass tuning #45, updated layout #52 (Cam confirmed 2026-10-26).
+- Absolute Balance bands (3/5/10 years) and shared type/quality shop prices; shared Delve 10 years and empty exit 5 years before discounts. Only Scholars refresh shops through Delve, with an empty draft; non-Scholar reroll removed. (Cam, PR #45; confirmed 2026-10-26)
+- Life Map year = four seasons x season duration (32 s default), converted to phases. Decision (Cam, 2026-10-18, c/dnhO891i); **[built]** (#39). Legacy independent generation uses the 3.6× multiplier on authored Patronage/Development/Crisis/Legacy/route/removal costs; its balance value remains undecided. Default pooled generation uses absolute Balance bands (3/5/10 years) and shared shop services (Delve 10 years, empty exit 5 years), before discounts.
 - Delve recap shows TIME PASSED with time boxes only, no Age/Prestige/EXP rows, and no `nodeResolved` event. (c/3Ii95dpM) [Done card] **[built]** (#34).
 - Lifegraph loading indicator sits above the timegraph. (c/f6RAY0lA) [Done card] **[built]** (#40).
 - Highest priority for making the game better: the protovassal Lifegraph design and an overall redesign to raise player agency even on the "worst path". (c/5hZZB8qo "Priority (Cam)", In progress)
@@ -166,7 +168,7 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 - Timegraph brief (labelled "Status: Draft", records Cam's interview): irreversible vassal actions; every node costs time; unveil only to time spent; scrubbing the past is read-only; only the most recent previous projection is shown; unveil has no skip control ("decided by Cam"); New Game waits for the full opening forecast ("decided by Cam on 8 Oct 2026"); smooth scrubbing outranks unveil speed and horizon length; device floor Pixel 6 ("decided by Cam on 8 Oct 2026"), now also confirmed by Cam on Trello (section 0). Repo-doc claims; only the Pixel 6 one is locked on Trello.
 - Unveil target "about 1000 years in 1 s" is **not met** (reveal runs about 14 s; limits: 40-year window, 200-year cache, 600-year loss search). Cam has clarified it is a performance goal and narrative device, not a hard requirement (section 0). Phone performance is unmeasured apart from Cam's play test of PR #18; at 4x CPU mobile fails the smooth gate. By code reading, a forecast that survives 600 years makes New Game fail with `forecastIncomplete` (untested; c/Jn2BM22a).
 - Older projection survives only as a dimmed, view-only overlay (not browsable during a vassal's life) and "navigation and graph close/open retain it". The brief wants it browsable (c/vxhyqbEt). Relevant to bug c/yFLNqIQi.
-- Life Map is a DAG: six non-crossing route traces, six lanes, eleven normal depths, one twelfth-depth Legacy node; 21 node families (15 normal); Travel and Routes removed; ordinary graphs no longer roll Settlement nodes. Signature nodes: three candidates advertise distinct broad groups. (ai/sim.md, Code Health)
+- Life Map is a DAG: six non-crossing route traces over five lanes, thirteen normal depths (4 Early / 5 Middle / 4 Late) plus terminal Legacy; 22 node families (16 normal, including Special Relic); Travel and Routes removed; ordinary graphs no longer roll Settlement nodes. Signature nodes: three candidates advertise distinct broad groups. (ai/sim.md, Code Health)
 - Node confirmation: advances accumulated Phases, pays recurring Prestige/EXP once, one natural-mortality roll; EXP thresholds queue a three-of-four stat choice. (ai/sim.md)
 - Six fixed moon phases (Birth, Food, Housing, Faith, Migration, Death). Time-cost icons are sun, crescent, lunar-phase sprites. (ai/ui.md)
 - Dock: single-click Regional Map / Life Map / Settlement navigation; Present button returns to live second. (ai/ui.md, CONTEXT.md)
@@ -176,7 +178,8 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 ## 5. Vassal classes and founders
 
 ### LOCKED
-- Founders: Philosopher founds Scholars, Warlord founds Warriors; not subclasses but one-time historical founder candidates. Founder's first Life Map node is a single founding choice; the only founder spawn is the first vassal; afterwards vassals are unclassed or founder's class; don't require conquest for Warlord; present existing founding as Philosopher/Warlord founding life. (c/U8v7feoR "Decisions") [Done card]
+- Founder attributes apply before Founding: Philosopher uses Ingenuity, Warlord Prowess. (Cam, PR #54; confirmed 2026-10-26)
+- Founders: Philosopher founds Scholars, Warlord founds Warriors; not subclasses but one-time historical founder candidates. Founding is a single-choice milestone at depth 5 by default, after Practice Reform at 1; successors get Crossroads there. This supersedes the “first node” placement (Cam layout, PR #52; confirmed Cam 2026-10-26). The only founder spawn is the first vassal; afterwards vassals are unclassed or founder's class; don't require conquest for Warlord; present existing founding as Philosopher/Warlord founding life. (c/U8v7feoR "Decisions") [Done card]
 - Priest and Merchant are still planned as the next classes (Cam, 2026-10-18). Docs list them as "outside this pass", which is not a cancellation. (c/pWk7dIEn)
 - Vassal selection redesign approach: mock up and prototype approaches first; emphasise the protoclass (founder) selection, then regular selection. (c/7F1UxDGf "Approach (Cam)") [Done card]
 - Highest-level tooltip tag is class or neutral. (c/v9kiwWwC "Design notes (Cam, Oct 3)")
@@ -194,7 +197,7 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 ### DOCS-ONLY CLAIMS
 - First candidate pool has only Philosophers and Warlords; founding takes six phases; Scholar founding trains two adults + a Lyceum where space permits, Warrior founding trains ten adults; founders never recur; an unfinished founding leaves later pools unclassed. (ai/sim.md, docs/civilization-milestone.md) Partly consistent with c/U8v7feoR but the numbers (2 / 10 / six phases) are docs-only.
 - Class meanings: Scholar stat is Ingenuity (key `cunning`), Warrior stat is Prowess (key `intelligence`); visible labels are Ingenuity/Prowess. **[built]** The Scholar +Cunning and Warrior +Intelligence candidate bonuses are the intended key mapping, not backwards. (docs, `lifecycle/candidates.js:113,128`)
-- Scholar: Ingenuity replaces Cunning income with quality uplift (5% per point, cap 75%), Discovery, one free reconsideration, Commissions (20 Prestige). Warrior: Prowess, Retinue = floor(Prestige/10) capped, Support = floor(Warriors/5), Campaign/Challenge. (docs/civilization-milestone.md)
+- Scholar: Ingenuity replaces Cunning income with quality uplift (5% per point, cap 75%), Discovery, Scholar-only Delve refresh (shared base 10 years, empty draft only), Commissions (20 Prestige). Warrior: Prowess, Retinue = floor(Prestige/10) capped, Support = floor(Warriors/5), Campaign/Challenge. (docs/civilization-milestone.md)
 - Candidate bonus is capped at +5 combined (institutions + history + retired vassals) in code (src/model/vassal-life-map/lifecycle/candidates.js) and in card text **[built]**.
 - Rival AI, tactical combat, equipment crafting and an expanded Elder Order are "outside this pass" in the docs (Priest and Merchant are listed there too, but are planned per Cam, section 0). Elder Order is aggregate state and does not affect candidates. (docs/civilization-milestone.md, CONTEXT.md)
 - Vassal selection prototypes: A founder ceremony (carousel of 4/6/8 slots with locked silhouettes), B council beside map, C successor drawer; "no recommended winner yet"; "does not replace the real drawer"; Scholar first-run gate is "a design proposal, undecided". (docs/vassal-selection-prototype.md)
@@ -213,6 +216,18 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 - Structure material audit: non-Housing structures use broad existing Stock Traits, not bespoke ingredient lists. (c/HUZs7pQ9) [Done card]
 - Housing ladder Mud House -> Timber -> Stone -> Longhouse -> Tenement -> Great Dwelling converts stronger economy to density. (c/fCVEgZX5) [Done card]
 - Gym shop sandbox (not Zoo, not Museum). (c/M9hobOtp) [Done card]
+
+- 2026-10-23 — Independent Output and Capacity Multipliers (Cam, PR #53;
+  additive Structure Capacity pools previously approved in #46). Cam confirmed the first biome Output rules: +1 per region in the settlement's
+  contiguous same-biome shared-edge patch, including its own region regardless of
+  ownership. Plains target the existing Grain Stock Trait, including Milling;
+  mountains target Stone; forest targets Construction. Both additive pools start
+  at ×1. Granary retains Capacity only. “Stock Power” becomes “Capacity Multiplier”.
+  The selected UI is per-Practice symbolic pairs, compact pinnable ledgers with
+  nested individual sources, Practice shop readings and completed-result Structure
+  previews on the settlement board. Construction reservations remain inactive until
+  real completion. See [implementation scope](output-capacity-multipliers.md) for
+  the accepted interaction fixes and excluded prototype scaffolding.
 
 ### OPEN
 - Charge cards: second word for the scheduled/charge tag beside "Cyclic". Code and docs still say Scheduled/Charge. (c/v9kiwWwC "Open")
@@ -253,7 +268,7 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 
 ### DOCS-ONLY CLAIMS
 - Heirloom slots: Equipped, Carry, Vault (six vault slots; overflow is a player choice). Death/retirement inheritance: Sanctified returns to vault unchanged, Unmarked becomes Fragile, Fragile has 50/50 break roll; next Vassal equips 0-3 vault relics; Carry starts empty. Only one owned copy of each definition. (ai/sim.md, CONTEXT.md) The vault is storage only in docs: nothing about vault effects.
-- Relic nodes offer three heirlooms with no Prestige price; each persists a random phase cost from `VASSAL_TIME_COST_RANGES`; a Mandate relic can't protect its own acquisition. **[built]** Relics above Bronze also add 10/25/50 Monster progress. (ai/sim.md, `heirlooms.js`)
+- Relic nodes offer three heirlooms with no Prestige price; each persists a random phase cost from `VASSAL_TIME_COST_RANGES`; a Mandate relic can't protect its own acquisition. **[built]** Relics above Bronze also add 10/25/50 Monster Pressure. (ai/sim.md, `heirlooms.js`)
 - Equipped Heirlooms can grant large temporary bonuses including a once-per-life Mandate preventing fatal natural or immediate-danger death. (ai/sim.md)
 - The vault is storage only: nothing outside inheritance consumes it. 14 heirlooms; 3 Equipped / 3 Carry / 6 Vault slots. **[built]**
 - Legacy node: terminal node with 3 free choices (found a settlement, teach highest stat floor(stat/3), leave renown floor(Prestige/10)); Legacy+ signature upgrades it; "special Legacy outcomes" and Chairs/Tomes/Chronicles are deferred. The "found a settlement" card says no Prestige or population cost, but the code needs 10 adult Villagers and a connected frontier target. (ai/sim.md; `world-choices.js:66`; `node-confirm.js:112,426,463`; c/0fNY9nb2)
@@ -263,6 +278,8 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 ## 8. UI/UX, art and dev tooling
 
 ### LOCKED
+- `game-design.md` is the gameplay authority. (Cam agreed 2026-10-21, PR #48)
+- `aesthetic-ux-design.md` is the UX guide; Cam asked for its merge (PR #49). Its wording is AI synthesis of Cam feedback, not verbatim Cam decisions. (Cam confirmed 2026-10-26)
 - Gamepiece tooltip redesign direction (placeholder tooltips unreadable). (c/v9kiwWwC) [Done card]
 - Shop screens show gamepieces at full size. (c/tCEdqSpY) [Done card]
 - Card layout prototype compared to in-game cards and previewed on real screens. (c/YoOepbaZ) [Done card]
@@ -291,7 +308,7 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 ## 9. Built but never decided (no Cam decision on record)
 
 Found in code at `4014a92`; Cam may not know about these. Cards exist for the first few.
-- Scholar kit: 10-year Delve (rerolls the shop), ongoing Commissions at 20/40/60 Prestige, +5% quality chance per Ingenuity. Warrior kit: Prowess risk bonus, +15 Prestige on a successful risk, Retinue = floor(Prestige/10), campaign modes Duel/Quest/Attack/Honour duel. (c/6OioI8xc)
+- Scholar kit beyond the locked Delve refresh: ongoing Commissions at 20/40/60 Prestige, +5% quality chance per Ingenuity. Warrior kit: Prowess risk bonus, +15 Prestige on a successful risk, Retinue = floor(Prestige/10), campaign modes Duel/Quest/Attack/Honour duel. (c/6OioI8xc)
 - Founding numbers: Philosopher trains 2 Scholars plus a Lyceum, Warlord trains 10 Warriors, 6 phases each.
 - Class-action families (training, discovery, campaign, challenge) have weight 0 and are substituted into a class's graph after generation. (c/WW9JUNnb)
 - Heirloom mechanics: Mandate of Heaven blocks one fatal outcome per life, Fragile has a 50/50 break roll, the next vassal equips 0-3 Vault relics.
@@ -306,7 +323,7 @@ Found in code at `4014a92`; Cam may not know about these. Cards exist for the fi
 **Resolved by Cam on 2026-10-18**
 1. Device floor: Pixel 3 (card) vs Pixel 6 (docs). **Pixel 6 locked**; card c/3UX7cTZf updated.
 2. Priest/Merchant existence (c/pWk7dIEn vs c/ksjmhFae vs chat "if we still do that"). **Planned as the next classes.**
-3. How the flat monster-wave penalty sits with the Chaos-driven curve. **Flat +10 Monster progress locked for now.** It feeds Monster progress, not Chaos.
+3. How the flat monster-wave penalty sits with the Chaos-driven curve. **Flat +10 Monster Pressure locked for now.** It feeds Monster Pressure, not Chaos.
 4. Chaos gods referenced by three cards with no definition. **Direction locked, implementation open** (c/3OngyRBs).
 5. The 1000-years-in-1-second target. **A performance goal and narrative device, not a hard requirement.**
 
@@ -318,11 +335,11 @@ Found in code at `4014a92`; Cam may not know about these. Cards exist for the fi
 10. Stat naming: Scholar +Cunning and Warrior +Intelligence is the intended key mapping (shown as Ingenuity and Prowess), not backwards. The card text never names the stat (c/9FwTOJ0t, fixed).
 11. Relic risk (c/UvHNbFbn) and stock-output nodes (c/ZdxHz1ai) are built, so those Inbox cards are stale; both carry a comment for Cam to confirm. Relic death risk is 35% for Gold/Diamond, not "always".
 12. Delve (c/3Ii95dpM): **[built]** (#34); recap shows TIME PASSED with time boxes only, no Age/Prestige/EXP rows, and no `nodeResolved` event.
-13. Ambitious-action Chaos (c/33DTojMF, Done): built as Monster expansion progress, fixed numbers, not Chaos.
+13. Ambitious-action Chaos (c/33DTojMF, Done): built as Monster Pressure, fixed numbers, not Chaos.
 14. Card reviewer (c/Cd7toHWG): a Reviewer already exists; the card needs trimming.
 15. Monster rewards (c/97w8GxRT): docs already list concrete rewards (campaign victories 12 + 4xDefense Prestige and 3xDefense Research; hunts give trophies and 6 Research).
 16. Housing ladder: code is 30/60/90/210/360/630; `docs/civcontent-2.6-implementation.md` matches.
-17. Monster Pressure source: ambitious actions and no-Prestige purchases add Monster progress directly; Chaos is a separate passive stat driven by Faith-phase Primordial pressure.
+17. Monster Pressure source: ambitious actions and no-Prestige purchases add Monster Pressure directly; Chaos is a separate passive stat driven by Faith-phase Primordial pressure.
 
 **Still open**
 18. Tier names: Trello c/Rg5dmcGY proposes Stone, Bronze, Iron, Gold, Diamond; code and docs use bronze, silver, gold, diamond.
@@ -332,19 +349,3 @@ Found in code at `4014a92`; Cam may not know about these. Cards exist for the fi
 22. Dead-end chains: Trello says early shops have too many dead practices; docs describe no gating of complex chains. 101 of 110 Practices carry `provisionalNotes`. (c/t8QX1qpP)
 23. Warrior purpose is split across c/hsInbn7l (forced campaign), c/ksjmhFae (class-gated systems) and c/97w8GxRT (Monster rewards); none locked. Consider one umbrella card.
 24. Billboard political prestige: card mentions it, nothing in code, Cam has not said.
-
-
-## 2026-10-23 ? Independent Output and Capacity Multipliers
-
-Cam confirmed the first biome Output rules: +1 per region in the settlement's
-contiguous same-biome shared-edge patch, including its own region regardless of
-ownership. Plains target the existing Grain Stock Trait, including Milling;
-mountains target Stone; forest targets Construction. Both additive pools start
-at ?1. Granary retains Capacity only. ?Stock Power? becomes ?Capacity Multiplier?.
-
-The selected UI is per-Practice symbolic pairs, compact pinnable ledgers with
-nested individual sources, Practice shop readings and completed-result Structure
-previews on the settlement board. Construction reservations remain inactive until
-real completion. See [implementation scope](output-capacity-multipliers.md) for
-the accepted interaction fixes and excluded prototype scaffolding. This records
-local implementation scope; it does not imply publication or integration.

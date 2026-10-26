@@ -44,7 +44,7 @@ coverage and inventory diagnostics live in `model/dev-lab/lifegraph.js`.
 type/quality shop prices from `model/life-map-balance.js`.
 `lifegraph-relic-editor.js` authors ordinary Relic quality weights and the
 independent Special Relic item pool, with actual seeded offers and eligibility.
-Profiles capture those rules explicitly; `life-map-lab-dom.js`
+Profiles capture those rules explicitly; `../life-map-lab-dom.js`
 is now a profile summary and copy action rather than a second graph editor.
 
 `card-reviewer.js` renders the persistent review queue, face value targets,

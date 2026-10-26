@@ -19,7 +19,7 @@ separate from mandatory trait costs. Multi-trait output contributes to each trai
 row, never an economy-wide grand total. It consumes the projected entries supplied by
 Zoo, so Live and edited modes use the same calculation.
 
-`node-sandbox.js` authors a disposable dummy/settlement fixture for the Gym's
+`node-sandbox.js` authors a disposable dummy/settlement fixture for the Lifegraph workspace's
 real node modal. Refresh reseeds content streams while keeping the authored
 world, portrait and topology fixed. Node entry and all interactions use normal
 Life Map rules; the independent controller validates cloned transactions.

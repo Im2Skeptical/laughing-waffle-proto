@@ -203,13 +203,14 @@ Save/load preserves the generated map through its versioned seeded definition.
   control or a double-tap on the selected candidate confirms it. Clicking
   outside dismisses the chooser without changing
   its authoritative pool. Selection opens a dedicated full-topology Life Map
-  screen with a Philosopher or Warlord Chronicle for the first Vassal. The compulsory
-  opening node and its sole choice name that founder; completing it establishes
+  screen with a Philosopher or Warlord Chronicle for the first Vassal. The single-choice
+  Founding milestone is at depth 5 by default, after Practice Reform at 1;
+  successors get Crossroads there. Its choice names that founder; completing it establishes
   the chosen class. Later candidate cards show Unclassed or the established class,
   with no recurring founder identities. Later Lifegraphs use a Vassal Chronicle
   label. The compact centered HUD is a carved "crest bar" (`chronicle-hud-frames`
   atlas, class-tinted): a portrait medallion breaking the lintel's left end, a
-  hanging Prestige pendant, Age over an amber EXP groove with quarter studs, four
+  hanging Prestige pendant, an AGE/LV life plaque on an amber EXP groove with quarter studs, four
   icon stat plaques (full label in the tooltip), heirloom sockets and bag, and
   hanging Commission/Retinue and Location tabs. It ends above y=200 so the
   level-up window never overlaps it; during level-up the chosen stat's plaque
@@ -310,16 +311,16 @@ Save/load preserves the generated map through its versioned seeded definition.
   not mutate the timeline or rebuild forecasts. Drafts survive closing a modal,
   screen navigation, and read-only browsing; a changed authoritative frontier
   invalidates them. Confirm validates the batch in the Life decision worker and
-  appends it once. Entering a node and paid rerolls remain real transactions.
-  Tapping a dimmed offer, option, reroll, relic or Confirm shows a short dock
+  appends it once. Entering a node and Scholar-only Delve refresh remain real transactions.
+  Tapping a dimmed offer, option, Delve, relic or Confirm shows a short dock
   notice with the reason (Prestige, requirement, replacement target or missing
   choice) instead of silently ignoring the tap.
-  Reachable node content and legal rerolls are prepared from isolated snapshots;
+  Reachable node content and legal Scholar Delve refreshes are prepared from isolated snapshots;
   preparation never spends Prestige or advances authoritative RNG.
   A screen-level animated processing indicator covers commit, resolution, and
   preparation. Navigation/inspection remains available; conflicting decisions
   and time edits are locked. Recap, level-up, and every legal next node's entry,
-  choice, and legal reroll layouts are prepared before the final graph reveal
+  choice, and legal Scholar Delve refresh layouts are prepared before the final graph reveal
   is released. Matching node layouts are reused on entry, and repeated refresh
   callbacks do not rebuild unchanged controls. GPU preparation uses a small
   time budget per frame. Failed preparation can retry without charging
@@ -379,12 +380,12 @@ fallback.
 
 Probes and test routes: `ai/repository-map.md`.
 
-Monster map markers show the shared expansion tracker, not per-Monster ages.
+Monster map markers show the shared Monster Pressure tracker, not per-Monster ages.
 The civilization panel compares accumulated Chaos with current Resistance and
-shows expansion progress / threshold and passive progress per moon (or Contained).
+shows Monster Pressure / threshold and passive progress per moon (or Contained).
 Its Green tier label and tooltip identify a placeholder with visual feedback only
 and no gameplay effects; default visual tiers begin at 100/200/300 years.
-Dangerous action costs use a Monster symbol plus expansion progress; Chaos is a
+Dangerous action costs use a Monster symbol plus Monster Pressure; Chaos is a
 separate permanent burden. Chaos and Resistance graph series share a scale.
 Chaos, Resistance, income and expansion readouts use compact units and at most
 two decimal places, retaining a significant digit for tiny positive values.
