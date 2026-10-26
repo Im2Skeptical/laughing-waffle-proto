@@ -30,7 +30,7 @@ registries here.
 - Faith-phase Chaos income accumulates permanently, independently of Resistance.
   Practice Resistance bonuses last until the next Birth phase.
   Resistance is compared with accumulated Chaos: sufficient Resistance freezes
-  passive Monster expansion progress without erasing saved progress. At Death,
+  passive Monster Pressure without erasing saved progress. At Death,
   passive progress is `0.8 * max(0, Chaos - Resistance) / max(1, Resistance)` per
   moon by default. Relative pressure keeps population useful above containment;
   the one-point denominator floor keeps zero/tiny Resistance finite.
@@ -39,7 +39,7 @@ registries here.
   fractional Resistance at Bronze/Silver/Gold/Diamond ratios of 1 per 10/5/2/1
   people, multiplied by the serialized Population Resistance effectiveness setting
   (default 1). Temporary Practice bonuses are added after this multiplier.
-  Forecasting grants 0.3 Resistance; fixed Monster progress costs stay unchanged.
+  Forecasting grants 0.3 Resistance; fixed Monster Pressure costs stay unchanged.
   Untouched new games target extinction at years 200–300.
   Sustained 3x population effectiveness must add at least 100 years on each of
   the nine paired opening seeds. This isolates Resistance; physical population
@@ -113,17 +113,18 @@ registries here.
   Surviving migrants join the destination Stranger cohort. Green Ascendancy is a visual-only placeholder (tiers at 100/200/300 years); it affects neither migration nor elder mortality and has no decay settings.
 - Elder Orders remain aggregate cohort state but do not affect Vassal candidates,
   prices, inventories, or resolutions. Each selected Vassal owns a deterministic,
-  serialized Life Map DAG generated from six non-crossing route traces across six
-  lanes and eleven normal depths. The first two traces start separately, room
+  serialized Life Map DAG generated from six non-crossing route traces over five
+  lanes and thirteen normal depths (4 Early / 5 Middle / 4 Late) by default. The first two traces start separately, room
   families use Early/Mid/Late weights, and every final normal node connects to a
-  single twelfth-depth Legacy node. Entered nodes
-  persist their content while choices, purchases, and one shop reroll are staged.
+  single terminal Legacy node. There are 22 node families (16 normal, including
+  Special Relic). Entered nodes
+  persist their content while choices and purchases are staged; only Scholars refresh shops through Delve.
   Each candidate also owns a serialized procedural portrait and one signature
   node descriptor. Three candidates always advertise distinct broad signature
   groups. Generation replaces one mid-band node with that signature after the
   ordinary graph is built; Legacy+ instead upgrades the terminal Legacy node.
   Travel and Routes are removed node families, including from generator settings
-  and the Gym picker; the Remove Routes signature is also removed.
+  and the Lifegraph workspace picker; the Remove Routes signature is also removed.
   Ordinary graphs no longer roll Settlement nodes. Crossroads
   uses the canonical `crossroads` family and combines movement to connected player settlements (three moons), new incident
   routes (15 Prestige/five years), and a two-year Tour (25% Bronze Relic, otherwise
@@ -138,8 +139,7 @@ registries here.
   edited content with no eligible basics keeps a disabled Food choice.
   choosing Random grants 10 Prestige once. Public Works offers Housing, Stock
   capacity, and Special categories. Existing class/Common eligibility remains.
-  A card purchase that exceeds remaining Prestige instead costs 10 Monster
-  expansion progress; staging and undo are inert, and checkout applies the cost.
+  A card purchase that exceeds remaining Prestige instead costs 10 Monster Pressure; staging and undo are inert, and checkout applies the cost.
   Shop purchases are ordered drafts: they reserve offers and project their
   Prestige/Phase costs but do not deduct Prestige or apply interventions until
   confirmation. Practice purchases can be placed throughout the fixed five-slot tableau. New consumers default after installed suppliers; new producers default left. Structure purchases retain explicit
@@ -148,12 +148,19 @@ registries here.
   structures, never other staged structures. Undo reprojects from the confirmed settlement and restores
   covered buildings. There is no standalone demolition, refund or salvage.
   Confirmation applies the projected final order and layout atomically;
-  rerolling is available only while the draft is empty.
+  Scholar-only Delve refresh is available only while the draft is empty
+  (shared base 10 years before discounts). Default New Game shared prices for
+  both card types at Bronze–Diamond are 10/20/30/40 Prestige and 2/3/4/5 years.
+  With shared pricing disabled, card-definition bases remain 10 Prestige /
+  12 phases for Practices and 2–5 Prestige / 1–2 phases for Structures.
 - Explicit node confirmation applies staged effects, advances accumulated Phases
   through normal ticks (year-based prices use four seasons times `seasonDurationSec`,
-  32 seconds by default; `VASSAL_TIME_COST_MULTIPLIER` scales authored Patronage,
-  Development, Crisis, Legacy, fallback-route, removal, and reroll year costs by 3.6 before
-  rounding to phases and applying discounts; empty-shop confirmation is unscaled), pays recurring Prestige/EXP once, and makes one
+  32 seconds by default). Default pooled generation uses absolute Balance bands
+  (3/5/10 years) and shared shop services (Delve 10 years, empty exit 5 years),
+  before discounts. Legacy independent generation uses `VASSAL_TIME_COST_MULTIPLIER`
+  to scale authored Patronage, Development, Crisis, Legacy, fallback-route and
+  removal year costs by 3.6 before rounding to phases and applying discounts
+  (empty-shop confirmation is unscaled). Confirmation pays recurring Prestige/EXP once, and makes one
   post-age natural-mortality roll. Only surviving completion exposes outgoing
   nodes; terminal survival retires the Vassal and death or retirement persists
   the completed life before generating the next three candidates.
@@ -180,8 +187,8 @@ registries here.
   serialized three-of-four stat choice rolled from all four Vassal stats. These
   choices resolve one at a time and block entry into another Lifegraph node.
 - The first candidate pool contains only Philosophers and Warlords, initially
-  unclassed. The selected founder's sole Life Map entry is a single-choice
-  founding node before the generated routes. Its six-phase completion establishes
+  unclassed. Founding is a single-choice milestone at depth 5 by default, after Practice
+  Reform at 1; successors get Crossroads there. Its six-phase completion establishes
   Scholars (two adults plus a Lyceum where space permits) or Warriors (ten adults
   through training, without conquest). The founder keeps their Philosopher/Warlord
   identity throughout the life. Later pools contain unclassed Vassals and the
@@ -210,7 +217,7 @@ registries here.
   (Force + Defence); each attempt takes two phases. Attack costs 5 Prestige and
   1 + map-distance Food; Quest costs the same Food, Duel none. Defeat ends the
   visit without immediate death, while timed natural mortality still applies.
-  Clearing monsters resets expansion progress and exposes a stronger nest;
+  Clearing monsters resets Monster Pressure and exposes a stronger nest;
   destroying it removes the Monster. Neutral targets use real conquest. Duels
   award +1 permanent Prowess and 10 Prestige, quests a Relic and 10 Prestige,
   plus the usual +15 Warrior reward for successful risk. Leave advances the
