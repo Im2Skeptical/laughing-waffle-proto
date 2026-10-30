@@ -13,6 +13,9 @@ const probeProfile={mapLab:createAuthoredMapLabDraft(),gameSettings:createAuthor
 probeProfile.gameSettings.values.primordialBasePressure=1;
 probeProfile.gameSettings.values.primordialGrowthFactor=1.1;
 
+// Authored fixture: 115 Bronze-faith people / 10 per unit, times 5 protection.
+const INITIAL_CHAOS_RESISTANCE = 57.5;
+
 const PORT = Number(process.env.PROBE_PORT ?? 8080);
 const URL = `http://127.0.0.1:${PORT}`;
 const DETAIL_PATH = "artifacts/settlement-browser-probe.json";
@@ -215,7 +218,7 @@ try {
     })),
     [
       { seriesId: "monsterCount", value: 0 },
-      { seriesId: "chaosResistance", value: 0 },
+      { seriesId: "chaosResistance", value: INITIAL_CHAOS_RESISTANCE },
       { seriesId: "chaosRawPressure", value: 0 },
     ],
     "civilization graph renders aggregate values"
@@ -869,7 +872,7 @@ try {
     })),
     [
       { seriesId: "monsterCount", value: 0 },
-      { seriesId: "chaosResistance", value: 0 },
+      { seriesId: "chaosResistance", value: INITIAL_CHAOS_RESISTANCE },
       { seriesId: "chaosRawPressure", value: 0 },
     ],
     "returning to the map restores civilization graph values"

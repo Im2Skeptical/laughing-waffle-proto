@@ -399,3 +399,27 @@ const terminalController=createLifeDecisionController({getRunner:()=>realRunner,
  createWorker:()=>{throw new Error('terminal runs must not restart resolution');}});
 assert.equal(terminalController.resumePendingResolution(),false);
 assert.equal(terminalController.getStatus(),null);
+
+// Cold first entry: the worker can finish before asynchronous view preparation.
+// Controls must remain blocked until both preparation stages finish.
+const coldRunner = createSimRunner({setupId:'devPlaytesting01'});
+coldRunner.resetToState(initial); // selectedState(1)
+let coldWorker, releaseView, releaseChoices;
+const coldController = createLifeDecisionController({
+  getRunner:()=>coldRunner, getState:()=>coldRunner.getState(),
+  createWorker:()=>coldWorker={terminate(){},postMessage(message){this.message=message;}},
+  onPrepare:()=>new Promise(resolve=>{releaseView=resolve;}),
+  onPrepareChoices:()=>new Promise(resolve=>{releaseChoices=resolve;}),
+});
+coldController.dispatch(ActionKinds.VASSAL_ENTER_LIFE_NODE,{nodeId},{},()=>{});
+await runLifeDecisionJob(coldWorker.message,message=>coldWorker.onmessage({data:{...message,requestId:coldWorker.message.requestId}}));
+assert.equal(coldController.getStatus().ready,false,'first entry waits for view preparation');
+assert.equal(coldController.dispatch(ActionKinds.VASSAL_ENTER_LIFE_NODE,{nodeId},{},()=>{}).ok,false);
+releaseView();
+await waitForDecision(()=>!!releaseChoices,'choice preparation starts after view preparation');
+assert.equal(coldController.getStatus().ready,false,'first entry waits for choice preparation');
+releaseChoices();
+await waitForDecision(()=>coldController.getStatus()===null,'cold first entry finishes');
+assert.equal(getCurrentLifeMapVassal(coldRunner.getState()).lifeMap.currentNodeId,nodeId);
+assert.equal(coldRunner.getTimeline().actions.length,1,'cold first entry commits exactly once');
+console.log('[life-decision] seed 1 cold first-entry preparation ordering OK');
