@@ -686,12 +686,50 @@ function buildInteractions(regions, edges, features, islandClusters, surrounding
 
 export function canPlacePeak(geography, p, radius) {
   for (const corridor of geography.corridors) {
-    if (withinBounds(p, corridor.bounds, radius) && projectToPath(p, corridor.points).distance < corridor.width + radius) return false;
+    if (withinBounds(p, corridor.bounds, radius) && pathWithin(p, corridor.points, corridor.width + radius)) return false;
   }
   for (const coast of geography.coasts) {
-    if (withinBounds(p, coast.bounds, radius) && projectToPath(p, coast.points).distance < .015 + radius) return false;
+    if (withinBounds(p, coast.bounds, radius) && pathWithin(p, coast.points, .015 + radius)) return false;
   }
   return true;
+}
+
+// Segment blocks with padded bounds, built once per immutable path array.
+const PATH_BLOCK = 16, pathBlocks = new WeakMap();
+function blocksFor(points) {
+  let blocks = pathBlocks.get(points);
+  if (blocks) return blocks;
+  blocks = [];
+  for (let start = 1; start < points.length; start += PATH_BLOCK) {
+    const end = Math.min(points.length, start + PATH_BLOCK);
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (let i = start - 1; i < end; i++) {
+      const q = points[i];
+      if (q.x < minX) minX = q.x; if (q.x > maxX) maxX = q.x;
+      if (q.y < minY) minY = q.y; if (q.y > maxY) maxY = q.y;
+    }
+    const pad = 1e-9 * (1 + Math.abs(minX) + Math.abs(maxX) + Math.abs(minY) + Math.abs(maxY));
+    blocks.push({ start, end, minX: minX - pad, minY: minY - pad, maxX: maxX + pad, maxY: maxY + pad });
+  }
+  pathBlocks.set(points, blocks);
+  return blocks;
+}
+
+// Exactly projectToPath(p, points).distance < limit, without allocating and
+// skipping segment blocks whose padded bounds are provably beyond the limit.
+function pathWithin(p, points, limit) {
+  const reach = limit * (1 + 1e-9) + 1e-12;
+  for (const block of blocksFor(points)) {
+    const gapX = Math.max(0, block.minX - p.x, p.x - block.maxX), gapY = Math.max(0, block.minY - p.y, p.y - block.maxY);
+    if (gapX * ASPECT > reach || gapY > reach) continue;
+    for (let i = block.start; i < block.end; i++) {
+      const a = points[i - 1], b = points[i], dx = (b.x - a.x) * ASPECT, dy = b.y - a.y, length = Math.hypot(dx, dy);
+      if (!length) continue;
+      const t = Math.max(0, Math.min(1, ((p.x - a.x) * ASPECT * dx + (p.y - a.y) * dy) / length ** 2));
+      if (Math.hypot((p.x - lerp(a.x, b.x, t)) * ASPECT, p.y - lerp(a.y, b.y, t)) < limit) return true;
+    }
+  }
+  return false;
 }
 
 // Stable decoration positions: independent of generation and presentation mode.
