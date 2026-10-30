@@ -35,7 +35,7 @@ export function describeGamepieceEffects(def) {
 }
 
 function describeStructureValues(def) {
-  return [...(def.housing?[`${def.housing} Housing. Numeric bonuses from duplicate structures add.`]:[]),...(def.candidateBonus?[`+${def.candidateBonus} to future ${def.pool} candidates from this settlement while active.`]:[])];
+  return [...(def.housing?[`${def.housing} Housing. Numeric bonuses from duplicate structures add.`]:[]),...(def.pool !== 'common' && def.candidateBonus?[`+${def.candidateBonus} ${def.pool === 'scholar' ? 'Ingenuity' : 'Prowess'} for future local ${def.pool} candidates while active. Combined institutional bonus capped at +5.`]:[])];
 }
 
 const seasonBoundaryOffsets = new Map();
