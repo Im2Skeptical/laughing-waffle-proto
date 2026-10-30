@@ -314,7 +314,7 @@ Found in code at `4014a92`; Cam may not know about these. Cards exist for the fi
 - Heirloom mechanics: Mandate of Heaven blocks one fatal outcome per life, Fragile has a 50/50 break roll, the next vassal equips 0-3 Vault relics.
 - Observation Practice (Common Bronze, +1 Research per Birth).
 - Default minimal-bronze card pool. (c/Q1zwEwz5)
-- Dead or stub tunables: `localCurrencyCost`, the `addChaos` op, `legacyStartingPrestigeBonusCap`, `ENV_EVENT_DRAW_CADENCE_SEC`. (c/STkDw2JT)
+- Tunable audit (c/STkDw2JT): removed unused `legacyStartingPrestigeBonusCap` and `ENV_EVENT_DRAW_CADENCE_SEC`. Retained `localCurrencyCost` (implemented shop payment, authored defaults zero) and `addChaos` (supported DSL capability; authored use awaits the Chaos/Monster Pressure decision above). Legacy prestige/year costs are consumed; former phase-cost helpers and the phases-per-year comment are already absent.
 
 ---
 

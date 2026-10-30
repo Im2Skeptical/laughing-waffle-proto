@@ -11,6 +11,9 @@ export function createLabCards({onReview} = {}) {
   const renderer = new PIXI.Renderer({width:440,height:250,resolution:2,backgroundAlpha:0,antialias:true,preserveDrawingBuffer:true});
   let revision = -1;
   let images = [];
+  // Encoding dominates section navigation; reuse unchanged faces, bounded per Lab.
+  const faceImages = new Map();
+  let faceRevision = getArtRevision();
   void preloadChronicleArt().catch(error => console.error('[art] card artwork preparation failed', error));
   const timer = setInterval(() => {
     images = images.filter(({img}) => img.isConnected);
@@ -23,15 +26,23 @@ export function createLabCards({onReview} = {}) {
     }
   },500);
   function paint({img,face,width,onSections}) {
+    const currentRevision = getArtRevision();
+    if (currentRevision !== faceRevision) { faceImages.clear(); faceRevision = currentRevision; }
+    const key = JSON.stringify([width,face]);
+    const cached = faceImages.get(key);
+    if (cached) { img.src = cached.url; onSections?.(cached.sections); return; }
     renderer.resize(width,250);
     const root = new PIXI.Container();
     const piece=addSettlementPiece(root,{x:8,y:14,width:width-16,height:226},{face,time:face.viewedTime,reducedMotion:true});
     renderer.render(root);
     img.src = renderer.view.toDataURL();
-    onSections?.(Object.fromEntries(Object.entries(piece.faceSections??{}).filter(([,section])=>section?.width).map(([key,section])=>[key,{
+    const sections = Object.fromEntries(Object.entries(piece.faceSections??{}).filter(([,section])=>section?.width).map(([key,section])=>[key,{
       x:(piece.x+section.x*piece.scale.x)/width*100,y:(piece.y+section.y*piece.scale.y)/250*100,
       width:section.width*piece.scale.x/width*100,height:section.height*piece.scale.y/250*100,
-    }])));
+    }]));
+    if (faceImages.size >= 128) faceImages.delete(faceImages.keys().next().value);
+    faceImages.set(key,{url:img.src,sections});
+    onSections?.(sections);
     root.destroy({children:true});
   }
   const icons=new Map();

@@ -176,7 +176,6 @@ export const VASSAL_LIFE_TUNING = Object.freeze({
   legacyPrestigeCost: 20,
   legacyYearCost: increasedYearCost(4),
   legacyStartingPrestigeBonus: 3,
-  legacyStartingPrestigeBonusCap: 12,
   crisisImmediateDeathChance: 0.35,
 });
 

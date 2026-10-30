@@ -7,7 +7,6 @@
 
 export const BASE_PROJECTION_HORIZON_SEC = 1200;
 export const BASE_EDITABLE_HISTORY_WINDOW_SEC = 0;
-export const ENV_EVENT_DRAW_CADENCE_SEC = 5;
 
 export const SEASON_DURATION_SEC = 8; // seconds of simulation per season
 export const SETTLEMENT_VISIBLE_WINDOW_YEARS = 40;

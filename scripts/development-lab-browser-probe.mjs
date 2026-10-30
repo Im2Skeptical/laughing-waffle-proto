@@ -41,6 +41,20 @@ try {
   await page.getByLabel('Search runtime content').fill('smelting');
   await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
   const zooState=await page.evaluate(()=>JSON.stringify(__LAB_DEBUG__.getSnapshot().state));
+  // Re-entering the same catalogue must reuse encoded card faces.
+  await page.waitForTimeout(1000);
+  await page.evaluate(() => {
+    globalThis.__labEncodes = 0;
+    const original = HTMLCanvasElement.prototype.toDataURL;
+    globalThis.__restoreLabEncode = () => { HTMLCanvasElement.prototype.toDataURL = original; };
+    HTMLCanvasElement.prototype.toDataURL = function (...args) { ++globalThis.__labEncodes; return original.apply(this,args); };
+  });
+  await page.locator('nav [data-mode=prototypes]').click();
+  await page.getByRole('heading',{name:'Prototype workbenches',exact:true}).waitFor();
+  await page.locator('nav [data-mode=zoo]').click();
+  await page.getByText('1 matching runtime entries',{exact:false}).waitFor();
+  assert.equal(await page.evaluate(() => { __restoreLabEncode(); return __labEncodes; }),0,'unchanged Zoo navigation must not encode card faces again');
+  checks.push('repeated Zoo navigation reuses encoded faces');
   const reading=()=>page.evaluate(()=>__LAB_DEBUG__.getCardReading());
   // Short choice sets are segmented controls; each button carries its value.
   const choose=async(label,value)=>{
