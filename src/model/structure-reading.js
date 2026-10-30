@@ -37,7 +37,7 @@ function conditions(query = {}) {
   return lines.length ? `; ${lines.join('; ')}` : '';
 }
 
-function modifierText(mod, amount) {
+function modifierText(mod, amount, candidateStat) {
   const n = fmt(amount), percent = fmt(amount * 100), scope = practiceScope(mod.query);
   const history = { age:'civilization age', records:'stocked Record Practices', losses:'lost settlements', retired:'retired Vassals of the candidate class', commissions:'completed Commissions by retired Vassals of the candidate class', chaos:'Chaos Power', conquests:'completed conquests', victories:'martial victories', knowledgeStructures:'distinct local Knowledge Structures' };
   const lines = {
@@ -64,7 +64,7 @@ function modifierText(mod, amount) {
     networkSupport: `Add ${percent}% of connected player settlements' Martial Support (combined share capped at 50%)`,
     stockSupport: `+${percent}% Martial Support per stocked local Practice${mod.query?.traitsAny?.length ? ` with ${mod.query.traitsAny.join(' or ')} Stock` : ''}, up to 3 Practices`,
     evacuationShare: `Evacuate ${percent}% of population when this settlement is lost (combined share capped at 75%)`,
-    historyCandidate: `Additional candidate bonus from ${(mod.sources ?? ['retired','conquests','losses']).map(source => history[source] ?? source).join(' and ')}, capped at +${mod.cap ?? 3}`,
+    historyCandidate: `Extra ${candidateStat} for local candidates from ${(mod.sources ?? ['retired','conquests','losses']).map(source => history[source] ?? source).join(' and ')} (max +${mod.cap ?? 3})`,
   };
   return (lines[mod.kind] ?? `+${n} ${mod.kind} for ${scope}`) + conditions(mod.query);
 }
@@ -73,6 +73,7 @@ function modifierText(mod, amount) {
 // reading surfaces. Authoring hooks and provisional design notes are not rules.
 export function getStructureReading(def, { slot = null, settlement = null } = {}) {
   const factor = structureQualityMultiplier(slot), effects = [], bonuses = [];
+  const candidateStat = def.pool === 'scholar' ? 'Ingenuity' : 'Prowess';
   if (def.housing) {
     const amount = Math.floor(def.housing * factor);
     effects.push({ timing:'', text:`+${amount} Housing Capacity` });
@@ -80,12 +81,12 @@ export function getStructureReading(def, { slot = null, settlement = null } = {}
   }
   for (const mod of def.modifiers ?? []) {
     const amount = Number.isFinite(mod.amount) ? structureModifierAmount(def, mod, slot) : 0;
-    effects.push({ timing:'', text:modifierText(mod, amount) });
+    effects.push({ timing:'', text:modifierText(mod, amount, candidateStat) });
     if (mod.kind === 'capacity') bonuses.push({ kind:'stock', amount, label:'Capacity Multiplier', traits:[...(mod.query?.traitsAny ?? [])], scope:practiceScope(mod.query) });
     if (mod.kind === 'outputMultiplier') bonuses.push({kind:'outputMultiplier',amount,label:'Output Multiplier',traits:[...(mod.query?.traitsAny??[])],scope:practiceScope(mod.query)});
     if (mod.kind === 'support') bonuses.push({ kind:'population', amount:amount * 100, unit:'%', label:'Martial Support', traits:[] });
   }
-  if (def.pool !== 'common' && def.candidateBonus) effects.push({ timing:'', text:`+${def.candidateBonus} to future ${title(def.pool)} candidates from this settlement (combined institutional bonus capped at +5)` });
+  if (def.pool !== 'common' && def.candidateBonus) effects.push({ timing:'', text:`+${def.candidateBonus} ${candidateStat} for future local ${title(def.pool)} candidates (institutions: max +5)` });
   if (!effects.length && def.ui?.rule) effects.push({ timing:'', text:def.ui.rule });
   const requirements = def.specialistGate ? [`Requires ${def.specialistGate} local ${title(def.pool)}${def.specialistGate === 1 ? '' : 's'}.`] : [];
   const active = slot?.construction ? false : !def.specialistGate ? true : settlement ? specialistCount(settlement, def.pool) >= def.specialistGate : null;

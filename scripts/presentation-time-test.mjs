@@ -197,6 +197,11 @@ for(const definition of Object.values(settlementStructureDefs)) {
   assert.equal(face.reading.passive,true);
   assert.ok(face.reading.effects.length,`${definition.id} must explain its ongoing effects`);
   assert.ok(face.reading.effects.every(effect=>effect.text&&!/undefined|NaN/.test(effect.text)),`${definition.id} needs readable effects`);
+  if (definition.pool !== 'common' && definition.candidateBonus) {
+    const stat = definition.pool === 'scholar' ? 'Ingenuity' : 'Prowess';
+    assert.ok(face.reading.effects.some(effect => effect.text.startsWith(`+${definition.candidateBonus} ${stat} for future local`)), `${definition.id} names the candidate stat`);
+    assert.ok(face.detailLines.some(line => line.includes(stat) && line.includes('institutional bonus capped at +5')), `${definition.id} Full rules names the stat and cap`);
+  }
   assert.ok(!getPracticeSymbols(face).some(entry=>/^(Cycle|Charge|Worker|Worker multiplier)$/.test(entry.name)),'Structures explain their own symbols');
 }
 const granaryFace=getGamepieceFace(faceClock,'structure','granary','bronze',{slot:{qualityBonus:1}});
@@ -208,11 +213,11 @@ assert.ok(kilnTerms.Construction&&kilnTerms.Vessel&&kilnTerms.Glass,'References 
 assert.equal(getGamepieceFace(faceClock,'structure','mudHouses','bronze',{slot:{qualityBonus:1}}).structureBonuses[0].amount,37,'Housing rounds per Structure');
 const archiveFace=getGamepieceFace(faceClock,'structure','archive','bronze',{slot:{qualityBonus:3},settlement:{populationByClass:{villager:{specialists:{scholar:{adults:0}}}}}});
 assert.equal(archiveFace.reading.active,false,'Live specialist gate is distinct from the offered capacity');
-assert.ok(archiveFace.reading.effects.some(effect=>/capped at \+3$/.test(effect.text)),'History caps do not scale with quality');
-assert.ok(archiveFace.reading.effects.some(effect=>/^\+1 to future Scholar/.test(effect.text)),'Candidate base bonus does not scale with quality');
-assert.ok(archiveFace.reading.effects.some(effect=>/combined institutional bonus capped at \+5/.test(effect.text)),'Candidate copy gives the implemented shared cap');
+assert.ok(archiveFace.reading.effects.some(effect=>/max \+3\)$/.test(effect.text)),'History caps do not scale with quality');
+assert.ok(archiveFace.reading.effects.some(effect=>/^\+1 Ingenuity for future local Scholar/.test(effect.text)),'Candidate base bonus does not scale with quality');
+assert.ok(archiveFace.reading.effects.some(effect=>/institutions: max \+5/.test(effect.text)),'Candidate copy gives the implemented shared cap');
 for(const id of ['hallOfTheFallen','hallOfChampions','hallOfFallenKings']) {
-  const history=getGamepieceFace(faceClock,'structure',id).reading.effects.find(effect=>effect.text.startsWith('Additional candidate bonus'));
+  const history=getGamepieceFace(faceClock,'structure',id).reading.effects.find(effect=>effect.text.startsWith('Extra Prowess for local candidates'));
   assert.ok(history,`${id} describes its candidate history modifier`);
   assert.ok(history.text.includes('retired Vassals of the candidate class'),'History follows the candidate class');
   assert.ok(!history.text.includes('Scholar'),'Warrior history does not claim a Scholar-only bonus');
