@@ -48,10 +48,10 @@ const REVISION_1 = {
       map: 'b179138e7cf47a332e2f32d6ad9dca27db4c1a6b0f790cff162ebd6ae638cdcd' },
 };
 
-assert.equal(CURRENT_GENERATOR_REVISION, 1, 'a new revision needs its own pinned hashes in this test');
+assert.equal(CURRENT_GENERATOR_REVISION, 2, 'a new revision needs its own pinned hashes in this test');
 for (const [seed, expected] of Object.entries(REVISION_1)) {
   const id = `regional-v1:${seed}`;
-  assert.equal(regionalMapId(seed), id, 'new games keep the revision-1 id');
+  assert.equal(regionalMapId(seed, 1), id, 'new games keep the revision-1 id');
   assert.deepEqual(fingerprint(id), expected, `revision 1 geometry for seed ${seed} changed; add a new generator revision instead of editing revision 1`);
   assert.equal(getWorldDefinitionById(id).id, id);
 }
@@ -60,9 +60,9 @@ for (const [seed, expected] of Object.entries(REVISION_1)) {
 assert.equal(regionalMapSeed('regional-v1:1867'), 1867);
 assert.equal(regionalMapSeed('regional-v1:4294967295'), 4294967295);
 assert.equal(getRegionalMap('regional-v1:1867').definition.id, 'regional-v1:1867');
-assert.equal(getRegionalMap('regional-v1:1867'), getRegionalMap(regionalMapId(1867)), 'one cached record per id');
+assert.equal(getRegionalMap('regional-v1:1867'), getRegionalMap(regionalMapId(1867, 1)), 'one cached record per id');
 // Ids from a generator this build does not have must not fall back to another generator's geometry.
-for (const unknown of ['regional-v2:1867', 'regional-v0:1867', 'regional-v01:1867', 'regional-v1:4294967296', 'regional-v1:', 'regional-v1:-1',
+for (const unknown of ['regional-v3:1867', 'regional-v0:1867', 'regional-v01:1867', 'regional-v1:4294967296', 'regional-v1:', 'regional-v1:-1',
   'regional-v1', 'regional:1867', 'regional-v1:1867x', '', null, undefined, 1867, {}]) {
   assert.equal(regionalMapSeed(unknown), null, `seed of ${String(unknown)}`);
   assert.equal(getRegionalMap(unknown), null, `record of ${String(unknown)}`);

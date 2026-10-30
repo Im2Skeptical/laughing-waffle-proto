@@ -1,3 +1,4 @@
+import { compactRegionName } from './region-label.js';
 import { getRegionPolygon } from "../model/world-state.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -78,7 +79,7 @@ export function createDebugWorldMapDom({
     shape.style.cursor = isValid ? "pointer" : "not-allowed";
     shape.addEventListener("click", () => onRegionClick?.(regionDef.id, isValid));
     const title = svgElement("title");
-    title.textContent = "R" + String(index + 1).padStart(2, "0") + " · " + regionDef.name;
+    title.textContent = regionDef.name;
     shape.append(title);
     svg.append(shape);
 
@@ -87,11 +88,11 @@ export function createDebugWorldMapDom({
     label.setAttribute("x", String(labelPoint.x * 1000));
     label.setAttribute("y", String(labelPoint.y * 720));
     label.setAttribute("text-anchor", "middle");
-    label.setAttribute("font-size", "25");
+    label.setAttribute("font-size", "14");
     label.setAttribute("font-weight", "700");
     label.setAttribute("fill", "#fff9e9");
     label.style.pointerEvents = "none";
-    label.textContent = "R" + String(index + 1).padStart(2, "0") + (region.detailedSettlementEnabled ? " •" : "");
+    label.textContent = compactRegionName(regionDef.name);
     svg.append(label);
   });
   return svg;

@@ -1,3 +1,4 @@
+import { createRegionLabel } from '../region-label.js';
 // Regional-preview panel for Crossroads and settlement decisions.
 
 import { addRegionTerrain } from "../chronicle-art.js";
@@ -78,11 +79,11 @@ export function renderRegionalMap(parent, map, rect) {
   parent.addChild(gfx);
   for (const region of map.regions) {
     const point = project(region.labelPoint);
-    parent.addChild(createText(region.reference ?? region.name ?? region.regionId, {
+    parent.addChild(createRegionLabel(region.reference ?? region.name ?? region.regionId, {
       ...TEXT_STYLES.chip, fontSize: region.current ? 15 : 12,
       fill: region.current ? PALETTE.accent : PALETTE.text,
       stroke: 0x242824, strokeThickness: 4,
-    }, point.x, point.y, 0.5, 0.5));
+    }, point.x, point.y, 110, 36, 0.5, 0.5));
   }
   const route = map.selectedPath?.length > 1
     ? `${map.selectedPath.map((id) => byId.get(id)?.reference ?? id).join(" → ")} · ${map.distance} edges`

@@ -1,7 +1,8 @@
+import { createRegionLabel } from '../region-label.js';
 import { addPrestigeBankFeedback, flashPrestigeShortfall } from '../prestige-feedback-pixi.js';
 import { getArtRevision } from '../chronicle-art.js';
 import { createWorldMapView } from '../world-map-pixi.js';
-import { getRegionDefinition, getRegionReference } from '../../model/world-state.js';
+import { getRegionReference } from '../../model/world-state.js';
 import { PANEL, CONTENT, OPTION_COLUMN, MORTALITY_PLATE } from './constants.js';
 import { confirmDockButton, confirmDockRect, renderTitlePlaque, locationPlaqueRect } from './chrome.js';
 import { MAP_VIEWPORT_RECT } from '../world-map/constants.js';
@@ -106,9 +107,7 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
     const founding=isFounding(),campaign=isCampaign(),menu=isMenuMap(),family=campaign?{...VASSAL_NODE_FAMILIES.campaign,description:''}:founding?{...VASSAL_NODE_FAMILIES.legacy,description:''}:FAMILY;
     background.clear();roundedRect(background,PANEL.x,PANEL.y,PANEL.width,PANEL.height,18,0x292f2b,family.color,3);
     renderTitlePlaque(chrome,family);
-    const region = getRegionDefinition(getState(),currentRegion());
-    const name=region?.name&&!/^Region\d+$/i.test(region.name)?region.name:null;
-    locationLabel=`CURRENT REGION - ${getRegionReference(getState(),currentRegion())}${name?`\n${name}`:''}`;
+    locationLabel=`CURRENT REGION - ${getRegionReference(getState(),currentRegion())}`;
     locationPlaque=locationPlaqueRect();
     const divider = new PIXI.Graphics().lineStyle(2,PALETTE.stroke,.9)
       .moveTo(958,PANEL.y+CONTENT.labelY).lineTo(958,PANEL.y+PANEL.height-28);
@@ -181,12 +180,12 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
         const dx=p.x-origin.x,dy=p.y-origin.y,d=Math.hypot(dx,dy);for(let n=0;n<d;n+=30){const end=Math.min(d,n+18);gfx.moveTo(origin.x+dx*n/d,origin.y+dy*n/d).lineTo(origin.x+dx*end/d,origin.y+dy*end/d);}
       }else {const path=decision?.regionalMap?.selectedPath??[];if(path.length>1){for(let i=1;i<path.length;i++){const a=map.getRegionClickPoint(path[i-1]),b=map.getRegionClickPoint(path[i]);if(a&&b)gfx.moveTo(a.x,a.y).lineTo(b.x,b.y);}}else gfx.moveTo(origin.x,origin.y).lineTo(p.x,p.y);}}
       if(mode==='move'||isMenuMap()) {
-        const badge=new PIXI.Container(), active=selected()?.id===option.id, width=isMenuMap()?110:210,height=60;
+        const badge=new PIXI.Container(), active=selected()?.id===option.id, width=isMenuMap()?220:310,height=60;
         badge.position.set(Math.max(MAP_VIEWPORT_RECT.x+8,Math.min(p.x-width/2,MAP_VIEWPORT_RECT.x+MAP_VIEWPORT_RECT.width-width-8)),
           Math.max(MAP_VIEWPORT_RECT.y+8,Math.min(p.y+42,MAP_VIEWPORT_RECT.y+MAP_VIEWPORT_RECT.height-height-8)));
         const background=new PIXI.Graphics();roundedRect(background,0,0,width,height,8,0x17211f,active?PALETTE.accent:PALETTE.green,3);badge.addChild(background);
-        badge.addChild(createText(getRegionReference(getState(),id),{...TEXT_STYLES.chip,fontSize:30},12,height/2,0,.5));
-        if(!isMenuMap())addResourceAmount(badge,'prestige',`+${option.prestigeDelta??0}`,{x:88,y:10,fontSize:34,iconSize:40,fill:0xb6ce92});
+        badge.addChild(createRegionLabel(getRegionReference(getState(),id),{...TEXT_STYLES.chip,fontSize:24},12,height/2,isMenuMap()?width-24:width-108,48,0,.5));
+        if(!isMenuMap())addResourceAmount(badge,'prestige',`+${option.prestigeDelta??0}`,{x:width-108,y:10,fontSize:34,iconSize:40,fill:0xb6ce92});
         badge.eventMode='static';badge.cursor=busy?'default':'pointer';badge.hitArea=new PIXI.Rectangle(0,0,width,height);
         badge.accessible=true;badge.accessibleType='button';badge.accessibleTitle=isMenuMap()?option.label:`${option.label}: +${option.prestigeDelta??0} Prestige`;
         addInteractionFeedback(badge,{x:0,y:0,width,height},{enabled:!busy,onActivate:()=>pickRegion(id)});

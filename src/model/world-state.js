@@ -35,13 +35,9 @@ export function getWorldConnectionKey(regionAId, regionBId) {
   return [String(regionAId), String(regionBId)].sort().join("|");
 }
 
-// Region references are deliberately derived from immutable definition order so
-// they remain stable without becoming save data or a second naming system.
+// Player-facing references use the immutable definition's name. IDs remain keys.
 export function getRegionReference(state, regionId) {
-  const index = (getWorldDefinition(state)?.regions ?? []).findIndex(
-    (region) => region?.id === regionId
-  );
-  return index >= 0 ? `R${String(index + 1).padStart(2, "0")}` : null;
+  return getWorldDefinition(state)?.regions?.find(region => region.id === regionId)?.name ?? null;
 }
 
 function getPolygonEdgeKey(vertexAId, vertexBId) {

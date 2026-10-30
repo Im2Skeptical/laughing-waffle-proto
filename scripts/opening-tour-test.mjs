@@ -80,7 +80,7 @@ const example=createOpeningController(), originalDraft=example.getSnapshot().dra
 example.previewTravelRewards();
 const destinations=example.getDecision().options.filter(option=>option.locationRegionId);
 assert.deepEqual(destinations.map(option=>option.prestigeDelta).sort((a,b)=>a-b),[3,6,9]);
-assert.equal(example.getSnapshot().summary.location,'R07');
+assert.equal(example.getSnapshot().summary.location,getRegionReference(example.getSnapshot().session.state,'river-crown'));
 assert.deepEqual(example.getSnapshot().draft,originalDraft,'example leaves the authored draft unchanged');
 const exampleRng=structuredClone(example.getSnapshot().session.state.rng);
 for(const destination of destinations){example.select(destination.id);example.getDecision();}
