@@ -403,6 +403,8 @@ function addLifeEvent(state, vassal, kind, extra = {}) {
 
 function finishVassal(state, vassal, { reason, cause = null } = {}) {
   const lineage = getVassalLineage(state);
+  if (vassal.endedReason) return;
+  lineage.tenuresRemaining = Math.max(0, lineage.tenuresRemaining - 1);
   vassal.isDead = reason === "died";
   vassal.endedReason = reason;
   vassal.deathCause = cause;
@@ -426,7 +428,13 @@ function finishVassal(state, vassal, { reason, cause = null } = {}) {
     causeOfDeath: cause, text: reason === "died" ? `Died: ${cause}` : "Retired after completing the life map",
   });
   resolveHeirloomInheritance(state, vassal);
-  generateCandidatePool(state);
+  if (lineage.tenuresRemaining === 0) {
+    state.runStatus = { complete: true, reason: "tenuresExhausted", year: state.year, tSec: state.tSec };
+    state.paused = true;
+    lineage.pendingCandidates = [];
+  } else {
+    generateCandidatePool(state);
+  }
 }
 
 function applyOptionEffect(state, vassal, nodeState, option) {

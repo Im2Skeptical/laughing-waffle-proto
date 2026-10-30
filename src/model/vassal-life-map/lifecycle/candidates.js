@@ -94,6 +94,10 @@ function generateSignatureNodes(state,candidates) {
 }
 
 export function generateCandidatePool(state) {
+  if (state.runStatus?.complete || state.civilization.vassalLineage.tenuresRemaining === 0) {
+    state.civilization.vassalLineage.pendingCandidates = [];
+    return [];
+  }
   const lineage = getVassalLineage(state);
   const locations = getPlayerDetailedSites(state).map((site) => site.regionId);
   const legacyBonus = Math.max(0, Math.floor(
@@ -158,6 +162,7 @@ export function initializeVassalLifeMapCivilization(state) {
   state.civilization.vassalLegacy = { futureStartingPrestigeBonus: 0, futureStartingStatBonuses:Object.fromEntries(VASSAL_STAT_IDS.map(id=>[id,0])) };
   state.civilization.heirloomVault = createEmptyHeirloomVault();
   state.civilization.vassalLineage = {
+    tenuresRemaining: 10,
     nextVassalId: 1,
     founderClassId: null,
     establishedClassId: null,
@@ -175,6 +180,7 @@ export function initializeVassalLifeMapCivilization(state) {
 }
 
 export function rerollVassalCandidates(state) {
+  if (state.runStatus?.complete) return { ok: false, reason: "runComplete" };
   const lineage = getVassalLineage(state);
   if (!lineage || lineage.currentVassalId) return { ok: false, reason: "currentVassalAlive" };
   if (hasPendingHeirloomOverflow(state)) return { ok: false, reason: "heirloomOverflowPending" };
@@ -212,6 +218,7 @@ function createLifeMapState(state, vassalId, candidate) {
 }
 
 export function selectLifeMapVassal(state, candidateIndex, expectedPoolHash = null, override = null) {
+  if (state.runStatus?.complete) return { ok: false, reason: "runComplete" };
   const lineage = getVassalLineage(state);
   if (!lineage || lineage.currentVassalId) return { ok: false, reason: "currentVassalAlive" };
   if (hasPendingHeirloomOverflow(state)) return { ok: false, reason: "heirloomOverflowPending" };

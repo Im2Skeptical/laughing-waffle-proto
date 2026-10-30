@@ -27,7 +27,7 @@ export function createVassalHeirloomFlowView({
     const vassal=presentation.profileVassal??presentation.vassal??lineage?.vassalsById?.[lineage?.currentVassalId];
     const reportOpen=!!report&&report.vassalId!==dismissedReportId&&(report.entries??[]).length>0;
     const mode=overflow.length?'overflow':reportOpen?'summary':loadoutPending?'loadout':browsing?'inventory':null;
-    return {state,lineage,report,overflow,vassal,mode,visible:!!mode&&isRecapOpen?.()!==true};
+    return {state,lineage,report,overflow,vassal,mode,visible:!!mode&&isRecapOpen?.()!==true&&(!state?.runStatus?.complete||browsing)};
   }
   function closeInventory() {
     if(!browsing)return false;

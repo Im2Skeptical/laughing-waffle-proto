@@ -8,7 +8,10 @@ export function getRunCompleteInfo(state, { projected = false } = {}) {
     ? "monsterOverrun" : status.reason ?? "unknown";
   let cause = "Civilization lost";
   let explanation = "Your civilization reached a loss condition.";
-  if (reason === "monsterOverrun") {
+  if (reason === "tenuresExhausted") {
+    cause = "Ten tenures completed";
+    explanation = "Each death or retirement spent one tenure. Your dynasty has no tenures remaining.";
+  } else if (reason === "monsterOverrun") {
     cause = "Overrun by monsters";
     explanation = "Spatial Monster expansion has taken every player settlement. Supplied defenses can repel expansion while their Stock lasts.";
     explanation += " Chaos creates monsters over time; reducing its pressure can delay this outcome.";
@@ -22,7 +25,7 @@ export function getRunCompleteInfo(state, { projected = false } = {}) {
   return {
     year, tSec, reason, projected, cause, explanation,
     monsterCount: state.civilization?.chaos?.monsterCount ?? null,
-    title: projected ? "FORESEEN EXTINCTION" : "GAME OVER",
+    title: reason === "tenuresExhausted" ? "DYNASTY COMPLETE" : projected ? "FORESEEN EXTINCTION" : "GAME OVER",
     guidance: projected
       ? "Return to the present and choose a vassal to change it."
       : "This run has ended. You can still browse its history and inspect what happened.",

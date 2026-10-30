@@ -68,6 +68,9 @@ export function validateVassalLifeMapState(state) {
   if (!lineage || typeof lineage !== "object" || Array.isArray(lineage)) {
     return { ok: false, errors: ["civilization.vassalLineage: expected an object"] };
   }
+  if (!Number.isInteger(lineage.tenuresRemaining) || lineage.tenuresRemaining < 0 || lineage.tenuresRemaining > 10) {
+    errors.push("vassalLineage.tenuresRemaining: expected an integer from 0 to 10");
+  }
   if (!Number.isInteger(lineage.nextVassalId) || lineage.nextVassalId < 1) {
     errors.push("vassalLineage.nextVassalId: expected a positive integer");
   }
