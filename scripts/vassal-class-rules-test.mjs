@@ -179,6 +179,8 @@ const restored=deserializeGameState(serializeGameState(state));
 const dying=deserializeGameState(serializeGameState(state));
 const dyingVassal=getCurrentLifeMapVassal(dying);
 dyingVassal.initialAge=100;
+// Pin the mortality roll independently of earlier shop inventory draws.
+dying.rng.vassalSeed=0;
 initializeReplayClock(dying,dying.tSec);
 assert.equal(advanceReplayStateToSecond(dying,target).ok,true);
 assert.equal(dyingVassal.endedReason,'died','Delve still resolves natural mortality');

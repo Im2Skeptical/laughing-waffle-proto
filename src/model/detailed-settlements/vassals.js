@@ -29,7 +29,8 @@ import {
   removeWorldConnection,
 } from "../world-state.js";
 import { clone, getDetailedYearStartSec } from "./helpers.js";
-import { tryCreateStructure } from "./practices.js";
+import { tryCreateStructure, flushPracticeEvents } from "./practices.js";
+import { emitPracticeEvent } from "./practice-events.js";
 import {
   getDetailedSettlement,
   getDetailedSettlementSites,
@@ -729,6 +730,8 @@ function applyIntervention(state, vassal, intervention) {
       : { ok: false, reason: "invalidPractice" };
     if (result.ok) {
       settlement.practiceSlots[slotIndex] = createDetailedPracticeSlot(intervention.practiceId);
+      emitPracticeEvent(state, {kind:'practiceInstalled',regionId:localTargetRegionId,practiceId:intervention.practiceId});
+      flushPracticeEvents(state);
     }
   } else if (settlement && intervention?.kind === "structure") {
     const slotIndex = Math.floor(intervention.slotIndex);

@@ -50,7 +50,7 @@ for (const classId of [null, 'scholar', 'warrior']) {
     const inventory = generateShopInventory(state, vassal, { nodeId: `observation-${visit}`, family: 'practiceReform', purchasedOffers: [] });
     const observation = inventory.find(offer => offer.intervention.practiceId === 'observation');
     if (observation) {
-      assert.equal(observation.intervention.resultingTier, 'bronze', 'Observation is available before Research unlocks');
+      assert.equal(state.gameConfig.gamepieces.practices.observation.minimumQuality, 'bronze', 'Observation is eligible before Research unlocks; Ingenuity may improve offer Quality');
       offered = true;
     }
   }
