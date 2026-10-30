@@ -349,9 +349,12 @@ export function selectVassalNodeOption(state, nodeId, optionId) {
 function applyIntervention(state, intervention, vassal) {
   const settlement = getDetailedSite(state, intervention.targetRegionId)?.detailedState;
   if (intervention.kind === "practice" && settlement) {
-    return applyPracticeIntervention(settlement.practiceSlots, intervention)
-      ? { ok: true }
-      : { ok: false, reason: "practiceUnavailable" };
+    const ok = applyPracticeIntervention(settlement.practiceSlots, intervention);
+    if (ok && intervention.mode === 'learn') {
+      emitPracticeEvent(state, {kind:'practiceInstalled',regionId:intervention.targetRegionId,practiceId:intervention.practiceId});
+      flushPracticeEvents(state);
+    }
+    return ok ? {ok:true} : {ok:false,reason:'practiceUnavailable'};
   }
   if (intervention.kind === "connection") {
     const result = intervention.mode === "add"
@@ -733,7 +736,11 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
   }
   for (const purchase of [...nodeState.purchasedOffers].reverse()) {
     const change = purchase.intervention;
-    if (change.kind === 'practice' && change.mode === 'learn') recordCommissionAction(state, vassal, {kind:'practiceInstalled',practiceId:change.practiceId});
+    if (change.kind === 'practice' && change.mode === 'learn') {
+      recordCommissionAction(state, vassal, {kind:'practiceInstalled',practiceId:change.practiceId});
+      emitPracticeEvent(state, {kind:'practiceInstalled',regionId:vassal.locationRegionId,practiceId:change.practiceId});
+      flushPracticeEvents(state);
+    }
     if (change.kind === 'structure' && purchase.placement) recordCommissionAction(state, vassal, {kind:'structureStarted',structureId:change.structureId});
     if (purchase.intervention.kind === 'connection') {
       const result = applyIntervention(state, purchase.intervention, vassal);

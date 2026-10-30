@@ -9,13 +9,13 @@ const game = createNewGameState(83);
 const before = JSON.stringify(serializeGameState(game));
 const catalogue = getLabCatalogue(game);
 const filtered = filterLabCatalogue(catalogue,{category:'practice',pool:['common','warrior']});
-assert.equal(filtered.length,66,'two selected pools are a union');
+assert.equal(filtered.length,67,'two selected pools are a union');
 assert.ok(filtered.every(entry=>['common','warrior'].includes(entry.pool)));
-assert.equal(filterLabCatalogue(catalogue,{category:'practice',pool:[]}).length,118,'empty selection means All');
+assert.equal(filterLabCatalogue(catalogue,{category:'practice',pool:[]}).length,119,'empty selection means All');
 assert.equal(filterLabCatalogue(catalogue,{category:'practice',pool:'warrior'}).length,52,'single-pool callers still work');
 const summary = summarizeLabCatalogue(filtered);
-assert.equal(summary.cardCount,66,'summary includes all pages');
-assert.equal(summary.practiceCount,66);
+assert.equal(summary.cardCount,67,'summary includes all pages');
+assert.equal(summary.practiceCount,67);
 assert.equal(summary.structureCount,0);
 assert.ok(summary.consumed.some(row=>row.traits.includes('Arms') && row.timing==='Birth phase'
   && row.sources.some(source=>source.key==='practice:warriorTraining' && source.amount===1)));
