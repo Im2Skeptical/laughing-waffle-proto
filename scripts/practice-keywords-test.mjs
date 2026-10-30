@@ -56,7 +56,7 @@ for (const role of ['scholar', 'warrior']) {
   assert.equal(keywordAccess(state, keyword).active, true, 'a selected matching successor restores the discipline');
   assert.equal(keywordScore(state, null, 'monsterTrophies'), 1, 'selection does not reset history');
   const obsolete = structuredClone(saved); obsolete.gameStateSchemaVersion--;
-  assert.throws(() => deserializeGameState(obsolete), /expected v39/);
+  assert.throws(() => deserializeGameState(obsolete), /expected v40/);
 }
 
 // Ordinary A rules use captured coefficients, with no hidden per-card override.
