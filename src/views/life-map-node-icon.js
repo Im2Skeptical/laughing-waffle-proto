@@ -12,7 +12,7 @@ export function drawLifeMapNodeIcon(graphics, node, { fill, accent, outline, x =
   const variant = node.signatureNode?.variantId;
   const family = variant ?? node.family;
   const specialty = SHOP_SPECIALTIES[family];
-  const kind = specialty ? 'shop' : ({ legacyPlus: 'legacy', removePractice: 'practiceReform',
+  const kind = specialty || node.contentMode === 'shop' ? 'shop' : ({ legacyPlus: 'legacy', removePractice: 'practiceReform',
     removeStructure: 'publicWorks' })[variant] ?? family;
   drawSilhouette(graphics, kind, { fill, accent, outline, x, y, scale });
   if (specialty) {

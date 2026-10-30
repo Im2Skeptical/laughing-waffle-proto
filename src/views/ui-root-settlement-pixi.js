@@ -1,3 +1,4 @@
+import { getSettlementVassalFocusWindows } from "./ui-root/settlement-timegraph-window.js";
 import { createVassalCommissionPicker } from './vassal-commission-picker-pixi.js';
 import { createLifeDecisionController } from "../controllers/life-decision-controller.js";
 import { createNodeResolutionDiagnostics } from "../controllers/node-resolution-diagnostics.js";
@@ -1013,6 +1014,8 @@ settlementGraphView = createMetricGraphView({
   commitForecastOnScrubRelease: false,
   commitHistoryOnScrubRelease: false,
   forecastPreviewStatusNote: "Viewing forecast",
+  getFocusWindows: () => opening.isRevealing() ? [] : getSettlementVassalFocusWindows(
+    getSettlementFrontierState(), getDisplayedSettlementLossInfo()?.lossSec),
   getWindowSpec: ({ timeline, cursorState, zoomed }) => {
     if (opening.isRevealing()) return { minSec: 0, maxSec: opening.getSnapshot().lossSec,
       scrubSec: getSettlementViewedSec() };

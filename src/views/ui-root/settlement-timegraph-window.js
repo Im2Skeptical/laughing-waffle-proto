@@ -112,3 +112,17 @@ export function computeSettlementGraphWindowSpec({
     scrubSec: previewSec != null ? previewSec : cursor,
   };
 }
+
+// Read-only lineage windows: an earlier tenure ends at the next selection.
+export function getSettlementVassalFocusWindows(state, projectedLossSec) {
+  const lineage = state?.civilization?.vassalLineage;
+  const vassals = (lineage?.selectedVassalIds ?? [])
+    .map(id => lineage?.vassalsById?.[id])
+    .filter(vassal => Number.isFinite(vassal?.selectedSec));
+  return vassals.map((vassal, index) => ({
+    id: vassal.vassalId ?? lineage.selectedVassalIds[index],
+    minSec: Math.max(0, Math.floor(vassal.selectedSec)),
+    maxSec: Math.max(vassal.selectedSec + 1,
+      vassals[index + 1]?.selectedSec ?? projectedLossSec ?? state.tSec),
+  }));
+}
