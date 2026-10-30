@@ -128,6 +128,8 @@ try {
   const counts = new Map(); for (const id of profile.samples??[]) counts.set(id,(counts.get(id)??0)+1);
   const hotspots=profile.nodes.map(n=>({name:n.callFrame.functionName,samples:counts.get(n.id)??0})).sort((a,b)=>b.samples-a.samples).slice(0,12);
   writeFileSync(`${output}/hotspots.json`,JSON.stringify(hotspots,null,2));
+  console.log('PASS first Life Map entry: worker failure recovery accepts exactly once');
+  if (!process.argv.includes('--first-entry-only')) {
   const beforeSelection = await page.evaluate(() => __SETTLEMENT_DEBUG__.getSnapshot().runner.timeline);
   await move(await point('getLifeMapOptionClickPoint',0));
   await page.mouse.down(); await delay(180);
@@ -315,6 +317,7 @@ try {
     'level-up commits exactly once');
   assert.deepEqual(errors, [], 'no browser errors during Life Map interactions');
   console.log('PASS Life Map drafts, held feedback, prepared resolution/entries and level-up; profile: '+output);
+  }
  } catch(error) {
   const failureState = await page?.evaluate(() => {
     const s=globalThis.__SETTLEMENT_DEBUG__?.getSnapshot();
