@@ -7,6 +7,7 @@ import {createLabNodeSandbox} from '../src/model/dev-lab/node-sandbox.js';
 import {fiveSlots, practiceSlot, setFixturePopulation} from '../src/model/dev-lab/fixtures.js';
 import {getCurrentLifeMapVassal, getVassalNodeDecisionPresentation, purchaseVassalShopOffer,
   undoVassalShopPurchase, reorderVassalShopPurchase} from '../src/model/vassal-life-map.js';
+import {resolveLifeMapShopPrice} from '../src/model/life-map-balance.js';
 import {serializeGameState} from '../src/model/state.js';
 
 const sandbox = createLabNodeSandbox({type:'neutralMarket', seed:0, cunning:100, prestige:500, classId:'scholar'});
@@ -21,6 +22,30 @@ assert.equal(board.structureSlots.length, 7);
 const last = board.structureSlots.length - 1;
 board.structureSlots[0] = {structureId:'academy', origin:0, width:3, placementId:'live:academy', qualityBonus:1};
 board.structureSlots[last] = {structureId:'granary', origin:last, width:1, placementId:'live:unfinished-granary', qualityBonus:2, construction:{completedCycles:0}};
+// Eight new Bronze keyword Practices enlarged the shop pool, so seed 0's rolled
+// Neutral Market mix no longer includes Storehouse/Granary/Pastoralism. Pin the
+// inventory those checks were written against (Diamond quality via qualityBonus 3).
+const regionId = vassal.locationRegionId;
+node.inventory = [
+  resolveLifeMapShopPrice(state, {
+    offerId: `${nodeId}:r0:structure:0`,
+    label: 'Build Diamond Storehouse',
+    basePrestigeCost: 40, basePhaseCost: 160, baseCurrencyCost: 0,
+    intervention: {kind:'structure', mode:'add', targetRegionId:regionId, structureId:'storehouse', tier:'bronze', qualityBonus:3},
+  }),
+  resolveLifeMapShopPrice(state, {
+    offerId: `${nodeId}:r0:structure:1`,
+    label: 'Build Diamond Granary',
+    basePrestigeCost: 40, basePhaseCost: 160, baseCurrencyCost: 0,
+    intervention: {kind:'structure', mode:'add', targetRegionId:regionId, structureId:'granary', tier:'bronze', qualityBonus:3},
+  }),
+  resolveLifeMapShopPrice(state, {
+    offerId: `${nodeId}:r0:practice:2`,
+    label: 'Learn Diamond Pastoralism',
+    basePrestigeCost: 40, basePhaseCost: 160,
+    intervention: {kind:'practice', targetRegionId:regionId, practiceId:'pastoralism', mode:'learn', tier:'bronze', resultingTier:'diamond'},
+  }),
+].map((offer, inventoryIndex) => ({...offer, inventoryIndex}));
 const storehouse = node.inventory.find((offer) => offer.intervention.structureId === 'storehouse');
 const granary = node.inventory.find((offer) => offer.intervention.structureId === 'granary');
 const pastoralism = node.inventory.find((offer) => offer.intervention.practiceId === 'pastoralism');

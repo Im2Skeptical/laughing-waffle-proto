@@ -12,6 +12,7 @@ import {createLabNodeSandbox} from '../src/model/dev-lab/node-sandbox.js';
 import {deserializeGameState, serializeGameState, syncPhaseToPaused} from '../src/model/state.js';
 import {appendActionAtCursor, createTimelineFromInitialState, rebuildStateAtSecond} from '../src/model/timeline/index.js';
 import {getCurrentLifeMapVassal, getVassalNodeDecisionPresentation} from '../src/model/vassal-life-map.js';
+import {resolveLifeMapShopPrice} from '../src/model/life-map-balance.js';
 
 const DIR = 'artifacts/grok-oct24-spend/shop-undo';
 const LIVE = ['logging', 'forage', 'dryFarming', 'quarrying', 'surfaceMining'];
@@ -49,6 +50,28 @@ function check(name, kind, actual, expected) {
   const difference = diff(expected, actual);
   results.push({name, kind, pass: !difference, ...(difference ? {difference} : {})});
 }
+function pinInventory(state, vassal, node, type) {
+  // New Bronze keyword Practices shifted seed-0 shop rolls; pin the inventory
+  // this suite was authored against (main before the keyword pool growth).
+  const regionId = vassal.locationRegionId;
+  const roll = node.nodeId + ':r0';
+  const raw = type === 'classMarket' ? [
+    {offerId:`${roll}:practice:0`, label:'Learn Diamond Ossuary Keeping', basePrestigeCost:40, basePhaseCost:160,
+      intervention:{kind:'practice', targetRegionId:regionId, practiceId:'ossuaryKeeping', mode:'learn', tier:'bronze', resultingTier:'diamond'}},
+    {offerId:`${roll}:practice:1`, label:'Learn Diamond Brewing', basePrestigeCost:40, basePhaseCost:160,
+      intervention:{kind:'practice', targetRegionId:regionId, practiceId:'brewing', mode:'learn', tier:'bronze', resultingTier:'diamond'}},
+    {offerId:`${roll}:practice:2`, label:'Learn Diamond Surveying', basePrestigeCost:40, basePhaseCost:160,
+      intervention:{kind:'practice', targetRegionId:regionId, practiceId:'surveying', mode:'learn', tier:'bronze', resultingTier:'diamond'}},
+  ] : [
+    {offerId:`${roll}:structure:0`, label:'Build Diamond Storehouse', basePrestigeCost:40, basePhaseCost:160, baseCurrencyCost:0,
+      intervention:{kind:'structure', mode:'add', targetRegionId:regionId, structureId:'storehouse', tier:'bronze', qualityBonus:3}},
+    {offerId:`${roll}:structure:1`, label:'Build Diamond Granary', basePrestigeCost:40, basePhaseCost:160, baseCurrencyCost:0,
+      intervention:{kind:'structure', mode:'add', targetRegionId:regionId, structureId:'granary', tier:'bronze', qualityBonus:3}},
+    {offerId:`${roll}:practice:2`, label:'Learn Diamond Pastoralism', basePrestigeCost:40, basePhaseCost:160,
+      intervention:{kind:'practice', targetRegionId:regionId, practiceId:'pastoralism', mode:'learn', tier:'bronze', resultingTier:'diamond'}},
+  ];
+  node.inventory = raw.map((offer, inventoryIndex) => ({...resolveLifeMapShopPrice(state, offer), inventoryIndex}));
+}
 function open(type = 'neutralMarket') {
   const sandbox = createLabNodeSandbox({type, seed: 0, cunning: 100, prestige: 500, classId: 'scholar'});
   const state = sandbox.state;
@@ -58,6 +81,7 @@ function open(type = 'neutralMarket') {
   local.practiceSlots = fiveSlots(...LIVE.map((id) => practiceSlot(id)));
   local.structureSlots.fill(null);
   local.structureSlots[0] = {structureId: 'academy', origin: 0, width: 3, placementId: 'live:academy', qualityBonus: 1};
+  pinInventory(state, vassal, vassal.lifeMap.nodeStates[sandbox.nodeId], type);
   const fixture = serializeGameState(state);
   return {state, nodeId: sandbox.nodeId, vassal, local, fixture, timeline: createTimelineFromInitialState(state), actions: []};
 }

@@ -1,0 +1,263 @@
+{
+  "viewport": {
+    "width": 844,
+    "height": 390
+  },
+  "results": [
+    {
+      "mode": "disciplines",
+      "role": "scholar",
+      "keyword": "economicRegions",
+      "state": {
+        "mode": "disciplines",
+        "classId": "scholar",
+        "taught": [],
+        "tSec": 12,
+        "capital": "R10"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "economicRegions",
+        "name": "Economic Regions",
+        "score": 3,
+        "bonus": 3,
+        "active": true,
+        "emphasised": true,
+        "text": "Economic Regions 3 → +3. Scholar discipline.",
+        "definition": "Count occupied settlements in this road-connected trade zone, including this one and neutral towns. Frontier and ruins break the zone. Each counts once; connecting two zones joins them. Scholar discipline. This card adds 1 per count, capped at 6. Base 1 + bonus 3 = 4 Stock before workers and Output Multiplier, then limited by capacity. ",
+        "lens": ""
+      },
+      "referenceOpened": "Economic Regions"
+    },
+    {
+      "mode": "disciplines",
+      "role": "scholar",
+      "keyword": "monsterTrophies",
+      "state": {
+        "mode": "disciplines",
+        "classId": "scholar",
+        "taught": [],
+        "tSec": 12,
+        "capital": "R10"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "monsterTrophies",
+        "name": "Monster Trophies",
+        "score": 1,
+        "bonus": 0,
+        "active": false,
+        "emphasised": false,
+        "text": "Monster Trophies 1 → +0. Dormant outside Warrior / Priest.",
+        "definition": "Count monsters actually destroyed by this civilisation, by Hunt or Campaign. Neutral conquests and successful defenses do not count. Trophies survive Vassal death; they are a count, not spendable Stock. Dormant outside Warrior / Priest. This card adds 1 per count, capped at 6. Base 1 + bonus 0 = 1 Research per Birth. ",
+        "lens": ""
+      },
+      "referenceOpened": "Monster Trophies"
+    },
+    {
+      "mode": "disciplines",
+      "role": "warrior",
+      "keyword": "economicRegions",
+      "state": {
+        "mode": "disciplines",
+        "classId": "warrior",
+        "taught": [],
+        "tSec": 12,
+        "capital": "R10"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "economicRegions",
+        "name": "Economic Regions",
+        "score": 3,
+        "bonus": 0,
+        "active": false,
+        "emphasised": false,
+        "text": "Economic Regions 3 → +0. Dormant outside Scholar / Merchant.",
+        "definition": "Count occupied settlements in this road-connected trade zone, including this one and neutral towns. Frontier and ruins break the zone. Each counts once; connecting two zones joins them. Dormant outside Scholar / Merchant. This card adds 1 per count, capped at 6. Base 1 + bonus 0 = 1 Stock before workers and Output Multiplier, then limited by capacity. ",
+        "lens": ""
+      },
+      "referenceOpened": "Economic Regions"
+    },
+    {
+      "mode": "disciplines",
+      "role": "warrior",
+      "keyword": "monsterTrophies",
+      "state": {
+        "mode": "disciplines",
+        "classId": "warrior",
+        "taught": [],
+        "tSec": 12,
+        "capital": "R10"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "monsterTrophies",
+        "name": "Monster Trophies",
+        "score": 1,
+        "bonus": 1,
+        "active": true,
+        "emphasised": true,
+        "text": "Monster Trophies 1 → +1. Warrior discipline.",
+        "definition": "Count monsters actually destroyed by this civilisation, by Hunt or Campaign. Neutral conquests and successful defenses do not count. Trophies survive Vassal death; they are a count, not spendable Stock. Warrior discipline. This card adds 1 per count, capped at 6. Base 1 + bonus 1 = 2 Research per Birth. ",
+        "lens": ""
+      },
+      "referenceOpened": "Monster Trophies"
+    },
+    {
+      "mode": "lenses",
+      "role": "scholar",
+      "keyword": "economicRegions",
+      "state": {
+        "mode": "lenses",
+        "classId": "scholar",
+        "taught": [],
+        "tSec": 12,
+        "capital": "R10"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "economicRegions",
+        "name": "Economic Regions",
+        "score": 3,
+        "bonus": 3,
+        "active": true,
+        "emphasised": true,
+        "text": "Economic Regions 3 → +3. Scholar adds a second use for this count.",
+        "definition": "Count occupied settlements in this road-connected trade zone, including this one and neutral towns. Frontier and ruins break the zone. Each counts once; connecting two zones joins them. Scholar adds a second use for this count. This card adds 1 per count, capped at 6. Base 1 + bonus 3 = 4 Stock before workers and Output Multiplier, then limited by capacity. Also gain 3 Research.",
+        "lens": "Also gain 3 Research."
+      },
+      "referenceOpened": "Economic Regions"
+    },
+    {
+      "mode": "lenses",
+      "role": "scholar",
+      "keyword": "monsterTrophies",
+      "state": {
+        "mode": "lenses",
+        "classId": "scholar",
+        "taught": [],
+        "tSec": 12,
+        "capital": "R10"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "monsterTrophies",
+        "name": "Monster Trophies",
+        "score": 1,
+        "bonus": 1,
+        "active": true,
+        "emphasised": false,
+        "text": "Monster Trophies 1 → +1. Shared by every class.",
+        "definition": "Count monsters actually destroyed by this civilisation, by Hunt or Campaign. Neutral conquests and successful defenses do not count. Trophies survive Vassal death; they are a count, not spendable Stock. Shared by every class. This card adds 1 per count, capped at 6. Base 1 + bonus 1 = 2 Research per Birth. ",
+        "lens": ""
+      },
+      "referenceOpened": "Monster Trophies"
+    },
+    {
+      "mode": "lenses",
+      "role": "priest",
+      "keyword": "economicRegions",
+      "state": {
+        "mode": "lenses",
+        "classId": "priest",
+        "taught": [],
+        "tSec": 12,
+        "capital": "R10"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "economicRegions",
+        "name": "Economic Regions",
+        "score": 3,
+        "bonus": 3,
+        "active": true,
+        "emphasised": false,
+        "text": "Economic Regions 3 → +3. Shared by every class.",
+        "definition": "Count occupied settlements in this road-connected trade zone, including this one and neutral towns. Frontier and ruins break the zone. Each counts once; connecting two zones joins them. Shared by every class. This card adds 1 per count, capped at 6. Base 1 + bonus 3 = 4 Stock before workers and Output Multiplier, then limited by capacity. ",
+        "lens": ""
+      },
+      "referenceOpened": "Economic Regions"
+    },
+    {
+      "mode": "lenses",
+      "role": "priest",
+      "keyword": "monsterTrophies",
+      "state": {
+        "mode": "lenses",
+        "classId": "priest",
+        "taught": [],
+        "tSec": 12,
+        "capital": "R10"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "monsterTrophies",
+        "name": "Monster Trophies",
+        "score": 1,
+        "bonus": 1,
+        "active": true,
+        "emphasised": true,
+        "text": "Monster Trophies 1 → +1. Priest adds a second use for this count.",
+        "definition": "Count monsters actually destroyed by this civilisation, by Hunt or Campaign. Neutral conquests and successful defenses do not count. Trophies survive Vassal death; they are a count, not spendable Stock. Priest adds a second use for this count. This card adds 1 per count, capped at 6. Base 1 + bonus 1 = 2 Research per Birth. Also gain 1 Chaos resistance until next Birth.",
+        "lens": "Also gain 1 Chaos resistance until next Birth."
+      },
+      "referenceOpened": "Monster Trophies"
+    },
+    {
+      "mode": "teachings",
+      "role": "warrior",
+      "keyword": "economicRegions",
+      "state": {
+        "mode": "teachings",
+        "classId": "warrior",
+        "taught": [
+          "economicRegions"
+        ],
+        "tSec": 12,
+        "capital": "R10"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "economicRegions",
+        "name": "Economic Regions",
+        "score": 3,
+        "bonus": 3,
+        "active": true,
+        "emphasised": false,
+        "text": "Economic Regions 3 → +3. Taught to this civilisation; survives the teacher.",
+        "definition": "Count occupied settlements in this road-connected trade zone, including this one and neutral towns. Frontier and ruins break the zone. Each counts once; connecting two zones joins them. Taught to this civilisation; survives the teacher. This card adds 1 per count, capped at 6. Base 1 + bonus 3 = 4 Stock before workers and Output Multiplier, then limited by capacity. ",
+        "lens": ""
+      },
+      "referenceOpened": "Economic Regions"
+    },
+    {
+      "mode": "teachings",
+      "role": "warrior",
+      "keyword": "monsterTrophies",
+      "state": {
+        "mode": "teachings",
+        "classId": "warrior",
+        "taught": [
+          "economicRegions"
+        ],
+        "tSec": 12,
+        "capital": "R10"
+      },
+      "expanded": true,
+      "reading": {
+        "id": "monsterTrophies",
+        "name": "Monster Trophies",
+        "score": 1,
+        "bonus": 1,
+        "active": true,
+        "emphasised": true,
+        "text": "Monster Trophies 1 → +1. Warrior teaches this discipline.",
+        "definition": "Count monsters actually destroyed by this civilisation, by Hunt or Campaign. Neutral conquests and successful defenses do not count. Trophies survive Vassal death; they are a count, not spendable Stock. Warrior teaches this discipline. This card adds 1 per count, capped at 6. Base 1 + bonus 1 = 2 Research per Birth. ",
+        "lens": ""
+      },
+      "referenceOpened": "Monster Trophies"
+    }
+  ],
+  "errors": []
+}

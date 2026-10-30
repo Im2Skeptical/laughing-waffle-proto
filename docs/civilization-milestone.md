@@ -8,6 +8,12 @@ workbook tuning, with subsequent explicit design decisions recorded below.
 
 ## CivContent 2.6 update
 
+On `proto/keywords-classes`, [Practice keywords](practice-keywords.md) and
+[eight new Bronze Practices](prototypes/keywords-classes/bronze-cards/README.md)
+now work in ordinary games, bringing this branch to 118 Practices. They remain
+unmerged into `main`, with provisional balance. The original content-pass counts
+below describe the earlier pool.
+
 The full 110-Practice / 78-Structure pool (including the later Observation addition) and 24 Charge engines now supersede
 the representative subset. See [the implementation report](civcontent-2.6-implementation.md)
 for exact runtime coverage, tests and remaining provisional clauses. The

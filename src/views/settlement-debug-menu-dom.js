@@ -1,3 +1,4 @@
+import { addKeywordPrototypeControls } from './keywords-classes-prototype-controls.js';
 import { createVassalDebugDom } from "./vassal-debug-dom.js";
 import { createSaveDiagnosticsDom } from './save-diagnostics-dom.js';
 
@@ -77,6 +78,7 @@ export function createSettlementDebugMenuDom({
     labLinks.append(button);
   }
   panel.append(labLinks);
+  addKeywordPrototypeControls(panel);
 
   const vassalLab = createVassalDebugDom({
     getState,

@@ -72,18 +72,24 @@ export function addPracticeReading(parent, width, face, {fontSize = 28, onInspec
   y+=22;
   const activation=new PIXI.Graphics();root.addChildAt(activation,1);
   for (const effect of reading.effects) {
-    const timing=effect.timing && !reading.passive ? copy(root,effect.timing,pad,y,width-pad*2,fontSize,{fill:RELIC.gold,fontWeight:'bold'}) : null;
+    const passive=reading.passive||effect.passive===true;
+    const timing=effect.timing && !passive ? copy(root,effect.timing,pad,y,width-pad*2,fontSize,{fill:RELIC.gold,fontWeight:'bold'}) : null;
     const offset=timing ? timing.width+14 : 0;
     // Long phase names get their own line; seasons remain inline with yields.
     const inline=offset<width*.4;
     if(timing&&!inline)y+=timing.height+3;
     const arrowX=pad+(inline?offset:0);
-    if(!reading.passive)copy(root,'›',arrowX,y,20,fontSize,{fill:RELIC.gold,fontWeight:'bold'});
-    const textX=arrowX+(reading.passive?0:28);
+    if(!passive)copy(root,'›',arrowX,y,20,fontSize,{fill:RELIC.gold,fontWeight:'bold'});
+    const textX=arrowX+(passive?0:28);
     const line=copy(root,effect.text,textX,y,width-pad-textX,fontSize);
     y+=Math.max(line.height,inline?(timing?.height??0):0)+10;
   }
   if (!reading.effects.length) y+=copy(root,reading.passive?'No ongoing effect.':'No Activation effect.',pad,y,width-pad*2,fontSize).height+10;
+  if(reading.keyword&&!reading.keyword.inMultiplierPool) {
+    const keyword=copy(root,reading.keyword.text,pad,y,width-pad*2,fontSize*.85,{fill:reading.keyword.active?RELIC.gold:RELIC.ash});
+    keyword.inspectionKeyword=reading.keyword.name;
+    y+=keyword.height+12;
+  }
   y+=8;
   paintRelicPanel(activation,0,blockY,width,y-blockY,reading.type==='Charge'?0x152321:0x1b2017,RELIC.brass,1);
   if (reading.trigger || reading.requirements.length || face.blocked || face.chaosCost || face.monsterPressureCost) {

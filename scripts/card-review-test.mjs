@@ -437,7 +437,7 @@ assert.equal(JSON.stringify(gameConfig),original,'construction editing leaves au
   assert.equal(liveResearch.length,10);assert.ok(liveResearch.includes('observation')&&liveResearch.includes('surveying')&&liveResearch.includes('charnelAlchemy')&&!liveResearch.includes('caravanGuarding'));
   const editedResearch=researchers(outGame);
   assert.ok(editedResearch.includes('caravanGuarding')&&!editedResearch.includes('charnelAlchemy'),'Produces follows edited outputs');
-  assert.equal(filterLabCatalogue(getLabCatalogue(outGame),{category:'practice',produces:'Stock'}).length,81);
+  assert.equal(filterLabCatalogue(getLabCatalogue(outGame),{category:'practice',produces:'Stock'}).length,89);
   assert.deepEqual(filterLabCatalogue(getLabCatalogue(outGame),{category:'structure',produces:'Housing'}).length,6);
   // Revert restores the live list and removes the edit.
   out.edit('practice','caravanGuarding',['effects'],outLive.practices.caravanGuarding.effects);

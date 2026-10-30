@@ -4,6 +4,9 @@ Local instructions for agents working in this repo.
 
 ## Project context
 - Always read `ai/ai-context.md` (invariants and schema numbers).
+- New card proposals or playable Practices/Structures use
+  [add-gamepiece](.agents/skills/add-gamepiece/SKILL.md), which routes design,
+  implementation and artwork through the shared workflow.
 - Before proposing or changing gameplay rules, gamepiece behavior, balance,
   progression or projection behavior, read [game design](docs/game-design.md).
   It governs gameplay direction; subsystem docs describe current behavior and
@@ -95,10 +98,10 @@ Local instructions for agents working in this repo.
 
 Grok auto-loads `<repo>/.grok/skills/*/SKILL.md`. Prefer those routing skills
 over loading a whole subsystem.
-The illustration skill lives in `.agents/skills/illustrate-gamepiece/` for
-Codex discovery; its `.grok/skills/illustrate-gamepiece/` adapter points to
-the same workflow. Follow the explicit illustration route above even when
-the current session's skill catalogue has not refreshed.
+The card creation and illustration skills live in `.agents/skills/add-gamepiece/`
+and `.agents/skills/illustrate-gamepiece/` for Codex discovery. Their matching
+`.grok/skills/` adapters share those workflows. Follow these explicit routes
+even when the current session's skill catalogue has not refreshed.
 
 ## Issue tracker
 

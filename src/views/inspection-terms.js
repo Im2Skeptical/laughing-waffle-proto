@@ -58,6 +58,7 @@ export function getInspectionTerms(face, symbols = []) {
   for (const season of ['Spring','Summer','Autumn','Winter']) terms[season] = `One of the four seasons. A Cycle Practice may Activate in ${season}; its Activation line gives the outcome at that timing.`;
   for (const phase of ['Birth','Food','Housing','Faith','Migration','Death']) terms[`${phase} phase`] = `A named moon phase. A Cycle Practice with this timing checks its requirements and Activates here.${phase==='Food'?' The settlement also uses Edible Stock for its meal.':''}`;
   for (const symbol of symbols) terms[symbol.name] ??= 'A symbol on this gamepiece. Read the selected card’s rules for its effect, scope and requirements.';
+  if(face.keywordReading)terms[face.keywordReading.name]=face.keywordReading.definition;
   const capacity = face.stockCapacityBreakdown;
   const output=face.outputMultiplierBreakdown;
   if(output)terms['Output Multiplier']=`1${output.sources.map(source=>` + ${source.label} ${source.amount}`).join('')} = ×${output.multiplier}. Contributions add; the total multiplies generated Stock before capacity limits.`;

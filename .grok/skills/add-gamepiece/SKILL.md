@@ -1,57 +1,9 @@
 ---
 name: add-gamepiece
-description: Add or tune a detailed-settlement practice or structure. Use when creating a gamepiece, editing practice/structure defs, extending DSL effect ops, or mentioning forage, cultivate, granary, or Gamepieces. Number-only tweaks stay in detailed-settlement-defs.js; do not load sim.md unless adding a DSL op.
+description: Design, add or tune Practice and Structure cards, including new card proposals and playable content.
 ---
 
-# Add a practice or structure
+# Create a gamepiece
 
-Content lives in `src/defs/gamepieces/detailed-settlement-defs.js`
-(`detailedSettlementPracticeDefs`, `settlementStructureDefs`,
-`detailedSettlementEffectOps`). Do not add pieces to
-`settlement-practice-defs.js` or `hub-structure-defs.js`.
-
-When a new or updated card needs artwork, read
-[illustrate-gamepiece](../../../.agents/skills/illustrate-gamepiece/SKILL.md)
-before writing the illustration prompt. Number-only changes do not need it.
-
-## Number-only tweaks
-
-Changing rates, caps, costs, durations, or counts on an existing
-practice or structure: edit `detailed-settlement-defs.js`, `rg` the
-old number in `src/model/tests/` (including fixture totals, not only
-the obvious unstaffed/staffed lines), and run
-`npm run test:detailed-settlements`. Do not load `ai/sim.md` unless
-adding a DSL op.
-
-## DSL-first
-
-1. Express the behavior with an existing op from
-   `detailedSettlementEffectOps`.
-2. If that is not enough, add a **generalized** op and executor, then wire
-   the piece as data. Prefer a reusable op over one-off model logic.
-3. Ops and evaluators are interpreted by `src/model/detailed-settlements.js`
-   (barrel) / `src/model/detailed-settlements/`. Designer Docs
-   (`Designer Docs/Effect-Op-Dictionary.md`, `Targeting-Dictionary.md`,
-   `Trigger-Dictionary.md`) describe the intended DSL; they can lag live
-   activations.
-
-## Activations vs Designer Docs
-
-Live moon order is the six phases in
-`src/defs/gamesettings/moon-phase-defs.js`: birth, food, housing, faith,
-migration, death. Current Practice `activation.type` values: the six moon phases (`birth`, `food`, `housing`, `faith`, `migration`, `death`), `season`, `passive`, `crisis`, and `charge` for Charge Practices (`src/model/game-config.js:19`). `food` uses a `preRouting`/`postRouting` stage. `passive` exists and is consulted by the consuming rule (Designer Docs/Trigger-Dictionary.md). `trigger` and `newMoon` are not activation types.
-
-## Do not
-
-- Put new gameplay in `src/model/settlement-exec.js` or
-  `src/model/settlement-state.js`.
-- Add bespoke per-id branches when a generalized op can cover it.
-
-## Test
-
-```
-npm run test:detailed-settlements
-```
-
-Replay-sensitive schema or tick changes also need
-`npm run test:detailed-replay`.
+Read and follow [the shared card creation skill](../../../.agents/skills/add-gamepiece/SKILL.md).
+This adapter keeps Grok and Codex on the same design, implementation and artwork workflow.
