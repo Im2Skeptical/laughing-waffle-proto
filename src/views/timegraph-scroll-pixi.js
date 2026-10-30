@@ -13,6 +13,9 @@ const CONTROL_RECTS = Object.freeze({
   resources: { x: 389, y: 17, width: 129, height: 24 },
   population: { x: 550, y: 17, width: 131, height: 24 },
   series: { x: 744, y: 17, width: 39, height: 27 },
+  previousVassal: { x: 1408, y: 17, width: 38, height: 24 },
+  nextVassal: { x: 1456, y: 17, width: 38, height: 24 },
+  max: { x: 1620, y: 17, width: 54, height: 24 },
   focus: { x: 1504, y: 17, width: 105, height: 24 },
 });
 export function getTimegraphLayout() {

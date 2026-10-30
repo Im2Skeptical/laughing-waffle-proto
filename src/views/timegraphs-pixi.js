@@ -177,6 +177,7 @@ export function createMetricGraphView({
   openPosition,
   historyWindowSec = null,
   getWindowSpec = null,
+  getFocusWindows = null,
   canCommitScrubSecond = null,
   onToggleSystemTargetMode = null,
   getActiveSeriesGroups = null,
@@ -433,6 +434,37 @@ export function createMetricGraphView({
   zoomBtn.eventMode = "static";
   zoomBtn.cursor = "pointer";
   root.addChild(zoomBtn);
+  const focusNavigation = [
+    { id: "previousVassal", label: "?", step: -1 },
+    { id: "nextVassal", label: "?", step: 1 },
+    { id: "max", label: "Max", step: 0 },
+  ].map(spec => {
+    const button = new PIXI.Container();
+    const bg = new PIXI.Graphics();
+    const text = new PIXI.Text(spec.label, { fontFamily: "Georgia", fontSize: 20, fill: 0xe0d4b4 });
+    const rect = graphLayout.controls[spec.id];
+    text.position.set((rect.width - text.width) / 2, (rect.height - text.height) / 2 - 1);
+    button.addChild(bg, text);
+    button.position.set(rect.x, rect.y);
+    button.hitArea = new PIXI.Rectangle(-3, -5, rect.width + 6, rect.height + 10);
+    button.on("pointerdown", e => e.stopPropagation());
+    button.on("pointerover", () => scroll.paintButtonState(bg, spec.id, false, true));
+    button.on("pointerout", () => scroll.paintButtonState(bg, spec.id, false));
+    button.on("pointertap", e => {
+      e.stopPropagation();
+      const windows = focusWindows();
+      if (spec.step) {
+        const next = windows[focusIndex(windows) + spec.step];
+        if (!next || windows.length < 2) return;
+        focusedVassalId = next.id;
+        zoomed = true;
+      } else { zoomed = false; focusedVassalId = null; }
+      invalidatePlotSnapshot();
+      render();
+    });
+    root.addChild(button);
+    return { ...spec, button };
+  });
   const targetBtn = new PIXI.Container();
   const targetBg = new PIXI.Graphics();
   const targetText = new PIXI.Text("", {
@@ -457,6 +489,12 @@ export function createMetricGraphView({
   let minSec = 0;
   let maxSec = 0;
   let zoomed = false;
+  let focusedVassalId = null;
+  function focusWindows() { return getFocusWindows?.() ?? []; }
+  function focusIndex(windows) {
+    const index = windows.findIndex(window => window.id === focusedVassalId);
+    return index >= 0 ? index : windows.length - 1;
+  }
   let lastPlotMs = 0;
   let lastPlotVersion = -1;
   let lastPlotBoundsKey = "";
@@ -1142,7 +1180,19 @@ export function createMetricGraphView({
   function updateHeaderButtons() {
     scroll.update();
     scroll.paintButtonState(zoomBg, "focus", zoomed);
-    zoomText.text = zoomed ? "Full" : "Focus";
+    const windows = focusWindows();
+    const enabled = typeof getFocusWindows !== "function" || windows.length > 1;
+    if (!enabled) zoomed = false;
+    zoomBtn.eventMode = enabled ? "static" : "none";
+    zoomBtn.alpha = enabled ? 1 : .35;
+    for (const control of focusNavigation) {
+      const available = control.step ? enabled && !!windows[focusIndex(windows) + control.step] : zoomed;
+      control.button.visible = typeof getFocusWindows === "function";
+      control.button.eventMode = available ? "static" : "none";
+      control.button.cursor = available ? "pointer" : "default";
+      control.button.alpha = available ? 1 : .35;
+    }
+    zoomText.text = typeof getFocusWindows !== "function" && zoomed ? "Full" : "Focus";
     zoomText.x = (focusRect.width - zoomText.width) / 2;
     zoomText.y = (focusRect.height - zoomText.height) / 2 - 1;
     zoomBtn.position.set(focusRect.x, focusRect.y);
@@ -1185,7 +1235,7 @@ export function createMetricGraphView({
       Number.isFinite(historyWindowSec) && historyWindowSec > 0
         ? Math.floor(historyWindowSec)
         : null;
-    const customWindowSpec =
+    let customWindowSpec =
       typeof windowSpecResolver === "function"
         ? windowSpecResolver({
             timeline: tl,
@@ -1195,6 +1245,14 @@ export function createMetricGraphView({
             historyWindowSec: rollingWindow,
           })
         : null;
+
+    if (zoomed && typeof getFocusWindows === "function") {
+      const windows = focusWindows();
+      const focused = windows[focusIndex(windows)];
+      if (windows.length > 1 && focused) customWindowSpec = { ...customWindowSpec,
+        minSec: focused.minSec, maxSec: focused.maxSec };
+      else zoomed = false;
+    }
 
     if (
       customWindowSpec &&
@@ -2084,7 +2142,10 @@ export function createMetricGraphView({
   });
   zoomBtn.on("pointertap", (e) => {
     e.stopPropagation();
-    zoomed = !zoomed;
+    const windows = focusWindows();
+    if (typeof getFocusWindows === "function" && windows.length < 2) return;
+    zoomed = typeof getFocusWindows === "function" ? true : !zoomed;
+    focusedVassalId = windows[focusIndex(windows)]?.id ?? null;
     invalidatePlotSnapshot();
     scrub.statusNote = "";
     render();
@@ -2255,6 +2316,12 @@ export function createMetricGraphView({
       }),
       activeGroups: getActiveSeriesGroups?.() ?? [],
       seriesMenuButton: targetBtn.toGlobal(new PIXI.Point(seriesRect.width / 2, seriesRect.height / 2)),
+      focusNavigation: focusNavigation.map(({ id, button }) => ({ id,
+        enabled: button.eventMode === "static", visible: button.visible,
+        center: button.toGlobal(new PIXI.Point(graphLayout.controls[id].width / 2, graphLayout.controls[id].height / 2)),
+      })),
+      focusEnabled: zoomBtn.eventMode === "static",
+      focusedVassalId,
       focusButton: zoomBtn.toGlobal(new PIXI.Point(focusRect.width / 2, focusRect.height / 2)),
       minSec,
       maxSec,
