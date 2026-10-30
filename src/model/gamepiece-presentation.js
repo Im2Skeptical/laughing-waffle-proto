@@ -93,7 +93,7 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
   const period = getMoonCycleDurationSec(state);
   const offset = 1 + (MOON_PHASE_INDEX_BY_ID[construction?.activation.type ?? def.activation?.type] ?? 0) * getMoonPhaseDurationSec(state);
   const viewedTime = state?.tSec ?? 0;
-  const lastReaction = activationTrace.filter(entry => ['activated','discharged'].includes(entry.kind) && entry.targetPracticeId === id && entry.tSec <= viewedTime).at(-1);
+  const lastReaction = activationTrace.filter(entry => ['activated','discharged'].includes(entry.kind) && entry.targetPracticeId === id && (workers?.slotIndex == null || entry.slotIndex === workers.slotIndex) && entry.tSec <= viewedTime).at(-1);
   const activationAge = slot && lastReaction ? viewedTime - lastReaction.tSec : null;
   // Face-only recipe data. These are authored base yields; evaluation remains
   // authoritative for worker bonuses, local modifiers and the actual result.
@@ -131,7 +131,7 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
     reading, keywordReading:keyword, structureBonuses: kind === 'structure' ? reading.bonuses : [], structureQualityBonus: kind === 'structure' ? slot?.qualityBonus ?? 0 : 0,
     chargeGain:def.mode==='charge'?(evaluation?.chargeGain??Math.floor(def.charge.gain*workerMultiplier)):null,
     stock: evaluation?.stock ?? slot?.stock ?? 0, stockCapacity: evaluation?.stockCapacity ?? capacity?.total ?? 0, stockCapacityBreakdown: capacity, outputMultiplierBreakdown:outputMultiplier, stockTraits: def.stockTraits ?? [],
-    providers: evaluation?.providers ?? [],
+    providers: evaluation?.providers ?? [], missing: evaluation?.missing ?? null,
     mode:def.mode??null,charge:evaluation?.charge??slot?.charge??0,chargeThreshold:def.mode==='charge'?threshold:null,
     chargeTrigger:def.charge?.triggerText??null,dischargeEffect:def.charge?.dischargeText??null,
     blocked:evaluation?.blocked??false,blockedReason:evaluation?.blockedReason??null,
