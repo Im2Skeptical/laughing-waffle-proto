@@ -119,5 +119,16 @@ try {
   assert.equal(await page.evaluate(()=>globalThis.touchLifeMap.getInspectedNodeId()), 'b',
     'a first touch on a future node retains its inspection');
   for(const cost of results.costs){assert.ok(cost.width<=cost.expectedWidth+1);assert.ok(cost.height<=cost.expectedHeight+1);assert.ok(Math.abs(cost.corner-14)<.01,'Frame corners stay 14 pixels at every panel height');}
+  const feedback=await page.evaluate(async()=>{
+    const {addSettlementPiece}=await import('/src/views/settlement-piece-pixi.js');
+    const app=globalThis.feedbackApp;app.stage.removeChildren();
+    const base={kind:'practice',label:'Feedback review',tier:'bronze',lane:'scheduled',source:{icon:'moon'},stock:4,stockCapacity:4,stockTraits:['Grain'],production:[{icon:'stock',value:2}],inputs:[{kind:'consume',amount:1,traits:['Grain']}],viewedTime:10};
+    const cases=[{activationAge:.25},{blocked:true,blockedReason:'Stock capacity is full'},{missing:{kind:'consume',amount:1,traits:['Grain']}},{lane:'charge',charge:4,chargeThreshold:4,fill:1,blocked:true,blockedReason:'Stock capacity is full'},{activationAge:.25}];
+    const cards=cases.map((extra,i)=>addSettlementPiece(app.stage,{x:25+i*190,y:50,width:170,height:238},{face:{...base,...extra},reducedMotion:i===4}));
+    app.renderer.render(app.stage);
+    return cards.map(card=>card.practiceFeedback?.kind);
+  });
+  assert.deepEqual(feedback,['producing','capacity','missing','capacity','producing'],'Production, cap, missing input and reduced-motion feedback remain distinct');
+  await page.screenshot({path:'artifacts/practice-feedback-states.png'});
   console.log('[piece-feedback] OK: warning glyphs, header clearance, cost frame bounds, prestige order; artifacts/piece-feedback-review.png');
 } finally {await browser?.close();server.kill();}

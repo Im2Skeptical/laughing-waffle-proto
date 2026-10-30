@@ -145,7 +145,7 @@ export function eventIcon(parent, icon, x, y, size) {
 
 function chargeDock(parent, face, w, h, pulse) {
   const workers=workerDock(parent,face,w,h,true);
-  const costs=(face.inputs??[]).filter(input=>['chaos','monsterPressure'].includes(input.kind));
+  const costs=face.inputs??[];
   const start=(workers?.width??0)+(costs.length?44:0);
   const inputs=inputTray(parent,costs,start,h);
   const rows=face.production?.length?face.production:face.outputs??[];
@@ -173,9 +173,9 @@ function chargeDock(parent, face, w, h, pulse) {
     g.lineStyle(1,0x0a1113).beginTextureFill({texture:getStoneTexture(),color:0x1b2527}).drawRect(sx,sy,sw,sh).endFill();
     const lit=Math.max(0,Math.min(1,fill*segments-i));
     if(lit>0) {
-      g.lineStyle(0).beginTextureFill({texture:getStoneTexture(),color:face.blocked?0xa55539:0x137e79}).drawRect(sx,sy,sw*lit,sh).endFill();
-      g.beginFill(face.blocked?0xe29d66:0x67e4c7,.3).drawRect(sx+1,sy+2,Math.max(0,sw*lit-2),sh-4).endFill();
-      g.lineStyle(.7,face.blocked?0xf6c292:0xb6f2d4,.75).moveTo(sx+1,sy+1).lineTo(sx+sw*lit-1,sy+1);
+      g.lineStyle(0).beginTextureFill({texture:getStoneTexture(),color:face.missing?0xa55539:face.blocked?0x75613b:0x137e79}).drawRect(sx,sy,sw*lit,sh).endFill();
+      g.beginFill(face.missing?0xe29d66:face.blocked?0xb5a175:0x67e4c7,.3).drawRect(sx+1,sy+2,Math.max(0,sw*lit-2),sh-4).endFill();
+      g.lineStyle(.7,face.missing?0xf6c292:face.blocked?0xc9b98d:0xb6f2d4,.75).moveTo(sx+1,sy+1).lineTo(sx+sw*lit-1,sy+1);
       // Fixed fissures give the inset enamel a carved, luminous surface.
       if(sw*lit>9)g.lineStyle(.6,0x143e3b,.7).moveTo(sx+sw*.3,sy+3).lineTo(sx+sw*.45,sy+8).lineTo(sx+sw*.25,sy+sh-2);
     }
@@ -231,6 +231,7 @@ function inputTray(parent, inputs, right, h) {
   const width=Math.min(maxWidth,Math.max(...rows.map(row=>row.reduce((sum,g)=>sum+g.width,0))))+2;
   const height=rows.length*29+3, x=Math.max(0,right-width), y=h-height;
   plate(parent,x,y,width,height);
+  const cells=[];
   rows.forEach((row,r)=>{
     const natural=row.reduce((sum,g)=>sum+g.width,0), scale=Math.min(1,(width-2)/natural);
     const groupRoot=new PIXI.Container();groupRoot.position.set(x+1,y+2+r*29);groupRoot.scale.set(scale);let cursor=0;
@@ -243,11 +244,12 @@ function inputTray(parent, inputs, right, h) {
       });
       const marker=['chaos','monsterPressure'].includes(input.kind)?'+':input.kind==='consume'?'−':'◇';
       numeral(groupRoot,`${marker}${input.amount}`,cursor+input.width-7,19,11,input.width-3);
+      cells.push({x:x+1+cursor*scale,y:y+2+r*29,width:input.width*scale,height:27,kind:input.kind,traits:input.traits});
       cursor+=input.width;
     });
     parent.addChild(groupRoot);
   });
-  return {x,y,width,height};
+  return {x,y,width,height,cells};
 }
 
 function structureCapacityTray(parent, face, w, h) {
@@ -298,7 +300,7 @@ export function addPieceFaceChrome(parent, face, w, h, {time=0,reducedMotion=fal
     const inputs=inputTray(dock,face.inputs??[],costWidth/scale,h/scale);
     const cycle=addPieceFaceChrome(parent,{...face,kind:'practice',construction:null,stockCapacity:0,workerCapacity:0,inputs:[],
       production:[],outputs:[],lane:'scheduled',source:{icon:face.construction.activation.type}},costWidth+36,h,{time,reducedMotion});
-    if(inputs)cycle.inputs=Object.fromEntries(Object.entries(inputs).map(([key,value])=>[key,value*scale]));
+    if(inputs)cycle.inputs=Object.fromEntries(Object.entries(inputs).map(([key,value])=>[key,key==='cells'?value.map(cell=>({...cell,x:cell.x*scale,y:cell.y*scale,width:cell.width*scale,height:cell.height*scale})):value*scale]));
     // A pegged timber tally with a mason's square, rather than a Stock crate.
     const marker=new PIXI.Graphics().lineStyle(1,0xc5a571).beginFill(0x493625,.97);
     const x=w-68,y=5;
@@ -313,8 +315,12 @@ export function addPieceFaceChrome(parent, face, w, h, {time=0,reducedMotion=fal
   if(face.kind==='structure')return {capacity:structureCapacityTray(parent,face,w,h)};
   const stock=stockTray(parent,face,w);
   const age=face.activationAge==null?null:face.activationAge+Math.max(0,time-(face.viewedTime??time));
-  const pulse=!reducedMotion&&age!=null?Math.max(0,1-age/1.25):0;
-  if(face.lane==='charge')return {stock,...chargeDock(parent,face,w,h,pulse)};
+  const pulse=age!=null&&age<1.25?(reducedMotion?.65:Math.max(0,1-age/1.25)):0;
+  if(face.lane==='charge') {
+    const sections={stock,...chargeDock(parent,face,w,h,pulse)};
+    addPracticeFeedback(parent,face,sections,w,h,pulse);
+    return sections;
+  }
   const workers=workerDock(parent,face,w,h);
   const rows=face.production?.length ? face.production : face.outputs ?? [];
   const end=workers?.x ?? w;
@@ -363,5 +369,43 @@ export function addPieceFaceChrome(parent, face, w, h, {time=0,reducedMotion=fal
     }
   }
   if(pulse && yields)parent.addChild(new PIXI.Graphics().lineStyle(2,0xffe4a0,pulse).drawRoundedRect(yields.x+1,yields.y+1,yields.width-2,yields.height-2,3));
-  return {stock,workers,inputs,yields,schedule};
+  const sections={stock,workers,inputs,yields,schedule};
+  addPracticeFeedback(parent,face,sections,w,h,pulse);
+  return sections;
+}
+
+// Feedback stays on the causal docks, leaving the illustration readable.
+function addPracticeFeedback(parent, face, sections, w, h, pulse) {
+  const missing=face.missing;
+  const capped=face.blockedReason==='Stock capacity is full';
+  const outline=(rect,color,alpha,width=2)=>{
+    if(!rect)return;
+    const g=new PIXI.Graphics().lineStyle(width,color,alpha);
+    g.drawRoundedRect(rect.x+1,rect.y+1,rect.width-2,rect.height-2,3);
+    g.eventMode='none';parent.addChild(g);
+  };
+  if(missing) {
+    const affected=sections.inputs?.cells?.filter(cell=>cell.kind===missing.kind&&cell.traits.some(trait=>missing.traits.includes(trait)))??[];
+    for(const cell of affected)outline(cell,0xef8977,.95,3);
+    const traits=missing.traits.join(' / ');
+    const label=createText(`Missing ${missing.amount} ${traits}`,{...TEXT_STYLES.chip,fontSize:13,fill:0xffb3a1,stroke:0x21130f,strokeThickness:3},5,Math.min(h-58,(sections.inputs?.y??h)-18));
+    label.scale.set(Math.min(1,(w-10)/Math.max(1,label.width)));label.eventMode='none';parent.addChild(label);
+  } else if(capped) {
+    outline(sections.stock,0xb5a175,.65,1.5);
+    if(sections.stock)numeral(parent,'Full',sections.stock.x+sections.stock.width/2,sections.stock.y+sections.stock.height+9,12,sections.stock.width);
+  }
+  if(pulse>0) {
+    outline(sections.yields,0xbcecc3,pulse,3);
+    if((face.production??[]).some(row=>row.icon==='stock')) {
+      outline(sections.stock,0xbcecc3,pulse,3);
+      // A short rising trail links this recipe's output to its own Stock tray.
+      if(sections.stock&&sections.yields) {
+        const x=sections.yields.x+sections.yields.width/2, top=sections.stock.y+sections.stock.height;
+        const g=new PIXI.Graphics().lineStyle(1.5,0xbcecc3,pulse*.65);
+        g.moveTo(x,sections.yields.y-3).lineTo(x,top+4).lineTo(x-3,top+9).moveTo(x,top+4).lineTo(x+3,top+9);
+        g.eventMode='none';parent.addChild(g);
+      }
+    }
+  }
+  parent.practiceFeedback={kind:missing?'missing':capped?'capacity':pulse>0?'producing':null};
 }
