@@ -1,4 +1,4 @@
-import { addMonsterGround, addMonsterMarker, addTerritoryBorder } from './world-map/territory-art.js';
+import { addMonsterGround, addMonsterMarker, addTerritoryBorder, territoryBoundarySegments } from './world-map/territory-art.js';
 import { createIllustratedTerrain } from './world-map/illustrated-terrain.js';
 import { getMapRelationships, getMapRelationship, getRelationshipStyle, drawRelationshipLine, drawRelationshipPath } from './world-map/relationships.js';
 import { createMapCamera } from './world-map/camera.js';
@@ -650,13 +650,10 @@ export function createWorldMapView({
     }).detailsTarget);
     endDetailsTarget=survivalSection.value;survivalSection.node.visible=chrome;
 
-    const monsterProgress=regionMapIndicators.some(i=>i.monster)
-      ? [civilizationSummary.chaos.expansionProgress,civilizationSummary.chaos.expansionThreshold] : null;
     landmarks=retained.update(mapContent,'regions',{
       art:getArtRevision(),display,illustratedMap,selectedRegionId,regionSelectionActive,relationships,vassalHighlight,
       regions:state.world.regions.map(r=>[r.id,r.colour,r.controller,!!r.monster]),connections:state.world.connections,
       indicators:regionMapIndicators.map(i=>({...i,monster:i.monster?{defense:i.monster.defense}:null,neutral:!!i.neutral})),
-      monsterProgress,
     },mapContent=>{
     const layerLandmarks=[];
     if(!illustratedMap){
@@ -759,11 +756,12 @@ export function createWorldMapView({
     }
     // Draw borders after every terrain polygon and road, with selection last.
     // Neighboring terrain must not erase the important side of a shared edge.
+    const boundaries = territoryBoundarySegments(territoryBorders);
     const borderPriority = territory => territory.selected ? 5 : territory.relationship === 'connected' ? territory.relationshipStyle.priority : 0;
     for (const territory of territoryBorders.sort((a,b)=>borderPriority(a)-borderPriority(b))) {
       const border = new PIXI.Container();
       mapContent.addChild(presentRegion(border, territory.regionId));
-      addTerritoryBorder(border, territory.points, territory);
+      addTerritoryBorder(border, territory.points, {...territory, boundarySegments:boundaries.get(territory.regionId)});
     }
 
     for (const indicator of regionMapIndicators) {
@@ -778,7 +776,7 @@ export function createWorldMapView({
       if (display.actors !== false && (indicator.monster || indicator.neutral)) regionContent.addChild(createText(
         indicator.monster ? `Defense ${indicator.monster.defense}` : 'NEUTRAL',
         {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:NEUTRAL_COLOUR,stroke:0x111713,strokeThickness:4},point.x,indicator.monster?point.y-110:stockTagTop!=null?stockTagTop-26:point.y-88,.5));
-      if (display.actors !== false && indicator.monster) addMonsterMarker(regionContent, point, civilizationSummary.chaos, {art:!illustratedMap});
+      if (display.actors !== false && indicator.monster) addMonsterMarker(regionContent, point, {art:!illustratedMap});
       const adornments = new PIXI.Container();
       adornments.position.set(point.x,point.y);
       adornments.scale.set(.75);

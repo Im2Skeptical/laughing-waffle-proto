@@ -324,6 +324,10 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
     if (replacePracticeId && replacePracticeId !== id) {
       const victim = pool.indexOf(replacePracticeId);
       if (victim < 0 || victim >= current.practices.slots.length) return {ok:false,reason:'invalidReplacement'};
+      if (purchase.intervention.mode === 'learn') {
+        purchase.replacedPracticeId = replacePracticeId;
+        purchase.practiceDraftBeforeReplacement = pool.slice();
+      }
       pool.push(...pool.splice(victim, 1));
     } else if (existing < 0) {
       const empty = pool.slice(0, current.practices.slots.length).indexOf(null);
@@ -345,6 +349,30 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
   return { ok: true, offerId: purchase.offerId, prestigeCost, phaseCost, currencyCost };
 }
 
+// Apply the same cancellation to the visible order and later receipt histories.
+function cancelPracticeDraft(order, purchase, capacity) {
+  const id = purchase.intervention.practiceId, replaced = purchase.replacedPracticeId;
+  const at = order.indexOf(id);
+  // A displaced incoming card can be the victim of a later purchase. Keep
+  // that replacement active and relink its cancellation receipt below.
+  const restore = replaced != null && order.indexOf(replaced) >= capacity && at >= 0 && at < capacity;
+  const next = order.filter(entry => entry !== id && (!restore || entry !== replaced));
+  if (restore) {
+    // The chooser inserts at 0 even when it replaces a different slot.
+    // Anchor to retained cards from before the purchase, so later inserts
+    // and undoing purchases out of order cannot rotate the confirmed board.
+    const before = purchase.practiceDraftBeforeReplacement;
+    const index = before.indexOf(replaced);
+    const active = new Set(order.slice(0, capacity).filter(entry => entry != null && entry !== id));
+    const previous = before.slice(0, index).reverse().find(entry => active.has(entry));
+    const following = before.slice(index + 1).find(entry => active.has(entry));
+    const target = previous != null ? next.indexOf(previous) + 1
+      : following != null ? next.indexOf(following) : Math.min(at, next.length);
+    next.splice(target, 0, replaced);
+  }
+  return next;
+}
+
 export function undoVassalShopPurchase(state, nodeId, offerId) {
   const vassal = getCurrentLifeMapVassal(state);
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
@@ -353,11 +381,37 @@ export function undoVassalShopPurchase(state, nodeId, offerId) {
   const index = nodeState.purchasedOffers.findIndex((purchase) => purchase.offerId === offerId);
   if (index < 0) return { ok: false, reason: "purchaseUnavailable" };
   const [purchase] = nodeState.purchasedOffers.splice(index, 1);
+  if (purchase.intervention?.kind === 'practice' && purchase.intervention.mode === 'learn') {
+    const id = purchase.intervention.practiceId, replaced = purchase.replacedPracticeId;
+    const capacity = getDetailedSite(state, vassal.locationRegionId)?.detailedState?.practiceSlots?.length ?? 0;
+    if (Array.isArray(nodeState.practiceDraftOrder)) {
+      nodeState.practiceDraftOrder = cancelPracticeDraft(nodeState.practiceDraftOrder, purchase, capacity);
+    }
+    for (const remaining of nodeState.purchasedOffers) {
+      if (Array.isArray(remaining.practiceDraftBeforeReplacement)) {
+        remaining.practiceDraftBeforeReplacement = cancelPracticeDraft(remaining.practiceDraftBeforeReplacement, purchase, capacity);
+      }
+    }
+    // A later replacement can depend on this staged card. Keep its undo linked
+    // to the underlying confirmed card when the intermediate purchase is undone.
+    for (const remaining of nodeState.purchasedOffers) if (remaining.replacedPracticeId === id) {
+      if (replaced != null) {
+        remaining.replacedPracticeId = replaced;
+        remaining.practiceDraftBeforeReplacement = purchase.practiceDraftBeforeReplacement.slice();
+      } else {
+        delete remaining.replacedPracticeId;
+        delete remaining.practiceDraftBeforeReplacement;
+      }
+    }
+  }
   if (purchase.placement && nodeState.structureDraftEdits) {
     nodeState.structureDraftEdits = nodeState.structureDraftEdits.filter(edit => edit.placementId !== purchase.placement.placementId);
   }
   nodeState.purchasedOfferIds = nodeState.purchasedOffers.map((entry) => entry.offerId);
   const restored = clone(purchase);
+  delete restored.replacedPracticeId;
+  delete restored.practiceDraftBeforeReplacement;
+  delete restored.hourglassApplied;
   delete restored.placement;
   delete restored.tableauIndex;
   delete restored.prestigeCost;

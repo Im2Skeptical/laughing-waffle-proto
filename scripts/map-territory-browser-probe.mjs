@@ -21,7 +21,7 @@ try {
     const {createStarterBootProfile}=await import('/src/model/starter-boot-profile.js');
     const {serializeGameState}=await import('/src/model/state.js');
     const {createWorldMapView}=await import('/src/views/world-map-pixi.js');
-    const {addMonsterMarker}=await import('/src/views/world-map/territory-art.js');
+    const {addChaosPanelContent}=await import('/src/views/chronicle-world-panels.js');
     await preloadChronicleArt();
     const state=createConfiguredNewGameState(42,createStarterBootProfile());
     const {getGameSetting}=await import('/src/model/game-config.js');
@@ -36,10 +36,11 @@ try {
     const walk=node=>[node,...(node.children??[]).flatMap(walk)];
     const countdownCases=[0,1,spreadInterval-1,spreadInterval,spreadInterval+1].map(expansionProgress=>{
       const container=new PIXI.Container();
-      addMonsterMarker(container,{x:0,y:0},{expansionProgress,expansionThreshold:spreadInterval});
-      const text=walk(container).find(n=>n.label==='monster-spread-moons').text;
+      addChaosPanelContent(container,{x:16,y:92,width:520,height:132},{green:{label:'Green'},chaos:{expansionProgress,expansionThreshold:spreadInterval,progressPerMoon:1,chaosPower:0,resistance:0}});
+      const progress=walk(container).find(n=>n.label==='monster-pressure-progress');
+      const width=progress.geometry.graphicsData[1].shape.width;
       container.destroy({children:true});
-      return text;
+      return width;
     });
     globalThis.territoryProbe={app,state,view,select(id){selected=id;active=true;view.refresh();},
       check(){const nodes=walk(app.stage);return {
@@ -66,9 +67,9 @@ try {
   assert.equal(overview.lairPaintings,overview.monsterRegions,'every occupied region uses its generated lair painting');
   assert.equal(overview.neutralPaintings,overview.neutralRegions,'every neutral town uses its generated market painting');
   assert.equal(overview.markers,overview.monsterRegions,'every occupied region has a monster emblem');
-  assert.equal(overview.countdowns,overview.monsterRegions,'every occupied region shows its spread countdown');
+  assert.equal(overview.countdowns,0,'progress has moved off monster markers');
   const interval=overview.spreadInterval;
-  assert.deepEqual(overview.countdownCases,[`0 / ${interval}`,`1 / ${interval}`,`${interval-1} / ${interval}`,`${interval} / ${interval}`,`${interval+1} / ${interval}`]);
+  assert.deepEqual(overview.countdownCases,[0,368/interval,368*(interval-1)/interval,368,368]);
   assert.ok(overview.playerBorders>0,'player territory remains distinct');
   assert.ok(overview.unchanged,'drawing leaves serialized state and RNG unchanged');
   await page.screenshot({path:`${output}/overview.png`});

@@ -148,7 +148,7 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
       return card;
     });
     const choice=selected(), matching=matchesChoice(choice);
-    const campaignText=campaign?(choice?`${decision.campaign.lastResult?.regionId===choice.regionId&&decision.campaign.lastResult.stage==='clear'&&decision.campaign.lastResult.success?'Buildup cleared. ':''}${choice.label}${choice.stage==='duel'?` · Victory: +1 Prowess, +${choice.prestigeDelta} Prestige`:` · Distance ${choice.distance} · Food ${choice.foodCost}`}\n${choice.defense} ÷ (${choice.force} + ${choice.defense}) = ${choice.risk}% defeat risk`:decision.campaign.lastResult?.text??'Choose a highlighted target.'):null;
+    const campaignText=campaign?(choice?`${decision.campaign.lastResult?.regionId===choice.regionId&&decision.campaign.lastResult.stage==='clear'&&decision.campaign.lastResult.success?'Buildup cleared. ':''}${choice.label}${choice.stage==='duel'?` · Victory: +1 Prowess, +${choice.prestigeDelta} Prestige`:` · Distance ${choice.distance} · Food ${choice.foodCost}`}\n${campaignRiskText(choice)}`:decision.campaign.lastResult?.text??'Choose a highlighted target.'):null;
     const text=busy?'Resolving the world…':message||campaignText|| (matching ? `${choice.label}${choice.blocked?` · ${choice.blocked}`:''}`
       : founding?decision.nodeState.selectedOptionId==='found-settlement'?'Choose a highlighted frontier destination.':'Choose a Legacy option.':mode==='tour'?description:mode==='move'?'Click a highlighted destination to preview your journey.':'Click a highlighted destination to preview a new road.');
     feedback=createText(text,{...TEXT_STYLES.body,fontSize:24,lineHeight:28,wordWrap:true,wordWrapWidth:MAP_BODY.width,fill:message?PALETTE.red:PALETTE.text},MAP_BODY.x,774);
@@ -228,4 +228,9 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
       dimmedRegionIds:(getState()?.world?.regions??[]).map(r=>r.id).filter(id=>!brightRegions().includes(id)),
       rewardBadges:rewardBadges.map(({control,...badge})=>({...badge,rect:bounds(control)})),
       targets:available().map(o=>({id:o.id,regionId:target(o),blocked:o.blocked,cost:o.cost,foodCost:o.foodCost,stage:o.stage,risk:o.risk,force:o.force,defense:o.defense,distance:o.distance,phases:o.phases,prestigeGain:o.prestigeDelta??0})),campaign:decision?.campaign??null,tour:groups()[2][0]?.randomReward??null};}};
+}
+
+export function campaignRiskText(choice) {
+  if (choice.baseRisk !== choice.risk) return `${choice.risk}% defeat risk`;
+  return `${choice.defense} ÷ (${choice.force} + ${choice.defense}) = ${choice.risk}% defeat risk`;
 }

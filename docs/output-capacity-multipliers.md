@@ -74,7 +74,7 @@ preview. It exercises whole-slot/price hover, completed-result reservation,
 discard refunds, pinned nested sources, mouse/touch, regional/detailed boards
 and Practice shop pairs. It never writes player saves or starts a preview server.
 
-Actual game captures (844 ? 390 phone landscape, plus desktop):
+Actual game captures (844 × 390 phone landscape, plus desktop):
 
 - [Compact ledger and pending sources](prototypes/output-capacity-multipliers/phone-ledger.png)
 - [Buy-slot construction preview](prototypes/output-capacity-multipliers/phone-building-preview.png)
@@ -85,7 +85,7 @@ Actual game captures (844 ? 390 phone landscape, plus desktop):
 - [Desktop ledger](prototypes/output-capacity-multipliers/desktop-ledger.png)
 
 The Gym badge identifies disposable review state. The +1 biome coefficient is
-intentionally untuned: a six-region plains patch gives Grain ?7, so unchanged
+intentionally untuned: a six-region plains patch gives Grain ×7, so unchanged
 capacity can bind quickly. No economy or balance changes compensate for it.
 
 

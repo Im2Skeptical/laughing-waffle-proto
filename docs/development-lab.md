@@ -141,9 +141,8 @@ per-card price editing is needed. Scholar Delve and leaving without a purchase
 share one base time each across every shop, editable here or from any shop's
 choice list. Defaults are 10 and 5 years respectively, before discounts.
 Other classes cannot reroll shops. Early/Middle/Late use shared depth boundaries.
-Normal New Game uses Cam's approved first-pass pooled tuning, including its
-3-lane, 10-depth layout and shop guarantees at depths 1, 4 and 8. Save & share
-includes a built-in **Previous defaults** experiment for the preceding tuning.
+Save & share includes a built-in **Previous defaults** experiment for the original
+6-lane, 11-depth tuning.
 **Legacy independent generation** remains an explicit comparison mode.
 
 Diagnostics show distinct eligible cards before random offer sampling, including

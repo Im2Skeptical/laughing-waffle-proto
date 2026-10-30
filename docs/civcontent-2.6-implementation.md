@@ -1,6 +1,6 @@
 # CivContent 2.6 implementation
 
-Monster risk now uses the shared expansion tracker. Runtime `addMonsterPressure` costs bypass Resistance and can trigger immediate expansion without increasing Chaos. This supersedes Chaos-cost wording in the authored-intent columns below. Chaos income accumulates independently; Resistance contains passive expansion.
+Monster risk now uses the shared Monster Pressure tracker. Runtime `addMonsterPressure` costs bypass Resistance and can trigger immediate expansion without increasing Chaos. This supersedes Chaos-cost wording in the authored-intent columns below. Chaos income accumulates independently; Resistance contains passive expansion.
 
 The later Housing-tag pass restricts Housing to cards that directly add housing capacity: Mud House, Timber House, Stone House, Longhouse, Tenement, Great Dwelling, Housebuilding, and Civil Engineering. This supersedes the workbook's Housing tags on material producers, workshops, and defensive cards so the Housing Shop offers capacity improvements.
 
@@ -164,7 +164,7 @@ Current schema numbers live in [the invariants sheet](../ai/ai-context.md). Olde
 
 Numeric modifiers use the existing +25% per quality-uplift step. Scholar/Warrior gates and query conditions are in the executable definition. Effects are derived from current state; Structures store no temporal meters.
 
-Stock Power starts at 1 per host. Matching Structures add 1/2/3/4 at Bronze/Silver/Gold/Diamond, including upgrades; contributions add before multiplying base capacity once. A lone Bronze Granary doubles capacity; two give x3. Practice quality and Scholar capacity bonuses remain inside the base, with capacity rounded down once. Academy contributes once to Knowledge-tagged or Scholar-staffed Practices, without additional per-Scholar scaling. This supersedes additive capacity wording in the authored-intent column.
+Capacity Multiplier starts at 1 per host. Matching Structures add 1/2/3/4 at Bronze/Silver/Gold/Diamond, including upgrades; contributions add before multiplying base capacity once. A lone Bronze Granary doubles capacity; two give x3. Practice quality and Scholar capacity bonuses remain inside the base, with capacity rounded down once. Academy contributes once to Knowledge-tagged or Scholar-staffed Practices, without additional per-Scholar scaling. This supersedes additive capacity wording in the authored-intent column.
 
 | Structure | Authored passive rule | Executable passive effect | Authored secondary hook / deferred treatment |
 | --- | --- | --- | --- |
