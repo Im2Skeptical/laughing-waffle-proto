@@ -155,7 +155,7 @@ export function addCivilizationSurvivalStrip(
     2
   );
   parent.addChild(background);
-  const columnWidth = rect.width / 4;
+  const columnWidth = rect.width / 3;
   const columns = [
     [`YEAR ${viewModel.year}`, SEASON_DISPLAY[viewModel.seasonKey] ?? viewModel.seasonKey],
     viewModel.endDetails
@@ -164,8 +164,7 @@ export function addCivilizationSurvivalStrip(
           viewModel.projectedLossYear ? `YEAR ${viewModel.projectedLossYear}` : "Unfolding…",
           viewModel.runComplete ? "Civilization ended" : "Foreseen survival",
         ],
-    [`${viewModel.tenuresRemaining} / 10`, "Tenures remaining"],
-    [viewModel.bestSurvivalYear ? `YEAR ${viewModel.bestSurvivalYear}` : "—", "Best remembered"],
+    [`${viewModel.tenuresRemaining} / 10 TENURES`, viewModel.bestLabel],
   ];
   let detailsTarget = null;
   columns.forEach((column, i) => {
