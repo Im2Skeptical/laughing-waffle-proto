@@ -78,7 +78,13 @@ export function* composeTerrainLandscapeSteps({ map, art, pixel, world, legal, d
   diagnostics.forestPlacement={repeatRejects:0,footprintRejects:0,overlapRejects:0};
   const regions = new Map(map.regions.map(r => [r.id, r]));
   const rand = salt => decorationRandom(map.seed ^ 48317, salt);
-  const baseKind = kind => kind.replace(/-mirror$/, '').replace(/-(compact|small|micro|ridge)$/, '');
+  // Pure string reduction, called for every candidate against every neighbour.
+  const baseKinds = new Map();
+  const baseKind = kind => {
+    let base = baseKinds.get(kind);
+    if (base === undefined) baseKinds.set(kind, base = kind.replace(/-mirror$/, '').replace(/-(compact|small|micro|ridge)$/, ''));
+    return base;
+  };
   const make = (kind, x, y, family, salt, allowedBiomes, context) => {
     const glyph = art[kind], s = shape(glyph), point = world(Math.round(x), Math.round(y + s.height * (context === 'ridge-boundary' ? .68 : .5)));
     const p = pixel(point), n = Number(baseKind(kind).split('-').at(-1));
@@ -88,9 +94,24 @@ export function* composeTerrainLandscapeSteps({ map, art, pixel, world, legal, d
       peak: family === 'terrain-ridge-border' || family === 'terrain-mountains' && [0, 1, 2, 4, 10].includes(n)
         || family.startsWith('contact-') && CONTACT_PAIRS[Number(family.slice(8))].includes('mountains') && n !== 3 };
   };
-  const nearby = prop => props.filter(p => Math.abs(p.left - prop.left) < 85 * detail && Math.abs(p.top - prop.top) < 65 * detail);
+  // Placed props are bucketed by the nearby() window so each query reads at
+  // most nine cells instead of every prop. Callers only test any/max over the
+  // result, so its order is irrelevant.
+  const cellX = 85 * detail, cellY = 65 * detail, cells = new Map();
+  const cellKey = (cx, cy) => cx * 65536 + cy;
+  const nearby = prop => {
+    const cx = Math.floor(prop.left / cellX), cy = Math.floor(prop.top / cellY), found = [];
+    for (let y = cy - 1; y <= cy + 1; y++) for (let x = cx - 1; x <= cx + 1; x++) {
+      const bucket = cells.get(cellKey(x, y));
+      if (bucket) for (const p of bucket) if (Math.abs(p.left - prop.left) < cellX && Math.abs(p.top - prop.top) < cellY) found.push(p);
+    }
+    return found;
+  };
   const add = prop => {
     props.push(prop); diagnostics.families[prop.family] = (diagnostics.families[prop.family] ?? 0) + 1;
+    const key = cellKey(Math.floor(prop.left / cellX), Math.floor(prop.top / cellY));
+    if (!cells.has(key)) cells.set(key, []);
+    cells.get(key).push(prop);
   };
   const choose = ({ x, y, family, indices, salt, allowedBiomes, context, previous = null, sizeLevel = 0, canopyCore = false }) => {
     const options = [];

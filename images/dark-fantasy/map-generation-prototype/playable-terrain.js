@@ -49,17 +49,19 @@ export function* composePlayableTerrainSteps({map, texel, detail, ART, width, he
       const i=y*width+x;return {dry:!!land[i]&&!waterIndices[i],biome:map.regions[regionIds[i]]?.biome};
     }))return false;
     let outside=0;
-    const reserved=prop.family.startsWith('terrain-monster-')||prop.context==='bone-boundary';
+    // Per-prop facts hoisted out of the per-pixel loop.
+    const bone=prop.context==='bone-boundary',reserved=prop.family.startsWith('terrain-monster-')||bone;
+    const allowed=prop.allowedBiomes,plainsOnly=prop.plainsOnly,peaky=prop.kind.includes('crag')||prop.peak;
     for(let n=0;n<pixels.length;n+=2){
       const x=pixels[n],y=pixels[n+1],px=left+x,py=top+y,i=py*width+px;
       if(px<0||py<0||px>=width||py>=height||siteMask[i])return false;
       if(reserved&&px>=roadClearance.x&&py>=roadClearance.y&&px<roadClearance.x+roadClearance.width&&py<roadClearance.y+roadClearance.height
         &&roadClearance.data[(py-roadClearance.y)*roadClearance.width+px-roadClearance.x])return false;
-      if(prop.context==='bone-boundary')continue;
+      if(bone)continue;
       if(!land[i]||waterIndices[i])return false;
-      if(prop.allowedBiomes&&!prop.allowedBiomes.includes(map.regions[regionIds[i]]?.biome))outside++;
-      if(prop.plainsOnly&&materialAt(px,py)!=='plains')return false;
-      if((prop.kind.includes('crag')||prop.peak)&&x%4===0&&y%4===0){
+      if(allowed&&!allowed.includes(map.regions[regionIds[i]]?.biome))outside++;
+      if(plainsOnly&&materialAt(px,py)!=='plains')return false;
+      if(peaky&&x%4===0&&y%4===0){
         if(!peakMask[i])peakMask[i]=canPlacePeak(map.geography,world(px,py),1.5*texel/516)?1:2;
         if(peakMask[i]===2)return false;
       }

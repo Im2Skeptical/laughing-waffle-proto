@@ -400,11 +400,14 @@ function* bakeTerrain(map, { texel = 2, sampleBackground, sites = true, settleme
   yield;
   paintEcotones({ map, width, height, texel, regionIds, land, waterIndices, colours, groundBank, noise, mixColour, surfaceTreatments, surfaces });
   yield;
+  // Peak legality depends only on geography, pixel and texel, so the
+  // presentation's variant compositions reuse every cell resolved here.
+  const peakMask = new Uint8Array(width * height);
   const presentationSource = retainPresentation ? {colours:colours.slice(), land, regionIds, pixel, world,
-    width,height,bounds,texel,detail,ART,groundBank,materialIds:MATERIAL_IDS,noise,mixColour,sampleBackground,islandStyle,settlementScale} : null;
+    width,height,bounds,texel,detail,ART,groundBank,materialIds:MATERIAL_IDS,noise,mixColour,sampleBackground,islandStyle,settlementScale,peakMask} : null;
   const {settlementPlans,props,composition,hinterland,foundations,divisions,roads,bridges,roadTexture,roadClearance,borderTexture,borderBounds}
     = yield* composePlayableTerrainSteps({map,texel,detail,ART,width,height,bounds,pixel,world,land,waterIndices,regionIds,colours,waterBase,
-      surfaces,materialAt,groundBank,noise,mixColour,sampleBackground,islandStyle,sites,settlementScale,interactions});
+      surfaces,materialAt,groundBank,noise,mixColour,sampleBackground,islandStyle,sites,settlementScale,interactions,peakMask});
   partial.roadTexture = roadTexture; partial.borderTexture = borderTexture;
   yield;
   const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
