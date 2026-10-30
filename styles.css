@@ -827,3 +827,8 @@ html:has(.review-bulk-sheet[open]) { overflow:hidden; }
 .development-lab .lab-lifegraph-shop-pricing { border-top:1px solid var(--lab-line); margin:20px 0; padding-top:8px; }
 .development-lab .lab-lifegraph-shop-pricing table { min-width:550px; width:100%; }
 .development-lab .lab-lifegraph-shop-pricing input { width:100%; min-width:80px; }
+
+/* Match the Pixi title trial; font=original restores the baseline on reload. */
+html[data-heading-font="Libron"] :is(h1, h2, h3, h4, h5, h6) {
+  font-family: Libron, Georgia, serif !important;
+}

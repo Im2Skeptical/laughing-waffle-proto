@@ -75,6 +75,9 @@ function normalizeStyle(style, rawText, config) {
 
   if (shouldApplyTitleVariant(rawText, next, config, flags)) {
     next.fontVariant = config.titleVariant;
+    if (config.headingFontFamily && !flags.preserveFontFamily) {
+      next.fontFamily = config.headingFontFamily;
+    }
   }
 
   return next;
@@ -94,6 +97,7 @@ export function installGlobalTextStylePolicy(PIXI, options = {}) {
   if (PIXI.Text[PATCH_SENTINEL]) return false;
 
   const config = {
+    headingFontFamily: options.headingFontFamily,
     fontFamily: typeof options.fontFamily === "string" ? options.fontFamily : "Georgia",
     titleVariant:
       typeof options.titleVariant === "string" ? options.titleVariant : "small-caps",

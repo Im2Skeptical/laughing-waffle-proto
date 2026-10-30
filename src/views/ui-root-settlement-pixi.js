@@ -114,6 +114,7 @@ app.renderer.prepare.limiter = new PIXI.TimeLimiter(4);
 
 installGlobalTextStylePolicy(PIXI, {
   fontFamily: "Georgia",
+  headingFontFamily: document.documentElement.dataset.headingFont,
   titleVariant: "small-caps",
   titleMinSize: 32,
   titleWeightMinSize: 26,
