@@ -114,6 +114,7 @@ function cmdDebugSetCap(state, { cap, points, enabled } = {}) {
 }
 
 export function applyAction(state, action, context = {}) {
+  if (state.runStatus?.complete) return { ok: false, reason: "runComplete" };
   if (!action || typeof action !== "object") {
     return { ok: false, reason: "badAction" };
   }

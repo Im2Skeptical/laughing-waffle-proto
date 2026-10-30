@@ -254,6 +254,8 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 
 ## 7. Legacy, relics and heirlooms
 
+Decision (Cam, 2026-10-28; implementation approved 2026-10-30): each run has ten tenures. Death or retirement spends one; zero freezes the run with history browsing and New game. No chaos-gods dependency. (c/UZvJAJNn)
+
 ### LOCKED
 - "Items" means heirlooms (for the heirloom UX/art revisit). (c/vmWs67HO "Decision (Cam)") [Done card]
 - Death screen comes before the heirloom screens. (c/tjdusEj7) [Done card]

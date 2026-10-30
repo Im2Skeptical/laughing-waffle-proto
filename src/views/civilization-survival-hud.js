@@ -70,7 +70,7 @@ export function getCivilizationSurvivalViewModel(
   state,
   civilizationLossInfo = null
 ) {
-  const seasonKey = getCurrentSeasonKey(state);
+  const seasonKey = getCurrentSeasonKey(state ?? {});
   const year = positiveYear(state?.year) ?? 1;
   const observedEnd = civilizationLossInfo?.observedEnd;
   const runComplete = observedEnd
@@ -108,6 +108,7 @@ export function getCivilizationSurvivalViewModel(
   } · Civilization Year ${year}`;
 
   return {
+    tenuresRemaining: state?.civilization?.vassalLineage?.tenuresRemaining ?? 10,
     seasonKey,
     year,
     runComplete,
@@ -163,7 +164,7 @@ export function addCivilizationSurvivalStrip(
           viewModel.projectedLossYear ? `YEAR ${viewModel.projectedLossYear}` : "Unfolding…",
           viewModel.runComplete ? "Civilization ended" : "Foreseen survival",
         ],
-    [viewModel.bestSurvivalYear ? `YEAR ${viewModel.bestSurvivalYear}` : "—", "Best remembered"],
+    [`${viewModel.tenuresRemaining} / 10 TENURES`, viewModel.bestLabel],
   ];
   let detailsTarget = null;
   columns.forEach((column, i) => {

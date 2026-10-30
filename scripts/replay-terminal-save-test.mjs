@@ -324,12 +324,12 @@ async function playTerminal(seed) {
     kind: ActionKinds.SETTLEMENT_SELECT_VASSAL,
     payload: { candidateIndex: 0, expectedPoolHash: getVassalCandidatePool(actionCopy).expectedPoolHash },
   });
-  expect(rejected?.ok === false && rejected.reason === "noPlayerSettlement", seed, "terminal-action", {
-    expected: "noPlayerSettlement", actual: rejected?.reason ?? "missing",
+  expect(rejected?.ok === false && rejected.reason === "runComplete", seed, "terminal-action", {
+    expected: "runComplete", actual: rejected?.reason ?? "missing",
   });
   const entered = applyAction(actionCopy, { kind: ActionKinds.VASSAL_ENTER_LIFE_NODE, payload: { nodeId: "absent" } });
-  expect(entered?.ok === false && entered.reason === "noCurrentVassal", seed, "terminal-enter", {
-    expected: "noCurrentVassal", actual: entered?.reason ?? "missing",
+  expect(entered?.ok === false && entered.reason === "runComplete", seed, "terminal-enter", {
+    expected: "runComplete", actual: entered?.reason ?? "missing",
   });
   match(seed, serializeGameState(actionCopy), at, "terminal-action-unchanged");
   const held = deserializeGameState(JSON.parse(JSON.stringify(at)));

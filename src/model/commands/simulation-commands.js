@@ -55,7 +55,7 @@ function maybeAdvanceSeasonBySimTime(state, dt) {
 }
 
 export function cmdTickSimulation(state, dt) {
-  if (state.paused) return { ok: false };
+  if (state.paused || state.runStatus?.complete) return { ok: false };
 
   state.simStepIndex = (state.simStepIndex || 0) + 1;
 
@@ -103,6 +103,7 @@ export function cmdTickSimulation(state, dt) {
 
 export function cmdSetPaused(state, paused) {
   if (typeof paused !== "boolean") return { ok: false, reason: "badPaused" };
+  if (state.runStatus?.complete && !paused) return { ok: false, reason: "runComplete" };
   state.paused = paused;
   return { ok: true, paused };
 }
