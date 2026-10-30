@@ -246,8 +246,9 @@ panels. Player land has a dark-backed gold boundary; the selected polygon uses
 an ice-blue/white outline drawn above neighboring terrain and roads.
 On authored maps, `territory-art.js` tiles generated scorched ground inside polygon masks and
 places a generated horned-skull lair painting for monster regions, without consuming simulation RNG.
-Each monster marker shows moons remaining until its next spread attempt, out of
-the simulation's configured spread interval. The countdown restarts after each attempt.
+Monster Pressure and its expansion progress bar live in the top-left Chaos drawer.
+Monster markers retain their lair and defense reading. Same-allegiance player and
+monster territories omit shared internal borders; selection retains a region outline.
 Run `node scripts/map-territory-browser-probe.mjs` for occupied-region visual
 checks, including selection and mobile zoom, and serialized-state preservation.
 

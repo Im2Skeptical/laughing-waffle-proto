@@ -1,3 +1,4 @@
+import { territoryBoundarySegments } from '../src/views/world-map/territory-art.js';
 import assert from 'node:assert/strict';
 import { createMapPanelReveal } from '../src/views/world-map/transitions.js';
 import { createMapCamera } from '../src/views/world-map/camera.js';
@@ -299,3 +300,16 @@ const inkCoverage = style => {
 assert.equal(inkCoverage(allied), 120, 'allied roads and borders are continuous');
 assert.ok(inkCoverage(allied) > inkCoverage(neutral) && inkCoverage(neutral) > inkCoverage(empty), 'neutral dashes have more visual presence than empty-region dots');
 console.log('[region-map-hierarchy] OK: allied/neutral/empty hierarchy, owned empty land, Monster precedence, actual stroke coverage');
+
+const square=(regionId,x,y,flags={player:true})=>({regionId,points:[x,y,x+1,y,x+1,y+1,x,y+1],...flags});
+for(const flags of [{player:true},{monster:true}]) {
+  const zones=[square('a',0,0,flags),square('b',1,0,flags),square('island',3,0,flags)];
+  const before=JSON.stringify(zones), boundaries=territoryBoundarySegments(zones);
+  assert.equal(boundaries.get('a').length,3,'shared allegiance edge is removed');
+  assert.equal(boundaries.get('b').length,3);
+  assert.equal(boundaries.get('island').length,4,'disconnected zone retains its perimeter');
+  assert.equal(JSON.stringify(zones),before);
+}
+assert.equal(territoryBoundarySegments([square('a',0,0),square('b',1,0,{monster:true})]).get('a').length,4,'opposing allegiances keep their boundary');
+const split=[{regionId:'large',player:true,points:[0,0,1,0,1,2,0,2]},square('small',1,0)];
+assert.equal(territoryBoundarySegments(split).get('large').length,4,'partially shared edge retains only its exposed section');

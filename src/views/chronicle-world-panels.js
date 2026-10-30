@@ -17,6 +17,14 @@ export function addChaosPanelContent(root, rect, summary) {
   text(`${summary.green.label} | Placeholder, visual only`,28,20);
   text(`Chaos ${formatChaosValue(summary.chaos.chaosPower)}   ·   Resistance ${formatChaosValue(summary.chaos.resistance)}`,55,18);
   text(`Monster Pressure ${formatChaosValue(summary.chaos.expansionProgress)} / ${summary.chaos.expansionThreshold} | ${summary.chaos.progressPerMoon>0?"+"+formatChaosValue(summary.chaos.progressPerMoon)+" / moon":"Contained"}`,82,20);
+  const progress = new PIXI.Graphics();
+  progress.label = 'monster-pressure-progress';
+  progress.eventMode = 'none';
+  const width = rect.width - 152;
+  const ratio = Math.max(0, Math.min(1, summary.chaos.expansionProgress / Math.max(1, summary.chaos.expansionThreshold)));
+  progress.beginFill(0x30202b).drawRoundedRect(x,y+109,width,7,3).endFill();
+  progress.beginFill(0xff886e).drawRoundedRect(x,y+109,width*ratio,7,3).endFill();
+  root.addChild(progress);
 }
 
 export function addRegionPanelContent(root, rect, {region, reference, name, vm, defense, tooltipView}) {
