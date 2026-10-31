@@ -39,7 +39,7 @@ assert.equal(c.getChoiceReview('development').choices[0].base.risk,.25,'rejected
 const exported=c.exportJson();assert.equal(c.importJson(exported).ok,true);
 const restored=createLifegraphController({store});assert.equal(restored.getChoiceReview('development').choices[0].base.time,3);
 const obsolete=JSON.parse(exported);obsolete.generatorConfig.schemaVersion=9;obsolete.reviews.development={notes:'Keep this review across cost-schema changes.',status:'open'};
-const oldStore={getItem:key=>key==='civsurvivor.lifegraph-workbench.v1'?JSON.stringify(obsolete):null,setItem:()=>{}};
+const oldStore={getItem:key=>key==='full-map-redesign-v1.lifegraph-workbench.v1'?JSON.stringify(obsolete):null,setItem:()=>{}};
 const fresh=createLifegraphController({store:oldStore});
 assert.equal(fresh.getSnapshot().draft.reviews.development.notes,obsolete.reviews.development.notes,'independent notes survive replacement of obsolete cost rules');
 assert.equal(fresh.getSnapshot().draft.generatorConfig.schemaVersion,15);assert.equal(fresh.getChoiceReview('development').choices[0].rule.time,'expensive');

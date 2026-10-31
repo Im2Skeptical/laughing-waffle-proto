@@ -1,7 +1,11 @@
 import { ensureCommissionOffers, chooseVassalCommission, stepVassalCommission } from '../vassal-life-map/commissions.js';
 import './monster-pressure.js';
 import assert from 'node:assert/strict';
-import { createNewGameState } from '../new-game.js';
+import { createConfiguredNewGameState } from '../new-game.js';
+import { createStarterBootProfile } from '../starter-boot-profile.js';
+// Legacy neutral-market/content mechanics remain covered in their authored sandbox.
+// The default 20-region ruleset has its own full-map contract suite.
+const createNewGameState = seed => createConfiguredNewGameState(seed, createStarterBootProfile());
 import { serializeGameState, deserializeGameState } from '../state.js';
 import { advanceReplayStateToSecond } from '../replay-second-runner.js';
 import { getDetailedSettlementSites, getPopulationSummary, getHousingCapacity } from '../detailed-settlements/queries.js';
@@ -93,7 +97,7 @@ const validation=validateDetailedPracticeDefinitions();assert.deepEqual(validati
 settlement.practiceSlots=[slot('logging',1),slot('charcoalBurning')];
 const shared=planStock(state,settlement,[{traits:['Timber'],amount:1}],[{traits:['Construction'],amount:1}]);
 assert.equal(shared.ok,true);applyStockPlan(state,settlement,shared);assert.equal(settlement.practiceSlots[0].stock,0);
-const positioned=projectPracticeDraft([slot('logging',3),slot('surfaceMining',2),...Array(3).fill(null)], [{intervention:{kind:'practice',mode:'learn',practiceId:'smelting',resultingTier:'bronze'},tableauIndex:2}]);
+const positioned=projectPracticeDraft([slot('logging',3),slot('surfaceMining',2),...Array(3).fill(null)], [{intervention:{kind:'practice',mode:'learn',practiceId:'smelting',resultingTier:'bronze'},tableauIndex:2}],id=>getDetailedPracticeDef(state,id));
 assert.equal(positioned.ok,true);assert.equal(planStock(state,{...settlement,practiceSlots:positioned.slots},getDetailedPracticeDef(state,'smelting').consume).ok,true,'new consumers can use existing suppliers');
 
 // A: Common content grows capacity and sustains hosted Food without a specialist.

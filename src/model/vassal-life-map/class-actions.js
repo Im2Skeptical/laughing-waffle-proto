@@ -2,7 +2,7 @@ import { ensureCommissionOffers } from './commissions.js';
 import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
 import { getVassalEffectiveStats } from './selectors.js';
 import { getDetailedSettlement, getDetailedSettlementSites, getPopulationSummary } from '../detailed-settlements/queries.js';
-import { stockTotal, stockCapacity, stockTraits, consumeStock, generateStock, trainSpecialists, structureModifiers } from '../detailed-settlements/stock.js';
+import { stockTotal, stockCapacity, stockTraits, consumeStock, generateStock, trainSpecialists, structureModifiers, discretionaryStock } from '../detailed-settlements/stock.js';
 import { getMartialForce, adjacentRegionIds, conquerSettlement, recordSupportUsage, evacuatePopulation } from '../detailed-settlements/external-world.js';
 import { getDetailedPracticeDef, getGameSetting } from '../game-config.js';
 import { planStock, applyStockPlan } from '../detailed-settlements/stock.js';
@@ -28,7 +28,7 @@ export function classActionOptions(state, vassal, family) {
     const options=adjacentRegionIds(state,vassal.locationRegionId).flatMap(id=>{
       const site=state.world.sites.find(s=>s.regionId===id), region=getRegionState(state,id);
       const difficulty=site?.neutral?.defense??region?.monster?.defense;
-      if(!difficulty||force<difficulty||stockTotal(state,settlement,'Edible')<1) return [];
+      if(!difficulty||force<difficulty||(state.rulesetId?discretionaryStock(state,settlement,'Edible'):stockTotal(state,settlement,'Edible'))<1) return [];
       const edge=force-difficulty;
       return [{id:`campaign-${id}`,label:`${site?.neutral?'Conquer':'Assault'} ${getRegionReference(state,id)}: Force ${force} vs ${difficulty}; 1 Edible`,phaseCost:Math.max(2,8-edge),prestigeDelta:site?.neutral?difficulty*3:12+difficulty*4,effects:site?.neutral?[{op:'addMonsterPressure',amount:getGameSetting(state,'conquestMonsterProgress')+difficulty*getGameSetting(state,'conquestMonsterProgressPerDefense')}]:[],baseDanger:difficulty*.05,immediateDeathChance:Math.max(0,.15-edge*.03),classAction:{kind:'campaign',targetId:id,difficulty}}];
     });
@@ -118,7 +118,8 @@ function applyClassActionRecipe(state,vassal,action) {
     const origin=vassal.locationRegionId;
     const force=getMartialForce(state, vassal);
     recordSupportUsage(state,origin,'campaign',false,vassal.classId);
-    consumeStock(state,settlement,'Edible',1);
+    if(state.rulesetId)applyStockPlan(state,settlement,planStock(state,settlement,[{traits:['Edible'],amount:1}],[],null,false,false,{beneficiary:'player',discretionary:true}));
+    else consumeStock(state,settlement,'Edible',1);
     const target=state.world.sites.find(s=>s.regionId===action.targetId);
     if(target?.neutral) { conquerSettlement(state,action.targetId,force-action.difficulty);vassal.locationRegionId=action.targetId; }
     else {
@@ -126,7 +127,7 @@ function applyClassActionRecipe(state,vassal,action) {
       if(target?.simulationMode==='ruin') {conquerSettlement(state,action.targetId,force-action.difficulty);vassal.locationRegionId=action.targetId;}
       state.civilization.research.total+=action.difficulty*3;
       state.civilization.chaos.monsterCount=state.world.regions.filter(r=>r.monster).length;state.civilization.history.victories++;
-      emitPracticeEvent(state,{kind:'monsterDestroyed',regionId:origin,classId:vassal.classId});
+      emitPracticeEvent(state,{kind:'monsterDestroyed',regionId:origin,classId:vassal.classId,faction:'player'});
     }
     emitPracticeEvent(state,{kind:'campaignWon',regionId:origin,classId:vassal.classId});
   }

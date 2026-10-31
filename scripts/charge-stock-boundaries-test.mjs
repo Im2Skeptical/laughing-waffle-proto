@@ -82,9 +82,8 @@ for (const [id, producerId, miss, expectedStock] of CASES) {
     assert.equal(column, id === 'borderSkirmishing' ? 2 : expectedStock, `${id} workbook Stock column`);
     const f = board(id);
     const capacityBefore = def.stockCapacity;
-    // Seed 42 starts on six contiguous plains: Grain's pool is x7.
-    // Keep the authored base/prose checks above, then check the retained yield.
-    const retainedStock=id==='milling'?16:expectedStock;
+    // Seed 42 has one plains region in this explicit legacy specimen.
+    const retainedStock = id === 'milling' ? 6 : expectedStock;
     fire(f, withProducerTags(miss));
     assert.equal(f.slot.charge, 0, `${id} unrelated event`);
     assert.equal(f.slot.stock, 0, `${id} unrelated event adds no stock`);

@@ -1,0 +1,170 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "results": [
+    {
+      "id": "palette_m1_fe_conspicuousFeasts",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-ad6ebe6e-ab9e-4700-991f-11b3d26b0c35.png",
+      "output": "art/palette_m1_fe_conspicuousFeasts.png",
+      "sha256": "e77f3bb41a333a1026e2693d08c69b76d6be116a7164de19643455987f1ddba7",
+      "previousSources": [
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-ac5c97a1-c628-4552-8168-b5205fb3e26f.png"
+      ]
+    },
+    {
+      "id": "palette_p1_fe_grandJubilee",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-07255601-7136-4d14-b813-494d098f35f4.png",
+      "output": "art/palette_p1_fe_grandJubilee.png",
+      "sha256": "e0da62fb4b9a496689807fa1d95715dbba606fd2d784d09181e3536c3a109e75",
+      "previousSources": [
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-e8a242d1-6687-486c-b2c5-ae07c63909b7.png"
+      ]
+    },
+    {
+      "id": "palette_m1_fe_privateReservoir",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-a51d0fe7-4e9d-4987-9457-23a0460e952b.png",
+      "output": "art/palette_m1_fe_privateReservoir.png",
+      "sha256": "a11f42995fb632d7e77daabc68cef8de3538d5a1910f244b804fc16b896391ec"
+    },
+    {
+      "id": "palette_p1_fe_gildedBasilica",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-c84617d0-16e6-4f10-b72e-a4c832e5d6ac.png",
+      "output": "art/palette_p1_fe_gildedBasilica.png",
+      "sha256": "930db30428691f395f1cd277e005e1a70fdc447bbfcce5dd4ec89dc65365eeb0"
+    },
+    {
+      "id": "palette_m2_fe_conspicuousFeasts",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-dbddc224-46fd-4f56-8210-509569121cdc.png",
+      "output": "art/palette_m2_fe_conspicuousFeasts.png",
+      "sha256": "34012df5cc4184a4a4be9314115daaf3973691e843c96aeb46676b8204c8143e",
+      "previousSources": [
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-bfb48fd3-c356-42b3-b1e0-7beefc9c0a64.png"
+      ]
+    },
+    {
+      "id": "palette_m2_fe_privateReservoir",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-b03af1e4-e88d-439e-bc73-1fd5bc74a5b2.png",
+      "output": "art/palette_m2_fe_privateReservoir.png",
+      "sha256": "d80125f1e078b44e0324d82804c1b27b94739fb05be480b1234f8cf720554caf"
+    },
+    {
+      "id": "palette_m3_fe_conspicuousFeasts",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-4b0ebf24-84a5-4120-9fc9-41ab41e9ba0d.png",
+      "output": "art/palette_m3_fe_conspicuousFeasts.png",
+      "sha256": "f99d66323083125ceb504c19212e3e06b61e5b1e2c18022d0909201790e62f43",
+      "previousSources": [
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-fe5eb9e8-db7b-4533-9136-9db6a9047058.png"
+      ]
+    },
+    {
+      "id": "palette_m3_fe_privateReservoir",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-5975ead3-d696-4cc0-acb6-54715342d1f5.png",
+      "output": "art/palette_m3_fe_privateReservoir.png",
+      "sha256": "c4e5b0ed4d76d9acbb0a9f513f63a66d5e1356b99ff24026b5c6a4f38b240e52"
+    },
+    {
+      "id": "palette_p2_fe_grandJubilee",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-7bc4b372-d4fd-412c-8735-e0da2425a438.png",
+      "output": "art/palette_p2_fe_grandJubilee.png",
+      "sha256": "d8224c88403e0c57630e18a6578744e9a9b44e5a8a9f2116b61fcc2751d75aab",
+      "previousSources": [
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-37b8d825-5ddf-407a-81a8-1eb60a5c82a3.png"
+      ]
+    },
+    {
+      "id": "palette_p2_fe_gildedBasilica",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-56b278b7-d406-44e4-b55f-2f2a2beb6714.png",
+      "output": "art/palette_p2_fe_gildedBasilica.png",
+      "sha256": "85716be54e6bd886bec4ab6faafa519b474bc5f01ac5304153d35b34670a6a30"
+    },
+    {
+      "id": "palette_p3_fe_grandJubilee",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-e7c33b5e-30a5-428e-b035-b22d9bad5e83.png",
+      "output": "art/palette_p3_fe_grandJubilee.png",
+      "sha256": "d35e6a5ef3f29b80cc04a3cab164d8564213d596f4a60ea61b11bb9645aef80d",
+      "previousSources": [
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-4b7309bb-b6a5-477c-b40f-cde164482174.png"
+      ]
+    },
+    {
+      "id": "palette_p3_fe_gildedBasilica",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-8832446b-7541-43f3-982a-259b5795f7c8.png",
+      "output": "art/palette_p3_fe_gildedBasilica.png",
+      "sha256": "6acadeb54e8b1585f8ba2f707b08f4f2f3cec29796d943adff9d2fcba9118c14"
+    },
+    {
+      "id": "palette_g1_fe_conspicuousFeasts",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-d82438d4-3998-4fc4-895f-970e4d1b42da.png",
+      "output": "art/palette_g1_fe_conspicuousFeasts.png",
+      "sha256": "89de6de1ddf0a8af3c6be2f76e053a5d6e731500e8576c5eb09f14e49285138a"
+    },
+    {
+      "id": "palette_g1_fe_privateReservoir",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-27668bea-42a2-4776-b1d7-e9a3425a6eb3.png",
+      "output": "art/palette_g1_fe_privateReservoir.png",
+      "sha256": "a71d65dfb6e7a79ed2bd1e734ef196699149c48e417265efd1bf68d0f816c3cc"
+    },
+    {
+      "id": "palette_g2_fe_conspicuousFeasts",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-0061a1db-ea46-4093-a8df-b076c4cff619.png",
+      "output": "art/palette_g2_fe_conspicuousFeasts.png",
+      "sha256": "fc9d04bbfd4ba5deea8a8aca8f7daa38940bbd72d356f46cc744c9965618f856"
+    },
+    {
+      "id": "palette_g2_fe_privateReservoir",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-603062f6-7e86-48b2-9aed-c0befd29752f.png",
+      "output": "art/palette_g2_fe_privateReservoir.png",
+      "sha256": "67b62d044789e1004fc5b2a24e88477a9fc7d50f6a9f38baa6f157e1c89a7201"
+    },
+    {
+      "id": "palette_g3_fe_conspicuousFeasts",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-728c1a2c-735b-41cf-9009-0c95563dd116.png",
+      "output": "art/palette_g3_fe_conspicuousFeasts.png",
+      "sha256": "2b1bf98b2e2af2b9a04043c8242b2a5cab9ebc6ec404ba99f38d7e22251491bf"
+    },
+    {
+      "id": "palette_g3_fe_privateReservoir",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-98a6db28-42fb-48ae-be18-c54e51e90bb9.png",
+      "output": "art/palette_g3_fe_privateReservoir.png",
+      "sha256": "fac02a6df6a6d697b69b9b88edb719e38b4a7bf9d2ed85276cdea1c70cda7eea"
+    },
+    {
+      "id": "palette_y1_fe_grandJubilee",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-c4c9345b-2b7b-42c4-a0de-71776e2fbb27.png",
+      "output": "art/palette_y1_fe_grandJubilee.png",
+      "sha256": "68358d7ca15230325b11beb951dd9d3ccf2c7b9eb9f96f897c14cfe9f5a69c9c"
+    },
+    {
+      "id": "palette_y1_fe_gildedBasilica",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-99494ef0-86eb-4c02-bd29-e46adf46ce92.png",
+      "output": "art/palette_y1_fe_gildedBasilica.png",
+      "sha256": "5f6deeac3ad1379ec7b219b655b0ad79fbe31a5a4fe01384ff2ea081433970dc"
+    },
+    {
+      "id": "palette_y2_fe_grandJubilee",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-25461e88-8448-49b7-ba4e-10bf2c9b6a90.png",
+      "output": "art/palette_y2_fe_grandJubilee.png",
+      "sha256": "d50d447b3836feb298645185a1260327f604eb20415ea15143fcd61658de08e5"
+    },
+    {
+      "id": "palette_y2_fe_gildedBasilica",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-a541c904-9eda-4332-937e-4b1661282287.png",
+      "output": "art/palette_y2_fe_gildedBasilica.png",
+      "sha256": "0713e38f16fa7f61060a83437342b0d364f969c362590fb2279ebccda3e9b0fe"
+    },
+    {
+      "id": "palette_y3_fe_grandJubilee",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-9b5031f8-420b-4d61-9160-edc93f5ea308.png",
+      "output": "art/palette_y3_fe_grandJubilee.png",
+      "sha256": "316e94c7537aabd21fabd1f591b62e52e9dedf2bc45618156f147b0a149997ea"
+    },
+    {
+      "id": "palette_y3_fe_gildedBasilica",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-a3084406-dc8d-4c3b-aae1-2df587037d01.png",
+      "output": "art/palette_y3_fe_gildedBasilica.png",
+      "sha256": "f9a7bc264c5afadc12db33f384a6aeded6895b613364d1fb657a70da4d2245ab",
+      "previousSources": [
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-e0212059-f189-4917-8b70-375de47e8a02.png"
+      ]
+    }
+  ]
+}

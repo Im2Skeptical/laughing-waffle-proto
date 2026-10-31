@@ -1,4 +1,4 @@
-import { getResourceTexture, getStockTraitTexture } from './chronicle-art.js';
+import { getResourceTexture, getStockTraitTexture, getChronicleTexture } from './chronicle-art.js';
 import { eventIcon, seasonIcon } from './piece-face-chrome.js';
 import { paintRelicPanel, RELIC } from './chronicle-skin.js';
 import { createText } from './settlement-view-primitives.js';
@@ -44,14 +44,16 @@ export function getPracticeSymbols(face) {
     for(const input of face.inputs??[]) {
       if(input.kind==='monsterPressure') {add('Monster Pressure',{icon:'monster'});continue;}
       if(input.kind==='chaos') {add('Chaos',{icon:'chaos'});continue;}
+      if(input.icon)add(input.symbolLabel??input.icon,{icon:input.icon});
       for(const trait of input.traits)add(trait,{trait});
       add(input.kind==='consume'?'Consume':'Require',{glyph:input.kind==='consume'?'−':'◇'});
     }
     for(const effect of face.production??[]) {
       if(effect.season)add(effect.season[0].toUpperCase()+effect.season.slice(1),{season:effect.season});
-      else add(({stock:'Stock',research:'Research',population:'Specialist training',prestige:'Prestige',activation:'Quality',support:'Support',hourglass:'Preview',housingCapacity:'Housing',faith:'Chaos resistance',food:'Meal saving'})[effect.icon]??effect.icon,{icon:effect.icon});
+      else add(effect.symbolLabel??({stock:'Stock',research:'Research',population:'Specialist training',prestige:'Prestige',activation:'Quality',support:'Support',hourglass:'Preview',housingCapacity:'Housing',faith:'Chaos resistance',food:'Meal saving'})[effect.icon]??effect.icon,{icon:effect.icon});
     }
   }
+  if(face.patronEmblem)add(`Patron: ${face.patronName}`,{texture:face.patronEmblem});
   add('Quality',{drawing:'jewel'});
   return rows.sort((a,b)=>Number(!!b.trait)-Number(!!a.trait));
 }
@@ -70,7 +72,8 @@ export function addPracticeGlossary(parent,width,face,fontSize=36) {
   root.entries=getPracticeSymbols(face);
   for(const row of root.entries) {
     const x=60,cy=y+fontSize*.7,size=fontSize*1.3;
-    if(row.trait)sprite(getStockTraitTexture(row.trait),x,cy,size);
+    if(row.texture)sprite(getChronicleTexture(row.texture),x,cy,size);
+    else if(row.trait)sprite(getStockTraitTexture(row.trait),x,cy,size);
     else if(row.season)seasonIcon(root,row.season,x,cy,size);
     else if(row.glyph) {
       const glyph=copy(row.glyph,x,cy,row.glyph.length>3?fontSize*.72:fontSize);glyph.anchor.set(.5);glyph.style.wordWrap=false;

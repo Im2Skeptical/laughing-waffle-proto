@@ -1,0 +1,52 @@
+{"frames": {
+
+"direction_fe_conspicuousFeasts.png":
+{
+	"frame": {"x":2,"y":2,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"direction_fe_gildedBasilica.png":
+{
+	"frame": {"x":1439,"y":2,"w":565,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":565,"h":251},
+	"sourceSize": {"w":565,"h":251}
+},
+"direction_fe_grandJubilee.png":
+{
+	"frame": {"x":324,"y":2,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"direction_fe_privateReservoir.png":
+{
+	"frame": {"x":974,"y":2,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"enemy-rim.png":
+{
+	"frame": {"x":646,"y":2,"w":324,"h":437},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":324,"h":437},
+	"sourceSize": {"w":324,"h":437}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "full-map-enemy-direction-prototype.png",
+	"format": "RGBA8888",
+	"size": {"w":2006,"h":449},
+	"scale": "0.3",
+	"smartupdate": "$TexturePacker:SmartUpdate:e7a969c653ff65185741861223176350:00d1e48b3feb1b0798b35968fb9e3065:cad356e727f7fa098844e5ba50ff7f5f$"
+}
+}

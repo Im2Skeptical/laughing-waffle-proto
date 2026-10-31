@@ -2,7 +2,7 @@ import { createDetailedPracticeSlot } from './detailed-practice-tiers.js';
 
 // Draft order is tableau order. Remove upgrade targets before calculating
 // survivors so a capacity push cannot invalidate an otherwise valid upgrade.
-export function projectPracticeDraft(confirmed, purchases, order = null) {
+export function projectPracticeDraft(confirmed, purchases, getDefinition, order = null) {
   const incoming = [], consumed = new Set(), removed = new Set();
   for (const purchase of purchases) {
     const action = purchase.intervention;
@@ -12,7 +12,13 @@ export function projectPracticeDraft(confirmed, purchases, order = null) {
     if (action.mode === 'learn' ? !!existing : !existing || existing.tier !== action.tier) return { ok: false, reason: 'practiceUnavailable' };
     consumed.add(action.practiceId);
     if (action.mode === 'remove') removed.add(action.practiceId);
-    if (action.mode !== 'remove') incoming.push({...createDetailedPracticeSlot(action.practiceId, action.resultingTier), stock: existing?.stock ?? 0, charge: existing?.charge ?? 0, work: existing?.work ?? 0});
+    if (action.mode !== 'remove') {
+      const slot={...createDetailedPracticeSlot(action.practiceId,action.resultingTier),...existing,tier:action.resultingTier??existing?.tier,instanceId:existing?.instanceId??action.instanceId??purchase.offerId};
+      const category = getDefinition(action.practiceId)?.category;
+      if(category==='influence'){delete slot.stock;slot.allegiance=action.mode==='adopt'?'player':existing?.allegiance??'player';}
+      else if(category==='resource')delete slot.allegiance;
+      incoming.push(slot);
+    }
   }
   if (incoming.length > confirmed.length) return { ok: false, reason: 'practicePrefixFull' };
   // Preserve authored empty slots and the existing unshift mechanics. An

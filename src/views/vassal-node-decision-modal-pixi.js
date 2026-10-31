@@ -612,7 +612,7 @@ export function createVassalNodeDecisionModalView({
       return;
     }
 
-    const projected = decision?.projectedPrestige ?? vassal.prestige;
+    const projected = decision?.projectedPrestige ?? (decision?.currentPrestige ?? vassal.prestige);
 
     const hasContext = decision?.contextKind && decision.contextKind !== "none";
     const hasSettlementContext = decision?.contextKind === "settlement";
@@ -740,7 +740,7 @@ export function createVassalNodeDecisionModalView({
           const requirements = decision?.optionRequirements?.[option.id] ?? [];
           const unmet = requirements.filter((entry) => !entry.met);
           const optionBlocked = unmet.length ? `Requires ${unmet.map((entry) => entry.label).join('; ')}.`
-            : prestigeCost > vassal.prestige ? `Not enough Prestige: needs ${prestigeCost}, you have ${vassal.prestige}.` : null;
+            : prestigeCost > (decision?.currentPrestige ?? vassal.prestige) ? `Not enough Prestige: needs ${prestigeCost}, you have ${(decision?.currentPrestige ?? vassal.prestige)}.` : null;
           return (node.family==='relic'&&!option.emptyRelic?heirloomChoiceCard:simpleOutcomes ? outcomeCard : actionCard)(root, {
             x: cardStartX + index * (cardWidth + cardGap), y: cardY,
             width: cardWidth, height: cardHeight,
@@ -751,11 +751,11 @@ export function createVassalNodeDecisionModalView({
             title: requirements.some((entry) => !entry.met) ? `${option.label} · Unavailable` : option.label,
             cost: { prestigeCost, phaseCost, chaosCost:getActionChaosCost(option),monsterPressureCost:getActionMonsterPressureCost(option), state, prestigeFeedback:!readOnly,
               riskLabel: nodeState.family === 'relic' ? relicRiskLabel(option) : null },
-            costUnmet: prestigeCost > vassal.prestige,
+            costUnmet: prestigeCost > (decision?.currentPrestige ?? vassal.prestige),
             effect: decision?.workshopLegacy ? [option.description,...requirements.map(entry=>`${entry.met?'✓':'✗'} ${entry.label}`)].join(' · ') : requirements.length
               ? requirements.map((entry) => `${entry.met ? "✓" : "✗"} ${entry.label}`).join("\n")
               : optionEffect(option),
-            enabled: !readOnly && prestigeCost <= vassal.prestige && requirements.every((entry) => entry.met),
+            enabled: !readOnly && prestigeCost <= (decision?.currentPrestige ?? vassal.prestige) && requirements.every((entry) => entry.met),
             onUnavailable: readOnly ? onReadOnlyAction : optionBlocked ? () => explainBlocked(optionBlocked) : null,
             selected: nodeState.selectedOptionId === option.id,
             onClick: () => onSelectOption?.(node.id, option.id),
@@ -872,6 +872,7 @@ export function createVassalNodeDecisionModalView({
       }
     }
 
+    if(nodeState?.contentMode==='shop'&&decision?.stagedMonsterPressureCost)root.addChild(createText(`On confirmation: ${decision.stagedPrestigeCost} Prestige + ${decision.stagedMonsterPressureCost} Monster Pressure`,{...TEXT_STYLES.body,fontSize:25,fill:0xf0ad97},PANEL.x+40,PANEL.y+PANEL.height-60));
     const isCurrent = currentNodeId === node.id;
     const isShop = nodeState?.contentMode === "shop";
     const canConfirm = !readOnly && !replacementOfferId && isCurrent && !nodeState?.resolving
@@ -1009,7 +1010,7 @@ export function createVassalNodeDecisionModalView({
           prestigeCost:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0),chaosCost:getActionChaosCost(piece),monsterPressureCost:getActionMonsterPressureCost(piece),
           phaseCost:getVassalActionPhaseCost(vassal,piece.phaseCost??0,{nodeState,isTravel:nodeState.family==='crossroads'}),state,
           riskLabel:nodeState.family==='relic'?relicRiskLabel(piece):null,
-          unaffordable:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0)>vassal.prestige,prestigeFeedback:!readOnly,
+          unaffordable:getAdjustedVassalPrestigeCost(vassal,piece.prestigeCost??0)>(decision?.currentPrestige ?? vassal.prestige),prestigeFeedback:!readOnly,
         }:null,
         onActivate:!readOnly && inspectedOffer && !piece.purchased && piece.canStage
           ? ()=>{pinnedInspectionId=null;previewOfferId=null;const result=stageOffer(piece);if(result?.ok!==true)render(true);}

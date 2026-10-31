@@ -1,3 +1,4 @@
+import { getRegionState } from '../../world-state.js';
 import { consumeStock, consumeAvailableStock, CIV_CONTENT_TUNING } from "../stock.js";
 import { replenishNeutralMarkets } from '../neutral-market.js';
 // Food moon phase: meals, happiness, and starvation migration intents.
@@ -97,16 +98,18 @@ export function runFoodPhase(state, phase) {
     const settlement = site.detailedState;
     const population = getPopulationSummary(state, site.regionId);
     const savedStock = Math.min(population.mealDemand, Math.max(0, getPhaseModifiers(state).foodByRegion[site.regionId] ?? 0));
-    const demandStock = population.mealDemand - savedStock;
+    const mealOverhead = population.mealOverhead;
+    const demandStock = population.mealDemand - savedStock + mealOverhead;
     const localConsumed = consumeStock(state, settlement, "Edible", demandStock);
-    return { site, savedStock, demandStock, localConsumed };
+    return { site, savedStock, demandStock, localConsumed, mealOverhead };
   });
-  for (const { site, savedStock, demandStock, localConsumed } of meals) {
+  for (const { site, savedStock, demandStock, localConsumed, mealOverhead } of meals) {
     const settlement = site.detailedState;
     const shortage = demandStock - localConsumed;
     const consumed = localConsumed + (shortage > 0
       ? consumeAvailableStock(state, settlement, "Edible", shortage) : 0);
-    let fedPeople = (consumed + savedStock) * CIV_CONTENT_TUNING.populationPerEdible;
+    settlement.mealRelief={tSec:state.tSec,faction:getRegionState(state,site.regionId)?.controller,amount:Math.max(0,consumed-localConsumed),shortage,fullyFed:consumed>=demandStock};
+    let fedPeople = Math.max(0, consumed + savedStock - mealOverhead) * CIV_CONTENT_TUNING.populationPerEdible;
     const byClass = {};
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = settlement.populationByClass[classId];

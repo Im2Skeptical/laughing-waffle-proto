@@ -7,8 +7,8 @@ import {
 
 export const LIFE_MAP_LAB_DRAFT_KIND = "vassal-life-map-generator";
 export const LIFE_MAP_LAB_DRAFT_SCHEMA_VERSION = 2;
-export const LIFE_MAP_LAB_STORAGE_KEY = "civsurvivor.lifeMapLabDraft.v1";
-export const LIFE_MAP_LAB_PRESETS_STORAGE_KEY = "civsurvivor.lifeMapLabPresets.v1";
+export const LIFE_MAP_LAB_STORAGE_KEY = "full-map-redesign-v1.lifeMapLabDraft.v1";
+export const LIFE_MAP_LAB_PRESETS_STORAGE_KEY = "full-map-redesign-v1.lifeMapLabPresets.v1";
 
 export function createAuthoredLifeMapLabDraft() {
   return {

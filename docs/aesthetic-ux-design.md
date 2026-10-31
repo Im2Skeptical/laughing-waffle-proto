@@ -50,7 +50,10 @@ as further design tasks reveal what works.
    tightest real surface, such as the regional settlement panel, and carry that
    treatment into roomier views. Give important numbers, slots and controls enough
    space; compose artwork around clear focal
-   action and quiet areas. Carry the established old-school dark fantasy style
+   action and quiet areas. Areas of rest retain visible environmental forms and
+   restrained contrast; they are not blank darkness. Vary illustrated staging
+   across a set. Use Cornwell, Wyeth and Pyle as the composition quality bar, with
+   dark fantasy as the subject matter. Carry the established old-school dark fantasy style
    through frames, icons and palettes. For gamepiece art, retain anonymous figures
    and class colour identity. Use the existing
    [presentation contract](../ai/visual-overhaul.md) and

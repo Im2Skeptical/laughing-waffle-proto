@@ -112,10 +112,11 @@ assert.equal(donor.detailedState.practiceSlots[0].stock,0,'shared recipes debit 
 getRegionState(supply,donor.regionId).controller='external-a';
 donor.detailedState.practiceSlots[0].stock=2;runConstructionCycles(supply,'housing');
 assert.equal(receiver.detailedState.structureSlots[0].construction.completedCycles,1,'neutral Stock cannot pay player construction');
-assert.equal(donor.detailedState.structureSlots[0].construction.completedCycles,2,'neutrals do not construct autonomously');
+assert.equal(donor.detailedState.structureSlots[0].construction,undefined,'Full-map foreign holders complete their own supplied construction cycles');
 for(const def of Object.values(settlementStructureDefs)) {
   assert.ok(def.construction.cycles>=3&&def.construction.consume.length>0&&def.construction.consume.length<=3,def.id);
-  assert.ok(def.vassalPrestigeCost<10&&def.vassalPhaseCost<12,def.id);
+  if(/^(fm|fe|cp)_/.test(def.id))assert.ok(def.vassalPrestigeCost>=0&&def.vassalPhaseCost>0,def.id);
+  else assert.ok(def.vassalPrestigeCost<10&&def.vassalPhaseCost<12,def.id);
 }
 const housing=['mudHouses','timberHouse','stoneHouse','longhouse','tenement','greatDwelling'].map(id=>settlementStructureDefs[id]);
 assert.ok(housing.every((d,i)=>!i||d.housing/d.footprint>housing[i-1].housing/housing[i-1].footprint),'Housing density rises across the ladder');

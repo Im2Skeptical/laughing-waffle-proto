@@ -1,0 +1,101 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "results": [
+    {
+      "id": "patron-crown",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-8a47208a-2119-4315-9694-67445bb559e0.png",
+      "output": "art/patron-crown.png",
+      "sha256": "3f77c4acf35700a7d6e8f4091a550f19be3fb8865634ee5a02de0005e069f87f"
+    },
+    {
+      "id": "patron-creditor",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-eb0f4d05-a264-48a0-b529-f16bdb9a6069.png",
+      "output": "art/patron-creditor.png",
+      "sha256": "8511d68594b57682348de4d0f9c0c201bc2e04860a13f23b4cf1c3b7083aa027"
+    },
+    {
+      "id": "patron-sun",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-35c15f09-95d4-4098-803b-44157afb835e.png",
+      "output": "art/patron-sun.png",
+      "sha256": "6fb38ed866646a699abba66988552a1831415f916dbfbe45fe0c231be165cbb3"
+    },
+    {
+      "id": "patron-index",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-d5be0e9c-e5bc-44f9-8148-25de3549bd98.png",
+      "output": "art/patron-index.png",
+      "sha256": "65912a1a231e4a6e2b68aa08e9272975e4dee891d2ef446b81e954926c7e2c83"
+    },
+    {
+      "id": "cp_ironCommunion",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-93fdf925-5c94-4708-87ca-69c08cdb112f.png",
+      "output": "art/cp_ironCommunion.png",
+      "sha256": "0cee74985c69852d220276bfa0a969115d0c97e937b5dcbb7739fe11988747fe",
+      "previousSources": [
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-59f84096-2552-44fc-a973-15dfe13a4d1d.png"
+      ]
+    },
+    {
+      "id": "cp_citadelOfStillness",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-94cb583c-cd50-4471-8490-a5b56eba301b.png",
+      "output": "art/cp_citadelOfStillness.png",
+      "sha256": "1c1079294409e4c10aab3ea16e698425d38c0162df8a41c9337699f73b1070e3",
+      "previousSources": [
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-e219bdd2-0777-4377-bc47-7d213bcea390.png"
+      ]
+    },
+    {
+      "id": "cp_finalLiquidation",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-771f91cc-36d8-47e4-b2ef-465b06c81220.png",
+      "output": "art/cp_finalLiquidation.png",
+      "sha256": "f8bfd38a546c63aa40167b6dafc0f63b4e0a999780497ada8f49d2f993eefe81",
+      "previousSources": [
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-5375ed40-2fdd-4ce9-811c-71df9905b29d.png"
+      ]
+    },
+    {
+      "id": "cp_vaultOfLastCreditor",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-fbf7117f-00cd-47bb-914a-77c85d169da7.png",
+      "output": "art/cp_vaultOfLastCreditor.png",
+      "sha256": "0eb76c42bfa452c87144b053d757d3346acd1718bf1ba2af396e93e97823e6a6",
+      "previousSources": [
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-08da340f-d519-4652-8f14-b989767888ef.png"
+      ]
+    },
+    {
+      "id": "cp_offeringOfNames",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-6b47e3f6-d7c8-461c-8a84-f8ea91d2ff1c.png",
+      "output": "art/cp_offeringOfNames.png",
+      "sha256": "e3822037f6f7099d7ec37894fecf8cfbaf89f6df5204341b862dd79ed34805f7",
+      "previousSources": [
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-79c2546d-8991-458b-9cc3-74e1a96dea98.png"
+      ]
+    },
+    {
+      "id": "cp_templeOfHollowSun",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-b37bca92-dccd-4551-a8ac-0d88a41a2111.png",
+      "output": "art/cp_templeOfHollowSun.png",
+      "sha256": "02be9f05755e0041c81b06532c9ae5e55428b8d38526e2d48b93b140acbead65",
+      "previousSources": [
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-f01d557c-bd55-4184-8362-773d1db636c4.png"
+      ]
+    },
+    {
+      "id": "cp_finalRedaction",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-67a7b976-49c7-4b04-9c9a-fc4248f5d80d.png",
+      "output": "art/cp_finalRedaction.png",
+      "sha256": "f14834836769ff0fbc8080e735b8745e2e621b46006c99d89e798978716e3254",
+      "previousSources": [
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-59ac67e7-e771-4303-921b-5f9bed454cab.png"
+      ]
+    },
+    {
+      "id": "cp_archiveOfUnfinishedIndex",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-d0b770b6-bebe-4275-9edb-1c212a0395e8.png",
+      "output": "art/cp_archiveOfUnfinishedIndex.png",
+      "sha256": "db6ff41e994c6e5b3ffdec3273acd6e36b8e4dfb2d3fe53fdbba084a1be6aa66",
+      "previousSources": [
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-9b71cba5-31a0-4152-9737-8df8ee0abbb2.png"
+      ]
+    }
+  ]
+}

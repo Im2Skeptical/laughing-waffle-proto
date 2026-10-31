@@ -35,7 +35,13 @@ Record these decisions beside the content or in its experiment report:
 Follow [multiplier semantics](output-capacity-multipliers.md): output and capacity
 are independent additive pools. Compare actual retained/consumed throughput at
 zero, early and developed keyword scores; inspect how quickly the card caps out.
-Scheduled workers affect Stock output; Charge workers affect incoming Charge.
+Scheduled workers affect Stock and conversion output; Charge workers affect
+incoming Charge. Zero workers retains the base effect; staffing never gates
+activation. Actual ingredients, population victims/reserves and eligible
+conversion targets remain explicit requirements. Influence Practices carry
+allegiance and conversion fittings; Resource Practices carry no allegiance and
+their hosted Stock belongs to the regional controller. Structures have no
+allegiance and may support an Influence Practice, rather than convert independently.
 Record input costs, cadence and scarcity alongside headline yields.
 Confirm that a trigger has a real emitter in the current simulation; a valid
 activation name or inspection label alone does not demonstrate that it fires.

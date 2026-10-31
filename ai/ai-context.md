@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.40`.
+Game build version: `1.1.41`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -40,7 +40,7 @@ Routing skills live in `.grok/skills/`.
 - `tSec` is authoritative time and advances only through simulation ticks.
 - Definitions are data, model modules own rules, controllers orchestrate, and
   views render or emit input.
-- Every player settlement has exactly five Practice slots. Neutral settlements use priced market inventories instead of installed Practices or Structures. This fixed design
+- Every player settlement has exactly five Practice slots. All inhabited full-map regions have installed Practices and Structures; neutral is population allegiance, not a market exemption. This fixed design
   limit preserves readability and composition choices; UX and gamepieces must
   work within it. Structure capacity is separate.
 - Gamepiece behavior is DSL-first. Extend a generalized operation before adding
@@ -54,10 +54,11 @@ Routing skills live in `.grok/skills/`.
   Ownership does not restrict the component. See `docs/output-capacity-multipliers.md`.
   CivContent 2.6 coverage/deviations: `docs/civcontent-2.6-implementation.md`.
 
-- On `proto/keywords-classes`, Synthesis (Scholar) and Monster Trophies (Warrior)
+- Synthesis (Scholar) and Monster Trophies (Warrior)
   are ordinary captured Practice Output Multiplier contributions. No keyword
-  experiment setting is required. See `docs/practice-keywords.md`; main remains
-  unchanged. Real monster destructions update persistent civilization history.
+  experiment setting is required. See `docs/practice-keywords.md`. Player-owned
+  regions receive the active Vassal's discipline; only actual player-faction
+  monster destructions update its persistent Trophy history.
 
 `npm run check:architecture` guards the first and layering rules.
 
@@ -65,9 +66,9 @@ Routing skills live in `.grok/skills/`.
 
 Authoritative numbers:
 
-- Game state v40; runner saves v30. Older saves are rejected.
+- Game state v41; runner saves v31. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
-- Each run serializes schema-v28 Game Settings, Gamepieces, and Life Map
+- Each run serializes schema-v29 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.
 - Map Lab drafts v8; scenario libraries v4.
 - Vassal Lab draft/preset schema v5.
@@ -122,9 +123,12 @@ A generator change that moves any polygon needs a new revision with the old one 
 New game seeds are random unless Developer tools specifies a seed override.
 The menu's Use dev settings toggle explicitly substitutes a saved combined profile. Each
 run chooses one existing road through `state.rng`; its two adjacent regions
-become the only player-controlled detailed settlements, with the first in
-authored region order serving as capital. Four authored neutral settlements are placed deterministically, including one adjacent and connected to the capital. Each new game seeds one weak frontier Monster. Other regions are frontier. The
-authored debug fixture still has five detailed settlements in Regions01, 03,
+become the initial player-controlled detailed settlements, with the first in
+authored region order serving as capital. All 20 regions are inhabited in this
+fork. A distant passive Warlord capital and its adjacent provinces begin under
+remnant control; outskirts begin unheld with inherited boards and mixed population
+allegiances. A Monster threat is seeded in an inhabited nonplayer region, without
+erasing its settlement. The authored legacy debug fixture still has five detailed settlements in Regions01, 03,
 06, 07, and 11. Debug profiles and Map Lab can explicitly replace that setup.
 Region state owns colour, controller, connections, `structureCapacity`, and
 the independent detailed-settlement toggle. New runs roll every region's
@@ -159,3 +163,17 @@ copies launch through the same initializer as player New Game, including road
 randomization and neutral seeding. Museum owns saved states at specific seconds.
 The live hold-button workshop keeps Vassal candidate replacement and save diagnostics. Verification commands live in
 `ai/repository-map.md`.
+
+## Full-map ruleset
+
+Ordinary New Game captures `full-map-redesign-v1`. It
+uses 20 inhabited regions, two player holdings and one passive Warlord capital.
+Joint cohort bins own residency/allegiance/specialty/age; summary demographic
+fields are derived. Influence instances retain allegiance through capture and
+carry conversion fittings; Resource Practices own hosted Stock and no allegiance.
+Structures support qualifying Practices; they never independently convert.
+Full-map saves use a separate IndexedDB and preference namespace from the
+archived game, with no baseline key imports. See
+`docs/full-map-redesign-implementation.md` and the audit for
+full-map behavior and `docs/full-map-main-integration.md` for restored mainline
+features, the ten-tenure limit and performance integration.

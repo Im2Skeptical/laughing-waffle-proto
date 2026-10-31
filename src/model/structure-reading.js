@@ -49,6 +49,10 @@ function modifierText(mod, amount, candidateStat) {
     chargeGain: `+${n} incoming Charge for ${scope}`,
     effectBonus: `+${n} to numeric effects of ${scope}`,
     requireSubstitution: `${mod.from} Stock can satisfy ${mod.to} requirements${mod.providerTagsAny?.length ? ` from Practices tagged ${mod.providerTagsAny.join(' or ')}` : ''}`,
+    occupation: `+${n} supplied occupation Force with ${mod.warriors??1} loyal adult Warriors and ${mod.arms??1} local Arms${mod.adjacent?'; may be assigned to one adjacent road-connected allied holding':''}`,
+    localDefense: `+${n} supplied local monster defence with an armed loyal Warrior`,
+    networkGarrison: 'This supplied garrison may serve one adjacent road-connected allied holding instead of its source; no duplicated Warriors, Arms or Force',
+    garrisonUpkeep: `Pay ${n} additional Edible after civilian meals; missed payment disables supplied Force`,
     support: `+${percent}% to local Martial Support`,
     defense: `+${n} local Defense`,
     defenseMultiplier: `+${percent}% to local defensive Martial Support`,
@@ -87,9 +91,10 @@ export function getStructureReading(def, { slot = null, settlement = null } = {}
     if (mod.kind === 'support') bonuses.push({ kind:'population', amount:amount * 100, unit:'%', label:'Martial Support', traits:[] });
   }
   if (def.pool !== 'common' && def.candidateBonus) effects.push({ timing:'', text:`+${def.candidateBonus} ${candidateStat} for future local ${title(def.pool)} candidates (institutions: max +5)` });
+  if ((def.conversionSupport||def.upkeep||def.mealExtra) && def.ui?.rule) effects.push({timing:'',text:def.ui.rule});
   if (!effects.length && def.ui?.rule) effects.push({ timing:'', text:def.ui.rule });
   const requirements = def.specialistGate ? [`Requires ${def.specialistGate} local ${title(def.pool)}${def.specialistGate === 1 ? '' : 's'}.`] : [];
-  const active = slot?.construction ? false : !def.specialistGate ? true : settlement ? specialistCount(settlement, def.pool) >= def.specialistGate : null;
+  const active = slot?.construction || slot?.upkeepActive===false ? false : !def.specialistGate ? true : settlement ? specialistCount(settlement, def.pool) >= def.specialistGate : null;
   return { type:'Structure', classLabel:def.pool === 'common' ? 'Neutral' : title(def.pool), passive:true,
     effects, bonuses, requirements, trigger:null, active,
     flavour:FLAVOUR[def.id] ?? 'Stone and timber hold what a settlement hopes to keep.' };

@@ -20,6 +20,8 @@ export function getPracticeBaseStockProduction(def) {
 function effectText(effect, amount) {
   const names = { scholar: 'Scholar', warrior: 'Warrior' };
   const text = {
+    convertPopulation: `${effect.train?'Train and convert':'Convert'} up to ${amount} eligible ${effect.filter?.kind??''} ${effect.filter?.specialty??''} opposing residents to this institution's allegiance${effect.reach==='connectedAdjacent'?'; first eligible adjacent road-connected region':'; local'}`,
+    politicalForce: `+${amount} supplied ${effect.defenseOnly?'monster defence':'occupation'} Force until next ${effect.duration??'moon'} (refreshes)`,
     generateStock: `Produce ${amount} Stock`,
     research: `Gain ${amount} Research`,
     train: `Train ${amount} ${names[effect.classId] ?? 'specialist'}${amount === 1 ? '' : 's'}`,
@@ -46,7 +48,7 @@ function readableTrigger(text) {
     .replace(/Discharges?/g, 'Activates');
 }
 
-export function getPracticeReading(def) {
+export function getPracticeReading(def, {workerGates=true}={}) {
   const charge = def.mode === 'charge';
   const activation = def.activation ?? {};
   const times = charge ? [''] : [activation.type, ...(activation.also ?? [])].flatMap(type =>
@@ -59,10 +61,11 @@ export function getPracticeReading(def) {
   // an effect operation. Describe their implemented contribution explicitly.
   if (!effects.length && (def.supportMultiplier || def.defenseMultiplier)) effects.push({timing: 'While supplied', text: `Contribute extra ${def.defenseMultiplier?'defensive ':''}Martial Support from local Warriors${def.retinueForce ? `; gain ${def.retinueForce} Warrior Retinue Force` : ''}`});
   if (!effects.length && def.responseAction === 'rescue') effects.push({timing: 'During a Crisis', text: 'Rescue up to 5 people into available Housing in a connected friendly settlement'});
+  if(!effects.length&&def.consume?.length)for(const timing of times)effects.push({timing,text:def.consume.map(c=>`Lose ${c.amount} ${traits(c.traits)}`).join('; ')});
   const requirements = ['consume', 'require'].flatMap(kind => (def[kind] ?? []).map(input =>
     `${kind === 'consume' ? 'Consume' : 'Require'} ${input.amount} ${traits(input.traits)}${kind === 'require' ? ' (kept)' : ''}.`));
-  if (def.scholarRequired) requirements.push('Requires a Scholar worker.');
-  if (def.specialistRequired) requirements.push(`Requires ${title(def.specialistRequired)} population here.`);
+  if (workerGates && def.scholarRequired) requirements.push('Requires a Scholar worker.');
+  if (workerGates && def.specialistRequired) requirements.push(`Requires ${title(def.specialistRequired)} population here.`);
   if (def.minimumWarriors) requirements.push(`Requires at least ${def.minimumWarriors} Warriors here.`);
   if (def.connectedSupportRequired) requirements.push('Requires a connected Warrior settlement.');
   if (def.minimumSupportRequired) requirements.push(`Requires at least ${def.minimumSupportRequired} Martial Support.`);
@@ -71,6 +74,11 @@ export function getPracticeReading(def) {
     ruins:'Requires an adjacent ruined or Monster-occupied region.',deaths:'Only Activates when someone dies in this settlement.',
     chaos:'Requires Chaos to have increased this moon.',externalConnection:'Requires a connection to a frontier or external settlement.'};
   if(conditions[def.condition])requirements.push(conditions[def.condition]);
+  for(const p of def.populationConsume??[])requirements.push(`Sacrifice ${p.amount} local ${p.filter?.kind??''} ${p.filter?.specialty??''}; any allegiance. One real death, never multiplied.`);
+  for(const p of def.populationRequire??[])requirements.push(`Keep ${p.amount} ${p.other?'other ':''}local ${p.filter?.kind??''} ${p.filter?.specialty??''}.`);
+  if(def.requireBaseHeadroom)requirements.push('Complete base Stock output must fit before activation.');
+  if(def.populationCondition==='housed')requirements.push('Housing must cover every local resident.');
+  if(def.populationCondition==='relief')requirements.push('After local shortage: this allegiance must actually supply the civilian meal this Food phase.');
   return { type: charge ? 'Charge' : 'Cycle', passive: activation.type === 'passive', classLabel: def.pool === 'common' ? 'Neutral' : title(def.pool),
     effects, requirements, trigger: charge ? readableTrigger(def.charge?.triggerText ?? '') : null };
 }

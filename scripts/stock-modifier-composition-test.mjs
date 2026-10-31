@@ -391,20 +391,21 @@ function continuation() {
   const replayPack = pair();
   if (!place(replayPack, "procurementOffice") || !placeConstruction(replayPack)) return;
   // Local Food preserves Currency through the meal. The two stocked Traits
-  // also enable Barter at Birth: its staffed/contact yield fills capacity 4.
+  // also enable Barter at Birth: its local stocked-trait yield raises Currency from 1 to 3.
+  // Full-map settlements have no neutral-market contact bonus.
   replayPack.local.detailedState.practiceSlots = fiveSlots(practiceSlot("barter", 1), practiceSlot("forage", 1));
   finish(replayPack, 2);
   initializeReplayClock(replayPack.state, 0);
   const replayTimeline = createTimelineFromInitialState(replayPack.state);
   const next = getNextMoonPhaseBoundarySec(replayPack.state, 0, 2);
   if (!tick(replayPack.state, next - 1)) return;
-  if (stockOf(replayPack.local, "barter") !== 4) {
-    fail("currency-before-housing", { expected: 4, actual: stockOf(replayPack.local, "barter") });
+  if (stockOf(replayPack.local, "barter") !== 3) {
+    fail("currency-before-housing", { expected: 3, actual: stockOf(replayPack.local, "barter") });
     return;
   }
   if (!tick(replayPack.state, next)) return;
   // Housing pays one Currency in place of one missing Construction Stock.
-  const paidCycle = stockOf(replayPack.local, "barter") === 3
+  const paidCycle = stockOf(replayPack.local, "barter") === 2
     && replayPack.local.detailedState.structureSlots.find(slot => slot?.structureId === "mudHouses")?.construction?.completedCycles === 1;
   if (!paidCycle) fail("tick-pays-substituted-construction", {
     coins: stockOf(replayPack.local, "barter"), next,

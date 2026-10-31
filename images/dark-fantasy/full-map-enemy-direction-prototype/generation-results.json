@@ -1,0 +1,40 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "results": [
+    {
+      "id": "fe_conspicuousFeasts",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-f9c3b82e-30d7-4f7c-9602-4ea5a2acc6ea.png",
+      "output": "art/direction_fe_conspicuousFeasts.png",
+      "sha256": "80eb1f44bd56ea7865c4b444ff99a2689094b849cac4054626d83376a230da4c"
+    },
+    {
+      "id": "fe_privateReservoir",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-ffce0c36-260d-473d-a858-45ccea6f13ef.png",
+      "output": "art/direction_fe_privateReservoir.png",
+      "sha256": "767176a0e6133398e26bd636ff90b01389606f82a8e0e9ec71f7128709e4fb74"
+    },
+    {
+      "id": "fe_grandJubilee",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-c0207af9-4351-44df-9998-bb910c847a7a.png",
+      "output": "art/direction_fe_grandJubilee.png",
+      "rejectedSource": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-70cd8d37-88ab-4883-b124-f1b9cb859c0c.png",
+      "sha256": "8b4edf5b34bee5ed259c438d997590eb9d52779e36fc09106d7718300cd6b848"
+    },
+    {
+      "id": "fe_gildedBasilica",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-7043792d-6453-4deb-80ad-56007d15d9dd.png",
+      "output": "art/direction_fe_gildedBasilica.png",
+      "sha256": "f810035f74a99959d56babce71f87966dd57ed70c755522a510a6dd94ae8fa87",
+      "rejectedSources": [
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-501e4163-27b1-4eb2-a5cb-d753f9d4f444.png",
+        "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-a10a3730-26d8-42d9-8811-f6851b9e04ad.png"
+      ]
+    },
+    {
+      "id": "enemy-rim",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-289cfba2-c8fc-48dc-82c7-273c6aafa2a8.png",
+      "output": "art/enemy-rim.png",
+      "sha256": "d6be4947e2fb49cfc766b47d6408bfac6a1a55c9d05c3264f1342a9c1e5bad12"
+    }
+  ]
+}

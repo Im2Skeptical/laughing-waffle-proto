@@ -68,7 +68,7 @@ export function resolveLifeMapOptionCosts(state,node,option){
   const rule=shared??design.optionCosts[lifeMapDesignNodeId(node)]?.[key];
   if(!rule)return option;
   const next={...option,balanceKey:key};
-  next.phaseCost=yearPhases(state,getLifeMapBalanceValue(design,'time',rule.time));
+  next.phaseCost=state.rulesetId&&option.expedition?option.phaseCost:yearPhases(state,getLifeMapBalanceValue(design,'time',rule.time));
   next.prestigeCost=getLifeMapBalanceValue(design,'prestige',rule.prestige??'free');
   if(rule.risk!=='calculated'){
     const risk=getLifeMapBalanceValue(design,'risk',rule.risk??'free');

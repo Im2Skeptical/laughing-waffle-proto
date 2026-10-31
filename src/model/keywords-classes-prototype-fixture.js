@@ -20,7 +20,7 @@ export function createKeywordCardsState(classId='scholar', options={}) {
   lineage.founderClassId=classId;lineage.establishedClassId=classId;
   // Viewing fixture only: a zero-Prowess, zero-Retinue Warrior lets the normal
   // opening forecast reach extinction rather than defend forever at its cap.
-  if(classId==='warrior') {selected.vassal.stats.intelligence=0;selected.vassal.prestige=0;}
+  if(classId==='warrior') {selected.vassal.stats.intelligence=0;selected.vassal.prestige=0;if(state.rulesetId)state.civilization.prestige=0;}
   return state;
 }
 
@@ -72,5 +72,6 @@ export function createKeywordPrototypeState(mode='disciplines', classId='scholar
     for(const site of sites)for(const slot of site.detailedState.practiceSlots)
       slot.stock=Math.min(slot.stock,stockCapacity(state,site.detailedState,slot));
   }
+  if(state.rulesetId)for(const site of getDetailedSettlementSites(state))for(const slot of site.detailedState.practiceSlots)if(slot&&!slot.instanceId)slot.instanceId=`institution:${state.civilization.nextPracticeInstanceId++}`;
   return state;
 }

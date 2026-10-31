@@ -261,7 +261,8 @@ function openTerminal(seed) {
   state.gameConfig.lifeMapGenerator.design.bookends.founding.depth=0;
   state.civilization.chaos.monsterPressure = 400;
   for (const region of state.world.regions) {
-    if (region.controller !== "player") region.monster = { defense: 100 };
+    if (region.controller === "player") region.monster = { defense: 100 };
+    else delete region.monster;
   }
   initializeReplayClock(state, 0);
   return { state, timeline: createTimelineFromInitialState(state) };

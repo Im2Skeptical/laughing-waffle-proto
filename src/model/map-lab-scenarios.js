@@ -4,7 +4,7 @@ import {
 } from "./map-lab-draft.js";
 
 export const MAP_LAB_SCENARIO_LIBRARY_SCHEMA_VERSION = 4;
-export const MAP_LAB_SCENARIO_LIBRARY_STORAGE_KEY = "civsurvivor.mapLabScenarios.v4";
+export const MAP_LAB_SCENARIO_LIBRARY_STORAGE_KEY = "full-map-redesign-v1.mapLabScenarios.v4";
 export const MAP_LAB_SCENARIO_NAME_MAX_LENGTH = 80;
 
 function clone(value) {

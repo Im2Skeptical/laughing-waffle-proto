@@ -7,7 +7,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import assert from "node:assert/strict";
-import { createNewGameState } from "../src/model/new-game.js";
+import { createConfiguredNewGameState } from '../src/model/new-game.js';
+import { createStarterBootProfile } from '../src/model/starter-boot-profile.js';
+// Preserve the explicitly authored legacy market scenario; full-map supply is tested separately.
+const createNewGameState = seed => createConfiguredNewGameState(seed, createStarterBootProfile());
 import { serializeGameState, deserializeGameState } from "../src/model/state.js";
 import { getAdjacentRegionIds, getConnectedRegionIds, getRegionState } from "../src/model/world-state.js";
 import { practiceSlot, fiveSlots, setFixturePopulation } from "../src/model/dev-lab/fixtures.js";

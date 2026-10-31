@@ -1,0 +1,213 @@
+{
+  "version": 1,
+  "current": true,
+  "scope": "Three additional green Merchant and three yellow Priest schemes, twelve fixed-composition painting alternatives.",
+  "tool": "built-in image_gen.imagegen",
+  "schemes": {
+    "g1": {
+      "pool": "oligarch",
+      "label": "Forest / antique gold",
+      "primary": "deep forest green",
+      "accent": "antique gold",
+      "direction": "Dominant dark FOREST GREEN robes, large drapes, enamel and locally painted arch piers, strongly separated from warm ANTIQUE GOLD cloth bands, collar and edging. Gold is aged subdued warm ochre metal or thread, not an all-scene golden glow. Neutral limestone and sky stay grey; near-black green shadows. Green must be the primary identity at thumbnail size, gold an accent, not a blue/gold Scholar palette. No orange or teal wash."
+    },
+    "g2": {
+      "pool": "oligarch",
+      "label": "Emerald / wine",
+      "primary": "clear emerald green",
+      "accent": "dark wine-red",
+      "direction": "Dominant clear EMERALD GREEN robes, large drapes, enamel and locally painted arch piers, with clearly distinct dark WINE RED collars, cuffs, trim, bands and secondary enamel insets. Accents are burgundy/wine, not Warrior scarlet. Small bone-white material highlights; neutral grey limestone and sky. Near-black emerald shadows. Green remains the dominant class identity, with enough value difference to retain the wine accent. No teal, orange, pink fog or golden wash."
+    },
+    "g3": {
+      "pool": "oligarch",
+      "label": "Olive / ink",
+      "primary": "yellow-olive green",
+      "accent": "near-black ink blue",
+      "direction": "Dominant rich YELLOW-OLIVE GREEN (noticeably green, not brown or gold) robes, large cloth and enamel, with crisp INK BLUE-BLACK collars, cuffs, broad trim, bands and enamel insets. Small pale bone highlights define the edges. Neutral grey limestone and sky. Arch piers carry a dark desaturated olive material colour. A sickly, bureaucratic mercantile green, clearly different from emerald and forest, without becoming fluorescent. No orange, violet, teal or all-image yellow filter."
+    },
+    "y1": {
+      "pool": "papacy",
+      "label": "Saffron / charcoal",
+      "primary": "warm saffron yellow",
+      "accent": "charcoal black",
+      "direction": "Dominant warm SAFFRON YELLOW robes, drapes and enamel, with large clearly separate CHARCOAL BLACK collars, cuffs, broad trim, cloth bands and narrow architectural insets. Yellow is matte dyed cloth / aged yellow enamel, not metallic gold or orange. Near-black warm umber/charcoal shadows and a little ivory material highlight; neutral grey limestone and sky stay neutral. Arch piers are dark weathered warm-ochre stone, NOT purple. Yellow primary must be strong and recognisable at thumbnail size. No violet, pink, blue sky tint or golden fog."
+    },
+    "y2": {
+      "pool": "papacy",
+      "label": "Lemon / plum",
+      "primary": "muted lemon yellow",
+      "accent": "deep plum",
+      "direction": "Dominant distinctly LEMON YELLOW robes, drapes and enamel (a cool pale sulphur-yellow pigment, not gold and not neon), with clearly separate DEEP PLUM collars, cuffs, broad trim, bands and narrow architectural insets. Main clothing and main banners must be yellow, plum is only the accent. A little bone-white material highlight; neutral grey limestone and sky stay neutral. Lower arch piers have dark desaturated yellow-grey material colours, plum only on narrow accents. No magenta sky, purple whole-world tint, blue-gold Scholar palette or glowing coloured mist."
+    },
+    "y3": {
+      "pool": "papacy",
+      "label": "Pale yellow / oxblood",
+      "primary": "pale wax yellow",
+      "accent": "dark oxblood",
+      "direction": "Dominant PALE WAX YELLOW vestments, large drapes and enamel (clearly yellow, not ivory-white), with separate DARK OXBLOOD RED collars, cuffs, broad trim, bands and narrow enamel insets. Warm yellow cloth and banners are the main light mass; oxblood remains a smaller disciplined dark accent, not Warrior scarlet dominance. Grey limestone and sky stay neutral, black hood interiors stay black, warm dark ochre-grey lower arch piers. All violet and magenta pigment in the reference must be replaced, including lower piers. No pink sky, gold glow or all-image yellow filter."
+    }
+  },
+  "styleReferences": [
+    "ai/References/Card Art Style/l5.png",
+    "ai/References/Card Art Style/l6.png"
+  ],
+  "entries": [
+    {
+      "id": "palette_g1_fe_conspicuousFeasts",
+      "scheme": "g1",
+      "card": "fe_conspicuousFeasts",
+      "kind": "practice",
+      "current": true,
+      "master": "palette_m1_fe_conspicuousFeasts",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_m1_fe_conspicuousFeasts.png"
+      ],
+      "output": "art/palette_g1_fe_conspicuousFeasts.png",
+      "prompt": "Use case: style-transfer. Recolour ONLY the two local class material colours in this medieval dark-fantasy card illustration. Lock the exact composition, camera, perspective, number/scale/position of figures, silhouettes, hand action, props, building, body bundles, light direction and quiet areas. Do not add, remove, enlarge or move any subject. Preserve the narrative composition of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped faceless figures, bold silhouettes, environmental scale, broad calm value masses and one focal light/contrast area. Preserve the hand-placed pixel clusters, hard edges, selective dithering and restricted palette of the inspected l5/l6 surface references; no smoothing or painterly blur. Every human, corpse and statue face must remain entirely indiscernible at full resolution: black hood voids, backs or opaque shrouds. No eyes, noses, mouths, detailed skulls or exposed wounds. Preserve non-graphic institutional corruption, rot and despair. Apply the proposed primary and accent as two DISTINCT LOCAL MATERIAL colours on robes, cloth, enamel and trim, with neutral natural limestone, neutral sky and dark calm shadows. No all-image tint, coloured fog or coloured sky. Clear at70x100. Opaque full bleed illustration only; no writing, legible symbols, UI, frame, border, vignette or tiny decorative clutter. 5:7 portrait Practice. Preserve the complete principal action, both small figures and identifying materials in the upper central45%. Keep figures subordinate to monumental architecture. The lower half is a single almost-black recessed arch and broad quiet piers, without any new figures, action, foreground bodies or bright detail. Keep all important props in the upper45%. Dominant dark FOREST GREEN robes, large drapes, enamel and locally painted arch piers, strongly separated from warm ANTIQUE GOLD cloth bands, collar and edging. Gold is aged subdued warm ochre metal or thread, not an all-scene golden glow. Neutral limestone and sky stay grey; near-black green shadows. Green must be the primary identity at thumbnail size, gold an accent, not a blue/gold Scholar palette. No orange or teal wash."
+    },
+    {
+      "id": "palette_g1_fe_privateReservoir",
+      "scheme": "g1",
+      "card": "fe_privateReservoir",
+      "kind": "structure",
+      "current": true,
+      "master": "palette_m1_fe_privateReservoir",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_m1_fe_privateReservoir.png"
+      ],
+      "output": "art/palette_g1_fe_privateReservoir.png",
+      "prompt": "Use case: style-transfer. Recolour ONLY the two local class material colours in this medieval dark-fantasy card illustration. Lock the exact composition, camera, perspective, number/scale/position of figures, silhouettes, hand action, props, building, body bundles, light direction and quiet areas. Do not add, remove, enlarge or move any subject. Preserve the narrative composition of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped faceless figures, bold silhouettes, environmental scale, broad calm value masses and one focal light/contrast area. Preserve the hand-placed pixel clusters, hard edges, selective dithering and restricted palette of the inspected l5/l6 surface references; no smoothing or painterly blur. Every human, corpse and statue face must remain entirely indiscernible at full resolution: black hood voids, backs or opaque shrouds. No eyes, noses, mouths, detailed skulls or exposed wounds. Preserve non-graphic institutional corruption, rot and despair. Apply the proposed primary and accent as two DISTINCT LOCAL MATERIAL colours on robes, cloth, enamel and trim, with neutral natural limestone, neutral sky and dark calm shadows. No all-image tint, coloured fog or coloured sky. Clear at70x100. Opaque full bleed illustration only; no writing, legible symbols, UI, frame, border, vignette or tiny decorative clutter. Structure, 3:2 landscape, two cells. Preserve the named building as the dominant subject in central75%, a simple readable silhouette, with tiny anonymous figures for scale. Preserve the locked water outlet / ritual entrance, fully shrouded adult bodies and institutional neglect. Dominant dark FOREST GREEN robes, large drapes, enamel and locally painted arch piers, strongly separated from warm ANTIQUE GOLD cloth bands, collar and edging. Gold is aged subdued warm ochre metal or thread, not an all-scene golden glow. Neutral limestone and sky stay grey; near-black green shadows. Green must be the primary identity at thumbnail size, gold an accent, not a blue/gold Scholar palette. No orange or teal wash."
+    },
+    {
+      "id": "palette_g2_fe_conspicuousFeasts",
+      "scheme": "g2",
+      "card": "fe_conspicuousFeasts",
+      "kind": "practice",
+      "current": true,
+      "master": "palette_m1_fe_conspicuousFeasts",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_m1_fe_conspicuousFeasts.png"
+      ],
+      "output": "art/palette_g2_fe_conspicuousFeasts.png",
+      "prompt": "Use case: style-transfer. Recolour ONLY the two local class material colours in this medieval dark-fantasy card illustration. Lock the exact composition, camera, perspective, number/scale/position of figures, silhouettes, hand action, props, building, body bundles, light direction and quiet areas. Do not add, remove, enlarge or move any subject. Preserve the narrative composition of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped faceless figures, bold silhouettes, environmental scale, broad calm value masses and one focal light/contrast area. Preserve the hand-placed pixel clusters, hard edges, selective dithering and restricted palette of the inspected l5/l6 surface references; no smoothing or painterly blur. Every human, corpse and statue face must remain entirely indiscernible at full resolution: black hood voids, backs or opaque shrouds. No eyes, noses, mouths, detailed skulls or exposed wounds. Preserve non-graphic institutional corruption, rot and despair. Apply the proposed primary and accent as two DISTINCT LOCAL MATERIAL colours on robes, cloth, enamel and trim, with neutral natural limestone, neutral sky and dark calm shadows. No all-image tint, coloured fog or coloured sky. Clear at70x100. Opaque full bleed illustration only; no writing, legible symbols, UI, frame, border, vignette or tiny decorative clutter. 5:7 portrait Practice. Preserve the complete principal action, both small figures and identifying materials in the upper central45%. Keep figures subordinate to monumental architecture. The lower half is a single almost-black recessed arch and broad quiet piers, without any new figures, action, foreground bodies or bright detail. Keep all important props in the upper45%. Dominant clear EMERALD GREEN robes, large drapes, enamel and locally painted arch piers, with clearly distinct dark WINE RED collars, cuffs, trim, bands and secondary enamel insets. Accents are burgundy/wine, not Warrior scarlet. Small bone-white material highlights; neutral grey limestone and sky. Near-black emerald shadows. Green remains the dominant class identity, with enough value difference to retain the wine accent. No teal, orange, pink fog or golden wash."
+    },
+    {
+      "id": "palette_g2_fe_privateReservoir",
+      "scheme": "g2",
+      "card": "fe_privateReservoir",
+      "kind": "structure",
+      "current": true,
+      "master": "palette_m1_fe_privateReservoir",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_m1_fe_privateReservoir.png"
+      ],
+      "output": "art/palette_g2_fe_privateReservoir.png",
+      "prompt": "Use case: style-transfer. Recolour ONLY the two local class material colours in this medieval dark-fantasy card illustration. Lock the exact composition, camera, perspective, number/scale/position of figures, silhouettes, hand action, props, building, body bundles, light direction and quiet areas. Do not add, remove, enlarge or move any subject. Preserve the narrative composition of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped faceless figures, bold silhouettes, environmental scale, broad calm value masses and one focal light/contrast area. Preserve the hand-placed pixel clusters, hard edges, selective dithering and restricted palette of the inspected l5/l6 surface references; no smoothing or painterly blur. Every human, corpse and statue face must remain entirely indiscernible at full resolution: black hood voids, backs or opaque shrouds. No eyes, noses, mouths, detailed skulls or exposed wounds. Preserve non-graphic institutional corruption, rot and despair. Apply the proposed primary and accent as two DISTINCT LOCAL MATERIAL colours on robes, cloth, enamel and trim, with neutral natural limestone, neutral sky and dark calm shadows. No all-image tint, coloured fog or coloured sky. Clear at70x100. Opaque full bleed illustration only; no writing, legible symbols, UI, frame, border, vignette or tiny decorative clutter. Structure, 3:2 landscape, two cells. Preserve the named building as the dominant subject in central75%, a simple readable silhouette, with tiny anonymous figures for scale. Preserve the locked water outlet / ritual entrance, fully shrouded adult bodies and institutional neglect. Dominant clear EMERALD GREEN robes, large drapes, enamel and locally painted arch piers, with clearly distinct dark WINE RED collars, cuffs, trim, bands and secondary enamel insets. Accents are burgundy/wine, not Warrior scarlet. Small bone-white material highlights; neutral grey limestone and sky. Near-black emerald shadows. Green remains the dominant class identity, with enough value difference to retain the wine accent. No teal, orange, pink fog or golden wash."
+    },
+    {
+      "id": "palette_g3_fe_conspicuousFeasts",
+      "scheme": "g3",
+      "card": "fe_conspicuousFeasts",
+      "kind": "practice",
+      "current": true,
+      "master": "palette_m1_fe_conspicuousFeasts",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_m1_fe_conspicuousFeasts.png"
+      ],
+      "output": "art/palette_g3_fe_conspicuousFeasts.png",
+      "prompt": "Use case: style-transfer. Recolour ONLY the two local class material colours in this medieval dark-fantasy card illustration. Lock the exact composition, camera, perspective, number/scale/position of figures, silhouettes, hand action, props, building, body bundles, light direction and quiet areas. Do not add, remove, enlarge or move any subject. Preserve the narrative composition of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped faceless figures, bold silhouettes, environmental scale, broad calm value masses and one focal light/contrast area. Preserve the hand-placed pixel clusters, hard edges, selective dithering and restricted palette of the inspected l5/l6 surface references; no smoothing or painterly blur. Every human, corpse and statue face must remain entirely indiscernible at full resolution: black hood voids, backs or opaque shrouds. No eyes, noses, mouths, detailed skulls or exposed wounds. Preserve non-graphic institutional corruption, rot and despair. Apply the proposed primary and accent as two DISTINCT LOCAL MATERIAL colours on robes, cloth, enamel and trim, with neutral natural limestone, neutral sky and dark calm shadows. No all-image tint, coloured fog or coloured sky. Clear at70x100. Opaque full bleed illustration only; no writing, legible symbols, UI, frame, border, vignette or tiny decorative clutter. 5:7 portrait Practice. Preserve the complete principal action, both small figures and identifying materials in the upper central45%. Keep figures subordinate to monumental architecture. The lower half is a single almost-black recessed arch and broad quiet piers, without any new figures, action, foreground bodies or bright detail. Keep all important props in the upper45%. Dominant rich YELLOW-OLIVE GREEN (noticeably green, not brown or gold) robes, large cloth and enamel, with crisp INK BLUE-BLACK collars, cuffs, broad trim, bands and enamel insets. Small pale bone highlights define the edges. Neutral grey limestone and sky. Arch piers carry a dark desaturated olive material colour. A sickly, bureaucratic mercantile green, clearly different from emerald and forest, without becoming fluorescent. No orange, violet, teal or all-image yellow filter."
+    },
+    {
+      "id": "palette_g3_fe_privateReservoir",
+      "scheme": "g3",
+      "card": "fe_privateReservoir",
+      "kind": "structure",
+      "current": true,
+      "master": "palette_m1_fe_privateReservoir",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_m1_fe_privateReservoir.png"
+      ],
+      "output": "art/palette_g3_fe_privateReservoir.png",
+      "prompt": "Use case: style-transfer. Recolour ONLY the two local class material colours in this medieval dark-fantasy card illustration. Lock the exact composition, camera, perspective, number/scale/position of figures, silhouettes, hand action, props, building, body bundles, light direction and quiet areas. Do not add, remove, enlarge or move any subject. Preserve the narrative composition of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped faceless figures, bold silhouettes, environmental scale, broad calm value masses and one focal light/contrast area. Preserve the hand-placed pixel clusters, hard edges, selective dithering and restricted palette of the inspected l5/l6 surface references; no smoothing or painterly blur. Every human, corpse and statue face must remain entirely indiscernible at full resolution: black hood voids, backs or opaque shrouds. No eyes, noses, mouths, detailed skulls or exposed wounds. Preserve non-graphic institutional corruption, rot and despair. Apply the proposed primary and accent as two DISTINCT LOCAL MATERIAL colours on robes, cloth, enamel and trim, with neutral natural limestone, neutral sky and dark calm shadows. No all-image tint, coloured fog or coloured sky. Clear at70x100. Opaque full bleed illustration only; no writing, legible symbols, UI, frame, border, vignette or tiny decorative clutter. Structure, 3:2 landscape, two cells. Preserve the named building as the dominant subject in central75%, a simple readable silhouette, with tiny anonymous figures for scale. Preserve the locked water outlet / ritual entrance, fully shrouded adult bodies and institutional neglect. Dominant rich YELLOW-OLIVE GREEN (noticeably green, not brown or gold) robes, large cloth and enamel, with crisp INK BLUE-BLACK collars, cuffs, broad trim, bands and enamel insets. Small pale bone highlights define the edges. Neutral grey limestone and sky. Arch piers carry a dark desaturated olive material colour. A sickly, bureaucratic mercantile green, clearly different from emerald and forest, without becoming fluorescent. No orange, violet, teal or all-image yellow filter."
+    },
+    {
+      "id": "palette_y1_fe_grandJubilee",
+      "scheme": "y1",
+      "card": "fe_grandJubilee",
+      "kind": "practice",
+      "current": true,
+      "master": "palette_p1_fe_grandJubilee",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_p1_fe_grandJubilee.png"
+      ],
+      "output": "art/palette_y1_fe_grandJubilee.png",
+      "prompt": "Use case: style-transfer. Recolour ONLY the two local class material colours in this medieval dark-fantasy card illustration. Lock the exact composition, camera, perspective, number/scale/position of figures, silhouettes, hand action, props, building, body bundles, light direction and quiet areas. Do not add, remove, enlarge or move any subject. Preserve the narrative composition of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped faceless figures, bold silhouettes, environmental scale, broad calm value masses and one focal light/contrast area. Preserve the hand-placed pixel clusters, hard edges, selective dithering and restricted palette of the inspected l5/l6 surface references; no smoothing or painterly blur. Every human, corpse and statue face must remain entirely indiscernible at full resolution: black hood voids, backs or opaque shrouds. No eyes, noses, mouths, detailed skulls or exposed wounds. Preserve non-graphic institutional corruption, rot and despair. Apply the proposed primary and accent as two DISTINCT LOCAL MATERIAL colours on robes, cloth, enamel and trim, with neutral natural limestone, neutral sky and dark calm shadows. No all-image tint, coloured fog or coloured sky. Clear at70x100. Opaque full bleed illustration only; no writing, legible symbols, UI, frame, border, vignette or tiny decorative clutter. 5:7 portrait Practice. Preserve the complete principal action, both small figures and identifying materials in the upper central45%. Keep figures subordinate to monumental architecture. The lower half is a single almost-black recessed arch and broad quiet piers, without any new figures, action, foreground bodies or bright detail. Keep all important props in the upper45%. Dominant warm SAFFRON YELLOW robes, drapes and enamel, with large clearly separate CHARCOAL BLACK collars, cuffs, broad trim, cloth bands and narrow architectural insets. Yellow is matte dyed cloth / aged yellow enamel, not metallic gold or orange. Near-black warm umber/charcoal shadows and a little ivory material highlight; neutral grey limestone and sky stay neutral. Arch piers are dark weathered warm-ochre stone, NOT purple. Yellow primary must be strong and recognisable at thumbnail size. No violet, pink, blue sky tint or golden fog."
+    },
+    {
+      "id": "palette_y1_fe_gildedBasilica",
+      "scheme": "y1",
+      "card": "fe_gildedBasilica",
+      "kind": "structure",
+      "current": true,
+      "master": "palette_p1_fe_gildedBasilica",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_p1_fe_gildedBasilica.png"
+      ],
+      "output": "art/palette_y1_fe_gildedBasilica.png",
+      "prompt": "Use case: style-transfer. Recolour ONLY the two local class material colours in this medieval dark-fantasy card illustration. Lock the exact composition, camera, perspective, number/scale/position of figures, silhouettes, hand action, props, building, body bundles, light direction and quiet areas. Do not add, remove, enlarge or move any subject. Preserve the narrative composition of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped faceless figures, bold silhouettes, environmental scale, broad calm value masses and one focal light/contrast area. Preserve the hand-placed pixel clusters, hard edges, selective dithering and restricted palette of the inspected l5/l6 surface references; no smoothing or painterly blur. Every human, corpse and statue face must remain entirely indiscernible at full resolution: black hood voids, backs or opaque shrouds. No eyes, noses, mouths, detailed skulls or exposed wounds. Preserve non-graphic institutional corruption, rot and despair. Apply the proposed primary and accent as two DISTINCT LOCAL MATERIAL colours on robes, cloth, enamel and trim, with neutral natural limestone, neutral sky and dark calm shadows. No all-image tint, coloured fog or coloured sky. Clear at70x100. Opaque full bleed illustration only; no writing, legible symbols, UI, frame, border, vignette or tiny decorative clutter. Structure, 9:4 landscape, three cells. Preserve the named building as the dominant subject in central75%, a simple readable silhouette, with tiny anonymous figures for scale. Preserve the locked water outlet / ritual entrance, fully shrouded adult bodies and institutional neglect. Dominant warm SAFFRON YELLOW robes, drapes and enamel, with large clearly separate CHARCOAL BLACK collars, cuffs, broad trim, cloth bands and narrow architectural insets. Yellow is matte dyed cloth / aged yellow enamel, not metallic gold or orange. Near-black warm umber/charcoal shadows and a little ivory material highlight; neutral grey limestone and sky stay neutral. Arch piers are dark weathered warm-ochre stone, NOT purple. Yellow primary must be strong and recognisable at thumbnail size. No violet, pink, blue sky tint or golden fog."
+    },
+    {
+      "id": "palette_y2_fe_grandJubilee",
+      "scheme": "y2",
+      "card": "fe_grandJubilee",
+      "kind": "practice",
+      "current": true,
+      "master": "palette_p1_fe_grandJubilee",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_p1_fe_grandJubilee.png"
+      ],
+      "output": "art/palette_y2_fe_grandJubilee.png",
+      "prompt": "Use case: style-transfer. Recolour ONLY the two local class material colours in this medieval dark-fantasy card illustration. Lock the exact composition, camera, perspective, number/scale/position of figures, silhouettes, hand action, props, building, body bundles, light direction and quiet areas. Do not add, remove, enlarge or move any subject. Preserve the narrative composition of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped faceless figures, bold silhouettes, environmental scale, broad calm value masses and one focal light/contrast area. Preserve the hand-placed pixel clusters, hard edges, selective dithering and restricted palette of the inspected l5/l6 surface references; no smoothing or painterly blur. Every human, corpse and statue face must remain entirely indiscernible at full resolution: black hood voids, backs or opaque shrouds. No eyes, noses, mouths, detailed skulls or exposed wounds. Preserve non-graphic institutional corruption, rot and despair. Apply the proposed primary and accent as two DISTINCT LOCAL MATERIAL colours on robes, cloth, enamel and trim, with neutral natural limestone, neutral sky and dark calm shadows. No all-image tint, coloured fog or coloured sky. Clear at70x100. Opaque full bleed illustration only; no writing, legible symbols, UI, frame, border, vignette or tiny decorative clutter. 5:7 portrait Practice. Preserve the complete principal action, both small figures and identifying materials in the upper central45%. Keep figures subordinate to monumental architecture. The lower half is a single almost-black recessed arch and broad quiet piers, without any new figures, action, foreground bodies or bright detail. Keep all important props in the upper45%. Dominant distinctly LEMON YELLOW robes, drapes and enamel (a cool pale sulphur-yellow pigment, not gold and not neon), with clearly separate DEEP PLUM collars, cuffs, broad trim, bands and narrow architectural insets. Main clothing and main banners must be yellow, plum is only the accent. A little bone-white material highlight; neutral grey limestone and sky stay neutral. Lower arch piers have dark desaturated yellow-grey material colours, plum only on narrow accents. No magenta sky, purple whole-world tint, blue-gold Scholar palette or glowing coloured mist."
+    },
+    {
+      "id": "palette_y2_fe_gildedBasilica",
+      "scheme": "y2",
+      "card": "fe_gildedBasilica",
+      "kind": "structure",
+      "current": true,
+      "master": "palette_p1_fe_gildedBasilica",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_p1_fe_gildedBasilica.png"
+      ],
+      "output": "art/palette_y2_fe_gildedBasilica.png",
+      "prompt": "Use case: style-transfer. Recolour ONLY the two local class material colours in this medieval dark-fantasy card illustration. Lock the exact composition, camera, perspective, number/scale/position of figures, silhouettes, hand action, props, building, body bundles, light direction and quiet areas. Do not add, remove, enlarge or move any subject. Preserve the narrative composition of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped faceless figures, bold silhouettes, environmental scale, broad calm value masses and one focal light/contrast area. Preserve the hand-placed pixel clusters, hard edges, selective dithering and restricted palette of the inspected l5/l6 surface references; no smoothing or painterly blur. Every human, corpse and statue face must remain entirely indiscernible at full resolution: black hood voids, backs or opaque shrouds. No eyes, noses, mouths, detailed skulls or exposed wounds. Preserve non-graphic institutional corruption, rot and despair. Apply the proposed primary and accent as two DISTINCT LOCAL MATERIAL colours on robes, cloth, enamel and trim, with neutral natural limestone, neutral sky and dark calm shadows. No all-image tint, coloured fog or coloured sky. Clear at70x100. Opaque full bleed illustration only; no writing, legible symbols, UI, frame, border, vignette or tiny decorative clutter. Structure, 9:4 landscape, three cells. Preserve the named building as the dominant subject in central75%, a simple readable silhouette, with tiny anonymous figures for scale. Preserve the locked water outlet / ritual entrance, fully shrouded adult bodies and institutional neglect. Dominant distinctly LEMON YELLOW robes, drapes and enamel (a cool pale sulphur-yellow pigment, not gold and not neon), with clearly separate DEEP PLUM collars, cuffs, broad trim, bands and narrow architectural insets. Main clothing and main banners must be yellow, plum is only the accent. A little bone-white material highlight; neutral grey limestone and sky stay neutral. Lower arch piers have dark desaturated yellow-grey material colours, plum only on narrow accents. No magenta sky, purple whole-world tint, blue-gold Scholar palette or glowing coloured mist."
+    },
+    {
+      "id": "palette_y3_fe_grandJubilee",
+      "scheme": "y3",
+      "card": "fe_grandJubilee",
+      "kind": "practice",
+      "current": true,
+      "master": "palette_p1_fe_grandJubilee",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_p1_fe_grandJubilee.png"
+      ],
+      "output": "art/palette_y3_fe_grandJubilee.png",
+      "prompt": "Use case: style-transfer. Recolour ONLY the two local class material colours in this medieval dark-fantasy card illustration. Lock the exact composition, camera, perspective, number/scale/position of figures, silhouettes, hand action, props, building, body bundles, light direction and quiet areas. Do not add, remove, enlarge or move any subject. Preserve the narrative composition of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped faceless figures, bold silhouettes, environmental scale, broad calm value masses and one focal light/contrast area. Preserve the hand-placed pixel clusters, hard edges, selective dithering and restricted palette of the inspected l5/l6 surface references; no smoothing or painterly blur. Every human, corpse and statue face must remain entirely indiscernible at full resolution: black hood voids, backs or opaque shrouds. No eyes, noses, mouths, detailed skulls or exposed wounds. Preserve non-graphic institutional corruption, rot and despair. Apply the proposed primary and accent as two DISTINCT LOCAL MATERIAL colours on robes, cloth, enamel and trim, with neutral natural limestone, neutral sky and dark calm shadows. No all-image tint, coloured fog or coloured sky. Clear at70x100. Opaque full bleed illustration only; no writing, legible symbols, UI, frame, border, vignette or tiny decorative clutter. 5:7 portrait Practice. Preserve the complete principal action, both small figures and identifying materials in the upper central45%. Keep figures subordinate to monumental architecture. The lower half is a single almost-black recessed arch and broad quiet piers, without any new figures, action, foreground bodies or bright detail. Keep all important props in the upper45%. Dominant PALE WAX YELLOW vestments, large drapes and enamel (clearly yellow, not ivory-white), with separate DARK OXBLOOD RED collars, cuffs, broad trim, bands and narrow enamel insets. Warm yellow cloth and banners are the main light mass; oxblood remains a smaller disciplined dark accent, not Warrior scarlet dominance. Grey limestone and sky stay neutral, black hood interiors stay black, warm dark ochre-grey lower arch piers. All violet and magenta pigment in the reference must be replaced, including lower piers. No pink sky, gold glow or all-image yellow filter."
+    },
+    {
+      "id": "palette_y3_fe_gildedBasilica",
+      "scheme": "y3",
+      "card": "fe_gildedBasilica",
+      "kind": "structure",
+      "current": false,
+      "master": "palette_p1_fe_gildedBasilica",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_p1_fe_gildedBasilica.png"
+      ],
+      "output": "art/palette_y3_fe_gildedBasilica.png",
+      "prompt": "Use case: style-transfer. Recolour ONLY the two local class material colours in this medieval dark-fantasy card illustration. Lock the exact composition, camera, perspective, number/scale/position of figures, silhouettes, hand action, props, building, body bundles, light direction and quiet areas. Do not add, remove, enlarge or move any subject. Preserve the narrative composition of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped faceless figures, bold silhouettes, environmental scale, broad calm value masses and one focal light/contrast area. Preserve the hand-placed pixel clusters, hard edges, selective dithering and restricted palette of the inspected l5/l6 surface references; no smoothing or painterly blur. Every human, corpse and statue face must remain entirely indiscernible at full resolution: black hood voids, backs or opaque shrouds. No eyes, noses, mouths, detailed skulls or exposed wounds. Preserve non-graphic institutional corruption, rot and despair. Apply the proposed primary and accent as two DISTINCT LOCAL MATERIAL colours on robes, cloth, enamel and trim, with neutral natural limestone, neutral sky and dark calm shadows. No all-image tint, coloured fog or coloured sky. Clear at70x100. Opaque full bleed illustration only; no writing, legible symbols, UI, frame, border, vignette or tiny decorative clutter. Structure, 9:4 landscape, three cells. Preserve the named building as the dominant subject in central75%, a simple readable silhouette, with tiny anonymous figures for scale. Preserve the locked water outlet / ritual entrance, fully shrouded adult bodies and institutional neglect. Dominant PALE WAX YELLOW vestments, large drapes and enamel (clearly yellow, not ivory-white), with separate DARK OXBLOOD RED collars, cuffs, broad trim, bands and narrow enamel insets. Warm yellow cloth and banners are the main light mass; oxblood remains a smaller disciplined dark accent, not Warrior scarlet dominance. Grey limestone and sky stay neutral, black hood interiors stay black, warm dark ochre-grey lower arch piers. All violet and magenta pigment in the reference must be replaced, including lower piers. No pink sky, gold glow or all-image yellow filter.",
+      "supersededBy": "green-yellow-corrections.json"
+    }
+  ]
+}

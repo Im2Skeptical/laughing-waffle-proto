@@ -1,3 +1,4 @@
+import { controlSummary, militarySummary, garrisonSupportTargets } from './territory.js';
 import { getMartialForce, getMartialSupport, getMonsterPressureRate } from './external-world.js';
 import { getChaosResistance } from './phases/chaos.js';
 import { stockTotal, specialistCount } from "./stock.js";
@@ -159,14 +160,17 @@ export function getDetailedSettlementViewModel(state, regionId) {
   return {
     regionId,
     siteId: site.id,
+    control:state.rulesetId?controlSummary(state,regionId):null,
+    civilizationPrestige:state.rulesetId?state.civilization.prestige:null,
+    supportTargets:state.rulesetId?garrisonSupportTargets(state,regionId):[],
     name: site.name,
     neutral: !!site.neutral,
     marketStocks: clone(site.neutral?.stocks ?? []),
     marketCurrency: site.neutral?.currencyStock ?? 0,
     lastDefense: clone(settlement.lastDefense ?? null),
-    martialForce: getMartialForce(state),
-    martialSupport: getMartialSupport(state,regionId),
-    defensiveSupport: getMartialSupport(state,regionId,true),
+    martialForce: state.rulesetId?militarySummary(state,regionId).defense:getMartialForce(state),
+    martialSupport: state.rulesetId?militarySummary(state,regionId).force:getMartialSupport(state,regionId),
+    defensiveSupport: state.rulesetId?militarySummary(state,regionId).defense:getMartialSupport(state,regionId,true),
     storedFood: stockTotal(state, settlement, "Edible"),
     looseFood: 0,
     currency: stockTotal(state, settlement, "Currency"),

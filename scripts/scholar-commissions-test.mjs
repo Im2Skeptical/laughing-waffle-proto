@@ -21,6 +21,7 @@ function selected() {
   const candidate = getVassalCandidatePool(state).candidates[0];
   Object.assign(candidate, { classId:'scholar', founderClassId:null, archetype:'Scholar', age:18, prestige:500 });
   assert.equal(selectLifeMapVassal(state,0,null,candidate).ok,true);
+  state.civilization.prestige=500;
   return state;
 }
 
@@ -47,7 +48,7 @@ assert.equal(VASSAL_COMMISSION_DEFS.length,11);
 // exact-once reward and immediate replacement offers.
 for (const def of VASSAL_COMMISSION_DEFS) {
   const state=selected(), v=getCurrentLifeMapVassal(state);
-  const offer=accept(state,def.id), before=v.prestige;
+  const offer=accept(state,def.id), before=state.civilization.prestige;
   const event={kind:def.event};
   if (offer.tag) {
     const registry=offer.event==='practiceInstalled'?state.gameConfig.gamepieces.practices:state.gameConfig.gamepieces.structures;
@@ -80,7 +81,7 @@ for (const def of VASSAL_COMMISSION_DEFS) {
   }
   if (offer.amount) {
     recordCommissionAction(state,v,{...event,amount:12});
-    v.prestige-=100;
+    state.civilization.prestige-=100;
     event.amount=18;
     assert.equal(v.commission.progress,12);
   }
@@ -89,7 +90,7 @@ for (const def of VASSAL_COMMISSION_DEFS) {
   const restored=deserializeGameState(serializeGameState(state));
   recordCommissionAction(state,v,event);
   recordCommissionAction(restored,getCurrentLifeMapVassal(restored),event);
-  assert.equal(v.prestige,before-(offer.amount?100:0)+offer.prestige,def.id);
+  assert.equal(state.civilization.prestige,before-(offer.amount?100:0)+offer.prestige,def.id);
   assert.equal(v.commission,null);
   assert.equal(v.completedCommissions,1);
   assert.equal(v.commissionOffers.length,3);
@@ -129,9 +130,9 @@ for (const def of VASSAL_COMMISSION_DEFS) {
   const state=selected(), v=getCurrentLifeMapVassal(state), offer=accept(state,'node');
   const node=v.lifeMap.graph.nodes.find(n=>n.family===offer.nodeFamily);
   v.lifeMap.availableNodeIds=[node.id];
-  const before=v.prestige;
+  const before=state.civilization.prestige;
   assert.equal(applyAction(state,{kind:ActionKinds.VASSAL_ENTER_LIFE_NODE,payload:{nodeId:node.id}},{isReplay:true}).ok,true);
-  assert.equal(v.prestige,before+20);
+  assert.equal(state.civilization.prestige,before+20);
   assert.equal(v.lifeMap.completedNodeIds.includes(node.id),false);
 }
 
@@ -144,7 +145,7 @@ for (const def of VASSAL_COMMISSION_DEFS) {
   assert.equal(applyAction(state,{kind:ActionKinds.VASSAL_ENTER_LIFE_NODE,payload:{nodeId}},{isReplay:true}).ok,true);
   const node=v.lifeMap.nodeStates[nodeId];
   node.options=[{id:'paid-income',label:'Earn',phaseCost:0,prestigeCost:20,prestigeDelta:30}];
-  const timeline=createTimelineFromInitialState(state), before=v.prestige;
+  const timeline=createTimelineFromInitialState(state), before=state.civilization.prestige;
   const actions=[{kind:ActionKinds.VASSAL_SELECT_LIFE_OPTION,payload:{nodeId,optionId:'paid-income'}},
     {kind:ActionKinds.VASSAL_CONFIRM_LIFE_NODE,payload:{nodeId}}];
   const base=serializeGameState(state);
@@ -153,7 +154,7 @@ for (const def of VASSAL_COMMISSION_DEFS) {
     assert.equal(applyAction(state,action,{isReplay:true}).ok,true);
   }
   assert.equal(v.completedCommissions,1);
-  assert.equal(v.prestige,before-20+30+40+getVassalNodeResolutionGains(v,'patronage').prestige,'gross income, prize and normal node income are distinct');
+  assert.equal(state.civilization.prestige,before-20+30+40+getVassalNodeResolutionGains(v,'patronage').prestige,'gross income, prize and normal node income are distinct');
   const replay=rebuildStateAtSecond(timeline,state.tSec);assert.equal(replay.ok,true);
   assert.deepEqual(serializeGameState(replay.state),serializeGameState(state));
   const messages=[];

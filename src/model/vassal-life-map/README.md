@@ -91,3 +91,13 @@ shared Practice/Structure quality prices before ordinary discounts. It does not
 read review storage or consume RNG. Shop service times are shared, captured rules;
 only Scholars can refresh shops, through timed Delve. Disabling pooled generation
 selects the legacy independent generator and its authored option costs.
+
+## Full-map experimental ruleset
+
+`treasury.js` selects the shared civilization Prestige ledger for the full-map
+ruleset, retaining personal accounts only in explicit legacy fixtures. Shops
+preserve institution IDs and stage adoption / per-hostile-instance removal
+receipts. Campaigns use physically available local/network loyal Warriors;
+occupation never borrows personal Retinue or a global force pool. Foreign
+travel and installation are allowed, while discretionary Stock remains subject
+to player authority. See `docs/full-map-redesign-implementation.md`.

@@ -1,8 +1,8 @@
 # Practice keywords
 
-Synthesis and Monster Trophies are ordinary gameplay on `proto/keywords-classes`.
+Synthesis and Monster Trophies are ordinary gameplay in the main full-map build.
 New Game captures their card attachments without any experiment URL, dev setting
-or keyword toggle. This branch remains isolated from `main`.
+or keyword toggle. Historical comparisons remain available in Prototypes.
 
 ## Rules
 
@@ -25,13 +25,13 @@ trackers are added.
   spendable Stock. A kill is recorded before its reaction chain, so Beast
   Rendering's Discharge benefits from that kill.
 - **Economic Regions (reserved for Merchant):** the shared score query counts
-  occupied player/neutral settlements in one road-connected trade zone. Frontier
-  and ruins break the zone. Merchant is not yet playable, so ordinary content
+  inhabited regions of the same controlling faction in one road-connected trade
+  zone. Unheld, hostile and ruined regions break the zone. Merchant is not yet playable, so ordinary content
   currently has no Economic Regions attachment. Barter retains its ordinary
   recipe and trade conditions. Priest's keyword remains undecided; the earlier
   Priest/Trophies association exists only in the comparison experiment.
 
-Class disciplines are active only during the matching living, established
+Class disciplines are active in player-controlled regions only during the matching living, established
 Vassal's life. A Philosopher/Warlord's founder identity does not grant access
 before Founding. Unclassed lives and gaps between lives make the contribution
 dormant; installed recipes and persistent Trophy history remain. Selecting a
@@ -56,8 +56,8 @@ are respected in play, inspection, saves and authoritative replay.
 `src/model/detailed-settlements/synthesis.js` owns the pure supply query.
 The prototype adapter handles only explicitly requested historical comparisons.
 
-Game state v39 / runner saves v29 reject older saves. Game Settings schema stays
-v28: keyword coefficients were already part of its captured card data. No RNG
+Game state v41 / runner saves v31 reject older saves. Captured config schema is
+v29: keyword coefficients remain part of its captured card data. No RNG
 streams, time advancement, layering or forecast-specific rules were introduced.
 
 This serves **pillar 1 (interacting engines)** through supply and kill engines,

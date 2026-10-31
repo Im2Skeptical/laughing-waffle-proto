@@ -1,0 +1,192 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "date": "2026-10-30",
+  "scope": "88 enemy-only dedicated paintings; original neutral/player art and all rules unchanged.",
+  "entries": [
+    {
+      "id": "fe_officersFeast",
+      "pool": "dictator",
+      "label": "Officers’ Feast",
+      "kind": "practice",
+      "zone": "capital",
+      "footprint": null,
+      "output": "art/chaos_fe_officersFeast.png",
+      "prompt": "One original opaque full-bleed medieval dark-fantasy gamepiece painting. Narrative composition of N.C.Wyeth and Dean Cornwell: one decisive action/building, bold silhouettes, grouped figures subordinate to architecture, strong purposeful diagonal, broad calm masses, ONE focal light/contrast. Hand-placed PIXEL CLUSTERS, hard edges, selective dithering, restricted palette; not smooth 3D, oil-photo detail or high-frequency noise. Use the last two references ONLY for pixel surface treatment; use the first only for class colour, NEVER copy its staging, excessive edge highlights or lower detail. The seal reference defines only the diegetic patron motif, never a UI badge. All human, dead and depicted faces ENTIRELY INDISCERNIBLE at FULL SIZE: backs, opaque hood voids, fully closed helmets, tiny distant shapes; no eyes/nose/mouth, readable skull faces or portrait statues. Violence implied through institutional ritual, shrouds and coercion, non-graphic, no gore, wounds or exposed organs. No text, readable writing, UI, frames, borders, vignettes, logos or decorative emblem overlay. One relevant worn diegetic cult mark is allowed because requested; no unrelated symbols. Clarity at70x100 pixels. PRACTICE CANVAS5:7 PORTRAIT. DESIGN FROM THE OVERLAY UP: the ENTIRE principal action, all2-3 people, hands, identifying tool and material fit x25-75%, y8-38%; every foot/object ends ABOVE y40%. Floor/work ledge at y36-38%; heads at y22-26%, nobody taller than14%canvas. Enlarge environment, not actors. Lower55% y45-100% is ONE broad near-black quiet foreground wall, floor or recessed void, NO people, tools, bright debris, banners, reflections, paths, flames or second focal feature. No tall foreground figures. Do not put people at the vertical centre or floor at50%. Architecture surrounds upper action; outer top-right is quiet for Stock fitting. VALUE HIERARCHY IS CRITICAL: reduce scene to THREE broad value groups. Deep quiet dark field, a single middle-value architectural silhouette, and a SMALL connected light cluster on the action/entrance. Keep brightest10% in the focal group only. Sparse restrained edge highlights near focal point, never glittery all-over masonry, glowing skies, scattered candles, sharp foreground rubble or multiple equal-bright objects. Texture stays subordinate and grouped, colour accents are not new light sources. CLASS PALETTE: Vermilion/brick red PRIMARY and oxidized teal ACCENT, dark iron plum shadows. Red cloth and teal iron remain distinct; no orange sky or all-over warm tint. PATRON GRAMMAR: Unbending Crown: three rigid upright spear-prongs bound by ONE closed transverse band. Ordered, brutally symmetrical, carapace-like state equipment; obedience turns the civilisation into an empty armoured body. Not a face, eye or generic tentacle. MATURITY: CAPITAL: the useful institution is an inhuman god-body disguised as machinery or architecture, swollen, binding, parasitic or rigid according to its patron. Clear grand silhouette, broken side courts, depleted human scale, shrouded remains only when relevant. Developed oppressive cosmic horror, not merely a luxurious palace and not a monster battle. SUBJECT: Three fully helmeted officers in rich but fraying red cloaks sit around an excessive banquet table in a cavernous decayed military hall. Interpret obsolete palette words in the subject using the CLASS PALETTE above. Keep the card’s institution and function recognisable. No new population sacrifice is implied for a card whose original subject does not consume people.",
+      "refs": [
+        "images/dark-fantasy/full-map-patron-prototype/art/cp_ironCommunion.png",
+        "images/dark-fantasy/full-map-patron-prototype/art/patron-crown.png",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "review": {
+        "status": "pending",
+        "faces": false,
+        "composition": false,
+        "valueHierarchy": false,
+        "thumbnail": false
+      }
+    },
+    {
+      "id": "fe_marshalsCitadel",
+      "pool": "dictator",
+      "label": "Marshal’s Citadel",
+      "kind": "structure",
+      "zone": "capital",
+      "footprint": 3,
+      "output": "art/chaos_fe_marshalsCitadel.png",
+      "prompt": "One original opaque full-bleed medieval dark-fantasy gamepiece painting. Narrative composition of N.C.Wyeth and Dean Cornwell: one decisive action/building, bold silhouettes, grouped figures subordinate to architecture, strong purposeful diagonal, broad calm masses, ONE focal light/contrast. Hand-placed PIXEL CLUSTERS, hard edges, selective dithering, restricted palette; not smooth 3D, oil-photo detail or high-frequency noise. Use the last two references ONLY for pixel surface treatment; use the first only for class colour, NEVER copy its staging, excessive edge highlights or lower detail. The seal reference defines only the diegetic patron motif, never a UI badge. All human, dead and depicted faces ENTIRELY INDISCERNIBLE at FULL SIZE: backs, opaque hood voids, fully closed helmets, tiny distant shapes; no eyes/nose/mouth, readable skull faces or portrait statues. Violence implied through institutional ritual, shrouds and coercion, non-graphic, no gore, wounds or exposed organs. No text, readable writing, UI, frames, borders, vignettes, logos or decorative emblem overlay. One relevant worn diegetic cult mark is allowed because requested; no unrelated symbols. Clarity at70x100 pixels. STRUCTURE CANVAS9:4 WIDE LANDSCAPE. Named building is ONE dominant simple silhouette occupying central75% of canvas. All people are anonymous scale dots at most2%imageheight, no foreground portrait, guards or statues. Quiet mid-dark overcast sky; entrance/purpose is the single focal contrast. Keep top-right and bottom corners calm for card overlays. Building silhouette must read first, do not bury it in ornate spikes or unrelated huge scenery. VALUE HIERARCHY IS CRITICAL: reduce scene to THREE broad value groups. Deep quiet dark field, a single middle-value architectural silhouette, and a SMALL connected light cluster on the action/entrance. Keep brightest10% in the focal group only. Sparse restrained edge highlights near focal point, never glittery all-over masonry, glowing skies, scattered candles, sharp foreground rubble or multiple equal-bright objects. Texture stays subordinate and grouped, colour accents are not new light sources. CLASS PALETTE: Vermilion/brick red PRIMARY and oxidized teal ACCENT, dark iron plum shadows. Red cloth and teal iron remain distinct; no orange sky or all-over warm tint. PATRON GRAMMAR: Unbending Crown: three rigid upright spear-prongs bound by ONE closed transverse band. Ordered, brutally symmetrical, carapace-like state equipment; obedience turns the civilisation into an empty armoured body. Not a face, eye or generic tentacle. MATURITY: CAPITAL: the useful institution is an inhuman god-body disguised as machinery or architecture, swollen, binding, parasitic or rigid according to its patron. Clear grand silhouette, broken side courts, depleted human scale, shrouded remains only when relevant. Developed oppressive cosmic horror, not merely a luxurious palace and not a monster battle. SUBJECT: A monumental three-wing iron-plum citadel with faded vermilion roofs dominates the skyline, its inhabited core surrounded by broken outer walls. Interpret obsolete palette words in the subject using the CLASS PALETTE above. Keep the card’s institution and function recognisable. No new population sacrifice is implied for a card whose original subject does not consume people.",
+      "refs": [
+        "images/dark-fantasy/full-map-patron-prototype/art/cp_ironCommunion.png",
+        "images/dark-fantasy/full-map-patron-prototype/art/patron-crown.png",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "review": {
+        "status": "pending",
+        "faces": false,
+        "composition": false,
+        "valueHierarchy": false,
+        "thumbnail": false
+      }
+    },
+    {
+      "id": "fe_rentCollection",
+      "pool": "oligarch",
+      "label": "Rent Collection",
+      "kind": "practice",
+      "zone": "frontier",
+      "footprint": null,
+      "output": "art/chaos_fe_rentCollection.png",
+      "prompt": "One original opaque full-bleed medieval dark-fantasy gamepiece painting. Narrative composition of N.C.Wyeth and Dean Cornwell: one decisive action/building, bold silhouettes, grouped figures subordinate to architecture, strong purposeful diagonal, broad calm masses, ONE focal light/contrast. Hand-placed PIXEL CLUSTERS, hard edges, selective dithering, restricted palette; not smooth 3D, oil-photo detail or high-frequency noise. Use the last two references ONLY for pixel surface treatment; use the first only for class colour, NEVER copy its staging, excessive edge highlights or lower detail. The seal reference defines only the diegetic patron motif, never a UI badge. All human, dead and depicted faces ENTIRELY INDISCERNIBLE at FULL SIZE: backs, opaque hood voids, fully closed helmets, tiny distant shapes; no eyes/nose/mouth, readable skull faces or portrait statues. Violence implied through institutional ritual, shrouds and coercion, non-graphic, no gore, wounds or exposed organs. No text, readable writing, UI, frames, borders, vignettes, logos or decorative emblem overlay. One relevant worn diegetic cult mark is allowed because requested; no unrelated symbols. Clarity at70x100 pixels. PRACTICE CANVAS5:7 PORTRAIT. DESIGN FROM THE OVERLAY UP: the ENTIRE principal action, all2-3 people, hands, identifying tool and material fit x25-75%, y8-38%; every foot/object ends ABOVE y40%. Floor/work ledge at y36-38%; heads at y22-26%, nobody taller than14%canvas. Enlarge environment, not actors. Lower55% y45-100% is ONE broad near-black quiet foreground wall, floor or recessed void, NO people, tools, bright debris, banners, reflections, paths, flames or second focal feature. No tall foreground figures. Do not put people at the vertical centre or floor at50%. Architecture surrounds upper action; outer top-right is quiet for Stock fitting. VALUE HIERARCHY IS CRITICAL: reduce scene to THREE broad value groups. Deep quiet dark field, a single middle-value architectural silhouette, and a SMALL connected light cluster on the action/entrance. Keep brightest10% in the focal group only. Sparse restrained edge highlights near focal point, never glittery all-over masonry, glowing skies, scattered candles, sharp foreground rubble or multiple equal-bright objects. Texture stays subordinate and grouped, colour accents are not new light sources. CLASS PALETTE: Olive/forest GREEN PRIMARY and weathered COPPER-ORANGE ACCENT; charcoal shadows and neutral stone. Copper is orange/russet, not yellow gold or red; show green in broad fabric/paint, copper on trim and grasping fittings. No all-over green filter. PATRON GRAMMAR: Last Creditor: an ASYMMETRIC large hooked grasp enclosing ONE solid coin-like disc. Ownership becomes appetite and captivity. Crooked hooked supports and swollen vault-like forms. Not the earlier three hanging bells/weights, hollow sun or symmetric crown. MATURITY: FRONTIER: an ordinary damaged but functioning institution carries ONE small understated cult shape worked into its fitting or beam. Coercive remnants and opportunity, not a grand demon temple or active enemy army. Keep the scene modest, with a few obsolete tools and worn fabric. SUBJECT: A back-facing hooded tenant hands a small grain sack through a richly carved but rotting manor pay hatch. Interpret obsolete palette words in the subject using the CLASS PALETTE above. Keep the card’s institution and function recognisable. No new population sacrifice is implied for a card whose original subject does not consume people.",
+      "refs": [
+        "images/dark-fantasy/full-map-patron-prototype/art/merchantCopper_cp_finalLiquidation.png",
+        "images/dark-fantasy/full-map-patron-prototype/art/patron-creditor-grasp-refined.png",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "review": {
+        "status": "pending",
+        "faces": false,
+        "composition": false,
+        "valueHierarchy": false,
+        "thumbnail": false
+      }
+    },
+    {
+      "id": "fe_palaceOfAccounts",
+      "pool": "oligarch",
+      "label": "Palace of Accounts",
+      "kind": "structure",
+      "zone": "capital",
+      "footprint": 3,
+      "output": "art/chaos_fe_palaceOfAccounts.png",
+      "prompt": "One original opaque full-bleed medieval dark-fantasy gamepiece painting. Narrative composition of N.C.Wyeth and Dean Cornwell: one decisive action/building, bold silhouettes, grouped figures subordinate to architecture, strong purposeful diagonal, broad calm masses, ONE focal light/contrast. Hand-placed PIXEL CLUSTERS, hard edges, selective dithering, restricted palette; not smooth 3D, oil-photo detail or high-frequency noise. Use the last two references ONLY for pixel surface treatment; use the first only for class colour, NEVER copy its staging, excessive edge highlights or lower detail. The seal reference defines only the diegetic patron motif, never a UI badge. All human, dead and depicted faces ENTIRELY INDISCERNIBLE at FULL SIZE: backs, opaque hood voids, fully closed helmets, tiny distant shapes; no eyes/nose/mouth, readable skull faces or portrait statues. Violence implied through institutional ritual, shrouds and coercion, non-graphic, no gore, wounds or exposed organs. No text, readable writing, UI, frames, borders, vignettes, logos or decorative emblem overlay. One relevant worn diegetic cult mark is allowed because requested; no unrelated symbols. Clarity at70x100 pixels. STRUCTURE CANVAS9:4 WIDE LANDSCAPE. Named building is ONE dominant simple silhouette occupying central75% of canvas. All people are anonymous scale dots at most2%imageheight, no foreground portrait, guards or statues. Quiet mid-dark overcast sky; entrance/purpose is the single focal contrast. Keep top-right and bottom corners calm for card overlays. Building silhouette must read first, do not bury it in ornate spikes or unrelated huge scenery. VALUE HIERARCHY IS CRITICAL: reduce scene to THREE broad value groups. Deep quiet dark field, a single middle-value architectural silhouette, and a SMALL connected light cluster on the action/entrance. Keep brightest10% in the focal group only. Sparse restrained edge highlights near focal point, never glittery all-over masonry, glowing skies, scattered candles, sharp foreground rubble or multiple equal-bright objects. Texture stays subordinate and grouped, colour accents are not new light sources. CLASS PALETTE: Olive/forest GREEN PRIMARY and weathered COPPER-ORANGE ACCENT; charcoal shadows and neutral stone. Copper is orange/russet, not yellow gold or red; show green in broad fabric/paint, copper on trim and grasping fittings. No all-over green filter. PATRON GRAMMAR: Last Creditor: an ASYMMETRIC large hooked grasp enclosing ONE solid coin-like disc. Ownership becomes appetite and captivity. Crooked hooked supports and swollen vault-like forms. Not the earlier three hanging bells/weights, hollow sun or symmetric crown. MATURITY: CAPITAL: the useful institution is an inhuman god-body disguised as machinery or architecture, swollen, binding, parasitic or rigid according to its patron. Clear grand silhouette, broken side courts, depleted human scale, shrouded remains only when relevant. Developed oppressive cosmic horror, not merely a luxurious palace and not a monster battle. SUBJECT: An immense three-wing counting palace with gold roofs, dark olive shutters and neglected lower courts towers over a crumbling canal. Interpret obsolete palette words in the subject using the CLASS PALETTE above. Keep the card’s institution and function recognisable. No new population sacrifice is implied for a card whose original subject does not consume people.",
+      "refs": [
+        "images/dark-fantasy/full-map-patron-prototype/art/merchantCopper_cp_finalLiquidation.png",
+        "images/dark-fantasy/full-map-patron-prototype/art/patron-creditor-grasp-refined.png",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "review": {
+        "status": "pending",
+        "faces": false,
+        "composition": false,
+        "valueHierarchy": false,
+        "thumbnail": false
+      }
+    },
+    {
+      "id": "fe_titheChapel",
+      "pool": "papacy",
+      "label": "Tithe Chapel",
+      "kind": "structure",
+      "zone": "frontier",
+      "footprint": 1,
+      "output": "art/chaos_fe_titheChapel.png",
+      "prompt": "One original opaque full-bleed medieval dark-fantasy gamepiece painting. Narrative composition of N.C.Wyeth and Dean Cornwell: one decisive action/building, bold silhouettes, grouped figures subordinate to architecture, strong purposeful diagonal, broad calm masses, ONE focal light/contrast. Hand-placed PIXEL CLUSTERS, hard edges, selective dithering, restricted palette; not smooth 3D, oil-photo detail or high-frequency noise. Use the last two references ONLY for pixel surface treatment; use the first only for class colour, NEVER copy its staging, excessive edge highlights or lower detail. The seal reference defines only the diegetic patron motif, never a UI badge. All human, dead and depicted faces ENTIRELY INDISCERNIBLE at FULL SIZE: backs, opaque hood voids, fully closed helmets, tiny distant shapes; no eyes/nose/mouth, readable skull faces or portrait statues. Violence implied through institutional ritual, shrouds and coercion, non-graphic, no gore, wounds or exposed organs. No text, readable writing, UI, frames, borders, vignettes, logos or decorative emblem overlay. One relevant worn diegetic cult mark is allowed because requested; no unrelated symbols. Clarity at70x100 pixels. STRUCTURE CANVAS3:4 PORTRAIT. Named building is ONE dominant simple silhouette occupying central75% of canvas. All people are anonymous scale dots at most2%imageheight, no foreground portrait, guards or statues. Quiet mid-dark overcast sky; entrance/purpose is the single focal contrast. Keep top-right and bottom corners calm for card overlays. Building silhouette must read first, do not bury it in ornate spikes or unrelated huge scenery. VALUE HIERARCHY IS CRITICAL: reduce scene to THREE broad value groups. Deep quiet dark field, a single middle-value architectural silhouette, and a SMALL connected light cluster on the action/entrance. Keep brightest10% in the focal group only. Sparse restrained edge highlights near focal point, never glittery all-over masonry, glowing skies, scattered candles, sharp foreground rubble or multiple equal-bright objects. Texture stays subordinate and grouped, colour accents are not new light sources. CLASS PALETTE: Warm LIGHT STRAW/BUTTER YELLOW PRIMARY and faded ROSE PINK ACCENT with dark mulberry shadows; neutral grey masonry. Match the approved warm yellow and dusty pink, not orange ochre, ivory/lemon/greenish yellow or purple/aubergine. No yellow sky/filter. PATRON GRAMMAR: Hollow Sun: one EMPTY solar ring and three long falling rays, NO pupil and NO eye. Belonging becomes surrender to an absence; veils, empty reliquaries and root-like rays form a parasitic sacred institution. Never a radiant benevolent saint. MATURITY: FRONTIER: an ordinary damaged but functioning institution carries ONE small understated cult shape worked into its fitting or beam. Coercive remnants and opportunity, not a grand demon temple or active enemy army. Keep the scene modest, with a few obsolete tools and worn fabric. SUBJECT: A narrow ivory-stained village chapel with an oversized locked offering chest survives beneath the shattered shell of an ancient basilica. Interpret obsolete palette words in the subject using the CLASS PALETTE above. Keep the card’s institution and function recognisable. No new population sacrifice is implied for a card whose original subject does not consume people.",
+      "refs": [
+        "images/dark-fantasy/full-map-patron-prototype/art/priestWarmPink_cp_offeringOfNames.png",
+        "images/dark-fantasy/full-map-patron-prototype/art/patron-sun.png",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "review": {
+        "status": "pending",
+        "faces": false,
+        "composition": false,
+        "valueHierarchy": false,
+        "thumbnail": false
+      }
+    },
+    {
+      "id": "fe_consecratedBrew",
+      "pool": "papacy",
+      "label": "Consecrated Brew",
+      "kind": "practice",
+      "zone": "province",
+      "footprint": null,
+      "output": "art/chaos_fe_consecratedBrew.png",
+      "prompt": "One original opaque full-bleed medieval dark-fantasy gamepiece painting. Narrative composition of N.C.Wyeth and Dean Cornwell: one decisive action/building, bold silhouettes, grouped figures subordinate to architecture, strong purposeful diagonal, broad calm masses, ONE focal light/contrast. Hand-placed PIXEL CLUSTERS, hard edges, selective dithering, restricted palette; not smooth 3D, oil-photo detail or high-frequency noise. Use the last two references ONLY for pixel surface treatment; use the first only for class colour, NEVER copy its staging, excessive edge highlights or lower detail. The seal reference defines only the diegetic patron motif, never a UI badge. All human, dead and depicted faces ENTIRELY INDISCERNIBLE at FULL SIZE: backs, opaque hood voids, fully closed helmets, tiny distant shapes; no eyes/nose/mouth, readable skull faces or portrait statues. Violence implied through institutional ritual, shrouds and coercion, non-graphic, no gore, wounds or exposed organs. No text, readable writing, UI, frames, borders, vignettes, logos or decorative emblem overlay. One relevant worn diegetic cult mark is allowed because requested; no unrelated symbols. Clarity at70x100 pixels. PRACTICE CANVAS5:7 PORTRAIT. DESIGN FROM THE OVERLAY UP: the ENTIRE principal action, all2-3 people, hands, identifying tool and material fit x25-75%, y8-38%; every foot/object ends ABOVE y40%. Floor/work ledge at y36-38%; heads at y22-26%, nobody taller than14%canvas. Enlarge environment, not actors. Lower55% y45-100% is ONE broad near-black quiet foreground wall, floor or recessed void, NO people, tools, bright debris, banners, reflections, paths, flames or second focal feature. No tall foreground figures. Do not put people at the vertical centre or floor at50%. Architecture surrounds upper action; outer top-right is quiet for Stock fitting. VALUE HIERARCHY IS CRITICAL: reduce scene to THREE broad value groups. Deep quiet dark field, a single middle-value architectural silhouette, and a SMALL connected light cluster on the action/entrance. Keep brightest10% in the focal group only. Sparse restrained edge highlights near focal point, never glittery all-over masonry, glowing skies, scattered candles, sharp foreground rubble or multiple equal-bright objects. Texture stays subordinate and grouped, colour accents are not new light sources. CLASS PALETTE: Warm LIGHT STRAW/BUTTER YELLOW PRIMARY and faded ROSE PINK ACCENT with dark mulberry shadows; neutral grey masonry. Match the approved warm yellow and dusty pink, not orange ochre, ivory/lemon/greenish yellow or purple/aubergine. No yellow sky/filter. PATRON GRAMMAR: Hollow Sun: one EMPTY solar ring and three long falling rays, NO pupil and NO eye. Belonging becomes surrender to an absence; veils, empty reliquaries and root-like rays form a parasitic sacred institution. Never a radiant benevolent saint. MATURITY: PROVINCE: the patron shape has colonised one functional mechanism/door/architectural support, making an unsettling perversion of a recognisable useful institution. One impossible organic suggestion, not random tentacles everywhere. Old imperial excess, neglect and quiet despair. SUBJECT: Two hooded warm-yellow hooded brewers tend a massive copper vat beneath cracked monastic arches, with a locked gilded offering cabinet nearby. Interpret obsolete palette words in the subject using the CLASS PALETTE above. Keep the card’s institution and function recognisable. No new population sacrifice is implied for a card whose original subject does not consume people.",
+      "refs": [
+        "images/dark-fantasy/full-map-patron-prototype/art/priestWarmPink_cp_offeringOfNames.png",
+        "images/dark-fantasy/full-map-patron-prototype/art/patron-sun.png",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "review": {
+        "status": "pending",
+        "faces": false,
+        "composition": false,
+        "valueHierarchy": false,
+        "thumbnail": false
+      }
+    },
+    {
+      "id": "fe_examinationHall",
+      "pool": "sect",
+      "label": "Examination Hall",
+      "kind": "structure",
+      "zone": "province",
+      "footprint": 2,
+      "output": "art/chaos_fe_examinationHall.png",
+      "prompt": "One original opaque full-bleed medieval dark-fantasy gamepiece painting. Narrative composition of N.C.Wyeth and Dean Cornwell: one decisive action/building, bold silhouettes, grouped figures subordinate to architecture, strong purposeful diagonal, broad calm masses, ONE focal light/contrast. Hand-placed PIXEL CLUSTERS, hard edges, selective dithering, restricted palette; not smooth 3D, oil-photo detail or high-frequency noise. Use the last two references ONLY for pixel surface treatment; use the first only for class colour, NEVER copy its staging, excessive edge highlights or lower detail. The seal reference defines only the diegetic patron motif, never a UI badge. All human, dead and depicted faces ENTIRELY INDISCERNIBLE at FULL SIZE: backs, opaque hood voids, fully closed helmets, tiny distant shapes; no eyes/nose/mouth, readable skull faces or portrait statues. Violence implied through institutional ritual, shrouds and coercion, non-graphic, no gore, wounds or exposed organs. No text, readable writing, UI, frames, borders, vignettes, logos or decorative emblem overlay. One relevant worn diegetic cult mark is allowed because requested; no unrelated symbols. Clarity at70x100 pixels. STRUCTURE CANVAS3:2 LANDSCAPE. Named building is ONE dominant simple silhouette occupying central75% of canvas. All people are anonymous scale dots at most2%imageheight, no foreground portrait, guards or statues. Quiet mid-dark overcast sky; entrance/purpose is the single focal contrast. Keep top-right and bottom corners calm for card overlays. Building silhouette must read first, do not bury it in ornate spikes or unrelated huge scenery. VALUE HIERARCHY IS CRITICAL: reduce scene to THREE broad value groups. Deep quiet dark field, a single middle-value architectural silhouette, and a SMALL connected light cluster on the action/entrance. Keep brightest10% in the focal group only. Sparse restrained edge highlights near focal point, never glittery all-over masonry, glowing skies, scattered candles, sharp foreground rubble or multiple equal-bright objects. Texture stays subordinate and grouped, colour accents are not new light sources. CLASS PALETTE: Cobalt/lapis BLUE PRIMARY, honey GOLD ACCENT, navy shadows and modest parchment; neutral stone remains neutral. Blue masses dominate, gold outlines only the focal mechanism, not every masonry edge. No orange or yellow sky. PATRON GRAMMAR: Unfinished Index: a BROAD OPEN BOOK with two angular blank page masses and ONE HOOKED BINDING SPINE. Classification consumes its subjects. Folded page-like walls, blank tablets and binding spines. Not the earlier three rectangular signpost frames, an eye, a sun or a crown. MATURITY: PROVINCE: the patron shape has colonised one functional mechanism/door/architectural support, making an unsettling perversion of a recognisable useful institution. One impossible organic suggestion, not random tentacles everywhere. Old imperial excess, neglect and quiet despair. SUBJECT: A broad blue-roofed examination hall with long rows of empty desks dominates a neglected imperial education court. Interpret obsolete palette words in the subject using the CLASS PALETTE above. Keep the card’s institution and function recognisable. No new population sacrifice is implied for a card whose original subject does not consume people.",
+      "refs": [
+        "images/dark-fantasy/full-map-patron-prototype/art/cp_finalRedaction.png",
+        "images/dark-fantasy/full-map-patron-prototype/art/patron-index-tome-refined.png",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "review": {
+        "status": "pending",
+        "faces": false,
+        "composition": false,
+        "valueHierarchy": false,
+        "thumbnail": false
+      }
+    },
+    {
+      "id": "cp_finalRedaction",
+      "pool": "sect",
+      "label": "Final Redaction",
+      "kind": "practice",
+      "zone": "capital",
+      "footprint": null,
+      "output": "art/chaos_cp_finalRedaction.png",
+      "prompt": "One original opaque full-bleed medieval dark-fantasy gamepiece painting. Narrative composition of N.C.Wyeth and Dean Cornwell: one decisive action/building, bold silhouettes, grouped figures subordinate to architecture, strong purposeful diagonal, broad calm masses, ONE focal light/contrast. Hand-placed PIXEL CLUSTERS, hard edges, selective dithering, restricted palette; not smooth 3D, oil-photo detail or high-frequency noise. Use the last two references ONLY for pixel surface treatment; use the first only for class colour, NEVER copy its staging, excessive edge highlights or lower detail. The seal reference defines only the diegetic patron motif, never a UI badge. All human, dead and depicted faces ENTIRELY INDISCERNIBLE at FULL SIZE: backs, opaque hood voids, fully closed helmets, tiny distant shapes; no eyes/nose/mouth, readable skull faces or portrait statues. Violence implied through institutional ritual, shrouds and coercion, non-graphic, no gore, wounds or exposed organs. No text, readable writing, UI, frames, borders, vignettes, logos or decorative emblem overlay. One relevant worn diegetic cult mark is allowed because requested; no unrelated symbols. Clarity at70x100 pixels. PRACTICE CANVAS5:7 PORTRAIT. DESIGN FROM THE OVERLAY UP: the ENTIRE principal action, all2-3 people, hands, identifying tool and material fit x25-75%, y8-38%; every foot/object ends ABOVE y40%. Floor/work ledge at y36-38%; heads at y22-26%, nobody taller than14%canvas. Enlarge environment, not actors. Lower55% y45-100% is ONE broad near-black quiet foreground wall, floor or recessed void, NO people, tools, bright debris, banners, reflections, paths, flames or second focal feature. No tall foreground figures. Do not put people at the vertical centre or floor at50%. Architecture surrounds upper action; outer top-right is quiet for Stock fitting. VALUE HIERARCHY IS CRITICAL: reduce scene to THREE broad value groups. Deep quiet dark field, a single middle-value architectural silhouette, and a SMALL connected light cluster on the action/entrance. Keep brightest10% in the focal group only. Sparse restrained edge highlights near focal point, never glittery all-over masonry, glowing skies, scattered candles, sharp foreground rubble or multiple equal-bright objects. Texture stays subordinate and grouped, colour accents are not new light sources. CLASS PALETTE: Cobalt/lapis BLUE PRIMARY, honey GOLD ACCENT, navy shadows and modest parchment; neutral stone remains neutral. Blue masses dominate, gold outlines only the focal mechanism, not every masonry edge. No orange or yellow sky. PATRON GRAMMAR: Unfinished Index: a BROAD OPEN BOOK with two angular blank page masses and ONE HOOKED BINDING SPINE. Classification consumes its subjects. Folded page-like walls, blank tablets and binding spines. Not the earlier three rectangular signpost frames, an eye, a sun or a crown. MATURITY: CAPITAL: the useful institution is an inhuman god-body disguised as machinery or architecture, swollen, binding, parasitic or rigid according to its patron. Clear grand silhouette, broken side courts, depleted human scale, shrouded remains only when relevant. Developed oppressive cosmic horror, not merely a luxurious palace and not a monster battle. SUBJECT: Two tiny cobalt archivists guide one completely hooded adult Scholar into a colossal OPEN BOOK-like recording press: broad angular blank page slabs, deep central black seam, one long gold hooked binding spine curling beneath. A few plain record tablets emerge at a side slot. No old rectangular signpost frames, no eye, no visible bodily injury or transformation. Interpret obsolete palette words in the subject using the CLASS PALETTE above. Keep the card’s institution and function recognisable. This is a high-capital population-consuming institution: convey a real human cost through the fully covered adult and mechanised ritual where applicable, never a free economic device; do not invent extra victims. ",
+      "refs": [
+        "images/dark-fantasy/full-map-patron-prototype/art/cp_finalRedaction.png",
+        "images/dark-fantasy/full-map-patron-prototype/art/patron-index-tome-refined.png",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "review": {
+        "status": "pending",
+        "faces": false,
+        "composition": false,
+        "valueHierarchy": false,
+        "thumbnail": false
+      }
+    }
+  ],
+  "status": "Superseded: eight generated reference-led anchors copied too much noisy architecture and literal crests."
+}

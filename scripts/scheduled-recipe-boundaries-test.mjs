@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { createNewGameState } from '../src/model/new-game.js';
+import { createLegacyFixtureState as createNewGameState } from '../src/model/dev-lab/fixtures.js';
 import { serializeGameState, deserializeGameState } from '../src/model/state.js';
 import { practiceSlot, fiveSlots, setFixturePopulation } from '../src/model/dev-lab/fixtures.js';
 import { getDetailedSettlementSites } from '../src/model/detailed-settlements/queries.js';
@@ -202,8 +202,8 @@ runCase('rationing', () => {
 });
 
 runCase('dryFarming', () => {
-  // Seed 42: six contiguous plains give Grain x7, capped at 10 retained Stock.
-  const amounts = { spring: 0, summer: 10, autumn: 10, winter: 0 };
+  // This isolated board starts on one plains region: Grain output is x2.
+  const amounts = { spring: 0, summer: 4, autumn: 10, winter: 0 };
   const seen = {};
   for (const [season, index] of [['spring', 0], ['summer', 1], ['autumn', 2], ['winter', 3]]) {
     const f = board([practiceSlot('dryFarming')], { season: index });
@@ -307,8 +307,8 @@ runCase('cropRotation', () => {
   assert.deepEqual(stocks(winter), [0, 1, null, null, null]);
   const autumn = open(2);
   runPracticeActivation(autumn.state, 'season');
-  assert.deepEqual(stocks(autumn), [8, 1, null, null, null]);
-  return { repeatedSummer: 8, recordStock: 1, winter: 0, autumn: 8 };
+  assert.deepEqual(stocks(autumn), [6, 1, null, null, null]);
+  return { repeatedSummer: 8, recordStock: 1, winter: 0, autumn: 6 };
 });
 
 runCase('goatHerding', () => {

@@ -4,6 +4,12 @@ import { readFileSync } from 'node:fs';
 const texturePacker = process.env.TEXTURE_PACKER ?? 'TexturePacker';
 const manifest = JSON.parse(readFileSync('images/asset-manifest.json', 'utf8'));
 const jobs = [
+  ...['dictator','oligarch','papacy','sect'].map(pool=>[`full-map-chaos-${pool}`, 'images/dark-fantasy/full-map-chaos-prototype/art', ['--scale', '0.3', '--scale-mode', 'Fast', '--max-size', '4096']]),
+  ['full-map-patron-prototype', 'images/dark-fantasy/full-map-patron-prototype/art', ['--scale', '0.3', '--scale-mode', 'Fast', '--max-size', '4096']],
+  ['full-map-enemy-palette-prototype', 'images/dark-fantasy/full-map-enemy-palette-prototype/art', ['--scale', '0.3', '--scale-mode', 'Fast', '--max-size', '4096']],
+  ['full-map-enemy-direction-prototype', 'images/dark-fantasy/full-map-enemy-direction-prototype/art', ['--scale', '0.3', '--scale-mode', 'Fast', '--max-size', '4096']],
+  ['full-map-enemy-prototype', 'images/dark-fantasy/full-map-enemy-prototype/art', ['--scale', '0.3', '--scale-mode', 'Fast', '--max-size', '4096', '--multipack']],
+  ['full-map-content-prototype', 'images/dark-fantasy/full-map-content-prototype/art', ['--scale', '0.3', '--scale-mode', 'Fast', '--max-size', '4096']],
   ['heirlooms', 'images/dark-fantasy/heirlooms-v1', ['--scale', '0.3', '--scale-mode', 'Fast', '--max-size', '2048']],
   ['resource-language', 'images/dark-fantasy/resource-language-v1', ['--scale', '0.3', '--max-size', '4096']],
   ['settlement-pieces', 'images/dark-fantasy/settlement-pieces-v4', ['--scale', '0.3', '--scale-mode', 'Fast', '--max-size', '4096', '--multipack']],

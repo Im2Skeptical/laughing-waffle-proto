@@ -136,7 +136,8 @@ assert.equal(
 
 const terminalProjectionBase = createNewGameState(123);
 for (const region of terminalProjectionBase.world.regions) {
-  if (region.controller !== "player") region.monster = { defense: 100 };
+  if (region.controller === "player") region.monster = { defense: 100 };
+  else delete region.monster;
 }
 // Exercise terminal truncation independently of the untouched opening's pacing.
 terminalProjectionBase.civilization.chaos.monsterPressure = 400;

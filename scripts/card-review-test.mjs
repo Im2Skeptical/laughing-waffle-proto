@@ -434,11 +434,11 @@ assert.equal(JSON.stringify(gameConfig),original,'construction editing leaves au
   // Zoo: filter by what a card produces, live and with drafts applied.
   const researchers=state=>filterLabCatalogue(getLabCatalogue(state),{category:'practice',produces:'Research'}).map(entry=>entry.id);
   const liveResearch=researchers(createNewGameState(77));
-  assert.equal(liveResearch.length,11);assert.ok(liveResearch.includes('observation')&&liveResearch.includes('surveying')&&liveResearch.includes('charnelAlchemy')&&!liveResearch.includes('caravanGuarding'));
+  assert.equal(liveResearch.length,13);assert.ok(liveResearch.includes('observation')&&liveResearch.includes('surveying')&&liveResearch.includes('charnelAlchemy')&&!liveResearch.includes('caravanGuarding'));
   const editedResearch=researchers(outGame);
   assert.ok(editedResearch.includes('caravanGuarding')&&!editedResearch.includes('charnelAlchemy'),'Produces follows edited outputs');
-  assert.equal(filterLabCatalogue(getLabCatalogue(outGame),{category:'practice',produces:'Stock'}).length,89);
-  assert.deepEqual(filterLabCatalogue(getLabCatalogue(outGame),{category:'structure',produces:'Housing'}).length,6);
+  assert.equal(filterLabCatalogue(getLabCatalogue(outGame),{category:'practice',produces:'Stock'}).length,106);
+  assert.deepEqual(filterLabCatalogue(getLabCatalogue(outGame),{category:'structure',produces:'Housing'}).length,10);
   // Revert restores the live list and removes the edit.
   out.edit('practice','caravanGuarding',['effects'],outLive.practices.caravanGuarding.effects);
   assert.equal(out.get('practice','caravanGuarding').edits.length,0);

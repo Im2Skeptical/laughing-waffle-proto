@@ -1,0 +1,20 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "reason": "Remove readable skull features, preserve facelessness; keep Practice focal exchange in upper half.",
+  "entries": [
+    {
+      "id": "fe_grandJubilee",
+      "extra": "Keep the violet/pale-pink palette, style, prelate seen from behind, decayed setting and non-graphic institutional oppression. Correct two things only: 1) EVERY dead head including small background and foreground ones must be completely enclosed in opaque folded shroud fabric. NO visible skull face, sockets, teeth, nose or jaw. Ribcage remains may remain but heads are fully covered or absent. 2) Move the small coin-purse exchange and its gate upward to the upper central 45%, directly below the prelate and close enough to read at card size. Keep the lower half mostly broad quiet purple shadow masses and a few fully wrapped shapeless funeral bundles, with no bright detailed focal objects at the bottom. A clear corrupt ritual above abandoned bodies, all facial features completely indiscernible at full resolution. No writing, symbols, borders or UI."
+    },
+    {
+      "id": "fe_gildedBasilica",
+      "extra": "Preserve the entire building composition, aspect ratio, violet/pink palette, pixel treatment, tiny hooded people and gloomy atmosphere. Correct the exposed skulls only: replace EVERY skull or dead head in the ossuary courtyard, including small far-left and bottom foreground ones, with opaque wrapped burial shrouds. No visible eye sockets, noses, teeth, jaws or other facial features anywhere at full size. Existing plain ribcage silhouettes and long bones can stay, their heads entirely covered or absent. All statues and living people stay faceless in deep hoods. Maintain the mass of discarded funeral bundles and despair, no extra gore. No other changes, no text, no UI or frame."
+    },
+    {
+      "id": "fe_gildedBasilica",
+      "extra": "Edit only the foreground burial field of this Gilded Basilica illustration. Preserve the violet/pale-pink palette, exact entire building, domes, gates, background, aspect ratio and pixel texture. The foreground still has skulls with readable eye sockets, which is a failed criterion. COVER THE ENTIRE BOTTOM-LEFT BURIAL FIELD IN HEAVY OPAQUE VIOLET CLOTH SHROUDS. Replace every visible skull and bare dead head, even tiny ones, with smooth knotted cloth sacks or opaque folded cloth. No skulls at all anywhere. Keep three or four simple curved ribcages projecting from torn cloth to communicate old skeletons, with no heads attached. Preserve the impression of a massive neglected corpse field, using rows of wrapped adult burial bundles and ribcages. Tiny people and statues remain fully hooded dark voids without facial features. Do not introduce faces or skulls anywhere. Leave the dominant architecture and living figures exactly as they are. No text, UI, borders or vignettes.",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-7043792d-6453-4deb-80ad-56007d15d9dd.png",
+      "accepted": true
+    }
+  ]
+}

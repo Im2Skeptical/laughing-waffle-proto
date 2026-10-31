@@ -88,6 +88,7 @@ export function getPopulationSummary(state, regionId) {
     elders,
     total: children + adults + elders,
     mealDemand: Math.ceil((children + adults + elders) / CIV_CONTENT_TUNING.populationPerEdible),
+    mealOverhead: state.rulesetId ? (settlement?.structureSlots??[]).filter(s=>s&&!s.construction).reduce((n,s)=>n+(getDetailedStructureDef(state,s.structureId)?.mealExtra??0),0) : 0,
     housingCapacity: getHousingCapacity(state, regionId),
     byClass,
   };

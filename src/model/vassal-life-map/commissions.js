@@ -1,3 +1,4 @@
+import { prestigeAccount, creditPrestige } from './treasury.js';
 import { VASSAL_COMMISSION_DEFS } from '../../defs/vassal-class-rules.js';
 import { VASSAL_NODE_FAMILIES, VASSAL_STAT_IDS } from '../../defs/gamepieces/vassal-life-map-defs.js';
 import { VASSAL_INTERVENTION_PRACTICE_IDS, settlementStructureDefs } from '../../defs/gamepieces/detailed-settlement-defs.js';
@@ -97,7 +98,7 @@ export function recordCommissionAction(state, vassal, event) {
   }
   // Clear before awarding: the prize cannot progress another Commission.
   vassal.commission = null;
-  vassal.prestige += goal.prestige;
+  creditPrestige(state,vassal,goal.prestige,{commission:false});
   vassal.completedCommissions = (vassal.completedCommissions ?? 0) + 1;
   vassal.commissionHistory = [...(vassal.commissionHistory ?? []), goal.id].slice(-12);
   vassal.lifeEvents.push({ eventId: `${goal.offerId}:completed`, kind: 'commissionCompleted',

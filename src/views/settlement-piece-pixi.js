@@ -1,4 +1,5 @@
-import { addIllustration, getArtRevision } from './chronicle-art.js';
+import { createText } from './settlement-view-primitives.js';
+import { addIllustration, getArtRevision, getChronicleTexture } from './chronicle-art.js';
 import { addPieceRim, addPieceFaceChrome } from './piece-face-chrome.js';
 import { PIECE_SIZE, fitPiece, constructionGeometry } from './piece-geometry.js';
 export { PIECE_SIZE } from './piece-geometry.js';
@@ -19,7 +20,9 @@ export function addSettlementPiece(parent, rect, {
   frame.beginFill(0x171e1c).lineStyle(empty?2:0, border).drawRoundedRect(0,0,w,h,5).endFill();
   root.addChild(frame);
   if (!empty && face) {
-    addIllustration(root, face.definitionId, {x:3,y:3,width:w-6,height:h-6});
+    // Optional view-only overrides let isolated art studies use this same face.
+    // Model presentation and all ordinary game faces retain the default artwork.
+    addIllustration(root, face.illustrationId ?? face.definitionId, {x:3,y:3,width:w-6,height:h-6});
     if (face.construction) {
       const scaffold = new PIXI.Graphics().beginFill(0x344239,.35).drawRect(3,3,w-6,h-6).endFill();
       // Timber braces and lashings leave the eventual building visible behind it.
@@ -34,8 +37,20 @@ export function addSettlementPiece(parent, rect, {
       scaffold.lineStyle(3,0x776044,.8).moveTo(w*.18,h*.62).lineTo(w*.7,20);
       scaffold.eventMode='none';root.addChild(scaffold);
     }
-    addPieceRim(root, w, h);
+    addPieceRim(root, w, h, face.rimTexture, face.rimCornerSize);
+    if(face.category==='influence'){const rim=new PIXI.Graphics().lineStyle(3,0x81b4bd,.95).drawRoundedRect(2,2,w-4,h-4,5);rim.eventMode='none';root.addChild(rim);}
     root.faceSections = addPieceFaceChrome(root, face, w, h, {time, reducedMotion});
+    if(face.patronEmblem){
+      // A view-only cult seal, independent of quality and faction allegiance.
+      const texture=getChronicleTexture(face.patronEmblem);
+      if(texture?.baseTexture.valid){
+        const seal=new PIXI.Container();seal.position.set(23,30);
+        seal.addChild(new PIXI.Graphics().lineStyle(1,0xa08d69).beginFill(0x101413,.96).drawCircle(0,0,15).endFill());
+        const mark=new PIXI.Sprite(texture);mark.anchor.set(.5);mark.scale.set(Math.min(26/texture.width,26/texture.height));mark.eventMode='none';seal.addChild(mark);seal.eventMode='none';root.addChild(seal);
+        root.faceSections.patron={x:8,y:15,width:30,height:30};
+      }
+    }
+    if(face.allegiance){const label=createText(face.allegiance==='player'?'FREE':'CROWN',{fontFamily:'Georgia',fontSize:13,fill:0xf5e2ad,stroke:0x151a20,strokeThickness:4},w/2,10,.5,0);label.eventMode='none';root.addChild(label);}
     // A small inset jewel identifies quality without widening the picture rim.
     const jewelY = root.faceSections.stock?.x < 12 ? root.faceSections.stock.y + root.faceSections.stock.height + 6 : 10;
     root.addChild(new PIXI.Graphics().beginFill(border).lineStyle(.7,0xf0dbae).drawPolygon([8,jewelY-3,11,jewelY,8,jewelY+3,5,jewelY]).endFill());

@@ -1,5 +1,26 @@
 # Development Lab views
 
+The full enemy repaint is `#/dev/prototypes?study=full-map-content&look=chaos&samples=1`:
+88 enemy-only art overrides (80 institutions plus eight capital rites/supports),
+settled class palettes and cult seals, using the same Zoo renderer and in-memory
+reviews. Four class atlases load only in this appearance mode. Source/provenance
+and QA guidance: `images/dark-fantasy/full-map-chaos-prototype/README.md`.
+
+The earlier full-map Patron study preserves Cam's accepted yellow/pink Priest pair.
+Its Merchant accent trials compare the now-accepted copper-orange, pale pewter and bruised lilac with
+the previous olive/ink pair; `mTone=copper|pewter|lilac|ink` selects one. A four-class
+reference group uses actual Zoo faces with full inspection. Exact prompts and
+provenance: `images/dark-fantasy/full-map-patron-prototype/merchant-accent-trials.json`.
+
+Full-map Patron trials compare the reference banner yellow with purple or pink,
+alongside earlier pale-aubergine and ochre pairs. Refined Debt grasp and Bound tome
+seals are shown together with Crown and Sun at 16/24/64px; earlier seals remain
+selectable. The controls also update the actual card faces. All changes
+are disposable real-Zoo face projections at
+`#/dev/prototypes?study=full-map-content&look=patrons&samples=1`; no gameplay
+definitions or saved reviews change. Exact art provenance lives in
+`images/dark-fantasy/full-map-patron-prototype/warm-yellow-and-seal-refinements.json`.
+
 The hash entry in `ui-root-pixi.js` boots `development-lab-dom.js` without the
 live game shell. DOM views emit controller commands. `cards.js` renders the
 actual Pixi settlement piece into images through one shared renderer, avoiding
@@ -121,8 +142,39 @@ Both catalogue and quality-comparison cards opt in; Museum/Gym and pickers keep
 their existing input. Closing or re-rendering dismisses the reading surface.
 
 `prototypes.js` renders the design-workbench directory at `#/dev/prototypes`.
+`full-map-content-prototype.js` hosts the 130-card content review at
+`#/dev/prototypes?study=full-map-content`. It projects disposable definitions
+through the real Zoo faces and readers, with a separate on-demand art atlas.
+Its proposed political rules and in-memory decisions never reach simulation,
+the production registries, player saves, or the persistent Zoo reviewer.
+`full-map-enemy-prototype-data.js` adds four descriptive 20-card enemy pools,
+suggested Frontier/Province/Capital placements, and later monoclass/splash map
+experiments. The original 50-card set is preserved; enemy art has a separate atlas.
 Its Map, Opening and Vassals links open the separately bundled pages under
 `images/dark-fantasy/`; no prototype renderer is imported into the game shell.
+
+The content review's Enemy appearance control compares the original set with a
+four-painting Merchant/Priest direction pass and an illustrated enemy rim. Use
+`&look=decay&samples=1` to review just those studies. Its separate on-demand atlas
+and disposable face overrides never enter game definitions or saves; notes and
+exact prompts live in `images/dark-fantasy/full-map-enemy-direction-prototype/`.
+
+`&look=palettes&samples=1` adds six independent palette choices each for Merchant
+and Priest, plus existing Warrior/Scholar reference faces. Twenty-four paintings are
+alternatives for the same four cards, with corrected Practice compositions and a
+constant enemy rim. The separate `full-map-enemy-palette-prototype` atlas and its
+prompts/notes remain isolated from simulation and the original content set.
+The current green/yellow study opens with `&merchant=g1&priest=y1`: three new
+green Merchant pairs and three yellow Priest pairs, preserving the earlier set.
+
+`&look=patrons&samples=1` adds eight Gold capital proposals from
+`full-map-patron-prototype-data.js` and four cult seals. It uses olive/ink
+Merchants and ochre/aubergine Priests. The original 130 cards remain unchanged
+in other modes; unchecking the study filter in this mode shows all 138.
+Population Consume inputs, patron seals and their symbol-key entries are view-only
+face data. No population transaction, cult simulation or live registry is added.
+Exact prompts, identities, capture agreement and unresolved mechanics live in
+`images/dark-fantasy/full-map-patron-prototype/README.md`.
 
 `dev-preview-display.js` provides the shared enter/exit control for the persistent
 scene and the isolated workbenches, using `game-display-mode.js` for fullscreen

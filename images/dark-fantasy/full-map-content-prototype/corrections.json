@@ -1,0 +1,32 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "currentOverrides": [
+    {
+      "id": "fm_scrapGathering",
+      "prompt": "Edit this existing card illustration with one precise correction. Preserve its pixel-painted dark fantasy style, exact framing, subdued lower half, scrap-gathering action, palette and composition. The large carved statue high on the LEFT currently has a discernible human face. Completely erase all facial features from that statue: its hood must enclose a solid deep black recess, with no visible eyes, nose, mouth, skin or face contours. Also keep all living figures entirely anonymous with faces indiscernible. Do not add text, borders or UI. Opaque fullbleed 5:7 portrait.",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-9465cb10-b238-42ff-99f9-4aec19b5abbf.png",
+      "accepted": true,
+      "reason": "Remove discernible facial features on background statues.",
+      "originalReviewArtifact": "artifacts/full-map-content/rejected-art/fm_scrapGathering.png",
+      "output": "art/fm_scrapGathering.png"
+    },
+    {
+      "id": "fm_forcedPageantry",
+      "prompt": "Edit this existing dark fantasy pixel-painted card illustration with one precise correction. Preserve its composition, procession, worn banners, architecture, palette, lower quiet half, opaque fullbleed 5:7 portrait and hand-placed pixel texture. Both enormous hooded statues on LEFT and RIGHT have visible facial profiles. Remove every facial feature from BOTH statues: replace the interior of each hood with a completely featureless deep black recess, no face contour, no eyes, nose, lips or chin. Living procession figures must likewise remain entirely faceless. Keep everything else unchanged, with no text, symbols, borders or UI.",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-c117d95c-923c-416c-bc22-d3056a49957c.png",
+      "accepted": true,
+      "reason": "Remove discernible facial features on background statues.",
+      "originalReviewArtifact": "artifacts/full-map-content/rejected-art/fm_forcedPageantry.png",
+      "output": "art/fm_forcedPageantry.png"
+    },
+    {
+      "id": "fm_tollGate",
+      "prompt": "Edit this existing dark fantasy pixel-painted card illustration with one precise correction. Preserve the building-dominant 3:4 portrait framing, tollhouse, barrier, travellers, architecture, neutral warm stone palette, lighting and pixel texture. The two small statues high in the LEFT and RIGHT gateway niches currently have visible faces. Remove ALL facial features from BOTH statues: make the inside of each stone hood a featureless deep dark recess, without eyes, nose, mouth, chin or face contour. Keep all living people anonymous too. Everything else unchanged. No text, borders or UI; fully opaque.",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-f3525674-8a76-4949-be5f-2d40a2629547.png",
+      "accepted": true,
+      "reason": "Remove discernible facial features on background statues.",
+      "originalReviewArtifact": "artifacts/full-map-content/rejected-art/fm_tollGate.png",
+      "output": "art/fm_tollGate.png"
+    }
+  ]
+}

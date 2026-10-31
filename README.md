@@ -6,8 +6,11 @@ An in-progress, wide Civilization content and systems buildout. A playable first
 pass is available; UX, tooling, content coverage, and balance are being refined
 iteratively. The Practice board is intentionally fixed at five slots.
 
-Player New Game starts with two player settlements and four authored neutrals on
-Starter_02. Debug fixtures and labs can replace that setup.
+Player New Game uses a 20-region inhabited kingdom with two player holdings,
+population allegiance, regional control and a remnant capital. The ten-tenure
+limit and class disciplines remain part of ordinary play. See the
+[full-map integration](docs/full-map-main-integration.md). Debug fixtures and
+labs can replace that setup.
 
 - Gameplay design authority: [Game design](docs/game-design.md)
 - Aesthetic and UX guidance: [Design companion](docs/aesthetic-ux-design.md)

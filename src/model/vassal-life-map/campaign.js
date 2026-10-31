@@ -1,8 +1,11 @@
+import { militarySummary, CONTROL_DEFAULTS, availableMilitaryWarriors as availableDetachment } from '../detailed-settlements/territory.js';
+import { populationBins, selectPeople, removePeople, writePopulationBins } from '../detailed-settlements/population-ledger.js';
+import { prestigeAccount, creditPrestige, quotePrestige } from './treasury.js';
 import { VASSAL_WORKSHOP_RULES as RULES } from '../../defs/vassal-workshop-rules.js';
 import { resolveLifeMapOptionCosts } from '../life-map-balance.js';
 import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
 import { getRegionState, getRegionReference } from '../world-state.js';
-import { stockTotal, consumeStock } from '../detailed-settlements/stock.js';
+import { stockTotal, consumeStock, stockProviderSlots, stockTraits, stockCapacity, planStock, applyStockPlan } from '../detailed-settlements/stock.js';
 import { getRetinue, conquerSettlement, addMonsterPressure } from '../detailed-settlements/external-world.js';
 import { emitPracticeEvent, withPracticeRoot, getActionMonsterPressureCost } from '../detailed-settlements/practice-events.js';
 import { getPlayerDetailedSites, getDetailedSite, getVassalEffectiveStats, getAdjustedVassalPrestigeCost, getVassalActionPhaseCost, markHeirloomTimeAction } from './selectors.js';
@@ -10,10 +13,11 @@ import { generateRelicOffers } from './heirlooms.js';
 import { connectedDistance } from './world-choices.js';
 
 export function campaignForces(state, vassal) {
-  const sites = getPlayerDetailedSites(state);
+  const reachable=new Set(stockProviderSlots(state,getDetailedSite(state,vassal.locationRegionId)?.detailedState,false,{beneficiary:'player',discretionary:true}).map(s=>s.regionId));
+  const sites = getPlayerDetailedSites(state).filter(s=>!state.rulesetId||reachable.has(s.regionId));
   const prowess = getVassalEffectiveStats(vassal).intelligence;
   const retinue = getRetinue(state,vassal).value;
-  const warriors = sites.reduce((sum,site) => sum + Object.values(site.detailedState.populationByClass)
+  const warriors = state.rulesetId?sites.reduce((n,s)=>n+availableDetachment(state,s.regionId),0):sites.reduce((sum,site) => sum + Object.values(site.detailedState.populationByClass)
     .reduce((n,cohort) => n + (cohort.specialists?.warrior?.adults ?? 0),0),0);
   const arms = sites.reduce((sum,site) => sum + stockTotal(state,site.detailedState,'Arms'),0);
   return Object.fromEntries(['attack','duel','quest'].map(mode => {
@@ -43,7 +47,7 @@ export function buildCampaignOptions(state,vassal,nodeState) {
       add('attack',region.id,region.monster.defense+(region.monster.cleared?RULES.nestDefenseBonus:0),region.monster.cleared?'nest':'clear',region.monster.cleared?'Destroy nest':'Clear monsters');
       if (!visit.questRegionIds.includes(region.id)) add('quest',region.id,RULES.questDefense,'quest','Quest');
     }
-    for (const site of state.world.sites.filter(site=>site.neutral)) add('attack',site.regionId,site.neutral.defense,'alliance','Attack settlement');
+    for (const site of state.world.sites.filter(site=>state.rulesetId?site.simulationMode==='detailed'&&getRegionState(state,site.regionId).controller!=='player':site.neutral)) add('attack',site.regionId,state.rulesetId?Math.max(1,militarySummary(state,site.regionId).defense):site.neutral.defense,'alliance','Attack settlement');
     if (!visit.duelDone) add('duel',vassal.locationRegionId,RULES.duelDefense,'duel','Honour duel');
     if (!targets.some(target=>target.mode==='quest') && !visit.questRegionIds.includes(vassal.locationRegionId)) add('quest',vassal.locationRegionId,RULES.questDefense,'quest','Quest');
   }
@@ -54,7 +58,8 @@ export function campaignBlockReason(state,vassal,option) {
   if (vassal.classId !== 'warrior') return 'Campaign requires a Warrior';
   if (option.id === 'campaign-leave') return null;
   const settlement = getDetailedSite(state,vassal.locationRegionId)?.detailedState;
-  return vassal.prestige < getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0) ? 'Insufficient Prestige'
+  if(state.rulesetId)return planStock(state,settlement,[{traits:['Edible'],amount:option.foodCost}],[],null,false,false,{beneficiary:'player',discretionary:true}).ok?null:'Missing player-controlled expedition Food';
+  return prestigeAccount(state,vassal).prestige < getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0) ? 'Insufficient Prestige'
     : stockTotal(state,settlement,'Edible') < option.foodCost ? 'Insufficient Food' : null;
 }
 
@@ -70,8 +75,10 @@ function applyCampaignAttempt(state,vassal,nodeState,option) {
   const authored=state.gameConfig.lifeMapGenerator.design.enabled;
   const phaseCost=authored?getVassalActionPhaseCost(vassal,option.phaseCost,{nodeState}):option.phaseCost;
   const source = getDetailedSite(state,vassal.locationRegionId).detailedState;
-  vassal.prestige -= getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0);
-  consumeStock(state,source,'Edible',option.foodCost);
+  const cost=getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0);
+  const substitution=state.rulesetId&&cost>prestigeAccount(state,vassal).prestige?10:0;
+  prestigeAccount(state,vassal).prestige -= substitution?0:cost;
+  if(state.rulesetId)applyStockPlan(state,source,planStock(state,source,[{traits:['Edible'],amount:option.foodCost}],[],null,false,false,{beneficiary:'player',discretionary:true}));else consumeStock(state,source,'Edible',option.foodCost);
   const roll = state.rngNextVassalInt(1,100), success = roll > option.risk;
   const visit = nodeState.campaign;
   const result = {stage:option.stage,regionId:option.regionId,roll,risk:option.risk,success,text:''};
@@ -87,9 +94,10 @@ function applyCampaignAttempt(state,vassal,nodeState,option) {
     state.civilization.chaos.monsterCount = state.world.regions.filter(region=>region.monster).length;
     state.civilization.history.victories++;
     state.civilization.research.total += option.defense*3;
-    emitPracticeEvent(state,{kind:'monsterDestroyed',regionId:vassal.locationRegionId,classId:'warrior'});
+    emitPracticeEvent(state,{kind:'monsterDestroyed',regionId:vassal.locationRegionId,classId:'warrior',faction:'player'});
     result.text='Monster nest destroyed.';
   } else if (option.stage === 'alliance') {
+    if(state.rulesetId)moveCampaignGarrison(state,vassal,option.regionId);
     conquerSettlement(state,option.regionId,option.force-option.defense);
     result.text='Settlement allied with your civilization.';
   } else if (option.stage === 'duel') {
@@ -103,13 +111,13 @@ function applyCampaignAttempt(state,vassal,nodeState,option) {
     result.text=`Quest complete. +${option.prestigeDelta} Prestige and a Relic.`;
   }
   if(success) {
-    vassal.prestige+=option.prestigeDelta;
+    creditPrestige(state,vassal,option.prestigeDelta);
     if(option.risk>0)emitPracticeEvent(state,{kind:'dangerSurvived',regionId:vassal.locationRegionId,classId:'warrior',martial:true});
   }
   if (success && option.mode === 'attack') emitPracticeEvent(state,{kind:'campaignWon',regionId:vassal.locationRegionId,classId:'warrior'});
   visit.lastResult=result;
   if(authored&&!nodeState.rewardAcquisition)markHeirloomTimeAction(nodeState,phaseCost);
-  const pressure=getActionMonsterPressureCost(option);
+  const pressure=getActionMonsterPressureCost(option)+substitution;
   if(pressure>0)addMonsterPressure(state,pressure);
   return {ok:true,phaseCost,needsAcquisition:!!nodeState.rewardAcquisition};
 }
@@ -117,8 +125,8 @@ function applyCampaignAttempt(state,vassal,nodeState,option) {
 export function getCampaignPresentation(state,vassal,nodeState) {
   const forces=campaignForces(state,vassal), mode=nodeState.campaign.mode;
   const allTargets=buildCampaignOptions(state,vassal,nodeState).filter(option=>option.mode).map(option=>({...option,
-    monsterPressureCost:getActionMonsterPressureCost(option),
-    cost:getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0),phases:state.gameConfig.lifeMapGenerator.design.enabled?getVassalActionPhaseCost(vassal,option.phaseCost,{nodeState}):option.phaseCost,
+    monsterPressureCost:getActionMonsterPressureCost(option)+(state.rulesetId?quotePrestige(state.civilization.prestige,getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0)).monsterPressureCost:0),
+    cost:state.rulesetId?quotePrestige(state.civilization.prestige,getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0)).prestigeCost:getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0),phases:state.gameConfig.lifeMapGenerator.design.enabled?getVassalActionPhaseCost(vassal,option.phaseCost,{nodeState}):option.phaseCost,
     blocked:campaignBlockReason(state,vassal,option),riskLabel:`${option.risk}% defeat risk\nForce ${option.force} vs Defence ${option.defense}`}));
   const selected=allTargets.find(target=>target.id===nodeState.selectedOptionId);
   const options=[{id:'attack',label:'Attack',description:'Attack a monster region or neutral settlement.'},
@@ -131,6 +139,33 @@ export function getCampaignPresentation(state,vassal,nodeState) {
     });
   return {mode,forces,activeForce:forces[mode],force:forces.attack,options,allTargets,targets:allTargets.filter(target=>target.mode===mode),selectedTargetId:nodeState.selectedOptionId,
     failed:nodeState.campaign.failed,lastResult:nodeState.campaign.lastResult,
-    resources:{prestige:vassal.prestige,food:stockTotal(state,getDetailedSite(state,vassal.locationRegionId)?.detailedState,'Edible')},
+    resources:{prestige:prestigeAccount(state,vassal).prestige,food:stockTotal(state,getDetailedSite(state,vassal.locationRegionId)?.detailedState,'Edible')},
     progress:state.world.regions.filter(region=>region.monster?.cleared).map(region=>({regionId:region.id,label:'Buildup cleared'}))};
+}
+
+function moveCampaignGarrison(state,vassal,targetId) {
+  const target=getDetailedSite(state,targetId)?.detailedState;
+  if(!target)return;
+  const opposition=populationBins(target).filter(b=>b.allegiance!=='player').reduce((n,b)=>n+b.count,0);
+  const required=Math.ceil(opposition/CONTROL_DEFAULTS.disloyalPerForce);
+  const destinations=target.practiceSlots.filter(p=>stockTraits(state,p).includes('Arms'));
+  const reachable=[...new Set(stockProviderSlots(state,getDetailedSite(state,vassal.locationRegionId)?.detailedState,false,{beneficiary:'player',discretionary:true}).map(p=>p.regionId))];
+  // Allocate the smallest real detachment. Existing loyal residents and captured
+  // equipment count; only missing equipment travels with the expedition.
+  for(const id of reachable){
+    if(id===targetId)continue;
+    const source=getDetailedSite(state,id)?.detailedState;
+    while(availableDetachment(state,id)>0){
+      const defense=militarySummary(state,targetId,'player',{assumeSupplied:true});
+      if(defense.armed>0&&defense.force>=required)break;
+      const needsArms=stockTotal(state,target,'Arms')<=defense.warriors;
+      const destination=destinations.find(p=>(p.stock??0)<stockCapacity(state,target,p));
+      if(needsArms&&!destination)break;
+      const troops=removePeople(source,selectPeople(source,1,{kind:'adults',specialty:'warrior',allegiance:'player'}));
+      if(!troops.length)break;
+      if(needsArms){consumeStock(state,source,'Arms',1);destination.stock=(destination.stock??0)+1;}
+      writePopulationBins(target,[...populationBins(target),...troops.map(b=>({...b,classId:'stranger'}))]);
+    }
+  }
+  target.garrison={supplied:false,paid:0,required:0,tSec:state.tSec};
 }

@@ -24,12 +24,13 @@ assert.equal(duplicated.slots.filter(slot => slot?.structureId === 'hall').lengt
 assert.deepEqual(projectStructureDraft(JSON.parse(JSON.stringify(strip)), JSON.parse(JSON.stringify([build]))), draft);
 const confirmed = ['a','b','c','d','e'].map(practiceId => ({practiceId,tier:'bronze',charge:0,work:0}));
 const purchases = [{intervention:{kind:'practice',mode:'learn',practiceId:'f',resultingTier:'bronze'}},{intervention:{kind:'practice',mode:'upgrade',practiceId:'e',tier:'bronze',resultingTier:'silver'}}];
-assert.deepEqual(projectPracticeDraft(confirmed,purchases).slots.map(p=>p.practiceId),['f','e','a','b','c']);
-assert.deepEqual(projectPracticeDraft(confirmed,[...purchases].reverse()).slots.map(p=>p.practiceId),['e','f','a','b','c']);
-assert.deepEqual(projectPracticeDraft(confirmed,[]).slots,confirmed);
+const practiceDefinition = () => ({category:'resource'});
+assert.deepEqual(projectPracticeDraft(confirmed,purchases,practiceDefinition).slots.map(p=>p.practiceId),['f','e','a','b','c']);
+assert.deepEqual(projectPracticeDraft(confirmed,[...purchases].reverse(),practiceDefinition).slots.map(p=>p.practiceId),['e','f','a','b','c']);
+assert.deepEqual(projectPracticeDraft(confirmed,[],practiceDefinition).slots,confirmed);
 const sparse = [confirmed[0], null, confirmed[2], null, confirmed[4]];
-assert.deepEqual(projectPracticeDraft(sparse,[]).slots,sparse,'An empty draft never compacts confirmed slots');
-assert.deepEqual(projectPracticeDraft(sparse,[purchases[0]]).slots.map(p=>p?.practiceId??null),['f','a',null,'c',null],'Incoming practice preserves unshift displacement and surviving gaps');
+assert.deepEqual(projectPracticeDraft(sparse,[],practiceDefinition).slots,sparse,'An empty draft never compacts confirmed slots');
+assert.deepEqual(projectPracticeDraft(sparse,[purchases[0]],practiceDefinition).slots.map(p=>p?.practiceId??null),['f','a',null,'c',null],'Incoming practice preserves unshift displacement and surviving gaps');
 assert.equal(validateStructureLayout([{placementId:'bad',origin:0,width:Infinity}]).ok,false,'Invalid widths are rejected without iterating their cells');
 assert.throws(()=>normalizeStructureLayout([{structureId:'wide',width:3},{structureId:'overlap'}],5,()=>({footprint:1})),/Invalid authored construction/);
 console.log('Structure layout and practice prefix tests passed.');

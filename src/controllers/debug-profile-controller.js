@@ -10,7 +10,7 @@ import { createRegionalBootProfile } from '../model/regional-map/boot-profile.js
 import { createConfiguredNewGameState } from '../model/new-game.js';
 
 const clone = value => JSON.parse(JSON.stringify(value));
-const WORKSPACE_STORAGE_KEY = 'civsurvivor.debugProfiles.workspace.v3';
+const WORKSPACE_STORAGE_KEY = 'full-map-redesign-v1.debugProfiles.workspace.v3';
 function safeStorage() { try { return globalThis.localStorage ?? null; } catch (_) { return null; } }
 
 export function createDebugProfileController({ mapLabController, debugConfigurationController, lifeMapLabController } = {}) {

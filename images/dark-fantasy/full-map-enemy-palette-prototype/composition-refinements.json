@@ -1,0 +1,76 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "reason": "Card-size inspection showed overly flat lower walls. Introduce one calm dark arch while preserving upper focal action.",
+  "entries": [
+    {
+      "id": "palette_m1_fe_conspicuousFeasts",
+      "prompt": "Use case: precise-object-edit. Refine only the QUIET LOWER ARCHITECTURAL MASS of this medieval dark-fantasy 5:7 Practice illustration. Preserve the complete upper central45% scene, exact two small faceless figures, hand action, food or purse, burial bundles, banner colours and camera. Do not move, enlarge or lower any main figure or identifying object. Preserve Wyeth/Cornwell grouped narrative composition, hard hand-placed pixel clusters, edges and selective dithering. Replace the featureless flat retaining wall BELOW y50% with ONE enormous recessed stone arch opening, seen slightly from below, making the balcony part of a monumental aqueduct or palace arcade. The arch is a broad simple near-black silhouette with thick piers and an almost black empty interior, large calm value masses, subtle spatial depth, no busy brick pattern or bright detail. Do not add people, bodies, bones, rubble, tools, candles, water reflections or any identifying action to the lower half. That half remains subdued and overlay-safe, no second focal point. The arch piers are worn locally painted very dark emerald green stone, with very small restrained warm-ivory worn edges. Dark green is a material surface, not an all-scene tint: retain neutral limestone and neutral sky in the upper scene. Keep the emerald/ivory class identity and all existing corrupt content. All living/dead/decorated faces remain completely indiscernible at full size; no eyes, noses or mouths, shrouds opaque. No writing, symbols, borders or UI.",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_m1_fe_conspicuousFeasts.png"
+      ],
+      "current": true
+    },
+    {
+      "id": "palette_p1_fe_grandJubilee",
+      "prompt": "Use case: precise-object-edit. Refine only the QUIET LOWER ARCHITECTURAL MASS of this medieval dark-fantasy 5:7 Practice illustration. Preserve the complete upper central45% scene, exact two small faceless figures, hand action, food or purse, burial bundles, banner colours and camera. Do not move, enlarge or lower any main figure or identifying object. Preserve Wyeth/Cornwell grouped narrative composition, hard hand-placed pixel clusters, edges and selective dithering. Replace the featureless flat retaining wall BELOW y50% with ONE enormous recessed stone arch opening, seen slightly from below, making the balcony part of a monumental aqueduct or palace arcade. The arch is a broad simple near-black silhouette with thick piers and an almost black empty interior, large calm value masses, subtle spatial depth, no busy brick pattern or bright detail. Do not add people, bodies, bones, rubble, tools, candles, water reflections or any identifying action to the lower half. That half remains subdued and overlay-safe, no second focal point. The arch piers are worn locally painted very dark violet stone with small restrained bone-white worn edges. Dark violet is a material surface, not an all-scene tint: retain neutral limestone and neutral sky in the upper scene. Keep the violet/bone class identity and all existing corrupt content. All living/dead/decorated faces remain completely indiscernible at full size; no eyes, noses or mouths, shrouds opaque. No writing, symbols, borders or UI.",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_p1_fe_grandJubilee.png"
+      ],
+      "current": true
+    },
+    {
+      "id": "palette_m2_fe_conspicuousFeasts",
+      "scheme": "m2",
+      "card": "fe_conspicuousFeasts",
+      "kind": "practice",
+      "master": "palette_m1_fe_conspicuousFeasts",
+      "prompt": "Use case: style-transfer. Change ONLY the two local class material colours in the supplied illustration. Lock the exact composition, camera, figures, silhouettes, hand positions, objects, perspective, landscape/portrait proportions, light direction, quiet areas and pixel texture. Do not add, remove, enlarge or move any subject.  Apply primary and accent as TWO SEPARATE LOCAL MATERIAL COLOURS (robes, large cloth, enamel, trim). Broad neutral stone and near-black value masses remain. Neutral cold overcast light. Do NOT apply a monochrome image tint, coloured fog, coloured sky, or high-saturation bounce light to the entire scene. Strong restricted colour identity like the inspected red/teal Warrior and blue/gold Scholar art, with intentional value contrast.Strong saffron / ochre yellow cloth, canopy and enamel provide the primary colour identity, with deep aubergine-purple trim, bands and secondary cloth. Ivory food and neutral stone remain natural. Near-black plum shadows. Golden yellow is a matte local pigment, not an all-over golden glow. No blue, green or orange wash. Preserve N. C. Wyeth / Dean Cornwell narrative composition and hand-placed pixel clusters, hard edges, selective dithering, restricted palette. Every human, corpse and statue face remains entirely indiscernible at full resolution: deep hood voids or opaque shrouds, no visible eyes, noses or mouths, no skull faces. Preserve 5:7 portrait. The complete principal action, both figures and identifying materials stay in the upper central45%; small figures subordinate to architecture. Lower half remains subdued dark masonry with no extra objects, bodies, stairs, reflections or bright detail. Illustration only: no text, writing, symbols, interface, frames, borders or vignette. No new subjects or decorations; recolour local materials only. Preserve the refined lower half: one monumental, almost black arch, the broad piers carrying a very dark version of this scheme's PRIMARY material colour. Do not flatten it back into a wall. Quiet lower half, no added characters, bodies, bright light or extra focus.",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_m1_fe_conspicuousFeasts.png"
+      ],
+      "output": "art/palette_m2_fe_conspicuousFeasts.png",
+      "current": true
+    },
+    {
+      "id": "palette_m3_fe_conspicuousFeasts",
+      "scheme": "m3",
+      "card": "fe_conspicuousFeasts",
+      "kind": "practice",
+      "master": "palette_m1_fe_conspicuousFeasts",
+      "prompt": "Use case: style-transfer. Change ONLY the two local class material colours in the supplied illustration. Lock the exact composition, camera, figures, silhouettes, hand positions, objects, perspective, landscape/portrait proportions, light direction, quiet areas and pixel texture. Do not add, remove, enlarge or move any subject.  Apply primary and accent as TWO SEPARATE LOCAL MATERIAL COLOURS (robes, large cloth, enamel, trim). Broad neutral stone and near-black value masses remain. Neutral cold overcast light. Do NOT apply a monochrome image tint, coloured fog, coloured sky, or high-saturation bounce light to the entire scene. Strong restricted colour identity like the inspected red/teal Warrior and blue/gold Scholar art, with intentional value contrast.Strong burnt-orange cloth, canopy and enamel are the primary colour identity, with clearly separate deep indigo-blue trim and bands. This is orange, not Warrior scarlet-red. Bone highlights and neutral warm-grey stone stay natural. Near-black navy shadows. No green, teal or gold wash. Preserve N. C. Wyeth / Dean Cornwell narrative composition and hand-placed pixel clusters, hard edges, selective dithering, restricted palette. Every human, corpse and statue face remains entirely indiscernible at full resolution: deep hood voids or opaque shrouds, no visible eyes, noses or mouths, no skull faces. Preserve 5:7 portrait. The complete principal action, both figures and identifying materials stay in the upper central45%; small figures subordinate to architecture. Lower half remains subdued dark masonry with no extra objects, bodies, stairs, reflections or bright detail. Illustration only: no text, writing, symbols, interface, frames, borders or vignette. No new subjects or decorations; recolour local materials only. Preserve the refined lower half: one monumental, almost black arch, the broad piers carrying a very dark version of this scheme's PRIMARY material colour. Do not flatten it back into a wall. Quiet lower half, no added characters, bodies, bright light or extra focus.",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_m1_fe_conspicuousFeasts.png"
+      ],
+      "output": "art/palette_m3_fe_conspicuousFeasts.png",
+      "current": true
+    },
+    {
+      "id": "palette_p2_fe_grandJubilee",
+      "scheme": "p2",
+      "card": "fe_grandJubilee",
+      "kind": "practice",
+      "master": "palette_p1_fe_grandJubilee",
+      "prompt": "Use case: style-transfer. Change ONLY the two local class material colours in the supplied illustration. Lock the exact composition, camera, figures, silhouettes, hand positions, objects, perspective, landscape/portrait proportions, light direction, quiet areas and pixel texture. Do not add, remove, enlarge or move any subject.  Apply primary and accent as TWO SEPARATE LOCAL MATERIAL COLOURS (robes, large cloth, enamel, trim). Broad neutral stone and near-black value masses remain. Neutral cold overcast light. Do NOT apply a monochrome image tint, coloured fog, coloured sky, or high-saturation bounce light to the entire scene. Strong restricted colour identity like the inspected red/teal Warrior and blue/gold Scholar art, with intentional value contrast.Large warm ivory vestments, drapes and pale limestone establish the primary identity; dark oxblood-red collars, cuffs, cloth bands and enamel panels provide a strong separate accent. Faces remain black voids; ash-charcoal shadows create large dark-to-light shapes. This is mostly ivory, not Warrior red. No purple, pink, gold wash or red sky. Preserve N. C. Wyeth / Dean Cornwell narrative composition and hand-placed pixel clusters, hard edges, selective dithering, restricted palette. Every human, corpse and statue face remains entirely indiscernible at full resolution: deep hood voids or opaque shrouds, no visible eyes, noses or mouths, no skull faces. Preserve 5:7 portrait. The complete principal action, both figures and identifying materials stay in the upper central45%; small figures subordinate to architecture. Lower half remains subdued dark masonry with no extra objects, bodies, stairs, reflections or bright detail. Illustration only: no text, writing, symbols, interface, frames, borders or vignette. No new subjects or decorations; recolour local materials only. Preserve the refined lower half: one monumental, almost black arch, the broad piers carrying a very dark version of this scheme's PRIMARY material colour. Do not flatten it back into a wall. Quiet lower half, no added characters, bodies, bright light or extra focus.",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_p1_fe_grandJubilee.png"
+      ],
+      "output": "art/palette_p2_fe_grandJubilee.png",
+      "current": true
+    },
+    {
+      "id": "palette_p3_fe_grandJubilee",
+      "scheme": "p3",
+      "card": "fe_grandJubilee",
+      "kind": "practice",
+      "master": "palette_p1_fe_grandJubilee",
+      "prompt": "Use case: style-transfer. Change ONLY the two local class material colours in the supplied illustration. Lock the exact composition, camera, figures, silhouettes, hand positions, objects, perspective, landscape/portrait proportions, light direction, quiet areas and pixel texture. Do not add, remove, enlarge or move any subject.  Apply primary and accent as TWO SEPARATE LOCAL MATERIAL COLOURS (robes, large cloth, enamel, trim). Broad neutral stone and near-black value masses remain. Neutral cold overcast light. Do NOT apply a monochrome image tint, coloured fog, coloured sky, or high-saturation bounce light to the entire scene. Strong restricted colour identity like the inspected red/teal Warrior and blue/gold Scholar art, with intentional value contrast.Deep wine / mulberry-magenta robes and drapes establish the primary identity, with crisp pale desaturated mint-green trim, collar and small enamel panels as a separate cool accent. This is a dark wine pigment, not pink lighting. Neutral grey limestone, ash-white material highlights and near-black wine shadows. No pink sky, neon, pastel rainbow or gold wash. Preserve N. C. Wyeth / Dean Cornwell narrative composition and hand-placed pixel clusters, hard edges, selective dithering, restricted palette. Every human, corpse and statue face remains entirely indiscernible at full resolution: deep hood voids or opaque shrouds, no visible eyes, noses or mouths, no skull faces. Preserve 5:7 portrait. The complete principal action, both figures and identifying materials stay in the upper central45%; small figures subordinate to architecture. Lower half remains subdued dark masonry with no extra objects, bodies, stairs, reflections or bright detail. Illustration only: no text, writing, symbols, interface, frames, borders or vignette. No new subjects or decorations; recolour local materials only. Preserve the refined lower half: one monumental, almost black arch, the broad piers carrying a very dark version of this scheme's PRIMARY material colour. Do not flatten it back into a wall. Quiet lower half, no added characters, bodies, bright light or extra focus.",
+      "refs": [
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_p1_fe_grandJubilee.png"
+      ],
+      "output": "art/palette_p3_fe_grandJubilee.png",
+      "current": true
+    }
+  ],
+  "current": true,
+  "supersedes": "Practice briefs in prompts.json; Structure briefs remain current there"
+}

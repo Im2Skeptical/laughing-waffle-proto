@@ -59,8 +59,15 @@ by ticks, replay, saves and forecasts. See
 Worker assignments derive from current cohorts. Scholars claim specialist
 sockets before ordinary population-band tokens; ordinary workers fill slots
 left-to-right, with cohort effectiveness from Game Settings. Scheduled workers
-multiply Stock output; Charge workers multiply incoming Charge. Both retain a
-base effect without ordinary workers unless explicit staffing gates block it.
+multiply Stock and conversion output; Charge workers multiply incoming Charge.
+Both retain a base effect at zero workers. Staffing never gates activation;
+actual recipes, population costs/reserves and target eligibility are separate.
+
+Optional Charge-clause `faction` and `controller` filters match the event's
+actor/beneficiary or regional holder respectively. `beneficiary` resolves to the
+listening Influence instance's allegiance, or the Resource region's controller.
+Events snapshot the holder before later captures. Unheld regions do not form a
+worldwide alliance: controller-matched civilization events are local-only there.
 
 Vassal selection, node entry, paid rerolls and confirmation are real timeline
 transactions. Hover, drafts and speculative preparation use isolated snapshots

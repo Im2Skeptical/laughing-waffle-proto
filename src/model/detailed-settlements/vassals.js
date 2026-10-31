@@ -603,7 +603,7 @@ export function getDetailedVassalPrestige(state, vassal = null) {
   const current = vassal ?? state?.civilization?.vassalLineage?.vassalsById?.[
     state?.civilization?.vassalLineage?.currentVassalId
   ];
-  return current ? Math.max(0, Math.floor(current.prestige ?? 0)) : 0;
+  return state.rulesetId ? state.civilization.prestige : current ? Math.max(0, Math.floor(current.prestige ?? 0)) : 0;
 }
 
 function createExpansionDetailedState(structureCapacity) {
@@ -729,7 +729,9 @@ function applyIntervention(state, vassal, intervention) {
       ? { ok: true }
       : { ok: false, reason: "invalidPractice" };
     if (result.ok) {
-      settlement.practiceSlots[slotIndex] = createDetailedPracticeSlot(intervention.practiceId);
+      const slot=createDetailedPracticeSlot(intervention.practiceId);
+      if(state.rulesetId){slot.instanceId=`institution:${state.civilization.nextPracticeInstanceId++}`;if(getDetailedPracticeDef(state,intervention.practiceId)?.category==='influence'){slot.allegiance='player';delete slot.stock;}}
+      settlement.practiceSlots[slotIndex] = slot;
       emitPracticeEvent(state, {kind:'practiceInstalled',regionId:localTargetRegionId,practiceId:intervention.practiceId});
       flushPracticeEvents(state);
     }

@@ -1,6 +1,6 @@
 import { serializeGameState, deserializeGameState } from '../model/state.js';
 
-const PREFIX = 'civsurvivor.development-lab.handoff.';
+const PREFIX = 'full-map-redesign-v1.development-lab.handoff.';
 export function openLabHandoff(state, destination = 'gym', { sameTab = false } = {}) {
   // Validation and serialization happen before opening a tab. Tokens are UI identities,
   // never simulation entropy. The originating runner and save slots remain untouched.

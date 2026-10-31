@@ -1,3 +1,5 @@
+import { isFullMapOfferDefinition, FULL_MAP_SUPPLY_DEPENDENCIES } from '../../defs/gamepieces/full-map-defs.js';
+import { prestigeAccount } from './treasury.js';
 import { VASSAL_WORKSHOP_RULES as RULES } from '../../defs/vassal-workshop-rules.js';
 import { VASSAL_INTERVENTION_PRACTICE_IDS, settlementStructureDefs } from '../../defs/gamepieces/detailed-settlement-defs.js';
 import { getVassalStockOutputIds, isVassalStockOutputPractice } from '../../defs/gamepieces/vassal-life-map-defs.js';
@@ -21,7 +23,8 @@ export function createShopSpecialties(state, vassal, nodeState) {
   const kind = nodeState.family === 'practiceReform' ? 'practice' : 'structure';
   const ids = kind === 'practice' ? VASSAL_INTERVENTION_PRACTICE_IDS : Object.keys(settlementStructureDefs);
   const definitions = ids.map(id => kind === 'practice' ? getDetailedPracticeDef(state,id) : getDetailedStructureDef(state,id))
-    .filter(def => def && !def.locked && ['common',vassal.classId].includes(def.pool)
+    .filter(def => def && !def.locked && (['common',vassal.classId].includes(def.pool) || state.rulesetId && FULL_MAP_SUPPLY_DEPENDENCIES.includes(def.id))
+      && (!state.rulesetId || isFullMapOfferDefinition(def))
       && getDetailedPracticeTierIndex(def.minimumQuality ?? 'bronze') <= Math.min(3,getResearchUnlockIndex(state)+(vassal.discoveryAccess?1:0)));
   let categories = ['Housing','Stock','Special'];
   if (kind === 'practice') {
@@ -39,12 +42,12 @@ export function createShopSpecialties(state, vassal, nodeState) {
   return {kind,selectedTag:null,choices};
 }
 
-export function getShopOfferPrice(vassal, nodeState, offer) {
+export function getShopOfferPrice(vassal, nodeState, offer, state = null) {
   const cost = getVassalActionPrestigeCost(vassal, offer.basePrestigeCost ?? 0,
     {isFirstShopPurchase:!nodeState?.purchasedOffers?.length});
   const reserved = (nodeState?.purchasedOffers ?? []).reduce((sum,purchase) => sum + purchase.prestigeCost,0);
-  const eligible = ['practice','structure'].includes(offer.intervention?.kind) && offer.intervention.mode !== 'remove';
-  return eligible && cost > Math.max(0,vassal.prestige-reserved)
+  const eligible = ['practice','structure'].includes(offer.intervention?.kind) && (state?.rulesetId || offer.intervention.mode !== 'remove');
+  return eligible && cost > Math.max(0,prestigeAccount(state,vassal).prestige-reserved)
     ? {prestigeCost:0,monsterPressureCost:RULES.purchaseMonsterPressure}
     : {prestigeCost:cost,monsterPressureCost:0};
 }

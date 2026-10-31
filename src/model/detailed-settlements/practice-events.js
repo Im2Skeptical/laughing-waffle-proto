@@ -6,12 +6,16 @@ export function practiceEventJournal(state) {
 }
 
 export function emitPracticeEvent(state, event) {
-  if (event.kind==='monsterDestroyed') {
-    state.civilization.history.monsterTrophies=(state.civilization.history.monsterTrophies??0)+1;
-  }
   const journal = practiceEventJournal(state);
   const id = journal.nextId++;
-  const entry = { ...event, id, rootId: journal.activeRoot ?? id,
+  const site=state.world.sites.find(s=>s.regionId===event.regionId);
+  const slot=site?.detailedState?.practiceSlots?.[event.slotIndex]??site?.detailedState?.practiceSlots?.find(s=>s?.practiceId===event.practiceId);
+  const controller=state.world.regions.find(r=>r.id===event.regionId)?.controller??null;
+  const faction=slot?.allegiance??controller;
+  if (event.kind==='monsterDestroyed' && (!state.rulesetId || (event.faction??faction)==='player')) {
+    state.civilization.history.monsterTrophies=(state.civilization.history.monsterTrophies??0)+1;
+  }
+  const entry = { ...(state.rulesetId?{faction,controller,instanceId:slot?.instanceId??null}:{}),...event, id, rootId: journal.activeRoot ?? id,
     parentId: journal.activeEvent ?? null, tSec: state.tSec };
   journal.pending.push(entry);
   return entry;

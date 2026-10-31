@@ -1,3 +1,4 @@
+import { assignGarrisonSupport } from './detailed-settlements/territory.js';
 // src/model/actions.js
 // Active settlement timeline action registry.
 // Leftover placePawn/inventory/build/tag kinds stay because sim-runner
@@ -38,6 +39,7 @@ export const ActionKinds = {
   TOGGLE_HUB_TAG: "toggleHubTag",
   SET_TILE_CROP_SELECTION: "setTileCropSelection",
   SET_HUB_RECIPE_SELECTION: "setHubRecipeSelection",
+  SETTLEMENT_ASSIGN_GARRISON: "settlementAssignGarrison",
   SETTLEMENT_SELECT_VASSAL: "settlementSelectVassal",
   SETTLEMENT_REROLL_VASSALS: "settlementRerollVassals",
   VASSAL_ENTER_LIFE_NODE: "vassalEnterLifeNode",
@@ -148,6 +150,9 @@ export function applyAction(state, action, context = {}) {
 
   let result;
   switch (kind) {
+    case ActionKinds.SETTLEMENT_ASSIGN_GARRISON:
+      result = assignGarrisonSupport(state, payload);
+      break;
     case ActionKinds.SETTLEMENT_SELECT_VASSAL:
       result = cmdSelectSettlementVassal(state, payload);
       break;

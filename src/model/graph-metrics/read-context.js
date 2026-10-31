@@ -1,3 +1,4 @@
+import { controlSummary } from '../detailed-settlements/territory.js';
 import {
   getDetailedCivilizationSummary,
   getPopulationSummary,
@@ -8,8 +9,10 @@ import {
 export function createGraphMetricReadContext(state) {
   const populations = new Map();
   const workers = new Map();
+  const territories = new Map();
   let civilization;
   return {
+    territory: regionId => {if(!territories.has(regionId))territories.set(regionId,controlSummary(state,regionId));return territories.get(regionId);},
     civilization: () => civilization ??= getDetailedCivilizationSummary(state),
     population: (regionId) => {
       if (!populations.has(regionId)) {

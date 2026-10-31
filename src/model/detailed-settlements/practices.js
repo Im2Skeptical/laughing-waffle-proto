@@ -1,3 +1,4 @@
+import { planPopulationRecipe, commitPopulationRecipe } from './political-recipes.js';
 import { keywordScaledAmount } from '../keywords-classes-prototype.js';
 import { assignDetailedSettlementWorkers, isScholarStaffed } from './workers.js';
 // Shared declarative Practice resolution; all temporal material state belongs to slots.
@@ -22,7 +23,7 @@ export function validateDetailedPracticeDefinitions() {
     if (def.mode === 'charge' && (def.consume.length || def.require.length)) errors.push(`${id}: Charge cannot consume or require Stock`);
     for (const effect of def.effects) if (!detailedSettlementEffectOps.includes(effect.op)) errors.push(`${id}: unknown ${effect.op}`);
     for (const cost of [...def.consume, ...def.require]) {
-      if (!cost.traits.some(trait => Object.values(detailedSettlementPracticeDefs).some(provider => ['common', def.pool].includes(provider.pool) && provider.stockTraits.includes(trait)))) errors.push(`${id}: missing provider ${cost.traits}`);
+      if (!cost.traits.some(trait => Object.values(detailedSettlementPracticeDefs).some(provider => (['common', def.pool].includes(provider.pool)||def.provenance&&['sheepHusbandry','papermaking','recordKeeping','bowmaking','requisitioning'].includes(provider.id)) && provider.stockTraits.includes(trait)))) errors.push(`${id}: missing provider ${cost.traits}`);
     }
   }
   return { ok: !errors.length, errors };
@@ -44,8 +45,8 @@ export function getPhaseModifiers(state) { return state.civilization.phaseModifi
 
 function conditionsMet(state, site, def, assignment, localOnly = false) {
   const settlement = site.detailedState;
-  if (def.scholarRequired && !isScholarStaffed(assignment)) return false;
-  if (def.specialistRequired && !specialistCount(settlement, def.specialistRequired)) return false;
+  if (!state.rulesetId && def.scholarRequired && !isScholarStaffed(assignment)) return false;
+  if (!state.rulesetId && def.specialistRequired && !specialistCount(settlement, def.specialistRequired)) return false;
   if (def.condition === 'diverseStock') {
     const signatures = new Set(stockProviderSlots(state, settlement, localOnly).filter(s => !s.market && (s.slot?.stock ?? 0) > 0).map(s => stockTraits(state, s.slot).slice().sort().join('|')));
     if (signatures.size < 2) return false;
@@ -78,6 +79,7 @@ function practiceEffectAmount(state, site, assignment, effect, activationType = 
   if (effect.historyScale==='deathsSinceSpring' && activationType==='season') amount+=Math.min(1,Math.max(0,(settlement.history?.deaths??0)-(settlement.history?.springDeaths??0)));
   if (effect.localDeathScale) amount+=Math.min(effect.localDeathCap??2,settlement.history?.lastDeathCount??0);
   if (effect.externalConnectionScale) amount+=Math.min(3,getConnectedRegionIds(state,site.regionId).filter(id=>getRegionState(state,id)?.controller==='external-a').length);
+  if(effect.op==='convertPopulation')return Math.floor(amount*(def.mode==='charge'?1:1+assignment.effectiveWorkers*def.workerBonus));
   if (effect.op==='generateStock') {
     amount+=modifiers.reduce((sum,m)=>sum+(m.kind==='output'&&matchesPractice(state,slot,m.query,isScholarStaffed(assignment))?m.amount:0),0);
     const seasonal=settlement.seasonalFoodBoost;
@@ -106,15 +108,18 @@ function chargeGain(state,settlement,slot,assignment) {
 function recipePlan(state,site,assignment,localOnly = false) {
   const settlement=site.detailedState, slot=settlement.practiceSlots[assignment.slotIndex],def=getDetailedPracticeDef(state,slot?.practiceId);
   if (!conditionsMet(state,site,def,assignment,localOnly)) return {ok:false,reason:def.scholarRequired&&!isScholarStaffed(assignment)?'Requires a Scholar worker':'State / population requirements not satisfied',providers:[]};
-  const plan=planStock(state,settlement,def.consume,def.require,slot,isScholarStaffed(assignment),localOnly);
+  let plan=planStock(state,settlement,def.consume,def.require,slot,isScholarStaffed(assignment),localOnly);
   if (!plan.ok) return {...plan,reason:`Missing ${plan.missing.kind}: ${plan.missing.amount} [${plan.missing.traits.join(' / ')}]`};
   if (def.mode==='charge' && def.effects.some(e=>e.op==='generateStock')) {
     const spent=plan.providers.filter(p=>p.kind==='consume'&&p.regionId===site.regionId&&p.slotIndex===assignment.slotIndex).reduce((n,p)=>n+p.amount,0);
     if ((slot.stock??0)-spent>=stockCapacity(state,settlement,slot,isScholarStaffed(assignment))) return {ok:false,providers:[],reason:'Stock capacity is full'};
   }
   if (def.mode==='charge' && def.effects.every(e=>e.op==='train') && Object.values(settlement.populationByClass).every(c=>c.adults<=c.specialists.scholar.adults+c.specialists.warrior.adults)) return {ok:false,providers:[],reason:'No unclassed adults available for training'};
+  const populationPlan=state.rulesetId?planPopulationRecipe(state,site,slot,def,def.effects.map(e=>practiceEffectAmount(state,site,assignment,e)),localOnly):{ok:true};
+  if(!populationPlan.ok)return {...populationPlan,providers:[]};
+  if(populationPlan.extraConsume?.length||populationPlan.extraRequire?.length){plan=planStock(state,settlement,[...def.consume,...populationPlan.extraConsume],[...def.require,...populationPlan.extraRequire],slot,isScholarStaffed(assignment),localOnly);if(!plan.ok)return plan;}
   const external=def.externalAction?resolveExternalPractice(state,site,def,false):{ok:true,bonus:0};
-  return external.ok?{...plan,external}:{ok:false,providers:[],reason:'No eligible external target'};
+  return external.ok?{...plan,external,populationPlan}:{ok:false,providers:[],reason:'No eligible external target'};
 }
 
 export function buildDetailedPracticeEvaluation(state, site, assignment) {
@@ -126,7 +131,8 @@ export function buildDetailedPracticeEvaluation(state, site, assignment) {
   const charge=threshold==null?null:Math.min(threshold,slot.charge??0);
   return { practiceId: def.id, label: def.label, workerCapacity: def.workerCapacity, activation: def.activation, rule: def.ui.rule,
     mode:def.mode,charge,chargeThreshold:threshold,chargeGain:def.mode==='charge'?chargeGain(state,site.detailedState,slot,assignment):null,chargeTrigger:def.charge?.triggerText??null,dischargeEffect:def.charge?.dischargeText??null,
-    ready:threshold!=null&&charge>=threshold,blocked:threshold!=null&&charge>=threshold&&!plan.ok,blockedReason:threshold!=null&&charge>=threshold&&!plan.ok?plan.reason:null,
+    ready:threshold!=null&&charge>=threshold,blocked:state.rulesetId?!plan.ok:threshold!=null&&charge>=threshold&&!plan.ok,blockedReason:(state.rulesetId||threshold!=null&&charge>=threshold)&&!plan.ok?plan.reason:null,
+    conversionTargets:plan.populationPlan?.conversions?.map(c=>({regionId:c.targetId,amount:c.selected.reduce((n,b)=>n+b.count,0)}))??[],
     stock: slot.stock ?? 0, stockCapacity: stockCapacity(state, site.detailedState, slot, isScholarStaffed(assignment)), stockTraits: def.stockTraits,
     providers: plan.providers, missing: plan.missing ?? null, supplied: plan.ok,
     effects: def.effects.map(e => ({ op: e.op, scaledValue: { effectiveValue: practiceEffectAmount(state,site,assignment,e), baseValue: e.amount ?? 0, workerMultiplier: def.mode==='charge'?1:1 + assignment.effectiveWorkers * def.workerBonus } })) };
@@ -137,9 +143,17 @@ export function evaluateDetailedPracticeSlot(state, regionId, slotIndex) {
 }
 
 export function runPracticeActivation(state, activationType, stage = null) {
+  if(state.rulesetId&&stage!=='postRouting'&&stage!=='afterMeals')for(const site of getDetailedSettlementSites(state))for(const slot of site.detailedState.structureSlots.filter(Boolean)){
+    const upkeep=getDetailedStructureDef(state,slot.structureId)?.upkeep;
+    if(!slot.construction&&upkeep&&(upkeep.activation===activationType||activationType==='season'&&upkeep.activation===getCurrentSeasonKey(state))){
+      const payment=planStock(state,site.detailedState,upkeep.consume,[],null,false,true);
+      if(upkeep.disables)slot.upkeepActive=payment.ok;
+      if(payment.ok)applyStockPlan(state,site.detailedState,payment);
+    }
+  }
   const sharedRetries = [];
   for (const site of getDetailedSettlementSites(state)) {
-    if (!['player', 'external-a'].includes(getRegionState(state, site.regionId)?.controller)) continue;
+    if (!state.rulesetId && !['player', 'external-a'].includes(getRegionState(state, site.regionId)?.controller)) continue;
     const settlement = site.detailedState;
     for (const assignment of assignDetailedSettlementWorkers(state, site.regionId)) {
       const slot = settlement.practiceSlots[assignment.slotIndex];
@@ -148,14 +162,14 @@ export function runPracticeActivation(state, activationType, stage = null) {
       if (activationType==='season' && def.activation.seasonKeys && !def.activation.seasonKeys.includes(getCurrentSeasonKey(state))) continue;
       if (def.cadenceMoons && Math.floor(state.tSec / (getGameSetting(state, 'phaseDurationSec') * 6)) % def.cadenceMoons) continue;
       const attempt = (currentAssignment, localOnly) => {
-        if (state.runStatus?.complete || site.simulationMode !== 'detailed' || !['player','external-a'].includes(getRegionState(state,site.regionId)?.controller)) return false;
+        if (state.runStatus?.complete || site.simulationMode !== 'detailed' || (!state.rulesetId && !['player','external-a'].includes(getRegionState(state,site.regionId)?.controller))) return false;
         if (def.activation.conditions?.[activationType] && !conditionsMet(state,site,{...def,condition:def.activation.conditions[activationType]},currentAssignment,localOnly)) return false;
         const plan = recipePlan(state,site,currentAssignment,localOnly);
         if (!plan.ok) return false;
         withPracticeRoot(state,{kind:'scheduledActivation',regionId:site.regionId,practiceId:def.id,activationType},()=>resolveRecipe(state,site,currentAssignment,plan,false,activationType));
         return true;
       };
-      if (!attempt(assignment, true)) sharedRetries.push(() => {
+      if (!attempt(assignDetailedSettlementWorkers(state,site.regionId)[assignment.slotIndex], true)) sharedRetries.push(() => {
         const currentAssignment = assignDetailedSettlementWorkers(state, site.regionId)[assignment.slotIndex];
         if (currentAssignment?.practiceId === def.id) attempt(currentAssignment, false);
       });
@@ -170,7 +184,8 @@ function resolveRecipe(state,site,assignment,plan,discharge,activationType=null)
   const staffed=isScholarStaffed(assignment);
   // Evaluate at activation start, before any input or output changes query results.
   const amounts=def.effects.map(e=>practiceEffectAmount(state,site,assignment,e,activationType));
-  applyStockPlan(state,settlement,plan);
+  if (!applyStockPlan(state,settlement,plan)) return;
+  if(state.rulesetId)commitPopulationRecipe(state,site,slot,plan.populationPlan);
   const consumed=plan.providers.filter(p=>p.kind==='consume');
   if (consumed.length) emitPracticeEvent(state,{kind:'stockConsumed',regionId:site.regionId,practiceId:def.id,slotIndex:assignment.slotIndex,
     traits:[...new Set(consumed.flatMap(p=>stockTraits(state,stockProviderSlot(state,settlement,p))))],tags:getPracticeTags(state,def.id,assignment),pool:def.pool,providers:consumed});
@@ -181,15 +196,17 @@ function resolveRecipe(state,site,assignment,plan,discharge,activationType=null)
     const amount=amounts[index];
     if (effect.op==='generateStock') generateStock(state,settlement,slot,amount+plan.external.bonus,staffed);
     else if (!site.neutral) {
-      if (effect.op==='addChaos') addActionChaos(state,amount,{regionId:site.regionId,practiceId:def.id});
+      if (effect.op==='addChaos') {if(!state.rulesetId||getRegionState(state,site.regionId).controller==='player')addActionChaos(state,amount,{regionId:site.regionId,practiceId:def.id});else settlement.regionalChaos=(settlement.regionalChaos??0)+amount;}
       if (effect.op==='addMonsterPressure') addMonsterPressure(state,amount);
-      if (effect.op==='research') state.civilization.research.total+=amount;
+      if(effect.op==='politicalForce'){settlement.politicalForce??={};settlement.politicalForce[slot.instanceId]={allegiance:slot.allegiance,amount,defenseOnly:!!effect.defenseOnly,untilSec:state.tSec+(effect.duration==='year'?state.seasonDurationSec*state.seasons.length:6*getGameSetting(state,'phaseDurationSec'))};}
+      if (effect.op==='research') {if(!state.rulesetId||getRegionState(state,site.regionId).controller==='player')state.civilization.research.total+=amount;else settlement.research=(settlement.research??0)+amount;}
       if (effect.op==='train') trainSpecialists(settlement,effect.classId,amount*(staffed&&effect.classId==='scholar'?2:1));
       if (effect.op==='addHousingForPhase') getPhaseModifiers(state).housingByRegion[site.regionId]=(getPhaseModifiers(state).housingByRegion[site.regionId]??0)+amount;
       if (effect.op==='reduceLocalFoodRequirement') getPhaseModifiers(state).foodByRegion[site.regionId]=(getPhaseModifiers(state).foodByRegion[site.regionId]??0)+amount;
-      if (effect.op==='addFaithChaosResistance') getPhaseModifiers(state).faithResistance+=amount;
+      if (effect.op==='addFaithChaosResistance'&&(!state.rulesetId||getRegionState(state,site.regionId).controller==='player')) getPhaseModifiers(state).faithResistance+=amount;
       if (effect.op==='bankCandidateDevelopment') {
-        const bank=state.civilization.candidateDevelopment??={scholar:0,warrior:0}; bank[effect.classId]+=Math.floor(amount);
+        const owner=state.rulesetId&&getRegionState(state,site.regionId).controller!=='player'?settlement:state.civilization;
+        const bank=owner.candidateDevelopment??={scholar:0,warrior:0}; bank[effect.classId]+=Math.floor(amount);
         emitPracticeEvent(state,{kind:'candidateDevelopmentBanked',regionId:site.regionId,classId:effect.classId,amount});
       }
       if (effect.op==='bankShopQuality') settlement.shopQualityBonus=Math.min(3,(settlement.shopQualityBonus??0)+amount);
@@ -212,15 +229,22 @@ function resolveRecipe(state,site,assignment,plan,discharge,activationType=null)
 }
 
 function matchesEvent(state,site,assignment,event,trigger) {
-  if (trigger.anotherPractice && event.practiceId===assignment.practiceId && event.regionId===site.regionId) return false;
+  const instance=site.detailedState.practiceSlots[assignment.slotIndex];
+  if (trigger.anotherPractice && (event.instanceId?event.instanceId===instance.instanceId:event.practiceId===assignment.practiceId&&event.regionId===site.regionId)) return false;
+  const beneficiary = getDetailedPracticeDef(state, instance.practiceId)?.category === 'influence'
+    ? instance.allegiance : getRegionState(state, site.regionId)?.controller;
+  if(state.rulesetId&&event.faction&&event.kind==='defenseSucceeded'&&beneficiary!==event.faction)return false;
   return trigger.any.some(clause=>{
     if (event.kind!==clause.kind) return false;
+    if(state.rulesetId&&clause.controller==='beneficiary'&&beneficiary==='frontier'&&event.regionId!==site.regionId)return false;
     if (clause.scope!=='civilization' && event.regionId!==site.regionId) {
       if (clause.scope==='adjacent' && !adjacentRegionIds(state,site.regionId).includes(event.regionId)) return false;
       if (clause.scope==='connected' && !getConnectedRegionIds(state,site.regionId).includes(event.regionId)) return false;
       if (!['adjacent','connected'].includes(clause.scope)) return false;
     }
     return (!clause.traitsAny || clause.traitsAny.some(t=>event.traits?.includes(t)))
+      && (!clause.faction || (event.faction??getRegionState(state,event.regionId)?.controller)===(clause.faction==='beneficiary'?beneficiary:clause.faction))
+      && (!clause.controller || (event.controller??getRegionState(state,event.regionId)?.controller)===(clause.controller==='beneficiary'?beneficiary:clause.controller))
       && (!clause.tagsAny || clause.tagsAny.some(t=>event.tags?.includes(t)))
       && (!clause.scholarStaffed || event.scholarStaffed)
       && (!clause.pool || event.pool===clause.pool)
@@ -259,14 +283,14 @@ function drainPracticeEvents(state, sharedRetries = []) {
     for (const [key, candidate] of deferred) if (candidate.event.rootId === event.rootId) deferred.delete(key);
   };
   const tryDischarge = (site, assignment, event, localOnly) => {
-    if (state.runStatus?.complete || site.simulationMode !== 'detailed' || getRegionState(state,site.regionId)?.controller !== 'player') return;
+    if (state.runStatus?.complete || site.simulationMode !== 'detailed' || (!state.rulesetId && getRegionState(state,site.regionId)?.controller !== 'player')) return;
     const root = rootFor(event.rootId);
     if (root.stopped) return;
     const slot = site.detailedState.practiceSlots[assignment.slotIndex];
     const def = getDetailedPracticeDef(state, slot?.practiceId);
     if (def?.mode !== 'charge' || (slot.charge ?? 0) < getChargeThreshold(state, site.detailedState, slot, isScholarStaffed(assignment))) return;
     if (event.regionId !== site.regionId && !matchesEvent(state, site, assignment, event, def.charge.trigger)) return;
-    const key = `${site.regionId}:${assignment.slotIndex}`, deferredKey = `${event.rootId}:${key}`;
+    const key = slot.instanceId??`${site.regionId}:${assignment.slotIndex}`, deferredKey = `${event.rootId}:${key}`;
     if (root.discharged.has(key)) {
       tracePracticeEvent(state, { kind: 'cascadeDeferred', rootId: event.rootId, parentId: event.id,
         regionId: site.regionId, targetPracticeId: def.id, reason: 'Already Discharged in this root chain' });
@@ -296,7 +320,8 @@ function drainPracticeEvents(state, sharedRetries = []) {
         if (root.stopped) continue;
         journal.activeRoot = event.rootId; journal.activeEvent = event.id;
         tracePracticeEvent(state, event);
-        const sites = getDetailedSettlementSites(state).filter(s => ['player', 'external-a'].includes(getRegionState(state, s.regionId)?.controller));
+        const sites = getDetailedSettlementSites(state).filter(s => (state.rulesetId || ['player', 'external-a'].includes(getRegionState(state, s.regionId)?.controller))
+          && s.detailedState.practiceSlots.some(slot=>getDetailedPracticeDef(state,slot?.practiceId)?.mode==='charge'));
         for (const site of sites) {
           const settlement = site.detailedState;
           for (const assignment of assignDetailedSettlementWorkers(state, site.regionId)) {

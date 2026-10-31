@@ -6,7 +6,7 @@ import { emitPracticeEvent } from './practice-events.js';
 // A shared declarative recipe: each successful payment advances one cycle.
 // Local sites have first claim on their materials before any neighbour draws.
 export function runConstructionCycles(state, trigger) {
-  const pending = getDetailedSettlementSites(state, { playerOnly: true }).flatMap(site =>
+  const pending = getDetailedSettlementSites(state, { playerOnly: !state.rulesetId }).flatMap(site =>
     site.detailedState.structureSlots.filter(slot => slot?.construction
       && getDetailedStructureDef(state, slot.structureId)?.construction.activation.type === trigger)
       .map(slot => ({ site, slot })));
@@ -17,7 +17,7 @@ export function runConstructionCycles(state, trigger) {
       const recipe = getDetailedStructureDef(state, slot.structureId).construction;
       const plan = planStock(state, site.detailedState, recipe.consume, [], null, false, localOnly);
       if (!plan.ok) continue;
-      applyStockPlan(state, site.detailedState, plan);
+      if(!applyStockPlan(state, site.detailedState, plan))continue;
       paid.add(slot);
       slot.construction.completedCycles++;
       emitPracticeEvent(state, {

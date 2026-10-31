@@ -15,7 +15,8 @@ for (const id of [...VASSAL_HEIRLOOM_DEFINITION_IDS, 'bag']) {
 const settlementArt = manifest.spriteSheets['settlement-pieces'];
 const registeredPieces = new Set(settlementArt.files);
 for (const id of [...Object.keys(detailedSettlementPracticeDefs), ...Object.keys(settlementStructureDefs)]) {
-  if (!registeredPieces.has(`${id}.webp`)) failures.push(`runtime gamepiece has no dedicated registered painting: ${id}`);
+  const dedicated=Object.values(manifest.spriteSheets).some(sheet=>sheet.files.includes(`${id}.png`)||sheet.files.includes(`chaos_${id}.png`));
+  if (!registeredPieces.has(`${id}.webp`)&&!dedicated) failures.push(`runtime gamepiece has no dedicated registered painting: ${id}`);
 }
 
 async function requireFile(relativePath) {

@@ -549,7 +549,7 @@ export function createVassalLifeMapView({
     const family = getNodeFamily(node) ?? {};
     const location = vassal?.locationRegionId
       ? String(getRegionReference(presentation.state, vassal.locationRegionId) ?? vassal.locationRegionId) : null;
-    const prestige = Number.isFinite(vassal?.prestige) ? Math.floor(vassal.prestige) : null;
+    const prestige = Number.isFinite(vassal?.prestige) ? Math.floor(presentation.state?.rulesetId?presentation.state.civilization.prestige:vassal.prestige) : null;
     return {
       node, family, location, prestige, blockedReason: entryBlockedReason,
       signature: !!node.signatureNode?.variantId,

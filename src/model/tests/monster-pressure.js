@@ -4,7 +4,8 @@ import { formatChaosValue, roundChaos } from '../chaos-values.js';
 import { getGameSetting } from '../game-config.js';
 import { getDetailedCivilizationSummary } from '../detailed-settlements/view-model.js';
 import assert from 'node:assert/strict';
-import { createNewGameState } from '../new-game.js';
+import { createStarterBootProfile } from '../starter-boot-profile.js';
+import { createConfiguredNewGameState } from '../new-game.js';
 import { serializeGameState, deserializeGameState } from '../state.js';
 import { getMonsterPressureRate, stepSpatialPressure, addMonsterPressure, adjacentRegionIds } from '../detailed-settlements/external-world.js';
 import { addActionChaos, getActionChaosCost, getActionMonsterPressureCost } from '../detailed-settlements/practice-events.js';
@@ -18,6 +19,7 @@ import { classActionOptions, applyClassAction } from '../vassal-life-map/class-a
 import { trainSpecialists } from '../detailed-settlements/stock.js';
 import { practiceSlot } from '../dev-lab/fixtures.js';
 
+const createNewGameState=seed=>createConfiguredNewGameState(seed,createStarterBootProfile());
 // Compact units retain each person's contribution, including small cohorts.
 const compact=createNewGameState(433);
 const compactSites=compact.world.sites.filter(site=>compact.world.regions.find(r=>r.id===site.regionId)?.controller==='player');
@@ -170,7 +172,7 @@ assert.equal(seasonLoss.runStatus.complete,true);
 assert.equal(seasonLoss.civilization.chaos.chaosPower,chaosBeforeSeasonLoss);
 assert.equal(seasonLoss.runStatus.tSec,16);
 
-const costs=createNewGameState(53), home=costs.world.sites.find(site=>site.regionId===costs.civilization.capitalRegionId);
+const costs=createConfiguredNewGameState(53,createStarterBootProfile()), home=costs.world.sites.find(site=>site.regionId===costs.civilization.capitalRegionId);
 home.detailedState.practiceSlots=[practiceSlot('forage',3),practiceSlot('bowmaking',3),practiceSlot('raidingParties'),null,null];
 home.detailedState.populationByClass.villager.adults=30;trainSpecialists(home.detailedState,'warrior',30);
 costs.currentSeasonIndex=1;

@@ -87,6 +87,7 @@ const actor=getCurrentLifeMapVassal(shop.state),board=shop.state.world.sites.fin
 board.practiceSlots=fiveSlots(practiceSlot('logging'),practiceSlot('dryFarming'));
 board.structureSlots.fill(null);
 assert.ok(selectVassalNodeOption(shop.state,shop.nodeId,'Stock').ok);
+getCurrentLifeMapVassal(shop.state).lifeMap.nodeStates[shop.nodeId].inventory.push({offerId:'fixture:storehouse',label:'Storehouse',basePrestigeCost:10,basePhaseCost:4,baseCurrencyCost:0,intervention:{kind:'structure',mode:'add',structureId:'storehouse',tier:'bronze',targetRegionId:actor.locationRegionId}});
 const original=JSON.stringify(serializeGameState(shop.state));
 const offers=getVassalNodeDecisionPresentation(shop.state,shop.nodeId);
 const storehouse=offers.offers.find(o=>o.intervention.structureId==='storehouse');assert.ok(storehouse);
@@ -104,6 +105,9 @@ assert.ok(board.structureSlots.every(slot=>!slot),'live board remains unchanged 
 // Mixed shops: a newly reserved Practice must participate in Structure hover,
 // including its baseline, delta and completion marker before either is committed.
 const mixed=createLabNodeSandbox({type:'foodShop',prestige:200,seed:1});
+const mixedActor=getCurrentLifeMapVassal(mixed.state),mixedNode=mixedActor.lifeMap.nodeStates[mixed.nodeId];
+// Explicit mixed inventory keeps this arithmetic test independent of catalogue sampling.
+mixedNode.inventory=[{offerId:'fixture:sheep',label:'Sheep',basePrestigeCost:10,basePhaseCost:4,baseCurrencyCost:0,intervention:{kind:'practice',mode:'learn',practiceId:'sheepHusbandry',resultingTier:'bronze',targetRegionId:mixedActor.locationRegionId}},{offerId:'fixture:granary',label:'Granary',basePrestigeCost:10,basePhaseCost:4,baseCurrencyCost:0,intervention:{kind:'structure',mode:'add',structureId:'granary',tier:'bronze',qualityBonus:1,targetRegionId:mixedActor.locationRegionId}}];
 const mixedOffers=getVassalNodeDecisionPresentation(mixed.state,mixed.nodeId).offers;
 const sheep=mixedOffers.find(o=>o.intervention.practiceId==='sheepHusbandry');
 const granary=mixedOffers.find(o=>o.intervention.structureId==='granary');

@@ -4,8 +4,8 @@ import { createNewGameState } from '../model/new-game.js';
 import { importReviewDocument } from '../model/dev-lab/card-review.js';
 
 // Stable across builds; never attach this key to player save reset/cleanup.
-export const CARD_REVIEW_STORAGE_KEY = 'civsurvivor.card-review.v1';
-export const CARD_REVIEW_GAME_MODE_KEY = 'civsurvivor.card-review.use-in-new-games';
+export const CARD_REVIEW_STORAGE_KEY = 'full-map-redesign-v1.card-review.v1';
+export const CARD_REVIEW_GAME_MODE_KEY = 'full-map-redesign-v1.card-review.use-in-new-games';
 function browserStorage() {
   try{return globalThis.localStorage;}catch{return {getItem:()=>null,setItem:()=>{throw new Error('Browser storage is unavailable.');}};}
 }

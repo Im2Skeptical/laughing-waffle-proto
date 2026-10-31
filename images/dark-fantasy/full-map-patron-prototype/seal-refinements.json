@@ -1,0 +1,67 @@
+{
+    "tool":  "built-in image_gen.imagegen",
+    "date":  "2026-10-30",
+    "status":  "Proposed alternatives; no gameplay changes or selected final iconography.",
+    "entries":  [
+                    {
+                        "id":  "priestPale_cp_offeringOfNames",
+                        "prompt":  "Use case: precise-object-edit. Palette-only revision of the supplied medieval dark-fantasy gamepiece painting. Preserve every existing shape, placement, framing, scale and symbol exactly. Change ochre/golden-orange fabric and solar material to PALE SULPHUR YELLOW, a waxy desaturated straw/lemon ivory: light warm yellow, not orange or gold. Retain deep AUBERGINE purple as a strong secondary colour in the same purple drapes, bands and recesses. Make pale yellow and aubergine visibly distinct; keep neutral grey masonry and overcast sky, black void and dark lower shadows. No global yellow tint. The mood remains diseased, oppressive, depleted cosmic horror, not festive or holy radiance. Narrative N.C.Wyeth/Dean Cornwell composition, hard hand-placed pixel clusters, hard edges, selective dithering, limited palette. All human, dead and sculpted faces completely indiscernible at full resolution: backs and opaque hood voids, no eyes/nose/mouth. No text, writing, UI, frame, border or new symbols. Preserve the existing diegetic Hollow Sun motif only. Opaque full-bleed 5:7 Practice; all principal action, three anonymous figures and props remain in upper central45%, feet at38-40%, key objects end by43%; entire lower55% stays one quiet almost-black arch. Do not move the platform, enlarge people or add lower light. Priest robes and empty sun membrane become pale yellow; purple trim and bindings stay aubergine.",
+                        "refs":  [
+                                     "images/dark-fantasy/full-map-patron-prototype/art/cp_offeringOfNames.png"
+                                 ],
+                        "source":  "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-5a53373e-351e-40e4-8295-cf4fbf31fd0a.png",
+                        "output":  "art/priestPale_cp_offeringOfNames.png",
+                        "sha256":  "5d7e9e3c904b4c4fb8fef9cc7d29c2fba60fb5fedc826e579acd2a5d42d34de1"
+                    },
+                    {
+                        "id":  "priestPale_cp_templeOfHollowSun",
+                        "prompt":  "Use case: precise-object-edit. Palette-only revision of the supplied medieval dark-fantasy gamepiece painting. Preserve every existing shape, placement, framing, scale and symbol exactly. Change ochre/golden-orange fabric and solar material to PALE SULPHUR YELLOW, a waxy desaturated straw/lemon ivory: light warm yellow, not orange or gold. Retain deep AUBERGINE purple as a strong secondary colour in the same purple drapes, bands and recesses. Make pale yellow and aubergine visibly distinct; keep neutral grey masonry and overcast sky, black void and dark lower shadows. No global yellow tint. The mood remains diseased, oppressive, depleted cosmic horror, not festive or holy radiance. Narrative N.C.Wyeth/Dean Cornwell composition, hard hand-placed pixel clusters, hard edges, selective dithering, limited palette. All human, dead and sculpted faces completely indiscernible at full resolution: backs and opaque hood voids, no eyes/nose/mouth. No text, writing, UI, frame, border or new symbols. Preserve the existing diegetic Hollow Sun motif only. Opaque full-bleed 9:4 three-cell Structure; keep building dominant in central75%, people tiny anonymous dots at most3%height. Preserve impossible hollow-sun cathedral silhouette. The great sun membrane, torn canopy and previously ochre cloth become pale wax-yellow; aubergine hangs beneath in broad strips. No larger foreground people.",
+                        "refs":  [
+                                     "images/dark-fantasy/full-map-patron-prototype/art/cp_templeOfHollowSun.png"
+                                 ],
+                        "source":  "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-45033f40-c2ea-4f79-8e04-5d7b0976e2f8.png",
+                        "output":  "art/priestPale_cp_templeOfHollowSun.png",
+                        "sha256":  "666073b989d278ee36d5970291141da7aebba104ec42724e8aa64a7ce3030660"
+                    },
+                    {
+                        "id":  "patron-creditor-maw",
+                        "prompt":  "Use case: logo-brand. One original dark-fantasy cult seal for a tiny game card, isolated pale bone/ivory on a genuinely transparent background including all cutout holes. Square image, symbol fills central80%, no outer badge or frame. It must remain immediately recognisable at24px and distinct at16px. Bold simple silhouette, 3-4 large connected masses, thick strokes and broad negative gaps. Hard pixel-cluster edges matching old-school dark fantasy painted icons; restrained bone shading, almost solid silhouette. Minimal large chips only, no scattered debris, noise, lace, tiny scratches or hairlines. No text, letters, numbers, generic occult pentagram, human faces, identifiable copyrighted insignia, gradients, glow or background. A cruel institutional god-mark rather than a modern business logo. Merchant enemy, proposed Last Creditor: A COIN IN A MAW. One broad low crescent lower jaw with two large hooked end-fangs curling inward, one solid round unmarked coin trapped above its center, a short thick upper arch closing over it. The coin must be separated by a broad transparent gap so it reads as wealth being swallowed. Wide squat predatory vault silhouette, no face or eyes, no teeth rows, chains, bells or scales. Only the one coin and two brutal enclosing jaws.",
+                        "refs":  [
+
+                                 ],
+                        "source":  "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-a4aed769-274b-4a52-a020-63c494bc3197.png",
+                        "output":  "art/patron-creditor-maw.png",
+                        "sha256":  "9e31966bb84f26e859e8a73b9ec0772d40d7e881036d9f5951d112e9815a32c4"
+                    },
+                    {
+                        "id":  "patron-creditor-grasp",
+                        "prompt":  "Use case: logo-brand. One original dark-fantasy cult seal for a tiny game card, isolated pale bone/ivory on a genuinely transparent background including all cutout holes. Square image, symbol fills central80%, no outer badge or frame. It must remain immediately recognisable at24px and distinct at16px. Bold simple silhouette, 3-4 large connected masses, thick strokes and broad negative gaps. Hard pixel-cluster edges matching old-school dark fantasy painted icons; restrained bone shading, almost solid silhouette. Minimal large chips only, no scattered debris, noise, lace, tiny scratches or hairlines. No text, letters, numbers, generic occult pentagram, human faces, identifiable copyrighted insignia, gradients, glow or background. A cruel institutional god-mark rather than a modern business logo. Merchant enemy, proposed Last Creditor: THE DEBT GRASP. One solid round unmarked coin clasped from below by three thick inward-curving barbed talons; a broad shared base makes the grasp one compact connected form. The outer talons close above the coin to form an asymmetric possessive hook. Keep one broad transparent crescent between coin and grasp. Reads as avarice and ownership, NOT a hand with realistic fingers, bell, flower, sun, crown or currency character.",
+                        "refs":  [
+
+                                 ],
+                        "source":  "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-07141d25-df79-45e9-b946-7bc144e2b774.png",
+                        "output":  "art/patron-creditor-grasp.png",
+                        "sha256":  "663fe084b19e77d410343d7b22eeb4664428621bb7145d84b110b164492a0b9f"
+                    },
+                    {
+                        "id":  "patron-index-tome",
+                        "prompt":  "Use case: logo-brand. One original dark-fantasy cult seal for a tiny game card, isolated pale bone/ivory on a genuinely transparent background including all cutout holes. Square image, symbol fills central80%, no outer badge or frame. It must remain immediately recognisable at24px and distinct at16px. Bold simple silhouette, 3-4 large connected masses, thick strokes and broad negative gaps. Hard pixel-cluster edges matching old-school dark fantasy painted icons; restrained bone shading, almost solid silhouette. Minimal large chips only, no scattered debris, noise, lace, tiny scratches or hairlines. No text, letters, numbers, generic occult pentagram, human faces, identifiable copyrighted insignia, gradients, glow or background. A cruel institutional god-mark rather than a modern business logo. Scholar enemy, proposed Unfinished Index: THE BOUND TOME. One thick open book seen straight-on, two broad angular page-blocks form a shallow wing silhouette around a single deep vertical transparent slit. Three heavy barbed binding roots extend down from its spine; the central root longest. Pages are blank solid ivory masses with only one broad transparent stepped cut each, no writing or fine page lines. The book is forcibly held open by its own cruel spine, forbidden knowledge as an organism. No eye, sun ring, crown or rectangular signpost.",
+                        "refs":  [
+
+                                 ],
+                        "source":  "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-4661e1db-0066-452e-a1af-8e3451894868.png",
+                        "output":  "art/patron-index-tome.png",
+                        "sha256":  "91c2149ba013155069ede6569063d2c2cb8605f1e5301572e7ed368dca5a226b"
+                    },
+                    {
+                        "id":  "patron-index-quill",
+                        "prompt":  "Use case: logo-brand. One original dark-fantasy cult seal for a tiny game card, isolated pale bone/ivory on a genuinely transparent background including all cutout holes. Square image, symbol fills central80%, no outer badge or frame. It must remain immediately recognisable at24px and distinct at16px. Bold simple silhouette, 3-4 large connected masses, thick strokes and broad negative gaps. Hard pixel-cluster edges matching old-school dark fantasy painted icons; restrained bone shading, almost solid silhouette. Minimal large chips only, no scattered debris, noise, lace, tiny scratches or hairlines. No text, letters, numbers, generic occult pentagram, human faces, identifiable copyrighted insignia, gradients, glow or background. A cruel institutional god-mark rather than a modern business logo. Scholar enemy, proposed Unfinished Index: THE ERASING QUILL. One huge broad angular feather-quill slants upper-right to lower-left, with three deep chunky cuts making its silhouette recognisably a feather, a hooked split nib extending below. It pierces a short thick horizontal rectangular record tablet near its bottom third; tablet has one generous rectangular negative gap, not writing. Feather occupies75%height, tablet35%width. Reads as an oppressive scribal implement or ritual execution tool, not a sword, leaf, eye, crown or signpost. Very thick shapes, no fine feather strands.",
+                        "refs":  [
+
+                                 ],
+                        "source":  "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-68050d37-87c9-43a6-85db-58267b8c553e.png",
+                        "output":  "art/patron-index-quill.png",
+                        "sha256":  "2c3341ef1d85a5340695d4e0e3498d5cdb05d40a2d844125c049b2c7ef942c2d"
+                    }
+                ]
+}

@@ -1,0 +1,188 @@
+{"frames": {
+
+"chaos_cp_archiveOfUnfinishedIndex.png":
+{
+	"frame": {"x":2,"y":2,"w":564,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":564,"h":251},
+	"sourceSize": {"w":564,"h":251}
+},
+"chaos_cp_finalRedaction.png":
+{
+	"frame": {"x":662,"y":1134,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_abstractDisputation.png":
+{
+	"frame": {"x":2,"y":1572,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_approvedHistories.png":
+{
+	"frame": {"x":324,"y":1572,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_archiveOfUnbuiltWorks.png":
+{
+	"frame": {"x":2,"y":512,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"chaos_fe_censusPetitions.png":
+{
+	"frame": {"x":646,"y":1583,"w":319,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":319,"h":445},
+	"sourceSize": {"w":319,"h":445}
+},
+"chaos_fe_credentialExams.png":
+{
+	"frame": {"x":2,"y":2021,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_departmentOfSeals.png":
+{
+	"frame": {"x":570,"y":2,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"chaos_fe_districtRegistry.png":
+{
+	"frame": {"x":2,"y":1134,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"chaos_fe_doctrinalAudit.png":
+{
+	"frame": {"x":324,"y":2021,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_duplicateReturns.png":
+{
+	"frame": {"x":646,"y":2032,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_endlessReview.png":
+{
+	"frame": {"x":2,"y":2470,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_examinationHall.png":
+{
+	"frame": {"x":467,"y":512,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"chaos_fe_indexedStorehouse.png":
+{
+	"frame": {"x":2,"y":823,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"chaos_fe_licensingQueue.png":
+{
+	"frame": {"x":324,"y":2470,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_palaceOfMeasures.png":
+{
+	"frame": {"x":2,"y":257,"w":564,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":564,"h":251},
+	"sourceSize": {"w":564,"h":251}
+},
+"chaos_fe_perfectedCensus.png":
+{
+	"frame": {"x":646,"y":2481,"w":319,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":319,"h":445},
+	"sourceSize": {"w":319,"h":445}
+},
+"chaos_fe_redundantInventories.png":
+{
+	"frame": {"x":2,"y":2919,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_remoteBureau.png":
+{
+	"frame": {"x":332,"y":1134,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"chaos_fe_sealedAcademy.png":
+{
+	"frame": {"x":467,"y":823,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"chaos_fe_sealedCurriculum.png":
+{
+	"frame": {"x":646,"y":2930,"w":319,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":319,"h":445},
+	"sourceSize": {"w":319,"h":445}
+},
+"chaos_fe_surveyStakes.png":
+{
+	"frame": {"x":324,"y":2919,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "full-map-chaos-sect.png",
+	"format": "RGBA8888",
+	"size": {"w":982,"h":3377},
+	"scale": "0.3",
+	"smartupdate": "$TexturePacker:SmartUpdate:13e53d4b93f2355057127efe19781244:83076a5e8d246f0ca4574a5282b27e2d:63da3c5ecc5ebca1bf0a274e4bd3a89f$"
+}
+}

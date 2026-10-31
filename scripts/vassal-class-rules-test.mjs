@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import { createNewGameState } from '../src/model/new-game.js';
+import { createConfiguredNewGameState } from '../src/model/new-game.js';
+import { createStarterBootProfile } from '../src/model/starter-boot-profile.js';
+// Historical class arithmetic fixture; full-map local garrisons are tested separately.
+const createNewGameState = seed => createConfiguredNewGameState(seed, createStarterBootProfile());
 import { ActionKinds, applyAction } from '../src/model/actions.js';
 import { serializeGameState, deserializeGameState } from '../src/model/state.js';
 import { getCurrentLifeMapVassal, selectLifeMapVassal, getVassalCandidatePool, getVassalNodeDecisionPresentation } from '../src/model/vassal-life-map.js';
@@ -179,11 +182,11 @@ const restored=deserializeGameState(serializeGameState(state));
 const dying=deserializeGameState(serializeGameState(state));
 const dyingVassal=getCurrentLifeMapVassal(dying);
 dyingVassal.initialAge=100;
-// Pin the mortality roll independently of earlier shop inventory draws.
-dying.rng.vassalSeed=0;
+// Pin the mortality branch independently of content-pool RNG consumption.
+dying.rng.vassalSeed=7;
 initializeReplayClock(dying,dying.tSec);
 assert.equal(advanceReplayStateToSecond(dying,target).ok,true);
-assert.equal(dyingVassal.endedReason,'died','Delve still resolves natural mortality');
+assert.equal(dyingVassal.endedReason,'died','Delve mortality '+JSON.stringify({sec:dying.tSec,target,status:dying.runStatus,pending:dyingVassal.lifeMap.pendingResolution,age:dyingVassal.initialAge,year:dying.year}));
 assert.equal(dyingVassal.deathCause,'naturalMortality');
 assert.equal(dyingVassal.lifeEvents.filter(event=>event.kind==='nodeResolved').length,resolvedEventsBefore,
   'a fatal Delve must not emit a turning-point-resolved life event either');
