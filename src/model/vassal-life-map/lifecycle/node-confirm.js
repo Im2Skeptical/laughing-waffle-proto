@@ -1,17 +1,18 @@
+import { prestigeAccount, creditPrestige } from '../treasury.js';
 import { getHubCore } from "../../settlement-state.js";
 import { resolveLifeMapOptionCosts } from '../../life-map-balance.js';
 import { getVassalRiskDeathChance } from '../class-rules.js';
 import { VASSAL_CLASS_RULES } from '../../../defs/vassal-class-rules.js';
 import { ensureCommissionOffers, recordCommissionAction } from '../commissions.js';
 import { createShopSpecialties } from '../shop-specialties.js';
-import { buildCrossroadsOptions, buildLegacyOptions, legacySettlementTargets, rollTourReward } from '../world-choices.js';
+import { buildCrossroadsOptions, buildLegacyOptions, legacySettlementTargets, isEmptyFrontierDestination, rollTourReward } from '../world-choices.js';
 import { buildCampaignOptions, campaignBlockReason, resolveCampaignAttempt } from '../campaign.js';
 import { VASSAL_WORKSHOP_RULES } from '../../../defs/vassal-workshop-rules.js';
-import { getGameSetting } from '../../game-config.js';
+import { getGameSetting, getDetailedPracticeDef } from '../../game-config.js';
 import { addMonsterPressure } from '../../detailed-settlements/external-world.js';
 import { addActionChaos } from '../../detailed-settlements/practice-events.js';
 import { classActionOptions, validateClassAction, applyClassAction } from "../class-actions.js";
-import { stockTotal, consumeStock } from "../../detailed-settlements/stock.js";
+import { stockTotal, consumeStock, discretionaryStock, planStock, applyStockPlan } from "../../detailed-settlements/stock.js";
 import { selectPopulationComposition } from "../../detailed-settlements/helpers.js";
 import { removePopulationComposition } from "../../detailed-settlements/phases/migration.js";
 import { emitPracticeEvent, withPracticeRoot } from '../../detailed-settlements/practice-events.js';
@@ -80,10 +81,11 @@ import {
   chooseShopSpecialty,
   isShopNodeState,
   validatePurchaseInterventions,
+  repriceShopDraft,
 } from "../shop.js";
 import { generateCandidatePool } from "./candidates.js";
 
-function applyPracticeIntervention(practiceSlots, intervention) {
+function applyPracticeIntervention(state, practiceSlots, intervention) {
   const existingIndex = practiceSlots.findIndex((slot) =>
     slot?.practiceId === intervention.practiceId);
   if (intervention.mode === "remove") {
@@ -96,11 +98,12 @@ function applyPracticeIntervention(practiceSlots, intervention) {
     const existing = practiceSlots[existingIndex];
     if (!existing || existing.tier !== intervention.tier
         || existing.tier === "diamond") return false;
-    nextSlot = {...createDetailedPracticeSlot(intervention.practiceId, intervention.resultingTier),stock:existing.stock,charge:existing.charge,work:existing.work};
+    nextSlot = {...existing,tier:intervention.resultingTier};
     practiceSlots.splice(existingIndex, 1);
   } else {
     if (existingIndex >= 0 || intervention.mode !== "learn") return false;
     nextSlot = createDetailedPracticeSlot(intervention.practiceId, intervention.resultingTier);
+    if(state.rulesetId){nextSlot.instanceId=`institution:${state.civilization.nextPracticeInstanceId++}`;if(getDetailedPracticeDef(state,intervention.practiceId)?.category==='influence'){nextSlot.allegiance='player';delete nextSlot.stock;}}
   }
   practiceSlots.unshift(nextSlot);
   practiceSlots.length = DETAILED_PRACTICE_SLOT_COUNT;
@@ -116,7 +119,7 @@ function getSettlementTargets(state, vassal) {
     const targetRegionId = edge.regionAId === vassal.locationRegionId ? edge.regionBId
       : edge.regionBId === vassal.locationRegionId ? edge.regionAId : null;
     const target = targetRegionId ? getRegionState(state, targetRegionId) : null;
-    return target?.controller === "frontier" && Math.floor(target.structureCapacity ?? 0) >= 1
+    return target && isEmptyFrontierDestination(state, targetRegionId)
       ? [targetRegionId] : [];
   }).sort();
 }
@@ -124,7 +127,7 @@ function getSettlementTargets(state, vassal) {
 function buildSettlementFallbackOptions(state, vassal) {
   const found=resolveLifeMapOptionCosts(state,{family:'signature',signatureNode:{variantId:'settlement'}},{id:'settlement-unavailable',prestigeCost:VASSAL_LIFE_TUNING.settlementPrestigeCost});
   const foundCost=state.gameConfig.lifeMapGenerator.design.enabled?getAdjustedVassalPrestigeCost(vassal,found.prestigeCost):VASSAL_LIFE_TUNING.settlementPrestigeCost;
-  if (vassal.prestige < foundCost) {
+  if (prestigeAccount(state,vassal).prestige < foundCost) {
     return [{ id: "settlement-favor", label: "Seek Settlement Favor", prestigeDelta: 10, phaseCost: 0 }];
   }
   const currentId = vassal.locationRegionId;
@@ -158,9 +161,10 @@ export function getSettlementRequirements(state, vassal, option) {
     getWorldConnectionKey(edge.regionAId, edge.regionBId)
       === getWorldConnectionKey(vassal.locationRegionId, targetId));
   return [
-    { label: `${cost} Prestige (have ${vassal.prestige})`, met: vassal.prestige >= cost },
+    { label: `${cost} Prestige (have ${prestigeAccount(state,vassal).prestige})`, met: prestigeAccount(state,vassal).prestige >= cost },
     { label: `10 adult Villagers move (have ${adults})`, met: adults >= 10 },
     { label: "Frontier destination", met: target?.controller === "frontier" },
+    { label: "Empty destination", met: !!targetId && isEmptyFrontierDestination(state, targetId) },
     { label: "Existing route to destination", met: connected },
     { label: "Destination capacity: at least 1", met: (target?.structureCapacity ?? 0) >= 1 },
   ];
@@ -172,7 +176,7 @@ function buildSettlementOptions(state, vassal) {
     .flatMap((edge) => {
       const otherId = edge.regionAId === vassal.locationRegionId ? edge.regionBId
         : edge.regionBId === vassal.locationRegionId ? edge.regionAId : null;
-      return otherId && getRegionState(state, otherId)?.controller === "frontier" ? [otherId] : [];
+      return otherId && isEmptyFrontierDestination(state, otherId) ? [otherId] : [];
     });
   const options = shuffle(state, targets).slice(0, 3).map((targetRegionId) => resolveLifeMapOptionCosts(state,{family:'signature',signatureNode:{variantId:'settlement'}},{
     id: `small-settlement:${targetRegionId}`,
@@ -341,7 +345,7 @@ export function selectVassalNodeOption(state, nodeId, optionId) {
     return { ok: false, reason: "settlementUnavailable" };
   }
   const prestigeCost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
-  if (prestigeCost > vassal.prestige) return { ok: false, reason: "insufficientPrestige" };
+  if (prestigeCost > prestigeAccount(state,vassal).prestige && !(state.rulesetId&&nodeState.family==='campaign')) return { ok: false, reason: "insufficientPrestige" };
   nodeState.selectedOptionId = optionId;
   return { ok: true, optionId };
 }
@@ -349,7 +353,7 @@ export function selectVassalNodeOption(state, nodeId, optionId) {
 function applyIntervention(state, intervention, vassal) {
   const settlement = getDetailedSite(state, intervention.targetRegionId)?.detailedState;
   if (intervention.kind === "practice" && settlement) {
-    const ok = applyPracticeIntervention(settlement.practiceSlots, intervention);
+    const ok = applyPracticeIntervention(state, settlement.practiceSlots, intervention);
     if (ok && intervention.mode === 'learn') {
       emitPracticeEvent(state, {kind:'practiceInstalled',regionId:intervention.targetRegionId,practiceId:intervention.practiceId});
       flushPracticeEvents(state);
@@ -457,15 +461,14 @@ function applyOptionEffect(state, vassal, nodeState, option) {
   const quotedPhaseCost=authored?getVassalActionPhaseCost(vassal,option?.phaseCost??0,{nodeState,isTravel:!!option?.locationRegionId}):null;
   const quotedRisk=authored?getVassalRiskDeathChance(vassal,option?.immediateDeathChance):null;
   const prestigeCost = getAdjustedVassalPrestigeCost(vassal, option?.prestigeCost ?? 0);
-  if (prestigeCost > vassal.prestige) return { ok: false, reason: "insufficientPrestige" };
-  vassal.prestige -= prestigeCost;
+  if (prestigeCost > prestigeAccount(state,vassal).prestige) return { ok: false, reason: "insufficientPrestige" };
+  prestigeAccount(state,vassal).prestige -= prestigeCost;
   if (!option?.classAction && Number.isFinite(option?.prestigeDelta)) {
     let delta = Math.floor(option.prestigeDelta);
     if (nodeState.family === "patronage" && delta > 0) {
       delta = Math.floor(delta * getEquippedHeirloomModifiers(vassal).patronageOptionMultiplier);
     }
-    vassal.prestige = Math.max(0, vassal.prestige + delta);
-    if (delta > 0) recordCommissionAction(state, vassal, { kind: 'prestigeGained', amount: delta });
+    if(delta>0)creditPrestige(state,vassal,delta);else prestigeAccount(state,vassal).prestige=Math.max(0,prestigeAccount(state,vassal).prestige+delta);
   }
   if (option?.statId && Number.isFinite(option.statDelta)) {
     vassal.stats[option.statId] = Math.max(
@@ -529,6 +532,7 @@ function applyOptionEffect(state, vassal, nodeState, option) {
   if (option?.legacyReward) {
     const legacy=state.civilization.vassalLegacy,reward=option.legacyReward;
     if (reward.kind==='stat') legacy.futureStartingStatBonuses[reward.statId]+=reward.amount;
+    else if(state.rulesetId)creditPrestige(state,vassal,reward.amount);
     else legacy.futureStartingPrestigeBonus+=reward.amount;
   }
   // Resolve the committed action at its validated location before its Monster
@@ -562,10 +566,9 @@ function applyOptionEffect(state, vassal, nodeState, option) {
   });
   flushPracticeEvents(state);
   if (option?.classAction && Number.isFinite(option.prestigeDelta)) {
-    vassal.prestige += option.prestigeDelta;
-    if (option.prestigeDelta > 0) recordCommissionAction(state, vassal, { kind: 'prestigeGained', amount: option.prestigeDelta });
+    creditPrestige(state,vassal,option.prestigeDelta);
   }
-  if (vassal.classId === 'warrior' && isRisk && !riskFailed) vassal.prestige += VASSAL_CLASS_RULES.warrior.riskPrestige;
+  if (vassal.classId === 'warrior' && isRisk && !riskFailed) creditPrestige(state,vassal,VASSAL_CLASS_RULES.warrior.riskPrestige);
   recordCommissionAction(state, vassal, { kind: 'statIncreased' });
   if (vassal.locationRegionId !== previousLocation && !option?.forcedRelocation) {
     recordCommissionAction(state, vassal, { kind: 'locationMoved', regionId: vassal.locationRegionId });
@@ -605,8 +608,7 @@ export function completeNodeResolution(state, vassal, nodeState) {
   if (option?.classAction?.onCompletion) applyClassAction(state, vassal, option.classAction);
   ensureCommissionOffers(state, vassal);
   const gains = delve || encounter ? {prestige:0,development:0} : getVassalNodeResolutionGains(vassal, nodeState.family);
-  vassal.prestige += gains.prestige;
-  if (gains.prestige > 0) recordCommissionAction(state, vassal, { kind: 'prestigeGained', amount: gains.prestige });
+  creditPrestige(state,vassal,gains.prestige);
   vassal.developmentProgress += gains.development;
   let earnedDevelopmentChoices = 0;
   while (vassal.developmentProgress >= VASSAL_LIFE_TUNING.developmentThreshold) {
@@ -694,6 +696,7 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
     const result=resolveCampaignAttempt(state,vassal,nodeState,option);
     if (result.ok) flushPracticeEvents(state);
     if (!result.ok || result.needsAcquisition) return result;
+    if(state.runStatus?.complete){nodeState.resolving=true;return {ok:true};}
     return beginCampaignResolution(state,vassal,nodeState,result.phaseCost);
   }
   // Charge the search before the new Heirloom is equipped, so a time-reducing
@@ -713,15 +716,16 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
       if (!acquired.ok) return acquired;
     }
   }
+  repriceShopDraft(state,vassal,nodeState);
   const stagedPrestigeCost = (nodeState.purchasedOffers ?? [])
-    .reduce((sum, purchase) => sum + Math.max(0, purchase.prestigeCost ?? 0), 0);
+    .reduce((sum, purchase) => sum + Math.max(0, purchase.prestigeCost ?? 0), (nodeState?.removalReceipts??[]).reduce((n,r)=>n+r.prestigeCost,0));
   const stagedCurrencyCost = (nodeState.purchasedOffers ?? [])
     .reduce((sum, purchase) => sum + Math.max(0, purchase.currencyCost ?? 0), 0);
-  if (stagedPrestigeCost > vassal.prestige) {
+  if (stagedPrestigeCost > prestigeAccount(state,vassal).prestige) {
     return { ok: false, reason: "insufficientPrestige" };
   }
   const settlement = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
-  if (stagedCurrencyCost > stockTotal(state, settlement, "Currency")) {
+  if (stagedCurrencyCost > discretionaryStock(state, settlement, 'Currency')) {
     return { ok: false, reason: "insufficientCurrency" };
   }
   const validation = validatePurchaseInterventions(state, vassal, nodeState.purchasedOffers);
@@ -729,14 +733,15 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
   const layoutChanged = settlement && (
     JSON.stringify(settlement.practiceSlots) !== JSON.stringify(validation.reservation.practiceSlots)
     || JSON.stringify(settlement.structureSlots) !== JSON.stringify(validation.reservation.structureSlots));
-  vassal.prestige -= stagedPrestigeCost;
+  if(state.rulesetId&&stagedCurrencyCost&&!applyStockPlan(state,settlement,planStock(state,settlement,[{traits:['Currency'],amount:stagedCurrencyCost}],[],null,false,false,{beneficiary:'player',discretionary:true})))return {ok:false,reason:'insufficientCurrency'};
+  prestigeAccount(state,vassal).prestige -= stagedPrestigeCost;
   if (settlement) {
-    consumeStock(state, settlement, "Currency", stagedCurrencyCost);
+    if(!state.rulesetId)consumeStock(state, settlement, "Currency", stagedCurrencyCost);
     // Upgrades create a new slot object; carry the post-payment Stock into it.
     for (const slot of validation.reservation.practiceSlots) {
       if (slot) {
         const existing=settlement.practiceSlots.find(old=>old?.practiceId===slot.practiceId);
-        slot.stock=existing?.stock??0;slot.charge=existing?.charge??0;
+        if(getDetailedPracticeDef(state,slot.practiceId)?.category==='influence')delete slot.stock;else slot.stock=existing?.stock??0;slot.charge=existing?.charge??0;
       }
     }
     settlement.practiceSlots = validation.reservation.practiceSlots;
@@ -762,8 +767,9 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
     emitPracticeEvent(state,{kind:'settlementChanged',regionId:vassal.locationRegionId,reason:'shopConfirmed'});
     flushPracticeEvents(state);
   }
-  const monsterCost=nodeState.purchasedOffers.reduce((sum,purchase)=>sum+(purchase.monsterPressureCost??0),0);
+  const monsterCost=nodeState.purchasedOffers.reduce((sum,purchase)=>sum+(purchase.monsterPressureCost??0),(nodeState.removalReceipts??[]).reduce((n,r)=>n+r.monsterPressureCost,0));
   if (monsterCost) addMonsterPressure(state,monsterCost);
+  if(state.runStatus?.complete){nodeState.resolving=true;nodeState.transactionId=`${vassal.vassalId}:${nodeId}:${state.tSec}`;return {ok:true};}
   if (isShopNodeState(nodeState) && nodeState.purchasedOffers.length === 0) {
     const empty=resolveLifeMapOptionCosts(state,nodeState,{id:'emptyConfirm',phaseCost:getVassalYearPhaseCost(state,VASSAL_LIFE_TUNING.emptyShopConfirmYearCost)});
     const emptyCost = getVassalActionPhaseCost(

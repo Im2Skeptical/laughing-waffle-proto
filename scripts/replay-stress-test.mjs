@@ -242,8 +242,8 @@ function assertNewGame(session) {
   const pair = players.join("|");
   const problems = [];
   if (players.length !== 2) problems.push(`players=${players.length}`);
-  if (state.world.sites.length !== 6) problems.push(`sites=${state.world.sites.length}`);
-  if (state.world.sites.filter((site) => site.neutral).length !== 4) problems.push("neutrals");
+  if (state.world.sites.length !== 20) problems.push(`sites=${state.world.sites.length}`);
+  if (state.world.sites.filter((site) => site.neutral).length !== 0) problems.push("neutrals");
   if (state.world.regions.filter((region) => region.monster).length !== 1) problems.push("monster");
   if (!state.world.connections.some((edge) => [edge.regionAId, edge.regionBId].sort().join("|") === pair)) problems.push("road");
   if (!getVassalCandidatePool(state).candidates.length) problems.push("candidates");

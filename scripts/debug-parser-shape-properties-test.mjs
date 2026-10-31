@@ -191,7 +191,7 @@ let detailedIndex = mapDoc.regions.findIndex((region) => region.detailedSettleme
 must(detailedIndex >= 0, "starter map has no detailed settlement to mutate");
 must(mapDoc.schemaVersion === 8 && lifeDoc.schemaVersion === 2, "controller drafts are not current schema v8/v2");
 must(lifeDoc.generatorConfig?.schemaVersion === 15 && lifeDoc.generatorConfig?.weights?.early, "life generator is not current schema v15");
-must(starter.gameSettings?.schemaVersion === 28 && starter.launch?.startMode === "randomRoad", "profile settings/launch are not the current contract");
+must(starter.gameSettings?.schemaVersion === 29 && starter.launch?.startMode === "randomRoad", "profile settings/launch are not the current contract");
 
 const vassalDraft = {
   schemaVersion: 5,
@@ -219,7 +219,7 @@ for (const name of ["River workshop", "Delta workshop"]) {
   must(saved.ok === true, `profile save failed: ${saved.reason ?? saved.errors?.[0]}`);
   profileLibrary = saved.ok ? saved.library : profileLibrary;
 }
-must(exportDoc.schemaVersion === 3 && exportDoc.kind === "civsurvivor.debugProfile", "profile export header drifted");
+must(exportDoc.schemaVersion === 3 && exportDoc.kind === "full-map-redesign-v1.debugProfile", "profile export header drifted");
 must(profileLibrary.schemaVersion === 3 && profileLibrary.profiles?.length === 2, "profile library baseline is incomplete");
 
 const baselines = { mapLab: mapDoc, lifeMapLab: lifeDoc, vassalLibrary, profileExport: exportDoc, profileLibrary };

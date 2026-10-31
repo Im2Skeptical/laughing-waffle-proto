@@ -6,6 +6,7 @@ import { createLabCards } from './development-lab/cards.js';
 import { createZooView } from './development-lab/zoo.js';
 import { renderWorkbench } from './development-lab/workbench.js';
 import { renderPrototypes } from './development-lab/prototypes.js';
+import { createFullMapContentPrototype } from './development-lab/full-map-content-prototype.js';
 import { createLifegraphView } from './development-lab/lifegraph.js';
 import { createCardReviewController } from '../controllers/card-review-controller.js';
 import { createCardReviewerView } from './development-lab/card-reviewer.js';
@@ -35,6 +36,7 @@ export function mountDevelopmentLab() {
   const gym = createDevelopmentLabController({initialState}), museum = createDevelopmentLabController();
   let mode = 'zoo', seedValue = 42, storageOpen = false, scene = null, renderFrame = 0;
   let gymWorkspace = 'settlement', lifegraph = null, newRunSetup = null;
+  let contentPrototype = null;
   const getLifegraph=()=>lifegraph??=createLifegraphView();
   const header = el('header','','lab-header'), title = el('div','','lab-brand');
   title.append(el('h1','Development Lab'));
@@ -81,6 +83,7 @@ export function mountDevelopmentLab() {
     const head=el('div','','lab-page-head'),text=el('div');text.append(el('h2',heading),el('p',subtitle,'lab-subtitle'));head.append(text,...extra);return head;
   };
   function render() {
+    contentPrototype?.hide();
     if(mode!=='lifegraph')lifegraph?.hide();
     document.body.classList.toggle('reviewer-active',mode==='reviewer');
     const flagged=review.list().length;reviewCount.textContent=String(flagged);reviewCount.hidden=!flagged;
@@ -107,7 +110,12 @@ export function mountDevelopmentLab() {
     status.textContent=error || (mode==='reviewer'?'Drafts save on this device':mode==='prototypes'?'Edits in workbenches are temporary':mode==='zoo'?'Read-only catalogue · no saves are written':controller().getSnapshot().message) || 'Disposable state · no player saves are written';status.classList.toggle('lab-warning',!!error);
     if(mode==='zoo') zoo.render(content);
     else if(mode==='reviewer') {try{reviewer.render(content);}catch(e){status.textContent=`Card reviews unavailable: ${e.message}`;status.classList.add('lab-warning');}}
-    else if(mode==='prototypes') renderPrototypes(content);
+    else if(mode==='prototypes') {
+      if(new URLSearchParams(location.hash.split('?')[1]??'').get('study')==='full-map-content') {
+        contentPrototype??=createFullMapContentPrototype({getState:()=>gym.getSnapshot().state,run});
+        contentPrototype.render(content);
+      } else renderPrototypes(content);
+    }
     else if(mode==='lifegraph') {
       getLifegraph().render(content);
       status.textContent='Lifegraph drafts and notes stay local · player saves are unchanged';
@@ -228,7 +236,7 @@ export function mountDevelopmentLab() {
     render();window.scrollTo(0,0);
   }
   window.addEventListener('hashchange',route);
-  window.addEventListener('pagehide',()=>{cards.destroy();scene?.destroy();lifegraph?.destroy();newRunSetup?.destroy();},{once:true});
-  globalThis.__LAB_DEBUG__={getSnapshot:()=>controller().getSnapshot(),getCardReading:()=>cards.getReadingSnapshot(),getScene:()=>scene?.getSnapshot(),getRegionClickPoint:id=>scene?.getRegionClickPoint(id),getLifegraph:()=>lifegraph?.getSnapshot(),getLifegraphPoint:id=>lifegraph?.getPoint(id),getNodeSandbox:()=>lifegraph?.getPlayer(),getNodeSandboxPoint:(kind,index)=>lifegraph?.getPlayerPoint(kind,index)};
+  window.addEventListener('pagehide',()=>{cards.destroy();contentPrototype?.destroy();scene?.destroy();lifegraph?.destroy();newRunSetup?.destroy();},{once:true});
+  globalThis.__LAB_DEBUG__={getSnapshot:()=>controller().getSnapshot(),getContentPrototype:()=>contentPrototype?.getSnapshot(),getCardReading:()=>cards.getReadingSnapshot(),getScene:()=>scene?.getSnapshot(),getRegionClickPoint:id=>scene?.getRegionClickPoint(id),getLifegraph:()=>lifegraph?.getSnapshot(),getLifegraphPoint:id=>lifegraph?.getPoint(id),getNodeSandbox:()=>lifegraph?.getPlayer(),getNodeSandboxPoint:(kind,index)=>lifegraph?.getPlayerPoint(kind,index)};
   route();
 }

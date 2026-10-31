@@ -1,3 +1,4 @@
+import { validatePopulationLedger } from './detailed-settlements/population-ledger.js';
 import { normalizeStructureLayout, validateStructureLayout } from "./structure-layout.js";
 import { getWorldDefinitionById } from './world-definitions.js';
 import {
@@ -211,7 +212,7 @@ function validateDetailedSettlement(site, region, errors, gamepieces) {
       }
     }
   }
-  for (const slot of settlement.practiceSlots ?? []) if (slot && (!Number.isInteger(slot.stock) || slot.stock < 0)) errors.push(`site ${site.id} has invalid Stock`);
+  for (const slot of settlement.practiceSlots ?? []) if (slot && ((gamepieces?.practices?.[slot.practiceId]??detailedSettlementPracticeDefs[slot.practiceId])?.category==='influence' ? ('stock' in slot || !['player','external-a'].includes(slot.allegiance)) : (!Number.isInteger(slot.stock) || slot.stock < 0 || 'allegiance' in slot))) errors.push(`site ${site.id} has invalid Stock`);
   for (const slot of settlement.practiceSlots ?? []) if (slot && (!Number.isInteger(slot.charge) || slot.charge < 0)) errors.push(`site ${site.id} has invalid Charge`);
   for (const slot of settlement.practiceSlots ?? []) if (slot) {
     const def=gamepieces?.practices?.[slot.practiceId]??detailedSettlementPracticeDefs[slot.practiceId];
@@ -500,6 +501,7 @@ export function validateWorldState(state) {
       continue;
     }
     validateDetailedSettlement(site, region, errors, state.gameConfig?.gamepieces);
+    if(state.rulesetId&&site.detailedState)errors.push(...validatePopulationLedger(site.detailedState).map(e=>`${site.id}: ${e}`));
   }
   return { ok: errors.length === 0, errors };
 }

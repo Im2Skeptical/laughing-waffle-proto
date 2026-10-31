@@ -6,11 +6,11 @@ import { validateMapLabDraft } from "./map-lab-draft.js";
 import { validateLifeMapLabDraft } from "./life-map-lab-draft.js";
 
 export const DEBUG_PROFILE_LIBRARY_SCHEMA_VERSION = 3;
-export const DEBUG_PROFILE_LIBRARY_STORAGE_KEY = "civsurvivor.debugProfiles.v3";
-export const DEBUG_PROFILE_DEFAULT_STORAGE_KEY = "civsurvivor.debugProfiles.default.v3";
+export const DEBUG_PROFILE_LIBRARY_STORAGE_KEY = "full-map-redesign-v1.debugProfiles.v3";
+export const DEBUG_PROFILE_DEFAULT_STORAGE_KEY = "full-map-redesign-v1.debugProfiles.default.v3";
 export const REGULAR_GAME_PROFILE_ID = "regular-game";
 export const REGULAR_GAME_PROFILE_NAME = "Regular game";
-export const DEBUG_PROFILE_EXPORT_KIND = "civsurvivor.debugProfile";
+export const DEBUG_PROFILE_EXPORT_KIND = "full-map-redesign-v1.debugProfile";
 export const DEBUG_PROFILE_EXPORT_SCHEMA_VERSION = 3;
 export const DEBUG_PROFILE_PAGE_IDS = Object.freeze([
   "mapLab",

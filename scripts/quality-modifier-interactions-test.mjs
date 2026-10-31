@@ -128,8 +128,9 @@ for (const def of Object.values(settlementStructureDefs)) {
   const rank = TIERS.indexOf(def.minimumQuality) + 1;
   for (const mod of def.modifiers ?? []) {
     if (mod.kind !== 'capacity') continue;
-    expect(mod.amount, rank, `${def.id}:authored-power-matches-quality`);
-    for (const qualityBonus of [0,1,2,3]) expect(structureModifierAmount(def,mod,{qualityBonus}), Math.min(4,rank+qualityBonus), `${def.id}:quality-power-${qualityBonus}`);
+    const authored = ['fe_rationDepot','fe_imperialArmoury','cp_citadelOfStillness'].includes(def.id) ? 1 : rank;
+    expect(mod.amount, authored, `${def.id}:authored-power-matches-quality`);
+    for (const qualityBonus of [0,1,2,3]) expect(structureModifierAmount(def,mod,{qualityBonus}), authored+Math.min(4-rank,qualityBonus), `${def.id}:quality-power-${qualityBonus}`);
   }
 }
 for (const qualityBonus of [0,1,2,3]) {

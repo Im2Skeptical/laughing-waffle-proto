@@ -12,6 +12,8 @@ Stock planning and Structure modifiers live in
 
 | Operation | Result |
 | --- | --- |
+| `convertPopulation` | Select opposing joint cohorts, scale Scheduled target count with workers, preserve age/residency/specialty, optionally train the same selected people. Influence instances own the beneficiary. |
+| `politicalForce` | Fixed faction-attributed temporary Force, refreshed per installed instance; never worker-scaled. |
 | `generateStock` | Adds integer Stock to the source Practice, clipped to its current capacity; positive actual yields emit Stock-generation events. |
 | `addChaos` | Adds a fixed civilization Chaos cost on successful activation and emits chaosIncreased; workers and output bonuses do not scale it. |
 | `addMonsterPressure` | Adds fixed progress to the shared Monster expansion tracker on successful activation. A full tracker immediately expands one front even under sufficient Resistance, retaining overflow; workers and output bonuses do not scale the cost. |

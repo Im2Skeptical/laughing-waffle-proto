@@ -1,0 +1,1481 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "scope": "52 revised enemy Practices with visible rest and corpse architecture;36 Structures byte-identical to29977fbb; no rules or simulation changes",
+  "entries": [
+    {
+      "id": "fe_rationRoll",
+      "output": "art/chaos_fe_rationRoll.png",
+      "sha256": "0178e093c79bebe61c8dba1474c863c51b52c41cf013fec428294cf56d09c888",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-a727211e-155a-44c1-8c66-46e4784ccab2.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[5]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: compact upper action, preserved corpse-built apparatus and concealed prominent heads, visible continuous floor/road setting, pixel surface and class palette."
+      }
+    },
+    {
+      "id": "fe_barrackLevy",
+      "output": "art/chaos_fe_barrackLevy.png",
+      "sha256": "a6b6dc9d15fe66becdf106a7eaf38d1767d57193f4e962b3ceeb0ce466866bd3",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-7dde55c8-9938-46b9-abe0-677919b67a27.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[40]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Faces concealed by helmets; skeletal rack and corpse-built chariot retain clear action, upper grouping and visible rest."
+      }
+    },
+    {
+      "id": "fe_roadRequisition",
+      "output": "art/chaos_fe_roadRequisition.png",
+      "sha256": "4e403d4bd2e530522274c74ce72a078b08043c40daec933dc4469ebe5c35f338",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-750fbd2a-b649-438f-9be7-4b9f3f771f6d.png",
+      "exactPromptRecord": "practice-rest-prompts.json id=fe_roadRequisition",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Source inspected: action above45%, visible continuous road/kitchen floor resting environment, corpse-built supports and anonymous/closed heads, distinct staging and restrained pixel treatment."
+      }
+    },
+    {
+      "id": "fe_salvageDetail",
+      "output": "art/chaos_fe_salvageDetail.png",
+      "sha256": "c1456c9b52d43d1b350ba0f44992ee2044582b673d5d6a0bea3226474333245f",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-7269f94b-064e-43ee-b067-e23a82b0950e.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[0]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Source inspected: distinct battlefield/loom/garden staging, visible continuous lower setting, recognisable load-bearing remains with concealed heads and pixel clusters; principal action in upper45%."
+      }
+    },
+    {
+      "id": "fe_curfewRounds",
+      "output": "art/chaos_fe_curfewRounds.png",
+      "sha256": "aae0ae38d7382edd08876b4da7d58f04a59f272e0139c395d9e63747751c2c5b",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-9b575756-dc18-4741-a92c-dd437b6b1587.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[7]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: compact upper action, anonymous heads, preserved explicit corpse architecture and continuous visible lower road/floor, varied staging and class palette."
+      }
+    },
+    {
+      "id": "fe_levyPost",
+      "output": "art/chaos_fe_levyPost.png",
+      "sha256": "1000aa7b9ca108385e2e8f32405a63dc9e51e86b0c46a2104eecd849e7ef3577",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-0977e7ab-055a-4f0d-9565-2b2ef2bb5eda.png",
+      "exactPromptRecord": "corrections.json entries[1]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: whole upper action contained within45%; quiet lower field, grouped focal values, anonymous figures; named structure dominant."
+      }
+    },
+    {
+      "id": "fe_arsenalQuotas",
+      "output": "art/chaos_fe_arsenalQuotas.png",
+      "sha256": "c60c7dac92dae63d1e2d3e5784551140d93d5b70111799cca9ceef3a60418de4",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-989b6ed9-e9e7-40bc-ae66-0e13662c3fd4.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[39]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: compact upper action, preserved corpse-built apparatus and concealed prominent heads, visible continuous floor/road setting, pixel surface and class palette."
+      }
+    },
+    {
+      "id": "fe_billetingOrders",
+      "output": "art/chaos_fe_billetingOrders.png",
+      "sha256": "696b9858c1f70fdcd4ca0c4c715156f8e95c2056d913be3b78f99d99df295d6d",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-4d588c96-8035-402b-8041-c937bfeead01.png",
+      "exactPromptRecord": "practice-rest-prompts.json id=fe_billetingOrders",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Source inspected: distinct domestic/artillery staging, anonymous living figures in upper45%, recognisable corpse-built apparatus, broad continuous visible lower setting and pixel masses."
+      }
+    },
+    {
+      "id": "fe_victoryProcession",
+      "output": "art/chaos_fe_victoryProcession.png",
+      "sha256": "e36fad91d4c02c292a727f941047d87079d28611a110fc2c7117213d2675792c",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-cc05bf99-073b-4ff8-92af-acfe361226a6.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[41]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Faces concealed by helmets; skeletal rack and corpse-built chariot retain clear action, upper grouping and visible rest."
+      }
+    },
+    {
+      "id": "fe_borderOaths",
+      "output": "art/chaos_fe_borderOaths.png",
+      "sha256": "079a3e377174bd52f981496aba6f2b0d1791813b144bacba2cacc0302219febd",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-5de1ff53-5532-4b76-b813-044cd2056768.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[10]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: compact upper action, preserved corpse-built apparatus and concealed prominent heads, visible continuous floor/road setting, pixel surface and class palette."
+      }
+    },
+    {
+      "id": "fe_garrisonBarracks",
+      "output": "art/chaos_fe_garrisonBarracks.png",
+      "sha256": "550aee6f1f8705a6f01ea6ff283eb74b1fd8d6eae5451997e05811be6cc9537d",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-b2410b8e-7534-4314-8a0f-b726955d13e1.png",
+      "exactPromptRecord": "prompts.json id=fe_garrisonBarracks",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Faceless small figures, clear functional focal cluster, dark lower field or dominant building silhouette."
+      }
+    },
+    {
+      "id": "fe_provostCourt",
+      "output": "art/chaos_fe_provostCourt.png",
+      "sha256": "7a10369958ab66038defa8529f79453f65801959a4ca5bfa261b9a0b1d00f00d",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-365cbb32-390e-4047-a2fc-5290581b4175.png",
+      "exactPromptRecord": "prompts.json id=fe_provostCourt",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Faceless small figures, clear functional focal cluster, dark lower field or dominant building silhouette."
+      }
+    },
+    {
+      "id": "fe_rationDepot",
+      "output": "art/chaos_fe_rationDepot.png",
+      "sha256": "9227a5591ab0d86c70a7618ecbc493ff00a7616c44d33c8202af7bf53b1fbefe",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-a1ff87f5-7cdb-48d3-9c03-6b7747be3ab2.png",
+      "exactPromptRecord": "prompts.json id=fe_rationDepot",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Faceless small figures, clear functional focal cluster, dark lower field or dominant building silhouette."
+      }
+    },
+    {
+      "id": "fe_signalBastion",
+      "output": "art/chaos_fe_signalBastion.png",
+      "sha256": "7328649162ef0d97a15a9a7d9de3781bf53bf4cf6832592395b7e57b41fb32d8",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-9b1019f2-9355-4a50-b005-77dde42fb481.png",
+      "exactPromptRecord": "prompts.json id=fe_signalBastion",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Faceless small figures, clear functional focal cluster, dark lower field or dominant building silhouette."
+      }
+    },
+    {
+      "id": "fe_capitalDole",
+      "output": "art/chaos_fe_capitalDole.png",
+      "sha256": "3192fad60a3de9f5a1b24fabffb2b367ff08fb6cfd1ec9ad06f49846b17db50a",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-ca31c60c-e8c4-42fa-8e1b-11bbad44539a.png",
+      "exactPromptRecord": "practice-rest-prompts.json id=fe_capitalDole",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Source inspected: action above45%, visible continuous road/kitchen floor resting environment, corpse-built supports and anonymous/closed heads, distinct staging and restrained pixel treatment."
+      }
+    },
+    {
+      "id": "fe_officersFeast",
+      "output": "art/chaos_fe_officersFeast.png",
+      "sha256": "ba63777ea37d8759e2f57024c6593a63fb49c2ea2ed2e06815ff6d1f746b1b83",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-aa1c10a6-18f5-4bf5-bef7-fa122bec49b9.png",
+      "exactPromptRecord": "practice-rest-prompts.json id=fe_officersFeast",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Source inspected: upper action with helmeted anonymous officers, distinct diagonal corpse-supported banquet table, visible red carpet resting area and pixel treatment."
+      }
+    },
+    {
+      "id": "fe_siegeRehearsals",
+      "output": "art/chaos_fe_siegeRehearsals.png",
+      "sha256": "5ce45b2371e69b1c57839fda90f5dae8e3630021b5431212b2db11c12721582b",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-58a40778-47c4-4dfc-ade2-fec0f356f461.png",
+      "exactPromptRecord": "practice-rest-prompts.json id=fe_siegeRehearsals",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Source inspected: distinct domestic/artillery staging, anonymous living figures in upper45%, recognisable corpse-built apparatus, broad continuous visible lower setting and pixel masses."
+      }
+    },
+    {
+      "id": "fe_marshalsCitadel",
+      "output": "art/chaos_fe_marshalsCitadel.png",
+      "sha256": "663e346c02e79f2fa0c93028ab95ea956ea88d3c03f0adc109a4629988b81afa",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-cee01df1-9bf8-40a1-b44e-39945145c119.png",
+      "exactPromptRecord": "prompts.json id=fe_marshalsCitadel",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Full-size anonymous faces, clear functional focal action/building, class grammar, and subdued overlay field."
+      }
+    },
+    {
+      "id": "fe_paradeSquare",
+      "output": "art/chaos_fe_paradeSquare.png",
+      "sha256": "5b3c757594e443aa2fb77fbc7f31a3518e5f38dd5fd68bfaeb85aae760fd2106",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-3899d23d-f8c7-48ef-8981-3aa01517eb97.png",
+      "exactPromptRecord": "prompts.json id=fe_paradeSquare",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Full-size anonymous faces, clear functional focal action/building, class grammar, and subdued overlay field."
+      }
+    },
+    {
+      "id": "fe_imperialArmoury",
+      "output": "art/chaos_fe_imperialArmoury.png",
+      "sha256": "3af0544f091818cba9726869b852b9279503b41917de03709121fda2b7372ffa",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-ce107e11-f601-477a-b632-b263511fd4d2.png",
+      "exactPromptRecord": "prompts.json id=fe_imperialArmoury",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Full-size anonymous faces, clear functional focal action/building, class grammar, and subdued overlay field."
+      }
+    },
+    {
+      "id": "fe_rentCollection",
+      "output": "art/chaos_fe_rentCollection.png",
+      "sha256": "5bebb99ac8a50bf07246b70c5ec4e3f18774f17b0cf70998dd4852c30648203c",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-afc169a0-0860-4db3-ae06-bdfbf8118d6d.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[11]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: compact upper action, preserved corpse-built apparatus and concealed prominent heads, visible continuous floor/road setting, pixel surface and class palette."
+      }
+    },
+    {
+      "id": "fe_companyRations",
+      "output": "art/chaos_fe_companyRations.png",
+      "sha256": "1c9a054c69ab9e9d3ee37003069af90631d8d4e906b9cf1a8544c9c29ae10237",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-d876451d-57c9-443c-8597-f9c18690f5e7.png",
+      "exactPromptRecord": "practice-rest-prompts.json id=fe_companyRations",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Source inspected: anonymous upper action, explicit corpse-supported trade/mill apparatus, varied canal/awning/water resting environments with visible material and grouped green/copper values."
+      }
+    },
+    {
+      "id": "fe_scrapAuction",
+      "output": "art/chaos_fe_scrapAuction.png",
+      "sha256": "3fc7c19a1299ebfdf21d6bc4fc00b10004e6dde991d89da87431e042569c7e45",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-182a08fc-62b9-45df-8192-41dd3924079c.png",
+      "exactPromptRecord": "practice-rest-prompts.json id=fe_scrapAuction",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Source inspected: anonymous upper action, explicit corpse-supported trade/mill apparatus, varied canal/awning/water resting environments with visible material and grouped green/copper values."
+      }
+    },
+    {
+      "id": "fe_debtPledges",
+      "output": "art/chaos_fe_debtPledges.png",
+      "sha256": "d018d542be754d81c457bac44caa9de2fe2739eceb807591b932b07fc8208252",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-19d698a1-e8bb-4ef7-ac35-2376505fcd9b.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[12]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: upper anonymous groups, correct key/trade gesture and non-solar Merchant identity, explicit corpse foundations with concealed heads, continuous visible lower cloth/floor/terrain at restrained contrast."
+      }
+    },
+    {
+      "id": "fe_bondedCaravans",
+      "output": "art/chaos_fe_bondedCaravans.png",
+      "sha256": "dff650b6424bd57514cc7a1c317bdd028015d488ff0f60e21716e0e1670b1eae",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-b5368ec6-030a-4bda-b268-481c3eb1db61.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[13]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: compact upper action, anonymous heads, preserved explicit corpse architecture and continuous visible lower road/floor, varied staging and class palette."
+      }
+    },
+    {
+      "id": "fe_factorsLodge",
+      "output": "art/chaos_fe_factorsLodge.png",
+      "sha256": "73f4f417848a8b90d8a9294b3ae6949cf4986b08d7c5b5d0a9a7ddc7066a6130",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-729cd9de-7fbd-4dd2-9fd0-e10e19b889f5.png",
+      "exactPromptRecord": "corrections.json entries[6]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: dark lower Practice field and anonymous participants; structure now dominates; class palette and focused lighting retained."
+      }
+    },
+    {
+      "id": "fe_monopolyMilling",
+      "output": "art/chaos_fe_monopolyMilling.png",
+      "sha256": "6248d21b9d3165363eb1d369d87bc4d5b51a4c86794df27de66c4b59d058a09d",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-6bd53b61-bc8c-444a-adb4-7c42286fe24c.png",
+      "exactPromptRecord": "practice-rest-prompts.json id=fe_monopolyMilling",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Source inspected: anonymous upper action, explicit corpse-supported trade/mill apparatus, varied canal/awning/water resting environments with visible material and grouped green/copper values."
+      }
+    },
+    {
+      "id": "fe_gildedPatronage",
+      "output": "art/chaos_fe_gildedPatronage.png",
+      "sha256": "6758842c9b17d975c09d7337c578e441a4f5ec07e2531e4f8d6fc60fbc8143bd",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-11a5b954-d3d5-4e72-aa20-fb1daeefb6b1.png",
+      "exactPromptRecord": "practice-rest-prompts.json id=fe_gildedPatronage",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Source inspected: garden/curtained-court staging, anonymous upper gestures, explicit corpse furniture, visible coherent lower environments and recognisable green/copper values."
+      }
+    },
+    {
+      "id": "fe_purchasedTestimony",
+      "output": "art/chaos_fe_purchasedTestimony.png",
+      "sha256": "7d548f374c3ec9f759811461ddd62e16efa93fa25eaa8ee73954ae72949f73e7",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-155fb811-576b-4a2a-a839-1196edc606e6.png",
+      "exactPromptRecord": "practice-rest-prompts.json id=fe_purchasedTestimony",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Source inspected: garden/curtained-court staging, anonymous upper gestures, explicit corpse furniture, visible coherent lower environments and recognisable green/copper values."
+      }
+    },
+    {
+      "id": "fe_exclusiveConcessions",
+      "output": "art/chaos_fe_exclusiveConcessions.png",
+      "sha256": "0255880c77beb3e0bd16cb000fd2f06bc97bfb6f171cfeb3f16c84adb05ab860",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-1e5750b1-59b4-425e-9324-9bc547adc4a9.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[14]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: upper anonymous groups, correct key/trade gesture and non-solar Merchant identity, explicit corpse foundations with concealed heads, continuous visible lower cloth/floor/terrain at restrained contrast."
+      }
+    },
+    {
+      "id": "fe_privateExchange",
+      "output": "art/chaos_fe_privateExchange.png",
+      "sha256": "883d0ac38b25ffa460bef580f40452c8393bc7b48e7f17f9f3926182b9d9c4f7",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-6a2e0b84-51cb-4566-b8ee-9a43da2efbc8.png",
+      "exactPromptRecord": "prompts.json id=fe_privateExchange",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Upper grouped action with anonymous figures, primary/accent visible, calm lower field; Structure silhouette dominates."
+      }
+    },
+    {
+      "id": "fe_bondedWarehouse",
+      "output": "art/chaos_fe_bondedWarehouse.png",
+      "sha256": "837608fc6a2b09213775f6eadda022756b4833f46b45a1443d6afecb9410ae5b",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-753b2276-f820-4e4b-9cd3-26883e13ae9f.png",
+      "exactPromptRecord": "prompts.json id=fe_bondedWarehouse",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Dominant institutional silhouette or upper45% action; grouped values, quiet margins and no discernible human faces."
+      }
+    },
+    {
+      "id": "fe_companyTenements",
+      "output": "art/chaos_fe_companyTenements.png",
+      "sha256": "9aab7937784e7ef3572f0f518cc6eef79331389fe9178fb880f01bc18e1e1afb",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-3bc42b0d-e91f-465d-bd21-a68cd5daca2c.png",
+      "exactPromptRecord": "prompts.json id=fe_companyTenements",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Dominant institutional silhouette or upper45% action; grouped values, quiet margins and no discernible human faces."
+      }
+    },
+    {
+      "id": "fe_patronageSalon",
+      "output": "art/chaos_fe_patronageSalon.png",
+      "sha256": "5f2dd38d90c1936d93c72b49c47473e26487353ff818320ffd7d5c58c32d5d6a",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-ad1fde30-2291-4209-b557-ae8b8aef8599.png",
+      "exactPromptRecord": "prompts.json id=fe_patronageSalon",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Dominant institutional silhouette or upper45% action; grouped values, quiet margins and no discernible human faces."
+      }
+    },
+    {
+      "id": "fe_conspicuousFeasts",
+      "output": "art/chaos_fe_conspicuousFeasts.png",
+      "sha256": "40f045358205fb514bb09d98377a25f754c7825b77d0ece05304ad92b3d96300",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-5a089074-a04f-470e-8c4f-c13db9f22c52.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[15]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: upper anonymous groups, correct key/trade gesture and non-solar Merchant identity, explicit corpse foundations with concealed heads, continuous visible lower cloth/floor/terrain at restrained contrast."
+      }
+    },
+    {
+      "id": "fe_luxuryWeaving",
+      "output": "art/chaos_fe_luxuryWeaving.png",
+      "sha256": "f0896911242f67d21d337148cf4353bd28242752a1366fa7a994e0fe1413fd9f",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-b844ca98-8845-4182-99aa-9c8e14c90853.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[1]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Source inspected: distinct battlefield/loom/garden staging, visible continuous lower setting, recognisable load-bearing remains with concealed heads and pixel clusters; principal action in upper45%."
+      }
+    },
+    {
+      "id": "fe_municipalDebt",
+      "output": "art/chaos_fe_municipalDebt.png",
+      "sha256": "589107dbba6d05c437a681ccdde01364ce61c693cc01bfb05bcdcc35cd5c9004",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-c889f18a-e484-4eb5-834b-3a9beb58e97d.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[16]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: upper anonymous groups, correct key/trade gesture and non-solar Merchant identity, explicit corpse foundations with concealed heads, continuous visible lower cloth/floor/terrain at restrained contrast."
+      }
+    },
+    {
+      "id": "fe_palaceOfAccounts",
+      "output": "art/chaos_fe_palaceOfAccounts.png",
+      "sha256": "a2a3ab651fac5055ccf4eacf6d82374b412bf773f5cb6ed36e5deff7bd3eb676",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-a671d2dd-0265-45f8-9039-abe1a58e30d1.png",
+      "exactPromptRecord": "fresh-anchor-prompts.json id=fe_palaceOfAccounts",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true
+      }
+    },
+    {
+      "id": "fe_privateReservoir",
+      "output": "art/chaos_fe_privateReservoir.png",
+      "sha256": "0092883e249d60c6c0efc5caebc5e282f31b39d815b9c7c43707d5669aa81d3a",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-5a539869-305e-459c-8520-b70cc4caa9fa.png",
+      "exactPromptRecord": "prompts.json id=fe_privateReservoir",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Dominant institutional silhouette or upper45% action; grouped values, quiet margins and no discernible human faces."
+      }
+    },
+    {
+      "id": "fe_marbleArcade",
+      "output": "art/chaos_fe_marbleArcade.png",
+      "sha256": "c556033c46f8f0d46ba71bf838e9bad135fe515c8f47db4dc28cf1c2bbde3a16",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-b6fd98d2-67a0-4212-80b1-c3baa449c1c3.png",
+      "exactPromptRecord": "prompts.json id=fe_marbleArcade",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Dominant institutional silhouette or upper45% action; grouped values, quiet margins and no discernible human faces."
+      }
+    },
+    {
+      "id": "fe_offeringBowls",
+      "output": "art/chaos_fe_offeringBowls.png",
+      "sha256": "db08d630c35110b460e6a034ca4116fda893c45613bc38c4c77a772cdc2f2ac6",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-8140441f-b53d-4c56-a91f-74aa8da2947e.png",
+      "exactPromptRecord": "practice-rest-prompts.json id=fe_offeringBowls",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Source inspected: upper anonymous bread exchange, load-bearing corpse bowl support, coherent pale/pink stone steps and fabric resting environment; strong class palette and pixel treatment."
+      }
+    },
+    {
+      "id": "fe_titheCart",
+      "output": "art/chaos_fe_titheCart.png",
+      "sha256": "31dc3112415200176f81667dfb6a34afa28363842c61af9ffe19db1810cc0ec7",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-7ed34abb-28e5-41d6-b0b1-c35ac2293944.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[17]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: upper anonymous groups, correct key/trade gesture and non-solar Merchant identity, explicit corpse foundations with concealed heads, continuous visible lower cloth/floor/terrain at restrained contrast."
+      }
+    },
+    {
+      "id": "fe_licensedAlms",
+      "output": "art/chaos_fe_licensedAlms.png",
+      "sha256": "0045b8862f63991f8ecccb4096b8f978cca256dcbc3eab7af475466fd14b3e79",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-875c45b6-065f-4d49-844e-866a85d8a905.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[18]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: upper anonymous groups, correct key/trade gesture and non-solar Merchant identity, explicit corpse foundations with concealed heads, continuous visible lower cloth/floor/terrain at restrained contrast."
+      }
+    },
+    {
+      "id": "fe_noviceVows",
+      "output": "art/chaos_fe_noviceVows.png",
+      "sha256": "140683d253e2eede23006419e374f6ceb3d9d923e1b2158a77c80aeda3a12d60",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-4109e2c2-89b0-44b4-bf35-548dc55f9f25.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[2]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Source inspected: distinct battlefield/loom/garden staging, visible continuous lower setting, recognisable load-bearing remains with concealed heads and pixel clusters; principal action in upper45%."
+      }
+    },
+    {
+      "id": "fe_candleDues",
+      "output": "art/chaos_fe_candleDues.png",
+      "sha256": "84770a2ec1046454a65fce0325b1db9a243e8cc9b90345b7107369c9fe80eaa7",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-1a88d784-0c08-41f9-b617-24fcd7fa70e7.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[19]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: anonymous living figures and concealed dead heads, upper45% actions, explicit corpse-built ritual apparatus, visible pink/yellow floor/fabric/water resting planes; class identity and pixel treatment retained."
+      }
+    },
+    {
+      "id": "fe_titheChapel",
+      "output": "art/chaos_fe_titheChapel.png",
+      "sha256": "570c77c7713763f7d833dc466459a63a423406c03bebc077a11c5e0d9c244ea4",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-d54a8b1e-6b50-4d89-8a99-d8bee697a1fd.png",
+      "exactPromptRecord": "corrections.json entries[8]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: dark lower Practice field and anonymous participants; structure now dominates; class palette and focused lighting retained."
+      }
+    },
+    {
+      "id": "fe_purchasedAbsolution",
+      "output": "art/chaos_fe_purchasedAbsolution.png",
+      "sha256": "1f5765785afd3e432c83d9f51109e726525fbc1ec0b78a9aeb0603000221be89",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-ef47ea6d-f111-474c-ab17-efbae4dbfb1c.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[20]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: anonymous living figures and concealed dead heads, upper45% actions, explicit corpse-built ritual apparatus, visible pink/yellow floor/fabric/water resting planes; class identity and pixel treatment retained."
+      }
+    },
+    {
+      "id": "fe_relicProcession",
+      "output": "art/chaos_fe_relicProcession.png",
+      "sha256": "4344f763f49d4fa005131aef2d3ddb925b8582145741ee20e0deabef75047fc6",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-0e8d57bb-ef76-4f83-be5f-fe34d6b98d4f.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[21]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: anonymous living figures and concealed dead heads, upper45% actions, explicit corpse-built ritual apparatus, visible pink/yellow floor/fabric/water resting planes; class identity and pixel treatment retained."
+      }
+    },
+    {
+      "id": "fe_scriptedHomilies",
+      "output": "art/chaos_fe_scriptedHomilies.png",
+      "sha256": "dade3a57a50381ca58363e5d2d4ea0362bd2bd2f9fa80904704c52ab155116b1",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-aa348061-dd52-40e9-9545-f786cd3cb5e5.png",
+      "exactPromptRecord": "practice-rest-prompts.json id=fe_scriptedHomilies",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Source inspected: upper anonymous teaching action, corpse-built screen and pillars, visible coherent pink floor/mat resting planes, distinct room staging and pixel treatment."
+      }
+    },
+    {
+      "id": "fe_consecratedBrew",
+      "output": "art/chaos_fe_consecratedBrew.png",
+      "sha256": "a4e3b0f4a54437b90fa46c6869377cbcde752367f3ffe24352dd11d791cfc2b0",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-25ba9f16-00a1-40a5-b37b-3d4a3d9d52d7.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[22]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: anonymous living figures and concealed dead heads, upper45% actions, explicit corpse-built ritual apparatus, visible pink/yellow floor/fabric/water resting planes; class identity and pixel treatment retained."
+      }
+    },
+    {
+      "id": "fe_indulgenceOffice",
+      "output": "art/chaos_fe_indulgenceOffice.png",
+      "sha256": "bc64565439dc99a740726633f941d7ee5d74ef6286a406e9044f1b74685d1d5b",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-8a1a1ef8-fe12-465e-8e74-709015d02b23.png",
+      "exactPromptRecord": "prompts.json id=fe_indulgenceOffice",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Full-size faces are concealed; upper focal task or dominant building with grouped light, quiet lower/marginal values."
+      }
+    },
+    {
+      "id": "fe_monasticGranary",
+      "output": "art/chaos_fe_monasticGranary.png",
+      "sha256": "706c991a7f11e1a3a6130720f4d2e2f51c2fbdf883ac8400bf15f438d18d8808",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-76fc0862-b6d6-40bb-8f94-3eeaf2b78488.png",
+      "exactPromptRecord": "prompts.json id=fe_monasticGranary",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Full-size faces are concealed; upper focal task or dominant building with grouped light, quiet lower/marginal values."
+      }
+    },
+    {
+      "id": "fe_cloisterDormitory",
+      "output": "art/chaos_fe_cloisterDormitory.png",
+      "sha256": "e529d1744deea0a4b2dbdd4ea8fbde5ad322aa1bb065546a0a3a625789c232d0",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-e892fb29-e549-4636-a918-a4227fb0a1b4.png",
+      "exactPromptRecord": "prompts.json id=fe_cloisterDormitory",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Full-size faces are concealed; upper focal task or dominant building with grouped light, quiet lower/marginal values."
+      }
+    },
+    {
+      "id": "fe_pilgrimsGate",
+      "output": "art/chaos_fe_pilgrimsGate.png",
+      "sha256": "af7953b836e66dc7c8042e3bc9a5e803e4cec81cd59c9ee0ff30d1dd06d7a1b4",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-01523629-a0c5-420d-8b13-711f3a52f0d4.png",
+      "exactPromptRecord": "prompts.json id=fe_pilgrimsGate",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Full-size faces are concealed; upper focal task or dominant building with grouped light, quiet lower/marginal values."
+      }
+    },
+    {
+      "id": "fe_grandJubilee",
+      "output": "art/chaos_fe_grandJubilee.png",
+      "sha256": "105e384ad116afb23d095333cb8c04c4236ec283ecbd38f529fc1fe1c1a323a9",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-2795474f-24e6-4a89-8d5c-11d063d9277b.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[23]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: anonymous living figures and concealed dead heads, upper45% actions, explicit corpse-built ritual apparatus, visible pink/yellow floor/fabric/water resting planes; class identity and pixel treatment retained."
+      }
+    },
+    {
+      "id": "fe_canonisedAccounts",
+      "output": "art/chaos_fe_canonisedAccounts.png",
+      "sha256": "ce8817ad4ea79dc1321959c7a38fe4c14d5759a524e6e60e90d4f717687756a3",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-75b9d5de-52b8-440f-a8b9-115bcf4399c0.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[24]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: anonymous living figures and concealed dead heads, upper45% actions, explicit corpse-built ritual apparatus, visible pink/yellow floor/fabric/water resting planes; class identity and pixel treatment retained."
+      }
+    },
+    {
+      "id": "fe_sacredInvestiture",
+      "output": "art/chaos_fe_sacredInvestiture.png",
+      "sha256": "3badd5ce17dcf415bdbee897dfb46fe4a5e6ec495f49a351de0b76389ec73f87",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-6db5983a-536c-4d54-a926-9b0341af71ca.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[25]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: anonymous upper actions and concealed corpse heads; Scholar solar motifs removed, hooked-book/spinal architecture retained; coherent pale/cobalt resting environment and pixel surface."
+      }
+    },
+    {
+      "id": "fe_gildedBasilica",
+      "output": "art/chaos_fe_gildedBasilica.png",
+      "sha256": "e4174b8c1e07397fd8a353af75d802399e070cdc729c729e227de6520306f431",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-6c03fdda-1b41-4518-8c96-7019edd13a61.png",
+      "exactPromptRecord": "corrections.json entries[12]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: principal action contained approximately upper45% with quiet lower field; basilica architecture now forms empty ring and downward buttresses, not ordinary domes."
+      }
+    },
+    {
+      "id": "fe_reliquaryTreasury",
+      "output": "art/chaos_fe_reliquaryTreasury.png",
+      "sha256": "c5f0351e7f415696c6a2e96fdd7fa6e75ccf3474d62335416aed08e6937916f9",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-dd1cb2c4-443a-4696-b261-ca968e40c689.png",
+      "exactPromptRecord": "prompts.json id=fe_reliquaryTreasury",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Anonymous upper focal ritual or readable large institutional silhouette; grouped yellow/pink values and calm lower field."
+      }
+    },
+    {
+      "id": "fe_prelatesPalace",
+      "output": "art/chaos_fe_prelatesPalace.png",
+      "sha256": "8bf9fc1d265b05059650a91b7104e039d7ed0f8274c7af8569857a9e52bfb127",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-129e075d-c305-432f-b07f-c874038338ec.png",
+      "exactPromptRecord": "prompts.json id=fe_prelatesPalace",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Anonymous upper focal ritual or readable large institutional silhouette; grouped yellow/pink values and calm lower field."
+      }
+    },
+    {
+      "id": "fe_censusPetitions",
+      "output": "art/chaos_fe_censusPetitions.png",
+      "sha256": "8412ed5426887a185f8a08919dea2c0243c51f815a10d322ff9ac00a50fb9091",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-a1991fa8-2cfe-4dc4-9757-2a48e5c6a3d6.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[26]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: anonymous upper actions and concealed corpse heads; Scholar solar motifs removed, hooked-book/spinal architecture retained; coherent pale/cobalt resting environment and pixel surface."
+      }
+    },
+    {
+      "id": "fe_duplicateReturns",
+      "output": "art/chaos_fe_duplicateReturns.png",
+      "sha256": "6cfba2c99b45f57cab76f0cfeaa6be74f40b3c2f5159e66b6ca83b40d27f67e5",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-4246c680-f7ed-42ac-bfc8-fdc27e026a32.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[27]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: anonymous upper actions and concealed corpse heads; Scholar solar motifs removed, hooked-book/spinal architecture retained; coherent pale/cobalt resting environment and pixel surface."
+      }
+    },
+    {
+      "id": "fe_sealedCurriculum",
+      "output": "art/chaos_fe_sealedCurriculum.png",
+      "sha256": "e41426dbbb1096c1f19f2a4ed39d6c75f28427ceb61cfce0a88dfbe854b4aa5e",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-cb9c188c-4fc7-456d-9b6f-88fa80a12d02.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[28]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: anonymous upper actions and concealed corpse heads; Scholar solar motifs removed, hooked-book/spinal architecture retained; coherent pale/cobalt resting environment and pixel surface."
+      }
+    },
+    {
+      "id": "fe_licensingQueue",
+      "output": "art/chaos_fe_licensingQueue.png",
+      "sha256": "05a0bb0f1905d80a96111d1c57eddaff681f2d25a18a5a4773bebd58270ec3d9",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-a674548d-afac-4a61-aee7-bd4ce226fd59.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[29]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: anonymous upper actions and concealed corpse heads; Scholar solar motifs removed, hooked-book/spinal architecture retained; coherent pale/cobalt resting environment and pixel surface."
+      }
+    },
+    {
+      "id": "fe_surveyStakes",
+      "output": "art/chaos_fe_surveyStakes.png",
+      "sha256": "5e9d91b3bcfaaa86425a302761c48710e820f50092d6f2c87f309dfac628c910",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-2dbff55c-e0c6-49b8-8b3e-2e19acce398f.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[30]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: anonymous upper actions and concealed corpse heads; Scholar solar motifs removed, hooked-book/spinal architecture retained; coherent pale/cobalt resting environment and pixel surface."
+      }
+    },
+    {
+      "id": "fe_districtRegistry",
+      "output": "art/chaos_fe_districtRegistry.png",
+      "sha256": "ba934d1b4ac1a472b0b306ea126d0fc3cee7d6fda3744983cd28e310818639ca",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-968d3879-a6af-4b85-a654-8374a5dd89fa.png",
+      "exactPromptRecord": "prompts.json id=fe_districtRegistry",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Source inspected: dominant named architecture or contained upper action; anonymous faces; grouped light and quiet lower values."
+      }
+    },
+    {
+      "id": "fe_endlessReview",
+      "output": "art/chaos_fe_endlessReview.png",
+      "sha256": "791dc419029ce371574c6015515ac980577d4ee6ca48d8421b9fe16a73fb9949",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-401058a9-1501-4d05-8dbd-7ce52ebaa90f.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[4]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Corrected source inspected: varied model-table staging, anonymous reviewers/concealed skeletons, corpse-built book support, broad visible parchment/cloth resting planes and pixel treatment."
+      }
+    },
+    {
+      "id": "fe_approvedHistories",
+      "output": "art/chaos_fe_approvedHistories.png",
+      "sha256": "56d35687ea9f182e9726436202264f6f5cc7f1e7eab00d47c60295e4220c37ae",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-87c48305-4c27-4d77-86ea-3667da734398.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[31]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Visible corpse-built furniture and architecture; anonymous figures; distinct working scene and readable material rest."
+      }
+    },
+    {
+      "id": "fe_credentialExams",
+      "output": "art/chaos_fe_credentialExams.png",
+      "sha256": "3c0b59c352762b56edf077326d8d9c5528c0eaa44e24c86f4ff0f59967b4ad8c",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-14edee46-85b5-4ef5-a6fb-385cd3460503.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[32]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Visible corpse-built furniture and architecture; anonymous figures; distinct working scene and readable material rest."
+      }
+    },
+    {
+      "id": "fe_redundantInventories",
+      "output": "art/chaos_fe_redundantInventories.png",
+      "sha256": "e4127474c93c468dc69e434a3891cf21030a1e0d1c384241b3a20fc9c33cfcc9",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-e59301a2-20c5-4474-ab9e-781d768deaf1.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[33]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Visible corpse-built furniture and architecture; anonymous figures; distinct working scene and readable material rest."
+      }
+    },
+    {
+      "id": "fe_examinationHall",
+      "output": "art/chaos_fe_examinationHall.png",
+      "sha256": "6efb8ac24fdea396d31f4e2bc1302223fa98b3ba6bc09b7bf1b98a1893b572d5",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-c955d1df-fa26-4f81-bb25-6e53f1a0e2bc.png",
+      "exactPromptRecord": "prompts.json id=fe_examinationHall",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Source inspected: named structure dominates with tiny anonymous inhabitants; Practice action above45%; coherent blue/gold grouped values."
+      }
+    },
+    {
+      "id": "fe_departmentOfSeals",
+      "output": "art/chaos_fe_departmentOfSeals.png",
+      "sha256": "7c4c75cec93ab94ac28162c9c999f63fff47b8e604c50e3fcbc73972384de164",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-2034ba40-7585-4216-a150-cc9d6546e234.png",
+      "exactPromptRecord": "prompts.json id=fe_departmentOfSeals",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Source inspected: named structure dominates with tiny anonymous inhabitants; Practice action above45%; coherent blue/gold grouped values."
+      }
+    },
+    {
+      "id": "fe_indexedStorehouse",
+      "output": "art/chaos_fe_indexedStorehouse.png",
+      "sha256": "d468184989ecf0ba2bb6d96b28781eea0e0aff962bd94b2344d6b1cdaab6ab26",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-a457ca6f-e439-4f87-a38b-c35bd30b8057.png",
+      "exactPromptRecord": "prompts.json id=fe_indexedStorehouse",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Source inspected: named structure dominates with tiny anonymous inhabitants; Practice action above45%; coherent blue/gold grouped values."
+      }
+    },
+    {
+      "id": "fe_remoteBureau",
+      "output": "art/chaos_fe_remoteBureau.png",
+      "sha256": "0709cc81be802ead85e8b253f59b7d85cc781e1a07acdfe337f6d7b07054a4ce",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-17a003f8-5c5f-41df-a2a9-db5443b243dc.png",
+      "exactPromptRecord": "prompts.json id=fe_remoteBureau",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Source inspected: named structure dominates with tiny anonymous inhabitants; Practice action above45%; coherent blue/gold grouped values."
+      }
+    },
+    {
+      "id": "fe_perfectedCensus",
+      "output": "art/chaos_fe_perfectedCensus.png",
+      "sha256": "79c19f1b93d801d9f3a8abb2d76d076c408e9179d61f1f3816c1d0d293f53bfd",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-ead22ebd-97f5-45a5-b00e-09a9a0be3fcb.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[34]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Distinct scholarly work staged above visible stone and cloth rest; skeletal supports and spine binding retained without priest insignia."
+      }
+    },
+    {
+      "id": "fe_abstractDisputation",
+      "output": "art/chaos_fe_abstractDisputation.png",
+      "sha256": "c32608816c1898deba6b2fc64c2f2d19bb13d3e7a223444c61c12c47d3b997c4",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-9d66eee7-a993-496b-9070-cf4228954703.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[35]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Distinct scholarly work staged above visible stone and cloth rest; skeletal supports and spine binding retained without priest insignia."
+      }
+    },
+    {
+      "id": "fe_doctrinalAudit",
+      "output": "art/chaos_fe_doctrinalAudit.png",
+      "sha256": "f8f880d5853345415a87f8d0fa7ddb336b5e2f0b5b6a581a5a1776c9db0fb078",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-047546d7-36d9-4a5e-926d-616f839c084b.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[36]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Distinct scholarly work staged above visible stone and cloth rest; skeletal supports and spine binding retained without priest insignia."
+      }
+    },
+    {
+      "id": "fe_palaceOfMeasures",
+      "output": "art/chaos_fe_palaceOfMeasures.png",
+      "sha256": "1b5ba7b7a1a52890e024e334848b30f3ed85623a64bf86e979042dbceb8311ff",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-23c6ffb6-3d0d-442e-bee4-d4e4b48bf114.png",
+      "exactPromptRecord": "prompts.json id=fe_palaceOfMeasures",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Source inspected: upper action contained; architecture dominates and book-bound silhouette reads; anonymous figures and coherent quiet value masses."
+      }
+    },
+    {
+      "id": "fe_sealedAcademy",
+      "output": "art/chaos_fe_sealedAcademy.png",
+      "sha256": "0892f9dd401febec49866b0c3a8a7a6d35a214ea4088530de126a461344cfa6d",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-25cf369d-f90b-4304-b906-a67c835c5f4c.png",
+      "exactPromptRecord": "prompts.json id=fe_sealedAcademy",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Source inspected: upper action contained; architecture dominates and book-bound silhouette reads; anonymous figures and coherent quiet value masses."
+      }
+    },
+    {
+      "id": "fe_archiveOfUnbuiltWorks",
+      "output": "art/chaos_fe_archiveOfUnbuiltWorks.png",
+      "sha256": "f226f040d148304b1a4369b56889fb15161774b95d73944ccffb0f5cfe8a4ace",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-2a29b172-f48e-4862-be37-302b1ca8fef8.png",
+      "exactPromptRecord": "prompts.json id=fe_archiveOfUnbuiltWorks",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Source inspected: upper action contained; architecture dominates and book-bound silhouette reads; anonymous figures and coherent quiet value masses."
+      }
+    },
+    {
+      "id": "cp_ironCommunion",
+      "output": "art/chaos_cp_ironCommunion.png",
+      "sha256": "a1b333e59f9b82b19f1e85f1aac344b567fe48e38e9699cc51ec94daba1a8635",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-220dd0c7-0373-4e38-86b7-5758e7aa6846.png",
+      "exactPromptRecord": "practice-rest-prompts.json id=cp_ironCommunion",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Capital source inspected: anonymous upper ritual, rigid three-prong corpse moulds and finished spearheads, visible teal iron floor/spent body moulds, distinct developed military corruption."
+      }
+    },
+    {
+      "id": "cp_citadelOfStillness",
+      "output": "art/chaos_cp_citadelOfStillness.png",
+      "sha256": "4e8ad744f503189906a59e8cb8b23973b3fad0ed500922574031c146d21471e5",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-723084aa-215c-4ac9-8a67-c9cb019818f7.png",
+      "exactPromptRecord": "prompts.json id=cp_citadelOfStillness",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Capital source inspected: captive rite above45% with quiet lower field; god-shaped building dominant, anonymous figures, one focal light group."
+      }
+    },
+    {
+      "id": "cp_finalLiquidation",
+      "output": "art/chaos_cp_finalLiquidation.png",
+      "sha256": "0cbc3bc24604595104e03d1dacb0abe9cb25bde37a706cd34804c3ecccec8041",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-943c2bc2-486f-4ccb-8ce5-af2a514034da.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[37]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Population sink action clear, strong class palette and distinct patron apparatus; corpse-built supports, visible lower rest and concealed faces."
+      }
+    },
+    {
+      "id": "cp_vaultOfLastCreditor",
+      "output": "art/chaos_cp_vaultOfLastCreditor.png",
+      "sha256": "deba40629524a3e1e3b2631b27159fa49fd2603b2ab3e2ec158ecc0e7d55161c",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-d248639b-28ff-42f4-adb1-d9bb58b26d0d.png",
+      "exactPromptRecord": "prompts.json id=cp_vaultOfLastCreditor",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Capital source inspected: captive rite above45% with quiet lower field; god-shaped building dominant, anonymous figures, one focal light group."
+      }
+    },
+    {
+      "id": "cp_offeringOfNames",
+      "output": "art/chaos_cp_offeringOfNames.png",
+      "sha256": "bd0609070d15d953a30ff5d1b5bf8940b5b1161fb1bb978da6af7c9eda6650fe",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-afdda8b7-cddd-4b57-92a9-20df294ecd32.png",
+      "exactPromptRecord": "practice-rest-corrections.json entries[38]",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Population sink action clear, strong class palette and distinct patron apparatus; corpse-built supports, visible lower rest and concealed faces."
+      }
+    },
+    {
+      "id": "cp_templeOfHollowSun",
+      "output": "art/chaos_cp_templeOfHollowSun.png",
+      "sha256": "5da5313790021474a18e8006a60b9e557e7e48fe14c18ed5ae7f73c818805d46",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-39ec1d6c-2ffe-4a05-97bc-3d03cab8364b.png",
+      "exactPromptRecord": "prompts.json id=cp_templeOfHollowSun",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Capital source inspected: distinct empty solar ring or bound-open-book architecture; tiny anonymous participants; contained upper rite and calm values."
+      }
+    },
+    {
+      "id": "cp_finalRedaction",
+      "output": "art/chaos_cp_finalRedaction.png",
+      "sha256": "1347f54657207502b5798a4104ac6ac46984f1711a06c5e3e90e2f04c0516660",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-2c60ddd3-3e36-422d-ad33-4992e35749b4.png",
+      "exactPromptRecord": "practice-rest-prompts.json id=cp_finalRedaction",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "visibleRest": true,
+        "variety": true,
+        "corpseArchitecture": true,
+        "thumbnail": true,
+        "notes": "Capital source inspected: upper anonymous victim/archivist group, massive corpse-built hooked open book, visible pale/cobalt lower archive and institutional scale; non-solar binding marks and concealed corpse heads."
+      }
+    },
+    {
+      "id": "cp_archiveOfUnfinishedIndex",
+      "output": "art/chaos_cp_archiveOfUnfinishedIndex.png",
+      "sha256": "b02f5d394f9503f60387e2be67089363acc8c1c4a240a61442a46f656daf0938",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-cc7d9cc4-8a71-41e3-938f-f9d862fe40d4.png",
+      "exactPromptRecord": "prompts.json id=cp_archiveOfUnfinishedIndex",
+      "review": {
+        "status": "accepted",
+        "faces": true,
+        "composition": true,
+        "valueHierarchy": true,
+        "thumbnail": true,
+        "notes": "Capital source inspected: distinct empty solar ring or bound-open-book architecture; tiny anonymous participants; contained upper rite and calm values."
+      }
+    }
+  ]
+}

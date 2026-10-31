@@ -1,0 +1,86 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "status": "Superseded surface briefs; first four outputs needed pixel treatment and concealed corpse heads.",
+  "entries": [
+    {
+      "id": "fe_salvageDetail",
+      "label": "Salvage Detail",
+      "pool": "dictator",
+      "kind": "practice",
+      "zone": "frontier",
+      "output": "art/chaos_fe_salvageDetail.png",
+      "prompt": "Use case: illustration-story. Create ONE completely fresh opaque5:7 portrait Practice illustration. Composition quality of Dean Cornwell, N.C.Wyeth and Howard Pyle: compelling narrative staging, expressive silhouette and gesture, purposeful asymmetry, selected edges, broad connected value and colour masses, one decisive action. Dark fantasy is the SUBJECT, not an instruction to underexpose the picture. Hand-placed pixel clusters/hard edges/selective dithering and restricted palette as in the inspected l5/l6 surface references; do not copy their subjects or eyes. All human/dead/sculpted faces entirely indiscernible at FULL SIZE: back-facing heads, opaque hood interiors, closed helmets, corpse heads wrapped/turned away/buried. No readable eyes/nose/mouth or frontal skull portraits. Skeletal rib cages, spines, limbs, mummified torsos and anonymous corpses MUST be materially recognisable; not decorative stick scratches. Architecture and machinery are built FROM the dead, with meaningful load-bearing corpse foundations. Non-graphic decay, no exposed organs, fresh wounds or dismemberment in progress. Keep the institution’s useful action legible. Main living figures, hands and identifying working object grouped in upper central45%, but the painting is ONE continuous inhabited environment from top to bottom. Lower55% is an AREA OF REST WITH VISIBLE MATERIAL FORMS, not empty negative space: broad low-contrast mid-values, contextual ground/fabric/water/architecture, soft edges and restrained texture. It may be pale or middle-valued; reserve strongest contrast for upper action. NO blank black rectangle, fade-to-black, vignette, artificial horizontal divider, high foreground parapet, or repeated elevated walkway before a giant arch. Do not force70%dark or5%light ratios. Do not scatter equal bright highlights. Show varied viewpoints and character arrangements specified below, rather than repainting the previous composition. Read at70x100 pixels. No text, writing, UI, card border/frame, watermark or decorative pasted logo. Cult shape is diegetic physical construction, distinct from current faction allegiance. CLASS PALETTE: Vermilion/brick red primary; oxidized teal accent; iron-plum shadows. PATRON: Unbending Crown: three rigid spear-prongs bound by one closed band, ossified military bodies and carapace symmetry. MATURITY: Frontier: smaller inherited, broken yet functioning institution, already rooted in corpse-built history. AUTHORED ACTION AND VIEWPOINT: Low diagonal view across a sloping battlefield: two small red soldiers use a long lever to pry an iron brace from a collapsed siege engine, in a compact upper-left group. The shattered engine is a carcass of huge ossified ribs and corroded teal iron, with headless skeletal crew fused into its joints. AUTHORED RESTING ENVIRONMENT: A readable sweep of rain-flattened ochre grass and a broad fallen red sail drapes over the foreground slope. Its folds and one skeletal rib frame the distance without competing for contrast. Preserve the card’s existing mechanic: Resource conversion/production as a useful institution. Inherited corpses in the construction are history, not a new ongoing population cost. Do not add a new sacrifice ritual or imply this card consumes a living person.",
+      "refs": [],
+      "review": {
+        "status": "pending",
+        "faces": false,
+        "composition": false,
+        "valueHierarchy": false,
+        "visibleRest": false,
+        "variety": false,
+        "corpseArchitecture": false,
+        "thumbnail": false
+      }
+    },
+    {
+      "id": "fe_luxuryWeaving",
+      "label": "Luxury Weaving",
+      "pool": "oligarch",
+      "kind": "practice",
+      "zone": "capital",
+      "output": "art/chaos_fe_luxuryWeaving.png",
+      "prompt": "Use case: illustration-story. Create ONE completely fresh opaque5:7 portrait Practice illustration. Composition quality of Dean Cornwell, N.C.Wyeth and Howard Pyle: compelling narrative staging, expressive silhouette and gesture, purposeful asymmetry, selected edges, broad connected value and colour masses, one decisive action. Dark fantasy is the SUBJECT, not an instruction to underexpose the picture. Hand-placed pixel clusters/hard edges/selective dithering and restricted palette as in the inspected l5/l6 surface references; do not copy their subjects or eyes. All human/dead/sculpted faces entirely indiscernible at FULL SIZE: back-facing heads, opaque hood interiors, closed helmets, corpse heads wrapped/turned away/buried. No readable eyes/nose/mouth or frontal skull portraits. Skeletal rib cages, spines, limbs, mummified torsos and anonymous corpses MUST be materially recognisable; not decorative stick scratches. Architecture and machinery are built FROM the dead, with meaningful load-bearing corpse foundations. Non-graphic decay, no exposed organs, fresh wounds or dismemberment in progress. Keep the institution’s useful action legible. Main living figures, hands and identifying working object grouped in upper central45%, but the painting is ONE continuous inhabited environment from top to bottom. Lower55% is an AREA OF REST WITH VISIBLE MATERIAL FORMS, not empty negative space: broad low-contrast mid-values, contextual ground/fabric/water/architecture, soft edges and restrained texture. It may be pale or middle-valued; reserve strongest contrast for upper action. NO blank black rectangle, fade-to-black, vignette, artificial horizontal divider, high foreground parapet, or repeated elevated walkway before a giant arch. Do not force70%dark or5%light ratios. Do not scatter equal bright highlights. Show varied viewpoints and character arrangements specified below, rather than repainting the previous composition. Read at70x100 pixels. No text, writing, UI, card border/frame, watermark or decorative pasted logo. Cult shape is diegetic physical construction, distinct from current faction allegiance. CLASS PALETTE: Olive/forest green primary; copper-orange accent. Green is clearly present on broad material surfaces, not only in black shadows. PATRON: Last Creditor: asymmetric hooked grasp enclosing one solid disc; skeletal possession, weight and enclosing appetite. MATURITY: Capital: entrenched otherworldly corpse-built corruption and developed institutions. AUTHORED ACTION AND VIEWPOINT: High oblique view down the length of an enormous loom: two hooded green weavers pass a shuttle at the far end in the upper area. The copper-ribbed loom is a grasping apparatus built from tightly bound human skeletons, whose ribs become warp supports; long desiccated bodies are its foundation. AUTHORED RESTING ENVIRONMENT: A broad sheet of unfinished olive cloth runs toward the viewer, with one slow copper-orange woven band and a few large quiet folds. The fabric is fully visible at low contrast and tells why the foreground is calm. Preserve the card’s existing mechanic: Each Food phase, separately consume 1 local Edible Stock if available for the household staff. Inherited corpses in the construction are history, not a new ongoing population cost. Do not add a new sacrifice ritual or imply this card consumes a living person.",
+      "refs": [],
+      "review": {
+        "status": "pending",
+        "faces": false,
+        "composition": false,
+        "valueHierarchy": false,
+        "visibleRest": false,
+        "variety": false,
+        "corpseArchitecture": false,
+        "thumbnail": false
+      }
+    },
+    {
+      "id": "fe_noviceVows",
+      "label": "Novice Vows",
+      "pool": "papacy",
+      "kind": "practice",
+      "zone": "frontier",
+      "output": "art/chaos_fe_noviceVows.png",
+      "prompt": "Use case: illustration-story. Create ONE completely fresh opaque5:7 portrait Practice illustration. Composition quality of Dean Cornwell, N.C.Wyeth and Howard Pyle: compelling narrative staging, expressive silhouette and gesture, purposeful asymmetry, selected edges, broad connected value and colour masses, one decisive action. Dark fantasy is the SUBJECT, not an instruction to underexpose the picture. Hand-placed pixel clusters/hard edges/selective dithering and restricted palette as in the inspected l5/l6 surface references; do not copy their subjects or eyes. All human/dead/sculpted faces entirely indiscernible at FULL SIZE: back-facing heads, opaque hood interiors, closed helmets, corpse heads wrapped/turned away/buried. No readable eyes/nose/mouth or frontal skull portraits. Skeletal rib cages, spines, limbs, mummified torsos and anonymous corpses MUST be materially recognisable; not decorative stick scratches. Architecture and machinery are built FROM the dead, with meaningful load-bearing corpse foundations. Non-graphic decay, no exposed organs, fresh wounds or dismemberment in progress. Keep the institution’s useful action legible. Main living figures, hands and identifying working object grouped in upper central45%, but the painting is ONE continuous inhabited environment from top to bottom. Lower55% is an AREA OF REST WITH VISIBLE MATERIAL FORMS, not empty negative space: broad low-contrast mid-values, contextual ground/fabric/water/architecture, soft edges and restrained texture. It may be pale or middle-valued; reserve strongest contrast for upper action. NO blank black rectangle, fade-to-black, vignette, artificial horizontal divider, high foreground parapet, or repeated elevated walkway before a giant arch. Do not force70%dark or5%light ratios. Do not scatter equal bright highlights. Show varied viewpoints and character arrangements specified below, rather than repainting the previous composition. Read at70x100 pixels. No text, writing, UI, card border/frame, watermark or decorative pasted logo. Cult shape is diegetic physical construction, distinct from current faction allegiance. CLASS PALETTE: Warm straw/butter yellow primary, rose pink accent, subdued plum/stone. Yellow fabric is warm like aged yellow banners, not lemon, ivory or orange. PATRON: Hollow Sun: empty ring with three falling rays, never a pupil or eye; corpse-root sanctity and surrender. MATURITY: Frontier: smaller inherited, broken yet functioning institution, already rooted in corpse-built history. AUTHORED ACTION AND VIEWPOINT: An almost overhead view of a walled cloister garden: a yellow-hooded officiant places a rose-pink mantle on a kneeling adult while a third hooded witness turns away. A root-like spiral of mummified bodies forms the garden wall and an empty stone solar ring; old rib cages emerge through split plaster. AUTHORED RESTING ENVIRONMENT: A broad pale gravel path winds through muted dry herbs and pink flowerless stems below. Soft organic shapes and one empty robe on the ground make an inhabited, quiet resting area. Preserve the card’s existing mechanic: Train 1 opposing local non-specialist adult as a Priest and convert that person to this piece’s faction. Priest is a proposed population specialty. Inherited corpses in the construction are history, not a new ongoing population cost. Do not add a new sacrifice ritual or imply this card consumes a living person.",
+      "refs": [],
+      "review": {
+        "status": "pending",
+        "faces": false,
+        "composition": false,
+        "valueHierarchy": false,
+        "visibleRest": false,
+        "variety": false,
+        "corpseArchitecture": false,
+        "thumbnail": false
+      }
+    },
+    {
+      "id": "fe_endlessReview",
+      "label": "Endless Review",
+      "pool": "sect",
+      "kind": "practice",
+      "zone": "province",
+      "output": "art/chaos_fe_endlessReview.png",
+      "prompt": "Use case: illustration-story. Create ONE completely fresh opaque5:7 portrait Practice illustration. Composition quality of Dean Cornwell, N.C.Wyeth and Howard Pyle: compelling narrative staging, expressive silhouette and gesture, purposeful asymmetry, selected edges, broad connected value and colour masses, one decisive action. Dark fantasy is the SUBJECT, not an instruction to underexpose the picture. Hand-placed pixel clusters/hard edges/selective dithering and restricted palette as in the inspected l5/l6 surface references; do not copy their subjects or eyes. All human/dead/sculpted faces entirely indiscernible at FULL SIZE: back-facing heads, opaque hood interiors, closed helmets, corpse heads wrapped/turned away/buried. No readable eyes/nose/mouth or frontal skull portraits. Skeletal rib cages, spines, limbs, mummified torsos and anonymous corpses MUST be materially recognisable; not decorative stick scratches. Architecture and machinery are built FROM the dead, with meaningful load-bearing corpse foundations. Non-graphic decay, no exposed organs, fresh wounds or dismemberment in progress. Keep the institution’s useful action legible. Main living figures, hands and identifying working object grouped in upper central45%, but the painting is ONE continuous inhabited environment from top to bottom. Lower55% is an AREA OF REST WITH VISIBLE MATERIAL FORMS, not empty negative space: broad low-contrast mid-values, contextual ground/fabric/water/architecture, soft edges and restrained texture. It may be pale or middle-valued; reserve strongest contrast for upper action. NO blank black rectangle, fade-to-black, vignette, artificial horizontal divider, high foreground parapet, or repeated elevated walkway before a giant arch. Do not force70%dark or5%light ratios. Do not scatter equal bright highlights. Show varied viewpoints and character arrangements specified below, rather than repainting the previous composition. Read at70x100 pixels. No text, writing, UI, card border/frame, watermark or decorative pasted logo. Cult shape is diegetic physical construction, distinct from current faction allegiance. CLASS PALETTE: Cobalt/lapis blue primary, honey gold accent, parchment and navy. PATRON: Unfinished Index: broad open book with ONE hooked binding spine; human remains classified into folded architecture, no repeated rectangular logos. MATURITY: Province: a useful institution bodily distorted by entrenched corruption. AUTHORED ACTION AND VIEWPOINT: Almost overhead view of a long council table: three cobalt-hooded reviewers lean toward one immaculate geometric civic model at the far end. The table folds like a broad open book bound with a single hooked human spine; mummified clerks and skeletal arms carry its load. Rain reaches the model through a broken roof. AUTHORED RESTING ENVIRONMENT: Broad near ends of pale blank model boards and a desaturated cobalt tablecloth form a quiet fan across the foreground, with visible material and slow water stains. No raised walkway or black lower floor. Preserve the card’s existing mechanic: Gain 3 Research. No Stock or allegiance is produced. Inherited corpses in the construction are history, not a new ongoing population cost. Do not add a new sacrifice ritual or imply this card consumes a living person.",
+      "refs": [],
+      "review": {
+        "status": "pending",
+        "faces": false,
+        "composition": false,
+        "valueHierarchy": false,
+        "visibleRest": false,
+        "variety": false,
+        "corpseArchitecture": false,
+        "thumbnail": false
+      }
+    }
+  ]
+}

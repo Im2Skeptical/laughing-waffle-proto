@@ -6,7 +6,7 @@ import { createTimeGraphController } from '../model/timegraph/controller-core.js
 import { createProjectionCache } from '../model/timegraph/projection-cache.js';
 import { GRAPH_METRICS } from '../model/graph-metrics.js';
 
-const LIBRARY_KEY = 'civsurvivor.development-lab.fixtures.v1';
+const LIBRARY_KEY = 'full-map-redesign-v1.development-lab.fixtures.v1';
 const UNDO_LIMIT = 20;
 export function createDevelopmentLabController({ initialState = null, storage = globalThis.localStorage } = {}) {
   let state = initialState ? cloneLabState(initialState) : createLabFixture();

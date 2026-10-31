@@ -1,3 +1,4 @@
+import { accrueTerritorialPrestige, resolveControl, payGarrisonUpkeep } from './territory.js';
 import { stepSpatialPressure } from "./external-world.js";
 // Moon-turn helpers, six-phase stepper, chaos, and civilization init.
 // Phase bodies live in ./phases/; this file remains the public stepper path.
@@ -27,7 +28,7 @@ export { getElderMortalityRate, resolveProbability } from "./phases/shared.js";
 export { getPrimordialChaosPressure } from "./phases/chaos.js";
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 40;
+  state.gameStateSchemaVersion = 41;
   state.civilization.practiceEvents={nextId:1,pending:[],trace:[]};
   state.civilization.candidateDevelopment={scholar:0,warrior:0};
   for (const legacyCounter of [
@@ -70,6 +71,7 @@ export function initializeDetailedSettlementCivilization(state) {
 
 export function stepDetailedSettlementsSecond(state, tSec) {
   if (state?.runStatus?.complete === true) return;
+  accrueTerritorialPrestige(state,tSec);
   refreshGreenAscendancy(state);
   for (const site of getDetailedSettlementSites(state)) {
     resetEmptyStrangerCohort(site.detailedState);
@@ -88,11 +90,11 @@ export function stepDetailedSettlementsSecond(state, tSec) {
   if (phase.boundary) {
     const chaosBefore=state.civilization.chaos.chaosPower;
     if (phase.id === "birth") runBirthPhase(state, phase);
-    else if (phase.id === "food") runFoodPhase(state, phase);
+    else if (phase.id === "food") {runFoodPhase(state, phase); runPracticeActivation(state,"food","afterMeals");payGarrisonUpkeep(state);}
     else if (phase.id === "housing") runHousingPhase(state, phase);
     else if (phase.id === "faith") runFaithPhase(state, phase);
-    else if (phase.id === "migration") runMigrationPhase(state, phase);
-    else if (phase.id === "death") { runDeathPhase(state, phase); runPracticeActivation(state, "death"); stepSpatialPressure(state); }
+    else if (phase.id === "migration") {if(state.rulesetId)runPracticeActivation(state,"migration");runMigrationPhase(state, phase); }
+    else if (phase.id === "death") { runDeathPhase(state, phase); runPracticeActivation(state, "death"); resolveControl(state); stepSpatialPressure(state); }
     if (state.civilization.chaos.chaosPower>chaosBefore) emitPracticeEvent(state,{kind:'chaosIncreased',amount:state.civilization.chaos.chaosPower-chaosBefore});
     for (const site of getDetailedSettlementSites(state)) emitPracticeEvent(state,{kind:'phaseResolved',regionId:site.regionId,phase:phase.id});
     flushPracticeEvents(state);

@@ -1,3 +1,4 @@
+import { populationBins, writePopulationBins } from './population-ledger.js';
 import { emptySpecialists, splitSpecialistCohorts, addAgeCohort } from "./cohorts.js";
 // Shared primitives: clone, food rounding, composition bins, moon-result shells.
 
@@ -114,6 +115,7 @@ export function clonePopulationComposition(composition) {
   for (const classId of POPULATION_CLASS_ORDER) {
     const source = composition?.[classId] ?? {};
     result[classId] = {
+      ...(source.joint ? {joint:clone(source.joint)} : {}),
       specialists: clone(source.specialists ?? emptySpecialists()),
       children: Math.max(0, Math.floor(source.children ?? 0)),
       adults: Math.max(0, Math.floor(source.adults ?? 0)),
@@ -127,6 +129,7 @@ export function clonePopulationComposition(composition) {
 }
 
 export function compositionBins(composition) {
+  if (Object.values(composition??{}).some(c=>Array.isArray(c?.joint))) return populationBins({populationByClass:composition}).map((b,order)=>({...b,order}));
   const bins = [];
   for (const [classIndex, classId] of POPULATION_CLASS_ORDER.entries()) {
     const parts = splitSpecialistCohorts(composition?.[classId]);
@@ -152,6 +155,7 @@ export function compositionBins(composition) {
 
 export function compositionFromBins(bins) {
   const result = emptyPopulationComposition();
+  if (bins.some(b=>b.allegiance)) {writePopulationBins({populationByClass:result},bins);return result;}
   for (const bin of bins) {
     if (!result[bin.classId] || bin.count <= 0) continue;
     if (bin.specialty && bin.specialty !== "ordinary") {
@@ -186,6 +190,7 @@ export function selectPopulationComposition(settlement, classIds, requestedCount
     const classState = settlement?.populationByClass?.[classId];
     if (!classState) continue;
     source[classId] = {
+      ...(classState.joint ? {joint:clone(classState.joint)} : {}),
       specialists: clone(classState.specialists ?? emptySpecialists()),
       children: Math.max(0, Math.floor(classState.children ?? 0)),
       adults: Math.max(0, Math.floor(classState.adults ?? 0)),

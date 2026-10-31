@@ -1,0 +1,433 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "entries": [
+    {
+      "id": "fe_salvageDetail",
+      "reason": "Correct smooth surface and visible skull faces while preserving fresh varied staging and visible resting environment.",
+      "prompt": "Use case: style-transfer. Image1 is the exact painting to correct; images2 and3 are ONLY surface references for flat hard-edged pixel clusters and selective dithering. Preserve Image1 viewpoint, narrative action, class palette, corpse-built architecture, identifiable bone rib cages/spines, and fully visible lower environment. Render it as an old-school limited-palette PIXEL PAINTING: large hand-placed connected clusters, deliberately stepped silhouette edges, sparse selective dithering. Simplify grass, bone, masonry and cloth detail; no smooth3D, photo, pores, fine grass hairs, realistic miniature or tiny noisy speckles. Maintain Cornwell/Wyeth/Pyle strong narrative composition and broad calm value groups. CRITICAL: conceal ALL skeletal and corpse HEADS with continuous opaque faded wrappings, closed helmets, burial in masonry or full rear views. No eye sockets, teeth or recognizable skull faces anywhere, including pillars and distant figures. Ribs, spines, limbs and mummified bodies remain explicit. All living faces remain opaque hood voids or closed helmets. The principal live figures, hands and identifying action fit upper central45%; lower half retains continuous visible environmental forms and low-contrast material, NEVER black fade or blank field. Do not copy the eye, subject, snow, framing, colours or architecture from reference2/3. No text, UI, frame, border, vignette or added props. Opaque5:7 portrait.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_salvageDetail.png",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/chaos_fe_salvageDetail.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_luxuryWeaving",
+      "reason": "Correct smooth surface and visible skull faces while preserving fresh varied staging and visible resting environment.",
+      "prompt": "Use case: style-transfer. Image1 is the exact painting to correct; images2 and3 are ONLY surface references for flat hard-edged pixel clusters and selective dithering. Preserve Image1 viewpoint, narrative action, class palette, corpse-built architecture, identifiable bone rib cages/spines, and fully visible lower environment. Render it as an old-school limited-palette PIXEL PAINTING: large hand-placed connected clusters, deliberately stepped silhouette edges, sparse selective dithering. Simplify grass, bone, masonry and cloth detail; no smooth3D, photo, pores, fine grass hairs, realistic miniature or tiny noisy speckles. Maintain Cornwell/Wyeth/Pyle strong narrative composition and broad calm value groups. CRITICAL: conceal ALL skeletal and corpse HEADS with continuous opaque faded wrappings, closed helmets, burial in masonry or full rear views. No eye sockets, teeth or recognizable skull faces anywhere, including pillars and distant figures. Ribs, spines, limbs and mummified bodies remain explicit. All living faces remain opaque hood voids or closed helmets. The principal live figures, hands and identifying action fit upper central45%; lower half retains continuous visible environmental forms and low-contrast material, NEVER black fade or blank field. Do not copy the eye, subject, snow, framing, colours or architecture from reference2/3. No text, UI, frame, border, vignette or added props. Opaque5:7 portrait.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_luxuryWeaving.png",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/chaos_fe_luxuryWeaving.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_noviceVows",
+      "reason": "Correct smooth surface and visible skull faces while preserving fresh varied staging and visible resting environment.",
+      "prompt": "Use case: style-transfer. Image1 is the exact painting to correct; images2 and3 are ONLY surface references for flat hard-edged pixel clusters and selective dithering. Preserve Image1 viewpoint, narrative action, class palette, corpse-built architecture, identifiable bone rib cages/spines, and fully visible lower environment. Render it as an old-school limited-palette PIXEL PAINTING: large hand-placed connected clusters, deliberately stepped silhouette edges, sparse selective dithering. Simplify grass, bone, masonry and cloth detail; no smooth3D, photo, pores, fine grass hairs, realistic miniature or tiny noisy speckles. Maintain Cornwell/Wyeth/Pyle strong narrative composition and broad calm value groups. CRITICAL: conceal ALL skeletal and corpse HEADS with continuous opaque faded wrappings, closed helmets, burial in masonry or full rear views. No eye sockets, teeth or recognizable skull faces anywhere, including pillars and distant figures. Ribs, spines, limbs and mummified bodies remain explicit. All living faces remain opaque hood voids or closed helmets. The principal live figures, hands and identifying action fit upper central45%; lower half retains continuous visible environmental forms and low-contrast material, NEVER black fade or blank field. Do not copy the eye, subject, snow, framing, colours or architecture from reference2/3. No text, UI, frame, border, vignette or added props. Opaque5:7 portrait.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_noviceVows.png",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/chaos_fe_noviceVows.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_endlessReview",
+      "reason": "Correct smooth surface and visible skull faces while preserving fresh varied staging and visible resting environment.",
+      "prompt": "Use case: style-transfer. Image1 is the exact painting to correct; images2 and3 are ONLY surface references for flat hard-edged pixel clusters and selective dithering. Preserve Image1 viewpoint, narrative action, class palette, corpse-built architecture, identifiable bone rib cages/spines, and fully visible lower environment. Render it as an old-school limited-palette PIXEL PAINTING: large hand-placed connected clusters, deliberately stepped silhouette edges, sparse selective dithering. Simplify grass, bone, masonry and cloth detail; no smooth3D, photo, pores, fine grass hairs, realistic miniature or tiny noisy speckles. Maintain Cornwell/Wyeth/Pyle strong narrative composition and broad calm value groups. CRITICAL: conceal ALL skeletal and corpse HEADS with continuous opaque faded wrappings, closed helmets, burial in masonry or full rear views. No eye sockets, teeth or recognizable skull faces anywhere, including pillars and distant figures. Ribs, spines, limbs and mummified bodies remain explicit. All living faces remain opaque hood voids or closed helmets. The principal live figures, hands and identifying action fit upper central45%; lower half retains continuous visible environmental forms and low-contrast material, NEVER black fade or blank field. Do not copy the eye, subject, snow, framing, colours or architecture from reference2/3. No text, UI, frame, border, vignette or added props. Opaque5:7 portrait.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_endlessReview.png",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/chaos_fe_endlessReview.png",
+      "status": "rejected"
+    },
+    {
+      "id": "fe_endlessReview",
+      "reason": "Principal reviewers and city model still too low/large; preserve varied scene and visible rest.",
+      "prompt": "Use case: precise-object-edit. Preserve this exact cobalt/gold pixel painting, its corpse-built open-book table, concealed skeletal heads, three anonymous reviewers, and visible broad lower book/fabric environment. Recompose ONLY the principal upper reviewers and city model: scale that complete group to75% of current size and move it upward so the lowest hands, sleeves and city-model base end at y42% of5:7 canvas. Keep the broad open-book support as architectural environment below it, but remove the little secondary city models on its foreground leaves so they are calm continuous parchment planes. Lower half remains visible broad parchment, blue cloth and low-contrast wrapped skeletal support; no black fade or blank black area. Reduce scattered gold marks on robes and bright foreground prop edges. Keep one strongest light/contrast around upper pointing hand/model. Pixel clusters, hard edges, selective dithering, no smooth3D, no eyes/nose/mouth or skull sockets/teeth. No text, UI, border or vignette.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_endlessReview.png"
+      ],
+      "output": "art/chaos_fe_endlessReview.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_rationRoll",
+      "reason": "Living feet extend below45%; shrink the whole live action group25% and move it up so feet/tool end at38%. Keep visible continuous lower floor. Cover any bare skeleton heads with opaque full cloth sacks, including mouth; no black fade or divider.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Living feet extend below45%; shrink the whole live action group25% and move it up so feet/tool end at38%. Keep visible continuous lower floor. Cover any bare skeleton heads with opaque full cloth sacks, including mouth; no black fade or divider.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_rationRoll.png"
+      ],
+      "output": "art/chaos_fe_rationRoll.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_barrackLevy",
+      "reason": "Four rack skeleton heads show bare skull eye sockets/teeth. Cover each ENTIRE head in opaque featureless cloth or closed helmet; preserve everything else.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Four rack skeleton heads show bare skull eye sockets/teeth. Cover each ENTIRE head in opaque featureless cloth or closed helmet; preserve everything else.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_barrackLevy.png"
+      ],
+      "output": "art/chaos_fe_barrackLevy.png",
+      "status": "rejected"
+    },
+    {
+      "id": "fe_curfewRounds",
+      "reason": "Living feet extend below45%; shrink the whole live action group25% and move it up so feet/tool end at38%. Keep visible continuous lower floor. Cover any bare skeleton heads with opaque full cloth sacks, including mouth; no black fade or divider.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Living feet extend below45%; shrink the whole live action group25% and move it up so feet/tool end at38%. Keep visible continuous lower floor. Cover any bare skeleton heads with opaque full cloth sacks, including mouth; no black fade or divider.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_curfewRounds.png"
+      ],
+      "output": "art/chaos_fe_curfewRounds.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_arsenalQuotas",
+      "reason": "Live figures extend a little below45%; uniformly shrink the full live group and key working objects by15% and move up so all end at40%. Preserve continuous visible floor and corpse-built surroundings; no parapet, no dark fade.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Live figures extend a little below45%; uniformly shrink the full live group and key working objects by15% and move up so all end at40%. Preserve continuous visible floor and corpse-built surroundings; no parapet, no dark fade.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_arsenalQuotas.png"
+      ],
+      "output": "art/chaos_fe_arsenalQuotas.png",
+      "status": "rejected"
+    },
+    {
+      "id": "fe_victoryProcession",
+      "reason": "Bare skull faces on corpse-built cart or marker resolve eye sockets and teeth. Completely wrap ALL these heads in featureless cloth sacks or closed helmets; also conceal the lower seated corpse head. Keep ribs, bodies, staging and continuous visible ground unchanged.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Bare skull faces on corpse-built cart or marker resolve eye sockets and teeth. Completely wrap ALL these heads in featureless cloth sacks or closed helmets; also conceal the lower seated corpse head. Keep ribs, bodies, staging and continuous visible ground unchanged.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_victoryProcession.png"
+      ],
+      "output": "art/chaos_fe_victoryProcession.png",
+      "status": "rejected"
+    },
+    {
+      "id": "fe_borderOaths",
+      "reason": "Bare skull faces on corpse-built cart or marker resolve eye sockets and teeth. Completely wrap ALL these heads in featureless cloth sacks or closed helmets; also conceal the lower seated corpse head. Keep ribs, bodies, staging and continuous visible ground unchanged.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Bare skull faces on corpse-built cart or marker resolve eye sockets and teeth. Completely wrap ALL these heads in featureless cloth sacks or closed helmets; also conceal the lower seated corpse head. Keep ribs, bodies, staging and continuous visible ground unchanged.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_borderOaths.png"
+      ],
+      "output": "art/chaos_fe_borderOaths.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_rentCollection",
+      "reason": "Live figures extend a little below45%; uniformly shrink the full live group and key working objects by15% and move up so all end at40%. Preserve continuous visible floor and corpse-built surroundings; no parapet, no dark fade.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Live figures extend a little below45%; uniformly shrink the full live group and key working objects by15% and move up so all end at40%. Preserve continuous visible floor and corpse-built surroundings; no parapet, no dark fade.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_rentCollection.png"
+      ],
+      "output": "art/chaos_fe_rentCollection.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_debtPledges",
+      "reason": "Live family robes/feet extend below45%; uniformly shrink full live group and token/counter action15% and shift upward so all end at40%. Preserve visible floor, tent, covered corpse foundations and class palette.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Live family robes/feet extend below45%; uniformly shrink full live group and token/counter action15% and shift upward so all end at40%. Preserve visible floor, tent, covered corpse foundations and class palette.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_debtPledges.png"
+      ],
+      "output": "art/chaos_fe_debtPledges.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_bondedCaravans",
+      "reason": "Two small skulls in the cut bank below gate show facial sockets; fully wrap them. Raise/shrink the compact caravan group10% so all feet end at40%; retain gate scale, pale ground, covered corpse and continuous environment.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Two small skulls in the cut bank below gate show facial sockets; fully wrap them. Raise/shrink the compact caravan group10% so all feet end at40%; retain gate scale, pale ground, covered corpse and continuous environment.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_bondedCaravans.png"
+      ],
+      "output": "art/chaos_fe_bondedCaravans.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_exclusiveConcessions",
+      "reason": "The two leading factors hand over a coin, but the scene needs a heavy copper KEY, with long shaft and distinct teeth, gripped by its bow. Replace only the held coin with key; keep bone grasp/disc sign, faces, staging, palette and resting environment.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: The two leading factors hand over a coin, but the scene needs a heavy copper KEY, with long shaft and distinct teeth, gripped by its bow. Replace only the held coin with key; keep bone grasp/disc sign, faces, staging, palette and resting environment.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_exclusiveConcessions.png"
+      ],
+      "output": "art/chaos_fe_exclusiveConcessions.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_conspicuousFeasts",
+      "reason": "Bare skull faces on left chair-arm supports show sockets/teeth. Cover all exposed dead heads with continuous opaque green cloth sacks or fully closed helmets, including mouth; keep rib cages and all other composition unchanged.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Bare skull faces on left chair-arm supports show sockets/teeth. Cover all exposed dead heads with continuous opaque green cloth sacks or fully closed helmets, including mouth; keep rib cages and all other composition unchanged.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_conspicuousFeasts.png"
+      ],
+      "output": "art/chaos_fe_conspicuousFeasts.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_municipalDebt",
+      "reason": "Wrong cult motifs: remove all radial sun emblems from carpet, robes and banners. Merchant patron is asymmetric hooked grasp enclosing one solid copper coin, not Priest solar rays. Use at most one small grasp/coin fitting and plain worn green carpet. Also fully conceal any bare dead heads while retaining explicit rib/body foundations. Keep group, key tray, viewpoint and visible resting planes.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Wrong cult motifs: remove all radial sun emblems from carpet, robes and banners. Merchant patron is asymmetric hooked grasp enclosing one solid copper coin, not Priest solar rays. Use at most one small grasp/coin fitting and plain worn green carpet. Also fully conceal any bare dead heads while retaining explicit rib/body foundations. Keep group, key tray, viewpoint and visible resting planes.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_municipalDebt.png"
+      ],
+      "output": "art/chaos_fe_municipalDebt.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_titheCart",
+      "reason": "Bare corpse skull faces on cart, serving supports or reliquary resolve sockets/teeth. Completely cover ALL dead heads with featureless opaque cloth sacks matching the class, not blindfolds. Preserve rib cages, bodies, living figures, viewpoint, pink/yellow palette and visible resting environment.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Bare corpse skull faces on cart, serving supports or reliquary resolve sockets/teeth. Completely cover ALL dead heads with featureless opaque cloth sacks matching the class, not blindfolds. Preserve rib cages, bodies, living figures, viewpoint, pink/yellow palette and visible resting environment.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_titheCart.png"
+      ],
+      "output": "art/chaos_fe_titheCart.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_licensedAlms",
+      "reason": "Bare corpse skull faces on cart, serving supports or reliquary resolve sockets/teeth. Completely cover ALL dead heads with featureless opaque cloth sacks matching the class, not blindfolds. Preserve rib cages, bodies, living figures, viewpoint, pink/yellow palette and visible resting environment.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Bare corpse skull faces on cart, serving supports or reliquary resolve sockets/teeth. Completely cover ALL dead heads with featureless opaque cloth sacks matching the class, not blindfolds. Preserve rib cages, bodies, living figures, viewpoint, pink/yellow palette and visible resting environment.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_licensedAlms.png"
+      ],
+      "output": "art/chaos_fe_licensedAlms.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_candleDues",
+      "reason": "Living customer feet extend below45%; shrink/raise whole two-person action group25% so all end at38%. Also fully wrap exposed dead heads, including mouths. Keep the visible pale floor, pink curtain planes and corpse supports; no black fade or parapet.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Living customer feet extend below45%; shrink/raise whole two-person action group25% so all end at38%. Also fully wrap exposed dead heads, including mouths. Keep the visible pale floor, pink curtain planes and corpse supports; no black fade or parapet.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_candleDues.png"
+      ],
+      "output": "art/chaos_fe_candleDues.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_purchasedAbsolution",
+      "reason": "Prelate hood interior suggests a pale facial profile: replace with continuous featureless matte-black void. Fully cover every dead head with opaque featureless cloth sacks, including all mouths. Preserve composition, action, pink/yellow, corpse-built altar and visible lower steps/carpet.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Prelate hood interior suggests a pale facial profile: replace with continuous featureless matte-black void. Fully cover every dead head with opaque featureless cloth sacks, including all mouths. Preserve composition, action, pink/yellow, corpse-built altar and visible lower steps/carpet.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_purchasedAbsolution.png"
+      ],
+      "output": "art/chaos_fe_purchasedAbsolution.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_relicProcession",
+      "reason": "Bare corpse skull faces on cart, serving supports or reliquary resolve sockets/teeth. Completely cover ALL dead heads with featureless opaque cloth sacks matching the class, not blindfolds. Preserve rib cages, bodies, living figures, viewpoint, pink/yellow palette and visible resting environment.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Bare corpse skull faces on cart, serving supports or reliquary resolve sockets/teeth. Completely cover ALL dead heads with featureless opaque cloth sacks matching the class, not blindfolds. Preserve rib cages, bodies, living figures, viewpoint, pink/yellow palette and visible resting environment.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_relicProcession.png"
+      ],
+      "output": "art/chaos_fe_relicProcession.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_consecratedBrew",
+      "reason": "Some built-in dead heads still suggest bare sockets/teeth or facial relief. Cover ALL corpse heads completely in continuous opaque featureless cloth sacks, including mouths, not blindfolds. Keep rib cages, body architecture, all live figures, class colours, viewpoint and visible resting environment unchanged.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Some built-in dead heads still suggest bare sockets/teeth or facial relief. Cover ALL corpse heads completely in continuous opaque featureless cloth sacks, including mouths, not blindfolds. Keep rib cages, body architecture, all live figures, class colours, viewpoint and visible resting environment unchanged.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_consecratedBrew.png"
+      ],
+      "output": "art/chaos_fe_consecratedBrew.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_grandJubilee",
+      "reason": "Some built-in dead heads still suggest bare sockets/teeth or facial relief. Cover ALL corpse heads completely in continuous opaque featureless cloth sacks, including mouths, not blindfolds. Keep rib cages, body architecture, all live figures, class colours, viewpoint and visible resting environment unchanged.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Some built-in dead heads still suggest bare sockets/teeth or facial relief. Cover ALL corpse heads completely in continuous opaque featureless cloth sacks, including mouths, not blindfolds. Keep rib cages, body architecture, all live figures, class colours, viewpoint and visible resting environment unchanged.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_grandJubilee.png"
+      ],
+      "output": "art/chaos_fe_grandJubilee.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_canonisedAccounts",
+      "reason": "All three live full-length robes extend below45%; uniformly shrink entire live group/book/case action25% and move upward so feet and case action end at38%. Preserve corpse-built backdrop, continuous visible lower room/floor and pink/yellow palette; no dark fade, no parapet.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: All three live full-length robes extend below45%; uniformly shrink entire live group/book/case action25% and move upward so feet and case action end at38%. Preserve corpse-built backdrop, continuous visible lower room/floor and pink/yellow palette; no dark fade, no parapet.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_canonisedAccounts.png"
+      ],
+      "output": "art/chaos_fe_canonisedAccounts.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_sacredInvestiture",
+      "reason": "Some built-in dead heads still suggest bare sockets/teeth or facial relief. Cover ALL corpse heads completely in continuous opaque featureless cloth sacks, including mouths, not blindfolds. Keep rib cages, body architecture, all live figures, class colours, viewpoint and visible resting environment unchanged.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Some built-in dead heads still suggest bare sockets/teeth or facial relief. Cover ALL corpse heads completely in continuous opaque featureless cloth sacks, including mouths, not blindfolds. Keep rib cages, body architecture, all live figures, class colours, viewpoint and visible resting environment unchanged.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_sacredInvestiture.png"
+      ],
+      "output": "art/chaos_fe_sacredInvestiture.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_censusPetitions",
+      "reason": "Remove sun/radiant circular emblems from ALL blue cloth, robe jewellery, book covers, banners and carpets; use plain worn cobalt with restrained gold trim. Scholar identity is open-book architecture and one hooked spine, not solar cult marks. Keep practical astrolabes if present. Completely wrap any exposed corpse heads in opaque featureless cloth sacks, covering sockets and mouths. Preserve upper action, body foundations and continuous visible setting.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Remove sun/radiant circular emblems from ALL blue cloth, robe jewellery, book covers, banners and carpets; use plain worn cobalt with restrained gold trim. Scholar identity is open-book architecture and one hooked spine, not solar cult marks. Keep practical astrolabes if present. Completely wrap any exposed corpse heads in opaque featureless cloth sacks, covering sockets and mouths. Preserve upper action, body foundations and continuous visible setting.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_censusPetitions.png"
+      ],
+      "output": "art/chaos_fe_censusPetitions.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_duplicateReturns",
+      "reason": "Remove sun/radiant circular emblems from ALL blue cloth, robe jewellery, book covers, banners and carpets; use plain worn cobalt with restrained gold trim. Scholar identity is open-book architecture and one hooked spine, not solar cult marks. Keep practical astrolabes if present. Completely wrap any exposed corpse heads in opaque featureless cloth sacks, covering sockets and mouths. Preserve upper action, body foundations and continuous visible setting.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Remove sun/radiant circular emblems from ALL blue cloth, robe jewellery, book covers, banners and carpets; use plain worn cobalt with restrained gold trim. Scholar identity is open-book architecture and one hooked spine, not solar cult marks. Keep practical astrolabes if present. Completely wrap any exposed corpse heads in opaque featureless cloth sacks, covering sockets and mouths. Preserve upper action, body foundations and continuous visible setting.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_duplicateReturns.png"
+      ],
+      "output": "art/chaos_fe_duplicateReturns.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_sealedCurriculum",
+      "reason": "Remove sun/radiant circular emblems from ALL blue cloth, robe jewellery, book covers, banners and carpets; use plain worn cobalt with restrained gold trim. Scholar identity is open-book architecture and one hooked spine, not solar cult marks. Keep practical astrolabes if present. Completely wrap any exposed corpse heads in opaque featureless cloth sacks, covering sockets and mouths. Preserve upper action, body foundations and continuous visible setting.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Remove sun/radiant circular emblems from ALL blue cloth, robe jewellery, book covers, banners and carpets; use plain worn cobalt with restrained gold trim. Scholar identity is open-book architecture and one hooked spine, not solar cult marks. Keep practical astrolabes if present. Completely wrap any exposed corpse heads in opaque featureless cloth sacks, covering sockets and mouths. Preserve upper action, body foundations and continuous visible setting.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_sealedCurriculum.png"
+      ],
+      "output": "art/chaos_fe_sealedCurriculum.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_licensingQueue",
+      "reason": "Remove sun/radiant circular emblems from ALL blue cloth, robe jewellery, book covers, banners and carpets; use plain worn cobalt with restrained gold trim. Scholar identity is open-book architecture and one hooked spine, not solar cult marks. Keep practical astrolabes if present. Completely wrap any exposed corpse heads in opaque featureless cloth sacks, covering sockets and mouths. Preserve upper action, body foundations and continuous visible setting.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Remove sun/radiant circular emblems from ALL blue cloth, robe jewellery, book covers, banners and carpets; use plain worn cobalt with restrained gold trim. Scholar identity is open-book architecture and one hooked spine, not solar cult marks. Keep practical astrolabes if present. Completely wrap any exposed corpse heads in opaque featureless cloth sacks, covering sockets and mouths. Preserve upper action, body foundations and continuous visible setting.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_licensingQueue.png"
+      ],
+      "output": "art/chaos_fe_licensingQueue.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_surveyStakes",
+      "reason": "Right surveyor and stake extend below45%; shrink/raise both surveyors plus stakes/cord20% so feet and tools end at38%. Completely wrap every bare corpse head in opaque featureless cloth. Remove all sun/radiant insignia from blue cloth; retain hooked-spine book apparatus, pale grass and continuous visible ground.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Right surveyor and stake extend below45%; shrink/raise both surveyors plus stakes/cord20% so feet and tools end at38%. Completely wrap every bare corpse head in opaque featureless cloth. Remove all sun/radiant insignia from blue cloth; retain hooked-spine book apparatus, pale grass and continuous visible ground.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_surveyStakes.png"
+      ],
+      "output": "art/chaos_fe_surveyStakes.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_approvedHistories",
+      "reason": "Remove sun/radiant circular emblems from ALL blue cloth, robe jewellery, book covers, banners and carpets; use plain worn cobalt with restrained gold trim. Scholar identity is open-book architecture and one hooked spine, not solar cult marks. Keep practical astrolabes if present. Completely wrap any exposed corpse heads in opaque featureless cloth sacks, covering sockets and mouths. Preserve upper action, body foundations and continuous visible setting.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Remove sun/radiant circular emblems from ALL blue cloth, robe jewellery, book covers, banners and carpets; use plain worn cobalt with restrained gold trim. Scholar identity is open-book architecture and one hooked spine, not solar cult marks. Keep practical astrolabes if present. Completely wrap any exposed corpse heads in opaque featureless cloth sacks, covering sockets and mouths. Preserve upper action, body foundations and continuous visible setting.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_approvedHistories.png"
+      ],
+      "output": "art/chaos_fe_approvedHistories.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_credentialExams",
+      "reason": "Remove ALL solar/radial-circle insignia from blue carpets, banners, robes, books and jewellery; leave worn plain cobalt with restrained gold trim. Scholar patron is broad open book and ONE hooked binding spine, not a sun. Preserve functional astrolabes/geometric apparatus, corpse-built architecture, varied upper action and visible lower resting planes. Fully enclose any exposed dead heads in opaque featureless cloth sacks.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Remove ALL solar/radial-circle insignia from blue carpets, banners, robes, books and jewellery; leave worn plain cobalt with restrained gold trim. Scholar patron is broad open book and ONE hooked binding spine, not a sun. Preserve functional astrolabes/geometric apparatus, corpse-built architecture, varied upper action and visible lower resting planes. Fully enclose any exposed dead heads in opaque featureless cloth sacks.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_credentialExams.png"
+      ],
+      "output": "art/chaos_fe_credentialExams.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_redundantInventories",
+      "reason": "Remove ALL solar/radial-circle insignia from blue carpets, banners, robes, books and jewellery; leave worn plain cobalt with restrained gold trim. Scholar patron is broad open book and ONE hooked binding spine, not a sun. Preserve functional astrolabes/geometric apparatus, corpse-built architecture, varied upper action and visible lower resting planes. Fully enclose any exposed dead heads in opaque featureless cloth sacks.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Remove ALL solar/radial-circle insignia from blue carpets, banners, robes, books and jewellery; leave worn plain cobalt with restrained gold trim. Scholar patron is broad open book and ONE hooked binding spine, not a sun. Preserve functional astrolabes/geometric apparatus, corpse-built architecture, varied upper action and visible lower resting planes. Fully enclose any exposed dead heads in opaque featureless cloth sacks.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_redundantInventories.png"
+      ],
+      "output": "art/chaos_fe_redundantInventories.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_perfectedCensus",
+      "reason": "Remove ALL solar/radial-circle insignia from blue carpets, banners, robes, books and jewellery; leave worn plain cobalt with restrained gold trim. Scholar patron is broad open book and ONE hooked binding spine, not a sun. Preserve functional astrolabes/geometric apparatus, corpse-built architecture, varied upper action and visible lower resting planes. Fully enclose any exposed dead heads in opaque featureless cloth sacks.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Remove ALL solar/radial-circle insignia from blue carpets, banners, robes, books and jewellery; leave worn plain cobalt with restrained gold trim. Scholar patron is broad open book and ONE hooked binding spine, not a sun. Preserve functional astrolabes/geometric apparatus, corpse-built architecture, varied upper action and visible lower resting planes. Fully enclose any exposed dead heads in opaque featureless cloth sacks.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_perfectedCensus.png"
+      ],
+      "output": "art/chaos_fe_perfectedCensus.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_abstractDisputation",
+      "reason": "Remove ALL solar/radial-circle insignia from blue carpets, banners, robes, books and jewellery; leave worn plain cobalt with restrained gold trim. Scholar patron is broad open book and ONE hooked binding spine, not a sun. Preserve functional astrolabes/geometric apparatus, corpse-built architecture, varied upper action and visible lower resting planes. Fully enclose any exposed dead heads in opaque featureless cloth sacks.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Remove ALL solar/radial-circle insignia from blue carpets, banners, robes, books and jewellery; leave worn plain cobalt with restrained gold trim. Scholar patron is broad open book and ONE hooked binding spine, not a sun. Preserve functional astrolabes/geometric apparatus, corpse-built architecture, varied upper action and visible lower resting planes. Fully enclose any exposed dead heads in opaque featureless cloth sacks.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_abstractDisputation.png"
+      ],
+      "output": "art/chaos_fe_abstractDisputation.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_doctrinalAudit",
+      "reason": "Remove ALL solar/radial-circle insignia from blue carpets, banners, robes, books and jewellery; leave worn plain cobalt with restrained gold trim. Scholar patron is broad open book and ONE hooked binding spine, not a sun. Preserve functional astrolabes/geometric apparatus, corpse-built architecture, varied upper action and visible lower resting planes. Fully enclose any exposed dead heads in opaque featureless cloth sacks.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Remove ALL solar/radial-circle insignia from blue carpets, banners, robes, books and jewellery; leave worn plain cobalt with restrained gold trim. Scholar patron is broad open book and ONE hooked binding spine, not a sun. Preserve functional astrolabes/geometric apparatus, corpse-built architecture, varied upper action and visible lower resting planes. Fully enclose any exposed dead heads in opaque featureless cloth sacks.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_doctrinalAudit.png"
+      ],
+      "output": "art/chaos_fe_doctrinalAudit.png",
+      "status": "accepted"
+    },
+    {
+      "id": "cp_finalLiquidation",
+      "reason": "Preserve complete scene and palette. Fully conceal ALL bare dead heads in opaque featureless cloth sacks or closed helmets, including every socket and mouth, retaining visible ribs/limbs/corpse architecture. For living officiants ensure continuous black hood interiors with no facial profile. Keep group high, useful output, and visible coherent lower resting environment.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Preserve complete scene and palette. Fully conceal ALL bare dead heads in opaque featureless cloth sacks or closed helmets, including every socket and mouth, retaining visible ribs/limbs/corpse architecture. For living officiants ensure continuous black hood interiors with no facial profile. Keep group high, useful output, and visible coherent lower resting environment.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_cp_finalLiquidation.png"
+      ],
+      "output": "art/chaos_cp_finalLiquidation.png",
+      "status": "accepted"
+    },
+    {
+      "id": "cp_offeringOfNames",
+      "reason": "Preserve complete scene and palette. Fully conceal ALL bare dead heads in opaque featureless cloth sacks or closed helmets, including every socket and mouth, retaining visible ribs/limbs/corpse architecture. For living officiants ensure continuous black hood interiors with no facial profile. Keep group high, useful output, and visible coherent lower resting environment.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Preserve complete scene and palette. Fully conceal ALL bare dead heads in opaque featureless cloth sacks or closed helmets, including every socket and mouth, retaining visible ribs/limbs/corpse architecture. For living officiants ensure continuous black hood interiors with no facial profile. Keep group high, useful output, and visible coherent lower resting environment.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_cp_offeringOfNames.png"
+      ],
+      "output": "art/chaos_cp_offeringOfNames.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_arsenalQuotas",
+      "reason": "Framing is now fixed. Remaining bare skull faces on lower foreground corpse remains and the upper furnace pillars must be fully enclosed in featureless opaque cloth sacks; preserve all other corrected composition and visible floor.",
+      "prompt": "Use case: precise-object-edit. This exact pixel painting is the edit target. Change ONLY the failed criteria described below. Preserve the authored viewpoint, story, palette, corpse-built machinery/foundations, explicit ribs/spines/limbs, visible continuous lower environment, hard pixel clusters and selective dithering. Cornwell/Wyeth/Pyle narrative composition and grouped values; dark fantasy subject, not crushed exposure. No new text, readable writing, UI, border, frame or vignette. No black fade, blank lower field or artificial dividing parapet. All living faces anonymous. When covering dead heads use continuous opaque cloth sacks with NO sockets, mouth, teeth or facial relief showing through; a blindfold is NOT sufficient. Keep body skeletons recognisable. SPECIFIC CORRECTION: Framing is now fixed. Remaining bare skull faces on lower foreground corpse remains and the upper furnace pillars must be fully enclosed in featureless opaque cloth sacks; preserve all other corrected composition and visible floor.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_arsenalQuotas.png"
+      ],
+      "output": "art/chaos_fe_arsenalQuotas.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_barrackLevy",
+      "prompt": "Precise-object-edit of the supplied original pixel painting. Preserve every element and the entire composition, lighting and palette except the dead heads specified. Keep all living figures exactly unchanged and anonymous. Maintain Cornwell/Wyeth/Pyle narrative staging, opaque full-bleed 5:7, principal action upper central45%, visible lower-contrast paving, fabric and corpse foundations below. Retain crisp hand-placed pixel clusters, hard edges and selective dithering. No smooth rendering, text, UI, borders, vignette or black fade. Warrior red and oxidized teal. On the four skeletons fastened upright to the left-hand spear rack, replace ONLY their skull-shaped cloth heads with four plain CLOSED opaque iron helmets. Each helmet is a simple unbroken rounded iron shell with NO faceplate opening, visor slit, eye sockets, nose, mouth or facial relief. Retain the skeleton ribcages, limbs, red capes and spear rack exactly. Their faces must be entirely unreadable even full size.",
+      "reason": "Wrapped dead heads still suggest facial features; replace with closed iron helmets.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_barrackLevy.png"
+      ],
+      "output": "art/chaos_fe_barrackLevy.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_victoryProcession",
+      "prompt": "Precise-object-edit of the supplied original pixel painting. Preserve every element and the entire composition, lighting and palette except the dead heads specified. Keep all living figures exactly unchanged and anonymous. Maintain Cornwell/Wyeth/Pyle narrative staging, opaque full-bleed 5:7, principal action upper central45%, visible lower-contrast paving, fabric and corpse foundations below. Retain crisp hand-placed pixel clusters, hard edges and selective dithering. No smooth rendering, text, UI, borders, vignette or black fade. Warrior red and oxidized teal. Replace ONLY every visible dead head on the corpse-built wagon and its wheels with plain CLOSED opaque iron helmets. Each helmet is a simple unbroken iron shell with NO visor slit, eye socket, nose, mouth, teeth or facial relief. Keep the skeleton bodies and bones that construct the wagon. Leave living guards, spear-prong crown, red cloth, city, paving and foreground shrouded body unchanged.",
+      "reason": "Wrapped dead heads still suggest facial features; replace with closed iron helmets.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_victoryProcession.png"
+      ],
+      "output": "art/chaos_fe_victoryProcession.png",
+      "status": "accepted"
+    }
+  ]
+}

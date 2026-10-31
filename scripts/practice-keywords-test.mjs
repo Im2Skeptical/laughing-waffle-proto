@@ -37,7 +37,7 @@ for (const role of ['scholar', 'warrior']) {
   assert.equal(keywordAccess(state, keyword).active, true, 'actual class establishment activates the discipline');
   assert.equal(keywordAccess(state, role === 'scholar' ? 'monsterTrophies' : 'synthesis').active, false);
   assert.equal(keywordAccess(state, 'economicRegions').active, false, 'Merchant is reserved, not reassigned to Scholar');
-  emitPracticeEvent(state, { kind: 'monsterDestroyed' });
+  emitPracticeEvent(state, { kind: 'monsterDestroyed', faction:'player' });
   emitPracticeEvent(state, { kind: 'defenseSucceeded' });
   emitPracticeEvent(state, { kind: 'campaignWon' });
   assert.equal(keywordScore(state, null, 'monsterTrophies'), 1, 'only a real destruction event earns a trophy');
@@ -56,7 +56,7 @@ for (const role of ['scholar', 'warrior']) {
   assert.equal(keywordAccess(state, keyword).active, true, 'a selected matching successor restores the discipline');
   assert.equal(keywordScore(state, null, 'monsterTrophies'), 1, 'selection does not reset history');
   const obsolete = structuredClone(saved); obsolete.gameStateSchemaVersion--;
-  assert.throws(() => deserializeGameState(obsolete), /expected v40/);
+  assert.throws(() => deserializeGameState(obsolete), /expected v41/);
 }
 
 // Ordinary A rules use captured coefficients, with no hidden per-card override.

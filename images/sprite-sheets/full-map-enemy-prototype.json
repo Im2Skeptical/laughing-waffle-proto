@@ -1,0 +1,652 @@
+{"frames": {
+
+"fe_abstractDisputation.png":
+{
+	"frame": {"x":790,"y":879,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_approvedHistories.png":
+{
+	"frame": {"x":790,"y":1328,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_archiveOfUnbuiltWorks.png":
+{
+	"frame": {"x":570,"y":257,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fe_arsenalQuotas.png":
+{
+	"frame": {"x":790,"y":1777,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_barrackLevy.png":
+{
+	"frame": {"x":790,"y":2226,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_billetingOrders.png":
+{
+	"frame": {"x":1112,"y":624,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_bondedCaravans.png":
+{
+	"frame": {"x":1112,"y":1073,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_bondedWarehouse.png":
+{
+	"frame": {"x":2,"y":767,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fe_borderOaths.png":
+{
+	"frame": {"x":1112,"y":1522,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_candleDues.png":
+{
+	"frame": {"x":1112,"y":1971,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_canonisedAccounts.png":
+{
+	"frame": {"x":1434,"y":751,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_capitalDole.png":
+{
+	"frame": {"x":1434,"y":1200,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_censusPetitions.png":
+{
+	"frame": {"x":1756,"y":751,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_cloisterDormitory.png":
+{
+	"frame": {"x":2,"y":1078,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fe_companyRations.png":
+{
+	"frame": {"x":467,"y":1777,"w":319,"h":444},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":319,"h":444},
+	"sourceSize": {"w":319,"h":444}
+},
+"fe_companyTenements.png":
+{
+	"frame": {"x":2,"y":1389,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fe_consecratedBrew.png":
+{
+	"frame": {"x":1434,"y":1649,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_conspicuousFeasts.png":
+{
+	"frame": {"x":1756,"y":1200,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_credentialExams.png":
+{
+	"frame": {"x":2078,"y":751,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_curfewRounds.png":
+{
+	"frame": {"x":467,"y":879,"w":319,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":319,"h":445},
+	"sourceSize": {"w":319,"h":445}
+},
+"fe_debtPledges.png":
+{
+	"frame": {"x":1756,"y":1649,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_departmentOfSeals.png":
+{
+	"frame": {"x":1500,"y":313,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fe_districtRegistry.png":
+{
+	"frame": {"x":1830,"y":313,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fe_doctrinalAudit.png":
+{
+	"frame": {"x":2078,"y":1200,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_duplicateReturns.png":
+{
+	"frame": {"x":2400,"y":751,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_endlessReview.png":
+{
+	"frame": {"x":2078,"y":1649,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_examinationHall.png":
+{
+	"frame": {"x":2,"y":1700,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fe_exclusiveConcessions.png":
+{
+	"frame": {"x":2400,"y":1200,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_factorsLodge.png":
+{
+	"frame": {"x":2160,"y":313,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fe_garrisonBarracks.png":
+{
+	"frame": {"x":2,"y":2011,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fe_gildedBasilica.png":
+{
+	"frame": {"x":2,"y":2,"w":564,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":564,"h":251},
+	"sourceSize": {"w":564,"h":251}
+},
+"fe_gildedPatronage.png":
+{
+	"frame": {"x":2722,"y":751,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_grandJubilee.png":
+{
+	"frame": {"x":2400,"y":1649,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_imperialArmoury.png":
+{
+	"frame": {"x":2,"y":2322,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fe_indexedStorehouse.png":
+{
+	"frame": {"x":2,"y":2633,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fe_indulgenceOffice.png":
+{
+	"frame": {"x":2490,"y":313,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fe_levyPost.png":
+{
+	"frame": {"x":2820,"y":313,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fe_licensedAlms.png":
+{
+	"frame": {"x":2722,"y":1200,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_licensingQueue.png":
+{
+	"frame": {"x":3044,"y":751,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_luxuryWeaving.png":
+{
+	"frame": {"x":2722,"y":1649,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_marbleArcade.png":
+{
+	"frame": {"x":1138,"y":2,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fe_marshalsCitadel.png":
+{
+	"frame": {"x":2,"y":257,"w":564,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":564,"h":251},
+	"sourceSize": {"w":564,"h":251}
+},
+"fe_monasticGranary.png":
+{
+	"frame": {"x":1603,"y":2,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fe_monopolyMilling.png":
+{
+	"frame": {"x":3044,"y":1200,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_municipalDebt.png":
+{
+	"frame": {"x":3366,"y":751,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_noviceVows.png":
+{
+	"frame": {"x":3044,"y":1649,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_offeringBowls.png":
+{
+	"frame": {"x":3366,"y":1200,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_officersFeast.png":
+{
+	"frame": {"x":3366,"y":1649,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_palaceOfAccounts.png":
+{
+	"frame": {"x":570,"y":2,"w":564,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":564,"h":251},
+	"sourceSize": {"w":564,"h":251}
+},
+"fe_palaceOfMeasures.png":
+{
+	"frame": {"x":2,"y":512,"w":564,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":564,"h":251},
+	"sourceSize": {"w":564,"h":251}
+},
+"fe_paradeSquare.png":
+{
+	"frame": {"x":2068,"y":2,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fe_patronageSalon.png":
+{
+	"frame": {"x":3150,"y":313,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fe_perfectedCensus.png":
+{
+	"frame": {"x":3084,"y":2098,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_pilgrimsGate.png":
+{
+	"frame": {"x":3480,"y":313,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fe_prelatesPalace.png":
+{
+	"frame": {"x":2533,"y":2,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fe_privateExchange.png":
+{
+	"frame": {"x":2998,"y":2,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fe_privateReservoir.png":
+{
+	"frame": {"x":3463,"y":2,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fe_provostCourt.png":
+{
+	"frame": {"x":1434,"y":2098,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fe_purchasedAbsolution.png":
+{
+	"frame": {"x":3406,"y":2098,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_purchasedTestimony.png":
+{
+	"frame": {"x":1112,"y":2420,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_rationDepot.png":
+{
+	"frame": {"x":1764,"y":2098,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fe_rationRoll.png":
+{
+	"frame": {"x":1434,"y":2536,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_redundantInventories.png":
+{
+	"frame": {"x":1756,"y":2536,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_relicProcession.png":
+{
+	"frame": {"x":2078,"y":2536,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_reliquaryTreasury.png":
+{
+	"frame": {"x":570,"y":568,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fe_remoteBureau.png":
+{
+	"frame": {"x":2094,"y":2098,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fe_rentCollection.png":
+{
+	"frame": {"x":467,"y":2225,"w":319,"h":444},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":319,"h":444},
+	"sourceSize": {"w":319,"h":444}
+},
+"fe_roadRequisition.png":
+{
+	"frame": {"x":2400,"y":2536,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_sacredInvestiture.png":
+{
+	"frame": {"x":2722,"y":2536,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_salvageDetail.png":
+{
+	"frame": {"x":3044,"y":2547,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_scrapAuction.png":
+{
+	"frame": {"x":3366,"y":2547,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_scriptedHomilies.png":
+{
+	"frame": {"x":3688,"y":751,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_sealedAcademy.png":
+{
+	"frame": {"x":1035,"y":313,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fe_sealedCurriculum.png":
+{
+	"frame": {"x":3688,"y":1200,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_siegeRehearsals.png":
+{
+	"frame": {"x":467,"y":1328,"w":319,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":319,"h":445},
+	"sourceSize": {"w":319,"h":445}
+},
+"fe_signalBastion.png":
+{
+	"frame": {"x":2424,"y":2098,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fe_surveyStakes.png":
+{
+	"frame": {"x":3688,"y":1649,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_titheCart.png":
+{
+	"frame": {"x":3728,"y":2098,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fe_titheChapel.png":
+{
+	"frame": {"x":2754,"y":2098,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fe_victoryProcession.png":
+{
+	"frame": {"x":3688,"y":2547,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "full-map-enemy-prototype.png",
+	"format": "RGBA8888",
+	"size": {"w":4048,"h":2994},
+	"scale": "0.3",
+	"smartupdate": "$TexturePacker:SmartUpdate:1c0350cd2dcf9140699fe0b87a0cd301:a5866fa652c950235b9c63831f930152:4b4383b672e5b7eb65bec4749df26093$"
+}
+}

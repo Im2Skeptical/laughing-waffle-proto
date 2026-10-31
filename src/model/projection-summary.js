@@ -51,6 +51,7 @@ export function buildProjectionSummaryFromState(state) {
     runComplete,
     runLossSec,
     runLossYear,
+    ...(state.rulesetId?{territory:Object.fromEntries(state.world.sites.filter(s=>s.simulationMode==='detailed').map(s=>[s.regionId,context.territory(s.regionId)])),prestige:state.civilization.prestige}:{}),
     graphValues: {
       civilization: buildGraphValues(GRAPH_METRICS.civilization, state, null, context),
       settlementByRegion: Object.fromEntries(

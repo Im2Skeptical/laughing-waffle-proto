@@ -1,3 +1,4 @@
+import { hasPopulationLedger, populationBins, writePopulationBins, removePeople, allocatePopulation } from '../population-ledger.js';
 import { emptySpecialists, addAgeCohort } from "../cohorts.js";
 import { stockTotal, consumeStock, CIV_CONTENT_TUNING } from "../stock.js";
 // Migration intent, housing/meal allocation, and the migration moon phase.
@@ -29,6 +30,8 @@ import { resetEmptyStrangerCohort } from "./shared.js";
 
 export function getReservedSourceComposition(turn, sourceRegionId) {
   const result = emptyPopulationComposition();
+  const joint=(turn?.migrationIntents??[]).filter(i=>i.sourceId===sourceRegionId).flatMap(i=>compositionBins(i.composition));
+  if(joint.some(b=>b.allegiance))return compositionFromBins(joint);
   for (const intent of turn?.migrationIntents ?? []) {
     if (intent.sourceId !== sourceRegionId) continue;
     for (const classId of POPULATION_CLASS_ORDER) {
@@ -73,6 +76,7 @@ export function addMoonMigrationIntent(state, turn, intent) {
 }
 
 export function removePopulationComposition(settlement, composition) {
+  if(hasPopulationLedger(settlement)) {return compositionFromBins(removePeople(settlement,compositionBins(composition)));}
   for (const classId of POPULATION_CLASS_ORDER) {
     const classState = settlement?.populationByClass?.[classId];
     const removal = composition?.[classId];
@@ -102,6 +106,7 @@ function takeFromComposition(composition, count) {
 }
 
 export function addCompositionToStrangers(settlement, composition) {
+  if(hasPopulationLedger(settlement)) {writePopulationBins(settlement,[...populationBins(settlement),...compositionBins(composition).map(b=>({...b,classId:"stranger"}))]);return;}
   const stranger = settlement?.populationByClass?.stranger;
   if (!stranger) return;
   const wasEmpty = classPopulationTotal(stranger) === 0;
@@ -147,7 +152,7 @@ function getMigrationCandidates(state, intent, emitterIds, projectedPopulation) 
     ? sourceSummary.total / sourceSummary.housingCapacity
     : Number.POSITIVE_INFINITY;
   const candidates = getConnectedRegionIds(state, intent.sourceId)
-    .filter((regionId) => getRegionState(state, regionId)?.controller === "player" && getDetailedSettlement(state, regionId))
+    .filter((regionId) => (state.rulesetId || getRegionState(state, regionId)?.controller === "player") && getDetailedSettlement(state, regionId) && getRegionState(state,regionId)?.controller!=="ruin")
     .filter((regionId) => !emitterIds.has(regionId))
     .map((regionId) => {
       const settlement = getDetailedSettlement(state, regionId);
@@ -175,6 +180,7 @@ function getMigrationCandidates(state, intent, emitterIds, projectedPopulation) 
 }
 
 function getExternalMigrationDestinations(state, sourceRegionId) {
+  if(state.rulesetId)return [];
   const order = new Map((state?.world?.regions ?? []).map((region, index) => [region.id, index]));
   return getConnectedRegionIds(state, sourceRegionId)
     .filter((regionId) => getRegionState(state, regionId)?.controller !== "player")
@@ -345,7 +351,19 @@ function resolveMigrationIntents(state, intents, {
   deferArrival = false,
   tSec = state.tSec,
 } = {}) {
-  const requestedIntents = intents.filter((intent) => intent.requested > 0);
+  // Reservations are intentions, not a second population. Re-select from a
+  // declining snapshot after intervening conversion/training/death.
+  const available=new Map();
+  const refreshed=intents.map(intent=>{
+    const site=getDetailedSettlement(state,intent.sourceId);
+    if(!hasPopulationLedger(site))return intent;
+    if(!available.has(intent.sourceId))available.set(intent.sourceId,{populationByClass:clonePopulationComposition(site.populationByClass)});
+    const holder=available.get(intent.sourceId);
+    const composition=selectPopulationComposition(holder,[intent.sourceClassId],intent.requested);
+    removePopulationComposition(holder,composition);
+    return {...intent,composition,requested:compositionTotal(composition)};
+  });
+  const requestedIntents = refreshed.filter((intent) => intent.requested > 0);
   const active = requestedIntents.map((intent, originalIndex) => ({
     ...intent, composition: clonePopulationComposition(intent.composition), originalIndex,
   }));

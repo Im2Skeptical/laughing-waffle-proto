@@ -164,7 +164,7 @@ export function createVassalLifeHudView({
 
   function displayedValues(vassal, presentation, countUp) {
     const liveAge = getVassalAge(presentation.state, vassal, presentation.profileSec);
-    const livePrestige = vassal.prestige ?? 0;
+    const livePrestige = presentation.state?.rulesetId?presentation.state.civilization.prestige:vassal.prestige ?? 0;
     const liveExp = Math.max(0, Math.floor(vassal.developmentProgress ?? 0));
     if (!countUp || tween == null) {
       return { age: liveAge, prestige: livePrestige, exp: liveExp, flashing: false };

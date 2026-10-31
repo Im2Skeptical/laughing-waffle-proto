@@ -1,3 +1,5 @@
+import { militarySummary, changeController, availableMilitaryWarriors } from './territory.js';
+import { prestigeAccount } from '../vassal-life-map/treasury.js';
 import { getCurrentLifeMapVassal, getVassalEffectiveStats, getVassalStatDefinition } from '../vassal-life-map/selectors.js';
 import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
 import { emptySpecialists } from "./cohorts.js";
@@ -59,7 +61,8 @@ export function getCivilizationSupportSources(state) {
   return Array.from(contributions,([regionId,amount])=>({regionId,amount})).filter(source=>source.amount>0);
 }
 export function recordSupportUsage(state,regionId,kind,defense=false,classId=null) {
-  const sources=getCivilizationSupportSources(state);
+  const military=state.rulesetId?militarySummary(state,regionId,classId?'player':getRegionState(state,regionId)?.controller):null;
+  const sources=military?[{regionId,amount:Math.max(0,military.force-military.receivedForce)},...military.supportSources.map(s=>({regionId:s.regionId,amount:s.force}))].filter(s=>s.amount>0):getCivilizationSupportSources(state);
   for (const source of sources) {
     emitPracticeEvent(state,{kind:'supportContributed',regionId:source.regionId,actionKind:kind,amount:source.amount,classId});
     const local=siteAt(state,source.regionId)?.detailedState;
@@ -82,7 +85,7 @@ export function getRetinue(state, vassal) {
   const sites = playerSites(state);
   const population = sites.reduce((n, site) => n + specialistCount(site.detailedState, 'warrior'), 0);
   if (vassal?.classId !== 'warrior') return { value: 0, cap: null, population, nextPrestige: null };
-  const held = Math.floor(Math.max(0, vassal.prestige ?? 0) / VASSAL_CLASS_RULES.warrior.prestigePerRetinue);
+  const held = Math.floor(Math.max(0, prestigeAccount(state,vassal).prestige ?? 0) / VASSAL_CLASS_RULES.warrior.prestigePerRetinue);
   let bonus = 0;
   for (const site of sites) {
     bonus += structureModifiers(state, site.detailedState).reduce((n, m) => n + (m.kind === 'retinueForce' ? m.amount : 0), 0);
@@ -94,8 +97,12 @@ export function getRetinue(state, vassal) {
   return { value: held + Math.floor(bonus), cap: null, population, nextPrestige: (held + 1) * VASSAL_CLASS_RULES.warrior.prestigePerRetinue };
 }
 
-// Provisional global calculation. Keep the single seam for a localized redesign.
+// Expeditions use available local Warriors; retained legacy fixtures use Support.
 export function getMartialForce(state, vassal = getCurrentLifeMapVassal(state)) {
+  if(state.rulesetId){
+    const warriors=vassal?.locationRegionId?availableMilitaryWarriors(state,vassal.locationRegionId,'player'):0;
+    return warriors+(getVassalStatDefinition(vassal,'intelligence').id==='prowess'?getVassalEffectiveStats(vassal).intelligence+getRetinue(state,vassal).value:0);
+  }
   const support = getCivilizationSupportSources(state).reduce((n, source) => n + source.amount, 0);
   return support + (getVassalStatDefinition(vassal, 'intelligence').id === 'prowess'
     ? getVassalEffectiveStats(vassal).intelligence + getRetinue(state, vassal).value : 0);
@@ -175,9 +182,12 @@ export function resolveExternalPractice(state, site, def, apply, prepared = null
     return {ok:true,bonus:stockedTarget?1:0};
   }
   if (def.externalAction === 'hunt') {
-    const id=prepared?.targetId??adjacentRegionIds(state,site.regionId).find(id=>getRegionState(state,id)?.monster?.defense<=getMartialForce(state));
+    const force=state.rulesetId?militarySummary(state,site.regionId).force:getMartialForce(state);
+    const id=prepared?.targetId??adjacentRegionIds(state,site.regionId).find(id=>getRegionState(state,id)?.monster?.defense<=force);
     if (!id) return {ok:false};
-    if(apply) { delete getRegionState(state,id).monster; state.civilization.chaos.monsterCount=state.world.regions.filter(r=>r.monster).length; state.civilization.history.victories++;
+    if(apply) { delete getRegionState(state,id).monster; state.civilization.chaos.monsterCount=state.world.regions.filter(r=>r.monster).length;
+      const history=state.rulesetId&&getRegionState(state,site.regionId)?.controller!=='player'?(site.detailedState.history??={}):state.civilization.history;
+      history.victories=(history.victories??0)+1;
       recordSupportUsage(state,site.regionId,'hunt');emitPracticeEvent(state,{kind:'monsterDestroyed',regionId:site.regionId,practiceId:def.id}); }
     return {ok:true,bonus:getRegionState(state,id)?.monster?.defense??prepared?.bonus??0,targetId:id};
   }
@@ -192,6 +202,7 @@ export function resolveExternalPractice(state, site, def, apply, prepared = null
 
 export function conquerSettlement(state, targetId, edge = 0) {
   const site=siteAt(state,targetId),region=getRegionState(state,targetId);
+  if(state.rulesetId&&site?.detailedState){site.simulationMode='detailed';region.detailedSettlementEnabled=true;changeController(state,targetId,'player',{military:true});state.civilization.history.conquests++;return {ok:true};}
   if(!site?.neutral && site?.simulationMode!=='ruin') return {ok:false,reason:'targetUnavailable'};
   const settlement=site.detailedState;
   const population=Object.values(settlement.populationByClass).reduce((n,c)=>n+c.children+c.adults+c.eldersByAge.reduce((s,e)=>s+e.count,0),0);
@@ -212,6 +223,7 @@ export function getMonsterPressureRate(state) {
 }
 
 function monsterExpansionTarget(state, region) {
+  if(state.rulesetId&&siteAt(state,region.id)?.simulationMode==='detailed')return region;
   const targets = adjacentRegionIds(state,region.id).map(id => getRegionState(state,id)).filter(target => !target.monster);
   return targets.find(target => target.controller==='frontier' && !siteAt(state,target.id)) ?? targets[0];
 }
@@ -228,7 +240,7 @@ function pulseMonsterPressure(state, regions) {
     expandMonster(state,region,monsterExpansionTarget(state,region).id);
     return;
   }
-  const target=regions.find(region => region.controller==='frontier' && !region.monster && !siteAt(state,region.id));
+  const target=regions.find(region => !region.monster && (state.rulesetId || region.controller==='frontier' && !siteAt(state,region.id)));
   if (target) {
     const spawnNumber=++chaos.spatialSpawns;
     target.monster={defense:CIV_CONTENT_TUNING.monsterDefense+Math.floor(spawnNumber/3)};
@@ -244,7 +256,13 @@ function pulseMonsterPressure(state, regions) {
 
 function expandMonster(state, region, targetId) {
   const target=getRegionState(state,targetId),site=siteAt(state,targetId);
-  if(target.controller==='player'&&site) {
+  if(state.rulesetId&&site?.simulationMode==='detailed'){
+    const m=militarySummary(state,targetId);
+    if(m.armed>0&&m.defense>=region.monster.defense){emitPracticeEvent(state,{kind:'defenseSucceeded',regionId:targetId,faction:target.controller});site.detailedState.lastDefense={tSec:state.tSec,result:'held',sourceRegionId:region.id};return;}
+    if(target.controller==='player')state.civilization.history.lostSettlements++;
+    target.lostAtSec=state.tSec;emitPracticeEvent(state,{kind:'settlementLost',regionId:targetId,faction:target.controller});
+  }
+  if(!state.rulesetId&&target.controller==='player'&&site) {
     const settlement=site.detailedState;
     const response=settlement.practiceSlots.flatMap(p=>{
       const def=getDetailedPracticeDef(state,p?.practiceId);
@@ -291,7 +309,7 @@ function resolveMonsterPressure(state) {
   const survivors=playerSites(state);
   const lineage=state.civilization.vassalLineage;
   const active=lineage?.vassalsById?.[lineage.currentVassalId];
-  if(active && survivors.length && !survivors.some(s=>s.regionId===active.locationRegionId)) {
+  if(active && survivors.length && (state.rulesetId?siteAt(state,active.locationRegionId)?.simulationMode!=='detailed':!survivors.some(s=>s.regionId===active.locationRegionId))) {
     const from=active.locationRegionId;
     active.locationRegionId=survivors[0].regionId;
     active.lifeEvents.push({eventId:`${active.vassalId}:evacuation:${state.tSec}`,kind:'evacuation',tSec:state.tSec,

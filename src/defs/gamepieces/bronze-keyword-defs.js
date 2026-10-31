@@ -30,7 +30,7 @@ export const bronzeKeywordDefs=Object.freeze({
     {type:'housing'},{consume:[input('Timber'),input('Record')],
       ui:{rule:'Housing: Consume 1 [Timber] and 1 [Record]. Generate 1 [Tool] Stock.'}}),
   beastRendering:charged('beastRendering','Beast Rendering','warrior',['Animal','Bone'],2,16,1,
-    {kind:'monsterDestroyed',scope:'civilization'},'When this civilisation destroys a Monster.'),
+    {kind:'monsterDestroyed',scope:'civilization',faction:'beneficiary'},'When this civilisation destroys a Monster.'),
   scarredShields:practice('scarredShields','Scarred Shields','warrior',['Arms','Protection'],1,12,
     {type:'birth'},{consume:[input('Timber')],
       ui:{rule:'Birth: Consume 1 [Timber]. Generate 1 [Arms]/[Protection] Stock.'}}),

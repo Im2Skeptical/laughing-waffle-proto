@@ -1,0 +1,14 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "current": true,
+  "entries": [
+    {
+      "id": "palette_y3_fe_gildedBasilica",
+      "reason": "Keep yellow primary rather than red-dominated shrouds and banners.",
+      "prompt": "Use case: precise-object-edit. Correct ONLY which cloth areas carry the primary and accent colours in this 9:4 Gilded Basilica Structure illustration. The palette is PRIMARY PALE WAX YELLOW with SECONDARY DARK OXBLOOD trim. The reference has too much red in the shroud field and long banners. Make ALL large funeral shroud bundles in the entire bottom-left burial field and the corpse cart PALE WAX YELLOW, with only narrow oxblood binding straps. Make the main long vertical ceremonial banners PALE WAX YELLOW with only thin oxblood edging or a single narrow oxblood centre stripe, not broad red fields. Keep the domes pale yellow. Tiny clergy wear pale yellow with narrow oxblood collars. Yellow should be the dominant chromatic identity everywhere, oxblood a disciplined small accent. Preserve ALL exact composition, perspective, objects, people positions, building geometry and neutral grey sky and stone; do not move or add any subject. Preserve N. C. Wyeth / Dean Cornwell narrative composition, named building dominant central75% and tiny anonymous figures. Retain hard pixel clusters, edges and selective dithering. Faces on people, statues and bodies remain entirely indiscernible at full size, deep hood voids and opaque shrouds; no skull faces or exposed wounds. Keep the decay, locked gate, neglected funeral court and functionality, non-graphic. Opaque full bleed illustration, no writing, symbols, UI, frame, border, vignette or new tiny clutter.",
+      "refs": [
+        "art/palette_y3_fe_gildedBasilica.png"
+      ]
+    }
+  ]
+}

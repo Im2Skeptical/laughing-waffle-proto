@@ -1,0 +1,175 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "entries": [
+    {
+      "id": "fe_roadRequisition",
+      "reason": "Cart wheel/key prop extends into lower half; lift and reduce entire cart/action group above43%.",
+      "prompt": "Use case: precise-object-edit. Correct the specific failed acceptance criterion in this exact dark-fantasy card painting. Retain all other accepted class palette, functional subject, anonymous figures, hard pixel clusters/edges, selective dithering and N.C.Wyeth/Dean Cornwell composition. One small connected focal light, broad mid-dark architecture and deep quiet negative field. No all-over bright edge highlights. All human and depicted faces are completely opaque unreadable voids or full helmets: no eyes/nose/mouth/skull features. No text, writing, UI, border, frame or new decorative logos. Cart wheel/key prop extends into lower half; lift and reduce entire cart/action group above43%. CRITICAL 5:7 portrait geometry: move the ENTIRE human/tool/cart/cauldron group UP so its LOWEST point is y35-38% of canvas, not45-50%. Shrink whole group uniformly by20% if needed. At most THREE actors total; remove extras in any queue/crowd rather than distributing them down a slope. All cart wheels, feet, cloth and materials end above40%. Rebuild below as one uninterrupted nearly black wall/floor; no empty duplicate platform, wheel or dropped prop at the old location. Keep hands and identifying output grouped and readable. Lower55% remains quiet.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_roadRequisition.png"
+      ],
+      "output": "art/chaos_fe_roadRequisition.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_levyPost",
+      "reason": "Named timber recruiting post too small relative to backdrop wall; enlarge post to central75%, wall subordinate.",
+      "prompt": "Use case: precise-object-edit. Correct the specific failed acceptance criterion in this exact dark-fantasy card painting. Retain all other accepted class palette, functional subject, anonymous figures, hard pixel clusters/edges, selective dithering and N.C.Wyeth/Dean Cornwell composition. One small connected focal light, broad mid-dark architecture and deep quiet negative field. No all-over bright edge highlights. All human and depicted faces are completely opaque unreadable voids or full helmets: no eyes/nose/mouth/skull features. No text, writing, UI, border, frame or new decorative logos. Named timber recruiting post too small relative to backdrop wall; enlarge post to central75%, wall subordinate. Recompose the building, not only its lighting: OMIT the oversized background ruin/hall/wall entirely. The actual named timber post/lodge/chapel alone spans x12-88%, y8-88%; close low angle on that building, not its surroundings. Subordinate background is flat dark sky/ruin silhouettes at the image edges. People at most2%imageheight. Opaque3:4 portrait; building is unmistakably largest object. Preserve functional pay window/recruitment rack/offering chest as appropriate and the existing class colours.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_levyPost.png"
+      ],
+      "output": "art/chaos_fe_levyPost.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_billetingOrders",
+      "reason": "Crowd feet descend below45%; keep at most three figures and lift whole group to end by38%.",
+      "prompt": "Use case: precise-object-edit. Correct the specific failed acceptance criterion in this exact dark-fantasy card painting. Retain all other accepted class palette, functional subject, anonymous figures, hard pixel clusters/edges, selective dithering and N.C.Wyeth/Dean Cornwell composition. One small connected focal light, broad mid-dark architecture and deep quiet negative field. No all-over bright edge highlights. All human and depicted faces are completely opaque unreadable voids or full helmets: no eyes/nose/mouth/skull features. No text, writing, UI, border, frame or new decorative logos. Crowd feet descend below45%; keep at most three figures and lift whole group to end by38%. CRITICAL 5:7 portrait geometry: move the ENTIRE human/tool/cart/cauldron group UP so its LOWEST point is y35-38% of canvas, not45-50%. Shrink whole group uniformly by20% if needed. At most THREE actors total; remove extras in any queue/crowd rather than distributing them down a slope. All cart wheels, feet, cloth and materials end above40%. Rebuild below as one uninterrupted nearly black wall/floor; no empty duplicate platform, wheel or dropped prop at the old location. Keep hands and identifying output grouped and readable. Lower55% remains quiet.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_billetingOrders.png"
+      ],
+      "output": "art/chaos_fe_billetingOrders.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_victoryProcession",
+      "reason": "Cart and feet extend below45%; lift entire group and cart above40%.",
+      "prompt": "Use case: precise-object-edit. Correct the specific failed acceptance criterion in this exact dark-fantasy card painting. Retain all other accepted class palette, functional subject, anonymous figures, hard pixel clusters/edges, selective dithering and N.C.Wyeth/Dean Cornwell composition. One small connected focal light, broad mid-dark architecture and deep quiet negative field. No all-over bright edge highlights. All human and depicted faces are completely opaque unreadable voids or full helmets: no eyes/nose/mouth/skull features. No text, writing, UI, border, frame or new decorative logos. Cart and feet extend below45%; lift entire group and cart above40%. CRITICAL 5:7 portrait geometry: move the ENTIRE human/tool/cart/cauldron group UP so its LOWEST point is y35-38% of canvas, not45-50%. Shrink whole group uniformly by20% if needed. At most THREE actors total; remove extras in any queue/crowd rather than distributing them down a slope. All cart wheels, feet, cloth and materials end above40%. Rebuild below as one uninterrupted nearly black wall/floor; no empty duplicate platform, wheel or dropped prop at the old location. Keep hands and identifying output grouped and readable. Lower55% remains quiet.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_victoryProcession.png"
+      ],
+      "output": "art/chaos_fe_victoryProcession.png",
+      "status": "rejected"
+    },
+    {
+      "id": "fe_borderOaths",
+      "reason": "Bright bridge opening extends into lower half; darken opening and foreground below45% without moving the upper exchange.",
+      "prompt": "Use case: precise-object-edit. Correct the specific failed acceptance criterion in this exact dark-fantasy card painting. Retain all other accepted class palette, functional subject, anonymous figures, hard pixel clusters/edges, selective dithering and N.C.Wyeth/Dean Cornwell composition. One small connected focal light, broad mid-dark architecture and deep quiet negative field. No all-over bright edge highlights. All human and depicted faces are completely opaque unreadable voids or full helmets: no eyes/nose/mouth/skull features. No text, writing, UI, border, frame or new decorative logos. Bright bridge opening extends into lower half; darken opening and foreground below45% without moving the upper exchange. Preserve all people/scroll at current upper positions. Below y45%, bridge opening and everything seen through it become almost black, matching the surrounding lower piers. No luminous mist, sky patch, window or reflection in that lower half.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_borderOaths.png"
+      ],
+      "output": "art/chaos_fe_borderOaths.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_capitalDole",
+      "reason": "Queue descends below45%; replace with one recipient plus two officers and lift cauldron/figures to upper38%.",
+      "prompt": "Use case: precise-object-edit. Correct the specific failed acceptance criterion in this exact dark-fantasy card painting. Retain all other accepted class palette, functional subject, anonymous figures, hard pixel clusters/edges, selective dithering and N.C.Wyeth/Dean Cornwell composition. One small connected focal light, broad mid-dark architecture and deep quiet negative field. No all-over bright edge highlights. All human and depicted faces are completely opaque unreadable voids or full helmets: no eyes/nose/mouth/skull features. No text, writing, UI, border, frame or new decorative logos. Queue descends below45%; replace with one recipient plus two officers and lift cauldron/figures to upper38%. CRITICAL 5:7 portrait geometry: move the ENTIRE human/tool/cart/cauldron group UP so its LOWEST point is y35-38% of canvas, not45-50%. Shrink whole group uniformly by20% if needed. At most THREE actors total; remove extras in any queue/crowd rather than distributing them down a slope. All cart wheels, feet, cloth and materials end above40%. Rebuild below as one uninterrupted nearly black wall/floor; no empty duplicate platform, wheel or dropped prop at the old location. Keep hands and identifying output grouped and readable. Lower55% remains quiet.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_capitalDole.png"
+      ],
+      "output": "art/chaos_fe_capitalDole.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_factorsLodge",
+      "reason": "Foreground timber lodge too small; remove competing tall background gable and enlarge named lodge to central75%.",
+      "prompt": "Use case: precise-object-edit. Correct the specific failed acceptance criterion in this exact dark-fantasy card painting. Retain all other accepted class palette, functional subject, anonymous figures, hard pixel clusters/edges, selective dithering and N.C.Wyeth/Dean Cornwell composition. One small connected focal light, broad mid-dark architecture and deep quiet negative field. No all-over bright edge highlights. All human and depicted faces are completely opaque unreadable voids or full helmets: no eyes/nose/mouth/skull features. No text, writing, UI, border, frame or new decorative logos. Foreground timber lodge too small; remove competing tall background gable and enlarge named lodge to central75%. Recompose the building, not only its lighting: OMIT the oversized background ruin/hall/wall entirely. The actual named timber post/lodge/chapel alone spans x12-88%, y8-88%; close low angle on that building, not its surroundings. Subordinate background is flat dark sky/ruin silhouettes at the image edges. People at most2%imageheight. Opaque3:4 portrait; building is unmistakably largest object. Preserve functional pay window/recruitment rack/offering chest as appropriate and the existing class colours.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_factorsLodge.png"
+      ],
+      "output": "art/chaos_fe_factorsLodge.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_municipalDebt",
+      "reason": "Two frontal clerk hoods have pale face-like areas; replace interiors with completely opaque charcoal voids, no facial landmarks.",
+      "prompt": "Use case: precise-object-edit. Correct the specific failed acceptance criterion in this exact dark-fantasy card painting. Retain all other accepted class palette, functional subject, anonymous figures, hard pixel clusters/edges, selective dithering and N.C.Wyeth/Dean Cornwell composition. One small connected focal light, broad mid-dark architecture and deep quiet negative field. No all-over bright edge highlights. All human and depicted faces are completely opaque unreadable voids or full helmets: no eyes/nose/mouth/skull features. No text, writing, UI, border, frame or new decorative logos. Two frontal clerk hoods have pale face-like areas; replace interiors with completely opaque charcoal voids, no facial landmarks. BOTH clerks at the table must have continuous matte-black hood interiors: erase every pale patch inside the hoods. Do not add eye holes, mask features or faces. Preserve their pose, hands, sleeves, scene, palette and all other values.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_municipalDebt.png"
+      ],
+      "output": "art/chaos_fe_municipalDebt.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_titheChapel",
+      "reason": "Usable chapel still too small behind giant basilica; remove background basilica completely and frame the named chapel as largest object.",
+      "prompt": "Use case: precise-object-edit. Correct the specific failed acceptance criterion in this exact dark-fantasy card painting. Retain all other accepted class palette, functional subject, anonymous figures, hard pixel clusters/edges, selective dithering and N.C.Wyeth/Dean Cornwell composition. One small connected focal light, broad mid-dark architecture and deep quiet negative field. No all-over bright edge highlights. All human and depicted faces are completely opaque unreadable voids or full helmets: no eyes/nose/mouth/skull features. No text, writing, UI, border, frame or new decorative logos. Usable chapel still too small behind giant basilica; remove background basilica completely and frame the named chapel as largest object. Recompose the building, not only its lighting: OMIT the oversized background ruin/hall/wall entirely. The actual named timber post/lodge/chapel alone spans x12-88%, y8-88%; close low angle on that building, not its surroundings. Subordinate background is flat dark sky/ruin silhouettes at the image edges. People at most2%imageheight. Opaque3:4 portrait; building is unmistakably largest object. Preserve functional pay window/recruitment rack/offering chest as appropriate and the existing class colours.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_titheChapel.png"
+      ],
+      "output": "art/chaos_fe_titheChapel.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_victoryProcession",
+      "reason": "Cart and feet extend below45%; lift entire group and cart above40%.",
+      "prompt": "Use case: precise-object-edit. Correct the specific failed acceptance criterion in this exact dark-fantasy card painting. Retain all other accepted class palette, functional subject, anonymous figures, hard pixel clusters/edges, selective dithering and N.C.Wyeth/Dean Cornwell composition. One small connected focal light, broad mid-dark architecture and deep quiet negative field. No all-over bright edge highlights. All human and depicted faces are completely opaque unreadable voids or full helmets: no eyes/nose/mouth/skull features. No text, writing, UI, border, frame or new decorative logos. Cart and feet extend below45%; lift entire group and cart above40%. CRITICAL 5:7 portrait geometry: move the ENTIRE human/tool/cart/cauldron group UP so its LOWEST point is y35-38% of canvas, not45-50%. Shrink whole group uniformly by20% if needed. At most THREE actors total; remove extras in any queue/crowd rather than distributing them down a slope. All cart wheels, feet, cloth and materials end above40%. Rebuild below as one uninterrupted nearly black wall/floor; no empty duplicate platform, wheel or dropped prop at the old location. Keep hands and identifying output grouped and readable. Lower55% remains quiet.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_victoryProcession.png"
+      ],
+      "output": "art/chaos_fe_victoryProcession.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_relicProcession",
+      "reason": "Long bridge banner hangs below45%; remove all lower hanging banners, retain ritual cloth only within upper action group.",
+      "prompt": "Use case: precise-object-edit. Correct the specific failed acceptance criterion in this exact dark-fantasy card painting. Retain all other accepted class palette, functional subject, anonymous figures, hard pixel clusters/edges, selective dithering and N.C.Wyeth/Dean Cornwell composition. One small connected focal light, broad mid-dark architecture and deep quiet negative field. No all-over bright edge highlights. All human and depicted faces are completely opaque unreadable voids or full helmets: no eyes/nose/mouth/skull features. No text, writing, UI, border, frame or new decorative logos. Long bridge banner hangs below45%; remove all lower hanging banners, retain ritual cloth only within upper action group.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_relicProcession.png"
+      ],
+      "output": "art/chaos_fe_relicProcession.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_grandJubilee",
+      "reason": "Congregation and bright drape extend below45%; lift whole ritual/crowd group to38% and remove lower hanging cloth.",
+      "prompt": "Use case: precise-object-edit. Correct the specific failed acceptance criterion in this exact dark-fantasy card painting. Retain all other accepted class palette, functional subject, anonymous figures, hard pixel clusters/edges, selective dithering and N.C.Wyeth/Dean Cornwell composition. One small connected focal light, broad mid-dark architecture and deep quiet negative field. No all-over bright edge highlights. All human and depicted faces are completely opaque unreadable voids or full helmets: no eyes/nose/mouth/skull features. No text, writing, UI, border, frame or new decorative logos. Congregation and bright drape extend below45%; lift whole ritual/crowd group to38% and remove lower hanging cloth.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_grandJubilee.png"
+      ],
+      "output": "art/chaos_fe_grandJubilee.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_gildedBasilica",
+      "reason": "Capital reads as ordinary domed basilica with small logo; turn central architecture into huge empty solar ring with three downward root-buttresses; keep one focal entrance, no glowing halo.",
+      "prompt": "Use case: precise-object-edit. Correct the specific failed acceptance criterion in this exact dark-fantasy card painting. Retain all other accepted class palette, functional subject, anonymous figures, hard pixel clusters/edges, selective dithering and N.C.Wyeth/Dean Cornwell composition. One small connected focal light, broad mid-dark architecture and deep quiet negative field. No all-over bright edge highlights. All human and depicted faces are completely opaque unreadable voids or full helmets: no eyes/nose/mouth/skull features. No text, writing, UI, border, frame or new decorative logos. Capital reads as ordinary domed basilica with small logo; turn central architecture into huge empty solar ring with three downward root-buttresses; keep one focal entrance, no glowing halo. Preserve original wide9:4 landscape canvas and full building footprint. Building dominates central75%, people at most2%imageheight. For this basilica remove ordinary domes, making the huge empty ring and three downward root-buttresses the building itself, not a badge applied to a church. Keep all architecture mid-value, only entrance focal light; no glowing halo.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_gildedBasilica.png"
+      ],
+      "output": "art/chaos_fe_gildedBasilica.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_censusPetitions",
+      "reason": "Whole participant group extends below45%; move all people desks papers and tools up20%, lowest point38%, rebuilding lower55% as uninterrupted dark field.",
+      "prompt": "Use case: precise-object-edit. Correct the specific failed acceptance criterion in this exact dark-fantasy card painting. Retain all other accepted class palette, functional subject, anonymous figures, hard pixel clusters/edges, selective dithering and N.C.Wyeth/Dean Cornwell composition. One small connected focal light, broad mid-dark architecture and deep quiet negative field. No all-over bright edge highlights. All human and depicted faces are completely opaque unreadable voids or full helmets: no eyes/nose/mouth/skull features. No text, writing, UI, border, frame or new decorative logos. Whole participant group extends below45%; move all people desks papers and tools up20%, lowest point38%, rebuilding lower55% as uninterrupted dark field.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_censusPetitions.png"
+      ],
+      "output": "art/chaos_fe_censusPetitions.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_licensingQueue",
+      "reason": "Whole participant group extends below45%; move all people desks papers and tools up20%, lowest point38%, rebuilding lower55% as uninterrupted dark field.",
+      "prompt": "Use case: precise-object-edit. Correct the specific failed acceptance criterion in this exact dark-fantasy card painting. Retain all other accepted class palette, functional subject, anonymous figures, hard pixel clusters/edges, selective dithering and N.C.Wyeth/Dean Cornwell composition. One small connected focal light, broad mid-dark architecture and deep quiet negative field. No all-over bright edge highlights. All human and depicted faces are completely opaque unreadable voids or full helmets: no eyes/nose/mouth/skull features. No text, writing, UI, border, frame or new decorative logos. Whole participant group extends below45%; move all people desks papers and tools up20%, lowest point38%, rebuilding lower55% as uninterrupted dark field.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_licensingQueue.png"
+      ],
+      "output": "art/chaos_fe_licensingQueue.png",
+      "status": "rejected"
+    },
+    {
+      "id": "fe_redundantInventories",
+      "reason": "Right-hand clerk desk and robe extend below45%; lift all three clerks and their desks uniformly20%, lowest edge38%, lower55% quiet uninterrupted wall.",
+      "prompt": "Use case: precise-object-edit. Correct the specific failed acceptance criterion in this exact dark-fantasy card painting. Retain all other accepted class palette, functional subject, anonymous figures, hard pixel clusters/edges, selective dithering and N.C.Wyeth/Dean Cornwell composition. One small connected focal light, broad mid-dark architecture and deep quiet negative field. No all-over bright edge highlights. All human and depicted faces are completely opaque unreadable voids or full helmets: no eyes/nose/mouth/skull features. No text, writing, UI, border, frame or new decorative logos. Right-hand clerk desk and robe extend below45%; lift all three clerks and their desks uniformly20%, lowest edge38%, lower55% quiet uninterrupted wall.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_redundantInventories.png"
+      ],
+      "output": "art/chaos_fe_redundantInventories.png",
+      "status": "accepted"
+    },
+    {
+      "id": "fe_licensingQueue",
+      "reason": "Second correction still leaves robe bases below45%; foreground parapet must occlude them.",
+      "prompt": "Use case: precise-object-edit. Preserve this exact anonymous blue and gold licensing bureaucracy, its pixel clusters, architecture, hooks, palette and single focal light. CRITICAL COMPOSITION CHANGE: the foreground parapet must become HORIZONTAL at exactly y40% of the canvas, across its ENTIRE width, instead of sloping below the people. This dark foreground wall OCCLUDES all participant robes below their elbows. Move the three people and scroll desk upward only if necessary so all hands, identifying scroll and entire visible figures are ABOVE y39%. No living figure, tool, scroll or desk below y40%. Lower60% is nearly black unbroken masonry with very subdued broad texture. Keep completely opaque unreadable black hood interiors, no faces, text, UI, frame or border. Opaque5:7 portrait. Do not preserve robe bottoms at their current positions; hide them behind the raised wall.",
+      "refs": [
+        "images/dark-fantasy/full-map-chaos-prototype/art/chaos_fe_licensingQueue.png"
+      ],
+      "output": "art/chaos_fe_licensingQueue.png",
+      "status": "accepted"
+    }
+  ]
+}

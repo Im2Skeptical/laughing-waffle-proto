@@ -1,3 +1,4 @@
+import { prestigeAccount } from './treasury.js';
 import { getVassalRiskDeathChance } from './class-rules.js';
 import { multiplierBoardPreview, multiplierShopPreview } from './multiplier-preview.js';
 import { getActionMonsterPressureCost } from '../detailed-settlements/practice-events.js';
@@ -6,7 +7,7 @@ import { getShopOfferPrice } from './shop-specialties.js';
 import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
 import { getCampaignPresentation } from './campaign.js';
 import { legacySettlementTargets } from './world-choices.js';
-import { stockTotal } from "../detailed-settlements/stock.js";
+import { stockTotal, discretionaryStock } from "../detailed-settlements/stock.js";
 import { evaluateDetailedPracticeSlot, assignDetailedSettlementWorkers } from "../detailed-settlements/practices.js";
 import { getGamepieceFace } from "../gamepiece-presentation.js";
 import { VASSAL_LIFE_TUNING, getVassalMortalityChance } from "../../defs/gamepieces/vassal-life-map-defs.js";
@@ -210,13 +211,14 @@ function buildRegionalMapPresentation(state, vassal, nodeState, {
   };
 }
 
-function buildVassalOptionProjection(vassal, nodeState, optionId = null) {
+function buildVassalOptionProjection(state, vassal, nodeState, optionId = null) {
   if (!vassal || !nodeState || !["patronage", "development"].includes(nodeState.family)) {
     return null;
   }
   const option = nodeState.options?.find((entry) =>
     entry.id === (optionId ?? nodeState.selectedOptionId)) ?? null;
   const immediate = clone(vassal);
+  immediate.prestige = prestigeAccount(state, vassal).prestige;
   if (option) {
     const cost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
     let delta = Math.floor(option.prestigeDelta ?? 0);
@@ -242,7 +244,7 @@ function buildVassalOptionProjection(vassal, nodeState, optionId = null) {
   return {
     optionId: option?.id ?? null,
     baseline: {
-      prestige: vassal.prestige,
+      prestige: prestigeAccount(state,vassal).prestige,
       developmentProgress: vassal.developmentProgress,
       stats: getVassalStatsPresentation(vassal),
     },
@@ -277,7 +279,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
   const nodeState = vassal?.lifeMap?.nodeStates?.[activeNodeId] ?? null;
   if (!vassal || !node) return null;
   const stagedPrestigeCost = (nodeState?.purchasedOffers ?? [])
-    .reduce((sum, purchase) => sum + Math.max(0, purchase.prestigeCost ?? 0), 0);
+    .reduce((sum, purchase) => sum + Math.max(0, purchase.prestigeCost ?? 0), (nodeState?.removalReceipts??[]).reduce((n,r)=>n+r.prestigeCost,0));
   const stagedCurrencyCost = (nodeState?.purchasedOffers ?? [])
     .reduce((sum, purchase) => sum + Math.max(0, purchase.currencyCost ?? 0), 0);
   const selectedOption = nodeState?.rewardAcquisition ?? nodeState?.options?.find(
@@ -338,7 +340,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     const kind = intervention?.kind;
     const definitionId = kind === "practice" ? intervention.practiceId
       : kind === "structure" ? intervention.structureId : null;
-    const quote = purchased ? offer : getShopOfferPrice(vassal,nodeState,offer);
+    const quote = purchased ? offer : getShopOfferPrice(vassal,nodeState,offer,state);
     const prestigeCost = quote.prestigeCost;
     const currencyCost = purchased ? offer.currencyCost : Math.max(0, Number(offer.baseCurrencyCost) || 0);
     const remaining = (nodeState?.purchasedOffers ?? []).filter(p => !purchased || p.offerId !== offer.offerId);
@@ -348,9 +350,9 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       return {...validatePurchaseInterventions(state, vassal, [{ ...offer, ...(prepared.placement ? { placement: prepared.placement } : {}) }, ...remaining]), previewPlacementId:prepared.placement?.placementId};
     };
     const legality = checkPlacement(null);
-    const prestigeAffordable = purchased || prestigeCost <= vassal.prestige - stagedPrestigeCost;
+    const prestigeAffordable = purchased || prestigeCost <= prestigeAccount(state,vassal).prestige - stagedPrestigeCost;
     const currencyAffordable = purchased || currencyCost <= Math.max(0,
-      stockTotal(state, previewSite?.detailedState, "Currency")) - stagedCurrencyCost;
+      discretionaryStock(state, previewSite?.detailedState, "Currency")) - stagedCurrencyCost;
     const affordable = prestigeAffordable && currencyAffordable;
     const multiplierPreview=multiplierShopPreview(state,previewRegionId,kind==='structure'?poolBefore:poolAfter,legality.reservation,intervention,legality.previewPlacementId,stagedIds);
     return {
@@ -371,7 +373,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       monsterPressureCost: quote.monsterPressureCost ?? 0,
       currencyCost,
       phaseCost: purchased ? offer.phaseCost
-        : getVassalActionPhaseCost(vassal, offer.basePhaseCost ?? 0, { nodeState }),
+        : state.rulesetId&&offer.intervention?.mode==='adopt'?offer.basePhaseCost:getVassalActionPhaseCost(vassal, offer.basePhaseCost ?? 0, { nodeState }),
     };
   };
   const displacedPractices = projected?.practices?.displaced ?? [];
@@ -383,7 +385,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     cost:getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0),
     phases:getVassalActionPhaseCost(vassal,option.phaseCost??0,{nodeState,isTravel:!!option.locationRegionId}),
     blocked:getSettlementRequirements(state,vassal,option).some(entry=>!entry.met)?'Requirements not met':
-      getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0)>vassal.prestige?'Insufficient Prestige':null}));
+      getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0)>prestigeAccount(state,vassal).prestige?'Insufficient Prestige':null}));
   const ordinaryLegacy = nodeState?.family==='legacy' && node.signatureNode?.variantId!=='legacyPlus';
   const legacyFound=(nodeState?.options??[]).find(option=>option.id==='found-settlement');
   const legacySettlement = ordinaryLegacy?{
@@ -416,9 +418,10 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     })} : null,
     optionRequirements: Object.fromEntries((nodeState?.options ?? []).map((option) =>
       [option.id, getSettlementRequirements(state, vassal, option)])),
-    currentPrestige: vassal.prestige,
-    projectedPrestige: Math.max(0, vassal.prestige - stagedPrestigeCost - optionPrestigeCost),
+    currentPrestige: prestigeAccount(state,vassal).prestige,
+    projectedPrestige: Math.max(0, prestigeAccount(state,vassal).prestige - stagedPrestigeCost - optionPrestigeCost),
     stagedPrestigeCost,
+    stagedMonsterPressureCost:[...(nodeState?.purchasedOffers??[]),...(nodeState?.removalReceipts??[])].reduce((n,r)=>n+(r.monsterPressureCost??0),0),
     stagedCurrencyCost,
     mortalityEstimate: {
       totalPhaseCost,
@@ -468,7 +471,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     },
     regionalMap: buildRegionalMapPresentation(state, vassal, nodeState, preview),
     vassalProjection: buildVassalOptionProjection(
-      vassal, nodeState, preview.previewOptionId ?? null
+      state, vassal, nodeState, preview.previewOptionId ?? null
     ),
   };
 }

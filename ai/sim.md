@@ -1,5 +1,17 @@
 # Current simulation
 
+This experimental checkout uses `full-map-redesign-v1` for ordinary New Game.
+All 20 regions run the same settlement simulation. Joint population cohorts keep
+residency, allegiance, specialty and age independently; holder is territory state.
+Shared Prestige, supplied local occupation, unrest, atomic faction-aware recipes,
+and physical military transfers replace fixed neutral-market/global-Force behavior.
+Zero workers operates at x1; staffing gates are disabled in this ruleset. Scheduled
+conversion scales with workers, Charge scales its incoming gain, and Stock output
+and capacity use separate pools. Victims, costs, reserves, Research and Force do
+not scale. Structures support activating Influence Practices and never convert
+independently. See `docs/full-map-redesign-implementation.md` for current defaults.
+The older descriptions below still document explicit legacy lab fixtures.
+
 CivContent 2.6 adds 24 declarative Charge Practices to the full 110-Practice /
 78-Structure registry. Charge is Practice-local integer state, separate from
 Stock. The authoritative Practice event queue grants Charge and automatically

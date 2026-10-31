@@ -51,9 +51,9 @@ import {
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const authoredConfig = createAuthoredGameConfig();
-assert.equal(authoredConfig.schemaVersion, 28);
-assert.equal(authoredConfig.settings.schemaVersion, 28);
-assert.equal(authoredConfig.gamepieces.schemaVersion, 28);
+assert.equal(authoredConfig.schemaVersion, 29);
+assert.equal(authoredConfig.settings.schemaVersion, 29);
+assert.equal(authoredConfig.gamepieces.schemaVersion, 29);
 assert.equal(authoredConfig.lifeMapGenerator.laneCount, 5);
 assert.equal(validateGameConfig(authoredConfig).ok, true);
 assert.equal(validateGameSettingsDraft(createAuthoredGameSettingsDraft()).ok, true);
@@ -294,7 +294,8 @@ try {
     const baseline = serializeGameState(profileController.createRun(seed));
     assert.deepEqual(baseline, serializeGameState(createNewGameState(seed)), "Regular game uses exactly the player New Game factory");
     assert.equal(baseline.world.regions.filter(region => region.controller === 'player').length, 2);
-    assert.equal(baseline.world.sites.filter(site => site.neutral).length, 4);
+    assert.equal(baseline.world.sites.filter(site => site.simulationMode === 'detailed').length, 20);
+    assert.equal(baseline.world.sites.filter(site => site.neutral).length, 0);
   }
   const baselineRecipe = profileController.getCurrentProfile();
   assert.equal(profileController.copyProfile().ok, true);
@@ -314,7 +315,7 @@ try {
   const editedState = profileController.createRun(42);
   assert.equal(editedState.gameConfig.settings.values.populationPerToken, 12);
   assert.equal(editedState.gameConfig.lifeMapGenerator.laneCount, 5);
-  assert.equal(editedState.world.sites.filter(site => site.neutral).length, 4);
+  assert.equal(editedState.world.sites.filter(site => site.neutral).length, 0);
   assert.deepEqual(serializeGameState(deserializeGameState(serializeGameState(editedState))), serializeGameState(editedState));
   const timeline = createTimelineFromInitialState(editedState);
   const rebuilt = rebuildStateAtSecond(timeline, 64);

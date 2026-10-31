@@ -13,7 +13,7 @@ import {
   validateVassalLifeMapGeneratorConfig,
 } from "./vassal-life-map-generator.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 28;
+export const GAME_CONFIG_SCHEMA_VERSION = 29;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
@@ -277,7 +277,7 @@ function copyEditableLeaves(template, source, path = []) {
     delete activation.also;delete activation.seasonKeys;delete activation.stage;
     if(source.also?.length)activation.also=[...new Set(source.also.filter(type=>scheduleTypes.includes(type)&&type!==source.type))];
     if(source.seasonKeys?.length)activation.seasonKeys=[...new Set(source.seasonKeys.filter(key=>seasonKeys.includes(key)))];
-    if(['preRouting','postRouting'].includes(source.stage))activation.stage=source.stage;
+    if(['preRouting','postRouting','afterMeals'].includes(source.stage))activation.stage=source.stage;
     return activation;
   }
   if(path.at(-1)==='source'&&source)return {...copyEditableLeaves(template,source,path.slice(0,-1)),

@@ -50,7 +50,7 @@ try {
   });
   await transient.art.prepareChronicleArt(transient.renderer);
   assert.equal(attempts, 3);
-  assert.equal(transient.uploaded.length, 14, 'every atlas, including the named class art, picker and HUD frames, reaches upload preparation');
+  assert.equal(transient.uploaded.length, 16, 'every atlas, including the named class art, picker and HUD frames, reaches upload preparation');
   assert.ok(transient.calls.every(url => url.startsWith('images/sprite-sheets/')), 'production loading never fetches prototype sheets');
   assert.ok(transient.uploaded.every(texture => texture.baseTexture.scaleMode === PIXI.SCALE_MODES.NEAREST), 'all atlases retain crisp nearest filtering');
 
@@ -63,7 +63,7 @@ try {
   await assert.rejects(gpu.art.prepareChronicleArt(gpu.renderer), /upload/i);
   uploadFails = false;
   await gpu.art.prepareChronicleArt(gpu.renderer);
-  assert.equal(gpu.calls.length, 14, 'upload retry keeps downloaded atlases');
+  assert.equal(gpu.calls.length, 16, 'upload retry keeps downloaded atlases');
 
   const scaled = await fixture(url => {
     const result = sheet(url);
@@ -77,7 +77,7 @@ try {
     for (const texture of scaled.uploaded) texture.baseTexture._glTextures = { 1: {} };
   };
   await scaled.art.prepareChronicleArt(scaled.renderer);
-  assert.equal(scaled.uploaded.length, 14, 'GPU limits use physical pixels, not scaled logical texture dimensions');
+  assert.equal(scaled.uploaded.length, 16, 'GPU limits use physical pixels, not scaled logical texture dimensions');
   await assert.rejects(scaled.art.prepareChronicleArt({ ...scaled.renderer,
     gl: { ...scaled.renderer.gl, getParameter: () => 1000 } }), /texture size limit/);
   await assert.rejects(scaled.art.prepareChronicleArt({ ...scaled.renderer, CONTEXT_UID: 2 }), /uploaded/,

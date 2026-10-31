@@ -26,7 +26,7 @@ try {
   const result = await writeSaveToSlot(1, { state, timeline, setupId: 'twoRegionStarter01' });
   assert.equal(result.ok, true, 'saving must succeed when localStorage is full');
   assert.equal((await inspectSaveSlot(1)).ok, true);
-  assert.equal(values.has('civsurvivor.save.slot1'), false, 'new saves do not use localStorage');
+  assert.equal(values.has('full-map-redesign-v1.save.slot1'), false, 'new saves do not use localStorage');
   assert.ok(result.diagnostics.payloadCharacters > 5 * 1024 * 1024);
   const roundTrip = await readSaveSlot(1);
   assert.deepEqual(roundTrip.data.timeline, JSON.parse(exportSave({ state, timeline }).text).timeline);
@@ -55,22 +55,22 @@ try {
   const old = exportSave({ state: smallState, timeline: smallTimeline }).text;
   const newerState = createNewGameState(321);
   const newer = exportSave({ state: newerState, timeline: createTimelineFromInitialState(newerState) }).text;
-  values.set('civsurvivor.save.slot1', old);
-  values.set('civsurvivor.save.slot2', old);
-  values.set('civsurvivor.save.slot3', '{broken');
+  values.set('full-map-redesign-v1.save.slot1', old);
+  values.set('full-map-redesign-v1.save.slot2', old);
+  values.set('full-map-redesign-v1.save.slot3', '{broken');
   const database = createSaveTestStorage();
   try {
     await database.set(2, newer);
     database.fail(new DOMException('Transfer failed', 'QuotaExceededError'));
     await assert.rejects(listSaveSlotSummaries(), { name: 'QuotaExceededError' });
-    assert.equal(values.get('civsurvivor.save.slot1'), old, 'failed transfer keeps source save');
+    assert.equal(values.get('full-map-redesign-v1.save.slot1'), old, 'failed transfer keeps source save');
     assert.equal(await database.get(1), null, 'failed transfer commits no partial save');
     database.fail(null);
     assert.equal((await listSaveSlotSummaries()).length, 2);
     assert.equal(await database.get(1), old);
-    assert.equal(values.has('civsurvivor.save.slot1'), false, 'source removed only after commit');
+    assert.equal(values.has('full-map-redesign-v1.save.slot1'), false, 'source removed only after commit');
     assert.equal(await database.get(2), newer, 'transfer cannot overwrite an IndexedDB save');
-    assert.equal(values.get('civsurvivor.save.slot3'), '{broken', 'damaged source is left untouched');
+    assert.equal(values.get('full-map-redesign-v1.save.slot3'), '{broken', 'damaged source is left untouched');
     assert.equal(values.get('other-site-data').length, 5 * 1024 * 1024);
 
     // Simultaneous callers retain invocation order and snapshot before yielding.

@@ -1,0 +1,485 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "results": [
+    {
+      "id": "fe_rationRoll",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-ee851d29-7260-4b03-bdcb-a12b23140867.png",
+      "output": "art/fe_rationRoll.png",
+      "sha256": "33181adafc6d4c7ca300728a065a56ab91d0a63429c1c3b58364811b3bf17cbd"
+    },
+    {
+      "id": "fe_barrackLevy",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-9ebad4b0-fb3e-4967-8471-d5fcd2ca5eb0.png",
+      "output": "art/fe_barrackLevy.png",
+      "sha256": "1449c394acfbc3096b7aaa566c925dfc5b1d28b359c0ebe7a91f91c78f3731c3"
+    },
+    {
+      "id": "fe_roadRequisition",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-1de7922a-d85c-41fa-8441-7f2dc94ae786.png",
+      "output": "art/fe_roadRequisition.png",
+      "sha256": "39f627555a5e27954cf618ff47b3843125f86945abb34d39f63174027f03b214"
+    },
+    {
+      "id": "fe_salvageDetail",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-6e14ac86-c2de-4a74-b141-5379db01ab5d.png",
+      "output": "art/fe_salvageDetail.png",
+      "sha256": "8aacb523eca70cf9eb227be9e9c6ce0faf1193750ca7482752dc55424a26c222"
+    },
+    {
+      "id": "fe_curfewRounds",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-d4cb70fb-e19b-41e0-92fd-57c5146edfbd.png",
+      "output": "art/fe_curfewRounds.png",
+      "sha256": "62ddc054d8a55ea06d86186ca67e7cd29984fde15552826af4bb342e25bcd9fe"
+    },
+    {
+      "id": "fe_levyPost",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-5838f593-afdd-4cc4-af1f-5873a581761a.png",
+      "output": "art/fe_levyPost.png",
+      "sha256": "4cd8769b60317521b4d9629ce0691cea666f405e9011ebfe205cb5bf2dc38f0a"
+    },
+    {
+      "id": "fe_arsenalQuotas",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-0d6f449d-cbf9-4afe-aeda-4067a22e7bb3.png",
+      "output": "art/fe_arsenalQuotas.png",
+      "sha256": "35e329bdddf99c8eba22dc545b17c4ae3001664b8b84f9001e61862e8c8a344c"
+    },
+    {
+      "id": "fe_billetingOrders",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-cddc939c-f96b-410e-be2f-a307111fa82c.png",
+      "output": "art/fe_billetingOrders.png",
+      "sha256": "cf1061bc5092f92153431fad94d85687fe052b814bcd7ad958e27ae8f2f8409c"
+    },
+    {
+      "id": "fe_victoryProcession",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-ad6669eb-0152-4901-a7b4-97edbdb23044.png",
+      "output": "art/fe_victoryProcession.png",
+      "sha256": "96a6b87da15d6ee2b48b50d504f803f6187e1f68f473a5ebdb505b62e82d1e8c"
+    },
+    {
+      "id": "fe_borderOaths",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-88436d84-9016-40e7-86d5-72a95467f9ef.png",
+      "output": "art/fe_borderOaths.png",
+      "sha256": "87d2c59329d93b1058645713a8bcd095467228bf336d61f1ccc7eefd8043d0ec"
+    },
+    {
+      "id": "fe_garrisonBarracks",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-0336522b-987b-4167-98a7-3beb44876cae.png",
+      "output": "art/fe_garrisonBarracks.png",
+      "sha256": "c2b9044b559d3ea69cbe64d6686f1c7b22381c1a226e065e46047fce5bf6ec4f"
+    },
+    {
+      "id": "fe_provostCourt",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-a3191a2c-c2e8-48da-bbac-91489fd84597.png",
+      "output": "art/fe_provostCourt.png",
+      "sha256": "62b408a2b2b9e5c5dfa4d01f986454ef5c74bf6c4e396dd7c1ccd7c1f658772b"
+    },
+    {
+      "id": "fe_rationDepot",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-040ae789-02f8-4a14-abd5-6ab6302144b6.png",
+      "output": "art/fe_rationDepot.png",
+      "sha256": "aaf1ac70b4516d514f506bd6bc2d6f51aa3b3e157d6d46b31a6d71d24c270b7a"
+    },
+    {
+      "id": "fe_signalBastion",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-91277ded-ee34-488b-8b0e-9a4b226272de.png",
+      "output": "art/fe_signalBastion.png",
+      "sha256": "5ea5ac6f68318b62c37ca33f49bc39f22aa16a176cf15e08778bd140638eeec3"
+    },
+    {
+      "id": "fe_capitalDole",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-186813d4-4860-496a-af9a-6a62d230befc.png",
+      "output": "art/fe_capitalDole.png",
+      "sha256": "399d0ae8546a9715ed9ed1294601a787585e08982ca86afbcbb3b76bed89c6a2"
+    },
+    {
+      "id": "fe_officersFeast",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-fe8562ae-49ab-47bc-a10b-345f8a17f677.png",
+      "output": "art/fe_officersFeast.png",
+      "sha256": "b1148634d12deb6b44e026536681b5c372038ffc38dc5de8cff6343628f19f80"
+    },
+    {
+      "id": "fe_siegeRehearsals",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-d0c0cfae-d161-4b65-bc51-f5f502858647.png",
+      "output": "art/fe_siegeRehearsals.png",
+      "sha256": "903470ec7676302592fe7cf4cba058b9dc00435c3ef77d1297a754161dd821ff"
+    },
+    {
+      "id": "fe_marshalsCitadel",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-81b18b1b-43fc-48f0-a147-0ea5ddb91c22.png",
+      "output": "art/fe_marshalsCitadel.png",
+      "sha256": "e162bd388a1f100e3fb0ffaaa25b4a85a812b2c136532aef410980a5d2e5470b"
+    },
+    {
+      "id": "fe_paradeSquare",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-d15abbfc-2fda-4cf1-bd53-83b3a1953490.png",
+      "output": "art/fe_paradeSquare.png",
+      "sha256": "ea93935f57791e3c79d13f8c4dc4910aace3a08ad260f7886bb100dbeb9550ae"
+    },
+    {
+      "id": "fe_imperialArmoury",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-9abfeb3f-9bd3-48b0-a954-f994bf3c12bc.png",
+      "output": "art/fe_imperialArmoury.png",
+      "sha256": "25018548b36088fa4526c02f9a4e6e3aaf967e69d64c7d8e3146bed7602a31fb"
+    },
+    {
+      "id": "fe_rentCollection",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-674bdfba-f967-499c-b02d-f2716b789790.png",
+      "output": "art/fe_rentCollection.png",
+      "sha256": "298b67b38d15bb9886f3b349eee0cc0a3ecb91d337025272002b4552f76553f4"
+    },
+    {
+      "id": "fe_companyRations",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-db521c08-3cde-425f-84be-d83a81dce170.png",
+      "output": "art/fe_companyRations.png",
+      "sha256": "0ef6ee2f631ffdc5d44e8604d5433646f606223821a4ec416c3ca14e78a0c026"
+    },
+    {
+      "id": "fe_scrapAuction",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-3823e1bd-6710-4c60-ace7-b79f8c68e1fc.png",
+      "output": "art/fe_scrapAuction.png",
+      "sha256": "12ddef0f12b558998784f2f2dd28c158e7db2e28a086cc585640af3cabb02b76"
+    },
+    {
+      "id": "fe_debtPledges",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-2dfcdab5-282e-4266-8d9a-98d9080dcd98.png",
+      "output": "art/fe_debtPledges.png",
+      "sha256": "78d994381dd4a2409fb0e8cd0468301e57f6330fa62c88badcfc49fa70fe0791"
+    },
+    {
+      "id": "fe_bondedCaravans",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-365697c7-5ca5-439f-8dbd-56bb0181af71.png",
+      "output": "art/fe_bondedCaravans.png",
+      "sha256": "d876c82f19d4dc87be2c7330dce779a075598bcbe6defcce1237fcd10d7fbcec"
+    },
+    {
+      "id": "fe_factorsLodge",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-74394e96-3158-4e69-aa63-176c5e9f2245.png",
+      "output": "art/fe_factorsLodge.png",
+      "sha256": "9befb51b65a0d3040b5f60a6a05d23e811e968b4f5ee2705ad4946a8c0834c18"
+    },
+    {
+      "id": "fe_monopolyMilling",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-c5cca226-9bc0-4759-84cb-bbe4c00f08f4.png",
+      "output": "art/fe_monopolyMilling.png",
+      "sha256": "67b3ffbb841998f28eed53c817f9f3d1165dd89a37dea975da2da3e519472fcc"
+    },
+    {
+      "id": "fe_gildedPatronage",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-8afe1d71-14f8-4ca2-8e58-ec25669c3097.png",
+      "output": "art/fe_gildedPatronage.png",
+      "sha256": "1f27d34e6951973c589f802377248f3533dde283af38e0cc6f5e49b3735f2ba4"
+    },
+    {
+      "id": "fe_purchasedTestimony",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-62b244f9-a903-4021-ba59-8bb0f3dc7bd6.png",
+      "output": "art/fe_purchasedTestimony.png",
+      "sha256": "e061a83572636486c5d79c199ae02d28b8b28531fb1a41f0652411552136d9cf"
+    },
+    {
+      "id": "fe_exclusiveConcessions",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-520f477f-542c-473d-b06c-1353ba86d520.png",
+      "output": "art/fe_exclusiveConcessions.png",
+      "sha256": "cce54a947c1798a7f5a5863dc3c331723988f8e06a85dc4fc5200c9091fef2f1"
+    },
+    {
+      "id": "fe_privateExchange",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-de580ab8-d641-4c2e-a893-da2f7e478d19.png",
+      "output": "art/fe_privateExchange.png",
+      "sha256": "aee2702a5eb5d21ecc6100b5bcd6d6218033c4c2a38c31b742e476aebb590b85"
+    },
+    {
+      "id": "fe_bondedWarehouse",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-545aed92-7a38-4df2-8683-936694f463ae.png",
+      "output": "art/fe_bondedWarehouse.png",
+      "sha256": "b6a9e491c222830221ffd2e8b3c35aae55295a4ccba5a13bedd86eb64263ebf5"
+    },
+    {
+      "id": "fe_companyTenements",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-66bd4a5b-f2d5-4fdd-94f7-090f0651d7f4.png",
+      "output": "art/fe_companyTenements.png",
+      "sha256": "01a198a724fbb3935fed17ce2a517666a34101ce3956c9aaf5b981140ffcb7c3"
+    },
+    {
+      "id": "fe_patronageSalon",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-5fb5d28a-0e4a-4c57-8dbc-938e477f783e.png",
+      "output": "art/fe_patronageSalon.png",
+      "sha256": "a7799346e2612be063ec8073ee991342ef30d2474c7dcb97d01763f2be52006a"
+    },
+    {
+      "id": "fe_conspicuousFeasts",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-2c4fe42f-b7ab-450a-a0f0-6449ac4fe5b0.png",
+      "output": "art/fe_conspicuousFeasts.png",
+      "sha256": "e8105d09c1e22cce6a0140f042850c125395133107a21cda778300ad055655e1"
+    },
+    {
+      "id": "fe_luxuryWeaving",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-c49cb695-6868-493d-a2c9-0ac33f83ff08.png",
+      "output": "art/fe_luxuryWeaving.png",
+      "sha256": "9b17f255fb1142d1df1343e2305049289a7d3798fb3246f99ce7d71bf019dae4"
+    },
+    {
+      "id": "fe_municipalDebt",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-665f12fb-9ac8-4fca-a8bd-c1ce6f14b67a.png",
+      "output": "art/fe_municipalDebt.png",
+      "sha256": "c8831e951b1f569e4077c934ee1b123187685384aa0788f6437206df35426b30"
+    },
+    {
+      "id": "fe_palaceOfAccounts",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-89edbe60-5e18-42f6-bd78-6abadeec4505.png",
+      "output": "art/fe_palaceOfAccounts.png",
+      "sha256": "04582f5a9f736531f08ca9d6e3a835e80bc7a2fa8771d4b1807a621183b91869"
+    },
+    {
+      "id": "fe_privateReservoir",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-300550f8-e5ca-4b1d-aec8-5963c2e4148c.png",
+      "output": "art/fe_privateReservoir.png",
+      "sha256": "630631135a0b3b852491a823c905bff3314009515259a1dd5c612b85b9780e18"
+    },
+    {
+      "id": "fe_marbleArcade",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-be331aa7-288d-47f0-9d2c-44fbfb6e2dc7.png",
+      "output": "art/fe_marbleArcade.png",
+      "sha256": "c7fc539856f83934a554da47fdfda8c17edb7f9af99cfeab20053455594906b2"
+    },
+    {
+      "id": "fe_offeringBowls",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-c73c0223-26bf-4848-9399-9841fce859b5.png",
+      "output": "art/fe_offeringBowls.png",
+      "sha256": "a2159a38b5da89c2aab391f0f3cffa176b83732a2164ca472e12729891a09fe7"
+    },
+    {
+      "id": "fe_titheCart",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-b728a04b-6996-40d2-a8e8-35e02232900e.png",
+      "output": "art/fe_titheCart.png",
+      "sha256": "da2f95bcc46ba9687ab189fcd1bae588659acfbbf0b9557532beb164c09f18a3"
+    },
+    {
+      "id": "fe_licensedAlms",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-6e79a083-7a5e-4f95-aebc-6640ce75d659.png",
+      "output": "art/fe_licensedAlms.png",
+      "sha256": "1d81754081076c7b76c7a7b51bd7aa930a3ac51a3100d7963b740f730dd4aca0"
+    },
+    {
+      "id": "fe_noviceVows",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-1df6e2b4-4e12-4ff6-b029-9c24ba898751.png",
+      "output": "art/fe_noviceVows.png",
+      "sha256": "c5206506d4230ccc24fa5166d93b2e228de79e7b59b0e08b83b379a4b5adc346"
+    },
+    {
+      "id": "fe_candleDues",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-890e9a0c-d5d9-4440-b013-636e0da78114.png",
+      "output": "art/fe_candleDues.png",
+      "sha256": "c7162055acab48a71e1d30c3746ee0adfec3e219c3f7acdcf6aa18807dd97b60"
+    },
+    {
+      "id": "fe_titheChapel",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-3417b687-4a24-46e7-bd7d-f71231cab6f0.png",
+      "output": "art/fe_titheChapel.png",
+      "sha256": "520445594452afeef1af5dcbefef6c2ed942b870a70bb2f65be0c13c05581624"
+    },
+    {
+      "id": "fe_purchasedAbsolution",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-67d6c176-304a-4d3e-a095-44420b3baf72.png",
+      "output": "art/fe_purchasedAbsolution.png",
+      "sha256": "4581862ca5310dc0d1315ecb1084bdabfecb170806e249888190773123e7e75d"
+    },
+    {
+      "id": "fe_relicProcession",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-dfb1a4c7-2345-4703-aeaa-f30bf1baadba.png",
+      "output": "art/fe_relicProcession.png",
+      "sha256": "28ceea5f720231f991d6aee137f37668771a8e004d04ff1bb28ab0c9df51c5d3"
+    },
+    {
+      "id": "fe_scriptedHomilies",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-45c68fb6-9a6a-47d4-b2be-98abe75cdb14.png",
+      "output": "art/fe_scriptedHomilies.png",
+      "sha256": "95f9f67a6cf76efc4e4c961ffd76000afca216f71aa7a8b2afc83315ce1052c2"
+    },
+    {
+      "id": "fe_consecratedBrew",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-6b8425b2-402a-44d3-9a4d-900da8dabfec.png",
+      "output": "art/fe_consecratedBrew.png",
+      "sha256": "9fb455ba3e8a545b008070e2b91b95cfd87360360e6eb344045faffcb1687f20"
+    },
+    {
+      "id": "fe_indulgenceOffice",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-14a9fccc-b627-4c30-aa3b-0811f3fca7db.png",
+      "output": "art/fe_indulgenceOffice.png",
+      "sha256": "254d19103bc14126852678bce7fde50a33a860a3899e0b2c81591d0349390039"
+    },
+    {
+      "id": "fe_monasticGranary",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-f6c204fa-1bb4-4ed3-93ab-c687ace9f8a4.png",
+      "output": "art/fe_monasticGranary.png",
+      "sha256": "87f6aa958f782717cb4b40f6eed55ee4351501d63dc0d50907a3420833fca455"
+    },
+    {
+      "id": "fe_cloisterDormitory",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-cc82fc1b-b249-4d0c-a93a-294b785eba2c.png",
+      "output": "art/fe_cloisterDormitory.png",
+      "sha256": "eea00bed492171d3a30eb14f9a599756bef3b5958d570ee5f40131205c9aefec"
+    },
+    {
+      "id": "fe_pilgrimsGate",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-49022022-216b-41d8-bfdf-81e7003ea4cc.png",
+      "output": "art/fe_pilgrimsGate.png",
+      "sha256": "1b544f2879a2e883a50779ca4fac29a9ffe797082062231169c71fbab1982cbf"
+    },
+    {
+      "id": "fe_grandJubilee",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-624eb74d-d177-45e3-bff4-aba460715db4.png",
+      "output": "art/fe_grandJubilee.png",
+      "sha256": "d26148584a07647ecb6412ac030fba7f407f8f36cfa9d9aa912ca5860bbfc440"
+    },
+    {
+      "id": "fe_canonisedAccounts",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-726dadd4-d4ac-4f4a-9077-2807372aa011.png",
+      "output": "art/fe_canonisedAccounts.png",
+      "sha256": "b6accdba2a5e2a3a858b81317b1f4baee6ba64bac59ec9c1f4209713a14d6c68"
+    },
+    {
+      "id": "fe_sacredInvestiture",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-82822f42-c080-409c-9bf0-ebcf5d1a877e.png",
+      "output": "art/fe_sacredInvestiture.png",
+      "sha256": "bc9aff2f85ae8c67fc372688658d66677d773c695d12888f9d5a6834b4ed55ec"
+    },
+    {
+      "id": "fe_gildedBasilica",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-643c552c-2790-48bd-b308-28eccd7e4095.png",
+      "output": "art/fe_gildedBasilica.png",
+      "sha256": "b43eba78ba01000ef69baaf7b3f0a90e804541b5129d8b75afd13734138ab138"
+    },
+    {
+      "id": "fe_reliquaryTreasury",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-a996f5ca-480d-49c5-8599-6f6123ac9b61.png",
+      "output": "art/fe_reliquaryTreasury.png",
+      "sha256": "5ec8eb0ff984cc14b8a0615156851ebb98828ef17712e4c6f5deba510dd0b8d5"
+    },
+    {
+      "id": "fe_prelatesPalace",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-b949e0a7-13c5-4031-b301-73ab8ad50b92.png",
+      "output": "art/fe_prelatesPalace.png",
+      "sha256": "123f29eb9b8796650f82392f1aaf17cf64f88f8b88e3d223937fa53ee994c410"
+    },
+    {
+      "id": "fe_censusPetitions",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-aad10944-592e-4022-8ebd-6c19e875bbf8.png",
+      "output": "art/fe_censusPetitions.png",
+      "sha256": "5a062737f64a4361e3aff9a91e46a3bf4e5bb00019f498a0cefd3829c423f908"
+    },
+    {
+      "id": "fe_duplicateReturns",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-71ba4378-be6c-4858-817c-016727038363.png",
+      "output": "art/fe_duplicateReturns.png",
+      "sha256": "326c6edc16f8545e00a5b03cb8185ae35e3083e4ff80846c376f0a28cb1249e4"
+    },
+    {
+      "id": "fe_sealedCurriculum",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-bf80f359-e0f4-4940-aac3-f9c7acf3ab43.png",
+      "output": "art/fe_sealedCurriculum.png",
+      "sha256": "0bf9c32735e988474a90035dc3d6cabfb49f416f874a691a8df986327db0ab67"
+    },
+    {
+      "id": "fe_licensingQueue",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-5a2b10ea-d43a-441d-b498-bb5fc1c07974.png",
+      "output": "art/fe_licensingQueue.png",
+      "sha256": "25f94b7f246ccab86e96254e69dfdfcefd3c356e50cbefa66ec1908c1923107c"
+    },
+    {
+      "id": "fe_surveyStakes",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-1f88d966-fb56-4f5b-bf4f-9bb33f17a00d.png",
+      "output": "art/fe_surveyStakes.png",
+      "sha256": "85b65514886afdc3f4a3440760258a3a485e8b09022741cda9e29aebbe03ec94"
+    },
+    {
+      "id": "fe_districtRegistry",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-521d10d6-a13b-4661-b017-ef1636d8464d.png",
+      "output": "art/fe_districtRegistry.png",
+      "sha256": "90f6a62a22f0177286c5a32ba37c6b8077838a4b426c67d6dce58ae1da955578"
+    },
+    {
+      "id": "fe_endlessReview",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-d20e94f7-b353-4d78-8a66-38a5a163e31c.png",
+      "output": "art/fe_endlessReview.png",
+      "sha256": "913e15dabd79c9d63b839fa71537813d42801e7e47434ca992af4a139380d490"
+    },
+    {
+      "id": "fe_approvedHistories",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-ada175fc-9a01-4ddf-a5c0-bb0b4fd4083a.png",
+      "output": "art/fe_approvedHistories.png",
+      "sha256": "11504ad9803d4c50e5bef0b11fc6c05229c3b77606ee4ea4d8116397d15df646"
+    },
+    {
+      "id": "fe_credentialExams",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-bb43e169-ba91-4a51-a5c8-1af0fffb506c.png",
+      "output": "art/fe_credentialExams.png",
+      "sha256": "59b0de587c4d0fcc1e13cc7bd44793df9491504143796d8b8f80828f6005534d"
+    },
+    {
+      "id": "fe_redundantInventories",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-b835871f-7573-4825-bdf7-8952bd72dfdd.png",
+      "output": "art/fe_redundantInventories.png",
+      "sha256": "b552bfbf60834657eb3b189c9e2896b2f02a66d89fd4af7f57f0a0768e88f24c"
+    },
+    {
+      "id": "fe_examinationHall",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-ea5832ae-29b7-4ec7-a9a4-60c6a3d7c4f8.png",
+      "output": "art/fe_examinationHall.png",
+      "sha256": "e6c69a0f44e2e301769c42756f72fbf747a8acd2a038d04ac55a80211a542395"
+    },
+    {
+      "id": "fe_departmentOfSeals",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-f5d61882-cef1-49d8-8cd6-201a88db5496.png",
+      "output": "art/fe_departmentOfSeals.png",
+      "sha256": "53c5e204721b3b0ec03ebcf68affe2d13ec9929dde90c032f9d74b5b13677303"
+    },
+    {
+      "id": "fe_indexedStorehouse",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-d2f241e3-769c-4375-b131-e68842ba4689.png",
+      "output": "art/fe_indexedStorehouse.png",
+      "sha256": "c8a97156eada80a88c2a34c0608cced42a22934342ecd23abb3655070e3f321e"
+    },
+    {
+      "id": "fe_remoteBureau",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-739556b5-e9b3-46d7-9068-060791c476bb.png",
+      "output": "art/fe_remoteBureau.png",
+      "sha256": "71999e299aa29f989366a1bcb21c789e61b2545799b6cabea7ba91a4fef8fdc0"
+    },
+    {
+      "id": "fe_perfectedCensus",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-2d07ac96-ebd2-4b1a-9eff-059965ea6582.png",
+      "output": "art/fe_perfectedCensus.png",
+      "sha256": "75148cef9d9fb548885db43888b6678b00f7cfac1a54878e692e592a117df468"
+    },
+    {
+      "id": "fe_abstractDisputation",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-739edd14-ea09-4515-8bee-21fb95be9463.png",
+      "output": "art/fe_abstractDisputation.png",
+      "sha256": "561ac0c3c54e103a58b9b1ce010076257b83f83b347fd3d1ef14ab5c5313031c"
+    },
+    {
+      "id": "fe_doctrinalAudit",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-cf154206-ca25-4258-9a4b-8a163742db11.png",
+      "output": "art/fe_doctrinalAudit.png",
+      "sha256": "3a1b8aaa8f63d43875522550b4ae7b2428fb1bd9562f566d2bca33379050fa00"
+    },
+    {
+      "id": "fe_palaceOfMeasures",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-c9274d1f-31be-4c01-88c2-15f3b511beb8.png",
+      "output": "art/fe_palaceOfMeasures.png",
+      "sha256": "20844bfc807996b11450b24d60c7fa84e9c6c8aa904008d3979a1c4d9d984ba3"
+    },
+    {
+      "id": "fe_sealedAcademy",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-188accf6-677a-47c3-9bc1-6e6a17d4e392.png",
+      "output": "art/fe_sealedAcademy.png",
+      "sha256": "9b78ac45ba4fded30c4e8e1959014b01d85ab2f9a0cf6522c0e2896b035da25e"
+    },
+    {
+      "id": "fe_archiveOfUnbuiltWorks",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a18169-8363-7750-9814-c14fe0466874\\exec-b53c892d-7af6-4bf1-96bb-63e6e6c48ae2.png",
+      "output": "art/fe_archiveOfUnbuiltWorks.png",
+      "sha256": "e60391d3592906ff9f12f9b648bbd1f1108baa6e5a481776694c1bd61f7c584c"
+    }
+  ]
+}

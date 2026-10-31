@@ -24,9 +24,9 @@ import { getGamepieceFace } from '../gamepiece-presentation.js';
 
 const source=JSON.parse(readFileSync(new URL('../../../docs/civcontent-2.6-source.json',import.meta.url),'utf8'));
 for (const [pool,p,s,c] of [['common',15,14,5],['scholar',52,32,11],['warrior',52,32,11]]) {
-  assert.equal(Object.values(practices).filter(d=>d.pool===pool).length,p);
-  assert.equal(Object.values(structures).filter(d=>d.pool===pool).length,s);
-  assert.equal(Object.values(practices).filter(d=>d.pool===pool&&d.mode==='charge').length,c);
+  assert.equal(Object.values(practices).filter(d=>! /^(fm|fe|cp)_/.test(d.id)&&d.pool===pool).length,p);
+  assert.equal(Object.values(structures).filter(d=>! /^(fm|fe|cp)_/.test(d.id)&&d.pool===pool).length,s);
+  assert.equal(Object.values(practices).filter(d=>! /^(fm|fe|cp)_/.test(d.id)&&d.pool===pool&&d.mode==='charge').length,c);
 }
 assert.equal(source.entries.length,187);
 // The housing-capacity pass supersedes the workbook's broader construction/defense tag.
@@ -182,7 +182,7 @@ for(let i=0;i<3;i++) event(development,{kind:'stockGenerated',practiceId:'record
 assert.equal(development.state.civilization.candidateDevelopment.scholar,1);
 development.state.civilization.vassalLineage.selectedVassalIds=['previous'];development.state.civilization.vassalLineage.establishedClassId='scholar';
 generateCandidatePool(development.state);assert.equal(development.state.civilization.candidateDevelopment.scholar,0);
-assert.equal(getLabCatalogue(engine).filter(e=>e.category==='practice').length,119);assert.equal(getLabCatalogue(engine).filter(e=>e.category==='structure').length,78);
+assert.equal(getLabCatalogue(engine).filter(e=>e.category==='practice').length,Object.keys(practices).length);assert.equal(getLabCatalogue(engine).filter(e=>e.category==='structure').length,Object.keys(structures).length);
 const bad=serializeGameState(createLabFixture('charge'));bad.world.sites[0].detailedState.practiceSlots.push(practiceSlot('forage'));
 assert.throws(()=>deserializeGameState(bad),/5 practice slots/);assert.throws(()=>fiveSlots(...Array(6).fill(practiceSlot('forage'))),/five/);
 const malformed=serializeGameState(createLabFixture('charge'));malformed.world.sites.find(site=>site.detailedState.practiceSlots[0]).detailedState.practiceSlots[0].charge=-1;
@@ -191,7 +191,7 @@ const config=structuredClone(engine.gameConfig);config.gamepieces.practices.smel
 const stockCost=structuredClone(engine.gameConfig);stockCost.gamepieces.practices.smelting.consume=[{traits:['Ore'],amount:1}];
 assert.equal(validateGameConfig(stockCost).ok,false,'Charge definitions cannot reintroduce Stock recipes');
 const upgraded=practiceSlot('smelting',2);upgraded.charge=1;
-const upgrade=projectPracticeDraft(fiveSlots(upgraded),[{intervention:{kind:'practice',mode:'upgrade',practiceId:'smelting',tier:'bronze',resultingTier:'silver'},tableauIndex:4}]);
+const upgrade=projectPracticeDraft(fiveSlots(upgraded),[{intervention:{kind:'practice',mode:'upgrade',practiceId:'smelting',tier:'bronze',resultingTier:'silver'},tableauIndex:4}],id=>engine.gameConfig.gamepieces.practices[id]);
 assert.equal(upgrade.slots[4].charge,1);assert.equal(upgrade.slots[4].stock,2,'quality/reorder keeps the same Practice inventory and meter');
 const noYield=fixture(practiceSlot('charcoalBurning'),practiceSlot('logging',6));
 assert.equal(generateStock(noYield.state,noYield.local,noYield.local.practiceSlots[1],2),0);flushPracticeEvents(noYield.state);

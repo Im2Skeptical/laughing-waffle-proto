@@ -19,7 +19,7 @@ import { stockCapacity } from "./detailed-settlements/stock.js";
 import { validSpecialistCohorts } from "./detailed-settlements/cohorts.js";
 
 export const MAP_LAB_DRAFT_SCHEMA_VERSION = 8;
-export const MAP_LAB_STORAGE_KEY = "civsurvivor.mapLabDraft.v8";
+export const MAP_LAB_STORAGE_KEY = "full-map-redesign-v1.mapLabDraft.v8";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const definitionFor = getWorldDefinitionById;

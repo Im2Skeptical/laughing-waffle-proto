@@ -6,6 +6,8 @@ const packedTextures = new Map();
 const packedLoads = new Map();
 const failedGroups = new Set();
 const rendererPreparations = new WeakMap();
+const presentationIllustrations = new Map();
+const presentationGroups = new Map();
 let revision = 0;
 export const getArtRevision = () => revision;
 export const RESOURCE_ART_IDS = Object.freeze([
@@ -32,6 +34,8 @@ export const SETTLEMENT_PIECE_ART_IDS = Object.freeze([
 ]);
 
 const PACKED_GROUPS = Object.freeze({
+  fullMap:{prefix:'full-map-content-prototype/art/',files:['full-map-content-prototype.json'],eager:true},
+  fullMapEnemy:{prefix:'full-map-chaos-prototype/art/',files:['full-map-chaos-dictator.json'],eager:true},
   heirlooms: Object.freeze({
     prefix: 'heirlooms-v1/',
     files: Object.freeze(['heirlooms.json']),
@@ -108,7 +112,15 @@ function configureTexture(texture) {
 }
 
 function packedGroupFor(file) {
-  return Object.values(PACKED_GROUPS).find(({ prefix }) => file.startsWith(prefix)) ?? null;
+  return [...Object.values(PACKED_GROUPS), ...presentationGroups.values()].find(({ prefix }) => file.startsWith(prefix)) ?? null;
+}
+
+// Isolated design workbenches may supply a separate atlas without adding live
+// gamepieces or warming that atlas during normal play. This is presentation only.
+export function registerPresentationIllustrations({prefix, files, ids}) {
+  if (!presentationGroups.has(prefix)) presentationGroups.set(prefix, {prefix, files, eager:false});
+  for (const id of ids) presentationIllustrations.set(id, {file:`${prefix}${id}.png`, whole:true});
+  return loadPackedGroup(presentationGroups.get(prefix), true);
 }
 
 function packedKeyFor(file, group) {
@@ -258,6 +270,9 @@ export function resolveIllustrationId(piece = {}) {
 
 export function getIllustrationSpec(id) {
   const pieceId = resolveIllustrationId(id);
+  if(pieceId.startsWith('fm_'))return {file:`full-map-content-prototype/art/${pieceId}.png`,whole:true};
+  if((pieceId.startsWith('fe_')||pieceId.startsWith('cp_'))&&(detailedSettlementPracticeDefs[pieceId]??settlementStructureDefs[pieceId])?.provenance==='dictator')return {file:`full-map-chaos-prototype/art/chaos_${pieceId}.png`,whole:true};
+  if (presentationIllustrations.has(pieceId)) return presentationIllustrations.get(pieceId);
   if (SETTLEMENT_PIECE_ART_IDS.includes(pieceId)) return { file: `settlement-pieces-v4/${pieceId}.webp`, index: 0, whole: true };
   const index=ART[resolveIllustrationId(id)];
   if(index==null) {

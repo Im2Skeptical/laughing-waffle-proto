@@ -1,4 +1,20 @@
-import { createNewGameState } from '../new-game.js';
+import { hasPopulationLedger, writePopulationBins } from '../detailed-settlements/population-ledger.js';
+import { createInitialState } from '../init.js';
+import { createRegionalBootProfile } from '../regional-map/boot-profile.js';
+import { seedNeutralSettlements, seedOpeningMonster } from '../detailed-settlements/external-world.js';
+import { setupDefs } from '../../defs/gamesettings/scenarios-defs.js';
+// Explicit legacy mechanics specimens retain their authored topology/economy.
+// This fixture factory is not the player New Game path.
+export function createLegacyFixtureState(seed=42) {
+  const profile=createRegionalBootProfile(seed);
+  const state=createInitialState({...setupDefs.devPlaytesting01,civilization:{},worldDefinitionId:profile.mapLab.worldDefinitionId,
+    worldDraft:{...profile.mapLab,starterRandomization:{kind:'twoRegionStarter'}},
+    gameConfig:{settings:profile.gameSettings,gamepieces:profile.gamepieces,lifeMapGenerator:profile.lifeMapLab.generatorConfig}},seed);
+  if(profile.launch.neutralSettlements)seedNeutralSettlements(state);
+  seedOpeningMonster(state);
+  return state;
+}
+const createNewGameState=createLegacyFixtureState;
 import { serializeGameState, deserializeGameState } from '../state.js';
 import { getDetailedSettlementSites } from '../detailed-settlements.js';
 import { emptySpecialists } from '../detailed-settlements/cohorts.js';
@@ -20,6 +36,7 @@ export function setFixturePopulation(settlement, population, scholars = 0, warri
   if (![population, scholars, warriors].every(n => Number.isInteger(n) && n >= 0) || scholars + warriors > population) {
     throw new Error('Specialists must fit within the adult population.');
   }
+  if(hasPopulationLedger(settlement)){writePopulationBins(settlement,[{classId:'villager',allegiance:'player',specialty:'ordinary',kind:'adults',age:null,count:population}]);trainSpecialists(settlement,'scholar',scholars);trainSpecialists(settlement,'warrior',warriors);return;}
   for (const cohort of Object.values(settlement.populationByClass)) {
     cohort.children = 0; cohort.adults = 0; cohort.eldersByAge = []; cohort.specialists = emptySpecialists();
   }

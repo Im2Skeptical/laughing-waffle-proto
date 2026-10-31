@@ -1,0 +1,188 @@
+{"frames": {
+
+"chaos_cp_offeringOfNames.png":
+{
+	"frame": {"x":467,"y":512,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_cp_templeOfHollowSun.png":
+{
+	"frame": {"x":2,"y":257,"w":564,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":564,"h":251},
+	"sourceSize": {"w":564,"h":251}
+},
+"chaos_fe_candleDues.png":
+{
+	"frame": {"x":1561,"y":2,"w":318,"h":446},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":446},
+	"sourceSize": {"w":318,"h":446}
+},
+"chaos_fe_canonisedAccounts.png":
+{
+	"frame": {"x":467,"y":961,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_cloisterDormitory.png":
+{
+	"frame": {"x":2,"y":512,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"chaos_fe_consecratedBrew.png":
+{
+	"frame": {"x":1112,"y":440,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_gildedBasilica.png":
+{
+	"frame": {"x":2,"y":2,"w":565,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":565,"h":251},
+	"sourceSize": {"w":565,"h":251}
+},
+"chaos_fe_grandJubilee.png":
+{
+	"frame": {"x":1112,"y":889,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_indulgenceOffice.png":
+{
+	"frame": {"x":571,"y":2,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"chaos_fe_licensedAlms.png":
+{
+	"frame": {"x":789,"y":440,"w":319,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":319,"h":445},
+	"sourceSize": {"w":319,"h":445}
+},
+"chaos_fe_monasticGranary.png":
+{
+	"frame": {"x":2,"y":823,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"chaos_fe_noviceVows.png":
+{
+	"frame": {"x":790,"y":1338,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_offeringBowls.png":
+{
+	"frame": {"x":789,"y":889,"w":319,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":319,"h":445},
+	"sourceSize": {"w":319,"h":445}
+},
+"chaos_fe_pilgrimsGate.png":
+{
+	"frame": {"x":901,"y":2,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"chaos_fe_prelatesPalace.png":
+{
+	"frame": {"x":2,"y":1134,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"chaos_fe_purchasedAbsolution.png":
+{
+	"frame": {"x":1112,"y":1338,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_relicProcession.png":
+{
+	"frame": {"x":1434,"y":452,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_reliquaryTreasury.png":
+{
+	"frame": {"x":2,"y":1445,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"chaos_fe_sacredInvestiture.png":
+{
+	"frame": {"x":1434,"y":901,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_scriptedHomilies.png":
+{
+	"frame": {"x":467,"y":1410,"w":319,"h":444},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":319,"h":444},
+	"sourceSize": {"w":319,"h":444}
+},
+"chaos_fe_titheCart.png":
+{
+	"frame": {"x":1434,"y":1350,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_titheChapel.png":
+{
+	"frame": {"x":1231,"y":2,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "full-map-chaos-papacy.png",
+	"format": "RGBA8888",
+	"size": {"w":1881,"h":1856},
+	"scale": "0.3",
+	"smartupdate": "$TexturePacker:SmartUpdate:780b6b3dc8b4074a6253912b6d043a01:0e429455a9b82a6f9d0ff1975c466f45:cd8be92dafbd0e986a7ab2fe83a16d96$"
+}
+}

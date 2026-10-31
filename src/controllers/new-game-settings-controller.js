@@ -7,7 +7,7 @@ import {
   parseDebugProfileLibraryJson,
 } from '../model/debug-profile-library.js';
 
-export const NEW_GAME_DEV_SETTINGS_KEY = 'civsurvivor.newGame.devSettings';
+export const NEW_GAME_DEV_SETTINGS_KEY = 'full-map-redesign-v1.newGame.devSettings';
 function browserStorage() { try { return globalThis.localStorage; } catch { return null; } }
 
 // Menu choices select initialization data; running games never read this storage.

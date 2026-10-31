@@ -78,7 +78,7 @@ export function table(headers, rows) {
 
 // Remembered disclosure state, shared by every Lab tool. Only a person's own
 // toggles are stored; a default opening never writes to storage.
-const UI_KEY = 'civsurvivor.development-lab.ui.v1';
+const UI_KEY = 'full-map-redesign-v1.development-lab.ui.v1';
 let uiState = null;
 function readUi() {
   if (uiState) return uiState;

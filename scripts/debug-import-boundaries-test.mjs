@@ -20,7 +20,7 @@ import { serializeGameState } from "../src/model/state.js";
 
 const COMMAND = "node scripts/debug-import-boundaries-test.mjs";
 const ARTIFACT = "artifacts/debug-import-boundaries-report.json";
-const WORKSPACE_KEY = "civsurvivor.debugProfiles.workspace.v3";
+const WORKSPACE_KEY = "full-map-redesign-v1.debugProfiles.workspace.v3";
 try { unlinkSync(ARTIFACT); } catch { /* no previous report */ }
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const passed = [];

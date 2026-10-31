@@ -66,3 +66,15 @@ file is the legacy tick substrate.
 
 New detailed behavior belongs in the matching file above. Projection runs the
 same stepper; never add a separate forecast implementation of Stock or conflict.
+
+## Full-map experimental ruleset
+
+Ordinary New Game in this branch uses `full-map-redesign-v1`. The older neutral
+market paragraphs above describe explicit legacy Lab fixtures. Full-map regions
+all run automation; local Stock is shared, remote recipes use holder/instance
+beneficiary plus adjacency and a direct road, and unheld regions use local only.
+`population-ledger.js` owns joint cohort identity; `political-recipes.js` plans
+actual victims and conversion support; `territory.js` owns control, unrest,
+supplied military, explicit adjacent commitments and treasury accrual. All run
+through the same phase/event pipeline used by replay and workers. See
+`docs/full-map-redesign-implementation.md` for the implemented contract.

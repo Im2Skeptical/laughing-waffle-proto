@@ -66,7 +66,7 @@ import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
 assert.equal(validateWorldState(state).ok, true);
-assert.equal(state.gameStateSchemaVersion, 40);
+assert.equal(state.gameStateSchemaVersion, 41);
 const invalidPracticeTierState = serializeGameState(state);
 invalidPracticeTierState.world.sites[0].detailedState.practiceSlots.find(Boolean).tier = "platinum";
 assert.equal(validateWorldState(invalidPracticeTierState).ok, false,
@@ -513,7 +513,7 @@ for (const removedKey of ["elderCouncil", "agendaByClass", "installedPracticeIds
 }
 const old = serializeGameState(state);
 old.gameStateSchemaVersion = 35;
-assert.throws(() => deserializeGameState(old), /expected v40/);
+assert.throws(() => deserializeGameState(old), /expected v41/);
 
 const forecastState = createInitialState("devPlaytesting01", 24680);
 const forecastTimeline = { revision: 0 };
@@ -667,13 +667,13 @@ for (let seed = 1; seed <= 64; seed += 1) {
   const fresh = createNewGameState(seed * 7919);
   const players = fresh.world.regions.filter((region) => region.controller === "player");
   assert.equal(players.length, 2);
-  assert.equal(fresh.world.sites.length, 6);
+  assert.equal(fresh.world.sites.length, 20);
   const ids = players.map((region) => region.id).sort();
   startingPairs.add(ids.join("|"));
   assert.ok(fresh.world.connections.some((edge) =>
     [edge.regionAId, edge.regionBId].sort().join("|") === ids.join("|")));
-  const hamlet=fresh.world.sites.find(site=>site.neutral?.template==='Forager Hamlet');
-  assert.ok(getConnectedRegionIds(fresh,fresh.civilization.capitalRegionId).includes(hamlet.regionId));
+  assert.ok(fresh.world.sites.every(site=>!site.neutral&&site.detailedState.practiceSlots.length===5));
+  assert.ok(fresh.civilization.remnant.capitalRegionId);
   assert.equal(fresh.world.regions.length,20);
   for(const edge of getWorldDefinition(fresh).connections) assert.ok(fresh.world.connections.some(actual=>actual.regionAId===edge.regionAId&&actual.regionBId===edge.regionBId));
   assert.equal(fresh.world.regions.filter(region=>region.monster).length,1);

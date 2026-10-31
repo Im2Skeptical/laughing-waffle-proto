@@ -1,0 +1,188 @@
+{"frames": {
+
+"chaos_cp_citadelOfStillness.png":
+{
+	"frame": {"x":2,"y":2,"w":564,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":564,"h":251},
+	"sourceSize": {"w":564,"h":251}
+},
+"chaos_cp_ironCommunion.png":
+{
+	"frame": {"x":3466,"y":2,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_arsenalQuotas.png":
+{
+	"frame": {"x":570,"y":313,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_barrackLevy.png":
+{
+	"frame": {"x":2820,"y":2,"w":319,"h":443},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":319,"h":443},
+	"sourceSize": {"w":319,"h":443}
+},
+"chaos_fe_billetingOrders.png":
+{
+	"frame": {"x":892,"y":313,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_borderOaths.png":
+{
+	"frame": {"x":3143,"y":2,"w":319,"h":444},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":319,"h":444},
+	"sourceSize": {"w":319,"h":444}
+},
+"chaos_fe_capitalDole.png":
+{
+	"frame": {"x":1214,"y":440,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_curfewRounds.png":
+{
+	"frame": {"x":1536,"y":440,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_garrisonBarracks.png":
+{
+	"frame": {"x":570,"y":2,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"chaos_fe_imperialArmoury.png":
+{
+	"frame": {"x":2,"y":512,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"chaos_fe_levyPost.png":
+{
+	"frame": {"x":1500,"y":2,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"chaos_fe_marshalsCitadel.png":
+{
+	"frame": {"x":2,"y":257,"w":564,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":564,"h":251},
+	"sourceSize": {"w":564,"h":251}
+},
+"chaos_fe_officersFeast.png":
+{
+	"frame": {"x":1858,"y":440,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_paradeSquare.png":
+{
+	"frame": {"x":1035,"y":2,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"chaos_fe_provostCourt.png":
+{
+	"frame": {"x":1830,"y":2,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"chaos_fe_rationDepot.png":
+{
+	"frame": {"x":2160,"y":2,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"chaos_fe_rationRoll.png":
+{
+	"frame": {"x":2180,"y":440,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_roadRequisition.png":
+{
+	"frame": {"x":2502,"y":449,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_salvageDetail.png":
+{
+	"frame": {"x":2824,"y":450,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_siegeRehearsals.png":
+{
+	"frame": {"x":3146,"y":451,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"chaos_fe_signalBastion.png":
+{
+	"frame": {"x":2490,"y":2,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"chaos_fe_victoryProcession.png":
+{
+	"frame": {"x":3468,"y":451,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "full-map-chaos-dictator.png",
+	"format": "RGBA8888",
+	"size": {"w":3788,"h":898},
+	"scale": "0.3",
+	"smartupdate": "$TexturePacker:SmartUpdate:744b5674a830f4a1dc97065e0e992721:e01aff877a93480116b0742e397f6b79:56df41372897a043317e9bc15e014958$"
+}
+}

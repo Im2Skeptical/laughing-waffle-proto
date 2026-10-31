@@ -35,7 +35,7 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
   }
   const x=rect.x+22,y=rect.y;
   root.addChild(createText(`${reference}  ·  ${name}`,{...TEXT_STYLES.header,fontSize:29},x,y+18));
-  root.addChild(createText(`${region.colour.toUpperCase()} TERRITORY / ${region.monster ? "MONSTER · Defense "+region.monster.defense : region.controller==='player'?'YOUR REALM':region.controller==='external-a'?'NEUTRAL SETTLEMENT':region.lostAtSec != null?'RUINS':'FRONTIER'}`,{
+  root.addChild(createText(`${region.colour.toUpperCase()} TERRITORY / ${region.monster ? "MONSTER · Defense "+region.monster.defense : region.controller==='player'?'YOUR REALM':region.controller==='external-a'?(vm?.control?'CROWN REMNANT':'NEUTRAL SETTLEMENT'):region.lostAtSec != null?'RUINS':vm?.control?'UNHELD':'FRONTIER'}`,{
     ...TEXT_STYLES.body,fontSize:18,fill:PALETTE.textMuted},x,y+50));
   if (region.monster) {
     addRegionLandmark(root,'monster-lair',{x:x+rect.width*.19,y:y+95,width:rect.width*.58,height:rect.height-125});
@@ -113,6 +113,14 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
     addSettlementPiece(root,{x:cardX,y:cardY,width:cardW,height:cardHeight},{face:p.face,empty:!p.practiceId,tooltipView,compact:true});
     addPracticeMultiplierPair(root,{x:cardX,y:cardY+cardHeight+8,width:cardW,height:pairHeight},p,i,tooltipView);
   });
+  if(vm.control){
+    const c=vm.control,group=new PIXI.Container();group.position.set(x,y+519);
+    const label=`${c.status.toUpperCase()} | Free ${c.support.player??0} / Crown ${c.support['external-a']??0} / Unaffiliated ${c.support.neutral??0} | Unrest ${Math.round(c.unrest)} -> ${Math.round(c.targetUnrest)} | Force ${Number(c.force.toFixed(1))}/${c.required} | Garrison ${c.upkeep} Edible ${c.supplied?'paid':'MISSING'}`;
+    group.addChild(createText(label,{...TEXT_STYLES.body,fontSize:22,fill:c.supplied?PALETTE.text:0xe7947e},0,0));
+    group.eventMode='static';group.cursor='help';group.hitArea=new PIXI.Rectangle(0,-3,rect.width-44,34);
+    const spec={title:'Territory and allegiance',lines:[`${c.holder} holds this region. Stock follows its holder; institutions and residents retain allegiance.`,`${c.loyal}/${c.total} residents support the holder (${Math.round(c.share*100)}%).`,`${c.armed} local armed loyal adult Warriors; supplied Force ${c.force.toFixed(1)} / ${c.required} required.`,`${c.receivedForce} adjacent Force received; ${c.sentForce} sent to ${c.supportTarget??'no neighbour'}.`,`Unrest ${Math.round(c.unrest)} moves toward ${Math.round(c.targetUnrest)} at each Death control check.`,`Claim: 60% for two checks. Retain support: 45%. Loss: unrest 75 for two unsupported, unsupplied checks.`],maxWidth:420,scale:2};
+    group.on('pointerdown',e=>{e.stopPropagation();tooltipView?.pin(spec,group.getBounds(),`territory:${reference}`);});root.addChild(group);
+  }
   const constructionRect=regionalConstructionRect({x,y:y+554,width:rect.width-44,height:rect.height-572},DEFAULT_REGION_STRUCTURE_CAPACITY_MAX);
   addConstructionStrip(root,constructionRect,{slots:vm.structures,capacity:vm.structureCapacity,displayCapacity:DEFAULT_REGION_STRUCTURE_CAPACITY_MAX,tooltipView,compact:true});
 }

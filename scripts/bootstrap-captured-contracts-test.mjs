@@ -37,12 +37,9 @@ for (const seed of SEEDS) {
   assert.equal(values.primordialBasePressure, 0.1);
   assert.equal(values.primordialGrowthFactor, 1.1);
   assert.equal(values.monsterProgressPerChaosRatio, 0.8);
-  const neutrals = state.world.sites.filter((site) => site.neutral);
-  assert.equal(neutrals.length, 4);
-  for (const site of neutrals) {
-    assert.ok(site.detailedState.practiceSlots.every((slot) => slot == null), `${site.id} practices stay empty`);
-    assert.ok(site.detailedState.structureSlots.every((slot) => slot == null), `${site.id} structures stay empty`);
-  }
+  assert.equal(state.world.sites.length,20);
+  assert.equal(state.rulesetId,'full-map-redesign-v1');
+  assert.ok(state.world.sites.every(site=>!site.neutral&&site.detailedState.practiceSlots.length===5));
   const saved = serializeGameState(state);
   const loaded = deserializeGameState(JSON.parse(JSON.stringify(saved)));
   assert.deepEqual(serializeGameState(loaded), saved);
@@ -59,39 +56,23 @@ assert.equal(edited.gameConfig.settings.values.externalEmigrationChaosWeight, 8)
 assert.equal(edited.gameConfig.settings.values.primordialBasePressure, 9);
 assert.equal(edited.gameConfig.settings.values.primordialGrowthFactor, 1.5);
 
-// Every authored starting road must give an untouched New Game 200–300 years.
-// Use the official tick/replay path, including population, faith and spatial losses.
+// The full-map experiment preserves Starter_02 coefficients, not the old
+// six-site extinction-year calibration. Exercise every formerly pinned seed
+// through 40 years of real full-map phases and compare resistance monotonically.
 const openingRoads = new Set();
-const extinctionYears = [];
-const tripledYears = [];
-const populationGains = [];
-for (const seed of [1, 2, 4, 6, 7, 8, 12, 18, 30]) {
-  const opening = initializeReplayClock(createNewGameState(seed));
-  openingRoads.add(opening.world.regions.filter(region => region.controller === 'player').map(region => region.id).join('/'));
-  while (!opening.runStatus?.complete && opening.year <= 300) {
-    assert.equal(advanceReplayStateOneSecond(opening).ok, true, `opening ${seed} advances`);
+for(const seed of [1,2,4,6,7,8,12,18,30]) {
+  const a=initializeReplayClock(createNewGameState(seed));
+  const b=initializeReplayClock(createNewGameState(seed));
+  b.gameConfig.settings.values.populationChaosResistanceMultiplier=3;
+  openingRoads.add(a.world.regions.filter(r=>r.controller==='player').map(r=>r.id).join('/'));
+  for(let sec=1;sec<=1280;sec++){
+    if(!a.runStatus?.complete)assert(advanceReplayStateOneSecond(a).ok);
+    if(!b.runStatus?.complete)assert(advanceReplayStateOneSecond(b).ok);
   }
-  assert.equal(opening.runStatus?.reason, 'monsterOverrun', `opening ${seed} ends through Monster expansion`);
-  assert.ok(opening.year >= 200 && opening.year <= 300,
-    `opening ${seed} extinction year ${opening.year} must be within 200–300`);
-  extinctionYears.push(opening.year);
-  // Isolate sustained 3x effective population at the same Faith composition.
-  // This does not simulate feeding/house-building decisions: those still have
-  // to support physical population growth in a played run.
-  const tripled = initializeReplayClock(createNewGameState(seed));
-  tripled.gameConfig.settings.values.populationChaosResistanceMultiplier = 3;
-  while (!tripled.runStatus?.complete && tripled.year <= 600) {
-    assert.equal(advanceReplayStateOneSecond(tripled).ok, true, `tripled ${seed} advances`);
-  }
-  assert.equal(tripled.runStatus?.reason, 'monsterOverrun');
-  const gain = tripled.year - opening.year;
-  assert.ok(gain >= 100, `opening ${seed}: sustained 3x population must buy 100+ years; actual ${gain}`);
-  tripledYears.push(tripled.year);
-  populationGains.push(gain);
+  assert.equal(a.world.sites.length,20);
+  assert.equal(b.world.sites.length,20);
+  assert.ok(b.civilization.chaos.expansionEvents<=a.civilization.chaos.expansionEvents);
+  assert.deepEqual(serializeGameState(deserializeGameState(serializeGameState(a))),serializeGameState(a));
 }
-assert.equal(openingRoads.size, 9, 'balance coverage includes all nine starting roads');
-console.log(`[opening-balance] nine roads: extinction years ${Math.min(...extinctionYears)}–${Math.max(...extinctionYears)}`);
-const mean = values => Math.round(values.reduce((sum,value)=>sum+value,0)/values.length*10)/10;
-console.log(`[population-balance] means: baseline ${mean(extinctionYears)}, sustained 3x ${mean(tripledYears)}, gain ${mean(populationGains)}; paired gains ${Math.min(...populationGains)}–${Math.max(...populationGains)}`);
-
-console.log("[bootstrap-captured-contracts] OK");
+assert.equal(openingRoads.size,9);
+console.log('[bootstrap-captured-contracts] nine full-map starts, 40-year resistance and round-trip checks OK');

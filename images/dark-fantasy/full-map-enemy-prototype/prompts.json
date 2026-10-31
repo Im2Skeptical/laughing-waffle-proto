@@ -1,0 +1,1847 @@
+{
+  "version": 1,
+  "current": true,
+  "scope": "80 descriptive enemy review candidates; no simulation additions",
+  "entries": [
+    {
+      "id": "fe_rationRoll",
+      "label": "Ration Roll",
+      "pool": "dictator",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "A back-facing red-cloaked quartermaster offers a single loaf across a narrow barracks hatch to two helmeted soldiers.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_rationRoll.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Ration Roll, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A back-facing red-cloaked quartermaster offers a single loaf across a narrow barracks hatch to two helmeted soldiers."
+    },
+    {
+      "id": "fe_barrackLevy",
+      "label": "Barrack Levy",
+      "pool": "dictator",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "An enclosed-helmet officer places a spear into the hands of a small back-facing recruit beneath a crumbling red-draped gate.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_barrackLevy.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Barrack Levy, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: An enclosed-helmet officer places a spear into the hands of a small back-facing recruit beneath a crumbling red-draped gate."
+    },
+    {
+      "id": "fe_roadRequisition",
+      "label": "Road Requisition",
+      "pool": "dictator",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "Two back-facing red-armoured soldiers unload confiscated grain beside a cart of worn spearheads on an old imperial road.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_roadRequisition.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Road Requisition, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Two back-facing red-armoured soldiers unload confiscated grain beside a cart of worn spearheads on an old imperial road."
+    },
+    {
+      "id": "fe_salvageDetail",
+      "label": "Salvage Detail",
+      "pool": "dictator",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "Two tiny helmeted red-cloaked soldiers lever iron braces from a fallen siege engine beneath ruined battlements.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_salvageDetail.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Salvage Detail, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Two tiny helmeted red-cloaked soldiers lever iron braces from a fallen siege engine beneath ruined battlements."
+    },
+    {
+      "id": "fe_curfewRounds",
+      "label": "Curfew Rounds",
+      "pool": "dictator",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "A pair of fully helmeted red-cloaked guards lower an iron street barrier while distant hooded residents retreat indoors.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_curfewRounds.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Curfew Rounds, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A pair of fully helmeted red-cloaked guards lower an iron street barrier while distant hooded residents retreat indoors."
+    },
+    {
+      "id": "fe_levyPost",
+      "label": "Levy Post",
+      "pool": "dictator",
+      "kind": "structure",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "A squat red-canopied timber recruiting post with a rack of worn spears stands beneath a monumental broken wall.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_levyPost.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Levy Post, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A squat red-canopied timber recruiting post with a rack of worn spears stands beneath a monumental broken wall."
+    },
+    {
+      "id": "fe_arsenalQuotas",
+      "label": "Arsenal Quotas",
+      "pool": "dictator",
+      "kind": "practice",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "Two back-facing helmeted workers feed an outsized furnace while an officer watches rows of unfinished spearheads.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_arsenalQuotas.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Arsenal Quotas, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Two back-facing helmeted workers feed an outsized furnace while an officer watches rows of unfinished spearheads."
+    },
+    {
+      "id": "fe_billetingOrders",
+      "label": "Billeting Orders",
+      "pool": "dictator",
+      "kind": "practice",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "Helmeted red-cloaked soldiers carry bedrolls through a crowded stone courtyard as small hooded residents make room.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_billetingOrders.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Billeting Orders, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Helmeted red-cloaked soldiers carry bedrolls through a crowded stone courtyard as small hooded residents make room."
+    },
+    {
+      "id": "fe_victoryProcession",
+      "label": "Victory Procession",
+      "pool": "dictator",
+      "kind": "practice",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A back-facing red-cloaked officer raises a battered shield as two helmeted soldiers drag a trophy cart through an oversized ruined arch.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_victoryProcession.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Victory Procession, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A back-facing red-cloaked officer raises a battered shield as two helmeted soldiers drag a trophy cart through an oversized ruined arch."
+    },
+    {
+      "id": "fe_borderOaths",
+      "label": "Border Oaths",
+      "pool": "dictator",
+      "kind": "practice",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A helmeted courier delivers a sealed blank scroll case to red-cloaked sentries across a narrow ruined frontier bridge.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_borderOaths.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Border Oaths, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A helmeted courier delivers a sealed blank scroll case to red-cloaked sentries across a narrow ruined frontier bridge."
+    },
+    {
+      "id": "fe_garrisonBarracks",
+      "label": "Garrison Barracks",
+      "pool": "dictator",
+      "kind": "structure",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A long red-roofed barracks complex with two austere courtyards dominates an old imperial parade ground.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_garrisonBarracks.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Garrison Barracks, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A long red-roofed barracks complex with two austere courtyards dominates an old imperial parade ground."
+    },
+    {
+      "id": "fe_provostCourt",
+      "label": "Provost Court",
+      "pool": "dictator",
+      "kind": "structure",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A stern iron-gated military courthouse with a weathered red canopy dominates a steep empty civic stair.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_provostCourt.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Provost Court, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A stern iron-gated military courthouse with a weathered red canopy dominates a steep empty civic stair."
+    },
+    {
+      "id": "fe_rationDepot",
+      "label": "Ration Depot",
+      "pool": "dictator",
+      "kind": "structure",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A bulky fortified grain depot with faded red shutters and soldiers carrying sacks fills a ruined fortress service court.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_rationDepot.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Ration Depot, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A bulky fortified grain depot with faded red shutters and soldiers carrying sacks fills a ruined fortress service court."
+    },
+    {
+      "id": "fe_signalBastion",
+      "label": "Signal Bastion",
+      "pool": "dictator",
+      "kind": "structure",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A narrow fortified signal tower with a great unlit brazier and frayed red cloth rises from collapsed city walls.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_signalBastion.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Signal Bastion, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A narrow fortified signal tower with a great unlit brazier and frayed red cloth rises from collapsed city walls."
+    },
+    {
+      "id": "fe_capitalDole",
+      "label": "Capital Dole",
+      "pool": "dictator",
+      "kind": "practice",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "Two back-facing red-cloaked officers supervise a huge bread cauldron above a small queue of hooded residents beneath a colossal ruined keep.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_capitalDole.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Capital Dole, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Two back-facing red-cloaked officers supervise a huge bread cauldron above a small queue of hooded residents beneath a colossal ruined keep."
+    },
+    {
+      "id": "fe_officersFeast",
+      "label": "Officers’ Feast",
+      "pool": "dictator",
+      "kind": "practice",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "Three fully helmeted officers in rich but fraying red cloaks sit around an excessive banquet table in a cavernous decayed military hall.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_officersFeast.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Officers’ Feast, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Three fully helmeted officers in rich but fraying red cloaks sit around an excessive banquet table in a cavernous decayed military hall."
+    },
+    {
+      "id": "fe_siegeRehearsals",
+      "label": "Siege Rehearsals",
+      "pool": "dictator",
+      "kind": "practice",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "Tiny red-cloaked soldiers operate a massive repaired siege engine beneath a cracked fortress arch, facing away from the viewer.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_siegeRehearsals.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Siege Rehearsals, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Tiny red-cloaked soldiers operate a massive repaired siege engine beneath a cracked fortress arch, facing away from the viewer."
+    },
+    {
+      "id": "fe_marshalsCitadel",
+      "label": "Marshal’s Citadel",
+      "pool": "dictator",
+      "kind": "structure",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "A monumental three-wing iron-plum citadel with faded vermilion roofs dominates the skyline, its inhabited core surrounded by broken outer walls.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_marshalsCitadel.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 9:4 landscape illustration for Marshal’s Citadel, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A monumental three-wing iron-plum citadel with faded vermilion roofs dominates the skyline, its inhabited core surrounded by broken outer walls."
+    },
+    {
+      "id": "fe_paradeSquare",
+      "label": "Parade Square",
+      "pool": "dictator",
+      "kind": "structure",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "A broad enclosed parade court with a central empty review platform and regimented tiny helmeted troops is framed by colossal decaying red-draped barracks.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_paradeSquare.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Parade Square, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A broad enclosed parade court with a central empty review platform and regimented tiny helmeted troops is framed by colossal decaying red-draped barracks."
+    },
+    {
+      "id": "fe_imperialArmoury",
+      "label": "Imperial Armoury",
+      "pool": "dictator",
+      "kind": "structure",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "A sprawling fortified armoury with iron doors and immense racks of worn shields glows behind a broken red-canopied loading arcade.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_imperialArmoury.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Imperial Armoury, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: vermilion, brick red, oxidized teal and iron plum; frayed red uniforms, rusting iron and enormous obsolete fortifications. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A sprawling fortified armoury with iron doors and immense racks of worn shields glows behind a broken red-canopied loading arcade."
+    },
+    {
+      "id": "fe_rentCollection",
+      "label": "Rent Collection",
+      "pool": "oligarch",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "A back-facing hooded tenant hands a small grain sack through a richly carved but rotting manor pay hatch.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_rentCollection.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Rent Collection, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A back-facing hooded tenant hands a small grain sack through a richly carved but rotting manor pay hatch."
+    },
+    {
+      "id": "fe_companyRations",
+      "label": "Company Rations",
+      "pool": "oligarch",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "A hooded factor in tarnished gold cloth offers a ration bowl to a back-facing labourer beside a locked warehouse.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_companyRations.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Company Rations, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A hooded factor in tarnished gold cloth offers a ration bowl to a back-facing labourer beside a locked warehouse."
+    },
+    {
+      "id": "fe_scrapAuction",
+      "label": "Scrap Auction",
+      "pool": "oligarch",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "Two back-facing hooded bidders examine broken iron fittings on a low auction plinth beneath a faded olive awning.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_scrapAuction.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Scrap Auction, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Two back-facing hooded bidders examine broken iron fittings on a low auction plinth beneath a faded olive awning."
+    },
+    {
+      "id": "fe_debtPledges",
+      "label": "Debt Pledges",
+      "pool": "oligarch",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "A small back-facing family places an unmarked token on a moneylender’s table under a vast crumbling merchant arcade.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_debtPledges.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Debt Pledges, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A small back-facing family places an unmarked token on a moneylender’s table under a vast crumbling merchant arcade."
+    },
+    {
+      "id": "fe_bondedCaravans",
+      "label": "Bonded Caravans",
+      "pool": "oligarch",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "Two hooded handlers lead laden pack animals away through a ruined commercial gate, their olive cloth sacks catching tarnished gold light.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_bondedCaravans.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Bonded Caravans, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Two hooded handlers lead laden pack animals away through a ruined commercial gate, their olive cloth sacks catching tarnished gold light."
+    },
+    {
+      "id": "fe_factorsLodge",
+      "label": "Factor’s Lodge",
+      "pool": "oligarch",
+      "kind": "structure",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "A narrow timber counting lodge with a deep pay window leans against an outsized ruined stone merchant hall.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_factorsLodge.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Factor’s Lodge, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A narrow timber counting lodge with a deep pay window leans against an outsized ruined stone merchant hall."
+    },
+    {
+      "id": "fe_monopolyMilling",
+      "label": "Monopoly Milling",
+      "pool": "oligarch",
+      "kind": "practice",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "Tiny back-facing mill hands turn a great stone wheel beneath an ornate decaying private granary, guarded sacks stacked behind iron rails.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_monopolyMilling.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Monopoly Milling, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Tiny back-facing mill hands turn a great stone wheel beneath an ornate decaying private granary, guarded sacks stacked behind iron rails."
+    },
+    {
+      "id": "fe_gildedPatronage",
+      "label": "Gilded Patronage",
+      "pool": "oligarch",
+      "kind": "practice",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A hooded patron in a fraying gold mantle gives plain coin pouches to two back-facing petitioners beneath an extravagant broken canopy.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_gildedPatronage.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Gilded Patronage, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A hooded patron in a fraying gold mantle gives plain coin pouches to two back-facing petitioners beneath an extravagant broken canopy."
+    },
+    {
+      "id": "fe_purchasedTestimony",
+      "label": "Purchased Testimony",
+      "pool": "oligarch",
+      "kind": "practice",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A back-facing gold-cloaked factor slides a purse beside a blank scroll to a hooded blue-robed clerk in a decayed court alcove.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_purchasedTestimony.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Purchased Testimony, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A back-facing gold-cloaked factor slides a purse beside a blank scroll to a hooded blue-robed clerk in a decayed court alcove."
+    },
+    {
+      "id": "fe_exclusiveConcessions",
+      "label": "Exclusive Concessions",
+      "pool": "oligarch",
+      "kind": "practice",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "Two back-facing hooded factors present a heavy key to a tiny timber-yard steward beyond a ruined road bridge.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_exclusiveConcessions.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Exclusive Concessions, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Two back-facing hooded factors present a heavy key to a tiny timber-yard steward beyond a ruined road bridge."
+    },
+    {
+      "id": "fe_privateExchange",
+      "label": "Private Exchange",
+      "pool": "oligarch",
+      "kind": "structure",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A broad shuttered exchange house with tarnished brass doors and a collapsed outer trading arcade dominates a neglected market square.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_privateExchange.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Private Exchange, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A broad shuttered exchange house with tarnished brass doors and a collapsed outer trading arcade dominates a neglected market square."
+    },
+    {
+      "id": "fe_bondedWarehouse",
+      "label": "Bonded Warehouse",
+      "pool": "oligarch",
+      "kind": "structure",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A long fortified warehouse with olive shutters, rusted loading cranes and iron-bound cloth bales dominates an empty imperial quay.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_bondedWarehouse.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Bonded Warehouse, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A long fortified warehouse with olive shutters, rusted loading cranes and iron-bound cloth bales dominates an empty imperial quay."
+    },
+    {
+      "id": "fe_companyTenements",
+      "label": "Company Tenements",
+      "pool": "oligarch",
+      "kind": "structure",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A dense pair of tall timber tenement wings with opulent owner balconies above tiny crowded service doors fills a narrow ruined street.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_companyTenements.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Company Tenements, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A dense pair of tall timber tenement wings with opulent owner balconies above tiny crowded service doors fills a narrow ruined street."
+    },
+    {
+      "id": "fe_patronageSalon",
+      "label": "Patronage Salon",
+      "pool": "oligarch",
+      "kind": "structure",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A small extravagant salon with cracked gilded shutters and an olive silk canopy survives inside a collapsing merchant palace.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_patronageSalon.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Patronage Salon, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A small extravagant salon with cracked gilded shutters and an olive silk canopy survives inside a collapsing merchant palace."
+    },
+    {
+      "id": "fe_conspicuousFeasts",
+      "label": "Conspicuous Feasts",
+      "pool": "oligarch",
+      "kind": "practice",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "Three back-facing hooded grandees survey a wasteful banquet in a vast half-ruined gold and olive dining hall while tiny servants carry laden platters.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_conspicuousFeasts.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Conspicuous Feasts, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Three back-facing hooded grandees survey a wasteful banquet in a vast half-ruined gold and olive dining hall while tiny servants carry laden platters."
+    },
+    {
+      "id": "fe_luxuryWeaving",
+      "label": "Luxury Weaving",
+      "pool": "oligarch",
+      "kind": "practice",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "Tiny hooded weavers operate an immense ornate loom of gold and muted olive cloth beneath a broken palace vault.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_luxuryWeaving.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Luxury Weaving, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Tiny hooded weavers operate an immense ornate loom of gold and muted olive cloth beneath a broken palace vault."
+    },
+    {
+      "id": "fe_municipalDebt",
+      "label": "Municipal Debt",
+      "pool": "oligarch",
+      "kind": "practice",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "A back-facing hooded magnate places a heavy keyring beside a mountain of coin sacks before two tiny clerks in a ruined city treasury.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_municipalDebt.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Municipal Debt, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A back-facing hooded magnate places a heavy keyring beside a mountain of coin sacks before two tiny clerks in a ruined city treasury."
+    },
+    {
+      "id": "fe_palaceOfAccounts",
+      "label": "Palace of Accounts",
+      "pool": "oligarch",
+      "kind": "structure",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "An immense three-wing counting palace with gold roofs, dark olive shutters and neglected lower courts towers over a crumbling canal.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_palaceOfAccounts.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 9:4 landscape illustration for Palace of Accounts, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: An immense three-wing counting palace with gold roofs, dark olive shutters and neglected lower courts towers over a crumbling canal."
+    },
+    {
+      "id": "fe_privateReservoir",
+      "label": "Private Reservoir",
+      "pool": "oligarch",
+      "kind": "structure",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "A vast raised private cistern and ornamental enclosed pool fill a terraced merchant palace courtyard above a parched ruined district.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_privateReservoir.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Private Reservoir, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A vast raised private cistern and ornamental enclosed pool fill a terraced merchant palace courtyard above a parched ruined district."
+    },
+    {
+      "id": "fe_marbleArcade",
+      "label": "Marble Arcade",
+      "pool": "oligarch",
+      "kind": "structure",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "A broad two-storey marble trading arcade, patched with timber and tarnished brass, dominates a once-grand imperial market.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_marbleArcade.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Marble Arcade, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm umber, charcoal, tarnished gold and muted olive with small verdigris accents; rotting luxury and hungry service courts. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A broad two-storey marble trading arcade, patched with timber and tarnished brass, dominates a once-grand imperial market."
+    },
+    {
+      "id": "fe_offeringBowls",
+      "label": "Offering Bowls",
+      "pool": "papacy",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "A back-facing ivory-hooded officiant receives a loaf in a plain bronze bowl from two small hooded residents beneath a ruined chapel arch.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_offeringBowls.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Offering Bowls, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A back-facing ivory-hooded officiant receives a loaf in a plain bronze bowl from two small hooded residents beneath a ruined chapel arch."
+    },
+    {
+      "id": "fe_titheCart",
+      "label": "Tithe Cart",
+      "pool": "papacy",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "Two back-facing ivory-cloaked collectors load grain sacks onto an ornate but rotting temple cart in a poor village lane.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_titheCart.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Tithe Cart, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Two back-facing ivory-cloaked collectors load grain sacks onto an ornate but rotting temple cart in a poor village lane."
+    },
+    {
+      "id": "fe_licensedAlms",
+      "label": "Licensed Alms",
+      "pool": "papacy",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "A deeply hooded ivory attendant gives bread to two back-facing cloaked arrivals at a narrow gilded chapel hatch.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_licensedAlms.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Licensed Alms, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A deeply hooded ivory attendant gives bread to two back-facing cloaked arrivals at a narrow gilded chapel hatch."
+    },
+    {
+      "id": "fe_noviceVows",
+      "label": "Novice Vows",
+      "pool": "papacy",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "A back-facing adult kneels as an entirely hooded ivory officiant places a plain mantle over their shoulders in a ruined cloister.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_noviceVows.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Novice Vows, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A back-facing adult kneels as an entirely hooded ivory officiant places a plain mantle over their shoulders in a ruined cloister."
+    },
+    {
+      "id": "fe_candleDues",
+      "label": "Candle Dues",
+      "pool": "papacy",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "A hooded attendant exchanges a small unmarked candle for a coin pouch beneath a dark ivory-curtained shrine window.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_candleDues.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Candle Dues, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A hooded attendant exchanges a small unmarked candle for a coin pouch beneath a dark ivory-curtained shrine window."
+    },
+    {
+      "id": "fe_titheChapel",
+      "label": "Tithe Chapel",
+      "pool": "papacy",
+      "kind": "structure",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "A narrow ivory-stained village chapel with an oversized locked offering chest survives beneath the shattered shell of an ancient basilica.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_titheChapel.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Tithe Chapel, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A narrow ivory-stained village chapel with an oversized locked offering chest survives beneath the shattered shell of an ancient basilica."
+    },
+    {
+      "id": "fe_purchasedAbsolution",
+      "label": "Purchased Absolution",
+      "pool": "papacy",
+      "kind": "practice",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "An ivory-hooded prelate accepts a heavy coin pouch from a back-facing kneeling petitioner across a tarnished gold rail.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_purchasedAbsolution.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Purchased Absolution, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: An ivory-hooded prelate accepts a heavy coin pouch from a back-facing kneeling petitioner across a tarnished gold rail."
+    },
+    {
+      "id": "fe_relicProcession",
+      "label": "Relic Procession",
+      "pool": "papacy",
+      "kind": "practice",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "Three tiny fully hooded ivory bearers carry a closed plain reliquary under a frayed plum canopy across a colossal ruined bridge.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_relicProcession.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Relic Procession, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Three tiny fully hooded ivory bearers carry a closed plain reliquary under a frayed plum canopy across a colossal ruined bridge."
+    },
+    {
+      "id": "fe_scriptedHomilies",
+      "label": "Scripted Homilies",
+      "pool": "papacy",
+      "kind": "practice",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A back-facing ivory-hooded teacher raises a blank parchment before two small cloaked children in a decaying gold-lit chapel school.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_scriptedHomilies.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Scripted Homilies, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A back-facing ivory-hooded teacher raises a blank parchment before two small cloaked children in a decaying gold-lit chapel school."
+    },
+    {
+      "id": "fe_consecratedBrew",
+      "label": "Consecrated Brew",
+      "pool": "papacy",
+      "kind": "practice",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "Two hooded ivory-clad brewers tend a massive copper vat beneath cracked monastic arches, with a locked gilded offering cabinet nearby.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_consecratedBrew.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Consecrated Brew, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Two hooded ivory-clad brewers tend a massive copper vat beneath cracked monastic arches, with a locked gilded offering cabinet nearby."
+    },
+    {
+      "id": "fe_indulgenceOffice",
+      "label": "Indulgence Office",
+      "pool": "papacy",
+      "kind": "structure",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A squat ivory and tarnished-gold pay office with a barred petition hatch fills the side court of a crumbling cathedral.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_indulgenceOffice.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Indulgence Office, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A squat ivory and tarnished-gold pay office with a barred petition hatch fills the side court of a crumbling cathedral."
+    },
+    {
+      "id": "fe_monasticGranary",
+      "label": "Monastic Granary",
+      "pool": "papacy",
+      "kind": "structure",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A long fortified monastic granary with pale stone buttresses and enormous weathered gold shutters dominates a hungry service courtyard.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_monasticGranary.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Monastic Granary, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A long fortified monastic granary with pale stone buttresses and enormous weathered gold shutters dominates a hungry service courtyard."
+    },
+    {
+      "id": "fe_cloisterDormitory",
+      "label": "Cloister Dormitory",
+      "pool": "papacy",
+      "kind": "structure",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A broad enclosed ivory-stone dormitory cloister with tiny hooded residents and faded plum curtains stands inside a collapsed abbey.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_cloisterDormitory.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Cloister Dormitory, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A broad enclosed ivory-stone dormitory cloister with tiny hooded residents and faded plum curtains stands inside a collapsed abbey."
+    },
+    {
+      "id": "fe_pilgrimsGate",
+      "label": "Pilgrims’ Gate",
+      "pool": "papacy",
+      "kind": "structure",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A small gilded pilgrim gatehouse with worn ivory walls and an empty bronze bell shelters a ruined mountain road.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_pilgrimsGate.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Pilgrims’ Gate, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A small gilded pilgrim gatehouse with worn ivory walls and an empty bronze bell shelters a ruined mountain road."
+    },
+    {
+      "id": "fe_grandJubilee",
+      "label": "Grand Jubilee",
+      "pool": "papacy",
+      "kind": "practice",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "Three deeply hooded ivory prelates stand high above a small bowed congregation under immense frayed plum draperies in a ruined gold-lit basilica.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_grandJubilee.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Grand Jubilee, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Three deeply hooded ivory prelates stand high above a small bowed congregation under immense frayed plum draperies in a ruined gold-lit basilica."
+    },
+    {
+      "id": "fe_canonisedAccounts",
+      "label": "Canonised Accounts",
+      "pool": "papacy",
+      "kind": "practice",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "A back-facing ivory prelate locks a blank gilded book into a case while two tiny blue-hooded scribes wait in a cathedral treasury.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_canonisedAccounts.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Canonised Accounts, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A back-facing ivory prelate locks a blank gilded book into a case while two tiny blue-hooded scribes wait in a cathedral treasury."
+    },
+    {
+      "id": "fe_sacredInvestiture",
+      "label": "Sacred Investiture",
+      "pool": "papacy",
+      "kind": "practice",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "A fully hooded ivory officiant lays a plum mantle on a kneeling enclosed-helmet soldier beneath a huge decayed ceremonial canopy.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_sacredInvestiture.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Sacred Investiture, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A fully hooded ivory officiant lays a plum mantle on a kneeling enclosed-helmet soldier beneath a huge decayed ceremonial canopy."
+    },
+    {
+      "id": "fe_gildedBasilica",
+      "label": "Gilded Basilica",
+      "pool": "papacy",
+      "kind": "structure",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "A colossal three-wing ivory basilica with tarnished gold domes, broken outer chapels and tiny hooded pilgrims dominates a ruined sacred quarter.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_gildedBasilica.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 9:4 landscape illustration for Gilded Basilica, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A colossal three-wing ivory basilica with tarnished gold domes, broken outer chapels and tiny hooded pilgrims dominates a ruined sacred quarter."
+    },
+    {
+      "id": "fe_reliquaryTreasury",
+      "label": "Reliquary Treasury",
+      "pool": "papacy",
+      "kind": "structure",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "A wide fortified treasury with plain sealed reliquary chests behind tarnished golden grilles fills a dark ivory-stone sanctuary.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_reliquaryTreasury.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Reliquary Treasury, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A wide fortified treasury with plain sealed reliquary chests behind tarnished golden grilles fills a dark ivory-stone sanctuary."
+    },
+    {
+      "id": "fe_prelatesPalace",
+      "label": "Prelate’s Palace",
+      "pool": "papacy",
+      "kind": "structure",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "An opulent ivory and dull-gold palace with crumbling plum-draped balconies and tiny service courts occupies a large terrace beside a ruined cathedral.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_prelatesPalace.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Prelate’s Palace, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: warm stone, charcoal, aged ivory and tarnished honey gold with restrained bruised plum accents; decaying ceremonial splendour. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: An opulent ivory and dull-gold palace with crumbling plum-draped balconies and tiny service courts occupies a large terrace beside a ruined cathedral."
+    },
+    {
+      "id": "fe_censusPetitions",
+      "label": "Census Petitions",
+      "pool": "sect",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "A back-facing hooded petitioner offers a blank census sheet to a blue-hooded clerk across a tiny hatch beneath towering empty archive shelves.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_censusPetitions.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Census Petitions, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A back-facing hooded petitioner offers a blank census sheet to a blue-hooded clerk across a tiny hatch beneath towering empty archive shelves."
+    },
+    {
+      "id": "fe_duplicateReturns",
+      "label": "Duplicate Returns",
+      "pool": "sect",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "Two back-facing cobalt-robed clerks copy identical blank scrolls at separate desks in a vast ruined registrar hall.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_duplicateReturns.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Duplicate Returns, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Two back-facing cobalt-robed clerks copy identical blank scrolls at separate desks in a vast ruined registrar hall."
+    },
+    {
+      "id": "fe_sealedCurriculum",
+      "label": "Sealed Curriculum",
+      "pool": "sect",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "A back-facing cobalt-hooded tutor presents a locked blank book to two small hooded pupils through an iron classroom grille.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_sealedCurriculum.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Sealed Curriculum, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A back-facing cobalt-hooded tutor presents a locked blank book to two small hooded pupils through an iron classroom grille."
+    },
+    {
+      "id": "fe_licensingQueue",
+      "label": "Licensing Queue",
+      "pool": "sect",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "Two back-facing hooded craftspeople wait with a wrapped hammer while a blue-robed clerk files a blank scroll in a colossal decaying office.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_licensingQueue.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Licensing Queue, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Two back-facing hooded craftspeople wait with a wrapped hammer while a blue-robed clerk files a blank scroll in a colossal decaying office."
+    },
+    {
+      "id": "fe_surveyStakes",
+      "label": "Survey Stakes",
+      "pool": "sect",
+      "kind": "practice",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "Two tiny back-facing cobalt surveyors set unmarked wooden stakes across a neglected village path under an immense broken aqueduct.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_surveyStakes.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Survey Stakes, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Two tiny back-facing cobalt surveyors set unmarked wooden stakes across a neglected village path under an immense broken aqueduct."
+    },
+    {
+      "id": "fe_districtRegistry",
+      "label": "District Registry",
+      "pool": "sect",
+      "kind": "structure",
+      "zone": "frontier",
+      "tier": "bronze",
+      "scene": "A narrow blue-shuttered registry with an oversized locked document door leans beneath a cracked imperial administrative arch.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_districtRegistry.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for District Registry, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A narrow blue-shuttered registry with an oversized locked document door leans beneath a cracked imperial administrative arch."
+    },
+    {
+      "id": "fe_endlessReview",
+      "label": "Endless Review",
+      "pool": "sect",
+      "kind": "practice",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "Three back-facing blue-hooded reviewers examine an immaculate unmarked geometric model while rain falls through their vast ruined hall.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_endlessReview.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Endless Review, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Three back-facing blue-hooded reviewers examine an immaculate unmarked geometric model while rain falls through their vast ruined hall."
+    },
+    {
+      "id": "fe_approvedHistories",
+      "label": "Approved Histories",
+      "pool": "sect",
+      "kind": "practice",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A back-facing cobalt archivist locks older blank scrolls away while another displays one gilded blank volume in a decaying civic gallery.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_approvedHistories.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Approved Histories, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A back-facing cobalt archivist locks older blank scrolls away while another displays one gilded blank volume in a decaying civic gallery."
+    },
+    {
+      "id": "fe_credentialExams",
+      "label": "Credential Examinations",
+      "pool": "sect",
+      "kind": "practice",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "Two back-facing hooded candidates sit before a blue-robed examiner at distant desks under immense empty registry shelves.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_credentialExams.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Credential Examinations, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Two back-facing hooded candidates sit before a blue-robed examiner at distant desks under immense empty registry shelves."
+    },
+    {
+      "id": "fe_redundantInventories",
+      "label": "Redundant Inventories",
+      "pool": "sect",
+      "kind": "practice",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "Two cobalt-hooded clerks count identical sealed scroll cases in separate rows while a third checks an unmarked board beneath a cracked vault.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_redundantInventories.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Redundant Inventories, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Two cobalt-hooded clerks count identical sealed scroll cases in separate rows while a third checks an unmarked board beneath a cracked vault."
+    },
+    {
+      "id": "fe_examinationHall",
+      "label": "Examination Hall",
+      "pool": "sect",
+      "kind": "structure",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A broad blue-roofed examination hall with long rows of empty desks dominates a neglected imperial education court.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_examinationHall.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Examination Hall, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A broad blue-roofed examination hall with long rows of empty desks dominates a neglected imperial education court."
+    },
+    {
+      "id": "fe_departmentOfSeals",
+      "label": "Department of Seals",
+      "pool": "sect",
+      "kind": "structure",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A narrow monumental office tower with cobalt shutters and a deep dark sealing hatch rises above a ruined clerk’s court.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_departmentOfSeals.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Department of Seals, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A narrow monumental office tower with cobalt shutters and a deep dark sealing hatch rises above a ruined clerk’s court."
+    },
+    {
+      "id": "fe_indexedStorehouse",
+      "label": "Indexed Storehouse",
+      "pool": "sect",
+      "kind": "structure",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A long cobalt-shuttered storehouse with immaculate sealed cabinets and a collapsed outer loading arcade dominates a quiet administrative square.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_indexedStorehouse.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Indexed Storehouse, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A long cobalt-shuttered storehouse with immaculate sealed cabinets and a collapsed outer loading arcade dominates a quiet administrative square."
+    },
+    {
+      "id": "fe_remoteBureau",
+      "label": "Remote Bureau",
+      "pool": "sect",
+      "kind": "structure",
+      "zone": "province",
+      "tier": "silver",
+      "scene": "A small austere blue-roofed bureau with a sealed message chute stands alone at the end of an immense ruined causeway.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_remoteBureau.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Remote Bureau, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A small austere blue-roofed bureau with a sealed message chute stands alone at the end of an immense ruined causeway."
+    },
+    {
+      "id": "fe_perfectedCensus",
+      "label": "Perfected Census",
+      "pool": "sect",
+      "kind": "practice",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "Tiny back-facing cobalt registrars arrange towers of blank census tablets around an enormous precise model of a city inside a half-collapsed hall.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_perfectedCensus.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Perfected Census, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Tiny back-facing cobalt registrars arrange towers of blank census tablets around an enormous precise model of a city inside a half-collapsed hall."
+    },
+    {
+      "id": "fe_abstractDisputation",
+      "label": "Abstract Disputation",
+      "pool": "sect",
+      "kind": "practice",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "Three entirely hooded cobalt philosophers debate a luminous unmarked geometric apparatus above a deep unused civic chamber while rubble lies below.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_abstractDisputation.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Abstract Disputation, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: Three entirely hooded cobalt philosophers debate a luminous unmarked geometric apparatus above a deep unused civic chamber while rubble lies below."
+    },
+    {
+      "id": "fe_doctrinalAudit",
+      "label": "Doctrinal Audit",
+      "pool": "sect",
+      "kind": "practice",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "A back-facing blue-hooded examiner seals a plain document chest while two distant hooded scholars wait beneath an enormous broken library dome.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_doctrinalAudit.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Doctrinal Audit, a medieval dark-fantasy practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Principal action, anonymous figures and key object must sit in the upper central 45%; lower half subdued and quiet for overlaid controls. Two or three figures, small beneath environmental scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A back-facing blue-hooded examiner seals a plain document chest while two distant hooded scholars wait beneath an enormous broken library dome."
+    },
+    {
+      "id": "fe_palaceOfMeasures",
+      "label": "Palace of Measures",
+      "pool": "sect",
+      "kind": "structure",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "A colossal three-wing cobalt and parchment administrative palace with an immaculate central measuring tower rises over crumbling abandoned outer offices.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_palaceOfMeasures.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 9:4 landscape illustration for Palace of Measures, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A colossal three-wing cobalt and parchment administrative palace with an immaculate central measuring tower rises over crumbling abandoned outer offices."
+    },
+    {
+      "id": "fe_sealedAcademy",
+      "label": "Sealed Academy",
+      "pool": "sect",
+      "kind": "structure",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "A wide sealed cobalt academy with enormous locked doors and a honey-lit instrument dome dominates a deserted ruined learning quarter.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_sealedAcademy.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Sealed Academy, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: A wide sealed cobalt academy with enormous locked doors and a honey-lit instrument dome dominates a deserted ruined learning quarter."
+    },
+    {
+      "id": "fe_archiveOfUnbuiltWorks",
+      "label": "Archive of Unbuilt Works",
+      "pool": "sect",
+      "kind": "structure",
+      "zone": "capital",
+      "tier": "gold",
+      "scene": "An immense blue-shuttered archive displays pristine unmarked building models behind glass while the surrounding actual stonework collapses.",
+      "tool": "built-in image_gen.imagegen",
+      "output": "art/fe_archiveOfUnbuiltWorks.png",
+      "references": {
+        "composition": "N. C. Wyeth / Dean Cornwell narrative composition",
+        "surface": [
+          "ai/References/Card Art Style/l5.png",
+          "ai/References/Card Art Style/l6.png"
+        ],
+        "current": [
+          "images/dark-fantasy/full-map-content-prototype/art/fm_oathHall.png",
+          "images/dark-fantasy/full-map-content-prototype/art/fm_openArchive.png"
+        ]
+      },
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Archive of Unbuilt Works, a medieval dark-fantasy structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, bold silhouettes, grouped figures, environmental architectural scale, broad calm value masses and one focal light/contrast. Named building is the dominant silhouette occupying the central 75%; tiny anonymous people for scale. Entirely indiscernible faces on ALL humans and depictions: back-facing, fully enclosed helmets or hoods with completely black featureless interiors; no eyes, noses, mouths, chins or skin contours. NO statues with heads or faces; all architectural ornament strictly geometric. Retain deliberate hand-placed pixel clusters, hard edges, selective dithering and a restricted palette. Pool palette: cobalt, lapis, navy, parchment and cold honey gold; overfilled archives, sealed doors and immaculate instruments in ruined halls. Oppressive inherited imperial institutions, impressive capabilities diverted toward self-preservation; visibly weathered grandeur, never comic villain caricature. Clear at 70x100 pixels. Illustration only: no text, writing, letters, symbols, UI, frames, borders, vignette or tiny clutter. Scene: An immense blue-shuttered archive displays pristine unmarked building models behind glass while the surrounding actual stonework collapses."
+    }
+  ]
+}

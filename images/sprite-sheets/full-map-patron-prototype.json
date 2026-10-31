@@ -1,0 +1,252 @@
+{"frames": {
+
+"cp_archiveOfUnfinishedIndex.png":
+{
+	"frame": {"x":2,"y":257,"w":564,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":564,"h":251},
+	"sourceSize": {"w":564,"h":251}
+},
+"cp_citadelOfStillness.png":
+{
+	"frame": {"x":570,"y":257,"w":564,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":564,"h":251},
+	"sourceSize": {"w":564,"h":251}
+},
+"cp_finalLiquidation.png":
+{
+	"frame": {"x":1706,"y":257,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"cp_finalRedaction.png":
+{
+	"frame": {"x":1706,"y":706,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"cp_ironCommunion.png":
+{
+	"frame": {"x":2,"y":1155,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"cp_offeringOfNames.png":
+{
+	"frame": {"x":2,"y":1604,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"cp_templeOfHollowSun.png":
+{
+	"frame": {"x":1138,"y":257,"w":564,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":564,"h":251},
+	"sourceSize": {"w":564,"h":251}
+},
+"cp_vaultOfLastCreditor.png":
+{
+	"frame": {"x":2,"y":512,"w":564,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":564,"h":251},
+	"sourceSize": {"w":564,"h":251}
+},
+"merchantCopper_cp_finalLiquidation.png":
+{
+	"frame": {"x":324,"y":1155,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"merchantCopper_cp_vaultOfLastCreditor.png":
+{
+	"frame": {"x":2,"y":2,"w":565,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":565,"h":251},
+	"sourceSize": {"w":565,"h":251}
+},
+"merchantLilac_cp_finalLiquidation.png":
+{
+	"frame": {"x":324,"y":1604,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"merchantLilac_cp_vaultOfLastCreditor.png":
+{
+	"frame": {"x":571,"y":2,"w":565,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":565,"h":251},
+	"sourceSize": {"w":565,"h":251}
+},
+"merchantPewter_cp_finalLiquidation.png":
+{
+	"frame": {"x":1330,"y":767,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"merchantPewter_cp_vaultOfLastCreditor.png":
+{
+	"frame": {"x":1140,"y":2,"w":565,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":565,"h":251},
+	"sourceSize": {"w":565,"h":251}
+},
+"patron-creditor-grasp-refined.png":
+{
+	"frame": {"x":2,"y":767,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"patron-creditor-grasp.png":
+{
+	"frame": {"x":2,"y":2053,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"patron-creditor-maw.png":
+{
+	"frame": {"x":382,"y":2053,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"patron-creditor.png":
+{
+	"frame": {"x":382,"y":767,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"patron-crown.png":
+{
+	"frame": {"x":762,"y":2053,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"patron-index-quill.png":
+{
+	"frame": {"x":1142,"y":2053,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"patron-index-tome-refined.png":
+{
+	"frame": {"x":646,"y":1216,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"patron-index-tome.png":
+{
+	"frame": {"x":1026,"y":1216,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"patron-index.png":
+{
+	"frame": {"x":1290,"y":1604,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"patron-sun.png":
+{
+	"frame": {"x":1522,"y":1984,"w":376,"h":376},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":376,"h":376},
+	"sourceSize": {"w":376,"h":376}
+},
+"priestPale_cp_offeringOfNames.png":
+{
+	"frame": {"x":1652,"y":1155,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"priestPale_cp_templeOfHollowSun.png":
+{
+	"frame": {"x":570,"y":512,"w":564,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":564,"h":251},
+	"sourceSize": {"w":564,"h":251}
+},
+"priestWarmPink_cp_offeringOfNames.png":
+{
+	"frame": {"x":646,"y":1604,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"priestWarmPink_cp_templeOfHollowSun.png":
+{
+	"frame": {"x":1138,"y":512,"w":564,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":564,"h":251},
+	"sourceSize": {"w":564,"h":251}
+},
+"priestWarmPurple_cp_offeringOfNames.png":
+{
+	"frame": {"x":968,"y":1604,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"priestWarmPurple_cp_templeOfHollowSun.png":
+{
+	"frame": {"x":762,"y":767,"w":564,"h":251},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":564,"h":251},
+	"sourceSize": {"w":564,"h":251}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "full-map-patron-prototype.png",
+	"format": "RGBA8888",
+	"size": {"w":2026,"h":2431},
+	"scale": "0.3",
+	"smartupdate": "$TexturePacker:SmartUpdate:58b22e05ff5189467c0de7bfa84197ad:1c7fc9316b24ddcbc1de67c53f1b3eb6:13b3e9bb31691aba2d9ad40b509f109e$"
+}
+}

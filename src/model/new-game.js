@@ -1,3 +1,4 @@
+import { seedFullMapWorld } from './full-map-world.js';
 import { seedNeutralSettlements, seedOpeningMonster } from "./detailed-settlements/external-world.js";
 import { createInitialState } from "./init.js";
 import { createRegionalBootProfile } from './regional-map/boot-profile.js';
@@ -38,6 +39,7 @@ export function createConfiguredNewGameState(seed, profile) {
       lifeMapGenerator: profile.lifeMapLab.generatorConfig,
     },
   }, seed);
+  if (profile.launch.startMode === "randomRoad" && String(mapLab.worldDefinitionId).startsWith("regional-")) {seedFullMapWorld(state);return state;}
   if (profile.launch.neutralSettlements) seedNeutralSettlements(state);
   seedOpeningMonster(state);
   return state;

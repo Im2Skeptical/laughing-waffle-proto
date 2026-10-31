@@ -1,5 +1,17 @@
 # Output and Capacity Multipliers
 
+## Full-map experimental ruleset
+
+For `full-map-redesign-v1`, zero workers still means x1. Workers are allocated by
+allegiance: matching Influence first, then Resources; neutral workers only staff
+Resources. Scheduled conversion uses the worker multiplier, while Charge scales
+incoming gain and never multiplies its discharge conversion a second time.
+Stock output/capacity remain independent pools. Victims, input costs, retained
+reserves, Research and occupation Force never inherit those multipliers.
+New Structure definitions retain their authored base contribution at their
+minimum quality; only subsequent quality steps add bonuses. See
+[the audited implementation](full-map-redesign-implementation.md).
+
 Implementation scope confirmed with Cam on 2026-10-23. The visual primary source
 is local branch `proto/output-multi-pool`, commit `ec72f622`; that branch remains
 the throwaway experiment. This implementation starts from local `main`

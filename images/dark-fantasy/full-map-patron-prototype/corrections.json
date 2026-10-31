@@ -1,0 +1,102 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "current": true,
+  "entries": [
+    {
+      "id": "cp_ironCommunion",
+      "pool": "dictator",
+      "label": "Iron Communion",
+      "kind": "practice",
+      "output": "art/cp_ironCommunion.png",
+      "prompt": "Use case: precise-object-edit. Revise this dark-fantasy gamepiece illustration to correct composition and make its patron presence truly cosmic-horror rather than a decorative logo. Preserve the class primary/accent colours and anonymous faces. Retain N. C. Wyeth / Dean Cornwell narrative composition, grouped figures, vast environmental scale, hard hand-placed pixel clusters, edges, selective dithering and restricted palette. Living, dead and depicted faces remain entirely indiscernible at full resolution: opaque hood voids, closed helmets, backs, covered shrouds, no eyes/nose/mouth or detailed skull faces. Non-graphic, no exposed wounds, gore, sexual content or readable writing. No UI, outer frame or border. 5:7 opaque full-bleed portrait Practice. REBUILD the vertical staging: put the RITUAL PLATFORM FLOOR at y38% of the image. All three human figures' heads at y22-27% and their feet at y38-40%; no human or identifying prop extends below y43%. Keep all principal action and materials in x25-75%, y8-43%. Shrink and lift the ritual machine/gate/altar to fit that upper action group, device top y5-10%, bottom y38%. No individual human taller than18% of image height. The lower55% is one huge almost-black empty recessed arch and broad quiet shadowed piers. Remove ALL lower reflections, bright openings, lights, stairs, banners and extra people there. No second focal area. No foreground portraits. The image must read at70x100. Keep a tall three-pronged crown device, red cloth and teal iron. Make it an uncanny sealed INHUMAN CARAPACE MOULD, its three spear-prongs fused into one rigid chitin-like shell by a closed iron band. Two small fully helmeted red officiants guide a third hooded adult into its black interior; a few finished spearheads sit on the same upper ledge. No visible injury. The object is an alien body masquerading as state equipment, not merely three giant spears. Keep its main silhouette simple and all people above43%.",
+      "refs": [
+        "images/dark-fantasy/full-map-patron-prototype/art/cp_ironCommunion.png"
+      ],
+      "reason": "Keep complete focal action above43%; add unsettling inhuman ritual apparatus."
+    },
+    {
+      "id": "cp_citadelOfStillness",
+      "pool": "dictator",
+      "label": "Citadel of Stillness",
+      "kind": "structure",
+      "output": "art/cp_citadelOfStillness.png",
+      "prompt": "Use case: precise-object-edit. Revise this dark-fantasy gamepiece illustration to correct composition and make its patron presence truly cosmic-horror rather than a decorative logo. Preserve the class primary/accent colours and anonymous faces. Retain N. C. Wyeth / Dean Cornwell narrative composition, grouped figures, vast environmental scale, hard hand-placed pixel clusters, edges, selective dithering and restricted palette. Living, dead and depicted faces remain entirely indiscernible at full resolution: opaque hood voids, closed helmets, backs, covered shrouds, no eyes/nose/mouth or detailed skull faces. Non-graphic, no exposed wounds, gore, sexual content or readable writing. No UI, outer frame or border. 9:4 opaque full-bleed three-cell Structure. The building-monument must remain the dominant simple silhouette in central75%. Remove the huge foreground people: EVERY living person is at most3% of image height, anonymous scale dots only, none dominates an edge. Keep only neutral overcast grey sky, strong controlled silhouette contrast, cold oppressive scale. No celebratory sunlight or rich grand-palace glamour. No new foreground action competing with the building. Preserve red/teal and the three rigid spear-towers bound by one closed teal ring. Transform the central citadel into the carapace of a vast empty ARMOURED ENTITY: overlapping shell plates, ribs turned into barrack walls, a sealed black vertical interior, impossible rigid symmetry. Its three crown-prongs remain the clearest silhouette; below them the architecture feels alive and compressive, not a normal round castle with three spears attached. Small scarlet cloth and tiny ranks of dots show it is still used as an arsenal. No huge guards or statues at the edges. Cold gloomy sky, no celebratory parade lighting.",
+      "refs": [
+        "images/dark-fantasy/full-map-patron-prototype/art/cp_citadelOfStillness.png"
+      ],
+      "reason": "Emphasise patron as predatory architecture; keep all people tiny."
+    },
+    {
+      "id": "cp_finalLiquidation",
+      "pool": "oligarch",
+      "label": "Final Liquidation",
+      "kind": "practice",
+      "output": "art/cp_finalLiquidation.png",
+      "prompt": "Use case: precise-object-edit. Revise this dark-fantasy gamepiece illustration to correct composition and make its patron presence truly cosmic-horror rather than a decorative logo. Preserve the class primary/accent colours and anonymous faces. Retain N. C. Wyeth / Dean Cornwell narrative composition, grouped figures, vast environmental scale, hard hand-placed pixel clusters, edges, selective dithering and restricted palette. Living, dead and depicted faces remain entirely indiscernible at full resolution: opaque hood voids, closed helmets, backs, covered shrouds, no eyes/nose/mouth or detailed skull faces. Non-graphic, no exposed wounds, gore, sexual content or readable writing. No UI, outer frame or border. 5:7 opaque full-bleed portrait Practice. REBUILD the vertical staging: put the RITUAL PLATFORM FLOOR at y38% of the image. All three human figures' heads at y22-27% and their feet at y38-40%; no human or identifying prop extends below y43%. Keep all principal action and materials in x25-75%, y8-43%. Shrink and lift the ritual machine/gate/altar to fit that upper action group, device top y5-10%, bottom y38%. No individual human taller than18% of image height. The lower55% is one huge almost-black empty recessed arch and broad quiet shadowed piers. Remove ALL lower reflections, bright openings, lights, stairs, banners and extra people there. No second focal area. No foreground portraits. The image must read at70x100. Keep olive-green and ink-black. The low weighted vault-gate must look like a swollen living STONE MAW, with layered chitinous folds bending inward behind three hanging weights, like a bottomless stomach embedded in a treasury. Two small back-facing factors guide a fully hooded third adult into the black fold; a small coin tray sits beside a narrow slot on the SAME upper ledge. No wounds or transformation shown. No clean waterfall palace; remove bright lower water. The entire ritual including the third adult belongs above43%.",
+      "refs": [
+        "images/dark-fantasy/full-map-patron-prototype/art/cp_finalLiquidation.png"
+      ],
+      "reason": "Keep complete focal action above43%; add unsettling inhuman ritual apparatus."
+    },
+    {
+      "id": "cp_vaultOfLastCreditor",
+      "pool": "oligarch",
+      "label": "Vault of the Last Creditor",
+      "kind": "structure",
+      "output": "art/cp_vaultOfLastCreditor.png",
+      "prompt": "Use case: precise-object-edit. Revise this dark-fantasy gamepiece illustration to correct composition and make its patron presence truly cosmic-horror rather than a decorative logo. Preserve the class primary/accent colours and anonymous faces. Retain N. C. Wyeth / Dean Cornwell narrative composition, grouped figures, vast environmental scale, hard hand-placed pixel clusters, edges, selective dithering and restricted palette. Living, dead and depicted faces remain entirely indiscernible at full resolution: opaque hood voids, closed helmets, backs, covered shrouds, no eyes/nose/mouth or detailed skull faces. Non-graphic, no exposed wounds, gore, sexual content or readable writing. No UI, outer frame or border. 9:4 opaque full-bleed three-cell Structure. The building-monument must remain the dominant simple silhouette in central75%. Remove the huge foreground people: EVERY living person is at most3% of image height, anonymous scale dots only, none dominates an edge. Keep only neutral overcast grey sky, strong controlled silhouette contrast, cold oppressive scale. No celebratory sunlight or rich grand-palace glamour. No new foreground action competing with the building. Preserve olive-green primary and ink-black accents, low broad vault arch and three heavy pendant weights. Transform the treasury into a swollen inhuman SAC-LIKE EXOSKELETON: bowed chitinous stone shell, inner black folds closing like a stomach, three immense hanging weights like constricting teeth. Embedded coin-like rings and tiny counting hatches establish its commercial use. The three weights are not church bells. Architecture seems to be swallowing its own lower service courts. Remove all ornamental waterfalls and bright water; replace with rotting dry courts and a few tiny completely shrouded adult bundles for scale. No giant living people, no human or animal faces, no gore. The bulk of the silhouette should feel grotesquely bloated rather than pleasantly monumental.",
+      "refs": [
+        "images/dark-fantasy/full-map-patron-prototype/art/cp_vaultOfLastCreditor.png"
+      ],
+      "reason": "Emphasise patron as predatory architecture; keep all people tiny."
+    },
+    {
+      "id": "cp_offeringOfNames",
+      "pool": "papacy",
+      "label": "Offering of Names",
+      "kind": "practice",
+      "output": "art/cp_offeringOfNames.png",
+      "prompt": "Use case: precise-object-edit. Revise this dark-fantasy gamepiece illustration to correct composition and make its patron presence truly cosmic-horror rather than a decorative logo. Preserve the class primary/accent colours and anonymous faces. Retain N. C. Wyeth / Dean Cornwell narrative composition, grouped figures, vast environmental scale, hard hand-placed pixel clusters, edges, selective dithering and restricted palette. Living, dead and depicted faces remain entirely indiscernible at full resolution: opaque hood voids, closed helmets, backs, covered shrouds, no eyes/nose/mouth or detailed skull faces. Non-graphic, no exposed wounds, gore, sexual content or readable writing. No UI, outer frame or border. 5:7 opaque full-bleed portrait Practice. REBUILD the vertical staging: put the RITUAL PLATFORM FLOOR at y38% of the image. All three human figures' heads at y22-27% and their feet at y38-40%; no human or identifying prop extends below y43%. Keep all principal action and materials in x25-75%, y8-43%. Shrink and lift the ritual machine/gate/altar to fit that upper action group, device top y5-10%, bottom y38%. No individual human taller than18% of image height. The lower55% is one huge almost-black empty recessed arch and broad quiet shadowed piers. Remove ALL lower reflections, bright openings, lights, stairs, banners and extra people there. No second focal area. No foreground portraits. The image must read at70x100. Keep primary ochre yellow and secondary aubergine. Use a compact empty solar ring above the ritual ledge, not a giant symbol taking half the frame. Its three long rays are calcified parasitic roots descending into an altar, the black centre distorts the space behind it with no eye or pupil. Two small deeply hooded officiants receive a third hooded adult; a shrouded bundle and plain bone bowl sit on their same high ledge. The empty presence is menacing and alien, never a human deity portrait. All humans, offering and altar above43%. Remove the bright patterned cloth extending into the lower half.",
+      "refs": [
+        "images/dark-fantasy/full-map-patron-prototype/art/cp_offeringOfNames.png"
+      ],
+      "reason": "Keep complete focal action above43%; add unsettling inhuman ritual apparatus."
+    },
+    {
+      "id": "cp_templeOfHollowSun",
+      "pool": "papacy",
+      "label": "Temple of the Hollow Sun",
+      "kind": "structure",
+      "output": "art/cp_templeOfHollowSun.png",
+      "prompt": "Use case: precise-object-edit. Revise this dark-fantasy gamepiece illustration to correct composition and make its patron presence truly cosmic-horror rather than a decorative logo. Preserve the class primary/accent colours and anonymous faces. Retain N. C. Wyeth / Dean Cornwell narrative composition, grouped figures, vast environmental scale, hard hand-placed pixel clusters, edges, selective dithering and restricted palette. Living, dead and depicted faces remain entirely indiscernible at full resolution: opaque hood voids, closed helmets, backs, covered shrouds, no eyes/nose/mouth or detailed skull faces. Non-graphic, no exposed wounds, gore, sexual content or readable writing. No UI, outer frame or border. 9:4 opaque full-bleed three-cell Structure. The building-monument must remain the dominant simple silhouette in central75%. Remove the huge foreground people: EVERY living person is at most3% of image height, anonymous scale dots only, none dominates an edge. Keep only neutral overcast grey sky, strong controlled silhouette contrast, cold oppressive scale. No celebratory sunlight or rich grand-palace glamour. No new foreground action competing with the building. Preserve ochre-yellow primary, aubergine accent and three falling rays. Replace the decorative circle crowning a conventional church with a MASSIVE EMPTY BLACK SOLAR VOID in a chipped ochre chitin ring. The three downward aubergine rays have become calcified root-like limbs embedded through the basilica's nave and walls, the whole temple half-merged with this inhuman presence. No eye, pupil or human deity face. Remove the two giant foreground human statues and replace with low broken buttresses; tiny completely hooded congregation dots only. Below, neglected funeral courts and fully shrouded adult bundles show the continuing population cost. Maintain a dominant building silhouette, no newly bright foreground clutter or sunlit glamour.",
+      "refs": [
+        "images/dark-fantasy/full-map-patron-prototype/art/cp_templeOfHollowSun.png"
+      ],
+      "reason": "Emphasise patron as predatory architecture; keep all people tiny."
+    },
+    {
+      "id": "cp_finalRedaction",
+      "pool": "sect",
+      "label": "Final Redaction",
+      "kind": "practice",
+      "output": "art/cp_finalRedaction.png",
+      "prompt": "Use case: precise-object-edit. Revise this dark-fantasy gamepiece illustration to correct composition and make its patron presence truly cosmic-horror rather than a decorative logo. Preserve the class primary/accent colours and anonymous faces. Retain N. C. Wyeth / Dean Cornwell narrative composition, grouped figures, vast environmental scale, hard hand-placed pixel clusters, edges, selective dithering and restricted palette. Living, dead and depicted faces remain entirely indiscernible at full resolution: opaque hood voids, closed helmets, backs, covered shrouds, no eyes/nose/mouth or detailed skull faces. Non-graphic, no exposed wounds, gore, sexual content or readable writing. No UI, outer frame or border. 5:7 opaque full-bleed portrait Practice. REBUILD the vertical staging: put the RITUAL PLATFORM FLOOR at y38% of the image. All three human figures' heads at y22-27% and their feet at y38-40%; no human or identifying prop extends below y43%. Keep all principal action and materials in x25-75%, y8-43%. Shrink and lift the ritual machine/gate/altar to fit that upper action group, device top y5-10%, bottom y38%. No individual human taller than18% of image height. The lower55% is one huge almost-black empty recessed arch and broad quiet shadowed piers. Remove ALL lower reflections, bright openings, lights, stairs, banners and extra people there. No second focal area. No foreground portraits. The image must read at70x100. Keep cobalt/lapis blue and honey-gold. Three small hooded adults, including the offered Scholar, stand on one high ledge. They feed the third adult into three OFFSET RECTANGULAR FOLDS where space visibly does not connect correctly. Gold edges look like chitin frames; dark quill-like root fingers reach from the inner black fold toward blank record slabs on a shelf. No human faces or bodily injuries; disappearance into a fold only. All three heads, hands, person and slabs are above43%. Shrink the motif to fit the upper group. Remove bright lower sky gaps and water reflections; quiet black lower arch.",
+      "refs": [
+        "images/dark-fantasy/full-map-patron-prototype/art/cp_finalRedaction.png"
+      ],
+      "reason": "Keep complete focal action above43%; add unsettling inhuman ritual apparatus."
+    },
+    {
+      "id": "cp_archiveOfUnfinishedIndex",
+      "pool": "sect",
+      "label": "Archive of the Unfinished Index",
+      "kind": "structure",
+      "output": "art/cp_archiveOfUnfinishedIndex.png",
+      "prompt": "Use case: precise-object-edit. Revise this dark-fantasy gamepiece illustration to correct composition and make its patron presence truly cosmic-horror rather than a decorative logo. Preserve the class primary/accent colours and anonymous faces. Retain N. C. Wyeth / Dean Cornwell narrative composition, grouped figures, vast environmental scale, hard hand-placed pixel clusters, edges, selective dithering and restricted palette. Living, dead and depicted faces remain entirely indiscernible at full resolution: opaque hood voids, closed helmets, backs, covered shrouds, no eyes/nose/mouth or detailed skull faces. Non-graphic, no exposed wounds, gore, sexual content or readable writing. No UI, outer frame or border. 9:4 opaque full-bleed three-cell Structure. The building-monument must remain the dominant simple silhouette in central75%. Remove the huge foreground people: EVERY living person is at most3% of image height, anonymous scale dots only, none dominates an edge. Keep only neutral overcast grey sky, strong controlled silhouette contrast, cold oppressive scale. No celebratory sunlight or rich grand-palace glamour. No new foreground action competing with the building. Preserve cobalt/lapis and honey-gold, three offset rectangular architecture frames on one stem. Make the archive NON-EUCLIDEAN AND PREDATORY: black interior corridors fold into neighbouring frames at impossible angles, shelves are rib-like ranks, long quill-root buttresses grip and penetrate old civic buildings below, as if the written order has eaten the city. Keep useful tiny record chutes as commercial/administrative evidence. Remove the giant left-hand Scholar with staff; tiny fully hooded scale figures only. The three huge black frames remain the unmistakable silhouette. Cold grey sky, deep inky chambers, selective honey-gold edge light, not warm glorious palace sunlight. No floating eyeball, readable books or humanoid monster face.",
+      "refs": [
+        "images/dark-fantasy/full-map-patron-prototype/art/cp_archiveOfUnfinishedIndex.png"
+      ],
+      "reason": "Emphasise patron as predatory architecture; keep all people tiny."
+    }
+  ]
+}

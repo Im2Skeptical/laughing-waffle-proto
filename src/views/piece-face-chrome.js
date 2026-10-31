@@ -22,11 +22,11 @@ function fittedSprite(parent, texture, x, y, width, height) {
 
 // Nine-slicing preserves the painted carving while reducing the visible rim
 // to about three pixels. It never reserves a broad decorative strip over art.
-export function addPieceRim(parent, w, h) {
-  const texture = getChronicleTexture('piece-frames-v1/structure-1.png');
+export function addPieceRim(parent, w, h, textureKey = 'piece-frames-v1/structure-1.png', cornerSize = 12) {
+  const texture = getChronicleTexture(textureKey);
   if (!texture?.baseTexture.valid) return;
   const frame = new PIXI.NineSlicePlane(texture, texture.width*.3, texture.height*.22, texture.width*.3, texture.height*.22);
-  const scale = 12 / (texture.width*.3);
+  const scale = cornerSize / (texture.width*.3);
   frame.width = w/scale; frame.height = h/scale; frame.scale.set(scale);
   frame.eventMode = 'none'; parent.addChild(frame);
 }
@@ -313,7 +313,14 @@ export function addPieceFaceChrome(parent, face, w, h, {time=0,reducedMotion=fal
     return {...cycle,construction:{x,y,width:65,height:32}};
   }
   if(face.kind==='structure')return {capacity:structureCapacityTray(parent,face,w,h)};
-  const stock=stockTray(parent,face,w);
+  let stock;
+  if(face.category==='influence') {
+    const x=w-65,y=-8,width=65,height=42;
+    plate(parent,x,y,width,height,true);
+    addResourceIcon(parent,face.politicalIcon??'population',x+14,y+20,23);
+    numeral(parent,face.politicalOutput??0,x+44,y+20,26,34);
+    stock={x,y,width,height};
+  } else stock=stockTray(parent,face,w);
   const age=face.activationAge==null?null:face.activationAge+Math.max(0,time-(face.viewedTime??time));
   const pulse=age!=null&&age<1.25?(reducedMotion?.65:Math.max(0,1-age/1.25)):0;
   if(face.lane==='charge') {

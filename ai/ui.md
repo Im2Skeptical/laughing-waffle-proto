@@ -1,5 +1,14 @@
 # Current UI
 
+In this experimental checkout the ordinary game uses the full-map renderer:
+Resource Practices show hosted Stock, while teal-framed Influence Practices show
+conversion/Force and an explicit institution allegiance badge. Territory panels
+show holder, population shares, unrest, supplied Force and holding upkeep; their
+values come from the viewed authoritative state. The Life Map uses shared
+Prestige, foreign travel, explicit hostile-removal receipts and adoption offers.
+Staging and Undo preserve confirmed institutions and currencies. See
+`docs/full-map-redesign-implementation.md` for this fork's complete contract.
+
 Charge faces use a segmented teal reservoir along the bottom, workers and their
 Charge multiplier on the left, and Activation yields on the right. The icons
 directly above the reservoir identify Charge triggers, not Stock costs. Small

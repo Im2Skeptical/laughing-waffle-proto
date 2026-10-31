@@ -16,8 +16,8 @@ import { getVassalActionPhaseCost, getAdjustedVassalPrestigeCost } from '../vass
 import { getVassalRiskDeathChance } from '../vassal-life-map/class-rules.js';
 import { getActionMonsterPressureCost } from '../detailed-settlements/practice-events.js';
 
-export const LIFEGRAPH_STORAGE_KEY='civsurvivor.lifegraph-workbench.v1';
-export const LIFEGRAPH_PRESETS_KEY='civsurvivor.lifegraph-workbench.presets.v1';
+export const LIFEGRAPH_STORAGE_KEY='full-map-redesign-v1.lifegraph-workbench.v1';
+export const LIFEGRAPH_PRESETS_KEY='full-map-redesign-v1.lifegraph-workbench.presets.v1';
 export const LIFEGRAPH_DRAFT_SCHEMA=1;
 const clone=value=>JSON.parse(JSON.stringify(value));
 

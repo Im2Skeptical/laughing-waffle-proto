@@ -1,10 +1,10 @@
 // Native IndexedDB owns save payloads and small slot summaries in one transaction.
 // Local storage is read only for the one-time transfer of current-format saves.
-export const SAVE_DATABASE_NAME = 'civilization-saves';
+export const SAVE_DATABASE_NAME = 'full-map-redesign-v1-saves';
 export const SAVE_DATABASE_VERSION = 1;
 export const SAVE_PAYLOAD_STORE = 'saves';
 export const SAVE_META_STORE = 'slots';
-const TRANSFER_KEY = 'localStorageTransferComplete';
+const TRANSFER_KEY = 'full-map-redesign-v1-transferComplete';
 let cachedFactory = null;
 let databasePromise = null;
 let initializationPromise = null;
@@ -102,7 +102,7 @@ async function transferLocalSaves(db, inspectText) {
     local = globalThis.localStorage;
     if (!local) { transfer.phase = 'unavailable'; return; }
     for (let slot = 1; slot <= 3; slot++) {
-      const text = local.getItem(`civsurvivor.save.slot${slot}`);
+      const text = local.getItem(`full-map-redesign-v1.save.slot${slot}`);
       if (text === null) continue;
       const inspected = inspectText(text);
       if (inspected.ok) candidates.push({ slot, text, meta: inspected.meta });
@@ -132,7 +132,7 @@ async function transferLocalSaves(db, inspectText) {
   // Remove only the exact payload that was copied, and only after commit.
   for (const candidate of moved) {
     try {
-      const key = `civsurvivor.save.slot${candidate.slot}`;
+      const key = `full-map-redesign-v1.save.slot${candidate.slot}`;
       if (local.getItem(key) === candidate.text) local.removeItem(key);
     } catch (error) { transfer.error = { name: error.name, message: String(error.message).slice(0, 500) }; }
   }

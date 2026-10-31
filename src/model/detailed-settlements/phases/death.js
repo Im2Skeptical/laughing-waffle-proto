@@ -1,3 +1,5 @@
+import { getRegionState } from '../../world-state.js';
+import { hasPopulationLedger, populationBins, writePopulationBins, allocatePopulation } from '../population-ledger.js';
 import { splitSpecialistCohorts, combineSpecialistCohorts } from "../cohorts.js";
 import { specialistCount, structureModifiers } from "../stock.js";
 import { emitPracticeEvent } from '../practice-events.js';
@@ -54,15 +56,21 @@ export function runDeathPhase(state, phase) {
   let oldAgeDeaths = 0;
   let prematureDeathMitigation=0;
   for (const unresolved of turn.unresolved) {
-    const deaths = rollCompositionDeaths(
+    const source=getDetailedSettlement(state, unresolved.sourceRegionId);
+    let vulnerable=unresolved.composition;
+    if(hasPopulationLedger(source)){
+      // Allegiance/training may change between Migration and Death. Hardship
+      // still applies to actual remaining residents, never stale identities.
+      const classes=new Set(compositionBins(vulnerable).map(b=>b.classId));
+      vulnerable=compositionFromBins(allocatePopulation(populationBins(source).filter(b=>classes.has(b.classId)),compositionTotal(vulnerable)));
+    }
+    let deaths = rollCompositionDeaths(
       state,
-      unresolved.composition,
+      vulnerable,
       getGameSetting(state, "migrationHardshipDeathRate")
     );
-    removePopulationComposition(
-      getDetailedSettlement(state, unresolved.sourceRegionId),
-      deaths
-    );
+    const actual=removePopulationComposition(source,deaths);
+    if(hasPopulationLedger(source))deaths=actual;
     hardshipDeathsByRegion[unresolved.sourceRegionId] += compositionTotal(deaths);
     prematureDeaths += compositionTotal(deaths);
   }
@@ -74,14 +82,19 @@ export function runDeathPhase(state, phase) {
     for (const classId of POPULATION_CLASS_ORDER) {
       const classState = settlement.populationByClass[classId];
       let naturalDeaths = 0;
+      if(hasPopulationLedger(settlement)) {
+        const bins=populationBins(settlement);
+        for(const b of bins)if(b.classId===classId&&b.kind==='elder'){const deaths=rollCount(state,b.count,getElderMortalityRate(b.age,state));naturalDeaths+=deaths;b.count-=deaths;}
+        writePopulationBins(settlement,bins);
+      }
       const parts = splitSpecialistCohorts(classState);
-      for(const part of Object.values(parts)) part.eldersByAge = (part.eldersByAge ?? []).map((cohort) => {
+      if(!hasPopulationLedger(settlement)) for(const part of Object.values(parts)) part.eldersByAge = (part.eldersByAge ?? []).map((cohort) => {
         const mortality = getElderMortalityRate(cohort.age, state);
         const deaths = rollCount(state, cohort.count, mortality);
         naturalDeaths += deaths;
         return { ...cohort, count: cohort.count - deaths };
       }).filter((cohort) => cohort.count > 0);
-      combineSpecialistCohorts(classState, parts);
+      if(!hasPopulationLedger(settlement)) combineSpecialistCohorts(classState, parts);
       byClass[classId] = { naturalDeaths };
       settlement.history ??= { deaths: 0 };
       settlement.history.deaths += naturalDeaths;
@@ -121,6 +134,9 @@ export function runDeathPhase(state, phase) {
     resetEmptyStrangerCohort(settlement);
   }
   prematureDeaths += internalMovements.reduce((sum, movement) => sum + movement.arrivalDeaths, 0);
+  if(state.rulesetId){prematureDeaths=0;oldAgeDeaths=0;prematureDeathMitigation=0;
+    for(const site of getDetailedSettlementSites(state,{playerOnly:true})){const d=turn.regions[site.regionId]?.death;if(d){prematureDeaths+=d.hardshipDeaths+d.arrivalDeaths;oldAgeDeaths+=Object.values(d.byClass).reduce((n,c)=>n+c.naturalDeaths,0);}}
+  }
   recordChaosLosses(state, { prematureDeaths, oldAgeDeaths, prematureDeathMitigation });
   flushPracticeEvents(state);
 }

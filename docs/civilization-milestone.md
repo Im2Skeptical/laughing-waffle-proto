@@ -1,5 +1,20 @@
 # Civilization System + Content milestone
 
+## Current full-map build (2026-10-31)
+
+This checkout implements the audited full-map ruleset as its ordinary New Game.
+The content surface is 72 reconciled candidates, 23 explicit supply/housing
+dependencies and 11 restored mainline Practices, including Field Study and class
+disciplines. The ten-tenure limit and performance PR are retained. See
+[main integration](full-map-main-integration.md). The 66 alternate-class candidates
+remain review-only.
+Legacy content remains available to authored labs, but is excluded from this
+fork's offers unless listed as a dependency. Shared Prestige, cohort allegiance,
+territorial control and local military supply supersede the fixed neutral-market
+and abstract worldwide support assumptions below. This is a local experiment,
+not a publication or approval to merge. See [implementation and evidence](full-map-redesign-implementation.md)
+and [the content disposition](full-map-content-disposition.md).
+
 This project remains an in-progress, wide content and systems buildout. The
 milestone brief and CivContent 2.5 have a playable first-pass implementation;
 mechanical acceptance coverage does not mean the UX, tooling, content pool, or

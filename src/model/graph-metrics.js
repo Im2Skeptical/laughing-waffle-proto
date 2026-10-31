@@ -1,3 +1,4 @@
+import { controlSummary } from './detailed-settlements/territory.js';
 import { getChaosResistance } from './detailed-settlements/phases/chaos.js';
 import { stockTotal } from "./detailed-settlements/stock.js";
 // src/model/graph-metrics.js
@@ -470,6 +471,21 @@ function getLocalCivilizationSeries() {
   ];
 }
 
+// The graph reads the same per-second political summaries as authoritative replay.
+const TERRITORY_SERIES = [
+  ['loyalShare','Holder support %',0x58c9ad,v=>100*(v?.share??0),'politicalPercent'],
+  ['unrest','Unrest',0xe27966,v=>v?.unrest??0,'politicalPercent'],
+  ['suppliedForce','Supplied Force',0x9ec9ef,v=>v?.force??0,'politicalForce'],
+  ['requiredForce','Required Force',0xe8b55e,v=>v?.required??0,'politicalForce'],
+].map(([id,label,color,read,scaleGroupId])=>({id,label,color,scaleGroupId,scaleMode:'dynamic',scaleMin:0,pickerGroup:'global',
+  getValue:(state,subject)=>read(controlSummary(state,getSettlementMetricRegionId(subject))),
+  getValueFromSnapshot:(state,subject,_resolver,context)=>read(context?.territory(getSettlementMetricRegionId(subject))??controlSummary(state,getSettlementMetricRegionId(subject))),
+  getValueFromSummary:(summary,subject)=>read(summary.territory?.[getSettlementMetricRegionId(subject)]),
+  formatValue:value=>Number(value??0).toFixed(1)}));
+TERRITORY_SERIES.push({id:'civilizationPrestige',label:'Civilization Prestige',color:0xe5ce89,scaleGroupId:'prestige',scaleMode:'dynamic',scaleMin:0,pickerGroup:'global',
+  getValue:state=>state.civilization.prestige??0,getValueFromSnapshot:state=>state.civilization.prestige??0,
+  getValueFromSummary:summary=>summary.prestige??0,formatValue:value=>String(Math.floor(value??0))});
+
 export const GRAPH_METRICS = {
   ...LEGACY_GRAPH_METRICS,
   settlement: {
@@ -482,6 +498,7 @@ export const GRAPH_METRICS = {
     ],
     getSeries: (_subject, state, context) => [
       ...LOCAL_SETTLEMENT_RESOURCE_SERIES,
+      ...(state?.rulesetId?TERRITORY_SERIES:[]),
       ...getLocalCivilizationSeries(),
       ...getSettlementClassMetricSeries(state),
     ],

@@ -169,7 +169,7 @@ export function createSettlementVassalFlow({
       vassal.lifeMap?.nodeStates?.[vassal.lifeMap?.currentNodeId]?.family);
     return captureResolutionRecap({vassalId:vassal.vassalId, beforeState, afterState, prepareOnly:true, kind:pending.kind,
       prestigeIncome:gains.prestige, developmentIncome:gains.development,
-      prestigeBefore:vassal.prestige, expBefore:vassal.developmentProgress,
+      prestigeBefore:beforeState.rulesetId?beforeState.civilization.prestige:vassal.prestige, expBefore:vassal.developmentProgress,
       ageBefore:getVassalAge(beforeState,vassal), phaseCost:pending.phaseCost});
   }
 

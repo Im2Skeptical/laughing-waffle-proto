@@ -120,7 +120,8 @@ function authorTerminal(seed) {
   const state = createNewGameState(seed);
   state.civilization.chaos.monsterPressure = 400;
   for (const region of state.world.regions) {
-    if (region.controller !== "player") region.monster = { defense: 100 };
+    if (region.controller === "player") region.monster = { defense: 100 };
+    else delete region.monster;
   }
   initializeReplayClock(state, 0);
   const timeline = createTimelineFromInitialState(state);

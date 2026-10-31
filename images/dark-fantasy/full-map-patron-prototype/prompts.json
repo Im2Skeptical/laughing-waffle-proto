@@ -1,0 +1,176 @@
+{
+  "version": 1,
+  "current": true,
+  "scope": "Four proposed patron seals and eight descriptive Gold capital card studies; no simulation.",
+  "tool": "built-in image_gen.imagegen",
+  "entries": [
+    {
+      "id": "patron-crown",
+      "pool": "dictator",
+      "kind": "emblem",
+      "transparent": true,
+      "output": "art/patron-crown.png",
+      "prompt": "Use case: logo-brand. One original in-world dark-fantasy cult SEAL, a single bold pale-ivory silhouette on a genuinely transparent background, square canvas. It represents The Unbending Crown. Design brief: Three rigid spear-prongs held by one closed iron band; tall, frontal, brutally symmetrical. The whole mark must read at16x16 and24x24 pixels. Use only three or four thick primitive masses and large negative cutouts, heavy clear silhouette, no hairline detail, outer shape occupies central75% with safe empty margin. Archaic carved bone / block-printed pixel treatment: hand-placed hard-edged clusters, very restrained surface chips, ivory fill and transparent cutouts. No lettering, text, numerals, readable writing, human face, eyes, heraldic shield, outer badge, circular UI frame, background, checkerboard or cast shadow. NO contact sheet, no variations. For the Crown, three rigid upward spear-prongs bound by ONE thick closed horizontal iron band; for the Creditor, a broad low squared arch with THREE short heavy hanging weights; for the Sun, an EMPTY ring with exactly THREE long rays dropping below it and no pupil; for the Index, THREE thick offset nested rectangular frames on one vertical stem. Draw ONLY the relevant mark described for The Unbending Crown, not all four. True alpha transparency both outside and in cutout holes.",
+      "refs": [],
+      "current": true
+    },
+    {
+      "id": "patron-creditor",
+      "pool": "oligarch",
+      "kind": "emblem",
+      "transparent": true,
+      "output": "art/patron-creditor.png",
+      "prompt": "Use case: logo-brand. One original in-world dark-fantasy cult SEAL, a single bold pale-ivory silhouette on a genuinely transparent background, square canvas. It represents The Last Creditor. Design brief: A low swollen vault-maw with three heavy hanging weights; broad rather than tall. The whole mark must read at16x16 and24x24 pixels. Use only three or four thick primitive masses and large negative cutouts, heavy clear silhouette, no hairline detail, outer shape occupies central75% with safe empty margin. Archaic carved bone / block-printed pixel treatment: hand-placed hard-edged clusters, very restrained surface chips, ivory fill and transparent cutouts. No lettering, text, numerals, readable writing, human face, eyes, heraldic shield, outer badge, circular UI frame, background, checkerboard or cast shadow. NO contact sheet, no variations. For the Crown, three rigid upward spear-prongs bound by ONE thick closed horizontal iron band; for the Creditor, a broad low squared arch with THREE short heavy hanging weights; for the Sun, an EMPTY ring with exactly THREE long rays dropping below it and no pupil; for the Index, THREE thick offset nested rectangular frames on one vertical stem. Draw ONLY the relevant mark described for The Last Creditor, not all four. True alpha transparency both outside and in cutout holes.",
+      "refs": [],
+      "current": true
+    },
+    {
+      "id": "patron-sun",
+      "pool": "papacy",
+      "kind": "emblem",
+      "transparent": true,
+      "output": "art/patron-sun.png",
+      "prompt": "Use case: logo-brand. One original in-world dark-fantasy cult SEAL, a single bold pale-ivory silhouette on a genuinely transparent background, square canvas. It represents The Hollow Sun. Design brief: An empty solar ring with three long falling rays; no pupil or human face. The whole mark must read at16x16 and24x24 pixels. Use only three or four thick primitive masses and large negative cutouts, heavy clear silhouette, no hairline detail, outer shape occupies central75% with safe empty margin. Archaic carved bone / block-printed pixel treatment: hand-placed hard-edged clusters, very restrained surface chips, ivory fill and transparent cutouts. No lettering, text, numerals, readable writing, human face, eyes, heraldic shield, outer badge, circular UI frame, background, checkerboard or cast shadow. NO contact sheet, no variations. For the Crown, three rigid upward spear-prongs bound by ONE thick closed horizontal iron band; for the Creditor, a broad low squared arch with THREE short heavy hanging weights; for the Sun, an EMPTY ring with exactly THREE long rays dropping below it and no pupil; for the Index, THREE thick offset nested rectangular frames on one vertical stem. Draw ONLY the relevant mark described for The Hollow Sun, not all four. True alpha transparency both outside and in cutout holes.",
+      "refs": [],
+      "current": true
+    },
+    {
+      "id": "patron-index",
+      "pool": "sect",
+      "kind": "emblem",
+      "transparent": true,
+      "output": "art/patron-index.png",
+      "prompt": "Use case: logo-brand. One original in-world dark-fantasy cult SEAL, a single bold pale-ivory silhouette on a genuinely transparent background, square canvas. It represents The Unfinished Index. Design brief: Three offset rectangular frames sharing a vertical stem; folded, misaligned architecture. The whole mark must read at16x16 and24x24 pixels. Use only three or four thick primitive masses and large negative cutouts, heavy clear silhouette, no hairline detail, outer shape occupies central75% with safe empty margin. Archaic carved bone / block-printed pixel treatment: hand-placed hard-edged clusters, very restrained surface chips, ivory fill and transparent cutouts. No lettering, text, numerals, readable writing, human face, eyes, heraldic shield, outer badge, circular UI frame, background, checkerboard or cast shadow. NO contact sheet, no variations. For the Crown, three rigid upward spear-prongs bound by ONE thick closed horizontal iron band; for the Creditor, a broad low squared arch with THREE short heavy hanging weights; for the Sun, an EMPTY ring with exactly THREE long rays dropping below it and no pupil; for the Index, THREE thick offset nested rectangular frames on one vertical stem. Draw ONLY the relevant mark described for The Unfinished Index, not all four. True alpha transparency both outside and in cutout holes.",
+      "refs": [],
+      "current": true
+    },
+    {
+      "id": "cp_ironCommunion",
+      "pool": "dictator",
+      "label": "Iron Communion",
+      "kind": "practice",
+      "output": "art/cp_ironCommunion.png",
+      "prompt": "Use case: illustration-story. One original opaque full-bleed medieval cosmic-horror dark-fantasy practice card illustration: Iron Communion. Fresh scene, not a recolour or a portrait. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, vast environmental scale, broad calm value masses, and one focal region with strongest light/contrast. Hand-placed pixel clusters, hard edges, selective dithering, restricted palette, not smooth painterly brushwork. Reference1 and Reference2 are SURFACE TREATMENT ONLY (l5/l6; exclude their eyes, portals and scenes). Reference3 is the patron SEAL SHAPE to echo in the main object's silhouette or real architectural carving. Reference4 is COLOUR IDENTITY ONLY, not its composition. STRICT 5:7 PORTRAIT. Entire principal action, 2 or3 small figures and identifying ritual object/materials in upper CENTRAL45% (y8-43%, x25-75%). Figures subordinate to the vast architecture; no individual figure taller than25% of the image. Lower half is a broad quiet shadowed arch or chamber with low contrast and no new action, people, bright props or body piles. Keep the ritual understandable at70x100 pixels. All human, dead and depicted faces are completely INDISCERNIBLE at full resolution: rear views, completely sealed helmets or opaque hood voids; no eyes, noses, mouths or portrait features. Corpses completely shrouded, no detailed skull faces or exposed wounds. Non-graphic adult ritual sacrifice may be implied by a sealed machine or an empty dark passage, never shown as injury. This is a functioning remnant institution transformed into the body of its own inhuman patron The Unbending Crown. Its alien presence comes from impossible anatomy-like architecture, chitinous stone folds, oppressive scale and ritual geometry, not generic piles of tentacles. Primary silhouette grammar: Three rigid spear-prongs held by one closed iron band; tall, frontal, brutally symmetrical. Primary/secondary palette: Dominant vermilion and brick-red cloth / enamel, secondary oxidized teal armour and trim, dark iron-plum shadows. Existing Warrior red/teal identity. Apply these as local cloth, enamel and architectural material colours, with neutral grey stone and sky, no all-image colour wash. Rot and despair must read without obscuring the focal action. Subject: Two small fully enclosed red-armoured officiants guide a hooded adult Warrior into an upright teal iron mould shaped like a three-pronged crown. Four finished spearheads lie beside the closed mould; no wounds or gore. One intentional diegetic patron motif may be carved into a ritual object or building as the user requested; no other readable symbols or writing. Illustration only: no text, numerals, UI, card frame, decorative border, vignette or distracting tiny clutter. Do not copy a known franchise chaos emblem, human god portrait or reference eye. ",
+      "refs": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png",
+        "images/dark-fantasy/full-map-patron-prototype/art/patron-crown.png",
+        "images/dark-fantasy/full-map-enemy-prototype/art/fe_officersFeast.png"
+      ],
+      "current": false,
+      "supersededBy": "corrections.json"
+    },
+    {
+      "id": "cp_citadelOfStillness",
+      "pool": "dictator",
+      "label": "Citadel of Stillness",
+      "kind": "structure",
+      "output": "art/cp_citadelOfStillness.png",
+      "prompt": "Use case: illustration-story. One original opaque full-bleed medieval cosmic-horror dark-fantasy structure card illustration: Citadel of Stillness. Fresh scene, not a recolour or a portrait. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, vast environmental scale, broad calm value masses, and one focal region with strongest light/contrast. Hand-placed pixel clusters, hard edges, selective dithering, restricted palette, not smooth painterly brushwork. Reference1 and Reference2 are SURFACE TREATMENT ONLY (l5/l6; exclude their eyes, portals and scenes). Reference3 is the patron SEAL SHAPE to echo in the main object's silhouette or real architectural carving. Reference4 is COLOUR IDENTITY ONLY, not its composition. STRICT 9:4 LANDSCAPE, three-cell Structure. The named building dominates CENTRAL75%, simple monumental silhouette; tiny anonymous fully hooded figures for scale only. Keep silhouette legible at70x100 pixels. All human, dead and depicted faces are completely INDISCERNIBLE at full resolution: rear views, completely sealed helmets or opaque hood voids; no eyes, noses, mouths or portrait features. Corpses completely shrouded, no detailed skull faces or exposed wounds. Non-graphic adult ritual sacrifice may be implied by a sealed machine or an empty dark passage, never shown as injury. This is a functioning remnant institution transformed into the body of its own inhuman patron The Unbending Crown. Its alien presence comes from impossible anatomy-like architecture, chitinous stone folds, oppressive scale and ritual geometry, not generic piles of tentacles. Primary silhouette grammar: Three rigid spear-prongs held by one closed iron band; tall, frontal, brutally symmetrical. Primary/secondary palette: Dominant vermilion and brick-red cloth / enamel, secondary oxidized teal armour and trim, dark iron-plum shadows. Existing Warrior red/teal identity. Apply these as local cloth, enamel and architectural material colours, with neutral grey stone and sky, no all-image colour wash. Rot and despair must read without obscuring the focal action. Subject: A colossal tall three-pronged iron citadel with a rigid teal encircling band and vermilion processional cloth. Spear-like buttresses resemble the ribs of an inhuman empty armour shell; every line points toward a sealed black central crown gate. One intentional diegetic patron motif may be carved into a ritual object or building as the user requested; no other readable symbols or writing. Illustration only: no text, numerals, UI, card frame, decorative border, vignette or distracting tiny clutter. Do not copy a known franchise chaos emblem, human god portrait or reference eye. ",
+      "refs": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png",
+        "images/dark-fantasy/full-map-patron-prototype/art/patron-crown.png",
+        "images/dark-fantasy/full-map-enemy-prototype/art/fe_officersFeast.png"
+      ],
+      "current": false,
+      "supersededBy": "corrections.json"
+    },
+    {
+      "id": "cp_finalLiquidation",
+      "pool": "oligarch",
+      "label": "Final Liquidation",
+      "kind": "practice",
+      "output": "art/cp_finalLiquidation.png",
+      "prompt": "Use case: illustration-story. One original opaque full-bleed medieval cosmic-horror dark-fantasy practice card illustration: Final Liquidation. Fresh scene, not a recolour or a portrait. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, vast environmental scale, broad calm value masses, and one focal region with strongest light/contrast. Hand-placed pixel clusters, hard edges, selective dithering, restricted palette, not smooth painterly brushwork. Reference1 and Reference2 are SURFACE TREATMENT ONLY (l5/l6; exclude their eyes, portals and scenes). Reference3 is the patron SEAL SHAPE to echo in the main object's silhouette or real architectural carving. Reference4 is COLOUR IDENTITY ONLY, not its composition. STRICT 5:7 PORTRAIT. Entire principal action, 2 or3 small figures and identifying ritual object/materials in upper CENTRAL45% (y8-43%, x25-75%). Figures subordinate to the vast architecture; no individual figure taller than25% of the image. Lower half is a broad quiet shadowed arch or chamber with low contrast and no new action, people, bright props or body piles. Keep the ritual understandable at70x100 pixels. All human, dead and depicted faces are completely INDISCERNIBLE at full resolution: rear views, completely sealed helmets or opaque hood voids; no eyes, noses, mouths or portrait features. Corpses completely shrouded, no detailed skull faces or exposed wounds. Non-graphic adult ritual sacrifice may be implied by a sealed machine or an empty dark passage, never shown as injury. This is a functioning remnant institution transformed into the body of its own inhuman patron The Last Creditor. Its alien presence comes from impossible anatomy-like architecture, chitinous stone folds, oppressive scale and ritual geometry, not generic piles of tentacles. Primary silhouette grammar: A low swollen vault-maw with three heavy hanging weights; broad rather than tall. Primary/secondary palette: Dominant yellow-olive GREEN cloth and enamel, secondary INK BLUE-BLACK broad trim and doors. Small pale bone highlights. This is the user's selected Merchant G3 olive/ink scheme; no gold or red dominance. Apply these as local cloth, enamel and architectural material colours, with neutral grey stone and sky, no all-image colour wash. Rot and despair must read without obscuring the focal action. Subject: Two small back-facing olive-robed factors lead one fully hooded adult through a squat swollen ink-black vault mouth hung with three heavy weights. A shallow coin tray emerges from a narrow adjacent slot, with no bodily transformation or wounds shown. One intentional diegetic patron motif may be carved into a ritual object or building as the user requested; no other readable symbols or writing. Illustration only: no text, numerals, UI, card frame, decorative border, vignette or distracting tiny clutter. Do not copy a known franchise chaos emblem, human god portrait or reference eye. ",
+      "refs": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png",
+        "images/dark-fantasy/full-map-patron-prototype/art/patron-creditor.png",
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_g3_fe_privateReservoir.png"
+      ],
+      "current": false,
+      "supersededBy": "corrections.json"
+    },
+    {
+      "id": "cp_vaultOfLastCreditor",
+      "pool": "oligarch",
+      "label": "Vault of the Last Creditor",
+      "kind": "structure",
+      "output": "art/cp_vaultOfLastCreditor.png",
+      "prompt": "Use case: illustration-story. One original opaque full-bleed medieval cosmic-horror dark-fantasy structure card illustration: Vault of the Last Creditor. Fresh scene, not a recolour or a portrait. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, vast environmental scale, broad calm value masses, and one focal region with strongest light/contrast. Hand-placed pixel clusters, hard edges, selective dithering, restricted palette, not smooth painterly brushwork. Reference1 and Reference2 are SURFACE TREATMENT ONLY (l5/l6; exclude their eyes, portals and scenes). Reference3 is the patron SEAL SHAPE to echo in the main object's silhouette or real architectural carving. Reference4 is COLOUR IDENTITY ONLY, not its composition. STRICT 9:4 LANDSCAPE, three-cell Structure. The named building dominates CENTRAL75%, simple monumental silhouette; tiny anonymous fully hooded figures for scale only. Keep silhouette legible at70x100 pixels. All human, dead and depicted faces are completely INDISCERNIBLE at full resolution: rear views, completely sealed helmets or opaque hood voids; no eyes, noses, mouths or portrait features. Corpses completely shrouded, no detailed skull faces or exposed wounds. Non-graphic adult ritual sacrifice may be implied by a sealed machine or an empty dark passage, never shown as injury. This is a functioning remnant institution transformed into the body of its own inhuman patron The Last Creditor. Its alien presence comes from impossible anatomy-like architecture, chitinous stone folds, oppressive scale and ritual geometry, not generic piles of tentacles. Primary silhouette grammar: A low swollen vault-maw with three heavy hanging weights; broad rather than tall. Primary/secondary palette: Dominant yellow-olive GREEN cloth and enamel, secondary INK BLUE-BLACK broad trim and doors. Small pale bone highlights. This is the user's selected Merchant G3 olive/ink scheme; no gold or red dominance. Apply these as local cloth, enamel and architectural material colours, with neutral grey stone and sky, no all-image colour wash. Rot and despair must read without obscuring the focal action. Subject: An enormous low wide olive-tiled treasury resembles a swollen sac-like stone vault. Its ink-black central maw is pinched by three great hanging stone weights, with coin-like rings embedded in bowed buttresses. The useful counting rooms survive above a rotting service court. One intentional diegetic patron motif may be carved into a ritual object or building as the user requested; no other readable symbols or writing. Illustration only: no text, numerals, UI, card frame, decorative border, vignette or distracting tiny clutter. Do not copy a known franchise chaos emblem, human god portrait or reference eye. ",
+      "refs": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png",
+        "images/dark-fantasy/full-map-patron-prototype/art/patron-creditor.png",
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_g3_fe_privateReservoir.png"
+      ],
+      "current": false,
+      "supersededBy": "corrections.json"
+    },
+    {
+      "id": "cp_offeringOfNames",
+      "pool": "papacy",
+      "label": "Offering of Names",
+      "kind": "practice",
+      "output": "art/cp_offeringOfNames.png",
+      "prompt": "Use case: illustration-story. One original opaque full-bleed medieval cosmic-horror dark-fantasy practice card illustration: Offering of Names. Fresh scene, not a recolour or a portrait. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, vast environmental scale, broad calm value masses, and one focal region with strongest light/contrast. Hand-placed pixel clusters, hard edges, selective dithering, restricted palette, not smooth painterly brushwork. Reference1 and Reference2 are SURFACE TREATMENT ONLY (l5/l6; exclude their eyes, portals and scenes). Reference3 is the patron SEAL SHAPE to echo in the main object's silhouette or real architectural carving. Reference4 is COLOUR IDENTITY ONLY, not its composition. STRICT 5:7 PORTRAIT. Entire principal action, 2 or3 small figures and identifying ritual object/materials in upper CENTRAL45% (y8-43%, x25-75%). Figures subordinate to the vast architecture; no individual figure taller than25% of the image. Lower half is a broad quiet shadowed arch or chamber with low contrast and no new action, people, bright props or body piles. Keep the ritual understandable at70x100 pixels. All human, dead and depicted faces are completely INDISCERNIBLE at full resolution: rear views, completely sealed helmets or opaque hood voids; no eyes, noses, mouths or portrait features. Corpses completely shrouded, no detailed skull faces or exposed wounds. Non-graphic adult ritual sacrifice may be implied by a sealed machine or an empty dark passage, never shown as injury. This is a functioning remnant institution transformed into the body of its own inhuman patron The Hollow Sun. Its alien presence comes from impossible anatomy-like architecture, chitinous stone folds, oppressive scale and ritual geometry, not generic piles of tentacles. Primary silhouette grammar: An empty solar ring with three long falling rays; no pupil or human face. Primary/secondary palette: Dominant matte saffron OCHRE YELLOW robes, enamel and drapes, secondary deep AUBERGINE PURPLE trim, insets and ceremonial bands. Pale bone highlights and dark plum shadows. This is the previous Merchant M2 scheme reassigned to Priests. No pink, ivory-primary or lemon scheme. Apply these as local cloth, enamel and architectural material colours, with neutral grey stone and sky, no all-image colour wash. Rot and despair must read without obscuring the focal action. Subject: Two small ochre-robed, aubergine-trimmed officiants receive a hooded adult at a black hollow sun ring with three hanging rays. One plain shrouded adult bundle and a shallow bone bowl sit on the same high ritual ledge. No wounds, exposed faces or detailed skulls. One intentional diegetic patron motif may be carved into a ritual object or building as the user requested; no other readable symbols or writing. Illustration only: no text, numerals, UI, card frame, decorative border, vignette or distracting tiny clutter. Do not copy a known franchise chaos emblem, human god portrait or reference eye. ",
+      "refs": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png",
+        "images/dark-fantasy/full-map-patron-prototype/art/patron-sun.png",
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_m2_fe_conspicuousFeasts.png"
+      ],
+      "current": false,
+      "supersededBy": "corrections.json"
+    },
+    {
+      "id": "cp_templeOfHollowSun",
+      "pool": "papacy",
+      "label": "Temple of the Hollow Sun",
+      "kind": "structure",
+      "output": "art/cp_templeOfHollowSun.png",
+      "prompt": "Use case: illustration-story. One original opaque full-bleed medieval cosmic-horror dark-fantasy structure card illustration: Temple of the Hollow Sun. Fresh scene, not a recolour or a portrait. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, vast environmental scale, broad calm value masses, and one focal region with strongest light/contrast. Hand-placed pixel clusters, hard edges, selective dithering, restricted palette, not smooth painterly brushwork. Reference1 and Reference2 are SURFACE TREATMENT ONLY (l5/l6; exclude their eyes, portals and scenes). Reference3 is the patron SEAL SHAPE to echo in the main object's silhouette or real architectural carving. Reference4 is COLOUR IDENTITY ONLY, not its composition. STRICT 9:4 LANDSCAPE, three-cell Structure. The named building dominates CENTRAL75%, simple monumental silhouette; tiny anonymous fully hooded figures for scale only. Keep silhouette legible at70x100 pixels. All human, dead and depicted faces are completely INDISCERNIBLE at full resolution: rear views, completely sealed helmets or opaque hood voids; no eyes, noses, mouths or portrait features. Corpses completely shrouded, no detailed skull faces or exposed wounds. Non-graphic adult ritual sacrifice may be implied by a sealed machine or an empty dark passage, never shown as injury. This is a functioning remnant institution transformed into the body of its own inhuman patron The Hollow Sun. Its alien presence comes from impossible anatomy-like architecture, chitinous stone folds, oppressive scale and ritual geometry, not generic piles of tentacles. Primary silhouette grammar: An empty solar ring with three long falling rays; no pupil or human face. Primary/secondary palette: Dominant matte saffron OCHRE YELLOW robes, enamel and drapes, secondary deep AUBERGINE PURPLE trim, insets and ceremonial bands. Pale bone highlights and dark plum shadows. This is the previous Merchant M2 scheme reassigned to Priests. No pink, ivory-primary or lemon scheme. Apply these as local cloth, enamel and architectural material colours, with neutral grey stone and sky, no all-image colour wash. Rot and despair must read without obscuring the focal action. Subject: A colossal ochre-enamel basilica is crowned by an empty broken solar ring and three immense downward aubergine rays like inverted buttresses. Its upper ceremonial nave is maintained while the lateral funeral courts rot. The ring is a pure empty void, never an eye. One intentional diegetic patron motif may be carved into a ritual object or building as the user requested; no other readable symbols or writing. Illustration only: no text, numerals, UI, card frame, decorative border, vignette or distracting tiny clutter. Do not copy a known franchise chaos emblem, human god portrait or reference eye. ",
+      "refs": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png",
+        "images/dark-fantasy/full-map-patron-prototype/art/patron-sun.png",
+        "images/dark-fantasy/full-map-enemy-palette-prototype/art/palette_m2_fe_conspicuousFeasts.png"
+      ],
+      "current": false,
+      "supersededBy": "corrections.json"
+    },
+    {
+      "id": "cp_finalRedaction",
+      "pool": "sect",
+      "label": "Final Redaction",
+      "kind": "practice",
+      "output": "art/cp_finalRedaction.png",
+      "prompt": "Use case: illustration-story. One original opaque full-bleed medieval cosmic-horror dark-fantasy practice card illustration: Final Redaction. Fresh scene, not a recolour or a portrait. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, vast environmental scale, broad calm value masses, and one focal region with strongest light/contrast. Hand-placed pixel clusters, hard edges, selective dithering, restricted palette, not smooth painterly brushwork. Reference1 and Reference2 are SURFACE TREATMENT ONLY (l5/l6; exclude their eyes, portals and scenes). Reference3 is the patron SEAL SHAPE to echo in the main object's silhouette or real architectural carving. Reference4 is COLOUR IDENTITY ONLY, not its composition. STRICT 5:7 PORTRAIT. Entire principal action, 2 or3 small figures and identifying ritual object/materials in upper CENTRAL45% (y8-43%, x25-75%). Figures subordinate to the vast architecture; no individual figure taller than25% of the image. Lower half is a broad quiet shadowed arch or chamber with low contrast and no new action, people, bright props or body piles. Keep the ritual understandable at70x100 pixels. All human, dead and depicted faces are completely INDISCERNIBLE at full resolution: rear views, completely sealed helmets or opaque hood voids; no eyes, noses, mouths or portrait features. Corpses completely shrouded, no detailed skull faces or exposed wounds. Non-graphic adult ritual sacrifice may be implied by a sealed machine or an empty dark passage, never shown as injury. This is a functioning remnant institution transformed into the body of its own inhuman patron The Unfinished Index. Its alien presence comes from impossible anatomy-like architecture, chitinous stone folds, oppressive scale and ritual geometry, not generic piles of tentacles. Primary silhouette grammar: Three offset rectangular frames sharing a vertical stem; folded, misaligned architecture. Primary/secondary palette: Dominant cobalt and lapis BLUE robes / enamel, navy shadows, secondary parchment and honey GOLD structural edges and trim. Existing Scholar blue/gold identity. Apply these as local cloth, enamel and architectural material colours, with neutral grey stone and sky, no all-image colour wash. Rot and despair must read without obscuring the focal action. Subject: Two small deeply hooded cobalt archivists receive a third hooded adult Scholar into three misaligned gold-edged rectangular frames. Blank record slabs slide from a side shelf while the inner figure disappears into a black fold; no readable writing or bodily injury. One intentional diegetic patron motif may be carved into a ritual object or building as the user requested; no other readable symbols or writing. Illustration only: no text, numerals, UI, card frame, decorative border, vignette or distracting tiny clutter. Do not copy a known franchise chaos emblem, human god portrait or reference eye. ",
+      "refs": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png",
+        "images/dark-fantasy/full-map-patron-prototype/art/patron-index.png",
+        "images/dark-fantasy/full-map-enemy-prototype/art/fe_abstractDisputation.png"
+      ],
+      "current": false,
+      "supersededBy": "corrections.json"
+    },
+    {
+      "id": "cp_archiveOfUnfinishedIndex",
+      "pool": "sect",
+      "label": "Archive of the Unfinished Index",
+      "kind": "structure",
+      "output": "art/cp_archiveOfUnfinishedIndex.png",
+      "prompt": "Use case: illustration-story. One original opaque full-bleed medieval cosmic-horror dark-fantasy structure card illustration: Archive of the Unfinished Index. Fresh scene, not a recolour or a portrait. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, vast environmental scale, broad calm value masses, and one focal region with strongest light/contrast. Hand-placed pixel clusters, hard edges, selective dithering, restricted palette, not smooth painterly brushwork. Reference1 and Reference2 are SURFACE TREATMENT ONLY (l5/l6; exclude their eyes, portals and scenes). Reference3 is the patron SEAL SHAPE to echo in the main object's silhouette or real architectural carving. Reference4 is COLOUR IDENTITY ONLY, not its composition. STRICT 9:4 LANDSCAPE, three-cell Structure. The named building dominates CENTRAL75%, simple monumental silhouette; tiny anonymous fully hooded figures for scale only. Keep silhouette legible at70x100 pixels. All human, dead and depicted faces are completely INDISCERNIBLE at full resolution: rear views, completely sealed helmets or opaque hood voids; no eyes, noses, mouths or portrait features. Corpses completely shrouded, no detailed skull faces or exposed wounds. Non-graphic adult ritual sacrifice may be implied by a sealed machine or an empty dark passage, never shown as injury. This is a functioning remnant institution transformed into the body of its own inhuman patron The Unfinished Index. Its alien presence comes from impossible anatomy-like architecture, chitinous stone folds, oppressive scale and ritual geometry, not generic piles of tentacles. Primary silhouette grammar: Three offset rectangular frames sharing a vertical stem; folded, misaligned architecture. Primary/secondary palette: Dominant cobalt and lapis BLUE robes / enamel, navy shadows, secondary parchment and honey GOLD structural edges and trim. Existing Scholar blue/gold identity. Apply these as local cloth, enamel and architectural material colours, with neutral grey stone and sky, no all-image colour wash. Rot and despair must read without obscuring the focal action. Subject: A vast cobalt archive consists of three offset, nested rectangular towers sharing one vertical honey-gold spine. Their impossible deep black openings imply rooms folded into each other, with root-like quill buttresses. No giant eye, human face or readable writing. One intentional diegetic patron motif may be carved into a ritual object or building as the user requested; no other readable symbols or writing. Illustration only: no text, numerals, UI, card frame, decorative border, vignette or distracting tiny clutter. Do not copy a known franchise chaos emblem, human god portrait or reference eye. ",
+      "refs": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png",
+        "images/dark-fantasy/full-map-patron-prototype/art/patron-index.png",
+        "images/dark-fantasy/full-map-enemy-prototype/art/fe_abstractDisputation.png"
+      ],
+      "current": false,
+      "supersededBy": "corrections.json"
+    }
+  ]
+}

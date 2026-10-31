@@ -1,3 +1,4 @@
+import { hasPopulationLedger, selectPeople, transformPeople } from './population-ledger.js';
 // Hosted Stock is the only material inventory. Plans are pure, ordered and atomic.
 import { getDetailedPracticeDef, getDetailedStructureDef } from '../game-config.js';
 import { ageCohortTotal, emptySpecialists } from './cohorts.js';
@@ -25,7 +26,7 @@ export function structureModifierAmount(def, mod, slot) {
 
 export function structureModifiers(state, settlement) {
   return (settlement?.structureSlots ?? []).flatMap(slot => {
-    if (slot?.construction) return [];
+    if (slot?.construction || slot?.upkeepActive===false) return [];
     const def = getDetailedStructureDef(state, slot?.structureId);
     if (def?.specialistGate && specialistCount(settlement, def.pool) < def.specialistGate) return [];
     return (def?.modifiers ?? []).filter(mod => modifierCondition(state, settlement, mod.query)).map(mod => {
@@ -111,18 +112,20 @@ export function generateStock(state, settlement, slot, amount, staffed = false) 
 
 // Local board, allies, then priced neutrals; each group uses authored region order.
 // Physical adjacency and a live connection are independently required.
-export function stockProviderSlots(state, settlement, localOnly = false) {
+export function stockProviderSlots(state, settlement, localOnly = false, context = {}) {
   const host = state.world.sites.find(site => site.detailedState === settlement);
-  const sources = [{ regionId: host?.regionId ?? null, settlement, local: true }];
+  const holder=getRegionState(state,host?.regionId)?.controller;
+  const beneficiary=context.beneficiary??holder;
+  const sources = context.discretionary&&holder!==beneficiary?[]:[{ regionId: host?.regionId ?? null, settlement, local: true }];
   const markets = [];
-  if (!localOnly && host && getRegionState(state, host.regionId)?.controller === 'player') {
+  if (!localOnly && host && (state.rulesetId ? ['player','external-a'].includes(beneficiary)&&(holder!=='frontier'||context.discretionary) : holder === 'player')) {
     const connected = getConnectedRegionIds(state, host.regionId);
     for (const regionId of getAdjacentRegionIds(state, host.regionId)) {
       if (!connected.includes(regionId)) continue;
       const site = state.world.sites.find(site => site.regionId === regionId && site.simulationMode === 'detailed');
       if (!site?.detailedState) continue;
-      if (getRegionState(state, regionId)?.controller === 'player') sources.push({ regionId, settlement: site.detailedState });
-      else if (site.neutral) markets.push({ regionId, settlement: site.detailedState, market: true });
+      if (getRegionState(state, regionId)?.controller === (state.rulesetId?beneficiary:'player')) sources.push({ regionId, settlement: site.detailedState });
+      else if (!state.rulesetId && site.neutral) markets.push({ regionId, settlement: site.detailedState, market: true });
     }
   }
   return [...sources, ...markets].flatMap(source => localStockSlots(state, source.settlement).map((slot, slotIndex) =>
@@ -176,9 +179,10 @@ function recordStockTransfers(state, settlement, providers, reason) {
 }
 
 // Require reads the activation-start stock. Consume reservations cannot double-spend.
-export function planStock(state, settlement, consume = [], require = [], consumer = null, staffed = false, localOnly = false) {
+export function planStock(state, settlement, consume = [], require = [], consumer = null, staffed = false, localOnly = false, context = {}) {
   if (!consume.length && !require.length) return { ok: true, providers: [] };
-  const sources = stockProviderSlots(state, settlement, localOnly);
+  const beneficiary=getDetailedPracticeDef(state,consumer?.practiceId)?.category==='influence'?consumer.allegiance:context.beneficiary;
+  const sources = stockProviderSlots(state, settlement, localOnly, {...context,beneficiary});
   const slots = sources.map(source => source.slot);
   const remaining = slots.map(s => Math.max(0, s?.stock ?? 0));
   const providers = [];
@@ -228,11 +232,25 @@ export function planStock(state, settlement, consume = [], require = [], consume
       if (needed > 0) return { ok: false, missing: { kind, traits: cost.traits, amount: needed }, providers: [] };
     }
   }
-  return { ok: true, providers };
+  const hostId=state.world.sites.find(site=>site.detailedState===settlement)?.regionId;
+  const authority=state.rulesetId?{hostId,holder:getRegionState(state,hostId)?.controller,localOnly,
+    context:{...context,beneficiary},consumerId:consumer?.instanceId,allegiance:consumer?.allegiance,
+    sources:providers.map(p=>({regionId:p.regionId,slotIndex:p.slotIndex,instanceId:stockProviderSlot(state,settlement,p)?.instanceId,holder:getRegionState(state,p.regionId)?.controller}))}:null;
+  return { ok: true, providers, ...(authority?{authority}:{}) };
 }
 
 export function applyStockPlan(state, settlement, plan) {
   if (!plan.ok) return false;
+  if (plan.authority) {
+    const a=plan.authority;
+    if(getRegionState(state,a.hostId)?.controller!==a.holder)return false;
+    if(a.consumerId&&!settlement.practiceSlots.some(s=>s?.instanceId===a.consumerId&&s.allegiance===a.allegiance))return false;
+    const eligible=stockProviderSlots(state,settlement,a.localOnly,a.context);
+    for(const p of a.sources)if(getRegionState(state,p.regionId)?.controller!==p.holder||!eligible.some(s=>s.regionId===p.regionId&&s.slotIndex===p.slotIndex&&s.slot?.instanceId===p.instanceId))return false;
+  }
+  const debit=new Map();
+  for(const p of plan.providers){const slot=stockProviderSlot(state,settlement,p);if(!slot||slot.stock<p.amount)return false;if(p.kind==='consume')debit.set(slot,(debit.get(slot)??0)+p.amount);}
+  if([...debit].some(([slot,amount])=>slot.stock<amount))return false;
   const purchases = {};
   for (const p of plan.providers) if (p.kind === 'consume') {
     stockProviderSlot(state, settlement, p).stock -= p.amount;
@@ -295,6 +313,7 @@ export function consumeStock(state, settlement, trait, amount) {
 }
 
 export function trainSpecialists(settlement, classId, amount) {
+  if(hasPopulationLedger(settlement))return transformPeople(settlement,selectPeople(settlement,amount,{kind:"adults",specialty:"ordinary"}),{specialty:classId});
   let remaining = Math.max(0, Math.floor(amount));
   for (const cohort of Object.values(settlement.populationByClass)) {
     cohort.specialists ??= emptySpecialists();
@@ -304,4 +323,9 @@ export function trainSpecialists(settlement, classId, amount) {
     remaining -= added;
   }
   return amount - remaining;
+}
+
+export function discretionaryStock(state,settlement,trait) {
+  if(!state.rulesetId)return stockTotal(state,settlement,trait);
+  return stockProviderSlots(state,settlement,false,{beneficiary:'player',discretionary:true}).reduce((n,s)=>n+(stockTraits(state,s.slot).includes(trait)?Math.max(0,s.slot?.stock??0):0),0);
 }

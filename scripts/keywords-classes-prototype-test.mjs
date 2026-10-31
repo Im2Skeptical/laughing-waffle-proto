@@ -12,13 +12,14 @@ import { stockOutputBreakdown, stockCapacity } from '../src/model/detailed-settl
 import { evaluateDetailedPracticeSlot } from '../src/model/detailed-settlements/practices.js';
 import { getGamepieceFace } from '../src/model/gamepiece-presentation.js';
 import { synthesisContributors } from '../src/model/detailed-settlements/synthesis.js';
+import {populationBins,writePopulationBins} from '../src/model/detailed-settlements/population-ledger.js';
 
 for(const mode of ['disciplines','lenses','teachings'])for(const classId of ['scholar','warrior','priest','merchant']) {
   const state=create(mode,classId),home=state.civilization.capitalRegionId;
   initializeReplayClock(state);
   const timeline=createTimelineFromInitialState(state);
   const count=score(state,home,'economicRegions');
-  assert.equal(count,3,'two allies and a connected neutral form one trade zone');
+  assert.equal(count,2,'the two allied holdings form one trade zone; unheld regions do not join it');
   const disconnected=deserializeGameState(serializeGameState(state));
   disconnected.world.connections=[];
   assert.equal(score(disconnected,home,'economicRegions'),1,'disconnecting roads breaks zones');
@@ -52,7 +53,7 @@ const initial=score(untaught,untaught.civilization.capitalRegionId,'monsterTroph
 emitPracticeEvent(untaught,{kind:'defenseSucceeded'});
 emitPracticeEvent(untaught,{kind:'campaignWon'});
 assert.equal(score(untaught,null,'monsterTrophies'),initial,'defenses and neutral conquests are not monster kills');
-emitPracticeEvent(untaught,{kind:'monsterDestroyed'});
+emitPracticeEvent(untaught,{kind:'monsterDestroyed',faction:'player'});
 assert.equal(score(untaught,null,'monsterTrophies'),initial+1);
 const selected=create('disciplines','scholar');
 const warrior={...getVassalCandidatePool(selected).candidates[1],founderClassId:null,classId:'warrior'};
@@ -69,9 +70,9 @@ const originalCapacity=stockCapacity(multiplied,home.detailedState,barter);
 assert.equal(getDetailedPracticeDef(multiplied,'barter').effects[0].amount,1,'keyword does not edit base output');
 assert.equal(getDetailedPracticeDef(multiplied,'observation').prototypeKeyword,undefined,'Research is not treated as Stock output');
 const pool=stockOutputBreakdown(multiplied,home.detailedState,barter);
-assert.equal(pool.multiplier,4,'base one plus three Economic Regions');
-assert.deepEqual(pool.sources.map(({label,amount})=>({label,amount})),[{label:'Economic Regions',amount:3}]);
-assert.equal(stockOutputBreakdown(multiplied,home.detailedState,barter,false,[{kind:'outputMultiplier',amount:2,sourceId:'other',sourceLabel:'Other source',query:{}}]).multiplier,6,'keyword adds into the existing pool');
+assert.equal(pool.multiplier,3,'base one plus two allied Economic Regions');
+assert.deepEqual(pool.sources.map(({label,amount})=>({label,amount})),[{label:'Economic Regions',amount:2}]);
+assert.equal(stockOutputBreakdown(multiplied,home.detailedState,barter,false,[{kind:'outputMultiplier',amount:2,sourceId:'other',sourceLabel:'Other source',query:{}}]).multiplier,5,'keyword adds into the existing pool');
 const withoutKeyword=deserializeGameState(serializeGameState(multiplied));
 delete withoutKeyword.gameConfig.keywordPrototype;
 assert.equal(originalCapacity,stockCapacity(withoutKeyword,withoutKeyword.world.sites.find(s=>s.regionId===home.regionId).detailedState,barter),'Capacity Multiplier is untouched');
@@ -81,7 +82,7 @@ multiplied.gameConfig.gamepieces.practices.barter.workerBonus=0;
 multiplied.gameConfig.gamepieces.practices.barter.stockCapacity=100;
 barter.stock=0;
 assert.equal(advance(multiplied,1).ok,true);
-assert.equal(barter.stock,8,'real activation produces base 2 × Output Multiplier 4, not base 2 + 3');
+assert.equal(barter.stock,6,'real activation produces base 2 × Output Multiplier 3, not base 2 + 2');
 const martial=create('disciplines','warrior'),martialSite=getDetailedSettlementSites(martial,{playerOnly:true})[0];
 martial.civilization.history.monsterTrophies=2;
 const huntSlot=martialSite.detailedState.practiceSlots[3],huntDef=getDetailedPracticeDef(martial,'monsterHunting');
@@ -117,7 +118,7 @@ getDetailedSettlementSites(missingWater,{playerOnly:true})[1].detailedState.prac
 assert.equal(score(missingWater,synthesisHome,'synthesis','copyingTexts'),3,'normal allied supply can satisfy the local contributor');
 const unstaffed=deserializeGameState(untouched);
 const unstaffedSettlement=unstaffed.world.sites.find(site=>site.regionId===synthesisHome).detailedState;
-for(const cohort of Object.values(unstaffedSettlement.populationByClass))cohort.specialists.scholar.adults=0;
+writePopulationBins(unstaffedSettlement,populationBins(unstaffedSettlement).map(bin=>({...bin,specialty:bin.specialty==='scholar'?'ordinary':bin.specialty})));
 assert.equal(score(unstaffed,synthesisHome,'synthesis','copyingTexts'),0,'ordinary workers never substitute for Scholar staffing');
 const blocked=create('disciplines','scholar',{synthesisSupply:'blocked'});
 initializeReplayClock(blocked);const blockedTimeline=createTimelineFromInitialState(blocked);

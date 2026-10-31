@@ -16,14 +16,14 @@ import {resolveLifeMapShopPrice} from '../src/model/life-map-balance.js';
 
 const DIR = 'artifacts/grok-oct24-spend/shop-undo';
 const LIVE = ['logging', 'forage', 'dryFarming', 'quarrying', 'surfaceMining'];
-const STRIP = ['academy', null, null, null, null, null, null];
-const STORED = ['academy', null, null, 'storehouse', null, null, null];
+const STRIP = ['academy', null, null, null, null, null, null, null];
+const STORED = ['academy', null, null, 'storehouse', null, null, null, null];
 // [id, workers, scholarKnowledge, output, capacity]. R12 is plains: Dry Farming
-// output is 7. Academy quality 1 adds +4 capacity for a Scholar or Knowledge tag.
+// output is 2 (one authored plains region). Academy quality 1 adds +4 capacity for a Scholar or Knowledge tag.
 // Storehouse quality 3 adds +4 capacity for Construction.
-const BOARD = [['logging', 1, true, 1, 5], ['forage', 1, true, 1, 5], ['dryFarming', 2, true, 7, 5], ['quarrying', 1, false, 1, 1], ['surfaceMining', 0, true, 1, 5]];
-const MOVED = [['forage', 1, true, 1, 5], ['dryFarming', 2, true, 7, 5], ['quarrying', 1, true, 1, 5], ['surfaceMining', 1, true, 1, 5], ['logging', 0, false, 1, 1]];
-const HELD = [['logging', 1, true, 1, 9], ['forage', 1, true, 1, 5], ['dryFarming', 2, true, 7, 5], ['quarrying', 1, false, 1, 5], ['surfaceMining', 0, true, 1, 5]];
+const BOARD = [['logging', 1, true, 1, 5], ['forage', 1, true, 1, 5], ['dryFarming', 2, true, 2, 5], ['quarrying', 1, false, 1, 1], ['surfaceMining', 0, true, 1, 5]];
+const MOVED = [['forage', 1, true, 1, 5], ['dryFarming', 2, true, 2, 5], ['quarrying', 1, true, 1, 5], ['surfaceMining', 1, true, 1, 5], ['logging', 0, false, 1, 1]];
+const HELD = [['logging', 1, true, 1, 9], ['forage', 1, true, 1, 5], ['dryFarming', 2, true, 2, 5], ['quarrying', 1, false, 1, 5], ['surfaceMining', 0, true, 1, 5]];
 const results = [];
 
 function diff(expected, actual, path = '$') {
@@ -141,7 +141,7 @@ function replay(session, name) {
 function replace(session, practiceId, toIndex) {
   const card = offer(session, (action) => action.practiceId === 'pastoralism');
   const bought = act(session, A.VASSAL_PURCHASE_SHOP_OFFER, {nodeId: session.nodeId, offerId: card.offerId, toIndex, replacePracticeId: practiceId});
-  if (bought.prestigeCost !== 28 || bought.phaseCost !== 109 || bought.currencyCost !== 0) throw new Error('pastoralism quote changed');
+  if (bought.prestigeCost !== 28 || bought.phaseCost !== 109 || bought.currencyCost !== 0) throw new Error(`pastoralism quote changed: ${bought.prestigeCost}/${bought.phaseCost}/${bought.currencyCost}`);
   return bought;
 }
 

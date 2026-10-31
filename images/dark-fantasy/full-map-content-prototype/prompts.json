@@ -1,0 +1,723 @@
+{
+  "version": 1,
+  "current": true,
+  "scope": "50 isolated Bronze review candidates; not live gamepieces",
+  "entries": [
+    {
+      "id": "fm_oathSupper",
+      "label": "Oath Supper",
+      "pool": "warrior",
+      "kind": "practice",
+      "scene": "Two back-facing red-cloaked soldiers share a steaming bread bowl with a hooded local at a timber bench in a vast ruined stone hall.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Oath Supper, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action, grouped figures, bold silhouettes, environmental architectural scale, broad calm value masses, and one focal light/contrast. Principal action, anonymous figures and key object confined to the upper central 45%; lower half subdued dark stone floor for card controls. All human and depicted faces completely indiscernible, staged from behind, distant, hooded or enclosed helmets in deep shadow; absolutely no visible eyes, noses, mouths or facial features. Surface treatment: deliberate hand-placed pixel clusters, hard edges, selective dithering, restricted palette, like detailed 1990s dark fantasy pixel painting. Warrior pool palette vermilion and brick red, oxidized teal and dark iron plum. Clear at 70x100 pixels. Illustration only: no text, writing, symbols, UI, frame, border, vignette or tiny clutter. Scene: under a vast ruined stone hall, two small back-facing red-cloaked soldiers share a steaming bread bowl with a hooded local at the head of a rough timber bench in the upper third; a single warm shaft of light picks out the offered bowl, shield silhouettes and joined hands. The environment dwarfs the people. Lower half quiet shadowed stone and bench legs. Do not reproduce any reference composition or recognizable portraits.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_oathSupper.png"
+    },
+    {
+      "id": "fm_shieldEscorts",
+      "label": "Shield Escorts",
+      "pool": "warrior",
+      "kind": "practice",
+      "scene": "Three helmeted red-cloaked escorts seen from behind guide hooded travellers across a broken stone bridge; shields catch the light.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Shield Escorts, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted vermilion and brick red, oxidized teal, dark iron plum palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Three helmeted red-cloaked escorts seen from behind guide hooded travellers across a broken stone bridge; shields catch the light.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_shieldEscorts.png"
+    },
+    {
+      "id": "fm_veteransTestimony",
+      "label": "Veterans’ Testimony",
+      "pool": "warrior",
+      "kind": "practice",
+      "scene": "A back-facing wounded veteran sets a battered shield before two cloaked listeners beneath a ruined red-draped arch.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Veterans’ Testimony, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted vermilion and brick red, oxidized teal, dark iron plum palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A back-facing wounded veteran sets a battered shield before two cloaked listeners beneath a ruined red-draped arch.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_veteransTestimony.png"
+    },
+    {
+      "id": "fm_publicDrills",
+      "label": "Public Drills",
+      "pool": "warrior",
+      "kind": "practice",
+      "scene": "A helmeted instructor places a wooden training spear in the hands of a back-facing recruit under towering red stone walls.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Public Drills, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted vermilion and brick red, oxidized teal, dark iron plum palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A helmeted instructor places a wooden training spear in the hands of a back-facing recruit under towering red stone walls.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_publicDrills.png"
+    },
+    {
+      "id": "fm_frontierRelief",
+      "label": "Frontier Relief",
+      "pool": "warrior",
+      "kind": "practice",
+      "scene": "Two anonymous red-cloaked guards lift a heavy grain sack toward hooded villagers beneath a storm-dark gate.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Frontier Relief, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted vermilion and brick red, oxidized teal, dark iron plum palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Two anonymous red-cloaked guards lift a heavy grain sack toward hooded villagers beneath a storm-dark gate.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_frontierRelief.png"
+    },
+    {
+      "id": "fm_ransomedKin",
+      "label": "Ransomed Kin",
+      "pool": "warrior",
+      "kind": "practice",
+      "scene": "A helmeted soldier unlocks empty iron shackles while a back-facing hooded stranger rejoins an anonymous family in a ruined courtyard.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Ransomed Kin, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted vermilion and brick red, oxidized teal, dark iron plum palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A helmeted soldier unlocks empty iron shackles while a back-facing hooded stranger rejoins an anonymous family in a ruined courtyard.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_ransomedKin.png"
+    },
+    {
+      "id": "fm_swornPatrols",
+      "label": "Sworn Patrols",
+      "pool": "warrior",
+      "kind": "practice",
+      "scene": "Two enclosed-helmet sentries exchange a torch at a rain-soaked watch stair; a small hooded resident watches from a doorway.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Sworn Patrols, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted vermilion and brick red, oxidized teal, dark iron plum palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Two enclosed-helmet sentries exchange a torch at a rain-soaked watch stair; a small hooded resident watches from a doorway.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_swornPatrols.png"
+    },
+    {
+      "id": "fm_oathHall",
+      "label": "Oath Hall",
+      "pool": "warrior",
+      "kind": "structure",
+      "footprint": 1,
+      "scene": "A low fortified timber oath hall with a broad red-painted door stands under a ruined stone keep; tiny helmeted visitors ascend its steps.",
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Oath Hall, a medieval dark-fantasy Structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Named building dominates the central 75%, with a simple silhouette and tiny anonymous figures for scale. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted vermilion and brick red, oxidized teal, dark iron plum palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A low fortified timber oath hall with a broad red-painted door stands under a ruined stone keep; tiny helmeted visitors ascend its steps.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_oathHall.png"
+    },
+    {
+      "id": "fm_frontierWatch",
+      "label": "Frontier Watch",
+      "pool": "warrior",
+      "kind": "structure",
+      "footprint": 1,
+      "scene": "A narrow timber watchtower braces against a broken dark stone wall, with a rust-red canopy and tiny faceless sentries.",
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Frontier Watch, a medieval dark-fantasy Structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Named building dominates the central 75%, with a simple silhouette and tiny anonymous figures for scale. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted vermilion and brick red, oxidized teal, dark iron plum palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A narrow timber watchtower braces against a broken dark stone wall, with a rust-red canopy and tiny faceless sentries.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_frontierWatch.png"
+    },
+    {
+      "id": "fm_veteransHearth",
+      "label": "Veterans’ Hearth",
+      "pool": "warrior",
+      "kind": "structure",
+      "footprint": 1,
+      "scene": "A broad red-roofed communal hearth house shelters worn shields and small anonymous pensioners under a vast crumbling aqueduct.",
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Veterans’ Hearth, a medieval dark-fantasy Structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Named building dominates the central 75%, with a simple silhouette and tiny anonymous figures for scale. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted vermilion and brick red, oxidized teal, dark iron plum palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A broad red-roofed communal hearth house shelters worn shields and small anonymous pensioners under a vast crumbling aqueduct.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_veteransHearth.png"
+    },
+    {
+      "id": "fm_openLessons",
+      "label": "Open Lessons",
+      "pool": "scholar",
+      "kind": "practice",
+      "scene": "A blue-hooded teacher seen from behind points to an unmarked wooden model before two small cloaked pupils in a vast sunlit ruin.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Open Lessons, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted cobalt and lapis blue, navy, parchment and honey gold palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A blue-hooded teacher seen from behind points to an unmarked wooden model before two small cloaked pupils in a vast sunlit ruin.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_openLessons.png"
+    },
+    {
+      "id": "fm_civicRegisters",
+      "label": "Civic Registers",
+      "pool": "scholar",
+      "kind": "practice",
+      "scene": "Two anonymous blue-robed clerks bind blank parchment bundles beside a row of newly repaired doorways under old stone arches.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Civic Registers, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted cobalt and lapis blue, navy, parchment and honey gold palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Two anonymous blue-robed clerks bind blank parchment bundles beside a row of newly repaired doorways under old stone arches.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_civicRegisters.png"
+    },
+    {
+      "id": "fm_publicDisputation",
+      "label": "Public Disputation",
+      "pool": "scholar",
+      "kind": "practice",
+      "scene": "Back-facing blue-robed speakers face one another across a stone lectern, with a small hooded audience framed by immense cobalt arches.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Public Disputation, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted cobalt and lapis blue, navy, parchment and honey gold palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Back-facing blue-robed speakers face one another across a stone lectern, with a small hooded audience framed by immense cobalt arches.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_publicDisputation.png"
+    },
+    {
+      "id": "fm_travellingTutors",
+      "label": "Travelling Tutors",
+      "pool": "scholar",
+      "kind": "practice",
+      "scene": "Two small blue-cloaked tutors carry blank scroll cases toward a distant hill village across a monumental ruined causeway.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Travelling Tutors, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted cobalt and lapis blue, navy, parchment and honey gold palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Two small blue-cloaked tutors carry blank scroll cases toward a distant hill village across a monumental ruined causeway.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_travellingTutors.png"
+    },
+    {
+      "id": "fm_commonMeasures",
+      "label": "Common Measures",
+      "pool": "scholar",
+      "kind": "practice",
+      "scene": "An anonymous blue-hooded craftsperson sets matching plain weights beside a balance at a shadowed market bench; no markings or letters.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Common Measures, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted cobalt and lapis blue, navy, parchment and honey gold palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: An anonymous blue-hooded craftsperson sets matching plain weights beside a balance at a shadowed market bench; no markings or letters.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_commonMeasures.png"
+    },
+    {
+      "id": "fm_copiedCharters",
+      "label": "Copied Charters",
+      "pool": "scholar",
+      "kind": "practice",
+      "scene": "Two back-facing cobalt-robed copyists press blank parchment sheets beneath a brass weight in a honey-lit ruined scriptorium.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Copied Charters, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted cobalt and lapis blue, navy, parchment and honey gold palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Two back-facing cobalt-robed copyists press blank parchment sheets beneath a brass weight in a honey-lit ruined scriptorium.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_copiedCharters.png"
+    },
+    {
+      "id": "fm_sharedWorkshops",
+      "label": "Shared Workshops",
+      "pool": "scholar",
+      "kind": "practice",
+      "scene": "A blue-hooded master guides a back-facing apprentice’s hands over a large wooden measuring frame in a monumental stone workshop.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Shared Workshops, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted cobalt and lapis blue, navy, parchment and honey gold palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A blue-hooded master guides a back-facing apprentice’s hands over a large wooden measuring frame in a monumental stone workshop.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_sharedWorkshops.png"
+    },
+    {
+      "id": "fm_villageSchool",
+      "label": "Village School",
+      "pool": "scholar",
+      "kind": "structure",
+      "footprint": 1,
+      "scene": "A modest cobalt-roofed schoolhouse leans against an enormous ruined arch; tiny hooded pupils enter through a warm honey-gold doorway.",
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Village School, a medieval dark-fantasy Structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Named building dominates the central 75%, with a simple silhouette and tiny anonymous figures for scale. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted cobalt and lapis blue, navy, parchment and honey gold palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A modest cobalt-roofed schoolhouse leans against an enormous ruined arch; tiny hooded pupils enter through a warm honey-gold doorway.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_villageSchool.png"
+    },
+    {
+      "id": "fm_openArchive",
+      "label": "Open Archive",
+      "pool": "scholar",
+      "kind": "structure",
+      "footprint": 1,
+      "scene": "A squat stone archive with open cobalt shutters and golden shelves of blank parchment dominates a ruined civic square.",
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Open Archive, a medieval dark-fantasy Structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Named building dominates the central 75%, with a simple silhouette and tiny anonymous figures for scale. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted cobalt and lapis blue, navy, parchment and honey gold palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A squat stone archive with open cobalt shutters and golden shelves of blank parchment dominates a ruined civic square.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_openArchive.png"
+    },
+    {
+      "id": "fm_roadsideLectureHall",
+      "label": "Roadside Lecture Hall",
+      "pool": "scholar",
+      "kind": "structure",
+      "footprint": 1,
+      "scene": "A small open-sided blue-tiled lecture hall stands beside a broken imperial road, dwarfed by ruined pillars and distant hills.",
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Roadside Lecture Hall, a medieval dark-fantasy Structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Named building dominates the central 75%, with a simple silhouette and tiny anonymous figures for scale. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted cobalt and lapis blue, navy, parchment and honey gold palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A small open-sided blue-tiled lecture hall stands beside a broken imperial road, dwarfed by ruined pillars and distant hills.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_roadsideLectureHall.png"
+    },
+    {
+      "id": "fm_fallowFields",
+      "label": "Fallow Fields",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "Two distant back-facing peasants gather sparse wheat beside a fallen stone boundary wall; broad brown furrows recede into shadow.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Fallow Fields, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Two distant back-facing peasants gather sparse wheat beside a fallen stone boundary wall; broad brown furrows recede into shadow.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_fallowFields.png"
+    },
+    {
+      "id": "fm_handQuern",
+      "label": "Hand Quern",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "Two anonymous hooded millers turn a heavy hand-quern under a vast weathered stone shelter, grain and meal catching warm light.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Hand Quern, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Two anonymous hooded millers turn a heavy hand-quern under a vast weathered stone shelter, grain and meal catching warm light.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_handQuern.png"
+    },
+    {
+      "id": "fm_woodlotRights",
+      "label": "Woodlot Rights",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "A back-facing forester receives a plain wooden token from a hooded steward beneath huge old trees and a ruined boundary gate.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Woodlot Rights, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A back-facing forester receives a plain wooden token from a hooded steward beneath huge old trees and a ruined boundary gate.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_woodlotRights.png"
+    },
+    {
+      "id": "fm_rubblePicking",
+      "label": "Rubble Picking",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "Two anonymous labourers lever a single reusable stone block from the base of a vast collapsed wall.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Rubble Picking, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Two anonymous labourers lever a single reusable stone block from the base of a vast collapsed wall.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_rubblePicking.png"
+    },
+    {
+      "id": "fm_villageWell",
+      "label": "Village Well",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "A hooded villager draws a bright wooden bucket from a deep stone well beneath an immense broken aqueduct.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Village Well, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A hooded villager draws a bright wooden bucket from a deep stone well beneath an immense broken aqueduct.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_villageWell.png"
+    },
+    {
+      "id": "fm_patchworkSmithy",
+      "label": "Patchwork Smithy",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "A back-facing smith works a small orange billet beneath a patched roof framed by colossal ruined stone furnace walls.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Patchwork Smithy, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A back-facing smith works a small orange billet beneath a patched roof framed by colossal ruined stone furnace walls.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_patchworkSmithy.png"
+    },
+    {
+      "id": "fm_scrapGathering",
+      "label": "Scrap Gathering",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "Two hooded scavengers lift a rusted iron hinge from a fallen monumental gate, their tiny silhouettes lit by pale dusk.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Scrap Gathering, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Two hooded scavengers lift a rusted iron hinge from a fallen monumental gate, their tiny silhouettes lit by pale dusk.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_scrapGathering.png"
+    },
+    {
+      "id": "fm_peatCutting",
+      "label": "Peat Cutting",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "Distant anonymous peat cutters stack dark blocks beside a misty trench below the remains of an old stone causeway.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Peat Cutting, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Distant anonymous peat cutters stack dark blocks beside a misty trench below the remains of an old stone causeway.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_peatCutting.png"
+    },
+    {
+      "id": "fm_ragPulping",
+      "label": "Rag Pulping",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "Two back-facing workers stretch a coarse pulp screen above a timber vat inside a large abandoned stone laundry.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Rag Pulping, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Two back-facing workers stretch a coarse pulp screen above a timber vat inside a large abandoned stone laundry.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_ragPulping.png"
+    },
+    {
+      "id": "fm_hearthBarter",
+      "label": "Hearth Barter",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "Two faceless hooded neighbours exchange a small bread bundle and a plain coin pouch over a warm hearthside bench.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Hearth Barter, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Two faceless hooded neighbours exchange a small bread bundle and a plain coin pouch over a warm hearthside bench.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_hearthBarter.png"
+    },
+    {
+      "id": "fm_debtService",
+      "label": "Debt Service",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "An anonymous stooped tenant places a coin pouch into the hands of a shadowed hooded creditor in an immense cold counting hall.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Debt Service, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: An anonymous stooped tenant places a coin pouch into the hands of a shadowed hooded creditor in an immense cold counting hall.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_debtService.png"
+    },
+    {
+      "id": "fm_forcedPageantry",
+      "label": "Forced Pageantry",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "Tiny hooded residents carry an empty ceremonial litter beneath worn cloth hangings in a vast bleak stone square; no emblems.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Forced Pageantry, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Tiny hooded residents carry an empty ceremonial litter beneath worn cloth hangings in a vast bleak stone square; no emblems.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_forcedPageantry.png"
+    },
+    {
+      "id": "fm_taxFarming",
+      "label": "Tax Farming",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "Back-facing peasants unload grain sacks at a high stone toll window while a hooded steward lowers a plain coin purse.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Tax Farming, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Back-facing peasants unload grain sacks at a high stone toll window while a hooded steward lowers a plain coin purse.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_taxFarming.png"
+    },
+    {
+      "id": "fm_grainTithe",
+      "label": "Grain Tithe",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "Two anonymous porters carry their last grain sack toward a heavily barred stone storehouse door watched by a distant helmeted guard.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Grain Tithe, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Two anonymous porters carry their last grain sack toward a heavily barred stone storehouse door watched by a distant helmeted guard.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_grainTithe.png"
+    },
+    {
+      "id": "fm_seigneurialMuster",
+      "label": "Seigneurial Muster",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "A back-facing recruit accepts a spear from an enclosed-helmet estate guard beneath a massive weathered manor gateway.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Seigneurial Muster, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A back-facing recruit accepts a spear from an enclosed-helmet estate guard beneath a massive weathered manor gateway.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_seigneurialMuster.png"
+    },
+    {
+      "id": "fm_closedSchool",
+      "label": "Closed School",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "Two tiny cloaked pupils pass a guarded narrow doorway into a honey-lit school within an imposing charcoal stone manor.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Closed School, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Two tiny cloaked pupils pass a guarded narrow doorway into a honey-lit school within an imposing charcoal stone manor.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_closedSchool.png"
+    },
+    {
+      "id": "fm_guildFees",
+      "label": "Guild Fees",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "A back-facing craftsperson surrenders a carefully wrapped hammer at a shadowed guild doorway in exchange for a tiny plain coin pouch.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Guild Fees, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A back-facing craftsperson surrenders a carefully wrapped hammer at a shadowed guild doorway in exchange for a tiny plain coin pouch.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_guildFees.png"
+    },
+    {
+      "id": "fm_spoiledStores",
+      "label": "Spoiled Stores",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "An anonymous keeper lifts a rotten sack beside spilled grain in a cavernous damp cellar with a broken roof shaft overhead.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Spoiled Stores, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: An anonymous keeper lifts a rotten sack beside spilled grain in a cavernous damp cellar with a broken roof shaft overhead.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_spoiledStores.png"
+    },
+    {
+      "id": "fm_courtGossip",
+      "label": "Court Gossip",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "Three distant hooded figures whisper beneath a frayed hanging in a vast decaying court gallery, one passing a small closed purse.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Court Gossip, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: Three distant hooded figures whisper beneath a frayed hanging in a vast decaying court gallery, one passing a small closed purse.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_courtGossip.png"
+    },
+    {
+      "id": "fm_roadsideAlms",
+      "label": "Roadside Alms",
+      "pool": "neutral",
+      "kind": "practice",
+      "scene": "A back-facing hooded caretaker offers bread to a cloaked traveller at a small shelter beside an immense ruined road arch.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Roadside Alms, a medieval dark-fantasy Practice card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Principal action, figures and identifying tool/material in the upper central 45%; lower half subdued, quiet dark masses for card controls. Use two or three small figures subordinate to the environment. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A back-facing hooded caretaker offers bread to a cloaked traveller at a small shelter beside an immense ruined road arch.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_roadsideAlms.png"
+    },
+    {
+      "id": "fm_leakingGranary",
+      "label": "Leaking Granary",
+      "pool": "neutral",
+      "kind": "structure",
+      "footprint": 1,
+      "scene": "A leaning timber grain barn with a visibly broken roof dominates a muddy yard beneath ruined imperial walls.",
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Leaking Granary, a medieval dark-fantasy Structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Named building dominates the central 75%, with a simple silhouette and tiny anonymous figures for scale. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A leaning timber grain barn with a visibly broken roof dominates a muddy yard beneath ruined imperial walls.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_leakingGranary.png"
+    },
+    {
+      "id": "fm_crowdedTenement",
+      "label": "Crowded Tenement",
+      "pool": "neutral",
+      "kind": "structure",
+      "footprint": 2,
+      "scene": "A cramped two-wing stone tenement with patched timber galleries fills a narrow courtyard; tiny anonymous residents gather at its base.",
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Crowded Tenement, a medieval dark-fantasy Structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Named building dominates the central 75%, with a simple silhouette and tiny anonymous figures for scale. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A cramped two-wing stone tenement with patched timber galleries fills a narrow courtyard; tiny anonymous residents gather at its base.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_crowdedTenement.png"
+    },
+    {
+      "id": "fm_villagePalisade",
+      "label": "Village Palisade",
+      "pool": "neutral",
+      "kind": "structure",
+      "footprint": 1,
+      "scene": "A modest timber palisade gate with a low lookout platform stands before a massive ancient ruined wall; tiny helmeted sentries give scale.",
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Village Palisade, a medieval dark-fantasy Structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Named building dominates the central 75%, with a simple silhouette and tiny anonymous figures for scale. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A modest timber palisade gate with a low lookout platform stands before a massive ancient ruined wall; tiny helmeted sentries give scale.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_villagePalisade.png"
+    },
+    {
+      "id": "fm_tollGate",
+      "label": "Toll Gate",
+      "pool": "neutral",
+      "kind": "structure",
+      "footprint": 1,
+      "scene": "A heavy wooden toll barrier and cramped stone lodge obstruct an old imperial road under an enormous broken arch.",
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Toll Gate, a medieval dark-fantasy Structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Named building dominates the central 75%, with a simple silhouette and tiny anonymous figures for scale. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A heavy wooden toll barrier and cramped stone lodge obstruct an old imperial road under an enormous broken arch.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_tollGate.png"
+    },
+    {
+      "id": "fm_patronsHall",
+      "label": "Patron’s Hall",
+      "pool": "neutral",
+      "kind": "structure",
+      "footprint": 2,
+      "scene": "A broad decaying manor hall with a sagging covered portico dominates a stone terrace; a tiny line of hooded petitioners waits outside.",
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Patron’s Hall, a medieval dark-fantasy Structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Named building dominates the central 75%, with a simple silhouette and tiny anonymous figures for scale. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A broad decaying manor hall with a sagging covered portico dominates a stone terrace; a tiny line of hooded petitioners waits outside.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_patronsHall.png"
+    },
+    {
+      "id": "fm_abandonedShrine",
+      "label": "Abandoned Shrine",
+      "pool": "neutral",
+      "kind": "structure",
+      "footprint": 1,
+      "scene": "A roofless roadside shrine with a completely featureless weathered stone monolith stands among weeds below towering ruins; no face or symbols.",
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Abandoned Shrine, a medieval dark-fantasy Structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Named building dominates the central 75%, with a simple silhouette and tiny anonymous figures for scale. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A roofless roadside shrine with a completely featureless weathered stone monolith stands among weeds below towering ruins; no face or symbols.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_abandonedShrine.png"
+    },
+    {
+      "id": "fm_crumblingCottages",
+      "label": "Crumbling Cottages",
+      "pool": "neutral",
+      "kind": "structure",
+      "footprint": 1,
+      "scene": "A cluster of three low collapsing stone cottages under patched thatch dominates a quiet village lane below old fortress ruins.",
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Crumbling Cottages, a medieval dark-fantasy Structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Named building dominates the central 75%, with a simple silhouette and tiny anonymous figures for scale. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A cluster of three low collapsing stone cottages under patched thatch dominates a quiet village lane below old fortress ruins.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_crumblingCottages.png"
+    },
+    {
+      "id": "fm_publicBakehouse",
+      "label": "Public Bakehouse",
+      "pool": "neutral",
+      "kind": "structure",
+      "footprint": 1,
+      "scene": "A sturdy communal stone bakehouse with a warm orange oven mouth and stacked plain bread boards stands against a towering broken aqueduct.",
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Public Bakehouse, a medieval dark-fantasy Structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Named building dominates the central 75%, with a simple silhouette and tiny anonymous figures for scale. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A sturdy communal stone bakehouse with a warm orange oven mouth and stacked plain bread boards stands against a towering broken aqueduct.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_publicBakehouse.png"
+    },
+    {
+      "id": "fm_lockedArchive",
+      "label": "Locked Archive",
+      "pool": "neutral",
+      "kind": "structure",
+      "footprint": 1,
+      "scene": "A squat stone archive with heavy barred doors and honey-lit high windows dominates a desolate civic square; tiny hooded clerks wait outside.",
+      "prompt": "One original opaque full-bleed 3:4 portrait illustration for Locked Archive, a medieval dark-fantasy Structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Named building dominates the central 75%, with a simple silhouette and tiny anonymous figures for scale. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A squat stone archive with heavy barred doors and honey-lit high windows dominates a desolate civic square; tiny hooded clerks wait outside.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_lockedArchive.png"
+    },
+    {
+      "id": "fm_imperialWaystation",
+      "label": "Imperial Waystation",
+      "pool": "neutral",
+      "kind": "structure",
+      "footprint": 2,
+      "scene": "A broad two-wing fortified roadside inn with stables and a covered gateway dominates a ruined imperial causeway; small anonymous guards stand watch.",
+      "prompt": "One original opaque full-bleed 3:2 landscape illustration for Imperial Waystation, a medieval dark-fantasy Structure card. Narrative composition in the spirit of N. C. Wyeth and Dean Cornwell: one decisive action or building, grouped figures, bold silhouettes, strong supporting diagonals, monumental environmental or architectural scale, broad calm value masses, and one focal area of strongest light/contrast. Named building dominates the central 75%, with a simple silhouette and tiny anonymous figures for scale. All human faces and depicted faces, including incidental figures and statues, completely indiscernible at full resolution: figures seen from behind, distant, under enclosing hoods or enclosed helmets, or in deep shadow. No visible eyes, nose, mouth or recognizable portrait. Hand-placed pixel clusters, hard edges, selective dithering, restricted warm stone, charcoal, umber, wheat, muted olive, small restrained subject accents palette; deliberately low-resolution pixel-painting surface, not smooth photographic rendering. Surface language follows the inspected l5/l6 pixel references; do not reproduce their subjects, interface artifacts, eye motifs or layouts. Clear decisive silhouette at 70x100 pixels. Illustration only: no text, legible writing, symbols, interface, frames, decorative borders, vignettes, watermark or distracting tiny clutter. Subject: A broad two-wing fortified roadside inn with stables and a covered gateway dominates a ruined imperial causeway; small anonymous guards stand watch.",
+      "tool": "built-in image_gen",
+      "surfaceReferences": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "art/fm_imperialWaystation.png"
+    }
+  ]
+}

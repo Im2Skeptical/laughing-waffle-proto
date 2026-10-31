@@ -1,0 +1,412 @@
+{"frames": {
+
+"fm_abandonedShrine.png":
+{
+	"frame": {"x":324,"y":3456,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fm_civicRegisters.png":
+{
+	"frame": {"x":325,"y":313,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_closedSchool.png":
+{
+	"frame": {"x":2,"y":451,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_commonMeasures.png":
+{
+	"frame": {"x":647,"y":313,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_copiedCharters.png":
+{
+	"frame": {"x":969,"y":313,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_courtGossip.png":
+{
+	"frame": {"x":1291,"y":313,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_crowdedTenement.png":
+{
+	"frame": {"x":325,"y":2,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fm_crumblingCottages.png":
+{
+	"frame": {"x":654,"y":3456,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fm_debtService.png":
+{
+	"frame": {"x":1613,"y":313,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_fallowFields.png":
+{
+	"frame": {"x":324,"y":762,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_forcedPageantry.png":
+{
+	"frame": {"x":2,"y":900,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_frontierRelief.png":
+{
+	"frame": {"x":646,"y":762,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_frontierWatch.png":
+{
+	"frame": {"x":968,"y":3007,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fm_grainTithe.png":
+{
+	"frame": {"x":968,"y":762,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_guildFees.png":
+{
+	"frame": {"x":1290,"y":762,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_handQuern.png":
+{
+	"frame": {"x":1612,"y":762,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_hearthBarter.png":
+{
+	"frame": {"x":324,"y":1211,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_imperialWaystation.png":
+{
+	"frame": {"x":790,"y":2,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fm_leakingGranary.png":
+{
+	"frame": {"x":984,"y":3445,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fm_lockedArchive.png":
+{
+	"frame": {"x":1290,"y":1660,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fm_oathHall.png":
+{
+	"frame": {"x":1290,"y":2098,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fm_oathSupper.png":
+{
+	"frame": {"x":2,"y":1349,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_openArchive.png":
+{
+	"frame": {"x":1290,"y":2536,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fm_openLessons.png":
+{
+	"frame": {"x":646,"y":1211,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_patchworkSmithy.png":
+{
+	"frame": {"x":968,"y":1211,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_patronsHall.png":
+{
+	"frame": {"x":1255,"y":2,"w":461,"h":307},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":461,"h":307},
+	"sourceSize": {"w":461,"h":307}
+},
+"fm_peatCutting.png":
+{
+	"frame": {"x":1290,"y":1211,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_publicBakehouse.png":
+{
+	"frame": {"x":1298,"y":2974,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fm_publicDisputation.png":
+{
+	"frame": {"x":1612,"y":1211,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_publicDrills.png":
+{
+	"frame": {"x":324,"y":1660,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_ragPulping.png":
+{
+	"frame": {"x":2,"y":1798,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_ransomedKin.png":
+{
+	"frame": {"x":324,"y":2109,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_roadsideAlms.png":
+{
+	"frame": {"x":2,"y":2247,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_roadsideLectureHall.png":
+{
+	"frame": {"x":1314,"y":3412,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fm_rubblePicking.png":
+{
+	"frame": {"x":324,"y":2558,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_scrapGathering.png":
+{
+	"frame": {"x":2,"y":2696,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_seigneurialMuster.png":
+{
+	"frame": {"x":324,"y":3007,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_sharedWorkshops.png":
+{
+	"frame": {"x":2,"y":3145,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_shieldEscorts.png":
+{
+	"frame": {"x":646,"y":1660,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_spoiledStores.png":
+{
+	"frame": {"x":646,"y":2109,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_swornPatrols.png":
+{
+	"frame": {"x":646,"y":2558,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_taxFarming.png":
+{
+	"frame": {"x":646,"y":3007,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_tollGate.png":
+{
+	"frame": {"x":1620,"y":1660,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fm_travellingTutors.png":
+{
+	"frame": {"x":2,"y":2,"w":319,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":319,"h":445},
+	"sourceSize": {"w":319,"h":445}
+},
+"fm_veteransHearth.png":
+{
+	"frame": {"x":1620,"y":2098,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fm_veteransTestimony.png":
+{
+	"frame": {"x":968,"y":1660,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_villagePalisade.png":
+{
+	"frame": {"x":1620,"y":2536,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fm_villageSchool.png":
+{
+	"frame": {"x":1628,"y":2974,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"fm_villageWell.png":
+{
+	"frame": {"x":968,"y":2109,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+},
+"fm_woodlotRights.png":
+{
+	"frame": {"x":968,"y":2558,"w":318,"h":445},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":318,"h":445},
+	"sourceSize": {"w":318,"h":445}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "full-map-content-prototype.png",
+	"format": "RGBA8888",
+	"size": {"w":1956,"h":3892},
+	"scale": "0.3",
+	"smartupdate": "$TexturePacker:SmartUpdate:b8ac788a4f61ec6f5bc43d53d6589113:75e017282144e6da5e0f1eae885387a2:83ea1c658c56dfb1ae13d3a51d2bb4ea$"
+}
+}

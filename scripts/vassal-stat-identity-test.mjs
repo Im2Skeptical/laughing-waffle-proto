@@ -43,7 +43,7 @@ for (const [classId, slot, label, iconId] of [
     assert.equal(getAdjustedVassalPrestigeCost(vassal, 100), classId === 'warrior' ? 100 : 76);
     assert.equal(getVassalRiskDeathChance(vassal, .5), classId === 'warrior' ? .275 : .5);
     const forceBase = getMartialForce(state, { stats: base });
-    assert.equal(getMartialForce(state, vassal) - forceBase, classId === 'warrior' ? 3 : 0);
+    assert.equal(getMartialForce(state, vassal) - forceBase, classId === 'warrior' ? 3 + (vassal.classId === 'warrior' ? Math.floor(state.civilization.prestige / 10) : 0) : 0);
     const qualityState = deserializeGameState(serializeGameState(state));
     const rngBefore = qualityState.rng.vassalSeed;
     assert.equal(rollScholarQualityBonus(qualityState, { ...vassal, stats: { ...base, cunning: 40 } }, 3),
