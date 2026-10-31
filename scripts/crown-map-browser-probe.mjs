@@ -42,9 +42,16 @@ try{
  assert.equal(s.worldMap.regionMapIndicators.filter(r=>r.independent).length,3);
  assert.equal(s.worldMap.illustratedTerrain.sites.find(r=>r.regionId===capital).kind,'crownCapital');
  assert.equal(s.worldMap.illustratedTerrain.sites.find(r=>r.regionId===neutral).kind,'neutral');
- assert(s.worldMap.regionMapIndicators.every(r=>r.stockTags.every(t=>['red','amber'].includes(t.outline))));
+ assert(s.worldMap.regionMapIndicators.every(r=>r.stockTags.every(t=>['red','amber','green'].includes(t.outline))));
+ assert(s.worldMap.regionMapIndicators.every(r=>!r.showsPlayerMarker&&r.renderedPawnCount===0));
+ assert(s.worldMap.regionMapIndicators.filter(r=>r.influence).length>0);
+ assert(s.worldMap.regionMapIndicators.filter(r=>r.independent).every(r=>!r.influence.contested));
  await page.screenshot({path:output+'/phone-overview.png'});
  const point=await page.evaluate(id=>__SETTLEMENT_DEBUG__.getWorldMapClickPoint(id),capital),zoom=s.worldMap.camera.zoom;
+ await tap({x:point.x,y:point.y+34*zoom});
+ await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState().title==='Population allegiance');
+ assert.equal((await snapshot()).worldMap.detailPanelVisible,false,'Inspecting the map bar must not select the region beneath it');
+ checks.push('map allegiance bar touch inspection');await page.keyboard.press('Escape');
  await tap({x:point.x+38*zoom,y:point.y-50*zoom});
  await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState().title==='Crown capital');
  checks.push('capital badge touch inspection');await page.keyboard.press('Escape');

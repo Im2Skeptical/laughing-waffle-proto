@@ -27,7 +27,6 @@ export const REGION_COLOURS = Object.freeze({
 export const CONTROLLER_COLOURS = Object.freeze({
   player: 0xe8c96c, frontier: 0x8f936e, "external-a": 0xc17a57, "external-b": 0x8b72b1,
 });
-export const MAX_RENDERED_WORKER_PAWNS = 5;
 export const EDGE_TRANSFER_PACKET_MAX_ACTIVE = 36;
 export const REGION_DOUBLE_TAP_WINDOW_MS = 500;
 export const REGION_FLAG_DOUBLE_TAP_RADIUS = 48;

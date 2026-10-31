@@ -1,5 +1,6 @@
 import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES, PALETTE } from './settlement-theme.js';
+import {regionAllegianceParts} from './region-allegiance.js';
 
 const holderName=id=>id==='player'?'Free realm':id==='external-a'?'Crown':id==='frontier'?'Unheld':id;
 
@@ -11,11 +12,7 @@ function inspect(group,rect,spec,key,tooltipView){
 }
 
 export function addRegionAllegianceHeader(root,{x,y,vm,reference,tooltipView}){
-  const c=vm.control,total=Math.max(1,c.total),parts=[
-    {name:'Free',count:c.support.player??0,colour:0xe4c271},
-    {name:'Crown',count:c.support['external-a']??0,colour:0xc17a57},
-    {name:'Unaffiliated',count:Math.max(0,c.total-(c.support.player??0)-(c.support['external-a']??0)),colour:0x8e9c91},
-  ];
+  const c=vm.control,total=Math.max(1,c.total),parts=regionAllegianceParts(c);
   const allegiance=new PIXI.Container();allegiance.label='region-allegiance-header';allegiance.position.set(x+380,y+18);
   const bar=new PIXI.Graphics().beginFill(0x101915).drawRoundedRect(0,0,390,25,3).endFill();
   let offset=0;

@@ -26,6 +26,7 @@
     "probe:full-map-draft": "node scripts/full-map-interventions-browser-probe.mjs",
     "probe:full-map": "node scripts/full-map-browser-probe.mjs",
     "probe:crown-map": "node scripts/crown-map-browser-probe.mjs",
+    "probe:control-frontiers": "node scripts/control-frontier-browser-probe.mjs",
     "test:full-map": "node scripts/full-map-contract-test.mjs",
     "test": "npm run test:full-map && npm run test:keywords && npm run test:save-recovery && npm run test:world && npm run test:detailed-settlements && npm run test:vassal-life-map && npm run test:debug-config && npm run test:map-lab && npm run test:map && npm run test:detailed-replay && npm run test:invariants && npm run test:presentation && npm run test:card-review && npm run test:replay-stress",
     "test:keywords": "node scripts/practice-keywords-test.mjs && node scripts/keywords-classes-prototype-test.mjs && node scripts/bronze-keyword-cards-test.mjs",
