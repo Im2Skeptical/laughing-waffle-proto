@@ -35,7 +35,8 @@ export function createRegionalPresentation(terrain, baseMap) {
   const y=Math.max(0,Math.floor(Math.min(...extent.map(p=>p.y)))-80);
   const crop={x,y,width:Math.min(width-x,Math.ceil(Math.max(...extent.map(p=>p.x)))+80-x),
     height:Math.min(height-y,Math.ceil(Math.max(...extent.map(p=>p.y)))+80-y)};
-  const peakMask=new Uint8Array(width*height);
+  // Shared with the base bake: the same geography, raster and texel.
+  const peakMask=source.peakMask??new Uint8Array(width*height);
   const presentation={anchors,crop,map:baseMap,
     roads(connections){
       const names=Object.fromEntries(Object.entries(materialIds).map(([k,v])=>[v,k])),materials=terrain.materials;

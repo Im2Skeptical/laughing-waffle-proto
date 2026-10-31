@@ -30,7 +30,20 @@ export function addMonsterGround(parent, points) {
 
 // Split at collinear vertices before cancelling shared allegiance edges, including
 // authored maps where one region subdivides its neighbour's edge.
+// Borders depend only on each territory's id, allegiance and points, which
+// change on ownership or layout, not on every render. Results are read-only.
+const boundaryCache = new Map();
 export function territoryBoundarySegments(territories) {
+  const key = territories.map(t => `${t.regionId}|${t.monster ? 'm' : t.player ? 'p' : ''}|${t.points.join(',')}`).join(';');
+  let result = boundaryCache.get(key);
+  if (result) { boundaryCache.delete(key); boundaryCache.set(key, result); return result; }
+  result = computeTerritoryBoundarySegments(territories);
+  boundaryCache.set(key, result);
+  if (boundaryCache.size > 8) boundaryCache.delete(boundaryCache.keys().next().value);
+  return result;
+}
+
+export function computeTerritoryBoundarySegments(territories) {
   const allegiance = t => t.monster ? 'monster' : t.player ? 'player' : null;
   const vertices = territories.flatMap(t => t.points.reduce((a, x, i) => {
     if (i % 2 === 0) a.push({x, y:t.points[i+1]});
