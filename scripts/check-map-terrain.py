@@ -76,6 +76,15 @@ for biome in biomes:
 expected_widths = {'house': 12, 'pair': 14, 'hall': 34, 'market': 34, 'workshop': 14, 'gate': 14}
 assert all(f['rect'][2] == expected_widths[f['role']] for f in settlements), 'Building detail must follow world footprint'
 
+crown = json.loads((folder / 'crown-buildings-v1.json').read_text())['frames']
+crown_atlas = Image.open(folder / 'crown-buildings-v1.webp').convert('RGBA')
+assert {f['role'] for f in crown} == {'capital', 'hall', 'house'}
+for f in crown:
+    x, y, w, h = f['rect']
+    assert w == {'capital': 48, 'hall': 34, 'house': 18}[f['role']]
+    alpha = np.array(crown_atlas.crop((x, y, x + w, y + h)))[..., 3]
+    assert np.any(alpha == 0) and np.any(alpha >= 200), 'Crown sprites retain transparent alpha and solid building pixels'
+
 total = sum(p.stat().st_size for p in folder.iterdir() if p.suffix in ['.webp', '.json'])
 assert total < 3 * 1048576, 'Imported art exceeded the prototype runtime budget'
 print(f'Map terrain: 635 cases across five biomes, exact ground/contact/bank pixel joins, 208 relief frames; {total / 1048576:.2f} MiB.')

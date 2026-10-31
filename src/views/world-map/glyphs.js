@@ -1,4 +1,5 @@
 import { getVassalAge } from "../../model/vassal-life-map.js";
+import { addResourceIcon } from '../resource-cost-pixi.js';
 import { createText, roundedRect } from "../settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "../settlement-theme.js";
 import {
@@ -6,6 +7,19 @@ import {
   MAX_RENDERED_WORKER_PAWNS,
   PRESSURE_COLOURS,
 } from "./constants.js";
+
+export function addCrownCapitalMarker(parent, point, tooltipView) {
+  const marker=new PIXI.Container();marker.label='crown-capital-marker';
+  marker.position.set(point.x+38,point.y-50);
+  marker.addChild(new PIXI.Graphics().lineStyle(2,0xd3a17b).beginFill(0x211b22,.95).drawCircle(0,0,19).endFill());
+  addResourceIcon(marker,'crown',0,0,29);
+  marker.eventMode='static';marker.cursor='help';marker.hitArea=new PIXI.Circle(0,0,23);
+  const spec={title:'Crown capital',lines:['The Unbending Crown rules from this stronghold.','Its surrounding provinces share the Crown border.'],maxWidth:300};
+  marker.on('pointerover',()=>tooltipView?.show?.(spec,marker.getBounds(),{dismissOnExit:true}));
+  marker.on('pointerout',()=>tooltipView?.hide?.());
+  marker.on('pointerdown',e=>{e.stopPropagation();tooltipView?.pin?.(spec,marker.getBounds(),'crown-capital');});
+  parent.addChild(marker);return marker;
+}
 
 export function getWorkerIndicatorPresentation(
   activeCount,

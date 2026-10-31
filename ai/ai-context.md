@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.41`.
+Game build version: `1.1.42`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -126,7 +126,8 @@ run chooses one existing road through `state.rng`; its two adjacent regions
 become the initial player-controlled detailed settlements, with the first in
 authored region order serving as capital. All 20 regions are inhabited in this
 fork. A distant passive Warlord capital and its adjacent provinces begin under
-remnant control; outskirts begin unheld with inherited boards and mixed population
+remnant control; three nearby outskirts start independent, with unaffiliated
+populations and resource-only boards. Other outskirts begin unheld with inherited boards and mixed population
 allegiances. A Monster threat is seeded in an inhabited nonplayer region, without
 erasing its settlement. The authored legacy debug fixture still has five detailed settlements in Regions01, 03,
 06, 07, and 11. Debug profiles and Map Lab can explicitly replace that setup.

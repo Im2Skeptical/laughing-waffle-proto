@@ -7,10 +7,13 @@ import { TEXT_STYLES, PALETTE } from './settlement-theme.js';
 
 // The approved PNGs remain original assets; Pixi only places/scales their sprites.
 export function addResourceIcon(parent, id, x, y, size) {
-  if (['trade','knowledge','research','housingCapacity','foodCapacity','population','hourglass','activation','chaos','monster'].includes(id)) {
+  if (['crown','trade','knowledge','research','housingCapacity','foodCapacity','population','hourglass','activation','chaos','monster'].includes(id)) {
     const symbol = new PIXI.Graphics(); symbol.position.set(x-size/2,y-size/2);
     symbol.scale.set(size/32);symbol.lineStyle(2,0xe7ca8c,1);
-    if(id==='monster') {
+    if(id==='crown') {
+      symbol.beginFill(0xc58b68).drawPolygon([3,8,10,15,16,3,22,15,29,8,26,25,6,25]).endFill();
+      symbol.beginFill(0xf2d5a4).drawRoundedRect(6,26,20,4,1).drawCircle(3,7,2).drawCircle(16,3,2).drawCircle(29,7,2).endFill();
+    } else if(id==='monster') {
       symbol.beginFill(0x8f4b42).drawPolygon([4,2,12,8,20,8,28,2,26,22,16,30,6,22]).endFill();
       symbol.beginFill(0xffddbc).drawCircle(11,15,2).drawCircle(21,15,2).endFill();
     } else if(id==='chaos') {

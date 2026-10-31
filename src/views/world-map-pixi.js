@@ -56,6 +56,7 @@ import {
 } from "./world-map/packets.js";
 import {
   addActiveVassalMarker,
+  addCrownCapitalMarker,
   addPlayerOwnershipMarker,
   addSettlementCurrencyIndicator,
   addSettlementPressureIndicator,
@@ -168,8 +169,10 @@ function buildRegionMapIndicators(state, definition) {
       monster: region?.monster ?? null,
       neutral: (state.world.sites ?? []).find(s=>s.regionId===regionDef.id)?.neutral ?? null,
       showsPlayerMarker: region?.controller === "player" && !region?.monster,
+      crownCapital:state.rulesetId&&region?.controller==='external-a'&&state.civilization.remnant?.capitalRegionId===regionDef.id&&!region?.monster,
+      independent:!!(state.rulesetId&&region?.controller==='frontier'&&viewModel?.population?.total>0&&!viewModel?.control?.support?.player&&!viewModel?.control?.support?.['external-a']),
       hasDetailedSettlement: viewModel != null,
-      stockTags: getSettlementStockTags(viewModel),
+      stockTags: getSettlementStockTags(viewModel,{state,regionId:regionDef.id}),
       ...workerPresentation,
       usedStructureCapacity: viewModel?.usedStructureCapacity ?? 0,
       structureCapacity,
@@ -687,6 +690,7 @@ export function createWorldMapView({
       }
       shape.eventMode = 'none';
       territoryBorders.push({points, regionId:region.id, player:region.controller==='player' && !region.monster,
+        crown:!!state.rulesetId&&region.controller==='external-a'&&!region.monster,
         monster:!!region.monster, selected, highlighted, relationship, relationshipStyle:getRelationshipStyle(mapIndicator), controller:region.controller});
       const hit = new PIXI.Container();
       hit.hitArea = new PIXI.Polygon(points);
@@ -773,10 +777,11 @@ export function createWorldMapView({
       mapContent.addChild(presentRegion(regionContent, indicator.regionId));
       const point = sitePoint(regionDef);
       const stockTagTop = getSettlementStockTagLayout(indicator.stockTags, point)[0]?.y;
-      if (display.actors !== false && (indicator.monster || indicator.neutral)) regionContent.addChild(createText(
+      if (display.actors !== false && (indicator.monster || indicator.neutral || indicator.independent)) regionContent.addChild(createText(
         indicator.monster ? `Defense ${indicator.monster.defense}` : 'NEUTRAL',
         {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:NEUTRAL_COLOUR,stroke:0x111713,strokeThickness:4},point.x,indicator.monster?point.y-110:stockTagTop!=null?stockTagTop-26:point.y-88,.5));
       if (display.actors !== false && indicator.monster) addMonsterMarker(regionContent, point, {art:!illustratedMap});
+      if (display.actors !== false && indicator.crownCapital) addCrownCapitalMarker(regionContent,point,tooltipView);
       const adornments = new PIXI.Container();
       adornments.position.set(point.x,point.y);
       adornments.scale.set(.75);

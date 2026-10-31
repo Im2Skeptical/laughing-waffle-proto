@@ -1,40 +1,57 @@
 import { RESOURCE_ART_IDS } from '../chronicle-art.js';
 import { addResourceIcon } from '../resource-cost-pixi.js';
 import { MAP_VIEWPORT_RECT } from './constants.js';
+import { stockProviderSlots, stockTraits } from '../../model/detailed-settlements/stock.js';
+import { getDetailedStructureDef } from '../../model/game-config.js';
 
 // Recipe roles, not current inventory or activation readiness. Charge event
 // triggers are not Stock costs and must not appear as demand.
-export function getSettlementStockTags(viewModel) {
+export function getSettlementStockTags(viewModel,{state,regionId}={}) {
   if (!viewModel) return [];
   const produced = new Set();
-  const demanded = new Set();
+  const missing = new Set(),unhosted = new Set();
   const inputs = [];
+  const holders=new Set((viewModel.practices??[]).filter(p=>p?.face?.category!=='influence'&&p?.face?.stockCapacity!==0).flatMap(p=>p?.face?.stockTraits??[]));
+  const settlement=state?.world?.sites.find(s=>s.regionId===regionId)?.detailedState;
+  const networks=new Map();
   for (const stock of viewModel.marketStocks ?? []) for (const trait of stock.traits) produced.add(trait);
-  for (const piece of [...(viewModel.practices ?? []), ...(viewModel.structures ?? [])]) {
+  const pieces=[...(viewModel.practices??[]).map(piece=>({piece,structure:false})),...(viewModel.structures??[]).map(piece=>({piece,structure:true}))];
+  for (const {piece,structure} of pieces) {
     const face = piece?.face;
     if (!face) continue;
     if (face.production?.some(output => output.icon === 'stock' && output.value > 0)) {
       for (const trait of face.stockTraits ?? []) produced.add(trait);
+      const outputTraits=face.stockTraits?.length?face.stockTraits:['Stock'];
+      for(const trait of outputTraits)if(!holders.has(trait))unhosted.add(trait);
     }
-    for (const input of face.inputs ?? []) {
-      if (input.amount > 0 && input.traits?.length) inputs.push(input.traits);
+    const demands=structure&&!piece.construction
+      ?(state&&piece.structureId?getDetailedStructureDef(state,piece.structureId)?.upkeep?.consume??[]:[])
+      :face.inputs??[];
+    for (const input of demands) {
+      if (input.amount > 0 && input.traits?.length) inputs.push({alternatives:input.traits,face,allegiance:piece.allegiance});
     }
   }
-  if (viewModel.population?.mealDemand > 0) inputs.push(['Edible']);
-  for (const alternatives of inputs) {
-    // A recipe needs any one of its alternatives. Show matching local sources
-    // when present, rather than marking unused alternatives as missing imports.
-    const local = alternatives.filter(trait => produced.has(trait));
-    for (const trait of local.length ? local : alternatives) demanded.add(trait);
+  if (viewModel.population?.mealDemand > 0) inputs.push({alternatives:['Edible']});
+  for (const {alternatives,face,allegiance} of inputs) {
+    let sources=produced;
+    if(settlement){
+      const beneficiary=face?.category==='influence'?allegiance:undefined,key=beneficiary??'holder';
+      if(!networks.has(key))networks.set(key,new Set(stockProviderSlots(state,settlement,false,{beneficiary}).flatMap(source=>stockTraits(state,source.slot))));
+      sources=networks.get(key);
+    }
+    // Empty holders still represent a source: this is structural coverage,
+    // not an inventory ticker. Actual allocated substitutions also qualify.
+    const supplied=alternatives.some(trait=>sources.has(trait))||face?.providers?.some(p=>p.traits?.some(trait=>alternatives.includes(trait)));
+    if(!supplied)for(const trait of alternatives)missing.add(trait);
   }
-  return [...new Set([...produced, ...demanded])].sort().map(trait => {
-    const producer = produced.has(trait), consumer = demanded.has(trait);
+  return [...new Set([...missing,...unhosted])].sort().map(trait => {
+    const producer = produced.has(trait), consumer = missing.has(trait);
     const id = `stock-${trait.toLowerCase()}`;
     return {
       trait,
       iconId: RESOURCE_ART_IDS.includes(id) ? id : 'stock',
       producer, consumer,
-      outline: producer ? consumer ? null : 'green' : 'red',
+      outline: missing.has(trait)?'red':'amber',unhosted:unhosted.has(trait),
     };
   });
 }
@@ -64,17 +81,17 @@ export function addSettlementStockTags(parent, point, tags, { tooltipView, refer
     const root = new PIXI.Container();
     root.position.set(tag.x, tag.y);
     const plate = new PIXI.Graphics();
-    if (tag.outline) plate.lineStyle(2.5, tag.outline === 'red' ? 0xf07970 : 0x87d68a, 1);
+    if (tag.outline) plate.lineStyle(2.5, tag.outline === 'red' ? 0xf07970 : 0xe2b365, 1);
     plate.beginFill(0x101916, .88).drawRoundedRect(-17, -17, 34, 34, 5).endFill();
     root.addChild(plate);
     addResourceIcon(root, tag.iconId, 0, 0, tag.size);
     root.stockTag = tag;
-    const role = tag.outline === 'red' ? 'Consumer with no local producer'
-      : tag.outline === 'green' ? 'Producer with no local consumer' : 'Local producer and consumer';
+    const role = tag.outline === 'red' ? 'Input has no eligible supply source'
+      : 'Output has no local Stock holder';
     const spec = { title: `${reference} · ${tag.trait} Stock`, lines: [role,
-      'Tags describe installed recipes and meal demand, regardless of current Stock.',
-      'Red: needs a local source. Green: produced for use elsewhere. No outline: used locally.',
-      'Require inputs count as demand; alternative inputs use a matching local tag when available.'], maxWidth: 310 };
+      'Only supply problems appear on the map. Ordinary hosted and supplied Stock stays hidden.',
+      'Sources include eligible adjacent road-connected holdings; Influence uses its own allegiance network.',
+      'Empty holders still count as sources. Require and alternative inputs are included.'], maxWidth: 310 };
     root.eventMode = 'static';
     root.cursor = 'help';
     root.hitArea = new PIXI.Rectangle(-18, -18, 36, 36);

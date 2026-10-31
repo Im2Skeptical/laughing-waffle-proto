@@ -6,6 +6,7 @@ The 635 cases are composed terrain templates, not 635 independent paintings.
 import json
 import math
 import subprocess
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -308,10 +309,30 @@ def import_buildings():
     (OUT / 'settlement-buildings-v1.json').write_text(json.dumps({'version': 1, 'frames': frames}, separators=(',', ':')))
 
 
+def import_crown_buildings():
+    images, records = [], []
+    source_dir = ROOT / 'images/dark-fantasy/crown-map-v1'
+    for name, role, width in [('capital', 'capital', 48), ('province-hall', 'hall', 34), ('province-houses', 'house', 18)]:
+        source = Image.open(source_dir / f'{name}.png').convert('RGBA')
+        alpha = np.array(source)[..., 3]
+        ys, xs = np.nonzero(alpha >= 110)
+        if not len(xs) or not np.any(alpha == 0):
+            raise ValueError(f'Crown {name} must have genuine transparent alpha')
+        cropped = source.crop((int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1))
+        image = np.array(cropped.resize((width, round(width * cropped.height / cropped.width)), Image.Resampling.LANCZOS))
+        image[..., 3] = np.where(image[..., 3] < 28, 0, image[..., 3])
+        images.append(image)
+        records.append({'role': role, 'source': name})
+    frames = packed(images, records, 'crown-buildings-v1.webp', 3, (56, 64))
+    (OUT / 'crown-buildings-v1.json').write_text(json.dumps({'version': 1, 'frames': frames}, separators=(',', ':')))
+
+
 if __name__ == '__main__':
     OUT.mkdir(parents=True, exist_ok=True)
-    import_surfaces()
-    import_relief()
-    import_buildings()
+    if '--crown-only' not in sys.argv:
+        import_surfaces()
+        import_relief()
+        import_buildings()
+    import_crown_buildings()
     total = sum(p.stat().st_size for p in OUT.iterdir() if p.suffix in ['.webp', '.json'])
     print(f'Map art import: 635 terrain cases, 40 bank profiles, 208 relief frames; runtime files {total / 1048576:.2f} MiB')

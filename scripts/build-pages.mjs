@@ -138,8 +138,11 @@ async function buildPagesArtifact() {
   await assertUnpublished(path.join(outDir, "images/dark-fantasy/structure-chrome-prototype"));
   await assertUnpublished(path.join(outDir, "images/dark-fantasy/keyword-inspection-prototype"));
   await assertUnpublished(path.join(outDir, "images/dark-fantasy/map-generation-prototype/assets/masters"));
+  await assertUnpublished(path.join(outDir, "images/dark-fantasy/crown-map-v1"));
   await assertUnpublished(path.join(outDir, "images/dark-fantasy/map-generation-prototype/assets/composable-forest-v1.png"));
   await access(path.join(outDir, "images/dark-fantasy/map-generation-prototype/assets/runtime/terrain-kit-v1.webp"));
+  await access(path.join(outDir, "images/dark-fantasy/map-generation-prototype/assets/runtime/crown-buildings-v1.webp"));
+  await access(path.join(outDir, "images/dark-fantasy/map-generation-prototype/assets/runtime/crown-buildings-v1.json"));
   await copyFile(".nojekyll", path.join(outDir, ".nojekyll"));
 
   // Isolated workbenches bundle their read-only imports separately from the game.

@@ -34,7 +34,7 @@ export function addMonsterGround(parent, points) {
 // change on ownership or layout, not on every render. Results are read-only.
 const boundaryCache = new Map();
 export function territoryBoundarySegments(territories) {
-  const key = territories.map(t => `${t.regionId}|${t.monster ? 'm' : t.player ? 'p' : ''}|${t.points.join(',')}`).join(';');
+  const key = territories.map(t => `${t.regionId}|${t.monster ? 'monster' : t.player ? 'player' : t.crown ? t.controller : ''}|${t.points.join(',')}`).join(';');
   let result = boundaryCache.get(key);
   if (result) { boundaryCache.delete(key); boundaryCache.set(key, result); return result; }
   result = computeTerritoryBoundarySegments(territories);
@@ -44,7 +44,7 @@ export function territoryBoundarySegments(territories) {
 }
 
 export function computeTerritoryBoundarySegments(territories) {
-  const allegiance = t => t.monster ? 'monster' : t.player ? 'player' : null;
+  const allegiance = t => t.monster ? 'monster' : t.player ? 'player' : t.crown ? t.controller : null;
   const vertices = territories.flatMap(t => t.points.reduce((a, x, i) => {
     if (i % 2 === 0) a.push({x, y:t.points[i+1]});
     return a;
@@ -78,7 +78,7 @@ export function computeTerritoryBoundarySegments(territories) {
   return result;
 }
 
-export function addTerritoryBorder(parent, points, { player, monster, selected, highlighted, relationship, relationshipStyle = RELATION_STYLES.empty, controller, boundarySegments }) {
+export function addTerritoryBorder(parent, points, { player, monster, crown, selected, highlighted, relationship, relationshipStyle = RELATION_STYLES.empty, controller, boundarySegments }) {
   const border = new PIXI.Graphics();
   border.label = selected ? 'selected-region-border' : player ? 'player-region-border' : 'region-border';
   border.eventMode = 'none';
@@ -92,10 +92,10 @@ export function addTerritoryBorder(parent, points, { player, monster, selected, 
     if(full) border.drawPolygon(points);
     else for(const {from,to} of segments) border.moveTo(from.x,from.y).lineTo(to.x,to.y);
   };
-  if (player || monster) {
+  if (player || monster || crown) {
     trace(9,0x0c171b,.85);
     trace(5,colour,.85);
-    trace(1.5,monster ? 0xffa080 : 0xffe6a2);
+    trace(1.5,monster ? 0xffa080 : player ? 0xffe6a2 : 0xf1d5b4);
     if (player) border.lineStyle(0).beginFill(0xe4c271,.055).drawPolygon(points).endFill();
   } else trace(1.5,colour,.65);
   if (relationship === 'connected') {

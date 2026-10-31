@@ -137,12 +137,20 @@ stay in `createWorldMapView`.
 - `region-panel-cache.js` — retained regional panels, keyed by exact rendered
   inputs and art revision. Game entry prepares the entry settlement panel
   behind the menu; changing time/content replaces stale panels.
-- `stock-tags.js` — deduplicated recipe supply/demand icons above every settlement.
-  Red outlines mean demand without a local producer, green means production
-  without a local consumer, and local production plus demand has no outline.
+- `stock-tags.js` — supply-problem icons above settlements. Red outlines mean
+  inputs without an eligible supply source; amber means production without a
+  local Stock holder. Ordinary hosted/supplied Stock and exports are hidden.
+  The real provider query includes faction ownership, adjacency and roads.
+  Empty holders count as structural sources. Completed construction costs do
+  not appear as ongoing demand; active construction and upkeep do.
   Meal demand adds Edible; Consume and Require inputs add demand, but Charge
   triggers do not. Recipes accepting alternatives use matching local tags when
   present. Roles describe installed recipes, independent of current inventory.
+
+Full-map Crown holdings share an exposed copper boundary and use the generated
+`crown-map-v1` capital/provincial building kit. The capital has a separate crown
+badge. Three fresh independent settlements have unaffiliated populations and
+resource-only boards. See [the UX pass](../../../docs/crown-map-ux.md).
 
 Resource icon rows stay horizontally centered on their settlement anchor in map
 coordinates, including neutral markets. They inherit the same pan/zoom transform
