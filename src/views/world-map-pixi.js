@@ -1,7 +1,7 @@
 import { minimalGraphics } from './minimal-graphics.js';
 import { createRegionLabel } from './region-label.js';
 import { createTradeFlowHistory, getGhostPacketAlpha, getPacketTrailSteps, getTradeCorridorWidth } from "./world-map/trade-corridors.js";
-import { getMoonCycleDurationSec, getMoonPhaseDurationSec } from "../model/moon-phases.js";
+import { getMoonCycleDurationSec } from "../model/moon-phases.js";
 import { addMonsterGround, addMonsterMarker, addTerritoryBorder, territoryBoundarySegments } from './world-map/territory-art.js';
 import { createIllustratedTerrain } from './world-map/illustrated-terrain.js';
 import { getMapRelationships, getMapRelationship, getRelationshipStyle, drawRelationshipLine, drawRelationshipPath } from './world-map/relationships.js';
@@ -465,10 +465,10 @@ export function createWorldMapView({
     if(len<24)return;
     const ux=dx/len, uy=dy/len, px=-uy, py=ux, inset=Math.min(26,len*0.18);
     const ax=from.x+ux*inset, ay=from.y+uy*inset, bx=to.x-ux*inset, by=to.y-uy*inset;
-    const head=Math.max(9,width*1.5);
+    const head=width*1.6+4;
     const sx=bx-ux*head, sy=by-uy*head;
     // Ink outline, then a stepped two-tone band for the pixel-art bevel.
-    g.lineStyle(width+4,TRADE_INK,alpha*0.9);g.moveTo(ax,ay);g.lineTo(sx,sy);
+    g.lineStyle(width*1.4+2,TRADE_INK,alpha*0.9);g.moveTo(ax,ay);g.lineTo(sx,sy);
     g.lineStyle(width,color,alpha);g.moveTo(ax,ay);g.lineTo(sx,sy);
     g.lineStyle(Math.max(1,Math.round(width/3)),0xf4e2a8,alpha*0.55);g.moveTo(ax,ay);g.lineTo(sx,sy);
     g.lineStyle(2,TRADE_INK,alpha*0.9);g.beginFill(color,alpha);
@@ -479,13 +479,15 @@ export function createWorldMapView({
     tradeCorridorGraphics.clear();
     if(!definition)return;
     const state=getState?.();
-    const windowSec=getMoonCycleDurationSec(state)*2;
+    const windowSec=Math.max(48,getMoonCycleDurationSec(state)*24);
     const flows=tradeFlowHistory.netFlows(timeSec,windowSec);
+    const zoom=Math.max(0.25,camera.snapshot().zoom||1);
     for(const flow of flows){
       const source=definition.regions.find(r=>r.id===flow.from), destination=definition.regions.find(r=>r.id===flow.to);
       if(!source||!destination)continue;
-      const alpha=dragging?0.55+0.35*flow.intensity:0.28;
-      drawCorridorArrow(tradeCorridorGraphics,sitePoint(source),sitePoint(destination),getTradeCorridorWidth(flow.intensity,dragging),TRADE_GOLD,alpha);
+      const alpha=dragging?0.6+0.3*flow.intensity:0.3;
+      // Keep corridor width constant on screen so it reads at overview zoom.
+      drawCorridorArrow(tradeCorridorGraphics,sitePoint(source),sitePoint(destination),getTradeCorridorWidth(flow.intensity,dragging)/zoom,TRADE_GOLD,alpha);
     }
   }
   function drawGhostPacket(packet, progress, alpha) {
@@ -494,7 +496,7 @@ export function createWorldMapView({
     const color=packet.glyph?.color??TRADE_GOLD;
     edgeTransferGraphics.lineStyle(1.5,TRADE_INK,alpha);
     edgeTransferGraphics.beginFill(color,alpha);
-    edgeTransferGraphics.drawCircle(pose.x,pose.y,6);
+    edgeTransferGraphics.drawCircle(pose.x,pose.y,6/Math.max(0.25,camera.snapshot().zoom||1));
     edgeTransferGraphics.endFill();
   }
   function drawEdgeTransferPackets(timeSec) {
@@ -504,7 +506,7 @@ export function createWorldMapView({
     const dragging=isTradeScrubSkipping?.()===true;
     drawTradeCorridors(definition,timeSec,dragging);
     if(dragging){activeEdgeTransferPackets=[];return;}
-    const ghostFadeSec=getMoonPhaseDurationSec(getState?.())*2;
+    const ghostFadeSec=Math.max(4,getMoonCycleDurationSec(getState?.())*2);
     for(const packet of ghostEdgeTransferPackets){
       const age=timeSec-(packet.startedSec+packet.durationSec);
       drawGhostPacket(packet,0.92,getGhostPacketAlpha(Math.max(0,age),ghostFadeSec+packet.durationSec));

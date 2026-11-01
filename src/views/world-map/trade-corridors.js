@@ -6,6 +6,8 @@
 // Nothing here reads or mutates time-travel data.
 
 export const TRADE_CORRIDOR_HISTORY_MAX = 96;
+// Trend = the last N trade boundaries at or before the viewed second.
+export const TRADE_CORRIDOR_ANCHORS = 6;
 
 function amountOf(transfer) {
   const n = Number(transfer?.survivors ?? transfer?.amount ?? 0);
@@ -26,16 +28,19 @@ export function createTradeFlowHistory({ maxEntries = TRADE_CORRIDOR_HISTORY_MAX
     bySec.set(sec, flows);
     while (bySec.size > maxEntries) bySec.delete(bySec.keys().next().value);
   }
-  // Net flow per unordered region pair across boundaries in (viewedSec - windowSec, viewedSec].
-  function netFlows(viewedSec, windowSec) {
+  // Net flow per unordered region pair over the last `anchors` recorded trade
+  // boundaries in (viewedSec - windowSec, viewedSec].
+  function netFlows(viewedSec, windowSec, anchors = TRADE_CORRIDOR_ANCHORS) {
     const end = Math.floor(Number(viewedSec));
     if (!Number.isFinite(end)) return [];
     const start = end - Math.max(1, windowSec);
+    const secs = [...bySec.keys()].filter((sec) => sec > start && sec <= end && bySec.get(sec).length)
+      .sort((a, b) => b - a).slice(0, Math.max(1, anchors));
     const pairs = new Map();
-    for (const [sec, flows] of bySec) {
-      if (sec <= start || sec > end) continue;
-      // Older boundaries count less so the trend leans toward "now".
-      const weight = 1 - 0.6 * ((end - sec) / Math.max(1, windowSec));
+    secs.forEach((sec, rank) => {
+      const flows = bySec.get(sec);
+      // Older anchors count less so the trend leans toward "now".
+      const weight = 1 - 0.6 * (rank / Math.max(1, secs.length));
       for (const f of flows) {
         const [a, b] = f.from < f.to ? [f.from, f.to] : [f.to, f.from];
         const key = a + '|' + b;
@@ -45,7 +50,7 @@ export function createTradeFlowHistory({ maxEntries = TRADE_CORRIDOR_HISTORY_MAX
         pair.gross += f.amount * weight;
         pairs.set(key, pair);
       }
-    }
+    });
     const out = [];
     for (const p of pairs.values()) {
       if (p.gross <= 0) continue;
