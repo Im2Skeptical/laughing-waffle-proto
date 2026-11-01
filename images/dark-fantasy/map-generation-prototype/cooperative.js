@@ -13,7 +13,7 @@ const macrotask = () => new Promise(resolve => setTimeout(resolve, 0));
 // `stats`, when given, receives steps, yields, longestStepMs (the longest stretch
 // of main-thread work between two checkpoints) and slowSteps ([step, ms] over
 // 100 ms) for diagnostics.
-export async function runCooperative(steps, { sliceMs = 250, stats = null, isCancelled = null } = {}) {
+export async function runCooperative(steps, { sliceMs = 250, stats = null, isCancelled = null, yieldTask = macrotask } = {}) {
   let sliceStart = performance.now(), stepStart = sliceStart;
   for (;;) {
     const step = steps.next();
@@ -24,7 +24,7 @@ export async function runCooperative(steps, { sliceMs = 250, stats = null, isCan
     }
     if (step.done) return step.value;
     if (now - sliceStart >= sliceMs) {
-      await macrotask();
+      await yieldTask();
       if (isCancelled?.()) { steps.return(); return undefined; }
       if (stats) stats.yields = (stats.yields ?? 0) + 1;
       sliceStart = stepStart = performance.now();

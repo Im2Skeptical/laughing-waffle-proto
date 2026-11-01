@@ -1,6 +1,6 @@
 import { createNewGameState } from "../model/new-game.js";
 import { createLoadingDiagnostics } from './loading-diagnostics.js';
-import { importSaveToSlot, inspectSaveText, listSaveSlotSummaries, SAVE_SCHEMA_VERSION } from './sim-runner/save-slots.js';
+import { importSaveToSlot, inspectSaveText, listSaveSlotSummaries, SAVE_SCHEMA_VERSION, PERFORMANCE_SAVE_SLOT } from './sim-runner/save-slots.js';
 import { inspectSaveStorageUsage, saveFailureExplanation, saveFailureMessage } from './sim-runner/save-diagnostics.js';
 
 export function createGameSessionController({ runner, opening, onEnter, prepareEntry, prefetchEntry, cancelPrefetch, onError, onSaved, onSaveStatusChange,
@@ -36,6 +36,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
       throw error;
     }
   }
+  let performanceSave = null;
   let slotStatus = { phase: 'loading', error: null };
   let slotSummaries = [1, 2, 3].map(slot => ({ slot, available: false, empty: false, meta: null }));
   const notify = () => onSaveStatusChange?.();
@@ -43,6 +44,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
     slotStatus = { phase: 'loading', error: null }; notify();
     try {
       const entries = await listSaveSlotSummaries();
+      performanceSave = entries.find(entry => entry.slot === PERFORMANCE_SAVE_SLOT && entry.meta?.schemaVersion === SAVE_SCHEMA_VERSION) ?? null;
       slotSummaries = [1, 2, 3].map(slot => {
         const entry = entries.find(candidate => candidate.slot === slot);
         return { slot, available: entry?.meta?.schemaVersion === SAVE_SCHEMA_VERSION,
@@ -171,7 +173,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
       return trackEntry('import', isCurrent, async onProgress => {
         if (!canReplaceLiveGame()) return rejectUnsavedReplacement();
         if (preparedImport === null) return { ok: false, reason: 'noImport' };
-        onProgress({ stage: 'import', label: 'Checking and storing your imported save', detail: `Browser save slot ${slot}` });
+        onProgress({ stage: 'import', label: 'Checking and storing your imported save', detail: slot === PERFORMANCE_SAVE_SLOT ? 'Performance Dev save' : `Browser save slot ${slot}` });
         await new Promise(resolve => setTimeout(resolve, 0));
         if (!isCurrent()) return { ok: false, reason: 'cancelled' };
         replacing = true; notify();
@@ -188,6 +190,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
       });
     },
     slots: () => slotSummaries,
+    getPerformanceSave: () => performanceSave,
     prepareNewGame: () => opening?.prepare(),
     cancelPreparation: () => opening?.cancel(),
     getPreparationStatus: () => opening?.getSnapshot(),
@@ -222,7 +225,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
         phase = 'idle'; lastSuccessfulSave = null; lastAttempt = null;
         const entry = prepareEntry ? await prepareAndEnter(slot, prepared, isCurrent, onProgress) : enter(slot, prepared);
         if (!entry.ok) return entry;
-        onProgress({ stage: 'save', label: 'Saving your new chronicle', detail: `Browser save slot ${slot}` });
+        onProgress({ stage: 'save', label: 'Saving your new chronicle', detail: slot === PERFORMANCE_SAVE_SLOT ? 'Performance Dev save' : `Browser save slot ${slot}` });
         const saved = await save();
         if (!isCurrent()) {
           inMenu = true; notify();

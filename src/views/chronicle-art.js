@@ -1,3 +1,4 @@
+import { minimalGraphics } from './minimal-graphics.js';
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../defs/gamepieces/detailed-settlement-defs.js';
 // Presentation assets only. Atlas choices never read or advance simulation RNG.
 const SPRITE_SHEET_ROOT = 'images/sprite-sheets/';
@@ -5,6 +6,7 @@ const cells = new Map();
 const packedTextures = new Map();
 const packedLoads = new Map();
 const failedGroups = new Set();
+const hiddenGroups = new Set();
 const rendererPreparations = new WeakMap();
 const presentationIllustrations = new Map();
 const presentationGroups = new Map();
@@ -131,7 +133,8 @@ function loadTexture(file) {
   const group = packedGroupFor(file);
   if (group) {
     const key = packedKeyFor(file, group);
-    if (packedTextures.has(key)) return packedTextures.get(key);
+    if (packedTextures.has(key) && !hiddenGroups.has(group)) return packedTextures.get(key);
+    if (minimalGraphics && group !== PACKED_GROUPS.resources) return null;
     // Packed sources are 4× larger than the runtime atlas. Never fetch them
     // while the sheet is in flight — that queue is what stalls desktop GPUs.
     // A draw cannot retry an exhausted download on every frame. Entry/retry
@@ -176,7 +179,8 @@ async function loadPackedSheet(name) {
   return { sheets, linked: (sheet.data?.meta?.related_multi_packs ?? []).filter(item => typeof item === 'string') };
 }
 
-async function loadPackedGroup(group, retryFailed = false) {
+async function loadPackedGroup(group, retryFailed = false, progressive = false) {
+  if (minimalGraphics && group !== PACKED_GROUPS.resources && !progressive) return;
   if (retryFailed && failedGroups.delete(group)) packedLoads.delete(group);
   if (packedLoads.has(group)) return packedLoads.get(group);
   // Multipack sheets link to each other. Loading them concurrently can leave
@@ -193,7 +197,7 @@ async function loadPackedGroup(group, retryFailed = false) {
         packedTextures.set(file, texture);
       });
     }
-    bumpRevision();
+    if (!hiddenGroups.has(group)) bumpRevision();
   })().catch(error => {
     failedGroups.add(group);
     throw error;
@@ -205,11 +209,12 @@ async function loadPackedGroup(group, retryFailed = false) {
 export function preloadChronicleArt({ includeSettlementPieces = false } = {}) {
   try { PIXI.Assets.setPreferences?.({ preferWorkers: true }); } catch { /* Pixi 7.2 ignores unknown prefs. */ }
   const eager = Object.values(PACKED_GROUPS)
-    .filter(group => group.eager)
+    .filter(group => group.eager && (!minimalGraphics || group === PACKED_GROUPS.resources))
     .map(group => loadPackedGroup(group, true));
   // Warm the settlement atlases after HUD/map art has claimed the first
   // connections, so opening a settlement does not wait on their decode.
   const ready = Promise.all(eager);
+  if (minimalGraphics) return ready;
   const warm = ready.then(() => loadPackedGroup(PACKED_GROUPS.settlementPieces, true));
   if (includeSettlementPieces) return warm;
   void warm.catch(error => console.error('[art] background artwork preparation failed', error));
@@ -338,6 +343,11 @@ export function addGateBackdrop(parent, rect, alpha = 0.18) {
 
 // Polygon data owns the geography. This layer works with any generated topology.
 export function addRegionTerrain(parent, points, colour, alpha = 1) {
+  if (minimalGraphics) {
+    const palette = {green:0x345944, red:0x704940, blue:0x3c536d, black:0x4e4b57};
+    const ground = new PIXI.Graphics().beginFill(palette[colour] ?? 0x4e5947, alpha).drawPolygon(points).endFill();
+    ground.eventMode = 'none'; parent.addChild(ground); return;
+  }
   const terrain = {green:'green', red:'red', blue:'blue', black:'black'}[colour] ?? 'green';
   const texture = loadTexture(`chronicle-illustrations-v1/terrain-${terrain}.png`);
   if (!texture) return;
@@ -355,4 +365,33 @@ export function addRegionTerrain(parent, points, colour, alpha = 1) {
   mask.eventMode = 'none';
   parent.addChild(tile, mask);
   tile.mask = mask;
+}
+
+// Optional artwork is published only after upload. Draws cannot start extra loads.
+export async function loadProgressiveChronicleArt({renderer, wait, isCurrent = () => true, onError = () => {}}) {
+  const groups = [PACKED_GROUPS.fullMap, PACKED_GROUPS.fullMapEnemy, PACKED_GROUPS.settlementPieces,
+    ...Object.values(PACKED_GROUPS).filter(group => ![PACKED_GROUPS.resources,PACKED_GROUPS.fullMap,PACKED_GROUPS.fullMapEnemy,PACKED_GROUPS.settlementPieces].includes(group))];
+  let failed=false;
+  for (const group of groups) {
+    if (!hiddenGroups.has(group) && [...packedTextures.keys()].some(key=>key.startsWith(group.prefix))) continue;
+    await wait(); if (!isCurrent()) return {ok:false,reason:'cancelled'};
+    hiddenGroups.add(group);
+    try {
+      await loadPackedGroup(group, false, true);
+      const textures = new Map([...packedTextures.entries()].filter(([key]) => key.startsWith(group.prefix)).map(([,texture]) => [texture.baseTexture,texture]));
+      for (const texture of textures.values()) {
+        await wait(); if (!isCurrent()) return {ok:false,reason:'cancelled'};
+        const gl=renderer.gl, max=gl?.getParameter(gl.MAX_TEXTURE_SIZE), base=texture.baseTexture;
+        if (!base.valid || (max && (base.realWidth>max || base.realHeight>max))) throw Error('Artwork exceeds device texture limits');
+        renderer.prepare.add(texture); await renderer.prepare.upload();
+        if (gl?.isContextLost()) throw Error('Artwork context lost');
+      }
+    } catch(error) { failed=true; onError(error); }
+  }
+  if(failed)return {ok:false,reason:'artworkFailed'};
+  return {ok:true,reveal(){
+    if(!isCurrent())return false;
+    for(const group of groups)hiddenGroups.delete(group);
+    bumpRevision();return true;
+  }};
 }

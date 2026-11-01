@@ -120,6 +120,7 @@ canvas { image-rendering: auto; }
   min-height:27px!important; padding:4px 8px!important;
 }
 .chronicle-workshop-seal {width:28px; touch-action:none; user-select:none; opacity:.55;}
+.chronicle-workshop-seal[data-artwork-ready="true"] {opacity:1;}
 .chronicle-workshop-seal.is-holding {opacity:1;background:#786344!important;box-shadow:0 0 10px #b18d4e;}
 .chronicle-audio {width:28px;opacity:.6;}
 .chronicle-audio[aria-pressed="true"] {opacity:1;border-color:#c2a05d!important;}

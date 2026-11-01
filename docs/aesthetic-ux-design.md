@@ -30,7 +30,9 @@ as further design tasks reveal what works.
    protect the choice's artwork. If overlap is unavoidable, make the tradeoff
    explicit and keep staged consequences visible after hover ends. Let the whole
    choice, including its price and frame, expose the same reading. Preserve
-   unrelated controls and layout while refining a component.
+   unrelated controls and layout while refining a component. When optional visual
+   assets load in the background, keep the active presentation stable and let
+   the player choose when to reveal the completed set.
 
 4. Let players compose a decision before committing. Make selection, inspection
    and confirmation distinct. Preview replacements and costs, keep displaced

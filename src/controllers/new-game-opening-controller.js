@@ -5,6 +5,7 @@ import { createEmptyTimelineFromBase } from "../model/timeline/index.js";
 export function createNewGameOpeningController({ createCache, createWorkerService, searchLimitSec,
   createState = () => createNewGameState(globalThis.crypto.getRandomValues(new Uint32Array(1))[0]),
   getPreparationKey = () => null,
+  loadPrepared = null,
 }) {
   let job = null;
   let phase = "idle";
@@ -42,8 +43,16 @@ export function createNewGameOpeningController({ createCache, createWorkerServic
     coverageSec = 0;
     report(current.progress);
     // Let the menu paint before constructing the world and priming the worker.
-    current.timer = setTimeout(() => {
+    current.timer = setTimeout(async () => {
       try {
+        if (loadPrepared) {
+          report({stage:"forecast",label:"Loading prepared performance start"});
+          const prepared = await loadPrepared();
+          if (job !== current) return;
+          current.state = prepared.state; current.onState?.(prepared.state);
+          coverageSec = prepared.lossSec; preparation = "ready";
+          current.resolve(prepared); return;
+        }
         const state = createState();
         current.state = state;
         current.onState?.(state);

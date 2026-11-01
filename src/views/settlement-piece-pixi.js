@@ -1,3 +1,4 @@
+import { minimalGraphics } from './minimal-graphics.js';
 import { createText } from './settlement-view-primitives.js';
 import { addIllustration, getArtRevision, getChronicleTexture } from './chronicle-art.js';
 import { addPieceRim, addPieceFaceChrome } from './piece-face-chrome.js';
@@ -22,7 +23,11 @@ export function addSettlementPiece(parent, rect, {
   if (!empty && face) {
     // Optional view-only overrides let isolated art studies use this same face.
     // Model presentation and all ordinary game faces retain the default artwork.
-    addIllustration(root, face.illustrationId ?? face.definitionId, {x:3,y:3,width:w-6,height:h-6});
+    const illustration = addIllustration(root, face.illustrationId ?? face.definitionId, {x:3,y:3,width:w-6,height:h-6});
+    if (minimalGraphics && !illustration) {
+      const label = createText(face.label ?? face.definitionId, {fontFamily:'Arial',fontSize:16,fill:0xf5e2ad,align:'center',wordWrap:true,wordWrapWidth:w-16},w/2,h*.42,.5,.5);
+      label.eventMode='none'; root.addChild(label);
+    }
     if (face.construction) {
       const scaffold = new PIXI.Graphics().beginFill(0x344239,.35).drawRect(3,3,w-6,h-6).endFill();
       // Timber braces and lashings leave the eventual building visible behind it.

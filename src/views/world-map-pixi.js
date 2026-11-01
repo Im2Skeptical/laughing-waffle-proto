@@ -1,3 +1,4 @@
+import { minimalGraphics } from './minimal-graphics.js';
 import { createRegionLabel } from './region-label.js';
 import { addMonsterGround, addMonsterMarker, addTerritoryBorder, territoryBoundarySegments } from './world-map/territory-art.js';
 import { createIllustratedTerrain } from './world-map/illustrated-terrain.js';
@@ -783,6 +784,10 @@ export function createWorldMapView({
       adornments.scale.set(.75);
       adornments.eventMode = 'none';
       regionContent.addChild(adornments);
+      if (minimalGraphics && !illustratedMap && indicator.hasDetailedSettlement && !indicator.monster) {
+        const marker = new PIXI.Graphics().lineStyle(2,0x131c20).beginFill(indicator.neutral?0x8ed7cf:0xe3c785).drawRect(point.x-9,point.y-16,18,18).endFill();
+        marker.eventMode='none';regionContent.addChild(marker);
+      }
       if (indicator.hasDetailedSettlement && !indicator.monster) {
         addSettlementStockTags(regionContent, point, indicator.stockTags, {
           tooltipView, reference: getRegionReference(state, indicator.regionId) ?? indicator.regionId,
@@ -925,6 +930,15 @@ export function createWorldMapView({
     // Bake a new world's terrain while its forecast is still running (New Game).
     prefetch: state => illustrated.prefetch(state),
     cancelPrefetch: () => illustrated.cancelPrefetch(),
+    async prepareProgressive(renderer, wait, isCurrent) {
+      if (!illustrated.prepareProgressive) return;
+      const definitionId=getState?.()?.world?.definitionId;
+      const reveal=await illustrated.prepareProgressive(getState?.(),renderer,wait,isCurrent);
+      return ()=>{
+        if(!isCurrent() || definitionId!==getState?.()?.world?.definitionId)return false;
+        return reveal?.() ?? true;
+      };
+    },
     async prepare(renderer) {
       await illustrated.prepare(getState?.(),renderer);
       if(preparedWorldId!==getState?.()?.world?.definitionId){preparedWorldId=getState?.()?.world?.definitionId;fitOverview();lastRevealedRegionId=null;}

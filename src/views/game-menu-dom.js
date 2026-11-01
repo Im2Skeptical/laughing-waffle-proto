@@ -1,3 +1,5 @@
+import { PERFORMANCE_SAVE_SLOT } from '../controllers/sim-runner/save-slots.js';
+import { minimalGraphics, getProgressiveArtworkPreference } from './minimal-graphics.js';
 import { PHONE_PORTRAIT_QUERY, getGameFullscreenElement, requestGameDisplayMode, usesTouchGameDisplay } from './game-display-mode.js';
 import { createSaveRecoveryDom, downloadSaveText } from './save-recovery-dom.js';
 import { buildSaveDiagnosticReport, createSaveDiagnosticsDom } from './save-diagnostics-dom.js';
@@ -10,7 +12,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
   const portrait = window.matchMedia(PHONE_PORTRAIT_QUERY);
   const panel = document.createElement("main");
   panel.id = "game-menu";
-  panel.style.setProperty('--chronicle-backdrop', `url("${new URL('images/sprite-sheets/chronicle-gate.png',document.baseURI).href}")`);
+  if (!minimalGraphics) panel.style.setProperty('--chronicle-backdrop', `url("${new URL('images/sprite-sheets/chronicle-gate.png',document.baseURI).href}")`);
   panel.dataset.testid = "game-menu";
   const message = document.createElement("p");
   message.setAttribute("role", "status");
@@ -51,6 +53,8 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
       importMeta = result.meta; mode = 'import'; render();
     } catch { message.textContent = 'Could not read this save file. Your existing saves are unchanged.'; }
   });
+  let progressiveArtwork = getProgressiveArtworkPreference();
+  let performanceEntryPending = new URLSearchParams(location.search).get("perf") === "1";
   let mode = "home";
   let overwriteSlot = null;
   let entering = false;
@@ -152,6 +156,9 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
     const subtitle = document.createElement("p");
     subtitle.textContent = "Guide a fragile realm. Turn back the years. Rewrite its fate.";
     intro.append(eyebrow, title, subtitle);
+    if (performanceEntryPending && portrait.matches) {
+      displayHint.hidden=false; displayHint.textContent='Turn your device sideways to start your performance game.';
+    }
     content.append(displayHint);
     const slots = session.slots();
     const slotStatus = session.getSlotStatus();
@@ -262,6 +269,24 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
       dev.dataset.testid = 'game-developer-tools'; dev.open = devExpanded;
       const summary = document.createElement('summary'); summary.textContent = 'Developer tools';
       dev.append(summary);
+      const performanceButton = button('New game in performance mode', () => {
+        const url = new URL(location.href); url.searchParams.set('dev','1'); url.searchParams.set('perf','1');
+        url.searchParams.set('art', progressiveArtwork ? '1' : '0'); url.searchParams.set('launch','new');
+        url.hash = ''; location.assign(url.href);
+      }, 'game-new-performance');
+      performanceButton.disabled = !canReplace; dev.append(performanceButton);
+      const artworkLabel = document.createElement('label'); artworkLabel.className = 'game-edited-cards-toggle';
+      const artworkToggle = document.createElement('input'); artworkToggle.type = 'checkbox'; artworkToggle.checked = progressiveArtwork;
+      artworkToggle.dataset.testid = 'game-progressive-artwork';
+      artworkToggle.addEventListener('change', () => { progressiveArtwork = artworkToggle.checked; try { localStorage.setItem('dev.progressiveArtwork', progressiveArtwork ? 'on' : 'off'); } catch {} });
+      artworkLabel.append(artworkToggle, document.createTextNode('Load artwork progressively')); dev.append(artworkLabel);
+      if (session.getPerformanceSave?.()?.meta?.schemaVersion) {
+        const resumePerformance = button('Continue performance game', event => {
+          if (new URLSearchParams(location.search).get('perf') === '1') void enter(isCurrent => session.continueGame(PERFORMANCE_SAVE_SLOT, {isCurrent}), PERFORMANCE_SAVE_SLOT, event);
+          else { const url = new URL(location.href); url.searchParams.set('dev','1'); url.searchParams.set('perf','1'); url.searchParams.set('art',progressiveArtwork?'1':'0'); url.searchParams.set('launch','continue'); url.hash=''; location.assign(url.href); }
+        }, 'game-continue-performance');
+        resumePerformance.disabled = !canReplace; dev.append(resumePerformance);
+      }
       if (newGameSettings) {
         const settings = document.createElement('div'); settings.className = 'game-dev-settings';
         const label = document.createElement('label'); label.className = 'game-edited-cards-toggle';
@@ -321,6 +346,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
     const note = document.createElement("p");
     note.className = "game-menu-note";
     note.textContent = "Three saves on this browser. Progress saves automatically during play. Gameplay uses landscape on phones.";
+    if (new URLSearchParams(location.search).get("perf") === "1") note.textContent = "Performance starts use a separate Dev save, replaced each time you start a new performance game. The fixed seed and prepared timeline are ready to test. Custom dev settings and edited cards apply through ordinary New Game outside this mode.";
     footer.append(message, note);
     layout.append(intro, content, footer);
     panel.append(layout);
@@ -346,6 +372,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
   document.addEventListener('visibilitychange', () => { if (document.hidden) pauseForFocusLoss(); });
   window.addEventListener('pagehide', pauseForFocusLoss);
   portrait.addEventListener('change', () => {
+    if (!portrait.matches) startPerformanceEntry();
     displayHint.hidden = !portrait.matches;
     displayHint.textContent = 'Turn your device sideways, then continue your chronicle.';
     if (portrait.matches && !session.isInMenu()) returnToMenu({ force: true });
@@ -362,7 +389,15 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
     if (!panel.hidden && loadingSlot !== null) loading.update(loadingStarted ? session.getLoadingStatus?.() : null, loadingFailed);
   }, 250);
   show();
-  void session.refreshSlots();
+  function startPerformanceEntry() {
+    if (!performanceEntryPending || portrait.matches || session.getSlotStatus().phase !== 'ready') return;
+    performanceEntryPending = false;
+    const launch = new URLSearchParams(location.search).get('launch');
+    const url = new URL(location.href); url.searchParams.delete('launch'); history.replaceState(null, '', url.href);
+    if (launch === 'continue' || (launch !== 'new' && session.getPerformanceSave?.())) void enter(isCurrent => session.continueGame(PERFORMANCE_SAVE_SLOT, {isCurrent}), PERFORMANCE_SAVE_SLOT);
+    else start(PERFORMANCE_SAVE_SLOT);
+  }
+  void session.refreshSlots().then(startPerformanceEntry);
   return {
     show,
     hide,

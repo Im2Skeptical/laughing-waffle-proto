@@ -12,7 +12,7 @@ try {
   await mkdir(path.join(fixture, 'scripts'));
   await mkdir(path.join(fixture, 'ai'));
   await mkdir(path.join(fixture, 'src'));
-  for (const file of ['build-info.mjs', 'local-preview.mjs', 'version-game.mjs']) {
+  for (const file of ['build-info.mjs', 'local-preview.mjs', 'version-game.mjs', 'performance-fixture.mjs', 'performance-fixture-recipe.mjs']) {
     await copyFile(`scripts/${file}`, path.join(fixture, 'scripts', file));
   }
   // Fixture servers must not compete with the user's running review previews.
@@ -23,6 +23,12 @@ try {
   await new Promise(resolve=>probe.close(resolve));
   const previewPath=path.join(fixture,'scripts/local-preview.mjs');
   await writeFile(previewPath,(await readFile(previewPath,'utf8')).replace('const firstPort = 5184;',`const firstPort = ${fixturePort};`));
+  await mkdir(path.join(fixture,'src/model'));
+  await mkdir(path.join(fixture,'src/defs'));
+  await writeFile(path.join(fixture,'src/model/example.js'),'export const rule = 1;');
+  await writeFile(path.join(fixture,'src/defs/example.js'),'export const definition = 1;');
+  await mkdir(path.join(fixture,'src/views/ui-root'),{recursive:true});
+  await copyFile('src/views/ui-root/settlement-timegraph-window.js',path.join(fixture,'src/views/ui-root/settlement-timegraph-window.js'));
   const pkg = { version: '1.0.0' };
   await writeFile(path.join(fixture, 'package.json'), JSON.stringify(pkg));
   await writeFile(path.join(fixture, 'package-lock.json'), JSON.stringify({ ...pkg, packages: { '': pkg } }));

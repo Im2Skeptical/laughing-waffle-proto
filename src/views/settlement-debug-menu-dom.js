@@ -9,6 +9,8 @@ export function createSettlementDebugMenuDom({
   openDevelopmentLab,
   openCurrentStateInGym,
   getSaveDiagnosticReport,
+  isArtworkReady=()=>false,
+  revealArtwork=()=>false,
 } = {}) {
   const utilityControls = document.createElement("div");
   utilityControls.dataset.testid = "utility-controls";
@@ -115,6 +117,16 @@ export function createSettlementDebugMenuDom({
   }
 
   // Gesture timers belong to UI input only; world effects use timeline time.
+  const sealText=openButton.textContent,sealTitle=openButton.title;
+  let artworkReady=false,tapAllowed=false;
+  function syncArtworkReady(){
+    const ready=isArtworkReady();if(ready===artworkReady)return;
+    artworkReady=ready;openButton.dataset.artworkReady=String(ready);
+    openButton.textContent=ready?'\u2713':sealText;
+    openButton.title=ready?'Artwork ready: click to reveal; hold for the workshop':sealTitle;
+    openButton.setAttribute('aria-label',ready?'Artwork ready: click to reveal; hold to open development workshop':'Hold to open development workshop');
+  }
+  openButton.dataset.artworkReady='false';
   let holdTimer=null, holdOrigin=null;
   function cancelHold(){
     clearTimeout(holdTimer);holdTimer=null;holdOrigin=null;
@@ -122,7 +134,7 @@ export function createSettlementDebugMenuDom({
   }
   openButton.addEventListener('pointerdown',(event)=>{
     if(event.button!==0)return;
-    cancelHold();holdOrigin={x:event.clientX,y:event.clientY,startedAt:performance.now()};
+    tapAllowed=false;cancelHold();holdOrigin={x:event.clientX,y:event.clientY,startedAt:performance.now()};
     openButton.classList.add('is-holding');
     holdTimer=setTimeout(()=>{cancelHold();open();},850);
   });
@@ -132,9 +144,14 @@ export function createSettlementDebugMenuDom({
   openButton.addEventListener('pointerup',()=>{
     // A busy forecast/render frame can delay the timer behind the release event.
     const completed=holdOrigin&&performance.now()-holdOrigin.startedAt>=850;
+    tapAllowed=Boolean(holdOrigin&&!completed);
     cancelHold();if(completed)open();
   });
   for(const event of ['pointercancel','pointerleave','lostpointercapture'])openButton.addEventListener(event,cancelHold);
+  openButton.addEventListener('click',event=>{
+    if((tapAllowed||event.detail===0)&&isArtworkReady())revealArtwork();
+    tapAllowed=false;syncArtworkReady();
+  });
   openButton.addEventListener('contextmenu',event=>event.preventDefault());
   function workshopKey(event){
     if(event.ctrlKey&&event.shiftKey&&event.code==='KeyD'){
@@ -143,6 +160,7 @@ export function createSettlementDebugMenuDom({
     if(event.code==='Escape'&&panel.style.display!=='none')close();
   }
   function positionUtility(){
+    syncArtworkReady();
     const box=document.querySelector('canvas')?.getBoundingClientRect();
     if(!box?.width||!box?.height)return;
     // The illustrated header spans logical y=12..74. Align to its center,

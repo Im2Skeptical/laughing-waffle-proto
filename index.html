@@ -7,13 +7,21 @@
     <title>Civilization Survivor</title>
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="images/dark-fantasy/card-chrome-prototype/display.css" />
-    <!-- Start HUD/map atlases while Pixi and the module graph download. -->
-    <link rel="preload" as="fetch" href="images/sprite-sheets/resource-language.json" crossorigin />
-    <link rel="preload" as="fetch" href="images/sprite-sheets/resource-language.png" crossorigin />
-    <link rel="preload" as="fetch" href="images/sprite-sheets/chronicle-illustrations.json" crossorigin />
-    <link rel="preload" as="fetch" href="images/sprite-sheets/chronicle-illustrations.png" crossorigin />
-    <link rel="preload" as="fetch" href="images/sprite-sheets/vassal-portraits.json" crossorigin />
-    <link rel="preload" as="image" href="images/sprite-sheets/chronicle-gate.png" />
+    <!-- Keep illustrated preloads out of the minimal-graphics request path. -->
+    <script>
+      if (new URLSearchParams(location.search).get('dev') !== '1') {
+        for (const [href, as] of [
+          ['resource-language.json','fetch'], ['resource-language.png','fetch'],
+          ['chronicle-illustrations.json','fetch'], ['chronicle-illustrations.png','fetch'],
+          ['vassal-portraits.json','fetch'], ['chronicle-gate.png','image'],
+        ]) {
+          const link = document.createElement('link');
+          link.rel = 'preload'; link.as = as; link.href = 'images/sprite-sheets/' + href;
+          if (as === 'fetch') link.crossOrigin = '';
+          document.head.appendChild(link);
+        }
+      }
+    </script>
   </head>
   <body class="game-menu-open">
     <div id="app"></div>
