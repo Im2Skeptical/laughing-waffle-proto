@@ -1,6 +1,6 @@
 # Laughing Waffle: decisions log
 
-**Updated through 82a68da** (2026-10-26). Original audit: `4014a92`, 2026-10-18.
+**Updated through 9756f46** (2026-11-02). Original audit: `4014a92`, 2026-10-18.
 
 Corrected on 2026-10-18 after the design-vs-implementation audit. The first draft was built from a local checkout (`45745e5`, 8 Oct) that was 200 commits behind `origin/main`, so several of its "contradictions" were already fixed in code and have been updated below. Cam's answers of 2026-10-18 are recorded as LOCKED in section 0 and in the area sections. This living log is not a full code audit.
 
@@ -62,7 +62,7 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 - No card found for "the first slot in practice shops" (Cam asked in chat; still unanswered).
 
 ### DOCS-ONLY CLAIMS
-- Default New Game shared prices for both Practice and Structure purchases are Bronze–Diamond 10/20/30/40 Prestige and 2/3/4/5 years. With shared pricing disabled, card-definition bases remain 10 Prestige / 12 phases for Practices and 2–5 Prestige / 1–2 phases for Structures; construction needs 3–8 paid Housing-phase cycles. 110 Practices and 78 Structures in code. **[built]** (docs/civilization-milestone.md, Code Health)
+- Default New Game shared prices for both Practice and Structure purchases are Bronze–Diamond 10/20/30/40 Prestige and 2/3/4/5 years. With shared pricing disabled, card-definition bases remain 10 Prestige / 12 phases for Practices and 2–5 Prestige / 1–2 phases for Structures; construction needs 3–8 paid Housing-phase cycles. 166 Practices and 103 Structures in code. **[built]** (docs/civilization-milestone.md, Code Health)
 - Common Housing ladder in code: 30/60/90/210/360/630. **[built]**
 - Hosted Stock only: Food and Currency are derived by Trait; no loose wallets; providers chosen local-first then adjacent-and-connected. **[built]** (Code Health; ai/sim.md, ai/ai-context.md). `localCurrencyCost` exists but is 0 on every Structure (stub).
 - Worker bonus is +100% per effective worker. Existing flat purchase prices remain "provisional". (docs/civilization-milestone.md, civcontent doc)
@@ -116,18 +116,18 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 - Expanding means creating a settlement (timeline card). (c/GtoOjsuv "Decision (Cam)")
 
 ### OPEN
-- Neutral takeover: undecided, needs fleshing out, blocked on Cam's own discussion (2026-10-18). Current build: 4 fixed neutral towns, no spawning, they never grow, build or do diplomacy. Open: how often to campaign vs how often neutrals appear; takeover other than campaigning (trade, prestige, billboard)? (c/zpigMvXJ, size L)
+- Neutral takeover: undecided, needs fleshing out, blocked on Cam's own discussion (2026-10-18). Current full-map build: all 20 regions are inhabited and simulated, including three independent resource-only outskirts; the four fixed templates belong to legacy fixtures. Open: how often to campaign vs how often neutrals appear; takeover other than campaigning (trade, prestige, billboard)? (c/zpigMvXJ, size L)
 - Billboard: prices should ideally move eventually (supply, distance, demand), low priority; the higher priority is neater UX, fewer options shown, and more variety in each settlement's wares. Political prestige is unanswered. (c/YGXLJ05z)
 - Neutral categories: what are they, how shown, does conquest swap billboard for a fixed practice set or a pool draw? (c/vY4qkNuU)
 - Opening neutral: what counts as "meaningful early interaction"? Answered for connection: the first neutral is adjacent to the capital and force-connected by road. (c/mUhzjpPK)
 - Neutral distinctness: settlement view, regional map or both? (c/FD0yQwhI)
-- Regional name generator: deterministic from seed? terrain-aware? same generator for neutrals? (c/PP8AslAw)
+- Regional name generator: deterministic from seed? terrain-aware? same generator for neutrals? (c/PP8AslAw) **[built]** (#72); design/tuning questions remain provisional.
 - Regional map graphics pass: adopt the five MTG biomes or keep current terrain set? Scope? (c/WZaR8GsN)
 - Population-triggered auto-expansion: threshold, repeat, where new settlement appears, starts connected? (c/GtoOjsuv)
 
 ### DOCS-ONLY CLAIMS
-- Neutrals are four fixed templates (Forager Hamlet, Timber Village, Stone Village, Market Town) with fixed demographics and a market that restocks 1-4 Stock per moon. They hold no Practices or Structures, never grow, build or do diplomacy, and do not spawn after the start. **[built]** The earlier claim of "five practice slots including neutrals" came from the stale checkout and is wrong at `4014a92`. Conquest turns population into Strangers with no practice set. (Code Health, `external-world.js:104`)
-- New Game: Starter_02 map, nine fixed roads, one rolled road, two adjacent player settlements, four authored neutrals including one adjacent and connected to the capital. (ai/ai-context.md, README.md, CONTEXT.md) **[built]** `ai/ai-context.md:41` also says neutrals use priced market inventories instead of installed Practices.
+- Legacy lab fixtures: neutrals are four fixed templates (Forager Hamlet, Timber Village, Stone Village, Market Town) with fixed demographics and a market that restocks 1-4 Stock per moon. They hold no Practices or Structures, never grow, build or do diplomacy, and do not spawn after the start. **[built]** The earlier claim of "five practice slots including neutrals" came from the stale checkout and is wrong at `4014a92`. Conquest turns population into Strangers with no practice set. (Code Health, `external-world.js:104`)
+- Current New Game: 20 inhabited regions, nine generated roads, one rolled starting road, two adjacent player holdings, a passive Warlord polity and three independent resource-only outskirts. (ai/ai-context.md, README.md, CONTEXT.md) **[built]** All inhabited full-map regions have installed gamepieces.
 - Conquest: below advantage three, 80% of population and Stock survive as adult Strangers; ruins retain dormant population/Stock for reconquest. Campaign needs Prowess + Retinue + local Support and one hosted Edible. (docs/civilization-milestone.md)
 - Structure capacity rolled 5-8 per region from `state.rng`. (ai/ai-context.md)
 - Docs' own play questions: does adjacent conquest need a stronger supply or travel constraint; should reconquest preserve survivors' age/specialists? (docs/civilization-milestone.md)
@@ -158,10 +158,10 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 - Prestige purpose unclear; curate the first few nodes for protovassals? (c/siS5YPxj)
 - Timegraph: too many useless actions, bundle actions, what makes a node "dead"? (c/XC7MZfav)
 - Time controls: lever relative to timegraph span, wheel momentum; other experiments? (c/WWTiaS2l)
-- Focus button overhaul: grey when one vassal, arrows between vassals, max/full-timeline control, skip buttons vs vassal arrows? Documented behaviour of focus button unchecked. (c/DpH4ZXMw)
+- Focus button overhaul: grey when one vassal, arrows between vassals, max/full-timeline control, skip buttons vs vassal arrows? Documented behaviour of focus button unchecked. (c/DpH4ZXMw) **[built]** (#61); design/tuning questions remain provisional.
 - Timeline play: big stockpile boosts that dwindle far in the future to make curves; which stockpiles, how far, how shown. (c/GtoOjsuv)
-- Timegraph shop icons: shared base + type indicator (glyph/colour/badge)? (c/mPd8KSbn)
-- Bugs: faded graph lost after switching out of lifegraph (c/yFLNqIQi); first Life Map node failed (c/oW5SonlM); crossroads modal doesn't close (c/RbIqp9Cb); these still need a runtime repro.
+- Timegraph shop icons: shared base + type indicator (glyph/colour/badge)? (c/mPd8KSbn) **[built]** (#61); design/tuning questions remain provisional.
+- Bugs: faded graph lost after switching out of lifegraph (c/yFLNqIQi); first Life Map node failed (c/oW5SonlM); crossroads modal doesn't close (c/RbIqp9Cb); these still need a runtime repro. #60 added regression coverage without reproducing the reported failures.
 - Foreseen extinction modal pass, loading lag on first settlement examine (both Done): confirm they are really closed (c/X4yksYCd, c/HypVV9qP). Not verified.
 
 ### DOCS-ONLY CLAIMS
@@ -189,7 +189,7 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 - Class-gated systems (class as tutorial): Warrior kills yield currency-like resource; Priest scales off vassal stats?; Scholar more powerful structures? Only sketched, "needs a design pass". (c/ksjmhFae)
 - Forced campaign for warriors: when it triggers; one campaign or a chain? (c/hsInbn7l)
 - Founder-later classes: Prophet (Priests); merchant founder "unresolved (Magnate or Merchant Prince)". Another mechanic to introduce other classes "comes later; don't build now". (c/U8v7feoR)
-- Scholar candidate bonus text: "+1 to future Scholar candidates" never names the stat. Checked in code: it is not backwards. Scholar adds to the `cunning` key (shown as Ingenuity) and Warrior to the `intelligence` key (shown as Prowess). The card text just needs to name the stat. (c/9FwTOJ0t)
+- Scholar candidate bonus text: "+1 to future Scholar candidates" never names the stat. Checked in code: it is not backwards. Scholar adds to the `cunning` key (shown as Ingenuity) and Warrior to the `intelligence` key (shown as Prowess). The card text just needs to name the stat. (c/9FwTOJ0t) **[built]** (#63); design/tuning questions remain provisional.
 - Warrior campaign UX/balance: Cam asked for it in chat; card now exists (c/6OioI8xc). Duel / Quest / Attack / Honour duel modes are built; the `challenge` family is never seen placed.
 - Vassal selection screen not pixel-art enough: which parts, which reference screen. (c/NLXckxyu)
 - Equip vs carry confusing: force equip, carry only in bag UI? what when slots full? (c/irCo20Dk)
@@ -210,7 +210,7 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 ### LOCKED
 - Staged construction zones drag back onto the shop to undo, only before confirming; the shop highlights as the target. Decision (Cam, 2026-10-18, c/UavT2N8J); **[built]** (#37).
 - Terms: Stock, Ready, Activate ("Activate" names a card activating); don't name a specific stock in tooltip text, just "stock"; remove tooltip "inspect" text button (flavour text at bottom, maybe double-click to inspect). (c/v9kiwWwC "Design notes (Cam, Oct 3)") [Done card]
-- Bring charge cards back into the game; charge-card layout: triggers bottom left, subdivided charge bar. (c/oxdLd3h6, c/73AE811i) [Done cards] **[built]:** 110 Practices, 86 Scheduled and 24 Charge, with a Charge/Discharge resolver. The "94 practices, none use charge" text on c/oxdLd3h6 is stale.
+- Bring charge cards back into the game; charge-card layout: triggers bottom left, subdivided charge bar. (c/oxdLd3h6, c/73AE811i) [Done cards] **[built]:** 166 Practices, 137 Scheduled and 29 Charge, with a Charge/Discharge resolver. The "94 practices, none use charge" text on c/oxdLd3h6 is stale.
 - Research click opens a card library grouped by tier with filters and tier odds; locked/hidden cards are out of scope. (c/ksp7EXxA) [Done card]
 - Housing tag pass so the housing shop works. (c/z9h6d71d) [Done card]
 - Structure material audit: non-Housing structures use broad existing Stock Traits, not bespoke ingredient lists. (c/HUZs7pQ9) [Done card]
@@ -232,9 +232,9 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 ### OPEN
 - Charge cards: second word for the scheduled/charge tag beside "Cyclic". Code and docs still say Scheduled/Charge. (c/v9kiwWwC "Open")
 - Card tiers: add Stone, reconsider Diamond; replacement name; check how many cards reference tiers. (c/Rg5dmcGY)
-- Common bronze Research charge card gaining Research on every practice install: new or change; amount; cap. (c/AjxkKGW5) Note: `observation` (+1 Research per Birth) is already a Common Bronze Research Practice, but it is scheduled, not charge.
-- Practice feedback hierarchy: cap-blocked less severe than missing-resource blocked. Failed activation animations. (c/Bpdhtdou, c/qWJqqQjJ)
-- Passive bonus text pass on structures; how much detail on card vs Full rules. (c/9FwTOJ0t)
+- Common bronze Research charge card gaining Research on every practice install: new or change; amount; cap. (c/AjxkKGW5) Note: `observation` (+1 Research per Birth) is already a Common Bronze Research Practice, but it is scheduled, not charge. **[built]** (#66); design/tuning questions remain provisional.
+- Practice feedback hierarchy: cap-blocked less severe than missing-resource blocked. Failed activation animations. (c/Bpdhtdou, c/qWJqqQjJ) **[built]** (#64); design/tuning questions remain provisional.
+- Passive bonus text pass on structures; how much detail on card vs Full rules. (c/9FwTOJ0t) **[built]** (#63); design/tuning questions remain provisional.
 - Threshold practice (keep a number near a limit) idea: which number/class. (c/VXA1kXBh)
 - Unlocks as tutorial (Balatro style) and account metaprogression: unscoped, "low, later". (c/NRxAcB5B, c/rGYsHYSE)
 - Playtest findings: rename "practice reform", prestige bank visibility, node info, text size. (c/4EK874Le)
@@ -242,7 +242,7 @@ Corrected on 2026-10-18 after the design-vs-implementation audit. The first draf
 ### DOCS-ONLY CLAIMS
 - Practice slots fixed at five, "reaffirmed after the content pass; the temporary twelve-slot expansion was reverted". (docs/civilization-milestone.md, ai/ai-context.md, README.md, CONTEXT.md)
 - The default New Game pool is a trimmed "minimal bronze" set (4 Practices locked, 10+ moved to Silver); never decided by Cam. (docs/minimal-bronze-test-set.md, commit `6dfa46a`; c/Q1zwEwz5)
-- Pool: 110 Practices (86 Scheduled / 24 Charge) and 78 Structures, 188 runtime pieces. 101 of 110 Practices still carry `provisionalNotes`. **[built]**
+- Pool: 166 Practices (137 Scheduled / 29 Charge) and 103 Structures, 269 runtime pieces; ordinary New Game admits 106. **[built]**
 - Charge is a private per-practice meter, not Stock; discharges at most once per root chain; workers multiply incoming Charge; all 24 Charge practices have empty Consume/Require. (ai/sim.md, civcontent doc)
 - Construction: each commission reserves a site; paid Housing-phase cycles consume Stock Traits; unfinished sites supply no Housing/modifiers. No standalone demolition, refund or salvage. (ai/sim.md)
 - Quality tiers in code: bronze, silver, gold, diamond (src/model/vassal-life-map/shop.js, phases/faith.js). Docs refer to Common (bronze), Silver, Gold/Diamond. (ai/sim.md)
@@ -291,7 +291,7 @@ Decision (Cam, 2026-10-28; implementation approved 2026-10-30): each run has ten
 - Constraint on all implementation prompts: avoid adding text, don't invent titles or subheadings. (c/88oVAj2s, Cam)
 
 ### OPEN
-- Try the Libron font: headings only or body too? (c/n7EfyOa5)
+- Try the Libron font: headings only or body too? (c/n7EfyOa5) **[built]** (#65); design/tuning questions remain provisional.
 - Card reviewer in Dev tools (mobile-friendly flag/edit/compare/export): a Reviewer with flagging, bulk edit and import/export already exists; the card may need trimming to what is missing (tap-on-card editing, compare view). (c/Cd7toHWG)
 - Profile the timegraph on a real Pixel 6 (device floor locked, section 0). Not yet done. (c/3UX7cTZf)
 - Fork into an idle / number-go-up game; first step a performance spike. Low priority. (c/r2s9WfIq)
@@ -301,7 +301,7 @@ Decision (Cam, 2026-10-28; implementation approved 2026-10-30): each run has ten
 
 ### DOCS-ONLY CLAIMS
 - Dev Lab: Zoo, Reviewer, Museum, Gym, Prototypes under `#/dev`; hold workshop seal 850 ms or Ctrl+Shift+D. Card reviewer already exists in docs ("Card review proposals", schema v1), while Trello c/Cd7toHWG asks for it as a new tool. (docs/development-lab.md, ai/ai-context.md) Mobile is only partly proven: the only real-device check was Cam's play test of PR #18.
-- Fixed-landscape dark stone/brass frame, pixel-art terrain, painted gamepiece illustrations for all 188 pieces, Pixi UI. (ai/ui.md; piece count per code)
+- Fixed-landscape dark stone/brass frame, pixel-art terrain, painted gamepiece illustrations for all 269 pieces, Pixi UI. (ai/ui.md; piece count per code)
 - Boot menu: New game, Continue, Load game with three IndexedDB slots; autosave every ten seconds. (ai/ui.md)
 - Deploys: `main` is the dev branch and GitHub Pages mobile build; agents commit and push `main` after verified changes. (AGENTS.md) Policy for agents, not a game decision.
 
@@ -331,8 +331,8 @@ Found in code at `4014a92`; Cam may not know about these. Cards exist for the fi
 
 **Resolved by code check at `4014a92` (no Cam decision needed)**
 6. Neutral towns: the billboard is built; neutrals cannot hold Practices or Structures. The docs' "five practice slots including neutrals" was a stale-checkout error.
-7. Charge cards: Trello c/oxdLd3h6 says 94 practices and none charge; code has 110 Practices, 86 Scheduled and 24 Charge.
-8. Opening neutral: Trello says one small connected neutral; code seeds 4 neutrals (one adjacent and force-connected) plus 1 opening Monster.
+7. Charge cards: Trello c/oxdLd3h6 says 94 practices and none charge; code has 166 Practices, 137 Scheduled and 29 Charge.
+8. Opening neutral: Trello says one small connected neutral; current full-map code seeds 20 inhabited regions, two player holdings, a passive Warlord polity, three independent outskirts and one Monster without erasing its settlement.
 9. Class names: Trello c/pWk7dIEn said "Warrior and Mage"; the code and docs say Scholar. Card fixed.
 10. Stat naming: Scholar +Cunning and Warrior +Intelligence is the intended key mapping (shown as Ingenuity and Prowess), not backwards. The card text never names the stat (c/9FwTOJ0t, fixed).
 11. Relic risk (c/UvHNbFbn) and stock-output nodes (c/ZdxHz1ai) are built, so those Inbox cards are stale; both carry a comment for Cam to confirm. Relic death risk is 35% for Gold/Diamond, not "always".

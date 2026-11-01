@@ -1,13 +1,16 @@
 # Current UI
 
-In this experimental checkout the ordinary game uses the full-map renderer:
+Each run allows ten Vassal tenures. Death or retirement spends one; at zero,
+the run freezes with history browsing and New game available (#68).
+
+The ordinary game on main uses the full-map renderer:
 Resource Practices show hosted Stock, while teal-framed Influence Practices show
 conversion/Force and an explicit institution allegiance badge. Territory panels
 show holder, population shares, unrest, supplied Force and holding upkeep; their
 values come from the viewed authoritative state. The Life Map uses shared
 Prestige, foreign travel, explicit hostile-removal receipts and adoption offers.
 Staging and Undo preserve confirmed institutions and currencies. See
-`docs/full-map-redesign-implementation.md` for this fork's complete contract.
+`docs/full-map-redesign-implementation.md` for the full-map contract.
 
 Charge faces use a segmented teal reservoir along the bottom, workers and their
 Charge multiplier on the left, and Activation yields on the right. The icons
@@ -95,7 +98,7 @@ New game seed field: blank means random, and a number reproduces the run.
 Save/load preserves the generated map through its versioned seeded definition.
 
 - Main screens share a fixed-landscape dark stone/brass frame, pixel-art terrain,
-  illustrated gamepiece cards with dedicated packed art for all 188 runtime pieces, and an engraved astrolabe. New presentation
+  illustrated gamepiece cards with dedicated packed art for all 269 runtime pieces, and an engraved astrolabe. New presentation
   modules sample viewed timeline time for hamlet/fire sprites, dust, transfer
   packets, and optional reversible ambient audio. Fractional presentation time
   never substitutes for a missing authoritative snapshot.
@@ -151,11 +154,10 @@ Save/load preserves the generated map through its versioned seeded definition.
   same menu with a rotate-device hint. There is no separate landscape screen.
   Gameplay, reveal motion, and audio stop while the menu is open.
 
-- The map shows all-region polygons, player ownership nodes, worker pawns,
-  structure-capacity glyphs, food and population transfer packets, a
-  civilization summary, and a compact selected-region card. Detailed regions
-  show red starvation and amber overcrowding glyphs from the currently viewed
-  state; hover and the selected-region card expose the underlying counts.
+- The map shows all-region polygons, player ownership markers,
+  structure-capacity readings, food and population transfer packets, a
+  civilization summary, and a compact selected-region card. Regional readings follow the currently viewed state; hover and the
+  selected-region card expose the underlying counts.
 - Settlement Overview and Demographics are local to the opened detailed site.
   Tapping a Practice pins its quick read across visual redraws; its title opens
   inspect. Structures retain their existing pinned details. Tapping the source
@@ -167,7 +169,9 @@ Save/load preserves the generated map through its versioned seeded definition.
   a fixed eight-socket key cabinet. Its exterior is transparent. The compact
   assembly aligns with the timewheel overhang below the Lifegraph playfield.
   Chaos, Resources, and Population toggles sit beside the individual-series
-  picker; Focus is at the right. Overflow key entries use previous/next page
+  picker; Focus is at the right. Focus is dimmed and disabled with only one
+  Vassal window; with multiple windows it focuses a tenure, previous/next arrows
+  navigate tenures, and the full-timeline control exits focus. Overflow key entries use previous/next page
   arrows or the mouse wheel over the cabinet. Changing groups or key pages
   never moves or resizes the plot. Hover or tap shows series details. Numeric y-axis labels
   are hidden because series use different scales. A new run starts with Chaos
@@ -284,7 +288,7 @@ Save/load preserves the generated map through its versioned seeded definition.
   bottom, with workers on the right for Scheduled cards and the left for Charge cards.
   Solar/lunar discs rotate at the bottom in time with scheduled triggers; charge
   practices show a segmented reservoir and trigger tray. Normal thresholds use one
-  chamber per point; large custom thresholds group points and show a numeric count. The 188 runtime illustrations and retained earlier-card paintings load as v4 frame names from the settlement-pieces atlases; opaque full-bleed paintings replace the former vignettes. Illustrated frames
+  chamber per point; large custom thresholds group points and show a numeric count. The 269 runtime illustrations and retained earlier-card paintings load as v4 frame names from the settlement-pieces atlases; opaque full-bleed paintings replace the former vignettes. Illustrated frames
   load from the shared `piece-frames` atlas; Trade/Knowledge symbols remain code. Reduced motion keeps static fill/upgrade states.
   Crossroads, Warrior Campaign, and ordinary Legacy use a full regional map
   with three illustrated mode cards, live costs, selectable legal targets, and
@@ -401,3 +405,11 @@ two decimal places, retaining a significant digit for tiny positive values.
 Simulation values keep their full precision; rounding never controls containment.
 Chaos and Resistance tooltips explain relative expansion above containment and
 show Faith contributions using the run's Population Resistance effectiveness.
+
+Current map UI (#58/#71): Stock exceptions use red for an input without a
+source, amber for output without a local holder, and green for production with
+no reachable installed consumer. Ordinary supplied/used Stock stays hidden.
+Coverage follows actual recipe faction, adjacency and road rules, not throughput.
+Population allegiance bars and contention diamonds describe full-map holdings;
+unheld neutral land is not a contested holding. Crown holdings share a copper
+boundary and capital badge; independent outskirts use resource-only boards.

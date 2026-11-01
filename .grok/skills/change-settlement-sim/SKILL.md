@@ -11,6 +11,11 @@ demographics, Elder Orders, and view models through
 `src/model/detailed-settlements/`.
 
 Vassal Life Map rules belong in `src/model/vassal-life-map.js`, not here.
+For ordinary full-map rules, route initial population through
+`src/model/full-map-world.js`, joint cohorts through `population-ledger.js`,
+faction-aware recipes through `political-recipes.js`, and control, unrest,
+military supply and treasury through `territory.js` in the detailed-settlements
+folder. Read that folder's README first; neutral-market rules are legacy fixtures.
 
 ## Do not extend these
 

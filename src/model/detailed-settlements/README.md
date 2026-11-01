@@ -67,9 +67,9 @@ file is the legacy tick substrate.
 New detailed behavior belongs in the matching file above. Projection runs the
 same stepper; never add a separate forecast implementation of Stock or conflict.
 
-## Full-map experimental ruleset
+## Full-map ruleset
 
-Ordinary New Game in this branch uses `full-map-redesign-v1`. The older neutral
+Ordinary New Game on main uses `full-map-redesign-v1`. The older neutral
 market paragraphs above describe explicit legacy Lab fixtures. Full-map regions
 all run automation; local Stock is shared, remote recipes use holder/instance
 beneficiary plus adjacency and a direct road, and unheld regions use local only.

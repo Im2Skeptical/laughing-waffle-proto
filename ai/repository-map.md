@@ -6,6 +6,13 @@ and its direct dependencies.
 
 ## Active application path
 
+- Ordinary full-map initialization: `src/model/new-game.js` and
+  `src/model/full-map-world.js`; admitted offers: `src/defs/gamepieces/full-map-defs.js`.
+- Full-map settlement rules: read `src/model/detailed-settlements/README.md`,
+  then route joint cohorts to `population-ledger.js`, faction recipes to
+  `political-recipes.js`, control/unrest/supply/treasury to `territory.js`.
+  The neutral-market module describes legacy fixtures.
+
 - Browser entry: `src/views/ui-root-pixi.js`
 - Main UI/controller wiring: `src/views/ui-root-settlement-pixi.js`
 - Simulation runner/save/load: `src/controllers/sim-runner.js`.

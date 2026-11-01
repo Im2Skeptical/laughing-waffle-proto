@@ -42,6 +42,13 @@ against the live resolver and current design decisions. Read `ai/sim.md` only
 when the routing material is insufficient for a model change.
 
 Use the live six moon phases, seasonal filters or event-driven Charge grammar.
+Ordinary full-map offers also require admission in `src/defs/gamepieces/full-map-defs.js`;
+registry presence alone does not make a card obtainable. Check the admitted pool
+alongside class, quality and lock filters.
+Scheduled activation types are `season`, `birth`, `food`, `housing`, `faith`,
+`migration`, `death` and `crisis`; `passive` is queried by its consuming rule,
+and `charge` uses the event queue. Preserve `activation.also`, `seasonKeys` and
+stages such as `preRouting` and Food's `afterMeals` when comparing live recipes.
 Keep passive rules on their own untimed reading lines. Verify base yield,
 Output Multiplier, Capacity Multiplier, worker behavior and retained Stock
 separately; a capacity-clipped bonus may have no practical payoff.

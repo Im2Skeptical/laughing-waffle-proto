@@ -11,8 +11,7 @@ remain review-only.
 Legacy content remains available to authored labs, but is excluded from this
 fork's offers unless listed as a dependency. Shared Prestige, cohort allegiance,
 territorial control and local military supply supersede the fixed neutral-market
-and abstract worldwide support assumptions below. This is a local experiment,
-not a publication or approval to merge. See [implementation and evidence](full-map-redesign-implementation.md)
+and abstract worldwide support assumptions below. This ruleset is integrated on main (#70); balance remains provisional. See [implementation and evidence](full-map-redesign-implementation.md)
 and [the content disposition](full-map-content-disposition.md).
 
 This project remains an in-progress, wide content and systems buildout. The
@@ -23,13 +22,14 @@ workbook tuning, with subsequent explicit design decisions recorded below.
 
 ## CivContent 2.6 update
 
-On `proto/keywords-classes`, [Practice keywords](practice-keywords.md) and
+Integrated on main (#59), [Practice keywords](practice-keywords.md) and
 [eight new Bronze Practices](prototypes/keywords-classes/bronze-cards/README.md)
-now work in ordinary games, bringing this branch to 118 Practices. They remain
-unmerged into `main`, with provisional balance. The original content-pass counts
+now work in ordinary games with provisional balance. The current registry is
+166 Practices (137 Scheduled / 29 Charge) and 103 Structures: 269 pieces.
+Ordinary New Game admits 106 pieces. The original content-pass counts
 below describe the earlier pool.
 
-The full 110-Practice / 78-Structure pool (including the later Observation addition) and 24 Charge engines now supersede
+The historical CivContent 2.6 110-Practice / 78-Structure pool (including the later Observation addition) and 24 Charge engines now supersede
 the representative subset. See [the implementation report](civcontent-2.6-implementation.md)
 for exact runtime coverage, tests and remaining provisional clauses. The
 first-pass system notes below retain their original tuning context.
@@ -44,8 +44,8 @@ first-pass system notes below retain their original tuning context.
   Mineral/Vessel Practice providers; their gaps remain explicit diagnostics.
 
 - Practice capacity is fixed at **five** per player detailed settlement.
-  Neutrals instead own finite priced Stock inventories, replenish before each
-  Food phase, and retain fixed demographics without installed gamepieces. This intentional readability and composition limit was reaffirmed
+  All inhabited full-map regions have installed Practices and Structures;
+  the finite neutral inventories described below belong to legacy lab fixtures. This intentional readability and composition limit was reaffirmed
   after the content pass; the temporary twelve-slot expansion was reverted.
   Future UX and gamepiece design must work within five slots. The regional,
   overview, and purchase boards show one row; shop inventory may still page.
@@ -94,7 +94,7 @@ first-pass system notes below retain their original tuning context.
   cards. Merchant's Lens adds a class offer where available. Less frequent
   Neutral Market and Class Market nodes mix Practices and Structures exclusively
   from their advertised pool; unclassed Life Maps replace Class Markets with
-  Neutral Markets. Rerolls preserve these rules.
+  Neutral Markets. Scholar Delve refresh preserves these rules; other classes cannot refresh.
 - Practice Reform's first choice is randomly selected from eligible Food-tagged,
   Construction-Stock-producing, or Currency-Stock-producing Practices. Its second
   choice remains a random eligible Stock output (excluding the first choice),
@@ -121,7 +121,7 @@ first-pass system notes below retain their original tuning context.
   Practice Consume/Require inputs with no producing Practice in any surviving
   player settlement, plus Edible for populated settlements with no food producer.
   Input trait alternatives count as one requirement. Neutral settlements do not
-  satisfy this generation check. The output is fixed for that graph and rerolls.
+  satisfy this generation check. The output is fixed for that graph and Scholar Delve refreshes.
 
 ## Systems implemented in the first pass
 

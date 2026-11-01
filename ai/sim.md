@@ -1,6 +1,9 @@
 # Current simulation
 
-This experimental checkout uses `full-map-redesign-v1` for ordinary New Game.
+Each run allows ten Vassal tenures. Death or retirement spends one; at zero,
+the run freezes with history browsing and New game available (#68).
+
+Ordinary New Game on main uses `full-map-redesign-v1` for ordinary New Game.
 All 20 regions run the same settlement simulation. Joint population cohorts keep
 residency, allegiance, specialty and age independently; holder is territory state.
 Shared Prestige, supplied local occupation, unrest, atomic faction-aware recipes,
@@ -12,8 +15,9 @@ not scale. Structures support activating Influence Practices and never convert
 independently. See `docs/full-map-redesign-implementation.md` for current defaults.
 The older descriptions below still document explicit legacy lab fixtures.
 
-CivContent 2.6 adds 24 declarative Charge Practices to the full 110-Practice /
-78-Structure registry. Charge is Practice-local integer state, separate from
+The current registry has 166 Practices (137 Scheduled / 29 Charge) and 103
+Structures (269 pieces); ordinary New Game admits 106. CivContent 2.6 remains
+the historical 110-Practice / 78-Structure source pool. Charge is Practice-local integer state, separate from
 Stock. The authoritative Practice event queue grants Charge and automatically
 resolves legal full recipes in deterministic tableau order; blocked meters retain
 Charge. Charge Practices neither consume nor require Stock; worker multipliers
