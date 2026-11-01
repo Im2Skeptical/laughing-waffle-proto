@@ -25,6 +25,7 @@ export function structureModifierAmount(def, mod, slot) {
 }
 
 export function structureModifiers(state, settlement) {
+  if(state?.world?.sites?.find(s=>s.detailedState===settlement)?.neutral)return [];
   return (settlement?.structureSlots ?? []).flatMap(slot => {
     if (slot?.construction || slot?.upkeepActive===false) return [];
     const def = getDetailedStructureDef(state, slot?.structureId);
@@ -125,7 +126,7 @@ export function stockProviderSlots(state, settlement, localOnly = false, context
       const site = state.world.sites.find(site => site.regionId === regionId && site.simulationMode === 'detailed');
       if (!site?.detailedState) continue;
       if (getRegionState(state, regionId)?.controller === (state.rulesetId?beneficiary:'player')) sources.push({ regionId, settlement: site.detailedState });
-      else if (!state.rulesetId && site.neutral) markets.push({ regionId, settlement: site.detailedState, market: true });
+      else if (site.neutral) markets.push({ regionId, settlement: site.detailedState, market: true });
     }
   }
   return [...sources, ...markets].flatMap(source => localStockSlots(state, source.settlement).map((slot, slotIndex) =>

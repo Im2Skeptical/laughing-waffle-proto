@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.45`.
+Game build version: `1.1.46`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -40,7 +40,7 @@ Routing skills live in `.grok/skills/`.
 - `tSec` is authoritative time and advances only through simulation ticks.
 - Definitions are data, model modules own rules, controllers orchestrate, and
   views render or emit input.
-- Every player settlement has exactly five Practice slots. All inhabited full-map regions have installed Practices and Structures; neutral is population allegiance, not a market exemption. This fixed design
+- Every player settlement has exactly five Practice slots. Controlled full-map regions have installed Practices and Structures. Unheld towns use priced storefronts with static populations; first control activates their authored boards. This fixed design
   limit preserves readability and composition choices; UX and gamepieces must
   work within it. Structure capacity is separate.
 - Gamepiece behavior is DSL-first. Extend a generalized operation before adding
@@ -66,7 +66,7 @@ Routing skills live in `.grok/skills/`.
 
 Authoritative numbers:
 
-- Game state v41; runner saves v31. Older saves are rejected.
+- Game state v42; runner saves v32. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
 - Each run serializes schema-v29 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.
@@ -124,10 +124,11 @@ New game seeds are random unless Developer tools specifies a seed override.
 The menu's Use dev settings toggle explicitly substitutes a saved combined profile. Each
 run chooses one existing road through `state.rng`; its two adjacent regions
 become the initial player-controlled detailed settlements, with the first in
-authored region order serving as capital. All 20 regions are inhabited in ordinary New Game on main. A distant passive Warlord capital and its adjacent provinces begin under
-remnant control; three nearby outskirts start independent, with unaffiliated
-populations and resource-only boards. Other outskirts begin unheld with inherited boards and mixed population
-allegiances. A Monster threat is seeded in an inhabited nonplayer region, without
+authored region order serving as capital. All 20 regions are inhabited in this
+fork. A distant passive Warlord capital and its adjacent provinces begin under
+remnant control; three nearby outskirts start independent with unaffiliated populations.
+Unheld towns have specialised priced storefronts, static populations and empty
+boards until first control; other outskirts retain mixed population allegiances. A Monster threat is seeded in an inhabited nonplayer region, without
 erasing its settlement. The authored legacy debug fixture still has five detailed settlements in Regions01, 03,
 06, 07, and 11. Debug profiles and Map Lab can explicitly replace that setup.
 Region state owns colour, controller, connections, `structureCapacity`, and

@@ -1,6 +1,7 @@
 import { createInitialDetailedSettlementData } from '../defs/world/detailed-settlement-scenario.js';
-import { getRegionState, getAdjacentRegionIds, canonicalizeWorldState } from './world-state.js';
+import { getRegionState, getAdjacentRegionIds, canonicalizeWorldState, getRegionDefinition, addWorldConnection } from './world-state.js';
 import { getDetailedPracticeDef } from './game-config.js';
+import { createTownMarket } from './detailed-settlements/neutral-market.js';
 import { stockCapacity } from './detailed-settlements/stock.js';
 import { writePopulationBins } from './detailed-settlements/population-ledger.js';
 
@@ -24,7 +25,7 @@ export function seedFullMapWorld(state) {
     .slice(0,3).map(r=>r.id));
   for(const region of state.world.regions) {
     const player=players.includes(region.id),enemyCapital=region.id===capital,province=!player&&provinces.has(region.id),neutral=neutralIds.has(region.id);
-    const population=player?20:enemyCapital?120:province?60:30;
+    let population=player?20:enemyCapital?120:province?60:30;
     const faction=player?'player':'external-a',share=neutral?0:(player||enemyCapital)?0.8:province?0.6:0.2;
     region.controller=player?'player':enemyCapital||province?'external-a':'frontier';
     region.detailedSettlementEnabled=true;
@@ -32,6 +33,12 @@ export function seedFullMapWorld(state) {
     if(!site){site={id:`${region.id}-settlement`,regionId:region.id};state.world.sites.push(site);}
     delete site.neutral;site.simulationMode='detailed';site.name=enemyCapital?'The Unbending Crown':player?'Free Settlement':province?'Remnant Province':neutral?'Independent Settlement':'Inherited Settlement';
     const settlement=site.detailedState=createInitialDetailedSettlementData(region.id);
+    if(!player&&!enemyCapital&&!province){
+      const types=getRegionDefinition(state,region.id)?.biome==='plains'?['grain','grain','market']:getRegionDefinition(state,region.id)?.biome==='forest'?['timber','timber','forager']:getRegionDefinition(state,region.id)?.biome==='mountains'?['quarry','quarry','market']:['forager','grain','market'];
+      const type=types[Math.floor(state.rngNextFloat()*types.length)];
+      site.neutral=createTownMarket(type);site.town={type,activated:false};site.name=site.neutral.template;
+      population=site.neutral.housing;
+    }
     const loyal=Math.floor(population*share),warriors=enemyCapital?35:province?10:0,children=Math.floor(population/4);
     const loyalChildren=Math.floor(children*share);
     writePopulationBins(settlement,[
@@ -41,9 +48,9 @@ export function seedFullMapWorld(state) {
       {classId:'villager',allegiance:faction,specialty:'ordinary',kind:'adults',age:null,count:loyal-loyalChildren-warriors},
       {classId:'villager',allegiance:'neutral',specialty:'ordinary',kind:'adults',age:null,count:population-loyal-children+loyalChildren},
     ]);
-    const ids=player?['forage','dryFarming','logging','fm_forcedPageantry','fm_rubblePicking']:
+    const ids=player?(region.id===players[0]?['dryFarming','fm_handQuern','barter']:[getRegionDefinition(state,region.id)?.biome==='mountains'?'fm_rubblePicking':'logging','barter']):
       enemyCapital?['dryFarming','cp_ironCommunion','fe_salvageDetail','fe_capitalDole','fm_handQuern']:
-      province?['forage','fe_roadRequisition','fe_barrackLevy','fe_rationRoll','fm_rubblePicking']:
+      province?['forage','fe_roadRequisition','fe_barrackLevy']:
       neutral?['forage','fm_fallowFields','fm_woodlotRights','fm_rubblePicking','fm_handQuern']:
       ['forage','fm_fallowFields','fm_forcedPageantry','fm_woodlotRights','fm_rubblePicking'];
     settlement.practiceSlots=ids.map(practiceId=>{
@@ -51,13 +58,21 @@ export function seedFullMapWorld(state) {
       return {practiceId,tier:'bronze',instanceId:`institution:${state.civilization.nextPracticeInstanceId++}`,charge:0,work:0,
         ...(def.category==='influence'?{allegiance:faction}:{stock:0})};
     });
+    while(settlement.practiceSlots.length<5)settlement.practiceSlots.push(null);
     settlement.structureSlots=Array(region.structureCapacity).fill(null);
     settlement.structureSlots[0]={structureId:enemyCapital?'longhouse':province?'timberHouse':'mudHouses',placementId:`${region.id}:housing`,origin:0,width:enemyCapital?2:1};
     if(enemyCapital){settlement.structureSlots[2]={structureId:'granary',placementId:`${region.id}:granary`,origin:2,width:1};if(region.structureCapacity>=6)settlement.structureSlots[3]={structureId:'cp_citadelOfStillness',placementId:`${region.id}:citadel`,origin:3,width:3};}
     else settlement.structureSlots[1]={structureId:province?'fm_villagePalisade':'granary',placementId:`${region.id}:support`,origin:1,width:1};
-    for(const slot of settlement.practiceSlots)if('stock'in slot)slot.stock=slot.practiceId==='cp_ironCommunion'?2:stockCapacity(state,settlement,slot);
+    for(const slot of settlement.practiceSlots)if(slot&&'stock'in slot)slot.stock=slot.practiceId==='cp_ironCommunion'?2:stockCapacity(state,settlement,slot);
+    if(site.neutral){settlement.practiceSlots=Array(5).fill(null);settlement.structureSlots=Array(region.structureCapacity).fill(null);}
+    if(!site.town){const type=player&&region.id===players[0]?'grain':province?'forager':'market';site.town={type,activated:true,market:createTownMarket(type)};}
     settlement.control={unrest:0,claimant:null,claimChecks:0,lossChecks:0};
     settlement.garrison={supplied:true,paid:0,required:0,tSec:state.tSec};
+  }
+  const trade=state.world.sites.find(s=>s.neutral&&players.some(id=>getAdjacentRegionIds(state,id).includes(s.regionId)));
+  if(trade){
+    if(!trade.neutral.stocks.some(s=>s.traits.includes('Edible'))){trade.neutral=createTownMarket('grain');trade.town.type='grain';trade.name=trade.neutral.template;}
+    addWorldConnection(state,players.find(id=>getAdjacentRegionIds(state,id).includes(trade.regionId)),trade.regionId);
   }
   const monster=state.world.regions.filter(r=>r.controller!=='player'&&r.id!==capital&&!neutralIds.has(r.id)).sort((a,b)=>mapDistance(state,players[0],b.id)-mapDistance(state,players[0],a.id))[0];
   monster.monster={defense:2};state.civilization.chaos.monsterCount=1;state.civilization.chaos.spatialSpawns=1;

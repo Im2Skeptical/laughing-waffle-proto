@@ -362,7 +362,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       canStage: affordable && legality.ok,
       stageBlockedReason: !prestigeAffordable ? 'Insufficient Prestige'
         : !currencyAffordable ? 'Insufficient hosted Currency'
-          : legality.ok ? null : 'No compatible space in the staged settlement',
+          : legality.ok ? null : legality.reason==='neutralStorefront' ? 'Take control of this town before installing gamepieces' : 'No compatible space in the staged settlement',
       validOrigins: kind === 'structure' ? Array.from({ length: beforeStructures.length }, (_, i) => i).filter(origin => checkPlacement(origin).ok) : [],
       presentation: definitionId
         ? getVassalGamepiecePresentation(state, kind, definitionId, intervention.resultingTier ?? intervention.tier ?? "bronze", intervention)
@@ -370,6 +370,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       constructionPresentation: kind === 'structure' ? getVassalGamepiecePresentation(state, kind, definitionId,
         intervention.tier, { ...intervention, construction: { completedCycles: 0 } }) : null,
       prestigeCost,
+      expansionPremium: quote.expansionPremium ?? 0,
       monsterPressureCost: quote.monsterPressureCost ?? 0,
       currencyCost,
       phaseCost: purchased ? offer.phaseCost

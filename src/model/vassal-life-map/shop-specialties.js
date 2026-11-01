@@ -1,4 +1,5 @@
 import { isFullMapOfferDefinition, FULL_MAP_SUPPLY_DEPENDENCIES } from '../../defs/gamepieces/full-map-defs.js';
+import { projectPracticeDraft } from '../practice-draft.js';
 import { prestigeAccount } from './treasury.js';
 import { VASSAL_WORKSHOP_RULES as RULES } from '../../defs/vassal-workshop-rules.js';
 import { VASSAL_INTERVENTION_PRACTICE_IDS, settlementStructureDefs } from '../../defs/gamepieces/detailed-settlement-defs.js';
@@ -42,12 +43,20 @@ export function createShopSpecialties(state, vassal, nodeState) {
   return {kind,selectedTag:null,choices};
 }
 
-export function getShopOfferPrice(vassal, nodeState, offer, state = null) {
-  const cost = getVassalActionPrestigeCost(vassal, offer.basePrestigeCost ?? 0,
+export function getShopOfferPrice(vassal, nodeState, offer, state = null, {replacement=false} = {}) {
+  let cost = getVassalActionPrestigeCost(vassal, offer.basePrestigeCost ?? 0,
     {isFirstShopPurchase:!nodeState?.purchasedOffers?.length});
+  let expansionPremium=0;
+  if(state?.rulesetId && offer.intervention?.kind==='practice' && offer.intervention.mode==='learn' && !replacement){
+    const confirmed=state.world.sites.find(s=>s.regionId===vassal.locationRegionId)?.detailedState?.practiceSlots??[];
+    const draft=projectPracticeDraft(confirmed,nodeState?.purchasedOffers??[],id=>getDetailedPracticeDef(state,id),nodeState?.practiceDraftOrder);
+    const occupancy=(draft.slots??confirmed).filter(Boolean).length;
+    expansionPremium=occupancy===3?10:occupancy===4?30:0;
+    cost+=expansionPremium;
+  }
   const reserved = (nodeState?.purchasedOffers ?? []).reduce((sum,purchase) => sum + purchase.prestigeCost,0);
   const eligible = ['practice','structure'].includes(offer.intervention?.kind) && (state?.rulesetId || offer.intervention.mode !== 'remove');
   return eligible && cost > Math.max(0,prestigeAccount(state,vassal).prestige-reserved)
-    ? {prestigeCost:0,monsterPressureCost:RULES.purchaseMonsterPressure}
-    : {prestigeCost:cost,monsterPressureCost:0};
+    ? {prestigeCost:0,monsterPressureCost:cost,expansionPremium}
+    : {prestigeCost:cost,monsterPressureCost:0,expansionPremium};
 }
