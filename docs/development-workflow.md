@@ -26,7 +26,9 @@ mode starts directly in the separate `performance-dev` save (replaced by each
 new performance start). Continue performance game resumes it; slots 1-3 stay
 separate. The adjacent Load artwork progressively checkbox defaults on: card
 art and other atlases upload in batches after entry, then terrain prepares
-cooperatively and replaces the polygon map when ready. Turn it off to retain
+cooperatively. Stubs stay visible until everything is ready: the top-right Dev
+seal shows a tick. Tap it to reveal the prepared graphics together; holding still
+opens the workshop. Turn it off to retain
 stubs (`?dev=1&perf=1&art=0`). A direct performance URL resumes its Dev save
 when available; add `&launch=new` for a fresh start. This fixed
 regular-game seed (123) loads a prepared forecast, summaries and scrub anchors.

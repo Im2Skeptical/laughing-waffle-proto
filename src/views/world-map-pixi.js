@@ -932,8 +932,12 @@ export function createWorldMapView({
     cancelPrefetch: () => illustrated.cancelPrefetch(),
     async prepareProgressive(renderer, wait, isCurrent) {
       if (!illustrated.prepareProgressive) return;
-      await illustrated.prepareProgressive(getState?.(),renderer,wait,isCurrent);
-      if (isCurrent()) { lastSignature=''; render(true); }
+      const definitionId=getState?.()?.world?.definitionId;
+      const reveal=await illustrated.prepareProgressive(getState?.(),renderer,wait,isCurrent);
+      return ()=>{
+        if(!isCurrent() || definitionId!==getState?.()?.world?.definitionId)return false;
+        return reveal?.() ?? true;
+      };
     },
     async prepare(renderer) {
       await illustrated.prepare(getState?.(),renderer);

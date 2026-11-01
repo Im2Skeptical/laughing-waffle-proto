@@ -251,6 +251,7 @@ openingBlocker.on("pointertap", event => event.stopPropagation());
 let settlementForecastController = null;
 let settlementGraphSeriesMenu = null;
 let settlementDebugMenu = null;
+let pendingArtworkReveal=null;
 let vassalDebugPresetController = null;
 let settlementEdgeTransferBatchCache = {
   key: null,
@@ -1429,6 +1430,13 @@ function handleDebugFreshRunApplied(reason) {
 }
 vassalDebugPresetController = createVassalDebugPresetController();
 settlementDebugMenu = createSettlementDebugMenuDom({
+  isArtworkReady:()=>Boolean(pendingArtworkReveal),
+  revealArtwork:()=>{
+    if(!pendingArtworkReveal)return false;
+    const reveal=pendingArtworkReveal;
+    if(reveal()===false)return false;
+    pendingArtworkReveal=null;worldMapView.refresh();return true;
+  },
   getSaveDiagnosticReport: () => buildSaveDiagnosticReport(gameSession),
   openDevelopmentLab: () => window.open(new URL('#/dev/gym?workspace=setup',location.href).href,'_blank','noopener'),
   openCurrentStateInGym: () => openLabHandoff(runner.getCursorState()),
@@ -1749,7 +1757,7 @@ const gameSession = createGameSessionController({
     }
   },
   onEnter: prepared => {
-    progressiveArtEpoch++; progressiveArtStarted=false;
+    progressiveArtEpoch++; progressiveArtStarted=false;pendingArtworkReveal=null;
     if (prepared?.historySummaryBySecond) {
       settlementGraphController.retainAuthoritativeSummariesFrom(0, prepared.historySummaryBySecond);
     }
@@ -1816,7 +1824,7 @@ app.ticker.add((delta) => {
       isCurrent:()=>epoch===progressiveArtEpoch,
       canLoad:()=>!gameSession.isInMenu()&&!document.hidden&&!opening.isRevealing()&&!vassalResolutionRecapView.isOpen()&&!lifeDecisionController.getResolution(),
       prepareTerrain:(wait,isCurrent)=>worldMapView.prepareProgressive(app.renderer,wait,isCurrent),
-      onReady:()=>{},onError:error=>console.warn('[progressive-artwork]',error.message),
+      onReady:reveal=>{if(epoch===progressiveArtEpoch){pendingArtworkReveal=reveal;settlementDebugMenu.refresh();}},onError:error=>console.warn('[progressive-artwork]',error.message),
     }).catch(error=>console.warn('[progressive-artwork]',error.message));
   }
   const frameDt = delta / 60;

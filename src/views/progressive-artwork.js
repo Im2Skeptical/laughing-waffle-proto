@@ -11,7 +11,16 @@ export async function loadProgressiveArtwork({renderer,canLoad,isCurrent,prepare
       if(canLoad())return;
     }
   };
-  await loadProgressiveChronicleArt({renderer,wait,isCurrent,onReady,onError});
+  const artwork=await loadProgressiveChronicleArt({renderer,wait,isCurrent,onError});
+  if(!artwork?.ok)return;
   await wait();if(!isCurrent())return;
-  try{await prepareTerrain(wait,isCurrent);onReady();}catch(error){onError(error);}
+  try{
+    const revealTerrain=await prepareTerrain(wait,isCurrent);
+    if(!isCurrent())return;
+    onReady(()=>{
+      if(!isCurrent())return false;
+      if(revealTerrain && revealTerrain()===false)return false;
+      return artwork.reveal();
+    });
+  }catch(error){onError(error);}
 }

@@ -197,7 +197,7 @@ async function loadPackedGroup(group, retryFailed = false, progressive = false) 
         packedTextures.set(file, texture);
       });
     }
-    bumpRevision();
+    if (!hiddenGroups.has(group)) bumpRevision();
   })().catch(error => {
     failedGroups.add(group);
     throw error;
@@ -368,24 +368,30 @@ export function addRegionTerrain(parent, points, colour, alpha = 1) {
 }
 
 // Optional artwork is published only after upload. Draws cannot start extra loads.
-export async function loadProgressiveChronicleArt({renderer, wait, isCurrent = () => true, onReady = () => {}, onError = () => {}}) {
+export async function loadProgressiveChronicleArt({renderer, wait, isCurrent = () => true, onError = () => {}}) {
   const groups = [PACKED_GROUPS.fullMap, PACKED_GROUPS.fullMapEnemy, PACKED_GROUPS.settlementPieces,
     ...Object.values(PACKED_GROUPS).filter(group => ![PACKED_GROUPS.resources,PACKED_GROUPS.fullMap,PACKED_GROUPS.fullMapEnemy,PACKED_GROUPS.settlementPieces].includes(group))];
+  let failed=false;
   for (const group of groups) {
     if (!hiddenGroups.has(group) && [...packedTextures.keys()].some(key=>key.startsWith(group.prefix))) continue;
-    await wait(); if (!isCurrent()) return;
+    await wait(); if (!isCurrent()) return {ok:false,reason:'cancelled'};
     hiddenGroups.add(group);
     try {
       await loadPackedGroup(group, false, true);
       const textures = new Map([...packedTextures.entries()].filter(([key]) => key.startsWith(group.prefix)).map(([,texture]) => [texture.baseTexture,texture]));
       for (const texture of textures.values()) {
-        await wait(); if (!isCurrent()) return;
+        await wait(); if (!isCurrent()) return {ok:false,reason:'cancelled'};
         const gl=renderer.gl, max=gl?.getParameter(gl.MAX_TEXTURE_SIZE), base=texture.baseTexture;
         if (!base.valid || (max && (base.realWidth>max || base.realHeight>max))) throw Error('Artwork exceeds device texture limits');
         renderer.prepare.add(texture); await renderer.prepare.upload();
         if (gl?.isContextLost()) throw Error('Artwork context lost');
       }
-      hiddenGroups.delete(group); bumpRevision(); onReady();
-    } catch(error) { onError(error); }
+    } catch(error) { failed=true; onError(error); }
   }
+  if(failed)return {ok:false,reason:'artworkFailed'};
+  return {ok:true,reveal(){
+    if(!isCurrent())return false;
+    for(const group of groups)hiddenGroups.delete(group);
+    bumpRevision();return true;
+  }};
 }

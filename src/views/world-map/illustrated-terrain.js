@@ -33,7 +33,7 @@ export function createIllustratedTerrain(parent,rect,{getView,forceIllustrated=f
   const container=new PIXI.Container();container.eventMode='none';parent.addChild(container);
   // Keep polygon geometry active until the entire illustrated replacement is ready.
   if (minimalGraphics && !forceIllustrated) {
-    let illustrated=null,readyId=null,destroyed=false;
+    let illustrated=null,readyId=null,preparedId=null,destroyed=false;
     const stats={ready:false,bakes:0,frames:0};
     const ready=state=>!destroyed && readyId===state?.world?.definitionId && illustrated?.stats.ready;
     return {container,stats,supports:ready,worldBounds:()=>readyId?illustrated?.worldBounds():null,
@@ -42,12 +42,17 @@ export function createIllustratedTerrain(parent,rect,{getView,forceIllustrated=f
       prefetch:()=>false,cancelPrefetch(){},async prepare(){},
       async prepareProgressive(state,renderer,wait,isCurrent){
         if(destroyed)return;
-        if(readyId===state?.world?.definitionId && illustrated?.stats.ready)return;
-        readyId=null;illustrated?.destroy();
+        const reveal=()=>{
+          if(!isCurrent()||destroyed||preparedId!==state?.world?.definitionId)return false;
+          readyId=preparedId;stats.ready=true;return true;
+        };
+        if(preparedId===state?.world?.definitionId && illustrated?.stats.ready)return reveal;
+        readyId=null;preparedId=null;illustrated?.destroy();
         illustrated=createIllustratedTerrain(container,rect,{getView,forceIllustrated:true,backgroundWait:wait,isCurrent});
         await illustrated.prepare(state,renderer);
         if(!isCurrent()||destroyed)return;
-        readyId=state?.world?.definitionId;Object.assign(stats,illustrated.stats);
+        preparedId=state?.world?.definitionId;Object.assign(stats,illustrated.stats,{ready:false,prepared:true});
+        return reveal;
       },
       destroy(){destroyed=true;illustrated?.destroy();container.destroy({children:true});},
     };
