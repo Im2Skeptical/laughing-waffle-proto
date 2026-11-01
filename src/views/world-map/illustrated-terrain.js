@@ -29,13 +29,29 @@ function surroundingsSampler(map) {
   };
 }
 
-export function createIllustratedTerrain(parent,rect,{getView}={}) {
+export function createIllustratedTerrain(parent,rect,{getView,forceIllustrated=false,backgroundWait=null,isCurrent=()=>true}={}) {
   const container=new PIXI.Container();container.eventMode='none';parent.addChild(container);
-  // Reuse the playable polygon map; skip all terrain assets, baking and animation.
-  if (minimalGraphics) return {container, stats:{ready:true,bakes:0,frames:0},
-    supports:()=>false, worldBounds:()=>null, prefetch:()=>false,
-    cancelPrefetch(){}, async prepare(){}, update(){},
-    destroy(){container.destroy({children:true});}};
+  // Keep polygon geometry active until the entire illustrated replacement is ready.
+  if (minimalGraphics && !forceIllustrated) {
+    let illustrated=null,readyId=null,destroyed=false;
+    const stats={ready:false,bakes:0,frames:0};
+    const ready=state=>!destroyed && readyId===state?.world?.definitionId && illustrated?.stats.ready;
+    return {container,stats,supports:ready,worldBounds:()=>readyId?illustrated?.worldBounds():null,
+      sitePoint:id=>illustrated?.sitePoint(id),roadPoints:edge=>illustrated?.roadPoints(edge),
+      setState:(...args)=>illustrated?.setState(...args),update(...args){illustrated?.update(...args);if(readyId)Object.assign(stats,illustrated.stats);},
+      prefetch:()=>false,cancelPrefetch(){},async prepare(){},
+      async prepareProgressive(state,renderer,wait,isCurrent){
+        if(destroyed)return;
+        if(readyId===state?.world?.definitionId && illustrated?.stats.ready)return;
+        readyId=null;illustrated?.destroy();
+        illustrated=createIllustratedTerrain(container,rect,{getView,forceIllustrated:true,backgroundWait:wait,isCurrent});
+        await illustrated.prepare(state,renderer);
+        if(!isCurrent()||destroyed)return;
+        readyId=state?.world?.definitionId;Object.assign(stats,illustrated.stats);
+      },
+      destroy(){destroyed=true;illustrated?.destroy();container.destroy({children:true});},
+    };
+  }
   let id=null,terrain=null,renderer=null,landmarks=null,lastPaint=-Infinity,lastTime=null;
   let staticLevels=[],meshes=[],generation=0,pending=null,presentation=null,active=null,presentationRoot=null;
   const cache=new Map();
@@ -53,6 +69,7 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
     staticLevels.forEach(t=>t.destroy(true));staticLevels=[];meshes=[];animated=[];sky=null;
     if(terrain)destroyPixelTerrain(terrain);terrain=null;stats.ready=false;lastTime=null;lastView=null;lastZoom=null;
   }
+  const cooperativeOptions=stats=>backgroundWait?{stats,sliceMs:8,yieldTask:backgroundWait,isCancelled:()=>!isCurrent()}:{stats};
   const bakeOptions=map=>({texel:2,sites:false,retainPresentation:true,sampleBackground:surroundingsSampler(map),windowedAnimation:!!getView,
     worldBounds:getIllustratedWorldBounds(map)});
   function discardPrefetch(){
@@ -98,7 +115,7 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
       if(prefetch?.id===nextId){adopted=prefetch;prefetch=null;}else discardPrefetch();
       const work=(async()=>{
       if(!record)return;
-      const stale=()=>request!==generation;
+      const stale=()=>request!==generation || !isCurrent();
       const early=adopted?await adopted.promise.catch(()=>null):null;
       if(stale()){if(early)destroyPixelTerrain(early.art);return;}
       const loaded=await prepareAssets();
@@ -111,9 +128,9 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
       // The bake and variant builds are single-threaded CPU work. They hand the
       // main thread back between phases so the loading screen keeps painting.
       const map=early?.map??naturalRegionalMap(record.map);
-      const art=early?.art??await runCooperative(bakePixelTerrainSteps(map,bakeOptions(map)),{stats:cooperation});
+      const art=early?.art??await runCooperative(bakePixelTerrainSteps(map,bakeOptions(map)),cooperativeOptions(cooperation));
       // A step-wise job finishes; a request replaced meanwhile discards the result.
-      if(stale()){destroyPixelTerrain(art);return;}
+      if(stale()){if(art)destroyPixelTerrain(art);return;}
       if(early)cooperation.prefetched=true;
       terrain=art;
       const density=art.stats.texel;
@@ -140,8 +157,8 @@ export function createIllustratedTerrain(parent,rect,{getView}={}) {
       sky=new PIXI.Sprite(art.atmosphere.texture);container.addChild(sky);
       await yieldToUi();if(stale())return;
       // The three terrain variants are built here, not lazily by the first setState().
-      const built=await runCooperative(prepareRegionalTilesSteps(presentation,landmarks,renderer),{stats:cooperation});
-      if(stale()){built.destroy();return;}
+      const built=await runCooperative(prepareRegionalTilesSteps(presentation,landmarks,renderer),cooperativeOptions(cooperation));
+      if(stale()){built?.destroy();return;}
       variants=built;
       Object.assign(stats,{variantBuilds:(stats.variantBuilds??0)+1,variantBuildMs:built.buildMs,cooperation});
       Object.assign(stats,{ready:true,bakes:stats.bakes+1,bakeMs:performance.now()-start,terrainBakeMs:art.stats.bakeMs,

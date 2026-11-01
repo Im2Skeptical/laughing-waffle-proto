@@ -3,7 +3,7 @@ import { IDBFactory, IDBObjectStore } from 'fake-indexeddb';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { createNewGameState } from '../src/model/new-game.js';
 import { createTimelineFromInitialState } from '../src/model/timeline/index.js';
-import { writeSaveToSlot, inspectSaveSlot, exportSave, readSaveSlot, listSaveSlotSummaries } from '../src/controllers/sim-runner/save-slots.js';
+import { writeSaveToSlot, inspectSaveSlot, exportSave, readSaveSlot, listSaveSlotSummaries, PERFORMANCE_SAVE_SLOT } from '../src/controllers/sim-runner/save-slots.js';
 import { createSaveTestStorage } from './save-test-storage.mjs';
 import { createSimRunner } from '../src/controllers/sim-runner.js';
 import { createGameSessionController } from '../src/controllers/game-session-controller.js';
@@ -32,6 +32,11 @@ try {
   assert.deepEqual(roundTrip.data.timeline, JSON.parse(exportSave({ state, timeline }).text).timeline);
   for (const slot of [2, 3]) assert.equal((await writeSaveToSlot(slot, { state, timeline })).ok, true);
   assert.equal((await listSaveSlotSummaries()).length, 3);
+  const regularBefore = await Promise.all([1,2,3].map(readSaveSlot));
+  assert.equal((await writeSaveToSlot(PERFORMANCE_SAVE_SLOT,{state,timeline,setupId:'performance-dev'})).ok,true);
+  assert.equal((await inspectSaveSlot(PERFORMANCE_SAVE_SLOT)).meta.setupId,'performance-dev');
+  assert.deepEqual(await Promise.all([1,2,3].map(readSaveSlot)),regularBefore,'Dev save never aliases the normal slots');
+
   assert.equal(values.get('other-site-data').length, 5 * 1024 * 1024, 'unrelated origin data is untouched');
 
   const originalPut = IDBObjectStore.prototype.put;

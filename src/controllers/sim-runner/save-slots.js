@@ -17,8 +17,10 @@ import { inspectSaveInWorker } from '../save-load-worker-service.js';
 
 export const SAVE_SCHEMA_VERSION = 31;
 export const SAVE_SLOT_COUNT = 3;
+export const PERFORMANCE_SAVE_SLOT = 'performance-dev';
 
 function normalizeSaveSlot(slot) {
+  if (slot === PERFORMANCE_SAVE_SLOT) return slot;
   const idx = Number.isFinite(slot) ? Math.floor(slot) : 1;
   const clamped = Math.max(1, Math.min(SAVE_SLOT_COUNT, idx));
   return clamped;

@@ -1,3 +1,5 @@
+import { progressiveGraphics } from './minimal-graphics.js';
+import { loadProgressiveArtwork } from './progressive-artwork.js';
 import { loadPerformanceStart } from '../controllers/performance-start.js';
 import { getSettlementVassalFocusWindows } from "./ui-root/settlement-timegraph-window.js";
 import { createVassalCommissionPicker } from './vassal-commission-picker-pixi.js';
@@ -1697,6 +1699,7 @@ syncSettlementRunCompletePresentation();
 publishSettlementDebugApi();
 
 let gameMenu;
+let progressiveArtEpoch=0,progressiveArtStarted=false;
 const nodeResolutionDiagnostics = createNodeResolutionDiagnostics();
 const gameSession = createGameSessionController({
   createState:()=>newGameSettings.createNewGame(),
@@ -1746,6 +1749,7 @@ const gameSession = createGameSessionController({
     }
   },
   onEnter: prepared => {
+    progressiveArtEpoch++; progressiveArtStarted=false;
     if (prepared?.historySummaryBySecond) {
       settlementGraphController.retainAuthoritativeSummariesFrom(0, prepared.historySummaryBySecond);
     }
@@ -1805,6 +1809,15 @@ app.ticker.add((delta) => {
     nodeResolutionDiagnostics.suspend();
     timelineAudio.update(0);
     return;
+  }
+  if (progressiveGraphics && !progressiveArtStarted && !opening.isRevealing()) {
+    progressiveArtStarted=true;const epoch=progressiveArtEpoch;
+    void loadProgressiveArtwork({renderer:app.renderer,
+      isCurrent:()=>epoch===progressiveArtEpoch,
+      canLoad:()=>!gameSession.isInMenu()&&!document.hidden&&!opening.isRevealing()&&!vassalResolutionRecapView.isOpen()&&!lifeDecisionController.getResolution(),
+      prepareTerrain:(wait,isCurrent)=>worldMapView.prepareProgressive(app.renderer,wait,isCurrent),
+      onReady:()=>{},onError:error=>console.warn('[progressive-artwork]',error.message),
+    }).catch(error=>console.warn('[progressive-artwork]',error.message));
   }
   const frameDt = delta / 60;
   const openingFrame = opening.advance(frameDt);

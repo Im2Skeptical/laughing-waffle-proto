@@ -6,6 +6,7 @@ const cells = new Map();
 const packedTextures = new Map();
 const packedLoads = new Map();
 const failedGroups = new Set();
+const hiddenGroups = new Set();
 const rendererPreparations = new WeakMap();
 const presentationIllustrations = new Map();
 const presentationGroups = new Map();
@@ -130,10 +131,10 @@ function packedKeyFor(file, group) {
 
 function loadTexture(file) {
   const group = packedGroupFor(file);
-  if (minimalGraphics && group !== PACKED_GROUPS.resources) return null;
   if (group) {
     const key = packedKeyFor(file, group);
-    if (packedTextures.has(key)) return packedTextures.get(key);
+    if (packedTextures.has(key) && !hiddenGroups.has(group)) return packedTextures.get(key);
+    if (minimalGraphics && group !== PACKED_GROUPS.resources) return null;
     // Packed sources are 4× larger than the runtime atlas. Never fetch them
     // while the sheet is in flight — that queue is what stalls desktop GPUs.
     // A draw cannot retry an exhausted download on every frame. Entry/retry
@@ -178,8 +179,8 @@ async function loadPackedSheet(name) {
   return { sheets, linked: (sheet.data?.meta?.related_multi_packs ?? []).filter(item => typeof item === 'string') };
 }
 
-async function loadPackedGroup(group, retryFailed = false) {
-  if (minimalGraphics && group !== PACKED_GROUPS.resources) return;
+async function loadPackedGroup(group, retryFailed = false, progressive = false) {
+  if (minimalGraphics && group !== PACKED_GROUPS.resources && !progressive) return;
   if (retryFailed && failedGroups.delete(group)) packedLoads.delete(group);
   if (packedLoads.has(group)) return packedLoads.get(group);
   // Multipack sheets link to each other. Loading them concurrently can leave
@@ -364,4 +365,27 @@ export function addRegionTerrain(parent, points, colour, alpha = 1) {
   mask.eventMode = 'none';
   parent.addChild(tile, mask);
   tile.mask = mask;
+}
+
+// Optional artwork is published only after upload. Draws cannot start extra loads.
+export async function loadProgressiveChronicleArt({renderer, wait, isCurrent = () => true, onReady = () => {}, onError = () => {}}) {
+  const groups = [PACKED_GROUPS.fullMap, PACKED_GROUPS.fullMapEnemy, PACKED_GROUPS.settlementPieces,
+    ...Object.values(PACKED_GROUPS).filter(group => ![PACKED_GROUPS.resources,PACKED_GROUPS.fullMap,PACKED_GROUPS.fullMapEnemy,PACKED_GROUPS.settlementPieces].includes(group))];
+  for (const group of groups) {
+    if (!hiddenGroups.has(group) && [...packedTextures.keys()].some(key=>key.startsWith(group.prefix))) continue;
+    await wait(); if (!isCurrent()) return;
+    hiddenGroups.add(group);
+    try {
+      await loadPackedGroup(group, false, true);
+      const textures = new Map([...packedTextures.entries()].filter(([key]) => key.startsWith(group.prefix)).map(([,texture]) => [texture.baseTexture,texture]));
+      for (const texture of textures.values()) {
+        await wait(); if (!isCurrent()) return;
+        const gl=renderer.gl, max=gl?.getParameter(gl.MAX_TEXTURE_SIZE), base=texture.baseTexture;
+        if (!base.valid || (max && (base.realWidth>max || base.realHeight>max))) throw Error('Artwork exceeds device texture limits');
+        renderer.prepare.add(texture); await renderer.prepare.upload();
+        if (gl?.isContextLost()) throw Error('Artwork context lost');
+      }
+      hiddenGroups.delete(group); bumpRevision(); onReady();
+    } catch(error) { onError(error); }
+  }
 }

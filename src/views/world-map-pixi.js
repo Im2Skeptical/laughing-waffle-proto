@@ -784,7 +784,7 @@ export function createWorldMapView({
       adornments.scale.set(.75);
       adornments.eventMode = 'none';
       regionContent.addChild(adornments);
-      if (minimalGraphics && indicator.hasDetailedSettlement && !indicator.monster) {
+      if (minimalGraphics && !illustratedMap && indicator.hasDetailedSettlement && !indicator.monster) {
         const marker = new PIXI.Graphics().lineStyle(2,0x131c20).beginFill(indicator.neutral?0x8ed7cf:0xe3c785).drawRect(point.x-9,point.y-16,18,18).endFill();
         marker.eventMode='none';regionContent.addChild(marker);
       }
@@ -930,6 +930,11 @@ export function createWorldMapView({
     // Bake a new world's terrain while its forecast is still running (New Game).
     prefetch: state => illustrated.prefetch(state),
     cancelPrefetch: () => illustrated.cancelPrefetch(),
+    async prepareProgressive(renderer, wait, isCurrent) {
+      if (!illustrated.prepareProgressive) return;
+      await illustrated.prepareProgressive(getState?.(),renderer,wait,isCurrent);
+      if (isCurrent()) { lastSignature=''; render(true); }
+    },
     async prepare(renderer) {
       await illustrated.prepare(getState?.(),renderer);
       if(preparedWorldId!==getState?.()?.world?.definitionId){preparedWorldId=getState?.()?.world?.definitionId;fitOverview();lastRevealedRegionId=null;}

@@ -23,8 +23,8 @@ export function addSettlementPiece(parent, rect, {
   if (!empty && face) {
     // Optional view-only overrides let isolated art studies use this same face.
     // Model presentation and all ordinary game faces retain the default artwork.
-    addIllustration(root, face.illustrationId ?? face.definitionId, {x:3,y:3,width:w-6,height:h-6});
-    if (minimalGraphics) {
+    const illustration = addIllustration(root, face.illustrationId ?? face.definitionId, {x:3,y:3,width:w-6,height:h-6});
+    if (minimalGraphics && !illustration) {
       const label = createText(face.label ?? face.definitionId, {fontFamily:'Arial',fontSize:16,fill:0xf5e2ad,align:'center',wordWrap:true,wordWrapWidth:w-16},w/2,h*.42,.5,.5);
       label.eventMode='none'; root.addChild(label);
     }

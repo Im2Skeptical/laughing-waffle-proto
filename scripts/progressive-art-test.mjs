@@ -1,0 +1,28 @@
+import assert from 'node:assert/strict';
+globalThis.location={search:'?dev=1&perf=1'};
+let uploads=0,loads=0,published=0,waiting=0;
+const texture={baseTexture:{valid:true,realWidth:16,realHeight:16}};
+globalThis.PIXI={SCALE_MODES:{NEAREST:0},MIPMAP_MODES:{OFF:0},Assets:{async load(){loads++;return {textures:{'fixture.png':texture},data:{}};}}};
+const art=await import('../src/views/chronicle-art.js');
+const file='full-map-content-prototype/art/fixture.png';
+const renderer={prepare:{add(){},async upload(){uploads++;if(uploads===1)assert.equal(art.getChronicleTexture(file),null,'art stays hidden until GPU upload completes');}}};
+await art.loadProgressiveChronicleArt({renderer,wait:async()=>{waiting++;},onReady(){published++;assert.ok(art.getArtRevision()>0);},onError(error){throw error;}});
+assert.ok(art.getChronicleTexture(file));assert.ok(loads>1);assert.ok(uploads<=loads);assert.equal(published,uploads);assert.ok(waiting>=published*2);
+const before=loads;
+await art.loadProgressiveChronicleArt({renderer,wait:async()=>{throw Error('already loaded groups should be reused');}});
+assert.equal(loads,before);
+const cancelled=await import('../src/views/chronicle-art.js?cancelled');
+let current=true;
+await cancelled.loadProgressiveChronicleArt({renderer,wait:async()=>{current=false;},isCurrent:()=>current});
+assert.equal(loads,before,'cancelled scene starts no new asset loads');
+const {loadProgressiveArtwork}=await import('../src/views/progressive-artwork.js');
+let allowed=true,idleCalls=0,terrainPrepared=false;
+globalThis.requestIdleCallback=callback=>{idleCalls++;if(idleCalls===1){allowed=false;setTimeout(()=>{allowed=true;},0);}callback();};
+await loadProgressiveArtwork({renderer,canLoad:()=>allowed,isCurrent:()=>true,
+  async prepareTerrain(){assert.equal(allowed,true);assert.ok(idleCalls>=2,'menu change during idle defers the next batch');terrainPrepared=true;},onReady(){},onError(error){throw error;}});
+assert.equal(terrainPrepared,true);
+const {getProgressiveArtworkPreference}=await import('../src/views/minimal-graphics.js');
+globalThis.location.search='?perf=1';globalThis.localStorage={getItem:()=> 'off'};
+assert.equal(getProgressiveArtworkPreference(),false);
+globalThis.location.search='?perf=1&art=1';assert.equal(getProgressiveArtworkPreference(),true);
+console.log('[progressive-art] sequential loads, upload-before-display and reuse OK');
