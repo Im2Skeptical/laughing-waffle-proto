@@ -39,7 +39,7 @@ for (const seed of SEEDS) {
   assert.equal(values.monsterProgressPerChaosRatio, 0.8);
   assert.equal(state.world.sites.length,20);
   assert.equal(state.rulesetId,'full-map-redesign-v1');
-  assert.ok(state.world.sites.every(site=>!site.neutral&&site.detailedState.practiceSlots.length===5));
+  assert.ok(state.world.sites.every(site=>site.detailedState.practiceSlots.length===5&&(!site.neutral||site.detailedState.practiceSlots.every(p=>p===null))));
   const saved = serializeGameState(state);
   const loaded = deserializeGameState(JSON.parse(JSON.stringify(saved)));
   assert.deepEqual(serializeGameState(loaded), saved);

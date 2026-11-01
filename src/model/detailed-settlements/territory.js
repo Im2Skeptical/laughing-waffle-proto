@@ -1,3 +1,4 @@
+import { transitionTown } from './neutral-market.js';
 import { getRegionState, getAdjacentRegionIds, getConnectedRegionIds } from '../world-state.js';
 import { getDetailedSettlementSites, getDetailedSettlement } from './queries.js';
 import { allegianceSummary, populationBins } from './population-ledger.js';
@@ -9,6 +10,8 @@ import { emitPracticeEvent } from './practice-events.js';
 export const CONTROL_DEFAULTS = Object.freeze({claim:.6,retain:.45,claimChecks:2,lossUnrest:75,lossChecks:2,disloyalPerForce:25,warriorsPerForce:5,warriorsPerMeal:10});
 function localMilitarySummary(state,regionId,faction=getRegionState(state,regionId)?.controller,{assumeSupplied=false}={}) {
   const settlement=getDetailedSettlement(state,regionId);
+  const market=state.world.sites.find(s=>s.regionId===regionId)?.neutral;
+  if(market)return {faction,warriors:0,armed:0,supplied:false,force:0,defense:market.defense,upkeep:0};
   const warriors=populationBins(settlement).filter(b=>b.kind==='adults'&&b.specialty==='warrior'&&(faction==='frontier'||b.allegiance===faction)).reduce((n,b)=>n+b.count,0);
   const armed=Math.min(warriors,stockTotal(state,settlement,'Arms'));
   const supplied=assumeSupplied||settlement?.garrison?.supplied===true;
@@ -77,6 +80,7 @@ export function changeController(state,regionId,faction,{military=false}={}) {
   const region=getRegionState(state,regionId),settlement=getDetailedSettlement(state,regionId);
   if(!settlement||region.controller===faction)return;
   const previous=region.controller;region.controller=faction;
+  transitionTown(state,state.world.sites.find(s=>s.regionId===regionId),faction);
   const control=settlement.control??={unrest:0};
   control.unrest=military?Math.max(50,control.unrest):Math.max(0,control.unrest-20);
   control.claimant=null;control.claimChecks=0;control.lossChecks=0;
@@ -111,6 +115,7 @@ export function payGarrisonUpkeep(state) {
     return supplied;
   };
   for(const site of getDetailedSettlementSites(state)) {
+    if(site.neutral)continue;
     const settlement=site.detailedState,m=localMilitarySummary(state,site.regionId);
     const extra=structureModifiers(state,settlement).reduce((n,m)=>n+(m.kind==='garrisonUpkeep'?m.amount:0),0);
     const cost=m.upkeep+extra;

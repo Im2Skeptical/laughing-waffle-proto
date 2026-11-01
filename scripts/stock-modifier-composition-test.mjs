@@ -63,6 +63,7 @@ function pair() {
     && getConnectedRegionIds(state, local.regionId).includes(site.regionId));
   for (const site of state.world.sites) {
     if (!site.detailedState) continue;
+    delete site.neutral; delete site.town; // Isolate modifier recipes from storefront supply.
     setFixturePopulation(site.detailedState, 0);
     site.detailedState.practiceSlots = fiveSlots();
     site.detailedState.structureSlots = site.detailedState.structureSlots.map(() => null);

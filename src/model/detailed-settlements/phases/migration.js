@@ -152,7 +152,7 @@ function getMigrationCandidates(state, intent, emitterIds, projectedPopulation) 
     ? sourceSummary.total / sourceSummary.housingCapacity
     : Number.POSITIVE_INFINITY;
   const candidates = getConnectedRegionIds(state, intent.sourceId)
-    .filter((regionId) => (state.rulesetId || getRegionState(state, regionId)?.controller === "player") && getDetailedSettlement(state, regionId) && getRegionState(state,regionId)?.controller!=="ruin")
+    .filter((regionId) => !state.world.sites.find(s=>s.regionId===regionId)?.neutral && (state.rulesetId || getRegionState(state, regionId)?.controller === "player") && getDetailedSettlement(state, regionId) && getRegionState(state,regionId)?.controller!=="ruin")
     .filter((regionId) => !emitterIds.has(regionId))
     .map((regionId) => {
       const settlement = getDetailedSettlement(state, regionId);

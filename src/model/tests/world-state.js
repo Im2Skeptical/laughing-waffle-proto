@@ -65,7 +65,7 @@ import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers
 const state = createInitialState("devPlaytesting01", 24680);
 assert.equal(validateWorldDefinition(worldMapDefs.riverBasin01).ok, true);
 assert.equal(validateWorldState(state).ok, true);
-assert.equal(state.gameStateSchemaVersion, 41);
+assert.equal(state.gameStateSchemaVersion, 42);
 const invalidPracticeTierState = serializeGameState(state);
 invalidPracticeTierState.world.sites[0].detailedState.practiceSlots.find(Boolean).tier = "platinum";
 assert.equal(validateWorldState(invalidPracticeTierState).ok, false,
@@ -485,7 +485,7 @@ for (const removedKey of ["elderCouncil", "agendaByClass", "installedPracticeIds
 }
 const old = serializeGameState(state);
 old.gameStateSchemaVersion = 35;
-assert.throws(() => deserializeGameState(old), /expected v41/);
+assert.throws(() => deserializeGameState(old), /expected v42/);
 
 const forecastState = createInitialState("devPlaytesting01", 24680);
 const forecastTimeline = { revision: 0 };
@@ -644,7 +644,7 @@ for (let seed = 1; seed <= 64; seed += 1) {
   startingPairs.add(ids.join("|"));
   assert.ok(fresh.world.connections.some((edge) =>
     [edge.regionAId, edge.regionBId].sort().join("|") === ids.join("|")));
-  assert.ok(fresh.world.sites.every(site=>!site.neutral&&site.detailedState.practiceSlots.length===5));
+  assert.ok(fresh.world.sites.every(site=>site.detailedState.practiceSlots.length===5&&(!site.neutral||site.detailedState.practiceSlots.every(p=>p===null))));
   assert.ok(fresh.civilization.remnant.capitalRegionId);
   assert.equal(fresh.world.regions.length,20);
   for(const edge of getWorldDefinition(fresh).connections) assert.ok(fresh.world.connections.some(actual=>actual.regionAId===edge.regionAId&&actual.regionBId===edge.regionBId));

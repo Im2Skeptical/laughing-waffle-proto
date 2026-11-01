@@ -26,7 +26,7 @@ assert.deepEqual([...contiguousBiomeRegions(state,'R03')],['R03'],'isolated fore
 const cases=[['R01',[3,1,1,1,1]],['R06',[1,1,3,3,3]],['R08',[1,1,2,1,1]]];
 for(const [regionId,expected] of cases) {
   const site=state.world.sites.find(site=>site.regionId===regionId),local=site.detailedState;
-  site.neutral=null;getRegionState(state,regionId).controller='player';
+  site.neutral=null;delete site.town;getRegionState(state,regionId).controller='player';
   local.practiceSlots=fiveSlots(...['dryFarming','forage','quarrying','logging','carpentry'].map(id=>practiceSlot(id)));
   local.structureSlots=Array.from({length:getRegionState(state,regionId).structureCapacity},()=>null);setFixturePopulation(local,30);
   const pools=local.practiceSlots.map(slot=>stockOutputBreakdown(state,local,slot).multiplier);

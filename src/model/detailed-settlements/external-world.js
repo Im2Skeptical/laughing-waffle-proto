@@ -297,7 +297,7 @@ function expandMonster(state, region, targetId) {
     emitPracticeEvent(state,{kind:'settlementLost',regionId:targetId});
     settlement.lastDefense={tSec:state.tSec,result:'lost',sourceRegionId:region.id};
   }
-  if(site) { delete site.neutral;site.simulationMode='ruin';target.detailedSettlementEnabled=false; }
+  if(site) { if(site.town&&site.neutral)site.town.market=site.neutral; delete site.neutral;site.simulationMode='ruin';target.detailedSettlementEnabled=false; }
   target.controller='frontier';target.monster={defense:region.monster.defense};
   emitPracticeEvent(state,{kind:'monsterPressure',regionId:targetId,action:'expand'});
 }

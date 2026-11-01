@@ -57,7 +57,9 @@ function isDefinitionUnlocked(state, def, nodeState = null) {
 }
 
 export function validatePurchaseInterventions(state, vassal, purchases = [], order = vassal?.lifeMap?.nodeStates?.[vassal.lifeMap.currentNodeId]?.practiceDraftOrder) {
-  const settlement = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
+  const site = getDetailedSite(state, vassal.locationRegionId);
+  if(state.rulesetId&&site?.neutral&&purchases.some(p=>['practice','structure'].includes(p.intervention?.kind)))return {ok:false,reason:'neutralStorefront'};
+  const settlement = site?.detailedState;
   const practices = projectPracticeDraft(settlement?.practiceSlots ?? [], purchases, id => getDetailedPracticeDef(state, id), order);
   if (!practices.ok) return practices;
   const structures = projectStructureDraft(settlement?.structureSlots ?? [], purchases.filter(p => p.intervention?.kind === 'structure').map(p => p.placement),
@@ -283,7 +285,7 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
       || toIndex < 0 || toIndex >= (getDetailedSite(state, vassal.locationRegionId)?.detailedState?.practiceSlots.length ?? 0))) {
     return {ok:false,reason:'invalidPurchaseOrder'};
   }
-  const {prestigeCost, monsterPressureCost} = getShopOfferPrice(vassal,nodeState,offer,state);
+  const {prestigeCost, monsterPressureCost} = getShopOfferPrice(vassal,nodeState,offer,state,{replacement:!!replacePracticeId});
   const phaseCost = state.rulesetId && offer.intervention?.mode==='adopt' ? offer.basePhaseCost : getVassalActionPhaseCost(vassal, offer.basePhaseCost, { nodeState });
   const currencyCost = Math.max(0, Number(offer.baseCurrencyCost) || 0);
   const stagedPrestigeCost = (nodeState.purchasedOffers ?? [])
@@ -303,6 +305,7 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
   if (!prepared.ok) return prepared;
   const purchase = {
     ...clone(offer), ...(prepared.placement ? { placement: prepared.placement } : {}), prestigeCost, monsterPressureCost, phaseCost, currencyCost, purchasedSec: state.tSec,
+    purchaseSequence: Math.max(0,...nodeState.purchasedOffers.map(p=>p.purchaseSequence??0))+1,
     sourceInventoryRoll: Math.max(0, Math.floor(nodeState.inventoryRoll ?? 0)),
     sourceInventoryIndex: Math.max(0, Math.floor(offer.inventoryIndex ?? index)),
   };
@@ -424,6 +427,8 @@ export function undoVassalShopPurchase(state, nodeId, offerId) {
   }
   nodeState.purchasedOfferIds = nodeState.purchasedOffers.map((entry) => entry.offerId);
   const restored = clone(purchase);
+  delete restored.purchaseSequence;
+  delete restored.expansionPremium;
   delete restored.displacedInstanceIds;
   delete restored.removalReceipts;
   delete restored.replacedPracticeId;
@@ -552,13 +557,22 @@ export function repriceShopDraft(state,vassal,nodeState) {
   const removed=confirmed.filter(s=>s?.allegiance&&s.allegiance!=='player'&&!kept.has(s.instanceId));
   let available=prestigeAccount(state,vassal).prestige;
   const charged=new Set();
-  for(const [index,p] of nodeState.purchasedOffers.entries()) {
+  const explicitRemovals=new Set(nodeState.purchasedOffers.filter(p=>p.intervention.kind==='practice'&&p.intervention.mode==='remove').map(p=>p.intervention.practiceId));
+  let occupancy=confirmed.filter(slot=>slot&&!explicitRemovals.has(slot.practiceId)).length;
+  for(const [index,p] of [...nodeState.purchasedOffers].sort((a,b)=>(a.purchaseSequence??0)-(b.purchaseSequence??0)).entries()) {
     const victims=removed.filter(s=>!charged.has(s.instanceId)&&p.intervention.kind==='practice'
       && (p.intervention.mode==='remove'?s.practiceId===p.intervention.practiceId
         :p.intervention.mode==='learn'&&(s.practiceId===p.replacedPracticeId||p.displacedInstanceIds?.includes(s.instanceId))));
     victims.forEach(s=>charged.add(s.instanceId));
     const base=p.intervention.mode==='adopt'?10:getVassalActionPrestigeCost(vassal,p.basePrestigeCost??0,{isFirstShopPurchase:index===0});
-    const quote=quotePrestige(available,base+5*victims.length,10*victims.length);
+    let expansionPremium=0;
+    if(p.intervention.kind==='practice'){
+      if(p.intervention.mode==='learn'&&!p.replacedPracticeId&&!p.displacedInstanceIds?.length){
+        occupancy++;expansionPremium=occupancy===4?10:occupancy===5?30:0;
+      }
+    }
+    const quote=quotePrestige(available,base+expansionPremium+5*victims.length,10*victims.length);
+    p.expansionPremium=expansionPremium;
     Object.assign(p,quote,{removalReceipts:victims.map(s=>({instanceId:s.instanceId,allegiance:s.allegiance,prestigeTax:5,pressureTax:10}))});
     available-=quote.prestigeCost;
   }

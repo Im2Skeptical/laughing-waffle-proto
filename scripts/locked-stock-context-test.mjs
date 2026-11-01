@@ -14,6 +14,8 @@ const state = createNewGameState(678);
 const sites = getPlayerDetailedSites(state);
 assert.ok(sites.length >= 1, 'a captured new game has a player settlement');
 for (const site of sites) {
+  // Isolate locked installed supply from the authored regional starter recipes.
+  site.detailedState.practiceSlots=[{...site.detailedState.practiceSlots[0],practiceId:'forage'},null,null,null,null];
   assert.equal(site.detailedState.practiceSlots[0].practiceId, 'forage', 'starter settlement has Foraging installed');
   assert.ok(site.detailedState.populationByClass.villager.adults > 0, 'starter settlement has people to feed');
 }

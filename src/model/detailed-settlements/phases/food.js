@@ -94,7 +94,7 @@ export function runFoodPhase(state, phase) {
   runPracticeActivation(state, "food", "postRouting");
   // All owners get first use of their own Edible Stock. Only after this pass
   // may unmet demand draw on the stock left in adjacent connected settlements.
-  const meals = getDetailedSettlementSites(state).map(site => {
+  const meals = getDetailedSettlementSites(state).filter(site=>!site.neutral).map(site => {
     const settlement = site.detailedState;
     const population = getPopulationSummary(state, site.regionId);
     const savedStock = Math.min(population.mealDemand, Math.max(0, getPhaseModifiers(state).foodByRegion[site.regionId] ?? 0));

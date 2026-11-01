@@ -143,7 +143,7 @@ export function evaluateDetailedPracticeSlot(state, regionId, slotIndex) {
 }
 
 export function runPracticeActivation(state, activationType, stage = null) {
-  if(state.rulesetId&&stage!=='postRouting'&&stage!=='afterMeals')for(const site of getDetailedSettlementSites(state))for(const slot of site.detailedState.structureSlots.filter(Boolean)){
+  if(state.rulesetId&&stage!=='postRouting'&&stage!=='afterMeals')for(const site of getDetailedSettlementSites(state).filter(s=>!s.neutral))for(const slot of site.detailedState.structureSlots.filter(Boolean)){
     const upkeep=getDetailedStructureDef(state,slot.structureId)?.upkeep;
     if(!slot.construction&&upkeep&&(upkeep.activation===activationType||activationType==='season'&&upkeep.activation===getCurrentSeasonKey(state))){
       const payment=planStock(state,site.detailedState,upkeep.consume,[],null,false,true);
@@ -153,6 +153,7 @@ export function runPracticeActivation(state, activationType, stage = null) {
   }
   const sharedRetries = [];
   for (const site of getDetailedSettlementSites(state)) {
+    if(site.neutral)continue;
     if (!state.rulesetId && !['player', 'external-a'].includes(getRegionState(state, site.regionId)?.controller)) continue;
     const settlement = site.detailedState;
     for (const assignment of assignDetailedSettlementWorkers(state, site.regionId)) {
@@ -162,7 +163,7 @@ export function runPracticeActivation(state, activationType, stage = null) {
       if (activationType==='season' && def.activation.seasonKeys && !def.activation.seasonKeys.includes(getCurrentSeasonKey(state))) continue;
       if (def.cadenceMoons && Math.floor(state.tSec / (getGameSetting(state, 'phaseDurationSec') * 6)) % def.cadenceMoons) continue;
       const attempt = (currentAssignment, localOnly) => {
-        if (state.runStatus?.complete || site.simulationMode !== 'detailed' || (!state.rulesetId && !['player','external-a'].includes(getRegionState(state,site.regionId)?.controller))) return false;
+        if (state.runStatus?.complete || site.simulationMode !== 'detailed' || site.neutral || (!state.rulesetId && !['player','external-a'].includes(getRegionState(state,site.regionId)?.controller))) return false;
         if (def.activation.conditions?.[activationType] && !conditionsMet(state,site,{...def,condition:def.activation.conditions[activationType]},currentAssignment,localOnly)) return false;
         const plan = recipePlan(state,site,currentAssignment,localOnly);
         if (!plan.ok) return false;
@@ -283,7 +284,7 @@ function drainPracticeEvents(state, sharedRetries = []) {
     for (const [key, candidate] of deferred) if (candidate.event.rootId === event.rootId) deferred.delete(key);
   };
   const tryDischarge = (site, assignment, event, localOnly) => {
-    if (state.runStatus?.complete || site.simulationMode !== 'detailed' || (!state.rulesetId && getRegionState(state,site.regionId)?.controller !== 'player')) return;
+    if (state.runStatus?.complete || site.simulationMode !== 'detailed' || site.neutral || (!state.rulesetId && getRegionState(state,site.regionId)?.controller !== 'player')) return;
     const root = rootFor(event.rootId);
     if (root.stopped) return;
     const slot = site.detailedState.practiceSlots[assignment.slotIndex];
@@ -320,7 +321,7 @@ function drainPracticeEvents(state, sharedRetries = []) {
         if (root.stopped) continue;
         journal.activeRoot = event.rootId; journal.activeEvent = event.id;
         tracePracticeEvent(state, event);
-        const sites = getDetailedSettlementSites(state).filter(s => (state.rulesetId || ['player', 'external-a'].includes(getRegionState(state, s.regionId)?.controller))
+        const sites = getDetailedSettlementSites(state).filter(s => !s.neutral && (state.rulesetId || ['player', 'external-a'].includes(getRegionState(state, s.regionId)?.controller))
           && s.detailedState.practiceSlots.some(slot=>getDetailedPracticeDef(state,slot?.practiceId)?.mode==='charge'));
         for (const site of sites) {
           const settlement = site.detailedState;

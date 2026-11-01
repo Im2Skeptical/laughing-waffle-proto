@@ -42,20 +42,21 @@ import {getDetailedSettlementViewModel} from '../src/model/detailed-settlements.
 import {getSettlementStockTags} from '../src/views/world-map/stock-tags.js';
 import {getMapInfluencePresentation} from '../src/views/world-map/influence-marker.js';
 
-const fresh=()=>createNewGameState(424242);
+// Rule-isolation fixtures use active developed towns; opening contracts below use New Game directly.
+const fresh=()=>{const s=createNewGameState(424242);for(const site of s.world.sites){delete site.neutral;delete site.town;site.simulationMode='detailed';getRegionState(s,site.regionId).detailedSettlementEnabled=true;}return s;};
 const bin=(count,allegiance='neutral',specialty='ordinary',kind='adults')=>({classId:'villager',allegiance,specialty,kind,age:kind==='elder'?60:null,count});
 const install=(id,allegiance='player',stock=0)=>({practiceId:id,tier:'bronze',instanceId:`test:${id}`,charge:0,work:0,...(fullMapPractices[id]?.category==='influence'?{allegiance}:{stock})});
 const checks=[];
 function test(name,fn){fn();checks.push(name);}
-test('three independent resource-only starts remain distinct from Crown-influenced outskirts',()=>{
+test('unheld towns start as deterministic sparse storefronts',()=>{
  for(const seed of [1,2,4,6,7,8,12,18,1867]){
-  const s=createNewGameState(seed),independent=s.world.sites.filter(site=>site.name==='Independent Settlement');
+  const s=createNewGameState(seed),independent=s.world.sites.filter(site=>site.neutral);
   assert.equal(independent.length,3);
   assert.equal(s.world.regions.filter(r=>r.controller==='player').length,2);
   for(const site of independent){
-   assert.equal(getRegionState(s,site.regionId).controller,'frontier');assert(!getRegionState(s,site.regionId).monster);
-   assert(populationBins(site.detailedState).every(b=>b.allegiance==='neutral'));
-   assert(site.detailedState.practiceSlots.every(p=>!p.allegiance));
+   assert.equal(getRegionState(s,site.regionId).controller,'frontier');
+   assert(site.neutral.stocks.length>0);
+   assert(site.detailedState.practiceSlots.every(p=>p===null));
   }
   assert.deepEqual(serializeGameState(s),serializeGameState(createNewGameState(seed)),'opening remains seed deterministic');
   assert.deepEqual(serializeGameState(deserializeGameState(serializeGameState(s))),serializeGameState(s));
@@ -148,7 +149,7 @@ test('control boundaries, hysteresis, preservation of capture identities',()=>{
  writePopulationBins(d,[bin(25)]);assert.equal(controlSummary(s,site.regionId).required,1);writePopulationBins(d,[bin(250)]);assert.equal(controlSummary(s,site.regionId).required,10);
 });
 test('all-or-nothing hostile installation costs and stable adoption / upgrade',()=>{
- assert.deepEqual([0,12,15].map(n=>quotePrestige(n,15,10)),[{prestigeCost:0,monsterPressureCost:20},{prestigeCost:0,monsterPressureCost:20},{prestigeCost:15,monsterPressureCost:10}]);
+ assert.deepEqual([0,12,15].map(n=>quotePrestige(n,15,10)),[{prestigeCost:0,monsterPressureCost:25},{prestigeCost:0,monsterPressureCost:25},{prestigeCost:15,monsterPressureCost:10}]);
  const old={...install('fm_debtService','external-a'),charge:0,work:7};
  const p={offerId:'adopt',intervention:{kind:'practice',mode:'adopt',practiceId:old.practiceId,tier:'bronze',resultingTier:'bronze'}};
  const draft=projectPracticeDraft([old,null,null,null,null],[p],id=>fullMapPractices[id]);assert(draft.ok);assert.equal(draft.slots[0].instanceId,old.instanceId);assert.equal(draft.slots[0].allegiance,'player');assert.equal(draft.slots[0].work,7);assert.equal(old.allegiance,'external-a');assert(!('stock'in draft.slots[0]));
@@ -192,11 +193,11 @@ test('real stage/undo/confirm hostile displacement and repeated confirmation',()
  for(const reserve of [0,12,15]){
   const {s,v,node,ns,d}=stagedShop();s.civilization.prestige=reserve;const before=JSON.stringify({board:d.practiceSlots,rng:s.rng,prestige:s.civilization.prestige,pressure:s.civilization.chaos.monsterPressure});
   assert(purchaseVassalShopOffer(s,node.id,'test-install',null,0,'fe_rationRoll').ok);
-  assert.equal(ns.purchasedOffers[0].monsterPressureCost,reserve<15?20:10);assert.equal(ns.purchasedOffers[0].prestigeCost,reserve<15?0:15);
+  assert.equal(ns.purchasedOffers[0].monsterPressureCost,reserve<15?25:10);assert.equal(ns.purchasedOffers[0].prestigeCost,reserve<15?0:15);
   assert.equal(JSON.stringify({board:d.practiceSlots,rng:s.rng,prestige:s.civilization.prestige,pressure:s.civilization.chaos.monsterPressure}),before);
   assert(undoVassalShopPurchase(s,node.id,'test-install').ok);assert.equal(JSON.stringify({board:d.practiceSlots,rng:s.rng,prestige:s.civilization.prestige,pressure:s.civilization.chaos.monsterPressure}),before);
   assert(purchaseVassalShopOffer(s,node.id,'test-install',null,0,'fe_rationRoll').ok);assert(confirmVassalLifeNode(s,node.id).ok);
-  assert.equal(s.civilization.prestige,reserve<15?reserve:0);assert.equal(s.civilization.chaos.monsterPressure,reserve<15?20:10);
+  assert.equal(s.civilization.prestige,reserve<15?reserve:0);assert.equal(s.civilization.chaos.monsterPressure,reserve<15?25:10);
   assert.equal(confirmVassalLifeNode(s,node.id).ok,false);assert(!d.practiceSlots.some(p=>p?.practiceId==='fe_rationRoll'));
  }
 });
@@ -332,7 +333,7 @@ test('two hostile replacements quote each logical installation independently',()
  assert(purchaseVassalShopOffer(s,node.id,'second-install',null,0,'fm_debtService').ok);
  assert(ns.purchasedOffers.every(p=>p.removalReceipts.length===1));
  assert.equal(ns.purchasedOffers.reduce((n,p)=>n+p.prestigeCost,0),15);
- assert.equal(ns.purchasedOffers.reduce((n,p)=>n+p.monsterPressureCost,0),30);
+ assert.equal(ns.purchasedOffers.reduce((n,p)=>n+p.monsterPressureCost,0),35);
  assert(undoVassalShopPurchase(s,node.id,'second-install').ok);assert.equal(ns.purchasedOffers[0].prestigeCost,15);assert.equal(ns.purchasedOffers[0].monsterPressureCost,10);
 });
 test('staged adoption cannot launder a confirmed hostile replacement tax',()=>{
@@ -461,10 +462,20 @@ test('automatic Monster Hunting uses the local faction army and keeps foreign re
 test('unheld Field Study has no all-frontier alliance',()=>{
  const s=fresh(),[a,b]=s.world.sites.filter(x=>getRegionState(s,x.regionId).controller==='frontier');
  a.detailedState.practiceSlots=[install('fieldStudy'),null,null,null,null];
+ b.detailedState.practiceSlots=[install('forage'),null,null,null,null];
  const research=s.civilization.research.total;
  emitPracticeEvent(s,{kind:'practiceInstalled',regionId:b.regionId,practiceId:b.detailedState.practiceSlots[0].practiceId});flushPracticeEvents(s);
  assert.equal(a.detailedState.research??0,0);
  emitPracticeEvent(s,{kind:'practiceInstalled',regionId:a.regionId,practiceId:'fieldStudy'});flushPracticeEvents(s);
  assert.equal(a.detailedState.research,2);assert.equal(s.civilization.research.total,research);
+});
+test('sequential sparse shop expansion reprices on undo without charging replacements',()=>{
+ const {s,node,ns,d}=stagedShop();s.civilization.prestige=1000;
+ d.practiceSlots=[install('forage','player',3),install('dryFarming'),null,null,null];
+ ns.inventory=['logging','fm_rubblePicking','barter'].map((practiceId,i)=>({offerId:`sparse-${i}`,basePrestigeCost:10,basePhaseCost:1,baseCurrencyCost:0,intervention:{kind:'practice',mode:'learn',practiceId,resultingTier:'bronze'}}));
+ for(let i=0;i<3;i++)assert(purchaseVassalShopOffer(s,node.id,`sparse-${i}`).ok);
+ assert.deepEqual([...ns.purchasedOffers].sort((a,b)=>a.purchaseSequence-b.purchaseSequence).map(p=>p.prestigeCost),[10,20,40]);
+ assert(undoVassalShopPurchase(s,node.id,'sparse-0').ok);
+ assert.deepEqual([...ns.purchasedOffers].sort((a,b)=>a.purchaseSequence-b.purchaseSequence).map(p=>p.prestigeCost),[10,20]);
 });
 console.log(`[full-map] ${checks.length} contract groups passed`);

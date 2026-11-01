@@ -69,12 +69,12 @@ same stepper; never add a separate forecast implementation of Stock or conflict.
 
 ## Full-map ruleset
 
-Ordinary New Game on main uses `full-map-redesign-v1`. The older neutral
-market paragraphs above describe explicit legacy Lab fixtures. Full-map regions
-all run automation; local Stock is shared, remote recipes use holder/instance
-beneficiary plus adjacency and a direct road, and unheld regions use local only.
+Ordinary New Game uses sparse authored regional economies. Unheld towns have
+priced storefront inventories and static populations; first control activates
+captured town recipes and transfers inventory within host capacities. Loss of
+control freezes the developed board and reopens its preserved storefront;
+reacquisition never reseeds it. `neutral-market.js` owns this lifecycle and
+`territory.js` invokes it for political and military control changes.
 `population-ledger.js` owns joint cohort identity; `political-recipes.js` plans
-actual victims and conversion support; `territory.js` owns control, unrest,
-supplied military, explicit adjacent commitments and treasury accrual. All run
-through the same phase/event pipeline used by replay and workers. See
-`docs/full-map-redesign-implementation.md` for the implemented contract.
+conversion; `territory.js` owns control, unrest, supplied military and treasury.
+All run through the authoritative phase/event pipeline used by replay.

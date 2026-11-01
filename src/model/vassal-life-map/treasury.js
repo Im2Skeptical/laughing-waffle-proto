@@ -3,7 +3,7 @@ import { recordCommissionAction } from './commissions.js';
 // Authored laboratory fixtures may still exercise the original personal economy.
 export const prestigeAccount = (state,vassal) => state?.rulesetId ? state.civilization : vassal;
 export function quotePrestige(available,cost,explicitPressure=0) {
-  return cost>available?{prestigeCost:0,monsterPressureCost:10+explicitPressure}:{prestigeCost:cost,monsterPressureCost:explicitPressure};
+  return cost>available?{prestigeCost:0,monsterPressureCost:cost+explicitPressure}:{prestigeCost:cost,monsterPressureCost:explicitPressure};
 }
 
 export function creditPrestige(state,vassal,amount,{commission=true}={}) {
