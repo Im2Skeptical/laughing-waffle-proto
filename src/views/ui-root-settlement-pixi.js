@@ -685,6 +685,12 @@ const settlementEdgeTransferScrubGate = createEdgeTransferScrubGate({
   isScrubActive: isSettlementScrubDragging,
 });
 
+// Settle timing follows real pointer input during a scrub drag.
+const noteSettlementScrubPointerMove = () => {
+  if (isSettlementScrubDragging()) settlementEdgeTransferScrubGate.notePointerMove();
+};
+app.stage.on("globalpointermove", noteSettlementScrubPointerMove);
+
 function invalidateSettlementEdgeTransferBatchCache() {
   settlementEdgeTransferBatchCache = {
     key: null,

@@ -4,22 +4,32 @@ import { createEdgeTransferScrubGate } from "../src/views/ui-root/edge-transfer-
 let t = 0;
 let active = false;
 const gate = createEdgeTransferScrubGate({ isScrubActive: () => active, now: () => t, settleMs: 150 });
+const down = () => { active = true; gate.notePointerMove(); };
+const move = (ms) => { t = ms; gate.notePointerMove(); };
 
 assert.equal(gate.shouldSkip(10), false, "at rest packets build");
-assert.equal(gate.shouldSkip(11), false, "playback (no scrub) never skips");
-active = true;
-assert.equal(gate.shouldSkip(11), false, "pressing without moving keeps exact packets");
-t = 16; assert.equal(gate.shouldSkip(14), true, "moving scrub skips the previous-second restore");
-t = 32; assert.equal(gate.shouldSkip(18), true);
-t = 120; assert.equal(gate.shouldSkip(18), true, "still within the settle window");
-t = 190; assert.equal(gate.shouldSkip(18), false, "held still for settleMs rebuilds exact packets");
-t = 200; assert.equal(gate.shouldSkip(19), true, "moving again skips");
-active = false;
-t = 201; assert.equal(gate.shouldSkip(19), false, "release rebuilds immediately");
-active = true;
-t = 210; assert.equal(gate.shouldSkip(19), false, "a new press does not inherit old motion");
-console.log("[edge-transfer-scrub-gate] skip while moving, exact on settle/release OK");
-active = true; t = 300; gate.shouldSkip(30); t = 310; gate.shouldSkip(31);
+t = 5000; assert.equal(gate.shouldSkip(11), false, "playback (no scrub) never skips");
+
+// Pointer down: skip for the whole drag, even across slow restores and pauses.
+t = 6000; down();
+assert.equal(gate.shouldSkip(11), true, "pressing skips immediately");
+move(6060); t = 6860; assert.equal(gate.shouldSkip(14), true, "800 ms phone-speed restore stays skipped");
+move(6920); t = 6980; assert.equal(gate.shouldSkip(14), true, "60 ms pause between moves stays skipped");
+t = 9000; assert.equal(gate.shouldSkip(14), true, "finger held still but down stays skipped");
 assert.equal(gate.isSkipping(), true, "isSkipping mirrors the last shouldSkip");
-active = false; gate.shouldSkip(31);
+
+// Release: settle counts real time from the last pointer move.
+move(9100); active = false;
+t = 9150; assert.equal(gate.shouldSkip(15), true, "just released: still inside settle window");
+t = 9249; assert.equal(gate.shouldSkip(15), true);
+t = 9250; assert.equal(gate.shouldSkip(15), false, "settleMs after last move rebuilds exact packets");
 assert.equal(gate.isSkipping(), false);
+
+// Release after holding still settles immediately.
+t = 10000; down(); t = 11000; active = false;
+assert.equal(gate.shouldSkip(16), false, "release after holding still settles at once");
+
+// Settle is independent of viewedSec changes.
+t = 12000; down(); move(12010); active = false;
+t = 12400; assert.equal(gate.shouldSkip(99), false, "viewed-second changes do not extend skipping");
+console.log("[edge-transfer-scrub-gate] skip while pointer down, settle from last pointer move OK");

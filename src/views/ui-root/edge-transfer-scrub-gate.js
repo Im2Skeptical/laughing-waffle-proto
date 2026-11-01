@@ -1,8 +1,11 @@
 // View-only gate for goods-transfer packets during timegraph / wheel scrub.
-// While a scrub is moving (the viewed second changed within `settleMs`), the
-// map skips the extra previous-second restore that edge-transfer packets need.
-// Once the scrub is released or held still for `settleMs`, packets rebuild
-// exactly as at rest. Never changes the viewed state or time-travel data.
+// While the scrub pointer is down (timegraph scrub or wheel drag/coast), the
+// map skips the extra previous-second restore that edge-transfer packets need,
+// however slow each restore is. After release, packets rebuild exactly as at
+// rest once `settleMs` of real time has passed since the last pointer move.
+// The settle clock follows pointer input, never viewed-second frames, so a slow
+// warm restore cannot flip the gate to settled mid-drag. Never changes the
+// viewed state or time-travel data.
 export const EDGE_TRANSFER_SCRUB_SETTLE_MS = 150;
 
 export function createEdgeTransferScrubGate({
@@ -10,26 +13,20 @@ export function createEdgeTransferScrubGate({
   now = () => performance.now(),
   settleMs = EDGE_TRANSFER_SCRUB_SETTLE_MS,
 } = {}) {
-  let lastSec = null;
-  let lastMotionMs = -Infinity;
+  let lastPointerMoveMs = -Infinity;
   let lastSkip = false;
-  function isMoving(viewedSec) {
-    const active = isScrubActive?.() === true;
-    const sec = Number.isFinite(viewedSec) ? Math.floor(viewedSec) : null;
-    const t = now();
-    if (active && lastSec !== null && sec !== lastSec) lastMotionMs = t;
-    lastSec = sec;
-    if (!active) {
-      lastMotionMs = -Infinity;
-      return false;
-    }
-    return t - lastMotionMs < settleMs;
+  function evaluate() {
+    if (isScrubActive?.() === true) return true;
+    return now() - lastPointerMoveMs < settleMs;
   }
   return {
-    // True while packets should be skipped for this frame.
-    shouldSkip: (viewedSec) => (lastSkip = isMoving(viewedSec)),
+    // Call on every pointer move while a scrub drag is active.
+    notePointerMove() { lastPointerMoveMs = now(); },
+    // True while packets should be skipped for this frame. viewedSec is
+    // accepted for call-site compatibility; settling ignores it.
+    shouldSkip: (_viewedSec) => (lastSkip = evaluate()),
     // Last shouldSkip result, without advancing the gate (for view layers).
     isSkipping: () => lastSkip,
-    reset() { lastSec = null; lastMotionMs = -Infinity; lastSkip = false; },
+    reset() { lastPointerMoveMs = -Infinity; lastSkip = false; },
   };
 }
