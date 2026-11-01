@@ -14,7 +14,7 @@ Ubiquitous language for this prototype. Engine invariants and schema numbers:
 | **RNG stream** | `state.rng` plus named substreams (`vassalSeed`, `vassalDevelopmentSeed`, `vassalLifeMapSeed`, `vassalPortraitSeed`). | `Math.random()`, one shared seed for all rolls |
 | **detailed settlement** | A region that simulates local cohorts, food, five practice slots, and a construction strip. | hub, generic settlement, village-as-token |
 | **region** | Map polygon with colour, controller, connections, `structureCapacity`, and a detailed-settlement toggle. | tile, hex, zone |
-| **New Game** | Player start: Starter_02, one rolled road, two adjacent player settlements plus four authored neutrals, first player region in authored order as capital. | five-site debug fixture as the player start |
+| **New Game** | Full-map start: 20 inhabited regions, one rolled road joining two player holdings, a passive Warlord capital and provinces, three independent resource-only outskirts; first player region in authored order is capital. | five-site debug fixture as the player start |
 | **debug fixture** | Authored five-site test setup in Regions01, 03, 06, 07, and 11. | New Game, default campaign map |
 | **frontier** | A region with frontier control; authored neutral settlements have a separate external controller. | any non-player region, fog of war, unexplored |
 | **structure capacity** | Horizontal construction cells (rolled 5–8, or Map Lab pinned). | building slots, five practice slots |
@@ -40,7 +40,7 @@ Ubiquitous language for this prototype. Engine invariants and schema numbers:
 | **Life Map** | Deterministic serialized DAG of Vassal nodes (Patronage, Development, Crossroads, shops, Crisis, Relic, Legacy). | skill tree, tech tree, random event deck |
 | **Heirloom** | Temporary inheritable relic with Equipped, Carry, and Vault slots. Sanctified, then Unmarked, then Fragile. | inventory item, crafted gear, permanent relic |
 | **Lifegraph** | Full-topology Life Map screen and playfield. | Regional Map, timegraph |
-| **Prestige** | Vassal currency for Life Map purchases and recurring income. | gold, money, fame |
+| **Prestige** | Shared faction treasury for Life Map purchases, recurring income and holding upkeep; survives Vassal succession. | gold, money, fame |
 | **Phase cost** | Vassal node time paid as accumulated moon phases through normal ticks; year-based prices convert solar years to phases. Default pooled generation uses absolute Balance bands (3/5/10 years); Legacy independent generation uses a 3.6× multiplier on authored Patronage, Development, Crisis, Legacy, fallback-route and removal costs. | skipping time, free years, newMoon waits |
 | **confirmation** | Atomic apply of a staged Life Map node or shop draft. | hover-preview as commit, auto-buy |
 | **forecast unveil** | Read-only viewed-time advance that does not commit history or consume RNG. | simulating the future, spending RNG on preview |

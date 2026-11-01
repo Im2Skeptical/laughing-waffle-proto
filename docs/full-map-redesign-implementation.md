@@ -98,7 +98,7 @@ There are 72 executable candidates (20 player, 30 neutral, 22 Warlord) and 66
 alternate-class candidates retained explicitly for review, without fake offers.
 23 explicit existing supply/housing dependencies remain available. The other
 legacy definitions are retained for authored labs, but excluded from ordinary
-fork offers. The manifest includes cadence and input coverage for all 95 admitted
+fork offers. The manifest includes cadence and input coverage for the original 95 admitted
 definitions. Border Skirmishing supplies Loot through actual successful local
 defense events; obsolete neutral-market raid offers are excluded. Current dedicated illustration
 atlases are reused in the real card renderer.
@@ -223,3 +223,5 @@ There is no PR, source push, main-checkout change or Pages publication.
 Both runs completed New Game and Load with 20 detailed regions, unchanged baseline
 sentinels and zero browser errors. Graph clicks restored the intended second at
 844x390 and 1440x900 without advancing the authoritative frontier.
+
+Current main integration admits 106 pieces, including 11 restored mainline Practices; the 95-piece figure above records the original manifest.

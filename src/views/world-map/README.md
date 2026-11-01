@@ -272,3 +272,11 @@ monster region panels show the same lair painting. Source masters and exact
 prompts are in `images/dark-fantasy/region-landmarks-v1/README.md`.
 
 - `retained-scene.js` — view-owned scene sections; replacing a section disposes its old objects, while unchanged sections retain text textures, graphics, hit areas and listeners.
+
+Current map UI (#58/#71): Stock exceptions use red for an input without a
+source, amber for output without a local holder, and green for production with
+no reachable installed consumer. Ordinary supplied/used Stock stays hidden.
+Coverage follows actual recipe faction, adjacency and road rules, not throughput.
+Population allegiance bars and contention diamonds describe full-map holdings;
+unheld neutral land is not a contested holding. Crown holdings share a copper
+boundary and capital badge; independent outskirts use resource-only boards.

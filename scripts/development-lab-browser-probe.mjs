@@ -672,8 +672,8 @@ try {
         await page.waitForFunction(first=>document.querySelector('.lab-catalogue-grid .lab-card strong')?.textContent!==first,first);
       } while(true);
     }
-    assert.equal(inspected,188,'all runtime Practices and Structures are readable');
-    checks.push('all 110 Practices and 78 Structures open quick reads and full inspection');
+    assert.equal(inspected,269,'all runtime Practices and Structures are readable');
+    checks.push('all 166 Practices and 103 Structures open quick reads and full inspection');
     assert.deepEqual(errors,[]);
     writeFileSync(artifact,JSON.stringify({ok:true,checks},null,2));
     console.log('[probe:development-lab] OK: Zoo reading, quality comparison, keywords and desktop/mobile');

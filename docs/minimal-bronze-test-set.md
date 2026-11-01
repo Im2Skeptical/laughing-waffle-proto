@@ -1,8 +1,8 @@
 # Minimal bronze defaults
 
-On `proto/keywords-classes`, [eight new cards](prototypes/keywords-classes/bronze-cards/README.md)
+Integrated on main (#59), [eight new cards](prototypes/keywords-classes/bronze-cards/README.md)
 and their [keywords](practice-keywords.md) now work in ordinary games. Pattern
-Carving adds a Bronze Scholar Tool pathway. This remains isolated from `main`;
+Carving adds a Bronze Scholar Tool pathway. Balance remains provisional;
 original tuning below is preserved for existing cards, and the all-Silver Tool
 claim excludes this addition.
 
@@ -17,7 +17,7 @@ for inspection and editing; this is a provisional bronze balance test.
   Copying Texts, Smoking Rations; Technical Workshop, Cistern, Workshop, Kiln.
 - Scholarship moves to Bronze.
 - Tool Stock Supply visits have no offers at zero Research because every Tool
-  producer now starts at Silver; generation and rerolls never add unrelated filler.
+  producer now starts at Silver; generation and Scholar Delve refreshes never add unrelated filler.
 - Foraging, Logging, Quarrying, Masonry and Salt Gathering have one worker socket.
 - Stock traits: Foraging = Edible; Logging = Timber/Construction; Surface Mining
   = Ore; Salt Gathering = Salt/Currency; Pottery = Storage; Brickmaking =

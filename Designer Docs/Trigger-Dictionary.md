@@ -36,6 +36,14 @@ participate in their normal production/meals with their existing restrictions.
 
 ## Charge events and Discharge
 
+`practiceInstalled` is emitted by a confirmed Practice installation, including
+replacement and the listening Practice's own installation. Upgrades and
+rearrangements are not installations. Field Study listens across allied
+settlements using its civilization/controller filters.
+
+Food's `afterMeals` activation stage runs after meal consumption, before garrison
+upkeep. Keep it distinct from ordinary Food production and `preRouting`.
+
 Emitters record JSON events with event/root/parent IDs, region, source and the
 actual outcome. `charge.trigger.any` OR clauses match one event once. Current
 content listens to Stock generation/consumption, candidate Development, Chaos,

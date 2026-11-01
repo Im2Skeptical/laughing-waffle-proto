@@ -26,7 +26,9 @@ visible label, then read only that file and its direct imports.
 
 Gym → **New run setup** owns fresh-run editors and launch profiles. The read-only
 Regular game baseline and its editable copies use `src/model/new-game.js`, the
-same initializer as player New Game (including neutral seeding). **Start new run**
+same initializer as player New Game (including full-map population seeding).
+The four authored neutral templates belong to explicit legacy fixtures, not
+ordinary full-map New Game. **Start new run**
 opens a disposable game; **Open in settlement sandbox** initializes Gym.
 Use one combined launch profile for all fresh-run sections. The main menu's
 Use dev settings toggle selects a saved profile for normal New Game and save slots. Card editing lives

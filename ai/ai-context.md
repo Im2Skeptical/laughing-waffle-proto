@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.43`.
+Game build version: `1.1.45`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -124,8 +124,7 @@ New game seeds are random unless Developer tools specifies a seed override.
 The menu's Use dev settings toggle explicitly substitutes a saved combined profile. Each
 run chooses one existing road through `state.rng`; its two adjacent regions
 become the initial player-controlled detailed settlements, with the first in
-authored region order serving as capital. All 20 regions are inhabited in this
-fork. A distant passive Warlord capital and its adjacent provinces begin under
+authored region order serving as capital. All 20 regions are inhabited in ordinary New Game on main. A distant passive Warlord capital and its adjacent provinces begin under
 remnant control; three nearby outskirts start independent, with unaffiliated
 populations and resource-only boards. Other outskirts begin unheld with inherited boards and mixed population
 allegiances. A Monster threat is seeded in an inhabited nonplayer region, without
@@ -161,7 +160,7 @@ owns graph generation, node review, playable previews and diagnostics. Its draft
 are explicitly copied into launch profiles. Gamepiece editing belongs to the card reviewer; reviewed
 cards can be captured in the launch profile. Regular game is a read-only current-build baseline;
 copies launch through the same initializer as player New Game, including road
-randomization and neutral seeding. Museum owns saved states at specific seconds.
+randomization and full-map population seeding. Museum owns saved states at specific seconds.
 The live hold-button workshop keeps Vassal candidate replacement and save diagnostics. Verification commands live in
 `ai/repository-map.md`.
 
