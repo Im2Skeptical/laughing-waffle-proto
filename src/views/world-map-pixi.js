@@ -4,7 +4,9 @@ import { getMapRelationships, getMapRelationship, getRelationshipStyle, drawRela
 import { createMapCamera } from './world-map/camera.js';
 import { createMapPanelReveal } from './world-map/transitions.js';
 import { createStockTransferIcons, getStockTransferIconLayout } from './world-map/stock-transfer-icons.js';
-import { getSettlementStockTags, getSettlementStockTagLayout, addSettlementStockTags } from './world-map/stock-tags.js';
+import { getSettlementStockTags, addSettlementStockTags } from './world-map/stock-tags.js';
+import {createMapStockCoverage} from './world-map/stock-coverage.js';
+import {getMapInfluencePresentation,addMapInfluenceMarker} from './world-map/influence-marker.js';
 import { DEFAULT_REGION_STRUCTURE_CAPACITY_MAX } from '../defs/world/detailed-settlement-scenario.js';
 import { sampleEventProgress } from './timeline-presentation.js';
 import { createChronicleEffects, addTimelineLandmark } from './chronicle-effects-pixi.js';
@@ -34,7 +36,7 @@ import {
 } from "./civilization-survival-hud.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
-import { addNeutralMarketGlyph, NEUTRAL_COLOUR } from './neutral-market-pixi.js';
+import { addNeutralMarketGlyph } from './neutral-market-pixi.js';
 import {
   CIVILIZATION_HEADER_RECT,
   CIVILIZATION_RECT,
@@ -56,11 +58,9 @@ import {
 } from "./world-map/packets.js";
 import {
   addActiveVassalMarker,
-  addPlayerOwnershipMarker,
+  addCrownCapitalMarker,
   addSettlementCurrencyIndicator,
-  addSettlementPressureIndicator,
-  addWorkerIndicator,
-  getWorkerIndicatorPresentation,
+  addSettlementStarvationIndicator,
 } from "./world-map/glyphs.js";
 
 export {
@@ -70,8 +70,6 @@ export {
   getEdgeTransferPacketVisualSpec,
   resolveEdgeTransferPlaybackDirection,
 };
-
-export { getWorkerIndicatorPresentation };
 
 function screenPoint(point) {
   return {
@@ -146,13 +144,12 @@ function getUnusedWorkerCount(viewModel) {
 }
 
 function buildRegionMapIndicators(state, definition) {
+  const coverage=createMapStockCoverage(state);
   return definition.regions.map((regionDef) => {
     const region = getRegionState(state, regionDef.id);
     const viewModel = getDetailedSettlementViewModel(state, regionDef.id);
     const activeWorkerCount = getActiveWorkerCount(viewModel);
     const unusedWorkerCount = getUnusedWorkerCount(viewModel);
-    const workerPresentation =
-      getWorkerIndicatorPresentation(activeWorkerCount, unusedWorkerCount);
     const structureCapacity = Math.max(
       0,
       Math.floor(region?.structureCapacity ?? 0)
@@ -167,10 +164,14 @@ function buildRegionMapIndicators(state, definition) {
       controller: region?.controller ?? null,
       monster: region?.monster ?? null,
       neutral: (state.world.sites ?? []).find(s=>s.regionId===regionDef.id)?.neutral ?? null,
-      showsPlayerMarker: region?.controller === "player" && !region?.monster,
+      showsPlayerMarker:false,
+      influence:getMapInfluencePresentation(viewModel?.control,{monster:!!region?.monster}),
+      crownCapital:state.rulesetId&&region?.controller==='external-a'&&state.civilization.remnant?.capitalRegionId===regionDef.id&&!region?.monster,
+      independent:!!(state.rulesetId&&region?.controller==='frontier'&&viewModel?.population?.total>0&&!viewModel?.control?.support?.player&&!viewModel?.control?.support?.['external-a']),
       hasDetailedSettlement: viewModel != null,
-      stockTags: getSettlementStockTags(viewModel),
-      ...workerPresentation,
+      stockTags: getSettlementStockTags(viewModel,{state,regionId:regionDef.id,coverage}),
+      activeWorkerCount,unusedWorkerCount,totalWorkerCount:activeWorkerCount+unusedWorkerCount,
+      renderedActivePawnCount:0,renderedUnusedPawnCount:0,renderedPawnCount:0,badgeValue:null,
       usedStructureCapacity: viewModel?.usedStructureCapacity ?? 0,
       structureCapacity,
       structureSlots,
@@ -687,6 +688,7 @@ export function createWorldMapView({
       }
       shape.eventMode = 'none';
       territoryBorders.push({points, regionId:region.id, player:region.controller==='player' && !region.monster,
+        crown:!!state.rulesetId&&region.controller==='external-a'&&!region.monster,
         monster:!!region.monster, selected, highlighted, relationship, relationshipStyle:getRelationshipStyle(mapIndicator), controller:region.controller});
       const hit = new PIXI.Container();
       hit.hitArea = new PIXI.Polygon(points);
@@ -772,11 +774,9 @@ export function createWorldMapView({
       const regionContent = new PIXI.Container();
       mapContent.addChild(presentRegion(regionContent, indicator.regionId));
       const point = sitePoint(regionDef);
-      const stockTagTop = getSettlementStockTagLayout(indicator.stockTags, point)[0]?.y;
-      if (display.actors !== false && (indicator.monster || indicator.neutral)) regionContent.addChild(createText(
-        indicator.monster ? `Defense ${indicator.monster.defense}` : 'NEUTRAL',
-        {...TEXT_STYLES.chip,fontSize:17,fill:indicator.monster?0xf0917b:NEUTRAL_COLOUR,stroke:0x111713,strokeThickness:4},point.x,indicator.monster?point.y-110:stockTagTop!=null?stockTagTop-26:point.y-88,.5));
       if (display.actors !== false && indicator.monster) addMonsterMarker(regionContent, point, {art:!illustratedMap});
+      if (display.actors !== false && indicator.crownCapital) addCrownCapitalMarker(regionContent,point,tooltipView);
+      if(display.actors!==false)addMapInfluenceMarker(regionContent,point,indicator.influence,{tooltipView,reference:getRegionReference(state,indicator.regionId)??indicator.regionId});
       const adornments = new PIXI.Container();
       adornments.position.set(point.x,point.y);
       adornments.scale.set(.75);
@@ -795,25 +795,18 @@ export function createWorldMapView({
               {kind:'fire',startSec:definition.regions.indexOf(regionDef)*.23}));
           }
         }
-        if (display.workers !== false && !indicator.neutral) addWorkerIndicator(
-          adornments,
-          {x:0,y:65},
-          indicator.activeWorkerCount,
-          indicator.unusedWorkerCount
-        );
-      }
-      if (indicator.showsPlayerMarker) {
-        addPlayerOwnershipMarker(adornments, {x:0,y:0}, {
-          selected:
-            regionSelectionActive &&
-            indicator.regionId === selectedRegionId,
-        });
       }
       if (display.alerts !== false) {
-        addSettlementPressureIndicator(adornments, {x:65,y:40}, indicator.pressure);
+        addSettlementStarvationIndicator(adornments, {x:65,y:40}, indicator.pressure);
         addSettlementCurrencyIndicator(adornments, {x:65,y:35}, indicator);
       }
     }
+    return layerLandmarks;
+    }).value;
+
+    // References depend on geography, not changing allegiance or Stock roles.
+    // Keep their text textures when the regional overlays refresh.
+    retained.update(mapContent,'references',[getArtRevision(),display.choiceRegionIds],mapContent=>{
     for (const regionDef of definition.regions) {
       const point = getRegionReferenceCorner(definition, regionDef, screenPoint, polygon)
         ?? sitePoint(regionDef);
@@ -824,8 +817,7 @@ export function createWorldMapView({
       }, point.x, point.y, 0, 0);
       mapContent.addChild(presentRegion(label, regionDef.id));
     }
-    return layerLandmarks;
-    }).value;
+    });
 
     const activeVassal = getCurrentLifeMapVassal(state);
     retained.update(mapContent,'vassal',[getArtRevision(),display.actors,activeVassal?.locationRegionId,activeVassal?getVassalAge(state,activeVassal):null],mapContent=>{

@@ -3,6 +3,7 @@ import {createServer} from 'node:http';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {chromium} from 'playwright';
+import {BROWSER_PROBE_LAUNCH_OPTIONS} from './browser-probe-config.mjs';
 
 const seed=Number(process.argv[2]??1867);
 const windowed=process.argv.includes('--windowed');
@@ -19,7 +20,7 @@ const server=createServer(async(req,res)=>{
   }catch{res.statusCode=404;res.end();}
 });
 await new Promise(r=>server.listen(18135,'127.0.0.1',r));
-const browser=await chromium.launch({headless:true}),errors=[];
+const browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS),errors=[];
 try{
   const page=await browser.newPage({viewport:{width:1576,height:600}});
   page.on('pageerror',e=>errors.push(e.message));
@@ -49,7 +50,8 @@ try{
   },{seed,windowed});
   await page.screenshot({path:`${output}/natural.png`});
   const initial=await page.evaluate(()=>structuredClone(fixture.view.stats));
-  assert.equal(initial.sites.length,6,'Every live town uses a planned biome village');
+  assert.equal(initial.sites.length,20,'Every full-map town uses a planned biome village');
+  assert.equal(initial.sites.filter(s=>s.kind==='crownCapital').length,1);
   assert.ok(initial.sites.every(s=>s.buildings>=5),'Villages contain the approved building compositions');
   assert.ok(initial.roads>=1,'Live gameplay connections use prototype terrain routes');
   if(windowed){
@@ -58,13 +60,14 @@ try{
     assert.ok(initial.waterWindows.every(w=>w.width<initial.width),'Water target follows the camera width');
   }
   const results=[];
-  for(const phase of ['spread','islands','occupied-town','clear','road-removed','town-removed','restore']){
+  for(const phase of ['spread','islands','occupied-town','crown-captured','clear','road-removed','town-removed','restore']){
     results.push(await page.evaluate(phase=>{
       const {state,view,app,paint}=fixture,next=JSON.parse(JSON.stringify(state)),natural=view.stats.biomes;
       const forest=natural.find(r=>r.underlying==='forest').id,island=natural.find(r=>r.underlying==='islands').id;
       if(phase==='spread'||phase==='islands')next.world.regions.find(r=>r.id===forest).monster={defense:1};
       if(phase==='islands')next.world.regions.find(r=>r.id===island).monster={defense:1};
       if(phase==='occupied-town')next.world.regions.find(r=>r.id===next.world.sites[0].regionId).monster={defense:1};
+      if(phase==='crown-captured')next.world.regions.find(r=>r.id===next.civilization.remnant.capitalRegionId).controller='player';
       if(phase==='road-removed')next.world.connections=[];
       if(phase==='town-removed')next.world.sites=[];
       if(phase==='restore')for(let i=0;i<5;i++){
@@ -88,7 +91,8 @@ try{
     if(['spread','islands'].includes(r.phase)){assert.ok(r.difference>1000);assert.ok(r.stats.monsterPieces>0);}
     if(['clear','restore'].includes(r.phase))assert.equal(r.difference,0,`${r.phase}: original terrain restored pixel-for-pixel`);
     if(r.phase==='road-removed')assert.equal(r.stats.roads,0);
-    if(r.phase==='occupied-town')assert.equal(r.stats.sites.length,5);
+    if(r.phase==='occupied-town')assert.equal(r.stats.sites.length,19);
+    if(r.phase==='crown-captured'){assert.ok(r.difference>0);assert.equal(r.stats.sites.filter(s=>s.kind==='crownCapital').length,0);}
     assert.equal(r.stats.variantBuilds,1,'State changes reuse prepared terrain variants');
     if(r.phase==='town-removed')assert.equal(r.stats.sites.length,0);
   }

@@ -58,7 +58,6 @@ import {
   getEdgeTransferPacketGlyphSpec,
   getEdgeTransferPacketPose,
   getEdgeTransferPacketVisualSpec,
-  getWorkerIndicatorPresentation,
   resolveEdgeTransferPlaybackDirection,
 } from "../../views/world-map-pixi.js";
 import { resolveForecastRevealPlayheadSec } from "../../views/timegraphs-helpers.js";
@@ -168,33 +167,6 @@ assert.deepEqual(
   getSettlementPressureSummary(pressureState, "cedar-woods"),
   "map pressure derives identically from replayed viewed state"
 );
-assert.deepEqual(getWorkerIndicatorPresentation(0), {
-  activeWorkerCount: 0,
-  unusedWorkerCount: 0,
-  totalWorkerCount: 0,
-  renderedActivePawnCount: 0,
-  renderedUnusedPawnCount: 0,
-  renderedPawnCount: 0,
-  badgeValue: null,
-});
-assert.deepEqual(getWorkerIndicatorPresentation(3), {
-  activeWorkerCount: 3,
-  unusedWorkerCount: 0,
-  totalWorkerCount: 3,
-  renderedActivePawnCount: 3,
-  renderedUnusedPawnCount: 0,
-  renderedPawnCount: 3,
-  badgeValue: null,
-});
-assert.deepEqual(getWorkerIndicatorPresentation(7, 3), {
-  activeWorkerCount: 7,
-  unusedWorkerCount: 3,
-  totalWorkerCount: 10,
-  renderedActivePawnCount: 4,
-  renderedUnusedPawnCount: 1,
-  renderedPawnCount: 5,
-  badgeValue: 10,
-});
 const unusedWorkerState = createInitialState("devPlaytesting01", 24680);
 const unusedWorkerSettlement = getDetailedSettlement(
   unusedWorkerState,

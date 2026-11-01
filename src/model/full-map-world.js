@@ -18,15 +18,19 @@ export function seedFullMapWorld(state) {
   const players=state.world.regions.filter(r=>r.controller==='player').map(r=>r.id);
   const capital=state.world.regions.filter(r=>!players.includes(r.id)).sort((a,b)=>mapDistance(state,players[0],b.id)-mapDistance(state,players[0],a.id))[0].id;
   state.civilization.remnant={capitalRegionId:capital,classId:'warrior',faction:'external-a'};
+  const provinces=new Set(getAdjacentRegionIds(state,capital));
+  const neutralIds=new Set(state.world.regions.filter(r=>!players.includes(r.id)&&r.id!==capital&&!provinces.has(r.id))
+    .sort((a,b)=>Math.min(...players.map(id=>mapDistance(state,id,a.id)))-Math.min(...players.map(id=>mapDistance(state,id,b.id))))
+    .slice(0,3).map(r=>r.id));
   for(const region of state.world.regions) {
-    const player=players.includes(region.id),enemyCapital=region.id===capital,province=!player&&getAdjacentRegionIds(state,capital).includes(region.id);
+    const player=players.includes(region.id),enemyCapital=region.id===capital,province=!player&&provinces.has(region.id),neutral=neutralIds.has(region.id);
     const population=player?20:enemyCapital?120:province?60:30;
-    const faction=player?'player':'external-a',share=(player||enemyCapital)?0.8:province?0.6:0.2;
+    const faction=player?'player':'external-a',share=neutral?0:(player||enemyCapital)?0.8:province?0.6:0.2;
     region.controller=player?'player':enemyCapital||province?'external-a':'frontier';
     region.detailedSettlementEnabled=true;
     let site=state.world.sites.find(s=>s.regionId===region.id);
     if(!site){site={id:`${region.id}-settlement`,regionId:region.id};state.world.sites.push(site);}
-    delete site.neutral;site.simulationMode='detailed';site.name=enemyCapital?'The Unbending Crown':player?'Free Settlement':province?'Remnant Province':'Inherited Settlement';
+    delete site.neutral;site.simulationMode='detailed';site.name=enemyCapital?'The Unbending Crown':player?'Free Settlement':province?'Remnant Province':neutral?'Independent Settlement':'Inherited Settlement';
     const settlement=site.detailedState=createInitialDetailedSettlementData(region.id);
     const loyal=Math.floor(population*share),warriors=enemyCapital?35:province?10:0,children=Math.floor(population/4);
     const loyalChildren=Math.floor(children*share);
@@ -40,6 +44,7 @@ export function seedFullMapWorld(state) {
     const ids=player?['forage','dryFarming','logging','fm_forcedPageantry','fm_rubblePicking']:
       enemyCapital?['dryFarming','cp_ironCommunion','fe_salvageDetail','fe_capitalDole','fm_handQuern']:
       province?['forage','fe_roadRequisition','fe_barrackLevy','fe_rationRoll','fm_rubblePicking']:
+      neutral?['forage','fm_fallowFields','fm_woodlotRights','fm_rubblePicking','fm_handQuern']:
       ['forage','fm_fallowFields','fm_forcedPageantry','fm_woodlotRights','fm_rubblePicking'];
     settlement.practiceSlots=ids.map(practiceId=>{
       const def=getDetailedPracticeDef(state,practiceId);
@@ -54,7 +59,7 @@ export function seedFullMapWorld(state) {
     settlement.control={unrest:0,claimant:null,claimChecks:0,lossChecks:0};
     settlement.garrison={supplied:true,paid:0,required:0,tSec:state.tSec};
   }
-  const monster=state.world.regions.filter(r=>r.controller!=='player'&&r.id!==capital).sort((a,b)=>mapDistance(state,players[0],b.id)-mapDistance(state,players[0],a.id))[0];
+  const monster=state.world.regions.filter(r=>r.controller!=='player'&&r.id!==capital&&!neutralIds.has(r.id)).sort((a,b)=>mapDistance(state,players[0],b.id)-mapDistance(state,players[0],a.id))[0];
   monster.monster={defense:2};state.civilization.chaos.monsterCount=1;state.civilization.chaos.spatialSpawns=1;
   canonicalizeWorldState(state);
 }

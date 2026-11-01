@@ -162,5 +162,11 @@ export async function prepareLandmarkLods() {
     // The same artwork and footprint at every zoom: filtering removes detail without moving buildings.
     biome[frame.role] = texture;
   }
+  const crown = await (await fetch(mapAssetUrl('./assets/runtime/crown-buildings-v1.json'))).json();
+  const crownSheet = await PIXI.Assets.load(mapAssetUrl('./assets/runtime/crown-buildings-v1.webp'));
+  result.crown = Object.fromEntries(crown.frames.map(frame => {
+    const [x,y,w,h] = frame.rect;
+    return [frame.role,new PIXI.Texture(crownSheet.baseTexture,new PIXI.Rectangle(x,y,w,h))];
+  }));
   return result;
 }

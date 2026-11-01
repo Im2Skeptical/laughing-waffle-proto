@@ -34,7 +34,7 @@ export function addMonsterGround(parent, points) {
 // change on ownership or layout, not on every render. Results are read-only.
 const boundaryCache = new Map();
 export function territoryBoundarySegments(territories) {
-  const key = territories.map(t => `${t.regionId}|${t.monster ? 'm' : t.player ? 'p' : ''}|${t.points.join(',')}`).join(';');
+  const key = territories.map(t => `${t.regionId}|${t.monster ? 'monster' : t.player ? 'player' : t.crown ? t.controller : ''}|${t.points.join(',')}`).join(';');
   let result = boundaryCache.get(key);
   if (result) { boundaryCache.delete(key); boundaryCache.set(key, result); return result; }
   result = computeTerritoryBoundarySegments(territories);
@@ -44,7 +44,7 @@ export function territoryBoundarySegments(territories) {
 }
 
 export function computeTerritoryBoundarySegments(territories) {
-  const allegiance = t => t.monster ? 'monster' : t.player ? 'player' : null;
+  const allegiance = t => t.monster ? 'monster' : t.player ? 'player' : t.crown ? t.controller : null;
   const vertices = territories.flatMap(t => t.points.reduce((a, x, i) => {
     if (i % 2 === 0) a.push({x, y:t.points[i+1]});
     return a;
@@ -73,38 +73,47 @@ export function computeTerritoryBoundarySegments(territories) {
   }
   for(const entries of edges.values()) for(const {t,from,to} of entries) {
     if(allegiance(t) && entries.some(e=>e.t!==t && allegiance(e.t)===allegiance(t))) continue;
-    result.get(t.regionId).push({from,to});
+    result.get(t.regionId).push({from,to,shared:entries.some(e=>e.t!==t)});
   }
   return result;
 }
 
-export function addTerritoryBorder(parent, points, { player, monster, selected, highlighted, relationship, relationshipStyle = RELATION_STYLES.empty, controller, boundarySegments }) {
-  const border = new PIXI.Graphics();
+export function addTerritoryBorder(parent, points, { player, monster, crown, selected, highlighted, relationship, relationshipStyle = RELATION_STYLES.empty, controller, boundarySegments }) {
+  const border = new PIXI.Container();
   border.label = selected ? 'selected-region-border' : player ? 'player-region-border' : 'region-border';
   border.eventMode = 'none';
+  const coast=new PIXI.Graphics(),frontier=new PIXI.Graphics();
+  const mask=new PIXI.Graphics().beginFill(0xffffff).drawPolygon(points).endFill();
+  coast.eventMode=frontier.eventMode=mask.eventMode='none';
+  border.addChild(coast,frontier,mask);frontier.mask=mask;
   const colour = monster ? 0xc15165 : player ? 0xe4c271 : CONTROLLER_COLOURS[controller] ?? 0x8c9184;
   const segments = boundarySegments ?? points.reduce((a,x,i)=>{
     if(i%2===0) a.push({from:{x,y:points[i+1]},to:{x:points[(i+2)%points.length],y:points[(i+3)%points.length]}});
     return a;
   },[]);
   const trace = (width, tint, alpha=1, full=false) => {
-    border.lineStyle(width,tint,alpha);
-    if(full) border.drawPolygon(points);
-    else for(const {from,to} of segments) border.moveTo(from.x,from.y).lineTo(to.x,to.y);
+    // Shared frontiers occupy only their owner's half of the edge. Selection
+    // and relationship strokes use the same mask, so draw order cannot erase
+    // the neighbouring owner's colour. Coasts retain their full-width stroke.
+    if(full) frontier.lineStyle(width,tint,alpha).drawPolygon(points);
+    else for(const {from,to,shared} of segments){
+      const ink=shared?frontier:coast;
+      ink.lineStyle(width,tint,alpha).moveTo(from.x,from.y).lineTo(to.x,to.y);
+    }
   };
-  if (player || monster) {
+  if (player || monster || crown) {
     trace(9,0x0c171b,.85);
     trace(5,colour,.85);
-    trace(1.5,monster ? 0xffa080 : 0xffe6a2);
-    if (player) border.lineStyle(0).beginFill(0xe4c271,.055).drawPolygon(points).endFill();
+    trace(1.5,monster ? 0xffa080 : player ? 0xffe6a2 : 0xf1d5b4);
+    if (player) coast.lineStyle(0).beginFill(0xe4c271,.055).drawPolygon(points).endFill();
   } else trace(1.5,colour,.65);
   if (relationship === 'connected') {
     border.label = `${relationship}-region-border`;
     border.relationshipKind = relationshipStyle.kind;
     trace(relationshipStyle.width + 6, 0x0c171b, .95);
-    for (const {from,to} of segments) drawRelationshipLine(border, from, to, relationshipStyle);
+    for (const {from,to,shared} of segments) drawRelationshipLine(shared?frontier:coast, from, to, relationshipStyle);
     if (relationshipStyle.innerColour) trace(1.5, relationshipStyle.innerColour);
-    border.lineStyle(0).beginFill(relationshipStyle.colour, relationshipStyle.fillAlpha).drawPolygon(points).endFill();
+    coast.lineStyle(0).beginFill(relationshipStyle.colour, relationshipStyle.fillAlpha).drawPolygon(points).endFill();
   }
   if (highlighted || selected) {
     const accent = selected ? 0x98e8f2 : 0xf5d077;
@@ -112,7 +121,7 @@ export function addTerritoryBorder(parent, points, { player, monster, selected, 
     trace(10,0x102b35,.95,true);
     trace(6,accent,1,true);
     trace(2,selected ? 0xedffff : 0xfff2c0,1,true);
-    border.lineStyle(0).beginFill(accent,selected ? .09 : .05).drawPolygon(points).endFill();
+    coast.lineStyle(0).beginFill(accent,selected ? .09 : .05).drawPolygon(points).endFill();
   }
   parent.addChild(border);
   return border;

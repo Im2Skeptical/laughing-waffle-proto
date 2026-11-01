@@ -8,6 +8,16 @@ import { addResourceIcon } from './resource-cost-pixi.js';
 import { regionalConstructionRect, regionalPracticeSize, PIECE_SIZE } from './piece-geometry.js';
 import { DEFAULT_REGION_STRUCTURE_CAPACITY_MAX } from '../defs/world/detailed-settlement-scenario.js';
 import { addNeutralMarketBillboard } from './neutral-market-pixi.js';
+import { addRegionAllegianceHeader } from './region-allegiance-header.js';
+
+function regionalHolderLabel(region,vm){
+  if(region.monster)return `MONSTER · Defense ${region.monster.defense}`;
+  if(region.controller==='player')return 'YOUR REALM';
+  if(region.controller==='external-a')return vm?.control?'CROWN REMNANT':'NEUTRAL SETTLEMENT';
+  if(region.lostAtSec!=null)return 'RUINS';
+  if(!vm?.control)return 'FRONTIER';
+  return vm.control.total>0&&vm.control.support.neutral===vm.control.total?'NEUTRAL SETTLEMENT':'UNHELD';
+}
 
 export function addChaosPanelContent(root, rect, summary) {
   addIllustration(root,'crisis',{x:rect.x+8,y:rect.y+8,width:112,height:rect.height-16},{alpha:.8});
@@ -34,8 +44,10 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
     return;
   }
   const x=rect.x+22,y=rect.y;
-  root.addChild(createText(`${reference}  ·  ${name}`,{...TEXT_STYLES.header,fontSize:29},x,y+18));
-  root.addChild(createText(`${region.colour.toUpperCase()} TERRITORY / ${region.monster ? "MONSTER · Defense "+region.monster.defense : region.controller==='player'?'YOUR REALM':region.controller==='external-a'?(vm?.control?'CROWN REMNANT':'NEUTRAL SETTLEMENT'):region.lostAtSec != null?'RUINS':vm?.control?'UNHELD':'FRONTIER'}`,{
+  const title=createText(`${reference}  ·  ${name}`,{...TEXT_STYLES.header,fontSize:29},x,y+18);
+  if(vm?.control)title.scale.set(Math.min(1,350/Math.max(1,title.width)));
+  root.addChild(title);
+  root.addChild(createText(`${region.colour.toUpperCase()} TERRITORY / ${regionalHolderLabel(region,vm)}`,{
     ...TEXT_STYLES.body,fontSize:18,fill:PALETTE.textMuted},x,y+50));
   if (region.monster) {
     addRegionLandmark(root,'monster-lair',{x:x+rect.width*.19,y:y+95,width:rect.width*.58,height:rect.height-125});
@@ -56,7 +68,7 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
     ];
     const cell=290;
     stats.forEach((stat,i)=>{
-      const group=new PIXI.Container();group.position.set(x+380,y+16+i*36);
+      const group=new PIXI.Container();group.position.set(x+(vm.control?rect.width-334:380),y+16+i*36);
       const colour=stat.warning?(stat.severe?red:amber):PALETTE.text;
       group.addChild(new PIXI.Graphics().beginFill(stat.warning?0x392820:0x111d19,.8).lineStyle(1,stat.warning?colour:0x514d3a).drawRoundedRect(0,0,cell-7,34,4).endFill());
       addResourceIcon(group,stat.icon,18,17,28);
@@ -93,6 +105,8 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
     root.addChild(createText('A wilderness waiting for a future.',{...TEXT_STYLES.body,fontSize:23,fill:PALETTE.textMuted,
       wordWrap:true,wordWrapWidth:rect.width-50},x,y+265));return;
   }
+  if(vm.control)addRegionAllegianceHeader(root,{x,y,vm,reference,tooltipView});
+  else {
   const specialistX=x+730;
   root.addChild(createText(`Scholars ${vm.specialists.scholar}\nWarriors ${vm.specialists.warrior}\nMartial Force ${vm.martialForce}`,{
     ...TEXT_STYLES.chip,fontSize:21,lineHeight:24,fill:PALETTE.textMuted},specialistX,y+20));
@@ -100,6 +114,7 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
     vm.lastDefense ? `Last defense: ${vm.lastDefense.result}` : '',
     `${vm.usedStructureCapacity} / ${vm.structureCapacity} construction cells`].filter(Boolean);
   root.addChild(createText(defenseLines.join('\n'),{...TEXT_STYLES.chip,fontSize:21,lineHeight:24,fill:PALETTE.textMuted},x+1000,y+20));
+  }
   const divider=new PIXI.Graphics().lineStyle(1,PALETTE.stroke,.55).moveTo(x,y+98).lineTo(x+rect.width-44,y+98);
   divider.eventMode='none';root.addChild(divider);
   const gap=PIECE_SIZE.gap, practiceSize=regionalPracticeSize(rect.width), cardHeight=340, pairHeight=50;
@@ -113,14 +128,7 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
     addSettlementPiece(root,{x:cardX,y:cardY,width:cardW,height:cardHeight},{face:p.face,empty:!p.practiceId,tooltipView,compact:true});
     addPracticeMultiplierPair(root,{x:cardX,y:cardY+cardHeight+8,width:cardW,height:pairHeight},p,i,tooltipView);
   });
-  if(vm.control){
-    const c=vm.control,group=new PIXI.Container();group.position.set(x,y+519);
-    const label=`${c.status.toUpperCase()} | Free ${c.support.player??0} / Crown ${c.support['external-a']??0} / Unaffiliated ${c.support.neutral??0} | Unrest ${Math.round(c.unrest)} -> ${Math.round(c.targetUnrest)} | Force ${Number(c.force.toFixed(1))}/${c.required} | Garrison ${c.upkeep} Edible ${c.supplied?'paid':'MISSING'}`;
-    group.addChild(createText(label,{...TEXT_STYLES.body,fontSize:22,fill:c.supplied?PALETTE.text:0xe7947e},0,0));
-    group.eventMode='static';group.cursor='help';group.hitArea=new PIXI.Rectangle(0,-3,rect.width-44,34);
-    const spec={title:'Territory and allegiance',lines:[`${c.holder} holds this region. Stock follows its holder; institutions and residents retain allegiance.`,`${c.loyal}/${c.total} residents support the holder (${Math.round(c.share*100)}%).`,`${c.armed} local armed loyal adult Warriors; supplied Force ${c.force.toFixed(1)} / ${c.required} required.`,`${c.receivedForce} adjacent Force received; ${c.sentForce} sent to ${c.supportTarget??'no neighbour'}.`,`Unrest ${Math.round(c.unrest)} moves toward ${Math.round(c.targetUnrest)} at each Death control check.`,`Claim: 60% for two checks. Retain support: 45%. Loss: unrest 75 for two unsupported, unsupplied checks.`],maxWidth:420,scale:2};
-    group.on('pointerdown',e=>{e.stopPropagation();tooltipView?.pin(spec,group.getBounds(),`territory:${reference}`);});root.addChild(group);
-  }
-  const constructionRect=regionalConstructionRect({x,y:y+554,width:rect.width-44,height:rect.height-572},DEFAULT_REGION_STRUCTURE_CAPACITY_MAX);
+  const constructionY=vm.control?534:554;
+  const constructionRect=regionalConstructionRect({x,y:y+constructionY,width:rect.width-44,height:rect.height-constructionY-18},DEFAULT_REGION_STRUCTURE_CAPACITY_MAX);
   addConstructionStrip(root,constructionRect,{slots:vm.structures,capacity:vm.structureCapacity,displayCapacity:DEFAULT_REGION_STRUCTURE_CAPACITY_MAX,tooltipView,compact:true});
 }

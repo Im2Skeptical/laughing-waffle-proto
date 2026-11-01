@@ -25,6 +25,10 @@ The currently packed groups are:
 - `timegraph-chronicle-v1` — the timegraph assembly.
 
 The old combined art sheets were split into these named sources and removed.
+The regional map has its own reduced-runtime atlas pipeline: the generated
+[Crown buildings](crown-map-v1/README.md) pack into `crown-buildings-v1` alongside
+the biome building kit. Source PNGs stay out of Pages; `zoom-art.js` loads the
+map manifests and their named frames.
 For any new art, add an individual named source image, register it in the manifest,
 then run `npm run build:sprites` and `npm run check:assets`. The renderer loads
 only TexturePacker frames through `src/views/chronicle-art.js`.

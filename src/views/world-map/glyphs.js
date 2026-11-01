@@ -1,174 +1,23 @@
 import { getVassalAge } from "../../model/vassal-life-map.js";
-import { createText, roundedRect } from "../settlement-view-primitives.js";
+import { addResourceIcon } from '../resource-cost-pixi.js';
+import { createText } from "../settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "../settlement-theme.js";
 import {
   CURRENCY_COLOURS,
-  MAX_RENDERED_WORKER_PAWNS,
   PRESSURE_COLOURS,
 } from "./constants.js";
 
-export function getWorkerIndicatorPresentation(
-  activeCount,
-  unusedCount = 0
-) {
-  const activeWorkerCount = Number.isFinite(activeCount)
-    ? Math.max(0, Math.floor(activeCount))
-    : 0;
-  const unusedWorkerCount = Number.isFinite(unusedCount)
-    ? Math.max(0, Math.floor(unusedCount))
-    : 0;
-  const totalWorkerCount = activeWorkerCount + unusedWorkerCount;
-  let renderedActivePawnCount = Math.min(
-    activeWorkerCount,
-    MAX_RENDERED_WORKER_PAWNS
-  );
-  let renderedUnusedPawnCount = Math.min(
-    unusedWorkerCount,
-    MAX_RENDERED_WORKER_PAWNS - renderedActivePawnCount
-  );
-  if (
-    unusedWorkerCount > 0 &&
-    renderedUnusedPawnCount === 0 &&
-    renderedActivePawnCount > 0
-  ) {
-    renderedActivePawnCount -= 1;
-    renderedUnusedPawnCount = 1;
-  }
-  const renderedPawnCount =
-    renderedActivePawnCount + renderedUnusedPawnCount;
-  return {
-    activeWorkerCount,
-    unusedWorkerCount,
-    totalWorkerCount,
-    renderedActivePawnCount,
-    renderedUnusedPawnCount,
-    renderedPawnCount,
-    badgeValue:
-      totalWorkerCount > MAX_RENDERED_WORKER_PAWNS
-        ? totalWorkerCount
-        : null,
-  };
-}
-
-function addPawnGlyph(
-  parent,
-  x,
-  y,
-  { color = PALETTE.text, alpha = 1, scale = 1 } = {}
-) {
-  const pawn = new PIXI.Graphics();
-  pawn.lineStyle(2 * scale, 0x302d2a, Math.min(1, alpha + 0.1));
-  pawn.beginFill(color, alpha);
-  pawn.drawCircle(x, y - 6 * scale, 4 * scale);
-  pawn.drawPolygon([
-    x - 5 * scale, y + 8 * scale,
-    x + 5 * scale, y + 8 * scale,
-    x + 3 * scale, y - 1 * scale,
-    x - 3 * scale, y - 1 * scale,
-  ]);
-  pawn.endFill();
-  pawn.eventMode = "none";
-  parent.addChild(pawn);
-}
-
-export function addWorkerIndicator(parent, point, activeWorkerCount, unusedWorkerCount) {
-  const presentation = getWorkerIndicatorPresentation(
-    activeWorkerCount,
-    unusedWorkerCount
-  );
-  const renderedCount = presentation.renderedPawnCount;
-  const displayCount = Math.max(1, renderedCount);
-  const gap = 19;
-  const pillWidth = displayCount * gap + 15;
-  const pill = new PIXI.Graphics();
-  roundedRect(
-    pill,
-    point.x - pillWidth / 2,
-    point.y - 46,
-    pillWidth,
-    28,
-    14,
-    PALETTE.black,
-    0x302d2a,
-    2,
-    0.62,
-    0.75
-  );
-  pill.eventMode = "none";
-  parent.addChild(pill);
-
-  const startX = point.x - ((displayCount - 1) * gap) / 2;
-  if (renderedCount === 0) {
-    addPawnGlyph(parent, startX, point.y - 32, {
-      color: PALETTE.textMuted,
-      alpha: 0.28,
-    });
-  } else {
-    for (
-      let index = 0;
-      index < presentation.renderedActivePawnCount;
-      index += 1
-    ) {
-      addPawnGlyph(parent, startX + index * gap, point.y - 32, {
-        color: PALETTE.accent,
-      });
-    }
-    for (
-      let index = 0;
-      index < presentation.renderedUnusedPawnCount;
-      index += 1
-    ) {
-      addPawnGlyph(
-        parent,
-        startX + (presentation.renderedActivePawnCount + index) * gap,
-        point.y - 32,
-        { color: PALETTE.text }
-      );
-    }
-  }
-
-  if (presentation.badgeValue != null) {
-    const badgeX = startX + (renderedCount - 1) * gap + 7;
-    const badgeY = point.y - 43;
-    const badge = new PIXI.Graphics();
-    badge.lineStyle(2, 0x302d2a, 1);
-    badge.beginFill(PALETTE.accent, 1);
-    badge.drawCircle(badgeX, badgeY, 10);
-    badge.endFill();
-    badge.eventMode = "none";
-    parent.addChild(
-      badge,
-      createText(
-        String(presentation.badgeValue),
-        { ...TEXT_STYLES.chip, fontSize: 11, fill: 0x302d2a },
-        badgeX,
-        badgeY + 1,
-        0.5,
-        0.5
-      )
-    );
-  }
-}
-
-export function addPlayerOwnershipMarker(parent, point, { selected = false } = {}) {
-  const marker = new PIXI.Graphics();
-  const radius = selected ? 17 : 14;
-  marker.lineStyle(selected ? 5 : 3, selected ? PALETTE.text : 0x302d2a, 1);
-  marker.beginFill(PALETTE.accent, 1);
-  marker.drawCircle(point.x, point.y, radius);
-  marker.endFill();
-  marker.lineStyle(3, 0x302d2a, 1);
-  marker.moveTo(point.x - 3, point.y + 7);
-  marker.lineTo(point.x - 3, point.y - 8);
-  marker.beginFill(0x302d2a, 1);
-  marker.drawPolygon([
-    point.x - 2, point.y - 8,
-    point.x + 8, point.y - 4,
-    point.x - 2, point.y,
-  ]);
-  marker.endFill();
-  marker.eventMode = "none";
-  parent.addChild(marker);
+export function addCrownCapitalMarker(parent, point, tooltipView) {
+  const marker=new PIXI.Container();marker.label='crown-capital-marker';
+  marker.position.set(point.x+38,point.y-50);
+  marker.addChild(new PIXI.Graphics().lineStyle(2,0xd3a17b).beginFill(0x211b22,.95).drawCircle(0,0,19).endFill());
+  addResourceIcon(marker,'crown',0,0,29);
+  marker.eventMode='static';marker.cursor='help';marker.hitArea=new PIXI.Circle(0,0,23);
+  const spec={title:'Crown capital',lines:['The Unbending Crown rules from this stronghold.','Its surrounding provinces share the Crown border.'],maxWidth:300};
+  marker.on('pointerover',()=>tooltipView?.show?.(spec,marker.getBounds(),{dismissOnExit:true}));
+  marker.on('pointerout',()=>tooltipView?.hide?.());
+  marker.on('pointerdown',e=>{e.stopPropagation();tooltipView?.pin?.(spec,marker.getBounds(),'crown-capital');});
+  parent.addChild(marker);return marker;
 }
 
 export function addActiveVassalMarker(parent, point, vassal, state) {
@@ -199,53 +48,14 @@ export function addActiveVassalMarker(parent, point, vassal, state) {
   );
 }
 
-export function addSettlementPressureIndicator(parent, point, pressure) {
-  const active = [
-    pressure?.starvation === true ? "starvation" : null,
-    pressure?.overcrowding === true ? "overcrowding" : null,
-  ].filter(Boolean);
-  if (active.length === 0) return;
-  const gap = 30;
-  const startX = point.x - ((active.length - 1) * gap) / 2;
-  const y = point.y - 70;
-  active.forEach((kind, index) => {
-    const x = startX + index * gap;
-    const glyph = new PIXI.Graphics();
-    glyph.lineStyle(2, 0x302d2a, 1);
-    if (kind === "starvation") {
-      glyph.beginFill(PRESSURE_COLOURS.starvation, 1);
-      glyph.drawPolygon([x, y - 13, x - 13, y + 11, x + 13, y + 11]);
-      glyph.endFill();
-      glyph.eventMode = "none";
-      parent.addChild(
-        glyph,
-        createText("!", {
-          ...TEXT_STYLES.title,
-          fontSize: 16,
-          fill: PALETTE.text,
-        }, x, y + 3, 0.5, 0.5)
-      );
-      return;
-    }
-    glyph.beginFill(PRESSURE_COLOURS.overcrowding, 1);
-    glyph.drawPolygon([
-      x - 13, y - 2,
-      x, y - 13,
-      x + 13, y - 2,
-      x + 10, y - 2,
-      x + 10, y + 11,
-      x - 10, y + 11,
-      x - 10, y - 2,
-    ]);
-    glyph.endFill();
-    glyph.beginFill(0x302d2a, 1);
-    for (const offset of [-5, 0, 5]) glyph.drawCircle(x + offset, y + 3, 2.2);
-    glyph.endFill();
-    glyph.eventMode = "none";
-    parent.addChild(glyph);
-  });
+export function addSettlementStarvationIndicator(parent, point, pressure) {
+  if (!pressure?.starvation) return;
+  const x=point.x,y=point.y-70,glyph=new PIXI.Graphics();
+  glyph.lineStyle(2,0x302d2a).beginFill(PRESSURE_COLOURS.starvation)
+    .drawPolygon([x,y-13,x-13,y+11,x+13,y+11]).endFill();
+  glyph.eventMode='none';
+  parent.addChild(glyph,createText('!',{...TEXT_STYLES.title,fontSize:16,fill:PALETTE.text},x,y+3,.5,.5));
 }
-
 export function addSettlementCurrencyIndicator(parent, point, { currency, currencySpent } = {}) {
   if (!Number.isFinite(currency)) return;
   const spending = Number(currencySpent ?? 0) > 0;

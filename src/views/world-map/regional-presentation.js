@@ -12,7 +12,11 @@ export function naturalRegionalMap(map) {
 export function regionalPresentationSpec(state, display = {}) {
   const monsters = display.actors === false ? [] : state.world.regions.filter(r=>r.monster).map(r=>r.id).sort();
   const sites = display.scenery === false ? [] : state.world.sites.filter(s=>
-    !monsters.includes(s.regionId) && (s.detailedState || s.neutral)).map(s=>({regionId:s.regionId,kind:s.neutral?'neutral':'player'}))
+    !monsters.includes(s.regionId) && (s.detailedState || s.neutral)).map(s=>{
+      const holder=state.world.regions.find(r=>r.id===s.regionId)?.controller;
+      const crown=state.rulesetId&&holder==='external-a';
+      return {regionId:s.regionId,kind:crown?(s.regionId===state.civilization.remnant?.capitalRegionId?'crownCapital':'crown'):holder==='player'?'player':'neutral'};
+    })
     .sort((a,b)=>a.regionId.localeCompare(b.regionId));
   const connections = display.connections === false ? [] : state.world.connections.map(e=>({regionAId:e.regionAId,regionBId:e.regionBId}))
     .sort((a,b)=>connectionKey(a).localeCompare(connectionKey(b)));

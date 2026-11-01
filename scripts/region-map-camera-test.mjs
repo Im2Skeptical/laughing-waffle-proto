@@ -20,18 +20,23 @@ const stockView = {
     { face: { inputs: [{ kind: 'require', amount: 1, traits: ['Plant', 'Animal'] }],
       chargeTriggers: [{ trait: 'Bone' }] } },
     { face: { stockTraits: ['Record'], production: [{ icon: 'research', value: 2 }] } },
+    { face: { stockTraits: ['Bone'], production: [{icon:'stock',value:1}] } },
   ],
-  structures: [{ face: { inputs: [{ kind: 'consume', amount: 1, traits: ['Unknown'] }] } }],
+  structures: [
+    {construction:{paidCycles:0},face:{stockTraits:['Glass'],production:[{icon:'stock',value:1}],inputs:[{kind:'consume',amount:1,traits:['Unknown']}]}},
+    {face:{inputs:[{kind:'consume',amount:1,traits:['BuiltCost']}]}},
+  ],
 };
 const stockBefore = JSON.stringify(stockView);
 const stockTags = getSettlementStockTags(stockView);
 assert.deepEqual(stockTags.map(({ trait, outline }) => [trait, outline]), [
-  ['Edible', null], ['Metal', 'green'], ['Mineral', 'red'], ['Ore', 'red'], ['Plant', null], ['Unknown', 'red'],
-], 'deduplicated recipe roles include meals/Require, resolve alternatives, and exclude Charge triggers/non-Stock outputs');
+  ['Bone','green'],['Glass', 'amber'],['Metal','green'], ['Mineral', 'red'], ['Ore', 'red'], ['Unknown', 'red'],
+], 'show unused production, missing sources and unhosted outputs; meals consume every trait of a Stock unit, and Charge triggers are not consumers');
 assert.equal(stockTags.at(-1).iconId, 'stock', 'custom tags use the generic Stock icon');
 assert.equal(JSON.stringify(stockView), stockBefore, 'map roles leave their source untouched');
 assert.deepEqual(getSettlementStockTags(null), [], 'empty regions have no Stock icons');
-const tagLayout = getSettlementStockTagLayout([...stockTags, stockTags[0]], { x: 800, y: 300 });
+const sevenTags=Array.from({length:7},(_,i)=>stockTags[i%stockTags.length]);
+const tagLayout = getSettlementStockTagLayout(sevenTags, { x: 800, y: 300 });
 assert.equal(tagLayout[6].x, 800, 'wrapped rows are centered independently');
 assert.equal(tagLayout[6].y - tagLayout[0].y, 36, 'wrapped icons have separate rows above the settlement');
 const northernTags = getSettlementStockTagLayout([...stockTags, stockTags[0]], { x: 662, y: 214 });

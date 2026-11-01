@@ -4,6 +4,7 @@ import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {chromium} from 'playwright';
 import {execFileSync} from 'node:child_process';
+import {BROWSER_PROBE_LAUNCH_OPTIONS} from './browser-probe-config.mjs';
 
 const url='http://127.0.0.1:18137',output='artifacts/map-retention';
 await mkdir(output,{recursive:true});
@@ -16,7 +17,7 @@ const server=createServer(async(req,res)=>{
   }catch{res.statusCode=404;res.end();}
 });
 await new Promise(r=>server.listen(18137,'127.0.0.1',r));
-const browser=await chromium.launch({headless:true}),errors=[];
+const browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS),errors=[];
 try{
   const page=await browser.newPage({viewport:{width:844,height:390}});page.on('pageerror',e=>errors.push(e.message));
   const reference=process.argv.indexOf('--baseline-ref');
@@ -33,6 +34,7 @@ try{
     const {getDetailedCivilizationSummary}=await import('/src/model/detailed-settlements.js');
     const {getWorldDefinition,getRegionPolygon}=await import('/src/model/world-state.js');
     const {createMapPolygonReader}=await import('/src/views/world-map/geometry.js');
+    const {writePopulationBins}=await import('/src/model/detailed-settlements/population-ledger.js');
     const app=new PIXI.Application({width:2424,height:1080,resolution:844/2424});app.stop();document.body.append(app.view);
     await prepareChronicleArt(app.renderer);
     const timeline=createTimelineFromInitialState(createNewGameState(1867));
@@ -42,7 +44,11 @@ try{
     let state=states[0],revision=0,lossInfo=null;
     const map=createWorldMapView({layer:app.stage,getState:()=>state,getStateRevision:()=>revision,getCivilizationLossInfo:()=>lossInfo,getVisualTime:()=>0,getSelectedRegionId:()=>state.civilization.capitalRegionId,getGraphScope:()=> 'civilization'});
     await map.prepare(app.renderer);map.update();app.render();
-    globalThis.fixture={app,map,states,setState:value=>{state=value;},edit:()=>revision++,setLoss:value=>{lossInfo=value;},originals:states.map(s=>JSON.stringify(s)),expected:states.map(s=>getDetailedCivilizationSummary(s).population.total),chaosAtFour:getDetailedCivilizationSummary(states[4]).chaos.chaosPower,first:app.renderer.extract.pixels()};
+    const contested=JSON.parse(JSON.stringify(state));
+    const held=contested.world.regions.find(r=>r.controller==='player');
+    writePopulationBins(contested.world.sites.find(s=>s.regionId===held.id).detailedState,
+      [5,25].map((count,i)=>({classId:'villager',allegiance:i?'external-a':'player',specialty:'ordinary',kind:'adults',age:null,count})));
+    globalThis.fixture={app,map,states,contested,setState:value=>{state=value;},edit:()=>revision++,setLoss:value=>{lossInfo=value;},originals:states.map(s=>JSON.stringify(s)),expected:states.map(s=>getDetailedCivilizationSummary(s).population.total),chaosAtFour:getDetailedCivilizationSummary(states[4]).chaos.chaosPower,first:app.renderer.extract.pixels()};
   });
   await page.screenshot({path:`${output}/${process.argv.includes('--baseline')?'baseline':'result'}.png`});
   const cdp=await page.context().newCDPSession(page);
@@ -60,14 +66,14 @@ try{
       for(const child of node.children??[]){const found=findText(test,child);if(found)return found;}
       return null;
     }
-    function checkNeutralTags(){
+    function checkStockTags(){
       let rows=0;const offsets=[];
       function visit(node){
-        const children=node.children??[],label=children.find(child=>child instanceof PIXI.Text&&child.text==='NEUTRAL');
+        const children=node.children??[],anchor=children.find(child=>child.label==='map-influence-marker');
         const tags=children.filter(child=>child.stockTag);
-        if(label&&tags.length)for(const y of new Set(tags.map(tag=>tag.y))){
+        if(anchor&&tags.length)for(const y of new Set(tags.map(tag=>tag.y))){
           const row=tags.filter(tag=>tag.y===y),center=row.reduce((sum,tag)=>sum+tag.getGlobalPosition().x,0)/row.length;
-          const offset=center-label.getGlobalPosition().x;rows++;
+          const offset=center-anchor.getGlobalPosition().x;rows++;
           if(Math.abs(offset)>.01)offsets.push(offset);
         }
         children.forEach(visit);
@@ -75,7 +81,7 @@ try{
       visit(app.stage);return {rows,offsets};
     }
     try{
-      const neutralTags=[checkNeutralTags()];
+      const stockTags=[checkStockTags()];
       const pausedBefore=map.getSemanticSnapshot(),pausedStart=performance.now();
       for(let i=0;i<60;i++)map.update();
       const pausedMs=(performance.now()-pausedStart)/60,pausedAfter=map.getSemanticSnapshot();
@@ -90,6 +96,16 @@ try{
       const allocations={destroyedText,destroyedObjects};
       setState(states[0]);map.update();app.render();
       const restored=app.renderer.extract.pixels(),rewind=first.length===restored.length&&first.every((value,i)=>value===restored[i]);
+      const labeled=label=>{
+        let count=0;const visit=node=>{if(node.label===label)count++;for(const child of node.children??[])visit(child);};visit(app.stage);return count;
+      };
+      const initialBars=labeled('map-influence-marker'),initialContested=labeled('contested-control-marker');
+      setState(fixture.contested);map.update();app.render();
+      const contention={initialBars,initialContested,changedContested:labeled('contested-control-marker'),
+        obsoleteText:!!findText(t=>t.text==='NEUTRAL'||t.text.startsWith('Defense '))};
+      setState(states[0]);map.update();app.render();
+      const restoredContention=app.renderer.extract.pixels();
+      contention.rewind=first.every((value,i)=>value===restoredContention[i]);
       const changed=JSON.parse(JSON.stringify(states[0]));
       changed.world.regions.find(r=>!r.monster).monster={defense:9};
       const before=map.getSemanticSnapshot().retainedScene?.builds;
@@ -110,8 +126,8 @@ try{
       fixture.setLoss({resolved:true,lossYear:77});map.update();
       const forecastInvalidates=map.getSemanticSnapshot().presentationReads>reads;
       findText(t=>t.text==='+').parent.emit('pointerdown');map.update();app.render();
-      neutralTags.push(checkNeutralTags());
-      return {...allocations,paused,samples,semantics,rewind,invalidates,difference,collapsed,editInvalidates,forecastInvalidates,neutralTags,retained:after.retainedScene,unchanged:states.every((s,i)=>JSON.stringify(s)===originals[i])};
+      stockTags.push(checkStockTags());
+      return {...allocations,paused,samples,semantics,rewind,contention,invalidates,difference,collapsed,editInvalidates,forecastInvalidates,stockTags,retained:after.retainedScene,unchanged:states.every((s,i)=>JSON.stringify(s)===originals[i])};
     }finally{PIXI.Text.prototype.destroy=textDestroy;PIXI.DisplayObject.prototype.destroy=objectDestroy;map.destroy();app.destroy(true);}
   });
   const {profile}=await cdp.send('Profiler.stop');
@@ -122,9 +138,12 @@ try{
   assert.deepEqual(errors,[]);assert.equal(result.unchanged,true);
   assert.equal(result.semantics,true,'Retained HUD shows the current population');
   assert.equal(result.rewind,true,'Rewind restores all retained map and HUD pixels');
+  assert.equal(result.contention.initialBars,19,'Every inhabited non-monster region has an allegiance bar');
+  assert.equal(result.contention.changedContested,result.contention.initialContested+1,'Unsupported held region receives a contention badge');
+  assert.equal(result.contention.obsoleteText,false);assert.equal(result.contention.rewind,true);
   assert.equal(result.invalidates,true);assert.ok(result.difference>500,'Monster changes replace retained map content');
   assert.equal(result.collapsed,true,'Collapsed Chaos counter updates during playback');
-  assert.ok(result.neutralTags.every(check=>check.rows>=4&&check.offsets.length===0),'Neutral resource rows stay centered on their settlement labels through camera zoom');
+  assert.ok(result.stockTags.every(check=>check.rows>=1&&check.offsets.length===0),'Resource exception rows stay centered on their settlement bars through camera zoom');
   if(!process.argv.includes('--baseline')){
     assert.equal(result.paused.reads,0,'Paused frames reuse map summaries and signatures');
     assert.equal(result.paused.cameraUpdates,0,'Stationary frames reuse camera uniforms');

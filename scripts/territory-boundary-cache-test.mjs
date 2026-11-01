@@ -8,8 +8,8 @@ import { getRegionPolygon } from '../src/model/world-state.js';
 const { definition } = getRegionalMap('regional-v1:1867');
 const zones = pattern => definition.regions.map((region, i) => ({ regionId: region.id,
   points: getRegionPolygon(definition, region).flatMap(v => [v.x * 2424, v.y * 1080]),
-  monster: pattern(i) === 2, player: pattern(i) === 1 }));
-const patterns = [() => 0, i => i % 3, i => (i * 7) % 3, i => i < 4 ? 1 : 0, i => i % 2 ? 2 : 1];
+  monster: pattern(i) === 2, player: pattern(i) === 1,crown:pattern(i)===3,controller:pattern(i)===3?'external-a':'frontier' }));
+const patterns = [() => 0, i => i % 4, i => (i * 7) % 4, i => i < 4 ? 1 : 0, i => i % 2 ? 2 : 1,()=>3];
 let fresh = 0, cached = 0;
 for (const pattern of patterns) {
   const expected = computeTerritoryBoundarySegments(zones(pattern));
@@ -27,6 +27,11 @@ const base = zones(i => i % 3), moved = zones(i => i % 3);
 moved[0].points[0] += 1;
 assert.notEqual(territoryBoundarySegments(moved), territoryBoundarySegments(base));
 assert.deepEqual(territoryBoundarySegments(moved), computeTerritoryBoundarySegments(moved));
-const flipped = zones(i => i % 3); flipped[1].monster = !flipped[1].monster; flipped[1].player = false;
+const flipped = zones(i => i % 4); flipped[1].monster = !flipped[1].monster; flipped[1].player = false;
 assert.deepEqual(territoryBoundarySegments(flipped), computeTerritoryBoundarySegments(flipped));
+const crown=zones(()=>3),captured=zones(()=>3);captured[0].crown=false;captured[0].player=true;captured[0].controller='player';
+assert.notEqual(territoryBoundarySegments(crown),territoryBoundarySegments(captured),'capture invalidates Crown edge cancellation');
+const neutral=zones(()=>0);
+assert.ok([...territoryBoundarySegments(crown).values()].reduce((n,a)=>n+a.length,0)<[...territoryBoundarySegments(neutral).values()].reduce((n,a)=>n+a.length,0),'Crown shared internal edges disappear while unheld region boundaries stay visible');
+assert.deepEqual(territoryBoundarySegments(crown),computeTerritoryBoundarySegments(crown),'rewind restores Crown geometry');
 console.log(`territory-boundary-cache: ${definition.regions.length} regions, ${patterns.length} patterns identical; fresh ${(fresh / 25).toFixed(2)} ms/call, cached ${(cached / 25).toFixed(2)} ms/call`);

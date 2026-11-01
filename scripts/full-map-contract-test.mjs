@@ -38,12 +38,73 @@ import {resolveExternalPractice,adjacentRegionIds} from '../src/model/detailed-s
 import {classActionOptions} from '../src/model/vassal-life-map/class-actions.js';
 import {conquerSettlement,addMonsterPressure} from '../src/model/detailed-settlements/external-world.js';
 import {SAVE_DATABASE_NAME} from '../src/controllers/sim-runner/save-storage.js';
+import {getDetailedSettlementViewModel} from '../src/model/detailed-settlements.js';
+import {getSettlementStockTags} from '../src/views/world-map/stock-tags.js';
+import {getMapInfluencePresentation} from '../src/views/world-map/influence-marker.js';
 
 const fresh=()=>createNewGameState(424242);
 const bin=(count,allegiance='neutral',specialty='ordinary',kind='adults')=>({classId:'villager',allegiance,specialty,kind,age:kind==='elder'?60:null,count});
 const install=(id,allegiance='player',stock=0)=>({practiceId:id,tier:'bronze',instanceId:`test:${id}`,charge:0,work:0,...(fullMapPractices[id]?.category==='influence'?{allegiance}:{stock})});
 const checks=[];
 function test(name,fn){fn();checks.push(name);}
+test('three independent resource-only starts remain distinct from Crown-influenced outskirts',()=>{
+ for(const seed of [1,2,4,6,7,8,12,18,1867]){
+  const s=createNewGameState(seed),independent=s.world.sites.filter(site=>site.name==='Independent Settlement');
+  assert.equal(independent.length,3);
+  assert.equal(s.world.regions.filter(r=>r.controller==='player').length,2);
+  for(const site of independent){
+   assert.equal(getRegionState(s,site.regionId).controller,'frontier');assert(!getRegionState(s,site.regionId).monster);
+   assert(populationBins(site.detailedState).every(b=>b.allegiance==='neutral'));
+   assert(site.detailedState.practiceSlots.every(p=>!p.allegiance));
+  }
+  assert.deepEqual(serializeGameState(s),serializeGameState(createNewGameState(seed)),'opening remains seed deterministic');
+  assert.deepEqual(serializeGameState(deserializeGameState(serializeGameState(s))),serializeGameState(s));
+ }
+});
+test('map supply problems follow Influence allegiance, local holders and direct allied roads',()=>{
+ const s=fresh(),[a,b]=s.world.regions.filter(r=>r.controller==='player').map(r=>r.id);
+ const local=s.world.sites.find(site=>site.regionId===a).detailedState,remote=s.world.sites.find(site=>site.regionId===b).detailedState;
+ s.gameConfig.gamepieces.practices.fm_oathSupper.consume=[{amount:1,traits:['Record']}];
+ local.practiceSlots=[install('fm_oathSupper','external-a'),null,null,null,null];
+ remote.practiceSlots=[install('recordKeeping'),null,null,null,null];
+ const tags=()=>getSettlementStockTags(getDetailedSettlementViewModel(s,a),{state:s,regionId:a}).map(t=>t.trait);
+ assert(tags().includes('Record'),'foreign Influence cannot borrow the player road network');
+ local.practiceSlots[0].allegiance='player';
+ assert(!tags().includes('Record'),'empty allied Stock holder still represents an available structural source');
+ s.world.connections=s.world.connections.filter(e=>![e.regionAId,e.regionBId].includes(a)||![e.regionAId,e.regionBId].includes(b));
+ assert(tags().includes('Record'),'adjacency without a road does not supply the input');
+ local.practiceSlots[0].allegiance='external-a';local.practiceSlots[1]=install('recordKeeping');
+ const before=serializeGameState(s);
+ assert(!tags().includes('Record'),'local automatic recipes can use a local holder regardless of allegiance');
+ assert.deepEqual(serializeGameState(s),before,'diagnostics leave state and RNG untouched');
+});
+test('unused Stock counts installed consumers even when blocked, and respects faction reach',()=>{
+ const s=fresh(),[a,b]=s.world.regions.filter(r=>r.controller==='player').map(r=>r.id);
+ const local=s.world.sites.find(site=>site.regionId===a).detailedState,remote=s.world.sites.find(site=>site.regionId===b).detailedState;
+ s.gameConfig.gamepieces.practices.fm_oathSupper.consume=[{amount:1,traits:['Timber']},{amount:1,traits:['Record']}];
+ local.practiceSlots=[install('logging'),null,null,null,null];
+ remote.practiceSlots=[install('fm_oathSupper','player'),null,null,null,null];
+ const tags=()=>getSettlementStockTags(getDetailedSettlementViewModel(s,a),{state:s,regionId:a});
+ assert(!tags().some(t=>['Timber','Construction'].includes(t.trait)),'an installed remote consumer uses the whole multi-trait Stock unit despite its missing other input');
+ remote.practiceSlots[0].allegiance='external-a';
+ assert(tags().some(t=>t.trait==='Timber'&&t.outline==='green'),'foreign Influence cannot consume remote player production');
+ local.practiceSlots[1]=install('fm_oathSupper','external-a');
+ const before=serializeGameState(s);
+ assert(!tags().some(t=>t.trait==='Timber'),'local automatic consumers count irrespective of allegiance');
+ assert.deepEqual(serializeGameState(s),before,'consumer coverage leaves state and RNG unchanged');
+});
+test('map contention marks unsupported held regions, not neutral unheld land',()=>{
+ const s=fresh(),region=s.world.regions.find(r=>r.controller==='player'),d=s.world.sites.find(site=>site.regionId===region.id).detailedState;
+ writePopulationBins(d,[bin(5,'player'),bin(25,'external-a')]);
+ const before=serializeGameState(s),c=controlSummary(s,region.id),p=getMapInfluencePresentation(c);
+ assert.equal(c.status,'contested');assert(p.contested);assert.equal(p.parts.reduce((n,v)=>n+v.count,0),30);
+ assert.deepEqual(serializeGameState(s),before);
+ region.controller='frontier';assert.equal(getMapInfluencePresentation(controlSummary(s,region.id)).contested,false);
+ region.controller='player';writePopulationBins(d,[bin(25,'player'),bin(5,'external-a')]);
+ assert.equal(getMapInfluencePresentation(controlSummary(s,region.id)).contested,false);
+ assert.equal(getMapInfluencePresentation(c,{monster:true}),null);
+ assert.equal(getMapInfluencePresentation({...c,status:'occupied'}).contested,false);
+});
 test('real opening, ruleset, category contract and 72 runtime / 66 review rows',()=>{
  const s=fresh();assert.equal(s.world.sites.length,20);assert.equal(s.world.regions.filter(r=>r.controller==='player').length,2);assert.equal(s.world.regions.filter(r=>r.monster).length,1);
  assert.equal(Object.keys(fullMapPractices).length+Object.keys(fullMapStructures).length,72);

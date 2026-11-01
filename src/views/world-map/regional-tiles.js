@@ -86,9 +86,12 @@ export function* prepareRegionalTilesSteps(presentation, landmarks, renderer) {
       }
       for(const b of buildings){
         if(occupied.has(b.regionId)||!kinds.has(b.regionId))continue;
-        const role=['hall','market'].includes(b.role)?kinds.get(b.regionId)==='player'?'hall':'market':b.role;
-        const texture=landmarks.biomes[b.biome][role],node=new PIXI.Sprite(texture);
-        node.scale.set(b.w/texture.width);
+        const kind=kinds.get(b.regionId),crown=kind==='crown'||kind==='crownCapital';
+        const civic=['hall','market'].includes(b.role);
+        const role=civic?kind==='player'?'hall':'market':b.role;
+        const crownRole=civic?(kind==='crownCapital'?'capital':'hall'):['house','pair'].includes(b.role)?'house':null;
+        const texture=(crown&&crownRole?landmarks.crown?.[crownRole]:null)??landmarks.biomes[b.biome][role],node=new PIXI.Sprite(texture);
+        node.scale.set((crown&&civic&&kind==='crownCapital'?b.w*1.3:b.w)/texture.width);
         node.position.set((b.point.x-bounds.minX)*1576/density-crop.x-node.width/2,
           (b.point.y-bounds.minY)*516/density-crop.y-node.height+b.h*.25);scene.addChild(node);
       }

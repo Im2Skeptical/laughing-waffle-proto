@@ -123,7 +123,8 @@ checks explicit connection routing, per-region planning and compact towns.
 time browsing, mobile layout, asset URLs and the standalone study.
 
 Helpers for the public module `src/views/world-map-pixi.js`, which remains the
-orchestrator and still re-exports every previous public symbol.
+orchestrator. The obsolete pawn-tray presentation API was retired in the
+Crown readability pass; worker simulation and assignment queries are unchanged.
 
 This split is mechanical. Map interaction, packet rewind, and panel content
 stay in `createWorldMapView`.
@@ -132,17 +133,29 @@ stay in `createWorldMapView`.
 
 - `constants.js` — `MAP_RECT`, panel rects, colours, packet caps, tap windows
 - `packets.js` — glyph spec, playback direction, pose, facing, rewind visual spec
-- `glyphs.js` — worker/ownership/vassal/pressure/currency builders
+- `glyphs.js` — vassal/capital/starvation/currency builders
   that take explicit parent/point arguments and do not close over the view
 - `region-panel-cache.js` — retained regional panels, keyed by exact rendered
   inputs and art revision. Game entry prepares the entry settlement panel
   behind the menu; changing time/content replaces stale panels.
-- `stock-tags.js` — deduplicated recipe supply/demand icons above every settlement.
-  Red outlines mean demand without a local producer, green means production
-  without a local consumer, and local production plus demand has no outline.
-  Meal demand adds Edible; Consume and Require inputs add demand, but Charge
-  triggers do not. Recipes accepting alternatives use matching local tags when
-  present. Roles describe installed recipes, independent of current inventory.
+- `stock-tags.js` — exception icons above settlements: red for inputs without
+  a source, amber for outputs without a local holder, green for production with
+  no installed consumer in reach. Ordinary used/hosted/supplied Stock is hidden.
+- `stock-coverage.js` — read-only installed-recipe coverage using real provider
+  faction, adjacency and road rules. Empty holders count as sources. Recipes
+  count while blocked by timing, Charge or another input; this does not measure
+  surplus or throughput. Meals, Consume, Require, active construction and upkeep
+  count; finished construction costs and Charge triggers do not. Alternatives,
+  substitutions and wildcards follow their eligible provider rules. Any matching
+  trait makes the whole multi-trait Stock unit used.
+- `influence-marker.js` — population allegiance bars and inspectable contention
+  diamonds for unsupported held regions, using the header's shared palette in
+  `../region-allegiance.js`. Unheld neutral land is not a contested holding.
+
+Full-map Crown holdings share an exposed copper boundary and use the generated
+`crown-map-v1` capital/provincial building kit. The capital has a separate crown
+badge. Three fresh independent settlements have unaffiliated populations and
+resource-only boards. See [the UX pass](../../../docs/crown-map-ux.md).
 
 Resource icon rows stay horizontally centered on their settlement anchor in map
 coordinates, including neutral markets. They inherit the same pan/zoom transform
