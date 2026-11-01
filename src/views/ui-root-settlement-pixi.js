@@ -1,6 +1,7 @@
 import { progressiveGraphics } from './minimal-graphics.js';
 import { loadProgressiveArtwork } from './progressive-artwork.js';
 import { loadPerformanceStart } from '../controllers/performance-start.js';
+import { createEdgeTransferScrubGate } from "./ui-root/edge-transfer-scrub-gate.js";
 import { getSettlementVassalFocusWindows } from "./ui-root/settlement-timegraph-window.js";
 import { createVassalCommissionPicker } from './vassal-commission-picker-pixi.js';
 import { createLifeDecisionController } from "../controllers/life-decision-controller.js";
@@ -676,6 +677,14 @@ function syncSettlementRunCompletePresentation() {
   });
 }
 
+function isSettlementScrubDragging() {
+  return settlementGraphView?.isScrubbing?.() === true || sunMoonDisksView?.isDragging?.() === true;
+}
+
+const settlementEdgeTransferScrubGate = createEdgeTransferScrubGate({
+  isScrubActive: isSettlementScrubDragging,
+});
+
 function invalidateSettlementEdgeTransferBatchCache() {
   settlementEdgeTransferBatchCache = {
     key: null,
@@ -690,6 +699,8 @@ function getSettlementViewedEdgeTransferBatch() {
     getSettlementViewedState()
   );
   if (boundarySec <= 0) return null;
+  // Skip the previous-second restore while a scrub is moving; rebuild on settle.
+  if (settlementEdgeTransferScrubGate.shouldSkip(viewedSec)) return null;
   const timeline = runner.getTimeline?.() ?? null;
   const cacheKey = [
     boundarySec,

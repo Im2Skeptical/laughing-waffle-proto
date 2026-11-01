@@ -165,6 +165,29 @@ for (let t = 0; t <= 128; t++) {
   assert.deepEqual(serializeGameState(restorer.restore(snapshot, anchorSec, t)), serializeGameState(reference), "returned states do not alias anchors");
   assert.ok(restorer.getSize() <= 4);
 }
+{
+  // Replay LRU: back-and-forth scrub hits must equal a fresh, uncached restore.
+  const cached = createProjectionStateRestorer({ maxEntries: 4, maxReplayEntries: 3 });
+  const uncached = createProjectionStateRestorer({ maxEntries: 4, maxReplayEntries: 0 });
+  const snapshot = anchors.get(16);
+  const visit = [21, 22, 21, 23, 22, 21, 24, 21, 22];
+  for (const t of visit) {
+    const hit = cached.restore(snapshot, 16, t);
+    const fresh = uncached.restore(snapshot, 16, t);
+    assert.equal(JSON.stringify(serializeGameState(hit)), JSON.stringify(serializeGameState(fresh)), `replay cache hit at ${t} is bit-identical`);
+    assert.deepEqual(Object.keys(hit), Object.keys(fresh), `replay cache hit at ${t} keeps runtime fields and order`);
+    assert.equal(hit._boardDirty, fresh._boardDirty);
+    assert.equal(hit._seasonChanged, fresh._seasonChanged);
+    assert.equal(hit.rngNextFloat(), fresh.rngNextFloat(), "cached RNG helpers bind to the returned state");
+    hit.rng.seed = 1;
+    hit.world.sites[0].detailedState.practiceSlots[0].stock = -100;
+    assert.ok(cached.getReplayCacheSize() <= 3);
+  }
+  assert.deepEqual(serializeGameState(cached.restore(snapshot, 16, 21)), serializeGameState(uncached.restore(snapshot, 16, 21)), "mutating a hit never poisons the cache");
+  assert.equal(uncached.getReplayCacheSize(), 0);
+  cached.clear();
+  assert.equal(cached.getReplayCacheSize(), 0);
+}
 assert.throws(() => restorer.restore({ ...base, gameStateSchemaVersion: -1 }, 0), /schema/);
 assert.throws(() => restorer.restore({ ...base, rng: {} }, 0), /RNG/);
 const invalidWorld=structuredClone(base);
