@@ -129,8 +129,8 @@ function packedKeyFor(file, group) {
 }
 
 function loadTexture(file) {
-  if (minimalGraphics) return null;
   const group = packedGroupFor(file);
+  if (minimalGraphics && group !== PACKED_GROUPS.resources) return null;
   if (group) {
     const key = packedKeyFor(file, group);
     if (packedTextures.has(key)) return packedTextures.get(key);
@@ -179,7 +179,7 @@ async function loadPackedSheet(name) {
 }
 
 async function loadPackedGroup(group, retryFailed = false) {
-  if (minimalGraphics) return;
+  if (minimalGraphics && group !== PACKED_GROUPS.resources) return;
   if (retryFailed && failedGroups.delete(group)) packedLoads.delete(group);
   if (packedLoads.has(group)) return packedLoads.get(group);
   // Multipack sheets link to each other. Loading them concurrently can leave
@@ -206,14 +206,14 @@ async function loadPackedGroup(group, retryFailed = false) {
 }
 
 export function preloadChronicleArt({ includeSettlementPieces = false } = {}) {
-  if (minimalGraphics) return Promise.resolve();
   try { PIXI.Assets.setPreferences?.({ preferWorkers: true }); } catch { /* Pixi 7.2 ignores unknown prefs. */ }
   const eager = Object.values(PACKED_GROUPS)
-    .filter(group => group.eager)
+    .filter(group => group.eager && (!minimalGraphics || group === PACKED_GROUPS.resources))
     .map(group => loadPackedGroup(group, true));
   // Warm the settlement atlases after HUD/map art has claimed the first
   // connections, so opening a settlement does not wait on their decode.
   const ready = Promise.all(eager);
+  if (minimalGraphics) return ready;
   const warm = ready.then(() => loadPackedGroup(PACKED_GROUPS.settlementPieces, true));
   if (includeSettlementPieces) return warm;
   void warm.catch(error => console.error('[art] background artwork preparation failed', error));
@@ -223,7 +223,6 @@ export function preloadChronicleArt({ includeSettlementPieces = false } = {}) {
 // Decode and upload shared atlases while the opening forecast runs behind the
 // menu. Loading alone leaves their first GPU upload on the first visible frame.
 export function prepareChronicleArt(renderer) {
-  if (minimalGraphics) return Promise.resolve();
   if (rendererPreparations.has(renderer)) return rendererPreparations.get(renderer);
   const preparation = preloadChronicleArt({ includeSettlementPieces: true }).then(async () => {
     const textures = new Map([...packedTextures.values()].map(texture => [texture.baseTexture, texture]));

@@ -18,7 +18,8 @@ needed. Always return the URL actually printed by the command, not a remembered
 address or a link to another checkout.
 
 Minimal graphics: append `?dev=1` to the preview URL (before any `#` route).
-This skips illustration atlases and terrain baking, retaining the full New Game,
+This loads shared resource/Stock/clock icons but skips illustration atlases and
+terrain baking, retaining the full New Game,
 map, Practices, saves and simulation with polygon terrain and fallback symbols.
 Omit the query for the illustrated game. No separate saves or fixed-start timeline.
 
