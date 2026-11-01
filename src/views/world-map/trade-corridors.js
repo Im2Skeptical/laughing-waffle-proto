@@ -70,6 +70,20 @@ export function getTradeCorridorWidth(intensity, dragging) {
   return dragging ? Math.round(5 + i * 11) : Math.round(3 + i * 5);
 }
 
+// Age of a finished packet relative to the viewed time. Null when the packet
+// has not finished yet at `timeSec` (e.g. after a rewind): never draw it.
+export function getGhostPacketAgeSec(packet, timeSec) {
+  const end = Number(packet?.startedSec) + Number(packet?.durationSec);
+  if (!Number.isFinite(end) || !Number.isFinite(timeSec)) return null;
+  const age = timeSec - end;
+  return age >= 0 ? age : null;
+}
+
+// Ghosts that still belong at or before the viewed time.
+export function pruneGhostPackets(ghosts, timeSec) {
+  return (ghosts ?? []).filter((g) => getGhostPacketAgeSec(g, timeSec) != null);
+}
+
 // Ghost alpha for a packet whose route finished `ageSec` ago; fades out over `fadeSec`.
 export function getGhostPacketAlpha(ageSec, fadeSec, peak = 0.28) {
   if (!Number.isFinite(ageSec) || ageSec < 0 || !(fadeSec > 0) || ageSec >= fadeSec) return 0;

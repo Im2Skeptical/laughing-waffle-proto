@@ -738,6 +738,7 @@ const runner = createSimRunner({
       settlementGraphController?.handleInvalidate?.(reason);
     }
     invalidateSettlementEdgeTransferBatchCache();
+    worldMapView?.clearTradeCorridorHistory?.();
     invalidateSettlementProjectedLossCache();
     syncSettlementGraphHorizon();
     prototypeView?.refresh?.();
@@ -746,6 +747,7 @@ const runner = createSimRunner({
   onRebuildViews: (reason) => {
     if (reason === "vassalDecisionStaged") return;
     invalidateSettlementEdgeTransferBatchCache();
+    worldMapView?.clearTradeCorridorHistory?.();
     invalidateSettlementProjectedLossCache();
     syncSettlementGraphHorizon();
     prototypeView?.refresh?.();

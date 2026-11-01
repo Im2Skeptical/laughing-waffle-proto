@@ -1,6 +1,6 @@
 import { minimalGraphics } from './minimal-graphics.js';
 import { createRegionLabel } from './region-label.js';
-import { createTradeFlowHistory, getGhostPacketAlpha, getPacketTrailSteps, getTradeCorridorWidth } from "./world-map/trade-corridors.js";
+import { createTradeFlowHistory, getGhostPacketAgeSec, pruneGhostPackets, getGhostPacketAlpha, getPacketTrailSteps, getTradeCorridorWidth } from "./world-map/trade-corridors.js";
 import { getMoonCycleDurationSec } from "../model/moon-phases.js";
 import { addMonsterGround, addMonsterMarker, addTerritoryBorder, territoryBoundarySegments } from './world-map/territory-art.js';
 import { createIllustratedTerrain } from './world-map/illustrated-terrain.js';
@@ -431,7 +431,9 @@ export function createWorldMapView({
     if(key===lastEdgeTransferBatchKey)return;
     lastEdgeTransferBatchKey=key;
     // Keep the outgoing packets as fading ghosts so slow scrub reads as flow.
-    if(edgeTransferPacketDescriptors.length)ghostEdgeTransferPackets=edgeTransferPacketDescriptors.slice(0,EDGE_TRANSFER_PACKET_MAX_ACTIVE);
+    // Outgoing packets become ghosts only when moving forward; a rewind drops
+    // them so nothing renders ahead of the viewed time.
+    ghostEdgeTransferPackets=direction<0?[]:pruneGhostPackets(edgeTransferPacketDescriptors.slice(0,EDGE_TRANSFER_PACKET_MAX_ACTIVE),viewedSec);
     edgeTransferPacketDescriptors=[];
     const routes=new Map();
     for(const transfer of batch?.transfers??[]){
@@ -507,16 +509,16 @@ export function createWorldMapView({
     drawTradeCorridors(definition,timeSec,dragging);
     if(dragging){activeEdgeTransferPackets=[];return;}
     const ghostFadeSec=Math.max(4,getMoonCycleDurationSec(getState?.())*2);
+    ghostEdgeTransferPackets=pruneGhostPackets(ghostEdgeTransferPackets,timeSec);
     for(const packet of ghostEdgeTransferPackets){
-      const age=timeSec-(packet.startedSec+packet.durationSec);
-      drawGhostPacket(packet,0.92,getGhostPacketAlpha(Math.max(0,age),ghostFadeSec+packet.durationSec));
+      drawGhostPacket(packet,0.92,getGhostPacketAlpha(getGhostPacketAgeSec(packet,timeSec),ghostFadeSec+packet.durationSec));
     }
     const surviving = [];
     for (const packet of edgeTransferPacketDescriptors) {
       const rawProgress=sampleEventProgress(timeSec,packet.startedSec,packet.durationSec);
       if(rawProgress==null){
-        const age=timeSec-(packet.startedSec+packet.durationSec);
-        if(age>0)drawGhostPacket(packet,0.92,getGhostPacketAlpha(age,ghostFadeSec));
+        const age=getGhostPacketAgeSec(packet,timeSec);
+        if(age!=null)drawGhostPacket(packet,0.92,getGhostPacketAlpha(age,ghostFadeSec));
         continue;
       }
       surviving.push(packet);
@@ -1037,6 +1039,12 @@ export function createWorldMapView({
       await renderer.prepare.upload();
     },
     resetEdgeTransferPackets,
+    // Timeline edit / reprojection: drop corridor trend and ghosts from the old timeline.
+    clearTradeCorridorHistory: () => {
+      tradeFlowHistory.clear();
+      ghostEdgeTransferPackets = [];
+      tradeCorridorGraphics.clear();
+    },
     setVisible: (visible) => {
       if (panelReveal.isClosing()) camera.finish();
       camera.cancel();
