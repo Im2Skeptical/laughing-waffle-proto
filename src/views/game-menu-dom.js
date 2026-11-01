@@ -52,6 +52,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
       importMeta = result.meta; mode = 'import'; render();
     } catch { message.textContent = 'Could not read this save file. Your existing saves are unchanged.'; }
   });
+  let performanceEntryPending = new URLSearchParams(location.search).get("perf") === "1";
   let mode = "home";
   let overwriteSlot = null;
   let entering = false;
@@ -75,7 +76,8 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
   function show() {
     document.body.classList.add("game-menu-open");
     panel.hidden = false;
-    mode = "home";
+    mode = performanceEntryPending ? "new" : "home";
+    performanceEntryPending = false;
     overwriteSlot = null;
     importVersion++; session.cancelImport(); importMeta = null;
     render();
@@ -263,6 +265,11 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
       dev.dataset.testid = 'game-developer-tools'; dev.open = devExpanded;
       const summary = document.createElement('summary'); summary.textContent = 'Developer tools';
       dev.append(summary);
+      const performanceButton = button('New game in performance mode', () => {
+        const url = new URL(location.href); url.searchParams.set('dev','1'); url.searchParams.set('perf','1');
+        url.hash = ''; location.assign(url.href);
+      }, 'game-new-performance');
+      performanceButton.disabled = !canReplace; dev.append(performanceButton);
       if (newGameSettings) {
         const settings = document.createElement('div'); settings.className = 'game-dev-settings';
         const label = document.createElement('label'); label.className = 'game-edited-cards-toggle';
@@ -322,6 +329,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
     const note = document.createElement("p");
     note.className = "game-menu-note";
     note.textContent = "Three saves on this browser. Progress saves automatically during play. Gameplay uses landscape on phones.";
+    if (new URLSearchParams(location.search).get("perf") === "1") note.textContent = "Performance start uses a fixed regular-game seed and prepared timeline. Custom dev settings and edited cards apply through ordinary New Game outside this mode.";
     footer.append(message, note);
     layout.append(intro, content, footer);
     panel.append(layout);

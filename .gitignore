@@ -17,3 +17,6 @@ traces/
 *.trace.zip
 *.log
 *.bak
+
+# Regenerated from current simulation before local preview and Pages build.
+images/dev-fixtures/

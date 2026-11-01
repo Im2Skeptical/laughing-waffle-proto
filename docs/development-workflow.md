@@ -21,7 +21,13 @@ Minimal graphics: append `?dev=1` to the preview URL (before any `#` route).
 This loads shared resource/Stock/clock icons but skips illustration atlases and
 terrain baking, retaining the full New Game,
 map, Practices, saves and simulation with polygon terrain and fallback symbols.
-Omit the query for the illustrated game. No separate saves or fixed-start timeline.
+Omit the query for the illustrated game. Developer tools ? New game in performance
+mode opens `?dev=1&perf=1`, then uses the usual save-slot selection. This fixed
+regular-game seed (123) loads a prepared forecast, summaries and scrub anchors.
+`npm start` and `npm run build` regenerate it when simulation sources or its recipe
+change; UI-only edits reuse it. Custom profiles and edited cards use ordinary New
+Game outside performance-start mode. The bake uses every official simulation tick;
+saves, later actions and replay use the normal engine.
 
 ## Versions
 

@@ -1,3 +1,4 @@
+import { performanceFixtureKey } from './performance-fixture.mjs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { createReadStream } from 'node:fs';
@@ -46,7 +47,7 @@ export async function getBuildInfo(channel, previewLabel = null) {
   const dirty = Boolean(execFileSync('git', ['status', '--porcelain', '--untracked-files=all', '--', ...inputs],
     { cwd: root, encoding: 'utf8', windowsHide: true }).trim());
   const preview = branch !== 'main' || dirty;
-  return { version, build: fingerprint.digest('hex').slice(0, 12), revision, channel,
+  return { performanceFixtureKey: await performanceFixtureKey(), version, build: fingerprint.digest('hex').slice(0, 12), revision, channel,
     branch, dirty, preview, previewLabel: preview ? previewLabel : null };
 }
 

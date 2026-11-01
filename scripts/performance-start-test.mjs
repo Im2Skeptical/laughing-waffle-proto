@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+import {mkdtemp,mkdir,writeFile,rm,readFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import {gzipSync,gunzipSync} from 'node:zlib';
+import {performanceFixtureKey,ensurePerformanceFixture,fixturePath} from './performance-fixture.mjs';
+import {loadPerformanceStart} from '../src/controllers/performance-start.js';
+import {serializeGameState} from '../src/model/state.js';
+import {createNewGameState} from '../src/model/new-game.js';
+import {buildProjectionChunkFromStateData} from '../src/model/projection-chunk.js';
+import {createNewGameOpeningController} from '../src/controllers/new-game-opening-controller.js';
+const temp=await mkdtemp(path.join(tmpdir(),'perf-key-'));
+try{
+ for(const folder of ['src/model','src/defs','src/views/ui-root','scripts'])await mkdir(path.join(temp,folder),{recursive:true});
+ for(const file of ['scripts/performance-fixture.mjs','scripts/performance-fixture-recipe.mjs','package-lock.json','src/views/ui-root/settlement-timegraph-window.js','src/model/example.js','src/defs/example.js'])await writeFile(path.join(temp,file),'original');
+ const first=await performanceFixtureKey(temp);
+ await writeFile(path.join(temp,'src/views/ui.js'),'UI edit');assert.equal(await performanceFixtureKey(temp),first);
+ await writeFile(path.join(temp,'src/model/example.js'),'rule edit');assert.notEqual(await performanceFixtureKey(temp),first);
+}finally{await rm(temp,{recursive:true,force:true});}
+await ensurePerformanceFixture();
+const compressed=await readFile(fixturePath),payload=JSON.parse(gunzipSync(compressed));
+globalThis.document={baseURI:'http://fixture/',getElementById:()=>({textContent:JSON.stringify({performanceFixtureKey:payload.key})})};
+const fetcher=async()=>new Response(compressed);
+const prepared=await loadPerformanceStart({fetcher});
+assert.deepEqual(serializeGameState(prepared.state),serializeGameState(createNewGameState(123)));
+const fresh=buildProjectionChunkFromStateData(serializeGameState(prepared.state),0,prepared.lossSec);
+assert.deepEqual(prepared.forecast.summaryBySecond,[...fresh.summaryBySecond]);
+assert.deepEqual(prepared.forecast.stateDataBySecond,[...fresh.stateDataBySecond]);
+assert.deepEqual(prepared.forecast.lastStateData,fresh.lastStateData);
+prepared.state.tSec=99;
+assert.equal((await loadPerformanceStart({fetcher})).state.tSec,0,'each entry owns an independent mutable state');
+const stale=gzipSync(JSON.stringify({...payload,key:'obsolete'}));
+await assert.rejects(loadPerformanceStart({fetcher:async()=>new Response(stale)}),/stale/);
+let workerCreated=false;
+const opening=createNewGameOpeningController({loadPrepared:()=>loadPerformanceStart({fetcher}),createWorkerService(){workerCreated=true;throw Error('must not simulate');}});
+assert.equal((await opening.prepare()).ok,true);assert.equal(workerCreated,false);opening.cancel();
+console.log('[performance-start] exact forecast/anchors, independent state, UI reuse, gameplay invalidation, stale rejection and no worker simulation OK');

@@ -1,3 +1,4 @@
+import { ensurePerformanceFixture } from './performance-fixture.mjs';
 import { createHash } from "node:crypto";
 import {
   access,
@@ -36,6 +37,7 @@ async function assertUnpublished(filePath) {
 }
 
 async function buildPagesArtifact() {
+  await ensurePerformanceFixture();
   const buildInfo = await getBuildInfo('pages');
   await rm(outDir, { recursive: true, force: true });
   await mkdir(assetsDir, { recursive: true });

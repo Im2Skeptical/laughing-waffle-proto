@@ -1,3 +1,4 @@
+import { loadPerformanceStart } from '../controllers/performance-start.js';
 import { getSettlementVassalFocusWindows } from "./ui-root/settlement-timegraph-window.js";
 import { createVassalCommissionPicker } from './vassal-commission-picker-pixi.js';
 import { createLifeDecisionController } from "../controllers/life-decision-controller.js";
@@ -231,6 +232,7 @@ let runCompleteView = null;
 const cardReviews=createCardReviewController();
 const newGameSettings = createNewGameSettingsController({ cardReviews });
 const opening = createNewGameOpeningController({
+  loadPrepared: new URLSearchParams(location.search).get("perf") === "1" ? loadPerformanceStart : null,
   createState:()=>newGameSettings.createNewGame(),
   getPreparationKey:()=>newGameSettings.getLaunchKey(),
   createCache: () => createSettlementProjectionCache({ horizonSec: SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC }),
