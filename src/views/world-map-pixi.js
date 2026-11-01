@@ -1,3 +1,4 @@
+import { minimalGraphics } from './minimal-graphics.js';
 import { createRegionLabel } from './region-label.js';
 import { addMonsterGround, addMonsterMarker, addTerritoryBorder, territoryBoundarySegments } from './world-map/territory-art.js';
 import { createIllustratedTerrain } from './world-map/illustrated-terrain.js';
@@ -783,6 +784,10 @@ export function createWorldMapView({
       adornments.scale.set(.75);
       adornments.eventMode = 'none';
       regionContent.addChild(adornments);
+      if (minimalGraphics && indicator.hasDetailedSettlement && !indicator.monster) {
+        const marker = new PIXI.Graphics().lineStyle(2,0x131c20).beginFill(indicator.neutral?0x8ed7cf:0xe3c785).drawRect(point.x-9,point.y-16,18,18).endFill();
+        marker.eventMode='none';regionContent.addChild(marker);
+      }
       if (indicator.hasDetailedSettlement && !indicator.monster) {
         addSettlementStockTags(regionContent, point, indicator.stockTags, {
           tooltipView, reference: getRegionReference(state, indicator.regionId) ?? indicator.regionId,

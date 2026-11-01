@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+globalThis.location={search:'?dev=1'};
+globalThis.PIXI={Container:class{destroy(){this.destroyed=true;}},Assets:{load(){throw Error('minimal mode requested art');}}};
+const art=await import('../src/views/chronicle-art.js');
+await art.preloadChronicleArt({includeSettlementPieces:true});
+await art.prepareChronicleArt({});
+assert.equal(art.getResourceTexture('food'),null);
+assert.equal(art.getChronicleTexture('piece-frames-v1/practice.png'),null);
+const {createIllustratedTerrain}=await import('../src/views/world-map/illustrated-terrain.js');
+const terrain=createIllustratedTerrain({addChild(){}},{});
+assert.equal(terrain.supports({world:{definitionId:'regional-v1:123'}}),false);
+assert.equal(terrain.prefetch({}),false);
+await terrain.prepare({},{});terrain.update(10,1);
+assert.equal(terrain.stats.bakes,0);terrain.destroy();
+assert.equal(terrain.container.destroyed,true);
+console.log('[minimal-graphics] OK: no atlas loads, upload or terrain bake');

@@ -1,3 +1,4 @@
+import { minimalGraphics } from './minimal-graphics.js';
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../defs/gamepieces/detailed-settlement-defs.js';
 // Presentation assets only. Atlas choices never read or advance simulation RNG.
 const SPRITE_SHEET_ROOT = 'images/sprite-sheets/';
@@ -128,6 +129,7 @@ function packedKeyFor(file, group) {
 }
 
 function loadTexture(file) {
+  if (minimalGraphics) return null;
   const group = packedGroupFor(file);
   if (group) {
     const key = packedKeyFor(file, group);
@@ -177,6 +179,7 @@ async function loadPackedSheet(name) {
 }
 
 async function loadPackedGroup(group, retryFailed = false) {
+  if (minimalGraphics) return;
   if (retryFailed && failedGroups.delete(group)) packedLoads.delete(group);
   if (packedLoads.has(group)) return packedLoads.get(group);
   // Multipack sheets link to each other. Loading them concurrently can leave
@@ -203,6 +206,7 @@ async function loadPackedGroup(group, retryFailed = false) {
 }
 
 export function preloadChronicleArt({ includeSettlementPieces = false } = {}) {
+  if (minimalGraphics) return Promise.resolve();
   try { PIXI.Assets.setPreferences?.({ preferWorkers: true }); } catch { /* Pixi 7.2 ignores unknown prefs. */ }
   const eager = Object.values(PACKED_GROUPS)
     .filter(group => group.eager)
@@ -219,6 +223,7 @@ export function preloadChronicleArt({ includeSettlementPieces = false } = {}) {
 // Decode and upload shared atlases while the opening forecast runs behind the
 // menu. Loading alone leaves their first GPU upload on the first visible frame.
 export function prepareChronicleArt(renderer) {
+  if (minimalGraphics) return Promise.resolve();
   if (rendererPreparations.has(renderer)) return rendererPreparations.get(renderer);
   const preparation = preloadChronicleArt({ includeSettlementPieces: true }).then(async () => {
     const textures = new Map([...packedTextures.values()].map(texture => [texture.baseTexture, texture]));
@@ -338,6 +343,11 @@ export function addGateBackdrop(parent, rect, alpha = 0.18) {
 
 // Polygon data owns the geography. This layer works with any generated topology.
 export function addRegionTerrain(parent, points, colour, alpha = 1) {
+  if (minimalGraphics) {
+    const palette = {green:0x345944, red:0x704940, blue:0x3c536d, black:0x4e4b57};
+    const ground = new PIXI.Graphics().beginFill(palette[colour] ?? 0x4e5947, alpha).drawPolygon(points).endFill();
+    ground.eventMode = 'none'; parent.addChild(ground); return;
+  }
   const terrain = {green:'green', red:'red', blue:'blue', black:'black'}[colour] ?? 'green';
   const texture = loadTexture(`chronicle-illustrations-v1/terrain-${terrain}.png`);
   if (!texture) return;

@@ -1,3 +1,4 @@
+import { minimalGraphics } from '../minimal-graphics.js';
 import { prepareRegionalTiles, prepareRegionalTilesSteps } from './regional-tiles.js';
 import { naturalRegionalMap, regionalPresentationSpec, createRegionalPresentation } from './regional-presentation.js';
 import { getRegionalMap } from '../../model/regional-map/definition.js';
@@ -30,6 +31,11 @@ function surroundingsSampler(map) {
 
 export function createIllustratedTerrain(parent,rect,{getView}={}) {
   const container=new PIXI.Container();container.eventMode='none';parent.addChild(container);
+  // Reuse the playable polygon map; skip all terrain assets, baking and animation.
+  if (minimalGraphics) return {container, stats:{ready:true,bakes:0,frames:0},
+    supports:()=>false, worldBounds:()=>null, prefetch:()=>false,
+    cancelPrefetch(){}, async prepare(){}, update(){},
+    destroy(){container.destroy({children:true});}};
   let id=null,terrain=null,renderer=null,landmarks=null,lastPaint=-Infinity,lastTime=null;
   let staticLevels=[],meshes=[],generation=0,pending=null,presentation=null,active=null,presentationRoot=null;
   const cache=new Map();

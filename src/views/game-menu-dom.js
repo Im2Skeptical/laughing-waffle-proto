@@ -1,3 +1,4 @@
+import { minimalGraphics } from './minimal-graphics.js';
 import { PHONE_PORTRAIT_QUERY, getGameFullscreenElement, requestGameDisplayMode, usesTouchGameDisplay } from './game-display-mode.js';
 import { createSaveRecoveryDom, downloadSaveText } from './save-recovery-dom.js';
 import { buildSaveDiagnosticReport, createSaveDiagnosticsDom } from './save-diagnostics-dom.js';
@@ -10,7 +11,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
   const portrait = window.matchMedia(PHONE_PORTRAIT_QUERY);
   const panel = document.createElement("main");
   panel.id = "game-menu";
-  panel.style.setProperty('--chronicle-backdrop', `url("${new URL('images/sprite-sheets/chronicle-gate.png',document.baseURI).href}")`);
+  if (!minimalGraphics) panel.style.setProperty('--chronicle-backdrop', `url("${new URL('images/sprite-sheets/chronicle-gate.png',document.baseURI).href}")`);
   panel.dataset.testid = "game-menu";
   const message = document.createElement("p");
   message.setAttribute("role", "status");
