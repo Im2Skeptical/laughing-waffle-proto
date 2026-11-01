@@ -1,3 +1,4 @@
+import { compactRegionName } from './region-label.js';
 import { addPrestigeBankFeedback } from "./prestige-feedback-pixi.js";
 import { getRetinue } from "../model/detailed-settlements/external-world.js";
 import { VASSAL_LIFE_TUNING } from "../defs/gamepieces/vassal-life-map-defs.js";
@@ -37,7 +38,7 @@ const CREST = Object.freeze({
   pendant: Object.freeze({ x: 836, y: 111, unit: 1.15, minWidth: 104, maxWidth: 200 }),
   stats: Object.freeze({ x: 1000, y: 68, width: 68, height: 63, gap: 6, unit: 1.1, studY: 7, bodyY: 41 }),
   heirlooms: Object.freeze({ x: 1306, cy: 100, size: 54, step: 62 }),
-  tabs: Object.freeze({ right: 1690, y: 113, minWidth: 76, maxWidth: 190, height: 73, gap: 8, unit: .9 }),
+  tabs: Object.freeze({ right: 1690, y: 113, minWidth: 76, height: 73, gap: 8, unit: .9 }),
   bottom: 188,
 });
 const BASE_VALUE_FONT = 24, MIN_CSS_VALUE = 11, MAX_SCALE = 1.3;
@@ -139,6 +140,7 @@ export function createVassalLifeHudView({
   let tween = null;
   let bagControl = null;
   let activeSlots = [];
+  let banners = [];
   let litPlaque = null;
 
   function hideStatTooltip() {
@@ -223,6 +225,7 @@ export function createVassalLifeHudView({
     buildCount++;
     bagControl = null;
     activeSlots = [];
+    banners = [];
     clearChildren(root);
     if (!vassal || !shown) return;
 
@@ -409,7 +412,7 @@ export function createVassalLifeHudView({
       return bag;
     });
 
-    // ---- hanging tabs: commission (or Retinue) and location; widen, shrink, then ellipsize ----
+    // ---- hanging tabs: measure compact names and grow horizontally; never truncate ----
     const location = String(getRegionReference(presentation.state, vassal.locationRegionId) ?? vassal.locationRegionId ?? "");
     const tabs = [];
     if (vassal.classId === 'warrior') {
@@ -418,22 +421,32 @@ export function createVassalLifeHudView({
     } else if (vassal.commission) {
       const c = vassal.commission;
       const progress = c.amount ? ` ${c.progress}/${c.amount}` : '';
-      tabs.push({ value: `${c.label}${progress}`, tip: { title: 'Commission', scale: 2, lines: [`${c.label}${progress}`, `+${c.prestige} Prestige on completion`] } });
+      const label = c.locationLabel ? c.label.replace(c.locationLabel, compactRegionName(c.locationLabel)) : c.label;
+      tabs.push({ value: `${label}${progress}`, tip: { title: 'Commission', scale: 2, lines: [`${c.label}${progress}`, `+${c.prestige} Prestige on completion`] } });
     }
-    tabs.push({ value: location, tip: { title: 'Location', scale: 2, lines: [location, 'The Vassal\'s current region.'] } });
+    tabs.push({ value: compactRegionName(location), kind: 'location', tip: { title: 'Location', scale: 2, lines: [location, 'The Vassal\'s current region.'] } });
     const tb = CREST.tabs;
-    let right = tb.right;
-    for (const entry of [...tabs].reverse()) {
+    const measured = [...tabs].reverse().map(entry => {
       const text = createText(entry.value, { ...TEXT_STYLES.header, fontSize: 20, fill: PALETTE.text, stroke: 0x1a0b0b, strokeThickness: 3 }, 0, 0, .5, 0);
-      const width = Math.max(tb.minWidth, Math.min(tb.maxWidth, text.width + 34));
+      return { entry, text, width: Math.max(tb.minWidth, text.width + 34) };
+    });
+    // Reserve the actual Prestige pendant width. Normal labels keep their font
+    // size; unusually long combined labels share the remaining horizontal room.
+    const available = tb.right - (pd.x + pendantW + tb.gap * 2) - tb.gap * (measured.length - 1);
+    const tabRatio = Math.min(1, available / measured.reduce((sum, item) => sum + item.width, 0));
+    let right = tb.right;
+    for (const { entry, text, width: naturalWidth } of measured) {
+      const width = naturalWidth * tabRatio;
       const x = right - width; right = x - tb.gap;
       const tab = new PIXI.Container(); tab.position.set(x, tb.y); crest.addChild(tab);
       if (painted) addSliced(tab, tex('tab'), 0, 0, width, tb.unit, SLICES.tab);
       else { const g = new PIXI.Graphics(); roundedRect(g, 8, 14, width - 16, tb.height - 20, 4, 0x4a1e1e, PALETTE.accent, 1.5); tab.addChild(g); }
+      text.scale.set(Math.min(1, (width - 30) / Math.max(1, text.width)));
       text.position.set(width / 2, 22); tab.addChild(text);
-      const cut = fitText(text, width - 30, 15);
       tab.hitArea = new PIXI.Rectangle(0, 0, width, tb.height);
-      tipOn(tab, () => ({ ...entry.tip, lines: cut ? entry.tip.lines : entry.tip.lines.slice(1) }));
+      tipOn(tab, () => entry.tip);
+      banners.push({ kind: entry.kind ?? 'task', text: text.text, fullText: entry.tip.lines[0],
+        width, textWidth: text.width, x, pendantRight: pd.x + pendantW, right: x + width });
     }
   }
 
@@ -459,7 +472,7 @@ export function createVassalLifeHudView({
       const p=getPresentation?.()??{},v=p.profileVassal??p.vassal;
       return {visible:root.visible===true,prestigeDelta:getDeltas?.()?.prestige??0,
         stats:root.children.flatMap(child => child.children ?? []).filter(child => child.statPresentation).map(child => child.statPresentation),
-        retinue:getRetinue(p.state,v),bagRect:bagControl?.getBounds?.(),
+        banners,retinue:getRetinue(p.state,v),bagRect:bagControl?.getBounds?.(),
         activeSlotRects:activeSlots.map(slot=>slot.getBounds()),
         equipped:(v?.heirlooms?.equipped??[]).map(item=>item?.definitionId??null)};
     },

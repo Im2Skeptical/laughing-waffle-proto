@@ -1,3 +1,4 @@
+import { getRegionReference } from '../../model/world-state.js';
 import { getDetailedSettlementViewModel } from '../../model/detailed-settlements.js';
 import { getCurrentLifeMapVassal, getVassalCandidatePool } from '../../model/vassal-life-map.js';
 import { classActionOptions } from '../../model/vassal-life-map/class-actions.js';
@@ -16,7 +17,7 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
   const observation = getLabObservation(state,regionId), vassal = getCurrentLifeMapVassal(state);
   const edit = (kind,payload) => run(()=>controller.edit(kind,payload));
   const auto = (controls, action) => controls.forEach(control=>control.addEventListener('change',action));
-  const location = select('Settlement',state.world.sites.map(s=>[s.regionId,`${s.regionId} · ${s.name} · ${s.simulationMode}${s.neutral?' · neutral':''}`]),regionId);
+  const location = select('Settlement',state.world.sites.map(s=>[s.regionId,`${getRegionReference(state,s.regionId)} · ${s.simulationMode}${s.neutral?' · neutral':''}`]),regionId);
   location.addEventListener('change',()=>run(()=>controller.selectRegion(location.value)));
   parent.append(field('Inspect settlement',location));
   if (!vm) parent.append(el('p',`This region has no active tableau. Last defense: ${observation.lastDefense?.result ?? 'none'}. Select a settlement to edit its pieces.`));
@@ -129,7 +130,7 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
   }
   if(gym) {
     const panel=disclosure('External actors & Chaos',[],{key:'gym:external',open:!isNarrow(),className:'lab-panel'});
-    const regions=state.world.regions.map(r=>[r.id,`${r.id} · ${r.controller}${r.monster?' · Monster':''}`]);
+    const regions=state.world.regions.map(r=>[r.id,`${getRegionReference(state,r.id)} · ${r.controller}${r.monster?' · Monster':''}`]);
     const target=select('Target region',regions,regions.find(([id])=>id!==regionId)?.[0]), defense=input('Monster defense',3), progress=input('Monster Pressure',state.civilization.chaos.monsterPressure), chaos=input('Chaos power',observation.chaos);
     const row=el('div','','lab-controls');row.append(field('Region',target),field('Defense',defense),field('Expansion progress',progress),button('Spawn / set Monster',()=>edit('monster',{regionId:target.value,defense:defense.value})),button('Remove Monster',()=>edit('monster',{regionId:target.value,remove:true})));
     auto([progress],()=>edit('monsterProgress',{amount:progress.value}));
@@ -146,6 +147,6 @@ export function renderWorkbench(parent,{controller,cards,run,gym}) {
     {key:'gym:world',open:false,className:'lab-panel',count:state.world.regions.length}));
   if(detail?.kind==='projection') parent.append(section(detail.equal?'Exact projection match':'Projection mismatch',el('p',`Both paths ended at t=${detail.endSec}. All serialized fields compared, including RNG, cohorts and spatial outcomes.`),table(['Field','Authoritative','Projection'],detail.differences.map(d=>[d.path,d.authoritative,d.projection])),details('Compared summaries',{authoritative:{tSec:detail.authoritative.tSec,rng:detail.authoritative.rng,history:detail.authoritative.civilization.history},projection:{tSec:detail.projection.tSec,rng:detail.projection.rng,history:detail.projection.civilization.history}})));
   if(detail?.kind==='shop') parent.append(section('Seeded shop preview',el('p',`Discovery access: ${!!detail.node.discoveryAccess}`),table(['Offer','Quality','Prestige / phases'],detail.node.offers.map(o=>[o.label,o.intervention?.resultingTier??o.intervention?.tier,`${o.basePrestigeCost} / ${o.basePhaseCost}`])),details('Actual generated offers',detail.node.offers)));
-  if(detail?.kind==='institutions') parent.append(section('Institutions: same RNG comparison',el('p','Only Structures differ between these two candidate-generation previews. Neither preview changes the fixture or its RNG.'),table(['Class','Settlement','Ingenuity without → with','Prowess without → with'],detail.rows.map(r=>[r.classId,r.regionId,`${r.baseIngenuity} → ${r.ingenuity}`,`${r.baseProwess} → ${r.prowess}`]))));
+  if(detail?.kind==='institutions') parent.append(section('Institutions: same RNG comparison',el('p','Only Structures differ between these two candidate-generation previews. Neither preview changes the fixture or its RNG.'),table(['Class','Settlement','Ingenuity without → with','Prowess without → with'],detail.rows.map(r=>[r.classId,getRegionReference(state,r.regionId),`${r.baseIngenuity} → ${r.ingenuity}`,`${r.baseProwess} → ${r.prowess}`]))));
   if(detail) parent.lastElementChild.dataset.labResult = 'true';
 }

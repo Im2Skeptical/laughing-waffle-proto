@@ -1,3 +1,4 @@
+import { createRegionLabel } from './region-label.js';
 import { addMonsterGround, addMonsterMarker, addTerritoryBorder, territoryBoundarySegments } from './world-map/territory-art.js';
 import { createIllustratedTerrain } from './world-map/illustrated-terrain.js';
 import { getMapRelationships, getMapRelationship, getRelationshipStyle, drawRelationshipLine, drawRelationshipPath } from './world-map/relationships.js';
@@ -810,11 +811,11 @@ export function createWorldMapView({
     for (const regionDef of definition.regions) {
       const point = getRegionReferenceCorner(definition, regionDef, screenPoint, polygon)
         ?? sitePoint(regionDef);
-      const label = createText(getRegionReference(state, regionDef.id) ?? "R??", {
+      const label = createRegionLabel(getRegionReference(state, regionDef.id) ?? "Unknown region", {
         ...TEXT_STYLES.chip,
         fontSize: 21,
         fill: PALETTE.text, stroke: 0x111713, strokeThickness: 4,
-      }, point.x, point.y, 0, 0);
+      }, point.x, point.y, 180, 52);
       mapContent.addChild(presentRegion(label, regionDef.id));
     }
     });

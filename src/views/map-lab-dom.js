@@ -7,8 +7,7 @@ import { createDebugWorldMapDom } from "./debug-world-map-dom.js";
 import { occupiedCells } from "../model/structure-layout.js";
 
 function getMapLabRegionReference(definition, regionId) {
-  const index = (definition?.regions ?? []).findIndex((entry) => entry.id === regionId);
-  return index >= 0 ? `R${String(index + 1).padStart(2, "0")}` : regionId;
+  return definition?.regions?.find(region => region.id === regionId)?.name ?? 'Unknown region';
 }
 
 function element(tag, className = "", text = null) {
@@ -166,7 +165,7 @@ export function createMapLabDom({ controller, readOnly = () => false } = {}) {
     const regionName = definition.regions.find((entry) => entry.id === region.id)?.name ?? region.id;
     const used = occupiedCells(region.detailedState?.structureSlots ?? []).filter(Boolean).length;
     const head = element("div", "lab-editor-head");
-    head.append(...[element("h3", "", regionName), badge(getMapLabRegionReference(definition, region.id)),
+    head.append(...[element("h3", "", regionName),
       badge(region.controller, region.controller === "player" ? "accent" : ""),
       region.detailedSettlementEnabled && badge("Detailed", "ok")].filter(Boolean));
     layout.append(head);

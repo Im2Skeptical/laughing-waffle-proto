@@ -1,3 +1,5 @@
+import { getWorldDefinition, getRegionReference } from '../src/model/world-state.js';
+import { compactRegionName } from '../src/views/region-label.js';
 // Browser fixture shared by the focused probe and collaborative preview.
 import { createNewGameState } from '../src/model/new-game.js';
 import { getVassalCandidatePool, selectLifeMapVassal, getCurrentLifeMapVassal } from '../src/model/vassal-life-map.js';
@@ -23,7 +25,7 @@ export async function checkVassalStatViews() {
   const level = createVassalLevelUpModalView({ app, layer: app.stage, getPresentation: presentation,
     isLifegraphVisible: () => true, isRecapOpen: () => false, tooltipView });
   const hudLayer = new PIXI.Container(); app.stage.addChild(hudLayer);
-  const hud = createVassalLifeHudView({ layer: hudLayer, getPresentation: presentation,
+  const hud = createVassalLifeHudView({ app, layer: hudLayer, getPresentation: presentation,
     isVisible: () => true, tooltipView, getLevelUp: level.getHudState, getDeltas: level.getHudDeltas });
   const checks = [];
   const expect = (actual, expected, description) => {
@@ -59,6 +61,34 @@ export async function checkVassalStatViews() {
     expect(JSON.stringify(serializeGameState(state)), before, 'rendering leaves simulation state and RNG untouched');
     checks.push(`${classId ?? founderClassId ?? 'unclassed'}: labels, icons, heading, tooltip, cache refresh, unchanged state/RNG`);
   }
+  let expanded = false;
+  for (const region of getWorldDefinition(state).regions) {
+    Object.assign(vassal, {locationRegionId:region.id, classId:'scholar',
+      commission:{label:'Install a Practice: Construction',progress:998,amount:999,prestige:60}});
+    const before = JSON.stringify(serializeGameState(state));
+    hud.refresh();
+    const banners = hud.getSemanticSnapshot().banners;
+    const location = banners.find(banner => banner.kind === 'location');
+    expect(location.text, compactRegionName(getRegionReference(state,region.id)), 'banner abbreviates direction without truncation');
+    expect(location.fullText, getRegionReference(state,region.id), 'tooltip retains complete location');
+    for (const banner of banners) {
+      expect(banner.textWidth <= banner.width - 30 + .01, true, 'banner contains complete measured text');
+      expect(banner.x >= banner.pendantRight + 16 - .01, true, 'banners clear Prestige pendant');
+      expect(banner.right <= 1690 + .01, true, 'banners stay within crest edge');
+      if (banner.width > 190) expanded = true;
+    }
+    const sorted = [...banners].sort((a,b)=>a.x-b.x);
+    expect(sorted[0].right + 8 <= sorted[1].x + .01, true, 'banners do not overlap');
+    expect(JSON.stringify(serializeGameState(state)), before, 'banner sizing leaves state and RNG unchanged');
+  }
+  const destination = getRegionReference(state,vassal.locationRegionId);
+  vassal.commission = {label:`Move to ${destination}`,locationLabel:destination,prestige:40};
+  const beforeTravelBanner = JSON.stringify(serializeGameState(state));
+  hud.refresh();
+  expect(hud.getSemanticSnapshot().banners.find(banner=>banner.kind==='task').text, `Move to ${compactRegionName(destination)}`, 'travel commission also abbreviates its destination');
+  expect(JSON.stringify(serializeGameState(state)),beforeTravelBanner,'commission display leaves saved labels unchanged');
+  expect(expanded,true,'long banners expand past the old width cap');
+  checks.push('all regional names: compact compass, growing banners, complete text, clear pendant, unchanged state/RNG');
   level.resize(); hud.refresh();
   app.ticker.add(() => { level.update(); hud.update(); });
   return { checks, hud: hud.getSemanticSnapshot().stats, level: level.getSemanticSnapshot().stats };

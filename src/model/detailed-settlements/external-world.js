@@ -1,5 +1,7 @@
 import { militarySummary, changeController, availableMilitaryWarriors } from './territory.js';
 import { prestigeAccount } from '../vassal-life-map/treasury.js';
+import { getRegionalMap, regionalMapSeed } from '../regional-map/definition.js';
+import { generateRegionNames } from '../regional-map/names.js';
 import { getCurrentLifeMapVassal, getVassalEffectiveStats, getVassalStatDefinition } from '../vassal-life-map/selectors.js';
 import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
 import { emptySpecialists } from "./cohorts.js";
@@ -8,7 +10,7 @@ import { getDetailedPracticeDef, getGameSetting } from '../game-config.js';
 import { getChaosResistance } from './phases/chaos.js';
 import { createInitialDetailedSettlementData } from '../../defs/world/detailed-settlement-scenario.js';
 import { DETAILED_PRACTICE_SLOT_COUNT } from '../../defs/gamepieces/detailed-settlement-defs.js';
-import { addWorldConnection, canonicalizeWorldState, getWorldConnectionCandidates, getWorldDefinition, getRegionState, getConnectedRegionIds } from '../world-state.js';
+import { addWorldConnection, canonicalizeWorldState, getWorldConnectionCandidates, getWorldDefinition, getRegionState, getRegionReference, getConnectedRegionIds } from '../world-state.js';
 import { stockTotal, stockTraits, consumeStock, specialistCount, structureModifiers, planStock, applyStockPlan, CIV_CONTENT_TUNING, stockProviderSlot } from './stock.js';
 import { emitPracticeEvent, withPracticeRoot } from './practice-events.js';
 import { selectPopulationComposition, compositionTotal } from './helpers.js';
@@ -131,8 +133,12 @@ export function createNeutralSettlement(state, id, index) {
   settlement.practiceSlots = Array(DETAILED_PRACTICE_SLOT_COUNT).fill(null);
   settlement.structureSlots = Array(region.structureCapacity).fill(null);
   const stocks = NEUTRAL_MARKETS[index].map(entry => ({ ...entry, traits: [...entry.traits], stock: Math.floor(entry.capacity / 2) }));
+  const definition = getWorldDefinition(state);
+  const seed = regionalMapSeed(definition.id);
+  const generated = seed !== null && definition.id.startsWith('regional-v2:')
+    ? generateRegionNames(seed, getRegionalMap(definition.id).map.regions, { settlement: true })[definition.regions.findIndex(r => r.id === id)] : null;
   region.controller='external-a'; region.detailedSettlementEnabled=true;
-  state.world.sites.push({id:`${id}-settlement`,regionId:id,simulationMode:'detailed',name:template.name,neutral:{template:template.name,defense:template.defense,housing:template.population,stocks,currencyStock:0},detailedState:settlement});
+  state.world.sites.push({id:`${id}-settlement`,regionId:id,simulationMode:'detailed',name:generated ?? template.name,neutral:{template:template.name,defense:template.defense,housing:template.population,stocks,currencyStock:0},detailedState:settlement});
   return {ok:true,site:siteAt(state,id)};
 }
 
@@ -313,7 +319,7 @@ function resolveMonsterPressure(state) {
     const from=active.locationRegionId;
     active.locationRegionId=survivors[0].regionId;
     active.lifeEvents.push({eventId:`${active.vassalId}:evacuation:${state.tSec}`,kind:'evacuation',tSec:state.tSec,
-      text:`Evacuated ${from} after territorial loss.`,fromRegionId:from,toRegionId:active.locationRegionId});
+      text:`Evacuated ${getRegionReference(state,from)} after territorial loss.`,fromRegionId:from,toRegionId:active.locationRegionId});
   }
   chaos.monsterCount=regions.filter(r=>r.monster).length;
   if(!playerSites(state).length) { state.runStatus={complete:true,reason:'monsterOverrun',year:state.year,tSec:state.tSec};state.paused=true; }

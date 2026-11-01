@@ -1,3 +1,4 @@
+import { createRegionLabel } from './region-label.js';
 import { addPracticeMultiplierPair } from './multiplier-fitting.js';
 import { addSettlementPiece, addConstructionStrip, PIECE_SIZE } from './settlement-piece-pixi.js';
 import { addIllustration, getArtRevision } from './chronicle-art.js';
@@ -137,8 +138,8 @@ export function createSettlementPrototypeView({
     bg.beginFill(PALETTE.background).drawRect(36, 78, 2352, 748).endFill();
     root.addChild(bg);
     const regionDef = getRegionDefinition(state, regionId);
-    root.addChild(createText(`${vm.name} · ${regionDef?.name ?? regionId}`,
-      { ...TEXT_STYLES.header, fontSize: 28 }, 48, 35, 0, 0.5));
+    root.addChild(createRegionLabel(regionDef?.name ?? vm.name,
+      { ...TEXT_STYLES.header, fontSize: 28 }, 48, 35, 670, 40, 0, 0.5));
     endDetailsTarget = addCivilizationSurvivalStrip(root, {
       state,
       civilizationLossInfo,

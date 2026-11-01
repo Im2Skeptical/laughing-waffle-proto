@@ -1,3 +1,4 @@
+import { generateRegionNames } from './names.js';
 import { generateMap, decorationRandom } from './generator.js';
 
 const cache=new Map();
@@ -8,8 +9,9 @@ const cache=new Map();
 // revision 1 and fails when its output moves.
 const GENERATORS={
   1:seed=>generateMap({seed,clustering:.5,sizeVariation:.85,roughness:1,featureSet:0}),
+  2:seed=>generateMap({seed,clustering:.5,sizeVariation:.85,roughness:1,featureSet:0}),
 };
-export const CURRENT_GENERATOR_REVISION=1;
+export const CURRENT_GENERATOR_REVISION=2;
 export const regionalMapId=(seed,revision=CURRENT_GENERATOR_REVISION)=>`regional-v${revision}:${Number(seed)>>>0}`;
 function parseRegionalMapId(id) {
   const match=/^regional-v([1-9]\d*):(\d+)$/.exec(id ?? '');
@@ -36,12 +38,14 @@ function createDefinition(id,map) {
     .map((e,i)=>({e,rank:decorationRandom(map.seed,i+741)})).sort((a,b)=>a.rank-b.rank)
     .slice(0,9).map(({e})=>({regionAId:e.regions[0],regionBId:e.regions[1]}));
   const starters=new Set(Object.values(connections[0]));
+  const named = parseRegionalMapId(id).revision >= 2;
+  const names = named ? generateRegionNames(map.seed, map.regions) : [];
   const regions=map.regions.map((r,i)=>{
     // The study's occupied examples retain natural terrain underneath. Live
     // occupation belongs to region.monster, not permanent biome metadata.
     const biome=r.biome==='monster'?r.terrainBiome:r.biome;
     return {
-    id:r.id,name:`${biome[0].toUpperCase()+biome.slice(1)} ${i+1}`,biome,
+    id:r.id,name:names[i]??`${biome[0].toUpperCase()+biome.slice(1)} ${i+1}`,biome,
     polygonVertexIds:r.outline.map(p=>{const id=key(p);vertices.set(id,{id,x:p.x,y:p.y});return id;}),
     display:{labelPoint:{...r.centre},sitePoint:{...r.centre}},
     initialState:{colour:({plains:'red',forest:'green',islands:'blue',swamp:'black',mountains:'black',monster:'red'})[r.biome],

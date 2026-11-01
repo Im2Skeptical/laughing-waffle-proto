@@ -109,7 +109,7 @@ assert.deepEqual(
 );
 assert.equal(state.civilization.capitalRegionId, "river-crown");
 assert.deepEqual(worldMapDefs.riverBasin01.regions.map((region) => getRegionReference(state, region.id)),
-  Array.from({ length: 15 }, (_, index) => `R${String(index + 1).padStart(2, "0")}`));
+  worldMapDefs.riverBasin01.regions.map(region => region.name));
 assert.equal(addWorldConnection(state, "upper-floodplain", "east-steppe").ok, true);
 assert.ok(getConnectedRegionIds(state, "upper-floodplain").includes("east-steppe"));
 assert.equal(removeWorldConnection(state, "upper-floodplain", "east-steppe").ok, true);

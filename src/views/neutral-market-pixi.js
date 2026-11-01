@@ -1,3 +1,4 @@
+import { createRegionLabel } from './region-label.js';
 import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES } from './settlement-theme.js';
 import { addResourceIcon } from './resource-cost-pixi.js';
@@ -32,8 +33,7 @@ export function addNeutralMarketBillboard(parent, rect, { name, reference, stock
   root.addChild(new PIXI.Graphics().beginFill(0x397e77,.88)
     .drawPolygon([insetX,insetY,insetX+185,insetY,insetX+185,insetY+43,insetX+92,insetY+58,insetX,insetY+43]).endFill());
   root.addChild(createText('NEUTRAL', {...TEXT_STYLES.header,fontSize:25,fill:0xf3e6c4},insetX+92,insetY+11,.5));
-  const title = createText(`${reference ? reference+' · ' : ''}${name}`, {...TEXT_STYLES.header,fontSize:34,fill:NEUTRAL_COLOUR},insetX+215,insetY+6);
-  title.scale.set(Math.min(1,(innerWidth-230)/Math.max(1,title.width)));
+  const title = createRegionLabel(/^Settlement[0-9]+$/.test(name ?? '') ? `${reference} Market` : name ?? reference, {...TEXT_STYLES.header,fontSize:34,fill:NEUTRAL_COLOUR},insetX+215,insetY+6,innerWidth-230,45);
   root.addChild(title);
   const rowHeight = Math.min(120, (innerHeight-115)/Math.max(1,stocks.length));
   stocks.forEach((stock,index) => {

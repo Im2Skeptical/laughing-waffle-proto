@@ -1,3 +1,4 @@
+import { createRegionLabel } from './region-label.js';
 import { addPracticeMultiplierPair } from './multiplier-fitting.js';
 import { addIllustration, addRegionLandmark } from './chronicle-art.js';
 import { formatChaosValue } from '../model/chaos-values.js';
@@ -44,9 +45,7 @@ export function addRegionPanelContent(root, rect, {region, reference, name, vm, 
     return;
   }
   const x=rect.x+22,y=rect.y;
-  const title=createText(`${reference}  ·  ${name}`,{...TEXT_STYLES.header,fontSize:29},x,y+18);
-  if(vm?.control)title.scale.set(Math.min(1,350/Math.max(1,title.width)));
-  root.addChild(title);
+  root.addChild(createRegionLabel(reference ?? name,{...TEXT_STYLES.header,fontSize:29},x,y+18,vm ? 350 : rect.width-100,34));
   root.addChild(createText(`${region.colour.toUpperCase()} TERRITORY / ${regionalHolderLabel(region,vm)}`,{
     ...TEXT_STYLES.body,fontSize:18,fill:PALETTE.textMuted},x,y+50));
   if (region.monster) {
