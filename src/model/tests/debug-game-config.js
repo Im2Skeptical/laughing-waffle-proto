@@ -294,7 +294,7 @@ try {
     const baseline = serializeGameState(profileController.createRun(seed));
     assert.deepEqual(baseline, serializeGameState(createNewGameState(seed)), "Regular game uses exactly the player New Game factory");
     assert.equal(baseline.world.regions.filter(region => region.controller === 'player').length, 2);
-    assert.equal(baseline.world.sites.filter(site => site.simulationMode === 'detailed').length, 20);
+    assert.equal(baseline.world.sites.filter(site => site.simulationMode === 'detailed').length, 19);
     assert.ok(baseline.world.sites.some(site => site.neutral));
   }
   const baselineRecipe = profileController.getCurrentProfile();

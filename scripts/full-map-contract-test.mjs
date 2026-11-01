@@ -43,7 +43,7 @@ import {getSettlementStockTags} from '../src/views/world-map/stock-tags.js';
 import {getMapInfluencePresentation} from '../src/views/world-map/influence-marker.js';
 
 // Rule-isolation fixtures use active developed towns; opening contracts below use New Game directly.
-const fresh=()=>{const s=createNewGameState(424242);for(const site of s.world.sites){delete site.neutral;delete site.town;}return s;};
+const fresh=()=>{const s=createNewGameState(424242);for(const site of s.world.sites){delete site.neutral;delete site.town;site.simulationMode='detailed';getRegionState(s,site.regionId).detailedSettlementEnabled=true;}return s;};
 const bin=(count,allegiance='neutral',specialty='ordinary',kind='adults')=>({classId:'villager',allegiance,specialty,kind,age:kind==='elder'?60:null,count});
 const install=(id,allegiance='player',stock=0)=>({practiceId:id,tier:'bronze',instanceId:`test:${id}`,charge:0,work:0,...(fullMapPractices[id]?.category==='influence'?{allegiance}:{stock})});
 const checks=[];
@@ -51,7 +51,7 @@ function test(name,fn){fn();checks.push(name);}
 test('unheld towns start as deterministic sparse storefronts',()=>{
  for(const seed of [1,2,4,6,7,8,12,18,1867]){
   const s=createNewGameState(seed),independent=s.world.sites.filter(site=>site.neutral);
-  assert(independent.length>=3);
+  assert.equal(independent.length,3);
   assert.equal(s.world.regions.filter(r=>r.controller==='player').length,2);
   for(const site of independent){
    assert.equal(getRegionState(s,site.regionId).controller,'frontier');

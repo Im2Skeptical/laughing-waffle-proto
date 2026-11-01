@@ -74,7 +74,7 @@ export function createTownMarket(type) {
 export function transitionTown(state,site,faction) {
   if(!site?.town)return;
   if(faction==='frontier') {
-    if(!site.neutral)site.neutral=site.town.market;
+    if(!site.neutral)site.neutral=JSON.parse(JSON.stringify(site.town.market));
     return;
   }
   if(!site.neutral&&!site.town.activated&&site.town.market)site.neutral=site.town.market;

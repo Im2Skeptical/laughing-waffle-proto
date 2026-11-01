@@ -124,12 +124,11 @@ New game seeds are random unless Developer tools specifies a seed override.
 The menu's Use dev settings toggle explicitly substitutes a saved combined profile. Each
 run chooses one existing road through `state.rng`; its two adjacent regions
 become the initial player-controlled detailed settlements, with the first in
-authored region order serving as capital. All 20 regions are inhabited in this
-fork. A distant passive Warlord capital and its adjacent provinces begin under
-remnant control; three nearby outskirts start independent with unaffiliated populations.
+authored region order serving as capital. The opening has two player regions, fourteen Crown holdings (one distant
+capital, three adjacent provinces and ten specialised towns), three neutral
+storefronts and one separate Monster region with a dormant settlement.
 Unheld towns have specialised priced storefronts, static populations and empty
-boards until first control; other outskirts retain mixed population allegiances. A Monster threat is seeded in an inhabited nonplayer region, without
-erasing its settlement. The authored legacy debug fixture still has five detailed settlements in Regions01, 03,
+boards until first control; other outskirts retain mixed population allegiances. The Monster never overlaps a player, Crown or neutral starting region. The authored legacy debug fixture still has five detailed settlements in Regions01, 03,
 06, 07, and 11. Debug profiles and Map Lab can explicitly replace that setup.
 Region state owns colour, controller, connections, `structureCapacity`, and
 the independent detailed-settlement toggle. New runs roll every region's
