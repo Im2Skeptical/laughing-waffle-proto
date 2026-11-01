@@ -39,3 +39,21 @@ assert.equal(c.netFlows(8, 100).length, 1);
 c.clear();
 assert.equal(c.size, 0); assert.equal(c.netFlows(8, 100).length, 0, "timeline invalidation clears corridor trend");
 console.log("[trade-corridors] rewind ghosts + history clear OK");
+import { ghostsFromReplacedBatch } from "../src/views/world-map/trade-corridors.js";
+import { shouldInvalidateSettlementTimelineForecast as isTimelineChange } from "../src/views/ui-root/timeline-invalidation-reasons.js";
+// History clears only on real timeline changes, never on ordinary browsing.
+assert.equal(isTimelineChange("scrubBrowse"), false, "scrubBrowse keeps the corridor trend");
+for (const r of ["init", "saveLoad", "actionDispatched", "scrubCommit", "plannerClear", "plannerCommit:x"]) assert.equal(isTimelineChange(r), true, r);
+const keep = createTradeFlowHistory();
+keep.record(8, [{ sourceRegionId: "a", destinationRegionId: "b", amount: 1 }]);
+const onInvalidate = (reason) => { if (isTimelineChange(reason)) keep.clear(); };
+onInvalidate("scrubBrowse"); assert.equal(keep.netFlows(8, 100).length, 1, "scrubBrowse does not empty trend");
+onInvalidate("scrubCommit"); assert.equal(keep.size, 0, "real invalidate clears trend");
+// Replaced batches: ghosts only when advancing to a later boundary.
+const prev = [{ startedSec: 10, durationSec: 1.8 }];
+assert.equal(ghostsFromReplacedBatch(prev, { previousBoundarySec: 10, nextBoundarySec: 14, direction: 1, viewedSec: 14 }).length, 1);
+assert.equal(ghostsFromReplacedBatch(prev, { previousBoundarySec: 10, nextBoundarySec: 10, direction: 1, viewedSec: 14 }).length, 0, "same-boundary replacement (edit) cannot resurrect");
+assert.equal(ghostsFromReplacedBatch(prev, { previousBoundarySec: 10, nextBoundarySec: undefined, direction: 1, viewedSec: 14 }).length, 0, "null batch drops");
+assert.equal(ghostsFromReplacedBatch(prev, { previousBoundarySec: null, nextBoundarySec: 14, direction: 1, viewedSec: 14 }).length, 0, "after history clear nothing resurrects");
+assert.equal(ghostsFromReplacedBatch(prev, { previousBoundarySec: 10, nextBoundarySec: 14, direction: -1, viewedSec: 14 }).length, 0, "rewind drops");
+console.log("[trade-corridors] scrubBrowse keeps trend, invalidate clears, no resurrected packets OK");

@@ -1,6 +1,6 @@
 import { minimalGraphics } from './minimal-graphics.js';
 import { createRegionLabel } from './region-label.js';
-import { createTradeFlowHistory, getGhostPacketAgeSec, pruneGhostPackets, getGhostPacketAlpha, getPacketTrailSteps, getTradeCorridorWidth } from "./world-map/trade-corridors.js";
+import { createTradeFlowHistory, getGhostPacketAgeSec, pruneGhostPackets, ghostsFromReplacedBatch, getGhostPacketAlpha, getPacketTrailSteps, getTradeCorridorWidth } from "./world-map/trade-corridors.js";
 import { getMoonCycleDurationSec } from "../model/moon-phases.js";
 import { addMonsterGround, addMonsterMarker, addTerritoryBorder, territoryBoundarySegments } from './world-map/territory-art.js';
 import { createIllustratedTerrain } from './world-map/illustrated-terrain.js';
@@ -253,6 +253,7 @@ export function createWorldMapView({
   edgeTransferLayer.addChild(tradeCorridorGraphics, edgeTransferGraphics);
   const tradeFlowHistory = createTradeFlowHistory();
   let ghostEdgeTransferPackets = [];
+  let lastEdgeTransferDescriptorBoundarySec = null;
   const stockTransferIcons = createStockTransferIcons(edgeTransferLayer);
   const viewport = new PIXI.Container();
   const world = new PIXI.Container();
@@ -433,7 +434,10 @@ export function createWorldMapView({
     // Keep the outgoing packets as fading ghosts so slow scrub reads as flow.
     // Outgoing packets become ghosts only when moving forward; a rewind drops
     // them so nothing renders ahead of the viewed time.
-    ghostEdgeTransferPackets=direction<0?[]:pruneGhostPackets(edgeTransferPacketDescriptors.slice(0,EDGE_TRANSFER_PACKET_MAX_ACTIVE),viewedSec);
+    // Same-boundary replacements (timeline edits) and null batches drop them.
+    ghostEdgeTransferPackets=ghostsFromReplacedBatch(edgeTransferPacketDescriptors,{previousBoundarySec:lastEdgeTransferDescriptorBoundarySec,
+      nextBoundarySec:batch?.boundarySec,direction,viewedSec,max:EDGE_TRANSFER_PACKET_MAX_ACTIVE});
+    lastEdgeTransferDescriptorBoundarySec=Number.isFinite(batch?.boundarySec)?batch.boundarySec:null;
     edgeTransferPacketDescriptors=[];
     const routes=new Map();
     for(const transfer of batch?.transfers??[]){
@@ -603,6 +607,7 @@ export function createWorldMapView({
     activeEdgeTransferPackets = [];
     edgeTransferPacketDescriptors = [];
     ghostEdgeTransferPackets = [];
+    lastEdgeTransferDescriptorBoundarySec = null;
     tradeFlowHistory.clear();
     tradeCorridorGraphics.clear();
     edgeTransferGraphics.clear();
@@ -1043,7 +1048,14 @@ export function createWorldMapView({
     clearTradeCorridorHistory: () => {
       tradeFlowHistory.clear();
       ghostEdgeTransferPackets = [];
+      // Drop the old timeline's packets too, so the next batch cannot ghost them.
+      edgeTransferPacketDescriptors = [];
+      activeEdgeTransferPackets = [];
+      lastEdgeTransferBatchKey = null;
+      lastEdgeTransferDescriptorBoundarySec = null;
       tradeCorridorGraphics.clear();
+      edgeTransferGraphics.clear();
+      stockTransferIcons.clear();
     },
     setVisible: (visible) => {
       if (panelReveal.isClosing()) camera.finish();

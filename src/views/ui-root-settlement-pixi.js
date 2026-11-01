@@ -101,6 +101,7 @@ import { createVassalLevelUpModalView } from "./vassal-level-up-modal-pixi.js";
 import { createVassalResolutionRecapView } from "./vassal-resolution-recap-pixi.js";
 import { createVassalHeirloomFlowView } from "./vassal-heirloom-flow-pixi.js";
 import { createVassalNodeDecisionModalView } from "./vassal-node-decision-modal-pixi.js";
+import { shouldInvalidateSettlementTimelineForecast } from "./ui-root/timeline-invalidation-reasons.js";
 
 if (typeof globalThis !== "undefined" && globalThis.__PERF_ENABLED__ == null) {
   globalThis.__PERF_ENABLED__ = false;
@@ -325,18 +326,6 @@ const tooltipView = createTooltipView({
   onReview: face => {try{openCardReviewer(getSettlementViewedState(),face);}catch(error){window.alert(`Card review could not be saved: ${error.message}`);}},
 });
 
-function shouldInvalidateSettlementTimelineForecast(reason) {
-  if (typeof reason !== "string" || reason.length <= 0) return true;
-  if (reason === "init" || reason === "saveLoad") return true;
-  if (reason === "actionDispatched" || reason === "actionDispatchedCurrentSec") {
-    return true;
-  }
-  if (reason === "actionScheduled") return true;
-  if (reason === "scrubCommit") return true;
-  if (reason === "plannerClear") return true;
-  if (reason.startsWith("plannerCommit:")) return true;
-  return false;
-}
 
 function invalidateSettlementProjectedLossCache() {
   settlementForecastController?.invalidateLossCache?.();
@@ -738,7 +727,9 @@ const runner = createSimRunner({
       settlementGraphController?.handleInvalidate?.(reason);
     }
     invalidateSettlementEdgeTransferBatchCache();
-    worldMapView?.clearTradeCorridorHistory?.();
+    // Corridor trend survives ordinary browsing (scrubBrowse); only real timeline
+    // changes (edits, commits, reprojection, load) invalidate it.
+    if (shouldInvalidateSettlementTimelineForecast(reason)) worldMapView?.clearTradeCorridorHistory?.();
     invalidateSettlementProjectedLossCache();
     syncSettlementGraphHorizon();
     prototypeView?.refresh?.();
@@ -747,7 +738,9 @@ const runner = createSimRunner({
   onRebuildViews: (reason) => {
     if (reason === "vassalDecisionStaged") return;
     invalidateSettlementEdgeTransferBatchCache();
-    worldMapView?.clearTradeCorridorHistory?.();
+    // Corridor trend survives ordinary browsing (scrubBrowse); only real timeline
+    // changes (edits, commits, reprojection, load) invalidate it.
+    if (shouldInvalidateSettlementTimelineForecast(reason)) worldMapView?.clearTradeCorridorHistory?.();
     invalidateSettlementProjectedLossCache();
     syncSettlementGraphHorizon();
     prototypeView?.refresh?.();

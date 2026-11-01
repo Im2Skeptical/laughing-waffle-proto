@@ -84,6 +84,15 @@ export function pruneGhostPackets(ghosts, timeSec) {
   return (ghosts ?? []).filter((g) => getGhostPacketAgeSec(g, timeSec) != null);
 }
 
+// Packets from a replaced batch become ghosts only when the map moved forward
+// to a later boundary. A same-boundary replacement (timeline edit), a rewind,
+// a null batch, or a cleared history drops them so they cannot resurrect.
+export function ghostsFromReplacedBatch(previous, { previousBoundarySec, nextBoundarySec, direction, viewedSec, max = Infinity } = {}) {
+  if (!(direction >= 0) || !Number.isFinite(previousBoundarySec) || !Number.isFinite(nextBoundarySec)) return [];
+  if (nextBoundarySec <= previousBoundarySec) return [];
+  return pruneGhostPackets((previous ?? []).slice(0, max), viewedSec);
+}
+
 // Ghost alpha for a packet whose route finished `ageSec` ago; fades out over `fadeSec`.
 export function getGhostPacketAlpha(ageSec, fadeSec, peak = 0.28) {
   if (!Number.isFinite(ageSec) || ageSec < 0 || !(fadeSec > 0) || ageSec >= fadeSec) return 0;
