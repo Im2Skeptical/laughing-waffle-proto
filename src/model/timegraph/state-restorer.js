@@ -6,12 +6,21 @@ import { advanceReplayStateOneSecond, initializeReplayClock } from "../replay-se
 // Private, bounded restore codec. Every new anchor validates its mutable body;
 // identical configs share one fully validated, frozen canonical value. Stored
 // bodies never escape; every caller owns a fresh mutable body.
-// A small LRU also keeps the last few off-anchor replays (keyed by anchor
-// identity + seconds) so back-and-forth scrubbing skips repeated replay. Hits
+// A small, flat LRU also keeps the last `maxReplayEntries` off-anchor replays
+// (keyed by anchor identity + seconds) so back-and-forth scrubbing skips
+// repeated replay. Every hit or store becomes most recently used; eviction
+// always drops the globally least recently used replay. Hits
 // clone the exact replayed object, so results match an uncached restore.
 export function createProjectionStateRestorer({ maxEntries = 64, maxReplayEntries = 4 } = {}) {
   const anchors = new Map();
   const replays = new Map();
+  const anchorIds = new WeakMap();
+  let nextAnchorId = 0;
+  function replayKeyFor(stateData, baseSec, targetSec) {
+    let id = anchorIds.get(stateData);
+    if (id === undefined) anchorIds.set(stateData, (id = nextAnchorId++));
+    return `${id}:${baseSec}:${targetSec}`;
+  }
   const reader = createProjectionAnchorReader();
   function cloneReplayed(state) {
     const plain = {};
@@ -30,14 +39,11 @@ export function createProjectionStateRestorer({ maxEntries = 64, maxReplayEntrie
   }
   function restore(stateData, baseSec, targetSec = baseSec) {
     if (targetSec < baseSec) return null;
-    let byAnchor = targetSec > baseSec ? replays.get(stateData) : null;
-    const replayKey = `${baseSec}:${targetSec}`;
-    const hit = byAnchor?.get(replayKey);
+    const replayKey = targetSec > baseSec ? replayKeyFor(stateData, baseSec, targetSec) : null;
+    const hit = replayKey ? replays.get(replayKey) : undefined;
     if (hit) {
-      byAnchor.delete(replayKey);
-      byAnchor.set(replayKey, hit);
-      replays.delete(stateData);
-      replays.set(stateData, byAnchor);
+      replays.delete(replayKey);
+      replays.set(replayKey, hit);
       return fromReplay(hit);
     }
     let entry = anchors.get(stateData);
@@ -65,18 +71,9 @@ export function createProjectionStateRestorer({ maxEntries = 64, maxReplayEntrie
         canonicalizeSnapshot(state);
       }
       if (maxReplayEntries > 0) {
-        if (!byAnchor) byAnchor = new Map();
-        byAnchor.set(replayKey, { body: cloneReplayed(state), keys: Object.keys(state), config: state.gameConfig });
-        replays.delete(stateData);
-        replays.set(stateData, byAnchor);
-        let total = 0;
-        for (const entries of replays.values()) total += entries.size;
-        while (total > maxReplayEntries) {
-          const [oldestAnchor, entries] = replays.entries().next().value;
-          entries.delete(entries.keys().next().value);
-          if (!entries.size) replays.delete(oldestAnchor);
-          total--;
-        }
+        replays.delete(replayKey);
+        replays.set(replayKey, { body: cloneReplayed(state), keys: Object.keys(state), config: state.gameConfig });
+        while (replays.size > maxReplayEntries) replays.delete(replays.keys().next().value);
       }
     } else {
       canonicalizeSnapshot(state);
@@ -87,6 +84,8 @@ export function createProjectionStateRestorer({ maxEntries = 64, maxReplayEntrie
     restore,
     clear() { anchors.clear(); replays.clear(); reader.clear(); },
     getSize: () => anchors.size,
-    getReplayCacheSize: () => [...replays.values()].reduce((n, entries) => n + entries.size, 0),
+    getReplayCacheSize: () => replays.size,
+    hasCachedReplay: (stateData, baseSec, targetSec) =>
+      anchorIds.has(stateData) && replays.has(replayKeyFor(stateData, baseSec, targetSec)),
   };
 }

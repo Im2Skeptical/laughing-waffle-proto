@@ -188,6 +188,25 @@ for (let t = 0; t <= 128; t++) {
   cached.clear();
   assert.equal(cached.getReplayCacheSize(), 0);
 }
+{
+  // Eviction is a global LRU over the last 4 replays, across anchors.
+  const lru = createProjectionStateRestorer({ maxReplayEntries: 4 });
+  const a = anchors.get(16), b = anchors.get(32);
+  lru.restore(a, 16, 17); // a17
+  lru.restore(b, 32, 33); // b33
+  lru.restore(b, 32, 34); // b34
+  lru.restore(a, 16, 18); // a18 -> LRU order a17 b33 b34 a18
+  lru.restore(a, 16, 19); // must evict a17 (oldest), not b33
+  assert.equal(lru.hasCachedReplay(a, 16, 17), false, "globally least recently used replay is evicted");
+  for (const [d, s0, s1] of [[b, 32, 33], [b, 32, 34], [a, 16, 18], [a, 16, 19]]) {
+    assert.equal(lru.hasCachedReplay(d, s0, s1), true, `recent replay ${s0}->${s1} kept`);
+  }
+  lru.restore(b, 32, 33); // hit refreshes b33 -> b34 a18 a19 b33
+  lru.restore(b, 32, 35); // evicts b34
+  assert.equal(lru.hasCachedReplay(b, 32, 34), false, "a hit moves its replay to most recent");
+  assert.equal(lru.hasCachedReplay(b, 32, 33), true);
+  assert.equal(lru.getReplayCacheSize(), 4);
+}
 assert.throws(() => restorer.restore({ ...base, gameStateSchemaVersion: -1 }, 0), /schema/);
 assert.throws(() => restorer.restore({ ...base, rng: {} }, 0), /RNG/);
 const invalidWorld=structuredClone(base);

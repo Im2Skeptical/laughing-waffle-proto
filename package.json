@@ -55,7 +55,7 @@
     "test:lifegraph-columns": "node scripts/lifegraph-columns-test.mjs",
     "probe:lifegraph": "node scripts/lifegraph-browser-probe.mjs",
     "test:detailed-replay": "node src/model/tests/detailed-replay.js && node scripts/edge-transfer-isolation-test.mjs && node scripts/captured-config-isolation-test.mjs",
-    "test:invariants": "node src/model/tests/engine-invariants.js",
+    "test:invariants": "node src/model/tests/engine-invariants.js && node src/model/tests/timegraph-performance.js",
     "test:replay-stress": "node scripts/replay-stress-test.mjs && node scripts/replay-draft-boundaries-test.mjs && node scripts/replay-lineage-boundaries-test.mjs && node scripts/replay-terminal-save-test.mjs && node scripts/construction-save-continuation-test.mjs && node scripts/terminal-snapshot-consumers-test.mjs && node scripts/regional-branch-replay-test.mjs",
     "test:debug-config": "node src/model/tests/debug-game-config.js && node scripts/debug-import-boundaries-test.mjs && node scripts/debug-parser-shape-properties-test.mjs",
     "probe:settlement": "node scripts/settlement-browser-probe.mjs",
