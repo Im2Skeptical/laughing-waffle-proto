@@ -12,6 +12,7 @@ export function createEdgeTransferScrubGate({
 } = {}) {
   let lastSec = null;
   let lastMotionMs = -Infinity;
+  let lastSkip = false;
   function isMoving(viewedSec) {
     const active = isScrubActive?.() === true;
     const sec = Number.isFinite(viewedSec) ? Math.floor(viewedSec) : null;
@@ -26,7 +27,9 @@ export function createEdgeTransferScrubGate({
   }
   return {
     // True while packets should be skipped for this frame.
-    shouldSkip: (viewedSec) => isMoving(viewedSec),
-    reset() { lastSec = null; lastMotionMs = -Infinity; },
+    shouldSkip: (viewedSec) => (lastSkip = isMoving(viewedSec)),
+    // Last shouldSkip result, without advancing the gate (for view layers).
+    isSkipping: () => lastSkip,
+    reset() { lastSec = null; lastMotionMs = -Infinity; lastSkip = false; },
   };
 }

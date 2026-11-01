@@ -1,5 +1,7 @@
 import { minimalGraphics } from './minimal-graphics.js';
 import { createRegionLabel } from './region-label.js';
+import { createTradeFlowHistory, getGhostPacketAlpha, getPacketTrailSteps, getTradeCorridorWidth } from "./world-map/trade-corridors.js";
+import { getMoonCycleDurationSec, getMoonPhaseDurationSec } from "../model/moon-phases.js";
 import { addMonsterGround, addMonsterMarker, addTerritoryBorder, territoryBoundarySegments } from './world-map/territory-art.js';
 import { createIllustratedTerrain } from './world-map/illustrated-terrain.js';
 import { getMapRelationships, getMapRelationship, getRelationshipStyle, drawRelationshipLine, drawRelationshipPath } from './world-map/relationships.js';
@@ -223,6 +225,8 @@ export function createWorldMapView({
   getState,
   getStateRevision,
   getEdgeTransferBatch,
+  isTradeScrubSkipping = null,
+  getScrubTradeTransfers = null,
   getVisualTime,
   getSelectedRegionId,
   getRegionSelectionActive,
@@ -244,7 +248,11 @@ export function createWorldMapView({
   const edgeTransferGraphics = new PIXI.Graphics();
   edgeTransferLayer.eventMode = "none";
   edgeTransferGraphics.eventMode = "none";
-  edgeTransferLayer.addChild(edgeTransferGraphics);
+  const tradeCorridorGraphics = new PIXI.Graphics();
+  tradeCorridorGraphics.eventMode = "none";
+  edgeTransferLayer.addChild(tradeCorridorGraphics, edgeTransferGraphics);
+  const tradeFlowHistory = createTradeFlowHistory();
+  let ghostEdgeTransferPackets = [];
   const stockTransferIcons = createStockTransferIcons(edgeTransferLayer);
   const viewport = new PIXI.Container();
   const world = new PIXI.Container();
@@ -414,9 +422,16 @@ export function createWorldMapView({
     lastEdgeTransferViewedSec=viewedSec;
     const batch=getEdgeTransferBatch?.()??null;
     lastEdgeTransferBatch=batch;
+    if(batch?.transfers?.length)tradeFlowHistory.record(batch.boundarySec,batch.transfers);
+    if(isTradeScrubSkipping?.()===true){
+      const journal=getScrubTradeTransfers?.();
+      if(journal?.transfers?.length)tradeFlowHistory.record(journal.tSec,journal.transfers);
+    }
     const key=getEdgeTransferBatchKey(batch);
     if(key===lastEdgeTransferBatchKey)return;
     lastEdgeTransferBatchKey=key;
+    // Keep the outgoing packets as fading ghosts so slow scrub reads as flow.
+    if(edgeTransferPacketDescriptors.length)ghostEdgeTransferPackets=edgeTransferPacketDescriptors.slice(0,EDGE_TRANSFER_PACKET_MAX_ACTIVE);
     edgeTransferPacketDescriptors=[];
     const routes=new Map();
     for(const transfer of batch?.transfers??[]){
@@ -444,14 +459,72 @@ export function createWorldMapView({
     stockTransferIcons.sync(edgeTransferPacketDescriptors);
   }
 
+  const TRADE_GOLD = 0xd8b25a, TRADE_INK = 0x302d2a;
+  function drawCorridorArrow(g, from, to, width, color, alpha) {
+    const dx=to.x-from.x, dy=to.y-from.y, len=Math.hypot(dx,dy);
+    if(len<24)return;
+    const ux=dx/len, uy=dy/len, px=-uy, py=ux, inset=Math.min(26,len*0.18);
+    const ax=from.x+ux*inset, ay=from.y+uy*inset, bx=to.x-ux*inset, by=to.y-uy*inset;
+    const head=Math.max(9,width*1.5);
+    const sx=bx-ux*head, sy=by-uy*head;
+    // Ink outline, then a stepped two-tone band for the pixel-art bevel.
+    g.lineStyle(width+4,TRADE_INK,alpha*0.9);g.moveTo(ax,ay);g.lineTo(sx,sy);
+    g.lineStyle(width,color,alpha);g.moveTo(ax,ay);g.lineTo(sx,sy);
+    g.lineStyle(Math.max(1,Math.round(width/3)),0xf4e2a8,alpha*0.55);g.moveTo(ax,ay);g.lineTo(sx,sy);
+    g.lineStyle(2,TRADE_INK,alpha*0.9);g.beginFill(color,alpha);
+    g.drawPolygon([bx,by,sx+px*head*0.8,sy+py*head*0.8,sx-px*head*0.8,sy-py*head*0.8]);
+    g.endFill();
+  }
+  function drawTradeCorridors(definition, timeSec, dragging) {
+    tradeCorridorGraphics.clear();
+    if(!definition)return;
+    const state=getState?.();
+    const windowSec=getMoonCycleDurationSec(state)*2;
+    const flows=tradeFlowHistory.netFlows(timeSec,windowSec);
+    for(const flow of flows){
+      const source=definition.regions.find(r=>r.id===flow.from), destination=definition.regions.find(r=>r.id===flow.to);
+      if(!source||!destination)continue;
+      const alpha=dragging?0.55+0.35*flow.intensity:0.28;
+      drawCorridorArrow(tradeCorridorGraphics,sitePoint(source),sitePoint(destination),getTradeCorridorWidth(flow.intensity,dragging),TRADE_GOLD,alpha);
+    }
+  }
+  function drawGhostPacket(packet, progress, alpha) {
+    if(alpha<=0.01)return;
+    const pose=getEdgeTransferPacketPose({from:packet.from,to:packet.to,progress,laneOffset:packet.laneOffset});
+    const color=packet.glyph?.color??TRADE_GOLD;
+    edgeTransferGraphics.lineStyle(1.5,TRADE_INK,alpha);
+    edgeTransferGraphics.beginFill(color,alpha);
+    edgeTransferGraphics.drawCircle(pose.x,pose.y,6);
+    edgeTransferGraphics.endFill();
+  }
   function drawEdgeTransferPackets(timeSec) {
     edgeTransferGraphics.clear();
     stockTransferIcons.beginFrame();
+    const definition=getWorldDefinition(getState?.());
+    const dragging=isTradeScrubSkipping?.()===true;
+    drawTradeCorridors(definition,timeSec,dragging);
+    if(dragging){activeEdgeTransferPackets=[];return;}
+    const ghostFadeSec=getMoonPhaseDurationSec(getState?.())*2;
+    for(const packet of ghostEdgeTransferPackets){
+      const age=timeSec-(packet.startedSec+packet.durationSec);
+      drawGhostPacket(packet,0.92,getGhostPacketAlpha(Math.max(0,age),ghostFadeSec+packet.durationSec));
+    }
     const surviving = [];
     for (const packet of edgeTransferPacketDescriptors) {
       const rawProgress=sampleEventProgress(timeSec,packet.startedSec,packet.durationSec);
-      if(rawProgress==null)continue;
+      if(rawProgress==null){
+        const age=timeSec-(packet.startedSec+packet.durationSec);
+        if(age>0)drawGhostPacket(packet,0.92,getGhostPacketAlpha(age,ghostFadeSec));
+        continue;
+      }
       surviving.push(packet);
+      for(const dot of getPacketTrailSteps(rawProgress)){
+        const p=getEdgeTransferPacketPose({from:packet.from,to:packet.to,progress:dot.progress,laneOffset:packet.laneOffset});
+        edgeTransferGraphics.lineStyle(0);
+        edgeTransferGraphics.beginFill(packet.glyph?.color??TRADE_GOLD,dot.alpha*Math.min(1,rawProgress/0.12));
+        edgeTransferGraphics.drawRect(Math.round(p.x)-3*dot.scale-1,Math.round(p.y)-3*dot.scale-1,6*dot.scale+2,6*dot.scale+2);
+        edgeTransferGraphics.endFill();
+      }
       const pose = getEdgeTransferPacketPose({
         from: packet.from,
         to: packet.to,
@@ -525,6 +598,9 @@ export function createWorldMapView({
     edgeTransferPlaybackDirection = 1;
     activeEdgeTransferPackets = [];
     edgeTransferPacketDescriptors = [];
+    ghostEdgeTransferPackets = [];
+    tradeFlowHistory.clear();
+    tradeCorridorGraphics.clear();
     edgeTransferGraphics.clear();
     stockTransferIcons.clear();
   }

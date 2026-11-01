@@ -1,0 +1,23 @@
+import assert from "node:assert/strict";
+import { createTradeFlowHistory, getGhostPacketAlpha, getPacketTrailSteps, getTradeCorridorWidth } from "../src/views/world-map/trade-corridors.js";
+
+const h = createTradeFlowHistory({ maxEntries: 3 });
+h.record(10, [{ sourceRegionId: "a", destinationRegionId: "b", amount: 5 }, { sourceRegionId: "b", destinationRegionId: "a", amount: 2 }]);
+h.record(20, [{ sourceRegionId: "c", destinationRegionId: "a", amount: 4 }]);
+let flows = h.netFlows(20, 30);
+const ab = flows.find((f) => (f.from === "a" && f.to === "b") || (f.from === "b" && f.to === "a"));
+assert.equal(ab.from, "a", "net direction follows the larger side");
+assert.ok(ab.net > 0 && ab.net < ab.gross);
+assert.equal(Math.max(...flows.map((f) => f.intensity)), 1);
+assert.equal(h.netFlows(5, 30).length, 0, "future boundaries never leak into the past");
+assert.equal(h.netFlows(20, 5).length, 1, "window drops old boundaries");
+h.record(30, []); h.record(40, []);
+assert.equal(h.size, 3, "history is bounded");
+assert.equal(getGhostPacketAlpha(0, 10), 0.28);
+assert.equal(getGhostPacketAlpha(10, 10), 0);
+assert.ok(getTradeCorridorWidth(1, true) > getTradeCorridorWidth(1, false));
+const trail = getPacketTrailSteps(0.9);
+assert.equal(trail.length, 5);
+assert.ok(Math.abs(trail[0].alpha - 0.72) < 1e-9 && trail[4].progress >= 0.49);
+assert.equal(getPacketTrailSteps(0.05).length, 0);
+console.log("[trade-corridors] net flow, ghost decay, trail OK");

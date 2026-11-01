@@ -923,6 +923,10 @@ worldMapView = createWorldMapView({
   getState: () => runner.getState?.(),
   getStateRevision: () => runner.getTimeline?.()?.revision,
   getEdgeTransferBatch: () => getSettlementViewedEdgeTransferBatch(),
+  // Coarse trade trend while packets are skipped: the viewed state's own stock
+  // journal (already restored), never an extra getStateAt.
+  isTradeScrubSkipping: () => settlementEdgeTransferScrubGate.isSkipping(),
+  getScrubTradeTransfers: () => getSettlementViewedState()?.civilization?.practiceEvents?.stockTransfers ?? null,
   getVisualTime: getSettlementVisualTime,
   getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
   onOpenEndDetails: () => openSettlementRunCompleteOverlay(),

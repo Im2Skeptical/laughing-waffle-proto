@@ -19,3 +19,7 @@ t = 201; assert.equal(gate.shouldSkip(19), false, "release rebuilds immediately"
 active = true;
 t = 210; assert.equal(gate.shouldSkip(19), false, "a new press does not inherit old motion");
 console.log("[edge-transfer-scrub-gate] skip while moving, exact on settle/release OK");
+active = true; t = 300; gate.shouldSkip(30); t = 310; gate.shouldSkip(31);
+assert.equal(gate.isSkipping(), true, "isSkipping mirrors the last shouldSkip");
+active = false; gate.shouldSkip(31);
+assert.equal(gate.isSkipping(), false);
