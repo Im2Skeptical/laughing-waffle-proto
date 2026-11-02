@@ -1,6 +1,7 @@
 import { progressiveGraphics } from './minimal-graphics.js';
 import { loadProgressiveArtwork } from './progressive-artwork.js';
 import { loadPerformanceStart } from '../controllers/performance-start.js';
+import { createEdgeTransferScrubGate } from "./ui-root/edge-transfer-scrub-gate.js";
 import { getSettlementVassalFocusWindows } from "./ui-root/settlement-timegraph-window.js";
 import { createVassalCommissionPicker } from './vassal-commission-picker-pixi.js';
 import { createLifeDecisionController } from "../controllers/life-decision-controller.js";
@@ -100,6 +101,7 @@ import { createVassalLevelUpModalView } from "./vassal-level-up-modal-pixi.js";
 import { createVassalResolutionRecapView } from "./vassal-resolution-recap-pixi.js";
 import { createVassalHeirloomFlowView } from "./vassal-heirloom-flow-pixi.js";
 import { createVassalNodeDecisionModalView } from "./vassal-node-decision-modal-pixi.js";
+import { shouldInvalidateSettlementTimelineForecast } from "./ui-root/timeline-invalidation-reasons.js";
 
 if (typeof globalThis !== "undefined" && globalThis.__PERF_ENABLED__ == null) {
   globalThis.__PERF_ENABLED__ = false;
@@ -324,18 +326,6 @@ const tooltipView = createTooltipView({
   onReview: face => {try{openCardReviewer(getSettlementViewedState(),face);}catch(error){window.alert(`Card review could not be saved: ${error.message}`);}},
 });
 
-function shouldInvalidateSettlementTimelineForecast(reason) {
-  if (typeof reason !== "string" || reason.length <= 0) return true;
-  if (reason === "init" || reason === "saveLoad") return true;
-  if (reason === "actionDispatched" || reason === "actionDispatchedCurrentSec") {
-    return true;
-  }
-  if (reason === "actionScheduled") return true;
-  if (reason === "scrubCommit") return true;
-  if (reason === "plannerClear") return true;
-  if (reason.startsWith("plannerCommit:")) return true;
-  return false;
-}
 
 function invalidateSettlementProjectedLossCache() {
   settlementForecastController?.invalidateLossCache?.();
@@ -676,6 +666,20 @@ function syncSettlementRunCompletePresentation() {
   });
 }
 
+function isSettlementScrubDragging() {
+  return settlementGraphView?.isScrubbing?.() === true || sunMoonDisksView?.isDragging?.() === true;
+}
+
+const settlementEdgeTransferScrubGate = createEdgeTransferScrubGate({
+  isScrubActive: isSettlementScrubDragging,
+});
+
+// Settle timing follows real pointer input during a scrub drag.
+const noteSettlementScrubPointerMove = () => {
+  if (isSettlementScrubDragging()) settlementEdgeTransferScrubGate.notePointerMove();
+};
+app.stage.on("globalpointermove", noteSettlementScrubPointerMove);
+
 function invalidateSettlementEdgeTransferBatchCache() {
   settlementEdgeTransferBatchCache = {
     key: null,
@@ -690,6 +694,8 @@ function getSettlementViewedEdgeTransferBatch() {
     getSettlementViewedState()
   );
   if (boundarySec <= 0) return null;
+  // Skip the previous-second restore while a scrub is moving; rebuild on settle.
+  if (settlementEdgeTransferScrubGate.shouldSkip(viewedSec)) return null;
   const timeline = runner.getTimeline?.() ?? null;
   const cacheKey = [
     boundarySec,
@@ -721,6 +727,9 @@ const runner = createSimRunner({
       settlementGraphController?.handleInvalidate?.(reason);
     }
     invalidateSettlementEdgeTransferBatchCache();
+    // Corridor trend survives ordinary browsing (scrubBrowse); only real timeline
+    // changes (edits, commits, reprojection, load) invalidate it.
+    if (shouldInvalidateSettlementTimelineForecast(reason)) worldMapView?.clearTradeCorridorHistory?.();
     invalidateSettlementProjectedLossCache();
     syncSettlementGraphHorizon();
     prototypeView?.refresh?.();
@@ -729,6 +738,9 @@ const runner = createSimRunner({
   onRebuildViews: (reason) => {
     if (reason === "vassalDecisionStaged") return;
     invalidateSettlementEdgeTransferBatchCache();
+    // Corridor trend survives ordinary browsing (scrubBrowse); only real timeline
+    // changes (edits, commits, reprojection, load) invalidate it.
+    if (shouldInvalidateSettlementTimelineForecast(reason)) worldMapView?.clearTradeCorridorHistory?.();
     invalidateSettlementProjectedLossCache();
     syncSettlementGraphHorizon();
     prototypeView?.refresh?.();
@@ -912,6 +924,10 @@ worldMapView = createWorldMapView({
   getState: () => runner.getState?.(),
   getStateRevision: () => runner.getTimeline?.()?.revision,
   getEdgeTransferBatch: () => getSettlementViewedEdgeTransferBatch(),
+  // Coarse trade trend while packets are skipped: the viewed state's own stock
+  // journal (already restored), never an extra getStateAt.
+  isTradeScrubSkipping: () => settlementEdgeTransferScrubGate.isSkipping(),
+  getScrubTradeTransfers: () => getSettlementViewedState()?.civilization?.practiceEvents?.stockTransfers ?? null,
   getVisualTime: getSettlementVisualTime,
   getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
   onOpenEndDetails: () => openSettlementRunCompleteOverlay(),
