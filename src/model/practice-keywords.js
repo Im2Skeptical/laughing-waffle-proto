@@ -2,11 +2,8 @@
 // in gameConfig.gamepieces; these pure queries also run in replay and workers.
 import { synthesisContributors } from './detailed-settlements/synthesis.js';
 
-export const PRACTICE_KEYWORDS = Object.freeze({
-  synthesis: { name: 'Synthesis', classId: 'scholar', className: 'Philosopher' },
-  monsterTrophies: { name: 'Monster Trophies', classId: 'warrior', className: 'Warlord' },
-  economicRegions: { name: 'Economic Regions', classId: 'merchant', className: 'Merchant' },
-});
+import { MECHANIC_KEYWORDS } from '../defs/mechanics.js';
+export const PRACTICE_KEYWORDS = MECHANIC_KEYWORDS;
 
 export function keywordAccess(state, id, regionId = null) {
   const keyword = PRACTICE_KEYWORDS[id];

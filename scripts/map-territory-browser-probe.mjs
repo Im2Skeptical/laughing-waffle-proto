@@ -69,7 +69,7 @@ try {
   assert.equal(overview.markers,overview.monsterRegions,'every occupied region has a monster emblem');
   assert.equal(overview.countdowns,0,'progress has moved off monster markers');
   const interval=overview.spreadInterval;
-  assert.deepEqual(overview.countdownCases,[0,368/interval,368*(interval-1)/interval,368,368]);
+  assert.deepEqual(overview.countdownCases,[0,416/interval,416*(interval-1)/interval,416,416]);
   assert.ok(overview.playerBorders>0,'player territory remains distinct');
   assert.ok(overview.unchanged,'drawing leaves serialized state and RNG unchanged');
   await page.screenshot({path:`${output}/overview.png`});

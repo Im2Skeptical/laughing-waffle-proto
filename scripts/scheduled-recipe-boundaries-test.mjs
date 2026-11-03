@@ -361,7 +361,7 @@ runCase('forecasting', () => {
   proseHas(def, 'Require 1 stocked [Record]');
   assert.ok(!def.ui.rule.includes('Knowledge-tagged'), 'Record host has no Knowledge-tag requirement');
   proseHas(def, 'Scholar worker');
-  proseHas(def, '5 Monster Pressure');
+  proseHas(def, '5 Creep');
   assert.equal(def.effects.find(effect => effect.op === 'addFaithChaosResistance').amount, 0.3);
   assert.equal(def.effects.find(effect => effect.op === 'addMonsterPressure').amount, 5);
   const progress = blocked.state.civilization.chaos.monsterPressure;

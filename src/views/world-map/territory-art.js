@@ -102,8 +102,8 @@ export function addTerritoryBorder(parent, points, { player, monster, crown, sel
     }
   };
   if (player || monster || crown) {
-    trace(9,0x0c171b,.85);
-    trace(5,colour,.85);
+    trace(13,0x0c171b,.95);
+    trace(8,colour,1);
     trace(1.5,monster ? 0xffa080 : player ? 0xffe6a2 : 0xf1d5b4);
     if (player) coast.lineStyle(0).beginFill(0xe4c271,.055).drawPolygon(points).endFill();
   } else trace(1.5,colour,.65);

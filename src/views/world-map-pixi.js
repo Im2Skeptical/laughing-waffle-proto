@@ -1,3 +1,4 @@
+import { getRegionTerrainStyle, getRegionNameColour } from './world-map/region-style.js';
 import { minimalGraphics } from './minimal-graphics.js';
 import { createRegionLabel } from './region-label.js';
 import { createTradeFlowHistory, getGhostPacketAgeSec, pruneGhostPackets, ghostsFromReplacedBatch, getGhostPacketAlpha, getPacketTrailSteps, getTradeCorridorWidth } from "./world-map/trade-corridors.js";
@@ -15,7 +16,7 @@ import { DEFAULT_REGION_STRUCTURE_CAPACITY_MAX } from '../defs/world/detailed-se
 import { sampleEventProgress } from './timeline-presentation.js';
 import { createChronicleEffects, addTimelineLandmark } from './chronicle-effects-pixi.js';
 import { addRegionTerrain, getArtRevision } from './chronicle-art.js';
-import { addChaosPanelContent } from './chronicle-world-panels.js';
+import { addChaosPanelContent, addCollapsedChaosControl } from './chronicle-world-panels.js';
 import { formatChaosValue } from '../model/chaos-values.js';
 import { createRegionPanelCache } from './world-map/region-panel-cache.js';
 import { createMapPolygonReader } from './world-map/geometry.js';
@@ -49,7 +50,6 @@ import {
   MAP_RECT,
   GROUP_FRAME_RECT,
   MAP_VIEWPORT_RECT,
-  REGION_COLOURS,
   REGION_DOUBLE_TAP_WINDOW_MS,
   REGION_FLAG_DOUBLE_TAP_RADIUS,
 } from "./world-map/constants.js";
@@ -268,13 +268,14 @@ export function createWorldMapView({
   viewport.addChild(world);
   const illustratedWidth=MAP_RECT.height*1576/516;
   const illustratedRect={...MAP_RECT,x:MAP_RECT.x+(MAP_RECT.width-illustratedWidth)/2,width:illustratedWidth};
-  const illustrated=createIllustratedTerrain(world,illustratedRect,{getView:()=>{
+  const createTerrain=()=>createIllustratedTerrain(world,illustratedRect,{getView:()=>{
     const pose=camera.snapshot();
     return {minX:((MAP_VIEWPORT_RECT.x-pose.x)/pose.zoom-illustratedRect.x)/illustratedRect.width,
       minY:((MAP_VIEWPORT_RECT.y-pose.y)/pose.zoom-illustratedRect.y)/illustratedRect.height,
       maxX:((MAP_VIEWPORT_RECT.x+MAP_VIEWPORT_RECT.width-pose.x)/pose.zoom-illustratedRect.x)/illustratedRect.width,
       maxY:((MAP_VIEWPORT_RECT.y+MAP_VIEWPORT_RECT.height-pose.y)/pose.zoom-illustratedRect.y)/illustratedRect.height,zoom:pose.zoom};
   }});
+  let illustrated=createTerrain();
   // Use the workbench's aspect ratio for both artwork and gameplay projection.
   const screenPoint=point=>{
     const rect=illustrated.supports(getState?.())?illustratedRect:MAP_RECT;
@@ -448,7 +449,7 @@ export function createWorldMapView({
       const routeInfo=routes.get(route)??{count:0,spacing:9};
       const index=routeInfo.count++;
       const from=sitePoint(source),to=sitePoint(destination);
-      const packet={...transfer,from,to,facingFrom:from,facingTo:to,route,lane:[0,-1,1][index%3],
+      const packet={...transfer,from,to,path:transferRoadPath(source,destination),facingFrom:from,facingTo:to,route,lane:[0,-1,1][index%3],
         glyph:getEdgeTransferPacketGlyphSpec(transfer.resourceId,transfer.traits),
         laneOffset:[0,-9,9][index%3],startedSec:(transfer.boundarySec??batch.boundarySec)+index*.06,durationSec:1.8};
       if(packet.glyph.icons){
@@ -465,24 +466,39 @@ export function createWorldMapView({
     stockTransferIcons.sync(edgeTransferPacketDescriptors);
   }
 
+  function transferRoadPath(source,destination) {
+    const edge=getState?.()?.world?.connections?.find(e=>[e.regionAId,e.regionBId].includes(source.id)&&[e.regionAId,e.regionBId].includes(destination.id));
+    const points=edge&&illustrated.roadPoints(edge)?.map(screenPoint);
+    if(!points?.length)return [sitePoint(source),sitePoint(destination)];
+    const start=sitePoint(source);
+    if(Math.hypot(points[0].x-start.x,points[0].y-start.y)>Math.hypot(points.at(-1).x-start.x,points.at(-1).y-start.y))points.reverse();
+    return points;
+  }
   const TRADE_GOLD = 0xd8b25a, TRADE_INK = 0x302d2a;
-  function drawCorridorArrow(g, from, to, width, color, alpha) {
+  function drawCorridorArrow(g, from, to, width, color, alpha, path) {
+    const tip=getEdgeTransferPacketPose({path,progress:.88});
+    from={x:tip.x-tip.directionX,y:tip.y-tip.directionY};to=tip;
     const dx=to.x-from.x, dy=to.y-from.y, len=Math.hypot(dx,dy);
-    if(len<24)return;
-    const ux=dx/len, uy=dy/len, px=-uy, py=ux, inset=Math.min(26,len*0.18);
-    const ax=from.x+ux*inset, ay=from.y+uy*inset, bx=to.x-ux*inset, by=to.y-uy*inset;
+    if(len<0.001)return;
+    const ux=dx/len, uy=dy/len, px=-uy, py=ux, inset=0;
+    const bx=to.x-ux*inset, by=to.y-uy*inset;
     const head=width*1.6+4;
     const sx=bx-ux*head, sy=by-uy*head;
     // Ink outline, then a stepped two-tone band for the pixel-art bevel.
-    g.lineStyle(width*1.4+2,TRADE_INK,alpha*0.9);g.moveTo(ax,ay);g.lineTo(sx,sy);
-    g.lineStyle(width,color,alpha);g.moveTo(ax,ay);g.lineTo(sx,sy);
-    g.lineStyle(Math.max(1,Math.round(width/3)),0xf4e2a8,alpha*0.55);g.moveTo(ax,ay);g.lineTo(sx,sy);
+    g.lineStyle(width*1.4+2,TRADE_INK,alpha*0.9);g.moveTo(path[0].x,path[0].y);for(const p of path.slice(1))g.lineTo(p.x,p.y);
+    g.lineStyle(width,color,alpha);g.moveTo(path[0].x,path[0].y);for(const p of path.slice(1))g.lineTo(p.x,p.y);
+    g.lineStyle(Math.max(1,Math.round(width/3)),0xf4e2a8,alpha*0.55);g.moveTo(path[0].x,path[0].y);for(const p of path.slice(1))g.lineTo(p.x,p.y);
     g.lineStyle(2,TRADE_INK,alpha*0.9);g.beginFill(color,alpha);
     g.drawPolygon([bx,by,sx+px*head*0.8,sy+py*head*0.8,sx-px*head*0.8,sy-py*head*0.8]);
     g.endFill();
   }
+  const corridorLabels=[];
   function drawTradeCorridors(definition, timeSec, dragging) {
+    for(const label of corridorLabels)label.visible=false;
+    let labelIndex=0;
+    const labelRows=new Map();
     tradeCorridorGraphics.clear();
+    for(const label of corridorLabels)label.visible=false;
     if(!definition)return;
     const state=getState?.();
     const windowSec=Math.max(48,getMoonCycleDurationSec(state)*24);
@@ -493,12 +509,21 @@ export function createWorldMapView({
       if(!source||!destination)continue;
       const alpha=dragging?0.6+0.3*flow.intensity:0.3;
       // Keep corridor width constant on screen so it reads at overview zoom.
-      drawCorridorArrow(tradeCorridorGraphics,sitePoint(source),sitePoint(destination),getTradeCorridorWidth(flow.intensity,dragging)/zoom,TRADE_GOLD,alpha);
+      drawCorridorArrow(tradeCorridorGraphics,sitePoint(source),sitePoint(destination),getTradeCorridorWidth(flow.intensity,dragging)/zoom,TRADE_GOLD,alpha,transferRoadPath(source,destination));
+      const path=transferRoadPath(source,destination);
+      const pose=getEdgeTransferPacketPose({path,progress:.5});
+      let label=corridorLabels[labelIndex];
+      if(!label){label=new PIXI.Text('',{fontFamily:'Georgia',fontSize:14,fill:0xffe6a2,stroke:0x101819,strokeThickness:4});label.anchor.set(.5,1);tradeCorridorGraphics.addChild(label);corridorLabels.push(label);}
+      labelIndex++;label.visible=true;label.text=flow.resourceId==='stock' ? (flow.traits.join(' / ')||'Stock') : flow.resourceId==='food'?'Food':'People';
+      const pairKey=[flow.from,flow.to].sort().join(':');
+      const row=labelRows.get(pairKey)??0;labelRows.set(pairKey,row+1);
+      label.position.set(pose.x,pose.y-(8+18*row)/zoom);label.scale.set(1/zoom);
+
     }
   }
   function drawGhostPacket(packet, progress, alpha) {
     if(alpha<=0.01)return;
-    const pose=getEdgeTransferPacketPose({from:packet.from,to:packet.to,progress,laneOffset:packet.laneOffset});
+    const pose=getEdgeTransferPacketPose({path:packet.path,from:packet.from,to:packet.to,progress,laneOffset:packet.laneOffset});
     const color=packet.glyph?.color??TRADE_GOLD;
     edgeTransferGraphics.lineStyle(1.5,TRADE_INK,alpha);
     edgeTransferGraphics.beginFill(color,alpha);
@@ -527,22 +552,20 @@ export function createWorldMapView({
       }
       surviving.push(packet);
       for(const dot of getPacketTrailSteps(rawProgress)){
-        const p=getEdgeTransferPacketPose({from:packet.from,to:packet.to,progress:dot.progress,laneOffset:packet.laneOffset});
+        const p=getEdgeTransferPacketPose({path:packet.path,from:packet.from,to:packet.to,progress:dot.progress,laneOffset:packet.laneOffset});
         edgeTransferGraphics.lineStyle(0);
         edgeTransferGraphics.beginFill(packet.glyph?.color??TRADE_GOLD,dot.alpha*Math.min(1,rawProgress/0.12));
         edgeTransferGraphics.drawRect(Math.round(p.x)-3*dot.scale-1,Math.round(p.y)-3*dot.scale-1,6*dot.scale+2,6*dot.scale+2);
         edgeTransferGraphics.endFill();
       }
       const pose = getEdgeTransferPacketPose({
+        path: packet.path,
         from: packet.from,
         to: packet.to,
         progress: rawProgress,
         laneOffset: packet.laneOffset,
       });
-      const facing = getEdgeTransferPacketFacing(
-        packet.facingFrom,
-        packet.facingTo
-      );
+      const facing = pose;
       const fadeIn = Math.min(1, rawProgress / 0.12);
       const fadeOut = Math.min(1, (1 - rawProgress) / 0.2);
       const alpha = Math.max(0, Math.min(fadeIn, fadeOut));
@@ -610,6 +633,7 @@ export function createWorldMapView({
     lastEdgeTransferDescriptorBoundarySec = null;
     tradeFlowHistory.clear();
     tradeCorridorGraphics.clear();
+    for(const label of corridorLabels)label.visible=false;
     edgeTransferGraphics.clear();
     stockTransferIcons.clear();
   }
@@ -769,7 +793,7 @@ export function createWorldMapView({
       const highlighted = highlightedRegionIds.has(region.id);
       const relationship = getMapRelationship(relationships, region.id);
       const shape = new PIXI.Graphics();
-      shape.beginFill(REGION_COLOURS[region.colour] ?? 0x777777, .04).drawPolygon(points).endFill();
+      shape.beginFill(getRegionTerrainStyle(regionDef.biome, region.colour).fill, .04).drawPolygon(points).endFill();
       if (relationships && !relationship && !highlighted) {
         shape.beginFill(0x071216, .36).drawPolygon(points).endFill();
       }
@@ -781,7 +805,7 @@ export function createWorldMapView({
       hit.hitArea = new PIXI.Polygon(points);
       hit.eventMode = "static";
       hit.cursor = !choiceRegionIds || choiceRegionIds.has(region.id) ? 'pointer' : 'default';
-      if (!illustratedMap&&display.terrain !== false) addRegionTerrain(hit, points, region.colour, region.controller === "player" ? 1 : .74);
+      if (!illustratedMap&&display.terrain !== false) addRegionTerrain(hit, points, region.colour, region.controller === "player" ? 1 : .74, regionDef.biome);
       hit.addChild(shape);
       if (!illustratedMap && region.monster && display.actors !== false) addMonsterGround(hit, points);
       hit.mapRegionId = region.id;
@@ -895,17 +919,19 @@ export function createWorldMapView({
     return layerLandmarks;
     }).value;
 
-    // References depend on geography, not changing allegiance or Stock roles.
-    // Keep their text textures when the regional overlays refresh.
-    retained.update(mapContent,'references',[getArtRevision(),display.choiceRegionIds],mapContent=>{
+    // Name colours follow viewed control, including occupation and rewind.
+    // Stock changes still retain their text textures.
+    retained.update(mapContent,'references',[getArtRevision(),display.choiceRegionIds,
+      definition.regions.map(r=>[r.id,getRegionNameColour(getRegionState(state,r.id))])],mapContent=>{
     for (const regionDef of definition.regions) {
       const point = getRegionReferenceCorner(definition, regionDef, screenPoint, polygon)
         ?? sitePoint(regionDef);
       const label = createRegionLabel(getRegionReference(state, regionDef.id) ?? "Unknown region", {
         ...TEXT_STYLES.chip,
         fontSize: 21,
-        fill: PALETTE.text, stroke: 0x111713, strokeThickness: 4,
+        fill: getRegionNameColour(getRegionState(state, regionDef.id)), stroke: 0x111713, strokeThickness: 4,
       }, point.x, point.y, 180, 52);
+      label.label='region-name';label.mapRegionId=regionDef.id;
       mapContent.addChild(presentRegion(label, regionDef.id));
     }
     });
@@ -918,9 +944,10 @@ export function createWorldMapView({
     }
     });
 
-    retained.update(root,'chaos',[getArtRevision(),chaosExpanded,graphScope,civilizationSummary.chaos,civilizationSummary.green],root=>{
+    retained.update(root,'chaos',[getArtRevision(),chaosExpanded,graphScope,civilizationSummary.chaos],root=>{
     if (chaosExpanded) {
       const civilizationPanel = new PIXI.Graphics();
+      civilizationPanel.label='chaos-drawer-panel';
       roundedRect(
         civilizationPanel,
         CIVILIZATION_RECT.x,
@@ -930,7 +957,7 @@ export function createWorldMapView({
         7,
         PALETTE.panel,
         graphScope === "civilization" ? PALETTE.accent : PALETTE.stroke,
-        graphScope === "civilization" ? 5 : 3
+        graphScope === "civilization" ? 3 : 2
       );
       civilizationPanel.eventMode = "static";
       civilizationPanel.cursor = "pointer";
@@ -951,12 +978,9 @@ export function createWorldMapView({
       });
       civilizationPanel.on("pointerover", () => {
         const reckoning = civilizationSummary.chaos.lastReckoning;
-        const green = civilizationSummary.green;
         tooltipView?.show?.({
-          title: `${green.label} · Chaos reckoning`,
+          title: 'The Coming Dark',
           lines: [
-            "Green Ascendancy is a placeholder: visual feedback only, no gameplay effects.",
-            `Visual tiers: ${green.cadenceYears}/${green.cadenceYears * 2}/${green.cadenceYears * 3} years.`,
             `Primordial pressure: ${formatChaosValue(reckoning?.primordialPressure ?? 0)}`,
             `Premature deaths: ${reckoning?.prematureDeaths ?? 0} · External emigrants: ${reckoning?.externalEmigrants ?? 0}`,
             `Premature pressure: ${formatChaosValue(reckoning?.prematureDeathPressure ?? 0)} · Emigration pressure: ${formatChaosValue(reckoning?.externalEmigrationPressure ?? 0)}`,
@@ -964,8 +988,9 @@ export function createWorldMapView({
             `Chaos income: ${formatChaosValue(reckoning?.rawPressure ?? 0)} · Resistance: ${formatChaosValue(civilizationSummary.chaos.resistance)}`,
             `Incoming Chaos: ${formatChaosValue(reckoning?.incomingChaos ?? 0)} · Accumulated: ${formatChaosValue(civilizationSummary.chaos.chaosPower)}`,
             `Monster regions: ${civilizationSummary.chaos.monsterCount}`,
-            `Monster Pressure: ${formatChaosValue(civilizationSummary.chaos.expansionProgress)} / ${civilizationSummary.chaos.expansionThreshold}`,
-            "Resistance contains Chaos and reduces its relative expansion rate; dangerous actions bypass it.",
+            `Creep: ${formatChaosValue(civilizationSummary.chaos.expansionProgress)} / ${civilizationSummary.chaos.expansionThreshold}`,
+            "At 100 Creep by default, trigger a Monster Spawn. Excess Creep carries over.",
+            "Resistance contains passive Creep gain; dangerous actions bypass it.",
           ],
         }, civilizationPanel.getBounds(), { dismissOnExit: true });
       });
@@ -974,14 +999,14 @@ export function createWorldMapView({
       addChaosPanelContent(root, CIVILIZATION_RECT, civilizationSummary);
     }
     }).node.visible=chrome;
-    retained.update(root,'controls',[getArtRevision(),chrome,chaosExpanded,chaosExpanded?null:civilizationSummary.chaos.chaosPower,regionSelectionActive,selectedRegionId,relationships],root=>{
+    retained.update(root,'controls',[getArtRevision(),chrome,chaosExpanded,chaosExpanded?null:[civilizationSummary.chaos.expansionProgress,civilizationSummary.chaos.expansionThreshold],regionSelectionActive,selectedRegionId,relationships],root=>{
     if(chrome){
-    addButton(root, { x: chaosExpanded ? CIVILIZATION_RECT.x + CIVILIZATION_RECT.width : 16, y: 92, width: chaosExpanded ? 44 : 180, height: 52 },
-      chaosExpanded ? '<' : `Chaos ${formatChaosValue(civilizationSummary.chaos.chaosPower)} >`, () => {
-        chaosExpanded = !chaosExpanded;
-        tooltipView?.hide?.();
-        lastSignature = '';
-      });
+    const toggleChaos=()=>{
+      chaosExpanded=!chaosExpanded;
+      tooltipView?.hide?.();lastSignature='';
+    };
+    if(chaosExpanded) addButton(root,{x:CIVILIZATION_RECT.x+CIVILIZATION_RECT.width+4,y:CIVILIZATION_RECT.y,width:36,height:44},'<',toggleChaos);
+    else addCollapsedChaosControl(root,{x:CIVILIZATION_RECT.x,y:CIVILIZATION_RECT.y,width:252,height:44},civilizationSummary.chaos,toggleChaos);
     }
     const controlsX = regionSelectionActive ? DETAIL_RECT.x - 226 : MAP_VIEWPORT_RECT.x + MAP_VIEWPORT_RECT.width - 226;
     const cameraRight = regionSelectionActive ? DETAIL_RECT.x : MAP_VIEWPORT_RECT.x + MAP_VIEWPORT_RECT.width;
@@ -1012,6 +1037,12 @@ export function createWorldMapView({
       illustrated.update(visualTime(),camera.snapshot().zoom);
     },
     refresh: () => { lastSignature = ""; render(true); },
+    resetArtwork() {
+      illustrated.destroy();
+      illustrated=createTerrain();
+      world.setChildIndex(illustrated.container,0);
+      lastSignature='';
+    },
     // Bake a new world's terrain while its forecast is still running (New Game).
     prefetch: state => illustrated.prefetch(state),
     cancelPrefetch: () => illustrated.cancelPrefetch(),
@@ -1054,6 +1085,7 @@ export function createWorldMapView({
       lastEdgeTransferBatchKey = null;
       lastEdgeTransferDescriptorBoundarySec = null;
       tradeCorridorGraphics.clear();
+    for(const label of corridorLabels)label.visible=false;
       edgeTransferGraphics.clear();
       stockTransferIcons.clear();
     },
@@ -1162,7 +1194,8 @@ export function createWorldMapView({
           const rawProgress =
             (visualTime() - packet.startedSec) / packet.durationSec;
           const pose = getEdgeTransferPacketPose({
-            from: packet.from,
+            path: packet.path,
+        from: packet.from,
             to: packet.to,
             progress: rawProgress,
             laneOffset: packet.laneOffset,

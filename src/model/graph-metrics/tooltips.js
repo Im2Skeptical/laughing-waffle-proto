@@ -74,7 +74,7 @@ export function getSettlementChaosPowerTooltipSpec(state) {
     lines: [
       `Accumulated Chaos: ${formatChaosValue(chaos.chaosPower)}`,
       `Current Resistance: ${formatChaosValue(chaos.resistance)}`,
-      `Monster Pressure: ${formatChaosReckoningValue(chaos.expansionProgress)} / ${chaos.expansionThreshold}`,
+      `Creep: ${formatChaosReckoningValue(chaos.expansionProgress)} / ${chaos.expansionThreshold}`,
       `Passive progress per moon: ${formatChaosReckoningValue(chaos.progressPerMoon)}`,
       "Above containment, passive progress scales with uncovered Chaos divided by Resistance (minimum divisor 1).",
       "Resistance stops passive progress when it meets accumulated Chaos. Dangerous actions add progress directly.",

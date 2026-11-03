@@ -84,3 +84,7 @@ Scholar's temporary shortage. These URLs select fixtures, not keyword rules.
 captured coefficients, actual Hunt/Campaign, all eight real card activations,
 missing supplies, pure inspection, JSON continuation and authoritative replay.
 Run `npm run verify` for the full repository checks.
+
+Keyword identity and class metadata come from [the mechanics catalogue](../src/defs/mechanics.js).
+These Output Multiplier queries remain distinct from meters and events; see the
+[shared authoring contract](card-design-guide.md#mechanics-catalogue).

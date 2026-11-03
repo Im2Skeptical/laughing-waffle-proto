@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.50`.
+Game build version: `1.1.51`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -61,6 +61,12 @@ Routing skills live in `.grok/skills/`.
   monster destructions update its persistent Trophy history.
 
 `npm run check:architecture` guards the first and layering rules.
+
+Named card mechanics use `src/defs/mechanics.js`; before adding or referencing one,
+follow [the authoring contract](../docs/card-design-guide.md#mechanics-catalogue).
+
+Player-facing threat terms are **Creep** and **Monster Spawn**. Internal
+identifiers remain stable; see [the mapping and authoring contract](../docs/creep-and-monster-spawn.md).
 
 ## Current schemas
 

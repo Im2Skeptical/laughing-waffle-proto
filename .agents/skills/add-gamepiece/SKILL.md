@@ -33,6 +33,12 @@ Definitions live in `src/defs/gamepieces/detailed-settlement-defs.js`:
 `detailedSettlementEffectOps`. Inspect a mechanically comparable live definition.
 Read the relevant split-folder README before editing its resolver.
 
+Before naming a mechanic or authoring an effect/trigger, use the
+[mechanics catalogue contract](../../../docs/card-design-guide.md#mechanics-catalogue)
+and `src/defs/mechanics.js`. Reuse a supported binding, or register and implement
+its shared resolver/emitter and behavioral tests before making the card playable.
+Verify generated readings and linked terms from the actual structured definition.
+
 Use existing DSL operations first. When they cannot express the agreed behavior,
 add a generalized capability and express the card through data. Consult
 [effects](../../../Designer%20Docs/Effect-Op-Dictionary.md),

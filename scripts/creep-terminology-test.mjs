@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import { getGamepieceFace } from '../src/model/gamepiece-presentation.js';
+import { practiceEffectProduct } from '../src/model/practice-outputs.js';
+import { getPracticeSymbols } from '../src/views/inspection-symbols-pixi.js';
+import { getInspectionTerms } from '../src/views/inspection-terms.js';
+import { detailedSettlementPracticeDefs, detailedSettlementEffectOps } from '../src/defs/gamepieces/detailed-settlement-defs.js';
+
+assert.equal(practiceEffectProduct({op:'addMonsterPressure'}),'Creep');
+assert.ok(detailedSettlementEffectOps.includes('addMonsterPressure'),'existing DSL identifier stays stable');
+const def=detailedSettlementPracticeDefs.experimentation;
+assert.equal(def.effects.find(effect=>effect.op==='addMonsterPressure').amount,10);
+const face=getGamepieceFace(null,'practice','experimentation');
+assert.equal(face.monsterPressureCost,10);
+assert.ok(face.detailLines.some(line=>line.includes('10 Creep')&&line.includes('Monster Spawn')));
+const symbols=getPracticeSymbols(face);
+assert.ok(symbols.some(symbol=>symbol.name==='Creep'));
+assert.equal(symbols.some(symbol=>symbol.name==='Monster Pressure'),false);
+const {terms}=getInspectionTerms(face,symbols);
+assert.match(terms.Creep,/100 Creep/);
+assert.match(terms['Monster Spawn'],/intercept/);
+assert.ok(detailedSettlementPracticeDefs.watchkeeping.charge.trigger.any.some(trigger=>trigger.kind==='monsterPressure'),'regional activity hooks retain their scopes and IDs');
+console.log('[creep-terminology] card cost, effect label, glossary and unchanged DSL activity identifiers passed');

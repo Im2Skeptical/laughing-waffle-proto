@@ -1,5 +1,8 @@
 # Civilization System + Content milestone
 
+Player-facing terms: **Creep** and **Monster Spawn**; see
+[the engine mapping and authoring contract](creep-and-monster-spawn.md).
+
 ## Current full-map build (2026-10-31)
 
 This checkout implements the audited full-map ruleset as its ordinary New Game.
@@ -100,7 +103,7 @@ first-pass system notes below retain their original tuning context.
   choice remains a random eligible Stock output (excluding the first choice),
   with Random (+10 Prestige once) third. Edited content with no eligible basics
   retains a disabled Food choice. Public Works chooses Housing, Stock capacity, or Special.
-  Insufficient Prestige substitutes 10 Monster Pressure per card
+  Insufficient Prestige substitutes 10 Creep per card
   purchase at checkout; staging and undo do not apply it.
 - Crossroads combines Move, Build route and Tour in one full-map node.
   Travel and Routes node types are removed from runtime definitions and tools.
@@ -223,7 +226,7 @@ human playtest work.
   the visit, with natural mortality after elapsed time. Duel victory adds one
   permanent Prowess and 10 Prestige; Quest awards a Relic and 10 Prestige, with
   the 15-Prestige Warrior risk prize added to successful encounters.
-  Monster clearing resets Monster Pressure and opens the stronger nest;
+  Monster clearing resets Creep and opens the stronger nest;
   destroying the nest removes it. Neutral attacks use conquest. At advantage three all neutral population
   survives; below that, 80% population and Stock survive. Survivors become adult
   Strangers. Ruins retain dormant population/Stock for reconquest; no siege
@@ -231,7 +234,7 @@ human playtest work.
 - Each fresh launch seeds one Defense-2 frontier Monster, preferably one frontier
   step away from player settlements, and connects the adjacent small neutral.
   Chaos accumulates permanently from Faith income, without subtracting Resistance.
-  At Death, uncovered Chaos divided by current Resistance adds Monster Pressure, with a default coefficient of 0.8 and a minimum divisor of 1.
+  At Death, uncovered Chaos divided by current Resistance adds Creep, with a default coefficient of 0.8 and a minimum divisor of 1.
   Greater population slows expansion even above containment. Resistance freezes saved
   progress while it contains Chaos. One shared tracker fills at 100 by default;
   a full tracker immediately expands one front in rotating authored order and retains
@@ -248,11 +251,11 @@ human playtest work.
   requires sustained 3x effective population to buy at least 100 additional years
   per start. It isolates the Resistance contribution; played population growth
   still needs Food, Housing and Faith support.
-  Passive Monster Pressure is tuned against the real simulation over each starting
+  Passive Creep is tuned against the real simulation over each starting
   road; dangerous-action costs and the 100-progress threshold stay independent.
 - Authored Raid, conquest, forbidden Discovery, selected advanced/esoteric
   Practices, deep knowledge study and higher-quality Relic searches generate fixed
-  Monster Pressure costs, shown with the Monster symbol and amount before commitment.
+  Creep costs, shown with the Monster symbol and amount before commitment.
   These bypass Resistance and can fill the tracker immediately without adding Chaos.
   Threshold, passive rate, Crisis diversion and Life Map risk costs are editable in Game Settings;
   individual Practice amounts are editable in the card reviewer.
@@ -265,7 +268,7 @@ human playtest work.
   provider ties use existing connection/tableau order. Neutrals never grow classes or
   build/research autonomously.
 - Shortage relief grants up to three Edible within host capacity, costing 15% Danger
-  or one Currency. Threat diversion removes 25 shared Monster Pressure by default at 20% Danger. Prowess increases success for both risky responses.
+  or one Currency. Threat diversion removes 25 shared Creep by default at 20% Danger. Prowess increases success for both risky responses.
 - Storehouse targets Construction rather than asking the player to choose a Trait;
   Cistern and Millhouse use simple capacity rules. Most selected institutions use
   gated capacity/candidate bonuses; Foundry proves shared Knowledge/Consume output

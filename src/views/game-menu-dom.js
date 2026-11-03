@@ -8,7 +8,7 @@ import { NEW_GAME_DEV_SETTINGS_KEY } from '../controllers/new-game-settings-cont
 import { DEBUG_PROFILE_LIBRARY_STORAGE_KEY } from '../model/debug-profile-library.js';
 import { CARD_REVIEW_STORAGE_KEY, CARD_REVIEW_GAME_MODE_KEY } from '../controllers/card-review-controller.js';
 
-export function createGameMenuDom({ session, onResume, onPause, cardReviews, newGameSettings }) {
+export function createGameMenuDom({ session, onResume, onPause, cardReviews, newGameSettings, onPerformanceMode }) {
   const portrait = window.matchMedia(PHONE_PORTRAIT_QUERY);
   const panel = document.createElement("main");
   panel.id = "game-menu";
@@ -55,6 +55,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
   });
   let progressiveArtwork = getProgressiveArtworkPreference();
   let performanceEntryPending = new URLSearchParams(location.search).get("perf") === "1";
+  let performanceLaunch = new URLSearchParams(location.search).get("launch");
   let mode = "home";
   let overwriteSlot = null;
   let entering = false;
@@ -67,6 +68,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
   let renderedSlotPhase = null;
   let renderedCanReplace = null;
   let renderedSavePhase = null;
+  let syncPerformanceDisplay = () => {};
   function button(label, action, testid) {
     const element = document.createElement("button");
     element.type = "button";
@@ -76,6 +78,12 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
     return element;
   }
   function show() {
+    if (new URLSearchParams(location.search).get("perf") === "1" && usesTouchGameDisplay()) {
+      try { screen.orientation?.unlock?.(); } catch {}
+      if (getGameFullscreenElement()) {
+        try { const exit=document.exitFullscreen??document.webkitExitFullscreen; if(exit) void Promise.resolve(exit.call(document)).catch(()=>{}); } catch {}
+      }
+    }
     document.body.classList.add("game-menu-open");
     panel.hidden = false;
     mode = "home";
@@ -103,6 +111,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
       // signal that the player actually left during the request.
       if (version !== entryVersion || document.hidden) return;
       if (portrait.matches) {
+        if (slot === PERFORMANCE_SAVE_SLOT) performanceEntryPending = true;
         loadingSlot = null;
         render();
         displayHint.textContent = 'Turn your device sideways, then continue your chronicle.';
@@ -136,6 +145,20 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
       }
     } finally { if (version === entryVersion) entering = false; }
   }
+  function launchPerformance(kind, event) {
+    if (entering) return;
+    const url=new URL(location.href);
+    url.searchParams.set('dev','1');url.searchParams.set('perf','1');
+    url.searchParams.set('art',progressiveArtwork?'1':'0');url.searchParams.delete('launch');
+    url.hash='';history.replaceState(null,'',url.href);
+    syncPerformanceDisplay();
+    performanceLaunch=kind;
+    performanceEntryPending=false;
+    onPerformanceMode?.({ progressiveArtwork });
+    panel.style.removeProperty('--chronicle-backdrop');
+    if (kind === 'continue') void enter(isCurrent=>session.continueGame(PERFORMANCE_SAVE_SLOT,{isCurrent}),PERFORMANCE_SAVE_SLOT,event);
+    else start(PERFORMANCE_SAVE_SLOT,event);
+  }
   function start(slot, event) {
     void enter(isCurrent => session.newGame(slot, { isCurrent }), slot, event);
   }
@@ -157,7 +180,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
     subtitle.textContent = "Guide a fragile realm. Turn back the years. Rewrite its fate.";
     intro.append(eyebrow, title, subtitle);
     if (performanceEntryPending && portrait.matches) {
-      displayHint.hidden=false; displayHint.textContent='Turn your device sideways to start your performance game.';
+      displayHint.hidden=false; displayHint.textContent='Start your performance game to enter fullscreen and landscape. If rotation is unavailable, turn your phone sideways.';
     }
     content.append(displayHint);
     const slots = session.slots();
@@ -269,22 +292,23 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
       dev.dataset.testid = 'game-developer-tools'; dev.open = devExpanded;
       const summary = document.createElement('summary'); summary.textContent = 'Developer tools';
       dev.append(summary);
-      const performanceButton = button('New game in performance mode', () => {
-        const url = new URL(location.href); url.searchParams.set('dev','1'); url.searchParams.set('perf','1');
-        url.searchParams.set('art', progressiveArtwork ? '1' : '0'); url.searchParams.set('launch','new');
-        url.hash = ''; location.assign(url.href);
+      const performanceButton = button('New game in performance mode', event => {
+        const kind=performanceEntryPending && (performanceLaunch==='continue' || (performanceLaunch!=='new' && session.getPerformanceSave?.())) ? 'continue' : 'new';
+        launchPerformance(kind,event);
       }, 'game-new-performance');
-      performanceButton.disabled = !canReplace; dev.append(performanceButton);
+      performanceButton.disabled = !canReplace;
+      if (performanceEntryPending && usesTouchGameDisplay()) {
+        performanceButton.textContent = performanceLaunch === 'continue' || (performanceLaunch !== 'new' && session.getPerformanceSave?.())
+          ? 'Continue performance game' : 'New game in performance mode';
+        content.insertBefore(performanceButton, displayHint);
+      } else dev.append(performanceButton);
       const artworkLabel = document.createElement('label'); artworkLabel.className = 'game-edited-cards-toggle';
       const artworkToggle = document.createElement('input'); artworkToggle.type = 'checkbox'; artworkToggle.checked = progressiveArtwork;
       artworkToggle.dataset.testid = 'game-progressive-artwork';
       artworkToggle.addEventListener('change', () => { progressiveArtwork = artworkToggle.checked; try { localStorage.setItem('dev.progressiveArtwork', progressiveArtwork ? 'on' : 'off'); } catch {} });
       artworkLabel.append(artworkToggle, document.createTextNode('Load artwork progressively')); dev.append(artworkLabel);
       if (session.getPerformanceSave?.()?.meta?.schemaVersion) {
-        const resumePerformance = button('Continue performance game', event => {
-          if (new URLSearchParams(location.search).get('perf') === '1') void enter(isCurrent => session.continueGame(PERFORMANCE_SAVE_SLOT, {isCurrent}), PERFORMANCE_SAVE_SLOT, event);
-          else { const url = new URL(location.href); url.searchParams.set('dev','1'); url.searchParams.set('perf','1'); url.searchParams.set('art',progressiveArtwork?'1':'0'); url.searchParams.set('launch','continue'); url.hash=''; location.assign(url.href); }
-        }, 'game-continue-performance');
+        const resumePerformance = button('Continue performance game', event => launchPerformance('continue',event), 'game-continue-performance');
         resumePerformance.disabled = !canReplace; dev.append(resumePerformance);
       }
       if (newGameSettings) {
@@ -382,6 +406,14 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
   };
   document.addEventListener('fullscreenchange', fullscreenChanged);
   document.addEventListener('webkitfullscreenchange', fullscreenChanged);
+  if (usesTouchGameDisplay()) {
+    const displayButton=button('Fullscreen / landscape', () => { void requestGameDisplayMode(); }, 'performance-game-display');
+    const syncDisplayButton=syncPerformanceDisplay=()=>{displayButton.hidden=new URLSearchParams(location.search).get('perf') !== '1' || !!getGameFullscreenElement();};
+    document.addEventListener('fullscreenchange',syncDisplayButton);
+    document.addEventListener('webkitfullscreenchange',syncDisplayButton);
+    syncDisplayButton();
+    document.querySelector('[data-testid="utility-controls"]').prepend(displayButton);
+  }
   menuButton.addEventListener("click", returnToMenu);
   document.querySelector('[data-testid="utility-controls"]').prepend(menuButton, recovery.statusButton);
   document.body.append(panel, recovery.banner, importInput);
@@ -389,15 +421,19 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
     if (!panel.hidden && loadingSlot !== null) loading.update(loadingStarted ? session.getLoadingStatus?.() : null, loadingFailed);
   }, 250);
   show();
-  function startPerformanceEntry() {
-    if (!performanceEntryPending || portrait.matches || session.getSlotStatus().phase !== 'ready') return;
+  function startPerformanceEntry(event = null) {
+    if (!performanceEntryPending || session.getSlotStatus().phase !== 'ready') return;
+    if (portrait.matches && !event) {
+      void requestGameDisplayMode().then(() => { if (!portrait.matches) startPerformanceEntry(); });
+      return;
+    }
     performanceEntryPending = false;
-    const launch = new URLSearchParams(location.search).get('launch');
+    const launch = performanceLaunch;
     const url = new URL(location.href); url.searchParams.delete('launch'); history.replaceState(null, '', url.href);
-    if (launch === 'continue' || (launch !== 'new' && session.getPerformanceSave?.())) void enter(isCurrent => session.continueGame(PERFORMANCE_SAVE_SLOT, {isCurrent}), PERFORMANCE_SAVE_SLOT);
-    else start(PERFORMANCE_SAVE_SLOT);
+    if (launch === 'continue' || (launch !== 'new' && session.getPerformanceSave?.())) void enter(isCurrent => session.continueGame(PERFORMANCE_SAVE_SLOT, {isCurrent}), PERFORMANCE_SAVE_SLOT, event);
+    else start(PERFORMANCE_SAVE_SLOT, event);
   }
-  void session.refreshSlots().then(startPerformanceEntry);
+  void session.refreshSlots().then(() => startPerformanceEntry());
   return {
     show,
     hide,

@@ -872,7 +872,7 @@ export function createVassalNodeDecisionModalView({
       }
     }
 
-    if(nodeState?.contentMode==='shop'&&decision?.stagedMonsterPressureCost)root.addChild(createText(`On confirmation: ${decision.stagedPrestigeCost} Prestige + ${decision.stagedMonsterPressureCost} Monster Pressure`,{...TEXT_STYLES.body,fontSize:25,fill:0xf0ad97},PANEL.x+40,PANEL.y+PANEL.height-60));
+    if(nodeState?.contentMode==='shop'&&decision?.stagedMonsterPressureCost)root.addChild(createText(`On confirmation: ${decision.stagedPrestigeCost} Prestige + ${decision.stagedMonsterPressureCost} Creep`,{...TEXT_STYLES.body,fontSize:25,fill:0xf0ad97},PANEL.x+40,PANEL.y+PANEL.height-60));
     const isCurrent = currentNodeId === node.id;
     const isShop = nodeState?.contentMode === "shop";
     const canConfirm = !readOnly && !replacementOfferId && isCurrent && !nodeState?.resolving
@@ -1033,6 +1033,8 @@ export function createVassalNodeDecisionModalView({
 
   return {
     prepare: renderer => worldScreen.prepare(renderer),
+    resetArtwork:()=>worldScreen.resetArtwork(),
+    prepareProgressive:(renderer,wait,isCurrent)=>worldScreen.prepareProgressive(renderer,wait,isCurrent),
     async prepareChoices(nodes, baseState) {
       clearPreparedLayouts();
       for (const [nodeId, item] of Object.entries(nodes ?? {})) {
@@ -1126,6 +1128,7 @@ export function createVassalNodeDecisionModalView({
       return {
         open: logicalOpen, nodeId: openNodeId,
         worldDecision:worldScreen.isOpen()?worldScreen.getSnapshot():null,
+        decisionMapTerrain:worldScreen.getTerrainStats(),
         layoutBuilds, preparedLayoutHits, preparedLayoutCount:preparedLayouts.size,
         tapFeedback: getTapFeedbackSnapshot(),
         interactionPending: root.pendingInteractionCount > 0,

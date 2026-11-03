@@ -46,7 +46,7 @@ export function classActionOptions(state, vassal, family) {
         }
       }
       const threat=adjacentRegionIds(state,site.regionId).find(id=>getRegionState(state,id)?.monster);
-      if(threat) incidents.push({id:`delay-${threat}`,label:`Monster threatens ${label}: reduce Monster Pressure by ${getGameSetting(state,'monsterDiversionProgress')}`,phaseCost:1,prestigeDelta:6,immediateDeathChance:.2,classAction:{kind:'delay',targetId:threat}});
+      if(threat) incidents.push({id:`delay-${threat}`,label:`Monster threatens ${label}: reduce Creep by ${getGameSetting(state,'monsterDiversionProgress')}`,phaseCost:1,prestigeDelta:6,immediateDeathChance:.2,classAction:{kind:'delay',targetId:threat}});
       if (threat||stockTotal(state,target,'Edible')<pop.mealDemand) {
         const response=target.practiceSlots.find(p=>getDetailedPracticeDef(state,p?.practiceId)?.responseAction==='rescue');
         const def=getDetailedPracticeDef(state,response?.practiceId);

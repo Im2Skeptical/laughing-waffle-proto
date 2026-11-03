@@ -41,3 +41,16 @@ assert.equal(incomplete.ok,false);assert.equal(incomplete.reveal,undefined);
 assert.equal(failures,1);assert.equal(failing.getChronicleTexture('chronicle-gate-v1/fixture.png'),null,'partial success cannot leak art or offer a ready reveal');
 PIXI.Assets.load=originalLoad;
 console.log('[progressive-art] staged reveal, readiness/failure gating, deferred terrain, cancellation and reuse OK');
+
+const graphics=await import('../src/views/minimal-graphics.js');
+graphics.enablePerformanceGraphics({progressiveArtwork:false});
+assert.equal(graphics.minimalGraphics,true);
+assert.equal(graphics.progressiveGraphics,false);
+art.hideChronicleArtwork(renderer);
+assert.equal(art.getChronicleTexture(file),null,'switching from a loaded page hides existing illustrations');
+graphics.enablePerformanceGraphics({progressiveArtwork:true});
+assert.equal(graphics.progressiveGraphics,true);
+const restored=await art.loadProgressiveChronicleArt({renderer,wait:async()=>{},onError(error){throw error;}});
+assert.equal(art.getChronicleTexture(file),null,'runtime switch retains the explicit artwork reveal');
+assert.equal(restored.reveal(),true);
+assert.ok(art.getChronicleTexture(file));

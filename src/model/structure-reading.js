@@ -1,3 +1,4 @@
+import { mechanicEffect, mechanicEvent } from '../defs/mechanics.js';
 import { specialistCount, structureQualityMultiplier, structureModifierAmount } from './detailed-settlements/stock.js';
 
 const title = value => value ? value[0].toUpperCase() + value.slice(1) : '';
@@ -21,8 +22,8 @@ function practiceScope(query = {}) {
   if (query.requiresOrConsumesAny?.length) parts.push(`requiring or consuming ${query.requiresOrConsumesAny.join(' or ')} Stock`);
   if (query.scholarStaffed) parts.push('staffed by Scholars');
   if (query.minimumRequirements) parts.push(`with at least ${query.minimumRequirements} Stock inputs`);
-  if (query.effectOpsAny?.length) parts.push(`with ${query.effectOpsAny.map(op => ({train:'training',research:'Research',generateStock:'Stock production'})[op] ?? op).join(' or ')} effects${query.classId ? ` for ${title(query.classId)}s` : ''}`);
-  if (query.triggerKindsAny?.length) parts.push(`triggered by ${query.triggerKindsAny.map(kind => ({populationDied:'deaths',settlementLost:'settlement losses',stockGenerated:'Stock production',chaosIncreased:'increasing Chaos',crisisResolved:'resolved Crises',monsterPressure:'Monster pressure'})[kind] ?? kind).join(' or ')}${query.triggerTraitsAny?.length ? ` (${query.triggerTraitsAny.join(' or ')} Stock)` : ''}`);
+  if (query.effectOpsAny?.length) parts.push(`with ${query.effectOpsAny.map(op => mechanicEffect(op)?.label ?? op).join(' or ')} effects${query.classId ? ` for ${title(query.classId)}s` : ''}`);
+  if (query.triggerKindsAny?.length) parts.push(`triggered by ${query.triggerKindsAny.map(kind => mechanicEvent(kind)?.name ?? kind).join(' or ')}${query.triggerTraitsAny?.length ? ` (${query.triggerTraitsAny.join(' or ')} Stock)` : ''}`);
   return `local Practices${parts.length ? ' ' + parts.join(', ') : ''}`;
 }
 

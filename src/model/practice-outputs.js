@@ -1,20 +1,10 @@
+import { MECHANIC_EFFECTS, mechanicEffect } from '../defs/mechanics.js';
 // Non-Stock Practice outputs that reviewed cards may add or remove. Every op
 // here is resolved by detailed-settlements/practices.js with only `amount` and
 // (where listed) one parameter. Stock production, Chaos and other DSL effects
 // stay fixed in their authored order.
 // `icon` names the face resource icon used for that output.
-export const PRACTICE_OUTPUTS = Object.freeze({
-  research:{label:'Research',icon:'research'},
-  train:{label:'Specialists trained',param:'classId',choices:['scholar','warrior'],icon:'population'},
-  addHousingForPhase:{label:'Housing',icon:'housingCapacity'},
-  reduceLocalFoodRequirement:{label:'Edible saved',icon:'food'},
-  addFaithChaosResistance:{label:'Chaos resistance',icon:'faith'},
-  bankCandidateDevelopment:{label:'Candidate development',param:'classId',choices:['scholar','warrior'],icon:'prestige'},
-  bankShopQuality:{label:'Shop quality bonus',param:'classId',choices:['scholar'],icon:'activation'},
-  bankSupport:{label:'Support banked',param:'bank',choices:['formation','siege','mobility','coordination','greatHost'],icon:'support'},
-  bankPreview:{label:'Preview bonus',icon:'hourglass'},
-  boostSeasonalFood:{label:'Seasonal food boost',icon:'food'},
-});
+export const PRACTICE_OUTPUTS = Object.freeze(Object.fromEntries(Object.entries(MECHANIC_EFFECTS).filter(([, effect]) => effect.editable && effect.status === 'implemented')));
 // Card faces are laid out for at most three effects.
 export const PRACTICE_EFFECT_LIMIT = 3;
 const SEASONS = ['spring','summer','autumn','winter'];
@@ -22,7 +12,7 @@ const AMOUNT_KEYS = ['amount','seasonAmounts'];
 export const isPracticeOutput = effect => Object.hasOwn(PRACTICE_OUTPUTS, effect?.op);
 export const practiceOutputKey = effect => `${effect.op}${PRACTICE_OUTPUTS[effect.op]?.param ? `:${effect[PRACTICE_OUTPUTS[effect.op].param]}` : ''}`;
 // What a card produces, for filters: Stock, Chaos or the output's label.
-export const practiceEffectProduct = effect => effect?.op === 'generateStock' ? 'Stock' : effect?.op === 'addChaos' ? 'Chaos' : effect?.op === 'addMonsterPressure' ? 'Monster Pressure' : PRACTICE_OUTPUTS[effect?.op]?.label ?? null;
+export const practiceEffectProduct = effect => mechanicEffect(effect?.op)?.label ?? null;
 
 const validSeasonAmounts = value => value === undefined || (value && typeof value === 'object' && !Array.isArray(value)
   && Object.entries(value).every(([key,amount])=>SEASONS.includes(key)&&Number.isFinite(amount)));

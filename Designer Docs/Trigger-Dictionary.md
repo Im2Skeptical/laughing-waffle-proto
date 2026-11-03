@@ -47,7 +47,7 @@ upkeep. Keep it distinct from ordinary Food production and `preRouting`.
 Emitters record JSON events with event/root/parent IDs, region, source and the
 actual outcome. `charge.trigger.any` OR clauses match one event once. Current
 content listens to Stock generation/consumption, candidate Development, Chaos,
-population deaths, Trade, Monster pressure/destruction, Support, Campaign,
+population deaths, Trade, Monster activity/destruction, Support, Campaign,
 Challenge, successful defense, martial actions and survived Danger.
 
 All matching gains for an event occur before ready cards resolve in authored
@@ -85,3 +85,15 @@ validated transaction once; its time cost resolves through normal ticks.
 Run `npm run test:detailed-settlements`, `npm run test:vassal-life-map`, and
 `npm run test:detailed-replay`; `npm run verify` includes the content and Charge
 suites.
+
+## Named event bindings
+
+The [mechanics catalogue](../src/defs/mechanics.js) owns canonical names, icons,
+implemented event IDs and supported scopes. Shared validation rejects unknown
+references; card trigger readings come from executable clauses. See the
+[authoring contract](../docs/card-design-guide.md#mechanics-catalogue).
+
+`{kind:'monsterSpawn', scope:'civilization'}` listens once per Monster Spawn,
+including interception. It is emitted after each threshold or direct resolution.
+The regional `monsterPressure` activity event remains distinct and may occur
+more than once during a Spawn. See [Creep / Monster Spawn](../docs/creep-and-monster-spawn.md).

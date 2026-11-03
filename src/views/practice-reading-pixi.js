@@ -1,3 +1,4 @@
+import { MECHANICS } from '../defs/mechanics.js';
 import { paintRelicPanel, RELIC } from './chronicle-skin.js';
 import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES } from './settlement-theme.js';
@@ -95,7 +96,7 @@ export function addPracticeReading(parent, width, face, {fontSize = 28, onInspec
   if (reading.trigger || reading.requirements.length || face.blocked || face.chaosCost || face.monsterPressureCost) {
     y+=18;
     if(face.monsterPressureCost) {
-      addResourceAmount(root,'monster',`+${face.monsterPressureCost} Monster Pressure`,{x:pad,y,fontSize:fontSize*.82,iconSize:fontSize*1.25});
+      addResourceAmount(root,'monster',`+${face.monsterPressureCost} ${MECHANICS.creep.name}`,{x:pad,y,fontSize:fontSize*.82,iconSize:fontSize*1.25});
       y+=fontSize*1.25+12;
     }
     if(face.chaosCost) {

@@ -22,7 +22,7 @@ export function createTradeFlowHistory({ maxEntries = TRADE_CORRIDOR_HISTORY_MAX
     const flows = [];
     for (const t of transfers) {
       if (!t?.sourceRegionId || !t?.destinationRegionId || t.sourceRegionId === t.destinationRegionId) continue;
-      flows.push({ from: t.sourceRegionId, to: t.destinationRegionId, amount: amountOf(t), resourceId: t.resourceId ?? null });
+      flows.push({ from: t.sourceRegionId, to: t.destinationRegionId, amount: amountOf(t), resourceId: t.resourceId ?? null, traits: t.traits ?? [] });
     }
     bySec.delete(sec);
     bySec.set(sec, flows);
@@ -43,8 +43,9 @@ export function createTradeFlowHistory({ maxEntries = TRADE_CORRIDOR_HISTORY_MAX
       const weight = 1 - 0.6 * (rank / Math.max(1, secs.length));
       for (const f of flows) {
         const [a, b] = f.from < f.to ? [f.from, f.to] : [f.to, f.from];
-        const key = a + '|' + b;
-        const pair = pairs.get(key) ?? { a, b, net: 0, gross: 0 };
+        const resourceKey = f.resourceId === 'stock' ? f.traits.join(',') : f.resourceId;
+        const key = a + '|' + b + '|' + resourceKey;
+        const pair = pairs.get(key) ?? { a, b, net: 0, gross: 0, resourceId:f.resourceId, traits:f.traits };
         const signed = f.from === a ? f.amount : -f.amount;
         pair.net += signed * weight;
         pair.gross += f.amount * weight;
@@ -55,7 +56,7 @@ export function createTradeFlowHistory({ maxEntries = TRADE_CORRIDOR_HISTORY_MAX
     for (const p of pairs.values()) {
       if (p.gross <= 0) continue;
       const forward = p.net >= 0;
-      out.push({ from: forward ? p.a : p.b, to: forward ? p.b : p.a, net: Math.abs(p.net), gross: p.gross });
+      out.push({ from: forward ? p.a : p.b, to: forward ? p.b : p.a, net: Math.abs(p.net), gross: p.gross, resourceId:p.resourceId, traits:p.traits });
     }
     const max = out.reduce((m, f) => Math.max(m, f.gross), 0) || 1;
     for (const f of out) f.intensity = Math.min(1, f.gross / max);
