@@ -188,15 +188,15 @@ export function createSettlementGraphSession({
       beforeState?.civilization?.vassalLineage?.currentVassalId ?? null;
     const beforePendingResolution = getVassalPendingResolution(beforeState);
     const beforeVassal = getCurrentLifeMapVassal(beforeState);
-    const gains = beforeVassal ? getVassalNodeResolutionGains(beforeVassal,
-      beforeVassal.lifeMap?.nodeStates?.[beforeVassal.lifeMap?.currentNodeId]?.family) : null;
+    const gains = beforeVassal && !['shopDelve','campaignEncounter'].includes(beforePendingResolution?.kind) ? getVassalNodeResolutionGains(beforeState, beforeVassal,
+      beforeVassal.lifeMap?.nodeStates?.[beforeVassal.lifeMap?.currentNodeId]?.family) : {prestige:0,development:0};
     const recapIncome = beforeVassal && beforePendingResolution ? {
       // Installing a commit mutates the runner's state object in place. Retain
       // clock values now; the beforeState reference cannot preserve its time.
       clock: getClockTimePassage(beforeState, { tSec: beforePendingResolution.resolveSec }),
       prestigeIncome: gains.prestige,
       developmentIncome: gains.development,
-      prestigeBefore: beforeVassal.prestige ?? 0,
+      prestigeBefore: beforeState.rulesetId ? beforeState.civilization.prestige : beforeVassal.prestige ?? 0,
       expBefore: beforeVassal.developmentProgress ?? 0,
       ageBefore: getVassalAge(beforeState, beforeVassal),
     } : null;

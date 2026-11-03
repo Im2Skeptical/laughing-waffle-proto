@@ -87,3 +87,30 @@ export function addSettlementCurrencyIndicator(parent, point, { currency, curren
     parent.addChild(glyph);
   });
 }
+
+export function addRegionPrestigeBadge(parent,point,value,{tooltipView,populationPerPoint}={}) {
+  if(!Number.isFinite(value))return null;
+  const root=new PIXI.Container();root.label='region-prestige-badge';
+  root.position.set(point.x,point.y+60);
+  const amount=String(Math.round(value));
+  const number=createText(`+${amount}`,{...TEXT_STYLES.title,fontSize:27,fill:0xffe6a6},0,0,0,.5);
+  const width=Math.max(82,number.width+54),left=-width/2;
+  const plate=new PIXI.Graphics();
+  plate.beginFill(0x080c0b,.55).drawRoundedRect(left-2,-18,width+4,42,9).endFill();
+  plate.lineStyle(1.5,0x8e7548).beginFill(0x202820,.97).drawRoundedRect(left,-21,width,40,8).endFill();
+  plate.lineStyle(1,0xe6cd8a,.35).drawRoundedRect(left+3,-18,width-6,34,6);
+  plate.lineStyle(1,0x8e7548,.5).moveTo(left+34,-12).lineTo(left+34,11);
+  plate.lineStyle(0).beginFill(0xbaa16b,.13).drawCircle(left+18,-1,14).endFill();
+  root.addChild(plate);
+  addResourceIcon(root,'prestige',left+18,-1,26);
+  const textLeft=left+42;
+  number.position.x=textLeft;
+  root.addChild(number);
+  const exact=String(Number(value.toFixed(2)));
+  const spec={title:'Territorial Prestige',lines:[`${exact} Prestige per completed node from this region.`,`Map badges are rounded; regional contributions are combined before rounding the node payout.`,`Delve and campaign encounters award no node Prestige.`,`Provisional: population / ${populationPerPoint}, reduced by unrest.`],maxWidth:320};
+  root.eventMode='static';root.cursor='help';root.hitArea=new PIXI.Rectangle(left,-21,width,40);
+  root.on('pointerover',e=>{if(e.pointerType!=='touch')tooltipView?.show?.(spec,root.getBounds(),{dismissOnExit:true});});
+  root.on('pointerout',()=>tooltipView?.hide?.());
+  root.on('pointerdown',e=>{e.stopPropagation();tooltipView?.pin?.(spec,root.getBounds(),'territorial-prestige');});
+  parent.addChild(root);return root;
+}

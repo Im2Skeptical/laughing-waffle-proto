@@ -63,6 +63,7 @@ import {
 import {
   addActiveVassalMarker,
   addCrownCapitalMarker,
+  addRegionPrestigeBadge,
   addSettlementCurrencyIndicator,
   addSettlementStarvationIndicator,
 } from "./world-map/glyphs.js";
@@ -169,6 +170,8 @@ function buildRegionMapIndicators(state, definition) {
       monster: region?.monster ?? null,
       neutral: (state.world.sites ?? []).find(s=>s.regionId===regionDef.id)?.neutral ?? null,
       showsPlayerMarker:false,
+      prestigePopulationPerPoint:viewModel?.prestigePopulationPerPoint,
+      prestigePerNode:viewModel?.prestigePerNode??null,
       influence:getMapInfluencePresentation(viewModel?.control,{monster:!!region?.monster}),
       crownCapital:state.rulesetId&&region?.controller==='external-a'&&state.civilization.remnant?.capitalRegionId===regionDef.id&&!region?.monster,
       independent:!!(state.rulesetId&&region?.controller==='frontier'&&viewModel?.population?.total>0&&!viewModel?.control?.support?.player&&!viewModel?.control?.support?.['external-a']),
@@ -888,6 +891,7 @@ export function createWorldMapView({
       if (display.actors !== false && indicator.monster) addMonsterMarker(regionContent, point, {art:!illustratedMap});
       if (display.actors !== false && indicator.crownCapital) addCrownCapitalMarker(regionContent,point,tooltipView);
       if(display.actors!==false)addMapInfluenceMarker(regionContent,point,indicator.influence,{tooltipView,reference:getRegionReference(state,indicator.regionId)??indicator.regionId});
+      if(display.actors!==false)addRegionPrestigeBadge(regionContent,point,indicator.prestigePerNode,{tooltipView,populationPerPoint:indicator.prestigePopulationPerPoint});
       const adornments = new PIXI.Container();
       adornments.position.set(point.x,point.y);
       adornments.scale.set(.75);

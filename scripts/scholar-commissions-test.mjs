@@ -154,7 +154,7 @@ for (const def of VASSAL_COMMISSION_DEFS) {
     assert.equal(applyAction(state,action,{isReplay:true}).ok,true);
   }
   assert.equal(v.completedCommissions,1);
-  assert.equal(state.civilization.prestige,before-20+30+40+getVassalNodeResolutionGains(v,'patronage').prestige,'gross income, prize and normal node income are distinct');
+  assert.equal(state.civilization.prestige,before-20+30+40+getVassalNodeResolutionGains(state,v,'patronage').prestige,'gross income, prize and normal node income are distinct');
   const replay=rebuildStateAtSecond(timeline,state.tSec);assert.equal(replay.ok,true);
   assert.deepEqual(serializeGameState(replay.state),serializeGameState(state));
   const messages=[];
