@@ -37,6 +37,8 @@ const housingCardIds = new Set([
 // Current reviewed defaults supersede these workbook Stock traits/capacities.
 const reviewedTraits={forage:['Edible'],logging:['Timber','Construction'],surfaceMining:['Ore'],saltGathering:['Salt','Currency'],pottery:['Storage'],brickmaking:['Construction'],brewing:['Currency','Edible'],saltCuring:['Edible'],recordKeeping:['Record'],surveying:['Record']};
 const reviewedCapacities={quarrying:3,brewing:8,saltCuring:20,milling:16,recordKeeping:8,raidingParties:20,monsterHunting:7};
+// Player-facing wording evolves independently of the imported workbook.
+const reviewedTriggerText={watchkeeping:'When Monsters act in or adjacent to this settlement.'};
 for (const row of source.entries) {
   const def=(row.kind==='practices'?practices:structures)[row.id];
   assert.ok(def,`${row.pool}/${row.id}: missing runtime row`);
@@ -51,7 +53,7 @@ for (const row of source.entries) {
     assert.equal(def.mode,row.fields.Mode.toLowerCase());assert.equal(def.lane,def.mode);
     if (def.mode==='charge') {
       assert.equal(def.activation.type,'charge');assert.equal(def.charge.gain,row.fields['Charge Gain']);
-      assert.equal(def.charge.threshold,row.fields['Charge Threshold']);assert.equal(def.charge.triggerText,row.fields['Charge Trigger']);
+      assert.equal(def.charge.threshold,row.fields['Charge Threshold']);assert.equal(def.charge.triggerText,reviewedTriggerText[row.id]??row.fields['Charge Trigger']);
       assert.deepEqual(def.consume,[]);assert.deepEqual(def.require,[]);
       assert.equal(def.distinctTechnicalProviders,undefined);assert.equal(def.minimumStockedMilitary,undefined);
       assert.doesNotMatch(def.charge.dischargeText,/Consume |stocked /);

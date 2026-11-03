@@ -1,8 +1,8 @@
+import { MECHANICS, MECHANIC_EFFECTS, MECHANIC_EVENTS } from '../defs/mechanics.js';
 // Read-only reference copy. The selected card's rules remain authoritative;
 // these definitions explain its vocabulary without implementing game behavior.
 import { RESOURCE_ART_IDS } from './chronicle-art.js';
 const TERMS = {
-  Stock: 'Resources held by a Practice. Each unit carries all of its host’s Stock traits. Produce adds units; Consume spends matching units. Stock capacity limits how many can be held.',
   'Stock traits': 'Traits describe what Stock can satisfy. A unit can carry several traits at once. Bone, Timber, Fuel and Edible are examples. Inputs and Charge triggers look for matching traits.',
   'Stock capacity': 'The maximum Stock a Practice can hold. Production stops at capacity. Consume can free space for future Activation effects. Structures can increase capacity on the Practices described in their rules.',
   Activation: 'A Practice’s rules event: its grouped effects resolve when their requirements are met. Cycle provides a timing; Charge provides an event meter. An Activation can Produce Stock, Gain Research, or have other effects.',
@@ -17,38 +17,24 @@ const TERMS = {
   Structure: 'A gamepiece occupying the settlement’s construction strip. Its ongoing bonuses apply while its stated requirements are met. It has no Cycle or Charge meter.',
   Knowledge: 'A Practice classification used by other rules. A tagged Practice or one staffed by a Scholar can count as Knowledge. Read the referring card’s trigger for the event it watches.',
   Ancestral: 'A card classification associated with inherited traditions. It is separate from Stock traits. The selected card’s rules explain its effects.',
-  Research: 'An abstract value gained by the realm, separate from Stock held on a Practice. Gain Research and Produce Stock can be separate effects of the same Activation.',
   Produce: 'Add Stock to a Practice, up to Stock capacity. Each unit carries its host’s Stock traits. Production can cause another Practice to Charge when its trigger matches.',
   Consume: 'Spend matching Stock for a recipe. Supply comes from local hosts first, then adjacent connected player settlements. Require checks Stock without spending it.',
   Require: 'A condition that must be met for Activation. Required Stock is checked and kept; Consume spends it instead. A full Charge meter can wait until requirements are legal.',
-  Death: 'A death can Charge a Practice watching for that event. The selected Practice’s trigger gives the relevant location and conditions.',
   Quality: 'The jewel and frame identify quality. Quality can improve Practice Stock capacity and worker sockets, or scale numeric Structure bonuses. The enlarged card shows its current values.',
   'Housing capacity': 'Room for population. Structures add ongoing Housing capacity; Practice effects may provide Housing for a stated phase.',
-  Housing: 'Room needed by the settlement’s population. Read the selected card for its amount and duration.',
   'Martial Support': 'Strength contributed by Warriors and supplied Practices. Structures may add bonuses. Its use and scope depend on the stated martial action.',
-  'Monster Pressure': 'Adds directly to the shared Monster Pressure tracker. A full tracker immediately expands, spawns, or strengthens Monsters, even when Resistance contains Chaos.',
-  'Chaos resistance': 'Contains accumulated Chaos: when Resistance meets or exceeds Chaos, passive Monster Pressure stops. Dangerous actions bypass Resistance.',
-  'Specialist training': 'An Activation that trains the named specialist class. Read the rules for its amount and requirements.',
-  Development: 'A bonus to a future Vassal candidate. Read the rules for the affected class, amount and cap.',
   Prestige: 'The candidate-development symbol. On these Practice faces it identifies a bonus to a future candidate; the rules name the affected class and amount.',
-  Support: 'Martial Support or a banked Support contribution. The rules specify which action can use it and any cap.',
-  Preview: 'A local preview bonus. Read the card’s rules for its amount and cap.',
-  'Meal saving': 'An effect that reduces Edible Stock needed at the settlement’s next meal.',
   'Construction footprint': 'The horizontal cells occupied in the construction strip. This capacity is separate from the settlement’s five Practice slots.',
   'Capacity Multiplier': 'Capacity Multiplier starts at 1. Bronze adds 1, Silver 2, Gold 3, Diamond 4. Contributions add, then multiply capacity once: 1 + 1 + 1 = \u00d73.',
   'Output Multiplier': 'Starts at ×1; matching contributions add. Multiplies Stock produced, not capacity, recipes, cadence or incoming Charge. Plains increase Grain, mountains Stone and forest Construction, by +1 per contiguous region.',
-  Chaos: 'A source of pressure on settlements. Read the selected card for the event or condition that refers to Chaos.',
-  Monster: 'A threat in a region. Practice triggers distinguish pressure from destruction; the selected rules give the qualifying event.',
-  Defense: 'A settlement’s defensive strength. The selected rules specify the contribution or successful-defense trigger.',
-  Danger: 'A survived Danger event can Charge a Practice that watches for it.',
-  Campaign: 'A won Campaign can Charge a Practice that watches for that event.',
-  Challenge: 'A completed Challenge can Charge a Practice that watches for that event.',
+  Monster: 'A threat in a region. Practice triggers distinguish Monster activity from destruction; the selected rules give the qualifying event.',
   Trade: 'A card classification or external Trade event. Read the selected rules for its use; a Trade Stock trait is a separate property of Stock.',
 };
 const ALIASES = {Activate:'Activation', Activates:'Activation', Workers:'Worker', Scholars:'Scholar', Warriors:'Warrior', Requires:'Require'};
 
 export function getInspectionTerms(face, symbols = []) {
-  const terms = {...TERMS};
+  const terms = {...TERMS, ...Object.fromEntries(Object.values(MECHANICS).filter(mechanic => mechanic.status === 'implemented').map(mechanic => [mechanic.name, mechanic.definition]))};
+  for (const binding of [...Object.values(MECHANIC_EFFECTS), ...Object.values(MECHANIC_EVENTS)]) if(binding.status === 'implemented') terms[binding.label??binding.name] ??= MECHANICS[binding.mechanicId].definition;
   const traits = new Set([...RESOURCE_ART_IDS.filter(id=>id.startsWith('stock-')).map(id=>id[6].toUpperCase()+id.slice(7)),...(face.stockTraits??[]),
     ...(face.inputs??[]).flatMap(input=>input.traits),...(face.chargeTriggers??[]).map(trigger=>trigger.trait).filter(Boolean),
     ...(face.structureBonuses??[]).flatMap(bonus=>bonus.traits)]);

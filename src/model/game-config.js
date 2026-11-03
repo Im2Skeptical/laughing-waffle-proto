@@ -1,12 +1,13 @@
+import { validateGamepieceMechanics } from './mechanic-validation.js';
 import { canonicalKeywordPrototype, keywordPrototypePractice } from './keywords-classes-prototype.js';
-import { PRACTICE_KEYWORDS } from './practice-keywords.js';
+import { MECHANIC_KEYWORDS as PRACTICE_KEYWORDS, mechanicEffect, mechanicEvent } from '../defs/mechanics.js';
 import {
   detailedSettlementPracticeDefs,
   settlementStructureDefs,
   STOCK_TRAIT_IDS,
 } from "../defs/gamepieces/detailed-settlement-defs.js";
 import { MOON_PHASE_DEFS } from '../defs/gamesettings/moon-phase-defs.js';
-import { isPracticeOutput, practiceEffectsCompatible, validPracticeInputs } from './practice-outputs.js';
+import { validPracticeInputs } from './practice-outputs.js';
 import {
   canonicalizeVassalLifeMapGeneratorConfig,
   createAuthoredVassalLifeMapGeneratorConfig,
@@ -111,19 +112,19 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
   }),
   Object.freeze({
     id: "monsterExpansion",
-    label: "Monster Pressure",
-    description: "Resistance contains accumulated Chaos. Excess Chaos divided by Resistance drives passive expansion; dangerous actions add progress directly. A full tracker expands one front.",
+    label: "Creep and Monster Spawns",
+    description: "Resistance contains accumulated Chaos. Excess Chaos divided by Resistance drives passive expansion; dangerous actions add progress directly. A full Creep meter triggers one Monster Spawn.",
     fields: Object.freeze([
-      field("monsterExpansionThreshold", "Pressure per Monster activity", 100, 1, 100000, 1, true),
-      field("monsterProgressPerChaosRatio", "Progress per excess Chaos/Resistance ratio each moon", 0.8, 0, 100, 0.01),
-      field("monsterDiversionProgress", "Progress removed by Crisis diversion", 25, 0, 100000, 1, true),
-      field("discoveryMonsterProgress", "Forbidden Discovery progress", 40, 0, 100000, 1, true),
-      field("conquestMonsterProgress", "Conquest base progress", 20, 0, 100000, 1, true),
-      field("conquestMonsterProgressPerDefense", "Conquest progress per Defense", 5, 0, 100000, 1, true),
-      field("deepStudyMonsterProgress", "Deep knowledge study progress", 20, 0, 100000, 1, true),
-      field("silverRelicMonsterProgress", "Silver Relic search progress", 10, 0, 100000, 1, true),
-      field("goldRelicMonsterProgress", "Gold Relic search progress", 25, 0, 100000, 1, true),
-      field("diamondRelicMonsterProgress", "Diamond Relic search progress", 50, 0, 100000, 1, true),
+      field("monsterExpansionThreshold", "Creep per Monster Spawn", 100, 1, 100000, 1, true),
+      field("monsterProgressPerChaosRatio", "Creep per excess Chaos/Resistance ratio each moon", 0.8, 0, 100, 0.01),
+      field("monsterDiversionProgress", "Creep removed by Crisis diversion", 25, 0, 100000, 1, true),
+      field("discoveryMonsterProgress", "Forbidden Discovery Creep", 40, 0, 100000, 1, true),
+      field("conquestMonsterProgress", "Conquest base Creep", 20, 0, 100000, 1, true),
+      field("conquestMonsterProgressPerDefense", "Conquest Creep per Defense", 5, 0, 100000, 1, true),
+      field("deepStudyMonsterProgress", "Deep knowledge study Creep", 20, 0, 100000, 1, true),
+      field("silverRelicMonsterProgress", "Silver Relic search Creep", 10, 0, 100000, 1, true),
+      field("goldRelicMonsterProgress", "Gold Relic search Creep", 25, 0, 100000, 1, true),
+      field("diamondRelicMonsterProgress", "Diamond Relic search Creep", 50, 0, 100000, 1, true),
     ]),
   }),
   Object.freeze({
@@ -261,17 +262,13 @@ function copyEditableLeaves(template, source, path = []) {
   if(path.length===2&&['consume','require'].includes(path[1])&&Array.isArray(template)&&validPracticeInputs(source,STOCK_TRAITS)) {
     return source.map(input=>({amount:input.amount,traits:[...input.traits]}));
   }
-  // Practice effects: fixed DSL effects keep their authored shape and order;
-  // reviewed non-Stock outputs may be added or removed. Anything else falls
-  // back to the authored list below.
-  if(path.length===2&&path[1]==='effects'&&Array.isArray(template)&&practiceEffectsCompatible(template,source)) {
-    const fixed=template.filter(effect=>!isPracticeOutput(effect));let next=0;
-    return source.map((effect,index)=>{
-      if(!isPracticeOutput(effect))return copyEditableLeaves(fixed[next++],effect,[...path,index]);
-      const {op,amount,classId,bank}=effect;
-      return {op,amount,...(classId!==undefined?{classId}:{}),...(bank!==undefined?{bank}:{})};
-    });
-  }
+  // Captured semantic bindings must survive save/replay unchanged. The card
+  // review UI limits editable choices separately; canonicalization preserves
+  // every validated effect and trigger instead of restoring authored IDs.
+  if(path.length===2&&path[1]==='effects'&&Array.isArray(source)
+    &&!validateGamepieceMechanics({effects:source}).length) return clone(source);
+  if(path.at(-1)==='trigger'&&source
+    &&!validateGamepieceMechanics({charge:{trigger:source}}).length) return clone(source);
   if(path.at(-1)==='activation'&&template.type!=='charge'&&source&&scheduleTypes.includes(source.type)) {
     const activation={...clone(template),type:source.type};
     delete activation.also;delete activation.seasonKeys;delete activation.stage;
@@ -282,6 +279,8 @@ function copyEditableLeaves(template, source, path = []) {
   }
   if(path.at(-1)==='source'&&source)return {...copyEditableLeaves(template,source,path.slice(0,-1)),
     icon:scheduleTypes.includes(source.icon)?source.icon:template.icon,cadence:typeof source.cadence==='string'?source.cadence:template.cadence};
+  if (['effectOpsAny','triggerKindsAny'].includes(path.at(-1)) && Array.isArray(source)
+    && source.every(id => (path.at(-1)==='effectOpsAny'?mechanicEffect(id):mechanicEvent(id))?.status==='implemented')) return clone(source);
   if (Array.isArray(template)) {
     return template.map((entry, index) => copyEditableLeaves(entry, source?.[index], [...path, index]));
   }
@@ -317,6 +316,10 @@ export function canonicalizeGamepiecesDraft(value) {
   for(const [id,def] of Object.entries(practices)) {
     const source=value?.practices?.[id];
     if(!source)continue;
+    const scale=source.keywordOutputScale;
+    if(scale && Object.hasOwn(PRACTICE_KEYWORDS,scale.keyword) && Number.isInteger(scale.per) && scale.per>0
+      && Number.isInteger(scale.cap) && scale.cap>=0 && Number.isFinite(scale.amount) && scale.amount>=0
+      && def.effects.some(effect=>effect.op==='generateStock')) def.keywordOutputScale=clone(scale);
     const seasonal=[def.activation.type,...(def.activation.also??[])].includes('season');
     def.effects.forEach((effect,index)=>{
       const amounts=source.effects?.[index]?.seasonAmounts;
@@ -430,6 +433,7 @@ export function validateGamepiecesDraft(value) {
       if (!value[kind][id]) errors.push(`${kind}.${id}: required`);
     }
     for(const [id,def] of Object.entries(value[kind])) {
+      errors.push(...validateGamepieceMechanics(def).map(error => `${kind}.${id}: ${error}`));
       if(def?.locked!==undefined&&typeof def.locked!=='boolean')errors.push(`${kind}.${id}.locked: expected a boolean`);
       if(kind==='structures') {
         const recipe=def?.construction;

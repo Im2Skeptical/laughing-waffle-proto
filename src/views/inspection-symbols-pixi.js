@@ -1,3 +1,4 @@
+import { MECHANICS } from '../defs/mechanics.js';
 import { getResourceTexture, getStockTraitTexture, getChronicleTexture } from './chronicle-art.js';
 import { eventIcon, seasonIcon } from './piece-face-chrome.js';
 import { paintRelicPanel, RELIC } from './chronicle-skin.js';
@@ -35,14 +36,14 @@ export function getPracticeSymbols(face) {
       add('Charge',{drawing:'meter'});
       for(const trigger of face.chargeTriggers??[]) {
         if(trigger.trait)add(trigger.trait,{trait:trigger.trait});
-        else add(({death:'Death',knowledge:'Knowledge',stock:'Stock',chaos:'Chaos',monster:'Monster',defense:'Defense',support:'Support',danger:'Danger',campaign:'Campaign',challenge:'Challenge',development:'Development',trade:'Trade'})[trigger.icon]??trigger.icon,{icon:trigger.icon});
+        else add(trigger.name??({death:'Death',knowledge:'Knowledge',stock:'Stock',chaos:'Chaos',monster:'Monster',defense:'Defense',support:'Support',danger:'Danger',campaign:'Campaign',challenge:'Challenge',development:'Development',trade:'Trade'})[trigger.icon]??trigger.icon,{icon:trigger.icon});
         if(trigger.event==='stockGenerated')add('Produce',{glyph:'↑'});
         if(trigger.event==='stockConsumed')add('Consume',{glyph:'↓'});
       }
     } else if(face.source?.icon==='passive')add('Activation',{icon:'activation'});
     else add('Cycle',{wheel:face.source?.icon==='season'?'solar-wheel':'moon-wheel',icon:face.source?.icon==='season'?'year':face.source?.icon});
     for(const input of face.inputs??[]) {
-      if(input.kind==='monsterPressure') {add('Monster Pressure',{icon:'monster'});continue;}
+      if(input.kind==='monsterPressure') {add(MECHANICS.creep.name,{icon:MECHANICS.creep.icon});continue;}
       if(input.kind==='chaos') {add('Chaos',{icon:'chaos'});continue;}
       if(input.icon)add(input.symbolLabel??input.icon,{icon:input.icon});
       for(const trait of input.traits)add(trait,{trait});
@@ -53,6 +54,7 @@ export function getPracticeSymbols(face) {
       else add(effect.symbolLabel??({stock:'Stock',research:'Research',population:'Specialist training',prestige:'Prestige',activation:'Quality',support:'Support',hourglass:'Preview',housingCapacity:'Housing',faith:'Chaos resistance',food:'Meal saving'})[effect.icon]??effect.icon,{icon:effect.icon});
     }
   }
+  for (const mechanic of face.mechanics??[]) add(mechanic.name,{icon:mechanic.icon});
   if(face.patronEmblem)add(`Patron: ${face.patronName}`,{texture:face.patronEmblem});
   add('Quality',{drawing:'jewel'});
   return rows.sort((a,b)=>Number(!!b.trait)-Number(!!a.trait));

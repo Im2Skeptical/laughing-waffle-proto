@@ -12,8 +12,8 @@ export const CIVILIZATION_HEADER_RECT = Object.freeze({
 export const CIVILIZATION_RECT = Object.freeze({
   x: 16,
   y: 92,
-  width: 520,
-  height: 132,
+  width: 420,
+  height: 108,
 });
 export const DETAIL_RECT = Object.freeze({
   x: 960,

@@ -57,3 +57,11 @@ assert.equal(ghostsFromReplacedBatch(prev, { previousBoundarySec: 10, nextBounda
 assert.equal(ghostsFromReplacedBatch(prev, { previousBoundarySec: null, nextBoundarySec: 14, direction: 1, viewedSec: 14 }).length, 0, "after history clear nothing resurrects");
 assert.equal(ghostsFromReplacedBatch(prev, { previousBoundarySec: 10, nextBoundarySec: 14, direction: -1, viewedSec: 14 }).length, 0, "rewind drops");
 console.log("[trade-corridors] scrubBrowse keeps trend, invalidate clears, no resurrected packets OK");
+
+const commodities=createTradeFlowHistory();
+commodities.record(10,[{sourceRegionId:'A',destinationRegionId:'B',resourceId:'stock',traits:['Grain'],amount:3},{sourceRegionId:'B',destinationRegionId:'A',resourceId:'stock',traits:['Stone'],amount:3}]);
+assert.equal(commodities.netFlows(10,20).length,2,'opposite commodities retain their own direction');
+import { getEdgeTransferPacketPose } from '../src/views/world-map/packets.js';
+const bentPath=[{x:0,y:0},{x:100,y:0},{x:100,y:100}];
+assert.deepEqual([getEdgeTransferPacketPose({path:bentPath,progress:.75}).x,getEdgeTransferPacketPose({path:bentPath,progress:.75}).y],[100,50],'packet follows road corner by arc length');
+assert.equal(getEdgeTransferPacketPose({path:[...bentPath].reverse(),progress:.25}).y,50,'reverse transfer follows the same road');

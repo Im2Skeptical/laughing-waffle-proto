@@ -318,3 +318,14 @@ for(const flags of [{player:true},{monster:true}]) {
 assert.equal(territoryBoundarySegments([square('a',0,0),square('b',1,0,{monster:true})]).get('a').length,4,'opposing allegiances keep their boundary');
 const split=[{regionId:'large',player:true,points:[0,0,1,0,1,2,0,2]},square('small',1,0)];
 assert.equal(territoryBoundarySegments(split).get('large').length,4,'partially shared edge retains only its exposed section');
+
+// Former study Monster examples retain red mechanics but display their natural biome.
+const {getRegionTerrainStyle,getRegionNameColour}=await import('../src/views/world-map/region-style.js');
+const fixture=getRegionalMap('regional-v2:123').definition;
+const inherited=fixture.regions.filter(r=>r.biome==='mountains'&&r.initialState.colour==='red');
+assert.equal(inherited.length,2);
+for(const region of inherited) assert.equal(getRegionTerrainStyle(region.biome,region.initialState.colour),getRegionTerrainStyle('mountains','black'));
+assert.notEqual(getRegionTerrainStyle('mountains','red').fill,getRegionTerrainStyle('plains','red').fill);
+assert.notEqual(getRegionTerrainStyle('mountains','black').fill,getRegionTerrainStyle('swamp','black').fill);
+assert.equal(new Set(['frontier','player','external-a'].map(controller=>getRegionNameColour({controller})).concat(getRegionNameColour({controller:'player',monster:{}}))).size,4);
+assert.equal(getRegionNameColour({controller:'player',monster:{}}),getRegionNameColour({controller:'external-a',monster:{}}),'occupation takes precedence');

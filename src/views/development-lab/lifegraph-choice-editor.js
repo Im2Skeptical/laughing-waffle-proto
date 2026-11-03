@@ -1,9 +1,9 @@
 import { LIFEGRAPH_COST_CHOICES, LIFEGRAPH_SHOP_TYPES, LIFEGRAPH_CARD_QUALITIES, getLifeMapOptionSpecs } from '../../model/life-map-balance.js';
 import { el, input, select, field, badge } from './elements.js';
 
-const title=value=>value==='monsterPressure'?'Monster Pressure':value[0].toUpperCase()+value.slice(1);
+const title=value=>value==='monsterPressure'?'Creep':value[0].toUpperCase()+value.slice(1);
 const format=value=>Number(value.toFixed(2)).toString();
-const display=(kind,value)=>kind==='risk'?`${format(value*100)}%`:kind==='time'?`${format(value)} years`:kind==='monsterPressure'?`+${format(value)} Monster Pressure`:`${format(value)} Prestige`;
+const display=(kind,value)=>kind==='risk'?`${format(value*100)}%`:kind==='time'?`${format(value)} years`:kind==='monsterPressure'?`+${format(value)} Creep`:`${format(value)} Prestige`;
 
 export function renderLifegraphChoices(parent,{controller,designId,servicesOnly=false}){
   const review=controller.getChoiceReview(designId),design=controller.getSnapshot().draft.generatorConfig.design;

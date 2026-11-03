@@ -430,7 +430,7 @@ assert.equal(JSON.stringify(gameConfig),original,'construction editing leaves au
   assert.deepEqual(validateGamepiecesDraft(outGame.gameConfig.gamepieces).errors,[]);
   assert.deepEqual(deserializeGameState(serializeGameState(outGame)).gameConfig.gamepieces.practices.caravanGuarding.effects,outGame.gameConfig.gamepieces.practices.caravanGuarding.effects,'saves keep added outputs');
   const tampered=structuredClone(gameConfig.gamepieces);tampered.practices.caravanGuarding.effects=[{op:'research',amount:9}];
-  assert.deepEqual(canonicalizeGamepiecesDraft(tampered).practices.caravanGuarding.effects.map(effect=>effect.op),['generateStock'],'incompatible effect lists fall back to the authored effects');
+  assert.deepEqual(canonicalizeGamepiecesDraft(tampered).practices.caravanGuarding.effects.map(effect=>effect.op),['research'],'captured valid DSL bindings survive canonicalization; review permissions are enforced before capture');
   // Zoo: filter by what a card produces, live and with drafts applied.
   const researchers=state=>filterLabCatalogue(getLabCatalogue(state),{category:'practice',produces:'Research'}).map(entry=>entry.id);
   const liveResearch=researchers(createNewGameState(77));

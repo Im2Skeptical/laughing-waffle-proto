@@ -243,19 +243,22 @@ function pulseMonsterPressure(state, regions) {
     const region=threats.find(region => regions.indexOf(region)>previous) ?? threats[0];
     chaos.lastPressureRegionId=region.id;
     emitPracticeEvent(state,{kind:'monsterPressure',regionId:region.id,action:'advance'});
-    expandMonster(state,region,monsterExpansionTarget(state,region).id);
-    return;
+    const targetId = monsterExpansionTarget(state,region).id;
+    const outcome = expandMonster(state,region,targetId);
+    return { outcome, sourceRegionId: region.id, targetRegionId: targetId };
   }
   const target=regions.find(region => !region.monster && (state.rulesetId || region.controller==='frontier' && !siteAt(state,region.id)));
   if (target) {
     const spawnNumber=++chaos.spatialSpawns;
     target.monster={defense:CIV_CONTENT_TUNING.monsterDefense+Math.floor(spawnNumber/3)};
     emitPracticeEvent(state,{kind:'monsterPressure',regionId:target.id,action:'spawn'});
+    return { outcome: 'appeared', targetRegionId: target.id };
   } else {
     const region=regions.filter(region => region.monster).sort((a,b)=>a.monster.defense-b.monster.defense)[0];
     if (region) {
       region.monster.defense++;
       emitPracticeEvent(state,{kind:'monsterPressure',regionId:region.id,action:'strengthen'});
+      return { outcome: 'strengthened', targetRegionId: region.id };
     }
   }
 }
@@ -264,7 +267,7 @@ function expandMonster(state, region, targetId) {
   const target=getRegionState(state,targetId),site=siteAt(state,targetId);
   if(state.rulesetId&&site?.simulationMode==='detailed'){
     const m=militarySummary(state,targetId);
-    if(m.armed>0&&m.defense>=region.monster.defense){emitPracticeEvent(state,{kind:'defenseSucceeded',regionId:targetId,faction:target.controller});site.detailedState.lastDefense={tSec:state.tSec,result:'held',sourceRegionId:region.id};return;}
+    if(m.armed>0&&m.defense>=region.monster.defense){emitPracticeEvent(state,{kind:'defenseSucceeded',regionId:targetId,faction:target.controller});site.detailedState.lastDefense={tSec:state.tSec,result:'held',sourceRegionId:region.id};return 'intercepted';}
     if(target.controller==='player')state.civilization.history.lostSettlements++;
     target.lostAtSec=state.tSec;emitPracticeEvent(state,{kind:'settlementLost',regionId:targetId,faction:target.controller});
   }
@@ -285,7 +288,7 @@ function expandMonster(state, region, targetId) {
         state.civilization.research.total += region.monster.defense;
         emitPracticeEvent(state,{kind:'defenseSucceeded',regionId:targetId});
       });
-      settlement.lastDefense={tSec:state.tSec,result:'held',sourceRegionId:region.id};return;
+      settlement.lastDefense={tSec:state.tSec,result:'held',sourceRegionId:region.id};return 'intercepted';
     }
     state.civilization.history.lostSettlements++;
     const share=Math.min(.75,structureModifiers(state,settlement).reduce((n,m)=>n+(m.kind==='evacuationShare'?m.amount:0),0));
@@ -300,6 +303,7 @@ function expandMonster(state, region, targetId) {
   if(site) { if(site.town&&site.neutral)site.town.market=site.neutral; delete site.neutral;site.simulationMode='ruin';target.detailedSettlementEnabled=false; }
   target.controller='frontier';target.monster={defense:region.monster.defense};
   emitPracticeEvent(state,{kind:'monsterPressure',regionId:targetId,action:'expand'});
+  return 'expanded';
 }
 
 function resolveMonsterPressure(state) {
@@ -308,10 +312,31 @@ function resolveMonsterPressure(state) {
   const threshold = getGameSetting(state, 'monsterExpansionThreshold');
   while (chaos.monsterPressure>=threshold && playerSites(state).length) {
     chaos.monsterPressure = Math.round((chaos.monsterPressure-threshold)*1e9)/1e9;
-    chaos.expansionEvents++;
-    pulseMonsterPressure(state,regions);
+    resolveMonsterSpawn(state, regions, 'creep');
   }
 
+  finishMonsterResolution(state, regions);
+}
+
+// Exactly one global event per resolution, after its regional outcomes. Existing
+// regional activity keeps its own meaning; it must not stand in for this event.
+function resolveMonsterSpawn(state, regions, cause) {
+  state.civilization.chaos.expansionEvents++;
+  const result = pulseMonsterPressure(state, regions) ?? { outcome: 'blocked' };
+  emitPracticeEvent(state, { kind: 'monsterSpawn', cause, ...result });
+  return result;
+}
+
+export function triggerMonsterSpawn(state) {
+  if (state.runStatus?.complete || !playerSites(state).length) return null;
+  const regions = getWorldDefinition(state).regions.map(region => getRegionState(state, region.id));
+  const result = resolveMonsterSpawn(state, regions, 'direct');
+  finishMonsterResolution(state, regions);
+  return result;
+}
+
+function finishMonsterResolution(state, regions) {
+  const chaos = state.civilization.chaos;
   const survivors=playerSites(state);
   const lineage=state.civilization.vassalLineage;
   const active=lineage?.vassalsById?.[lineage.currentVassalId];

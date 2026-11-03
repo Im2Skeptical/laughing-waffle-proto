@@ -1,4 +1,5 @@
-import { progressiveGraphics } from './minimal-graphics.js';
+import { hideChronicleArtwork } from './chronicle-art.js';
+import { progressiveGraphics, enablePerformanceGraphics } from './minimal-graphics.js';
 import { loadProgressiveArtwork } from './progressive-artwork.js';
 import { loadPerformanceStart } from '../controllers/performance-start.js';
 import { createEdgeTransferScrubGate } from "./ui-root/edge-transfer-scrub-gate.js";
@@ -111,7 +112,7 @@ export const app = new PIXI.Application({
   width: VIEWPORT_DESIGN_WIDTH,
   height: VIEWPORT_DESIGN_HEIGHT,
   backgroundColor: 0x121819,
-  antialias: false,
+  antialias: true,
 });
 // Large decision panels contain many small text/graphics uploads. Budget their
 // preparation by frame time instead of Pixi's default four items per frame.
@@ -1789,6 +1790,14 @@ gameMenu = createGameMenuDom({
   cardReviews,
   newGameSettings,
   session: gameSession,
+  onPerformanceMode: ({ progressiveArtwork }) => {
+    progressiveArtEpoch++; progressiveArtStarted=false;pendingArtworkReveal=null;
+    enablePerformanceGraphics({ progressiveArtwork });
+    opening.setPreparedLoader(loadPerformanceStart);
+    hideChronicleArtwork(app.renderer);
+    worldMapView.resetArtwork();
+    vassalNodeDecisionModalView.resetArtwork();
+  },
   onResume: () => settlementGraphView?.setPresentationSuspended?.(false),
   onPause: () => {
     researchLibrary.close();
@@ -1839,7 +1848,12 @@ app.ticker.add((delta) => {
     void loadProgressiveArtwork({renderer:app.renderer,
       isCurrent:()=>epoch===progressiveArtEpoch,
       canLoad:()=>!gameSession.isInMenu()&&!document.hidden&&!opening.isRevealing()&&!vassalResolutionRecapView.isOpen()&&!lifeDecisionController.getResolution(),
-      prepareTerrain:(wait,isCurrent)=>worldMapView.prepareProgressive(app.renderer,wait,isCurrent),
+      prepareTerrain:async(wait,isCurrent)=>{
+        const main=await worldMapView.prepareProgressive(app.renderer,wait,isCurrent);
+        if(!isCurrent())return;
+        const decision=await vassalNodeDecisionModalView.prepareProgressive(app.renderer,wait,isCurrent);
+        return ()=>{if(!isCurrent())return false;return main?.()!==false && decision?.()!==false;};
+      },
       onReady:reveal=>{if(epoch===progressiveArtEpoch){pendingArtworkReveal=reveal;settlementDebugMenu.refresh();}},onError:error=>console.warn('[progressive-artwork]',error.message),
     }).catch(error=>console.warn('[progressive-artwork]',error.message));
   }

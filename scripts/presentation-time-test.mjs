@@ -172,7 +172,7 @@ assert.equal(loggingReading.reading.type,'Cycle');
 assert.equal(loggingReading.reading.trigger,null,'Season timing belongs in the Activation block');
 const anatomicalReading=getGamepieceFace(faceClock,'practice','anatomicalStudy');
 assert.deepEqual(anatomicalReading.reading.effects,[{timing:'',text:'Produce 2 Stock'},{timing:'',text:'Gain 2 Research'}]);
-assert.equal(anatomicalReading.reading.trigger,'Charge when someone in this settlement dies, or another local Practice produces Bone Stock.');
+assert.equal(anatomicalReading.reading.trigger,'Charge on Population death in this settlement or Stock production in this settlement (Stock with Bone).');
 assert.ok(anatomicalReading.reading.requirements.includes('Requires a Scholar worker.'),'The hard staffing gate remains readable');
 assert.ok(getPracticeSymbols(anatomicalReading).some(entry=>entry.name==='Charge'));
 assert.ok(!getPracticeSymbols(loggingReading).some(entry=>entry.name==='Charge'),'Glossary includes only symbols on the selected face');

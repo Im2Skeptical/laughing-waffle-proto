@@ -2,7 +2,7 @@
 
 Current Practice effects are JSON data in
 `src/defs/gamepieces/detailed-settlement-defs.js`. The operation whitelist is
-`detailedSettlementEffectOps`; `src/model/detailed-settlements/practices.js`
+`detailedSettlementEffectOps`, derived from [the mechanics catalogue](../src/defs/mechanics.js); `src/model/detailed-settlements/practices.js`
 evaluates and resolves those effects through the authoritative recipe path.
 Stock planning and Structure modifiers live in
 `src/model/detailed-settlements/stock.js`. Callers use the
@@ -16,7 +16,8 @@ Stock planning and Structure modifiers live in
 | `politicalForce` | Fixed faction-attributed temporary Force, refreshed per installed instance; never worker-scaled. |
 | `generateStock` | Adds integer Stock to the source Practice, clipped to its current capacity; positive actual yields emit Stock-generation events. |
 | `addChaos` | Adds a fixed civilization Chaos cost on successful activation and emits chaosIncreased; workers and output bonuses do not scale it. |
-| `addMonsterPressure` | Adds fixed progress to the shared Monster expansion tracker on successful activation. A full tracker immediately expands one front even under sufficient Resistance, retaining overflow; workers and output bonuses do not scale the cost. |
+| `addMonsterPressure` | Adds fixed Creep on successful activation. A full meter immediately triggers a Monster Spawn even under sufficient Resistance, retaining overflow; workers and output bonuses do not scale the cost. |
+| `triggerMonsterSpawn` | Resolve `amount` Monster Spawns directly (whole number); leaves Creep unchanged. Each emits one global `monsterSpawn` event. |
 | `research` | Adds civilization Research. |
 | `train` | Trains available unclassed adults into the specified Scholar or Warrior specialty. |
 | `addHousingForPhase` | Adds a temporary regional Housing bonus to the current phase modifiers. |
@@ -60,3 +61,7 @@ Run `npm run check:docs` for dictionary coverage,
 `npm run test:detailed-settlements` for recipes and `npm run verify` for replay,
 serialization and content coverage. The removed wallet operations and
 `scaledValue` recipes are historical design, not supported runtime operations.
+
+Player-facing terminology and the implemented direct-Spawn effect contract are in
+[the Creep / Monster Spawn mapping](../docs/creep-and-monster-spawn.md). The existing
+operation identifier remains `addMonsterPressure`; a generic direct-Spawn op is not yet implemented.

@@ -31,6 +31,8 @@ try{
     const {createTimelineFromInitialState,rebuildStateAtSecond}=await import('/src/model/timeline/index.js');
     const {createWorldMapView}=await import('/src/views/world-map-pixi.js');
     const {prepareChronicleArt}=await import('/src/views/chronicle-art.js');
+    const {formatChaosValue}=await import('/src/model/chaos-values.js');
+    globalThis.formatChaosValue=formatChaosValue;
     const {getDetailedCivilizationSummary}=await import('/src/model/detailed-settlements.js');
     const {getWorldDefinition,getRegionPolygon}=await import('/src/model/world-state.js');
     const {createMapPolygonReader}=await import('/src/views/world-map/geometry.js');
@@ -48,7 +50,7 @@ try{
     const held=contested.world.regions.find(r=>r.controller==='player');
     writePopulationBins(contested.world.sites.find(s=>s.regionId===held.id).detailedState,
       [5,25].map((count,i)=>({classId:'villager',allegiance:i?'external-a':'player',specialty:'ordinary',kind:'adults',age:null,count})));
-    globalThis.fixture={app,map,states,contested,setState:value=>{state=value;},edit:()=>revision++,setLoss:value=>{lossInfo=value;},originals:states.map(s=>JSON.stringify(s)),expected:states.map(s=>getDetailedCivilizationSummary(s).population.total),chaosAtFour:getDetailedCivilizationSummary(states[4]).chaos.chaosPower,first:app.renderer.extract.pixels()};
+    globalThis.fixture={app,map,states,contested,setState:value=>{state=value;},edit:()=>revision++,setLoss:value=>{lossInfo=value;},originals:states.map(s=>JSON.stringify(s)),expected:states.map(s=>getDetailedCivilizationSummary(s).population.total),pressureAtFour:getDetailedCivilizationSummary(states[4]).chaos.expansionProgress,first:app.renderer.extract.pixels()};
   });
   await page.screenshot({path:`${output}/${process.argv.includes('--baseline')?'baseline':'result'}.png`});
   const cdp=await page.context().newCDPSession(page);
@@ -116,12 +118,12 @@ try{
       setState(states[0]);map.update();
       findText(t=>t.text==='<').parent.emit('pointerdown');map.update();
       setState(states[4]);map.update();
-      const collapsed=findText(t=>t.text.startsWith('Chaos '))?.text===`Chaos ${fixture.chaosAtFour} >`;
+      const collapsed=findText(t=>t.label==='monster-pressure-value')?.text===`${Math.min(99,Math.round(fixture.pressureAtFour))} / 100`;
       // Runner edits can mutate the same object at the same simulation second.
       const edited=JSON.parse(JSON.stringify(states[4]));setState(edited);map.update();
-      const label=findText(t=>t.text.startsWith('Chaos '))?.text;
-      edited.civilization.chaos.chaosPower+=10;fixture.edit();map.update();
-      const editInvalidates=findText(t=>t.text.startsWith('Chaos '))?.text!==label;
+      const label=findText(t=>t.label==='monster-pressure-value')?.text;
+      edited.civilization.chaos.monsterPressure+=10;fixture.edit();map.update();
+      const editInvalidates=findText(t=>t.label==='monster-pressure-value')?.text!==label;
       const reads=map.getSemanticSnapshot().presentationReads;
       fixture.setLoss({resolved:true,lossYear:77});map.update();
       const forecastInvalidates=map.getSemanticSnapshot().presentationReads>reads;
@@ -142,7 +144,7 @@ try{
   assert.equal(result.contention.changedContested,result.contention.initialContested+1,'Unsupported held region receives a contention badge');
   assert.equal(result.contention.obsoleteText,false);assert.equal(result.contention.rewind,true);
   assert.equal(result.invalidates,true);assert.ok(result.difference>500,'Monster changes replace retained map content');
-  assert.equal(result.collapsed,true,'Collapsed Chaos counter updates during playback');
+  assert.equal(result.collapsed,true,'Collapsed Monster Pressure updates during playback');
   assert.ok(result.stockTags.every(check=>check.rows>=1&&check.offsets.length===0),'Resource exception rows stay centered on their settlement bars through camera zoom');
   if(!process.argv.includes('--baseline')){
     assert.equal(result.paused.reads,0,'Paused frames reuse map summaries and signatures');

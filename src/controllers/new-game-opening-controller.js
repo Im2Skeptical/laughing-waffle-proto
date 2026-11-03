@@ -112,6 +112,11 @@ export function createNewGameOpeningController({ createCache, createWorkerServic
 
   return {
     prepare, cancel,
+    setPreparedLoader(loader) {
+      cancel();
+      phase = 'idle'; elapsedSec = 0; lossSec = null;
+      loadPrepared = loader;
+    },
     consume() { cancel(); },
     begin(endSec) { cancel(); phase = "revealing"; elapsedSec = 0; lossSec = endSec; },
     reset() { cancel(); phase = "idle"; elapsedSec = 0; lossSec = null; },

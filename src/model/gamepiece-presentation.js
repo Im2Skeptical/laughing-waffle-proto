@@ -1,3 +1,5 @@
+import { MECHANICS, mechanicEffect, mechanicEvent, gamepieceMechanics } from '../defs/mechanics.js';
+import { describeMechanicEffect, describeMechanicTrigger } from './mechanic-readings.js';
 import { keywordPrototypeReading } from './keywords-classes-prototype.js';
 import { keywordReading } from './practice-keywords.js';
 import { getActionChaosCost, getActionMonsterPressureCost } from './detailed-settlements/practice-events.js';
@@ -22,16 +24,16 @@ const number = value => Math.round(value * 100) / 100;
 // These describe the event grammar, never the recipe's Stock inputs. Keep
 // alternatives distinct when the same Trait can trigger by generation or use.
 function chargeTriggerSymbols(def) {
-  const events={populationDied:'death',chaosIncreased:'chaos',monsterPressure:'monster',monsterDestroyed:'monster',defenseSucceeded:'defense',supportContributed:'support',martialActionResolved:'support',dangerSurvived:'danger',campaignWon:'campaign',externalTrade:'trade',challengeCompleted:'challenge',candidateDevelopment:'development'};
+
   return (def.charge?.trigger?.any??[]).flatMap(event=>{
-    const common={event:event.kind,label:def.charge.triggerText};
+    const binding=mechanicEvent(event.kind);
+    const common={event:event.kind,mechanicId:binding?.mechanicId,name:binding?.name,label:describeMechanicTrigger(def.charge.trigger)};
     if(event.traitsAny?.length)return event.traitsAny.map(trait=>({...common,trait}));
-    return [{...common,icon:events[event.kind]??(event.scholarStaffed||event.tagsAny?.includes('Knowledge')?'knowledge':'stock')}];
+    return [{...common,icon:binding?.icon??(event.scholarStaffed||event.tagsAny?.includes('Knowledge')?'knowledge':'stock')}];
   }).filter((symbol,i,all)=>all.findIndex(other=>other.event===symbol.event&&other.trait===symbol.trait&&other.icon===symbol.icon)===i);
 }
 export function describeGamepieceEffects(def) {
-  const labels={generateStock:'Stock',research:'Research',train:'specialists trained',reduceLocalFoodRequirement:'Edible saved per meal',addHousingForPhase:'Housing this phase',addFaithChaosResistance:'Chaos resistance'};
-  return (def.effects??[]).filter(effect=>!['addChaos','addMonsterPressure'].includes(effect.op)).map(effect=>`${effect.amount??0} ${labels[effect.op]??effect.op}${effect.classId?' ('+effect.classId+')':''}${effect.historyScale?' + accumulated '+effect.historyScale:''}.`);
+  return (def.effects??[]).filter(effect=>!['addChaos','addMonsterPressure'].includes(effect.op)).map(effect=>describeMechanicEffect(effect,effect.amount??0)+'.');
 }
 
 function describeStructureValues(def) {
@@ -97,14 +99,15 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
   const activationAge = slot && lastReaction ? viewedTime - lastReaction.tSec : null;
   // Face-only recipe data. These are authored base yields; evaluation remains
   // authoritative for worker bonuses, local modifiers and the actual result.
-  const effectIcons = { convertPopulation:"population", politicalForce:"support", generateStock: 'stock', research: 'research', train: 'population', addHousingForPhase: 'housingCapacity', addFaithChaosResistance: 'faith', reduceLocalFoodRequirement: 'food', bankCandidateDevelopment:'prestige', bankShopQuality:'activation', bankSupport:'support', bankPreview:'hourglass' };
+
   const production = (def.effects ?? []).flatMap(effect => {
-    const icon = effectIcons[effect.op];
+    const binding = mechanicEffect(effect.op);
+    const icon = !['addChaos','addMonsterPressure'].includes(effect.op) ? binding?.icon : null;
     if (!icon) return [];
     const seasons = effect.seasonAmounts ?? (def.activation?.type === 'season' && def.activation.seasonKeys?.length
       ? Object.fromEntries(def.activation.seasonKeys.map(season => [season, effect.amount ?? 0])) : null);
     return seasons ? Object.entries(seasons).map(([season, value]) => ({ season, icon, value, label: `${season}: ${value} base ${icon}` }))
-      : [{ icon, value: effect.amount ?? 0, label: `${effect.amount ?? 0} base ${icon}` }];
+      : [{ icon, symbolLabel: binding.label, value: effect.amount ?? 0, label: describeMechanicEffect(effect,effect.amount??0) }];
   });
   const inputs = construction ? def.construction.consume.map(input => ({ kind:'consume', amount:input.amount, traits:[...input.traits] }))
     : ['consume', 'require'].flatMap(kind => (def[kind] ?? []).map(input => ({ kind, amount: input.amount, traits: [...input.traits] })));
@@ -131,12 +134,12 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
     politicalIcon:def.effects?.some(e=>e.op==='convertPopulation')?'population':'support',
     politicalOutput:def.category==='influence'?(def.effects.some(e=>e.op==='convertPopulation')?(evaluation?(evaluation.conversionTargets??[]).reduce((n,t)=>n+t.amount,0):def.effects.filter(e=>e.op==='convertPopulation').reduce((n,e)=>n+e.amount,0)):def.effects.filter(e=>e.op==='politicalForce').reduce((n,e)=>n+e.amount,0)):null,
     inputs, chaosCost, monsterPressureCost, production, baseStockProduction:kind==='practice'?getPracticeBaseStockProduction(def):[], workerMultiplier, chargeTriggers:chargeTriggerSymbols(def), construction,
-    reading, keywordReading:keyword, structureBonuses: kind === 'structure' ? reading.bonuses : [], structureQualityBonus: kind === 'structure' ? slot?.qualityBonus ?? 0 : 0,
+    reading, mechanics:gamepieceMechanics(def), keywordReading:keyword, structureBonuses: kind === 'structure' ? reading.bonuses : [], structureQualityBonus: kind === 'structure' ? slot?.qualityBonus ?? 0 : 0,
     chargeGain:def.mode==='charge'?(evaluation?.chargeGain??Math.floor(def.charge.gain*workerMultiplier)):null,
     stock: evaluation?.stock ?? slot?.stock ?? 0, stockCapacity: evaluation?.stockCapacity ?? capacity?.total ?? 0, stockCapacityBreakdown: capacity, outputMultiplierBreakdown:outputMultiplier, stockTraits: def.stockTraits ?? [],
     providers: evaluation?.providers ?? [], missing: evaluation?.missing ?? null,
     mode:def.mode??null,charge:evaluation?.charge??slot?.charge??0,chargeThreshold:def.mode==='charge'?threshold:null,
-    chargeTrigger:def.charge?.triggerText??null,dischargeEffect:def.charge?.dischargeText??null,
+    chargeTrigger:def.mode==='charge'?describeMechanicTrigger(def.charge?.trigger):null,dischargeEffect:def.charge?.dischargeText??null,
     blocked:evaluation?.blocked??false,blockedReason:evaluation?.blockedReason??null,
     viewedTime, activationAge, nextTrigger: seasonReadiness?.nextTrigger ?? null,
     outputs, footprint: def.footprint ?? 1, lane: def.lane ?? null, source: def.source ?? null,
@@ -144,11 +147,11 @@ export function getGamepieceFace(state, kind, id, tier = 'bronze', { evaluation 
     workerBonus: def.workerBonus ?? 1, workers: workers?.tokens?.length ?? 0,
     fill: def.lane === 'charge' ? Math.min(1, requiredWork ? (slot?.work ?? 0) / requiredWork : (evaluation?.charge ?? slot?.charge ?? 0) / threshold)
       : seasonReadiness?.fill ?? ((state?.tSec ?? 0) <= 0 ? 0 : (((state?.tSec ?? 0) - offset) % period + period) % period / period),
-    detailLines: [...(evaluation?.conversionTargets??[]).map(t=>`Conversion target: ${getRegionReference(state,t.regionId)}; up to ${t.amount} eligible people.`),...(evaluation?.blockedReason?[evaluation.blockedReason]:[]),...(def.category==='influence'?[`Allegiance: ${slot?.allegiance??'player'}. Inputs: local Stock, then adjacent road-connected ${slot?.allegiance??'player'} holdings. Capture preserves this allegiance. Zero workers: x1.`]:state?.rulesetId&&kind==='practice'?['Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.']:[]),...inputs.filter(input=>['consume','require'].includes(input.kind)).map(input => `${input.kind === 'consume' ? 'Consume' : 'Require (not consumed)'} ${input.amount} [${input.traits.join(' / ')}].`), ...(inputs.some(input=>['consume','require'].includes(input.kind)) ? ['Uses local Stock first, then adjacent road-connected holdings of the beneficiary. No shared neutral market.'] : []), ...production.filter(row => row.season).map(row => row.label), ...(production.length ? [def.mode==='charge'?'Face yields are base amounts; local modifiers apply on Discharge. Workers multiply incoming Charge only.':'Face yields are base amounts; worker bonuses and local modifiers apply at activation.'] : []), ...(slot?.qualityBonus?[`Quality: +${slot.qualityBonus*25}% numeric Structure bonuses.`]:[]),...(evaluation?.missing ? [`Missing ${evaluation.missing.kind}: [${evaluation.missing.traits.join(" / ")}] locally or in eligible adjacent connected allied holdings`] : []), ...(evaluation?.providers ?? []).map(p => p.paymentFor ? `Pay ${p.amount} Currency to ${getRegionReference(state,p.paymentFor)}.` : p.marketStockId ? `Buy ${p.amount} ${p.label} from ${getRegionReference(state,p.regionId)} at ${p.unitPrice} Currency each.` : `${p.kind === "consume" ? "Consume" : "Require"} ${p.amount} from ${getRegionReference(state,p.regionId) ?? 'local'} slot ${p.slotIndex + 1}: ${p.practiceId}`),...(kind === 'structure' ? describeStructureValues(def) : []), ...(monsterPressureCost?[`Adds ${monsterPressureCost} Monster Pressure. A full tracker expands immediately, even with sufficient Resistance.`]:[]), ...describeGamepieceEffects(def), ...(def.nonfunctionalEffects ?? []),
+    detailLines: [...(evaluation?.conversionTargets??[]).map(t=>`Conversion target: ${getRegionReference(state,t.regionId)}; up to ${t.amount} eligible people.`),...(evaluation?.blockedReason?[evaluation.blockedReason]:[]),...(def.category==='influence'?[`Allegiance: ${slot?.allegiance??'player'}. Inputs: local Stock, then adjacent road-connected ${slot?.allegiance??'player'} holdings. Capture preserves this allegiance. Zero workers: x1.`]:state?.rulesetId&&kind==='practice'?['Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.']:[]),...inputs.filter(input=>['consume','require'].includes(input.kind)).map(input => `${input.kind === 'consume' ? 'Consume' : 'Require (not consumed)'} ${input.amount} [${input.traits.join(' / ')}].`), ...(inputs.some(input=>['consume','require'].includes(input.kind)) ? ['Uses local Stock first, then adjacent road-connected holdings of the beneficiary. No shared neutral market.'] : []), ...production.filter(row => row.season).map(row => row.label), ...(production.length ? [def.mode==='charge'?'Face yields are base amounts; local modifiers apply on Discharge. Workers multiply incoming Charge only.':'Face yields are base amounts; worker bonuses and local modifiers apply at activation.'] : []), ...(slot?.qualityBonus?[`Quality: +${slot.qualityBonus*25}% numeric Structure bonuses.`]:[]),...(evaluation?.missing ? [`Missing ${evaluation.missing.kind}: [${evaluation.missing.traits.join(" / ")}] locally or in eligible adjacent connected allied holdings`] : []), ...(evaluation?.providers ?? []).map(p => p.paymentFor ? `Pay ${p.amount} Currency to ${getRegionReference(state,p.paymentFor)}.` : p.marketStockId ? `Buy ${p.amount} ${p.label} from ${getRegionReference(state,p.regionId)} at ${p.unitPrice} Currency each.` : `${p.kind === "consume" ? "Consume" : "Require"} ${p.amount} from ${getRegionReference(state,p.regionId) ?? 'local'} slot ${p.slotIndex + 1}: ${p.practiceId}`),...(kind === 'structure' ? describeStructureValues(def) : []), ...(monsterPressureCost?[`Adds ${monsterPressureCost} ${MECHANICS.creep.name}. A full meter triggers a ${MECHANICS.monsterSpawn.name}, even with sufficient Resistance.`]:[]), ...describeGamepieceEffects(def), ...(def.nonfunctionalEffects ?? []),
       ...(kind === 'practice' ? [`Workers: ${getDetailedPracticeWorkerCapacity(def, tier)} sockets${def.mode==='charge'||producesStock ? `; +${number((def.workerBonus ?? 1) * 100)}% ${def.mode==='charge'?'Charge gained (not output)':'Stock'} per effective worker.` : def.category==='influence'?'; workers multiply conversion; zero workers gives base output.':state?.rulesetId?'; zero workers gives base output.':'; staffing may satisfy specialist requirements.'}`,
         def.lane === 'charge' ? `When its authored event occurs, gain ${evaluation?.chargeGain??Math.floor(def.charge.gain*workerMultiplier)} Charge; automatically Discharge at ${threshold}. ${def.consume?.length||def.require?.length?'Activation pays the listed Stock inputs.':'No Stock consumed or required.'} Icons above the meter are Charge triggers; arrows distinguish Stock generated (up) from consumed (down).`
           : `Scheduled: ${def.source?.cadence ?? def.activation.type}.`] : [`Construction footprint: ${def.footprint ?? 1} horizontal cells.`]),
-      ...(def.mode==='charge'?[`Charge: ${evaluation?.charge??slot?.charge??0} / ${threshold}.`,def.charge.triggerText,`Discharge: ${def.charge.dischargeText.replaceAll('to the left','on the board')}`,...(evaluation?.blocked?[`Blocked: ${evaluation.blockedReason}`]:[])]:[]),
+      ...(def.mode==='charge'?[`Charge: ${evaluation?.charge??slot?.charge??0} / ${threshold}.`,describeMechanicTrigger(def.charge.trigger),`Discharge: ${def.charge.dischargeText.replaceAll('to the left','on the board')}`,...(evaluation?.blocked?[`Blocked: ${evaluation.blockedReason}`]:[])]:[]),
       ...(def.provisionalNotes??[])],
   };
 }

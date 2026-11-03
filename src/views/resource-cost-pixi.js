@@ -1,3 +1,4 @@
+import { MECHANICS } from '../defs/mechanics.js';
 import { addInteractionFeedback } from './interaction-feedback.js';
 import { flashPrestigeShortfall } from './prestige-feedback-pixi.js';
 import { getResourceTexture, getChronicleTexture } from './chronicle-art.js';
@@ -172,7 +173,7 @@ export function addCostPanel(parent, rect, {
       ...TEXT_STYLES.body, fontSize: 27, fill: accent,
     }, rect.width - 12, 7, 1, 0));
   }
-  const description = `${formatVassalPhaseDuration(phaseCost, state)}${prestigeCost ? `, ${prestigeCost} Prestige` : ''}${prestigeGain > 0 ? `, +${prestigeGain} Prestige` : ''}${currencyCost ? `, ${currencyCost} Gold` : ''}${foodCost ? `, ${foodCost} Food` : ''}${chaosCost ? `, +${chaosCost} Chaos` : ''}${monsterPressureCost ? `, +${monsterPressureCost} Monster Pressure` : ''}${riskLabel ? `, ${riskLabel.replace(/\n/g, ', ')}` : ''}`;
+  const description = `${formatVassalPhaseDuration(phaseCost, state)}${prestigeCost ? `, ${prestigeCost} Prestige` : ''}${prestigeGain > 0 ? `, +${prestigeGain} Prestige` : ''}${currencyCost ? `, ${currencyCost} Gold` : ''}${foodCost ? `, ${foodCost} Food` : ''}${chaosCost ? `, +${chaosCost} Chaos` : ''}${monsterPressureCost ? `, +${monsterPressureCost} ${MECHANICS.creep.name}` : ''}${riskLabel ? `, ${riskLabel.replace(/\n/g, ', ')}` : ''}`;
   root.accessible = interactive;
   root.accessibleType = 'button';
   root.accessibleTitle = `${label}: ${description}${unaffordable ? ' — cost unavailable' : ''}`;

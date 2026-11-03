@@ -69,3 +69,45 @@ Use current runtime definitions and [the milestone](civilization-milestone.md)
 to establish available enablers. The workbook and content report describe
 provenance and implementation coverage; they are not a requirement to preserve
 the present pool or invent provenance for new designs.
+
+## Mechanics catalogue
+
+[`src/defs/mechanics.js`](../src/defs/mechanics.js) is the code-backed vocabulary
+for named card mechanics. It distinguishes meters (Creep), events (Monster
+Spawn), resources, effects and count-based keywords (Synthesis). Tags and Stock
+traits keep their existing registries; a tag or prose mention grants no behavior.
+
+Each mechanic owns its stable ID, canonical name, definition, icon, availability
+and effect/event/keyword bindings. Effect parameters and event scopes are part
+of those bindings. Card references are derived from `effects`,
+`charge.trigger.any`, modifier queries and `keywordOutputScale`; never maintain
+a second list of keyword names on the card. Amounts and scopes remain captured
+JSON. The catalogue and executable functions stay outside GameState.
+
+Before implementing a card:
+
+1. Find its mechanics and supported bindings in the catalogue. Reuse their IDs
+   and names. A proposed name is not an implemented capability.
+2. For a new mechanic, register its vocabulary and supported parameters, add its
+   shared model resolver/emitter or keyword query, and cover real execution before
+   marking it implemented. Extend the DSL instead of adding card-specific logic.
+3. Author structured effects/triggers. The shared mechanic readings generate
+   trigger copy; `triggerText` is retained provenance, not an executable promise.
+   Freeform rules may explain context but must agree with these generated readings.
+4. Validate the authored definition and captured draft. Unknown/unimplemented
+   effects, events, scopes and unsupported filters fail validation. Add behavioral
+   tests for actual emission/execution, scopes, blocked cases and loop limits;
+   injected events alone do not demonstrate that an emitter exists.
+5. Verify JSON continuation and authoritative replay with the card installed.
+   The editor, live card and catalogue face must expose the same linked mechanic.
+
+`mechanic-validation.js` owns shared binding validation; `mechanic-readings.js`
+owns structured copy. The existing Practice resolver and event queue remain the
+execution layer. The card reviewer retains its constrained edit permissions;
+canonicalization preserves validated captured bindings instead of replacing
+them with current authored IDs. New runtime card IDs still require registration
+and ordinary pool admission through the add-gamepiece workflow.
+
+See [Creep / Monster Spawn](creep-and-monster-spawn.md) for the direct effect and
+once-per-resolution event, and [Practice keywords](practice-keywords.md) for
+class-gated Output Multiplier queries.

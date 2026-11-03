@@ -1,3 +1,4 @@
+import { describeMechanicEffect, describeMechanicTrigger } from './mechanic-readings.js';
 // Read-only translation of the implemented recipe. Card numerals and these
 // lines both describe base effects; evaluation still owns the actual result.
 const title = value => value ? value[0].toUpperCase() + value.slice(1) : '';
@@ -17,36 +18,7 @@ export function getPracticeBaseStockProduction(def) {
     (effect.activationAmounts?.[type]??(season?effect.seasonAmounts?.[season]:undefined)??effect.amount??0),0)}));
 }
 
-function effectText(effect, amount) {
-  const names = { scholar: 'Scholar', warrior: 'Warrior' };
-  const text = {
-    convertPopulation: `${effect.train?'Train and convert':'Convert'} up to ${amount} eligible ${effect.filter?.kind??''} ${effect.filter?.specialty??''} opposing residents to this institution's allegiance${effect.reach==='connectedAdjacent'?'; first eligible adjacent road-connected region':'; local'}`,
-    politicalForce: `+${amount} supplied ${effect.defenseOnly?'monster defence':'occupation'} Force until next ${effect.duration??'moon'} (refreshes)`,
-    generateStock: `Produce ${amount} Stock`,
-    research: `Gain ${amount} Research`,
-    train: `Train ${amount} ${names[effect.classId] ?? 'specialist'}${amount === 1 ? '' : 's'}`,
-    addHousingForPhase: `Gain ${amount} Housing for this phase`,
-    reduceLocalFoodRequirement: `Use ${amount} less Edible Stock at this settlement's next meal`,
-    addFaithChaosResistance: `Gain ${amount} Chaos resistance until the next Birth phase`,
-    bankCandidateDevelopment: `Next ${names[effect.classId] ?? 'Vassal'} candidate gains ${amount} Development`,
-    bankShopQuality: `Gain ${amount} quality bonus for the next local shop (up to 3)`,
-    bankPreview: `Gain ${amount} local preview bonus (up to 3)`,
-    boostSeasonalFood: `One local seasonal Food Practice produces ${amount} extra Stock in its next two seasons this year`,
-    bankSupport: `Bank ${amount} ${title(effect.bank)} Support for a future martial action (up to 10)`,
-  }[effect.op];
-  const history = { losses: 'lost settlements', deaths: 'local deaths', deathsSinceSpring: 'local deaths since Spring' };
-  return text + (effect.historyScale ? `; increased by ${history[effect.historyScale] ?? effect.historyScale}` : '');
-}
 
-function readableTrigger(text) {
-  return text.replace(/^When\s+/i, 'Charge when ')
-    .replace(/local population dies/g, 'someone in this settlement dies')
-    .replace(/generates Stock with \[([^\]]+)\](?: or \[([^\]]+)\])?/g,
-      (_, a, b) => `produces ${a}${b ? ` or ${b}` : ''} Stock`)
-    .replace(/generates Stock/g, 'produces Stock')
-    .replace(/\[([^\]]+)\]/g, '$1 Stock')
-    .replace(/Discharges?/g, 'Activates');
-}
 
 export function getPracticeReading(def, {workerGates=true}={}) {
   const charge = def.mode === 'charge';
@@ -55,7 +27,7 @@ export function getPracticeReading(def, {workerGates=true}={}) {
     type === 'season' ? (activation.seasonKeys?.length ? activation.seasonKeys : ['spring', 'summer', 'autumn', 'winter']).map(title)
       : [type === 'passive' ? 'While active' : type === 'crisis' ? 'During a Crisis' : `${title(type)} phase`]);
   const effects = times.flatMap(timing => (def.effects ?? []).filter(effect=>!['addChaos','addMonsterPressure'].includes(effect.op)).map(effect => ({
-    timing, text: effectText(effect, effect.seasonAmounts?.[timing.toLowerCase()] ?? effect.amount ?? 0),
+    timing, text: describeMechanicEffect(effect, effect.seasonAmounts?.[timing.toLowerCase()] ?? effect.amount ?? 0),
   })));
   // Some supplied martial Practices contribute continuously rather than via
   // an effect operation. Describe their implemented contribution explicitly.
@@ -80,5 +52,5 @@ export function getPracticeReading(def, {workerGates=true}={}) {
   if(def.populationCondition==='housed')requirements.push('Housing must cover every local resident.');
   if(def.populationCondition==='relief')requirements.push('After local shortage: this allegiance must actually supply the civilian meal this Food phase.');
   return { type: charge ? 'Charge' : 'Cycle', passive: activation.type === 'passive', classLabel: def.pool === 'common' ? 'Neutral' : title(def.pool),
-    effects, requirements, trigger: charge ? readableTrigger(def.charge?.triggerText ?? '') : null };
+    effects, requirements, trigger: charge ? describeMechanicTrigger(def.charge?.trigger).replace(/^On /, 'Charge on ') : null };
 }

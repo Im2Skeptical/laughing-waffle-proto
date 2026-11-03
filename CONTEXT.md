@@ -34,7 +34,9 @@ Ubiquitous language for this prototype. Engine invariants and schema numbers:
 | **year / season** | Four seasons times configured season duration, shared by the Life Map and solar calendar, independent of phases/moons; 32 seconds per year by default; seasonal Practices follow authored season filters. | moon as year, season as moon phase |
 | **Happiness** | Cohort mood from food and housing, consumed as Faith evidence. | morale, loyalty, approval |
 | **Faith** | Moon phase that applies happiness evidence, faith streak, social displacement, and Primordial pressure. | religion meter, piety resource |
-| **Chaos** | Civilization-global Primordial pressure, monsters, and loss. | local unrest, site-only threat |
+| **Chaos** | Civilization-wide accumulated threat; uncontained Chaos drives passive Creep. | local unrest, site-only threat |
+| **Creep** | Shared Monster threat meter. Filling it triggers a Monster Spawn; the default threshold is 100. | Monster Pressure, Chaos (when this meter is meant) |
+| **Monster Spawn** | One Monster threat event that attempts expansion. It may be intercepted, or strengthen Monsters when the map is blocked. | Creep gain, each affected region as a separate Spawn |
 | **Elder Order** | Aggregate local elder cohort state; it does not affect Vassal candidates or prices. | Vassal council, candidate resistance |
 | **Vassal** | The single civilization-wide lineage character with Prestige, four stats, and a Life Map. | hero, champion, leader, Elder |
 | **Life Map** | Deterministic serialized DAG of Vassal nodes (Patronage, Development, Crossroads, shops, Crisis, Relic, Legacy). | skill tree, tech tree, random event deck |

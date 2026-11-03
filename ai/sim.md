@@ -46,7 +46,7 @@ registries here.
 - Faith-phase Chaos income accumulates permanently, independently of Resistance.
   Practice Resistance bonuses last until the next Birth phase.
   Resistance is compared with accumulated Chaos: sufficient Resistance freezes
-  passive Monster Pressure without erasing saved progress. At Death,
+  passive Creep without erasing saved progress. At Death,
   passive progress is `0.8 * max(0, Chaos - Resistance) / max(1, Resistance)` per
   moon by default. Relative pressure keeps population useful above containment;
   the one-point denominator floor keeps zero/tiny Resistance finite.
@@ -55,7 +55,7 @@ registries here.
   fractional Resistance at Bronze/Silver/Gold/Diamond ratios of 1 per 10/5/2/1
   people, multiplied by the serialized Population Resistance effectiveness setting
   (default 1). Temporary Practice bonuses are added after this multiplier.
-  Forecasting grants 0.3 Resistance; fixed Monster Pressure costs stay unchanged.
+  Forecasting grants 0.3 Resistance; fixed Creep costs stay unchanged.
   Untouched new games target extinction at years 200–300.
   Sustained 3x population effectiveness must add at least 100 years on each of
   the nine paired opening seeds. This isolates Resistance; physical population
@@ -95,7 +95,7 @@ registries here.
   Their hosted Stock changes through normal production/meals. Connected Trade and
   Raids use their live state. Conquest converts survivors to Strangers and enables
   the full player simulation.
-- Monster Pressure advances spatial threats at Death. Deterministic expansion tests supplied
+- Creep advances spatial threats at Death. Deterministic expansion tests supplied
   defense, consumes supply, and can turn a site into ruins. Loss history influences
   later content; losing all player settlements ends the run. Forecast uses these
   same rules, including changing capital/primary-site normalization.
@@ -155,7 +155,7 @@ registries here.
   edited content with no eligible basics keeps a disabled Food choice.
   choosing Random grants 10 Prestige once. Public Works offers Housing, Stock
   capacity, and Special categories. Existing class/Common eligibility remains.
-  A card purchase that exceeds remaining Prestige instead costs 10 Monster Pressure; staging and undo are inert, and checkout applies the cost.
+  A card purchase that exceeds remaining Prestige instead costs 10 Creep; staging and undo are inert, and checkout applies the cost.
   Shop purchases are ordered drafts: they reserve offers and project their
   Prestige/Phase costs but do not deduct Prestige or apply interventions until
   confirmation. Practice purchases can be placed throughout the fixed five-slot tableau. New consumers default after installed suppliers; new producers default left. Structure purchases retain explicit
@@ -233,7 +233,7 @@ registries here.
   (Force + Defence); each attempt takes two phases. Attack costs 5 Prestige and
   1 + map-distance Food; Quest costs the same Food, Duel none. Defeat ends the
   visit without immediate death, while timed natural mortality still applies.
-  Clearing monsters resets Monster Pressure and exposes a stronger nest;
+  Clearing monsters resets Creep and exposes a stronger nest;
   destroying it removes the Monster. Neutral targets use real conquest. Duels
   award +1 permanent Prowess and 10 Prestige, quests a Relic and 10 Prestige,
   plus the usual +15 Warrior reward for successful risk. Leave advances the

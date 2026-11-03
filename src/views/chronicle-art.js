@@ -1,3 +1,4 @@
+import { getRegionTerrainStyle } from './world-map/region-style.js';
 import { minimalGraphics } from './minimal-graphics.js';
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../defs/gamepieces/detailed-settlement-defs.js';
 // Presentation assets only. Atlas choices never read or advance simulation RNG.
@@ -226,7 +227,7 @@ export function preloadChronicleArt({ includeSettlementPieces = false } = {}) {
 export function prepareChronicleArt(renderer) {
   if (rendererPreparations.has(renderer)) return rendererPreparations.get(renderer);
   const preparation = preloadChronicleArt({ includeSettlementPieces: true }).then(async () => {
-    const textures = new Map([...packedTextures.values()].map(texture => [texture.baseTexture, texture]));
+    const textures = new Map([...packedTextures.entries()].filter(([key]) => !hiddenGroups.has(packedGroupFor(key))).map(([,texture]) => [texture.baseTexture, texture]));
     const gl = renderer.gl;
     const maxSize = gl?.getParameter(gl.MAX_TEXTURE_SIZE);
     if ([...textures.keys()].some(base => !base.valid || (maxSize && (base.realWidth > maxSize || base.realHeight > maxSize)))) {
@@ -342,13 +343,14 @@ export function addGateBackdrop(parent, rect, alpha = 0.18) {
 }
 
 // Polygon data owns the geography. This layer works with any generated topology.
-export function addRegionTerrain(parent, points, colour, alpha = 1) {
+export function addRegionTerrain(parent, points, colour, alpha = 1, biome) {
+  const style = getRegionTerrainStyle(biome, colour);
   if (minimalGraphics) {
-    const palette = {green:0x345944, red:0x704940, blue:0x3c536d, black:0x4e4b57};
-    const ground = new PIXI.Graphics().beginFill(palette[colour] ?? 0x4e5947, alpha).drawPolygon(points).endFill();
+    const ground = new PIXI.Graphics().beginFill(style.fill, alpha).drawPolygon(points).endFill();
+    ground.label = 'region-biome-fill';
     ground.eventMode = 'none'; parent.addChild(ground); return;
   }
-  const terrain = {green:'green', red:'red', blue:'blue', black:'black'}[colour] ?? 'green';
+  const terrain = style.tile;
   const texture = loadTexture(`chronicle-illustrations-v1/terrain-${terrain}.png`);
   if (!texture) return;
   const xs = points.filter((_, i) => i % 2 === 0);
@@ -365,6 +367,15 @@ export function addRegionTerrain(parent, points, colour, alpha = 1) {
   mask.eventMode = 'none';
   parent.addChild(tile, mask);
   tile.mask = mask;
+}
+
+// Previously loaded illustrations stay hidden until the performance reveal.
+export function hideChronicleArtwork(renderer) {
+  for (const group of Object.values(PACKED_GROUPS)) {
+    if (group !== PACKED_GROUPS.resources) hiddenGroups.add(group);
+  }
+  rendererPreparations.delete(renderer);
+  bumpRevision();
 }
 
 // Optional artwork is published only after upload. Draws cannot start extra loads.

@@ -53,7 +53,7 @@ export function reviewFields(def) {
       fields.push({path, value, label:path.join(' · ')});
     } else if (value && typeof value === 'object') {
       for (const [key, child] of Object.entries(value)) {
-        if (['id','workbook','provisionalNotes','outputs','op'].includes(key)) continue;
+        if (['id','workbook','provisionalNotes','outputs','op','triggerText'].includes(key)) continue;
         visit(child, [...path, Array.isArray(value) ? Number(key) : key]);
       }
     }

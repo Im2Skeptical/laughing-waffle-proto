@@ -1,9 +1,9 @@
+import { MECHANICS } from '../defs/mechanics.js';
 import { createRegionLabel } from './region-label.js';
 import { addPracticeMultiplierPair } from './multiplier-fitting.js';
 import { addIllustration, addRegionLandmark } from './chronicle-art.js';
-import { formatChaosValue } from '../model/chaos-values.js';
 import { addSettlementPiece, addConstructionStrip } from './settlement-piece-pixi.js';
-import { createText } from './settlement-view-primitives.js';
+import { createText, roundedRect } from './settlement-view-primitives.js';
 import { TEXT_STYLES, PALETTE } from './settlement-theme.js';
 import { addResourceIcon } from './resource-cost-pixi.js';
 import { regionalConstructionRect, regionalPracticeSize, PIECE_SIZE } from './piece-geometry.js';
@@ -20,22 +20,55 @@ function regionalHolderLabel(region,vm){
   return vm.control.total>0&&vm.control.support.neutral===vm.control.total?'NEUTRAL SETTLEMENT':'UNHELD';
 }
 
-export function addChaosPanelContent(root, rect, summary) {
-  addIllustration(root,'crisis',{x:rect.x+8,y:rect.y+8,width:112,height:rect.height-16},{alpha:.8});
-  const x=rect.x+132,y=rect.y+12;
-  const text=(s,dy,size=22,fill=PALETTE.text)=>root.addChild(createText(s,{...TEXT_STYLES.body,fontSize:size,fill},x,y+dy));
-  text('THE COMING DARK',0,24,PALETTE.accent);
-  text(`${summary.green.label} | Placeholder, visual only`,28,20);
-  text(`Chaos ${formatChaosValue(summary.chaos.chaosPower)}   ·   Resistance ${formatChaosValue(summary.chaos.resistance)}`,55,18);
-  text(`Monster Pressure ${formatChaosValue(summary.chaos.expansionProgress)} / ${summary.chaos.expansionThreshold} | ${summary.chaos.progressPerMoon>0?"+"+formatChaosValue(summary.chaos.progressPerMoon)+" / moon":"Contained"}`,82,20);
+// Whole-number HUD only; exact Creep still drives simulation and the bar fill.
+const whole = value => String(Math.round(Number(value) || 0));
+function creepReadout(chaos) {
+  const progress=Number(chaos.expansionProgress)||0,threshold=Number(chaos.expansionThreshold)||100;
+  const shown=progress<threshold?Math.min(Math.round(progress),threshold-1):Math.round(progress);
+  return `${shown} / ${whole(threshold)}`;
+}
+
+export function addMonsterPressureBar(root, rect, chaos, caption = '') {
+  const ratio = Math.max(0, Math.min(1, chaos.expansionProgress / Math.max(1, chaos.expansionThreshold)));
   const progress = new PIXI.Graphics();
   progress.label = 'monster-pressure-progress';
   progress.eventMode = 'none';
-  const width = rect.width - 152;
-  const ratio = Math.max(0, Math.min(1, summary.chaos.expansionProgress / Math.max(1, summary.chaos.expansionThreshold)));
-  progress.beginFill(0x30202b).drawRoundedRect(x,y+109,width,7,3).endFill();
-  progress.beginFill(0xff886e).drawRoundedRect(x,y+109,width*ratio,7,3).endFill();
+  progress.lineStyle(1,0x765348).beginFill(0x30191e).drawRoundedRect(rect.x,rect.y,rect.width,rect.height,3).endFill();
+  progress.lineStyle(0).beginFill(0xb94145).drawRoundedRect(rect.x,rect.y,rect.width*ratio,rect.height,3).endFill();
+  if(ratio>0) progress.beginFill(0xf49b85,.3).drawRect(rect.x+1,rect.y+1,Math.max(0,rect.width*ratio-2),2).endFill();
   root.addChild(progress);
+  const value=createText(`${caption}${creepReadout(chaos)}`,{
+    ...TEXT_STYLES.chip,fontSize:20,fill:0xffe8d2,stroke:0x210e14,strokeThickness:3,
+  },rect.x+rect.width/2,rect.y+rect.height/2,.5,.5);
+  value.label='monster-pressure-value';value.eventMode='none';root.addChild(value);
+}
+
+export function addCollapsedChaosControl(parent, rect, chaos, onPress) {
+  const root=new PIXI.Container();root.label='collapsed-monster-pressure';
+  const frame=new PIXI.Graphics();
+  roundedRect(frame,rect.x,rect.y,rect.width,rect.height,5,PALETTE.panel,0x947750,2);
+  root.addChild(frame,createText('>',{...TEXT_STYLES.title,fontSize:22,fill:PALETTE.accent},rect.x+rect.width-12,rect.y+rect.height/2,.5,.5));
+  addResourceIcon(root,'monster',rect.x+24,rect.y+rect.height/2,28);
+  addMonsterPressureBar(root,{x:rect.x+46,y:rect.y+8,width:rect.width-68,height:28},chaos);
+  root.eventMode='static';root.cursor='pointer';root.hitArea=new PIXI.Rectangle(rect.x,rect.y,rect.width,rect.height);
+  root.accessibleTitle=`${MECHANICS.creep.name} ${creepReadout(chaos)}. A full meter triggers a ${MECHANICS.monsterSpawn.name}. Expand Chaos.`;
+  root.on('pointerdown',onPress);parent.addChild(root);return root;
+}
+
+export function addChaosPanelContent(root, rect, summary) {
+  const portrait=addIllustration(root,'crisis',{x:rect.x+8,y:rect.y+8,width:72,height:rect.height-16},{alpha:.85});
+  if(!portrait){
+    const badge=new PIXI.Graphics();
+    roundedRect(badge,rect.x+8,rect.y+8,72,rect.height-16,4,0x251b21,0x765348,1);
+    badge.eventMode='none';root.addChild(badge);
+    addResourceIcon(root,'monster',rect.x+44,rect.y+rect.height/2,52);
+  }
+  const x=rect.x+92,y=rect.y+8;
+  root.addChild(createText('The Coming Dark',{...TEXT_STYLES.title,fontSize:22,__forceTitleSmallCaps:true,fill:PALETTE.accent},x,y),
+    createText(`Chaos ${whole(summary.chaos.chaosPower)}   \u00b7   Resistance ${whole(summary.chaos.resistance)}`,{
+      ...TEXT_STYLES.chip,fontSize:18,fill:PALETTE.textMuted,
+    },x,y+29));
+  addMonsterPressureBar(root,{x,y:rect.y+68,width:rect.width-104,height:28},summary.chaos,`${MECHANICS.creep.name} `);
 }
 
 export function addRegionPanelContent(root, rect, {region, reference, name, vm, defense, tooltipView}) {

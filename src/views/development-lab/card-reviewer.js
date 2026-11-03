@@ -1,3 +1,4 @@
+import { MECHANIC_EFFECTS } from '../../defs/mechanics.js';
 import { getGamepieceFace } from '../../model/gamepiece-presentation.js';
 import { createReviewImport } from './review-import.js';
 import { stockCapacity } from '../../model/detailed-settlements/stock.js';
@@ -38,7 +39,7 @@ const queueChip = (node, label, entry, locked) => {
   node.setAttribute('aria-label',`${label}${locked?', locked':''}${edits?`, ${edits} edit${edits===1?'':'s'}`:''}${entry.notes?', notes':''}`);
 };
 const showValue = value => value === undefined ? 'unavailable' : typeof value === 'string' ? value : JSON.stringify(value);
-const EFFECT_NAMES={generateStock:'Stock produced',research:'Research gained',train:'Specialists trained',addHousingForPhase:'Housing gained',addFaithChaosResistance:'Chaos resistance',reduceLocalFoodRequirement:'Edible saved',bankCandidateDevelopment:'Candidate development',bankShopQuality:'Shop quality bonus',bankSupport:'Support banked',bankPreview:'Preview bonus',boostSeasonalFood:'Seasonal food boost',addChaos:'Chaos',addMonsterPressure:'Monster Pressure'};
+const EFFECT_NAMES=Object.fromEntries(Object.entries(MECHANIC_EFFECTS).map(([op,effect])=>[op,effect.label]));
 const effectName = effect => {
   const param=PRACTICE_OUTPUTS[effect.op]?.param, choices=PRACTICE_OUTPUTS[effect.op]?.choices;
   return `${EFFECT_NAMES[effect.op]??effect.op}${param&&choices.length>1?` · ${effect[param]}`:''}`;

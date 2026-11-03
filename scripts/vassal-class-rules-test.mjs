@@ -76,6 +76,9 @@ const index=defenseState.world.regions.findIndex(r=>r.id===front);
 defenseState.civilization.chaos.lastPressureRegionId=defenseState.world.regions[(index+defenseState.world.regions.length-1)%defenseState.world.regions.length].id;
 stepSpatialPressure(defenseState);
 assert.equal(defended.detailedState.lastDefense?.result,'held');
+const interceptedSpawns=defenseState.civilization.practiceEvents.pending.filter(event=>event.kind==='monsterSpawn');
+assert.equal(interceptedSpawns.length,1,'interception emits exactly one global Spawn');
+assert.equal(interceptedSpawns[0].outcome,'intercepted');
 assert.ok(defended.detailedState.practiceSlots[0].stock<3,'automatic defense still spends Edible');
 
 // The universal RISK pipeline awards a fixed bonus on success, even when

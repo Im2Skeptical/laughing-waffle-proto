@@ -37,7 +37,7 @@ export function buildCampaignOptions(state,vassal,nodeState) {
     const foodCost = mode === 'duel' ? 0 : RULES.campaignFoodBase+distance*RULES.campaignFoodPerDistance;
     const warriorBonus=risk>0?VASSAL_CLASS_RULES.warrior.riskPrestige:0;
     targets.push({id:`${mode}:${regionId}`,regionId,mode,stage,defense,force:forces[mode].total,risk,baseRisk,distance,foodCost,
-      label:`${label}: ${getRegionReference(state,regionId)}`,description:mode==='duel'?'+1 Prowess and 10 Prestige, plus the Warrior risk bonus.':mode==='quest'?'A Relic and 10 Prestige.':stage==='clear'?'Reset Monster Pressure; the nest remains.':stage==='nest'?'Destroy this Monster nest.':'Bring this settlement into your civilization.',
+      label:`${label}: ${getRegionReference(state,regionId)}`,description:mode==='duel'?'+1 Prowess and 10 Prestige, plus the Warrior risk bonus.':mode==='quest'?'A Relic and 10 Prestige.':stage==='clear'?'Reset Creep; the nest remains.':stage==='nest'?'Destroy this Monster nest.':'Bring this settlement into your civilization.',
       phaseCost:RULES.campaignPhases,prestigeCost:mode==='attack'?RULES.campaignPrestige:0,
       warriorBonus,prestigeDelta:mode==='duel'?RULES.duelPrestige+warriorBonus:mode==='quest'?RULES.questPrestige+warriorBonus:
         stage==='nest'?12+defense*4+warriorBonus:warriorBonus});
@@ -86,7 +86,7 @@ function applyCampaignAttempt(state,vassal,nodeState,option) {
   else if (option.stage === 'clear') {
     state.civilization.chaos.monsterPressure = 0;
     getRegionState(state,option.regionId).monster.cleared = true;
-    result.text='Monsters cleared. Monster Pressure reset; the nest remains.';
+    result.text='Monsters cleared. Creep reset; the nest remains.';
   } else if (option.stage === 'nest') {
     delete getRegionState(state,option.regionId).monster;
     const site = state.world.sites.find(site=>site.regionId===option.regionId);

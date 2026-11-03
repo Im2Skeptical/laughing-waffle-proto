@@ -35,3 +35,10 @@ let workerCreated=false;
 const opening=createNewGameOpeningController({loadPrepared:()=>loadPerformanceStart({fetcher}),createWorkerService(){workerCreated=true;throw Error('must not simulate');}});
 assert.equal((await opening.prepare()).ok,true);assert.equal(workerCreated,false);opening.cancel();
 console.log('[performance-start] exact forecast/anchors, independent state, UI reuse, gameplay invalidation, stale rejection and no worker simulation OK');
+
+const switched=createNewGameOpeningController({createWorkerService(){throw Error('cancelled normal preparation must not start a worker');}});
+const obsolete=switched.prepare();
+switched.setPreparedLoader(()=>loadPerformanceStart({fetcher}));
+assert.equal((await obsolete).reason,'cancelled');
+assert.equal((await switched.prepare()).ok,true,'menu switches an already running page to the prepared start');
+switched.cancel();

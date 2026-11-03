@@ -115,7 +115,7 @@ try {
   assert.ok(stockTooltip.title.includes('Tool Stock'));
   assert.equal((await snap()).active,false,'Stock tag input does not select the underlying settlement');
   await click(stockPoint);
-  await click({x:558,y:116});
+  await click({x:458,y:114});
   assert.equal((await snap()).chaos,false,'chaos drawer collapses');
   await click({x:90,y:116});
   assert.equal((await snap()).chaos,true,'chaos drawer expands');

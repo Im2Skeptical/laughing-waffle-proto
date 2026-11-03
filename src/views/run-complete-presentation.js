@@ -13,7 +13,7 @@ export function getRunCompleteInfo(state, { projected = false } = {}) {
     explanation = "Each death or retirement spent one tenure. Your dynasty has no tenures remaining.";
   } else if (reason === "monsterOverrun") {
     cause = "Overrun by monsters";
-    explanation = "Spatial Monster expansion has taken every player settlement. Supplied defenses can repel expansion while their Stock lasts.";
+    explanation = "Monster Spawns have taken every player settlement. Supplied defenses can repel them while their Stock lasts.";
     explanation += " Chaos creates monsters over time; reducing its pressure can delay this outcome.";
   } else if (reason === "faithCollapsedAtBronze") {
     cause = "Faith collapsed";

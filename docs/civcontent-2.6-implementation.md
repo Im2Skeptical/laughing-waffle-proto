@@ -1,6 +1,6 @@
 # CivContent 2.6 implementation
 
-Monster risk now uses the shared Monster Pressure tracker. Runtime `addMonsterPressure` costs bypass Resistance and can trigger immediate expansion without increasing Chaos. This supersedes Chaos-cost wording in the authored-intent columns below. Chaos income accumulates independently; Resistance contains passive expansion.
+Monster risk uses the shared **Creep** tracker (previously called Monster Pressure). Runtime `addMonsterPressure` costs bypass Resistance and can trigger immediate expansion without increasing Chaos. See [Creep and Monster Spawn](creep-and-monster-spawn.md) for the player/engine mapping. This supersedes Chaos-cost wording in the authored-intent columns below. Chaos income accumulates independently; Resistance contains passive expansion.
 
 The later Housing-tag pass restricts Housing to cards that directly add housing capacity: Mud House, Timber House, Stone House, Longhouse, Tenement, Great Dwelling, Housebuilding, and Civil Engineering. This supersedes the workbook's Housing tags on material producers, workshops, and defensive cards so the Housing Shop offers capacity improvements.
 
