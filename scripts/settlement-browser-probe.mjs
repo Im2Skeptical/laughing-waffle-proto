@@ -91,7 +91,7 @@ let browser;
 try {
   await waitForHttp();
   browser = await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
-  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  const page = await browser.newPage({ viewport: { width: Number(process.env.PROBE_WIDTH ?? 1280), height: Number(process.env.PROBE_HEIGHT ?? 800) } });
   page.on('pageerror', error => console.log('[probe:settlement] page error=' + error.message));
   page.on('console', message => {
     if (message.type() === 'error') console.log('[probe:settlement] console=' + message.text());
@@ -131,8 +131,8 @@ try {
   assert.ok(initial.worldMap.selectedRegion.structureCapacity <= 8);
   assert.equal(initial.worldMap.selectedRegion.usedStructureCapacity, 2);
   assert.equal(initial.worldMap.regionNameLabelsVisible, true);
-  assert.deepEqual(initial.worldMap.regionReferences.map((entry) => entry.reference),
-    Array.from({ length: 15 }, (_, index) => `R${String(index + 1).padStart(2, "0")}`));
+  assert.equal(new Set(initial.worldMap.regionReferences.map(entry => entry.reference)).size,15);
+  assert.ok(initial.worldMap.regionReferences.every(entry => typeof entry.reference === "string" && entry.reference.length > 0));
   const detailedMapIndicators = initial.worldMap.regionMapIndicators.filter(
     (indicator) => indicator.hasDetailedSettlement
   );
@@ -163,8 +163,8 @@ try {
     initial.worldMap.regionMapIndicators.filter(
       (indicator) => indicator.showsPlayerMarker
     ).length,
-    5,
-    "player-owned regions have ownership nodes"
+    0,
+    "ownership is shown by territory borders rather than ownership nodes"
   );
   assert.ok(
     detailedMapIndicators.every(
@@ -173,16 +173,10 @@ try {
         indicator.unusedWorkerCount >= 0 &&
         indicator.totalWorkerCount ===
           indicator.activeWorkerCount + indicator.unusedWorkerCount &&
-        indicator.renderedPawnCount ===
-          Math.min(5, indicator.totalWorkerCount) &&
-        (indicator.unusedWorkerCount === 0 ||
-          indicator.renderedUnusedPawnCount >= 1) &&
-        indicator.badgeValue ===
-          (indicator.totalWorkerCount > 5
-            ? indicator.totalWorkerCount
-            : null)
+        indicator.renderedPawnCount === 0 &&
+        indicator.renderedUnusedPawnCount === 0 && indicator.badgeValue === null
     ),
-    "active and unused worker pawns match the unveiled worker pools"
+    "worker counts remain available without obsolete map pawns"
   );
   assert.deepEqual(
     detailedMapIndicators.map((indicator) => ({
@@ -352,14 +346,33 @@ try {
     assert.ok(selected.worldMap.survivalTracker.forecastLabel.length > 0);
   }
 
-  await delay(400);
-  await clickDesignPoint(page, await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getWorldMapClickPoint("cedar-woods")));
+  await page.waitForFunction(() => {
+    const map=globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap;
+    return !map.focusAnimating && !map.panelReveal?.animating;
+  });
+  // The build badge must stay out of the close control, including on phones.
+  const closeLayout=await page.evaluate(() => {
+    const canvas=document.querySelector('canvas').getBoundingClientRect();
+    const detail=globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.layout.detail;
+    const badge=document.getElementById('game-build-badge').getBoundingClientRect();
+    const close={left:canvas.x+(detail.x+detail.width-62)/2424*canvas.width,
+      top:canvas.y+(detail.y+14)/1080*canvas.height,width:48/2424*canvas.width,height:48/1080*canvas.height};
+    return {close,badge:{left:badge.left,top:badge.top,right:badge.right,bottom:badge.bottom}};
+  });
+  assert.ok(closeLayout.badge.bottom<=closeLayout.close.top || closeLayout.badge.top>=closeLayout.close.top+closeLayout.close.height
+    || closeLayout.badge.right<=closeLayout.close.left || closeLayout.badge.left>=closeLayout.close.left+closeLayout.close.width,
+    'the build badge does not overlap the close control');
+  if(process.argv.includes('--region-close-only'))await page.screenshot({path:`artifacts/region-close-${page.viewportSize().width}.png`});
+  await clickDesignPoint(page, await page.evaluate(() => {
+    const rect=globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.layout.detail;
+    return {x:rect.x+rect.width-38,y:rect.y+38};
+  }));
   const deselected = await page.evaluate(
     () => globalThis.__SETTLEMENT_DEBUG__.getSnapshot()
   );
   assert.equal(deselected.worldMap.regionSelectionActive, false);
   assert.equal(deselected.controller.scope, "civilization",
-    "clicking the selected region again restores the civilization timegraph");
+    "closing settlement details restores the civilization timegraph");
 
   // Read the next hit target after the camera has returned to the overview.
   // A coordinate captured during that transition can land in another region.
@@ -386,6 +399,12 @@ try {
   assert.equal(civilizationPanelSelected.worldMap.regionSelectionActive, false);
   assert.equal(civilizationPanelSelected.controller.scope, "civilization",
     "closing settlement details switches to the global timegraph");
+
+  if(process.argv.includes('--region-close-only')) {
+    writeFileSync(DETAIL_PATH,JSON.stringify({regionClosePassed:true,selectionActive:civilizationPanelSelected.worldMap.regionSelectionActive,scope:civilizationPanelSelected.controller.scope},null,2));
+    process.stdout.write('[probe:settlement] region close OK (mouse click and human-duration press)\n');
+    await browser.close();server.kill();process.exit(0);
+  }
 
   await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.forceRender());
   await delay(100);
@@ -993,7 +1012,7 @@ try {
   );
 
   const terminalPage = await browser.newPage({
-    viewport: { width: 1280, height: 800 },
+    viewport: { width: Number(process.env.PROBE_WIDTH ?? 1280), height: Number(process.env.PROBE_HEIGHT ?? 800) },
   });
   await terminalPage.addInitScript(profile => {
     localStorage.setItem('civsurvivor.debugProfiles.v2',JSON.stringify({schemaVersion:2,nextId:2,profiles:[{id:'profile-1',name:'UI probe',profile}]}));

@@ -63,7 +63,7 @@ The badge remains visible in the menu and game. A clean `main` build shows only
 `v1.2.3 · Preview 5184` locally. The preview number is the server port: a compact
 identifier for that running checkout, not an ordered version. Pages builds of
 unintegrated sources show `Preview` without a local port. During play the badge
-sits faintly below the top-right save/menu controls, over the game view. Hover or
+sits faintly beside the top-right save/menu controls, within their row. Hover or
 focus it for the full fingerprint, branch, revision, and Local/Pages channel;
 these details are also available in `/build-info.json`. The fingerprint includes
 uncommitted source, assets, tooling and documentation, with text line endings normalized. It is

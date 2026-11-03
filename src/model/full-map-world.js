@@ -72,8 +72,14 @@ export function seedFullMapWorld(state) {
     while(settlement.practiceSlots.length<5)settlement.practiceSlots.push(null);
     settlement.structureSlots=Array(region.structureCapacity).fill(null);
     settlement.structureSlots[0]={structureId:enemyCapital?'longhouse':province||!player?'timberHouse':'mudHouses',placementId:`${region.id}:housing`,origin:0,width:enemyCapital?2:1};
-    if(enemyCapital){settlement.structureSlots[2]={structureId:'granary',placementId:`${region.id}:granary`,origin:2,width:1};if(region.structureCapacity>=6)settlement.structureSlots[3]={structureId:'cp_citadelOfStillness',placementId:`${region.id}:citadel`,origin:3,width:3};}
-    else settlement.structureSlots[1]={structureId:province?'fm_villagePalisade':'granary',placementId:`${region.id}:support`,origin:1,width:1};
+    // Match the local economic role, as with the authored starting Practices.
+    const hasConstruction=ids.some(id=>getDetailedPracticeDef(state,id).stockTraits?.includes('Construction'));
+    if(!neutral&&!monster){
+      const support=province?'fm_villagePalisade':hasConstruction?'storehouse':ids.some(id=>getDetailedPracticeDef(state,id).stockTraits?.includes('Edible'))?'granary':'fm_villagePalisade';
+      const origin=enemyCapital?2:1;
+      settlement.structureSlots[origin]={structureId:support,placementId:`${region.id}:support`,origin,width:1};
+      if(enemyCapital&&region.structureCapacity>=6)settlement.structureSlots[3]={structureId:'cp_citadelOfStillness',placementId:`${region.id}:citadel`,origin:3,width:3};
+    }
     for(const slot of settlement.practiceSlots)if(slot&&'stock'in slot)slot.stock=slot.practiceId==='cp_ironCommunion'?2:stockCapacity(state,settlement,slot);
     if(site.neutral||monster){settlement.practiceSlots=Array(5).fill(null);settlement.structureSlots=Array(region.structureCapacity).fill(null);}
     if(!site.town){const type=player&&region.id===players[0]?'grain':province?'forager':'market';site.town={type,activated:true,market:createTownMarket(type)};}
