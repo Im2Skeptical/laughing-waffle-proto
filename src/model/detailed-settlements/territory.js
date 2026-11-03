@@ -4,7 +4,6 @@ import { getDetailedSettlementSites, getDetailedSettlement } from './queries.js'
 import { allegianceSummary, populationBins } from './population-ledger.js';
 import { stockTotal, planStock, applyStockPlan, structureModifiers } from './stock.js';
 import { getCurrentLifeMapVassal } from '../vassal-life-map/selectors.js';
-import { creditPrestige } from '../vassal-life-map/treasury.js';
 import { emitPracticeEvent } from './practice-events.js';
 
 export const CONTROL_DEFAULTS = Object.freeze({claim:.6,retain:.45,claimChecks:2,lossUnrest:75,lossChecks:2,disloyalPerForce:25,warriorsPerForce:5,warriorsPerMeal:10});
@@ -123,13 +122,4 @@ export function payGarrisonUpkeep(state) {
     if(!pay(payment,true))pending.push(payment);
   }
   for(const payment of pending)pay(payment,false);
-}
-export function accrueTerritorialPrestige(state,tSec) {
-  if(!state.rulesetId)return;
-  const treasury=state.civilization.treasury;
-  const elapsed=Math.max(0,tSec-treasury.lastSec);treasury.lastSec=tSec;
-  const rate=getDetailedSettlementSites(state,{playerOnly:true}).reduce((n,s)=>n+(populationBins(s.detailedState).length?1-(s.detailedState.control?.unrest??0)/100:0),0);
-  const amount=treasury.remainder+elapsed*rate/(state.seasonDurationSec*state.seasons.length);
-  const paid=Math.floor(amount+1e-9);treasury.remainder=amount-paid;
-  if(paid){creditPrestige(state,getCurrentLifeMapVassal(state),paid);emitPracticeEvent(state,{kind:'prestigeIncome',faction:'player',amount:paid,source:'territory'});}
 }

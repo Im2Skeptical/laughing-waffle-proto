@@ -24,7 +24,7 @@ import {flushPracticeEvents} from '../src/model/detailed-settlements/practices.j
 import {emitPracticeEvent} from '../src/model/detailed-settlements/practice-events.js';
 import {planStock,stockTotal} from '../src/model/detailed-settlements/stock.js';
 import {getRegionState,getAdjacentRegionIds,addWorldConnection} from '../src/model/world-state.js';
-import {resolveControl,controlSummary,changeController,accrueTerritorialPrestige} from '../src/model/detailed-settlements/territory.js';
+import {resolveControl,controlSummary,changeController} from '../src/model/detailed-settlements/territory.js';
 import {quotePrestige} from '../src/model/vassal-life-map/treasury.js';
 import {legacySettlementTargets,isEmptyFrontierDestination} from '../src/model/vassal-life-map/world-choices.js';
 import {getSettlementRequirements} from '../src/model/vassal-life-map/lifecycle.js';
@@ -169,8 +169,7 @@ test('foreign travel and real inhabited monster threat',()=>{
  const s=fresh(),v={locationRegionId:s.civilization.capitalRegionId};const options=buildCrossroadsOptions(s,v);assert.equal(options.filter(o=>o.locationRegionId).length,19);
  const threat=s.world.regions.find(r=>r.monster),site=s.world.sites.find(x=>x.regionId===threat.id);const before=JSON.stringify(site.detailedState.populationByClass);addMonsterPressure(s,100);assert.equal(site.simulationMode,'ruin');assert.equal(JSON.stringify(site.detailedState.populationByClass),before);
 });
-test('income remainder and exact save continuation through demographics and recipes',()=>{
- const s=fresh();accrueTerritorialPrestige(s,16);assert.equal(s.civilization.prestige,21);
+test('exact save continuation through demographics and recipes',()=>{
  const live=fresh();initializeReplayClock(live);advanceReplayStateToSecond(live,47);const loaded=deserializeGameState(serializeGameState(live));initializeReplayClock(loaded,47);
  advanceReplayStateToSecond(live,120);advanceReplayStateToSecond(loaded,120);assert.deepEqual(serializeGameState(live),serializeGameState(loaded));
 });

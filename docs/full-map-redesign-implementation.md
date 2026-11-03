@@ -78,8 +78,11 @@ Force. Ordinary travel includes foreign inhabited destinations and physical
 expeditions where roads do not reach.
 
 The shared civilization treasury begins at 20 Prestige. Each inhabited player
-holding earns one Prestige per year, reduced by unrest, with fractional income
-carried forward. Node and Commission rewards use the same ledger. Installations
+holding adds population / 20, reduced by unrest, to the normal completed-node
+Prestige gain (provisional balance). The combined gain rounds once and is credited
+to that same treasury. Delve and campaign encounters award no node income; there
+is no time-based regional payout. Map badges show rounded per-node contributions.
+Commission rewards use the same ledger. Installations
 use the retained all-or-nothing 10-Pressure fallback when Prestige is short.
 Each hostile institution removed or displaced adds 5 Prestige and 10 explicit
 Pressure; a 15-Prestige hostile replacement therefore costs 20 Pressure at

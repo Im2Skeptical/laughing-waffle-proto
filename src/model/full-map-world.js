@@ -14,7 +14,7 @@ export function mapDistance(state,start,end) {
 export function seedFullMapWorld(state) {
   state.rulesetId=FULL_MAP_RULESET;
   state.civilization.prestige=20;
-  state.civilization.treasury={remainder:0,lastSec:state.tSec,grossIncome:0};
+  state.civilization.treasury={grossIncome:0};
   state.civilization.nextPracticeInstanceId=1;
   const players=state.world.regions.filter(r=>r.controller==='player').map(r=>r.id);
   // Keep the core distant, but require room for exactly three neighbouring provinces

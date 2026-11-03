@@ -142,7 +142,7 @@ export function createSettlementVassalFlow({
       ageBefore: Number.isFinite(ageBefore) ? ageBefore : 0,
       ageAfter: getVassalAge(afterState, afterVassal) || ageBefore || 0,
       prestigeBefore: startPrestige,
-      prestigeAfter: Number.isFinite(afterVassal?.prestige)
+      prestigeAfter: afterState.rulesetId ? afterState.civilization.prestige : Number.isFinite(afterVassal?.prestige)
         ? afterVassal.prestige : startPrestige + (prestigeIncome ?? 0),
       expBefore: startExp,
       expAfter: Number.isFinite(afterVassal?.developmentProgress)
@@ -165,7 +165,7 @@ export function createSettlementVassalFlow({
     const vassal = getCurrentLifeMapVassal(beforeState);
     const pending = getVassalPendingResolution(beforeState);
     if (!vassal || !pending) return;
-    const gains = pending.kind === 'shopDelve' ? {prestige:0,development:0} : getVassalNodeResolutionGains(vassal,
+    const gains = ['shopDelve','campaignEncounter'].includes(pending.kind) ? {prestige:0,development:0} : getVassalNodeResolutionGains(beforeState, vassal,
       vassal.lifeMap?.nodeStates?.[vassal.lifeMap?.currentNodeId]?.family);
     return captureResolutionRecap({vassalId:vassal.vassalId, beforeState, afterState, prepareOnly:true, kind:pending.kind,
       prestigeIncome:gains.prestige, developmentIncome:gains.development,
@@ -230,12 +230,12 @@ export function createSettlementVassalFlow({
     const recapIncome = beforeVassal ? {
       clock: getClockTimePassage(beforeState, beforeState),
       prestigeIncome: getVassalNodeResolutionGains(
-        beforeVassal, beforeVassal.lifeMap?.nodeStates?.[beforeVassal.lifeMap?.currentNodeId]?.family
+        beforeState, beforeVassal, beforeVassal.lifeMap?.nodeStates?.[beforeVassal.lifeMap?.currentNodeId]?.family
       ).prestige,
       developmentIncome: getVassalNodeResolutionGains(
-        beforeVassal, beforeVassal.lifeMap?.nodeStates?.[beforeVassal.lifeMap?.currentNodeId]?.family
+        beforeState, beforeVassal, beforeVassal.lifeMap?.nodeStates?.[beforeVassal.lifeMap?.currentNodeId]?.family
       ).development,
-      prestigeBefore: beforeVassal.prestige ?? 0,
+      prestigeBefore: beforeState.rulesetId ? beforeState.civilization.prestige : beforeVassal.prestige ?? 0,
       expBefore: beforeVassal.developmentProgress ?? 0,
       ageBefore: getVassalAge(beforeState, beforeVassal),
     } : null;

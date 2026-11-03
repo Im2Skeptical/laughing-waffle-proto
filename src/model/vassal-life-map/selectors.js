@@ -1,3 +1,4 @@
+import { populationBins } from '../detailed-settlements/population-ledger.js';
 import {
   VASSAL_LIFE_TUNING,
   VASSAL_STAT_IDS,
@@ -314,11 +315,20 @@ export function getVassalDevelopmentIncome(vassal) {
   return VASSAL_LIFE_TUNING.baseDevelopmentIncome + Math.floor(wisdom * multiplier);
 }
 
-export function getVassalNodeResolutionGains(vassal, nodeFamily = null) {
+// Provisional, not final balance: 20 residents earn 1 Prestige per completed node.
+export const TERRITORIAL_PRESTIGE_POPULATION_PER_POINT = 20;
+export function getRegionPrestigePerNode(state,regionId) {
+  if(!state?.rulesetId||getRegionState(state,regionId)?.controller!=='player')return null;
+  const settlement=getDetailedSite(state,regionId)?.detailedState;
+  const population=populationBins(settlement).reduce((total,bin)=>total+bin.count,0);
+  return population/TERRITORIAL_PRESTIGE_POPULATION_PER_POINT*(1-(settlement?.control?.unrest??0)/100);
+}
+export function getVassalNodeResolutionGains(state, vassal, nodeFamily = null) {
   const modifiers = getEquippedHeirloomModifiers(vassal);
   return {
-    prestige: getVassalPrestigeIncome(vassal)
-      + (nodeFamily === "patronage" ? modifiers.patronageNodePrestige : 0),
+    prestige: Math.round(getVassalPrestigeIncome(vassal)
+      + (nodeFamily === "patronage" ? modifiers.patronageNodePrestige : 0)
+      + (state?.rulesetId ? getPlayerDetailedSites(state).reduce((total,site)=>total+getRegionPrestigePerNode(state,site.regionId),0) : 0)),
     development: getVassalDevelopmentIncome(vassal)
       + modifiers.nodeDevelopment
       + (nodeFamily === "crossroads" ? modifiers.crossroadsNodeDevelopment : 0),

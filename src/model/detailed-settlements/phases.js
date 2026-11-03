@@ -1,4 +1,4 @@
-import { accrueTerritorialPrestige, resolveControl, payGarrisonUpkeep } from './territory.js';
+import { resolveControl, payGarrisonUpkeep } from './territory.js';
 import { stepSpatialPressure } from "./external-world.js";
 // Moon-turn helpers, six-phase stepper, chaos, and civilization init.
 // Phase bodies live in ./phases/; this file remains the public stepper path.
@@ -71,7 +71,6 @@ export function initializeDetailedSettlementCivilization(state) {
 
 export function stepDetailedSettlementsSecond(state, tSec) {
   if (state?.runStatus?.complete === true) return;
-  accrueTerritorialPrestige(state,tSec);
   refreshGreenAscendancy(state);
   for (const site of getDetailedSettlementSites(state)) {
     resetEmptyStrangerCohort(site.detailedState);

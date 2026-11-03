@@ -607,7 +607,7 @@ export function completeNodeResolution(state, vassal, nodeState) {
   const option = delve ? null : nodeState.options.find(entry => entry.id === nodeState.selectedOptionId);
   if (option?.classAction?.onCompletion) applyClassAction(state, vassal, option.classAction);
   ensureCommissionOffers(state, vassal);
-  const gains = delve || encounter ? {prestige:0,development:0} : getVassalNodeResolutionGains(vassal, nodeState.family);
+  const gains = delve || encounter ? {prestige:0,development:0} : getVassalNodeResolutionGains(state, vassal, nodeState.family);
   creditPrestige(state,vassal,gains.prestige);
   vassal.developmentProgress += gains.development;
   let earnedDevelopmentChoices = 0;

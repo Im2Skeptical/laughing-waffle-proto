@@ -80,12 +80,12 @@ const notebookVassal = getCurrentLifeMapVassal(notebookState);
 const baseDev = getVassalDevelopmentIncome(notebookVassal);
 equip(notebookState, "tutorsNotebook");
 assert.equal(
-  getVassalNodeResolutionGains(notebookVassal, "crisis").development,
+  getVassalNodeResolutionGains(notebookState, notebookVassal, "crisis").development,
   baseDev + 3
 );
 equip(notebookState, "pilgrimsStaff");
 assert.equal(
-  getVassalNodeResolutionGains(notebookVassal, "crossroads").development,
+  getVassalNodeResolutionGains(notebookState, notebookVassal, "crossroads").development,
   baseDev + 3 + 6
 );
 

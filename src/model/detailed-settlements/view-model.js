@@ -1,3 +1,4 @@
+import { TERRITORIAL_PRESTIGE_POPULATION_PER_POINT, getRegionPrestigePerNode } from '../vassal-life-map/selectors.js';
 import { controlSummary, militarySummary, garrisonSupportTargets } from './territory.js';
 import { getMartialForce, getMartialSupport, getMonsterPressureRate } from './external-world.js';
 import { getChaosResistance } from './phases/chaos.js';
@@ -161,6 +162,8 @@ export function getDetailedSettlementViewModel(state, regionId) {
     regionId,
     siteId: site.id,
     control:state.rulesetId?controlSummary(state,regionId):null,
+    prestigePopulationPerPoint:TERRITORIAL_PRESTIGE_POPULATION_PER_POINT,
+    prestigePerNode:getRegionPrestigePerNode(state,regionId),
     civilizationPrestige:state.rulesetId?state.civilization.prestige:null,
     supportTargets:state.rulesetId?garrisonSupportTargets(state,regionId):[],
     name: site.name,

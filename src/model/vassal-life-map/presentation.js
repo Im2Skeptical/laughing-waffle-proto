@@ -237,7 +237,7 @@ function buildVassalOptionProjection(state, vassal, nodeState, optionId = null) 
       0, Math.floor(immediate.stats[option.lossStatId] ?? 0) + Math.floor(option.lossStatDelta)
     );
   }
-  const completionGains = getVassalNodeResolutionGains(immediate, nodeState.family);
+  const completionGains = getVassalNodeResolutionGains(state, immediate, nodeState.family);
   const completionPrestigeIncome = completionGains.prestige;
   const completionExpIncome = completionGains.development;
   const completionExpTotal = Math.max(0, immediate.developmentProgress ?? 0) + completionExpIncome;
