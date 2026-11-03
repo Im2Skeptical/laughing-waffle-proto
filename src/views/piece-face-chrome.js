@@ -317,8 +317,12 @@ export function addPieceFaceChrome(parent, face, w, h, {time=0,reducedMotion=fal
   if(face.category==='influence') {
     const x=w-65,y=-8,width=65,height=42;
     plate(parent,x,y,width,height,true);
-    addResourceIcon(parent,face.politicalIcon??'population',x+14,y+20,23);
-    numeral(parent,face.politicalOutput??0,x+44,y+20,26,34);
+    if(face.politicalIcon==='population') {
+      addResourceIcon(parent,face.allegiance==='player'?'freeAllegiance':'crown',x+width/2,y+20,30);
+    } else {
+      addResourceIcon(parent,face.politicalIcon??'support',x+14,y+20,23);
+      numeral(parent,face.politicalOutput??0,x+44,y+20,26,34);
+    }
     stock={x,y,width,height};
   } else stock=stockTray(parent,face,w);
   const age=face.activationAge==null?null:face.activationAge+Math.max(0,time-(face.viewedTime??time));
