@@ -9,7 +9,7 @@ import { detailedSettlementPracticeDefs } from '../../defs/gamepieces/detailed-s
 import { getDetailedPracticeDef, getDetailedStructureDef, getGameSetting } from '../game-config.js';
 import { getCurrentSeasonKey } from '../state.js';
 import { getRegionState } from '../world-state.js';
-import { getDetailedSettlement, getDetailedSettlementSites, getPopulationSummary } from './queries.js';
+import { getDetailedSettlement, getDetailedSettlementSite, getDetailedSettlementSites, getPopulationSummary } from './queries.js';
 import { stockCapacity, planStock, applyStockPlan, generateStock, specialistCount, trainSpecialists, structureModifiers, matchesPractice } from './stock.js';
 import { resolveExternalPractice, adjacentRegionIds, addMonsterPressure, triggerMonsterSpawn } from './external-world.js';
 import { applyBuild, findStructurePlacement } from '../structure-layout.js';
@@ -393,7 +393,11 @@ function drainPracticeEvents(state, sharedRetries = []) {
 }
 
 export function tryCreateStructure(state, regionId, structureId) {
-  const settlement = getDetailedSettlement(state, regionId);
+  const site = getDetailedSettlementSite(state, regionId);
+  // Storefront boards are unavailable for installation, including developed
+  // towns whose existing board is frozen after returning to frontier control.
+  if (site?.neutral) return false;
+  const settlement = site?.detailedState;
   const def = getDetailedStructureDef(state, structureId);
   if (!settlement || !def) return false;
   const location = findStructurePlacement(settlement.structureSlots, def.footprint);
