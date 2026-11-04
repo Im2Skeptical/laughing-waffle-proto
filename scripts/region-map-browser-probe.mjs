@@ -35,9 +35,17 @@ const cedar=profile.mapLab.regions.find(region=>region.id==='cedar-woods');
 cedar.structureCapacity=5;
 cedar.randomizeStructureCapacity=false;
 cedar.detailedState.structureSlots=cedar.detailedState.structureSlots.slice(0,5);
-// Show all three Stock roles in the real map renderer.
+// Logging's Timber/Construction unit supplies Housebuilding's Construction cost;
+// either consumed trait makes that whole Stock unit used. Meals use Foraging.
+// Currency/Metal have no installed consumer, and Tool has no source.
 cedar.detailedState.practiceSlots=['forage','logging','smelting','housebuilding','barter']
   .map(practiceId=>({practiceId,tier:'bronze',stock:0,charge:0,work:0}));
+assert.deepEqual(profile.gamepieces.practices.logging.stockTraits,['Timber','Construction'],
+  'the Stock-role fixture uses one multi-trait Logging Stock unit');
+assert.deepEqual(profile.gamepieces.practices.housebuilding.consume,[{amount:2,traits:['Construction']}],
+  'Housebuilding consumes Logging through its Construction trait');
+assert.deepEqual(profile.gamepieces.practices.housebuilding.require,[{amount:1,traits:['Tool']}],
+  'the unsourced Tool requirement remains part of the fixture');
 assert.equal(validateDebugProfile(profile).ok,true,'region map fixture follows the current launch contract');
 const server=spawn(process.execPath,['./node_modules/serve/bin/serve.js','-l',String(port),'--no-clipboard','dist'],{stdio:'ignore',windowsHide:true});
 let browser,page;
@@ -104,8 +112,8 @@ try {
   assert.equal((await snap()).detail,false);
   const stockRoles=await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().worldMap.regionMapIndicators
     .find(region=>region.regionId==='cedar-woods').stockTags.map(({trait,outline})=>[trait,outline]));
-  assert.deepEqual(stockRoles,[['Construction',null],['Currency','green'],['Edible',null],
-    ['Metal','green'],['Timber','green'],['Tool','red']], 'real installed recipes show local use, nonlocal production, and unsourced demand');
+  assert.deepEqual(stockRoles,[['Currency','green'],['Metal','green'],['Tool','red']],
+    'installed recipes hide used Edible and the whole Timber/Construction unit; unused production and unsourced demand remain');
   await capture('desktop-map');
   const stockAnchor=await regionPoint();
   const stockPoint=getSettlementStockTagLayout(stockRoles.map(([trait])=>({trait})),stockAnchor).find(tag=>tag.trait==='Tool');
