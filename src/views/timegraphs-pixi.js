@@ -174,6 +174,7 @@ export function createMetricGraphView({
   setPreviewState,
   clearPreviewState,
   commitSecond,
+  onScrubStart = null,
   openPosition,
   historyWindowSec = null,
   getWindowSpec = null,
@@ -2113,6 +2114,7 @@ export function createMetricGraphView({
   }
 
   plotHit.on("pointerdown", (e) => {
+    onScrubStart?.();
     beginScrubSession(scrub);
     suspendForecastRevealPlayheadFollow();
     updateScrubFromPointer(e.global);

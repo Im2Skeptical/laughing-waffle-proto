@@ -23,6 +23,7 @@ The timegraph is the main feedback and gameplay loop. The player sees when their
 
 ## 4. Interaction with the graph
 - Clicking and dragging on the graph moves the player into a read-only preview of that time. The player can examine anything they could in the normal game, but cannot change anything.
+- Pressing the graph sets the timelever to Hold and stops wheel momentum before selecting the viewed time. Releasing a click, tap or drag leaves that time held until the player resumes playback.
 - The player can scrub into the past to review earlier decisions. Past moments are review-only.
 - A shortcut button in the lower-left returns the player from a preview to the current moment.
 - The graph carries many indicators, including vassal death points.

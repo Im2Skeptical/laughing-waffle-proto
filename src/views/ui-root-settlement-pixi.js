@@ -1037,6 +1037,7 @@ settlementGraphView = createMetricGraphView({
     setSettlementViewedSecond(tSec, { mode: "commit", stateData }),
   commitForecastOnScrubRelease: false,
   commitHistoryOnScrubRelease: false,
+  onScrubStart: requestPauseBeforeDrag,
   forecastPreviewStatusNote: "Viewing forecast",
   getFocusWindows: () => opening.isRevealing() ? [] : getSettlementVassalFocusWindows(
     getSettlementFrontierState(), getDisplayedSettlementLossInfo()?.lossSec),

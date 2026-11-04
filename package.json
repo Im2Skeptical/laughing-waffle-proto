@@ -1,6 +1,6 @@
 {
   "name": "laughing-waffle-proto",
-  "version": "1.1.52",
+  "version": "1.1.53",
   "description": "Sparse prototype fork for Civilization Survivor core-system rework",
   "type": "module",
   "main": "index.html",
@@ -75,7 +75,8 @@
     "probe:performance-entry": "node scripts/performance-entry-browser-probe.mjs",
     "probe:game-menu": "node scripts/game-menu-browser-probe.mjs",
     "probe:map-lab": "node scripts/map-lab-browser-probe.mjs",
-    "test:differential": "node scripts/differential-regression.mjs"
+    "test:differential": "node scripts/differential-regression.mjs",
+    "probe:timegraph-hold": "node scripts/timegraph-hold-browser-probe.mjs"
   },
   "keywords": [
     "html",
