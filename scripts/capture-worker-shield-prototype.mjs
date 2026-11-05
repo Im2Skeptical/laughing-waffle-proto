@@ -19,7 +19,6 @@ function check(map){
   assert.equal(Number(r.shownPrestige),Math.round(r.exactPrestige));
   assert(!hit(r.badge,r.sprite),r.regionId+' badge covers buildings');
   assert(!hit(r.bar,r.sprite),r.regionId+' bar covers buildings');
-  assert(!hit(r.name,r.bar),r.regionId+' name covers bar');
  }
 }
 async function parameters(values){await page.evaluate(values=>{const url=new URL(location.href);for(const [key,value] of Object.entries(values)){if(value===null)url.searchParams.delete(key);else url.searchParams.set(key,value);}history.replaceState(null,'',url);__SETTLEMENT_DEBUG__.forceRender();},values);await page.waitForTimeout(500);}

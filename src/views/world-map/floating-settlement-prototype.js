@@ -39,8 +39,8 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   const countNumber=label(counter,String(count),27);
   const prestige=new PIXI.Container();prestige.label='floating-prestige';badge.addChild(prestige);
   const prestigeNumber=label(prestige,(player?'+':'')+shownPrestige,27,player?0xffe3a0:0xd8b28d);
-  const radius=Math.max(26,(countNumber.width+22)/2),leftWidth=radius*2;
-  const rightWidth=player||crown?Math.max(62,prestigeNumber.width+39):0;
+  const radius=30,leftWidth=radius*2;
+  const rightWidth=player||crown?78:0;
   const badgeWidth=leftWidth+rightWidth,left=-badgeWidth/2,divider=left+leftWidth,circleX=left+radius;
   // One connected silhouette: circular worker medallion, rectangular income
   // pill. Draw the pill first so the circle's rim forms their curved join.
@@ -58,7 +58,7 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   inspect(counter,{title:reference+(countKind==='population'?' - Population':' - Workers'),lines:[...demo,
     `${p.total} total residents.`,`${forceSample?13:indicator.totalWorkerCount} total workers.`,
     ...(forceSample?[]:[`${indicator.activeWorkerCount} assigned; ${indicator.unusedWorkerCount} unused.`])],maxWidth:340},tooltipView,'floating-count:'+indicator.regionId);
-  if(rightWidth){addResourceIcon(prestige,'prestige',divider+17,0,25);prestigeNumber.x=divider+33+prestigeNumber.width/2;}
+  if(rightWidth){addResourceIcon(prestige,'prestige',divider+17,0,25);prestigeNumber.x=divider+48;}
   prestige.visible=rightWidth>0;
   prestige.hitArea=new PIXI.Rectangle(divider,-24,rightWidth+2,48);
   inspect(prestige,{title:player?'Territorial Prestige':'Potential territorial Prestige',lines:[...demo,...(player?
@@ -68,8 +68,7 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
 
   const influence=new PIXI.Container();influence.label='floating-influence';root.addChild(influence);
   const bar=new PIXI.Graphics();influence.addChild(bar);
-  const forceNumber=label(influence,String(Math.floor(Math.max(0,p.force))),22,0xf3e7cd);forceNumber.label='holding-force-number';
-  const forceLabelScale=Math.min(1,22/Math.max(1,forceNumber.width));
+  const forceNumber=label(influence,String(Math.floor(Math.max(0,p.force))),20,0xf3e7cd);forceNumber.label='holding-force-number';
   const status=p.status==='supported'?'Population-supported':p.status==='occupied'?'Military occupation':p.contested?'Control contested':'Unheld';
   inspect(influence,{title:reference+' - '+status,lines:[...demo,
     ...p.parts.map(part=>`${part.name}: ${part.count} / ${p.total} (${Math.round(part.count/p.total*100)}%).`),
@@ -83,16 +82,15 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   ],maxWidth:370},tooltipView,'floating-influence:'+indicator.regionId);
 
   const bounds=spriteBounds??{min:{x:point.x-27,y:point.y-70},max:{x:point.x+27,y:point.y}};
-  let lastZoom=null,lastFactor=null,lastStyle=null;root.floatingScaleFactor=1.08;
+  let lastZoom=null,lastStyle=null;
   root.updateFloatingLayout=zoom=>{
     const forceStyle=new URLSearchParams(globalThis.location?.search??'').get('regionalForce')??'onbar';
-    if(lastZoom!==zoom)root.floatingScaleFactor=1.08;
-    if(lastZoom===zoom&&lastFactor===root.floatingScaleFactor&&lastStyle===forceStyle)return;lastZoom=zoom;lastFactor=root.floatingScaleFactor;lastStyle=forceStyle;root.floatingDirty=true;
-    const scale=root.floatingScaleFactor/Math.max(.25,zoom);root.scale.set(scale);
+    if(lastZoom===zoom&&lastStyle===forceStyle)return;lastZoom=zoom;lastStyle=forceStyle;
+    const scale=1.08/zoom;root.scale.set(scale);
     const left=(bounds.min.x-point.x)/scale,right=(bounds.max.x-point.x)/scale;
     const top=(bounds.min.y-point.y)/scale,bottom=(bounds.max.y-point.y)/scale;
     badge.position.set((left+right)/2,top-radius-6);
-    const width=Math.max(112,Math.min(156,right-left+24)),height=9;
+    const width=132,height=9;
     const barOffset=forceStyle==='onbar'?26:16;
     influence.position.set((left+right)/2,bottom+barOffset);
     bar.clear().lineStyle(1,0x131b15,1).beginFill(0x101b15,.85).drawRoundedRect(-width/2-3,-height/2-3,width+6,height+6,4).endFill();
@@ -102,7 +100,6 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
     bar.lineStyle(0).beginFill(gold).drawCircle(-width/2-5,0,2).drawCircle(width/2+5,0,2).endFill();
     const shieldX=drawForceTreatment(bar,width,p,forceStyle);
     forceNumber.visible=forceStyle==='onbar';forceNumber.position.set(shieldX??0,0);
-    forceNumber.scale.set(forceLabelScale);
     influence.hitArea=new PIXI.Rectangle(-width/2-12,-22,width+48,48);
     root.floatingLayout={sprite:{left,right,top,bottom},badge:{x:badge.x,y:badge.y},bar:{x:(left+right)/2,y:bottom+barOffset,width,shieldX:shieldX??0}};
   };
@@ -110,34 +107,10 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
     const track=root.floatingLayout.bar,anchor=root.toGlobal({x:track.x+track.shieldX,y:track.y}),trackA=root.toGlobal({x:track.x-track.width/2,y:track.y-4.5}),trackB=root.toGlobal({x:track.x+track.width/2,y:track.y+4.5});
     const b=root.floatingLayout.sprite,a=root.toGlobal({x:b.left,y:b.top}),z=root.toGlobal({x:b.right,y:b.bottom});
     const rect=item=>{const b=item.getBounds();return {x:b.x,y:b.y,width:b.width,height:b.height};};
-    return {regionId:indicator.regionId,sprite:{x:a.x,y:a.y,width:z.x-a.x,height:z.y-a.y},countBounds:rect(counter),badge:rect(badge),prestige:prestige.visible?rect(prestige):null,bar:rect(influence),name:null,countKind,count,shownPrestige,exactPrestige:value,force:p.force,shownForce:Number(forceNumber.text),required:p.required,forceSample,forceStyle:lastStyle,shieldAnchor:{x:anchor.x,y:anchor.y},meterTrack:{x:trackA.x,y:trackA.y,width:trackB.x-trackA.x,height:trackB.y-trackA.y}};
+    return {regionId:indicator.regionId,sprite:{x:a.x,y:a.y,width:z.x-a.x,height:z.y-a.y},countBounds:rect(counter),badge:rect(badge),prestige:prestige.visible?rect(prestige):null,bar:rect(influence),name:null,countKind,count,shownPrestige,exactPrestige:value,force:p.force,shownForce:Number(forceNumber.text),required:p.required,forceSample,forceStyle:lastStyle,screenScale:root.scale.x*lastZoom,shieldAnchor:{x:anchor.x,y:anchor.y},meterTrack:{x:trackA.x,y:trackA.y,width:trackB.x-trackA.x,height:trackB.y-trackA.y}};
   };
   root.updateFloatingLayout(1);
   return root;
-}
-
-
-// Dense neighbouring towns keep the same coherent arrangement. Reduce only
-// their overlay scale slightly at overview zoom instead of scattering readings.
-export function resolveFloatingReadouts(roots,zoom){
-  if(!roots.some(root=>root.floatingDirty))return;
-  const overlaps=(a,b)=>a&&b&&a.x<b.x+b.width+4&&a.x+a.width+4>b.x&&a.y<b.y+b.height+4&&a.y+a.height+4>b.y;
-  for(let pass=0;pass<4;pass++){
-    const shrink=new Set(),measurements=roots.map(root=>({root,m:root.measureFloating()}));
-    for(let i=0;i<measurements.length;i++)for(const b of measurements.slice(i+1)){
-      const a=measurements[i];
-      for(const ka of ['badge']){
-        if(overlaps(a.m[ka],b.m.bar)||overlaps(a.m[ka],b.m.sprite))shrink.add(a.root);
-        if(overlaps(b.m[ka],a.m.bar)||overlaps(b.m[ka],a.m.sprite))shrink.add(b.root);
-      }
-      if(['badge'].some(ka=>['badge'].some(kb=>overlaps(a.m[ka],b.m[kb])))){
-        shrink.add(a.root);shrink.add(b.root);
-      }
-    }
-    if(!shrink.size)break;
-    for(const root of shrink){root.floatingScaleFactor=Math.max(.78,root.floatingScaleFactor*.92);root.updateFloatingLayout(zoom);}
-  }
-  roots.forEach(root=>{root.floatingDirty=false;});
 }
 
 

@@ -13,13 +13,12 @@ const intersects=(a,b)=>a&&b&&a.x<b.x+b.width&&a.x+a.width>b.x&&a.y<b.y+b.height
 function checkLayout(map){
  assert.equal(map.regionalReadoutPrototype,null,'No intermediate regional menu');
  for(const r of map.floatingReadouts){
-  assert(!intersects(r.name,r.bar),r.regionId+' name overlaps influence bar');
   assert(/^-?\d+$/.test(r.shownPrestige),'Prestige must be displayed without decimals');
   assert(!intersects(r.countBounds,r.sprite),r.regionId+' workers cover buildings');
   assert(!intersects(r.prestige,r.sprite),r.regionId+' Prestige covers buildings');
   assert(!intersects(r.bar,r.sprite),r.regionId+' bar covers buildings');
  }
- checks.push('names clear of bars; worker/Prestige/bar leave sprite footprints clear');
+ checks.push('worker/Prestige/bar leave sprite footprints clear; region-name overlap allowed');
 }
 try{
  await page.goto('http://localhost:5186/?regionalReadout=floating&perf=1&art=1&launch=new');
@@ -34,7 +33,6 @@ try{
  await page.screenshot({path:out+'/phone-overview.png'});
  await tap({x:2266,y:782});await page.waitForTimeout(350);await tap({x:2266,y:782});await page.waitForTimeout(500);checkLayout(await snapshot());await page.screenshot({path:out+'/phone-closeup.png'});await tap({x:2347,y:782});await page.waitForTimeout(500);map=await snapshot();
  const crossOverlaps=[];for(const a of map.floatingReadouts)for(const b of map.floatingReadouts)if(a.regionId!==b.regionId&&intersects(a.name,b.bar))crossOverlaps.push([a.regionId,b.regionId]);
- assert.equal(crossOverlaps.length,0,'Region names must not cover neighbouring bars');
  writeFileSync(out+'/geometry.json',JSON.stringify({crossOverlaps,measurements:map.floatingReadouts},null,2));
  await page.setViewportSize({width:1440,height:900});await page.waitForTimeout(400);map=await snapshot();checkLayout(map);await page.screenshot({path:out+'/desktop-overview.png'});
  await page.setViewportSize({width:844,height:390});await page.waitForTimeout(400);map=await snapshot();

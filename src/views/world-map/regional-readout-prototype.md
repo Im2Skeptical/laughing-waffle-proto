@@ -7,7 +7,14 @@ region selection, at phone-landscape size?
 Throwaway experiment on `experiment/regional-readout-20261105`. Not production
 implementation and not permission to merge or publish.
 
-## Current: worker circle, Prestige pill, numbered shield on the meter
+## Current: stable screen-relative sizes and sprite anchors
+
+All floating elements now share one screen-relative scale and fixed geometry.
+There is no collision shrinking or alternate placement. Region names remain in
+the original live-game regional corners and may be covered by the floating UI.
+See `docs/prototypes/regional-map-20261105/STABLE_LAYOUT.md`.
+
+## Worker circle, Prestige pill, numbered shield on the meter
 
 Cam chose workers. The worker section is circular and joins a rectangular
 Prestige pill. `regionalForce=onbar` places a numbered shield in the holder's

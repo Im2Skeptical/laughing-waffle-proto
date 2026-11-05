@@ -248,7 +248,9 @@ export function createWorldMapView({
   const atlasMode=regionalReadoutVariant()==='atlas';
   const floatingMode=regionalReadoutVariant()==='floating';
   let prototypeEconomyExpanded=false,lastPrototypePanelMode=null;
-  let floatingNameLabels=[],floatingNameZoom=null,floatingNameScene=null;
+  let floatingNameLabels=[];
+  const floatingOverlay=new PIXI.Container();floatingOverlay.label='floating-readout-overlay';
+  let floatingReferenceLayer=null;
   const root = new PIXI.Container();
   const detailRoot = new PIXI.Container();
   const panelReveal = createMapPanelReveal(detailRoot, DETAIL_RECT);
@@ -782,6 +784,7 @@ export function createWorldMapView({
       indicators:regionMapIndicators.map(i=>({...i,monster:i.monster?{defense:i.monster.defense}:null,neutral:!!i.neutral})),
     },mapContent=>{
     const layerLandmarks=[];
+    if(floatingMode)clearChildren(floatingOverlay);
     if(!illustratedMap){
       const bg=new PIXI.Graphics();bg.beginFill(0x152426).drawRect(-3000,-2000,8500,5000).endFill();
       bg.eventMode='none';mapContent.addChild(bg);
@@ -908,7 +911,10 @@ export function createWorldMapView({
       const footprint=illustrated.stats.sites?.find(site=>site.regionId===indicator.regionId)?.spriteBounds;
       const spriteBounds=footprint?{min:screenPoint({x:footprint.minX,y:footprint.minY}),max:screenPoint({x:footprint.maxX,y:footprint.maxY})}:null;
 
-      if(display.actors!==false&&readoutVariant)addRegionalReadoutPrototype(regionContent,point,indicator,{tooltipView,reference:getRegionReference(state,indicator.regionId),variant:readoutVariant,spriteBounds,forceSample});
+      if(display.actors!==false&&readoutVariant){
+        const readout=addRegionalReadoutPrototype(floatingMode?floatingOverlay:regionContent,point,indicator,{tooltipView,reference:getRegionReference(state,indicator.regionId),variant:readoutVariant,spriteBounds,forceSample});
+        if(floatingMode&&readout)presentRegion(readout,indicator.regionId);
+      }
       if(display.actors!==false&&!readoutVariant)addMapInfluenceMarker(regionContent,point,indicator.influence,{tooltipView,reference:getRegionReference(state,indicator.regionId)??indicator.regionId});
       if(display.actors!==false&&!readoutVariant)addRegionPrestigeBadge(regionContent,point,indicator.prestigePerNode,{tooltipView,populationPerPoint:indicator.prestigePopulationPerPoint});
       const adornments = new PIXI.Container();
@@ -944,7 +950,7 @@ export function createWorldMapView({
 
     // Name colours follow viewed control, including occupation and rewind.
     // Stock changes still retain their text textures.
-    retained.update(mapContent,'references',[getArtRevision(),display.choiceRegionIds,
+    floatingReferenceLayer=retained.update(mapContent,'references',[getArtRevision(),display.choiceRegionIds,
       definition.regions.map(r=>[r.id,getRegionNameColour(getRegionState(state,r.id))])],mapContent=>{
     floatingNameLabels=[];
     for (const regionDef of definition.regions) {
@@ -960,7 +966,10 @@ export function createWorldMapView({
       if(floatingMode){label.floatingHome={x:label.x,y:label.y};floatingNameLabels.push(label);}
       mapContent.addChild(presentRegion(label, regionDef.id));
     }
-    });
+    }).node;
+    // Names retain their live-game corner positions. Floating readings take
+    // visual priority instead of moving or hiding labels to make room.
+    if(floatingMode)mapContent.addChild(floatingOverlay);
 
     const activeVassal = getCurrentLifeMapVassal(state);
     retained.update(mapContent,'vassal',[getArtRevision(),display.actors,activeVassal?.locationRegionId,activeVassal?getVassalAge(state,activeVassal):null],mapContent=>{
@@ -1059,23 +1068,6 @@ export function createWorldMapView({
     if(atlasMode&&prototypeEconomyExpanded)addButton(detailRoot,{x:660,y:100,width:270,height:58},'Map summary',()=>{prototypeEconomyExpanded=false;lastSignature='';render(true);});
   }
 
-  function resolveFloatingNames(){
-    const zoom=camera.snapshot().zoom;
-    if(!floatingMode||(floatingNameZoom===zoom&&floatingNameScene===lastSignature))return;
-    floatingNameZoom=zoom;floatingNameScene=lastSignature;
-    const fixed=getFloatingReadoutMeasurements().flatMap(r=>[r.sprite,r.bar,r.badge].filter(Boolean)),placed=[];
-    const overlap=(a,b)=>Math.max(0,Math.min(a.x+a.width,b.x+b.width+2)-Math.max(a.x,b.x-2))*Math.max(0,Math.min(a.y+a.height,b.y+b.height+2)-Math.max(a.y,b.y-2));
-    for(const label of floatingNameLabels){
-      if(label.destroyed)continue;label.visible=true;let best=null;
-      for(const [rank,[dx,dy]] of [[0,0],[-45,0],[45,0],[0,-35],[0,35],[-70,0],[70,0],[-45,-35],[45,35],[0,-70],[0,70],[-70,-35],[70,-35],[-70,35],[70,35],[-70,-70],[70,-70],[-70,70],[70,70],[-105,0],[105,0],[0,105],[0,-105]].entries()){
-        label.position.set(label.floatingHome.x+dx,label.floatingHome.y+dy);
-        const b=label.getBounds(),score=[...fixed,...placed].reduce((n,other)=>n+overlap(b,other),0)*10000+rank;
-        if(!best||score<best.score)best={x:label.x,y:label.y,score,clear:score===rank};
-        if(score===rank)break;
-      }
-      label.position.set(best.x,best.y);label.visible=best.clear;if(!label.visible)continue;const b=label.getBounds();placed.push({x:b.x,y:b.y,width:b.width,height:b.height});
-    }
-  }
 
   return {
     init: () => {
@@ -1088,7 +1080,6 @@ export function createWorldMapView({
       panelReveal.update();
       render();
       if(regionalReadoutVariant())updateRegionalReadoutScale(camera.snapshot().zoom);
-      resolveFloatingNames();
       updateEdgeTransferPackets();
       illustrated.update(visualTime(),camera.snapshot().zoom);
     },
@@ -1182,7 +1173,8 @@ export function createWorldMapView({
         : [];
       return {
         visible: root.visible === true,
-        floatingReadouts:floatingMode?getFloatingReadoutMeasurements().map(reading=>{const label=floatingNameLabels.find(item=>!item.destroyed&&item.mapRegionId===reading.regionId),b=label?.visible?label.getBounds():null;return {...reading,name:b?{x:b.x,y:b.y,width:b.width,height:b.height}:null};}):null,
+        floatingNamesBelowReadouts:floatingMode&&floatingReferenceLayer?.parent===mapContent&&floatingOverlay.parent===mapContent?mapContent.getChildIndex(floatingReferenceLayer)<mapContent.getChildIndex(floatingOverlay):null,
+        floatingReadouts:floatingMode?getFloatingReadoutMeasurements().map(reading=>{const label=floatingNameLabels.find(item=>!item.destroyed&&item.mapRegionId===reading.regionId),b=label?.visible?label.getBounds():null;return {...reading,name:b?{x:b.x,y:b.y,width:b.width,height:b.height}:null,nameHome:label?.floatingHome??null,namePosition:label?{x:label.x,y:label.y}:null};}):null,
         regionalReadoutPrototype:atlasMode?{variant:'atlas',economyExpanded:prototypeEconomyExpanded,economyClickPoint:ATLAS_ECONOMY_POINT}:null,
         illustratedTerrain:{...illustrated.stats},
         retainedScene:retained.snapshot(),
@@ -1294,6 +1286,7 @@ export function createWorldMapView({
     getInstalledPracticeClickPoint: () => null,
     destroy: () => {
       retained.clear();
+      floatingOverlay.destroy({children:true});
       illustrated.destroy();
       unavailableFilter.destroy();
       regionPanels.clear();

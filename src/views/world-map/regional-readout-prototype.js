@@ -1,4 +1,4 @@
-import {addFloatingSettlementPrototype,resolveFloatingReadouts} from './floating-settlement-prototype.js';
+import {addFloatingSettlementPrototype} from './floating-settlement-prototype.js';
 // Throwaway experiment: three Force treatments inside the real regional map.
 // Read-only view data. No control, conversion, or Prestige rules are changed.
 import {compactRegionName} from '../region-label.js';
@@ -14,7 +14,6 @@ const readouts=new Set();
 export function getFloatingReadoutMeasurements(){return [...readouts].filter(root=>!root.destroyed&&root.measureFloating).map(root=>root.measureFloating());}
 export function updateRegionalReadoutScale(zoom){
   for(const root of readouts){if(root.destroyed){readouts.delete(root);continue;}if(root.updateFloatingLayout){root.updateFloatingLayout(zoom);continue;}root.scale.set((root.atlasMarker?1.18:1.35)/Math.max(.25,zoom));}
-  resolveFloatingReadouts([...readouts].filter(root=>!root.destroyed&&root.measureFloating),zoom);
 }
 const number=value=>String(Number(Number(value??0).toFixed(1)));
 const text=(root,value,x,y,size=18,colour=0xe6dcc4)=>{

@@ -1,3 +1,7 @@
+Subsequent preference: fixed relative sizes and stable sprite anchors; names
+remain at their original regional corners, underneath the readings. The label
+clearance behavior described below is superseded by STABLE_LAYOUT.md.
+
 ﻿# Worker medallion, Prestige pill, and numbered shield
 
 Current preference: **workers**, resolved by Cam. The circular worker medallion
