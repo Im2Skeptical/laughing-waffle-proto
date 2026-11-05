@@ -8,6 +8,7 @@
     "start": "node scripts/performance-fixture.mjs && node scripts/local-preview.mjs",
     "preview:local": "node scripts/local-preview.mjs",
     "version:game": "node scripts/version-game.mjs",
+    "prototype:regional": "node scripts/performance-fixture.mjs && node scripts/local-preview.mjs",
     "prototype:vassal": "serve . --listen 4173",
     "preview:cards": "node scripts/preview-cards.mjs",
     "preview:vassals": "node scripts/preview-vassals.mjs",

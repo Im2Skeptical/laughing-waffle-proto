@@ -1,3 +1,4 @@
+import {regionalReadoutVariant,addRegionalReadoutPrototype,updateRegionalReadoutScale} from './world-map/regional-readout-prototype.js';
 import { getRegionTerrainStyle, getRegionNameColour } from './world-map/region-style.js';
 import { minimalGraphics } from './minimal-graphics.js';
 import { createRegionLabel } from './region-label.js';
@@ -536,6 +537,7 @@ export function createWorldMapView({
   function drawEdgeTransferPackets(timeSec) {
     edgeTransferGraphics.clear();
     stockTransferIcons.beginFrame();
+    if(regionalReadoutVariant()&&getRegionSelectionActive?.()!==true){tradeCorridorGraphics.clear();return;}
     const definition=getWorldDefinition(getState?.());
     const dragging=isTradeScrubSkipping?.()===true;
     drawTradeCorridors(definition,timeSec,dragging);
@@ -890,8 +892,10 @@ export function createWorldMapView({
       const point = sitePoint(regionDef);
       if (display.actors !== false && indicator.monster) addMonsterMarker(regionContent, point, {art:!illustratedMap});
       if (display.actors !== false && indicator.crownCapital) addCrownCapitalMarker(regionContent,point,tooltipView);
-      if(display.actors!==false)addMapInfluenceMarker(regionContent,point,indicator.influence,{tooltipView,reference:getRegionReference(state,indicator.regionId)??indicator.regionId});
-      if(display.actors!==false)addRegionPrestigeBadge(regionContent,point,indicator.prestigePerNode,{tooltipView,populationPerPoint:indicator.prestigePopulationPerPoint});
+      const readoutVariant=regionalReadoutVariant();
+      if(display.actors!==false&&readoutVariant)addRegionalReadoutPrototype(regionContent,point,indicator,{tooltipView,reference:getRegionReference(state,indicator.regionId),variant:readoutVariant});
+      if(display.actors!==false&&!readoutVariant)addMapInfluenceMarker(regionContent,point,indicator.influence,{tooltipView,reference:getRegionReference(state,indicator.regionId)??indicator.regionId});
+      if(display.actors!==false&&!readoutVariant)addRegionPrestigeBadge(regionContent,point,indicator.prestigePerNode,{tooltipView,populationPerPoint:indicator.prestigePopulationPerPoint});
       const adornments = new PIXI.Container();
       adornments.position.set(point.x,point.y);
       adornments.scale.set(.75);
@@ -902,7 +906,7 @@ export function createWorldMapView({
         marker.eventMode='none';regionContent.addChild(marker);
       }
       if (indicator.hasDetailedSettlement && !indicator.monster) {
-        addSettlementStockTags(regionContent, point, indicator.stockTags, {
+        if(!readoutVariant||(regionSelectionActive&&indicator.regionId===selectedRegionId))addSettlementStockTags(regionContent, point, indicator.stockTags, {
           tooltipView, reference: getRegionReference(state, indicator.regionId) ?? indicator.regionId,
         });
         if (display.scenery !== false && !illustratedMap) {
@@ -917,7 +921,7 @@ export function createWorldMapView({
       }
       if (display.alerts !== false) {
         addSettlementStarvationIndicator(adornments, {x:65,y:40}, indicator.pressure);
-        addSettlementCurrencyIndicator(adornments, {x:65,y:35}, indicator);
+        if(!readoutVariant)addSettlementCurrencyIndicator(adornments, {x:65,y:35}, indicator);
       }
     }
     return layerLandmarks;
@@ -1037,6 +1041,7 @@ export function createWorldMapView({
       camera.update();
       panelReveal.update();
       render();
+      if(regionalReadoutVariant())updateRegionalReadoutScale(camera.snapshot().zoom);
       updateEdgeTransferPackets();
       illustrated.update(visualTime(),camera.snapshot().zoom);
     },

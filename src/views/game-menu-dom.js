@@ -292,6 +292,17 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
       dev.dataset.testid = 'game-developer-tools'; dev.open = devExpanded;
       const summary = document.createElement('summary'); summary.textContent = 'Developer tools';
       dev.append(summary);
+      if(new URLSearchParams(location.search).has('regionalReadout')) {
+        const label=document.createElement('label');label.textContent='Regional readout prototype ';
+        const select=document.createElement('select');select.dataset.testid='regional-readout-variant';
+        for(const [value,name] of [['shield','A ? Attached shield'],['tracks','B ? Dual track'],['bracket','C ? Occupation bracket']]) {
+          const option=document.createElement('option');option.value=value;option.textContent=name;select.append(option);
+        }
+        select.value=new URLSearchParams(location.search).get('regionalReadout');
+        select.addEventListener('change',()=>{const url=new URL(location.href);url.searchParams.set('regionalReadout',select.value);location.href=url.href;});
+        label.append(select);dev.append(label);
+      }
+
       const performanceButton = button('New game in performance mode', event => {
         const kind=performanceEntryPending && (performanceLaunch==='continue' || (performanceLaunch!=='new' && session.getPerformanceSave?.())) ? 'continue' : 'new';
         launchPerformance(kind,event);
