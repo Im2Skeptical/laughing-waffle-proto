@@ -22,10 +22,10 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   // written; ordinary prototype URLs continue to show actual model values.
   const p=forceSample?{...original,total:200,parts:[
     {...original.parts[0],count:70},{...original.parts[1],count:90},{...original.parts[2],count:40}],
-    force:forceSample==='short'?4:8,required:6,status:forceSample==='short'?'contested':'occupied',
-    contested:forceSample==='short',unrest:forceSample==='short'?75:50}:original;
+    force:forceSample==='short'?4:forceSample==='fractional'?5.8:8,required:6,status:forceSample==='held'?'occupied':'contested',
+    contested:forceSample!=='held',unrest:forceSample==='held'?50:75}:original;
   const params=new URLSearchParams(globalThis.location?.search??'');
-  const countKind=params.get('regionalCount')==='workers'?'workers':'population';
+  const countKind=params.get('regionalCount')==='population'?'population':'workers';
   const count=countKind==='workers'?(forceSample?13:indicator.totalWorkerCount):p.total;
   const gold=player?0xf1d18b:crown?0xc69872:0x9abbb0;
   const root=new PIXI.Container();root.label='floating-settlement-readout';root.mapRegionId=indicator.regionId;
@@ -39,16 +39,21 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   const countNumber=label(counter,String(count),27);
   const prestige=new PIXI.Container();prestige.label='floating-prestige';badge.addChild(prestige);
   const prestigeNumber=label(prestige,(player?'+':'')+shownPrestige,27,player?0xffe3a0:0xd8b28d);
-  const leftWidth=Math.max(66,countNumber.width+39),rightWidth=player||crown?Math.max(62,prestigeNumber.width+39):0;
-  const badgeWidth=leftWidth+rightWidth,left=-badgeWidth/2,divider=left+leftWidth;
-  frame.lineStyle(1.5,gold,.9).beginFill(0x17231b,.9)
-    .drawPolygon([left,-12,left+6,-19,-left-6,-19,-left,-12,-left,12,-left-6,19,left+6,19,left,12]).endFill();
-  frame.lineStyle(1,gold,.25).moveTo(left+7,-15).lineTo(-left-7,-15);
-  if(rightWidth)frame.lineStyle(1,gold,.65).moveTo(divider,-13).lineTo(divider,13);
-  if(countKind==='population')addResourceIcon(counter,'population',left+17,0,25);
-  else{const glyph=new PIXI.Graphics().beginFill(0xf1dfb8).drawCircle(left+17,-7,3.5).drawRoundedRect(left+13,-1,8,11,2).endFill();counter.addChild(glyph);}
-  countNumber.x=left+33+countNumber.width/2;
-  counter.hitArea=new PIXI.Rectangle(left-2,-24,leftWidth+2,48);
+  const radius=Math.max(26,(countNumber.width+22)/2),leftWidth=radius*2;
+  const rightWidth=player||crown?Math.max(62,prestigeNumber.width+39):0;
+  const badgeWidth=leftWidth+rightWidth,left=-badgeWidth/2,divider=left+leftWidth,circleX=left+radius;
+  // One connected silhouette: circular worker medallion, rectangular income
+  // pill. Draw the pill first so the circle's rim forms their curved join.
+  if(rightWidth){
+    frame.lineStyle(1.5,gold,.9).beginFill(0x17231b,.9).drawRoundedRect(circleX,-19,radius+rightWidth,38,6).endFill();
+    frame.lineStyle(1,gold,.25).moveTo(divider+7,-15).lineTo(-left-7,-15);
+  }
+  frame.lineStyle(1.5,gold,.95).beginFill(0x17231b,.97).drawCircle(circleX,0,radius).endFill();
+  frame.lineStyle(1,gold,.25).drawCircle(circleX,0,radius-4);
+  if(countKind==='population')addResourceIcon(counter,'population',circleX-radius+12,0,22);
+  else{const x=circleX-radius+12,glyph=new PIXI.Graphics().beginFill(0xf1dfb8).drawCircle(x,-7,3.5).drawRoundedRect(x-4,-1,8,11,2).endFill();counter.addChild(glyph);}
+  countNumber.x=circleX+8;
+  counter.hitArea=new PIXI.Circle(circleX,0,radius+3);
   const demo=forceSample?['Display-only political example for visual comparison.']:[];
   inspect(counter,{title:reference+(countKind==='population'?' - Population':' - Workers'),lines:[...demo,
     `${p.total} total residents.`,`${forceSample?13:indicator.totalWorkerCount} total workers.`,
@@ -63,11 +68,16 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
 
   const influence=new PIXI.Container();influence.label='floating-influence';root.addChild(influence);
   const bar=new PIXI.Graphics();influence.addChild(bar);
+  const forceNumber=label(influence,String(Math.floor(Math.max(0,p.force))),22,0xf3e7cd);forceNumber.label='holding-force-number';
+  const forceLabelScale=Math.min(1,22/Math.max(1,forceNumber.width));
   const status=p.status==='supported'?'Population-supported':p.status==='occupied'?'Military occupation':p.contested?'Control contested':'Unheld';
   inspect(influence,{title:reference+' - '+status,lines:[...demo,
     ...p.parts.map(part=>`${part.name}: ${part.count} / ${p.total} (${Math.round(part.count/p.total*100)}%).`),
     `Supplied holding Force ${amount(p.force)}${p.required?' / '+p.required+' required':''}; unrest ${Math.round(p.unrest)}%.`,
-    'The coloured bar is population allegiance; steel blue shows holding Force.',
+    'The coloured bar is population allegiance. The shield number shows whole supplied Force.',
+    "The shield sits inside the holder's allegiance segment; its position is not a claim threshold.",
+    'Political thresholds remain 60% to claim and 45% to retain. Sufficient supplied occupation Force can hold below that support.',
+    'Fractional Force is rounded down on the shield; the exact amount is shown above.',
     'A full Force meter meets the occupation requirement. Inspect the amount for surplus.',
     'Force holds territory without converting its population.',
   ],maxWidth:370},tooltipView,'floating-influence:'+indicator.regionId);
@@ -75,28 +85,32 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   const bounds=spriteBounds??{min:{x:point.x-27,y:point.y-70},max:{x:point.x+27,y:point.y}};
   let lastZoom=null,lastFactor=null,lastStyle=null;root.floatingScaleFactor=1.08;
   root.updateFloatingLayout=zoom=>{
-    const forceStyle=new URLSearchParams(globalThis.location?.search??'').get('regionalForce')??'shield';
+    const forceStyle=new URLSearchParams(globalThis.location?.search??'').get('regionalForce')??'onbar';
     if(lastZoom!==zoom)root.floatingScaleFactor=1.08;
     if(lastZoom===zoom&&lastFactor===root.floatingScaleFactor&&lastStyle===forceStyle)return;lastZoom=zoom;lastFactor=root.floatingScaleFactor;lastStyle=forceStyle;root.floatingDirty=true;
     const scale=root.floatingScaleFactor/Math.max(.25,zoom);root.scale.set(scale);
     const left=(bounds.min.x-point.x)/scale,right=(bounds.max.x-point.x)/scale;
     const top=(bounds.min.y-point.y)/scale,bottom=(bounds.max.y-point.y)/scale;
-    badge.position.set((left+right)/2,top-25);
+    badge.position.set((left+right)/2,top-radius-6);
     const width=Math.max(112,Math.min(156,right-left+24)),height=9;
-    influence.position.set((left+right)/2,bottom+16);
+    const barOffset=forceStyle==='onbar'?26:16;
+    influence.position.set((left+right)/2,bottom+barOffset);
     bar.clear().lineStyle(1,0x131b15,1).beginFill(0x101b15,.85).drawRoundedRect(-width/2-3,-height/2-3,width+6,height+6,4).endFill();
     let x=-width/2;
     for(const part of p.parts){const w=width*part.count/p.total;bar.lineStyle(0).beginFill(part.colour).drawRect(x,-height/2,w,height).endFill();x+=w;}
     bar.lineStyle(1,gold,.9).drawRoundedRect(-width/2-1,-height/2-1,width+2,height+2,2);
     bar.lineStyle(0).beginFill(gold).drawCircle(-width/2-5,0,2).drawCircle(width/2+5,0,2).endFill();
-    drawForceTreatment(bar,width,p,forceStyle);
+    const shieldX=drawForceTreatment(bar,width,p,forceStyle);
+    forceNumber.visible=forceStyle==='onbar';forceNumber.position.set(shieldX??0,0);
+    forceNumber.scale.set(forceLabelScale);
     influence.hitArea=new PIXI.Rectangle(-width/2-12,-22,width+48,48);
-    root.floatingLayout={sprite:{left,right,top,bottom},badge:{x:badge.x,y:badge.y},bar:{x:(left+right)/2,y:bottom+16,width}};
+    root.floatingLayout={sprite:{left,right,top,bottom},badge:{x:badge.x,y:badge.y},bar:{x:(left+right)/2,y:bottom+barOffset,width,shieldX:shieldX??0}};
   };
   root.measureFloating=()=>{
+    const track=root.floatingLayout.bar,anchor=root.toGlobal({x:track.x+track.shieldX,y:track.y}),trackA=root.toGlobal({x:track.x-track.width/2,y:track.y-4.5}),trackB=root.toGlobal({x:track.x+track.width/2,y:track.y+4.5});
     const b=root.floatingLayout.sprite,a=root.toGlobal({x:b.left,y:b.top}),z=root.toGlobal({x:b.right,y:b.bottom});
     const rect=item=>{const b=item.getBounds();return {x:b.x,y:b.y,width:b.width,height:b.height};};
-    return {regionId:indicator.regionId,sprite:{x:a.x,y:a.y,width:z.x-a.x,height:z.y-a.y},count:rect(counter),badge:rect(badge),prestige:prestige.visible?rect(prestige):null,bar:rect(influence),name:null,countKind,count,shownPrestige,exactPrestige:value,force:p.force,required:p.required,forceSample,forceStyle:lastStyle};
+    return {regionId:indicator.regionId,sprite:{x:a.x,y:a.y,width:z.x-a.x,height:z.y-a.y},countBounds:rect(counter),badge:rect(badge),prestige:prestige.visible?rect(prestige):null,bar:rect(influence),name:null,countKind,count,shownPrestige,exactPrestige:value,force:p.force,shownForce:Number(forceNumber.text),required:p.required,forceSample,forceStyle:lastStyle,shieldAnchor:{x:anchor.x,y:anchor.y},meterTrack:{x:trackA.x,y:trackA.y,width:trackB.x-trackA.x,height:trackB.y-trackA.y}};
   };
   root.updateFloatingLayout(1);
   return root;
@@ -145,7 +159,17 @@ function roundedTrack(width,height){
 }
 function drawForceTreatment(g,width,p,style){
   const coverage=p.required>0?Math.min(1,p.force/p.required):0,blue=0x9bbdce,track=0x435962;
-  if(style==='surround'){
+  if(style==='onbar'){
+    const holderIndex=p.parts.findIndex(part=>part.id===p.holder);
+    const before=holderIndex<0?0:p.parts.slice(0,holderIndex).reduce((n,part)=>n+part.count,0);
+    const centre=holderIndex<0?p.total/2:before+p.parts[holderIndex].count/2;
+    const x=-width/2+width*centre/Math.max(1,p.total);
+    const edge=p.contested?0xe1a08a:p.status==='occupied'?blue:0x9fa99e;
+    g.lineStyle(2,0x111b17).beginFill(0x18282d,.98).drawPolygon([x-16,-21,x+16,-21,x+15,7,x,21,x-15,7]).endFill();
+    g.lineStyle(1.5,edge).drawPolygon([x-14,-19,x+14,-19,x+13,6,x,18,x-13,6]);
+    if(coverage)g.lineStyle(3,blue,.9).moveTo(x-11,5).lineTo(x,15).lineTo(x+11,5);
+    return x;
+  }else if(style==='surround'){
     const points=roundedTrack(width+16,27);
     pathProgress(g,points,1,track,2);if(coverage)pathProgress(g,points,coverage,blue,3);
   }else if(style==='rail'){

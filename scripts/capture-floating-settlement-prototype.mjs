@@ -15,7 +15,7 @@ function checkLayout(map){
  for(const r of map.floatingReadouts){
   assert(!intersects(r.name,r.bar),r.regionId+' name overlaps influence bar');
   assert(/^-?\d+$/.test(r.shownPrestige),'Prestige must be displayed without decimals');
-  assert(!intersects(r.count,r.sprite),r.regionId+' workers cover buildings');
+  assert(!intersects(r.countBounds,r.sprite),r.regionId+' workers cover buildings');
   assert(!intersects(r.prestige,r.sprite),r.regionId+' Prestige covers buildings');
   assert(!intersects(r.bar,r.sprite),r.regionId+' bar covers buildings');
  }
@@ -40,7 +40,7 @@ try{
  await page.setViewportSize({width:844,height:390});await page.waitForTimeout(400);map=await snapshot();
  const player=map.regionMapIndicators.find(r=>r.controller==='player').regionId;
  const crown=map.regionMapIndicators.find(r=>r.controller==='external-a').regionId;
- const worker=map.floatingReadouts.find(r=>r.regionId===player).count;
+ const worker=map.floatingReadouts.find(r=>r.regionId===player).countBounds;
  await tap({x:worker.x+worker.width/2,y:worker.y+worker.height/2});
  assert.match((await page.evaluate(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState())).title,/Workers|Population/);checks.push('worker badge touch inspection');
  await page.keyboard.press('Escape');

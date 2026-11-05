@@ -903,7 +903,7 @@ export function createWorldMapView({
       if (display.actors !== false && indicator.crownCapital) addCrownCapitalMarker(regionContent,point,tooltipView);
       const readoutVariant=regionalReadoutVariant();
       const sampleMode=new URLSearchParams(globalThis.location?.search??'').get('regionalForceSample');
-      const forceSample=floatingMode&&indicator.controller==='player'?(sampleMode==='both'?(indicator.regionId===state.civilization.capitalRegionId?'short':'held'):['short','held'].includes(sampleMode)?sampleMode:null):null;
+      const forceSample=floatingMode&&indicator.controller==='player'?(sampleMode==='both'?(indicator.regionId===state.civilization.capitalRegionId?'short':'held'):['short','held','fractional'].includes(sampleMode)?sampleMode:null):null;
 
       const footprint=illustrated.stats.sites?.find(site=>site.regionId===indicator.regionId)?.spriteBounds;
       const spriteBounds=footprint?{min:screenPoint({x:footprint.minX,y:footprint.minY}),max:screenPoint({x:footprint.maxX,y:footprint.maxY})}:null;

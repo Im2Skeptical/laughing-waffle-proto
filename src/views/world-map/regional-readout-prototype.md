@@ -7,7 +7,15 @@ region selection, at phone-landscape size?
 Throwaway experiment on `experiment/regional-readout-20261105`. Not production
 implementation and not permission to merge or publish.
 
-## Latest: connected count / Prestige and three Force treatments
+## Current: worker circle, Prestige pill, numbered shield on the meter
+
+Cam chose workers. The worker section is circular and joins a rectangular
+Prestige pill. `regionalForce=onbar` places a numbered shield in the holder's
+allegiance slice. Whole Force points round down; exact Force stays inspectable.
+The shield position is an identity marker, not a changed political threshold.
+See `docs/prototypes/regional-map-20261105/WORKER_CIRCLE_SHIELD.md`.
+
+## Previous: connected count / Prestige and three Force treatments
 
 The upper readings now share one frame with two sections. Prestige display uses
 whole numbers, while exact model contributions stay unchanged. Left-number

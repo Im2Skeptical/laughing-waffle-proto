@@ -1,3 +1,7 @@
+Subsequent decision: Cam chose workers and a numbered shield directly on the
+meter. See WORKER_CIRCLE_SHIELD.md; the provisional resident default below is
+historical and superseded.
+
 ﻿# Connected count/Prestige badge and Force options
 
 Latest local prototype: `regionalReadout=floating`. The two values now share one

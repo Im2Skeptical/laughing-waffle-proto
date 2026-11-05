@@ -304,16 +304,16 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
         if(new URLSearchParams(location.search).get('regionalReadout')==='floating'){
           const forceLabel=document.createElement('label');forceLabel.textContent='Force treatment ';
           const forceSelect=document.createElement('select');forceSelect.dataset.testid='regional-force-variant';
-          for(const [value,name] of [['shield','A: Shield end-cap'],['surround','B: Armour surround'],['rail','C: Underbar Force rail']]){
+          for(const [value,name] of [['onbar','Numbered shield on meter'],['shield','Previous A: Shield end-cap'],['surround','B: Armour surround'],['rail','C: Underbar Force rail']]){
             const option=document.createElement('option');option.value=value;option.textContent=name;forceSelect.append(option);
           }
-          forceSelect.value=new URLSearchParams(location.search).get('regionalForce')??'shield';
+          forceSelect.value=new URLSearchParams(location.search).get('regionalForce')??'onbar';
           forceSelect.addEventListener('change',()=>{const url=new URL(location.href);url.searchParams.set('regionalForce',forceSelect.value);location.href=url.href;});
           forceLabel.append(forceSelect);dev.append(forceLabel);
           const countLabel=document.createElement('label');countLabel.textContent='Left number ';
           const countSelect=document.createElement('select');
           for(const [value,name] of [['population','Total residents'],['workers','Total workers']]){const option=document.createElement('option');option.value=value;option.textContent=name;countSelect.append(option);}
-          countSelect.value=new URLSearchParams(location.search).get('regionalCount')??'population';
+          countSelect.value=new URLSearchParams(location.search).get('regionalCount')??'workers';
           countSelect.addEventListener('change',()=>{const url=new URL(location.href);url.searchParams.set('regionalCount',countSelect.value);location.href=url.href;});
           countLabel.append(countSelect);dev.append(countLabel);
 
