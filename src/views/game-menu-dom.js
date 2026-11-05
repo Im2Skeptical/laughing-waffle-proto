@@ -295,7 +295,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
       if(new URLSearchParams(location.search).has('regionalReadout')) {
         const label=document.createElement('label');label.textContent='Regional readout prototype ';
         const select=document.createElement('select');select.dataset.testid='regional-readout-variant';
-        for(const [value,name] of [['shield','A ? Attached shield'],['tracks','B ? Dual track'],['bracket','C ? Occupation bracket']]) {
+        for(const [value,name] of [['atlas','World first ? Heraldry & focus'],['shield','Original A ? Attached shield'],['tracks','B ? Dual track'],['bracket','C ? Occupation bracket']]) {
           const option=document.createElement('option');option.value=value;option.textContent=name;select.append(option);
         }
         select.value=new URLSearchParams(location.search).get('regionalReadout');

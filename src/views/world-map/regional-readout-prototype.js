@@ -1,16 +1,17 @@
 // Throwaway experiment: three Force treatments inside the real regional map.
 // Read-only view data. No control, conversion, or Prestige rules are changed.
-import {createText} from '../settlement-view-primitives.js';
+import {compactRegionName} from '../region-label.js';
+import {createText,roundedRect} from '../settlement-view-primitives.js';
 import {TEXT_STYLES} from '../settlement-theme.js';
 import {addResourceIcon} from '../resource-cost-pixi.js';
 
 export function regionalReadoutVariant() {
   const value=new URLSearchParams(globalThis.location?.search??'').get('regionalReadout');
-  return ['shield','tracks','bracket'].includes(value)?value:null;
+  return ['atlas','shield','tracks','bracket'].includes(value)?value:null;
 }
 const readouts=new Set();
 export function updateRegionalReadoutScale(zoom){
-  for(const root of readouts){if(root.destroyed){readouts.delete(root);continue;}root.scale.set(1.35/Math.max(.25,zoom));}
+  for(const root of readouts){if(root.destroyed){readouts.delete(root);continue;}root.scale.set((root.atlasMarker?1.18:1.35)/Math.max(.25,zoom));}
 }
 const number=value=>String(Number(Number(value??0).toFixed(1)));
 const text=(root,value,x,y,size=18,colour=0xe6dcc4)=>{
@@ -39,6 +40,7 @@ function VariantBracket(root,p){
 }
 
 export function addRegionalReadoutPrototype(parent,point,indicator,{tooltipView,reference,variant}){
+  if(variant==='atlas')return addAtlasMarker(parent,point,indicator,{tooltipView,reference});
   const p=indicator.influence;if(!p||indicator.monster)return;
   const root=new PIXI.Container();root.label='regional-readout-prototype';readouts.add(root);root.position.set(point.x,point.y+27);
   const held=indicator.controller==='player',crown=indicator.controller==='external-a';
@@ -74,4 +76,86 @@ export function addRegionalReadoutPrototype(parent,point,indicator,{tooltipView,
   root.on('pointerout',()=>tooltipView?.hide?.());
   root.on('pointerdown',e=>{e.stopPropagation();tooltipView?.pin?.(spec,root.getBounds(),`regional-prototype:${reference}`);});
   parent.addChild(root);
+}
+
+
+// Iteration 1: world first. Small heraldic markers, only our holdings carry
+// routine numbers. Full figures live in one deliberate regional focus panel.
+function addAtlasMarker(parent,point,indicator,{tooltipView,reference}){
+  const p=indicator.influence;if(!p||indicator.monster)return;
+  const held=indicator.controller==='player',crown=indicator.controller==='external-a';
+  const ink=held?0xf0d18a:crown?0xbe906e:0x9bbdb2;
+  const root=new PIXI.Container();root.atlasMarker=true;root.label='atlas-settlement-marker';
+  root.mapRegionId=indicator.regionId;root.position.set(point.x,point.y+20);readouts.add(root);
+  const g=new PIXI.Graphics();root.addChild(g);
+  // Population changes the heraldic seal's size, never the allegiance share.
+  const radius=held?20:Math.min(16,10+Math.sqrt(p.total)*.45);
+  g.lineStyle(held?2:1.5,ink,held?1:.8).beginFill(0x17251e,.92)
+    .drawCircle(0,0,radius).endFill();
+  if(held){
+    g.lineStyle(1,ink,.35).drawCircle(0,0,radius+5);
+    g.lineStyle(0).beginFill(0xffe8b3).drawCircle(-9,-7,3).drawRoundedRect(-12,-2,6,10,2).endFill();
+    const n=text(root,String(indicator.totalWorkerCount),6,-14,27,0xffebae);n.anchor.x=.5;
+  }else{
+    // A simple keep silhouette keeps these recognisable as places, not stats.
+    g.lineStyle(0).beginFill(ink,.9).drawRect(-6,-1,12,9).drawRect(-7,-6,4,8).drawRect(3,-6,4,8).drawRect(-2,-9,4,12).endFill();
+    g.beginFill(0x17251e).drawRect(-1,3,3,5).endFill();
+  }
+  const label=text(root,compactRegionName(reference),0,held?29:23,held?23:21,held?0xffe8b3:0xd0c4ac);label.anchor.x=.5;
+  label.style.stroke=0x101b16;label.style.strokeThickness=4;
+  const maxWidth=held?195:174;if(label.width>maxWidth)label.scale.set(maxWidth/label.width);
+  if(held){
+    g.lineStyle(0).beginFill(0x111d17,.75).drawRoundedRect(-54,55,108,27,10).endFill();
+    addResourceIcon(root,'prestige',-28,68,20);
+    const income=text(root,'+'+number(indicator.prestigePerNode),-10,54,24,0xe9d49b);
+    income.accessibleTitle='Prestige per completed node';
+  }
+  // A thin political seam replaces the broad framed bar. Exceptions get a
+  // shield; ordinary population-supported towns don't repeat a status icon.
+  const y=held?51:45,width=held?112:82;let x=-width/2;
+  for(const part of p.parts){const w=width*part.count/p.total;g.lineStyle(0).beginFill(part.colour,held?1:.65).drawRect(x,y,w,3).endFill();x+=w;}
+  if(p.contested||p.status==='occupied')shield(root,p,width/2+13,y+1);
+  const spec={title:reference,lines:[`${p.total} residents ? ${indicator.totalWorkerCount} total workers.`,
+    p.holder==='player'?'Your realm':p.holder==='external-a'?'Crown holding':'Independent settlement',
+    p.status==='supported'?'Population support secures control.':p.status==='occupied'?'Held by supplied military Force.':p.contested?'Control is in contention.':'Unheld territory.',
+    'Larger foreign settlement seals indicate more residents.',
+    'Select this settlement to inspect allegiance, Force and Prestige.'],maxWidth:340};
+  root.eventMode='static';root.cursor='pointer';root.hitArea=new PIXI.Rectangle(-100,-25,200,held?110:85);
+  root.on('pointerover',e=>{if(e.pointerType!=='touch')tooltipView?.show?.(spec,root.getBounds(),{dismissOnExit:true});});
+  root.on('pointerout',()=>tooltipView?.hide?.());
+  parent.addChild(root);return root;
+}
+
+export const ATLAS_FOCUS_RECT=Object.freeze({x:48,y:478,width:850,height:322});
+export const ATLAS_ECONOMY_POINT=Object.freeze({x:735,y:753});
+export function addAtlasFocus(root,indicator,{reference,onEconomy,onClose,addButton,tooltipView}){
+  const p=indicator?.influence;if(!p)return;
+  const {x,y,width,height}=ATLAS_FOCUS_RECT,held=indicator.controller==='player';
+  const colour=held?0xe8cb89:0xc49472;
+  const g=new PIXI.Graphics();roundedRect(g,x,y,width,height,8,0x14211c,0x756443,2,.97);
+  g.lineStyle(3,colour,.8).moveTo(x+23,y+1).lineTo(x+width-23,y+1);root.addChild(g);
+  g.eventMode='static';g.hitArea=new PIXI.Rectangle(x,y,width,height);
+  text(root,reference,x+26,y+18,31,0xffe7b4);
+  text(root,held?'YOUR REALM':indicator.controller==='external-a'?'CROWN HOLDING':'INDEPENDENT',x+27,y+58,17,colour);
+  addButton(root,{x:x+width-64,y:y+12,width:48,height:48},'X',onClose);
+  const value=held?indicator.prestigePerNode:p.total/indicator.prestigePopulationPerPoint;
+  text(root,String(indicator.totalWorkerCount),x+28,y+86,48);
+  text(root,'WORKERS',x+30,y+139,18,0xaeb8a6);
+  text(root,String(p.total),x+242,y+86,48);
+  text(root,'RESIDENTS',x+244,y+139,18,0xaeb8a6);
+  addResourceIcon(root,'prestige',x+498,y+115,31);
+  text(root,'+'+number(value),x+522,y+86,48,held?0xf1d99e:0xc4ae90);
+  text(root,held?'PER COMPLETED NODE':'POTENTIAL / NODE',x+481,y+139,17,0xaeb8a6);
+  const widthBar=width-56;let bx=x+28;
+  for(const part of p.parts){const w=widthBar*part.count/p.total;g.lineStyle(0).beginFill(part.colour).drawRect(bx,y+180,w,10).endFill();bx+=w;}
+  text(root,p.parts.map(part=>`${part.name} ${part.count}`).join('  ?  '),x+28,y+200,20,0xcac9b8);
+  const status=p.status==='supported'?'Population-supported':p.status==='occupied'?'Military occupation':p.contested?'Control contested':'Unheld';
+  text(root,status,x+28,y+244,22,p.contested?0xea957f:0xd5d3bc);
+  text(root,`Force ${number(p.force)}${p.required?' / '+p.required:''}  ?  Unrest ${Math.round(p.unrest)}%`,x+28,y+279,18,0xaeb8a6);
+  addButton(root,{x:x+width-294,y:y+235,width:270,height:80},'Economy',onEconomy);
+  if(!held){
+    const tip={title:'Potential territorial Prestige',lines:['A zero-unrest estimate if you held this region.','Not current income, a capture quote, or a Crown treasury.','Uses the current build population divisor of '+indicator.prestigePopulationPerPoint+'.'],maxWidth:350};
+    const hit=new PIXI.Graphics().beginFill(0xffffff,.001).drawRect(x+470,y+85,330,79).endFill();hit.eventMode='static';hit.cursor='help';hit.hitArea=new PIXI.Rectangle(x+470,y+85,330,79);
+    hit.on('pointerdown',e=>{e.stopPropagation();tooltipView?.pin?.(tip,hit.getBounds(),'atlas-potential');});root.addChild(hit);
+  }
 }

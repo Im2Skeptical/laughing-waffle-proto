@@ -7,6 +7,30 @@ region selection, at phone-landscape size?
 Throwaway experiment on `experiment/regional-readout-20261105`. Not production
 implementation and not permission to merge or publish.
 
+## Latest revision ? world first
+
+Cam rejected the repeated statistical panels as overwhelming and asked for a
+Civilization-level game presentation with the fantasy map as the main visual.
+Use `?regionalReadout=atlas&perf=1&art=1&launch=new` for the revised proposal.
+The earlier shield/tracks/bracket treatments below remain as historical variants.
+
+- Small heraldic seals replace opaque repeated cards. Own worker counts and
+  income have priority; foreign population is suggested by seal size.
+- Region names sit with their settlement. The overview fits a little closer.
+- Normal political information is a fine seam; occupation/contention alone get
+  an exception shield. Sources and exact amounts remain inspectable.
+- Selecting a settlement opens one compact regional summary, retaining the map.
+  Workers, residents, allegiance, holding status and Prestige are explicit there.
+- Economy opens the existing board. Map summary returns to the small disclosure.
+  This two-step disclosure is a new proposal, not already approved behavior.
+- The Chaos drawer starts collapsed to its existing compact warning control.
+- Existing map art, roads/borders, timegraph and simulation are preserved.
+
+Peer research, rubric, baseline and scored iterations live in
+`docs/prototypes/regional-map-20261105/`. Captures live in
+`artifacts/regional-readout-v2/`. The research is a qualitative design audit,
+not proof of equal usability or aesthetic quality to Civilization.
+
 ## Run
 
 `npm run prototype:regional` starts/reuses this checkout's preview. Append
@@ -14,8 +38,8 @@ implementation and not permission to merge or publish.
 prepared representative run in the separate Dev save. Tap the ticked Dev seal
 when illustrations are ready. Select the map navigation if needed.
 
-Choose A/B/C in Menu > Developer tools > Regional readout prototype. The URL
-parameter accepts `shield`, `tracks`, `bracket`. Switching reloads the page;
+Choose World first or the historical A/B/C treatments in Menu > Developer tools > Regional readout prototype. The URL
+parameter accepts `atlas`, `shield`, `tracks`, `bracket`. Switching reloads the page;
 Continue performance game resumes the separate Dev save. No experiment controls
 are placed on the evaluated map. Omitting the parameter retains the shipped UI.
 

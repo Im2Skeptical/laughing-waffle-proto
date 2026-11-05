@@ -1,4 +1,4 @@
-import {regionalReadoutVariant,addRegionalReadoutPrototype,updateRegionalReadoutScale} from './world-map/regional-readout-prototype.js';
+import {regionalReadoutVariant,addRegionalReadoutPrototype,updateRegionalReadoutScale,addAtlasFocus,ATLAS_ECONOMY_POINT} from './world-map/regional-readout-prototype.js';
 import { getRegionTerrainStyle, getRegionNameColour } from './world-map/region-style.js';
 import { minimalGraphics } from './minimal-graphics.js';
 import { createRegionLabel } from './region-label.js';
@@ -245,6 +245,8 @@ export function createWorldMapView({
   getDisplayOptions,
   tooltipView = null,
 }) {
+  const atlasMode=regionalReadoutVariant()==='atlas';
+  let prototypeEconomyExpanded=false,lastPrototypePanelMode=null;
   const root = new PIXI.Container();
   const detailRoot = new PIXI.Container();
   const panelReveal = createMapPanelReveal(detailRoot, DETAIL_RECT);
@@ -295,14 +297,14 @@ export function createWorldMapView({
       return {x:illustratedRect.x+bounds.minX*illustratedRect.width,y:illustratedRect.y+bounds.minY*illustratedRect.height,
         width:(bounds.maxX-bounds.minX)*illustratedRect.width,height:(bounds.maxY-bounds.minY)*illustratedRect.height};
     },
-    getViewRect:()=>getRegionSelectionActive?.()===true?{...MAP_VIEWPORT_RECT,width:DETAIL_RECT.x-MAP_VIEWPORT_RECT.x}:MAP_VIEWPORT_RECT,
+    getViewRect:()=>getRegionSelectionActive?.()===true&&(!atlasMode||prototypeEconomyExpanded)?{...MAP_VIEWPORT_RECT,width:DETAIL_RECT.x-MAP_VIEWPORT_RECT.x}:MAP_VIEWPORT_RECT,
     onTap: handleMapTap,
     onGesture: () => {
       tooltipView?.hide?.();
       lastRegionTap = { regionId: null, atMs: -Infinity, nearFlag: false };
     },
   });
-  let chaosExpanded = true;
+  let chaosExpanded = !atlasMode;
   let lastRevealedRegionId = null;
   let overviewCamera = camera.snapshot();
   let preparedWorldId=null;
@@ -311,7 +313,7 @@ export function createWorldMapView({
     if(!illustrated.supports(state)||!definition){camera.reset();return;}
     const points=definition.geometry.vertices.map(screenPoint),xs=points.map(p=>p.x),ys=points.map(p=>p.y);
     const left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
-    const zoom=Math.min(1,(MAP_VIEWPORT_RECT.width-180)/(right-left),(MAP_VIEWPORT_RECT.height-130)/(bottom-top));
+    const zoom=Math.min(1,(MAP_VIEWPORT_RECT.width-180)/(right-left),(MAP_VIEWPORT_RECT.height-(atlasMode?80:130))/(bottom-top));
     camera.restore({zoom,x:MAP_VIEWPORT_RECT.x+MAP_VIEWPORT_RECT.width/2-(left+right)/2*zoom,
       y:MAP_VIEWPORT_RECT.y+MAP_VIEWPORT_RECT.height/2-(top+bottom)/2*zoom});camera.finish();overviewCamera=camera.snapshot();
   }
@@ -366,6 +368,7 @@ export function createWorldMapView({
     let target = event.target;
     while (target && !target.mapRegionId && target !== viewport) target = target.parent;
     const regionId = isDoubleTap ? lastRegionTap.regionId : target?.mapRegionId;
+    if(atlasMode&&regionId!==getSelectedRegionId?.())prototypeEconomyExpanded=false;
     const state = getState?.();
     const regionDef = getRegionDefinition(state, regionId);
     if (!regionDef) {
@@ -672,14 +675,15 @@ export function createWorldMapView({
     const revision=getStateRevision?.();
     // Opt in only when the caller supplies a revision for same-second edits.
     // Editors without that contract retain exact input inspection each frame.
-    const uiKey=JSON.stringify([selectedRegionId,regionSelectionActive,graphScope,display,survivalTracker,vassalHighlight,getArtRevision(),chaosExpanded]);
+    const uiKey=JSON.stringify([selectedRegionId,regionSelectionActive,graphScope,display,survivalTracker,vassalHighlight,getArtRevision(),chaosExpanded,prototypeEconomyExpanded]);
     if(!force&&lastSignature&&revision!=null&&lastInputs?.state===state&&lastInputs.definition===definition
       &&lastInputs.second===state.tSec&&lastInputs.revision===revision&&lastInputs.uiKey===uiKey)return;
     lastInputs={state,definition,second:state.tSec,revision,uiKey};presentationReads++;
     const relationships = getMapRelationships(state, selectedRegionId, regionSelectionActive);
+    const focusFrame=atlasMode&&!prototypeEconomyExpanded?{x:150,y:160,width:2100,height:560}:GROUP_FRAME_RECT;
     const frameGroup = () => camera.frame(definition.regions
       .filter(entry => relationships?.groupRegionIds.includes(entry.id))
-      .flatMap(entry => polygon(entry).map(screenPoint)), GROUP_FRAME_RECT,
+      .flatMap(entry => polygon(entry).map(screenPoint)), focusFrame,
       sitePoint(getRegionDefinition(state, selectedRegionId)));
     const civilizationSummary = getDetailedCivilizationSummary(state);
     const regionMapIndicators = buildRegionMapIndicators(state, definition);
@@ -709,7 +713,8 @@ export function createWorldMapView({
     const polygon=createMapPolygonReader(definition);
     // Retain the last settlement's content until its dismissal completes.
     if (regionSelectionActive) detailRoot.removeChildren();
-    if (regionSelectionActive && selectedRegionId !== lastRevealedRegionId) {
+    const panelMode=atlasMode&&!prototypeEconomyExpanded?'glance':'economy';
+    if (regionSelectionActive && (selectedRegionId !== lastRevealedRegionId||panelMode!==lastPrototypePanelMode)) {
       if (!lastRevealedRegionId && !panelReveal.isClosing()) overviewCamera = camera.snapshot();
       const selected = getRegionDefinition(state, selectedRegionId);
       if (selected) {
@@ -728,6 +733,8 @@ export function createWorldMapView({
       tooltipView?.hide?.();
     }
     lastRevealedRegionId = regionSelectionActive ? selectedRegionId : null;
+    lastPrototypePanelMode=panelMode;
+    if(!regionSelectionActive)prototypeEconomyExpanded=false;
     const chrome=display.chrome!==false;
     retained.update(root,'header',[getArtRevision(),civilizationSummary.settlementCount,civilizationSummary.population.total,civilizationSummary.research],root=>{
     const civilizationHeader = new PIXI.Graphics();
@@ -906,7 +913,7 @@ export function createWorldMapView({
         marker.eventMode='none';regionContent.addChild(marker);
       }
       if (indicator.hasDetailedSettlement && !indicator.monster) {
-        if(!readoutVariant||(regionSelectionActive&&indicator.regionId===selectedRegionId))addSettlementStockTags(regionContent, point, indicator.stockTags, {
+        if(!readoutVariant||(regionSelectionActive&&indicator.regionId===selectedRegionId&&(!atlasMode||prototypeEconomyExpanded)))addSettlementStockTags(regionContent, point, indicator.stockTags, {
           tooltipView, reference: getRegionReference(state, indicator.regionId) ?? indicator.regionId,
         });
         if (display.scenery !== false && !illustratedMap) {
@@ -932,6 +939,7 @@ export function createWorldMapView({
     retained.update(mapContent,'references',[getArtRevision(),display.choiceRegionIds,
       definition.regions.map(r=>[r.id,getRegionNameColour(getRegionState(state,r.id))])],mapContent=>{
     for (const regionDef of definition.regions) {
+      if(atlasMode&&!getRegionState(state,regionDef.id)?.monster)continue;
       const point = getRegionReferenceCorner(definition, regionDef, screenPoint, polygon)
         ?? sitePoint(regionDef);
       const label = createRegionLabel(getRegionReference(state, regionDef.id) ?? "Unknown region", {
@@ -1007,7 +1015,7 @@ export function createWorldMapView({
       addChaosPanelContent(root, CIVILIZATION_RECT, civilizationSummary);
     }
     }).node.visible=chrome;
-    retained.update(root,'controls',[getArtRevision(),chrome,chaosExpanded,chaosExpanded?null:[civilizationSummary.chaos.expansionProgress,civilizationSummary.chaos.expansionThreshold],regionSelectionActive,selectedRegionId,relationships],root=>{
+    retained.update(root,'controls',[getArtRevision(),chrome,chaosExpanded,chaosExpanded?null:[civilizationSummary.chaos.expansionProgress,civilizationSummary.chaos.expansionThreshold],regionSelectionActive,selectedRegionId,relationships,prototypeEconomyExpanded],root=>{
     if(chrome){
     const toggleChaos=()=>{
       chaosExpanded=!chaosExpanded;
@@ -1016,8 +1024,8 @@ export function createWorldMapView({
     if(chaosExpanded) addButton(root,{x:CIVILIZATION_RECT.x+CIVILIZATION_RECT.width+4,y:CIVILIZATION_RECT.y,width:36,height:44},'<',toggleChaos);
     else addCollapsedChaosControl(root,{x:CIVILIZATION_RECT.x,y:CIVILIZATION_RECT.y,width:252,height:44},civilizationSummary.chaos,toggleChaos);
     }
-    const controlsX = regionSelectionActive ? DETAIL_RECT.x - 226 : MAP_VIEWPORT_RECT.x + MAP_VIEWPORT_RECT.width - 226;
-    const cameraRight = regionSelectionActive ? DETAIL_RECT.x : MAP_VIEWPORT_RECT.x + MAP_VIEWPORT_RECT.width;
+    const controlsX = regionSelectionActive&&(!atlasMode||prototypeEconomyExpanded) ? DETAIL_RECT.x - 226 : MAP_VIEWPORT_RECT.x + MAP_VIEWPORT_RECT.width - 226;
+    const cameraRight = regionSelectionActive&&(!atlasMode||prototypeEconomyExpanded) ? DETAIL_RECT.x : MAP_VIEWPORT_RECT.x + MAP_VIEWPORT_RECT.width;
     addButton(root, {x: controlsX, y: 756, width: 52, height: 52}, '-', () => camera.zoomBy(1 / 1.2, cameraRight));
     addButton(root, {x: controlsX + 58, y: 756, width: 52, height: 52}, '+', () => camera.zoomBy(1.2, cameraRight));
     addButton(root, {x: controlsX + 116, y: 756, width: 98, height: 52}, 'Reset', () => {
@@ -1027,8 +1035,18 @@ export function createWorldMapView({
     });
     if (!regionSelectionActive) return;
 
+    if(atlasMode&&!prototypeEconomyExpanded&&regionMapIndicators.find(entry=>entry.regionId===selectedRegionId)?.influence){
+      addAtlasFocus(detailRoot,regionMapIndicators.find(entry=>entry.regionId===selectedRegionId),{
+        reference:getRegionReference(state,selectedRegionId),tooltipView,addButton,
+        onEconomy:()=>{tooltipView?.hide?.();prototypeEconomyExpanded=true;lastSignature='';render(true);},
+        onClose:()=>{tooltipView?.hide?.();onShowCivilizationGraph?.();},
+      });
+      return;
+    }
     const panel = getRegionPanel(state, selectedRegionId, graphScope === 'settlement', regionMapIndicators);
+
     if (panel) detailRoot.addChild(panel);
+    if(atlasMode&&prototypeEconomyExpanded)addButton(detailRoot,{x:660,y:100,width:270,height:58},'Map summary',()=>{prototypeEconomyExpanded=false;lastSignature='';render(true);});
   }
 
   return {
@@ -1135,6 +1153,7 @@ export function createWorldMapView({
         : [];
       return {
         visible: root.visible === true,
+        regionalReadoutPrototype:atlasMode?{variant:'atlas',economyExpanded:prototypeEconomyExpanded,economyClickPoint:ATLAS_ECONOMY_POINT}:null,
         illustratedTerrain:{...illustrated.stats},
         retainedScene:retained.snapshot(),
         presentationReads,
