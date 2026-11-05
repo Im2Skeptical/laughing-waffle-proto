@@ -84,6 +84,8 @@ export function clusterQuantileInterval(rows,p=.95,{confidence=.95}={}) {
 
 const finiteElapsed=r=>Number.isFinite(r.elapsedMs)&&r.elapsedMs>=0;
 const completed=r=>r.ok===true&&!r.timeout&&finiteElapsed(r);
+const pinnedDigest=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
+const frozenWorkload=r=>r.comparisonEligible===true&&pinnedDigest(r.fixtureManifestId)&&pinnedDigest(r.oracleSdkSha256);
 const stable=value=>Array.isArray(value)?value.map(stable):value&&typeof value==='object'
   ?Object.fromEntries(Object.keys(value).sort().map(k=>[k,stable(value[k])])):value;
 function boundQuantile(values,p){const sorted=[...values].sort((a,b)=>a-b);const q=sorted[Math.ceil(p*sorted.length)-1];return Number.isFinite(q)?q:null;}
@@ -106,7 +108,11 @@ export function summarize(records,bootstrapOptions={}) {
     });
     assert.ok(typeof record.observationId==='string'&&record.observationId,'every observation needs unique observation identity');
     assert.ok(!seen.has(record.observationId),'duplicate observation identity');seen.add(record.observationId);
-    const key=JSON.stringify(stable([record.buildId,record.harnessId,record.measurementContractId,record.fixture,record.job,record.step,record.population]));
+    // Preserve provenance in the central raw-row summarizer. A caller cannot
+    // regain inference merely by omitting the runner's construction-only label.
+    // The loader/auditor must still establish that these pinned bytes are sound.
+    const key=JSON.stringify(stable([record.buildId,record.harnessId,record.measurementContractId,record.fixture,record.job,record.step,record.population,
+      record.fixtureManifestId??null,record.oracleSdkSha256??null,record.comparisonEligible===true]));
     if(!groups.has(key))groups.set(key,[]);
     groups.get(key).push(record);
   }
@@ -114,6 +120,7 @@ export function summarize(records,bootstrapOptions={}) {
     const successful=rows.filter(completed),times=successful.map(r=>r.elapsedMs);
     const launches=new Set(rows.map(r=>r.launchId)).size,independent=launches===rows.length;
     const allComplete=successful.length===rows.length;
+    const comparisonEligible=rows.every(frozenWorkload);
     const successOnly=times.length?{count:times.length,p50:quantile(times,.5),p95:quantile(times,.95),
       min:Math.min(...times),max:Math.max(...times),population:'conditional on valid successful completion'}:null;
     // An unsuccessful operation has no correct completion; its duration is a
@@ -121,6 +128,7 @@ export function summarize(records,bootstrapOptions={}) {
     const lower=rows.map(r=>finiteElapsed(r)?r.elapsedMs:0),upper=rows.map(r=>completed(r)?r.elapsedMs:Infinity);
     const interval=allComplete?(independent?quantileInterval(times,.95,confidence):clusterQuantileInterval(successful,.95,{confidence})):null;
     return {key:JSON.parse(key),attempted:rows.length,passed:successful.length,failed:rows.length-successful.length,
+      fixtureManifestId:rows[0].fixtureManifestId??null,oracleSdkSha256:rows[0].oracleSdkSha256??null,comparisonEligible,
       invalid:rows.filter(r=>r.ok===true&&!r.timeout&&!finiteElapsed(r)).length,
       timeouts:rows.filter(r=>r.timeout).length,independentLaunches:launches,
       p50:allComplete?successOnly.p50:null,p95:allComplete?successOnly.p95:null,
@@ -133,10 +141,11 @@ export function summarize(records,bootstrapOptions={}) {
         method:'observed completion or right-censored time-to-correct-completion; null high is unbounded'},
       correctnessGate:allComplete,
       tailSampleQuotaMet:allComplete&&rows.length>=120&&launches>=120,
-      eligibleForTailInference:allComplete&&rows.length>=120&&launches>=120&&interval.bounded,
+      eligibleForTailInference:comparisonEligible&&allComplete&&rows.length>=120&&launches>=120&&interval.bounded,
       censored:rows.filter(r=>!completed(r)).map(r=>({lowerBoundMs:finiteElapsed(r)?r.elapsedMs:0,
         launchId:r.launchId,timeout:!!r.timeout,invalidTiming:r.ok===true&&!finiteElapsed(r)})),
-      inference:allComplete?(independent?'iid interval only if manifest proves separate independent launches':'conservative exact envelope of independent launch extrema; bootstrap diagnostic only')
+      inference:!comparisonEligible?'CONSTRUCTION OR UNPINNED ORACLE: diagnostic only; explicit frozen corpus and SDK identities required'
+        :allComplete?(independent?'iid interval only if manifest proves separate independent launches':'conservative exact envelope of independent launch extrema; bootstrap diagnostic only')
         :'failed correctness gate; unconditional latency unresolved, successful-only values diagnostic'};
   });
 }

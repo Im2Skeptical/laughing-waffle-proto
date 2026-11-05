@@ -568,6 +568,17 @@ export function createVassalLifeMapView({
       }
     },
     handleKeyDown,
+    getTimingSnapshot() {
+      const entry = entryDialog.getSnapshot();
+      return {
+        visible: root.visible === true, selectedCandidateNodeId: candidateNodeId,
+        displayedVassalId, entryConfirmationOpen,
+        entryVisible: entry.visible, entryOpen: entry.open, entryPhase: entry.phase,
+        // The entry dialog's point reader uses retained layout arithmetic only.
+        // The other dock uses getBounds and is deliberately unavailable here.
+        entryPoint: entryConfirmationOpen ? entryDialog.getConfirmPoint() : null,
+      };
+    },
     getCandidateNodeId: () => getCandidate()?.id ?? null,
     isEntryConfirmationOpen: () => entryConfirmationOpen && confirmSurface.visible,
     getEntryCancelClickPoint: () => entryConfirmationOpen ? entryDialog.getCancelPoint() : null,

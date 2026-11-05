@@ -1,4 +1,4 @@
-import { hideChronicleArtwork } from './chronicle-art.js';
+import { hideChronicleArtwork, getChronicleArtworkPublicationSnapshot } from './chronicle-art.js';
 import { progressiveGraphics, enablePerformanceGraphics } from './minimal-graphics.js';
 import { loadProgressiveArtwork } from './progressive-artwork.js';
 import { loadPerformanceStart } from '../controllers/performance-start.js';
@@ -8,6 +8,7 @@ import { createVassalCommissionPicker } from './vassal-commission-picker-pixi.js
 import { createLifeDecisionController } from "../controllers/life-decision-controller.js";
 import { createNodeResolutionDiagnostics } from "../controllers/node-resolution-diagnostics.js";
 import { createLifeProcessingView } from "./life-processing-pixi.js";
+import { createSettlementTimingSnapshot } from "./ui-root/settlement-timing-snapshot.js";
 import { createGameSessionController } from "../controllers/game-session-controller.js";
 import { openLabHandoff, readLabHandoff } from '../controllers/development-lab-bridge.js';
 import { openCardReviewer, createCardReviewController } from '../controllers/card-review-controller.js';
@@ -1539,6 +1540,38 @@ function resizeCanvas() {
 
 function publishSettlementDebugApi() {
   publishSettlementDebugApiForSettlement({
+    inspectRetainedStates: () => runner.inspectRetainedStates(),
+    inspectRetainedLifePreparation: (options) => lifeDecisionController?.inspectRetainedPreparation(options) ?? null,
+    inspectRetainedLifeDecision: () => vassalNodeDecisionModalView?.inspectRetainedDecision() ?? null,
+    // Pure copies of retained display fields; no presentation/state resolution.
+    getRetainedFeedbackSnapshot: () => {
+      // This specific accessor only copies its retained semantic snapshot and
+      // current root visibility. It does not render or resolve model state.
+      const settlement = prototypeView?.getSemanticSnapshot?.();
+      return {
+        settlement: { visible: settlement?.visible === true,
+          regionId: settlement?.regionId ?? null, activeTab: settlement?.activeTab ?? null },
+        map: worldMapView?.getTimingSnapshot?.() ?? null,
+        graph: settlementGraphView?.getTimingSnapshot?.() ?? null,
+        life: vassalLifeMapView?.getTimingSnapshot?.() ?? null,
+        decision: vassalNodeDecisionModalView?.getTimingSnapshot?.() ?? null,
+        processingVisible: lifeProcessingView?.isVisible() === true,
+        recap: vassalResolutionRecapView?.getTimingSnapshot?.() ?? null,
+      };
+    },
+    getTimingSnapshot: createSettlementTimingSnapshot({
+      getLocalState: () => ({ mode: worldViewMode, selectedRegionId: selectedWorldRegionId,
+        regionSelectionActive: worldMapRegionSelectionActive }),
+      getRunner: () => runner,
+      getMap: () => worldMapView?.getTimingSnapshot?.() ?? null,
+      getGraph: (options) => settlementGraphView?.getTimingSnapshot?.(options) ?? null,
+      getLifeMap: () => vassalLifeMapView?.getTimingSnapshot?.() ?? null,
+      getDecision: () => vassalNodeDecisionModalView?.getTimingSnapshot?.() ?? null,
+      getProcessing: () => lifeDecisionController?.getTimingSnapshot?.() ?? null,
+      getRecap: () => vassalResolutionRecapView?.getTimingSnapshot?.() ?? null,
+      getOpeningSnapshot: () => opening.getSnapshot(),
+      getArtwork: getChronicleArtworkPublicationSnapshot,
+    }),
     getForecastStatus: () => settlementForecastController?.getForecastStatus?.() ?? null,
     getFrontierSec: () => getSettlementFrontierSec(),
     getViewedSec: () => getSettlementViewedSec(),

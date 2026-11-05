@@ -290,6 +290,23 @@ export function createProjectionCache({
     return `sig:${signatureVersion}`;
   }
 
+  // Optional debug observation. Do not ensureSignature, touch the LRU, or
+  // enumerate anchors: a stale source must stay stale until normal orchestration.
+  function getTimingSnapshot({ timeline, anchorSec } = {}) {
+    const knownSignature = signature !== null && typeof signature === 'object';
+    return {
+      signatureVersion,
+      timelineToken: knownSignature ? `sig:${signatureVersion}` : null,
+      signatureMatches: timeline == null ? null
+        : knownSignature && signatureEquals(computeTimelineSignature(timeline), signature),
+      ...(Number.isInteger(anchorSec) && anchorSec >= 0 ? {
+        requestedAnchorSec: anchorSec,
+        hasRetainedAnchor: stateDataBySecond.has(anchorSec),
+        retainedAnchorScope: 'controller-projection-store',
+      } : {}),
+    };
+  }
+
   function shouldAbsorbPersistentKnowledge(opts = {}) {
     return opts?.absorbPersistentKnowledge !== false;
   }
@@ -658,6 +675,7 @@ export function createProjectionCache({
     ensureSignature,
     invalidateFromSecond,
     getTimelineToken,
+    getTimingSnapshot,
     ensureStateAtSecond,
     ensureForecastWindow,
     mergeForecastChunk,

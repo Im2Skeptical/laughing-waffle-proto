@@ -1113,6 +1113,38 @@ export function createTimeGraphController({
     return { ok: true };
   }
 
+  // Passive observation only: do not synchronize coverage or consult projection.
+  function getTimingSnapshot({ anchorSec, includeProjectionSource = false } = {}) {
+    const requestedAnchorSec = Number.isInteger(anchorSec) && anchorSec >= 0 ? anchorSec : null;
+    // Anchor-only scope is this controller's retained boundary store. Projection
+    // correspondence/membership is a separate explicitly requested passive read.
+    const anchors = graphCache?.stateDataByBoundary;
+    return {
+      ...(includeProjectionSource === true ? {
+        projection: projection.getTimingSnapshot?.({ timeline: getTimeline?.(), anchorSec: requestedAnchorSec }) ?? null,
+      } : {}),
+      ...(requestedAnchorSec == null ? {} : {
+        requestedAnchorSec,
+        hasRetainedAnchor: anchors instanceof Map ? anchors.has(requestedAnchorSec) : null,
+        retainedAnchorSource: anchors instanceof Map
+          ? requestedAnchorSec > graphCache.historyEndSec ? 'graph-forecast-boundary' : 'graph-history-boundary'
+          : null,
+        retainedAnchorScope: 'graph-boundary-store',
+      }),
+      cacheVersion: graphCache?.version ?? cacheVersion,
+      subjectKey,
+      historyEndSec: graphCache?.historyEndSec ?? null,
+      computedSec: graphCache?.window?.forecastCoverageEndSec ?? null,
+      requestedSec: graphCache?.window?.forecastRequestedEndSec ?? null,
+      pending: graphCache?.window ? graphCache.window.forecastPending === true : null,
+      asyncToken: lastAsyncForecastToken,
+      asyncPollMs: Number.isFinite(lastAsyncForecastPollMs) ? lastAsyncForecastPollMs : null,
+      asyncHistoryEndSec: lastAsyncForecastHistoryEndSec,
+      asyncRequestedSec: lastAsyncForecastDesiredEndSec,
+      asyncComputedSec: lastAsyncForecastCoverageEndSec,
+    };
+  }
+
   function getData() {
     const tl = getTimeline?.();
     if (tl) {
@@ -1763,6 +1795,7 @@ export function createTimeGraphController({
     handleInvalidate,
     update,
     getData,
+    getTimingSnapshot,
     getSamplesForWindow,
     getSeriesValuesForSeconds,
     getStateDataAt,

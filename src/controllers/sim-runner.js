@@ -1737,6 +1737,26 @@ export function createSimRunner({
     }),
 
     getTimeline: () => timeline,
+    // Expensive, opt-in diagnostic. Read only the objects already installed in
+    // this runner: no knowledge merge, replay, cache lookup or view refresh.
+    // rawJson preserves runtime fields; stateData uses the save serializer on a
+    // copy. Neither result exposes a mutable installed state or frozen config.
+    inspectRetainedStates: () => {
+      const inspect = (state) => state == null ? null : ({
+        rawJson: JSON.stringify(state),
+        stateData: serializeGameState(state),
+      });
+      return {
+        version: 1,
+        cursor: inspect(cursorState),
+        preview: inspect(dragPreviewState),
+        frontierSec: timeline?.historyEndSec ?? null,
+        cursorIsFrontier: cursorState != null && cursorState.tSec === timeline?.historyEndSec,
+        // A historical cursor is not the frontier. Do not reconstruct it here.
+        timelineKnowledge: timeline?.persistentKnowledge == null ? null
+          : JSON.parse(JSON.stringify(timeline.persistentKnowledge)),
+      };
+    },
     rememberCivilizationSurvivalYear,
     getCursorState: () => {
       applyTimelinePersistentKnowledgeToState(cursorState);

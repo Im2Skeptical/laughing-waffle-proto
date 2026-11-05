@@ -191,6 +191,61 @@ export function createLifeDecisionController({
   return {
     handles: kind => LIFE_DRAFT_ACTIONS.has(kind) || TRANSACTIONS.has(kind),
     getState: current,
+    // Expensive opt-in inspection of lexical retention, never a synchronizing
+    // getter. Missing bodies stay missing; no replay, cache or presentation read.
+    inspectRetainedPreparation({ nodeId = null } = {}) {
+      const copy = value => value == null ? null : JSON.parse(JSON.stringify(value));
+      const timeline = getRunner().getTimeline();
+      const sourceRevision = timeline?.revision ?? null;
+      const sourceSec = timeline == null ? null : Math.floor(timeline.historyEndSec ?? 0);
+      const timelineMatches = base == null ? null : base.timeline === timeline;
+      const sourceMatches = base == null ? null : timelineMatches
+        && base.revision === sourceRevision && base.sec === sourceSec;
+      const selected = typeof nodeId === 'string' && Object.hasOwn(nodes, nodeId) ? nodes[nodeId] : null;
+      return {
+        version: 1, sourceRevision, sourceSec, baseRevision: base?.revision ?? null,
+        baseSec: base?.sec ?? null, timelineMatches, sourceMatches,
+        requestId, revision, adopting, workerActive: worker !== null,
+        draft: draft == null ? null : { rawJson: JSON.stringify(draft), stateData: serializeGameState(draft) },
+        actions: copy(actions),
+        job: job == null ? null : {
+          phase: job.phase ?? null, error: job.error ?? null, accepted: job.accepted === true,
+          ready: job.ready === true, sourceReady: sourceMatches === true && job.ready === true,
+          staged: job.staged === true, targetSec: job.targetSec ?? null,
+          revealSec: job.revealSec ?? null, computedSec: job.computedSec ?? null,
+          payload: job.payload == null ? null : {
+            stateData: copy(job.payload.stateData), actions: copy(job.payload.actions),
+          },
+          stateData: copy(job.stateData),
+        },
+        selectedNodeId: typeof nodeId === 'string' ? nodeId : null,
+        selectedNode: selected == null ? null : {
+          stateData: copy(selected.stateData), actions: copy(selected.actions),
+          presentation: copy(selected.presentation), entryPresentation: copy(selected.entryPresentation),
+        },
+      };
+    },
+    // Unlike getStatus, observation must not sync/terminate a stale job.
+    getTimingSnapshot() {
+      const timeline = getRunner().getTimeline();
+      const sourceRevision = timeline?.revision ?? null;
+      const sourceSec = timeline == null ? null : Math.floor(timeline.historyEndSec ?? 0);
+      const timelineMatches = base == null ? null : base.timeline === timeline;
+      const sourceMatches = base == null ? null : timelineMatches
+        && base.revision === sourceRevision && base.sec === sourceSec;
+      return {
+        sourceRevision, sourceSec, baseRevision: base?.revision ?? null,
+        baseSec: base?.sec ?? null, timelineMatches, sourceMatches,
+        requestId, revision, adopting, workerActive: worker !== null,
+        draftActive: draft !== null, draftActionCount: actions.length,
+        jobActive: job !== null, phase: job?.phase ?? null, error: job?.error ?? null,
+        accepted: job == null ? null : job.accepted === true,
+        jobReady: job == null ? null : job.ready === true,
+        ready: job == null ? null : sourceMatches === true && job.ready === true,
+        targetSec: job?.targetSec ?? null, computedSec: job?.computedSec ?? null,
+        revealSec: job?.revealSec ?? null,
+      };
+    },
     getStatus() {
       sync();
       return job ? { phase: job.phase, error: job.error, canReturn: !job.accepted, ready: job.ready === true,

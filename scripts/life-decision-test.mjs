@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import './perf-hillclimb/life-state-inspection-test.mjs';
 import { selectedState } from '../src/model/tests/vassal-life-map/helpers.js';
 import { ActionKinds, applyAction } from '../src/model/actions.js';
 import { serializeGameState, deserializeGameState } from '../src/model/state.js';

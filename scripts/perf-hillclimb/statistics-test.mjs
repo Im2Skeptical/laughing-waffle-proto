@@ -17,7 +17,8 @@ for(const n of [120,1000,10000,100000]) {
 }
 let observation=0;
 const row=(launchId,elapsedMs,extra={})=>({job:'control',step:'completion',population:{cpu:1},launchId,elapsedMs,ok:true,
-  buildId:'statistics-control-build',fixture:'fixed-control',harnessId:'control-mechanism-v1',measurementContractId:'A2',observationId:`control-${observation++}`,...extra});
+  buildId:'statistics-control-build',fixture:'fixed-control',harnessId:'control-mechanism-v1',measurementContractId:'A2',
+  fixtureManifestId:'1'.repeat(64),oracleSdkSha256:'2'.repeat(64),comparisonEligible:true,observationId:`control-${observation++}`,...extra});
 const sixty=Array.from({length:60},(_,i)=>row(`launch-${i}`,100));
 const failed=summarize([...sixty,...Array.from({length:10},(_,i)=>row(`timeout-${i}`,180000,{ok:false,timeout:true}))])[0];
 assert.equal(failed.p95,null,'conditional tail cannot appear as unconditional P95');
@@ -59,4 +60,18 @@ assert.throws(()=>summarize([row('a',10,{population:undefined})]),/population co
 assert.throws(()=>summarize([row('a',10,{population:{cpu:undefined}})]),/explicit JSON/);
 assert.equal(summarize([row('a',10,{harnessId:'timer-v1'}),row('b',20,{harnessId:'timer-v2'})]).length,2,'different measurement mechanisms cannot pool');
 assert.equal(summarize([row('a',10,{measurementContractId:'A1'}),row('b',20,{measurementContractId:'A2'})]).length,2,'changed contracts cannot pool');
+for(const extra of [
+  {comparisonEligible:false}, {comparisonEligible:undefined},
+  {fixtureManifestId:undefined}, {fixtureManifestId:'none-construction-only'},
+  {oracleSdkSha256:null}, {oracleSdkSha256:'not-a-frozen-sdk'},
+]) {
+  const diagnostic=summarize(sequence(120).map(i=>row(`construction-${i}`,i,extra)))[0];
+  assert.equal(diagnostic.tailSampleQuotaMet,true,'construction data may meet the numerical sample quota');
+  assert.equal(diagnostic.eligibleForTailInference,false,'raw construction or unpinned oracle data cannot regain inferential eligibility');
+  assert.equal(diagnostic.comparisonEligible,false);
+  assert.match(diagnostic.inference,/construction|frozen/i);
+}
+assert.equal(summarize([row('a',10),row('b',20,{comparisonEligible:false})]).length,2,'construction and comparison rows never pool');
+assert.equal(summarize([row('a',10),row('b',20,{fixtureManifestId:'3'.repeat(64)})]).length,2,'different frozen corpora never pool');
+assert.equal(summarize([row('a',10),row('b',20,{oracleSdkSha256:'4'.repeat(64)})]).length,2,'different oracle SDKs never pool');
 console.log('[hillclimb-statistics] controls passed: stable intervals, honest unbounded/censored tails, invalid timing, launch quotas and clustered inference');

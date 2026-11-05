@@ -1073,6 +1073,47 @@ export function createVassalNodeDecisionModalView({
     },
     init: () => {}, update: () => { advanceMotion(); render(); worldScreen.update(); },
     refresh: () => render(true), resize: () => render(true),
+    // Copy only the decisions/identities already retained by rendering/input.
+    // This diagnostic never renders, calls a getter or derives a presentation.
+    inspectRetainedDecision() {
+      const copy = value => value == null ? null : JSON.parse(JSON.stringify(value));
+      return {
+        version: 1, logicalOpen, visible: root.visible, openNodeId,
+        lastDecision: copy(lastDecision), dragPreview: copy(dragPreview),
+        variant: {
+          previewOptionId, previewOfferId, previewTableauId, hoveredOptionId, hoveredOfferId,
+          pinnedInspectionId, quickInspectionId, dragTargetIndex,
+          dragged: dragged == null ? null : {
+            fromOffer: dragged.fromOffer, active: dragged.active,
+            piece: copy(dragged.piece),
+            start: { x: dragged.start.x, y: dragged.start.y },
+            point: { x: dragged.point.x, y: dragged.point.y },
+          },
+        },
+      };
+    },
+    getTimingSnapshot() {
+      const terrain = worldScreen.getTimingSnapshot();
+      return {
+        open: logicalOpen, nodeId: openNodeId,
+        renderedVisible: root.visible === true,
+        renderedPose: { x: root.x, y: root.y, alpha: root.alpha },
+        renderedTransition: { visible: transitionGraphic.visible === true,
+          alpha: transitionGraphic.alpha, rect: motionRect ? { ...motionRect } : null },
+        phase: motion ? logicalOpen ? 'opening' : 'closing' : logicalOpen ? 'open' : 'closed',
+        pendingInteractionCount: root.pendingInteractionCount ?? null,
+        family: lastDecision?.node?.family ?? null,
+        selectedOptionId: lastDecision?.nodeState?.selectedOptionId ?? null,
+        resolving: lastDecision?.nodeState?.resolving ?? null,
+        shopTag: lastDecision?.shopTag ?? null,
+        offerIds: lastDecision?.offers?.map(offer => offer.offerId ?? null) ?? null,
+        purchaseOrder: lastDecision?.purchases?.map(purchase => purchase.offerId ?? null) ?? null,
+        boardPracticeIds: lastDecision?.settlement?.practices?.map(piece => piece?.practiceId ?? null) ?? null,
+        observedDecisionNodeId: lastDecision?.node?.id ?? null,
+        boardRegionId: lastDecision?.previewRegionId ?? null,
+        artReady: terrain.artReady, artPrepared: terrain.artPrepared,
+      };
+    },
     open, close, isOpen: () => logicalOpen, getOpenNodeId: () => openNodeId,
     getWorldDecisionPoint: (kind,id) => worldScreen.getPoint(kind,id),
     getEnterNodeClickPoint: () => logicalOpen && enterRoot?.toGlobal

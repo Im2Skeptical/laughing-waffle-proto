@@ -169,6 +169,16 @@ export function createVassalResolutionRecapView({
       ? dismissRoot.toGlobal(new PIXI.Point(
         dismissRoot.hitArea.width / 2, dismissRoot.hitArea.height / 2
       )) : null,
+    getTimingSnapshot() {
+      const clock = clockView?.getSnapshot?.();
+      return {
+        open: root.visible === true, continueState: dismissRoot?.interactionState ?? null,
+        clockStartedAt,
+        clock: clock == null ? null : {
+          second: clock.second ?? null, progress: clock.progress ?? null, locked: clock.locked ?? null,
+        },
+      };
+    },
     getSemanticSnapshot: () => ({
       open: root.visible,
       continueState: dismissRoot?.interactionState ?? null,

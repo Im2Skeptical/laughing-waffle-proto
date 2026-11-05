@@ -151,6 +151,36 @@ export function getChronicleTexture(file) {
   return loadTexture(file);
 }
 
+// Optional, untimed publication inventory. Read the very stores used by
+// loadTexture above: a retained packed texture is drawable iff its group is
+// not hidden, even in minimal mode. No resolver call, load, upload or revision.
+export function getChronicleArtworkPublicationSnapshot() {
+  const groups = [...Object.entries(PACKED_GROUPS),
+    ...[...presentationGroups].map(([prefix, group]) => [prefix, group])]
+    .filter(([, group]) => group !== PACKED_GROUPS.resources);
+  return {
+    version: 1, revision, minimalGraphics,
+    groups: groups.map(([id, group]) => {
+      let textureCount = 0, validTextureCount = 0, sampleFile = null;
+      for (const [file, texture] of packedTextures) {
+        if (packedGroupFor(file) !== group) continue;
+        textureCount++;
+        if (texture?.baseTexture?.valid === true && texture.valid !== false) validTextureCount++;
+        if (sampleFile == null) sampleFile = file;
+      }
+      const hidden = hiddenGroups.has(group);
+      return {
+        id, prefix: group.prefix, loadRequested: packedLoads.has(group), failed: failedGroups.has(group),
+        // loaded means at least one retained frame, not promise completion or GPU idle.
+        loaded: textureCount > 0, textureCount, validTextureCount, hidden,
+        drawingAvailable: textureCount > 0 && !hidden,
+        drawingAvailableCount: hidden ? 0 : textureCount,
+        sampleFile, sampleDrawingAvailable: sampleFile == null ? null : !hidden,
+      };
+    }),
+  };
+}
+
 function artworkError(message, cause) {
   const error = new Error(message, { cause });
   error.code = 'artworkLoadFailed';

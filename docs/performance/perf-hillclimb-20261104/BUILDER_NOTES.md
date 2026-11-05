@@ -4,7 +4,7 @@ Builder `/root/harness_builder`, Codex gpt-6.1-sol / xhigh, 2026-11-04. **NOT SO
 
 ## Files and reproduction
 
-- `scripts/perf-hillclimb/fixtures.mjs`: ordinary current New Game seed 123; selected founder; entered first shop; real purchased/confirmed node history at second 54. Five recorded public actions and every official simulation tick. Nontrivial live/replay full serialized equality including RNG is asserted. No gameplay settings or graph generators are modified. Fixture savedAt is frozen for stable hashes. More representative seeds/history required before acceptance.
+- `scripts/perf-hillclimb/fixtures.mjs`: construction recipe for the three fixed ordinary seeds 123, 424242 and 99117, five fixtures each including six-node histories. Every official tick and public action is retained. Candidate runs must reuse the frozen corpus described below, never regenerate this recipe as their expected workload.
 - `scripts/perf-hillclimb/browser-runtime.mjs`: browser monotonic event timestamp through semantic completion and double-rAF, captures handler delay separately; deadline rejection; optional worker/frame/long-task and completed save transaction evidence. Instrumentation-off preserves the native Worker and IndexedDB implementations. Instrumentation overhead controls/evidence remain required.
 - `scripts/perf-hillclimb/run.mjs`: sequential real regular-game/browser paths, job/population arguments, JSONL raw operations, per-run manifests and summaries. A fresh browser is created for each job/suite repetition. Contexts are isolated. Cold excludes OS disk-cache coldness. Warm performs one full unmeasured equivalent entry then clears save records, reinstalls fixture if any and navigates again in the retained context.
 - `scripts/perf-hillclimb/mechanism-controls.mjs`: standalone reversible browser fixtures using the same timer and completion primitive. Deliberate preceding input-handler stall, 200ms deferred completion, wrong result, late success, wrong slot/payload and native unwrapped reference checks. These supplement, and do not replace, required actual-product controls.
@@ -29,7 +29,7 @@ Other arguments: `--population=mobile|mobile4`, `--cache=warm`, `--worker-delay=
 
 `mechanism-controls` passed four fixture mechanism groups (trusted input + preceding main-thread stall; deferred/wrong/deadline completion; actual delayed worker; IndexedDB identity/native reference). These control results predate later runtime timing refinements and lack exact code/build hashes, so they are discovery evidence only and must be rerun after the mechanism freezes.
 
-Current `runtime.probe` captures explicitly designated terminal semantic success and the next double-rAF entirely in the browser; `finish` consumes those timestamps and reports host delivery delay separately. `wait()` is a precondition; `complete()` designates terminal readiness. A missing terminal predicate fails the operation. Changing predicate identity or receiving another input invalidates an earlier completion candidate. Final controls include an immediate successful intermediate wait followed by a deferred 200ms terminal wait with no further input, and must verify the refined mechanism.
+Root owns the runtime. Its current repair requires explicitly designated terminal truth to stay true through two frame opportunities and revalidates at finish. Incidental waits are nonterminal; a missing terminal predicate fails. Changing predicate identity, receiving another input or a false predicate invalidates the candidate. The original control passes below did not catch a later same-key false predicate and are superseded by root's transient/deadline controls. Current schema names terminalReadinessMs, semanticToFrameOpportunityMs, frameOpportunityToFinishCallMs and postSemanticToFinishCallMs. These gaps are not isolated driver overhead; firstFeedbackMs remains null/unmeasured until a real job-specific witness exists.
 
 The fixed ordinary corpus is seeds 123, 424242 and 99117. Two real six-node histories were first generated: seed 123 at second 439, 21 actions / 28 genuine checkpoints; seed 424242 at second 574, 21 actions / 29 checkpoints. Seed 99117 exposed a genuine original-baseline serialization blocker at second 740 after travel to a neutral market and founding training installed a Lyceum. Root's separate read-only diagnosis reproduced the actual enabled live view option, paused live model dispatch and normal simulation runner. Original-baseline evidence remains red and retained; the seed was never excluded or replaced. Root assigned separate corrective implementation; this Builder makes no product edit.
 
@@ -39,7 +39,7 @@ Updated mechanism controls passed five groups in `artifacts/perf-hillclimb/mecha
 
 Durable repro: `node scripts/perf-hillclimb/repro-neutral-market.mjs` uses `scripts/perf-hillclimb/fixtures/neutral-market-99117.json` (18 public actions and all official ticks to second 740). It exits 1 on the exact neutral-market serializer symptom, exits 2 on an invalid altered itinerary, and exits 0 if the symptom is absent. Last valid / first invalid full states and concise repro output are written under `artifacts/perf-hillclimb/neutral-market-repro/`. Removing each of the 18 recorded actions removes the symptom under the recorded timing, generally by making subsequent required actions unavailable; this is action-omission minimal for that trace, not a claim about all possible gameplay paths.
 
-Still required: all repaired scripts executed; exact field/target bindings repaired from real snapshots; active compute/reveal overlap J3/J5 (not merely a static prepared forecast); J5 exact pointer-to-target mapping, full oracle/read-only independence; J4/J6 current first shop flow, expected costs/state and fresh generation/forecast output equivalence; J7 full source/resume/continuation equality and nontrivial action/off-anchor histories; J2 nontrivial Continue and prepared-fixture metadata; J8 real preparation start, no automatic reveal oracle, assets failure/retry and repeated-navigation memory. Fixed offered input schedule/drop/lateness is not yet implemented. Current runner is closed-loop and declares that limitation.
+Still required: all repaired bindings executed and audited; J3 actual simulation/forecast work overlapping map input; J5 actual anchor/off-anchor scrubs during advancing reveal with correct clamps and read-only independence. J5 does not require simultaneous forecast compute. J4/J6 current shop flow, expected costs/state and fresh forecast equivalence, J7 exact source/resume/continued state, all populations and actual-product controls remain unproved. Root's separately owned artwork controls cover required failure/retry/publication mechanisms but do not accept the complete harness. Fixed offered pan input is now wired, with due/dispatch/event/handler/frame and drop/lateness evidence, but unexecuted. Mobile pinch remains an explicit coverage gap; mouse wheel is not substituted for it.
 
 Actual current save DB is `full-map-redesign-v1-saves`. Older probes using `civilization-saves` or legacy `selectedState()` are unsuitable as representative current-main fixtures.
 
@@ -47,7 +47,7 @@ No full three-suite smoke, sufficient-tail quota, actual-product negative contro
 
 Full debug snapshot polling is materially intrusive: existing failed Life Map discoveries spent about 17–20% of elapsed time in polling, with individual reads around 11–23ms. Existing `getLifeDecisionTimingSnapshot` is also not a passive accepted substitute because it can call controller synchronization and heavy presentation getters. Root is arranging separate primitive, read-only observability; current run.mjs timing polls remain discovery only until that binding, overhead proof and independent audit are complete.
 
-`offered-input.mjs` is an untested, unwired fixed-rate CDP input helper. It schedules all requested events independently of ACKs and retains due/dispatched/arrival/handler/frame times, clock calibration uncertainty, coalescing, missing events, protocol errors and generator lateness. Its current reference-region projection getter also needs passivity review; bind to root's new passive observability before claiming accepted responsiveness evidence.
+`offered-input.mjs` is an untested fixed-rate CDP input helper wired to the J3 pan binding. It schedules all requested events independently of ACKs and retains due/dispatched/arrival/handler/frame times, calibration uncertainty, coalescing, missing events, protocol errors and generator lateness. It now reads raw passive camera fields, with precomputed geometry and mouse/touch dispatch. Actual offered-load validity, overhead and saturation controls remain required.
 
 `builder-discovery-life-d05bab3-r2` failed at final entry confirmation because a second click arrived before the entry-confirmation dialog settled. Current run.mjs now has a separate measured entry-dialog-open step waiting for phase=open, followed by final confirmation. That repair is unexecuted. The same discovery retained real asynchronous forecast coverage (computed 1280s while reveal was 162s), so current selected-run Continue is a promising J3 workload; map/scrub now start from that fixture. Actual worker/progress overlap must still be demonstrated per operation.
 
@@ -66,3 +66,44 @@ Avoid treating warm/cold as a per-click switch after a session is already runnin
 | J8 progressive art | Progressive preparation and explicit reveal, cold/warm resource cache, each browser configuration; matched artwork-off reference for frame/memory overhead, not a meaningless “off preparation latency” cell. Repeated post-reveal navigation memory is separated from intentional asset allocation. |
 
 This is an applicability proposal. Root's exact contract/coverage matrix and independent acceptance govern proof; no missing cell is implicitly waived.
+
+## Frozen workload and baseline SDK handoff
+
+Canonical immutable corpus: `artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json`.
+
+- Manifest ID: `406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000`.
+- SDK SHA256: `8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0` (1,329,028 bytes, one ESM bundle).
+- Captured source ID: `94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7` (141 exact input byte snapshots).
+- Construction runtime: Node v24.15.0; esbuild version and complete runtime versions recorded in the manifest. Only `node:assert/strict` and `node:crypto` remain external. Dynamic imports, CJS require, split outputs and mutable repository imports are rejected.
+
+The source snapshot rebuild reads its inputs solely from the captured byte map and reproduces the exact SDK SHA. All 15 text/state identities match the retained corrected `fixture-corpus-d05bab3` without normalization. Each immutable save and raw expected frontier state is retained. `conformance.json` records 141 full-state comparisons across all three seeds: raw/decode parity, authoritative rebuilds at 0/16/17/frontier, then three official continued seconds including all RNG fields. Normal losses/actions are not suppressed. This is baseline construction conformance, not independent Phase A acceptance and not browser latency evidence.
+
+The earlier `frozen-baseline-a9df52c-20261104` construction output is preserved, with the same SDK/source bytes. The canonical sourceproof manifest adds the source-only reproduction witness and packet identity checks; the loader requires that stronger witness. Expected model semantics never changed between those construction outputs.
+
+Construction command (already run; the existing output directory must not be overwritten):
+
+```powershell
+node scripts/perf-hillclimb/freeze-corpus.mjs --retained=artifacts/perf-hillclimb/fixture-corpus-d05bab3/manifest.json --output=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104
+```
+
+Loader/isolation controls passed 11 groups; exact current script hashes and results are retained in `artifacts/perf-hillclimb/frozen-loader-controls-a9df52c/controls.json`. The controls reject a wrong pin, altered manifest, altered frozen bytes, duplicate fixture pairs and external/dynamic imports. They leave the immutable source untouched.
+
+```powershell
+node scripts/perf-hillclimb/freeze-corpus-test.mjs artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json 406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000 artifacts/perf-hillclimb/frozen-loader-controls-a9df52c/controls.json
+```
+
+Exact reuse command for a focused Life Map discovery, after root grants the browser slot and DTO v2 is implemented/audited (not yet run):
+
+```powershell
+node scripts/perf-hillclimb/run.mjs --fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json --fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000 --seed=123 --jobs=life --population=desktop --artwork=off --cache=cold --samples=1 --id=life-passive-frozen-discovery
+```
+
+The same manifest path/ID must be used for A/B. Seed 424242 and 99117 select their existing immutable ordinary fixtures; Performance New/Continue use their actual fixed logical seed 123. Each run validates all frozen byte hashes, records the frozen manifest/SDK/source IDs, and includes the frozen identity in population grouping. Without an explicit manifest and pinned ID the runner labels output `generated-construction-only`, sets comparison/tail-inference eligibility false and cannot support a baseline or candidate score. It never silently creates a new frozen expectation.
+
+Prepared fixture bytes remain separate from logical expected state. Baseline packet SHA is `cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6`, baseline source key `db9c9cfa0b929b060892b105c668dfa45cc3fafa1e5665b641a265877ceabe79`, loss second 3918 and 245 retained forecast states. Its initial state exactly matches immutable ordinary seed123 state `df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f`. Candidate packet key/hash may vary with source: the runner validates its actual key against its actual build and its seed/state against the frozen logical workload, then records both separately.
+
+`run.mjs` now uses the frozen SDK for expected preview/replay and continued expected states; current product code only validates actual results. Save correctness compares raw, decoded and authoritative rebuilt actual states to the immutable raw expected state, including persistent knowledge and RNG, outside the timed interval. Any legitimate knowledge delta needs a separately derived exact expectation and audit; mismatches are not normalized. Syntax checks pass for runner, SDK entry, freezer and focused controls. No browser job has run through the new loader yet.
+
+The new timed bindings use passive DTO v2/DOM fields and require expected node/source/target/generation. Full/legacy snapshots are guarded against timed use. Geometry is calibrated explicitly outside clocks and retained; point-getter passivity and calibration side effects remain subject to audit. Missing v2 opening phase/loss/coverage, cached shop fields, anchor membership and artwork prepared/publication fields deliberately block their jobs rather than weakening terminal criteria. Root owns the DTO extension and shared timer/artwork files.
+
+Impact: these are harness-only changes. Product simulation, RNG streams, schemas, replay, UI behavior and layering are untouched. The frozen SDK copies the verified model; conformance executes all 60 ticks per official second. Remaining gates include passive DTO audit, real execution of all repaired jobs/populations and controls, correct visible completion, mobile pinch, timing/observation overhead, first-feedback witnesses, required smoke/tail samples and independent Harness Auditor acceptance. **Phase A remains NOT SOUND.**

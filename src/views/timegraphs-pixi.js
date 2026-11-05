@@ -2252,6 +2252,50 @@ export function createMetricGraphView({
     return { x: topLeft.x, y: topLeft.y, width: bottomRight.x - topLeft.x, height: bottomRight.y - topLeft.y };
   }
 
+  // Read raw reveal/scrub state. The normal cap accessor synchronizes getData;
+  // its equivalent arithmetic here deliberately leaves stale overrides alone.
+  function getTimingSnapshot(options = {}) {
+    const data = controller.getTimingSnapshot?.(options) ?? null;
+    // Copy the renderer's retained transform, without updating transforms/bounds.
+    // Coordinates can lag layout until the ordinary renderer runs.
+    const matrix = root.transform?.worldTransform;
+    const plotRect = matrix && matrix.b === 0 && matrix.c === 0 ? {
+      x: matrix.a * plot.x + matrix.tx, y: matrix.d * plot.y + matrix.ty,
+      width: matrix.a * plot.w, height: matrix.d * plot.h,
+    } : null;
+    const historyEndSec = Math.max(0, Math.floor(getTimeline?.()?.historyEndSec ?? 0));
+    const computedSec = data?.computedSec == null ? null
+      : Math.max(historyEndSec, Math.floor(data.computedSec));
+    const revealedSec = computedSec == null ? null : Math.max(historyEndSec, Math.min(
+      computedSec, reveal.historyEndSec === historyEndSec
+        ? Math.floor(reveal.visibleEndSec ?? historyEndSec) : historyEndSec));
+    return {
+      visible: root.visible === true, minSec, maxSec,
+      scrubDrawSignature: lastScrubSignature,
+      plotRect, plotRectSpace: 'stage-retained-transform',
+      ...(data && Object.hasOwn(data, 'projection') ? { projection: data.projection } : {}),
+      ...(data?.requestedAnchorSec == null ? {} : {
+        requestedAnchorSec: data.requestedAnchorSec, hasRetainedAnchor: data.hasRetainedAnchor,
+        retainedAnchorSource: data.retainedAnchorSource, retainedAnchorScope: data.retainedAnchorScope,
+      }),
+      scrubSec: scrub.scrubSec, isScrubbing: scrub.isScrubbing === true,
+      latchedForecastScrubSec: scrub.latchedForecastScrubSec,
+      historyEndSec, revealedSec, browseCapSec: revealedSec,
+      targetSec: reveal.targetEndSec,
+      computedSec, requestedSec: data?.requestedSec ?? null, pending: data?.pending ?? null,
+      cacheVersion: data?.cacheVersion ?? null, subjectKey: data?.subjectKey ?? null,
+      asyncToken: data?.asyncToken ?? null, asyncPollMs: data?.asyncPollMs ?? null,
+      asyncHistoryEndSec: data?.asyncHistoryEndSec ?? null,
+      asyncRequestedSec: data?.asyncRequestedSec ?? null, asyncComputedSec: data?.asyncComputedSec ?? null,
+      revealHistoryEndSec: reveal.historyEndSec,
+      animatedSec: reveal.animatedEndSec, visibleEndSec: reveal.visibleEndSec,
+      startSecOverride: reveal.startSecOverride,
+      readinessCapSec: reveal.readinessCapSec ?? null,
+      capEndSec: reveal.capEndSec, paused: reveal.paused,
+      presentationSuspended, openingRevealSec,
+    };
+  }
+
   function getDebugState() {
     syncProjectionReplacementDataContext();
     const tl = getTimeline?.();
@@ -2536,6 +2580,7 @@ export function createMetricGraphView({
     getPlotScreenRect,
     getPlotStageRect,
     getDebugState,
+    getTimingSnapshot,
     isScrubbing: () => scrub.isScrubbing === true,
     getVisibleTimeSpanSec: () => Math.max(1, maxSec - minSec),
     getForecastScrubCapSec: () => getVisibleForecastScrubCapSec(),

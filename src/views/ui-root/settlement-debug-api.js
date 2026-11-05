@@ -94,6 +94,11 @@ function summarizeLineage(state) {
 }
 
 export function publishSettlementDebugApi({
+  inspectRetainedStates,
+  inspectRetainedLifePreparation,
+  inspectRetainedLifeDecision,
+  getRetainedFeedbackSnapshot,
+  getTimingSnapshot,
   getForecastStatus,
   getFrontierSec,
   getViewedSec,
@@ -178,6 +183,11 @@ export function publishSettlementDebugApi({
 } = {}) {
   if (typeof globalThis === "undefined") return;
   globalThis.__SETTLEMENT_DEBUG__ = {
+    inspectRetainedStates,
+    inspectRetainedLifePreparation,
+    inspectRetainedLifeDecision,
+    getRetainedFeedbackSnapshot,
+    getTimingSnapshot,
     getFounderSnapshot, getFounderControlClickPoint, getCommissionSnapshot, getCommissionChoiceClickPoint,
     getLifeDecisionTimingSnapshot: () => {
       const lineage = summarizeLineage(getFrontierState?.());

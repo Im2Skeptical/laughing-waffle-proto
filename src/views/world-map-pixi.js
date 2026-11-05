@@ -1114,6 +1114,19 @@ export function createWorldMapView({
         stockTransferIcons.beginFrame();
       }
     },
+    getTimingSnapshot() {
+      const pose = camera.snapshot();
+      const panel = panelReveal.snapshot();
+      return {
+        visible: root.visible === true,
+        detailVisible: root.visible === true && detailRoot.visible === true,
+        camera: { x: pose.x, y: pose.y, zoom: pose.zoom },
+        focusAnimating: camera.isAnimating(),
+        panelPhase: panel.phase, panelAnimating: panel.animating,
+        panelPose: { x: panel.x, y: panel.y, scale: panel.scale },
+        artReady: illustrated.stats.ready ?? null, artPrepared: illustrated.stats.prepared ?? null,
+      };
+    },
     getSemanticSnapshot: () => {
       const state = getState?.();
       const regionId = getSelectedRegionId?.();

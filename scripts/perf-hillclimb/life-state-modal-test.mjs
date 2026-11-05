@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import {publishSettlementDebugApi} from '../../src/views/ui-root/settlement-debug-api.js';
+const source=readFileSync('src/views/vassal-node-decision-modal-pixi.js','utf8');
+const match=source.match(/inspectRetainedDecision\(\) \{([\s\S]*?)\n    \},/);assert.ok(match);
+const raw={logicalOpen:true,root:{visible:true},openNodeId:'n',lastDecision:{node:{id:'n'},allFields:{x:4}},dragPreview:{draftPreview:{ok:true}},previewOptionId:'o',previewOfferId:'f',previewTableauId:null,hoveredOptionId:'h',hoveredOfferId:'hf',pinnedInspectionId:null,quickInspectionId:null,dragTargetIndex:'practice:3',dragged:{fromOffer:true,active:true,piece:{offerId:'f',intervention:{kind:'practice'}},start:{x:1,y:2},point:{x:4,y:5},card:{poison:()=>{throw Error('card must not escape');}}}};
+const before=JSON.stringify(raw);const read=vm.runInNewContext(`(function(){${match[1]}\n})`,{...raw,getState:()=>{throw Error('active getter');},render:()=>{throw Error('render');}});
+const actual=JSON.parse(JSON.stringify(read()));assert.deepEqual(actual.lastDecision,raw.lastDecision);assert.deepEqual(actual.dragPreview,raw.dragPreview);assert.equal(actual.variant.dragged.piece.offerId,'f');
+const changed=read();changed.lastDecision.allFields.x=-1;changed.dragPreview.draftPreview.ok=false;changed.variant.dragged.piece.offerId='bad';assert.deepEqual(JSON.parse(JSON.stringify(read())),actual);assert.equal(JSON.stringify(raw),before);
+publishSettlementDebugApi({inspectRetainedLifePreparation:arg=>arg,inspectRetainedLifeDecision:read});assert.equal(globalThis.__SETTLEMENT_DEBUG__.inspectRetainedLifePreparation('forwarded'),'forwarded');assert.deepEqual(JSON.parse(JSON.stringify(globalThis.__SETTLEMENT_DEBUG__.inspectRetainedLifeDecision())),actual);
+delete globalThis.__SETTLEMENT_DEBUG__;
+console.log('[life-state] retained modal body/hover/drag copies and facade forwarding PASS');
