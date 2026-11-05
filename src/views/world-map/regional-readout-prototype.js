@@ -1,3 +1,4 @@
+import {addFloatingSettlementPrototype,resolveFloatingReadouts} from './floating-settlement-prototype.js';
 // Throwaway experiment: three Force treatments inside the real regional map.
 // Read-only view data. No control, conversion, or Prestige rules are changed.
 import {compactRegionName} from '../region-label.js';
@@ -7,11 +8,13 @@ import {addResourceIcon} from '../resource-cost-pixi.js';
 
 export function regionalReadoutVariant() {
   const value=new URLSearchParams(globalThis.location?.search??'').get('regionalReadout');
-  return ['atlas','shield','tracks','bracket'].includes(value)?value:null;
+  return ['floating','atlas','shield','tracks','bracket'].includes(value)?value:null;
 }
 const readouts=new Set();
+export function getFloatingReadoutMeasurements(){return [...readouts].filter(root=>!root.destroyed&&root.measureFloating).map(root=>root.measureFloating());}
 export function updateRegionalReadoutScale(zoom){
-  for(const root of readouts){if(root.destroyed){readouts.delete(root);continue;}root.scale.set((root.atlasMarker?1.18:1.35)/Math.max(.25,zoom));}
+  for(const root of readouts){if(root.destroyed){readouts.delete(root);continue;}if(root.updateFloatingLayout){root.updateFloatingLayout(zoom);continue;}root.scale.set((root.atlasMarker?1.18:1.35)/Math.max(.25,zoom));}
+  resolveFloatingReadouts([...readouts].filter(root=>!root.destroyed&&root.measureFloating),zoom);
 }
 const number=value=>String(Number(Number(value??0).toFixed(1)));
 const text=(root,value,x,y,size=18,colour=0xe6dcc4)=>{
@@ -39,7 +42,8 @@ function VariantBracket(root,p){
   root.addChild(g);text(root,'F',51,45,12,0x9bb6c5);
 }
 
-export function addRegionalReadoutPrototype(parent,point,indicator,{tooltipView,reference,variant}){
+export function addRegionalReadoutPrototype(parent,point,indicator,{tooltipView,reference,variant,spriteBounds}){
+  if(variant==='floating'){const root=addFloatingSettlementPrototype(parent,point,indicator,{tooltipView,reference,spriteBounds});if(root)readouts.add(root);return root;}
   if(variant==='atlas')return addAtlasMarker(parent,point,indicator,{tooltipView,reference});
   const p=indicator.influence;if(!p||indicator.monster)return;
   const root=new PIXI.Container();root.label='regional-readout-prototype';readouts.add(root);root.position.set(point.x,point.y+27);

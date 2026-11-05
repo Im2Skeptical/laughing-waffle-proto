@@ -7,7 +7,16 @@ region selection, at phone-landscape size?
 Throwaway experiment on `experiment/regional-readout-20261105`. Not production
 implementation and not permission to merge or publish.
 
-## Latest revision ? world first
+## Current direction ? floating graphics around settlement sprites
+
+Cam rejected the intermediate menu and region names covering the influence bar.
+Use `?regionalReadout=floating&perf=1&art=1&launch=new`. Worker count, framed
+allegiance/Force bar and Prestige reading surround the actual building sprites;
+existing region names are kept clear of the bar and counters. Clicking a region opens its existing
+economy directly. See `docs/prototypes/regional-map-20261105/FLOATING_REVISION.md`.
+The historical variants below are retained as experiment records, not agreement.
+
+## Rejected revision ? world first
 
 Cam rejected the repeated statistical panels as overwhelming and asked for a
 Civilization-level game presentation with the fantasy map as the main visual.
@@ -39,7 +48,7 @@ prepared representative run in the separate Dev save. Tap the ticked Dev seal
 when illustrations are ready. Select the map navigation if needed.
 
 Choose World first or the historical A/B/C treatments in Menu > Developer tools > Regional readout prototype. The URL
-parameter accepts `atlas`, `shield`, `tracks`, `bracket`. Switching reloads the page;
+parameter accepts `floating`, `atlas`, `shield`, `tracks`, `bracket`. Switching reloads the page;
 Continue performance game resumes the separate Dev save. No experiment controls
 are placed on the evaluated map. Omitting the parameter retains the shipped UI.
 
