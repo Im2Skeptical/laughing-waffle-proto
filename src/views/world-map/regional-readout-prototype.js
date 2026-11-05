@@ -42,8 +42,8 @@ function VariantBracket(root,p){
   root.addChild(g);text(root,'F',51,45,12,0x9bb6c5);
 }
 
-export function addRegionalReadoutPrototype(parent,point,indicator,{tooltipView,reference,variant,spriteBounds}){
-  if(variant==='floating'){const root=addFloatingSettlementPrototype(parent,point,indicator,{tooltipView,reference,spriteBounds});if(root)readouts.add(root);return root;}
+export function addRegionalReadoutPrototype(parent,point,indicator,{tooltipView,reference,variant,spriteBounds,forceSample}){
+  if(variant==='floating'){const root=addFloatingSettlementPrototype(parent,point,indicator,{tooltipView,reference,spriteBounds,forceSample});if(root)readouts.add(root);return root;}
   if(variant==='atlas')return addAtlasMarker(parent,point,indicator,{tooltipView,reference});
   const p=indicator.influence;if(!p||indicator.monster)return;
   const root=new PIXI.Container();root.label='regional-readout-prototype';readouts.add(root);root.position.set(point.x,point.y+27);

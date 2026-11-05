@@ -902,10 +902,13 @@ export function createWorldMapView({
       if (display.actors !== false && indicator.monster) addMonsterMarker(regionContent, point, {art:!illustratedMap});
       if (display.actors !== false && indicator.crownCapital) addCrownCapitalMarker(regionContent,point,tooltipView);
       const readoutVariant=regionalReadoutVariant();
+      const sampleMode=new URLSearchParams(globalThis.location?.search??'').get('regionalForceSample');
+      const forceSample=floatingMode&&indicator.controller==='player'?(sampleMode==='both'?(indicator.regionId===state.civilization.capitalRegionId?'short':'held'):['short','held'].includes(sampleMode)?sampleMode:null):null;
+
       const footprint=illustrated.stats.sites?.find(site=>site.regionId===indicator.regionId)?.spriteBounds;
       const spriteBounds=footprint?{min:screenPoint({x:footprint.minX,y:footprint.minY}),max:screenPoint({x:footprint.maxX,y:footprint.maxY})}:null;
 
-      if(display.actors!==false&&readoutVariant)addRegionalReadoutPrototype(regionContent,point,indicator,{tooltipView,reference:getRegionReference(state,indicator.regionId),variant:readoutVariant,spriteBounds});
+      if(display.actors!==false&&readoutVariant)addRegionalReadoutPrototype(regionContent,point,indicator,{tooltipView,reference:getRegionReference(state,indicator.regionId),variant:readoutVariant,spriteBounds,forceSample});
       if(display.actors!==false&&!readoutVariant)addMapInfluenceMarker(regionContent,point,indicator.influence,{tooltipView,reference:getRegionReference(state,indicator.regionId)??indicator.regionId});
       if(display.actors!==false&&!readoutVariant)addRegionPrestigeBadge(regionContent,point,indicator.prestigePerNode,{tooltipView,populationPerPoint:indicator.prestigePopulationPerPoint});
       const adornments = new PIXI.Container();
@@ -1060,7 +1063,7 @@ export function createWorldMapView({
     const zoom=camera.snapshot().zoom;
     if(!floatingMode||(floatingNameZoom===zoom&&floatingNameScene===lastSignature))return;
     floatingNameZoom=zoom;floatingNameScene=lastSignature;
-    const fixed=getFloatingReadoutMeasurements().flatMap(r=>[r.sprite,r.bar,r.workers,r.prestige].filter(Boolean)),placed=[];
+    const fixed=getFloatingReadoutMeasurements().flatMap(r=>[r.sprite,r.bar,r.badge].filter(Boolean)),placed=[];
     const overlap=(a,b)=>Math.max(0,Math.min(a.x+a.width,b.x+b.width+2)-Math.max(a.x,b.x-2))*Math.max(0,Math.min(a.y+a.height,b.y+b.height+2)-Math.max(a.y,b.y-2));
     for(const label of floatingNameLabels){
       if(label.destroyed)continue;label.visible=true;let best=null;

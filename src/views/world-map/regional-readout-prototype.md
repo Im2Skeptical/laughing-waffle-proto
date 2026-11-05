@@ -7,6 +7,16 @@ region selection, at phone-landscape size?
 Throwaway experiment on `experiment/regional-readout-20261105`. Not production
 implementation and not permission to merge or publish.
 
+## Latest: connected count / Prestige and three Force treatments
+
+The upper readings now share one frame with two sections. Prestige display uses
+whole numbers, while exact model contributions stay unchanged. Left-number
+meaning is provisionally total residents per the latest wording; workers remain
+available via `regionalCount=workers`. Force alternatives use `regionalForce=`
+`shield`, `surround`, or `rail`, switched through Developer tools. See
+`docs/prototypes/regional-map-20261105/CONNECTED_FORCE_OPTIONS.md` for the explicit
+display-only political samples used to compare filled/insufficient meters.
+
 ## Current direction ? floating graphics around settlement sprites
 
 Cam rejected the intermediate menu and region names covering the influence bar.

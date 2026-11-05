@@ -14,7 +14,8 @@ function checkLayout(map){
  assert.equal(map.regionalReadoutPrototype,null,'No intermediate regional menu');
  for(const r of map.floatingReadouts){
   assert(!intersects(r.name,r.bar),r.regionId+' name overlaps influence bar');
-  assert(!intersects(r.workers,r.sprite),r.regionId+' workers cover buildings');
+  assert(/^-?\d+$/.test(r.shownPrestige),'Prestige must be displayed without decimals');
+  assert(!intersects(r.count,r.sprite),r.regionId+' workers cover buildings');
   assert(!intersects(r.prestige,r.sprite),r.regionId+' Prestige covers buildings');
   assert(!intersects(r.bar,r.sprite),r.regionId+' bar covers buildings');
  }
@@ -39,9 +40,9 @@ try{
  await page.setViewportSize({width:844,height:390});await page.waitForTimeout(400);map=await snapshot();
  const player=map.regionMapIndicators.find(r=>r.controller==='player').regionId;
  const crown=map.regionMapIndicators.find(r=>r.controller==='external-a').regionId;
- const worker=map.floatingReadouts.find(r=>r.regionId===player).workers;
+ const worker=map.floatingReadouts.find(r=>r.regionId===player).count;
  await tap({x:worker.x+worker.width/2,y:worker.y+worker.height/2});
- assert.match((await page.evaluate(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState())).title,/Workers/);checks.push('worker badge touch inspection');
+ assert.match((await page.evaluate(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState())).title,/Workers|Population/);checks.push('worker badge touch inspection');
  await page.keyboard.press('Escape');
  await tap(await page.evaluate(id=>__SETTLEMENT_DEBUG__.getWorldMapClickPoint(id),player));await page.waitForTimeout(700);
  assert((await snapshot()).detailPanelVisible,'Region click opens economy directly');checks.push('direct region-to-economy click');
