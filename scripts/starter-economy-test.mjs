@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {writeFileSync} from 'node:fs';
+import {mkdirSync,writeFileSync} from 'node:fs';
 import {createNewGameState} from '../src/model/new-game.js';
 import {serializeGameState,deserializeGameState} from '../src/model/state.js';
 import {FULL_MAP_SEED_CARD_IDS} from '../src/defs/gamepieces/full-map-defs.js';
@@ -13,6 +13,7 @@ import {getHousingCapacity} from '../src/model/detailed-settlements/queries.js';
 import {getGamepieceFace} from '../src/model/gamepiece-presentation.js';
 import {initializeReplayClock,advanceReplayStateToSecond} from '../src/model/replay-second-runner.js';
 import {createTimelineFromInitialState,rebuildStateAtSecond} from '../src/model/timeline/index.js';
+mkdirSync('artifacts',{recursive:true});
 const qualities=['bronze','silver','gold','diamond'];
 const slot=(practiceId,tier='bronze')=>({practiceId,tier,stock:0,charge:0,work:0,instanceId:'starter-test'});
 function fixture(id,workers=1,tier='bronze'){

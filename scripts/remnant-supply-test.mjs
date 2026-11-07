@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { remnantSupplyPracticeDefs as remnants } from '../src/defs/gamepieces/remnant-supply-defs.js';
 import { FULL_MAP_SEED_CARD_IDS, FULL_MAP_SUPPLY_DEPENDENCIES } from '../src/defs/gamepieces/full-map-defs.js';
 import { createNewGameState } from '../src/model/new-game.js';
@@ -25,6 +25,7 @@ import { diagnoseLifegraphCardPools } from '../src/model/dev-lab/lifegraph.js';
 import { generateVassalLifeMap, createAuthoredVassalLifeMapGeneratorConfig } from '../src/model/vassal-life-map-generator.js';
 import { createRng } from '../src/model/rng.js';
 
+mkdirSync('artifacts', { recursive: true });
 const ids = Object.keys(remnants), checks = [];
 const seasons = ['spring', 'summer', 'autumn', 'winter'];
 const provider = { Edible: 'fm_handQuern', Currency: 'barter', Timber: 'fm_woodlotRights', Construction: 'fm_rubblePicking',
