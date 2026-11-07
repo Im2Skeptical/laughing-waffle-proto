@@ -1,3 +1,4 @@
+import { remnantSupplyPracticeDefs, remnantBasicPracticeDefs, remnantBasicStructureDefs } from './remnant-supply-defs.js';
 // Audited full-map experimental content. Structures support activating Practices; no independent conversion.
 export const fullMapPractices = {
   "fm_oathSupper": {
@@ -871,25 +872,30 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Generate 1 hosted Stock. Removed political clause: Resource Practice produces only its visible Stock and authored nonpolitical effects."
+      "rule": "Spring, Summer and Autumn: generate 1 Timber / Construction Stock. Capacity 3."
     },
     "category": "resource",
     "mode": "scheduled",
     "lane": "scheduled",
     "activation": {
-      "type": "birth"
+      "type": "season",
+      "seasonKeys": [
+        "spring",
+        "summer",
+        "autumn"
+      ]
     },
     "source": {
-      "icon": "birth",
-      "cadence": "birth"
+      "icon": "season",
+      "cadence": "season"
     },
-    "workerCapacity": 2,
+    "workerCapacity": 1,
     "workerBonus": 1,
     "stockTraits": [
       "Timber",
       "Construction"
     ],
-    "stockCapacity": 4,
+    "stockCapacity": 3,
     "costs": []
   },
   "fm_rubblePicking": {
@@ -912,25 +918,29 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Generate 1 hosted Stock."
+      "rule": "Summer and Autumn: generate 1 Stone / Construction Stock. Capacity 2."
     },
     "category": "resource",
     "mode": "scheduled",
     "lane": "scheduled",
     "activation": {
-      "type": "housing"
+      "type": "season",
+      "seasonKeys": [
+        "summer",
+        "autumn"
+      ]
     },
     "source": {
-      "icon": "housing",
-      "cadence": "housing"
+      "icon": "season",
+      "cadence": "season"
     },
-    "workerCapacity": 2,
+    "workerCapacity": 1,
     "workerBonus": 1,
     "stockTraits": [
       "Stone",
       "Construction"
     ],
-    "stockCapacity": 3,
+    "stockCapacity": 2,
     "costs": []
   },
   "fm_villageWell": {
@@ -945,7 +955,7 @@ export const fullMapPractices = {
     "effects": [
       {
         "op": "generateStock",
-        "amount": 2
+        "amount": 1
       }
     ],
     "consume": [],
@@ -953,25 +963,29 @@ export const fullMapPractices = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Generate 2 hosted Stock."
+      "rule": "Spring, Summer and Autumn: generate 1 Water Stock. Capacity 2."
     },
     "category": "resource",
     "mode": "scheduled",
     "lane": "scheduled",
     "activation": {
-      "type": "food",
-      "stage": "preRouting"
+      "type": "season",
+      "seasonKeys": [
+        "spring",
+        "summer",
+        "autumn"
+      ]
     },
     "source": {
-      "icon": "food",
-      "cadence": "food"
+      "icon": "season",
+      "cadence": "season"
     },
-    "workerCapacity": 2,
+    "workerCapacity": 1,
     "workerBonus": 1,
     "stockTraits": [
       "Water"
     ],
-    "stockCapacity": 4,
+    "stockCapacity": 2,
     "costs": []
   },
   "fm_patchworkSmithy": {
@@ -1178,18 +1192,12 @@ export const fullMapPractices = {
       }
     ],
     "consume": [],
-    "require": [
-      {
-        "traits": [
-          "Edible"
-        ],
-        "amount": 1
-      }
-    ],
+    "require": [],
+    "condition": "diverseStock",
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "Require 1 Edible (kept). Generate 1 hosted Stock."
+      "rule": "Before meals: with at least two stocked Practices of different Stock Traits, generate 1 Currency Stock. Capacity 1."
     },
     "category": "resource",
     "mode": "scheduled",
@@ -1202,12 +1210,12 @@ export const fullMapPractices = {
       "icon": "food",
       "cadence": "food"
     },
-    "workerCapacity": 2,
+    "workerCapacity": 1,
     "workerBonus": 1,
     "stockTraits": [
       "Currency"
     ],
-    "stockCapacity": 3,
+    "stockCapacity": 1,
     "costs": []
   },
   "fm_debtService": {
@@ -2723,14 +2731,14 @@ export const fullMapStructures = {
     "vassalPrestigeCost": 10,
     "vassalPhaseCost": 12,
     "ui": {
-      "rule": "+1 capacity Edible. death: Consume 1 Edible; capacity remains active."
+      "rule": "Edible Stock Practices have +0.5 Capacity Multiplier."
     },
     "footprint": 1,
     "housing": 0,
     "modifiers": [
       {
         "kind": "capacity",
-        "amount": 1,
+        "amount": 0.5,
         "query": {
           "traitsAny": [
             "Edible"
@@ -3625,6 +3633,7 @@ export const fullMapStructures = {
 
 // The experimental offer surface is intentionally finite. Older cards remain in
 // the registry for authored labs, but abstract markets/Support are not fork offers.
+// This list admits legacy supply definitions; their authored class still gates shops.
 export const FULL_MAP_SUPPLY_DEPENDENCIES = Object.freeze([
   'forage', 'dryFarming', 'logging', 'quarrying', 'surfaceMining', 'charcoalBurning',
   'smelting', 'toolmaking', 'pastoralism', 'sheepHusbandry', 'saltGathering',
@@ -3636,9 +3645,17 @@ export const FULL_MAP_SUPPLY_DEPENDENCIES = Object.freeze([
 export const FULL_MAP_MAINLINE_PRACTICES = Object.freeze([
   'fieldStudy', 'floodAlmanacs', 'marginalia', 'measuredRations', 'patternCarving',
   'beastRendering', 'scarredShields', 'trailProvisioning', 'trophyRubbings',
-  'copyingTexts', 'monsterHunting',
+  'copyingTexts', 'monsterHunting', 'irrigating',
 ]);
+// Inherited neutral starting cards and enemy/remnant institutions belong on the
+// map, never in acquisition pools. Use authored IDs so edited class/quality/lock
+// fields cannot accidentally turn an inherited card into a shop offer.
+export const FULL_MAP_SEED_CARD_IDS = Object.freeze(
+  [...Object.values(fullMapPractices), ...Object.values(fullMapStructures)]
+    .filter(def => def.pool === 'common' || /^(fe_|cp_)/.test(def.id)).map(def => def.id)
+    .concat(Object.keys(remnantSupplyPracticeDefs),Object.keys(remnantBasicPracticeDefs),Object.keys(remnantBasicStructureDefs))
+);
 export function isFullMapOfferDefinition(def) {
-  return !!def && !!(fullMapPractices[def.id] || fullMapStructures[def.id]
+  return !!def && !FULL_MAP_SEED_CARD_IDS.includes(def.id) && !!(fullMapPractices[def.id] || fullMapStructures[def.id]
     || FULL_MAP_SUPPLY_DEPENDENCIES.includes(def.id) || FULL_MAP_MAINLINE_PRACTICES.includes(def.id));
 }

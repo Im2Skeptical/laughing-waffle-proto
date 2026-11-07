@@ -410,7 +410,7 @@ const freeLegacyVassal = getCurrentLifeMapVassal(freeLegacyState);
 freeLegacyVassal.prestige = 0;
 const freeLegacyNode = forceEnter(freeLegacyState, nodeIdForFamily(freeLegacyState, "legacy"));
 const freeLegacyOption = freeLegacyNode.options.find((option) => option.id === "accumulated-prestige");
-assert.equal(freeLegacyNode.options.length, 3);
+assert.equal(freeLegacyNode.options.length, 2);
 assert.equal(freeLegacyOption.prestigeCost, 0);
 assert.equal(freeLegacyOption.phaseCost, 0);
 dispatch(freeLegacyState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
@@ -421,50 +421,6 @@ assert.equal(freeLegacyState.civilization.vassalLegacy.futureStartingPrestigeBon
   "zero held Prestige leaves zero additional starting Prestige");
 assert.equal(getCurrentLifeMapVassal(freeLegacyState), null,
   "a zero-Prestige Vassal can always complete a terminal Legacy node");
-
-let settlementFixture = null;
-for (let seed = 0; seed < 1000 && !settlementFixture; seed += 1) {
-  const candidateState = createInitialState("devPlaytesting01", seed);
-  const candidatePool = getVassalCandidatePool(candidateState);
-  for (const candidate of candidatePool.candidates.filter((entry) =>
-    entry.signatureNode?.variantId === "settlement")) {
-    const state = createInitialState("devPlaytesting01", seed);
-    const pool = getVassalCandidatePool(state);
-    dispatch(state, ActionKinds.SETTLEMENT_SELECT_VASSAL, {
-      candidateIndex: candidate.candidateIndex, expectedPoolHash: pool.expectedPoolHash,
-    });
-    const vassal = getCurrentLifeMapVassal(state);
-    vassal.prestige = 100;
-    const node = forceEnter(state, nodeIdForSignature(state, "settlement"));
-    const requirements = getVassalNodeDecisionPresentation(state, node.nodeId).optionRequirements;
-    const option = node.options.find((entry) => entry.settlementRegionId
-      && requirements[entry.id].every((requirement) => requirement.met));
-    if (option) { settlementFixture = { state, vassal, node, option }; break; }
-  }
-}
-assert.ok(settlementFixture, "Settlement offers a connected frontier region when affordable");
-const { state: settlementState, vassal: settlementVassal,
-  node: settlementNode, option: settlementOption } = settlementFixture;
-const sourceRegionId = settlementVassal.locationRegionId;
-const sourceAdults = settlementState.world.sites.find((site) => site.regionId === sourceRegionId)
-  .detailedState.populationByClass.villager.adults;
-assert.ok(settlementNode.options.length <= 3);
-dispatch(settlementState, ActionKinds.VASSAL_SELECT_LIFE_OPTION, {
-  nodeId: settlementNode.nodeId, optionId: settlementOption.id,
-});
-dispatch(settlementState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId: settlementNode.nodeId });
-const settledRegionId = settlementOption.settlementRegionId;
-const settled = settlementState.world.sites.find((site) => site.regionId === settledRegionId)?.detailedState;
-assert.equal(settlementState.world.regions.find((region) => region.id === settledRegionId).controller, "player");
-assert.equal(settlementVassal.locationRegionId, settledRegionId);
-assert.equal(settlementState.world.sites.find((site) => site.regionId === sourceRegionId)
-  .detailedState.populationByClass.villager.adults, sourceAdults - 10);
-assert.equal(settled.populationByClass.villager.adults, 10);
-assert.equal(settled.practiceSlots[0].stock, 2);
-assert.deepEqual(settled.practiceSlots.slice(0, 2).map((slot) => slot?.practiceId ?? null), ["forage", null]);
-assert.deepEqual(settled.structureSlots.slice(0, 2).map((slot) => slot?.structureId ?? null), ["granary", "mudHouses"]);
-assert.equal(validateVassalLifeMapState(serializeGameState(settlementState)).ok, true,
-  "settlement choices remain serializable after confirmation");
 
 const developmentOptionsState = selectedState(1);
 const developmentNode = forceEnter(developmentOptionsState, nodeIdForFamily(developmentOptionsState, "development"));
@@ -486,7 +442,7 @@ assert.equal(new Set(pooledCrisis.options.map((option) => option.id)).size, 1,
 
 const pooledLegacyState = selectedState(1);
 const pooledLegacy = forceEnter(pooledLegacyState, nodeIdForFamily(pooledLegacyState, "legacy"));
-assert.equal(pooledLegacy.options.length, 3);
+assert.equal(pooledLegacy.options.length, 2);
 assert.ok(pooledLegacy.options.some((option) => option.id === "accumulated-prestige"),
   "Legacy always keeps its free terminal choice");
 
@@ -535,22 +491,6 @@ dispatch(removalFallbackState, ActionKinds.VASSAL_CONFIRM_LIFE_NODE, {
 });
 assert.ok(removalFallbackVassal.prestige >= 110,
   "empty removal nodes grant their zero-time Prestige fallback");
-
-const blockedSettlementState = selectedStateForSignature("settlement");
-const blockedVassal = getCurrentLifeMapVassal(blockedSettlementState);
-blockedVassal.prestige = 0;
-blockedSettlementState.world.sites.find((site) => site.regionId === blockedVassal.locationRegionId)
-  .detailedState.populationByClass.villager.adults = 0;
-const blockedNode = forceEnter(blockedSettlementState, nodeIdForSignature(blockedSettlementState, "settlement"));
-const blockedChoice = blockedNode.options.find((option) => option.settlementRegionId || option.id === "settlement-unavailable");
-assert.ok(blockedChoice, "unavailable settlement remains visible");
-const blockedRequirements = getVassalNodeDecisionPresentation(blockedSettlementState, blockedNode.nodeId)
-  .optionRequirements[blockedChoice.id];
-assert.equal(blockedRequirements[0].met, false);
-assert.equal(blockedRequirements[1].met, false);
-assert.equal(applyAction(blockedSettlementState, { kind: ActionKinds.VASSAL_SELECT_LIFE_OPTION,
-  payload: { nodeId: blockedNode.nodeId, optionId: blockedChoice.id } }, { isReplay: true }).ok, false);
-assert.ok(blockedNode.options.some((option) => option.id === "settlement-favor"), "fallback allows progress");
 
 // Old pending Life Map choices keep their serialized effects after a JSON load.
 for (const option of VASSAL_MONSTER_HUNT_OPTIONS) {

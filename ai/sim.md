@@ -132,7 +132,7 @@ registries here.
   serialized Life Map DAG generated from six non-crossing route traces over five
   lanes and thirteen normal depths (4 Early / 5 Middle / 4 Late) by default. The first two traces start separately, room
   families use Early/Mid/Late weights, and every final normal node connects to a
-  single terminal Legacy node. There are 22 node families (16 normal, including
+  single terminal Legacy node. There are 21 node families (16 normal, including
   Special Relic). Entered nodes
   persist their content while choices and purchases are staged; only Scholars refresh shops through Delve.
   Each candidate also owns a serialized procedural portrait and one signature
@@ -141,14 +141,11 @@ registries here.
   ordinary graph is built; Legacy+ instead upgrades the terminal Legacy node.
   Travel and Routes are removed node families, including from generator settings
   and the Lifegraph workspace picker; the Remove Routes signature is also removed.
-  Ordinary graphs no longer roll Settlement nodes. Crossroads
-  uses the canonical `crossroads` family and combines movement to connected player settlements (three moons), new incident
+  Settlement nodes and signatures are removed. The full map is the only source of settlements. Crossroads
+  uses the canonical `crossroads` family and combines movement to adjacent settlements (three moons on an existing road; existing expedition costs otherwise), new incident
   routes (15 Prestige/five years), and a two-year Tour (25% Bronze Relic, otherwise
   +1 permanent random stat). Tour rewards roll only at commitment and use the
   normal Relic acquisition flow. Custom first pathways remain experimental.
-  Settlement choices remain
-  visible when unavailable and list their live Prestige, adult Villager, route,
-  frontier, and structure-capacity requirements.
   Practice Reform guarantees an eligible Food-tag, Construction-Stock, or
   Currency-Stock specialty in its first slot, chosen at random. Its second
   slot is a random eligible Stock output, excluding the first specialty;
@@ -243,8 +240,13 @@ registries here.
 - Crisis options inspect live Food shortages and adjacent Monsters. Mortality
   remains on the existing Vassal RNG substream. See
   `docs/civilization-milestone.md` for the implemented pool and tuning decisions.
-- Ordinary Legacy offers three free retirement choices: found a connected,
-  unoccupied frontier settlement with ten new Villagers; add floor(highest
+- Inherited town recipes include eight degraded map-only supply Practices.
+  Shop, specialty and Stock Supply eligibility exclude them by authored ID.
+  The retained legacy supply list admits class cards without overriding their
+  Scholar/Warrior pool. Pre-Founding Stock Supply uses only Common producers;
+  class-only outputs are placed after Founding, or omitted if it is disabled.
+  See `docs/remnant-supply-cards.md`.
+- Ordinary Legacy offers two free retirement choices: add floor(highest
   effective stat / 3) to future Vassals' matching starting stat; or add floor(held
   Prestige / 10) to future starting Prestige. Both lineage bonuses accumulate
   without a cap. Legacy+ retains its separate signature choices.

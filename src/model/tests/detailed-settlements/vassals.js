@@ -131,7 +131,7 @@ assert.deepEqual(pool.candidates[0].interventions.map((entry) => entry.requiredP
 assert.ok(pool.candidates.every((candidate) => candidate.interventions.length === 3),
   "each candidate rolls three valid interventions independently");
 assert.ok(pool.candidates.flatMap((candidate) => candidate.interventions).every((entry) =>
-  ["practice", "structure", "connection", "expandSettlement", "globalStructure"]
+  ["practice", "structure", "connection", "globalStructure"]
     .includes(entry.kind)
 ), "candidate interventions use the supported coarse vocabulary");
 const sampledInterventions = [];
@@ -139,11 +139,6 @@ for (let seed = 790; seed < 830; seed += 1) {
   const sampledState = fresh(seed);
   const sampledPool = buildDetailedVassalSelectionPool(sampledState);
   for (const candidate of sampledPool.candidates) {
-    const expansionIds = candidate.interventions
-      .filter((entry) => entry.kind === "expandSettlement")
-      .map((entry) => entry.regionId);
-    assert.equal(new Set(expansionIds).size, expansionIds.length,
-      "repeated expansion agenda entries reserve distinct frontiers");
     sampledInterventions.push(...candidate.interventions.map((entry) => ({
       state: sampledState,
       targetRegionId: candidate.targetRegionId,
@@ -151,7 +146,6 @@ for (let seed = 790; seed < 830; seed += 1) {
     })));
   }
 }
-assert.ok(sampledInterventions.some(({ entry }) => entry.kind === "expandSettlement"));
 assert.ok(sampledInterventions.some(({ entry }) => entry.kind === "globalStructure"));
 for (const { state: sampledState, targetRegionId, entry } of sampledInterventions) {
   assert.notEqual(entry.kind, "removeConnection",
@@ -167,16 +161,6 @@ for (const { state: sampledState, targetRegionId, entry } of sampledIntervention
   if (entry.kind === "practice" || entry.kind === "structure") {
     assert.equal(entry.targetRegionId, targetRegionId,
       "normal Vassal local interventions remain targeted at the Vassal home");
-  }
-  if (entry.kind === "expandSettlement") {
-    assert.equal(entry.sourceRegionId, targetRegionId,
-      "normal Vassal expansion keeps the Vassal home as its source");
-    const region = getRegionState(sampledState, entry.regionId);
-    assert.equal(region.controller, "frontier");
-    assert.equal(region.detailedSettlementEnabled, false);
-    assert.ok(sampledState.world.connections.some((connection) =>
-      [connection.regionAId, connection.regionBId].includes(targetRegionId)
-      && [connection.regionAId, connection.regionBId].includes(entry.regionId)));
   }
   if (entry.kind === "globalStructure") {
     assert.ok(["granary", "mudHouses"].includes(entry.structureId));
@@ -314,40 +298,6 @@ assert.equal(
   "an applied intervention keeps its authoritative timeline second"
 );
 
-const expansionState = fresh(8892);
-const expansionPool = buildDetailedVassalSelectionPool(expansionState);
-selectDetailedVassalCandidate(expansionState, 0, expansionPool.expectedPoolHash);
-const expansionVassal = expansionState.civilization.vassalLineage.currentVassal;
-expansionVassal.targetRegionId = "west-levee";
-expansionVassal.initialAge = 50;
-expansionVassal.deathAge = 99;
-expansionVassal.interventions = [
-  { kind: "expandSettlement", sourceRegionId: "west-levee", regionId: "iron-hills", requiredPrestige: 0, status: "pending" },
-];
-expansionState.year += 1;
-stepDetailedSettlementsSecond(expansionState, 34);
-const expandedRegion = getRegionState(expansionState, "iron-hills");
-const expandedSite = getDetailedSettlement(expansionState, "iron-hills");
-assert.equal(expandedRegion.controller, "player");
-assert.equal(expandedRegion.detailedSettlementEnabled, true);
-assert.equal(expandedSite.populationByClass.villager.adults, 10);
-assert.equal(expandedSite.populationByClass.villager.faith.tier, "gold");
-assert.equal(expandedSite.looseFood, 20);
-assert.equal(expandedSite.storedFood, 0);
-assert.equal(expandedSite.currency, 0);
-assert.equal(expandedSite.populationByClass.villager.happiness.status, "neutral");
-assert.equal(expandedSite.populationByClass.stranger.adults, 0);
-assert.equal(expandedSite.practiceSlots.length, 5);
-assert.equal(expandedSite.practiceSlots[0].practiceId, "forage");
-assert.ok(expandedSite.practiceSlots.slice(1).every((slot) => slot == null));
-assert.equal(expandedSite.structureSlots[0].structureId, "mudHouses");
-assert.ok(expandedSite.structureSlots.slice(1).every((slot) => slot == null));
-assert.deepEqual(
-  expansionState.world.sites.map((site) => site.regionId),
-  ["cedar-woods", "iron-hills", "west-levee", "upper-floodplain", "river-crown", "lake-country"],
-  "expanded sites retain authored world order"
-);
-
 const globalState = fresh(8894);
 const globalPool = buildDetailedVassalSelectionPool(globalState);
 selectDetailedVassalCandidate(globalState, 0, globalPool.expectedPoolHash);
@@ -370,21 +320,5 @@ for (const regionId of globalIntervention.appliedRegionIds) {
     (slot) => slot?.structureId === "mudHouses"));
 }
 
-const failedExpansionState = fresh(8893);
-const failedExpansionPool = buildDetailedVassalSelectionPool(failedExpansionState);
-selectDetailedVassalCandidate(failedExpansionState, 0, failedExpansionPool.expectedPoolHash);
-const failedExpansionVassal = failedExpansionState.civilization.vassalLineage.currentVassal;
-failedExpansionVassal.targetRegionId = "west-levee";
-failedExpansionVassal.initialAge = 50;
-failedExpansionVassal.deathAge = 99;
-failedExpansionVassal.interventions = [
-  { kind: "expandSettlement", sourceRegionId: "west-levee", regionId: "iron-hills", requiredPrestige: 0, status: "pending" },
-];
-failedExpansionState.world.connections = failedExpansionState.world.connections.filter((entry) =>
-  !([entry.regionAId, entry.regionBId].includes("iron-hills")
-    && [entry.regionAId, entry.regionBId].includes("west-levee")));
-failedExpansionState.year += 1;
-stepDetailedSettlementsSecond(failedExpansionState, 34);
-assert.equal(failedExpansionVassal.interventions[0].status, "failed");
-assert.equal(getRegionState(failedExpansionState, "iron-hills").controller, "frontier");
+
 }

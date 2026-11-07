@@ -1,6 +1,6 @@
 // Cam's milestone layout and Rare Discovery defaults. Previous tuning remains a Lab profile.
 export const LIFEGRAPH_DEFAULT_GENERATOR = {
-  "schemaVersion": 15,
+  "schemaVersion": 16,
   "laneCount": 5,
   "normalDepthCount": 13,
   "routeCount": 6,
@@ -245,18 +245,6 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
         "milestonesOnly": false
       },
       "legacy": {
-        "enabled": true,
-        "poolId": "journey",
-        "scope": "common",
-        "occurrence": "common",
-        "timings": [
-          "early",
-          "mid",
-          "late"
-        ],
-        "milestonesOnly": false
-      },
-      "signature:settlement": {
         "enabled": true,
         "poolId": "journey",
         "scope": "common",
@@ -542,12 +530,6 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
         }
       },
       "legacy": {
-        "found-settlement": {
-          "time": "free",
-          "prestige": "free",
-          "risk": "free",
-          "monsterPressure": "free"
-        },
         "highest-stat": {
           "time": "free",
           "prestige": "free",
@@ -583,26 +565,6 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
           "monsterPressure": "free"
         },
         "humbleRemembrance": {
-          "time": "free",
-          "prestige": "free",
-          "risk": "free",
-          "monsterPressure": "free"
-        }
-      },
-      "signature:settlement": {
-        "found": {
-          "time": "free",
-          "prestige": "expensive",
-          "risk": "free",
-          "monsterPressure": "free"
-        },
-        "route": {
-          "time": "cheap",
-          "prestige": "fair",
-          "risk": "free",
-          "monsterPressure": "free"
-        },
-        "settlement-favor": {
           "time": "free",
           "prestige": "free",
           "risk": "free",
@@ -940,7 +902,7 @@ export const LIFEGRAPH_DEFAULT_GENERATOR = {
 };
 
 export const LIFEGRAPH_PREVIOUS_GENERATOR = {
-  "schemaVersion": 15,
+  "schemaVersion": 16,
   "laneCount": 6,
   "normalDepthCount": 11,
   "routeCount": 6,
@@ -1184,18 +1146,6 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
         "milestonesOnly": false
       },
       "legacy": {
-        "enabled": true,
-        "poolId": "journey",
-        "scope": "common",
-        "occurrence": "common",
-        "timings": [
-          "early",
-          "mid",
-          "late"
-        ],
-        "milestonesOnly": false
-      },
-      "signature:settlement": {
         "enabled": true,
         "poolId": "journey",
         "scope": "common",
@@ -1481,12 +1431,6 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
         }
       },
       "legacy": {
-        "found-settlement": {
-          "time": "free",
-          "prestige": "free",
-          "risk": "free",
-          "monsterPressure": "free"
-        },
         "highest-stat": {
           "time": "free",
           "prestige": "free",
@@ -1522,26 +1466,6 @@ export const LIFEGRAPH_PREVIOUS_GENERATOR = {
           "monsterPressure": "free"
         },
         "humbleRemembrance": {
-          "time": "free",
-          "prestige": "free",
-          "risk": "free",
-          "monsterPressure": "free"
-        }
-      },
-      "signature:settlement": {
-        "found": {
-          "time": "free",
-          "prestige": "expensive",
-          "risk": "free",
-          "monsterPressure": "free"
-        },
-        "route": {
-          "time": "cheap",
-          "prestige": "fair",
-          "risk": "free",
-          "monsterPressure": "free"
-        },
-        "settlement-favor": {
           "time": "free",
           "prestige": "free",
           "risk": "free",

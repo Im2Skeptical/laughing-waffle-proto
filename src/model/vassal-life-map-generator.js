@@ -8,6 +8,7 @@ import {
   getVassalLifeMapNodeType,
 } from "../defs/gamepieces/vassal-life-map-defs.js";
 import { detailedSettlementPracticeDefs } from "../defs/gamepieces/detailed-settlement-defs.js";
+import { FULL_MAP_SEED_CARD_IDS } from '../defs/gamepieces/full-map-defs.js';
 import { canonicalizeLifeMapDesign, validateLifeMapDesign, populatePooledLifeMap } from './life-map-design.js';
 import { LIFEGRAPH_DEFAULT_GENERATOR } from '../defs/lifegraph-defaults.js';
 import { applyLifeMapColumns, resolveLifeMapColumns } from './life-map-columns.js';
@@ -23,7 +24,7 @@ function isCanonicalSignatureDescriptor(descriptor) {
     && descriptor.color === variant.color && descriptor.description === variant.description
     && descriptor.removalKind === variant.removalKind && descriptor.tag === variant.tag;
 }
-export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 15;
+export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 16;
 
 export function createAuthoredVassalLifeMapGeneratorConfig() {
   return clone(LIFEGRAPH_DEFAULT_GENERATOR);
@@ -320,7 +321,8 @@ function applyLayout(config, nodes, edges) {
 
 export function generateVassalLifeMap(rawConfig, rng, {
   graphId = "generated-life-map", generationSeed = null, signatureNode = null,
-  stockOutputs = getVassalStockOutputIds(Object.values(detailedSettlementPracticeDefs).filter(def => def.pool === "common")),
+  stockOutputs = getVassalStockOutputIds(Object.values(detailedSettlementPracticeDefs).filter(def => def.pool === "common" && !FULL_MAP_SEED_CARD_IDS.includes(def.id))),
+  unclassedStockOutputs = stockOutputs,
   unmetStockOutputs = [],
   classId,
   trainingOpening = true,
@@ -393,7 +395,7 @@ export function generateVassalLifeMap(rawConfig, rng, {
   nodes=columns.nodes;edges=columns.edges;
   const bossNodeId=columns.bossNodeId;
   if(config.design.enabled){
-    const populated=populatePooledLifeMap(config,nodes,edges,rng,{classId,founderClassId,signatureNode,stockOutputs,unmetStockOutputs});
+    const populated=populatePooledLifeMap(config,nodes,edges,rng,{classId,founderClassId,signatureNode,stockOutputs,unclassedStockOutputs,unmetStockOutputs});
     if(!populated.ok)return populated;
   }
   const deduped = dedupeEquivalentChoices(
@@ -416,26 +418,32 @@ export function generateVassalLifeMap(rawConfig, rng, {
   }
   // Insert after deduplication/signatures so the promised supply choices cannot
   // disappear or overwrite the defining node. Distinct outputs stay distinct.
-  const outputPool = [...new Set(stockOutputs)].sort();
+  const founding = nodes.find(node => node.bookend === 'founding');
+  const canUseOutput = output => !founderClassId || unclassedStockOutputs.includes(output)
+    || founding && nodes.some(node => node.depth >= founding.depth && !node.bookend && !node.signatureNode && node.family !== 'legacy');
+  const outputPool = [...new Set(stockOutputs)].filter(canUseOutput).sort();
   const chosenOutputs = [];
   for (let index = 0; index < VASSAL_LIFE_TUNING.randomStockShopCount && outputPool.length; index += 1) {
     chosenOutputs.push(outputPool.splice(rng.nextInt(0, outputPool.length - 1), 1)[0]);
   }
-  const unmet = [...new Set(unmetStockOutputs)].sort();
+  const unmet = [...new Set(unmetStockOutputs)].filter(canUseOutput).sort();
   if (unmet.length && !chosenOutputs.some(output => unmet.includes(output))) {
     chosenOutputs.unshift(unmet[rng.nextInt(0, unmet.length - 1)]);
   }
-  const supplyTargets = nodes.filter(node => node.depth > 0 && !node.signatureNode
+  const supplyTargets = nodes.filter(node => node.depth > 0 && !node.bookend && !node.signatureNode
     && !["legacy", "signature", "foodShop", "housingShop"].includes(node.family));
   // Small/custom maps may consist entirely of tagged shops. They still need room
   // for the supply guarantee, while ordinary authored maps keep Food/Housing.
   if (supplyTargets.length < chosenOutputs.length) {
-    supplyTargets.push(...nodes.filter(node => node.depth > 0 && !node.signatureNode
+    supplyTargets.push(...nodes.filter(node => node.depth > 0 && !node.bookend && !node.signatureNode
       && ["foodShop", "housingShop"].includes(node.family)));
   }
   for (const stockOutput of chosenOutputs) {
     if (!supplyTargets.length) break;
-    const target = supplyTargets.splice(rng.nextInt(0, supplyTargets.length - 1), 1)[0];
+    const eligible = supplyTargets.filter(node => !founderClassId || founding && node.depth >= founding.depth || unclassedStockOutputs.includes(stockOutput));
+    if (!eligible.length) continue;
+    const target = eligible[rng.nextInt(0, eligible.length - 1)];
+    supplyTargets.splice(supplyTargets.indexOf(target), 1);
     target.family = "stockShop";
     target.stockOutput = stockOutput;
   }

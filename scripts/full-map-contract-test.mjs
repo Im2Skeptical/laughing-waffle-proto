@@ -26,9 +26,7 @@ import {planStock,stockTotal} from '../src/model/detailed-settlements/stock.js';
 import {getRegionState,getAdjacentRegionIds,addWorldConnection} from '../src/model/world-state.js';
 import {resolveControl,controlSummary,changeController} from '../src/model/detailed-settlements/territory.js';
 import {quotePrestige} from '../src/model/vassal-life-map/treasury.js';
-import {legacySettlementTargets,isEmptyFrontierDestination} from '../src/model/vassal-life-map/world-choices.js';
-import {getSettlementRequirements} from '../src/model/vassal-life-map/lifecycle.js';
-import {fullMapPractices,fullMapStructures,FULL_MAP_SUPPLY_DEPENDENCIES,FULL_MAP_MAINLINE_PRACTICES,isFullMapOfferDefinition} from '../src/defs/gamepieces/full-map-defs.js';
+import {fullMapPractices,fullMapStructures,FULL_MAP_SUPPLY_DEPENDENCIES,FULL_MAP_MAINLINE_PRACTICES,FULL_MAP_SEED_CARD_IDS,isFullMapOfferDefinition} from '../src/defs/gamepieces/full-map-defs.js';
 import {getGamepieceFace} from '../src/model/gamepiece-presentation.js';
 import {projectPracticeDraft} from '../src/model/practice-draft.js';
 import {buildCrossroadsOptions} from '../src/model/vassal-life-map/world-choices.js';
@@ -166,7 +164,7 @@ test('rite victim, reserve and base headroom are atomic before and after capture
  const snapshot=JSON.stringify(d);runPracticeActivation(s,'death');assert.equal(JSON.stringify(d),snapshot);
 });
 test('foreign travel and real inhabited monster threat',()=>{
- const s=fresh(),v={locationRegionId:s.civilization.capitalRegionId};const options=buildCrossroadsOptions(s,v);assert.equal(options.filter(o=>o.locationRegionId).length,19);
+ const s=fresh(),v={locationRegionId:s.civilization.capitalRegionId};const options=buildCrossroadsOptions(s,v);assert.deepEqual(options.filter(o=>o.locationRegionId).map(o=>o.locationRegionId).sort(),getAdjacentRegionIds(s,v.locationRegionId).filter(id=>s.world.sites.some(site=>site.regionId===id&&site.simulationMode==='detailed')).sort());
  const threat=s.world.regions.find(r=>r.monster),site=s.world.sites.find(x=>x.regionId===threat.id);const before=JSON.stringify(site.detailedState.populationByClass);addMonsterPressure(s,100);assert.equal(site.simulationMode,'ruin');assert.equal(JSON.stringify(site.detailedState.populationByClass),before);
 });
 test('exact save continuation through demographics and recipes',()=>{
@@ -235,7 +233,7 @@ test('exact authoritative rebuild, projection boundary and save continuation',()
  }
 });
 test('guaranteed real adoption offer preserves institution and people',()=>{
- const {s,v,node,ns,d}=stagedShop();const institution=d.practiceSlots[4];institution.charge=3;institution.work=7;
+ const {s,v,node,ns,d}=stagedShop();const institution=d.practiceSlots[4];institution.practiceId='fm_oathSupper';institution.charge=3;institution.work=7;
  s.civilization.prestige=10;ns.inventory=generateShopInventory(s,v,ns);const offer=ns.inventory.find(o=>o.intervention.mode==='adopt');assert(offer);
  const people=JSON.stringify(d.populationByClass),identity=institution.instanceId;
  assert(purchaseVassalShopOffer(s,node.id,offer.offerId).ok);
@@ -292,7 +290,7 @@ test('long-lived default opening stays serializable through migration and termin
 test('finite offers have executable cadence and complete Stock dependency vocabulary',()=>{
  const s=fresh(),defs=s.gameConfig.gamepieces;
  const all=[...Object.values(defs.practices),...Object.values(defs.structures)].filter(isFullMapOfferDefinition);
- assert.equal(all.length,72+FULL_MAP_SUPPLY_DEPENDENCIES.length+FULL_MAP_MAINLINE_PRACTICES.length);
+ assert.equal(all.length,55,'new map-only content leaves the ordinary acquisition pool unchanged');
  const traits=new Set(all.flatMap(d=>d.stockTraits??[]));
  for(const d of all){
    for(const cost of [...(d.consume??[]),...(d.require??[]),...(d.construction?.consume??[])])
@@ -336,10 +334,10 @@ test('two hostile replacements quote each logical installation independently',()
  assert(undoVassalShopPurchase(s,node.id,'second-install').ok);assert.equal(ns.purchasedOffers[0].prestigeCost,15);assert.equal(ns.purchasedOffers[0].monsterPressureCost,10);
 });
 test('staged adoption cannot launder a confirmed hostile replacement tax',()=>{
- const {s,v,node,ns}=stagedShop();s.civilization.prestige=25;
+ const {s,v,node,ns,d}=stagedShop();d.practiceSlots[4].practiceId='fm_publicDrills';s.civilization.prestige=25;
  const installOffer=structuredClone(ns.inventory[0]);ns.inventory=generateShopInventory(s,v,ns);
  const adoption=ns.inventory.find(o=>o.intervention.mode==='adopt');assert(adoption);assert(purchaseVassalShopOffer(s,node.id,adoption.offerId).ok);
- ns.inventory.push(installOffer);assert(purchaseVassalShopOffer(s,node.id,installOffer.offerId,null,0,'fe_rationRoll').ok);
+ ns.inventory.push(installOffer);assert(purchaseVassalShopOffer(s,node.id,installOffer.offerId,null,0,'fm_publicDrills').ok);
  const replacement=ns.purchasedOffers.find(p=>p.offerId===installOffer.offerId),adopt=ns.purchasedOffers.find(p=>p.offerId===adoption.offerId);
  assert.equal(replacement.prestigeCost,15);assert.equal(replacement.monsterPressureCost,10);assert.equal(adopt.prestigeCost,10);assert.equal(adopt.removalReceipts.length,0);
 });
@@ -382,17 +380,6 @@ test('Practice drafts classify with captured definitions rather than current sou
  const draft=projectPracticeDraft(Array(5).fill(null),purchases,id=>definitions[id]);assert(draft.ok);
  const influence=draft.slots.find(p=>p?.practiceId==='forage'),resource=draft.slots.find(p=>p?.practiceId==='fm_oathSupper');
  assert.equal(influence.allegiance,'player');assert(!('stock'in influence));assert.equal(resource.stock,0);assert(!('allegiance'in resource));assert.equal(JSON.stringify(definitions),before);
-});
-test('founding never offers an inhabited unheld region as an empty destination',()=>{
- const {s,v}=stagedShop(),id=getAdjacentRegionIds(s,v.locationRegionId).find(id=>id!==v.locationRegionId);
- addWorldConnection(s,v.locationRegionId,id);getRegionState(s,id).controller='frontier';delete getRegionState(s,id).monster;
- const before=JSON.stringify({world:s.world,prestige:s.civilization.prestige,rng:s.rng});
- assert.equal(isEmptyFrontierDestination(s,id),false);assert(!legacySettlementTargets(s,v).includes(id));
- assert(getSettlementRequirements(s,v,{settlementRegionId:id}).some(r=>!r.met));
- assert(getSettlementRequirements(s,v,{settlementRegionId:id,legacyFounding:true}).some(r=>!r.met));
- assert.equal(JSON.stringify({world:s.world,prestige:s.civilization.prestige,rng:s.rng}),before);
- s.world.sites=s.world.sites.filter(site=>site.regionId!==id);getRegionState(s,id).detailedSettlementEnabled=false;
- assert(isEmptyFrontierDestination(s,id));assert(legacySettlementTargets(s,v).includes(id));
 });
 test('recent mainline cards remain real class offers at their authored maturity',()=>{
  const {s,v,ns}=stagedShop();s.civilization.research.total=10000;

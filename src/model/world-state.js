@@ -411,40 +411,6 @@ export function removeWorldConnection(state, regionAId, regionBId) {
   return { ok: true, connectionKey: key };
 }
 
-export function establishDetailedSettlement(state, regionId, detailedState) {
-  const definition = getWorldDefinition(state);
-  const regionDef = definition?.regions?.find((entry) => entry.id === regionId);
-  const region = getRegionState(state, regionId);
-  if (!definition || !regionDef || !region) return { ok: false, reason: "invalidRegion" };
-  if (region.controller !== "frontier" || region.detailedSettlementEnabled === true) {
-    return { ok: false, reason: "regionUnavailable" };
-  }
-  if (!detailedState || typeof detailedState !== "object") {
-    return { ok: false, reason: "invalidDetailedState" };
-  }
-  const nextState = cloneSerializable(detailedState);
-  const capacity = Math.max(0, Math.floor(region.structureCapacity));
-  nextState.structureSlots = normalizeStructureLayout(nextState.structureSlots, capacity, id => settlementStructureDefs[id], regionId);
-  region.controller = "player";
-  region.detailedSettlementEnabled = true;
-  state.world.sites.push({
-    id: `${regionId}-settlement`,
-    regionId,
-    simulationMode: "detailed",
-    name: regionDef.name,
-    detailedState: nextState,
-  });
-  canonicalizeWorldState(state);
-  const validation = validateWorldState(state);
-  if (!validation.ok) {
-    state.world.sites = state.world.sites.filter((site) => site.regionId !== regionId);
-    region.controller = "frontier";
-    region.detailedSettlementEnabled = false;
-    return { ok: false, reason: "invalidDetailedState", errors: validation.errors };
-  }
-  return { ok: true, siteId: `${regionId}-settlement` };
-}
-
 export function getSiteById(state, siteId) {
   return state?.world?.sites?.find((site) => site?.id === siteId) ?? null;
 }

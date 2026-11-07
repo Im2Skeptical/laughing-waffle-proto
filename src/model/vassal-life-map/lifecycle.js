@@ -1,6 +1,6 @@
 // Compatibility barrel for the Vassal Life Map lifecycle split.
 // Import from src/model/vassal-life-map.js; presentation may import
-// getSettlementRequirements from this path.
+// lifecycle helpers from this path.
 
 export {
   initializeVassalLifeMapCivilization,
@@ -18,7 +18,6 @@ export {
   selectVassalNodeOption,
   confirmVassalLifeNode,
   chooseVassalDevelopmentStat,
-  getSettlementRequirements,
 } from "./lifecycle/node-confirm.js";
 
 export {

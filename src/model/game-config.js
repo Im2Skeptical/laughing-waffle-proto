@@ -14,7 +14,7 @@ import {
   validateVassalLifeMapGeneratorConfig,
 } from "./vassal-life-map-generator.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 29;
+export const GAME_CONFIG_SCHEMA_VERSION = 30;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 

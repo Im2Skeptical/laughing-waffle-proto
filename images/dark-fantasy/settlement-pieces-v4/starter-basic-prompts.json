@@ -1,0 +1,75 @@
+{
+  "purpose": "Two missing basic inherited roles: separate map-only counterparts for Foraging and Storehouse",
+  "date": "2026-11-07",
+  "tool": "image_gen.imagegen (built-in)",
+  "references": [
+    {
+      "path": "images/dark-fantasy/settlement-pieces-v4/observation.webp",
+      "role": "Material rendering, Common palette and depth; not a composition target"
+    },
+    {
+      "path": "ai/References/Card Art Style/l5.png",
+      "role": "Pixel surface only"
+    },
+    {
+      "path": "ai/References/Card Art Style/l6.png",
+      "role": "Pixel surface only"
+    }
+  ],
+  "images": [
+    {
+      "id": "rm_scrubForaging",
+      "name": "Scrub Foraging",
+      "kind": "Practice",
+      "framing": "Opaque 5:7 portrait, approximately 1060x1484. Entire principal action, two small figures and identifiable tools belong in the upper central 45%, with heads near y=15% and feet above y=43%. Lower half is a visible, coherent, quieter continuation of the depleted orchard terrain, suitable for overlays, never a blank dark field.",
+      "scene": "An abandoned orchard at the edge of an old hillside town has been picked almost bare. In the upper middle distance, a back-facing hooded forager leans his whole weight onto a short digging stick to prise a few pale roots from beside a broken dry-stone terrace wall; a second crouching back-facing figure holds a small nearly empty wicker basket. Their joined gestures make one tight triangular group. Their hands and the one meagre handful of roots are the focal light, not a harvest of abundant fruit. Bare grafted orchard trees, old stone drainage and a fallen enclosing wall tell of a once managed landscape in neglect. A narrow glimpse of the inhabited town and hills establishes scale behind them. The lower half continues the same sloping orchard in broad quiet grey-olive earth and connected low terrace walls; two long bramble masses lead back towards the workers, with no repeated staircase, isolated prop stage or horizontal viewpoint seam. Show hardship through the exhausted resource and bodily effort, not crushed blacks. Use expressive silhouettes, finely distinguished stone/cloth/root/earth texture, subtle depth and one continuous perspective.",
+      "prompt": "One original opaque full-bleed medieval dark-fantasy card illustration, using the narrative composition of N. C. Wyeth, Dean Cornwell and Howard Pyle: one decisive action or building, bold grouped silhouettes, useful diagonals, believable environmental scale, broad calm value masses and one focal area of strongest light/contrast. Rich sculptural material rendering with hand-placed pixel clusters, crisp selective edges and restrained dithering, not smooth airbrushing. Reference image 1 observation.webp sets material rendering, depth and restrained Common colour quality, not its scene; reference images 2 and 3 l5/l6 set pixel surface only, do not copy eyes, UI or subjects. All human faces and any depicted human faces must be completely indiscernible even at full resolution: back views, opaque hoods or closed helmets; no eyes, nose or mouth. One coherent camera perspective throughout, never a split view or floating panorama. Clear at 70x100 pixels. Illustration only: no text, pseudo-writing, emblems, symbols, interface, frame, decorative border, vignette, artificial dark fade or distracting tiny clutter. Restricted Common palette: warm stone, charcoal, umber, wheat, muted olive, cool neutral air and small subject accents. Different materials and depth planes must have distinct hue/value behaviour, not a uniform sepia wash.\nCard: Scrub Foraging, Practice.\nOpaque 5:7 portrait, approximately 1060x1484. Entire principal action, two small figures and identifiable tools belong in the upper central 45%, with heads near y=15% and feet above y=43%. Lower half is a visible, coherent, quieter continuation of the depleted orchard terrain, suitable for overlays, never a blank dark field.\nSubject: An abandoned orchard at the edge of an old hillside town has been picked almost bare. In the upper middle distance, a back-facing hooded forager leans his whole weight onto a short digging stick to prise a few pale roots from beside a broken dry-stone terrace wall; a second crouching back-facing figure holds a small nearly empty wicker basket. Their joined gestures make one tight triangular group. Their hands and the one meagre handful of roots are the focal light, not a harvest of abundant fruit. Bare grafted orchard trees, old stone drainage and a fallen enclosing wall tell of a once managed landscape in neglect. A narrow glimpse of the inhabited town and hills establishes scale behind them. The lower half continues the same sloping orchard in broad quiet grey-olive earth and connected low terrace walls; two long bramble masses lead back towards the workers, with no repeated staircase, isolated prop stage or horizontal viewpoint seam. Show hardship through the exhausted resource and bodily effort, not crushed blacks. Use expressive silhouettes, finely distinguished stone/cloth/root/earth texture, subtle depth and one continuous perspective.",
+      "referencesPassed": [
+        "images/dark-fantasy/settlement-pieces-v4/observation.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "images/dark-fantasy/settlement-pieces-v4/rm_scrubForaging.webp",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a1b4ed-bb96-7991-8e9b-154fb55f53ff\\exec-c67b114c-3431-42cb-a36d-d362777993fd.png",
+      "current": true,
+      "review": "Anonymous back-facing figures; meagre roots and nearly empty basket, depleted orchard and continuous terraced perspective; focal digging gesture leaves quiet lower terrain.",
+      "encoding": {
+        "format": "WebP",
+        "quality": 95,
+        "method": 6,
+        "target": [
+          1060,
+          1484
+        ],
+        "normalization": "Aspect-preserving fit; no repaint outside built-in ImageGen."
+      }
+    },
+    {
+      "id": "rm_saggingStorehouse",
+      "name": "Sagging Storehouse",
+      "kind": "Structure",
+      "framing": "Opaque 3:4 portrait, approximately 1080x1440, for a one-cell Structure. The named building dominates the central 75% of the image with a simple recognizable silhouette. Tiny completely anonymous people establish its scale. Keep broad quiet environmental planes and room for card controls without hiding the building.",
+      "scene": "A formerly substantial stone-and-timber construction storehouse on a damp medieval quay has lost half its usable bays. Three-quarter oblique view: the long roof visibly sags between rotten trusses, one outer bay has partially collapsed, and simple timber props now brace the eaves. In the one sound open bay, a few dry construction beams are stacked above the wet ground; the unusable neighbouring bay is rain-soaked with bowed shelves and rotting timber, clearly expressing reduced capacity. Two tiny back-facing hooded workers together lever one heavy surviving beam onto a low raised rack, providing a clear scale reference and evidence the building still functions poorly. No readable faces or writing. A coherent descending lane, drainage channel and distant working town give it a specific lived place. Broad calm slate-olive puddle reflections and worn quay stone balance the building mass in the lower foreground; a patch of wheat light on the sound bay is the only strongest contrast. Do not make a pristine new barn, a generic cathedral, an exaggerated cartoon lean, a pile of arbitrary tiny debris or a black empty foreground.",
+      "prompt": "One original opaque full-bleed medieval dark-fantasy card illustration, using the narrative composition of N. C. Wyeth, Dean Cornwell and Howard Pyle: one decisive action or building, bold grouped silhouettes, useful diagonals, believable environmental scale, broad calm value masses and one focal area of strongest light/contrast. Rich sculptural material rendering with hand-placed pixel clusters, crisp selective edges and restrained dithering, not smooth airbrushing. Reference image 1 observation.webp sets material rendering, depth and restrained Common colour quality, not its scene; reference images 2 and 3 l5/l6 set pixel surface only, do not copy eyes, UI or subjects. All human faces and any depicted human faces must be completely indiscernible even at full resolution: back views, opaque hoods or closed helmets; no eyes, nose or mouth. One coherent camera perspective throughout, never a split view or floating panorama. Clear at 70x100 pixels. Illustration only: no text, pseudo-writing, emblems, symbols, interface, frame, decorative border, vignette, artificial dark fade or distracting tiny clutter. Restricted Common palette: warm stone, charcoal, umber, wheat, muted olive, cool neutral air and small subject accents. Different materials and depth planes must have distinct hue/value behaviour, not a uniform sepia wash.\nCard: Sagging Storehouse, Structure.\nOpaque 3:4 portrait, approximately 1080x1440, for a one-cell Structure. The named building dominates the central 75% of the image with a simple recognizable silhouette. Tiny completely anonymous people establish its scale. Keep broad quiet environmental planes and room for card controls without hiding the building.\nSubject: A formerly substantial stone-and-timber construction storehouse on a damp medieval quay has lost half its usable bays. Three-quarter oblique view: the long roof visibly sags between rotten trusses, one outer bay has partially collapsed, and simple timber props now brace the eaves. In the one sound open bay, a few dry construction beams are stacked above the wet ground; the unusable neighbouring bay is rain-soaked with bowed shelves and rotting timber, clearly expressing reduced capacity. Two tiny back-facing hooded workers together lever one heavy surviving beam onto a low raised rack, providing a clear scale reference and evidence the building still functions poorly. No readable faces or writing. A coherent descending lane, drainage channel and distant working town give it a specific lived place. Broad calm slate-olive puddle reflections and worn quay stone balance the building mass in the lower foreground; a patch of wheat light on the sound bay is the only strongest contrast. Do not make a pristine new barn, a generic cathedral, an exaggerated cartoon lean, a pile of arbitrary tiny debris or a black empty foreground.",
+      "referencesPassed": [
+        "images/dark-fantasy/settlement-pieces-v4/observation.webp",
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "output": "images/dark-fantasy/settlement-pieces-v4/rm_saggingStorehouse.webp",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a1b4ed-bb96-7991-8e9b-154fb55f53ff\\exec-eca1ba97-c90a-42f3-8be5-3beec3801e69.png",
+      "current": true,
+      "review": "Recognizable sagging storehouse dominates the scene; unusable wet bay contrasts with one sound beam rack, tiny anonymous workers establish scale; one coherent quay setting.",
+      "encoding": {
+        "format": "WebP",
+        "quality": 95,
+        "method": 6,
+        "target": [
+          1080,
+          1440
+        ],
+        "normalization": "Aspect-preserving fit; no repaint outside built-in ImageGen."
+      }
+    }
+  ]
+}

@@ -72,7 +72,6 @@ export function createVassalNodeDecisionModalView({
   const worldScreen=createVassalWorldDecisionScreen({app,layer,getState,
     getVassal:()=>getPresentation?.()?.vassal,
     onSelect:id=>onSelectOption?.(openNodeId,lastDecision?.campaign?`campaign-mode:${id}`:id),
-    onSelectSettlement:id=>onSelectOption?.(openNodeId,`legacy-target:${id}`),
     onSelectCampaignTarget:id=>{
       const option=lastDecision?.campaign?.targets.find(option=>option.regionId===id);
       if(option)onSelectOption?.(openNodeId,option.id);

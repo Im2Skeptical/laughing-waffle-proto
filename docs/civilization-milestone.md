@@ -11,6 +11,13 @@ dependencies and 11 restored mainline Practices, including Field Study and class
 disciplines. The ten-tenure limit and performance PR are retained. See
 [main integration](full-map-main-integration.md). The 66 alternate-class candidates
 remain review-only.
+Eight new degraded map-only supply Practices extend inherited town recipes;
+see [their rules and supply chains](remnant-supply-cards.md). Class supply cards
+retain their authored class restrictions.
+All ordinary map installations and dormant town recipes now use the starter
+pool. Nine adopted Common roles have diminished replacements, including two
+new basic cards; see [starter economy](starter-economy.md). Initial populations
+are retained, with damaged housing using more cells.
 Legacy content remains available to authored labs, but is excluded from this
 fork's offers unless listed as a dependency. Shared Prestige, cohort allegiance,
 territorial control and local military supply supersede the fixed neutral-market
@@ -28,8 +35,8 @@ workbook tuning, with subsequent explicit design decisions recorded below.
 Integrated on main (#59), [Practice keywords](practice-keywords.md) and
 [eight new Bronze Practices](prototypes/keywords-classes/bronze-cards/README.md)
 now work in ordinary games with provisional balance. The current registry is
-166 Practices (137 Scheduled / 29 Charge) and 103 Structures: 269 pieces.
-Ordinary New Game admits 106 pieces. The original content-pass counts
+174 Practices (144 Scheduled / 30 Charge) and 103 Structures: 277 pieces.
+Full-map shops admit 55 pieces; inherited map-only cards have a separate acquisition boundary. The original content-pass counts
 below describe the earlier pool.
 
 The historical CivContent 2.6 110-Practice / 78-Structure pool (including the later Observation addition) and 24 Charge engines now supersede
@@ -106,10 +113,12 @@ first-pass system notes below retain their original tuning context.
   Insufficient Prestige substitutes 10 Creep per card
   purchase at checkout; staging and undo do not apply it.
 - Crossroads combines Move, Build route and Tour in one full-map node.
+  Movement is limited to polygon-adjacent regions. Existing roads and expedition costs still determine travel time.
+  Settlement-founding signatures, Legacy choices and legacy expansion interventions are removed; settlements come from the full map.
   Travel and Routes node types are removed from runtime definitions and tools.
   The Remove Routes signature is removed as well.
   Ordinary Relics have no direct death roll; explicitly Special searches retain danger.
-  Ordinary Legacy has free founding, highest-stat / 3, and held-Prestige / 10
+  Ordinary Legacy has highest-stat / 3 and held-Prestige / 10
   choices, with accumulating future bonuses. Custom opening pathways remain
   in progress in the standalone workshop.
 - Food Shop and Housing Shop are also ordinary Life Map nodes, with equal

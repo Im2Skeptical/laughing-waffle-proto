@@ -5,9 +5,9 @@ import { getPlayerDetailedSites } from '../src/model/vassal-life-map/selectors.j
 import { getStockShopGenerationContext } from '../src/model/vassal-life-map/stock-shops.js';
 
 // getStockShopGenerationContext does not return the installed list. It returns
-// stockOutputs (unlocked generation candidates) and unmetStockOutputs (traits
-// still missing after installed supply and in-progress construction). Those
-// two lists are what Stock Supply generation reads. Locking a card removes it
+// stockOutputs (unlocked generation candidates), unclassedStockOutputs (the
+// Common subset available before Founding) and unmetStockOutputs (traits still
+// missing after installed supply and in-progress construction). Locking a card removes it
 // from the candidate list only. An installed locked Practice still covers the
 // traits it produces, so those traits are not an unmet food gap.
 const state = createNewGameState(678);
@@ -42,6 +42,7 @@ assert.equal(loaded.gameConfig.gamepieces.practices.dryFarming.locked, undefined
 assert.equal(getPlayerDetailedSites(loaded)[0].detailedState.practiceSlots[0].practiceId, 'forage', 'save/load keeps the installed Practice');
 assert.deepEqual(getStockShopGenerationContext(loaded, candidate), {
   stockOutputs: ['Edible', 'Grain'],
+  unclassedStockOutputs: ['Edible', 'Grain'],
   unmetStockOutputs: [],
 }, 'save/load keeps the same Stock Supply context');
 

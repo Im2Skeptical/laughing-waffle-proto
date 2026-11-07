@@ -103,16 +103,17 @@ function weighted(rng, entries, weight) {
 
 // Assign content after topology. Reserved opportunities are never overwritten by
 // later class/supply passes. All random choices use the caller's topology stream.
-export function populatePooledLifeMap(config, nodes, edges, rng, {classId=null,founderClassId=null,signatureNode=null,stockOutputs=[],unmetStockOutputs=[]}={}) {
+export function populatePooledLifeMap(config, nodes, edges, rng, {classId=null,founderClassId=null,signatureNode=null,stockOutputs=[],unclassedStockOutputs=stockOutputs,unmetStockOutputs=[]}={}) {
   const design=config.design, byId=new Map(nodes.map(n=>[n.id,n]));
   const randomIds=[...VASSAL_NORMAL_NODE_FAMILY_IDS,'stockShop'];
   const founding=nodes.find(node=>node.bookend==='founding');
   const availableClass=founderClassId&&!founding?null:classId;
   const classAt=node=>founderClassId&&(!founding||node.depth<founding.depth)?null:classId;
+  const outputsAt=node=>classAt(node)?stockOutputs:unclassedStockOutputs;
   const parents=id=>edges.filter(e=>e.toNodeId===id).map(e=>byId.get(e.fromNodeId));
   const poolFor=n=>design.nodes[n.signatureNode?`signature:${n.signatureNode.variantId}`:getVassalLifeMapNodeType(n)]?.poolId;
   const eligible=(node,ids=randomIds,atMilestone=false)=>ids.filter(id=>(atMilestone||!design.nodes[id].milestonesOnly)&&lifeMapNodeEnabled(design,id,classAt(node),node.band)
-    &&!(id==='stockShop'&&!stockOutputs.length)
+    &&!(id==='stockShop'&&!outputsAt(node).length)
     &&!edges.some(e=>(e.toNodeId===node.id&&getVassalLifeMapNodeType(byId.get(e.fromNodeId))===id
       ||e.fromNodeId===node.id&&getVassalLifeMapNodeType(byId.get(e.toNodeId))===id)&&config.nonRepeatFamilyIds.includes(id)));
   const choose=(node,ids,atMilestone=false)=>{
@@ -130,7 +131,7 @@ export function populatePooledLifeMap(config, nodes, edges, rng, {classId=null,f
   };
   const assign=(node,family)=>{
     node.family=family==='specialRelic'?'relic':family;
-    if(family==='stockShop')node.stockOutput=stockOutputs[rng.nextInt(0,stockOutputs.length-1)];
+    if(family==='stockShop'){const outputs=outputsAt(node);node.stockOutput=outputs[rng.nextInt(0,outputs.length-1)];}
     if(node.family==='relic')node.specialRelic=family==='specialRelic';
   };
   const reserve=(node,family,ruleId)=>{assign(node,family);node.generationRuleId=ruleId;};
@@ -170,15 +171,16 @@ export function populatePooledLifeMap(config, nodes, edges, rng, {classId=null,f
   const supply=design.stockSupply;
   if(supply.enabled&&lifeMapNodeEnabled(design,'stockShop',classId)){
     const chosen=[...new Set(nodes.filter(n=>n.family==='stockShop'&&n.depth>=supply.minDepth-1&&n.depth<=supply.maxDepth-1).map(n=>n.stockOutput))];
-    const existing=new Set(chosen),pool=[...new Set(stockOutputs)].filter(output=>!existing.has(output)).sort();
+    const available=stockOutputs.filter(output=>nodes.some(n=>n.depth>=supply.minDepth-1&&n.depth<=supply.maxDepth-1&&outputsAt(n).includes(output)));
+    const existing=new Set(chosen),pool=[...new Set(available)].filter(output=>!existing.has(output)).sort();
     while(chosen.length<supply.randomCount&&pool.length)chosen.push(pool.splice(rng.nextInt(0,pool.length-1),1)[0]);
-    const unmet=[...new Set(unmetStockOutputs)].filter(output=>stockOutputs.includes(output)&&!chosen.includes(output)).sort();
+    const unmet=[...new Set(unmetStockOutputs)].filter(output=>available.includes(output)&&!chosen.includes(output)).sort();
     let needed=Math.max(0,supply.unmetCount-chosen.filter(output=>unmetStockOutputs.includes(output)).length);
     while(needed-->0&&unmet.length)chosen.push(unmet.splice(rng.nextInt(0,unmet.length-1),1)[0]);
     for(const output of chosen){
       if(existing.has(output))continue;
       // Prefer different depths; never silently destroy another guarantee.
-      const candidates=nodes.filter(n=>!n.family&&n.depth>=supply.minDepth-1&&n.depth<=supply.maxDepth-1&&eligible(n,['stockShop']).length);
+      const candidates=nodes.filter(n=>!n.family&&n.depth>=supply.minDepth-1&&n.depth<=supply.maxDepth-1&&outputsAt(n).includes(output)&&eligible(n,['stockShop']).length);
       const spaced=candidates.filter(n=>!nodes.some(other=>other.family==='stockShop'&&Math.abs(other.depth-n.depth)<2));
       const usable=spaced.length?spaced:candidates;
       if(!usable.length)return {ok:false,reason:'supplyImpossible',errors:['Stock Supply cannot fit its depth range without replacing a reserved opportunity.']};

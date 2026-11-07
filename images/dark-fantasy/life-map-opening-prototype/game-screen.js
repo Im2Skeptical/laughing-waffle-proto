@@ -148,7 +148,6 @@ export function createOpeningGameScreen({ host, controller, onEdit, onError }) {
   });
   const worldDecision = createOpeningWorldDecisionScreen({app,layer:layers.worldDecision,getState:state,
     getVassal:()=>openingVassal(snapshot.session),tooltipView:tooltip,onSelect:id=>invoke(()=>controller.select(id)),
-    onSelectSettlement:id=>invoke(()=>controller.selectLegacyDestination(id)),
     onSelectCampaignTarget:id=>invoke(()=>controller.selectCampaignTarget(id)),onLeaveCampaign:()=>invoke(()=>controller.leaveCampaign()),
     onConfirm:id=>{void controller.commit(id).catch(error=>{message=error.message;onError?.(message);});}});
   const level = createVassalLevelUpModalView({ app, layer: layers.level, getPresentation: presentation,

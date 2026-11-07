@@ -646,7 +646,7 @@ try {
     let inspected=0;
     for(const category of ['practice','structure']) {
       await choose('Category',category);
-      await page.getByText(`${category==='practice'?110:78} matching runtime entries`,{exact:false}).waitFor();
+      await page.getByText(`${category==='practice'?175:104} matching runtime entries`,{exact:false}).waitFor();
       do {
         const cards=page.locator('.lab-catalogue-grid>.lab-card');
         for(let index=0;index<await cards.count();index++) {
@@ -672,8 +672,8 @@ try {
         await page.waitForFunction(first=>document.querySelector('.lab-catalogue-grid .lab-card strong')?.textContent!==first,first);
       } while(true);
     }
-    assert.equal(inspected,269,'all runtime Practices and Structures are readable');
-    checks.push('all 166 Practices and 103 Structures open quick reads and full inspection');
+    assert.equal(inspected,279,'all runtime Practices and Structures are readable');
+    checks.push('all 175 Practices and 104 Structures open quick reads and full inspection');
     assert.deepEqual(errors,[]);
     writeFileSync(artifact,JSON.stringify({ok:true,checks},null,2));
     console.log('[probe:development-lab] OK: Zoo reading, quality comparison, keywords and desktop/mobile');
