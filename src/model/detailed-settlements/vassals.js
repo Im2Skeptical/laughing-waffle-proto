@@ -1,4 +1,5 @@
 // Vassal candidate generation, selection, prestige, and interventions.
+import { FULL_MAP_SEED_CARD_IDS } from '../../defs/gamepieces/full-map-defs.js';
 
 import {
   DETAILED_PRACTICE_SLOT_COUNT,
@@ -6,7 +7,6 @@ import {
   settlementStructureDefs,
 } from "../../defs/gamepieces/detailed-settlement-defs.js";
 import { MOON_PHASE_INDEX_BY_ID } from "../../defs/gamesettings/moon-phase-defs.js";
-import { createInitialDetailedSettlementData } from "../../defs/world/detailed-settlement-scenario.js";
 import { createDetailedPracticeSlot } from "../detailed-practice-tiers.js";
 import {
   getDetailedPracticeDef,
@@ -19,8 +19,6 @@ import { applyBuild, findStructurePlacement } from "../structure-layout.js";
 import { getVassalCandidatePool } from "../vassal-life-map.js";
 import {
   addWorldConnection,
-  establishDetailedSettlement,
-  getConnectedRegionIds,
   getRegionReference,
   getRegionState,
   getWorldConnectionCandidates,
@@ -63,22 +61,12 @@ const VASSAL_INTERVENTION_KINDS = Object.freeze([
   "practice",
   "structure",
   "addConnection",
-  "expandSettlement",
   "globalStructure",
 ]);
 
 function isPlayerDetailedRegion(state, regionId) {
   const region = getRegionState(state, regionId);
   return region?.controller === "player" && region.detailedSettlementEnabled === true;
-}
-
-function getExpansionCandidates(state, targetRegionId, reservedRegionIds = new Set()) {
-  return getConnectedRegionIds(state, targetRegionId).filter((regionId) => {
-    const region = getRegionState(state, regionId);
-    return region?.controller === "frontier"
-      && region.detailedSettlementEnabled !== true
-      && !reservedRegionIds.has(regionId);
-  });
 }
 
 function getCandidateConnectionEntries(state, targetRegionId, mode, connectionKeys = null) {
@@ -122,7 +110,7 @@ function buildCandidateIntervention(state, targetRegionId, kind, reserved = {}) 
     const slotIndex = slots.findIndex((entry) => entry == null);
     const replacementIndex = slotIndex >= 0 ? slotIndex : slots.length - 1;
     const replacedPracticeId = slots[replacementIndex] ?? null;
-    const practiceId = shuffleWithStateRng(state, VASSAL_INTERVENTION_PRACTICE_IDS)
+    const practiceId = shuffleWithStateRng(state, VASSAL_INTERVENTION_PRACTICE_IDS.filter(id => !FULL_MAP_SEED_CARD_IDS.includes(id)))
       .find((id) => id !== slots[replacementIndex]) ?? null;
     if (!practiceId || replacementIndex < 0) return null;
     slots[replacementIndex] = practiceId;
@@ -138,24 +126,13 @@ function buildCandidateIntervention(state, targetRegionId, kind, reserved = {}) 
   }
   if (kind === "structure") {
     const slots = reserved.structureSlots ?? settlement.structureSlots.map(slot => slot ? { ...slot } : null);
-    for (const structureId of shuffleWithStateRng(state, Object.keys(settlementStructureDefs))) {
+    for (const structureId of shuffleWithStateRng(state, Object.keys(settlementStructureDefs).filter(id => !FULL_MAP_SEED_CARD_IDS.includes(id)))) {
       const slotIndex = reserveStructureBuild(state, slots, structureId);
       if (slotIndex == null) continue;
       reserved.structureSlots = slots;
       return { kind: "structure", targetRegionId, structureId, slotIndex };
     }
     return null;
-  }
-  if (kind === "expandSettlement") {
-    const expandedRegionIds = reserved.expandedRegionIds ?? new Set();
-    const regionId = shuffleWithStateRng(
-      state,
-      getExpansionCandidates(state, targetRegionId, expandedRegionIds)
-    )[0] ?? null;
-    if (!regionId) return null;
-    expandedRegionIds.add(regionId);
-    reserved.expandedRegionIds = expandedRegionIds;
-    return { kind: "expandSettlement", sourceRegionId: targetRegionId, regionId };
   }
   if (kind === "globalStructure") {
     const globalSlots = reserved.globalStructureSlots ?? Object.fromEntries(
@@ -166,7 +143,7 @@ function buildCandidateIntervention(state, targetRegionId, kind, reserved = {}) 
     );
     const structureId = shuffleWithStateRng(
       state,
-      Object.keys(settlementStructureDefs)
+      Object.keys(settlementStructureDefs).filter(id => !FULL_MAP_SEED_CARD_IDS.includes(id))
     )[0] ?? null;
     if (!structureId) return null;
     let reservedCount = 0;
@@ -323,7 +300,6 @@ function createDebugInterventionReservation(state, targetRegionId) {
       getWorldConnectionKey(entry.regionAId, entry.regionBId)
     )),
     connectionCandidates: getWorldConnectionCandidates(getWorldDefinition(state)),
-    expandedRegionIds: new Set(),
   };
 }
 
@@ -380,22 +356,6 @@ function normalizeDebugIntervention(state, targetRegionId, raw, reservation) {
       kind: "structure", targetRegionId: interventionTargetRegionId,
       structureId: source.structureId, slotIndex,
     };
-  }
-  if (source.kind === "expandSettlement") {
-    const sourceRegionId = typeof source.sourceRegionId === "string"
-      ? source.sourceRegionId : targetRegionId;
-    if (!isPlayerDetailedRegion(state, sourceRegionId)) return null;
-    const candidates = getExpansionCandidates(
-      state,
-      sourceRegionId,
-      reservation.expandedRegionIds
-    );
-    const regionId = typeof source.regionId === "string"
-      ? candidates.find((id) => id === source.regionId)
-      : candidates[0];
-    if (!regionId) return null;
-    reservation.expandedRegionIds.add(regionId);
-    return { kind: "expandSettlement", sourceRegionId, regionId };
   }
   if (source.kind === "globalStructure") {
     if (!settlementStructureDefs[source.structureId]) return null;
@@ -606,68 +566,6 @@ export function getDetailedVassalPrestige(state, vassal = null) {
   return state.rulesetId ? state.civilization.prestige : current ? Math.max(0, Math.floor(current.prestige ?? 0)) : 0;
 }
 
-function createExpansionDetailedState(structureCapacity) {
-  const state = createInitialDetailedSettlementData();
-  state.populationByClass.villager = {
-    children: 0,
-    adults: 10,
-    eldersByAge: [],
-    faith: { tier: "gold", trend: null, streak: 0 },
-    happiness: {
-      status: "neutral",
-      fullFeedStreak: 0,
-      missedFeedStreak: 0,
-      partialFeedRatios: [],
-    },
-  };
-  state.populationByClass.stranger = {
-    children: 0,
-    adults: 0,
-    eldersByAge: [],
-    faith: { tier: "gold", trend: null, streak: 0 },
-    happiness: {
-      status: "neutral",
-      fullFeedStreak: 0,
-      missedFeedStreak: 0,
-      partialFeedRatios: [],
-    },
-  };
-  state.storedFood = 0;
-  state.looseFood = 20;
-  state.currency = 0;
-  state.practiceSlots = [
-    createDetailedPracticeSlot("forage"),
-    null,
-    null,
-    null,
-    null,
-  ];
-  state.structureSlots = Array.from(
-    { length: Math.max(0, Math.floor(structureCapacity ?? 0)) },
-    (_, index) => index === 0 ? { structureId: "mudHouses", width: 1, origin: 0, placementId: "founding:0" } : null
-  );
-  state.lastMeal = null;
-  state.lastMoonResult = null;
-  return state;
-}
-
-function applyExpansionIntervention(state, vassal, intervention) {
-  const regionId = intervention.regionId;
-  const sourceRegionId = intervention.sourceRegionId ?? vassal.targetRegionId;
-  if (!getConnectedRegionIds(state, sourceRegionId).includes(regionId)) {
-    return { ok: false, reason: "frontierNotConnected" };
-  }
-  const region = getRegionState(state, regionId);
-  if (region?.controller !== "frontier" || region.detailedSettlementEnabled === true) {
-    return { ok: false, reason: "frontierUnavailable" };
-  }
-  return establishDetailedSettlement(
-    state,
-    regionId,
-    createExpansionDetailedState(region.structureCapacity)
-  );
-}
-
 function applyGlobalStructureIntervention(state, intervention) {
   if (!settlementStructureDefs[intervention.structureId]) {
     return { ok: false, reason: "invalidStructure" };
@@ -743,8 +641,6 @@ function applyIntervention(state, vassal, intervention) {
       placementId: localTargetRegionId + ':' + state.tSec + ':' + slotIndex,
     }) : { ok: false, reason: 'invalidStructure' };
     if (result.ok) settlement.structureSlots = result.slots;
-  } else if (intervention?.kind === "expandSettlement") {
-    result = applyExpansionIntervention(state, vassal, intervention);
   } else if (intervention?.kind === "globalStructure") {
     result = applyGlobalStructureIntervention(state, intervention);
   } else if (intervention?.kind === "connection") {
@@ -785,11 +681,6 @@ export function describeDetailedVassalIntervention(state, targetRegionId, interv
     const label = settlementStructureDefs[intervention.structureId]?.label
       ?? intervention.structureId;
     return `Add ${label} — ${localTargetRef}`;
-  }
-  if (intervention.kind === "expandSettlement") {
-    const regionRef = getRegionReference(state, intervention.regionId) ?? intervention.regionId;
-    const sourceRef = getRegionReference(state, intervention.sourceRegionId) ?? targetRef;
-    return `Establish settlement ${regionRef} from ${sourceRef}`;
   }
   if (intervention.kind === "globalStructure") {
     const label = settlementStructureDefs[intervention.structureId]?.label

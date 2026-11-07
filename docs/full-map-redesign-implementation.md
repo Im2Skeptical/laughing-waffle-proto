@@ -89,7 +89,8 @@ Pressure; a 15-Prestige hostile replacement therefore costs 20 Pressure at
 balances 0/12 and 15 Prestige + 10 Pressure at balance 15. Staging and undo are
 pure with respect to confirmed boards, currencies, Pressure and RNG.
 
-Practice Reform always adds adoption offers for local hostile institutions:
+Practice Reform adds adoption offers for eligible local hostile institutions;
+neutral starting and enemy/remnant cards never appear in shops or adoption offers:
 10 Prestige, two years, same instance/private state and no instant population
 conversion. Discarding a confirmed hostile institution also pays the removal
 tax. Confirmed changes are installed before pressure consequences resolve.
@@ -99,7 +100,19 @@ tax. Confirmed changes are installed before pressure consequences resolve.
 [The 138-row manifest](full-map-content-disposition.md) records every candidate.
 There are 72 executable candidates (20 player, 30 neutral, 22 Warlord) and 66
 alternate-class candidates retained explicitly for review, without fake offers.
-23 explicit existing supply/housing dependencies remain available. The other
+The 38 neutral starting cards (including eight new degraded supply Practices)
+and 22 enemy/remnant cards remain executable on
+map boards but are excluded from all Vassal shop acquisition and Stock Supply
+reservations. Crossroads movement is limited to polygon neighbours, including
+foreign settlements; road and expedition pricing is unchanged. All settlement
+creation choices, signatures and legacy expansion interventions are removed.
+Settlements come from the full map; class Founding still establishes specialists.
+
+23 explicit existing supply/housing dependencies remain admitted with their
+authored class restrictions; none are reclassified as Common. Irrigating joins
+the ordinary Scholar/Bronze pool. The degraded equivalents populate inherited
+town recipes; see [the card brief](remnant-supply-cards.md) for exact rules,
+weaknesses and obtainable supply chains. The other
 legacy definitions are retained for authored labs, but excluded from ordinary
 fork offers. The manifest includes cadence and input coverage for the original 95 admitted
 definitions. Border Skirmishing supplies Loot through actual successful local

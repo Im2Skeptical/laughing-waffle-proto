@@ -1,7 +1,9 @@
 // Quality, staffing, and two structure capacity modifiers, plus Charge clamps.
 // Contracts already in stock.js / practices.js, charge-content.js, and
 // docs/civilization-milestone.md: tier index 0..3 adds capacity; structure
-// Capacity Multiplier starts at 1 and Structures add their quality rank; pooled Power multiplies
+// Capacity Multiplier starts at 1 and ordinary Structures add their quality rank;
+// diminished inherited stores start at 0.5, then gain the same +1 per quality.
+// Pooled Power multiplies
 // base plus tier capacity, then floors once; workers scale private Charge gain only.
 // A practice takes one Scholar socket, then ordinary tokens from
 // floor((adults - scholars) / populationPerToken). Academy gate is 3 Scholars.
@@ -128,7 +130,8 @@ for (const def of Object.values(settlementStructureDefs)) {
   const rank = TIERS.indexOf(def.minimumQuality) + 1;
   for (const mod of def.modifiers ?? []) {
     if (mod.kind !== 'capacity') continue;
-    const authored = ['fe_rationDepot','fe_imperialArmoury','cp_citadelOfStillness'].includes(def.id) ? 1 : rank;
+    const authored = ['fm_leakingGranary','rm_saggingStorehouse'].includes(def.id) ? 0.5
+      : ['fe_rationDepot','fe_imperialArmoury','cp_citadelOfStillness'].includes(def.id) ? 1 : rank;
     expect(mod.amount, authored, `${def.id}:authored-power-matches-quality`);
     for (const qualityBonus of [0,1,2,3]) expect(structureModifierAmount(def,mod,{qualityBonus}), authored+Math.min(4-rank,qualityBonus), `${def.id}:quality-power-${qualityBonus}`);
   }

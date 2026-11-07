@@ -5,7 +5,7 @@ import { createOpeningExperiment, validateOpeningExperiment } from './experiment
 import { getWorldDefinition, getWorldConnectionCandidates, getRegionState, addWorldConnection } from '../../../src/model/world-state.js';
 import { seedCampaignExample, selectCampaignTarget, resolveCampaignAttempt } from './campaign-experiment.js';
 import { createOpeningSession, createTravelRewardExampleSession, cloneOpeningSession, openingSummary, openingVassal, enterOpeningEncounter,
-  getOpeningDecision, selectOpeningOption, selectOpeningLegacyDestination, stageOpeningOffer, commitOpeningEncounter, finishOpeningEncounter, chooseOpeningDevelopment, finishOpeningNote, finishOpeningLegacyMock, resolveOpeningOptionOutcome } from './model.js';
+  getOpeningDecision, selectOpeningOption, stageOpeningOffer, commitOpeningEncounter, finishOpeningEncounter, chooseOpeningDevelopment, finishOpeningNote, finishOpeningLegacyMock, resolveOpeningOptionOutcome } from './model.js';
 
 function createFoundedPreview(document) {
   const next=createOpeningSession(document);next.availableIds=['founding'];enterOpeningEncounter(next,'founding');
@@ -105,7 +105,6 @@ export function createOpeningController(storage = null) {
     rewind() { idle(); if (!checkpoints.length) return;
       session = cloneOpeningSession(checkpoints.pop()); message = 'Returned to the previous decision, including its RNG state.'; notify(); },
     select(id) { transact(next => selectOpeningOption(next, id)); },
-    selectLegacyDestination(regionId) { transact(next=>selectOpeningLegacyDestination(next,regionId)); },
     selectCampaignTarget(regionId) { transact(next=>selectCampaignTarget(next,regionId)); },
     leaveCampaign() {
       idle();if(!session.campaign||!session.activeId)throw new Error('Enter Campaign first.');

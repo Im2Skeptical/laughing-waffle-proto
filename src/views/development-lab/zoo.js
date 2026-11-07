@@ -10,6 +10,7 @@ import { el, select, field, input, section, details, button, table, disclosure, 
 
 const CATEGORIES = [['practice','Practices'],['structure','Structures'],['candidate','Candidates'],['life-map','Life Map'],['neutral','Neutrals'],['monster','Monsters'],['','All']];
 const POOLS = ['common','scholar','warrior'];
+const CARD_POOLS = [['','All'],['starter','Starter'],['non-starter','Non-starter']];
 const title = value => value ? value[0].toUpperCase() + value.slice(1) : value;
 const VERSION_LABELS = {edited:'With edits','edited-only':'Edited only'};
 const HIDE_AFTER = 160;
@@ -101,10 +102,10 @@ export function createZooView({controller,cards,run,review}) {
     const inCategory = catalogue.filter(e => !filters.category || e.category === filters.category);
     const values = property => [...new Set(inCategory.flatMap(e => e[property] ?? []))].filter(v => v !== '' && v != null).map(String).sort();
     const options = {
-      pool:POOLS.filter(v=>values('pool').includes(v)), maturity:values('maturity').length ? [...DETAILED_QUALITY_IDS] : [],
+      pool:[...new Set([...POOLS,...values('pool')])].filter(v=>values('pool').includes(v)), cardPool:values('cardPool'), maturity:values('maturity').length ? [...DETAILED_QUALITY_IDS] : [],
       mode:values('mode'), produces:values('produces'), consumes:values('consumes'), requires:values('requires'), tag:values('tags'), trait:values('traits'), size:values('size').length > 1 ? values('size') : [],
     };
-    const labels = {pool:'Class',maturity:'Maturity',mode:'Practice mode',produces:'Produces',consumes:'Consumes',requires:'Requires',tag:'Card Tag',trait:'Stock Trait',size:'Slot size'};
+    const labels = {pool:'Class',cardPool:'Card pool',maturity:'Maturity',mode:'Practice mode',produces:'Produces',consumes:'Consumes',requires:'Requires',tag:'Card Tag',trait:'Stock Trait',size:'Slot size'};
     for (const key of Object.keys(options)) {
       if (key === 'pool') filters.pool = (filters.pool ?? []).filter(value=>options.pool.includes(value));
       else if (filters[key] && !options[key].includes(filters[key])) filters[key] = '';
@@ -140,7 +141,12 @@ export function createZooView({controller,cards,run,review}) {
     viewGroup.push(field('Hide locked',hide));
     if (review) viewGroup.push(info('zoo-versions','Live shows this build. With edits swaps in reviewer drafts where they exist; Edited only lists just the drafted cards. Locked cards are excluded from shop offers once reviewed cards are applied.',{label:'About card versions'}));
     const cardGroup = [];
+    if (options.cardPool.length) cardGroup.push(
+      el('span','Card pool','lab-group-title'),
+      segmented('Card pool',CARD_POOLS.filter(([value])=>!value||options.cardPool.includes(value)),filters.cardPool??'',value=>{filters.cardPool=value;changed();},{testid:'zoo-card-pool'}),
+      el('p','Starter cards seed the map and never appear in Vassal shops.','lab-note'));
     if (options.pool.length) cardGroup.push(
+      el('span','Class','lab-group-title'),
       segmented('Class',[['','All'],...options.pool.map(pool=>[pool,title(pool)])],filters.pool,value=>{filters.pool=value;changed();},{multiple:true,testid:'zoo-pools'}),
       el('p','Choose one or more classes. All clears the class selection.','lab-note'));
     const selects = el('div','','lab-filter-selects');
@@ -170,7 +176,7 @@ export function createZooView({controller,cards,run,review}) {
     let matches = filterLabCatalogue(catalogue,{...filters,hideLocked}).filter(entry=>versionsMode!=='edited-only'||edited.has(`${entry.category}:${entry.id}`));
     // Cards are grouped by class; sorting keeps each group contiguous across pages.
     const grouped = ['practice','structure'].includes(filters.category) && filters.pool.length !== 1;
-    if (grouped) matches = POOLS.flatMap(pool=>matches.filter(e=>e.pool===pool)).concat(matches.filter(e=>!POOLS.includes(e.pool)));
+    if (grouped) matches = options.pool.flatMap(pool=>matches.filter(e=>e.pool===pool)).concat(matches.filter(e=>!options.pool.includes(e.pool)));
 
     const coverage = [], missing = [];
     for (const [pool,expectedPractices,expectedStructures] of [['common',14,14],['scholar',48,32],['warrior',48,32]]) {

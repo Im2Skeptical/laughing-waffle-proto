@@ -9,7 +9,6 @@ import { createTimelineFromInitialState, appendActionAtCursor, rebuildStateAtSec
 import { nodeIdForFamily } from '../src/model/tests/vassal-life-map/helpers.js';
 import { buildCampaignOptions, campaignForces } from '../src/model/vassal-life-map/campaign.js';
 import { runLifeDecisionJob } from '../src/model/vassal-life-map/decision-preparation.js';
-import { legacySettlementTargets } from '../src/model/vassal-life-map/world-choices.js';
 import { getDetailedPracticeDef, getDetailedStructureDef } from '../src/model/game-config.js';
 import { addWorldConnection, getWorldConnectionCandidates, getWorldDefinition } from '../src/model/world-state.js';
 import { VASSAL_INTERVENTION_PRACTICE_IDS } from '../src/defs/gamepieces/detailed-settlement-defs.js';
@@ -181,31 +180,15 @@ for(const wantRelic of [false,true]) {
   assert.deepEqual(serializeGameState(rebuilt.state),serializeGameState(state));
 }
 
-// All Legacy choices are free and affect real successors or a real settlement.
-for(const choice of ['highest-stat','accumulated-prestige','found-settlement']) {
+// Both Legacy choices are free and affect real successors.
+for(const choice of ['highest-stat','accumulated-prestige']) {
   const state=selected(),v=getCurrentLifeMapVassal(state);
   v.stats.wisdom=8;v.prestige=67;
-  if(choice==='found-settlement'&&!legacySettlementTargets(state,v).length) {
-    const edge=getWorldConnectionCandidates(getWorldDefinition(state)).find(edge=>
-      [edge.regionAId,edge.regionBId].includes(v.locationRegionId)&&state.world.regions.some(r=>r.id===(edge.regionAId===v.locationRegionId?edge.regionBId:edge.regionAId)&&r.controller==='frontier'&&!r.monster));
-    assert.ok(edge);assert.equal(addWorldConnection(state,edge.regionAId,edge.regionBId).ok,true);
-  }
   const node=enter(state,'legacy');
-  if(choice==='found-settlement') {
-    v.prestige=0;
-    const source=state.world.sites.find(s=>s.regionId===v.locationRegionId).detailedState;
-    source.populationByClass.villager.adults=0;
-    const id=legacySettlementTargets(state,v)[0];
-    act(state,A.VASSAL_SELECT_LIFE_OPTION,{nodeId:node.nodeId,optionId:`legacy-target:${id}`});
-    act(state,A.VASSAL_CONFIRM_LIFE_NODE,{nodeId:node.nodeId});
-    assert.equal(state.world.regions.find(r=>r.id===id).controller,'player');
-    assert.equal(source.populationByClass.villager.adults,0);
-  } else {
     act(state,A.VASSAL_SELECT_LIFE_OPTION,{nodeId:node.nodeId,optionId:choice});
     act(state,A.VASSAL_CONFIRM_LIFE_NODE,{nodeId:node.nodeId});
     if(choice==='highest-stat')assert.equal(state.civilization.vassalLegacy.futureStartingStatBonuses.wisdom,2);
     else assert.equal(state.civilization.vassalLegacy.futureStartingPrestigeBonus,6);
-  }
   assert.equal(getCurrentLifeMapVassal(state),null);
   deserializeGameState(serializeGameState(state));
 }

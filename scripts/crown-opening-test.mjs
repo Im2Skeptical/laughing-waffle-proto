@@ -6,6 +6,8 @@ import {allegianceSummary} from '../src/model/detailed-settlements/population-le
 import {resolveControl,changeController} from '../src/model/detailed-settlements/territory.js';
 import {initializeReplayClock,advanceReplayStateToSecond} from '../src/model/replay-second-runner.js';
 import {createTimelineFromInitialState,rebuildStateAtSecond} from '../src/model/timeline/index.js';
+import {FULL_MAP_SEED_CARD_IDS} from '../src/defs/gamepieces/full-map-defs.js';
+import {getHousingCapacity} from '../src/model/detailed-settlements/queries.js';
 const seeds=[42,424242,...Array.from({length:128},(_,i)=>i*7919+1)];
 for(const seed of seeds){
  const state=createNewGameState(seed),regions=state.world.regions;
@@ -28,6 +30,15 @@ for(const seed of seeds){
  const monsterSite=state.world.sites.find(s=>s.regionId===monsters[0].id);assert.equal(monsters[0].controller,'frontier');assert(!monsterSite.neutral);assert.equal(monsterSite.simulationMode,'ruin');
  resolveControl(state);resolveControl(state);assert.equal(regions.filter(r=>r.controller==='external-a').length,14);
  const active=state.world.sites.filter(s=>s.simulationMode==='detailed'&&!s.neutral);
+ for(const site of state.world.sites){
+  for(const slot of site.detailedState.practiceSlots.filter(Boolean))assert(FULL_MAP_SEED_CARD_IDS.includes(slot.practiceId),`ordinary Practice seeded: ${slot.practiceId}`);
+  for(const slot of site.detailedState.structureSlots.filter(Boolean)){
+   assert(FULL_MAP_SEED_CARD_IDS.includes(slot.structureId),`ordinary Structure seeded: ${slot.structureId}`);
+   assert(slot.origin+slot.width<=site.detailedState.structureSlots.length,'inherited housing and supports fit the region');
+  }
+  for(const id of (site.neutral??site.town?.market)?.practices??[])assert(FULL_MAP_SEED_CARD_IDS.includes(id),`ordinary first-control Practice: ${id}`);
+ }
+ for(const site of active)assert(getHousingCapacity(state,site.regionId)>=Object.values(allegianceSummary(site.detailedState)).reduce((a,b)=>a+b,0),'damaged housing still accommodates the initial population');
  const supports=active.map(s=>s.detailedState.structureSlots.filter(Boolean).find(slot=>slot.placementId.endsWith(':support'))?.structureId);
  assert(supports.every(Boolean),'every active settlement has a support building');
  assert(supports.some(id=>id!=='granary'),'granaries are not universal');

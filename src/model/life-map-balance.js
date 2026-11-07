@@ -12,24 +12,22 @@ export const LIFEGRAPH_SHOP_SERVICE_SPECS=Object.freeze([
   {...spec('delve','Scholar Delve',10),costKinds:['time'],description:'Scholar only. Spend time, then reopen the shop with improved quality and a new Commission.'},
   {...spec('emptyConfirm','Leave without a purchase',5),costKinds:['time'],description:'Time spent when confirming an empty purchase list.'},
 ]);
-const settlement=[spec('found','Found a settlement','free','expensive'),spec('route','Open a settlement route','cheap','fair'),spec('settlement-favor','Seek Settlement Favor')];
 
 // Stable gameplay action IDs, independent of rolled stats, target regions and
 // card definitions. The same data drives validation, review rows and resolution.
 export const LIFEGRAPH_OPTION_SPECS = Object.freeze({
   patronage:VASSAL_PATRONAGE_OPTIONS.map((o,i)=>spec(o.id,o.label,['cheap','expensive','fair'][i])),
   development:VASSAL_DEVELOPMENT_OPTIONS.map((o,i)=>spec(o.id,o.label,['expensive','fair','cheap'][i],'free','free',o.id==='deepStudy'?'calculated':'free')),
-  crossroads:[spec('travel','Move to another settlement','cheap'),spec('route','Build a route','fair','fair'),spec('tour','Tour this region','cheap')],
+  crossroads:[spec('travel','Move to an adjacent settlement','cheap'),spec('route','Build a route','fair','fair'),spec('tour','Tour this region','cheap')],
   training:[spec('train-estate','Train specialists','cheap')],
   discovery:[spec('discovery-research','Develop technique','fair'),spec('discovery-frontier','Forbidden observation','expensive','free','cheap','expensive')],
   challenge:[spec('challenge-3','Challenge 3','cheap','free','cheap'),spec('challenge-6','Challenge 6','fair','free','fair'),spec('challenge-9','Challenge 9','expensive','free','expensive')],
   campaign,
   crisis:[spec('relief','Relief expedition','cheap','free','fair'),spec('buy-relief','Procure relief','cheap'),spec('delay','Divert a Monster','cheap','free','fair'),spec('rescue','Rescue population','cheap'),spec('observe-crisis','Leave the response to the civilization')],
-  legacy:[spec('found-settlement','Found a settlement'),spec('highest-stat','Teach the highest stat'),spec('accumulated-prestige','Leave renown')],
+  legacy:[spec('highest-stat','Teach the highest stat'),spec('accumulated-prestige','Leave renown')],
   relic:[spec('search','Search for an ordinary Relic','fair','free','free','calculated')],
   specialRelic:[spec('search','Search for a Special Relic','fair','free','expensive','calculated')],
   'signature:legacyPlus':[spec('foundDynasty','Found a Dynasty','fair','expensive'),spec('enduringOffice','Enduring Office','fair','fair'),spec('humbleRemembrance','Humble Remembrance')],
-  'signature:settlement':settlement,
   'signature:monsterHunt':campaign,
   ...Object.fromEntries(LIFEGRAPH_SHOP_NODE_IDS.map(id=>[id,[]])),
   'signature:removePractice':[{...spec('remove','Remove an installed Practice','cheap','fair'),costKinds:['time','prestige']},spec('removalFallback','Reorganize Local Affairs')],
@@ -44,7 +42,6 @@ export function lifeMapOptionKey(node,option){
   const family=lifeMapDesignNodeId(node),id=option.id??'';
   if(family==='campaign'||family==='signature:monsterHunt')return option.mode??(id==='campaign-leave'?'leave':id);
   if(family==='crossroads')return id.startsWith('travel-')?'travel':id.startsWith('crossroads-route:')?'route':id;
-  if(family==='signature:settlement')return id.startsWith('small-settlement:')||id==='settlement-unavailable'?'found':id.startsWith('settlement-edge:')?'route':id;
   if(family==='crisis')return ['buy-relief','relief','delay','rescue'].find(prefix=>id.startsWith(`${prefix}-`))??id;
   if(family==='relic'||family==='specialRelic')return 'search';
   return id;

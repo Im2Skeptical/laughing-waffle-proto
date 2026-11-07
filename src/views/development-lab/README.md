@@ -84,7 +84,12 @@ JSON draft/path operations live in
 filters, shared readings and quality comparisons. Live/edited/edited-only modes
 leave the controller fixture unchanged; notes-only reviews remain live cards.
 Zoo Class buttons allow multiple pools at once; All clears that selection and
-each pool has its own removable chip. `catalogue-summary.js` renders a Stock
+each pool has its own removable chip. Card pool independently selects All,
+Starter or Non-starter. Starter membership follows the shared map-seed IDs,
+including neutral starting and enemy/remnant cards, even in edited versions;
+it intersects with class, maturity and other filters without changing definitions.
+Class choices include every class present in the runtime catalogue.
+`catalogue-summary.js` renders a Stock
 summary from every filtered definition across all pages, through the pure
 `model/dev-lab/catalogue-summary.js` adapter. Stock flow compares Produced and
 Consumed amounts in one row per trait; Required and Build costs switch the table.

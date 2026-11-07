@@ -1,6 +1,6 @@
 import { createInitialDetailedSettlementData } from '../defs/world/detailed-settlement-scenario.js';
 import { getAdjacentRegionIds, canonicalizeWorldState, getRegionDefinition, addWorldConnection } from './world-state.js';
-import { getDetailedPracticeDef } from './game-config.js';
+import { getDetailedPracticeDef, getDetailedStructureDef } from './game-config.js';
 import { createTownMarket } from './detailed-settlements/neutral-market.js';
 import { stockCapacity } from './detailed-settlements/stock.js';
 import { writePopulationBins } from './detailed-settlements/population-ledger.js';
@@ -60,9 +60,9 @@ export function seedFullMapWorld(state) {
       {classId:'villager',allegiance:faction,specialty:'ordinary',kind:'adults',age:null,count:loyal-loyalChildren-warriors},
       {classId:'villager',allegiance:'neutral',specialty:'ordinary',kind:'adults',age:null,count:population-loyal-children+loyalChildren},
     ]);
-    const ids=player?(region.id===players[0]?['dryFarming','fm_handQuern','barter']:[getRegionDefinition(state,region.id)?.biome==='mountains'?'fm_rubblePicking':'logging','barter']):
-      enemyCapital?['dryFarming','cp_ironCommunion','fe_salvageDetail','fe_capitalDole','fm_handQuern']:
-      province?['forage','fe_roadRequisition','fe_barrackLevy']:
+    const ids=player?(region.id===players[0]?['fm_fallowFields','fm_handQuern','rm_scrubForaging','fm_hearthBarter']:[getRegionDefinition(state,region.id)?.biome==='mountains'?'fm_rubblePicking':'fm_woodlotRights','rm_scrubForaging','fm_hearthBarter']):
+      enemyCapital?['fm_fallowFields','cp_ironCommunion','fe_salvageDetail','fe_capitalDole','fm_handQuern']:
+      province?['rm_scrubForaging','fe_roadRequisition','fe_barrackLevy']:
       neutral||monster?[]:site.town.market.practices;
     settlement.practiceSlots=ids.map(practiceId=>{
       const def=getDetailedPracticeDef(state,practiceId);
@@ -71,14 +71,22 @@ export function seedFullMapWorld(state) {
     });
     while(settlement.practiceSlots.length<5)settlement.practiceSlots.push(null);
     settlement.structureSlots=Array(region.structureCapacity).fill(null);
-    settlement.structureSlots[0]={structureId:enemyCapital?'longhouse':province||!player?'timberHouse':'mudHouses',placementId:`${region.id}:housing`,origin:0,width:enemyCapital?2:1};
+    let nextStructureCell=0;
+    const place=(structureId,role)=>{
+      const width=getDetailedStructureDef(state,structureId).footprint;
+      if(nextStructureCell+width>region.structureCapacity)return false;
+      const origin=nextStructureCell;nextStructureCell+=width;
+      settlement.structureSlots[origin]={structureId,placementId:`${region.id}:${role}`,origin,width};return true;
+    };
+    const housingId=player?'fm_crumblingCottages':'fm_crowdedTenement';
+    place(housingId,'housing');
+    if(player||enemyCapital)place(housingId,'housing:2');
     // Match the local economic role, as with the authored starting Practices.
     const hasConstruction=ids.some(id=>getDetailedPracticeDef(state,id).stockTraits?.includes('Construction'));
     if(!neutral&&!monster){
-      const support=province?'fm_villagePalisade':hasConstruction?'storehouse':ids.some(id=>getDetailedPracticeDef(state,id).stockTraits?.includes('Edible'))?'granary':'fm_villagePalisade';
-      const origin=enemyCapital?2:1;
-      settlement.structureSlots[origin]={structureId:support,placementId:`${region.id}:support`,origin,width:1};
-      if(enemyCapital&&region.structureCapacity>=6)settlement.structureSlots[3]={structureId:'cp_citadelOfStillness',placementId:`${region.id}:citadel`,origin:3,width:3};
+      const support=province?'fm_villagePalisade':hasConstruction?'rm_saggingStorehouse':ids.some(id=>getDetailedPracticeDef(state,id).stockTraits?.includes('Edible'))?'fm_leakingGranary':'fm_villagePalisade';
+      place(support,'support');
+      if(enemyCapital)place('cp_citadelOfStillness','citadel');
     }
     for(const slot of settlement.practiceSlots)if(slot&&'stock'in slot)slot.stock=slot.practiceId==='cp_ironCommunion'?2:stockCapacity(state,settlement,slot);
     if(site.neutral||monster){settlement.practiceSlots=Array(5).fill(null);settlement.structureSlots=Array(region.structureCapacity).fill(null);}

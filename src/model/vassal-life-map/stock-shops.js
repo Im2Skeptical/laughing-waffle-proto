@@ -1,4 +1,5 @@
 import { VASSAL_INTERVENTION_PRACTICE_IDS } from "../../defs/gamepieces/detailed-settlement-defs.js";
+import { isFullMapOfferDefinition, FULL_MAP_SEED_CARD_IDS } from '../../defs/gamepieces/full-map-defs.js';
 import { getVassalStockOutputIds, isVassalStockOutputPractice } from "../../defs/gamepieces/vassal-life-map-defs.js";
 import { getDetailedPracticeDef, getDetailedStructureDef } from "../game-config.js";
 import { getDetailedPracticeTierIndex } from "../detailed-practice-tiers.js";
@@ -11,10 +12,14 @@ import { getPlayerDetailedSites } from "./selectors.js";
 export function getStockShopGenerationContext(state, candidate) {
   const classId = candidate.founderClassId ?? candidate.classId;
   const practices = VASSAL_INTERVENTION_PRACTICE_IDS.map(id => getDetailedPracticeDef(state, id));
-  const eligible = practices.filter(def => def && def.locked!==true && ["common", classId].includes(def.pool));
+  const eligible = practices.filter(def => def && def.locked!==true && !FULL_MAP_SEED_CARD_IDS.includes(def.id)
+    && (!state.rulesetId || isFullMapOfferDefinition(def))
+    && ["common", classId].includes(def.pool));
   const availableOutputs = getVassalStockOutputIds(eligible);
-  const stockOutputs = getVassalStockOutputIds(eligible.filter(def =>
-    getDetailedPracticeTierIndex(def.minimumQuality ?? "bronze") <= getResearchUnlockIndex(state)));
+  const unlocked = eligible.filter(def =>
+    getDetailedPracticeTierIndex(def.minimumQuality ?? "bronze") <= getResearchUnlockIndex(state));
+  const stockOutputs = getVassalStockOutputIds(unlocked);
+  const unclassedStockOutputs = getVassalStockOutputIds(unlocked.filter(def => def.pool === 'common'));
   const sites = getPlayerDetailedSites(state);
   const installed = sites.flatMap(site =>
     (site.detailedState.practiceSlots ?? []).map(slot => getDetailedPracticeDef(state, slot?.practiceId)).filter(Boolean));
@@ -34,5 +39,5 @@ export function getStockShopGenerationContext(state, candidate) {
     Object.values(site.detailedState.populationByClass ?? {}).some(cohort => ageCohortTotal(cohort) > 0))) {
     if (eligible.some(def => isVassalStockOutputPractice(def, "Edible"))) missing.add("Edible");
   }
-  return { stockOutputs, unmetStockOutputs: [...missing].sort() };
+  return { stockOutputs, unclassedStockOutputs, unmetStockOutputs: [...missing].sort() };
 }

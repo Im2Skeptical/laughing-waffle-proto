@@ -1,3 +1,4 @@
+import { FULL_MAP_SEED_CARD_IDS } from '../../../defs/gamepieces/full-map-defs.js';
 import assert from "node:assert/strict";
 import { ActionKinds, applyAction } from "../../actions.js";
 import { deserializeGameState, serializeGameState } from "../../state.js";
@@ -51,7 +52,7 @@ for (const classId of [null, "scholar", "warrior"]) {
         assert.equal(shop.contentMode, "shop");
         assert.equal(shop.signatureNode, null, "ordinary supply shops do not require signatures");
         const eligibleCount=[...Object.values(detailedSettlementPracticeDefs),...Object.values(settlementStructureDefs)]
-          .filter(def=>!def.locked&&def.tags.includes(tag)&&['common',classId].includes(def.pool)
+          .filter(def=>!FULL_MAP_SEED_CARD_IDS.includes(def.id)&&!def.locked&&def.tags.includes(tag)&&['common',classId].includes(def.pool)
             &&(research>0||def.minimumQuality==='bronze')).length;
         const expectedCount=Math.min(3,eligibleCount);
         assert.equal(shop.inventory.length, expectedCount, `${classId}/${family}: thin tagged pools offer only eligible cards`);
@@ -64,7 +65,7 @@ for (const classId of [null, "scholar", "warrior"]) {
         assert.equal(getVassalNodeDecisionPresentation(state, nodeId).contextKind, "settlement");
         if (research === 100000 && classId) {
           const eligibleClassCount = [...Object.values(detailedSettlementPracticeDefs), ...Object.values(settlementStructureDefs)]
-            .filter(def => def.pool === classId && def.tags.includes(tag)).length;
+            .filter(def => !FULL_MAP_SEED_CARD_IDS.includes(def.id) && def.pool === classId && def.tags.includes(tag)).length;
           assert.equal(shop.inventory.filter(offer => offerDefinition(state, offer).pool === classId).length,
             Math.min(2, eligibleClassCount), "tagged shops retain the available class/Common mix");
         }
@@ -190,7 +191,7 @@ for (const classId of ["scholar", "warrior"]) {
     const shop = forceEnter(state, node.id);
     assert.equal(shop.inventory.length, 3);
     const eligibleClassCount = [...Object.values(detailedSettlementPracticeDefs), ...Object.values(settlementStructureDefs)]
-      .filter(def => def.pool === classId && def.tags.includes(node.signatureNode.tag)).length;
+      .filter(def => !FULL_MAP_SEED_CARD_IDS.includes(def.id) && def.pool === classId && def.tags.includes(node.signatureNode.tag)).length;
     const classCount = Math.min(2, eligibleClassCount);
     assert.equal(shop.inventory.filter(offer => offerDefinition(state, offer).pool === classId).length, classCount,
       `${classId}/${variantId}: class quota uses the available tagged pool`);

@@ -4,7 +4,7 @@ import { VASSAL_STAT_IDS } from '../../defs/gamepieces/vassal-life-map-defs.js';
 import { VASSAL_HEIRLOOM_DEFS } from '../../defs/gamepieces/vassal-heirloom-defs.js';
 import { MOON_PHASE_COUNT } from '../../defs/gamesettings/moon-phase-defs.js';
 import { getGameSetting } from '../game-config.js';
-import { getWorldConnectionCandidates, getWorldConnectionKey, getWorldDefinition, getRegionReference, getRegionState } from '../world-state.js';
+import { getWorldConnectionCandidates, getWorldConnectionKey, getWorldDefinition, getRegionReference, getAdjacentRegionIds } from '../world-state.js';
 import { getPlayerDetailedSites, getVassalEffectiveStats, getVassalStatPresentation } from './selectors.js';
 import { getOwnedHeirloomDefinitionIds } from './heirlooms.js';
 
@@ -29,8 +29,9 @@ export function connectedDistance(state, origin, destination, potential = false)
 
 export function buildCrossroadsOptions(state, vassal) {
   const definition = getWorldDefinition(state), current = vassal.locationRegionId;
-  const moves = (state.rulesetId?state.world.sites.filter(s=>s.simulationMode==='detailed'):getPlayerDetailedSites(state)).filter(site => site.regionId !== current
-    && (state.rulesetId || connectedDistance(state, current, site.regionId) != null)).map(site => ({
+  const adjacent = getAdjacentRegionIds(state, current);
+  const moves = (state.rulesetId?state.world.sites.filter(s=>s.simulationMode==='detailed'):getPlayerDetailedSites(state)).filter(site => adjacent.includes(site.regionId)
+    && (state.rulesetId || connectedDistance(state, current, site.regionId) === 1)).map(site => ({
     id: `travel-${site.regionId}`, label: `Move to ${getRegionReference(state, site.regionId)}`,
     graphDistance:connectedDistance(state,current,site.regionId),
     expedition:!!state.rulesetId&&connectedDistance(state,current,site.regionId)==null,
@@ -66,24 +67,9 @@ export function buildLegacyOptions(state, vassal) {
   const highest = VASSAL_STAT_IDS.reduce((best, id) => stats[id] > stats[best] ? id : best, VASSAL_STAT_IDS[0]);
   const label = getVassalStatPresentation(vassal, highest).label;
   return [
-    {id:'found-settlement',label:'Found a settlement',description:'Establish a frontier settlement with 10 adult Villagers.',prestigeCost:0,phaseCost:0},
     {id:'highest-stat',label:`Teach ${label}`,description:`Future Vassals start with +${Math.floor(stats[highest]/RULES.legacyStatDivisor)} ${label}.`,
       prestigeCost:0,phaseCost:0,legacyReward:{kind:'stat',statId:highest,amount:Math.floor(stats[highest]/RULES.legacyStatDivisor)}},
     {id:'accumulated-prestige',label:'Leave renown',description:state.rulesetId?`Endow the civilization with ${Math.floor(state.civilization.prestige/RULES.legacyPrestigeDivisor)} Prestige.`:`Future Vassals start with +${Math.floor(vassal.prestige/RULES.legacyPrestigeDivisor)} Prestige.`,
       prestigeCost:0,phaseCost:0,legacyReward:{kind:'prestige',amount:Math.floor(prestigeAccount(state,vassal).prestige/RULES.legacyPrestigeDivisor)}},
   ];
-}
-
-export function isEmptyFrontierDestination(state, regionId) {
-  const region = getRegionState(state, regionId);
-  return region?.controller === 'frontier' && !region.monster && region.structureCapacity >= 1
-    && region.detailedSettlementEnabled !== true
-    && !state.world.sites.some(site => site.regionId === regionId);
-}
-
-export function legacySettlementTargets(state, vassal) {
-  return state.world.connections.flatMap(edge => {
-    const id = edge.regionAId === vassal.locationRegionId ? edge.regionBId : edge.regionBId === vassal.locationRegionId ? edge.regionAId : null;
-    return id && isEmptyFrontierDestination(state,id) ? [id] : [];
-  });
 }

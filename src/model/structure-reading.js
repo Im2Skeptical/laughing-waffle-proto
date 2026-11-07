@@ -98,5 +98,5 @@ export function getStructureReading(def, { slot = null, settlement = null } = {}
   const active = slot?.construction || slot?.upkeepActive===false ? false : !def.specialistGate ? true : settlement ? specialistCount(settlement, def.pool) >= def.specialistGate : null;
   return { type:'Structure', classLabel:def.pool === 'common' ? 'Neutral' : title(def.pool), passive:true,
     effects, bonuses, requirements, trigger:null, active,
-    flavour:FLAVOUR[def.id] ?? 'Stone and timber hold what a settlement hopes to keep.' };
+    flavour:def.flavour ?? def.flavor ?? FLAVOUR[def.id] ?? 'Stone and timber hold what a settlement hopes to keep.' };
 }

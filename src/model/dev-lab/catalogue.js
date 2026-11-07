@@ -8,6 +8,7 @@ import { serializeGameState, deserializeGameState } from '../state.js';
 import { generateCandidatePool } from '../vassal-life-map/lifecycle/candidates.js';
 import { practiceEffectProduct } from '../practice-outputs.js';
 import { matchesQualityFilter } from './quality-filter.js';
+import { FULL_MAP_SEED_CARD_IDS } from '../../defs/gamepieces/full-map-defs.js';
 
 const inputTraits = list => [...new Set((Array.isArray(list) ? list : []).flatMap(input => input?.traits ?? []))];
 // What a card produces: Stock, Chaos and each non-Stock output; Structures list Housing.
@@ -17,7 +18,7 @@ export const labCardProduces = (category, def) => category === 'structure' ? (de
 export function getLabCatalogue(state) {
   const entries = [];
   for (const [category, registry] of [['practice',state.gameConfig.gamepieces.practices], ['structure',state.gameConfig.gamepieces.structures]]) {
-    for (const [id, def] of Object.entries(registry)) entries.push({ id, category, label: def.label, pool: def.pool, mode:def.mode, maturity: def.minimumQuality, locked:def.locked===true, tags: def.tags ?? [], traits: def.stockTraits ?? [], size: category === 'structure' ? def.footprint : 1, produces: labCardProduces(category, def), consumes: inputTraits(def.consume), requires: inputTraits(def.require), def });
+    for (const [id, def] of Object.entries(registry)) entries.push({ id, category, label: def.label, pool: def.pool, cardPool:FULL_MAP_SEED_CARD_IDS.includes(id)?'starter':'non-starter', mode:def.mode, maturity: def.minimumQuality, locked:def.locked===true, tags: def.tags ?? [], traits: def.stockTraits ?? [], size: category === 'structure' ? def.footprint : 1, produces: labCardProduces(category, def), consumes: inputTraits(def.consume), requires: inputTraits(def.require), def });
   }
   const liveCandidates = getVassalCandidatePool(state).candidates;
   const candidates = liveCandidates.length ? liveCandidates : generateCandidatePool(deserializeGameState(serializeGameState(state)));
@@ -30,6 +31,7 @@ export function getLabCatalogue(state) {
 
 export function filterLabCatalogue(entries, filters = {}) {
   return entries.filter(e => (!filters.category || e.category === filters.category)
+    && (!filters.cardPool || e.cardPool === filters.cardPool)
     && (Array.isArray(filters.pool) ? !filters.pool.length || filters.pool.includes(e.pool) : !filters.pool || e.pool === filters.pool) && matchesQualityFilter(e.maturity, filters)
     && (!filters.mode || e.mode===filters.mode)
     && (!filters.hideLocked || !e.locked)

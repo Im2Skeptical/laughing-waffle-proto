@@ -57,11 +57,11 @@ export function validateNeutralMarket(site) {
 }
 
 const TOWN_PROFILES = {
-  forager: {name:'Forager Hamlet',population:18,defense:3,practices:['forage','barter'],market:0},
-  grain: {name:'Grain Village',population:30,defense:4,practices:['dryFarming','fm_handQuern'],market:0},
-  timber: {name:'Timber Village',population:24,defense:4,practices:['logging','barter'],market:1},
-  quarry: {name:'Quarry Village',population:30,defense:5,practices:['fm_rubblePicking','barter'],market:2},
-  market: {name:'Market Town',population:60,defense:8,practices:['forage','dryFarming','barter'],market:3},
+  forager: {name:'Forager Hamlet',population:18,defense:3,practices:['rm_scrubForaging','fm_hearthBarter','rm_neglectedFlocks','rm_withheldSpoils'],market:0},
+  grain: {name:'Grain Village',population:30,defense:4,practices:['fm_fallowFields','fm_handQuern','rm_scrubForaging','fm_hearthBarter','rm_saltMonopoly'],market:0},
+  timber: {name:'Timber Village',population:24,defense:4,practices:['fm_woodlotRights','fm_hearthBarter','rm_siltedChannels','rm_rottingPulpVat','rm_splinteredBowWorkshop'],market:1},
+  quarry: {name:'Quarry Village',population:30,defense:5,practices:['fm_rubblePicking','fm_hearthBarter','fm_scrapGathering','fm_peatCutting','rm_rustedArmoury'],market:2},
+  market: {name:'Market Town',population:60,defense:8,practices:['rm_scrubForaging','fm_fallowFields','fm_hearthBarter','rm_falsifiedLedgers','rm_saltMonopoly'],market:3},
 };
 export function createTownMarket(type) {
   const p=TOWN_PROFILES[type];
@@ -90,7 +90,7 @@ export function transitionTown(state,site,faction) {
       ...(def.category==='influence'?{allegiance:faction}:{stock:0})};
   });
   while(settlement.practiceSlots.length<5)settlement.practiceSlots.push(null);
-  settlement.structureSlots[0]={structureId:'timberHouse',placementId:`${site.regionId}:housing`,origin:0,width:1};
+  settlement.structureSlots[0]={structureId:'fm_crowdedTenement',placementId:`${site.regionId}:housing`,origin:0,width:2};
   for(const goods of market.stocks){
     for(const slot of settlement.practiceSlots){
       if(!slot||!('stock' in slot)||!goods.traits.some(t=>stockTraits(state,slot).includes(t)))continue;

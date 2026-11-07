@@ -289,23 +289,18 @@ try {
     await page.goto(`${url}images/dark-fantasy/life-map-opening-prototype/`);await ready();
     await page.locator('#preview-legacy').click();const before=await page.evaluate(()=>openingWorkbench.getSnapshot().summary);
     const world=()=>page.evaluate(()=>openingWorkbench.getSnapshot().game.worldDecision);
-    let map=await world();assert.equal(map.mode,'found');assert.ok(map.open);assert.ok(map.targets.length>1);assert.ok(map.dimmedRegionIds.length);
+    let map=await world();assert.equal(map.mode,'legacy');assert.ok(map.open);assert.ok(map.dimmedRegionIds.length);
     const cardCenters=map=>map.choiceButtons.map(({rect})=>[rect.x+rect.width/2,rect.y+rect.height/2]);
     const layout=cardCenters(map);
-    assert.equal(map.prices.length,0);assert.equal(map.choiceButtons.length,3);assert.equal(map.selectedRegionId,null);
-    await openingClick('option',0);
-    await openingClick('confirm');assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().activeId),'legacy','destination is required');
-    await openingClick('worldReward',map.targets[0].regionId);map=await world();assert.equal(map.selectedRegionId,map.targets[0].regionId);
-    assert.deepEqual(await page.evaluate(()=>openingWorkbench.getSnapshot().summary),before,'choosing a destination is inert');
-    await openingClick('option',1);map=await world();assert.ok(map.open);assert.equal(map.selectedOptionId,'highest-stat');assert.equal(map.selectedRegionId,null);
+    assert.equal(map.prices.length,0);assert.equal(map.choiceButtons.length,2);assert.equal(map.selectedRegionId,null);
+    assert.equal(map.targets.length,2);assert.ok(map.targets.every(target=>!target.regionId),'Legacy has no settlement destinations');
+    await openingClick('option',0);map=await world();assert.equal(map.selectedOptionId,'highest-stat');
+    await openingClick('option',1);map=await world();assert.equal(map.selectedOptionId,'accumulated-prestige');
     assert.deepEqual(cardCenters(map),layout,'switching rewards leaves the cards in place');
-    await openingClick('option',2);map=await world();assert.ok(map.open);assert.equal(map.selectedOptionId,'accumulated-prestige');
-    assert.deepEqual(cardCenters(map),layout);
-    await openingClick('option',0);map=await world();assert.equal(map.selectedRegionId,null);
-    await openingClick('worldReward',map.targets[0].regionId);await openingClick('confirm');
-    assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().activeId),null);
-    assert.deepEqual(await page.evaluate(()=>openingWorkbench.getSnapshot().summary),before,'mock confirmation charges no cost and founds nothing');
-    for(const index of [1,2]) {
+    assert.deepEqual(await page.evaluate(()=>openingWorkbench.getSnapshot().summary),before,'choosing a reward is inert');
+    await openingClick('confirm');assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().activeId),null);
+    assert.deepEqual(await page.evaluate(()=>openingWorkbench.getSnapshot().summary),before,'mock confirmation changes no state');
+    for(const index of [0,1]) {
       await page.locator('#preview-legacy').click();await openingClick('option',index);assert.ok((await world()).open);
       await openingClick('confirm');assert.equal(await page.evaluate(()=>openingWorkbench.getSnapshot().activeId),null,'both reward choices confirm from the persistent map');
     }

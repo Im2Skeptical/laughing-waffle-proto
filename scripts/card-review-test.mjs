@@ -251,7 +251,7 @@ for(const classId of [null,'scholar','warrior']) {
   const state=selectedState(987),vassal=getCurrentLifeMapVassal(state);
   vassal.classId=classId;state.civilization.research.total=100000;
   state.gameConfig.gamepieces=allLocked;
-  assert.deepEqual(getStockShopGenerationContext(state,vassal),{stockOutputs:[],unmetStockOutputs:[]},'locked suppliers cannot generate unavailable Stock Supply nodes');
+  assert.deepEqual(getStockShopGenerationContext(state,vassal),{stockOutputs:[],unclassedStockOutputs:[],unmetStockOutputs:[]},'locked suppliers cannot generate unavailable Stock Supply nodes');
   for(const family of families) {
     const node={family,nodeId:'lock-test',stockOutput:'Edible',discoveryAccess:true,...(family==='signature'?{signatureNode:{groupId:'tagShop',tag:'Food'}}:{})};
     assert.deepEqual(generateShopInventory(state,vassal,node),[],`${family}/${classId}: an exhausted pool produces no locked filler or upgrades`);
@@ -437,7 +437,7 @@ assert.equal(JSON.stringify(gameConfig),original,'construction editing leaves au
   assert.equal(liveResearch.length,13);assert.ok(liveResearch.includes('observation')&&liveResearch.includes('surveying')&&liveResearch.includes('charnelAlchemy')&&!liveResearch.includes('caravanGuarding'));
   const editedResearch=researchers(outGame);
   assert.ok(editedResearch.includes('caravanGuarding')&&!editedResearch.includes('charnelAlchemy'),'Produces follows edited outputs');
-  assert.equal(filterLabCatalogue(getLabCatalogue(outGame),{category:'practice',produces:'Stock'}).length,106);
+  assert.equal(filterLabCatalogue(getLabCatalogue(outGame),{category:'practice',produces:'Stock'}).length,115);
   assert.deepEqual(filterLabCatalogue(getLabCatalogue(outGame),{category:'structure',produces:'Housing'}).length,10);
   // Revert restores the live list and removes the edit.
   out.edit('practice','caravanGuarding',['effects'],outLive.practices.caravanGuarding.effects);

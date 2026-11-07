@@ -1,4 +1,4 @@
-import { isFullMapOfferDefinition, FULL_MAP_SUPPLY_DEPENDENCIES } from '../../defs/gamepieces/full-map-defs.js';
+import { isFullMapOfferDefinition, FULL_MAP_SEED_CARD_IDS } from '../../defs/gamepieces/full-map-defs.js';
 import { projectPracticeDraft } from '../practice-draft.js';
 import { prestigeAccount } from './treasury.js';
 import { VASSAL_WORKSHOP_RULES as RULES } from '../../defs/vassal-workshop-rules.js';
@@ -24,7 +24,7 @@ export function createShopSpecialties(state, vassal, nodeState) {
   const kind = nodeState.family === 'practiceReform' ? 'practice' : 'structure';
   const ids = kind === 'practice' ? VASSAL_INTERVENTION_PRACTICE_IDS : Object.keys(settlementStructureDefs);
   const definitions = ids.map(id => kind === 'practice' ? getDetailedPracticeDef(state,id) : getDetailedStructureDef(state,id))
-    .filter(def => def && !def.locked && (['common',vassal.classId].includes(def.pool) || state.rulesetId && FULL_MAP_SUPPLY_DEPENDENCIES.includes(def.id))
+    .filter(def => def && !def.locked && !FULL_MAP_SEED_CARD_IDS.includes(def.id) && ['common',vassal.classId].includes(def.pool)
       && (!state.rulesetId || isFullMapOfferDefinition(def))
       && getDetailedPracticeTierIndex(def.minimumQuality ?? 'bronze') <= Math.min(3,getResearchUnlockIndex(state)+(vassal.discoveryAccess?1:0)));
   let categories = ['Housing','Stock','Special'];

@@ -52,7 +52,6 @@ export function optionEffect(option) {
   }
   if (option?.statId && Number.isFinite(option?.statDelta)) parts.push(`${option.statDelta >= 0 ? "+" : ""}${option.statDelta} ${option.statLabel??option.statId}`);
   if (option?.lossStatId && Number.isFinite(option?.lossStatDelta)) parts.push(`${option.lossStatDelta} ${option.lossStatLabel??option.lossStatId}`);
-  if (option?.settlementRegionId) parts.push("Found this settlement with 10 Villager adults");
   if (option?.intervention?.kind === "connection") parts.push("Create this route");
   if (option?.locationRegionId) parts.push("Move to this settlement");
   if (option?.forcedRelocation) parts.push("Relocate to a safe settlement");
