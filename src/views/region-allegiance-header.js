@@ -41,7 +41,7 @@ export function addRegionAllegianceHeader(root,{x,y,vm,reference,tooltipView}){
     `${c.receivedForce} adjacent Force received; ${c.sentForce} sent to ${c.supportTarget??'no neighbour'}.`,
     `Garrison: ${c.upkeep} Edible ${c.supplied?'paid':'MISSING'}.`,
     `Unrest ${Math.round(c.unrest)} moves toward ${Math.round(c.targetUnrest)} at each Death control check.`,
-    'Loss: unrest 75 for two unsupported, unsupplied checks.',
+    'Loss: unrest 75+ for two checks without population support or enough occupation Force.',
     `${vm.usedStructureCapacity} / ${vm.structureCapacity} construction cells.`,
   ],maxWidth:420,scale:2},`territory:${reference}`,tooltipView);
   root.addChild(status);

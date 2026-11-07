@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.53`.
+Game build version: `1.1.54`.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -72,7 +72,7 @@ identifiers remain stable; see [the mapping and authoring contract](../docs/cree
 
 Authoritative numbers:
 
-- Game state v42; runner saves v32. Older saves are rejected.
+- Game state v43; runner saves v33. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
 - Each run serializes schema-v29 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.
