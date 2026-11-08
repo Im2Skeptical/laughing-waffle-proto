@@ -51,7 +51,7 @@ export function* prepareRegionalTilesSteps(presentation, landmarks, renderer) {
   const density=monsterArt.stats.texel,bounds=monsterArt.bounds;
   return {buildMs:performance.now()-started,sites,
     compose(spec){
-      const scene=new PIXI.Container(),occupied=new Set(spec.monsters),kinds=new Map(spec.sites.map(s=>[s.regionId,s.kind]));
+      const scene=new PIXI.Container(),occupied=new Set(spec.monsters),kinds=new Map(spec.sites.map(s=>[s.regionId,s.kind])),spriteBounds=new Map();
       const roadKey=JSON.stringify(spec.connections);
       if(!roadCache.has(roadKey)){
         roadCache.set(roadKey,presentation.roads(spec.connections));
@@ -94,9 +94,16 @@ export function* prepareRegionalTilesSteps(presentation, landmarks, renderer) {
         node.scale.set((crown&&civic&&kind==='crownCapital'?b.w*1.3:b.w)/texture.width);
         node.position.set((b.point.x-bounds.minX)*1576/density-crop.x-node.width/2,
           (b.point.y-bounds.minY)*516/density-crop.y-node.height+b.h*.25);scene.addChild(node);
+        // View-only footprint of the exact drawn buildings, including Crown
+        // texture proportions. Floating chrome can leave this rectangle clear.
+        const box={minX:bounds.minX+(node.x+crop.x)*density/1576,minY:bounds.minY+(node.y+crop.y)*density/516,
+          maxX:bounds.minX+(node.x+crop.x+node.width)*density/1576,maxY:bounds.minY+(node.y+crop.y+node.height)*density/516};
+        const old=spriteBounds.get(b.regionId);
+        spriteBounds.set(b.regionId,old?{minX:Math.min(old.minX,box.minX),minY:Math.min(old.minY,box.minY),maxX:Math.max(old.maxX,box.maxX),maxY:Math.max(old.maxY,box.maxY)}:box);
+
       }
       const biomes=map.regions.map(r=>({id:r.id,underlying:r.biome,biome:occupied.has(r.id)?'monster':r.biome}));
-      return {scene,biomes,roads:road.roads,sites:sites.filter(s=>kinds.has(s.regionId)&&!occupied.has(s.regionId)).map(s=>({...s,kind:kinds.get(s.regionId)})),
+      return {scene,biomes,roads:road.roads,sites:sites.filter(s=>kinds.has(s.regionId)&&!occupied.has(s.regionId)).map(s=>({...s,kind:kinds.get(s.regionId),spriteBounds:spriteBounds.get(s.regionId)})),
         monsterPieces:spec.monsters.reduce((n,id)=>n+(monsterCounts.get(id)??0),0)};
     },
     destroy(){textures.forEach(t=>t.destroy(true));for(const t of new Set(grounds))t.destroy(true);destroyPixelTerrain(monsterArt);

@@ -1767,7 +1767,7 @@ const gameSession = createGameSessionController({
       if (!merged.ok) throw new Error(`Prepared forecast handoff failed: ${merged.reason}`);
       if (!await stage('graph', 'Drawing your opening chronicle')) return;
       settlementGraphController.handleInvalidate("init");
-      opening.begin(prepared.lossSec);
+      opening.begin(prepared.lossSec??prepared.forecast.endSec);
       openingBlocker.visible = true;
       settlementGraphView.setOpeningRevealSecond(0);
       settlementGraphView.clearForecastRevealRestart();
@@ -1879,6 +1879,10 @@ app.ticker.add((delta) => {
     runner.setPreviewState(openingPreviewStateAt(openingFrame.second));
     if (openingFrame.complete) {
       openingBlocker.visible = false;
+      const reviewParams=new URLSearchParams(location.search);
+      if(reviewParams.get('regionalReadout')==='floating'&&reviewParams.get('regionalStart')==='opening'){
+        requestPauseBeforeDrag();setSettlementViewedSecond(0,{mode:'browse'});
+      }
     }
   }
   settlementForecastController?.syncObservedSurvivalYear?.();

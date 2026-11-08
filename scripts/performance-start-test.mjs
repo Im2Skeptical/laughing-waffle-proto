@@ -23,7 +23,8 @@ globalThis.document={baseURI:'http://fixture/',getElementById:()=>({textContent:
 const fetcher=async()=>new Response(compressed);
 const prepared=await loadPerformanceStart({fetcher});
 assert.deepEqual(serializeGameState(prepared.state),serializeGameState(createNewGameState(123)));
-const fresh=buildProjectionChunkFromStateData(serializeGameState(prepared.state),0,prepared.lossSec);
+const fresh=buildProjectionChunkFromStateData(serializeGameState(prepared.state),0,prepared.forecast.endSec);
+assert.equal(prepared.lossSec,prepared.forecast.terminal?prepared.forecast.endSec:null,'bounded survival is not labelled as extinction');
 assert.deepEqual(prepared.forecast.summaryBySecond,[...fresh.summaryBySecond]);
 assert.deepEqual(prepared.forecast.stateDataBySecond,[...fresh.stateDataBySecond]);
 assert.deepEqual(prepared.forecast.lastStateData,fresh.lastStateData);

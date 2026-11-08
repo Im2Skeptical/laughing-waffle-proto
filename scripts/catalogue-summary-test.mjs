@@ -9,15 +9,15 @@ const game = createNewGameState(83);
 const before = JSON.stringify(serializeGameState(game));
 const catalogue = getLabCatalogue(game);
 const starter = filterLabCatalogue(catalogue,{cardPool:'starter'});
-assert.equal(starter.length,62,'starter pool includes neutral starting and enemy/remnant cards');
+assert.equal(starter.length,61,'starter pool includes neutral starting and enemy/remnant cards');
 assert.ok(starter.some(entry=>entry.id==='rm_siltedChannels'),'degraded supply cards are starters');
 assert.ok(starter.some(entry=>entry.id==='fm_handQuern'),'authored neutral starting cards are starters');
 const starterWarriors = filterLabCatalogue(catalogue,{cardPool:'starter',pool:['warrior']});
 assert.equal(starterWarriors.length,22,'starter pool and class filters intersect');
-assert.equal(filterLabCatalogue(catalogue,{cardPool:'starter',pool:['common']}).length,40);
-assert.equal(filterLabCatalogue(catalogue,{cardPool:'starter',category:'practice'}).length,42);
+assert.equal(filterLabCatalogue(catalogue,{cardPool:'starter',pool:['common']}).length,39);
+assert.equal(filterLabCatalogue(catalogue,{cardPool:'starter',category:'practice'}).length,41);
 const nonStarter = filterLabCatalogue(catalogue,{cardPool:'non-starter'});
-assert.equal(nonStarter.length,217,'non-starter contains the other cards, not non-card templates');
+assert.equal(nonStarter.length,218,'non-starter contains the other cards, not non-card templates');
 assert.ok(nonStarter.every(entry=>!starter.some(seed=>seed.id===entry.id)));
 const projected = getLabCatalogue({...game,gameConfig:{...game.gameConfig,gamepieces:{...game.gameConfig.gamepieces,
   practices:{...game.gameConfig.gamepieces.practices,rm_siltedChannels:{...game.gameConfig.gamepieces.practices.rm_siltedChannels,pool:'merchant',locked:true}},
@@ -28,7 +28,9 @@ const filtered = filterLabCatalogue(catalogue,{category:'practice',pool:['common
 assert.equal(filtered.length,116,'two selected pools are a union');
 assert.ok(filtered.every(entry=>['common','warrior'].includes(entry.pool)));
 assert.equal(filterLabCatalogue(catalogue,{category:'practice',pool:[]}).length,175,'empty selection means All');
-assert.equal(filterLabCatalogue(catalogue,{category:'practice',pool:'warrior'}).length,72,'single-pool callers still work');
+assert.equal(filterLabCatalogue(catalogue,{category:'practice',pool:'warrior'}).length,73,'single-pool callers include class-specific Muster');
+assert.ok(filterLabCatalogue(catalogue,{category:'practice',pool:'warrior'}).some(entry=>entry.id==='fm_seigneurialMuster'));
+assert.ok(!filterLabCatalogue(catalogue,{category:'practice',pool:'common'}).some(entry=>entry.id==='fm_seigneurialMuster'));
 const summary = summarizeLabCatalogue(filtered);
 assert.equal(summary.cardCount,116,'summary includes all pages');
 assert.equal(summary.practiceCount,116);

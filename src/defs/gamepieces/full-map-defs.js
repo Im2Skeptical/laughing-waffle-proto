@@ -1424,7 +1424,7 @@ export const fullMapPractices = {
   "fm_seigneurialMuster": {
     "id": "fm_seigneurialMuster",
     "label": "Seigneurial Muster",
-    "pool": "common",
+    "pool": "warrior",
     "provenance": "neutral",
     "minimumQuality": "bronze",
     "tags": [

@@ -24,10 +24,9 @@ function renderCampaignForcePanel(parent,campaign) {
   const components=[
     {label:'Prowess',value:f.prowess,contribution:f.prowess,active:true,detail:`+${f.prowess} Force`},
     {label:'Personal Retinue',value:army.retinue,contribution:f.retinue,active:retinueUsed,detail:retinueUsed?`+${f.retinue} Force`:'Not used'},
-    {label:'Warriors',value:army.warriors,contribution:f.armedWarriors,active:armyUsed,detail:armyUsed?`${army.armedWarriors} armed · +${f.armedWarriors} Force`:'Not used'},
-    {label:'Arms',value:army.arms,contribution:null,active:armyUsed,detail:armyUsed?`${army.warriors-army.armedWarriors} Warriors unarmed`:'Not used'},
+    {label:'Warriors',value:army.warriors,contribution:f.warriorForce,active:armyUsed,detail:armyUsed?`+${f.warriorForce} Force`:'Not used'},
   ];
-  const equation=[f.prowess,...(retinueUsed?[f.retinue]:[]),...(armyUsed?[f.armedWarriors]:[])].join(' + ');
+  const equation=[f.prowess,...(retinueUsed?[f.retinue]:[]),...(armyUsed?[f.warriorForce]:[])].join(' + ');
   const panel=new PIXI.Container();panel.position.set(rect.x,rect.y);panel.eventMode='none';parent.addChild(panel);
   const background=new PIXI.Graphics();roundedRect(background,0,0,rect.width,rect.height,14,PALETTE.panel,PALETTE.accent,2);panel.addChild(background);
   const total=new PIXI.Graphics();roundedRect(total,18,18,234,154,8,0x25352d,PALETTE.accent,2);panel.addChild(total);
@@ -35,8 +34,8 @@ function renderCampaignForcePanel(parent,campaign) {
     createText(String(f.total),{...TEXT_STYLES.header,fontSize:60,fill:PALETTE.accent},34,64),
     createText(equation,{...TEXT_STYLES.body,fontSize:24,fill:PALETTE.textMuted},34,136));
   components.forEach((component,index)=>{
-    const cell=new PIXI.Container();cell.position.set(264+index*345,18);panel.addChild(cell);cell.alpha=component.active?1:.4;
-    const frame=new PIXI.Graphics();roundedRect(frame,0,0,333,154,8,0x1b2827,component.active?PALETTE.stroke:0x343e38,1);cell.addChild(frame);
+    const cell=new PIXI.Container();cell.position.set(264+index*460,18);panel.addChild(cell);cell.alpha=component.active?1:.4;
+    const frame=new PIXI.Graphics();roundedRect(frame,0,0,448,154,8,0x1b2827,component.active?PALETTE.stroke:0x343e38,1);cell.addChild(frame);
     cell.addChild(createText(component.label,{...TEXT_STYLES.title,fontSize:26},16,10),
       createText(String(component.value),{...TEXT_STYLES.header,fontSize:46,fill:PALETTE.text},16,51),
       createText(component.detail,{...TEXT_STYLES.body,fontSize:24,fill:component.active?PALETTE.green:PALETTE.textMuted},16,116));

@@ -1,4 +1,5 @@
 import { createRegionLabel } from './region-label.js';
+import {drawSettlementDemographics} from './settlement-demographics-pixi.js';
 import { addPracticeMultiplierPair } from './multiplier-fitting.js';
 import { addSettlementPiece, addConstructionStrip, PIECE_SIZE } from './settlement-piece-pixi.js';
 import { addIllustration, getArtRevision } from './chronicle-art.js';
@@ -6,7 +7,6 @@ import { addResourceIcon } from './resource-cost-pixi.js';
 import {
   getDetailedSettlementViewModel,
   getDetailedVassalPrestige,
-  getElderMortalityRate,
 } from "../model/detailed-settlements.js";
 import { getCurrentLifeMapVassal, getVassalAge } from "../model/vassal-life-map.js";
 import { getRegionDefinition } from "../model/world-state.js";
@@ -16,15 +16,15 @@ import {
   getCivilizationSurvivalViewModel,
   getSurvivalEndDetailsClickPoint,
 } from "./civilization-survival-hud.js";
-import { clearChildren, createText, createWrappedText, roundedRect } from "./settlement-view-primitives.js";
+import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
 import { addNeutralMarketBillboard } from './neutral-market-pixi.js';
 
 const BODY = Object.freeze({ x: 48, y: 78, width: 2328, height: 730 });
 export const SETTLEMENT_HEADER_LAYOUT = Object.freeze({
-  survival: Object.freeze({ x: 590, y: 9, width: 850, height: 54 }),
-  overview: Object.freeze({ x: 1460, y: 14, width: 150, height: 44 }),
-  demographics: Object.freeze({ x: 1620, y: 14, width: 190, height: 44 }),
+  survival: Object.freeze({ x: 590, y: 9, width: 680, height: 54 }),
+  overview: Object.freeze({ x: 1290, y: 14, width: 150, height: 44 }),
+  demographics: Object.freeze({ x: 1450, y: 14, width: 220, height: 44 }),
   utilityReserve: Object.freeze({ x: 1960, y: 0, width: 464, height: 70 }),
 });
 
@@ -38,6 +38,7 @@ function addButton(parent, rect, label, selected, onPress) {
     fill: selected ? 0x2b2825 : PALETTE.text,
   }, rect.width / 2, rect.height / 2, 0.5, 0.5));
   root.position.set(rect.x, rect.y);
+  root.hitArea = new PIXI.Rectangle(0, 0, rect.width, rect.height);
   root.eventMode = "static";
   root.cursor = "pointer";
   root.on("pointerdown", onPress);
@@ -89,16 +90,6 @@ function drawPracticeSlotCard(parent, rect, entry, slotIndex, tooltipView) {
   addSettlementPiece(parent,rect,{face:entry?.face,empty:!entry?.practiceId,detail:[...details.split('\n'), ...(entry?.face?.detailLines ?? [])],tooltipView,inspectionSide:'right'});
 }
 
-function faithRates(state, classState) {
-  const faith = String(classState?.faith?.tier ?? "gold")
-    .replace(/^./, (letter) => letter.toUpperCase());
-  const birth = getGameSetting(state, `birthRate${faith}`) * 100;
-  return `Birth ${birth}% · child→adult ${getGameSetting(
-    state,
-    "childToAdultRate"
-  ) * 100}% · adult→elder ${getGameSetting(state, "adultToElderRate") * 100}%`;
-}
-
 export function createSettlementPrototypeView({
   layer,
   getState,
@@ -114,6 +105,7 @@ export function createSettlementPrototypeView({
   let lastSignature = "";
   let semanticSnapshot = null;
   let endDetailsTarget = null;
+  let demographicVisual = null;
 
   function render(force = false, preparing = false) {
     if (!root.visible && !preparing) return;
@@ -133,6 +125,7 @@ export function createSettlementPrototypeView({
     lastSignature = signature;
     clearChildren(root);
     endDetailsTarget = null;
+    demographicVisual = null;
 
     const bg = new PIXI.Graphics();
     bg.beginFill(PALETTE.background).drawRect(36, 78, 2352, 748).endFill();
@@ -146,14 +139,12 @@ export function createSettlementPrototypeView({
       rect: SETTLEMENT_HEADER_LAYOUT.survival,
       onOpenEndDetails,
     }).detailsTarget;
-    if (!vm.neutral) {
     addButton(root, SETTLEMENT_HEADER_LAYOUT.overview, "Overview",
       activeTab === "overview", () => { activeTab = "overview"; lastSignature = ""; });
     addButton(root, SETTLEMENT_HEADER_LAYOUT.demographics, "Demographics",
       activeTab === "demographics", () => { activeTab = "demographics"; lastSignature = ""; });
-    }
 
-    if (vm.neutral) {
+    if (vm.neutral && activeTab === "overview") {
       addNeutralMarketBillboard(root,{x:BODY.x+320,y:BODY.y+10,width:1680,height:BODY.height-20},
         {name:vm.name,stocks:vm.marketStocks,defense:state.world.sites.find(site=>site.regionId===regionId)?.neutral?.defense,tooltipView});
     } else if (activeTab === "overview") {
@@ -172,7 +163,7 @@ export function createSettlementPrototypeView({
         const lines=[`${holder} / ${c.status} / ${Math.round(c.share*100)}% support`,
           `Free ${c.support.player??0} / Crown ${c.support['external-a']??0} / Unaffiliated ${c.support.neutral??0}`,
           `Unrest ${Math.round(c.unrest)} -> ${Math.round(c.targetUnrest)} / Treasury ${vm.civilizationPrestige} Prestige`,
-          `Force ${Number(c.force.toFixed(1))}/${c.required} / ${c.armed} armed / ${c.upkeep} Edible ${c.supplied?'paid':'MISSING'}`];
+          `Force ${Number(c.force.toFixed(1))}/${c.required} / ${c.availableWarriors} loyal Warriors / ${c.warriorForce} baseline`];
         lines.forEach((line,i)=>root.addChild(createText(line,{...TEXT_STYLES.body,fontSize:27},rect.x+18,rect.y+60+i*34)));
         if(c.holder==='player'&&vm.supportTargets.length){
           const targets=[null,...vm.supportTargets],current=targets.indexOf(c.supportTarget);
@@ -243,75 +234,7 @@ export function createSettlementPrototypeView({
         { ...TEXT_STYLES.header, fontSize:22 }, structureRect.x + 18, structureRect.y + 54));
       addConstructionStrip(root,{x:structureRect.x+18,y:structureRect.y+104,width:884,height:148},{slots:vm.structures,capacity:vm.structureCapacity,tooltipView,inspectionSide:'right',time:state.tSec});
     } else {
-      const villager = vm.population.byClass.villager;
-      const stranger = vm.population.byClass.stranger;
-      const site = state.world.sites.find((entry) => entry.regionId === regionId).detailedState;
-      const left = { x: BODY.x, y: BODY.y, width: 1128, height: 688 };
-      const right = { x: 1194, y: BODY.y, width: 1182, height: 688 };
-      panel(root, left, "Cohorts, housing, and meals");
-      panel(root, right, "Annual probabilities and previous result");
-      const lines = [
-        `Villagers: ${villager.children} children · ${villager.adults} adults · ${villager.elders} elders`,
-        `Villager elder ages: ${vm.elderOrder.ages.join(", ") || "none"}`,
-        `Strangers: ${stranger.children} children · ${stranger.adults} adults · ${stranger.elders} elders`,
-        `Housing: ${vm.population.total} / ${vm.population.housingCapacity}${vm.population.total > vm.population.housingCapacity ? " · OVER-HOUSED" : ""}`,
-        `Meal: ${vm.lastMeal ? `${vm.lastMeal.consumed}/${vm.lastMeal.demand} (${Math.round(vm.lastMeal.ratio * 100)}%)` : "not yet resolved"}`,
-        `Food spends hosted Edible left to right, one Stock per 30 people.`,
-      ];
-      lines.forEach((line, index) => root.addChild(createText(line, TEXT_STYLES.body,
-        left.x + 18, left.y + 64 + index * 44)));
-      let y = right.y + 64;
-      for (const classId of ["villager", "stranger"]) {
-        const classState = site.populationByClass[classId];
-        const faith = String(classState.faith.tier)
-          .replace(/^./, (letter) => letter.toUpperCase());
-        const birthRate = getGameSetting(state, `birthRate${faith}`);
-        const expectedElderDeaths = (classState.eldersByAge ?? []).reduce(
-          (sum, cohort) =>
-            sum + cohort.count * getElderMortalityRate(cohort.age + 1, state),
-          0
-        );
-        root.addChild(
-          createText(classId.toUpperCase(), TEXT_STYLES.title, right.x + 18, y),
-          createText(`${faithRates(state, classState)} · Faith ${classState.faith.tier}`,
-            TEXT_STYLES.body, right.x + 18, y + 34),
-          createText(`Happiness ${classState.happiness.status} · full ${classState.happiness.fullFeedStreak}/${getGameSetting(
-            state,
-            "fullFeedStreakForIncrease"
-          )} · missed ${classState.happiness.missedFeedStreak}/${getGameSetting(
-            state,
-            "missedFeedStreakForStarvation"
-          )}`,
-            TEXT_STYLES.body, right.x + 18, y + 66),
-          createText(
-            `Expected: ${(
-              classState.adults * birthRate
-            ).toFixed(1)} births · ${(classState.children * getGameSetting(
-              state,
-              "childToAdultRate"
-            )).toFixed(1)} adults · ${(classState.adults * getGameSetting(
-              state,
-              "adultToElderRate"
-            )).toFixed(1)} elders · ${expectedElderDeaths.toFixed(2)} elder deaths`,
-            { ...TEXT_STYLES.body, fontSize: 20, fill: PALETTE.textMuted },
-            right.x + 18,
-            y + 94
-          )
-        );
-        y += 150;
-      }
-      root.addChild(createWrappedText(
-        `Elder mortality after aging: ${getGameSetting(state, "elderMortalityThrough49") * 100}% through 49; ${getGameSetting(state, "elderMortality50To54") * 100}% at 50–54; ${getGameSetting(state, "elderMortality55To59") * 100}% at 55–59; ${getGameSetting(state, "elderMortality60To64") * 100}% at 60–64; ${getGameSetting(state, "elderMortality65To69") * 100}% at 65–69; ${getGameSetting(state, "elderMortality70To74") * 100}% at 70–74; ${getGameSetting(state, "elderMortality75Plus") * 100}% at 75+.`,
-        TEXT_STYLES.body, right.x + 18, y, right.width - 36));
-      y += 90;
-      const lastMoon=site.lastMoonResult;
-      const births=Object.values(lastMoon?.birth?.byClass??{}).reduce((sum,entry)=>sum+(entry.births??0),0);
-      const matured=Object.values(lastMoon?.birth?.byClass??{}).reduce((sum,entry)=>sum+(entry.matured??0),0);
-      root.addChild(createWrappedText(
-        lastMoon
-          ? `THE LAST MOON\n${births} births · ${matured} came of age\n${vm.lastMeal?.consumed??0} Edible Stock consumed · ${lastMoon.currencySpent??0} currency spent`
-          : "The first moon has yet to pass.",
-        { ...TEXT_STYLES.body, fill: PALETTE.textMuted }, right.x + 18, y, right.width - 36));
+      demographicVisual = drawSettlementDemographics(root,{state,vm,tooltipView});
     }
 
     semanticSnapshot = {
@@ -327,6 +250,8 @@ export function createSettlementPrototypeView({
       headerControls: SETTLEMENT_HEADER_LAYOUT,
       overview: vm,
       demographics: {
+        visual: demographicVisual,
+        census: vm.demographics,
         population: vm.population,
         lastMeal: vm.lastMeal,
         currentMoonResult: vm.currentMoonResult,

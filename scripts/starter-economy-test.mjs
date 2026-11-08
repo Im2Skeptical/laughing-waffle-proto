@@ -32,7 +32,7 @@ function same(a,b,label){
 }
 const state=createNewGameState(42),defs=state.gameConfig.gamepieces;
 assert.equal(validateGameConfig(state.gameConfig).ok,true);
-assert.equal(FULL_MAP_SEED_CARD_IDS.length,62);
+assert.equal(FULL_MAP_SEED_CARD_IDS.length,61);
 for(const[kind,id]of[['practice','rm_scrubForaging'],['structure','rm_saggingStorehouse']]){
  const face=getGamepieceFace({},kind,id);assert.equal(face.reading.flavour,defs[kind==='practice'?'practices':'structures'][id].flavor,'authored inherited flavour reaches the actual inspector');
 }

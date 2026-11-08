@@ -267,7 +267,7 @@ function expandMonster(state, region, targetId) {
   const target=getRegionState(state,targetId),site=siteAt(state,targetId);
   if(state.rulesetId&&site?.simulationMode==='detailed'){
     const m=militarySummary(state,targetId);
-    if(m.armed>0&&m.defense>=region.monster.defense){emitPracticeEvent(state,{kind:'defenseSucceeded',regionId:targetId,faction:target.controller});site.detailedState.lastDefense={tSec:state.tSec,result:'held',sourceRegionId:region.id};return 'intercepted';}
+    if(m.defense>0&&m.defense>=region.monster.defense){emitPracticeEvent(state,{kind:'defenseSucceeded',regionId:targetId,faction:target.controller});site.detailedState.lastDefense={tSec:state.tSec,result:'held',sourceRegionId:region.id};return 'intercepted';}
     if(target.controller==='player')state.civilization.history.lostSettlements++;
     target.lostAtSec=state.tSec;emitPracticeEvent(state,{kind:'settlementLost',regionId:targetId,faction:target.controller});
   }

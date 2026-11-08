@@ -80,8 +80,8 @@ Local instructions for agents working in this repo.
 2. Apply the verified changes to the local build first; report to Cam what changed
    and how to test.
 3. Push the branch and open a PR to `main` (draft if untested).
-4. Once Cam says it is good in chat, the Dispatcher squash-merges the PR; Cam
-   never clicks merge.
+4. Once Cam authorizes a merge, the task-owning agent completes the squash merge
+   following [development workflow](docs/development-workflow.md).
 5. After a PR opens or merges, return the primary checkout to up-to-date `main`
    with no uncommitted work; never leave it on a feature branch.
 6. Tell Notes & PM when a PR merges so Trello stays accurate.

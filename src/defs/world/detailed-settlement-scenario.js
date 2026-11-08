@@ -19,6 +19,7 @@ export const DETAILED_REGION_COLOURS = Object.freeze({
 });
 
 export const createInitialDetailedSettlementData = (regionId = null) => ({
+  birthAllegianceCredits: {},
   populationByClass: {
     villager: {
       specialists: { scholar: {children:0,adults:0,eldersByAge:[]}, warrior: {children:0,adults:0,eldersByAge:[]} },
