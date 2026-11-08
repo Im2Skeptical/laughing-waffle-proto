@@ -253,7 +253,8 @@ human playtest work.
   +1 Strength for its next attack. Local Warrior baseline Force remains active
   without equipment. Settlement loss remains the run-ending condition.
   Ordinary full-map openings target mean extinction under 200 years; the first
-  32-seed escalation sample averages 172.7 years (124.3–211.5). See
+    32-seed sample with minority Crown garrisons averages 176.7 years
+    (121.5–205.3). See
   [Monster escalation](monster-escalation.md) for the rule and repeatable probe.
 - Untouched Starter_02 openings target extinction between years 200 and 300.
   Chaos and Resistance use one tenth of their former unit: Starter primordial

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {createNewGameState} from '../src/model/new-game.js';
 import {serializeGameState,deserializeGameState} from '../src/model/state.js';
 import {getAdjacentRegionIds,getConnectedRegionIds} from '../src/model/world-state.js';
-import {allegianceSummary,populationBins,writePopulationBins,validatePopulationLedger} from '../src/model/detailed-settlements/population-ledger.js';
+import {allegianceSummary,populationBins,validatePopulationLedger} from '../src/model/detailed-settlements/population-ledger.js';
 import {resolveControl,changeController,controlSummary} from '../src/model/detailed-settlements/territory.js';
 import {initializeReplayClock,advanceReplayStateToSecond} from '../src/model/replay-second-runner.js';
 import {createTimelineFromInitialState,rebuildStateAtSecond} from '../src/model/timeline/index.js';
@@ -29,16 +29,17 @@ for(const seed of seeds){
   const population=region.id===capital?30:provinces.includes(site)?20:({forager:12,timber:14,quarry:14,grain:24,market:24})[site.town.type];
   assert.deepEqual(validatePopulationLedger(site.detailedState),[],'valid joint cohorts');
   assert.equal(bins.reduce((n,b)=>n+b.count,0),population,'troops replace adults without adding residents');
-  const loyalChildren=region.id===capital?6:provinces.includes(site)?3:population<20?1:2;
-  const expectedWarriors=region.id===capital?23:provinces.includes(site)?12:({forager:6,timber:7,quarry:7,grain:11,market:11})[site.town.type];
-  assert.equal(support['external-a'],loyalChildren+expectedWarriors,'smaller openings retain proportional child allegiance and adult specialty');
+  const loyalChildren=region.id===capital?6:0;
+  const expectedWarriors=region.id===capital?23:provinces.includes(site)?8:({forager:5,timber:6,quarry:6,grain:10,market:10})[site.town.type];
+  assert.equal(support['external-a'],loyalChildren+expectedWarriors,'the capital has loyal families; outer Crown allegiance is its stationed minority garrison');
   assert(soldiers.length>0&&soldiers.every(b=>b.kind==='adults'&&b.allegiance==='external-a'),'every Crown region starts with loyal adult soldiers');
   const count=soldiers.reduce((n,b)=>n+b.count,0);startingCrownSoldiers+=count;
   const control=controlSummary(state,region.id);assert.equal(control.warriorForce,count);
-  assert.equal(control.status,'supported');assert(control.share>.5,'larger garrisons also create population majorities');
+  if(region.id===capital){assert.equal(control.status,'supported');assert(control.share>.5);}
+  else{assert.equal(control.status,'occupied');assert(support.neutral>population/2);assert(count<population/2);}
   assert.equal(count,expectedWarriors);
  }
- assert(startingCrownSoldiers>=119&&startingCrownSoldiers<=169,'smaller Crown populations retain their garrison proportions');
+ assert(startingCrownSoldiers>=97&&startingCrownSoldiers<=147,'minority garrisons replace the enlarged majority armies');
  assert(provinces.some(s=>s.detailedState.practiceSlots.some(p=>p?.practiceId==='fe_salvageDetail')),'capital Salvage Detail survives in a provincial slot');
  assert(crown.every(r=>!state.world.sites.find(s=>s.regionId===r.id).detailedState.structureSlots.some(p=>p?.structureId==='fm_crowdedTenement')),'small Crown openings avoid fixed Tenement meal overhead');
  for(const region of regions.filter(r=>r.controller!=='external-a')){
@@ -65,19 +66,6 @@ for(const seed of seeds){
  assert(active.every(s=>s.detailedState.structureSlots.some(slot=>slot?.placementId.endsWith(':housing'))),'retain opening housing');
  const encoded=serializeGameState(state);assert.deepEqual(serializeGameState(deserializeGameState(encoded)),encoded);
 }
-// Outer Crown control genuinely depends on its army, not majority allegiance.
-const occupied=createNewGameState(123),outer=occupied.world.sites.find(s=>s.name.startsWith('Crown '));
-const minorityTotal=populationBins(outer.detailedState).reduce((n,b)=>n+b.count,0),minorityLoyal=Math.floor(minorityTotal*.35),minorityArmy=Math.min(minorityLoyal,Math.ceil(minorityTotal/4));
-writePopulationBins(outer.detailedState,[
- {classId:'villager',allegiance:'external-a',specialty:'warrior',kind:'adults',age:null,count:minorityArmy},
- {classId:'villager',allegiance:'external-a',specialty:'ordinary',kind:'adults',age:null,count:minorityLoyal-minorityArmy},
- {classId:'villager',allegiance:'neutral',specialty:'ordinary',kind:'adults',age:null,count:minorityTotal-minorityLoyal},
-]);
-for(let i=0;i<4;i++)resolveControl(occupied);
-assert.equal(occupied.world.regions.find(r=>r.id===outer.regionId).controller,'external-a');
-writePopulationBins(outer.detailedState,populationBins(outer.detailedState).map(b=>({...b,specialty:'ordinary'})));
-for(let i=0;i<4;i++)resolveControl(occupied);
-assert.equal(occupied.world.regions.find(r=>r.id===outer.regionId).controller,'frontier','removing the army loses unsupported Crown control');
 // Freeze a developed town, then exercise real neutral replenishment through save/replay.
 const initial=initializeReplayClock(createNewGameState(42));
 const town=initial.world.sites.find(s=>s.name.startsWith('Crown '));changeController(initial,town.regionId,'frontier');
@@ -91,8 +79,8 @@ for(const seed of [123,42,424242]){
  const fifty=initializeReplayClock(createNewGameState(seed));
  for(const sec of [320,800,1600]){
   assert(advanceReplayStateToSecond(fifty,sec).ok);
-  assert(fifty.world.regions.filter(r=>r.controller==='external-a').length>=12,'ordinary garrisons retain most holdings through year 50');
+  assert(fifty.world.regions.filter(r=>r.controller==='external-a').length>=10,'minority garrisons retain most holdings through year 50');
   assert.equal(fifty.world.regions.find(r=>r.id===fifty.civilization.remnant.capitalRegionId).controller,'external-a','the capital remains held');
  }
 }
-console.log(`[crown-opening] ${seeds.length} seeds: fitted populations, proportional armies, trade/replay and three ordinary 50-year starts OK`);
+console.log(`[crown-opening] ${seeds.length} seeds: fitted populations, real minority occupations, trade/replay and three ordinary 50-year starts OK`);

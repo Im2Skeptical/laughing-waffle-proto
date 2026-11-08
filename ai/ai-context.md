@@ -5,7 +5,9 @@ The accepted [regional population UX](../docs/regional-population-ux-integration
 uses floating 70% map readouts, visual demographics, Warrior baseline Force and
 carried proportional newborn allegiance. It preserves the degraded starter
 economy with smaller Crown populations, fitted housing and budgeted food access;
-ordinary starts exercise the 50-year garrison target. Repelled Monsters gain
+thirteen Crown holdings begin as [minority garrisons](../docs/crown-minority-opening.md)
+over unaffiliated majorities, with a loyal capital. The 32-seed opening retains
+10.4 of 14 holdings on average at year 50. Repelled Monsters gain
 +1 Strength and retain their latest Spawn result for replayable feedback.
 GameState v45 supersedes v44; start fresh to rebuild the changed trajectory.
 This checked marker matches `package.json`; app versions are independent of save

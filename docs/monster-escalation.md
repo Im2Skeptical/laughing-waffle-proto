@@ -33,8 +33,9 @@ captured GameConfig v30 are unchanged. Start a fresh game.
 
 ## Measured baseline
 
-The first deterministic sample of 32 ordinary, unattended seeds completed every
-run: **172.7-year mean**, range **124.3–211.5 years**, with no surviving/censored
+With the [minority Crown opening](crown-minority-opening.md), 32 ordinary,
+unattended seeds complete every run: **176.7-year mean**, range
+**121.5–205.3 years**, with no surviving/censored
 runs at the 400-year measurement cap. This is an average target, not a requirement
 that every seed end before 200. Played builds can extend survival. The retained
 50-year Crown opening contracts run alongside this new endgame check.
@@ -44,7 +45,9 @@ containing calendar year.
 `npm run probe:monster-extinction -- 32` repeats the sample through the normal
 60-tick stepper. It reports every seed, terminal reason, range and mean under
 `artifacts/monster-escalation/`, and fails if any run remains censored or the mean
-reaches 200. The fixed sample starts with 123, 42, 424242, then `i * 7919 + 1`.
+reaches 200. It also checks mean Crown retention of at least ten holdings at
+year 50 and that every capital survives. The fixed sample starts with 123, 42,
+424242, then `i * 7919 + 1`.
 No time or simulation phases are skipped. The older authored Starter_02 fixture's
 separate 200–300-year target remains a legacy-profile contract.
 

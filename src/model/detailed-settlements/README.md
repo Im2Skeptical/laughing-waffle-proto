@@ -82,3 +82,5 @@ reacquisition never reseeds it. `neutral-market.js` owns this lifecycle and
 `population-ledger.js` owns joint cohort identity; `political-recipes.js` plans
 conversion; `territory.js` owns control, unrest, supplied military and treasury.
 All run through the authoritative phase/event pipeline used by replay.
+Initial Crown cohorts live in `../full-map-crown.js`; the food pass fits housing
+without rescaling those allegiances. See [minority garrisons](../../../docs/crown-minority-opening.md).

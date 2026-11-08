@@ -28,7 +28,7 @@
     "probe:full-map": "node scripts/full-map-browser-probe.mjs",
     "probe:crown-map": "node scripts/crown-map-browser-probe.mjs",
     "probe:control-frontiers": "node scripts/control-frontier-browser-probe.mjs",
-    "test:full-map": "node scripts/monster-escalation-test.mjs && node scripts/proportional-births-force-test.mjs && node scripts/crown-opening-test.mjs && node scripts/seeded-food-coverage-test.mjs && node scripts/full-map-contract-test.mjs && node scripts/shops-crossroads-settlements-test.mjs && node scripts/remnant-supply-test.mjs && node scripts/starter-economy-test.mjs",
+    "test:full-map": "node scripts/crown-minority-test.mjs && node scripts/monster-escalation-test.mjs && node scripts/proportional-births-force-test.mjs && node scripts/crown-opening-test.mjs && node scripts/seeded-food-coverage-test.mjs && node scripts/full-map-contract-test.mjs && node scripts/shops-crossroads-settlements-test.mjs && node scripts/remnant-supply-test.mjs && node scripts/starter-economy-test.mjs",
     "test": "npm run test:full-map && npm run test:keywords && npm run test:save-recovery && npm run test:world && npm run test:detailed-settlements && npm run test:vassal-life-map && npm run test:debug-config && npm run test:map-lab && npm run test:map && npm run test:detailed-replay && npm run test:invariants && npm run test:presentation && npm run test:card-review && npm run test:replay-stress",
     "test:keywords": "node scripts/practice-keywords-test.mjs && node scripts/keywords-classes-prototype-test.mjs && node scripts/bronze-keyword-cards-test.mjs",
     "test:card-review": "node scripts/card-review-test.mjs && node scripts/catalogue-summary-test.mjs && node scripts/locked-stock-context-test.mjs",
