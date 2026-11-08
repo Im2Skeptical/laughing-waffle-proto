@@ -151,6 +151,18 @@ adjectives. The generation workflow is
 
 ## Existing production pass
 
+The map-only Scrub Foraging Practice and one-cell Sagging Storehouse Structure
+are recorded in [`starter-basic-prompts.json`](starter-basic-prompts.json).
+They fill the remaining basic roles in the
+[`starter economy`](../../../docs/starter-economy.md) using the same Common
+palette, anonymous figures and narrative/pixel treatment as the revised supply set.
+
+The eight map-only inherited supply Practices use replacement paintings recorded
+in [`remnant-supply-prompts-v2.json`](remnant-supply-prompts-v2.json). This is the
+current narrative/rendering/scale pass; `remnant-supply-prompts.json` preserves
+the superseded first briefs. Their rules and town placements are documented in
+[`docs/remnant-supply-cards.md`](../../../docs/remnant-supply-cards.md).
+
 The local keywords prototype adds eight original Bronze Practice paintings.
 [Their provenance](bronze-keywords-prompts.json) records each generation and
 overlay-framing correction; [the card briefs](../../../docs/prototypes/keywords-classes/bronze-cards/README.md)

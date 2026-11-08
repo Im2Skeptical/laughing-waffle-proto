@@ -1,6 +1,6 @@
 import {addFloatingSettlementPrototype} from './floating-settlement-prototype.js';
-// Throwaway experiment: three Force treatments inside the real regional map.
-// Read-only view data. No control, conversion, or Prestige rules are changed.
+// Accepted floating default; explicit earlier variant URLs remain development
+// references. Read-only view data; model summaries own all control calculations.
 import {compactRegionName} from '../region-label.js';
 import {createText,roundedRect} from '../settlement-view-primitives.js';
 import {TEXT_STYLES} from '../settlement-theme.js';
@@ -8,7 +8,7 @@ import {addResourceIcon} from '../resource-cost-pixi.js';
 
 export function regionalReadoutVariant() {
   const value=new URLSearchParams(globalThis.location?.search??'').get('regionalReadout');
-  return ['floating','atlas','shield','tracks','bracket'].includes(value)?value:null;
+  return ['floating','atlas','shield','tracks','bracket'].includes(value)?value:'floating';
 }
 const readouts=new Set();
 export function getFloatingReadoutMeasurements(){return [...readouts].filter(root=>!root.destroyed&&root.measureFloating).map(root=>root.measureFloating());}

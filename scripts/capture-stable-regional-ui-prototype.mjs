@@ -3,10 +3,11 @@ import {chromium} from 'playwright';
 import {BROWSER_PROBE_LAUNCH_OPTIONS} from './browser-probe-config.mjs';
 import {mkdirSync,writeFileSync} from 'node:fs';
 const out='artifacts/regional-stable-layout';mkdirSync(out,{recursive:true});
+const ordinary=process.argv.includes('--ordinary');
 const browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
 const page=await browser.newPage({viewport:{width:844,height:390},hasTouch:true,isMobile:true});
 const errors=[],checks=[],samples=[];page.on('pageerror',e=>{errors.push(e.message);console.log('Page error: '+e.message.slice(0,160));});
-await page.addInitScript(()=>{Element.prototype.requestFullscreen=async()=>{};});
+await page.addInitScript(()=>{Element.prototype.requestFullscreen=async()=>{};Object.defineProperty(document,'fullscreenElement',{get:()=>document.documentElement});});
 const tap=async p=>{const b=await page.locator('canvas').boundingBox();await page.touchscreen.tap(b.x+p.x/2424*b.width,b.y+p.y/1080*b.height);};
 const snapshot=()=>page.evaluate(()=>__SETTLEMENT_DEBUG__.getSnapshot().worldMap);
 const near=(a,b,message)=>assert(Math.abs(a-b)<.08,message+' expected '+a+' actual '+b);
@@ -25,6 +26,7 @@ function check(map,base){
   if(r.holder==='player'||r.holder==='external-a'){
    assert.equal(r.barParts[0].id,r.holder,'Holder support fills from the left');
    near(r.meterTrack.x+r.meterTrack.width*r.thresholdShare,r.shieldAnchor.x,'Shield marks the control threshold');
+   near(map.regionMapIndicators.find(i=>i.regionId===r.regionId).influence.minimumShare,r.thresholdShare,'Shield uses the current weighted model threshold');
   }else assert.equal(r.shownForce,null,'Unheld towns do not pretend their resident Warriors have zero Force');
   if(r.prestige)near(reference.badge.width,r.badge.width,'Uniform combined badge width');
   assert(r.name,'Region name remains visible');assert.deepEqual(r.namePosition,r.nameHome,'Region name remains at live-game home');
@@ -42,12 +44,18 @@ function check(map,base){
  samples.push({zoom:map.camera.zoom,readings:map.floatingReadouts});
 }
 try{
- await page.goto('http://localhost:5186/?regionalReadout=floating&regionalForce=onbar&regionalStart=opening&regionalUiSize=135&perf=1&art=1&launch=new');
+ await page.goto('http://localhost:5186/?'+(ordinary?'':'regionalReadout=floating&regionalForce=onbar&')+'regionalStart=opening&regionalUiSize=135&perf=1&art=1&launch=new');
  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__?.getSnapshot()?.worldMap?.regionCount===20,null,{timeout:180000});console.log('Map state ready');
  await page.getByTestId('game-menu').waitFor({state:'hidden',timeout:180000});console.log('Entered game');
  assert.equal(await page.locator('[data-testid="regional-size-live"],[data-testid="regional-size-slider"]').count(),0,'Temporary size controls removed');
  await page.waitForFunction(()=>document.querySelector('[data-artwork-ready="true"]'),null,{timeout:180000});await page.locator('[data-artwork-ready="true"]').click();
  await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getSnapshot().opening?.phase==='completed',null,{timeout:180000});
+ if(ordinary){
+  const graphPoint=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getGraphClickPoint(.01));
+  await page.touchscreen.tap(graphPoint.x,graphPoint.y);
+  await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getSnapshot().playbackTarget===0);
+  await page.evaluate(()=>__SETTLEMENT_DEBUG__.browseSecond(0));await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getSnapshot().viewedSec===0);
+ }
  assert.equal(await page.evaluate(()=>__SETTLEMENT_DEBUG__.getSnapshot().viewedSec),0,'Review link starts held at the opening');
  const browse=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getRunCompleteClickPoint('browse'));if(browse)await tap(browse);
  const nav=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getNavigationClickPoint('map'));if(nav)await tap(nav);
@@ -75,15 +83,13 @@ try{
    await page.evaluate(()=>__SETTLEMENT_DEBUG__.browseSecond(192));
    await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getSnapshot().viewedSec===192);await page.waitForTimeout(500);
    const later=await snapshot();check(later);
-   assert(later.floatingReadouts.filter(r=>r.holder==='external-a').every(r=>r.thresholdShare<.45),'larger real garrisons keep thresholds left of the no-army boundary');
    await page.screenshot({path:out+'/phone-year6-thresholds.png'});
-   checks.push('year-six real forecast preserves larger garrisons and Force-reduced control thresholds');
+   checks.push('year-six shields match actual weighted control after inherited-food scarcity');
    await page.evaluate(()=>__SETTLEMENT_DEBUG__.browseSecond(1600));
    await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getSnapshot().viewedSec===1600);await page.waitForTimeout(500);
    const fifty=await snapshot();check(fifty);
-   assert(fifty.floatingReadouts.filter(r=>r.holder==='external-a').length>=8,'Crown still holds most territories at year 50');
    await page.screenshot({path:out+'/phone-year50-garrisons.png'});
-   checks.push('real year-50 forecast retains most Crown territories');
+   checks.push('year-50 readouts remain truthful; ordinary food balance has no majority-Crown longevity assertion');
    await page.evaluate(()=>__SETTLEMENT_DEBUG__.browseSecond(0));
    await page.waitForFunction(()=>__SETTLEMENT_DEBUG__.getSnapshot().viewedSec===0);await page.waitForTimeout(300);
   }

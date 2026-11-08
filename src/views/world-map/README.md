@@ -1,5 +1,10 @@
 # World map view extract
 
+The accepted floating settlement readout is the ordinary default, at fixed 70%
+screen scale. Worker/Prestige pills and Force shields take priority over corner
+region labels. Population and food-balance integration notes:
+[`docs/regional-population-ux-integration.md`](../../../docs/regional-population-ux-integration.md).
+
 ## Illustrated live worlds
 
 New games use the shared v1.0.34 regional geography and artwork. The saved

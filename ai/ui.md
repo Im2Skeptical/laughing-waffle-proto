@@ -291,7 +291,7 @@ Save/load preserves the generated map through its versioned seeded definition.
   chamber per point; large custom thresholds group points and show a numeric count. The 269 runtime illustrations and retained earlier-card paintings load as v4 frame names from the settlement-pieces atlases; opaque full-bleed paintings replace the former vignettes. Illustrated frames
   load from the shared `piece-frames` atlas; Trade/Knowledge symbols remain code. Reduced motion keeps static fill/upgrade states.
   Crossroads, Warrior Campaign, and ordinary Legacy use a full regional map
-  with three illustrated mode cards, live costs, selectable legal targets, and
+  with illustrated choice cards, live costs, selectable legal targets, and
   dimmed unavailable regions. Campaign adds Prowess, Retinue, Warriors, Arms and
   total Force, highlighting only the components used by the current mode.
   The embedded map prepares its illustrated terrain and overview camera behind
@@ -299,7 +299,7 @@ Save/load preserves the generated map through its versioned seeded definition.
   confirmation; rejected confirmation preserves the current decision.
   Campaign stays open between attempts, including real Relic acquisition.
   Practice and Structure shops first show their specialty/category picker.
-  The Found Settlement signature retains its cropped polygon regional preview;
+  Ordinary Legacy offers its two retirement rewards beside the world map;
   Patronage/Development show every option's gains, losses, and time cost on
   text-first cards without inspection overlays; tapping anywhere on a card
   selects it, while immediate and surviving-completion Vassal impact stays visible;

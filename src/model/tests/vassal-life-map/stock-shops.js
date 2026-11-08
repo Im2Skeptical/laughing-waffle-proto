@@ -129,7 +129,8 @@ for (const classId of [null, "scholar", "warrior"]) {
     const nodeState = vassal.lifeMap.nodeStates[target.id];
     const checkOffers = () => {
       assert.equal(nodeState.stockOutput, "Tool");
-      assert.ok(nodeState.inventory.length > 0 && nodeState.inventory.length <= 3, 'Full-map Bronze Tool supply is executable before Silver Research');
+      if (research === 0 && classId !== 'scholar') assert.equal(nodeState.inventory.length, 0, 'legacy fixture cannot resurrect the inherited Bronze smithy');
+      else assert.ok(nodeState.inventory.length > 0 && nodeState.inventory.length <= 3, 'Scholar Pattern Carving is Bronze; other Tool producers require Silver');
       assert.ok(nodeState.inventory.every(offer => offer.intervention.kind === "practice"
         && isVassalStockOutputPractice(getDetailedPracticeDef(state, offer.intervention.practiceId), "Tool")));
       assert.equal(getVassalNodeDecisionPresentation(state, target.id).contextKind, "settlement");
@@ -146,7 +147,7 @@ for (const classId of [null, "scholar", "warrior"]) {
     }
     checkOffers();
     assertReplayMatches(restored, state, "saved output and rerolls remain deterministic");
-    if(research===0)continue; // Empty early shops still exercise generation, reload and reroll.
+    if (!nodeState.inventory.length) continue;
     vassal.prestige = 500;
     // Capture the increased test allowance in a checkpoint, then verify purchase replay.
     const checkoutTimeline = createTimelineFromInitialState(state);

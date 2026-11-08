@@ -2,7 +2,6 @@
 
 Callers keep importing from `src/model/vassal-life-map.js`. That barrel
 re-exports the previous public lifecycle API from `../lifecycle.js`.
-`getSettlementRequirements` stays on `lifecycle.js` for presentation.js.
 
 Node confirmation also resolves timed Scholar Delve through the shared mortality
 path, without completing the shop, earning node income, or emitting nodeResolved.
@@ -15,7 +14,7 @@ step before their time advances.
 - `candidates.js` — portraits, signatures, pool generation, initialize,
   reroll, and `selectLifeMapVassal`
 - `node-confirm.js` — enter, option select, confirm, finish, development
-  choices, Relic acquisition, Heirloom inheritance, and `getSettlementRequirements`
+  choices, Relic acquisition, Heirloom inheritance
 - `step.js` — `stepVassalLifeMapSecond`, pending/display reads, validate
 - `../heirlooms.js` — inventory helpers used by candidates, confirm, and validate
 

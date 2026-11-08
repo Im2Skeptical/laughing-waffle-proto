@@ -840,6 +840,6 @@
 	"size": {"w":4042,"h":3965},
 	"scale": "0.3",
 	"related_multi_packs": [ "settlement-pieces-1.json", "settlement-pieces-2.json" ],
-	"smartupdate": "$TexturePacker:SmartUpdate:c18e87c235a2c003c5fb821e3cad1bf0:dded614fd93e4d31e2a1b651bdf43549:e4c8b35e61250632ef8ea3104e602998$"
+	"smartupdate": "$TexturePacker:SmartUpdate:ec2a40d0eb76ba9eacc877be820c2765:8f7aa97707a969f72ac2288b7193131f:e4c8b35e61250632ef8ea3104e602998$"
 }
 }

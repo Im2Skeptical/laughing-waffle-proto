@@ -31,8 +31,8 @@ re-exports the previous public API; internals live here.
   - Warrior visit modes, target validation, mode-specific forces, paid encounters,
     real world victories, Relic rewards and continuous-visit presentation.
 - `world-choices.js`
-  - Crossroads movement/routes/Tour, commit-time random rewards, and free Legacy
-    choices and founding targets. Custom first pathways stay in the prototype.
+  - Adjacent Crossroads movement/routes/Tour, commit-time random rewards, and free Legacy
+    stat and Prestige choices. Custom first pathways stay in the prototype.
 - `shop-specialties.js`
   - Practice output choices, Structure categories, and deferred Monster-pressure
     substitution for card purchases beyond available Prestige.

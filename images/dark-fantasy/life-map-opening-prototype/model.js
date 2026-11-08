@@ -98,8 +98,6 @@ function legacyOptions(session, spec) {
   const statQuantity=Math.floor(stats[highest]/tuning.statDivisor);
   const prestigeQuantity=Math.floor(vassal.prestige/tuning.prestigeDivisor);
   return [
-    {id:'found-settlement',label:'Found a settlement',prestigeCost:0,phaseCost:0,
-      description:'Establish a new settlement on the frontier.'},
     {id:'highest-stat',label:`Teach ${statLabel}`,prestigeCost:0,phaseCost:0,
       description:`Future Vassals start with +${statQuantity} ${statLabel}. · ${stats[highest]} ${statLabel} ÷ ${tuning.statDivisor}`,
       legacyReward:{kind:'startingStat',statId:highest,basis:highest,value:stats[highest],quantity:statQuantity,label:`Future starting ${statLabel}`}},
@@ -107,16 +105,6 @@ function legacyOptions(session, spec) {
       description:`Future Vassals start with +${prestigeQuantity} Prestige. · ${vassal.prestige} Prestige ÷ ${tuning.prestigeDivisor}`,
       legacyReward:{kind:'startingPrestige',basis:'prestige',value:vassal.prestige,quantity:prestigeQuantity,label:'Future starting Prestige'}},
   ];
-}
-function legacySettlement(session) {
-  const state=session.state,vassal=openingVassal(session);
-  const connected=[...new Set(state.world.connections.flatMap(edge=>edge.regionAId===vassal.locationRegionId?[edge.regionBId]:edge.regionBId===vassal.locationRegionId?[edge.regionAId]:[]))].sort();
-  const targets=connected.filter(id=>getRegionState(state,id)?.controller==='frontier').map(regionId=>{
-    const option={id:`legacy-found:${regionId}`,settlementRegionId:regionId,label:`Found ${getRegionReference(state,regionId)}`,prestigeCost:0,phaseCost:0};
-    const requirements=[{label:'Destination capacity: at least 1',met:(getRegionState(state,regionId)?.structureCapacity??0)>=1}];
-    return {...option,requirements,cost:0,phases:0,blocked:requirements.find(entry=>!entry.met)?.label??null};
-  });
-  return {targets,selectedRegionId:session.legacyDestinationRegionId??null};
 }
 function curatedOffers(state, vassal, current, cards) {
   const settlement = state.world.sites.find(s => s.regionId === vassal.locationRegionId).detailedState;
@@ -141,7 +129,6 @@ export function enterOpeningEncounter(session, id) {
   session.randomOutcome = null;
   session.shopSelection = null;
   session.campaign=null;
-  session.legacyDestinationRegionId=null;
   const note = session.experiment.nodes.find(n => n.id === id);
   if (note.kind === 'customNote') { session.activeId = id; session.availableIds = []; session.runtimeNodeId = null; return session; }
   const { state } = session, vassal = getCurrentLifeMapVassal(state);
@@ -260,15 +247,7 @@ export function getOpeningDecision(session, preview = {}) {
       timeLabel: formatVassalPhaseDuration(phases, session.state), projectedAge: age,
       naturalDeathChance: getVassalMortalityChance(age), totalDeathChance: getVassalMortalityChance(age) };
   }
-  const settlement=spec.kind==='legacy'?legacySettlement(session):null;
-  const legacyRequirements=settlement?{ 'found-settlement':[
-    {label:'Connected frontier destination',met:settlement.targets.some(target=>!target.blocked)},
-  ] }:null;
-  if(legacyRequirements) {
-    const unmet=legacyRequirements['found-settlement'].find(entry=>!entry.met);
-    if(unmet)options.find(option=>option.id==='found-settlement').blocked=`Requires ${unmet.label}`;
-  }
-  return { ...presentation, liveWorld:false, ...(legacyRequirements?{workshopLegacy:true,contextKind:'none',optionRequirements:legacyRequirements,legacySettlement:settlement}:{}), ...(session.shopSelection ? { shopTag: session.shopSelection.selectedTag,
+  return { ...presentation, liveWorld:false, ...(spec.kind==='legacy'?{workshopLegacy:true,contextKind:'none',optionRequirements:{}}:{}), ...(session.shopSelection ? { shopTag: session.shopSelection.selectedTag,
     ...(!session.shopSelection.selectedTag ? {shopTagChoices:session.shopSelection.tags.map(({cards,...tag})=>({...tag,enabled:cards.length>0}))} : {}) } : {}),
     node: { ...presentation.node, experimentId: spec.id,
     presentationLabel: spec.title, presentationDescription: spec.description },
@@ -277,7 +256,6 @@ export function getOpeningDecision(session, preview = {}) {
 export function selectOpeningOption(session, optionId) {
   if(session.campaign)return selectCampaignMode(session,optionId);
   if(session.experiment.nodes.find(node=>node.id===session.activeId)?.kind==='legacy') {
-    session.legacyDestinationRegionId=null;
     if(optionId===null){nodeState(session).selectedOptionId=null;return;}
   }
   if (session.shopSelection && !session.shopSelection.selectedTag) {
@@ -286,13 +264,6 @@ export function selectOpeningOption(session, optionId) {
   const option = getOpeningDecision(session)?.options.find(o => o.id === optionId);
   if (!option || option.blocked) throw new Error(option?.blocked ?? 'Choose an available action.');
   return requireOk(selectVassalNodeOption(session.state, session.runtimeNodeId, optionId));
-}
-export function selectOpeningLegacyDestination(session, regionId) {
-  const decision=getOpeningDecision(session);
-  if(!decision?.legacySettlement||decision.nodeState.selectedOptionId!=='found-settlement')throw new Error('Choose Found a settlement first.');
-  const target=decision.legacySettlement.targets.find(target=>target.settlementRegionId===regionId);
-  if(!target||target.blocked)throw new Error(target?.blocked??'Choose a highlighted frontier destination.');
-  session.legacyDestinationRegionId=regionId;
 }
 export function stageOpeningOffer(session, offerId, origin, toIndex, replacePracticeId) {
   const current = nodeState(session), offer = current.inventory.find(offer => offer.offerId === offerId);
@@ -392,11 +363,9 @@ export function finishOpeningLegacyMock(session, optionId) {
   if(spec?.kind!=='legacy')throw new Error('Enter Legacy first.');
   const option=getOpeningDecision(session).options.find(option=>option.id===(optionId??nodeState(session).selectedOptionId));
   if(!option||option.blocked)throw new Error(option?.blocked??'Choose a Legacy option.');
-  const destination=option.id==='found-settlement'?getOpeningDecision(session).legacySettlement.targets.find(target=>target.settlementRegionId===session.legacyDestinationRegionId):null;
-  if(option.id==='found-settlement'&&(!destination||destination.blocked))throw new Error(destination?.blocked??'Choose a settlement destination on the map.');
   const summary=openingSummary(session);
   session.outcomes.push({id:spec.id,title:spec.title,before:summary,after:structuredClone(summary),
-    legacyChoice:{id:option.id,label:option.label,...(destination?{destinationRegionId:destination.settlementRegionId,destinationLabel:getRegionReference(session.state,destination.settlementRegionId)}:{}),...(option.legacyReward?{reward:structuredClone(option.legacyReward)}:{})},mock:true});
+    legacyChoice:{id:option.id,label:option.label,...(option.legacyReward?{reward:structuredClone(option.legacyReward)}:{})},mock:true});
   session.visitedIds.push(spec.id);session.activeId=null;session.runtimeNodeId=null;session.availableIds=[];
 }
 

@@ -6,6 +6,8 @@ import {allegianceSummary,populationBins,writePopulationBins,validatePopulationL
 import {resolveControl,changeController,controlSummary} from '../src/model/detailed-settlements/territory.js';
 import {initializeReplayClock,advanceReplayStateToSecond} from '../src/model/replay-second-runner.js';
 import {createTimelineFromInitialState,rebuildStateAtSecond} from '../src/model/timeline/index.js';
+import {FULL_MAP_SEED_CARD_IDS} from '../src/defs/gamepieces/full-map-defs.js';
+import {getHousingCapacity} from '../src/model/detailed-settlements/queries.js';
 const seeds=[42,424242,...Array.from({length:128},(_,i)=>i*7919+1)];
 for(const seed of seeds){
  const state=createNewGameState(seed),regions=state.world.regions;
@@ -47,6 +49,15 @@ for(const seed of seeds){
  const monsterSite=state.world.sites.find(s=>s.regionId===monsters[0].id);assert.equal(monsters[0].controller,'frontier');assert(!monsterSite.neutral);assert.equal(monsterSite.simulationMode,'ruin');
  resolveControl(state);resolveControl(state);assert.equal(regions.filter(r=>r.controller==='external-a').length,14);
  const active=state.world.sites.filter(s=>s.simulationMode==='detailed'&&!s.neutral);
+ for(const site of state.world.sites){
+  for(const slot of site.detailedState.practiceSlots.filter(Boolean))assert(FULL_MAP_SEED_CARD_IDS.includes(slot.practiceId),`ordinary Practice seeded: ${slot.practiceId}`);
+  for(const slot of site.detailedState.structureSlots.filter(Boolean)){
+   assert(FULL_MAP_SEED_CARD_IDS.includes(slot.structureId),`ordinary Structure seeded: ${slot.structureId}`);
+   assert(slot.origin+slot.width<=site.detailedState.structureSlots.length,'inherited housing and supports fit the region');
+  }
+  for(const id of (site.neutral??site.town?.market)?.practices??[])assert(FULL_MAP_SEED_CARD_IDS.includes(id),`ordinary first-control Practice: ${id}`);
+ }
+ for(const site of active)assert(getHousingCapacity(state,site.regionId)>=Object.values(allegianceSummary(site.detailedState)).reduce((a,b)=>a+b,0),'damaged housing still accommodates the initial population');
  const supports=active.map(s=>s.detailedState.structureSlots.filter(Boolean).find(slot=>slot.placementId.endsWith(':support'))?.structureId);
  assert(supports.every(Boolean),'every active settlement has a support building');
  assert(supports.some(id=>id!=='granary'),'granaries are not universal');
@@ -75,10 +86,19 @@ advanceReplayStateToSecond(initial,80);advanceReplayStateToSecond(loaded,80);
 assert.deepEqual(serializeGameState(initial),serializeGameState(loaded));
 const replay=rebuildStateAtSecond(timeline,80);assert(replay.ok);assert.deepEqual(serializeGameState(replay.state),serializeGameState(initial));
 for(const seed of [123,42,424242]){
- const fifty=initializeReplayClock(createNewGameState(seed));
+ // Supplied reference fixture isolates inherited Warriors and Force from the
+ // deliberately weaker inherited-food opening on main. This is not New Game
+ // food balance or a claim of 50-year control in an unattended ordinary run.
+ const fifty=createNewGameState(seed);
+ for(const site of fifty.world.sites.filter(s=>fifty.world.regions.find(r=>r.id===s.regionId).controller==='external-a')){
+  const nonFood=site.detailedState.practiceSlots.filter(slot=>slot&&!fifty.gameConfig.gamepieces.practices[slot.practiceId].stockTraits.includes('Edible'));
+  site.detailedState.practiceSlots=[{practiceId:'pastoralism',tier:'bronze',stock:4,charge:0,work:0},{practiceId:'forage',tier:'bronze',stock:2,charge:0,work:0},...nonFood.slice(0,3)];
+  while(site.detailedState.practiceSlots.length<5)site.detailedState.practiceSlots.push(null);
+ }
+ initializeReplayClock(fifty);
  for(const sec of [320,800,1600]){
   assert(advanceReplayStateToSecond(fifty,sec).ok);
-  assert(fifty.world.regions.filter(r=>r.controller==='external-a').length>=8,'larger Crown start retains most holdings through year 50');
+  assert(fifty.world.regions.filter(r=>r.controller==='external-a').length>=8,'supplied reference garrisons retain most holdings through year 50');
  }
 }
-console.log(`[crown-opening] ${seeds.length} seeds: larger loyal armies, conserved residents, trade/replay and three 50-year Crown starts OK`);
+console.log(`[crown-opening] ${seeds.length} seeds: larger loyal armies, conserved residents, trade/replay and three supplied 50-year reference starts OK`);

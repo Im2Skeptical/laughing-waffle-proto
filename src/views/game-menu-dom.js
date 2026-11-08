@@ -292,35 +292,6 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
       dev.dataset.testid = 'game-developer-tools'; dev.open = devExpanded;
       const summary = document.createElement('summary'); summary.textContent = 'Developer tools';
       dev.append(summary);
-      if(new URLSearchParams(location.search).has('regionalReadout')) {
-        const label=document.createElement('label');label.textContent='Regional readout prototype ';
-        const select=document.createElement('select');select.dataset.testid='regional-readout-variant';
-        for(const [value,name] of [['floating','Floating settlement readout'],['atlas','Previous ? Heraldry & focus'],['shield','Original A ? Attached shield'],['tracks','B ? Dual track'],['bracket','C ? Occupation bracket']]) {
-          const option=document.createElement('option');option.value=value;option.textContent=name;select.append(option);
-        }
-        select.value=new URLSearchParams(location.search).get('regionalReadout');
-        select.addEventListener('change',()=>{const url=new URL(location.href);url.searchParams.set('regionalReadout',select.value);location.href=url.href;});
-        label.append(select);dev.append(label);
-        if(new URLSearchParams(location.search).get('regionalReadout')==='floating'){
-          const forceLabel=document.createElement('label');forceLabel.textContent='Force treatment ';
-          const forceSelect=document.createElement('select');forceSelect.dataset.testid='regional-force-variant';
-          for(const [value,name] of [['onbar','Numbered shield on meter'],['shield','Previous A: Shield end-cap'],['surround','B: Armour surround'],['rail','C: Underbar Force rail']]){
-            const option=document.createElement('option');option.value=value;option.textContent=name;forceSelect.append(option);
-          }
-          forceSelect.value=new URLSearchParams(location.search).get('regionalForce')??'onbar';
-          forceSelect.addEventListener('change',()=>{const url=new URL(location.href);url.searchParams.set('regionalForce',forceSelect.value);location.href=url.href;});
-          forceLabel.append(forceSelect);dev.append(forceLabel);
-          const countLabel=document.createElement('label');countLabel.textContent='Left number ';
-          const countSelect=document.createElement('select');
-          for(const [value,name] of [['population','Total residents'],['workers','Total workers']]){const option=document.createElement('option');option.value=value;option.textContent=name;countSelect.append(option);}
-          countSelect.value=new URLSearchParams(location.search).get('regionalCount')??'workers';
-          countSelect.addEventListener('change',()=>{const url=new URL(location.href);url.searchParams.set('regionalCount',countSelect.value);location.href=url.href;});
-          countLabel.append(countSelect);dev.append(countLabel);
-
-        }
-
-      }
-
       const performanceButton = button('New game in performance mode', event => {
         const kind=performanceEntryPending && (performanceLaunch==='continue' || (performanceLaunch!=='new' && session.getPerformanceSave?.())) ? 'continue' : 'new';
         launchPerformance(kind,event);

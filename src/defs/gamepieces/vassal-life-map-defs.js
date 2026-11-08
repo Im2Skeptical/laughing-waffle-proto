@@ -1,4 +1,4 @@
-export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 8;
+export const VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION = 9;
 const VASSAL_TIME_COST_MULTIPLIER = 3.6;
 const increasedYearCost = (baseCost) => baseCost * VASSAL_TIME_COST_MULTIPLIER;
 
@@ -27,7 +27,7 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
   }),
   crossroads: Object.freeze({
     id: "crossroads", label: "Crossroads", glyph: "X", color: 0x62ad82,
-    description: "Move, build a route, or tour this region.",
+    description: "Move to an adjacent region, build a route, or tour this region.",
   }),
   practiceReform: Object.freeze({
     id: "practiceReform", label: "Practice Reform", glyph: "PR", color: 0xa46fc4,
@@ -58,10 +58,6 @@ export const VASSAL_NODE_FAMILIES = Object.freeze({
   stockShop: Object.freeze({
     id: "stockShop", label: "Stock Supply", glyph: "ST", color: 0xb88449,
     description: "Choose Practices that produce one specific Stock output.",
-  }),
-  settlement: Object.freeze({
-    id: "settlement", label: "Settlement", glyph: "S", color: 0x77aa65,
-    description: "Found a nearby settlement and move this Vassal there.",
   }),
   crisis: Object.freeze({
     id: "crisis", label: "Crisis", glyph: "!", color: 0xca5b5b,
@@ -108,15 +104,10 @@ export const VASSAL_NORMAL_NODE_FAMILY_IDS = Object.freeze([
 ]);
 
 export const VASSAL_SIGNATURE_NODE_GROUP_IDS = Object.freeze([
-  "settlement", "legacyPlus", "monsterHunt", "removal", "tagShop",
+  "legacyPlus", "monsterHunt", "removal", "tagShop",
 ]);
 
 export const VASSAL_SIGNATURE_NODE_VARIANTS = Object.freeze({
-  settlement: Object.freeze({
-    id: "settlement", groupId: "settlement", label: "Found Settlement",
-    glyph: "FS", color: 0x77aa65,
-    description: "Found a nearby settlement and move this Vassal there.",
-  }),
   legacyPlus: Object.freeze({
     id: "legacyPlus", groupId: "legacyPlus", label: "Legacy+",
     glyph: "L+", color: 0xa29ee8,
@@ -146,7 +137,6 @@ export const VASSAL_SIGNATURE_NODE_VARIANTS = Object.freeze({
 });
 
 export const VASSAL_SIGNATURE_VARIANT_IDS_BY_GROUP = Object.freeze({
-  settlement: Object.freeze(["settlement"]),
   legacyPlus: Object.freeze(["legacyPlus"]),
   monsterHunt: Object.freeze(["monsterHunt"]),
   removal: Object.freeze(["removePractice"]),
@@ -172,7 +162,6 @@ export const VASSAL_LIFE_TUNING = Object.freeze({
   routeAddYearCost: increasedYearCost(3),
   signatureRemovalYearCost: increasedYearCost(2),
   signatureRemovalPrestigeCost: 10,
-  settlementPrestigeCost: 40,
   legacyPrestigeCost: 20,
   legacyYearCost: increasedYearCost(4),
   legacyStartingPrestigeBonus: 3,

@@ -1,22 +1,11 @@
 # Current Project Context
 
-Game build version: `1.1.53`.
-This unmerged regional-readout worktree now prototypes intrinsic Warrior Force
-and minority-Crown occupations; see
-[`WARRIOR_FORCE_PLAYABLE.md`](../docs/prototypes/regional-map-20261105/WARRIOR_FORCE_PLAYABLE.md)
-for current experiment rules and deferred population work. The subsequent
-[food/threshold pass](../docs/prototypes/regional-map-20261105/FOOD_CONTROL_THRESHOLDS.md)
-adds viable seeded food routes and shields at the control boundary.
-The [larger-garrison trial](../docs/prototypes/regional-map-20261105/LARGER_GARRISONS_50_YEAR.md)
-uses 1.75x starting Warrior targets, capped by existing adults, for roughly
-50-year Crown coverage. Recruits also create Crown-majority allegiance. Floating
-UI is fixed at 70% and has visual priority over region titles.
-The [visual census pass](../docs/prototypes/regional-map-20261105/DEMOGRAPHICS_VISUAL.md)
-replaces Demographics prose with age/supply summaries and an allegiance-by-class
-grid. The approved [weighted Force and proportional-birth trial](../docs/prototypes/regional-map-20261105/PROPORTIONAL_BIRTHS_WEIGHTED_FORCE.md)
-now uses carried birth-allegiance entitlement and 1:10 unaffiliated / 1:5 rival
-civilian / 1:1 rival soldier resistance. Existing support thresholds and opening
-armies remain unchanged. New quota state uses GameState v43; start fresh.
+Game build version: `1.1.55`.
+The accepted [regional population UX](../docs/regional-population-ux-integration.md)
+uses floating 70% map readouts, visual demographics, Warrior baseline Force and
+carried proportional newborn allegiance. It preserves the degraded starter
+economy; unattended Crown longevity is a known food-balance limitation. Combined
+GameState v44 supersedes both independent v43 formats; start fresh.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -88,15 +77,15 @@ identifiers remain stable; see [the mapping and authoring contract](../docs/cree
 
 Authoritative numbers:
 
-- Game state v43; runner saves v32. Older saves are rejected.
+- Game state v44; runner saves v33. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
-- Each run serializes schema-v29 Game Settings, Gamepieces, and Life Map
+- Each run serializes schema-v30 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.
 - Map Lab drafts v8; scenario libraries v4.
 - Vassal Lab draft/preset schema v5.
 - Life Map Lab drafts v2.
 - Card reviewer drafts/export v1; stable browser storage independent of game saves and builds.
-- Life Map generator settings v15; serialized Life Map graph v8.
+- Life Map generator settings v16; serialized Life Map graph v9.
 - Lifegraph workbench drafts/reviews/exports v1 are independent browser documents.
   Pooled experiments capture families, class eligibility, guarantees and named
   option-level absolute cost presets and shared card-type/quality shop prices in
@@ -130,6 +119,19 @@ Authoritative numbers:
   Card-review proposals require the menu's Use edited cards in new games toggle;
   new runs capture them in gameConfig. Existing runs and deterministic replay
   use their own serialized definitions, never browser review storage.
+  Neutral starting and enemy/remnant cards remain executable on the map but
+  are excluded from Vassal shops and Stock Supply generation, including refreshes.
+  Eight degraded supply Practices extend inherited town recipes; the original
+  class supply cards retain their class/tier restrictions. Irrigating is a
+  Scholar-only Bronze offer. Stock Supply uses Common outputs before Founding
+  and class-only outputs afterwards. See `docs/remnant-supply-cards.md`.
+  Every ordinary map-seeded card and first-control recipe now uses the 62-card
+  starter list. Scrub Foraging and Sagging Storehouse fill the remaining basic
+  roles; adopted Common cards are replaced by diminished counterparts. Player
+  Housing remains 30 in two damaged cottages, with no population or RNG changes.
+  See `docs/starter-economy.md` for role comparisons and placement costs.
+  Crossroads moves only to polygon-adjacent regions. Settlement-founding choices,
+  signatures and old expansion interventions are removed; the full map supplies settlements.
   Optional boolean card-definition `locked` flags default to unlocked and are
   captured through the same review/profile path. They exclude shop offers and
   Stock Supply generation candidates while preserving installed-card behavior.
