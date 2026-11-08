@@ -3,6 +3,8 @@
 Cam approved merging the regional-readout prototype with current main and
 publishing Pages on 8 November 2026. This combines the accepted population work
 with the inherited starter economies and map-choice constraints from PR #82.
+Cam also replaced the old Dispatcher merge handoff: the task-owning agent gets
+a fresh independent review when needed, then squash-merges after checks pass.
 
 ## Accepted behavior
 

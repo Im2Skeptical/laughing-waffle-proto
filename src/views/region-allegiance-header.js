@@ -43,7 +43,8 @@ export function addRegionAllegianceHeader(root,{x,y,vm,reference,tooltipView}){
     'Warrior baseline Force needs no equipment or extra garrison meals.',
     ...(c.upkeep?[`Card upkeep: ${c.upkeep} Edible ${c.supplied?'paid':'MISSING; conditional bonuses inactive'}.`]:[]),
     `Unrest ${Math.round(c.unrest)} moves toward ${Math.round(c.targetUnrest)} at each Death control check.`,
-    'Occupation requires 1 Force per 5 non-loyal residents, rounded up. Loss: unrest 75 for two checks without support or sufficient Force.',
+    'Resistance: 1 Force per 10 unaffiliated residents, 1 per 5 rival civilians, plus 1 per rival adult/Elder Warrior; round the total up.',
+    'Loss: unrest 75 for two checks without support or sufficient Force.',
     `${vm.usedStructureCapacity} / ${vm.structureCapacity} construction cells.`,
   ],maxWidth:420,scale:2},`territory:${reference}`,tooltipView);
   root.addChild(status);
