@@ -1,6 +1,6 @@
 import { TERRITORIAL_PRESTIGE_POPULATION_PER_POINT, getRegionPrestigePerNode } from '../vassal-life-map/selectors.js';
 import { controlSummary, militarySummary, garrisonSupportTargets } from './territory.js';
-import { getMartialForce, getMartialSupport, getMonsterPressureRate } from './external-world.js';
+import { getMartialForce, getMartialSupport, getMonsterPressureRate, MONSTER_REPEL_STRENGTH_GAIN } from './external-world.js';
 import { getChaosResistance } from './phases/chaos.js';
 import { stockTotal, specialistCount } from "./stock.js";
 import { getPopulationDemographics } from './demographics.js';
@@ -132,6 +132,8 @@ export function getDetailedCivilizationSummary(state) {
       expansionThreshold: getGameSetting(state, 'monsterExpansionThreshold'),
       progressPerMoon: getMonsterPressureRate(state),
       monsterCount: Math.max(0, Math.floor(state?.civilization?.chaos?.monsterCount ?? 0)),
+      repelStrengthGain: MONSTER_REPEL_STRENGTH_GAIN,
+      lastMonsterSpawn: clone(state?.civilization?.chaos?.lastMonsterSpawn ?? null),
       lastReckoning: clone(state?.civilization?.chaos?.lastMoonIncome ?? null),
     },
     green: getGreenAscendancySummary(state),

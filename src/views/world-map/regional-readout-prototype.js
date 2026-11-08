@@ -1,4 +1,5 @@
 import {addFloatingSettlementPrototype} from './floating-settlement-prototype.js';
+import {addMonsterReadout} from './monster-readout.js';
 // Accepted floating default; explicit earlier variant URLs remain development
 // references. Read-only view data; model summaries own all control calculations.
 import {compactRegionName} from '../region-label.js';
@@ -12,6 +13,7 @@ export function regionalReadoutVariant() {
 }
 const readouts=new Set();
 export function getFloatingReadoutMeasurements(){return [...readouts].filter(root=>!root.destroyed&&root.measureFloating).map(root=>root.measureFloating());}
+export function getMonsterReadoutMeasurements(){return [...readouts].filter(root=>!root.destroyed&&root.worldVisible&&root.measureMonster).map(root=>root.measureMonster());}
 export function updateRegionalReadoutScale(zoom){
   for(const root of readouts){if(root.destroyed){readouts.delete(root);continue;}if(root.updateFloatingLayout){root.updateFloatingLayout(zoom);continue;}root.scale.set((root.atlasMarker?1.18:1.35)/Math.max(.25,zoom));}
 }
@@ -42,6 +44,7 @@ function VariantBracket(root,p){
 }
 
 export function addRegionalReadoutPrototype(parent,point,indicator,{tooltipView,reference,variant,spriteBounds,forceSample}){
+  if(indicator.monster){const root=addMonsterReadout(parent,point,indicator,{tooltipView,reference});if(root)readouts.add(root);return root;}
   if(variant==='floating'){const root=addFloatingSettlementPrototype(parent,point,indicator,{tooltipView,reference,spriteBounds,forceSample});if(root)readouts.add(root);return root;}
   if(variant==='atlas')return addAtlasMarker(parent,point,indicator,{tooltipView,reference});
   const p=indicator.influence;if(!p||indicator.monster)return;

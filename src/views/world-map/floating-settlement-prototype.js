@@ -4,6 +4,7 @@ import {createText} from '../settlement-view-primitives.js';
 import {TEXT_STYLES} from '../settlement-theme.js';
 import {addResourceIcon} from '../resource-cost-pixi.js';
 import {minimumHoldingAllegiance} from '../../model/detailed-settlements/territory.js';
+import {REGIONAL_READOUT_SCREEN_SCALE} from './constants.js';
 
 const amount=n=>String(Number(Number(n??0).toFixed(1)));
 function label(root,value,size,colour=0xf0e1bf){
@@ -109,7 +110,7 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   root.updateFloatingLayout=zoom=>{
     const forceStyle=new URLSearchParams(globalThis.location?.search??'').get('regionalForce')??'onbar';
     if(lastZoom===zoom&&lastStyle===forceStyle)return;lastZoom=zoom;lastStyle=forceStyle;
-    const scale=1.08*.7/zoom;root.scale.set(scale);
+    const scale=REGIONAL_READOUT_SCREEN_SCALE/zoom;root.scale.set(scale);
     const left=(bounds.min.x-point.x)/scale,right=(bounds.max.x-point.x)/scale;
     const top=(bounds.min.y-point.y)/scale,bottom=(bounds.max.y-point.y)/scale;
     badge.position.set((left+right)/2,top-radius-6);

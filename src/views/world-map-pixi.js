@@ -1,4 +1,4 @@
-import {regionalReadoutVariant,addRegionalReadoutPrototype,updateRegionalReadoutScale,addAtlasFocus,ATLAS_ECONOMY_POINT,getFloatingReadoutMeasurements} from './world-map/regional-readout-prototype.js';
+import {regionalReadoutVariant,addRegionalReadoutPrototype,updateRegionalReadoutScale,addAtlasFocus,ATLAS_ECONOMY_POINT,getFloatingReadoutMeasurements,getMonsterReadoutMeasurements} from './world-map/regional-readout-prototype.js';
 import { getRegionTerrainStyle, getRegionNameColour } from './world-map/region-style.js';
 import { minimalGraphics } from './minimal-graphics.js';
 import { createRegionLabel } from './region-label.js';
@@ -33,6 +33,7 @@ import {
   getDetailedCivilizationSummary,
   getDetailedSettlementViewModel,
   getDetailedVassalPrestige,
+  getMonsterThreat,
 } from "../model/detailed-settlements.js";
 import { getCurrentLifeMapVassal, getVassalAge } from "../model/vassal-life-map.js";
 import {
@@ -154,6 +155,7 @@ function buildRegionMapIndicators(state, definition) {
   return definition.regions.map((regionDef) => {
     const region = getRegionState(state, regionDef.id);
     const viewModel = getDetailedSettlementViewModel(state, regionDef.id);
+    const monsterThreat=getMonsterThreat(state,regionDef.id);
     const activeWorkerCount = getActiveWorkerCount(viewModel);
     const unusedWorkerCount = getUnusedWorkerCount(viewModel);
     const structureCapacity = Math.max(
@@ -169,6 +171,7 @@ function buildRegionMapIndicators(state, definition) {
       regionId: regionDef.id,
       controller: region?.controller ?? null,
       monster: region?.monster ?? null,
+      monsterThreat:monsterThreat?{...monsterThreat,targetName:monsterThreat.targetRegionId?getRegionReference(state,monsterThreat.targetRegionId):null}:null,
       neutral: (state.world.sites ?? []).find(s=>s.regionId===regionDef.id)?.neutral ?? null,
       showsPlayerMarker:false,
       prestigePopulationPerPoint:viewModel?.prestigePopulationPerPoint,
@@ -1026,6 +1029,7 @@ export function createWorldMapView({
             `Monster regions: ${civilizationSummary.chaos.monsterCount}`,
             `Creep: ${formatChaosValue(civilizationSummary.chaos.expansionProgress)} / ${civilizationSummary.chaos.expansionThreshold}`,
             "At 100 Creep by default, trigger a Monster Spawn. Excess Creep carries over.",
+            `Repelled Monsters gain +${civilizationSummary.chaos.repelStrengthGain} Strength for their next attack.`,
             "Resistance contains passive Creep gain; dangerous actions bypass it.",
           ],
         }, civilizationPanel.getBounds(), { dismissOnExit: true });
@@ -1174,6 +1178,8 @@ export function createWorldMapView({
         : [];
       return {
         visible: root.visible === true,
+        monsterReadouts:getMonsterReadoutMeasurements(),
+        lastMonsterSpawn:civilizationSummary.chaos.lastMonsterSpawn,
         floatingNamesAboveReadouts:floatingMode&&floatingReferenceLayer?.parent===mapContent&&floatingOverlay.parent===mapContent?mapContent.getChildIndex(floatingReferenceLayer)>mapContent.getChildIndex(floatingOverlay):null,
         floatingReadouts:floatingMode?getFloatingReadoutMeasurements().map(reading=>{const label=floatingNameLabels.find(item=>!item.destroyed&&item.mapRegionId===reading.regionId),b=label?.visible?label.getBounds():null;return {...reading,name:b?{x:b.x,y:b.y,width:b.width,height:b.height}:null,nameHome:label?.floatingHome??null,namePosition:label?{x:label.x,y:label.y}:null};}):null,
         regionalReadoutPrototype:atlasMode?{variant:'atlas',economyExpanded:prototypeEconomyExpanded,economyClickPoint:ATLAS_ECONOMY_POINT}:null,

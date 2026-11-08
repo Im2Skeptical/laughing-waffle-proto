@@ -4,6 +4,9 @@ The accepted floating settlement readout is the ordinary default, at fixed 70%
 screen scale. Worker/Prestige pills and Force shields take priority over corner
 region labels. Population and food-balance integration notes:
 [`docs/regional-population-ux-integration.md`](../../../docs/regional-population-ux-integration.md).
+`monster-readout.js` adds the matching fixed-scale Monster Strength badge and
+touch inspection. Repel feedback and baseline timing are documented in
+[`docs/monster-escalation.md`](../../../docs/monster-escalation.md).
 
 ## Illustrated live worlds
 

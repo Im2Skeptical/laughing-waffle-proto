@@ -141,7 +141,7 @@ export function createEmptyState(
   );
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
-    gameStateSchemaVersion: 44,
+    gameStateSchemaVersion: 45,
     phase: "simulation",
     turn: 0,
     seasons: SEASONS,
@@ -182,6 +182,7 @@ export function createEmptyState(
         monsterPressure: 0,
         expansionEvents: 0,
         lastPressureRegionId: null,
+        lastMonsterSpawn: null,
         monsterCount: 0,
         lastMoonIncome: null,
         pendingLosses: {
@@ -449,8 +450,8 @@ export function serializeGameState(state) {
 }
 
 function validateDeserializedStateBody(state) {
-  if (state?.gameStateSchemaVersion !== 44) {
-    throw new Error("Unsupported game-state schema: expected v44");
+  if (state?.gameStateSchemaVersion !== 45) {
+    throw new Error("Unsupported game-state schema: expected v45");
   }
   if ((state.rulesetId != null && state.rulesetId !== 'full-map-redesign-v1')
       || (state.civilization?.treasury && state.rulesetId !== 'full-map-redesign-v1')) {
@@ -462,6 +463,15 @@ function validateDeserializedStateBody(state) {
       || !Number.isInteger(chaos.spatialSpawns) || chaos.spatialSpawns<0
       || !(chaos.lastPressureRegionId===null || state.world.regions.some(r=>r.id===chaos.lastPressureRegionId))) {
     throw new Error("Invalid serialized Monster Pressure");
+  }
+  const spawn=chaos.lastMonsterSpawn;
+  const regionId=id=>id===null||state.world.regions.some(r=>r.id===id);
+  const strength=value=>value===null||Number.isInteger(value)&&value>=1;
+  if(spawn!==null&&(!spawn||!Number.isFinite(spawn.tSec)||spawn.tSec<0||spawn.tSec>state.tSec
+      ||!['creep','direct'].includes(spawn.cause)||!['intercepted','expanded','appeared','strengthened','blocked'].includes(spawn.outcome)
+      ||!regionId(spawn.sourceRegionId)||!regionId(spawn.targetRegionId)||!strength(spawn.strengthBefore)||!strength(spawn.strengthAfter)
+      ||spawn.outcome==='intercepted'&&(spawn.sourceRegionId===null||spawn.targetRegionId===null||spawn.strengthBefore===null||spawn.strengthAfter===null||spawn.strengthAfter<=spawn.strengthBefore))){
+    throw new Error('Invalid serialized Monster Spawn result');
   }
   canonicalizeWorldState(state);
   const worldValidation = validateWorldState(state);
@@ -541,8 +551,8 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
-  if (state?.gameStateSchemaVersion !== 44) {
-    throw new Error("Unsupported game-state schema: expected v44");
+  if (state?.gameStateSchemaVersion !== 45) {
+    throw new Error("Unsupported game-state schema: expected v45");
   }
   const gameConfigValidation = validateGameConfig(state.gameConfig);
   if (!gameConfigValidation.ok) {

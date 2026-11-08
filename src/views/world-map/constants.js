@@ -1,4 +1,5 @@
 import { SETTLEMENT_RESOURCE_COLOURS } from "../../model/graph-metrics.js";
+export const REGIONAL_READOUT_SCREEN_SCALE=1.08*.7;
 
 export const MAP_RECT = Object.freeze({ x: 488, y: 104, width: 1448, height: 688 });
 export const MAP_VIEWPORT_RECT = Object.freeze({ x: 16, y: 78, width: 2392, height: 748 });
@@ -13,7 +14,7 @@ export const CIVILIZATION_RECT = Object.freeze({
   x: 16,
   y: 92,
   width: 420,
-  height: 108,
+  height: 136,
 });
 export const DETAIL_RECT = Object.freeze({
   x: 960,

@@ -1,13 +1,15 @@
 # Creep and Monster Spawn
 
 Trial player-facing vocabulary requested by Cam on 3 November 2026. Names and supported bindings live in [the mechanics catalogue](../src/defs/mechanics.js).
-The existing threat balance and threshold timing are unchanged.
+The Creep threshold and passive rate are unchanged. Repelled Monsters now gain
++1 Strength for their next attack; see [Monster escalation](monster-escalation.md).
 
 - **Creep** is the shared threat meter. Card copy says `+10 Creep`, `Gain 10
   Creep`. Chaos and Resistance are separate concepts:
   Resistance contains passive Creep gain; direct Creep costs bypass it.
 - **Monster Spawn** is one Monster threat resolution, normally triggered at
-  **100 Creep**. It attempts expansion; interception can repel it. Existing
+  **100 Creep**. It attempts expansion; interception holds the target region and
+  gives the repelled Monster **+1 Strength** for its next attack. Existing
   blocked-front rules may create a new front or strengthen a Monster instead.
   These outcomes still belong to one Spawn, rather than creating extra Spawns.
 - A full meter spends its threshold and retains overflow. For example, adding
@@ -30,12 +32,15 @@ The existing threat balance and threshold timing are unchanged.
 `triggerMonsterSpawn` effect. Both emit one global `monsterSpawn` event after
 regional outcomes. The event carries `cause` (`creep` or `direct`), outcome and
 source/target region IDs where applicable. Existing state field names and RNG
-behavior are retained. The JSON event journal needs no new state shape.
+behavior are retained. The latest result is saved in `chaos.lastMonsterSpawn`
+for replayable UI feedback. GameState v45 rejects obsolete v44 trajectories.
 
 The existing `monsterPressure` event is **not** a once-per-Spawn event. One
 resolution can emit `action: 'advance'` at the source and `action: 'expand'` at
 the destination. Other outcomes emit `spawn` or `strengthen`; an intercepted
-advance also emits `defenseSucceeded`. Existing cards such as Watchkeeping
+advance also emits `defenseSucceeded` at the target and `strengthen` at the
+source. These are regional activity signals, still only one global Spawn.
+Existing cards such as Watchkeeping
 continue to react to their existing local/adjacent **Monster activity**, not
 newly to global Creep gains or once per Spawn.
 
