@@ -4,7 +4,8 @@ Game build version: `1.1.55`.
 The accepted [regional population UX](../docs/regional-population-ux-integration.md)
 uses floating 70% map readouts, visual demographics, Warrior baseline Force and
 carried proportional newborn allegiance. It preserves the degraded starter
-economy; unattended Crown longevity is a known food-balance limitation. Combined
+economy with smaller Crown populations, fitted housing and budgeted food access;
+ordinary starts now exercise the 50-year garrison target. Combined
 GameState v44 supersedes both independent v43 formats; start fresh.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;

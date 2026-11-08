@@ -64,7 +64,7 @@ try{
  const crownArmy=base.floatingReadouts.filter(r=>r.holder==='external-a');assert.equal(crownArmy.length,14);
  assert(crownArmy.every(r=>r.force>=r.warriors&&r.shownForce===Math.floor(r.force)));
  assert(crownArmy.every(r=>r.status==='supported'));
- assert(crownArmy.every(r=>r.warriors>=9));
+ assert(crownArmy.every(r=>r.warriors>=6));
  checks.push('14 larger Crown armies have real Force; their recruits also create population majorities');
  checks.push('neutral Prestige visible; Crown and neutral readouts are inactive potential');
  for(let i=1;i<=3;i++){

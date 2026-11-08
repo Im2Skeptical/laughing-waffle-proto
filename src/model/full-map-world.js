@@ -58,6 +58,7 @@ export function seedFullMapWorld(state) {
     const originalWarriors=player||neutral||monster?0:Math.min(originalLoyal-loyalChildren,enemyCapital?60:province?20:Math.ceil(population/4));
     // A larger opening army recruits existing adults: loyal civilians first,
     // then unaffiliated adults into Crown allegiance. No residents are added.
+    // The final food pass scales these reference cohorts to smaller openings.
     const warriors=Math.min(population-children,Math.ceil(originalWarriors*CROWN_STARTING_WARRIOR_MULTIPLIER));
     const loyal=loyalChildren+Math.max(originalLoyal-loyalChildren,warriors);
     writePopulationBins(settlement,[

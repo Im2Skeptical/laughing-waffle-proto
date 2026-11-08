@@ -17,8 +17,9 @@ with the inherited starter economies and map-choice constraints from PR #82.
 - Holding resistance is one Force per ten unaffiliated residents, one per five
   rival civilians, plus one per rival adult/Elder Warrior. Each person counts
   once. Existing allegiance thresholds, unrest delays and status fields remain.
-- Starting Crown armies retain the prototype's 1.75x recruitment targets, using
-  existing adults. No additional residents or implicit garrison meals are added.
+- Starting Crown cohorts retain the prototype's age, allegiance and soldier
+  proportions at smaller population targets. No residents or implicit garrison
+  meals are added to compensate for the degraded economy.
 - The successful floating layout is the default without URL flags. Earlier
   comparison links remain developer references; menu variant selectors are gone.
 
@@ -28,44 +29,71 @@ Main and the prototype independently used GameState v43 for different changes.
 The combined state is **v44**, runner envelope v33, captured config v30. Start a
 fresh game. There are no migration shims for either obsolete v43 format.
 
-Main's degraded starter Practices, damaged housing, shop exclusions and
+Main's degraded starter Practices, shop exclusions and
 adjacent-only map decisions are retained. Specialist-generating Muster belongs
 to the Warrior acquisition pool, following Cam's class-specific generation rule.
 
 The earlier prototype food pass installed ordinary Foraging/Farming/Pastoralism
 and a Granary. That would undo main's starter-only direction. The integrated
-pass instead keeps authored boards, connects foodless towns to adjacent allied
-sources, and uses basic Scrub Foraging only when no such source exists. A full
-isolated/dormant board replaces its last secondary institution to stay within
-five slots. Grain-processing chains remain intact; they can have two independent
-sources plus the processor. Food access is not free supply or guaranteed surplus.
+pass fits initial populations and housing to the inherited cards, without
+upgrading their quality or changing their output, meal or staffing rules.
 
-### Known food-balance limitation
+### Crown opening balance
 
-The actual combined Bronze opening loses Crown settlements rapidly to food
-shortage. Three measured seeds retained only one or two Crown regions by year
-50. Higher food quality alone did not restore the earlier longevity result.
-This is recorded in `artifacts/main-integration/combined-opening.json` and
-`crown-food-quality-trial.json`; it is not concealed as a passing longevity gate.
+The initial merge candidate retained only one or two Crown regions at year 50.
+Population cuts alone did not fix it: Crowded Tenements consume fixed extra
+meals, and a small capital's Dole occupies workers before its food chain.
+Following Cam's population-target direction, the opening now uses:
 
-The 50-year army contract is now explicitly a **supplied reference fixture**,
-isolating Warrior inheritance, Force and replay from the newly weakened food
-economy. Ordinary opening access/scarcity is recorded separately by
-`scripts/seeded-food-coverage-test.mjs`. No claim is made that unattended ordinary
-New Game still retains most of the Crown empire for fifty years. Improving that
-balance remains follow-up gameplay tuning, not an unreviewed starter-card upgrade.
+| Crown settlement | Initial people | Loyal adult Warriors |
+| --- | ---: | ---: |
+| Capital | 30 | 23 |
+| Province | 20 | 12 |
+| Forager Hamlet | 12 | 6 |
+| Timber / Quarry Village | 14 | 7 |
+| Grain Village / Market Town | 24 | 11 |
+
+Joint cohorts are scaled proportionally with deterministic largest remainders.
+Crown housing uses enough Crumbling Cottages for that target, avoiding the
+Tenement's fixed meal overhead. Existing support buildings and any existing
+Citadel remain; freed cells do not seed new Citadels. Player and independent
+starting populations and boards retain main's defaults.
+
+Foodless timber/quarry towns prefer adjacent, road-connected neutral markets
+with affordable replenishing food. The seeder budgets one Stock per importer
+after reserving player access; Hearth Barter supplies its local Currency. Without
+that access, the last secondary slot becomes Scrub Foraging. Most settlements
+have one independent food source; grain chains and the capital can have two.
+Downsized Market Towns use Scrub alone, keeping the Grain/Milling chain distinct.
+Across 67 seeds, 670 active settlements had one source, 332 had two and 70 relied
+on imports. This is initial access, not a guarantee against future growth or conquest.
+Dormant towns retain a local food source in their first-control recipe.
+
+The capital replaces Salvage Detail with Scrub Foraging so it has a meal even
+without staffed Milling. Displaced distinct active institutions are retained in
+empty provincial slots; all boards stay at five slots and starter-only IDs.
+Main's seasonal Grain/Milling chain remains intact.
+
+Twelve ordinary seeded starts retained 12–14 of 14 Crown territories through
+year 50, including every capital. None triggered starvation migration in the
+first two years. This does not promise permanent self-sufficiency: population
+growth, unrest and old-age mortality still run normally. Detailed trial data is
+in `artifacts/population-targets/seeded-report.json`. The committed army test now
+uses actual New Game boards and paid trade, with no supplied-food overrides.
 
 ## Validation and review
 
-The combined local `npm run verify` completed with exit 0. Phone/desktop map
-and Demographics probes also passed with zero page errors, including ordinary
+The integration is checked with local `npm run verify` and phone/desktop map
+and Demographics probes, including ordinary
 default entry, four zoom levels, live model thresholds, graph Hold, pinned touch
 inspection and first-moon/unheld states. Logs are under
 `artifacts/main-integration/`.
 
 Run `npm run verify`. Full-map coverage includes both sets of tests: population
 and weighted Force, starter-only economies, inherited supply, shops/travel,
-first control, save/replay and food access. Review a fresh game at year zero,
+first control, save/replay, initial starvation and actual 50-year control. Paid
+imports are checked against a disconnected quarry to prove food is not free.
+Review a fresh game at year zero,
 zoom the map, inspect a shield, then open settlement Demographics and scrub.
 For the held opening review link use
 `?regionalReadout=floating&regionalForce=onbar&regionalStart=opening&perf=1&art=1&launch=new`.

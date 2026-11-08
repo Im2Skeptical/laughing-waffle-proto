@@ -26,20 +26,21 @@ for(const seed of seeds){
   assert.equal(board.filter(Boolean).length,site.town.market.practices.length);
   const support=allegianceSummary(site.detailedState);
   const bins=populationBins(site.detailedState),soldiers=bins.filter(b=>b.specialty==='warrior');
-  const population=region.id===capital?120:provinces.includes(site)?60:site.town.market.housing;
+  const population=region.id===capital?30:provinces.includes(site)?20:({forager:12,timber:14,quarry:14,grain:24,market:24})[site.town.type];
   assert.deepEqual(validatePopulationLedger(site.detailedState),[],'valid joint cohorts');
   assert.equal(bins.reduce((n,b)=>n+b.count,0),population,'troops replace adults without adding residents');
-  const oldShare=region.id===capital?.8:provinces.includes(site)?.6:.35;
-  const loyalChildren=Math.floor(Math.floor(population/4)*oldShare);
-  const expectedWarriors=region.id===capital?90:provinces.includes(site)?35:({18:9,24:11,30:14,60:27})[population];
-  assert.equal(support['external-a'],loyalChildren+expectedWarriors,'recruits come from existing adults and keep separate child allegiance');
+  const loyalChildren=region.id===capital?6:provinces.includes(site)?3:population<20?1:2;
+  const expectedWarriors=region.id===capital?23:provinces.includes(site)?12:({forager:6,timber:7,quarry:7,grain:11,market:11})[site.town.type];
+  assert.equal(support['external-a'],loyalChildren+expectedWarriors,'smaller openings retain proportional child allegiance and adult specialty');
   assert(soldiers.length>0&&soldiers.every(b=>b.kind==='adults'&&b.allegiance==='external-a'),'every Crown region starts with loyal adult soldiers');
   const count=soldiers.reduce((n,b)=>n+b.count,0);startingCrownSoldiers+=count;
   const control=controlSummary(state,region.id);assert.equal(control.warriorForce,count);
   assert.equal(control.status,'supported');assert(control.share>.5,'larger garrisons also create population majorities');
   assert.equal(count,expectedWarriors);
  }
- assert(startingCrownSoldiers>300,'larger Crown opening is capped by existing adult residents');
+ assert(startingCrownSoldiers>=119&&startingCrownSoldiers<=169,'smaller Crown populations retain their garrison proportions');
+ assert(provinces.some(s=>s.detailedState.practiceSlots.some(p=>p?.practiceId==='fe_salvageDetail')),'capital Salvage Detail survives in a provincial slot');
+ assert(crown.every(r=>!state.world.sites.find(s=>s.regionId===r.id).detailedState.structureSlots.some(p=>p?.structureId==='fm_crowdedTenement')),'small Crown openings avoid fixed Tenement meal overhead');
  for(const region of regions.filter(r=>r.controller!=='external-a')){
   const site=state.world.sites.find(s=>s.regionId===region.id);
   assert(!populationBins(site.detailedState).some(b=>b.specialty==='warrior'),'no troops added to player, neutral or Monster regions');
@@ -86,19 +87,12 @@ advanceReplayStateToSecond(initial,80);advanceReplayStateToSecond(loaded,80);
 assert.deepEqual(serializeGameState(initial),serializeGameState(loaded));
 const replay=rebuildStateAtSecond(timeline,80);assert(replay.ok);assert.deepEqual(serializeGameState(replay.state),serializeGameState(initial));
 for(const seed of [123,42,424242]){
- // Supplied reference fixture isolates inherited Warriors and Force from the
- // deliberately weaker inherited-food opening on main. This is not New Game
- // food balance or a claim of 50-year control in an unattended ordinary run.
- const fifty=createNewGameState(seed);
- for(const site of fifty.world.sites.filter(s=>fifty.world.regions.find(r=>r.id===s.regionId).controller==='external-a')){
-  const nonFood=site.detailedState.practiceSlots.filter(slot=>slot&&!fifty.gameConfig.gamepieces.practices[slot.practiceId].stockTraits.includes('Edible'));
-  site.detailedState.practiceSlots=[{practiceId:'pastoralism',tier:'bronze',stock:4,charge:0,work:0},{practiceId:'forage',tier:'bronze',stock:2,charge:0,work:0},...nonFood.slice(0,3)];
-  while(site.detailedState.practiceSlots.length<5)site.detailedState.practiceSlots.push(null);
- }
- initializeReplayClock(fifty);
+ // Exercise ordinary New Game with its actual inherited cards and paid trade.
+ const fifty=initializeReplayClock(createNewGameState(seed));
  for(const sec of [320,800,1600]){
   assert(advanceReplayStateToSecond(fifty,sec).ok);
-  assert(fifty.world.regions.filter(r=>r.controller==='external-a').length>=8,'supplied reference garrisons retain most holdings through year 50');
+  assert(fifty.world.regions.filter(r=>r.controller==='external-a').length>=12,'ordinary garrisons retain most holdings through year 50');
+  assert.equal(fifty.world.regions.find(r=>r.id===fifty.civilization.remnant.capitalRegionId).controller,'external-a','the capital remains held');
  }
 }
-console.log(`[crown-opening] ${seeds.length} seeds: larger loyal armies, conserved residents, trade/replay and three supplied 50-year reference starts OK`);
+console.log(`[crown-opening] ${seeds.length} seeds: fitted populations, proportional armies, trade/replay and three ordinary 50-year starts OK`);
