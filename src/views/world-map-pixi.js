@@ -948,6 +948,9 @@ export function createWorldMapView({
     return layerLandmarks;
     }).value;
 
+    // Titles retain their original corner, font, fit and normal map-zoom scale.
+    // The floating readouts are raised after this layer so their numbers win
+    // when they overlap a region title.
     // Name colours follow viewed control, including occupation and rewind.
     // Stock changes still retain their text textures.
     floatingReferenceLayer=retained.update(mapContent,'references',[getArtRevision(),display.choiceRegionIds,
@@ -967,8 +970,6 @@ export function createWorldMapView({
       mapContent.addChild(presentRegion(label, regionDef.id));
     }
     }).node;
-    // Names retain their live-game corner positions. Floating readings take
-    // visual priority instead of moving or hiding labels to make room.
     if(floatingMode)mapContent.addChild(floatingOverlay);
 
     const activeVassal = getCurrentLifeMapVassal(state);
@@ -1173,7 +1174,7 @@ export function createWorldMapView({
         : [];
       return {
         visible: root.visible === true,
-        floatingNamesBelowReadouts:floatingMode&&floatingReferenceLayer?.parent===mapContent&&floatingOverlay.parent===mapContent?mapContent.getChildIndex(floatingReferenceLayer)<mapContent.getChildIndex(floatingOverlay):null,
+        floatingNamesAboveReadouts:floatingMode&&floatingReferenceLayer?.parent===mapContent&&floatingOverlay.parent===mapContent?mapContent.getChildIndex(floatingReferenceLayer)>mapContent.getChildIndex(floatingOverlay):null,
         floatingReadouts:floatingMode?getFloatingReadoutMeasurements().map(reading=>{const label=floatingNameLabels.find(item=>!item.destroyed&&item.mapRegionId===reading.regionId),b=label?.visible?label.getBounds():null;return {...reading,name:b?{x:b.x,y:b.y,width:b.width,height:b.height}:null,nameHome:label?.floatingHome??null,namePosition:label?{x:label.x,y:label.y}:null};}):null,
         regionalReadoutPrototype:atlasMode?{variant:'atlas',economyExpanded:prototypeEconomyExpanded,economyClickPoint:ATLAS_ECONOMY_POINT}:null,
         illustratedTerrain:{...illustrated.stats},

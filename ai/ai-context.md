@@ -1,6 +1,22 @@
 # Current Project Context
 
 Game build version: `1.1.53`.
+This unmerged regional-readout worktree now prototypes intrinsic Warrior Force
+and minority-Crown occupations; see
+[`WARRIOR_FORCE_PLAYABLE.md`](../docs/prototypes/regional-map-20261105/WARRIOR_FORCE_PLAYABLE.md)
+for current experiment rules and deferred population work. The subsequent
+[food/threshold pass](../docs/prototypes/regional-map-20261105/FOOD_CONTROL_THRESHOLDS.md)
+adds viable seeded food routes and shields at the control boundary.
+The [larger-garrison trial](../docs/prototypes/regional-map-20261105/LARGER_GARRISONS_50_YEAR.md)
+uses 1.75x starting Warrior targets, capped by existing adults, for roughly
+50-year Crown coverage. Recruits also create Crown-majority allegiance. Floating
+UI is fixed at 70% and has visual priority over region titles.
+The [visual census pass](../docs/prototypes/regional-map-20261105/DEMOGRAPHICS_VISUAL.md)
+replaces Demographics prose with age/supply summaries and an allegiance-by-class
+grid. The approved [weighted Force and proportional-birth trial](../docs/prototypes/regional-map-20261105/PROPORTIONAL_BIRTHS_WEIGHTED_FORCE.md)
+now uses carried birth-allegiance entitlement and 1:10 unaffiliated / 1:5 rival
+civilian / 1:1 rival soldier resistance. Existing support thresholds and opening
+armies remain unchanged. New quota state uses GameState v43; start fresh.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -72,7 +88,7 @@ identifiers remain stable; see [the mapping and authoring contract](../docs/cree
 
 Authoritative numbers:
 
-- Game state v42; runner saves v32. Older saves are rejected.
+- Game state v43; runner saves v32. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
 - Each run serializes schema-v29 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.

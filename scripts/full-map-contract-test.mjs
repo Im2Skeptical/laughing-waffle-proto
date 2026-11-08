@@ -9,7 +9,7 @@ import {planPopulationRecipe} from '../src/model/detailed-settlements/political-
 import {selectLifeMapVassal,getCurrentLifeMapVassal,getVassalCandidatePool,enterVassalLifeNode,selectVassalNodeOption,confirmVassalLifeNode} from '../src/model/vassal-life-map.js';
 import {purchaseVassalShopOffer,undoVassalShopPurchase,reorderVassalShopPurchase} from '../src/model/vassal-life-map/shop.js';
 import {applyStockPlan,discretionaryStock} from '../src/model/detailed-settlements/stock.js';
-import {militarySummary,assignGarrisonSupport,payGarrisonUpkeep} from '../src/model/detailed-settlements/territory.js';
+import {militarySummary,assignGarrisonSupport,payGarrisonUpkeep,minimumHoldingAllegiance,CONTROL_DEFAULTS} from '../src/model/detailed-settlements/territory.js';
 import {buildProjectionChunkFromStateData} from '../src/model/projection-chunk.js';
 import {createTimelineFromInitialState,rebuildStateAtSecond} from '../src/model/timeline/index.js';
 import assert from 'node:assert/strict';
@@ -146,7 +146,7 @@ test('control boundaries, hysteresis, preservation of capture identities',()=>{
  const s=fresh(),site=s.world.sites.find(x=>getRegionState(s,x.regionId).controller==='frontier'),d=site.detailedState;
  writePopulationBins(d,[bin(60,'player'),bin(40)]);resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'frontier');resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'player');
  const identity=JSON.stringify(d.populationByClass),board=JSON.stringify(d.practiceSlots);changeController(s,site.regionId,'external-a',{military:true});assert.equal(JSON.stringify(d.populationByClass),identity);assert.equal(JSON.stringify(d.practiceSlots),board);assert(d.control.unrest>=50);
- writePopulationBins(d,[bin(25)]);assert.equal(controlSummary(s,site.regionId).required,1);writePopulationBins(d,[bin(250)]);assert.equal(controlSummary(s,site.regionId).required,10);
+ writePopulationBins(d,[bin(25)]);assert.equal(controlSummary(s,site.regionId).required,3);writePopulationBins(d,[bin(250)]);assert.equal(controlSummary(s,site.regionId).required,25);
 });
 test('all-or-nothing hostile installation costs and stable adoption / upgrade',()=>{
  assert.deepEqual([0,12,15].map(n=>quotePrestige(n,15,10)),[{prestigeCost:0,monsterPressureCost:25},{prestigeCost:0,monsterPressureCost:25},{prestigeCost:15,monsterPressureCost:10}]);
@@ -214,13 +214,55 @@ test('stale supply plans and foreign discretionary wallets are rejected',()=>{
  for(const id of getAdjacentRegionIds(s,site.regionId))getRegionState(s,id).controller='external-a';
  assert.equal(discretionaryStock(s,d,'Currency'),0);assert.equal(planStock(s,d,[{traits:['Currency'],amount:2}]).ok,true);
 });
+test('holding-allegiance threshold matches support or weighted occupation at a fixed non-loyal mix',()=>{
+ for(const total of [1,2,5,9,20,30,60,99,100,120])for(const force of [0,.1,.9,1,1.9,2,5,8,10,15,20,60]){
+  for(const units of [1,2,3,7,10]){
+   const threshold=minimumHoldingAllegiance(total,force,{disloyal:1,units});
+   for(let loyal=0;loyal<=total;loyal++)assert.equal(loyal>=threshold,loyal/total>=CONTROL_DEFAULTS.retain||(force>0&&force>=Math.ceil((total-loyal)*units/10)));
+  }
+ }
+ assert.equal(minimumHoldingAllegiance(60,8),0);assert.equal(minimumHoldingAllegiance(60,4),20);
+ assert.equal(minimumHoldingAllegiance(60,0),27);assert.equal(minimumHoldingAllegiance(60,20),0);
+});
+
+test('Warrior baseline counts loyal adults and Elders without Arms, staffing or extra meals',()=>{
+ const s=fresh(),site=s.world.sites[0],d=site.detailedState;getRegionState(s,site.regionId).controller='player';
+ d.practiceSlots=Array(5).fill(null);d.structureSlots.fill(null);d.garrison={supplied:false};
+ writePopulationBins(d,[bin(5,'player','warrior'),bin(3,'player','warrior','elder'),bin(2,'player','warrior','children'),bin(7,'external-a','warrior')]);
+ const before=serializeGameState(s),m=militarySummary(s,site.regionId);
+ assert.equal(m.force,8);assert.equal(m.warriorForce,8);assert.equal(m.adultWarriors,5);assert.equal(m.upkeep,0);
+ assert.deepEqual(serializeGameState(s),before,'Force queries are pure');
+ assignDetailedSettlementWorkers(s,site.regionId);payGarrisonUpkeep(s);assert.equal(militarySummary(s,site.regionId).force,8);
+ d.politicalForce={card:{allegiance:'player',amount:12,untilSec:s.tSec+10}};writePopulationBins(d,[bin(40)]);
+ assert(controlSummary(s,site.regionId).occupied,'explicit card Force can hold without a hidden local-Warrior gate');
+});
+test('newborns inherit specialty while preserving birth totals and separate allegiance shares',()=>{
+ const s=fresh(),site=s.world.sites[0],d=site.detailedState;d.practiceSlots=Array(5).fill(null);d.structureSlots.fill(null);getRegionState(s,site.regionId).controller='player';
+ writePopulationBins(d,[bin(6,'player','warrior'),bin(4,'external-a','scholar')]);
+ for(const k of ['birthRateBronze','birthRateSilver','birthRateGold','birthRateDiamond'])s.gameConfig.settings.values[k]=1;
+ s.gameConfig.settings.values.childToAdultRate=0;s.gameConfig.settings.values.adultToElderRate=0;
+ runBirthPhase(s,getMoonPhaseAtSecond(s,0));const children=populationBins(d).filter(b=>b.kind==='children');
+ assert.equal(children.reduce((n,b)=>n+b.count,0),10);
+ assert.equal(children.filter(b=>b.specialty==='warrior').reduce((n,b)=>n+b.count,0),6);
+ assert.equal(children.filter(b=>b.specialty==='scholar').reduce((n,b)=>n+b.count,0),4);
+ assert.equal(children.find(b=>b.specialty==='warrior'&&b.allegiance==='player').count,4);
+ assert.equal(children.find(b=>b.specialty==='warrior'&&b.allegiance==='external-a').count,2);
+ assert.deepEqual(allegianceSummary(d),{'external-a':8,player:12});
+ assert.equal(militarySummary(s,site.regionId).warriorForce,6,'newborn Warriors supply no Force before maturity');
+ for(const k of ['birthRateBronze','birthRateSilver','birthRateGold','birthRateDiamond'])s.gameConfig.settings.values[k]=0;
+ s.gameConfig.settings.values.childToAdultRate=1;
+ runBirthPhase(s,getMoonPhaseAtSecond(s,0));
+ assert.equal(militarySummary(s,site.regionId).warriorForce,10,'loyal inherited Warriors supply Force once mature');
+ assert.deepEqual(allegianceSummary(d),{'external-a':8,player:12});
+ assert.equal(fullMapPractices.fm_seigneurialMuster.pool,'warrior');
+});
 test('explicit adjacent garrison assignment never duplicates Force or Warriors',()=>{
  const s=fresh(),a=s.world.sites[0],id=getAdjacentRegionIds(s,a.regionId)[0],b=s.world.sites.find(x=>x.regionId===id);
  addWorldConnection(s,a.regionId,id);for(const site of [a,b]){getRegionState(s,site.regionId).controller='player';writePopulationBins(site.detailedState,[bin(10,'player','warrior'),bin(20)]);site.detailedState.practiceSlots=[install('cp_ironCommunion','player',10),null,null,null,null];site.detailedState.structureSlots=Array(site.detailedState.structureSlots.length).fill(null);site.detailedState.garrison={supplied:true};}
  a.detailedState.structureSlots[0]={structureId:'fm_frontierWatch',placementId:'watch',origin:0,width:1};
  const before=militarySummary(s,a.regionId).force+militarySummary(s,b.regionId).force;
  assert(assignGarrisonSupport(s,{regionId:a.regionId,targetRegionId:id}).ok);
- assert.equal(militarySummary(s,a.regionId).force+militarySummary(s,b.regionId).force,before);assert.equal(militarySummary(s,a.regionId).armed,9);
+ assert.equal(militarySummary(s,a.regionId).force+militarySummary(s,b.regionId).force,before);assert.equal(militarySummary(s,a.regionId).availableWarriors,9);
  assert.equal(militarySummary(s,b.regionId).supportSources.length,1);
  getRegionState(s,id).controller='external-a';assert.equal(militarySummary(s,a.regionId).sentForce,0);
 });
@@ -243,7 +285,7 @@ test('guaranteed real adoption offer preserves institution and people',()=>{
  const adopted=d.practiceSlots.find(p=>p?.instanceId===identity);assert.equal(adopted.allegiance,'player');assert.equal(adopted.charge,3);assert.equal(adopted.work,7);
  assert.equal(JSON.stringify(d.populationByClass),people);assert.equal(s.civilization.prestige,0);assert.equal(s.civilization.chaos.monsterPressure,0);
 });
-test('directed campaign moves the smallest real loyal detachment and uses captured Arms',()=>{
+test('directed campaign moves the smallest real loyal detachment without equipment transfer',()=>{
  const {s,v,d}=stagedShop();v.stats.intelligence=100;const sourceId=v.locationRegionId,targetId=getAdjacentRegionIds(s,sourceId)[0],target=s.world.sites.find(x=>x.regionId===targetId).detailedState;
  getRegionState(s,targetId).controller='external-a';addWorldConnection(s,sourceId,targetId);
  for(const x of [d,target]){x.structureSlots.fill(null);x.garrison={supplied:true};}
@@ -252,7 +294,7 @@ test('directed campaign moves the smallest real loyal detachment and uses captur
  const ns={family:'campaign',campaign:{failed:false,questRegionIds:[],duelDone:false}};
  const option=buildCampaignOptions(s,v,ns).find(o=>o.stage==='alliance'&&o.regionId===targetId);assert(option);
  assert(resolveCampaignAttempt(s,v,ns,option).ok);assert.equal(ns.campaign.lastResult.success,true);
- assert.equal(allegianceSummary(d).player,6);assert.equal(allegianceSummary(target).player,5);assert.equal(d.practiceSlots[0].stock,10);assert.equal(target.practiceSlots[0].stock,5);
+ assert.equal(allegianceSummary(d).player,8);assert.equal(allegianceSummary(target).player,3);assert.equal(d.practiceSlots[0].stock,10);assert.equal(target.practiceSlots[0].stock,5);
  assert.equal(getRegionState(s,targetId).controller,'player');assert.equal(target.garrison.supplied,false);
 });
 test('Stranger-only migration preserves allegiance and strips allocation metadata',()=>{
@@ -284,10 +326,10 @@ test('multiple victim costs cannot select the same person twice',()=>{
  const def={populationConsume:[{amount:1,filter:{specialty:'warrior'}},{amount:1,filter:{kind:'adults'}}],effects:[]};
  const before=JSON.stringify(d);assert.equal(planPopulationRecipe(s,site,install('cp_ironCommunion'),def,[],true).ok,false);assert.equal(JSON.stringify(d),before);
 });
-test('long-lived default opening stays serializable through migration and terminal loss',()=>{
+test('long-lived military opening stays serializable through migration beyond the old loss boundary',()=>{
  const s=initializeReplayClock(createNewGameState(1867));
  for(let sec=64;sec<=6000&&!s.runStatus?.complete;sec+=64){advanceReplayStateToSecond(s,sec);assert.equal(deserializeGameState(serializeGameState(s)).tSec,s.tSec);}
- assert.equal(s.runStatus?.complete,true);assert(s.tSec>3000);
+ assert.notEqual(s.runStatus?.complete,true);assert(s.tSec>=5900);
 });
 test('finite offers have executable cadence and complete Stock dependency vocabulary',()=>{
  const s=fresh(),defs=s.gameConfig.gamepieces;
@@ -314,7 +356,7 @@ test('claim and retention edges, lost supply, empty regions and loss persistence
  writePopulationBins(d,[bin(44,'player'),bin(56)]);assert.equal(controlSummary(s,site.regionId).supported,false);
  d.control.unrest=60;resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'player');resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'frontier');
  changeController(s,site.regionId,'player');writePopulationBins(d,[bin(20,'player','warrior'),bin(80)]);d.practiceSlots[0]=install('cp_ironCommunion','player',20);d.garrison={supplied:true};assert.equal(controlSummary(s,site.regionId).occupied,true);
- d.garrison.supplied=false;assert.equal(controlSummary(s,site.regionId).occupied,false);
+ d.garrison.supplied=false;assert.equal(controlSummary(s,site.regionId).occupied,true,'Warrior baseline persists without bonus supply');
  writePopulationBins(d,[]);resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'frontier');
 });
 test('roads alone and adjacency alone cannot supply; Require is retained',()=>{
@@ -363,15 +405,15 @@ test('Resource defense reactions follow the holder across capture, not absent al
  react('external-a');react('external-a');assert.equal(d.practiceSlots[0].stock,2);
 });
 
-test('garrisons preserve local upkeep priority before drawing holder-allied leftovers',()=>{
+test('explicit card upkeep preserves local priority before drawing holder-allied leftovers',()=>{
  const s=fresh(),[a,b]=s.world.sites.filter(x=>getRegionState(s,x.regionId).controller==='player');
- for(const site of [a,b]){const d=site.detailedState;d.practiceSlots=[install('cp_ironCommunion','player',5),install('forage'),null,null,null];d.structureSlots.fill(null);writePopulationBins(d,[bin(5,'player','warrior')]);}
- b.detailedState.practiceSlots[1].stock=1;payGarrisonUpkeep(s);
+ for(const site of [a,b]){const d=site.detailedState;d.practiceSlots=[install('cp_ironCommunion','player',5),install('forage'),null,null,null];d.structureSlots.fill(null);d.structureSlots[0]={structureId:'fe_marshalsCitadel',origin:0,width:1,placementId:site.regionId+':citadel'};writePopulationBins(d,[bin(8,'player','warrior')]);}
+ b.detailedState.practiceSlots[1].stock=2;payGarrisonUpkeep(s);
  assert.equal(b.detailedState.garrison.supplied,true);assert.equal(a.detailedState.garrison.supplied,false);assert.equal(b.detailedState.practiceSlots[1].stock,0);
- b.detailedState.practiceSlots[1].stock=3;payGarrisonUpkeep(s);
+ b.detailedState.practiceSlots[1].stock=5;payGarrisonUpkeep(s);
  assert.equal(a.detailedState.garrison.supplied,true);assert.equal(b.detailedState.garrison.supplied,true);assert.equal(b.detailedState.practiceSlots[1].stock,1);
  getRegionState(s,b.regionId).controller='external-a';b.detailedState.practiceSlots[1].stock=3;payGarrisonUpkeep(s);
- assert.equal(a.detailedState.garrison.supplied,false);assert.equal(b.detailedState.practiceSlots[1].stock,3);
+ assert.equal(a.detailedState.garrison.supplied,false);assert.equal(b.detailedState.practiceSlots[1].stock,1);
 });
 
 test('Practice drafts classify with captured definitions rather than current source categories',()=>{

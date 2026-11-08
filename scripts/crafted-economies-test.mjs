@@ -17,7 +17,12 @@ import {getAdjacentRegionIds,getConnectedRegionIds} from '../src/model/world-sta
 import {initializeReplayClock,advanceReplayStateToSecond} from '../src/model/replay-second-runner.js';
 for(const seed of [1,2,4,6,7,8,12,18,1867]){
  const s=createNewGameState(seed),players=s.world.sites.filter(x=>s.world.regions.find(r=>r.id===x.regionId).controller==='player');
- assert.deepEqual(players.map(x=>x.detailedState.practiceSlots.filter(Boolean).length).sort(),[2,3]);
+ for(const p of players){
+  const ids=p.detailedState.practiceSlots.filter(Boolean).map(slot=>slot.practiceId);
+  assert(ids.length>=2&&ids.length<=3,'sparse player economies retain room for choices');
+  assert(ids.includes('barter'),'player trade role survives food seeding');
+ }
+ assert(players.some(p=>p.detailedState.practiceSlots.some(slot=>slot?.practiceId==='logging'||slot?.practiceId==='fm_rubblePicking')),'resource economy survives food seeding');
  assert(s.world.sites.some(x=>x.neutral&&players.some(p=>getAdjacentRegionIds(s,p.regionId).includes(x.regionId)&&getConnectedRegionIds(s,p.regionId).includes(x.regionId))));
  const buyer=players.find(p=>s.world.sites.some(x=>x.neutral&&x.neutral.stocks.some(g=>g.traits.includes('Edible'))&&getAdjacentRegionIds(s,p.regionId).includes(x.regionId)&&getConnectedRegionIds(s,p.regionId).includes(x.regionId)));
  for(const p of players)p.detailedState.practiceSlots=Array(5).fill(null);

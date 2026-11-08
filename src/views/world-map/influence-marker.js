@@ -4,8 +4,11 @@ export function getMapInfluencePresentation(control,{monster=false}={}){
   if(!control||!control.total||monster)return null;
   return {
     total:control.total,holder:control.holder,status:control.holder==='frontier'?'unheld':control.status,
+    minimumLoyal:control.minimumLoyal,minimumShare:control.minimumShare,
+    resistance:control.resistance,
     contested:control.holder!=='frontier'&&control.status==='contested',
     parts:regionAllegianceParts(control),force:control.force,required:control.supported?0:control.required,unrest:control.unrest,
+    warriors:control.availableWarriors,warriorForce:control.warriorForce,bonusForce:control.bonusForce,receivedForce:control.receivedForce,
   };
 }
 
@@ -29,9 +32,10 @@ export function addMapInfluenceMarker(parent,point,presentation,{tooltipView,ref
   const spec={title:p.contested?'Control in contention':'Population allegiance',lines:[
     p.holder==='frontier'?'No faction holds this region.':`${holder} holds this region.`,
     ...p.parts.map(part=>`${part.name}: ${part.count} / ${p.total} (${Math.round(part.count/p.total*100)}%).`),
-    ...(p.contested?['The holder lacks both population support and sufficient supplied occupation Force.',`Holding Force ${Number(p.force.toFixed(1))} / ${p.required}; unrest ${Math.round(p.unrest)}%.`]
+    ...(p.contested?['The holder lacks both population support and sufficient occupation Force.',`Holding Force ${Number(p.force.toFixed(1))} / ${p.required}; unrest ${Math.round(p.unrest)}%.`]
       :p.status==='occupied'?['Military occupation holds the region without sufficient population support.']
       :p.status==='unheld'?['Unheld land is not a contested holding.']:['Population support secures control.']),
+    `${p.warriors} local loyal Warriors provide ${p.warriorForce} baseline Force without equipment or extra meals.`,
     'Gold: Free allegiance. Copper: Crown allegiance. Grey: unaffiliated.',
   ],maxWidth:370,scale:2};
   root.eventMode='static';root.cursor='help';root.hitArea=new PIXI.Rectangle(-width/2-23,-12,width+48,24);

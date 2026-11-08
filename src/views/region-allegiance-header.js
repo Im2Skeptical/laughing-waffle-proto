@@ -36,12 +36,14 @@ export function addRegionAllegianceHeader(root,{x,y,vm,reference,tooltipView}){
   inspect(status,[0,-3,284,70],{title:'Control and military holding',lines:[
     unheld?'This region has no holder.':`${holderName(c.holder)} holds this region and its hosted Stock.`,
     `${c.loyal}/${c.total} residents support the holder (${Math.round(c.share*100)}%).`,
-    `${c.armed} local armed loyal adult Warriors; Force ${Number(c.force.toFixed(1))} / ${holdingRequirement} required to hold; Defense ${Number(c.defense.toFixed(1))}.`,
+    `${c.availableWarriors} local loyal adult/Elder Warriors provide ${c.warriorForce} baseline Force.`,
+    `Force ${Number(c.force.toFixed(1))} / ${holdingRequirement} required to hold; Defense ${Number(c.defense.toFixed(1))}.`,
     ...(c.supported?['Population support holds this region without a military occupation.']:[]),
     `${c.receivedForce} adjacent Force received; ${c.sentForce} sent to ${c.supportTarget??'no neighbour'}.`,
-    `Garrison: ${c.upkeep} Edible ${c.supplied?'paid':'MISSING'}.`,
+    'Warrior baseline Force needs no equipment or extra garrison meals.',
+    ...(c.upkeep?[`Card upkeep: ${c.upkeep} Edible ${c.supplied?'paid':'MISSING; conditional bonuses inactive'}.`]:[]),
     `Unrest ${Math.round(c.unrest)} moves toward ${Math.round(c.targetUnrest)} at each Death control check.`,
-    'Loss: unrest 75 for two unsupported, unsupplied checks.',
+    'Occupation requires 1 Force per 5 non-loyal residents, rounded up. Loss: unrest 75 for two checks without support or sufficient Force.',
     `${vm.usedStructureCapacity} / ${vm.structureCapacity} construction cells.`,
   ],maxWidth:420,scale:2},`territory:${reference}`,tooltipView);
   root.addChild(status);

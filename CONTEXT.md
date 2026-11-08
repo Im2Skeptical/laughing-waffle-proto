@@ -30,6 +30,15 @@ Ubiquitous language for this prototype. Engine invariants and schema numbers:
 | **Charge / Discharge** | Private Practice meter and its automatic cost-free effect at a legal full threshold, once per root chain. | Stock, Currency, worker-multiplied Discharge output |
 | **provider** | Practice Stock host supplying a complete recipe: local first, then adjacent-and-connected player settlements. | Administration transport, global wallet |
 | **Villager / Stranger** | Local cohorts. Villagers feed and assign before Strangers. | citizen, peasant, population (when a cohort is meant) |
+| **allegiance** | The faction a person supports, independently of their specialty, residency and the region's controller. | controller, owner, specialty |
+| **population specialty** | A person's role, such as ordinary, Warrior or Scholar, independently of allegiance and residency. Priest is a planned specialty. | allegiance, residency |
+| **classed population** | Residents with a specialist role, such as Warriors or Scholars, included in the settlement's existing population. | extra population, soldiers as a distinct population type |
+| **training** | Changing an existing person's specialty. A Practice may combine training with allegiance conversion. | creating people, conversion when only specialty changes |
+| **conversion** | Changing an existing person's allegiance. Specialty changes only when the effect also specifies training. | training, creating population |
+| **baseline benefit** | A population specialty's inherent benefit, retained independently of whether its people are assigned to Practices. | staffing bonus, job-only output |
+| **classed-worker staffing bonus** | An additional Practice benefit associated with assigning a specialist worker; its presentation and design remain under exploration. | baseline benefit, specialist population count |
+| **Priest birth influence** | The effect of local Priests on the allegiance assigned to newborns. | fertility bonus, newborn specialty, automatic conversion of existing residents |
+| **inherited specialty** | A newborn's specialist role follows its source population cohort; allegiance is a separate identity. | inherited allegiance, a new adult specialist |
 | **moon phase** | One of six named phases: Birth, Food, Housing, Faith, Migration, Death. | newMoon, fullMoon, moon-cycle midpoint, `MOON_CYCLE_SEC` clock |
 | **year / season** | Four seasons times configured season duration, shared by the Life Map and solar calendar, independent of phases/moons; 32 seconds per year by default; seasonal Practices follow authored season filters. | moon as year, season as moon phase |
 | **Happiness** | Cohort mood from food and housing, consumed as Faith evidence. | morale, loyalty, approval |

@@ -7,7 +7,36 @@ region selection, at phone-landscape size?
 Throwaway experiment on `experiment/regional-readout-20261105`. Not production
 implementation and not permission to merge or publish.
 
-## Current: stable screen-relative sizes and sprite anchors
+The Warrior Force subset of the systems design is now playable: intrinsic
+1 Force per loyal adult/Elder Warrior, inherited newborn specialties, class-specific Muster,
+and a larger Crown opening. The current 1.75x garrison targets also recruit
+unaffiliated adults, creating Crown-majority regions for the 50-year trial. See
+`docs/prototypes/regional-map-20261105/LARGER_GARRISONS_50_YEAR.md` and
+`docs/prototypes/regional-map-20261105/WARRIOR_FORCE_PLAYABLE.md`.
+Other population design decisions remain recorded separately in
+`docs/prototypes/regional-map-20261105/POPULATION_BASE_EFFECTS.md`.
+
+## Current: fixed 70% and floating readout priority
+
+Floating size is fixed at **70%**. The temporary live/menu slider and URL size
+override have been removed. Titles retain their normal corner placement, font,
+fitting and map-zoom behavior. Floating population/Prestige/influence readouts
+have priority over titles wherever they overlap. This supersedes the earlier
+title-above-chrome iteration; names are not moved or resized to avoid readouts.
+The historical slider record remains in
+`docs/prototypes/regional-map-20261105/SIZE_SLIDER.md`.
+
+## Inactive potential Prestige and stronger Crown opening
+
+Neutral towns now show the same connected Prestige pill. Every non-player
+potential amount has a muted stone treatment with no plus sign; only player
+income is lit gold. Fresh games have more Crown-loyal soldiers in all Crown
+regions, drawn from existing loyal adults. See
+`docs/prototypes/regional-map-20261105/INACTIVE_PRESTIGE_CROWN_START.md` for exact
+tuning, scope and verification. All previous sizing and anchoring agreements
+remain in force.
+
+## Stable screen-relative sizes and sprite anchors
 
 All floating elements now share one screen-relative scale and fixed geometry.
 There is no collision shrinking or alternate placement. Region names remain in

@@ -12,7 +12,9 @@ const filtered = filterLabCatalogue(catalogue,{category:'practice',pool:['common
 assert.equal(filtered.length,107,'two selected pools are a union');
 assert.ok(filtered.every(entry=>['common','warrior'].includes(entry.pool)));
 assert.equal(filterLabCatalogue(catalogue,{category:'practice',pool:[]}).length,166,'empty selection means All');
-assert.equal(filterLabCatalogue(catalogue,{category:'practice',pool:'warrior'}).length,72,'single-pool callers still work');
+assert.equal(filterLabCatalogue(catalogue,{category:'practice',pool:'warrior'}).length,73,'single-pool callers include class-specific Muster');
+assert.ok(filterLabCatalogue(catalogue,{category:'practice',pool:'warrior'}).some(entry=>entry.id==='fm_seigneurialMuster'));
+assert.ok(!filterLabCatalogue(catalogue,{category:'practice',pool:'common'}).some(entry=>entry.id==='fm_seigneurialMuster'));
 const summary = summarizeLabCatalogue(filtered);
 assert.equal(summary.cardCount,107,'summary includes all pages');
 assert.equal(summary.practiceCount,107);

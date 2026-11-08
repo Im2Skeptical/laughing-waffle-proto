@@ -3,6 +3,7 @@ import { controlSummary, militarySummary, garrisonSupportTargets } from './terri
 import { getMartialForce, getMartialSupport, getMonsterPressureRate } from './external-world.js';
 import { getChaosResistance } from './phases/chaos.js';
 import { stockTotal, specialistCount } from "./stock.js";
+import { getPopulationDemographics } from './demographics.js';
 // Read models that combine queries with worker assignment.
 
 import { POPULATION_CLASS_ORDER } from "../../defs/gamepieces/detailed-settlement-defs.js";
@@ -183,6 +184,7 @@ export function getDetailedSettlementViewModel(state, regionId) {
     specialists: { scholar: specialistCount(settlement, "scholar"), warrior: specialistCount(settlement, "warrior") },
     population,
     pressure: getSettlementPressureSummary(state, regionId),
+    demographics: getPopulationDemographics(state,settlement),
     workerPool: {
       availableWorkerCount,
       activeWorkerCount,
