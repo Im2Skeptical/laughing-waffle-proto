@@ -3,8 +3,8 @@
 import {writePopulationBins} from './detailed-settlements/population-ledger.js';
 
 const CROWN_OPENINGS=Object.freeze({
- capital:{population:30,loyal:29,warriors:23,loyalChildren:6},
- province:{population:20,loyal:8,warriors:8,loyalChildren:0},
+ capital:{population:30,loyal:27,warriors:2,loyalChildren:6},
+ province:{population:20,loyal:16,warriors:1,loyalChildren:4},
  forager:{population:12,loyal:5,warriors:5,loyalChildren:0},
  timber:{population:14,loyal:6,warriors:6,loyalChildren:0},
  quarry:{population:14,loyal:6,warriors:6,loyalChildren:0},

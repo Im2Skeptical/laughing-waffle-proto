@@ -5,8 +5,9 @@ import {BROWSER_PROBE_LAUNCH_OPTIONS} from './browser-probe-config.mjs';
 import {createNewGameState} from '../src/model/new-game.js';
 import {initializeReplayClock,advanceReplayStateToSecond} from '../src/model/replay-second-runner.js';
 const model=initializeReplayClock(createNewGameState(123));
-for(let sec=4;sec<=6400&&!model.civilization.chaos.lastMonsterSpawn;sec+=4)assert(advanceReplayStateToSecond(model,sec).ok);
+for(let sec=4;sec<=6400&&model.civilization.chaos.lastMonsterSpawn?.outcome!=='intercepted';sec+=4)assert(advanceReplayStateToSecond(model,sec).ok);
 const firstSpawnSec=model.civilization.chaos.lastMonsterSpawn?.tSec;assert(Number.isFinite(firstSpawnSec));
+assert.equal(model.civilization.chaos.lastMonsterSpawn.outcome,'intercepted');
 const out='artifacts/monster-escalation';mkdirSync(out,{recursive:true});
 const browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
 const page=await browser.newPage({viewport:{width:1440,height:900},hasTouch:true,isMobile:true}),errors=[];
@@ -31,10 +32,18 @@ try{
  let s=await snap();assert.equal(s.worldMap.monsterReadouts.length,1);assert.equal(s.worldMap.monsterReadouts[0].strength,2);
  assert.equal(s.worldMap.lastMonsterSpawn,null);
  const occupied=s.worldMap.floatingReadouts.filter(r=>r.holder==='external-a'&&r.status==='occupied');
- assert.equal(occupied.length,13,'real New Game must show minority occupation in thirteen Crown towns');
+ assert.equal(occupied.length,10,'real New Game must show minority occupation in ten outer Crown towns');
  for(const r of occupied){
   const total=r.barParts.reduce((n,p)=>n+p.count,0),neutral=r.barParts.find(p=>p.id==='neutral')?.count??0;
   assert(neutral>total/2&&r.warriors<total/2,'the drawn allegiance bar must show a majority unaffiliated and minority soldiers');
+ }
+ const core=s.worldMap.floatingReadouts.filter(r=>r.holder==='external-a'&&r.status==='supported');
+ assert.equal(core.length,4,'the capital and provinces are backed by loyal civilians');
+ for(const r of core){
+  assert(r.thresholdShare>0,'the small core garrison must leave a visible threshold');
+  assert(r.barParts.find(p=>p.id==='external-a').count>r.warriors,'the core allegiance bar includes loyal civilians');
+  const drawn=(r.shieldAnchor.x-r.meterTrack.x)/r.meterTrack.width;
+  assert(Math.abs(drawn-r.thresholdShare)<.00001,'the visible opening marker follows the control calculation');
  }
  await page.screenshot({path:out+'/desktop-opening.png'});
  await page.evaluate(t=>__SETTLEMENT_DEBUG__.browseSecond(t),firstSpawnSec);
@@ -59,13 +68,13 @@ try{
  await page.evaluate(()=>__SETTLEMENT_DEBUG__.browseSecond(1600));
  await page.waitForFunction(()=>{const s=__SETTLEMENT_DEBUG__.getSnapshot();return s.viewedSec===1600&&s.worldMap.floatingReadouts.some(r=>r.holder==='external-a'&&r.thresholdShare>0);},null,{timeout:180000});
  const fifty=await snap(),crownAt50=fifty.worldMap.floatingReadouts.filter(r=>r.holder==='external-a');
- assert(crownAt50.length>=10);
+ assert(crownAt50.length>=8);
  for(const r of crownAt50){const drawn=(r.shieldAnchor.x-r.meterTrack.x)/r.meterTrack.width;assert(Math.abs(drawn-r.thresholdShare)<.00001,'drawn shields track the exact holding threshold');}
  await page.screenshot({path:out+'/desktop-year50.png'});
  await page.evaluate(()=>__SETTLEMENT_DEBUG__.browseSecond(0));
  await page.waitForFunction(()=>{const s=__SETTLEMENT_DEBUG__.getSnapshot();return s.viewedSec===0&&s.worldMap.monsterReadouts.length===1&&s.worldMap.monsterReadouts[0].strength===2;},null,{timeout:180000});
  s=await snap();assert.equal(s.worldMap.lastMonsterSpawn,null);assert.equal(s.worldMap.monsterReadouts[0].strength,2,'rewind restores the old Strength and removes future feedback');
- assert.deepEqual(errors,[]);writeFileSync(out+'/browser-check.json',JSON.stringify({errors,last,minorityOccupations:occupied.length,crownAt50:crownAt50.length,checks:['opening minority occupations','year-50 shield positions','opening Strength','repel +1','fixed scale','desktop/phone touch inspection','rewind']},null,2));
+ assert.deepEqual(errors,[]);writeFileSync(out+'/browser-check.json',JSON.stringify({errors,last,minorityOccupations:occupied.length,core:core.map(r=>({regionId:r.regionId,warriors:r.warriors,thresholdShare:r.thresholdShare})),crownAt50:crownAt50.length,checks:['opening minority occupations','civilian core and visible thresholds','year-50 shield positions','opening Strength','repel +1','fixed scale','desktop/phone touch inspection','rewind']},null,2));
  console.log('[monster-browser] strength, +1 feedback, desktop/phone touch inspection and rewind OK');
 }catch(error){
  const s=await snap().catch(()=>null);

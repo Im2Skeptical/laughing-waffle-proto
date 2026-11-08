@@ -28,8 +28,8 @@ if(!isMainThread){
  const complete=rows.filter(r=>r.complete),values=complete.map(r=>r.years).sort((a,b)=>a-b);
  const heldAt50=rows.filter(r=>r.fifty).map(r=>r.fifty.held);
  const report={count,maxYears,targetMeanYears:200,censored:rows.length-complete.length,mean:values.length?values.reduce((a,b)=>a+b,0)/values.length:null,min:values[0]??null,max:values.at(-1)??null,
-  fifty:{sampled:heldAt50.length,meanHeld:heldAt50.length?heldAt50.reduce((a,b)=>a+b,0)/heldAt50.length:null,minHeld:heldAt50.length?Math.min(...heldAt50):null,maxHeld:heldAt50.length?Math.max(...heldAt50):null,capitalsHeld:rows.every(r=>r.fifty?.capitalHeld)},rows};
+  fifty:{targetMeanHeld:9,sampled:heldAt50.length,meanHeld:heldAt50.length?heldAt50.reduce((a,b)=>a+b,0)/heldAt50.length:null,minHeld:heldAt50.length?Math.min(...heldAt50):null,maxHeld:heldAt50.length?Math.max(...heldAt50):null,capitalsHeld:rows.every(r=>r.fifty?.capitalHeld)},rows};
  mkdirSync('artifacts/monster-escalation',{recursive:true});writeFileSync(`artifacts/monster-escalation/extinction-${count}.json`,JSON.stringify(report,null,2));
  console.log(JSON.stringify({...report,rows:undefined,artifact:`artifacts/monster-escalation/extinction-${count}.json`}));
- if(report.censored||report.mean>=report.targetMeanYears||report.fifty.sampled!==count||report.fifty.meanHeld<10||!report.fifty.capitalsHeld)process.exitCode=1;
+ if(report.censored||report.mean>=report.targetMeanYears||report.fifty.sampled!==count||report.fifty.meanHeld<report.fifty.targetMeanHeld||!report.fifty.capitalsHeld)process.exitCode=1;
 }

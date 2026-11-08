@@ -20,8 +20,9 @@ a fresh independent review when needed, then squash-merges after checks pass.
   rival civilians, plus one per rival adult/Elder Warrior. Each person counts
   once. Existing allegiance thresholds, unrest delays and status fields remain.
 - Starting Crown cohorts use explicit [minority garrisons](crown-minority-opening.md)
-  at the fitted population targets. Thirteen holdings have unaffiliated
-  majorities; the capital is the loyal exception. No residents or implicit
+  at the fitted population targets. Ten outer holdings have unaffiliated
+  majorities; the capital and provinces have loyal citizens and small guards.
+  No residents or implicit
   garrison meals are added to compensate for the degraded economy.
 - The successful floating layout is the default without URL flags. Earlier
   comparison links remain developer references; menu variant selectors are gone.
@@ -50,16 +51,17 @@ Following Cam's population-target direction, the opening now uses:
 
 | Crown settlement | Initial people | Loyal adult Warriors |
 | --- | ---: | ---: |
-| Capital | 30 | 23 |
-| Province | 20 | 8 |
+| Capital | 30 | 2 |
+| Province | 20 | 1 |
 | Forager Hamlet | 12 | 5 |
 | Timber / Quarry Village | 14 | 6 |
 | Grain Village / Market Town | 24 | 10 |
 
 The earlier proportional scaling created loyal majorities. Crown cohorts are
-now seeded directly: outer Crown allegiance is its adult garrison, and the
-capital retains six loyal children alongside its army. All other residents are
-unaffiliated. This makes outer control genuinely depend on its Warriors.
+now seeded directly: outer Crown allegiance is its adult garrison. The capital
+has 25 loyal civilians alongside two Warriors, and provinces have 15 alongside
+one. Other residents are unaffiliated. Outer control depends on its Warriors;
+core political control also has sufficient civilian allegiance.
 Crown housing uses enough Crumbling Cottages for that target, avoiding the
 Tenement's fixed meal overhead. Existing support buildings and any existing
 Citadel remain; freed cells do not seed new Citadels. Player and independent
@@ -80,9 +82,11 @@ without staffed Milling. Displaced distinct active institutions are retained in
 empty provincial slots; all boards stay at five slots and starter-only IDs.
 Main's seasonal Grain/Milling chain remains intact.
 
-The minority composition's 32-seed sample retains 10.4 of 14 Crown territories
-on average at year 50 (8–14), including every capital. The former majority-loyal
-opening retained 12–14. The separate first-two-year starvation checks remain.
+The prior all-garrison minority composition's 32-seed sample retained 10.4 of 14
+Crown territories on average at year 50 (8–14). The current civilian-core UX
+trial allows more attrition: at least nine on average, with all capitals held.
+See its [current measurements](crown-minority-opening.md). The separate
+first-two-year starvation checks remain.
 This does not promise permanent self-sufficiency: population
 growth, unrest and old-age mortality still run normally. Detailed trial data is
 in `artifacts/population-targets/seeded-report.json`. The committed army test now

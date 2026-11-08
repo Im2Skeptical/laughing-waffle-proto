@@ -29,17 +29,17 @@ for(const seed of seeds){
   const population=region.id===capital?30:provinces.includes(site)?20:({forager:12,timber:14,quarry:14,grain:24,market:24})[site.town.type];
   assert.deepEqual(validatePopulationLedger(site.detailedState),[],'valid joint cohorts');
   assert.equal(bins.reduce((n,b)=>n+b.count,0),population,'troops replace adults without adding residents');
-  const loyalChildren=region.id===capital?6:0;
-  const expectedWarriors=region.id===capital?23:provinces.includes(site)?8:({forager:5,timber:6,quarry:6,grain:10,market:10})[site.town.type];
-  assert.equal(support['external-a'],loyalChildren+expectedWarriors,'the capital has loyal families; outer Crown allegiance is its stationed minority garrison');
+  const expectedLoyal=region.id===capital?27:provinces.includes(site)?16:({forager:5,timber:6,quarry:6,grain:10,market:10})[site.town.type];
+  const expectedWarriors=region.id===capital?2:provinces.includes(site)?1:expectedLoyal;
+  assert.equal(support['external-a'],expectedLoyal,'core allegiance includes loyal civilians; outer allegiance is its garrison');
   assert(soldiers.length>0&&soldiers.every(b=>b.kind==='adults'&&b.allegiance==='external-a'),'every Crown region starts with loyal adult soldiers');
   const count=soldiers.reduce((n,b)=>n+b.count,0);startingCrownSoldiers+=count;
   const control=controlSummary(state,region.id);assert.equal(control.warriorForce,count);
-  if(region.id===capital){assert.equal(control.status,'supported');assert(control.share>.5);}
+  if(region.id===capital||provinces.includes(site)){assert.equal(control.status,'supported');assert(control.share>.5);assert(control.minimumShare>0);}
   else{assert.equal(control.status,'occupied');assert(support.neutral>population/2);assert(count<population/2);}
   assert.equal(count,expectedWarriors);
  }
- assert(startingCrownSoldiers>=97&&startingCrownSoldiers<=147,'minority garrisons replace the enlarged majority armies');
+ assert(startingCrownSoldiers>=55&&startingCrownSoldiers<=105,'the core replaces most soldiers with loyal citizens');
  assert(provinces.some(s=>s.detailedState.practiceSlots.some(p=>p?.practiceId==='fe_salvageDetail')),'capital Salvage Detail survives in a provincial slot');
  assert(crown.every(r=>!state.world.sites.find(s=>s.regionId===r.id).detailedState.structureSlots.some(p=>p?.structureId==='fm_crowdedTenement')),'small Crown openings avoid fixed Tenement meal overhead');
  for(const region of regions.filter(r=>r.controller!=='external-a')){
@@ -79,7 +79,7 @@ for(const seed of [123,42,424242]){
  const fifty=initializeReplayClock(createNewGameState(seed));
  for(const sec of [320,800,1600]){
   assert(advanceReplayStateToSecond(fifty,sec).ok);
-  assert(fifty.world.regions.filter(r=>r.controller==='external-a').length>=10,'minority garrisons retain most holdings through year 50');
+  assert(fifty.world.regions.filter(r=>r.controller==='external-a').length>=8,'the civilian core and outer garrisons retain a majority through year 50');
   assert.equal(fifty.world.regions.find(r=>r.id===fifty.civilization.remnant.capitalRegionId).controller,'external-a','the capital remains held');
  }
 }
