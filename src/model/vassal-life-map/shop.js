@@ -2,7 +2,7 @@ import { isFullMapOfferDefinition, FULL_MAP_SEED_CARD_IDS } from '../../defs/gam
 import { prestigeAccount, quotePrestige, creditPrestige } from './treasury.js';
 import { rollScholarQualityBonus, getVassalDelvePhaseCost } from './class-rules.js';
 import { resolveLifeMapShopPrice, resolveLifeMapOptionCosts } from '../life-map-balance.js';
-import { getShopOfferPrice, matchesPracticeShopSpecialty, structureShopCategory } from './shop-specialties.js';
+import { getShopOfferPrice, getPracticeExpansionPremium, matchesPracticeShopSpecialty, structureShopCategory } from './shop-specialties.js';
 import { VASSAL_WORKSHOP_RULES } from '../../defs/vassal-workshop-rules.js';
 import { getMoonPhaseDurationSec } from '../moon-phases.js';
 import { stockTotal, discretionaryStock } from "../detailed-settlements/stock.js";
@@ -568,7 +568,7 @@ export function repriceShopDraft(state,vassal,nodeState) {
     let expansionPremium=0;
     if(p.intervention.kind==='practice'){
       if(p.intervention.mode==='learn'&&!p.replacedPracticeId&&!p.displacedInstanceIds?.length){
-        occupancy++;expansionPremium=occupancy===4?10:occupancy===5?30:0;
+        occupancy++;expansionPremium=getPracticeExpansionPremium(occupancy);
       }
     }
     const quote=quotePrestige(available,base+expansionPremium+5*victims.length,10*victims.length);
