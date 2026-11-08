@@ -33,7 +33,8 @@ The Creep threshold and passive rate are unchanged. Repelled Monsters now gain
 regional outcomes. The event carries `cause` (`creep` or `direct`), outcome and
 source/target region IDs where applicable. Existing state field names and RNG
 behavior are retained. The latest result is saved in `chaos.lastMonsterSpawn`
-for replayable UI feedback. GameState v45 rejects obsolete v44 trajectories.
+for replayable UI feedback. Current GameState v46 rejects obsolete trajectories,
+including the previous holding-Force rule.
 
 The existing `monsterPressure` event is **not** a once-per-Spawn event. One
 resolution can emit `action: 'advance'` at the source and `action: 'expand'` at

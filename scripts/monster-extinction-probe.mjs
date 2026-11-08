@@ -6,11 +6,12 @@ import {controlSummary} from '../src/model/detailed-settlements/territory.js';
 
 if(!isMainThread){
  const {seed,maxYears}=workerData,state=initializeReplayClock(createNewGameState(seed));let fifty=null;
+ const originalCrown=new Set(state.world.regions.filter(r=>r.controller==='external-a').map(r=>r.id));
  for(let second=32;second<=maxYears*32&&!state.runStatus?.complete;second+=32){
   const result=advanceReplayStateToSecond(state,second);if(!result.ok&&!state.runStatus?.complete)throw Error(`seed ${seed}: ${result.reason}`);
   if(second===1600&&state.tSec===1600){
    const held=state.world.regions.filter(r=>r.controller==='external-a'),summaries=held.map(r=>controlSummary(state,r.id));
-   fifty={held:held.length,occupied:summaries.filter(s=>s.status==='occupied').length,shieldsOffLeft:summaries.filter(s=>s.minimumShare>0).length,
+   fifty={held:held.length,retained:held.filter(r=>originalCrown.has(r.id)).length,acquired:held.filter(r=>!originalCrown.has(r.id)).length,occupied:summaries.filter(s=>s.status==='occupied').length,shieldsOffLeft:summaries.filter(s=>s.minimumShare>0).length,
     capitalHeld:state.world.regions.find(r=>r.id===state.civilization.remnant.capitalRegionId).controller==='external-a'};
   }
  }
@@ -27,9 +28,11 @@ if(!isMainThread){
  }
  const complete=rows.filter(r=>r.complete),values=complete.map(r=>r.years).sort((a,b)=>a-b);
  const heldAt50=rows.filter(r=>r.fifty).map(r=>r.fifty.held);
+ const retainedAt50=rows.filter(r=>r.fifty).map(r=>r.fifty.retained);
  const report={count,maxYears,targetMeanYears:200,censored:rows.length-complete.length,mean:values.length?values.reduce((a,b)=>a+b,0)/values.length:null,min:values[0]??null,max:values.at(-1)??null,
-  fifty:{targetMeanHeld:9,sampled:heldAt50.length,meanHeld:heldAt50.length?heldAt50.reduce((a,b)=>a+b,0)/heldAt50.length:null,minHeld:heldAt50.length?Math.min(...heldAt50):null,maxHeld:heldAt50.length?Math.max(...heldAt50):null,capitalsHeld:rows.every(r=>r.fifty?.capitalHeld)},rows};
+  fifty:{targetMeanHeld:9,sampled:heldAt50.length,meanHeld:heldAt50.length?heldAt50.reduce((a,b)=>a+b,0)/heldAt50.length:null,minHeld:heldAt50.length?Math.min(...heldAt50):null,maxHeld:heldAt50.length?Math.max(...heldAt50):null,
+   meanRetained:retainedAt50.length?retainedAt50.reduce((a,b)=>a+b,0)/retainedAt50.length:null,minRetained:retainedAt50.length?Math.min(...retainedAt50):null,maxRetained:retainedAt50.length?Math.max(...retainedAt50):null,capitalsHeld:rows.every(r=>r.fifty?.capitalHeld)},rows};
  mkdirSync('artifacts/monster-escalation',{recursive:true});writeFileSync(`artifacts/monster-escalation/extinction-${count}.json`,JSON.stringify(report,null,2));
  console.log(JSON.stringify({...report,rows:undefined,artifact:`artifacts/monster-escalation/extinction-${count}.json`}));
- if(report.censored||report.mean>=report.targetMeanYears||report.fifty.sampled!==count||report.fifty.meanHeld<report.fifty.targetMeanHeld||!report.fifty.capitalsHeld)process.exitCode=1;
+ if(report.censored||report.mean>=report.targetMeanYears||report.fifty.sampled!==count||report.fifty.meanRetained<report.fifty.targetMeanHeld||!report.fifty.capitalsHeld)process.exitCode=1;
 }

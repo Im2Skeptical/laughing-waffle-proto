@@ -34,20 +34,19 @@ function giveLocalSource(state,site,displaced,indexOverride) {
   const slot={practiceId:'rm_scrubForaging',tier:'bronze',instanceId:`institution:${state.civilization.nextPracticeInstanceId++}`,charge:0,work:0,stock:0};
   slots[index]=slot;slot.stock=stockCapacity(state,site.detailedState,slot);
 }
-export function seedFullMapFood(state) {
+export function seedFullMapFood(state,coreRegionIds) {
   const active=state.world.sites.filter(s=>!s.neutral&&s.simulationMode==='detailed');
   const crown=active.filter(s=>getRegionState(state,s.regionId).controller==='external-a'),displaced=[];
   for(const site of crown){
+    // Developed core packages already include fitted Warrior housing and a
+    // seasonal food chain. This pass fits the smaller inherited outer towns.
+    if(coreRegionIds.has(site.regionId))continue;
     fitCrownHousing(state,site);
     // A downsized Market Town needs one basic meal host. Keep the seasonal
     // Grain/Milling chain distinctive to grain villages and the capital.
     if(site.town.type==='market'&&site.regionId!==state.civilization.remnant.capitalRegionId)
       site.detailedState.practiceSlots=site.detailedState.practiceSlots.map(s=>s?.practiceId==='fm_fallowFields'?null:s);
   }
-  const capital=crown.find(s=>s.regionId===state.civilization.remnant.capitalRegionId);
-  // At this population Dole occupies the available workers before resource
-  // staffing. A baseline meal host lets the seasonal chain remain seasonal.
-  if(capital&&!capital.detailedState.practiceSlots.some(s=>s?.practiceId==='rm_scrubForaging'))giveLocalSource(state,capital,displaced,capital.detailedState.practiceSlots.findIndex(s=>s?.practiceId==='fe_salvageDetail'));
   const markets=state.world.sites.filter(s=>s.neutral);
   // Reserve replenishment for existing player access, then budget one affordable
   // meal per importing village. An allied Scrub host has no guaranteed surplus.

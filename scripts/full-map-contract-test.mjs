@@ -144,7 +144,9 @@ test('control boundaries, hysteresis, preservation of capture identities',()=>{
  const s=fresh(),site=s.world.sites.find(x=>getRegionState(s,x.regionId).controller==='frontier'),d=site.detailedState;
  writePopulationBins(d,[bin(60,'player'),bin(40)]);resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'frontier');resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'player');
  const identity=JSON.stringify(d.populationByClass),board=JSON.stringify(d.practiceSlots);changeController(s,site.regionId,'external-a',{military:true});assert.equal(JSON.stringify(d.populationByClass),identity);assert.equal(JSON.stringify(d.practiceSlots),board);assert(d.control.unrest>=50);
- writePopulationBins(d,[bin(25)]);assert.equal(controlSummary(s,site.regionId).required,3);writePopulationBins(d,[bin(250)]);assert.equal(controlSummary(s,site.regionId).required,25);
+ writePopulationBins(d,[bin(25)]);assert.equal(controlSummary(s,site.regionId).required,null,'no finite Force replaces all local allegiance');
+ writePopulationBins(d,[bin(5,'external-a'),bin(20)]);assert.equal(controlSummary(s,site.regionId).required,3.125);
+ writePopulationBins(d,[bin(50,'external-a'),bin(200)]);assert.equal(controlSummary(s,site.regionId).required,31.25,'Force scales with the population being held');
 });
 test('all-or-nothing hostile installation costs and stable adoption / upgrade',()=>{
  assert.deepEqual([0,12,15].map(n=>quotePrestige(n,15,10)),[{prestigeCost:0,monsterPressureCost:25},{prestigeCost:0,monsterPressureCost:25},{prestigeCost:15,monsterPressureCost:10}]);
@@ -216,11 +218,12 @@ test('holding-allegiance threshold matches support or weighted occupation at a f
  for(const total of [1,2,5,9,20,30,60,99,100,120])for(const force of [0,.1,.9,1,1.9,2,5,8,10,15,20,60]){
   for(const units of [1,2,3,7,10]){
    const threshold=minimumHoldingAllegiance(total,force,{disloyal:1,units});
-   for(let loyal=0;loyal<=total;loyal++)assert.equal(loyal>=threshold,loyal/total>=CONTROL_DEFAULTS.retain||(force>0&&force>=Math.ceil((total-loyal)*units/10)));
+   const share=CONTROL_DEFAULTS.retain/(1+force/(total*units/10));
+   for(let loyal=0;loyal<=total;loyal++)assert.equal(loyal>=threshold,loyal>0&&loyal/total+1e-12>=share);
   }
  }
- assert.equal(minimumHoldingAllegiance(60,8),0);assert.equal(minimumHoldingAllegiance(60,4),20);
- assert.equal(minimumHoldingAllegiance(60,0),27);assert.equal(minimumHoldingAllegiance(60,20),0);
+ assert.equal(minimumHoldingAllegiance(60,8),12);assert.equal(minimumHoldingAllegiance(60,4),17);
+ assert.equal(minimumHoldingAllegiance(60,0),27);assert.equal(minimumHoldingAllegiance(60,20),7);
 });
 
 test('Warrior baseline counts loyal adults and Elders without Arms, staffing or extra meals',()=>{
@@ -231,7 +234,7 @@ test('Warrior baseline counts loyal adults and Elders without Arms, staffing or 
  assert.equal(m.force,8);assert.equal(m.warriorForce,8);assert.equal(m.adultWarriors,5);assert.equal(m.upkeep,0);
  assert.deepEqual(serializeGameState(s),before,'Force queries are pure');
  assignDetailedSettlementWorkers(s,site.regionId);payGarrisonUpkeep(s);assert.equal(militarySummary(s,site.regionId).force,8);
- d.politicalForce={card:{allegiance:'player',amount:12,untilSec:s.tSec+10}};writePopulationBins(d,[bin(40)]);
+ d.politicalForce={card:{allegiance:'player',amount:12,untilSec:s.tSec+10}};writePopulationBins(d,[bin(10,'player'),bin(30)]);
  assert(controlSummary(s,site.regionId).occupied,'explicit card Force can hold without a hidden local-Warrior gate');
 });
 test('newborns inherit specialty while preserving birth totals and separate allegiance shares',()=>{

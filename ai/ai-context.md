@@ -4,13 +4,15 @@ Game build version: `1.1.56`.
 The accepted [regional population UX](../docs/regional-population-ux-integration.md)
 uses floating 70% map readouts, visual demographics, Warrior baseline Force and
 carried proportional newborn allegiance. It preserves the degraded starter
-economy with smaller Crown populations, fitted housing and budgeted food access;
+economy with fitted Crown populations, housing and budgeted food access;
 ten outer Crown holdings begin as [minority garrisons](../docs/crown-minority-opening.md)
 over unaffiliated majorities. The capital and three provinces have small guards
-and loyal civilian majorities, exposing visible core Force thresholds.
+and loyal civilian majorities. The capital targets 120 people and provinces 60,
+using developed starter food chains and Warrior housing. Holding thresholds
+now use diminishing returns from Force; see the [current tuning](../docs/crown-minority-opening.md).
 Repelled Monsters gain
 +1 Strength and retain their latest Spawn result for replayable feedback.
-GameState v45 supersedes v44; start fresh to rebuild the changed trajectory.
+GameState v46 supersedes v45; start fresh to rebuild the changed trajectory.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -82,7 +84,7 @@ identifiers remain stable; see [the mapping and authoring contract](../docs/cree
 
 Authoritative numbers:
 
-- Game state v45; runner saves v33. Older saves are rejected.
+- Game state v46; runner saves v33. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
 - Each run serializes schema-v30 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.

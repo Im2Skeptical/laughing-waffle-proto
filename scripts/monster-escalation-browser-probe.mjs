@@ -45,6 +45,22 @@ try{
   const drawn=(r.shieldAnchor.x-r.meterTrack.x)/r.meterTrack.width;
   assert(Math.abs(drawn-r.thresholdShare)<.00001,'the visible opening marker follows the control calculation');
  }
+ for(const mode of ['short','held','fractional']){
+  await page.evaluate(mode=>{const url=new URL(location.href);url.searchParams.set('regionalForceSample',mode);history.replaceState(null,'',url);__SETTLEMENT_DEBUG__.forceRender();},mode);
+  await page.waitForTimeout(100);
+  const examples=(await snap()).worldMap.floatingReadouts.filter(r=>r.forceSample);
+  assert.equal(examples.length,2);
+  for(const r of examples){
+   assert.equal(r.status,mode==='held'?'occupied':'contested','comparison status follows the current curve');
+   assert.equal(r.shownForce,Math.floor(r.force));
+   assert.equal(r.force>=r.required,mode==='held');
+   if(mode==='fractional')assert(r.force%1>0);
+   const loyal=r.barParts.find(p=>p.id===r.holder).count;
+   assert.equal(loyal>=r.minimumLoyal,mode==='held');
+  }
+ }
+ await page.evaluate(()=>{const url=new URL(location.href);url.searchParams.delete('regionalForceSample');history.replaceState(null,'',url);__SETTLEMENT_DEBUG__.forceRender();});
+ await page.waitForTimeout(100);
  await page.screenshot({path:out+'/desktop-opening.png'});
  await page.evaluate(t=>__SETTLEMENT_DEBUG__.browseSecond(t),firstSpawnSec);
  await page.waitForFunction(t=>__SETTLEMENT_DEBUG__.getSnapshot().viewedSec===t,firstSpawnSec);await page.waitForTimeout(400);

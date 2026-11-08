@@ -72,7 +72,7 @@ export function addRegionalReadoutPrototype(parent,point,indicator,{tooltipView,
     `${indicator.totalWorkerCount} total workers: ${indicator.activeWorkerCount} assigned, ${indicator.unusedWorkerCount} unused.`,
     `${p.total} residents. Workers and residents are different counts.`,
     ...p.parts.map(part=>`${part.name}: ${part.count} (${Math.round(part.count/p.total*100)}%).`),
-    p.status==='supported'?`Population support secures control; supplied holding Force ${number(p.force)} is not needed to retain it.`:`Holder's supplied Force: ${number(p.force)} / ${p.required} required for occupation.`,
+    p.status==='supported'?`Population support secures control; holding Force ${number(p.force)} is not needed to retain it.`:`Holder's Force: ${number(p.force)} / ${p.required===null?'needs local allegiance':number(p.required)} required for occupation.`,
     'Force is military holding, not additional population allegiance.',
     ...(held?[`${number(value)} Prestige per completed node into the shared civilization treasury.`,`${Math.round(p.unrest)}% unrest reduces this region's income.`]:crown?[`Potential ${number(value)} Prestige per completed node if player-held at zero unrest.`,`This is a settled-control estimate, not a capture quote or current income.`]:[]),
     'Tap the settlement artwork to inspect its economy.',
@@ -157,7 +157,7 @@ export function addAtlasFocus(root,indicator,{reference,onEconomy,onClose,addBut
   text(root,p.parts.map(part=>`${part.name} ${part.count}`).join('  ?  '),x+28,y+200,20,0xcac9b8);
   const status=p.status==='supported'?'Population-supported':p.status==='occupied'?'Military occupation':p.contested?'Control contested':'Unheld';
   text(root,status,x+28,y+244,22,p.contested?0xea957f:0xd5d3bc);
-  text(root,`Force ${number(p.force)}${p.required?' / '+p.required:''}  ?  Unrest ${Math.round(p.unrest)}%`,x+28,y+279,18,0xaeb8a6);
+  text(root,`Force ${number(p.force)}${p.required===null?' / –':p.required?' / '+number(p.required):''}  ?  Unrest ${Math.round(p.unrest)}%`,x+28,y+279,18,0xaeb8a6);
   addButton(root,{x:x+width-294,y:y+235,width:270,height:80},'Economy',onEconomy);
   if(!held){
     const tip={title:'Potential territorial Prestige',lines:['A zero-unrest estimate if you held this region.','Not current income, a capture quote, or a Crown treasury.','Uses the current build population divisor of '+indicator.prestigePopulationPerPoint+'.'],maxWidth:350};

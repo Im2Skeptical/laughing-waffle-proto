@@ -16,22 +16,22 @@ a fresh independent review when needed, then squash-merges after checks pass.
 - Loyal adult/Elder Warriors supply one baseline Force while working. Births
   inherit specialty. Birth allegiance uses saved fractional entitlement per
   residency/specialty, so minority shares do not round away in small batches.
-- Holding resistance is one Force per ten unaffiliated residents, one per five
-  rival civilians, plus one per rival adult/Elder Warrior. Each person counts
-  once. Existing allegiance thresholds, unrest delays and status fields remain.
+- Holding uses [diminishing returns from Force](crown-minority-opening.md).
+  The 45% civilian retention threshold, unrest delays and claim checks remain;
+  the shield uses the continuous holding threshold, without rounding Force.
 - Starting Crown cohorts use explicit [minority garrisons](crown-minority-opening.md)
   at the fitted population targets. Ten outer holdings have unaffiliated
   majorities; the capital and provinces have loyal citizens and small guards.
-  No residents or implicit
-  garrison meals are added to compensate for the degraded economy.
+  Their explicit population and supply packages are described in that brief.
+  Warriors have no implicit extra garrison meals.
 - The successful floating layout is the default without URL flags. Earlier
   comparison links remain developer references; menu variant selectors are gone.
 
 ## Reconciliation with main
 
 Main and the prototype independently used GameState v43 for different changes.
-The combined state is **v44**, runner envelope v33, captured config v30. Start a
-fresh game. There are no migration shims for either obsolete v43 format.
+That integration used v44. Current tuning is **GameState v46**, runner envelope
+v33, captured config v30. Start a fresh game; obsolete trajectories are rejected.
 
 Main's degraded starter Practices, shop exclusions and
 adjacent-only map decisions are retained. Specialist-generating Muster belongs
@@ -39,8 +39,9 @@ to the Warrior acquisition pool, following Cam's class-specific generation rule.
 
 The earlier prototype food pass installed ordinary Foraging/Farming/Pastoralism
 and a Granary. That would undo main's starter-only direction. The integrated
-pass fits initial populations and housing to the inherited cards, without
-upgrading their quality or changing their output, meal or staffing rules.
+pass fits initial populations and housing to the inherited cards. The current
+core uses higher-quality starter instances; output, meal and staffing rules
+remain ordinary captured card behavior.
 
 ### Crown opening balance
 
@@ -51,36 +52,35 @@ Following Cam's population-target direction, the opening now uses:
 
 | Crown settlement | Initial people | Loyal adult Warriors |
 | --- | ---: | ---: |
-| Capital | 30 | 2 |
-| Province | 20 | 1 |
+| Capital | 120 | 8 |
+| Province | 60 | 3 |
 | Forager Hamlet | 12 | 5 |
 | Timber / Quarry Village | 14 | 6 |
 | Grain Village / Market Town | 24 | 10 |
 
 The earlier proportional scaling created loyal majorities. Crown cohorts are
 now seeded directly: outer Crown allegiance is its adult garrison. The capital
-has 25 loyal civilians alongside two Warriors, and provinces have 15 alongside
-one. Other residents are unaffiliated. Outer control depends on its Warriors;
+has 100 loyal civilians alongside eight Warriors, and provinces have 45 alongside
+three. Other residents are unaffiliated. Outer control depends on its Warriors;
 core political control also has sufficient civilian allegiance.
-Crown housing uses enough Crumbling Cottages for that target, avoiding the
-Tenement's fixed meal overhead. Existing support buildings and any existing
-Citadel remain; freed cells do not seed new Citadels. Player and independent
-starting populations and boards retain main's defaults.
+Outer housing uses enough Crumbling Cottages for its target. The developed core
+uses Warrior Barracks and Waystations, avoiding the Tenement's meal overhead.
+See [starter economy](starter-economy.md) for the exact boards and construction
+space. Player and independent starting populations retain main's defaults.
 
 Foodless timber/quarry towns prefer adjacent, road-connected neutral markets
 with affordable replenishing food. The seeder budgets one Stock per importer
 after reserving player access; Hearth Barter supplies its local Currency. Without
 that access, the last secondary slot becomes Scrub Foraging. Most settlements
-have one independent food source; grain chains and the capital can have two.
+have one independent food source; grain chains and the core can have two.
 Downsized Market Towns use Scrub alone, keeping the Grain/Milling chain distinct.
-Across 67 seeds, 670 active settlements had one source, 332 had two and 70 relied
-on imports. This is initial access, not a guarantee against future growth or conquest.
+This is initial access, not a guarantee against future growth or conquest.
 Dormant towns retain a local food source in their first-control recipe.
 
-The capital replaces Salvage Detail with Scrub Foraging so it has a meal even
-without staffed Milling. Displaced distinct active institutions are retained in
-empty provincial slots; all boards stay at five slots and starter-only IDs.
-Main's seasonal Grain/Milling chain remains intact.
+The core now explicitly reserves three food slots per town. Salvage Detail is
+provincial; Capital Dole and Iron Communion remain in the capital. All boards
+stay at five slots and starter-only IDs. Main's seasonal Grain/Milling chain
+remains intact, supported by storage and sufficient workers.
 
 The prior all-garrison minority composition's 32-seed sample retained 10.4 of 14
 Crown territories on average at year 50 (8–14). The current civilian-core UX

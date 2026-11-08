@@ -32,7 +32,7 @@ export function addMapInfluenceMarker(parent,point,presentation,{tooltipView,ref
   const spec={title:p.contested?'Control in contention':'Population allegiance',lines:[
     p.holder==='frontier'?'No faction holds this region.':`${holder} holds this region.`,
     ...p.parts.map(part=>`${part.name}: ${part.count} / ${p.total} (${Math.round(part.count/p.total*100)}%).`),
-    ...(p.contested?['The holder lacks both population support and sufficient occupation Force.',`Holding Force ${Number(p.force.toFixed(1))} / ${p.required}; unrest ${Math.round(p.unrest)}%.`]
+    ...(p.contested?['The holder lacks both population support and sufficient occupation Force.',`Holding Force ${Number(p.force.toFixed(1))} / ${p.required===null?'needs local allegiance':Number(p.required.toFixed(1))}; unrest ${Math.round(p.unrest)}%.`]
       :p.status==='occupied'?['Military occupation holds the region without sufficient population support.']
       :p.status==='unheld'?['Unheld land is not a contested holding.']:['Population support secures control.']),
     `${p.warriors} local loyal Warriors provide ${p.warriorForce} baseline Force without equipment or extra meals.`,

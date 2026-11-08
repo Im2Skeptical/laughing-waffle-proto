@@ -72,13 +72,23 @@ Grain villages include a minimal foraging host; all five profiles stay within
 five Practice slots. On first control a dormant town installs its captured
 starter recipe and a two-cell Crowded Tenement, never an ordinary Timber House.
 
-Crown towns and provinces use Crowded Tenements. The capital needs two, four
-cells in total, to retain Housing for its initial 120 people. Supports follow
-the occupied housing cells. The optional three-cell Citadel is installed only
-when the full arrangement fits; a small capital can no longer fit it beside its
-inefficient housing. No building overlaps, capacity overflow or population
-reduction is used to hide that space cost. Geography, factions, population,
-roads and the five-slot limit are otherwise retained.
+The Crown capital now targets 120 people and each of three provinces 60.
+Existing Warrior Garrison Barracks house 60 each without the Tenement's meal
+overhead. Two Barracks plus an Imperial Waystation occupy six capital cells;
+one Barracks, a Waystation and Village Palisade occupy five provincial cells.
+The core receives that minimum construction space. No Citadel is seeded in
+this package. The Waystations have one quality uplift, adding two Edible/Arms
+Capacity Multiplier rather than their base one. Capital Practices start Gold;
+provincial Practices start Silver. This raises storage, not base production.
+
+Every core town uses Hand Quern, Scrub Foraging and Fallow Fields in that order,
+keeping meals on processed food before spending Grain. The capital retains
+Iron Communion and Capital Dole; one province hosts Salvage Detail and the other
+two Road Requisition. All three retain Barrack Levy. Real capital/province roads
+allow ordinary same-faction supply. No food, worker, upkeep or conversion rule
+is bypassed. See [Force and core economy tuning](crown-minority-opening.md)
+for budgets, weaknesses and measurement. Outer towns retain fitted Cottages,
+their inherited roles and paid neutral imports where available.
 
 `scripts/crown-opening-test.mjs` checks 130 seeded worlds for starter-only cards,
 captured recipes, valid placement and initial Housing. `scripts/starter-economy-test.mjs`

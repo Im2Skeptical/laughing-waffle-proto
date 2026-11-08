@@ -26,11 +26,11 @@ for(const seed of seeds){
   assert.equal(board.filter(Boolean).length,site.town.market.practices.length);
   const support=allegianceSummary(site.detailedState);
   const bins=populationBins(site.detailedState),soldiers=bins.filter(b=>b.specialty==='warrior');
-  const population=region.id===capital?30:provinces.includes(site)?20:({forager:12,timber:14,quarry:14,grain:24,market:24})[site.town.type];
+  const population=region.id===capital?120:provinces.includes(site)?60:({forager:12,timber:14,quarry:14,grain:24,market:24})[site.town.type];
   assert.deepEqual(validatePopulationLedger(site.detailedState),[],'valid joint cohorts');
   assert.equal(bins.reduce((n,b)=>n+b.count,0),population,'troops replace adults without adding residents');
-  const expectedLoyal=region.id===capital?27:provinces.includes(site)?16:({forager:5,timber:6,quarry:6,grain:10,market:10})[site.town.type];
-  const expectedWarriors=region.id===capital?2:provinces.includes(site)?1:expectedLoyal;
+  const expectedLoyal=region.id===capital?108:provinces.includes(site)?48:({forager:5,timber:6,quarry:6,grain:10,market:10})[site.town.type];
+  const expectedWarriors=region.id===capital?8:provinces.includes(site)?3:expectedLoyal;
   assert.equal(support['external-a'],expectedLoyal,'core allegiance includes loyal civilians; outer allegiance is its garrison');
   assert(soldiers.length>0&&soldiers.every(b=>b.kind==='adults'&&b.allegiance==='external-a'),'every Crown region starts with loyal adult soldiers');
   const count=soldiers.reduce((n,b)=>n+b.count,0);startingCrownSoldiers+=count;
@@ -39,7 +39,7 @@ for(const seed of seeds){
   else{assert.equal(control.status,'occupied');assert(support.neutral>population/2);assert(count<population/2);}
   assert.equal(count,expectedWarriors);
  }
- assert(startingCrownSoldiers>=55&&startingCrownSoldiers<=105,'the core replaces most soldiers with loyal citizens');
+ assert(startingCrownSoldiers>=67&&startingCrownSoldiers<=117,'loyal citizens outnumber the core guards');
  assert(provinces.some(s=>s.detailedState.practiceSlots.some(p=>p?.practiceId==='fe_salvageDetail')),'capital Salvage Detail survives in a provincial slot');
  assert(crown.every(r=>!state.world.sites.find(s=>s.regionId===r.id).detailedState.structureSlots.some(p=>p?.structureId==='fm_crowdedTenement')),'small Crown openings avoid fixed Tenement meal overhead');
  for(const region of regions.filter(r=>r.controller!=='external-a')){

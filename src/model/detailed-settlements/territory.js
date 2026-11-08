@@ -20,15 +20,23 @@ export function occupationResistance(settlement,holder) {
   const units=unaffiliated+rivalCivilians*(scale/CONTROL_DEFAULTS.rivalCiviliansPerForce)+rivalWarriors*scale;
   return {unaffiliated,rivalCivilians,rivalWarriors,units,required:Math.ceil(units/scale)};
 }
-// Counterfactual threshold at the CURRENT non-loyal composition, with Force
-// fixed. It is not a promise about which faction a future conversion affects.
-// With no non-loyal residents yet, assume unaffiliated resistance.
-export function minimumHoldingAllegiance(total,force,{disloyal=total,units=total}={}) {
+// Counterfactual population pressure uses the current non-loyal mix. Force has
+// diminishing leverage: required allegiance = retain / (1 + Force / pressure).
+// With no opposition yet, use unaffiliated resistance for the counterfactual.
+function holdingPressure(total,{disloyal=total,units=total}={}) {
+  return total*(disloyal>0?units/disloyal:1)/CONTROL_DEFAULTS.unaffiliatedPerForce;
+}
+export function minimumHoldingShare(total,force,composition) {
   if(total<=0)return 0;
-  const popular=Math.ceil(total*CONTROL_DEFAULTS.retain);
-  const pressure=disloyal>0?units:total,people=disloyal>0?disloyal:total;
-  const military=force>0?Math.max(0,Math.ceil((total*pressure-Math.floor(force)*CONTROL_DEFAULTS.unaffiliatedPerForce*people)/pressure)):total;
-  return Math.min(popular,military);
+  return CONTROL_DEFAULTS.retain/(1+Math.max(0,force)/holdingPressure(total,composition));
+}
+export function minimumHoldingAllegiance(total,force,composition) {
+  return total>0?Math.max(1,Math.ceil(total*minimumHoldingShare(total,force,composition)-1e-9)):0;
+}
+export function minimumHoldingForce(total,loyal,composition) {
+  if(total<=0)return 0;
+  if(loyal<=0)return null;
+  return Math.max(0,holdingPressure(total,composition)*(CONTROL_DEFAULTS.retain*total/loyal-1));
 }
 function localMilitarySummary(state,regionId,faction=getRegionState(state,regionId)?.controller,{assumeSupplied=false}={}) {
   const settlement=getDetailedSettlement(state,regionId);
@@ -90,18 +98,20 @@ export function controlSummary(state,regionId) {
   const region=getRegionState(state,regionId),settlement=getDetailedSettlement(state,regionId);
   const support=allegianceSummary(settlement),total=Object.values(support).reduce((n,c)=>n+c,0),loyal=support[region?.controller]??0;
   const disloyal=total-loyal,share=total?loyal/total:0,military=militarySummary(state,regionId);
-  const resistance=occupationResistance(settlement,region?.controller),required=resistance.required;
+  const resistance=occupationResistance(settlement,region?.controller),composition={disloyal,units:resistance.units};
+  const required=minimumHoldingForce(total,loyal,composition);
   const supported=total>0&&share>=CONTROL_DEFAULTS.retain;
-  const occupied=total>0&&military.force>0&&military.force>=required;
+  const minimumShare=minimumHoldingShare(total,military.force,composition);
+  const minimumLoyal=minimumHoldingAllegiance(total,military.force,composition);
+  const occupied=total>0&&military.force>0&&loyal>=minimumLoyal;
   const unrest=settlement?.control?.unrest??0;
-  const minimumLoyal=minimumHoldingAllegiance(total,military.force,{disloyal,units:resistance.units});
-  return {holder:region?.controller,support,total,loyal,disloyal,share,required,resistance,...military,minimumLoyal,minimumShare:total?minimumLoyal/total:0,unrest,supported,occupied,
+  return {holder:region?.controller,support,total,loyal,disloyal,share,required,resistance,...military,minimumLoyal,minimumShare,unrest,supported,occupied,
     status:supported?'supported':occupied?'occupied':'contested',targetUnrest:supported?0:occupied?25+50*disloyal/Math.max(1,total):100};
 }
 export function availableMilitaryWarriors(state,regionId,faction=getRegionState(state,regionId)?.controller) {
   const support=controlSummary(state,regionId),military=militarySummary(state,regionId,faction);
   const otherForce=Math.max(0,military.force-military.availableAdultWarriors);
-  const reserved=support.holder===faction&&!support.supported?Math.ceil(Math.max(0,support.required-otherForce)):0;
+  const reserved=support.holder===faction&&!support.supported?(support.required===null?military.availableAdultWarriors:Math.ceil(Math.max(0,support.required-otherForce))):0;
   return Math.max(0,military.availableAdultWarriors-reserved);
 }
 export function changeController(state,regionId,faction,{military=false}={}) {

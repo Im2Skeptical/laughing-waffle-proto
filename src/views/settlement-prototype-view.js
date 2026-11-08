@@ -163,7 +163,7 @@ export function createSettlementPrototypeView({
         const lines=[`${holder} / ${c.status} / ${Math.round(c.share*100)}% support`,
           `Free ${c.support.player??0} / Crown ${c.support['external-a']??0} / Unaffiliated ${c.support.neutral??0}`,
           `Unrest ${Math.round(c.unrest)} -> ${Math.round(c.targetUnrest)} / Treasury ${vm.civilizationPrestige} Prestige`,
-          `Force ${Number(c.force.toFixed(1))}/${c.required} / ${c.availableWarriors} loyal Warriors / ${c.warriorForce} baseline`];
+          `Force ${Number(c.force.toFixed(1))}/${c.required===null?'–':Number(c.required.toFixed(1))} / ${c.availableWarriors} loyal Warriors / ${c.warriorForce} baseline`];
         lines.forEach((line,i)=>root.addChild(createText(line,{...TEXT_STYLES.body,fontSize:27},rect.x+18,rect.y+60+i*34)));
         if(c.holder==='player'&&vm.supportTargets.length){
           const targets=[null,...vm.supportTargets],current=targets.indexOf(c.supportTarget);

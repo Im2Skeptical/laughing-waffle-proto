@@ -1,10 +1,10 @@
 // Initial cohorts for the Crown's loyal capital and occupied outer settlements.
-// All profiles retain the inherited economy's population budget.
+// Core towns have developed food chains; outer profiles retain village budgets.
 import {writePopulationBins} from './detailed-settlements/population-ledger.js';
 
 const CROWN_OPENINGS=Object.freeze({
- capital:{population:30,loyal:27,warriors:2,loyalChildren:6},
- province:{population:20,loyal:16,warriors:1,loyalChildren:4},
+ capital:{population:120,loyal:108,warriors:8,loyalChildren:27},
+ province:{population:60,loyal:48,warriors:3,loyalChildren:12},
  forager:{population:12,loyal:5,warriors:5,loyalChildren:0},
  timber:{population:14,loyal:6,warriors:6,loyalChildren:0},
  quarry:{population:14,loyal:6,warriors:6,loyalChildren:0},

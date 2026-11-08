@@ -55,6 +55,10 @@ file is the legacy tick substrate.
   for settlement inspection; no state writes or random draws.
 - `birth-allegiance.js` - persistent proportional entitlement per birth group;
   independent of inherited specialty, with deterministic quota continuation.
+- `territory.js` - shared control and military summaries. Holding allegiance
+  uses diminishing returns from Force at population-scaled resistance; the map
+  shield uses its continuous share, while retention rounds up to residents.
+  Campaign capture resistance remains a separate weighted headcount.
 - `external-world.js` - neutral templates, Raid/Trade, Support/Retinue, conquest and spatial Monsters.
 - `neutral-market.js` - finite priced neutral inventories, Food-phase
   replenishment, and validation. Neutral towns install no gamepieces.

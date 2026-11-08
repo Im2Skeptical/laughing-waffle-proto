@@ -3,7 +3,7 @@
 import {createText} from '../settlement-view-primitives.js';
 import {TEXT_STYLES} from '../settlement-theme.js';
 import {addResourceIcon} from '../resource-cost-pixi.js';
-import {minimumHoldingAllegiance} from '../../model/detailed-settlements/territory.js';
+import {minimumHoldingAllegiance,minimumHoldingShare,minimumHoldingForce,CONTROL_DEFAULTS} from '../../model/detailed-settlements/territory.js';
 import {REGIONAL_READOUT_SCREEN_SCALE} from './constants.js';
 
 const amount=n=>String(Number(Number(n??0).toFixed(1)));
@@ -24,13 +24,17 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   // written; ordinary prototype URLs continue to show actual model values.
   const p=forceSample?{...original,total:200,parts:[
     {...original.parts[0],count:70},{...original.parts[1],count:90},{...original.parts[2],count:40}],
-    force:forceSample==='short'?4:forceSample==='fractional'?5.8:8,required:6,status:forceSample==='held'?'occupied':'contested',
-    contested:forceSample!=='held',unrest:forceSample==='held'?50:75}:original;
+    unrest:forceSample==='held'?50:75}:original;
   if(forceSample) {
     const nonloyal=p.parts.filter(part=>part.id!==p.holder),disloyal=nonloyal.reduce((n,part)=>n+part.count,0);
     const units=nonloyal.reduce((n,part)=>n+part.count*(part.id==='neutral'?1:2),0);
-    p.required=Math.ceil(units/10);p.force=forceSample==='held'?p.required:forceSample==='fractional'?p.required-.2:p.required/2;
+    const loyal=p.total-disloyal;
+    p.required=minimumHoldingForce(p.total,loyal,{disloyal,units});
+    p.force=forceSample==='held'?p.required*1.25:forceSample==='fractional'?Math.max(0,p.required-.2):p.required/2;
     p.minimumLoyal=minimumHoldingAllegiance(p.total,p.force,{disloyal,units});
+    p.minimumShare=minimumHoldingShare(p.total,p.force,{disloyal,units});
+    p.status=loyal/p.total>=CONTROL_DEFAULTS.retain?'supported':loyal>=p.minimumLoyal?'occupied':'contested';
+    p.contested=p.status==='contested';
   }
   const params=new URLSearchParams(globalThis.location?.search??'');
   // The holder's support always fills from the left; the shield marks the
@@ -38,7 +42,7 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   const held=p.holder==='player'||p.holder==='external-a';
   const parts=held?[...p.parts.filter(part=>part.id===p.holder),...p.parts.filter(part=>part.id!==p.holder)]:p.parts;
   const minimumLoyal=held?p.minimumLoyal:null;
-  const thresholdShare=held?minimumLoyal/p.total:null;
+  const thresholdShare=held?p.minimumShare:null;
   const countKind=params.get('regionalCount')==='population'?'population':'workers';
   const count=countKind==='workers'?(forceSample?13:indicator.totalWorkerCount):p.total;
   const gold=player?0xf1d18b:crown?0xc69872:0x9abbb0;
@@ -90,15 +94,15 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   const holder=player?'Free realm':crown?'Crown':'Unheld';
   inspect(influence,{title:holder+' - '+status,lines:[...demo,reference,
     p.parts.map(part=>`${part.name} ${part.count}`).join(' / '),
-    `Holding Force ${amount(p.force)}${p.required?' / '+p.required+' required':''}; unrest ${Math.round(p.unrest)}%.`,
+    `Holding Force ${amount(p.force)}${p.required===null?' / needs local allegiance':p.required?' / '+amount(p.required)+' required':''}; unrest ${Math.round(p.unrest)}%.`,
     ...(!forceSample?[`${p.warriors} loyal adult/Elder Warriors: ${amount(p.warriorForce)} baseline Force.`,...(p.bonusForce||p.receivedForce?[`${amount(p.bonusForce)} Force from cards; ${amount(p.receivedForce)} from neighbouring garrisons.`]:[])]:[]),
     p.status==='occupied'?`${Math.round(p.parts.find(part=>part.id===p.holder)?.count/p.total*100)}% allegiance is below 45%; this army keeps control.`:p.status==='supported'?'Population support currently secures control.':'Insufficient support and Force threaten control.',
     'Warriors give 1 Force each, including while working. No equipment or extra garrison meals.',
-    'Holding needs 1 Force per 10 unaffiliated residents, 1 per 5 rival civilians, plus 1 per rival adult/Elder Warrior; round the total up. Each person counts once.',
+    'Force lowers required allegiance with diminishing returns. Larger populations and rival allegiance reduce its leverage. At least one local ally is always needed.',
     ...(!forceSample&&p.resistance?[`${p.resistance.unaffiliated} unaffiliated / ${p.resistance.rivalCivilians} rival civilians / ${p.resistance.rivalWarriors} rival soldiers.`]:[]),
     'Allegiance retains control at 45%, or claims at 60% for two checks.',
     ...(held?[`${holder} allegiance fills from the left.`,
-      `Shield position: ${minimumLoyal} / ${p.total} residents (${Math.round(thresholdShare*100)}%) needed at the current Force and non-loyal population mix.`,
+      `Shield position: ${amount(thresholdShare*100)}% allegiance needed at the current Force and non-loyal population mix (${minimumLoyal} / ${p.total} residents).`,
       'More Force moves the shield left. Falling below it starts contention and rising unrest; control loss is delayed.']:
       ['No faction currently holds this town. The dash means no holding army, not that all resident Warriors have died.']),
     'The shield number rounds Force down; its position uses the exact control rule.',

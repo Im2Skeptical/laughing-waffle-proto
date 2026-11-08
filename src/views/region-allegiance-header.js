@@ -28,7 +28,7 @@ export function addRegionAllegianceHeader(root,{x,y,vm,reference,tooltipView}){
   ],maxWidth:420,scale:2},`allegiance:${reference}`,tooltipView);
   root.addChild(allegiance);
 
-  const holdingRequirement=c.supported?0:c.required;
+  const holdingRequirement=c.required===null?'–':Number(c.required.toFixed(1));
   const status=new PIXI.Container();status.label='region-control-header';status.position.set(x+810,y+16);
   const unheld=c.holder==='frontier',colour=unheld?PALETTE.textMuted:c.status==='contested'?0xe7947e:PALETTE.accent;
   status.addChild(createText(unheld?'UNHELD':c.status.toUpperCase(),{...TEXT_STYLES.header,fontSize:23,fill:colour},0,0));
@@ -38,12 +38,14 @@ export function addRegionAllegianceHeader(root,{x,y,vm,reference,tooltipView}){
     `${c.loyal}/${c.total} residents support the holder (${Math.round(c.share*100)}%).`,
     `${c.availableWarriors} local loyal adult/Elder Warriors provide ${c.warriorForce} baseline Force.`,
     `Force ${Number(c.force.toFixed(1))} / ${holdingRequirement} required to hold; Defense ${Number(c.defense.toFixed(1))}.`,
+    ...(c.required===null?['Force needs at least one local ally to hold this region.']:[]),
     ...(c.supported?['Population support holds this region without a military occupation.']:[]),
     `${c.receivedForce} adjacent Force received; ${c.sentForce} sent to ${c.supportTarget??'no neighbour'}.`,
     'Warrior baseline Force needs no equipment or extra garrison meals.',
     ...(c.upkeep?[`Card upkeep: ${c.upkeep} Edible ${c.supplied?'paid':'MISSING; conditional bonuses inactive'}.`]:[]),
     `Unrest ${Math.round(c.unrest)} moves toward ${Math.round(c.targetUnrest)} at each Death control check.`,
-    'Resistance: 1 Force per 10 unaffiliated residents, 1 per 5 rival civilians, plus 1 per rival adult/Elder Warrior; round the total up.',
+    'Force lowers required allegiance with diminishing returns. Larger populations and rival allegiance reduce its leverage.',
+    `Current threshold: ${Number((c.minimumShare*100).toFixed(1))}% allegiance (${c.minimumLoyal} residents).`,
     'Loss: unrest 75 for two checks without support or sufficient Force.',
     `${vm.usedStructureCapacity} / ${vm.structureCapacity} construction cells.`,
   ],maxWidth:420,scale:2},`territory:${reference}`,tooltipView);
