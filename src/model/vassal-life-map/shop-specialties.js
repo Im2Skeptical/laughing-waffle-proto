@@ -43,6 +43,10 @@ export function createShopSpecialties(state, vassal, nodeState) {
   return {kind,selectedTag:null,choices};
 }
 
+export function getPracticeExpansionPremium(occupancyAfterExpansion) {
+  return occupancyAfterExpansion === 4 ? 10 : occupancyAfterExpansion === 5 ? 30 : 0;
+}
+
 export function getShopOfferPrice(vassal, nodeState, offer, state = null, {replacement=false} = {}) {
   let cost = getVassalActionPrestigeCost(vassal, offer.basePrestigeCost ?? 0,
     {isFirstShopPurchase:!nodeState?.purchasedOffers?.length});
@@ -51,7 +55,7 @@ export function getShopOfferPrice(vassal, nodeState, offer, state = null, {repla
     const confirmed=state.world.sites.find(s=>s.regionId===vassal.locationRegionId)?.detailedState?.practiceSlots??[];
     const draft=projectPracticeDraft(confirmed,nodeState?.purchasedOffers??[],id=>getDetailedPracticeDef(state,id),nodeState?.practiceDraftOrder);
     const occupancy=(draft.slots??confirmed).filter(Boolean).length;
-    expansionPremium=occupancy===3?10:occupancy===4?30:0;
+    expansionPremium=getPracticeExpansionPremium(occupancy+1);
     cost+=expansionPremium;
   }
   const reserved = (nodeState?.purchasedOffers ?? []).reduce((sum,purchase) => sum + purchase.prestigeCost,0);

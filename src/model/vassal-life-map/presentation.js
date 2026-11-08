@@ -3,7 +3,7 @@ import { getVassalRiskDeathChance } from './class-rules.js';
 import { multiplierBoardPreview, multiplierShopPreview } from './multiplier-preview.js';
 import { getActionMonsterPressureCost } from '../detailed-settlements/practice-events.js';
 import { resolveLifeMapOptionCosts } from '../life-map-balance.js';
-import { getShopOfferPrice } from './shop-specialties.js';
+import { getShopOfferPrice, getPracticeExpansionPremium } from './shop-specialties.js';
 import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
 import { getCampaignPresentation } from './campaign.js';
 import { stockTotal, discretionaryStock } from "../detailed-settlements/stock.js";
@@ -312,6 +312,9 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     ? validatePurchaseInterventions(state, vassal, nodeState?.purchasedOffers ?? []) : null;
   const afterPractices = projected?.reservation?.practiceSlots ?? beforePractices;
   const afterStructures = projected?.reservation?.structureSlots ?? beforeStructures;
+  let practiceOccupancy = afterPractices.filter(Boolean).length;
+  const practiceExpansionCosts = afterPractices.map(slot => slot ? 0
+    : state.rulesetId ? getPracticeExpansionPremium(++practiceOccupancy) : 0);
   const stagedIds=(nodeState?.purchasedOffers??[]).filter(p=>p.intervention.kind==='structure').map(p=>p.placement?.placementId).filter(Boolean);
   const poolBefore={practiceSlots:beforePractices,structureSlots:beforeStructures};
   const poolAfter={practiceSlots:afterPractices,structureSlots:afterStructures};
@@ -432,6 +435,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       currency: Math.max(0, (stockTotal(state, previewSite.detailedState, "Currency"))
         - (previewRegionId === vassal.locationRegionId ? stagedCurrencyCost : 0)),
       practices: decorate("practice", afterPractices),
+      practiceExpansionCosts,
       displacedPractices: displacedPractices.map((slot) =>
         getVassalGamepiecePresentation(state, "practice", slot.practiceId, slot.tier ?? "bronze")),
       discardedPractices: decorate('practice', displacedPractices, false),
