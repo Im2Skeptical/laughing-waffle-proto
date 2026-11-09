@@ -17,7 +17,8 @@ a fresh independent review when needed, then squash-merges after checks pass.
   inherit specialty. Birth allegiance uses saved fractional entitlement per
   residency/specialty, so minority shares do not round away in small batches.
 - Holding uses [diminishing returns from Force](crown-minority-opening.md).
-  The 45% civilian retention threshold, unrest delays and claim checks remain;
+  Zero-Force retention needs 70% allegiance and peaceful claims need 75% for
+  two checks; unrest/loss delays remain unchanged.
   the shield uses the continuous holding threshold, without rounding Force.
 - Starting Crown cohorts use explicit [minority garrisons](crown-minority-opening.md)
   at the fitted population targets. Ten outer holdings have unaffiliated
@@ -30,7 +31,7 @@ a fresh independent review when needed, then squash-merges after checks pass.
 ## Reconciliation with main
 
 Main and the prototype independently used GameState v43 for different changes.
-That integration used v44. Current tuning is **GameState v46**, runner envelope
+That integration used v44. Current tuning is **GameState v47**, runner envelope
 v33, captured config v30. Start a fresh game; obsolete trajectories are rejected.
 
 Main's degraded starter Practices, shop exclusions and
@@ -52,16 +53,16 @@ Following Cam's population-target direction, the opening now uses:
 
 | Crown settlement | Initial people | Loyal adult Warriors |
 | --- | ---: | ---: |
-| Capital | 120 | 8 |
-| Province | 60 | 3 |
-| Forager Hamlet | 12 | 5 |
-| Timber / Quarry Village | 14 | 6 |
-| Grain Village / Market Town | 24 | 10 |
+| Capital | 120 | 12 |
+| Province | 60 | 5 |
+| Forager Hamlet | 13 | 6 |
+| Timber / Quarry Village | 15 | 7 |
+| Grain Village / Market Town | 25 | 12 |
 
 The earlier proportional scaling created loyal majorities. Crown cohorts are
 now seeded directly: outer Crown allegiance is its adult garrison. The capital
-has 100 loyal civilians alongside eight Warriors, and provinces have 45 alongside
-three. Other residents are unaffiliated. Outer control depends on its Warriors;
+has 96 loyal civilians alongside twelve Warriors, and provinces have 43 alongside
+five. Other residents are unaffiliated. Outer control depends on its Warriors;
 core political control also has sufficient civilian allegiance.
 Outer housing uses enough Crumbling Cottages for its target. The developed core
 uses Warrior Barracks and Waystations, avoiding the Tenement's meal overhead.

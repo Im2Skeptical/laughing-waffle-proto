@@ -6,7 +6,7 @@ import { stockTotal, planStock, applyStockPlan, structureModifiers } from './sto
 import { getCurrentLifeMapVassal } from '../vassal-life-map/selectors.js';
 import { emitPracticeEvent } from './practice-events.js';
 
-export const CONTROL_DEFAULTS = Object.freeze({claim:.6,retain:.45,claimChecks:2,lossUnrest:75,lossChecks:2,unaffiliatedPerForce:10,rivalCiviliansPerForce:5,warriorsPerForce:1});
+export const CONTROL_DEFAULTS = Object.freeze({claim:.75,retain:.70,claimChecks:2,lossUnrest:75,lossChecks:2,unaffiliatedPerForce:10,rivalCiviliansPerForce:5,warriorsPerForce:1});
 export function occupationResistance(settlement,holder) {
   let unaffiliated=0,rivalCivilians=0,rivalWarriors=0;
   for(const b of populationBins(settlement)) {

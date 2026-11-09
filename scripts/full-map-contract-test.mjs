@@ -143,11 +143,11 @@ test('local recipes, faction remote network, adjacency AND road, no neutral mark
 });
 test('control boundaries, hysteresis, preservation of capture identities',()=>{
  const s=fresh(),site=s.world.sites.find(x=>getRegionState(s,x.regionId).controller==='frontier'),d=site.detailedState;
- writePopulationBins(d,[bin(60,'player'),bin(40)]);resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'frontier');resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'player');
+ writePopulationBins(d,[bin(75,'player'),bin(25)]);resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'frontier');resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'player');
  const identity=JSON.stringify(d.populationByClass),board=JSON.stringify(d.practiceSlots);changeController(s,site.regionId,'external-a',{military:true});assert.equal(JSON.stringify(d.populationByClass),identity);assert.equal(JSON.stringify(d.practiceSlots),board);assert(d.control.unrest>=50);
  writePopulationBins(d,[bin(25)]);assert.equal(controlSummary(s,site.regionId).required,null,'no finite Force replaces all local allegiance');
- writePopulationBins(d,[bin(5,'external-a'),bin(20)]);assert.equal(controlSummary(s,site.regionId).required,3.125);
- writePopulationBins(d,[bin(50,'external-a'),bin(200)]);assert.equal(controlSummary(s,site.regionId).required,31.25,'Force scales with the population being held');
+ writePopulationBins(d,[bin(5,'external-a'),bin(20)]);assert.equal(controlSummary(s,site.regionId).required,6.25);
+ writePopulationBins(d,[bin(50,'external-a'),bin(200)]);assert.equal(controlSummary(s,site.regionId).required,62.5,'Force scales with the population being held');
 });
 test('all-or-nothing hostile installation costs and stable adoption / upgrade',()=>{
  assert.deepEqual([0,12,15].map(n=>quotePrestige(n,15,10)),[{prestigeCost:0,monsterPressureCost:25},{prestigeCost:0,monsterPressureCost:25},{prestigeCost:15,monsterPressureCost:10}]);
@@ -223,8 +223,8 @@ test('holding-allegiance threshold matches support or weighted occupation at a f
    for(let loyal=0;loyal<=total;loyal++)assert.equal(loyal>=threshold,loyal>0&&loyal/total+1e-12>=share);
   }
  }
- assert.equal(minimumHoldingAllegiance(60,8),12);assert.equal(minimumHoldingAllegiance(60,4),17);
- assert.equal(minimumHoldingAllegiance(60,0),27);assert.equal(minimumHoldingAllegiance(60,20),7);
+ assert.equal(minimumHoldingAllegiance(60,8),18);assert.equal(minimumHoldingAllegiance(60,4),26);
+ assert.equal(minimumHoldingAllegiance(60,0),42);assert.equal(minimumHoldingAllegiance(60,20),10);
 });
 
 test('Warrior baseline counts loyal adults and Elders without Arms, staffing or extra meals',()=>{
@@ -328,10 +328,10 @@ test('multiple victim costs cannot select the same person twice',()=>{
  const def={populationConsume:[{amount:1,filter:{specialty:'warrior'}},{amount:1,filter:{kind:'adults'}}],effects:[]};
  const before=JSON.stringify(d);assert.equal(planPopulationRecipe(s,site,install('cp_ironCommunion'),def,[],true).ok,false);assert.equal(JSON.stringify(d),before);
 });
-test('long-lived military opening stays serializable through migration beyond the old loss boundary',()=>{
+test('military opening stays serializable through migration and terminal control loss',()=>{
  const s=initializeReplayClock(createNewGameState(1867));
  for(let sec=64;sec<=6000&&!s.runStatus?.complete;sec+=64){advanceReplayStateToSecond(s,sec);assert.equal(deserializeGameState(serializeGameState(s)).tSec,s.tSec);}
- assert.notEqual(s.runStatus?.complete,true);assert(s.tSec>=5900);
+ assert(s.tSec>=64);if(s.runStatus?.complete)assert(['territorialLoss','monsterOverrun'].includes(s.runStatus.reason));else assert(s.tSec>=5900);
 });
 test('finite offers have executable cadence and complete Stock dependency vocabulary',()=>{
  const s=fresh(),defs=s.gameConfig.gamepieces;
@@ -352,12 +352,12 @@ test('finite offers have executable cadence and complete Stock dependency vocabu
 test('claim and retention edges, lost supply, empty regions and loss persistence',()=>{
  const s=fresh(),site=s.world.sites.find(x=>getRegionState(s,x.regionId).controller==='frontier'),d=site.detailedState;
  d.practiceSlots=Array(5).fill(null);d.structureSlots.fill(null);
- writePopulationBins(d,[bin(59,'player'),bin(41)]);resolveControl(s);resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'frontier');
- writePopulationBins(d,[bin(60,'player'),bin(40)]);resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'frontier');resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'player');
- writePopulationBins(d,[bin(45,'player'),bin(55)]);assert.equal(controlSummary(s,site.regionId).supported,true);
- writePopulationBins(d,[bin(44,'player'),bin(56)]);assert.equal(controlSummary(s,site.regionId).supported,false);
+ writePopulationBins(d,[bin(74,'player'),bin(26)]);resolveControl(s);resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'frontier');
+ writePopulationBins(d,[bin(75,'player'),bin(25)]);resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'frontier');resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'player');
+ writePopulationBins(d,[bin(70,'player'),bin(30)]);assert.equal(controlSummary(s,site.regionId).supported,true);
+ writePopulationBins(d,[bin(69,'player'),bin(31)]);assert.equal(controlSummary(s,site.regionId).supported,false);
  d.control.unrest=60;resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'player');resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'frontier');
- changeController(s,site.regionId,'player');writePopulationBins(d,[bin(20,'player','warrior'),bin(80)]);d.practiceSlots[0]=install('cp_ironCommunion','player',20);d.garrison={supplied:true};assert.equal(controlSummary(s,site.regionId).occupied,true);
+ changeController(s,site.regionId,'player');writePopulationBins(d,[bin(25,'player','warrior'),bin(75)]);d.practiceSlots[0]=install('cp_ironCommunion','player',20);d.garrison={supplied:true};assert.equal(controlSummary(s,site.regionId).occupied,true);
  d.garrison.supplied=false;assert.equal(controlSummary(s,site.regionId).occupied,true,'Warrior baseline persists without bonus supply');
  writePopulationBins(d,[]);resolveControl(s);assert.equal(getRegionState(s,site.regionId).controller,'frontier');
 });

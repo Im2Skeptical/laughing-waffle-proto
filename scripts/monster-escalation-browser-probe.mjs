@@ -41,10 +41,12 @@ try{
  assert.equal(core.length,4,'the capital and provinces are backed by loyal civilians');
  for(const r of core){
   assert(r.thresholdShare>0,'the small core garrison must leave a visible threshold');
+  assert([5,12].includes(r.warriors),'the core badge uses the raised actual Warrior cohort');
   assert(r.barParts.find(p=>p.id==='external-a').count>r.warriors,'the core allegiance bar includes loyal civilians');
   const drawn=(r.shieldAnchor.x-r.meterTrack.x)/r.meterTrack.width;
   assert(Math.abs(drawn-r.thresholdShare)<.00001,'the visible opening marker follows the control calculation');
  }
+ for(const r of s.worldMap.floatingReadouts.filter(r=>r.holder==='player'&&r.force===0))assert.equal(r.thresholdShare,.70,'the live zero-Force shield requires seventy percent allegiance');
  for(const mode of ['short','held','fractional']){
   await page.evaluate(mode=>{const url=new URL(location.href);url.searchParams.set('regionalForceSample',mode);history.replaceState(null,'',url);__SETTLEMENT_DEBUG__.forceRender();},mode);
   await page.waitForTimeout(100);

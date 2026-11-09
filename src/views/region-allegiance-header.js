@@ -1,6 +1,7 @@
 import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES, PALETTE } from './settlement-theme.js';
 import {regionAllegianceParts} from './region-allegiance.js';
+import {CONTROL_DEFAULTS} from '../model/detailed-settlements/territory.js';
 
 const holderName=id=>id==='player'?'Free realm':id==='external-a'?'Crown':id==='frontier'?'Unheld':id;
 
@@ -23,7 +24,7 @@ export function addRegionAllegianceHeader(root,{x,y,vm,reference,tooltipView}){
   inspect(allegiance,[0,-3,390,66],{title:'Population allegiance',lines:[
     ...parts.map(p=>`${p.name}: ${p.count} / ${c.total} (${Math.round(p.count/total*100)}%).`),
     'Each person has one allegiance. Allegiance is separate from the regional holder.',
-    'A faction can claim control at 60% for two checks; an existing holder needs 45% support.',
+    `A faction can claim control at ${CONTROL_DEFAULTS.claim*100}% for two checks; an existing holder needs ${CONTROL_DEFAULTS.retain*100}% support without Force.`,
     `Scholars ${vm.specialists.scholar} · Warriors ${vm.specialists.warrior}.`,
   ],maxWidth:420,scale:2},`allegiance:${reference}`,tooltipView);
   root.addChild(allegiance);

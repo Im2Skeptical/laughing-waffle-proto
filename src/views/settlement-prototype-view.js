@@ -11,6 +11,7 @@ import {
 import { getCurrentLifeMapVassal, getVassalAge } from "../model/vassal-life-map.js";
 import { getRegionDefinition } from "../model/world-state.js";
 import { getGameSetting } from "../model/game-config.js";
+import {CONTROL_DEFAULTS} from '../model/detailed-settlements/territory.js';
 import {
   addCivilizationSurvivalStrip,
   getCivilizationSurvivalViewModel,
@@ -168,7 +169,7 @@ export function createSettlementPrototypeView({
         if(c.holder==='player'&&vm.supportTargets.length){
           const targets=[null,...vm.supportTargets],current=targets.indexOf(c.supportTarget);
           addButton(root,{x:rect.x+18,y:744,width:796,height:42},`Garrison destination: ${c.supportTarget??'local'} >`,false,()=>onAssignGarrison?.(regionId,targets[(current+1)%targets.length]));
-        }else root.addChild(createText('Claim 60% twice / retain 45% / loss at 75 unrest twice',{...TEXT_STYLES.body,fontSize:23},rect.x+18,744));
+        }else root.addChild(createText(`Claim ${CONTROL_DEFAULTS.claim*100}% twice / retain ${CONTROL_DEFAULTS.retain*100}% / loss at 75 unrest twice`,{...TEXT_STYLES.body,fontSize:23},rect.x+18,744));
       }
 
       root.addChild(

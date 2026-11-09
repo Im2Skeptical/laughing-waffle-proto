@@ -96,11 +96,11 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
     p.parts.map(part=>`${part.name} ${part.count}`).join(' / '),
     `Holding Force ${amount(p.force)}${p.required===null?' / needs local allegiance':p.required?' / '+amount(p.required)+' required':''}; unrest ${Math.round(p.unrest)}%.`,
     ...(!forceSample?[`${p.warriors} loyal adult/Elder Warriors: ${amount(p.warriorForce)} baseline Force.`,...(p.bonusForce||p.receivedForce?[`${amount(p.bonusForce)} Force from cards; ${amount(p.receivedForce)} from neighbouring garrisons.`]:[])]:[]),
-    p.status==='occupied'?`${Math.round(p.parts.find(part=>part.id===p.holder)?.count/p.total*100)}% allegiance is below 45%; this army keeps control.`:p.status==='supported'?'Population support currently secures control.':'Insufficient support and Force threaten control.',
+    p.status==='occupied'?`${Math.round(p.parts.find(part=>part.id===p.holder)?.count/p.total*100)}% allegiance is below ${CONTROL_DEFAULTS.retain*100}%; this army keeps control.`:p.status==='supported'?'Population support currently secures control.':'Insufficient support and Force threaten control.',
     'Warriors give 1 Force each, including while working. No equipment or extra garrison meals.',
     'Force lowers required allegiance with diminishing returns. Larger populations and rival allegiance reduce its leverage. At least one local ally is always needed.',
     ...(!forceSample&&p.resistance?[`${p.resistance.unaffiliated} unaffiliated / ${p.resistance.rivalCivilians} rival civilians / ${p.resistance.rivalWarriors} rival soldiers.`]:[]),
-    'Allegiance retains control at 45%, or claims at 60% for two checks.',
+    `Without Force, allegiance retains control at ${CONTROL_DEFAULTS.retain*100}%, or claims at ${CONTROL_DEFAULTS.claim*100}% for two checks.`,
     ...(held?[`${holder} allegiance fills from the left.`,
       `Shield position: ${amount(thresholdShare*100)}% allegiance needed at the current Force and non-loyal population mix (${minimumLoyal} / ${p.total} residents).`,
       'More Force moves the shield left. Falling below it starts contention and rising unrest; control loss is delayed.']:

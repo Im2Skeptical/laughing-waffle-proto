@@ -6,11 +6,12 @@ import {writePopulationBins} from '../src/model/detailed-settlements/population-
 for(const total of [20,30,60,120,300]){
  const two=minimumHoldingShare(total,2),four=minimumHoldingShare(total,4);
  assert(two>four&&four>0,'more Force helps without erasing the threshold');
- assert(two-four<.1,'2–4 Force cannot move the threshold by ten percentage points');
- let previous=.45;
+ assert(two-four<.13,'2–4 Force cannot erase the threshold or move it by thirteen percentage points');
+ assert.equal(minimumHoldingShare(total,0),.70,'zero Force needs seventy percent allegiance');
+ let previous=.70;
  for(let step=0;step<=200;step++){
   const force=step/10,share=minimumHoldingShare(total,force);
-  assert(share<=previous+1e-12&&share>0&&share<=.45);previous=share;
+  assert(share<=previous+1e-12&&share>0&&share<=.70);previous=share;
   assert.equal(minimumHoldingAllegiance(total,force),Math.max(1,Math.ceil(total*share-1e-9)));
  }
 }

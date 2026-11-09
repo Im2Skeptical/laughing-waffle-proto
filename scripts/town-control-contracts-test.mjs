@@ -80,7 +80,7 @@ function directCapture(seed, type) {
 directCapture(42, 'forager');
 directCapture(1, 'market');
 
-// Peaceful claim: 59/100 does not activate. 60/100 external-a does, on the second check only.
+// Peaceful claim: 74/100 does not activate. 75/100 external-a does, on the second check only.
 {
   const state = createNewGameState(7);
   const grain = state.world.sites.find(site => site.neutral && site.town.type === 'grain');
@@ -88,8 +88,8 @@ directCapture(1, 'market');
   deep(goodsOf(grain), OPEN.grain, 'grain-opening-inventory');
   deep(binsOf(grain), seedCohorts(POP.grain), 'grain-opening-cohorts');
   const below = [
-    {classId: 'villager', allegiance: 'player', specialty: 'scholar', kind: 'adults', age: null, count: 59},
-    {classId: 'villager', allegiance: 'neutral', specialty: 'ordinary', kind: 'children', age: null, count: 41},
+    {classId: 'villager', allegiance: 'player', specialty: 'scholar', kind: 'adults', age: null, count: 74},
+    {classId: 'villager', allegiance: 'neutral', specialty: 'ordinary', kind: 'children', age: null, count: 26},
   ];
   writePopulationBins(grain.detailedState, below);
   const belowSig = binsOf(grain);
@@ -101,9 +101,9 @@ directCapture(1, 'market');
   deep(binsOf(grain), belowSig, 'below-claim-cohorts');
   eq(timber.town.activated, false, 'other-town-stays-inactive');
   const claimed = [
-    {classId: 'villager', allegiance: 'external-a', specialty: 'warrior', kind: 'elder', age: 61, count: 40},
+    {classId: 'villager', allegiance: 'external-a', specialty: 'warrior', kind: 'elder', age: 61, count: 55},
     {classId: 'villager', allegiance: 'external-a', specialty: 'ordinary', kind: 'children', age: null, count: 20},
-    {classId: 'villager', allegiance: 'player', specialty: 'scholar', kind: 'adults', age: null, count: 25},
+    {classId: 'villager', allegiance: 'player', specialty: 'scholar', kind: 'adults', age: null, count: 10},
     {classId: 'stranger', allegiance: 'neutral', specialty: 'ordinary', kind: 'adults', age: null, count: 15},
   ];
   writePopulationBins(grain.detailedState, claimed);
