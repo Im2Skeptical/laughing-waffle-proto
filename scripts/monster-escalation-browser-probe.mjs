@@ -10,11 +10,27 @@ const firstSpawnSec=model.civilization.chaos.lastMonsterSpawn?.tSec;assert(Numbe
 assert.equal(model.civilization.chaos.lastMonsterSpawn.outcome,'intercepted');
 const out='artifacts/monster-escalation';mkdirSync(out,{recursive:true});
 const browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
-const page=await browser.newPage({viewport:{width:1440,height:900},hasTouch:true,isMobile:true}),errors=[];
+const page=await browser.newPage({viewport:{width:1440,height:900},hasTouch:true,isMobile:true,deviceScaleFactor:2}),errors=[];
 page.on('pageerror',e=>errors.push(e.message));
 await page.addInitScript(()=>{Element.prototype.requestFullscreen=async()=>{};Object.defineProperty(document,'fullscreenElement',{get:()=>document.documentElement});});
 const snap=()=>page.evaluate(()=>__SETTLEMENT_DEBUG__.getSnapshot());
 const tap=async p=>{const b=await page.locator('canvas').boundingBox();await page.touchscreen.tap(b.x+p.x/2424*b.width,b.y+p.y/1080*b.height);};
+function checkSwords(map){
+ for(const r of map.floatingReadouts){
+  if(!['player','external-a'].includes(r.holder)){assert.equal(r.zeroForceSwordAnchor,null);continue;}
+  assert.equal(r.zeroForceShare,.70);
+  const sword=(r.zeroForceSwordAnchor.x-r.meterTrack.x)/r.meterTrack.width;
+  const gap=(r.zeroForceSwordAnchor.x-r.shieldAnchor.x)/r.meterTrack.width;
+  assert(Math.abs(sword-.70)<.00001,'sword stays at the actual zero-Force threshold');
+  assert(Math.abs(gap-r.forceReductionShare)<.00001,'the visible gap equals the allegiance reduction from Force');
+  assert(Math.abs(r.forceReductionShare-(.70-r.thresholdShare))<.00001);
+  if(r.force===0)assert(Math.abs(r.zeroForceSwordAnchor.x-r.shieldAnchor.x)<.00001,'zero-Force markers coincide');
+ }
+}
+async function captureBar(r,name){
+ const canvas=await page.locator('canvas').boundingBox(),sx=canvas.width/2424,sy=canvas.height/1080;
+ await page.screenshot({path:out+'/'+name+'.png',clip:{x:canvas.x+r.bar.x*sx-8,y:canvas.y+r.bar.y*sy-8,width:r.bar.width*sx+16,height:r.bar.height*sy+16}});
+}
 try{
  await page.goto('http://localhost:5186/?perf=1&art=1&launch=new&regionalStart=opening');
  const buildInfo=await page.locator('#game-build-info').textContent();
@@ -31,6 +47,7 @@ try{
  await page.waitForFunction(()=>{const s=__SETTLEMENT_DEBUG__.getSnapshot();return s.viewedSec===0&&s.worldMap.monsterReadouts.length===1&&s.worldMap.monsterReadouts[0].strength===2;},null,{timeout:180000});
  let s=await snap();assert.equal(s.worldMap.monsterReadouts.length,1);assert.equal(s.worldMap.monsterReadouts[0].strength,2);
  assert.equal(s.worldMap.lastMonsterSpawn,null);
+ checkSwords(s.worldMap);
  const occupied=s.worldMap.floatingReadouts.filter(r=>r.holder==='external-a'&&r.status==='occupied');
  assert.equal(occupied.length,10,'real New Game must show minority occupation in ten outer Crown towns');
  for(const r of occupied){
@@ -54,6 +71,7 @@ try{
   await page.evaluate(mode=>{const url=new URL(location.href);url.searchParams.set('regionalForceSample',mode);history.replaceState(null,'',url);__SETTLEMENT_DEBUG__.forceRender();},mode);
   await page.waitForTimeout(100);
   const examples=(await snap()).worldMap.floatingReadouts.filter(r=>r.forceSample);
+  checkSwords((await snap()).worldMap);
   assert.equal(examples.length,2);
   for(const r of examples){
    assert.equal(r.status,mode==='held'?'occupied':'contested','comparison status follows the current curve');
@@ -66,6 +84,9 @@ try{
  }
  await page.evaluate(()=>{const url=new URL(location.href);url.searchParams.delete('regionalForceSample');history.replaceState(null,'',url);__SETTLEMENT_DEBUG__.forceRender();});
  await page.waitForTimeout(100);
+ s=await snap();checkSwords(s.worldMap);
+ await captureBar(s.worldMap.floatingReadouts.find(r=>r.holder==='player'&&r.force===0),'sword-player');
+ await captureBar(s.worldMap.floatingReadouts.find(r=>r.warriors===16),'sword-crown');
  await page.screenshot({path:out+'/desktop-opening.png'});
  await page.evaluate(t=>__SETTLEMENT_DEBUG__.browseSecond(t),firstSpawnSec);
  await page.waitForFunction(t=>__SETTLEMENT_DEBUG__.getSnapshot().viewedSec===t,firstSpawnSec);await page.waitForTimeout(400);
@@ -75,6 +96,15 @@ try{
  await page.screenshot({path:out+'/desktop-repel.png'});
  for(const viewport of [{width:1440,height:900},{width:844,height:390}]){
   await page.setViewportSize(viewport);await page.waitForTimeout(400);s=await snap();
+  checkSwords(s.worldMap);
+  const readout=s.worldMap.floatingReadouts.find(r=>r.holder==='external-a'&&s.worldMap.floatingReadouts.every(other=>other===r||[other.badge,other.bar].every(b=>{
+   const x=r.zeroForceSwordAnchor.x,y=r.zeroForceSwordAnchor.y+30*r.screenScale;
+   return x<b.x||x>b.x+b.width||y<b.y||y>b.y+b.height;
+  })));
+  assert(readout,'a visible sword hilt is available for touch inspection');
+  await tap({x:readout.zeroForceSwordAnchor.x,y:readout.zeroForceSwordAnchor.y+30*readout.screenScale});await page.waitForTimeout(100);
+  const forceTip=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState());assert(forceTip.visible&&forceTip.pinned&&forceTip.title.startsWith('Crown -'),'the sword hilt opens its control inspection on touch');
+  await tap({x:850,y:790});await page.waitForTimeout(100);
   const monster=s.worldMap.monsterReadouts.find(r=>r.regionId===last.sourceRegionId);
   assert(Math.abs(monster.screenScale-1.08*.7)<.001,'Monster badges share the accepted fixed screen scale');
   await tap({x:monster.bounds.x+monster.bounds.width/2,y:monster.bounds.y+monster.bounds.height/2});await page.waitForTimeout(150);
@@ -89,14 +119,15 @@ try{
  await page.evaluate(()=>__SETTLEMENT_DEBUG__.browseSecond(1600));
  await page.waitForFunction(()=>{const s=__SETTLEMENT_DEBUG__.getSnapshot();return s.viewedSec===1600&&s.worldMap.floatingReadouts.some(r=>r.holder==='external-a'&&r.thresholdShare>0);},null,{timeout:180000});
  const fifty=await snap(),crownAt50=fifty.worldMap.floatingReadouts.filter(r=>r.holder==='external-a');
+ checkSwords(fifty.worldMap);
  assert(crownAt50.length>=8);
  for(const r of crownAt50){const drawn=(r.shieldAnchor.x-r.meterTrack.x)/r.meterTrack.width;assert(Math.abs(drawn-r.thresholdShare)<.00001,'drawn shields track the exact holding threshold');}
  await page.screenshot({path:out+'/desktop-year50.png'});
  await page.evaluate(()=>__SETTLEMENT_DEBUG__.browseSecond(0));
  await page.waitForFunction(()=>{const s=__SETTLEMENT_DEBUG__.getSnapshot();return s.viewedSec===0&&s.worldMap.monsterReadouts.length===1&&s.worldMap.monsterReadouts[0].strength===2;},null,{timeout:180000});
  s=await snap();assert.equal(s.worldMap.lastMonsterSpawn,null);assert.equal(s.worldMap.monsterReadouts[0].strength,2,'rewind restores the old Strength and removes future feedback');
- assert.deepEqual(errors,[]);writeFileSync(out+'/browser-check.json',JSON.stringify({errors,last,minorityOccupations:occupied.length,core:core.map(r=>({regionId:r.regionId,warriors:r.warriors,thresholdShare:r.thresholdShare})),crownAt50:crownAt50.length,checks:['opening minority occupations','civilian core and visible thresholds','year-50 shield positions','opening Strength','repel +1','fixed scale','desktop/phone touch inspection','rewind']},null,2));
- console.log('[monster-browser] strength, +1 feedback, desktop/phone touch inspection and rewind OK');
+ assert.deepEqual(errors,[]);writeFileSync(out+'/browser-check.json',JSON.stringify({errors,last,minorityOccupations:occupied.length,core:core.map(r=>({regionId:r.regionId,warriors:r.warriors,thresholdShare:r.thresholdShare})),crownAt50:crownAt50.length,checks:['opening minority occupations','civilian core and visible thresholds','year-50 shield positions','zero-Force swords and contribution gaps','sword touch inspection','opening Strength','repel +1','fixed scale','desktop/phone touch inspection','rewind']},null,2));
+ console.log('[monster-browser] zero-Force swords, exact gaps, strength, touch inspection and rewind OK');
 }catch(error){
  const s=await snap().catch(()=>null);
  writeFileSync(out+'/browser-failure.json',JSON.stringify({error:error.message,viewedSec:s?.viewedSec,opening:s?.opening,worldMap:s?.worldMap,errors},null,2));

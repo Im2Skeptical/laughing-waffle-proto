@@ -72,6 +72,28 @@ and exact fractional Force. The inverse Force requirement is fractional, or
 absent when there is no local allegiance. Campaign capture resistance retains
 its existing weighted headcount rule; this change governs holding territory.
 
+The floating bar also has a thin sword at the zero-Force threshold. The horizontal
+gap from shield to sword shows how much Force lowers required allegiance;
+inspection gives the difference in percentage points. With zero Force the
+markers coincide, and the sword's hilt stays visible below the shield. This is
+view-only and does not change the holding rule.
+
+### Unrest duration
+
+Unrest has no fixed expiry. Each Death phase moves it toward its target,
+increasing by up to 15 or decreasing by up to 10. With default one-second phases
+there is a control check every
+six simulation seconds; the default year is 32 seconds. If at least 70% of
+residents keep supporting the holder, the target is zero, so clearing 100 unrest takes
+ten checks (up to 60 simulation seconds, about 1.9 game years).
+
+If Force holds a less-loyal population, the target remains
+`25 + 50 × unaffiliated-or-rival share`; unrest can persist indefinitely at that
+occupation level. If both support and Force are insufficient, its target is 100.
+Two consecutive checks at 75 or above without sufficient holding strength cause
+control loss. Empty settlements and rival peaceful claims have their own control
+transfer paths. No unrest behavior changes are part of the sword marker.
+
 Existing Barrack Levy practices can train and convert new Warriors. Provincial
 shields can return left within the first decade as their armies grow; this is
 actual gameplay, not decorative animation. Inspect the Warrior population as

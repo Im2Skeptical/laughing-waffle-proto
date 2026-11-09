@@ -43,6 +43,8 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   const parts=held?[...p.parts.filter(part=>part.id===p.holder),...p.parts.filter(part=>part.id!==p.holder)]:p.parts;
   const minimumLoyal=held?p.minimumLoyal:null;
   const thresholdShare=held?p.minimumShare:null;
+  const zeroForceShare=held?minimumHoldingShare(p.total,0):null;
+  const forceReductionShare=held?zeroForceShare-thresholdShare:null;
   const countKind=params.get('regionalCount')==='population'?'population':'workers';
   const count=countKind==='workers'?(forceSample?13:indicator.totalWorkerCount):p.total;
   const gold=player?0xf1d18b:crown?0xc69872:0x9abbb0;
@@ -100,13 +102,14 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
     'Warriors give 1 Force each, including while working. No equipment or extra garrison meals.',
     'Force lowers required allegiance with diminishing returns. Larger populations and rival allegiance reduce its leverage. At least one local ally is always needed.',
     ...(!forceSample&&p.resistance?[`${p.resistance.unaffiliated} unaffiliated / ${p.resistance.rivalCivilians} rival civilians / ${p.resistance.rivalWarriors} rival soldiers.`]:[]),
-    `Without Force, allegiance retains control at ${CONTROL_DEFAULTS.retain*100}%, or claims at ${CONTROL_DEFAULTS.claim*100}% for two checks.`,
+    `Peaceful claims need ${CONTROL_DEFAULTS.claim*100}% allegiance for two checks.`,
     ...(held?[`${holder} allegiance fills from the left.`,
-      `Shield position: ${amount(thresholdShare*100)}% allegiance needed at the current Force and non-loyal population mix (${minimumLoyal} / ${p.total} residents).`,
+      `${(params.get('regionalForce')??'onbar')==='onbar'?'Sword':'Without Force'}: ${amount(zeroForceShare*100)}% allegiance needed with no Force.`,
+      `Current threshold: ${amount(thresholdShare*100)}% allegiance (${minimumLoyal} / ${p.total} residents).`,
+      `Force removes ${amount(forceReductionShare*100)} percentage points from the allegiance requirement.`,
       'More Force moves the shield left. Falling below it starts contention and rising unrest; control loss is delayed.']:
       ['No faction currently holds this town. The dash means no holding army, not that all resident Warriors have died.']),
     'The shield number rounds Force down; its position uses the exact control rule.',
-    'Force holds territory without converting its population.',
   ],maxWidth:470,scale:2},tooltipView,'floating-influence:'+indicator.regionId);
 
   const bounds=spriteBounds??{min:{x:point.x-27,y:point.y-70},max:{x:point.x+27,y:point.y}};
@@ -126,19 +129,35 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
     for(const part of parts){const w=width*part.count/p.total;bar.lineStyle(0).beginFill(part.colour).drawRect(x,-height/2,w,height).endFill();x+=w;}
     bar.lineStyle(1,gold,.9).drawRoundedRect(-width/2-1,-height/2-1,width+2,height+2,2);
     bar.lineStyle(0).beginFill(gold).drawCircle(-width/2-5,0,2).drawCircle(width/2+5,0,2).endFill();
+    const zeroForceX=held&&forceStyle==='onbar'?-width/2+width*zeroForceShare:null;
+    // Draw behind the shield. At zero Force their positions coincide; the
+    // sword's lower hilt remains visible without crossing the Force number.
+    if(zeroForceX!==null)drawZeroForceSword(bar,zeroForceX);
     const shieldX=drawForceTreatment(bar,width,p,forceStyle,thresholdShare);
     forceNumber.visible=forceStyle==='onbar';forceNumber.position.set(shieldX??0,0);
-    influence.hitArea=new PIXI.Rectangle(-width/2-26,-28,width+52,58);
-    root.floatingLayout={sprite:{left,right,top,bottom},badge:{x:badge.x,y:badge.y},bar:{x:(left+right)/2,y:bottom+barOffset,width,shieldX:shieldX??0}};
+    influence.hitArea=new PIXI.Rectangle(-width/2-26,-28,width+52,66);
+    root.floatingLayout={sprite:{left,right,top,bottom},badge:{x:badge.x,y:badge.y},bar:{x:(left+right)/2,y:bottom+barOffset,width,shieldX:shieldX??0,zeroForceX}};
   };
   root.measureFloating=()=>{
     const track=root.floatingLayout.bar,anchor=root.toGlobal({x:track.x+track.shieldX,y:track.y}),trackA=root.toGlobal({x:track.x-track.width/2,y:track.y-4.5}),trackB=root.toGlobal({x:track.x+track.width/2,y:track.y+4.5});
+    const zeroForceSwordAnchor=track.zeroForceX===null?null:root.toGlobal({x:track.x+track.zeroForceX,y:track.y});
     const b=root.floatingLayout.sprite,a=root.toGlobal({x:b.left,y:b.top}),z=root.toGlobal({x:b.right,y:b.bottom});
     const rect=item=>{const b=item.getBounds();return {x:b.x,y:b.y,width:b.width,height:b.height};};
-    return {regionId:indicator.regionId,holder:p.holder,status:p.status,warriors:p.warriors,warriorForce:p.warriorForce,bonusForce:p.bonusForce,minimumLoyal,thresholdShare,barParts:parts.map(part=>({id:part.id,count:part.count})),sprite:{x:a.x,y:a.y,width:z.x-a.x,height:z.y-a.y},countBounds:rect(counter),badge:rect(badge),prestige:prestige.visible?rect(prestige):null,prestigeActive:player,prestigeLabel,bar:rect(influence),name:null,countKind,count,shownPrestige,exactPrestige:value,force:p.force,shownForce:held?Number(forceNumber.text):null,required:p.required,forceSample,forceStyle:lastStyle,screenScale:root.scale.x*lastZoom,shieldAnchor:{x:anchor.x,y:anchor.y},meterTrack:{x:trackA.x,y:trackA.y,width:trackB.x-trackA.x,height:trackB.y-trackA.y}};
+    return {regionId:indicator.regionId,holder:p.holder,status:p.status,warriors:p.warriors,warriorForce:p.warriorForce,bonusForce:p.bonusForce,minimumLoyal,thresholdShare,zeroForceShare,forceReductionShare,zeroForceSwordAnchor:zeroForceSwordAnchor?{x:zeroForceSwordAnchor.x,y:zeroForceSwordAnchor.y}:null,barParts:parts.map(part=>({id:part.id,count:part.count})),sprite:{x:a.x,y:a.y,width:z.x-a.x,height:z.y-a.y},countBounds:rect(counter),badge:rect(badge),prestige:prestige.visible?rect(prestige):null,prestigeActive:player,prestigeLabel,bar:rect(influence),name:null,countKind,count,shownPrestige,exactPrestige:value,force:p.force,shownForce:held?Number(forceNumber.text):null,required:p.required,forceSample,forceStyle:lastStyle,screenScale:root.scale.x*lastZoom,shieldAnchor:{x:anchor.x,y:anchor.y},meterTrack:{x:trackA.x,y:trackA.y,width:trackB.x-trackA.x,height:trackB.y-trackA.y}};
   };
   root.updateFloatingLayout(1);
   return root;
+}
+
+function drawZeroForceSword(g,x){
+  const edge=0x111b17,steel=0xc1c8bc,hilt=0xc9b27d;
+  g.lineStyle(1.2,edge).beginFill(steel,.95).drawPolygon([x,-24,x+2,-18,x+2,16,x,19,x-2,16,x-2,-18]).endFill();
+  g.lineStyle(1,0xf0ead9,.8).moveTo(x,-18).lineTo(x,14);
+  g.lineStyle(3.5,edge).moveTo(x-6,18).lineTo(x+6,18);
+  g.lineStyle(1.5,hilt).moveTo(x-6,18).lineTo(x+6,18);
+  g.lineStyle(4,edge).moveTo(x,20).lineTo(x,31);
+  g.lineStyle(2,hilt).moveTo(x,20).lineTo(x,31);
+  g.lineStyle(1,edge).beginFill(hilt).drawCircle(x,33,2).endFill();
 }
 
 
