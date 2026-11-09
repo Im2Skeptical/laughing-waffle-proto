@@ -44,7 +44,7 @@ export function addRegionAllegianceHeader(root,{x,y,vm,reference,tooltipView}){
     ...(c.upkeep?[`Card upkeep: ${c.upkeep} Edible ${c.supplied?'paid':'MISSING; conditional bonuses inactive'}.`]:[]),
     `Unrest ${Math.round(c.unrest)} moves toward ${Math.round(c.targetUnrest)} at each Death control check.`,
     'Resistance: 1 Force per 10 unaffiliated residents, 1 per 5 rival civilians, plus 1 per rival adult/Elder Warrior; round the total up.',
-    'Loss: unrest 75 for two checks without support or sufficient Force.',
+    'Loss: unrest 75+ for two checks without population support or enough occupation Force.',
     `${vm.usedStructureCapacity} / ${vm.structureCapacity} construction cells.`,
   ],maxWidth:420,scale:2},`territory:${reference}`,tooltipView);
   root.addChild(status);

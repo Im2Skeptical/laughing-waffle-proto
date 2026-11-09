@@ -1,12 +1,13 @@
 # Current Project Context
 
-Game build version: `1.1.57`.
+Game build version: `1.1.58`.
 The accepted [regional population UX](../docs/regional-population-ux-integration.md)
 uses floating 70% map readouts, visual demographics, Warrior baseline Force and
 carried proportional newborn allegiance. It preserves the degraded starter
 economy with smaller Crown populations, fitted housing and budgeted food access;
 ordinary starts now exercise the 50-year garrison target. Combined
-GameState v44 supersedes both independent v43 formats; start fresh.
+GameState v45 adds institution purchase undo receipts to the integrated v44
+population format; start fresh.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -78,7 +79,7 @@ identifiers remain stable; see [the mapping and authoring contract](../docs/cree
 
 Authoritative numbers:
 
-- Game state v44; runner saves v33. Older saves are rejected.
+- Game state v45; runner saves v33. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
 - Each run serializes schema-v30 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.

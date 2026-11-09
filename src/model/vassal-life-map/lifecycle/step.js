@@ -200,6 +200,9 @@ export function validateVassalLifeMapState(state) {
         if (!p?.intervention || !Number.isFinite(p.prestigeCost) || !Number.isFinite(p.phaseCost)
             || (p.monsterPressureCost!=null&&(!Number.isInteger(p.monsterPressureCost)||p.monsterPressureCost<0))
             || !Number.isFinite(p.currencyCost)) return true;
+          if (p.intervention.kind === 'practice' && ['adopt', 'upgrade'].includes(p.intervention.mode)
+              && (!Array.isArray(p.practiceDraftBeforeMove) || !p.practiceDraftBeforeMove.includes(p.intervention.practiceId)
+                || p.practiceDraftBeforeMove.some(id => id != null && (typeof id !== 'string' || !getDetailedPracticeDef(state, id))))) return true;
         if (p.replacedPracticeId != null && (p.intervention.kind !== 'practice' || p.intervention.mode !== 'learn'
             || typeof p.replacedPracticeId !== 'string' || p.replacedPracticeId === p.intervention.practiceId
             || !getDetailedPracticeDef(state, p.replacedPracticeId)

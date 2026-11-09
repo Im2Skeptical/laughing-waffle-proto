@@ -46,6 +46,11 @@ re-exports the previous public API; internals live here.
     Replacement-learn receipts capture the displaced Practice and prior draft
     order. Undo restores its relative position and relinks dependent receipts;
     receipt-only fields are removed when the offer returns to inventory.
+    Adopt and upgrade receipts also capture the order before their automatic
+    move. Undo cancels that move in the visible draft and later receipt histories,
+    preserving earlier reorders, later insertion slots, and instance identity.
+    Each receipt history uses only moves staged before that receipt; surviving
+    learns refresh displacement attribution after an earlier move is undone.
 - `stock-shops.js`
   - Pure generation context: class-compatible Stock outputs and unmet recipe
     inputs across all surviving player settlements.
