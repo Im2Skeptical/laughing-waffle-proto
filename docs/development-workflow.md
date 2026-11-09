@@ -44,8 +44,12 @@ saves, later actions and replay use the normal engine.
 2. Apply the verified changes to the local build first; report to Cam what changed
    and how to test.
 3. Push the branch and open a PR to `main` (draft if untested).
-4. Once Cam says it is good in chat, the Dispatcher squash-merges the PR; Cam
-   never clicks merge.
+4. Once Cam authorizes a merge and required checks pass, the task-owning agent
+   squash-merges the PR. If the substantive changes have not had a fresh,
+   independent review, obtain one and resolve blocking findings first. Match the
+   merge to the checked head commit; preserve branches/worktrees unless Cam
+   asks to remove them. Complete this in the current task rather than handing
+   the merge to an external Dispatcher.
 5. After a PR opens or merges, return the primary checkout to up-to-date `main`
    with no uncommitted work; never leave it on a feature branch.
 6. Tell Notes & PM when a PR merges so Trello stays accurate.

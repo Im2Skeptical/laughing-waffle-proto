@@ -149,22 +149,22 @@ check('ownership changes before each pure query', () => {
 });
 check('neutral market cannot satisfy require', () => {
   const state = open();
-  board(state, HOME, [piece('floodAlmanacs'), piece('fm_hearthBarter'), piece('marginalia'), null, null]);
+  board(state, HOME, [piece('floodAlmanacs'), piece('rm_neglectedFlocks'), piece('marginalia'), null, null]);
   site(state, MARKET).neutral.stocks.find(stock => stock.traits.includes('Edible')).stock = 4;
-  assert.equal(read(state).includes('fm_hearthBarter'), false);
+  assert.equal(read(state).includes('rm_neglectedFlocks'), false);
 });
 check('priced consume uses the neutral market and spends nothing', () => {
   const state = open();
-  board(state, HOME, [piece('floodAlmanacs'), piece('fm_hearthBarter', { stock: 2 }), piece('fm_spoiledStores', { charge: 0 }), null, null]);
+  board(state, HOME, [piece('floodAlmanacs'), piece('barter', { stock: 2 }), piece('fm_spoiledStores', { charge: 0 }), null, null]);
   site(state, MARKET).neutral.stocks.find(stock => stock.traits.includes('Edible')).stock = 4;
   assert.equal(getDetailedPracticeDef(state, 'fm_spoiledStores').activation.type, 'death');
-  same(state, ['fm_spoiledStores']);
+  same(state, ['barter', 'fm_spoiledStores']);
 });
 check('unpaid consume stays unmet', () => {
   const state = open();
   board(state, HOME, [piece('floodAlmanacs'), piece('fm_hearthBarter'), piece('fm_spoiledStores'), null, null]);
   site(state, MARKET).neutral.stocks.find(stock => stock.traits.includes('Edible')).stock = 4;
-  same(state, []);
+  same(state, ['fm_hearthBarter']);
 });
 check('unheld settlement keeps local storefront supply and drops the road', () => {
   const state = open();

@@ -24,9 +24,9 @@ import { getGamepieceFace } from '../gamepiece-presentation.js';
 
 const source=JSON.parse(readFileSync(new URL('../../../docs/civcontent-2.6-source.json',import.meta.url),'utf8'));
 for (const [pool,p,s,c] of [['common',15,14,5],['scholar',52,32,11],['warrior',52,32,11]]) {
-  assert.equal(Object.values(practices).filter(d=>! /^(fm|fe|cp)_/.test(d.id)&&d.pool===pool).length,p);
-  assert.equal(Object.values(structures).filter(d=>! /^(fm|fe|cp)_/.test(d.id)&&d.pool===pool).length,s);
-  assert.equal(Object.values(practices).filter(d=>! /^(fm|fe|cp)_/.test(d.id)&&d.pool===pool&&d.mode==='charge').length,c);
+  assert.equal(Object.values(practices).filter(d=>! /^(fm|fe|cp|rm)_/.test(d.id)&&d.pool===pool).length,p);
+  assert.equal(Object.values(structures).filter(d=>! /^(fm|fe|cp|rm)_/.test(d.id)&&d.pool===pool).length,s);
+  assert.equal(Object.values(practices).filter(d=>! /^(fm|fe|cp|rm)_/.test(d.id)&&d.pool===pool&&d.mode==='charge').length,c);
 }
 assert.equal(source.entries.length,187);
 // The housing-capacity pass supersedes the workbook's broader construction/defense tag.

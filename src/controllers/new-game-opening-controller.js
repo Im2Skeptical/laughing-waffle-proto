@@ -50,7 +50,7 @@ export function createNewGameOpeningController({ createCache, createWorkerServic
           const prepared = await loadPrepared();
           if (job !== current) return;
           current.state = prepared.state; current.onState?.(prepared.state);
-          coverageSec = prepared.lossSec; preparation = "ready";
+          coverageSec = prepared.lossSec??prepared.forecast.endSec; preparation = "ready";
           current.resolve(prepared); return;
         }
         const state = createState();
@@ -80,15 +80,15 @@ export function createNewGameOpeningController({ createCache, createWorkerServic
               completed: coverage });
             if (coverage > lastCoverage) { lastCoverage = coverage; lastProgress = performance.now(); }
             const summary = cache.getSummary(coverage);
-            if (summary?.runComplete) {
-              const end = summary.runLossSec ?? coverage;
+            if (summary?.runComplete || coverage>=searchLimitSec) {
+              const end = summary?.runComplete?(summary.runLossSec??coverage):coverage;
               const terminal = cache.getStateData(end);
-              if (!terminal?.runStatus?.complete) throw new Error("missingTerminalPreview");
+              if (summary?.runComplete&&!terminal?.runStatus?.complete) throw new Error("missingTerminalPreview");
               worker.dispose();
               preparation = "ready";
               report({ stage: 'forecast', label: 'Opening future ready',
                 detail: `Prepared through game second ${end}`, completed: end, total: end });
-              current.resolve({ ok: true, state, lossSec: end,
+              current.resolve({ ok: true, state, lossSec: summary?.runComplete?end:null,
                 forecast: cache.exportForecastChunk(end) });
               return;
             }

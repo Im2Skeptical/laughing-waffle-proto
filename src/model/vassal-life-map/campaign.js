@@ -1,11 +1,11 @@
-import { militarySummary, CONTROL_DEFAULTS, availableMilitaryWarriors as availableDetachment } from '../detailed-settlements/territory.js';
+import { militarySummary, occupationResistance, availableMilitaryWarriors as availableDetachment } from '../detailed-settlements/territory.js';
 import { populationBins, selectPeople, removePeople, writePopulationBins } from '../detailed-settlements/population-ledger.js';
 import { prestigeAccount, creditPrestige, quotePrestige } from './treasury.js';
 import { VASSAL_WORKSHOP_RULES as RULES } from '../../defs/vassal-workshop-rules.js';
 import { resolveLifeMapOptionCosts } from '../life-map-balance.js';
 import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
 import { getRegionState, getRegionReference } from '../world-state.js';
-import { stockTotal, consumeStock, stockProviderSlots, stockTraits, stockCapacity, planStock, applyStockPlan } from '../detailed-settlements/stock.js';
+import { stockTotal, consumeStock, stockProviderSlots, planStock, applyStockPlan } from '../detailed-settlements/stock.js';
 import { getRetinue, conquerSettlement, addMonsterPressure } from '../detailed-settlements/external-world.js';
 import { emitPracticeEvent, withPracticeRoot, getActionMonsterPressureCost } from '../detailed-settlements/practice-events.js';
 import { getPlayerDetailedSites, getDetailedSite, getVassalEffectiveStats, getAdjustedVassalPrestigeCost, getVassalActionPhaseCost, markHeirloomTimeAction } from './selectors.js';
@@ -21,8 +21,8 @@ export function campaignForces(state, vassal) {
     .reduce((n,cohort) => n + (cohort.specialists?.warrior?.adults ?? 0),0),0);
   const arms = sites.reduce((sum,site) => sum + stockTotal(state,site.detailedState,'Arms'),0);
   return Object.fromEntries(['attack','duel','quest'].map(mode => {
-    const usedRetinue = mode === 'duel' ? 0 : retinue, armedWarriors = mode === 'attack' ? Math.min(warriors,arms) : 0;
-    return [mode,{prowess,retinue:usedRetinue,warriors,arms,armedWarriors,total:prowess+usedRetinue+armedWarriors}];
+    const usedRetinue = mode === 'duel' ? 0 : retinue, warriorForce = mode === 'attack' ? (state.rulesetId?warriors:Math.min(warriors,arms)) : 0;
+    return [mode,{prowess,retinue:usedRetinue,warriors,arms,warriorForce,total:prowess+usedRetinue+warriorForce}];
   }));
 }
 
@@ -146,24 +146,18 @@ export function getCampaignPresentation(state,vassal,nodeState) {
 function moveCampaignGarrison(state,vassal,targetId) {
   const target=getDetailedSite(state,targetId)?.detailedState;
   if(!target)return;
-  const opposition=populationBins(target).filter(b=>b.allegiance!=='player').reduce((n,b)=>n+b.count,0);
-  const required=Math.ceil(opposition/CONTROL_DEFAULTS.disloyalPerForce);
-  const destinations=target.practiceSlots.filter(p=>stockTraits(state,p).includes('Arms'));
+  const required=occupationResistance(target,'player').required;
   const reachable=[...new Set(stockProviderSlots(state,getDetailedSite(state,vassal.locationRegionId)?.detailedState,false,{beneficiary:'player',discretionary:true}).map(p=>p.regionId))];
-  // Allocate the smallest real detachment. Existing loyal residents and captured
-  // equipment count; only missing equipment travels with the expedition.
+  // Allocate the smallest real detachment. Warriors bring intrinsic Force;
+  // equipment remains Stock for explicit card recipes.
   for(const id of reachable){
     if(id===targetId)continue;
     const source=getDetailedSite(state,id)?.detailedState;
     while(availableDetachment(state,id)>0){
       const defense=militarySummary(state,targetId,'player',{assumeSupplied:true});
-      if(defense.armed>0&&defense.force>=required)break;
-      const needsArms=stockTotal(state,target,'Arms')<=defense.warriors;
-      const destination=destinations.find(p=>(p.stock??0)<stockCapacity(state,target,p));
-      if(needsArms&&!destination)break;
+      if(defense.force>0&&defense.force>=required)break;
       const troops=removePeople(source,selectPeople(source,1,{kind:'adults',specialty:'warrior',allegiance:'player'}));
       if(!troops.length)break;
-      if(needsArms){consumeStock(state,source,'Arms',1);destination.stock=(destination.stock??0)+1;}
       writePopulationBins(target,[...populationBins(target),...troops.map(b=>({...b,classId:'stranger'}))]);
     }
   }

@@ -24,8 +24,9 @@ const seedCohorts = pop => {
   const children = Math.floor(pop / 4);
   return [`villager|neutral|ordinary|adults||${pop - children}`, `villager|neutral|ordinary|children||${children}`].sort();
 };
-// Profile inventories are floor(capacity/2). Host caps: forage 2 Edible, dryFarming 10 Edible+Grain,
-// logging 6 Timber+Construction, barter 4 Currency, hand quern 4 Edible, rubble 3 Stone+Construction.
+// Profile inventories are floor(capacity/2). Starter host caps: Scrub 1, Flocks 2,
+// Fields/Quern 4, Woodlot 3, Rubble 2, and Hearth Barter 1. Other inherited hosts
+// have no matching opening goods. See docs/starter-economy.md.
 // First matching host fills; leftover storefront units are cleared so they are not duplicated.
 const OPEN = {
   forager: {food: 6},
@@ -35,11 +36,11 @@ const OPEN = {
   market: {food: 9, timber: 6, stone: 6, ore: 5},
 };
 const EXPECT = {
-  forager: {forage: 2, barter: 0},
-  grain: {dryFarming: 10, fm_handQuern: 2},
-  timber: {logging: 5, barter: 0},
-  quarry: {fm_rubblePicking: 3, barter: 0},
-  market: {forage: 2, dryFarming: 7, barter: 0},
+  forager: {rm_scrubForaging: 1, fm_hearthBarter: 0, rm_neglectedFlocks: 2, rm_withheldSpoils: 0},
+  grain: {fm_fallowFields: 4, fm_handQuern: 4, rm_scrubForaging: 1, fm_hearthBarter: 0, rm_saltMonopoly: 0},
+  timber: {fm_woodlotRights: 3, fm_hearthBarter: 0, rm_siltedChannels: 0, rm_rottingPulpVat: 0, rm_splinteredBowWorkshop: 0},
+  quarry: {fm_rubblePicking: 2, fm_hearthBarter: 0, fm_scrapGathering: 0, fm_peatCutting: 0, rm_scrubForaging: 0},
+  market: {rm_scrubForaging: 1, fm_fallowFields: 4, fm_hearthBarter: 0, rm_falsifiedLedgers: 0, rm_saltMonopoly: 0},
 };
 const POP = {forager: 18, grain: 30, timber: 24, quarry: 30, market: 60};
 const zeroGoods = stocks => stocks.map(() => 0);
@@ -54,7 +55,7 @@ function assertActivated(state, town, type, faction) {
   eq(slots.length, town.town.market.practices.length, `${type}-recipe-count`);
   eq(slots.some(slot => Object.hasOwn(slot, 'allegiance')), false, `${type}-resource-has-no-allegiance`);
   eq(town.detailedState.practiceSlots.length, 5, `${type}-board-width`);
-  eq(town.detailedState.structureSlots.filter(Boolean).map(slot => slot.structureId).join(','), 'timberHouse', `${type}-house`);
+  eq(town.detailedState.structureSlots.filter(Boolean).map(slot => slot.structureId).join(','), 'fm_crowdedTenement', `${type}-house`);
 }
 
 function directCapture(seed, type) {
@@ -115,7 +116,7 @@ directCapture(1, 'market');
   resolveControl(state);
   assertActivated(state, grain, 'grain', 'external-a');
   deep(binsOf(grain), claimedSig, 'claim-conserves-cohorts');
-  eq(state.civilization.nextPracticeInstanceId, nextId + 2, 'claim-instance-ids');
+  eq(state.civilization.nextPracticeInstanceId, nextId + 5, 'claim-instance-ids');
   eq(grain.detailedState.control.unrest, 40, 'peaceful-unrest');
   const installed = idsOf(grain);
   resolveControl(state);
@@ -145,7 +146,7 @@ directCapture(1, 'market');
   assertActivated(state, quarry, 'quarry', 'player');
   deep(binsOf(quarry), seedCohorts(POP.quarry), 'military-cohorts-kept');
   eq(quarry.detailedState.control.unrest >= 50, true, 'military-unrest');
-  eq(state.civilization.nextPracticeInstanceId, nextId + 2, 'military-instance-ids');
+  eq(state.civilization.nextPracticeInstanceId, nextId + 5, 'military-instance-ids');
   const capturedIds = idsOf(quarry);
   conquerSettlement(state, quarry.regionId, 0);
   deep(idsOf(quarry), capturedIds, 'military-exact-once');
@@ -157,8 +158,8 @@ directCapture(1, 'market');
   const developedHosts = hostsOf(quarry);
   const developedBins = binsOf(quarry);
   const developedIds = idsOf(quarry);
-  eq(developedHosts.fm_rubblePicking, 3, 'developed-rubble');
-  eq(developedHosts.barter <= 4 && developedHosts.barter >= 0, true, 'developed-barter-cap');
+  eq(developedHosts.fm_rubblePicking, 2, 'developed-rubble');
+  eq(developedHosts.fm_hearthBarter <= 1 && developedHosts.fm_hearthBarter >= 0, true, 'developed-barter-cap');
   eq(developedBins.every(row => /^villager\|neutral\|ordinary\|(adults|children)\|\|/.test(row)), true, 'develop-keeps-identity');
   deep(binsOf(timber), seedCohorts(POP.timber), 'timber-static-at-develop');
   deep(goodsOf(timber), OPEN.timber, 'timber-stock-before-food');
@@ -209,7 +210,7 @@ directCapture(1, 'market');
   deep(hostsOf(quarry), developedHosts, 'reacquire-does-not-repour');
   deep(binsOf(quarry), developedBins, 'reacquire-conserves-cohorts');
   deep(idsOf(quarry), developedIds, 'reacquire-exact-once');
-  eq(state.civilization.nextPracticeInstanceId, nextId + 2, 'reacquire-no-new-instances');
+  eq(state.civilization.nextPracticeInstanceId, nextId + 5, 'reacquire-no-new-instances');
   deep(quarry.detailedState.structureSlots[0], house, 'reacquire-keeps-house');
 }
 

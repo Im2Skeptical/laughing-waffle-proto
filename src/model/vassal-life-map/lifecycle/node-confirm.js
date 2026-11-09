@@ -5,7 +5,7 @@ import { getVassalRiskDeathChance } from '../class-rules.js';
 import { VASSAL_CLASS_RULES } from '../../../defs/vassal-class-rules.js';
 import { ensureCommissionOffers, recordCommissionAction } from '../commissions.js';
 import { createShopSpecialties } from '../shop-specialties.js';
-import { buildCrossroadsOptions, buildLegacyOptions, legacySettlementTargets, isEmptyFrontierDestination, rollTourReward } from '../world-choices.js';
+import { buildCrossroadsOptions, buildLegacyOptions, rollTourReward } from '../world-choices.js';
 import { buildCampaignOptions, campaignBlockReason, resolveCampaignAttempt } from '../campaign.js';
 import { VASSAL_WORKSHOP_RULES } from '../../../defs/vassal-workshop-rules.js';
 import { getGameSetting, getDetailedPracticeDef } from '../../game-config.js';
@@ -13,8 +13,6 @@ import { addMonsterPressure } from '../../detailed-settlements/external-world.js
 import { addActionChaos } from '../../detailed-settlements/practice-events.js';
 import { classActionOptions, validateClassAction, applyClassAction } from "../class-actions.js";
 import { stockTotal, consumeStock, discretionaryStock, planStock, applyStockPlan } from "../../detailed-settlements/stock.js";
-import { selectPopulationComposition } from "../../detailed-settlements/helpers.js";
-import { removePopulationComposition } from "../../detailed-settlements/phases/migration.js";
 import { emitPracticeEvent, withPracticeRoot } from '../../detailed-settlements/practice-events.js';
 import { flushPracticeEvents } from '../../detailed-settlements/practices.js';
 // Enter, option select, confirm, finish, and development-choice apply.
@@ -33,19 +31,14 @@ import {
 import {
   DETAILED_PRACTICE_SLOT_COUNT,
 } from "../../../defs/gamepieces/detailed-settlement-defs.js";
-import { createInitialDetailedSettlementData } from "../../../defs/world/detailed-settlement-scenario.js";
 import {
   createDetailedPracticeSlot,
 } from "../../detailed-practice-tiers.js";
 import { getMoonPhaseDurationSec } from "../../moon-phases.js";
 import {
   addWorldConnection,
-  establishDetailedSettlement,
   getRegionReference,
-  getRegionState,
-  getWorldConnectionCandidates,
   getWorldConnectionKey,
-  getWorldDefinition,
   removeWorldConnection,
 } from "../../world-state.js";
 import {
@@ -111,90 +104,6 @@ function applyPracticeIntervention(state, practiceSlots, intervention) {
   return true;
 }
 
-function getSettlementTargets(state, vassal) {
-  const source = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
-  const adults = Math.max(0, Math.floor(source?.populationByClass?.villager?.adults ?? 0));
-  if (adults < 10) return [];
-  return (state?.world?.connections ?? []).flatMap((edge) => {
-    const targetRegionId = edge.regionAId === vassal.locationRegionId ? edge.regionBId
-      : edge.regionBId === vassal.locationRegionId ? edge.regionAId : null;
-    const target = targetRegionId ? getRegionState(state, targetRegionId) : null;
-    return target && isEmptyFrontierDestination(state, targetRegionId)
-      ? [targetRegionId] : [];
-  }).sort();
-}
-
-function buildSettlementFallbackOptions(state, vassal) {
-  const found=resolveLifeMapOptionCosts(state,{family:'signature',signatureNode:{variantId:'settlement'}},{id:'settlement-unavailable',prestigeCost:VASSAL_LIFE_TUNING.settlementPrestigeCost});
-  const foundCost=state.gameConfig.lifeMapGenerator.design.enabled?getAdjustedVassalPrestigeCost(vassal,found.prestigeCost):VASSAL_LIFE_TUNING.settlementPrestigeCost;
-  if (prestigeAccount(state,vassal).prestige < foundCost) {
-    return [{ id: "settlement-favor", label: "Seek Settlement Favor", prestigeDelta: 10, phaseCost: 0 }];
-  }
-  const currentId = vassal.locationRegionId;
-  const existing = new Set((state?.world?.connections ?? []).map((edge) =>
-    getWorldConnectionKey(edge.regionAId, edge.regionBId)));
-  const edge = getWorldConnectionCandidates(getWorldDefinition(state)).find((candidate) => {
-    if (candidate.regionAId !== currentId && candidate.regionBId !== currentId) return false;
-    const otherId = candidate.regionAId === currentId ? candidate.regionBId : candidate.regionAId;
-    return getRegionState(state, otherId)?.controller === "frontier"
-      && !existing.has(getWorldConnectionKey(candidate.regionAId, candidate.regionBId));
-  });
-  if (edge) return [{
-    id: `settlement-edge:${edge.regionAId}:${edge.regionBId}`,
-    label: `Open Route to ${getRegionReference(state, edge.regionAId === currentId ? edge.regionBId : edge.regionAId)}`,
-    prestigeCost: VASSAL_LIFE_TUNING.routeAddPrestigeCost,
-    phaseCost: getVassalYearPhaseCost(state, VASSAL_LIFE_TUNING.routeAddYearCost),
-    intervention: { kind: "connection", mode: "add", regionAId: edge.regionAId, regionBId: edge.regionBId },
-  }];
-  return [{ id: "settlement-favor", label: "Seek Settlement Favor", prestigeDelta: 10, phaseCost: 0 }];
-}
-
-export function getSettlementRequirements(state, vassal, option) {
-  if (option?.legacyFounding) return [{label:'Connected, empty frontier destination',met:legacySettlementTargets(state,vassal).includes(option.settlementRegionId)}];
-  if (!option?.settlementRegionId && option?.id !== "settlement-unavailable") return [];
-  const targetId = option.settlementRegionId;
-  const target = getRegionState(state, targetId);
-  const adults = Math.floor(getDetailedSite(state, vassal.locationRegionId)
-    ?.detailedState?.populationByClass?.villager?.adults ?? 0);
-  const cost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
-  const connected = (state.world.connections ?? []).some((edge) =>
-    getWorldConnectionKey(edge.regionAId, edge.regionBId)
-      === getWorldConnectionKey(vassal.locationRegionId, targetId));
-  return [
-    { label: `${cost} Prestige (have ${prestigeAccount(state,vassal).prestige})`, met: prestigeAccount(state,vassal).prestige >= cost },
-    { label: `10 adult Villagers move (have ${adults})`, met: adults >= 10 },
-    { label: "Frontier destination", met: target?.controller === "frontier" },
-    { label: "Empty destination", met: !!targetId && isEmptyFrontierDestination(state, targetId) },
-    { label: "Existing route to destination", met: connected },
-    { label: "Destination capacity: at least 1", met: (target?.structureCapacity ?? 0) >= 1 },
-  ];
-}
-
-function buildSettlementOptions(state, vassal) {
-  const eligible = getSettlementTargets(state, vassal);
-  const targets = eligible.length ? eligible : getWorldConnectionCandidates(getWorldDefinition(state))
-    .flatMap((edge) => {
-      const otherId = edge.regionAId === vassal.locationRegionId ? edge.regionBId
-        : edge.regionBId === vassal.locationRegionId ? edge.regionAId : null;
-      return otherId && isEmptyFrontierDestination(state, otherId) ? [otherId] : [];
-    });
-  const options = shuffle(state, targets).slice(0, 3).map((targetRegionId) => resolveLifeMapOptionCosts(state,{family:'signature',signatureNode:{variantId:'settlement'}},{
-    id: `small-settlement:${targetRegionId}`,
-    label: `Found ${getRegionReference(state, targetRegionId)}`,
-    prestigeCost: VASSAL_LIFE_TUNING.settlementPrestigeCost,
-    phaseCost: 0,
-    settlementRegionId: targetRegionId,
-  }));
-  if (!options.length) options.push({
-    id: "settlement-unavailable", label: "Found Settlement",
-    prestigeCost: VASSAL_LIFE_TUNING.settlementPrestigeCost, phaseCost: 0,
-  });
-  if (!options.some((option) => getSettlementRequirements(state, vassal, option).every((entry) => entry.met))) {
-    return [...options.slice(0, 2), ...buildSettlementFallbackOptions(state, vassal)];
-  }
-  return options;
-}
-
 function buildDevelopmentOptions(state, vassal) {
   const statIds = shuffle(state, VASSAL_STAT_IDS).slice(0, 3);
   return VASSAL_DEVELOPMENT_OPTIONS.map((template, index) => {
@@ -233,9 +142,7 @@ function createNodeState(state, vassal, node) {
     accumulatedPhaseCost: 0,
     resolutionResult: null,
   };
-  if (node.signatureNode?.variantId === "settlement") {
-    nodeState.options = buildSettlementOptions(state, vassal);
-  } else if (node.signatureNode?.variantId === "legacyPlus") {
+  if (node.signatureNode?.variantId === "legacyPlus") {
     nodeState.options = clone(VASSAL_LEGACY_OPTIONS).map((option) => ({
       ...option,
       legacyStartingPrestigeBonus: Math.max(0, option.legacyStartingPrestigeBonus ?? 0) * 2,
@@ -268,7 +175,6 @@ function createNodeState(state, vassal, node) {
     });
   } else if (node.family === "development") nodeState.options = buildDevelopmentOptions(state, vassal);
   else if (node.family === "crossroads") nodeState.options = buildCrossroadsOptions(state, vassal);
-  else if (node.family === "settlement") nodeState.options = buildSettlementOptions(state, vassal);
   else if (node.family === 'campaign') {
     nodeState.campaign={mode:'attack',duelDone:false,failed:false,questRegionIds:[],lastResult:null};
     nodeState.options=buildCampaignOptions(state,vassal,nodeState);
@@ -332,18 +238,9 @@ export function selectVassalNodeOption(state, nodeId, optionId) {
     nodeState.selectedOptionId=mode==='duel'?nodeState.options.find(option=>option.mode==='duel')?.id??null:null;
     return {ok:true};
   }
-  if (nodeState.family === 'legacy' && optionId.startsWith('legacy-target:')) {
-    const id=optionId.slice('legacy-target:'.length);
-    if (!legacySettlementTargets(state,vassal).includes(id)) return {ok:false,reason:'settlementUnavailable'};
-    nodeState.legacyDestinationRegionId=id;nodeState.selectedOptionId='found-settlement';
-    return {ok:true};
-  }
   const option = nodeState.options.find((entry) => entry.id === optionId);
   if (!option) return { ok: false, reason: "invalidOption" };
   if (nodeState.family === 'campaign' && campaignBlockReason(state,vassal,option)) return {ok:false,reason:'campaignUnavailable'};
-  if (getSettlementRequirements(state, vassal, option).some((entry) => !entry.met)) {
-    return { ok: false, reason: "settlementUnavailable" };
-  }
   const prestigeCost = getAdjustedVassalPrestigeCost(vassal, option.prestigeCost ?? 0);
   if (prestigeCost > prestigeAccount(state,vassal).prestige && !(state.rulesetId&&nodeState.family==='campaign')) return { ok: false, reason: "insufficientPrestige" };
   nodeState.selectedOptionId = optionId;
@@ -443,16 +340,6 @@ function finishVassal(state, vassal, { reason, cause = null } = {}) {
 
 function applyOptionEffect(state, vassal, nodeState, option) {
   const previousLocation = vassal.locationRegionId;
-  if (getSettlementRequirements(state, vassal, option).some((entry) => !entry.met)) {
-    return { ok: false, reason: "settlementUnavailable" };
-  }
-  if (option?.settlementRegionId) {
-    const source = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
-    if (!option.legacyFounding && (Math.floor(source?.populationByClass?.villager?.adults ?? 0) < 10
-        || !getSettlementTargets(state, vassal).includes(option.settlementRegionId))) {
-      return { ok: false, reason: "settlementUnavailable" };
-    }
-  }
   const classValidation = validateClassAction(state, vassal, option?.classAction);
   if (!classValidation.ok) return classValidation;
   // Authored base costs use the quoted, pre-reward stats. A choice that grants
@@ -479,33 +366,6 @@ function applyOptionEffect(state, vassal, nodeState, option) {
     vassal.stats[option.lossStatId] = Math.max(
       0, Math.floor(vassal.stats[option.lossStatId] ?? 0) + Math.floor(option.lossStatDelta)
     );
-  }
-  if (option?.settlementRegionId) {
-    const source = getDetailedSite(state, vassal.locationRegionId)?.detailedState;
-    const targetRegionId = option.settlementRegionId;
-    const settlement = createInitialDetailedSettlementData(targetRegionId);
-    const adultSource = structuredClone(source);
-    for (const cohort of Object.values(adultSource.populationByClass)) {
-      cohort.children=0;cohort.eldersByAge=[];
-      for (const specialist of Object.values(cohort.specialists)) {specialist.children=0;specialist.eldersByAge=[];}
-    }
-    const settlers=selectPopulationComposition(adultSource,['villager'],10);
-    settlement.populationByClass.villager.children = 0;
-    settlement.populationByClass.villager.adults = 10;
-    settlement.populationByClass.villager.eldersByAge = [];
-    if (!option.legacyFounding) settlement.populationByClass.villager.specialists=settlers.villager.specialists;
-    settlement.populationByClass.stranger.children = 0;
-    settlement.populationByClass.stranger.adults = 0;
-    settlement.populationByClass.stranger.eldersByAge = [];
-    settlement.practiceSlots = Array.from({length: DETAILED_PRACTICE_SLOT_COUNT}, (_,i) => i === 0 ? {practiceId:"forage",tier:"bronze",stock:2,charge:0,work:0} : null);
-    settlement.structureSlots = [
-      { structureId: "granary" },
-      { structureId: "mudHouses" },
-    ].slice(0,getRegionState(state,targetRegionId).structureCapacity);
-    const result = establishDetailedSettlement(state, targetRegionId, settlement);
-    if (!result.ok) return result;
-    if (!option.legacyFounding) removePopulationComposition(source,settlers);
-    vassal.locationRegionId = targetRegionId;
   }
   if (option?.intervention) {
     const result = applyIntervention(state, option.intervention, vassal);
@@ -682,10 +542,6 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
   if (!isShopNodeState(nodeState)) {
     option = nodeState.rewardAcquisition ?? nodeState.options.find((entry) => entry.id === nodeState.selectedOptionId) ?? null;
     if (!option) return { ok: false, reason: "optionRequired" };
-  }
-  if (nodeState.family==='legacy' && option.id==='found-settlement') {
-    if (!legacySettlementTargets(state,vassal).includes(nodeState.legacyDestinationRegionId)) return {ok:false,reason:'settlementUnavailable'};
-    option={...option,settlementRegionId:nodeState.legacyDestinationRegionId,legacyFounding:true};
   }
   if (option?.randomReward) {
     option=rollTourReward(state,vassal,option);

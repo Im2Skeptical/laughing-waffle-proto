@@ -217,12 +217,22 @@ eq(region(neutral.regionId).controller, 'player', 'neutral-conquest-captures');
 eq(trophies(), beforeConquest, 'neutral-conquest-not-trophy');
 
 pause(false);
+// Prior dangerous actions and conversions can remove the original defenders.
+// Re-establish five loyal Warriors before testing an incoming attack on this
+// settlement; the setup must not depend on its incidental opening population.
+capital.simulationMode = 'detailed';
+region(capitalId).detailedSettlementEnabled = true;
+region(capitalId).controller = 'player';
+board(capital, [piece('beastRendering'), piece('dryFarming', { stock: 10 }), piece('weaponsmithing', { stock: 5 })], 'player', 5);
+state.civilization.nextPracticeInstanceId = serial;
 for (const row of state.world.regions) delete row.monster;
 region(capitalId).monster = { defense: 1 };
-state.civilization.chaos.monsterCount = 1; state.civilization.chaos.monsterPressure = 0;
+state.civilization.chaos.monsterCount = 1;
+state.civilization.chaos.monsterPressure = 0;
 const beforeDefense = trophies();
 addMonsterPressure(state, 100);
 eq(region(capitalId).monster?.defense, 1, 'defense-holds');
+eq(capital.detailedState.lastDefense?.result, 'held', 'defense-resolved');
 eq(capital.simulationMode, 'detailed', 'defense-does-not-ruin');
 eq(trophies(), beforeDefense, 'defense-not-trophy');
 

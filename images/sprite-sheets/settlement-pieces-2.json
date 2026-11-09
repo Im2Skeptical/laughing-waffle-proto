@@ -1,6 +1,6 @@
 {"frames": {
 
-"stoneHouse.webp":
+"mudHouses.webp":
 {
 	"frame": {"x":2,"y":2,"w":326,"h":434},
 	"rotated": false,
@@ -8,7 +8,15 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
 	"sourceSize": {"w":326,"h":434}
 },
-"storehouse.webp":
+"musterGround.webp":
+{
+	"frame": {"x":2,"y":440,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"palisade.webp":
 {
 	"frame": {"x":332,"y":2,"w":326,"h":434},
 	"rotated": false,
@@ -16,7 +24,23 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
 	"sourceSize": {"w":326,"h":434}
 },
-"supplyDepot.webp":
+"rm_saggingStorehouse.webp":
+{
+	"frame": {"x":3302,"y":440,"w":324,"h":432},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":324,"h":432},
+	"sourceSize": {"w":324,"h":432}
+},
+"roadStation.webp":
+{
+	"frame": {"x":332,"y":440,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"schoolhouse.webp":
 {
 	"frame": {"x":662,"y":2,"w":326,"h":434},
 	"rotated": false,
@@ -24,7 +48,15 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
 	"sourceSize": {"w":326,"h":434}
 },
-"surveyOffice.webp":
+"scriptorium.webp":
+{
+	"frame": {"x":662,"y":440,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"sheepfold.webp":
 {
 	"frame": {"x":992,"y":2,"w":326,"h":434},
 	"rotated": false,
@@ -32,7 +64,15 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
 	"sourceSize": {"w":326,"h":434}
 },
-"technicalWorkshop.webp":
+"silo.webp":
+{
+	"frame": {"x":992,"y":440,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"smokehouse.webp":
 {
 	"frame": {"x":1322,"y":2,"w":326,"h":434},
 	"rotated": false,
@@ -40,7 +80,15 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
 	"sourceSize": {"w":326,"h":434}
 },
-"timberHouse.webp":
+"stoneHouse.webp":
+{
+	"frame": {"x":1322,"y":440,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"storehouse.webp":
 {
 	"frame": {"x":1652,"y":2,"w":326,"h":434},
 	"rotated": false,
@@ -48,7 +96,15 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
 	"sourceSize": {"w":326,"h":434}
 },
-"townhouse.webp":
+"supplyDepot.webp":
+{
+	"frame": {"x":1652,"y":440,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"surveyOffice.webp":
 {
 	"frame": {"x":1982,"y":2,"w":326,"h":434},
 	"rotated": false,
@@ -56,7 +112,15 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
 	"sourceSize": {"w":326,"h":434}
 },
-"trainingYard.webp":
+"technicalWorkshop.webp":
+{
+	"frame": {"x":1982,"y":440,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"timberHouse.webp":
 {
 	"frame": {"x":2312,"y":2,"w":326,"h":434},
 	"rotated": false,
@@ -64,9 +128,25 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
 	"sourceSize": {"w":326,"h":434}
 },
-"warMarket.webp":
+"townhouse.webp":
+{
+	"frame": {"x":2312,"y":440,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"trainingYard.webp":
 {
 	"frame": {"x":2642,"y":2,"w":326,"h":434},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
+	"sourceSize": {"w":326,"h":434}
+},
+"warMarket.webp":
+{
+	"frame": {"x":2642,"y":440,"w":326,"h":434},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
@@ -82,7 +162,7 @@
 },
 "weighHouse.webp":
 {
-	"frame": {"x":3302,"y":2,"w":326,"h":434},
+	"frame": {"x":2972,"y":440,"w":326,"h":434},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
@@ -90,7 +170,7 @@
 },
 "workshop.webp":
 {
-	"frame": {"x":3632,"y":2,"w":326,"h":434},
+	"frame": {"x":3302,"y":2,"w":326,"h":434},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":326,"h":434},
@@ -101,9 +181,9 @@
 	"version": "1.0",
 	"image": "settlement-pieces-2.png",
 	"format": "RGBA8888",
-	"size": {"w":3960,"h":438},
+	"size": {"w":3630,"h":876},
 	"scale": "0.3",
 	"related_multi_packs": [ "settlement-pieces-0.json", "settlement-pieces-1.json" ],
-	"smartupdate": "$TexturePacker:SmartUpdate:c18e87c235a2c003c5fb821e3cad1bf0:dded614fd93e4d31e2a1b651bdf43549:e4c8b35e61250632ef8ea3104e602998$"
+	"smartupdate": "$TexturePacker:SmartUpdate:ec2a40d0eb76ba9eacc877be820c2765:8f7aa97707a969f72ac2288b7193131f:e4c8b35e61250632ef8ea3104e602998$"
 }
 }

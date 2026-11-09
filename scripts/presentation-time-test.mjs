@@ -272,8 +272,12 @@ assert.deepEqual(VASSAL_TIME_COST_RANGES, {
 for(const duration of [1,8,10]) {
   const state=createNewGameState(42);state.paused=false;state.seasonDurationSec=duration;
   const site=getDetailedSettlementSites(state,{playerOnly:true})[0];
-  site.detailedState.practiceSlots=[{practiceId:'logging',tier:'bronze',stock:0,charge:0,work:0},null,null,null,null];
+  // Keep the timing fixture alive after replacing its seeded food economy.
+  // Population growth and starvation are tested by the demographic contracts.
+  for(const tier of ['Bronze','Silver','Gold','Diamond'])state.gameConfig.settings.values['birthRate'+tier]=0;
+  site.detailedState.practiceSlots=[{practiceId:'logging',tier:'bronze',stock:0,charge:0,work:0},{practiceId:'forage',tier:'bronze',stock:2,charge:0,work:0},null,null,null];
   for(let i=0;i<duration*5+2;i++) {
+    site.detailedState.practiceSlots[0].stock=0;
     const next=getGamepieceFace(state,'practice','logging').nextTrigger;
     advanceReplayStateOneSecond(state);
     const fired=(site.detailedState.practiceActivationTrace??[]).some(e=>e.targetPracticeId==='logging'&&e.tSec===state.tSec);

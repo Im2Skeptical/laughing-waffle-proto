@@ -23,10 +23,9 @@ act(ActionKinds.VASSAL_CONFIRM_LIFE_NODE,{nodeId:challenge.nodeId});
 assert.equal(getCurrentLifeMapVassal(challenge.state).prestige-prestige,24,'displayed reward is committed');
 
 const legacy = createLabNodeSandbox({type:'legacy',classId:'warrior',seed:42});
-const found = getVassalNodeDecisionPresentation(legacy.state,legacy.nodeId).nodeState.options.find(option=>option.id==='found-settlement');
-assert.match(found.description,/settlement with 10 adult Villagers/);
-assert.doesNotMatch(found.description,/Move|No Prestige cost/);
-assert.match(optionEffect({...found,settlementRegionId:'R02'}),/Found this settlement with 10 Villager adults/);
+const legacyOptions = getVassalNodeDecisionPresentation(legacy.state,legacy.nodeId).nodeState.options;
+assert.deepEqual(legacyOptions.map(option=>option.id),['highest-stat','accumulated-prestige']);
+assert.ok(legacyOptions.every(option=>option.prestigeCost===0&&option.phaseCost===0));
 
 const campaign = createLabNodeSandbox({type:'campaign',classId:'warrior',seed:42});
 const quest = getVassalNodeDecisionPresentation(campaign.state,campaign.nodeId).campaign.options.find(option=>option.id==='quest');

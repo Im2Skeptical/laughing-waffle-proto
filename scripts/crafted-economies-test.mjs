@@ -17,7 +17,7 @@ import {getAdjacentRegionIds,getConnectedRegionIds} from '../src/model/world-sta
 import {initializeReplayClock,advanceReplayStateToSecond} from '../src/model/replay-second-runner.js';
 for(const seed of [1,2,4,6,7,8,12,18,1867]){
  const s=createNewGameState(seed),players=s.world.sites.filter(x=>s.world.regions.find(r=>r.id===x.regionId).controller==='player');
- assert.deepEqual(players.map(x=>x.detailedState.practiceSlots.filter(Boolean).length).sort(),[2,3]);
+ assert.deepEqual(players.map(x=>x.detailedState.practiceSlots.filter(Boolean).length).sort(),[3,4]);
  assert(s.world.sites.some(x=>x.neutral&&players.some(p=>getAdjacentRegionIds(s,p.regionId).includes(x.regionId)&&getConnectedRegionIds(s,p.regionId).includes(x.regionId))));
  const buyer=players.find(p=>s.world.sites.some(x=>x.neutral&&x.neutral.stocks.some(g=>g.traits.includes('Edible'))&&getAdjacentRegionIds(s,p.regionId).includes(x.regionId)&&getConnectedRegionIds(s,p.regionId).includes(x.regionId)));
  for(const p of players)p.detailedState.practiceSlots=Array(5).fill(null);
@@ -37,10 +37,12 @@ for(const seed of [1,2,4,6,7,8,12,18,1867]){
  assert(town.neutral.stocks.every((x,i)=>x.stock>=stocks[i]));
  assert.equal(validatePurchaseInterventions(s,{locationRegionId:town.regionId},[{intervention:{kind:'practice',mode:'learn',practiceId:'forage'}}]).reason,'neutralStorefront');
  const available=town.neutral.stocks.reduce((n,g)=>n+g.stock,0);
+ const inheritedPractices=[...town.neutral.practices];
  changeController(s,town.regionId,'external-a');assert(!town.neutral);assert(town.town.activated);
  assert(town.town.market.stocks.every(g=>g.stock===0));
  assert(town.detailedState.practiceSlots.reduce((n,p)=>n+(p?.stock??0),0)<=available);
- assert.equal(town.detailedState.practiceSlots.length,5);assert(town.detailedState.practiceSlots.filter(Boolean).length<=3);
+ assert.equal(town.detailedState.practiceSlots.length,5);
+ assert.deepEqual(town.detailedState.practiceSlots.filter(Boolean).map(slot=>slot.practiceId),inheritedPractices,'first control installs the captured inherited recipe, including degraded supply');
  assert.equal(JSON.stringify(town.detailedState.populationByClass),pop);
  const board=JSON.stringify(town.detailedState.practiceSlots);
  changeController(s,town.regionId,'frontier');assert(town.neutral);

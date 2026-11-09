@@ -1,4 +1,5 @@
 import { hasPopulationLedger, populationBins, writePopulationBins, allocatePopulation, allegianceSummary } from '../population-ledger.js';
+import {allocateBirthAllegiances} from '../birth-allegiance.js';
 import { splitSpecialistCohorts, combineSpecialistCohorts } from "../cohorts.js";
 // Birth moon phase: aging, births, and child/adult/elder transitions.
 
@@ -59,7 +60,9 @@ export function runBirthPhase(state, phase) {
         for(const moved of [...mature,...elderly]) {const b=own.find(b=>b.allegiance===moved.allegiance&&b.kind===moved.kind&&b.age===moved.age);b.count-=moved.count;}
         // Allocate births from the pre-birth all-age distribution, preserving
         // the existing number of births in each residency/specialty group.
-        const newborns=allocatePopulation(Object.entries(preBirth).map(([allegiance,count])=>({allegiance,count,classId,specialty,kind:'children',age:null})),births);
+        // Newborns inherit their source cohort's specialty; allegiance remains
+        // allocated separately from the local pre-birth distribution.
+        const newborns=allocateBirthAllegiances(settlement,preBirth,births,{classId,specialty});
         writePopulationBins(settlement,[...other,...own,...newborns,
           ...mature.map(b=>({...b,kind:'adults',age:null})),
           ...elderly.map(b=>({...b,kind:'elder',age:getGameSetting(state,'newElderAge')}))]);

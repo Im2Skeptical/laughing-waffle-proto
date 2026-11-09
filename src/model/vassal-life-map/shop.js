@@ -1,8 +1,8 @@
-import { isFullMapOfferDefinition, FULL_MAP_SUPPLY_DEPENDENCIES } from '../../defs/gamepieces/full-map-defs.js';
+import { isFullMapOfferDefinition, FULL_MAP_SEED_CARD_IDS } from '../../defs/gamepieces/full-map-defs.js';
 import { prestigeAccount, quotePrestige, creditPrestige } from './treasury.js';
 import { rollScholarQualityBonus, getVassalDelvePhaseCost } from './class-rules.js';
 import { resolveLifeMapShopPrice, resolveLifeMapOptionCosts } from '../life-map-balance.js';
-import { getShopOfferPrice, matchesPracticeShopSpecialty, structureShopCategory } from './shop-specialties.js';
+import { getShopOfferPrice, getPracticeExpansionPremium, matchesPracticeShopSpecialty, structureShopCategory } from './shop-specialties.js';
 import { VASSAL_WORKSHOP_RULES } from '../../defs/vassal-workshop-rules.js';
 import { getMoonPhaseDurationSec } from '../moon-phases.js';
 import { stockTotal, discretionaryStock } from "../detailed-settlements/stock.js";
@@ -53,7 +53,7 @@ function rollOfferQuality(state, regionId, floor = 0) {
   return QUALITY_IDS[state.rngNextVassalInt(min, max)];
 }
 function isDefinitionUnlocked(state, def, nodeState = null) {
-  return def?.locked!==true && (!state.rulesetId || isFullMapOfferDefinition(def)) && getDetailedPracticeTierIndex(def?.minimumQuality ?? "bronze") <= Math.min(3,getResearchUnlockIndex(state)+(nodeState?.discoveryAccess?1:0));
+  return def?.locked!==true && !FULL_MAP_SEED_CARD_IDS.includes(def?.id) && (!state.rulesetId || isFullMapOfferDefinition(def)) && getDetailedPracticeTierIndex(def?.minimumQuality ?? "bronze") <= Math.min(3,getResearchUnlockIndex(state)+(nodeState?.discoveryAccess?1:0));
 }
 
 export function validatePurchaseInterventions(state, vassal, purchases = [], order = vassal?.lifeMap?.nodeStates?.[vassal.lifeMap.currentNodeId]?.practiceDraftOrder) {
@@ -135,7 +135,7 @@ export function getVassalShopCandidatePool(state, vassal, nodeState, { kind = nu
   const reservation = buildReservation(state, vassal, nodeState);
   const candidates = [];
   const addCandidate = (cardKind, definitionId, def) => {
-    if (!def || !(["common", vassal.classId].includes(def.pool)||state.rulesetId&&FULL_MAP_SUPPLY_DEPENDENCIES.includes(def.id))
+    if (!def || !["common", vassal.classId].includes(def.pool)
         || !isDefinitionUnlocked(state, def, nodeState)
         || (requiredTag && !(def.tags ?? []).includes(requiredTag))
         || (stockOutput && !isVassalStockOutputPractice(def, stockOutput))
@@ -144,7 +144,7 @@ export function getVassalShopCandidatePool(state, vassal, nodeState, { kind = nu
           && structureShopCategory(def) !== nodeState.shopSelection.selectedTag)) return;
     if (cardKind === "practice" && reservation.practiceSlots.some(slot =>
       slot?.practiceId === definitionId && slot.tier === "diamond")) return;
-    candidates.push({ kind: cardKind, definitionId, pool: state.rulesetId&&FULL_MAP_SUPPLY_DEPENDENCIES.includes(def.id)?"common":def.pool });
+    candidates.push({ kind: cardKind, definitionId, pool: def.pool });
   };
   if (kind !== "structure") {
     for (const id of VASSAL_INTERVENTION_PRACTICE_IDS) {
@@ -245,7 +245,7 @@ export function generateShopInventory(state, vassal, nodeState) {
     }
     local.shopQualityBonus=0;
   }
-  if(state.rulesetId&&nodeState.family==='practiceReform')for(const slot of local?.practiceSlots??[])if(slot?.allegiance&&slot.allegiance!=='player')offers.push({
+  if(state.rulesetId&&nodeState.family==='practiceReform')for(const slot of local?.practiceSlots??[])if(slot?.allegiance&&slot.allegiance!=='player'&&!FULL_MAP_SEED_CARD_IDS.includes(slot.practiceId))offers.push({
     offerId:`${nodeState.nodeId}:adopt:${slot.instanceId}`,label:`Adopt ${getDetailedPracticeDef(state,slot.practiceId).label}`,
     basePrestigeCost:10,basePhaseCost:2*getVassalYearPhaseCost(state,1),baseCurrencyCost:0,
     intervention:{kind:'practice',mode:'adopt',targetRegionId:vassal.locationRegionId,instanceId:slot.instanceId,practiceId:slot.practiceId,tier:slot.tier,resultingTier:slot.tier}});
@@ -598,7 +598,7 @@ export function repriceShopDraft(state,vassal,nodeState) {
     let expansionPremium=0;
     if(p.intervention.kind==='practice'){
       if(p.intervention.mode==='learn'&&!p.replacedPracticeId&&!p.displacedInstanceIds?.length){
-        occupancy++;expansionPremium=occupancy===4?10:occupancy===5?30:0;
+        occupancy++;expansionPremium=getPracticeExpansionPremium(occupancy);
       }
     }
     const quote=quotePrestige(available,base+expansionPremium+5*victims.length,10*victims.length);

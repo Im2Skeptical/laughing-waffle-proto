@@ -1,0 +1,129 @@
+{
+  "purpose": "Map-only degraded supply Practices",
+  "direction": "docs/remnant-supply-cards.md",
+  "date": "2026-11-07",
+  "images": [
+    {
+      "id": "rm_neglectedFlocks",
+      "name": "Neglected Flocks",
+      "scene": "High on a ruined hillside sheepfold, two tiny back-facing hooded shepherds pull a single ragged fleece from a thin sheep while abandoned shearing frames and a broken stone aqueduct surround them. Autumn wheat grasses and muted olive cloth, a small pale fleece is the focal light. Viewed from above across a broad stone terrace; the visible quiet lower half is the terrace and sweeping worn steps, with low-contrast weeds, never a black void.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Neglected Flocks, a medieval dark-fantasy Practice card about inherited civic disrepair. Narrative composition in the spirit of N. C. Wyeth, Dean Cornwell and Howard Pyle: one decisive action, bold silhouettes, grouped small figures subordinate to environmental/architectural scale, broad calm value masses, and one focal light/contrast. Principal action, all figures, and identifying tools/material MUST occupy the upper central 45%; the lower half contains visible coherent environmental forms at lower contrast, never blank, vignetted or faded to black. All human and depicted faces are completely indiscernible at full resolution: only back-facing figures, concealing hoods or closed helmets; no eyes, noses, mouths or facial portraits. Old-school hand-placed pixel clusters, hard edges, selective dithering, restricted Common palette of warm stone, charcoal, umber, wheat, muted olive and small material accents. Use visibly pixelated color clusters rather than smooth digital painting. Clear silhouette and narrative at 70x100 pixels. Illustration only: no text, writing, letters, symbols, interface, frame, border, vignette, watermark or distracting tiny clutter. Subject: High on a ruined hillside sheepfold, two tiny back-facing hooded shepherds pull a single ragged fleece from a thin sheep while abandoned shearing frames and a broken stone aqueduct surround them. Autumn wheat grasses and muted olive cloth, a small pale fleece is the focal light. Viewed from above across a broad stone terrace; the visible quiet lower half is the terrace and sweeping worn steps, with low-contrast weeds, never a black void.",
+      "tool": "image_gen.imagegen (built-in)",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a1b4ed-bb96-7991-8e9b-154fb55f53ff\\exec-2a132160-21f3-4c06-a72e-e31936262cf4.png",
+      "output": "images/dark-fantasy/settlement-pieces-v4/rm_neglectedFlocks.webp",
+      "referencesPassed": [],
+      "surfaceReferencesInspected": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "current": false
+    },
+    {
+      "id": "rm_saltMonopoly",
+      "name": "Salt Monopoly",
+      "scene": "In the upper center of a broad neglected saltworks, a tiny hooded overseer in faded ochre receives a bowl of provisions beside a locked salt store while two back-facing laborers scrape one small salt pan. Long diagonals of broken shallow evaporation beds, weeds and cracked gates convey extortion and wasted capacity. The lower half shows coherent pale salt crust and subdued water reflections rather than a dark fade; small focal contrast on the miserly salt heap.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Salt Monopoly, a medieval dark-fantasy Practice card about inherited civic disrepair. Narrative composition in the spirit of N. C. Wyeth, Dean Cornwell and Howard Pyle: one decisive action, bold silhouettes, grouped small figures subordinate to environmental/architectural scale, broad calm value masses, and one focal light/contrast. Principal action, all figures, and identifying tools/material MUST occupy the upper central 45%; the lower half contains visible coherent environmental forms at lower contrast, never blank, vignetted or faded to black. All human and depicted faces are completely indiscernible at full resolution: only back-facing figures, concealing hoods or closed helmets; no eyes, noses, mouths or facial portraits. Old-school hand-placed pixel clusters, hard edges, selective dithering, restricted Common palette of warm stone, charcoal, umber, wheat, muted olive and small material accents. Use visibly pixelated color clusters rather than smooth digital painting. Clear silhouette and narrative at 70x100 pixels. Illustration only: no text, writing, letters, symbols, interface, frame, border, vignette, watermark or distracting tiny clutter. Subject: In the upper center of a broad neglected saltworks, a tiny hooded overseer in faded ochre receives a bowl of provisions beside a locked salt store while two back-facing laborers scrape one small salt pan. Long diagonals of broken shallow evaporation beds, weeds and cracked gates convey extortion and wasted capacity. The lower half shows coherent pale salt crust and subdued water reflections rather than a dark fade; small focal contrast on the miserly salt heap.",
+      "tool": "image_gen.imagegen (built-in)",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a1b4ed-bb96-7991-8e9b-154fb55f53ff\\exec-ad8297c2-3784-4769-9f70-1a962b1b509d.png",
+      "output": "images/dark-fantasy/settlement-pieces-v4/rm_saltMonopoly.webp",
+      "referencesPassed": [],
+      "surfaceReferencesInspected": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "current": false
+    },
+    {
+      "id": "rm_rottingPulpVat",
+      "name": "Rotting Pulp Vat",
+      "scene": "Inside the upper central part of a roofless medieval paper mill, two small back-facing hooded workers strain a single usable sheet from a crooked wooden press above a leaking pulp vat; warped timber offcuts and sodden ruined sheets show vast waste. A daylight shaft catches their hands and the pale sheet. Large quiet worn flagstones and the rounded vat wall fill the lower half at restrained contrast, with fully visible material forms.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Rotting Pulp Vat, a medieval dark-fantasy Practice card about inherited civic disrepair. Narrative composition in the spirit of N. C. Wyeth, Dean Cornwell and Howard Pyle: one decisive action, bold silhouettes, grouped small figures subordinate to environmental/architectural scale, broad calm value masses, and one focal light/contrast. Principal action, all figures, and identifying tools/material MUST occupy the upper central 45%; the lower half contains visible coherent environmental forms at lower contrast, never blank, vignetted or faded to black. All human and depicted faces are completely indiscernible at full resolution: only back-facing figures, concealing hoods or closed helmets; no eyes, noses, mouths or facial portraits. Old-school hand-placed pixel clusters, hard edges, selective dithering, restricted Common palette of warm stone, charcoal, umber, wheat, muted olive and small material accents. Use visibly pixelated color clusters rather than smooth digital painting. Clear silhouette and narrative at 70x100 pixels. Illustration only: no text, writing, letters, symbols, interface, frame, border, vignette, watermark or distracting tiny clutter. Subject: Inside the upper central part of a roofless medieval paper mill, two small back-facing hooded workers strain a single usable sheet from a crooked wooden press above a leaking pulp vat; warped timber offcuts and sodden ruined sheets show vast waste. A daylight shaft catches their hands and the pale sheet. Large quiet worn flagstones and the rounded vat wall fill the lower half at restrained contrast, with fully visible material forms.",
+      "tool": "image_gen.imagegen (built-in)",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a1b4ed-bb96-7991-8e9b-154fb55f53ff\\exec-0e2dac76-c543-4ab5-9d18-37a46f1c564f.png",
+      "output": "images/dark-fantasy/settlement-pieces-v4/rm_rottingPulpVat.webp",
+      "referencesPassed": [],
+      "surfaceReferencesInspected": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "current": false
+    },
+    {
+      "id": "rm_falsifiedLedgers",
+      "name": "Falsified Ledgers",
+      "scene": "Within the upper center of a vast crumbling counting hall, a tiny back-facing hooded clerk pockets a payment behind their back while placing one blank surviving ledger onto a high desk; swollen bundles of obsolete accounts slump under a leaking arch. Anonymous second hooded supplicant waits with empty hands. Viewed from a low side aisle with a decisive angled desk, small honey focal light on book and concealed payment. The lower half is a broad calm warm-stone aisle and a draped cloth, all visible and low contrast. No readable marks on the books.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Falsified Ledgers, a medieval dark-fantasy Practice card about inherited civic disrepair. Narrative composition in the spirit of N. C. Wyeth, Dean Cornwell and Howard Pyle: one decisive action, bold silhouettes, grouped small figures subordinate to environmental/architectural scale, broad calm value masses, and one focal light/contrast. Principal action, all figures, and identifying tools/material MUST occupy the upper central 45%; the lower half contains visible coherent environmental forms at lower contrast, never blank, vignetted or faded to black. All human and depicted faces are completely indiscernible at full resolution: only back-facing figures, concealing hoods or closed helmets; no eyes, noses, mouths or facial portraits. Old-school hand-placed pixel clusters, hard edges, selective dithering, restricted Common palette of warm stone, charcoal, umber, wheat, muted olive and small material accents. Use visibly pixelated color clusters rather than smooth digital painting. Clear silhouette and narrative at 70x100 pixels. Illustration only: no text, writing, letters, symbols, interface, frame, border, vignette, watermark or distracting tiny clutter. Subject: Within the upper center of a vast crumbling counting hall, a tiny back-facing hooded clerk pockets a payment behind their back while placing one blank surviving ledger onto a high desk; swollen bundles of obsolete accounts slump under a leaking arch. Anonymous second hooded supplicant waits with empty hands. Viewed from a low side aisle with a decisive angled desk, small honey focal light on book and concealed payment. The lower half is a broad calm warm-stone aisle and a draped cloth, all visible and low contrast. No readable marks on the books.",
+      "tool": "image_gen.imagegen (built-in)",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a1b4ed-bb96-7991-8e9b-154fb55f53ff\\exec-5fe45cd0-ba98-4dd9-87fa-1492d1124640.png",
+      "output": "images/dark-fantasy/settlement-pieces-v4/rm_falsifiedLedgers.webp",
+      "referencesPassed": [],
+      "surfaceReferencesInspected": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "current": false
+    },
+    {
+      "id": "rm_splinteredBowWorkshop",
+      "name": "Splintered Bow Workshop",
+      "scene": "Upper-center focal action: two small back-facing hooded bowyers force one intact bow stave against a battered bending form in a huge abandoned workshop. Thick piles of split rejected timber, a roof open to the sky and a wheel with missing spokes express neglected craftsmanship. Sideways viewpoint with a strong bending diagonal, warm daylight catching a single usable bow; the quiet lower half shows long visible bench planks and subdued floorboards with a few broad broken staves, not distracting tiny clutter.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Splintered Bow Workshop, a medieval dark-fantasy Practice card about inherited civic disrepair. Narrative composition in the spirit of N. C. Wyeth, Dean Cornwell and Howard Pyle: one decisive action, bold silhouettes, grouped small figures subordinate to environmental/architectural scale, broad calm value masses, and one focal light/contrast. Principal action, all figures, and identifying tools/material MUST occupy the upper central 45%; the lower half contains visible coherent environmental forms at lower contrast, never blank, vignetted or faded to black. All human and depicted faces are completely indiscernible at full resolution: only back-facing figures, concealing hoods or closed helmets; no eyes, noses, mouths or facial portraits. Old-school hand-placed pixel clusters, hard edges, selective dithering, restricted Common palette of warm stone, charcoal, umber, wheat, muted olive and small material accents. Use visibly pixelated color clusters rather than smooth digital painting. Clear silhouette and narrative at 70x100 pixels. Illustration only: no text, writing, letters, symbols, interface, frame, border, vignette, watermark or distracting tiny clutter. Subject: Upper-center focal action: two small back-facing hooded bowyers force one intact bow stave against a battered bending form in a huge abandoned workshop. Thick piles of split rejected timber, a roof open to the sky and a wheel with missing spokes express neglected craftsmanship. Sideways viewpoint with a strong bending diagonal, warm daylight catching a single usable bow; the quiet lower half shows long visible bench planks and subdued floorboards with a few broad broken staves, not distracting tiny clutter.",
+      "tool": "image_gen.imagegen (built-in)",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a1b4ed-bb96-7991-8e9b-154fb55f53ff\\exec-673535be-e58c-47a2-8df4-1151a1027a65.png",
+      "output": "images/dark-fantasy/settlement-pieces-v4/rm_splinteredBowWorkshop.webp",
+      "referencesPassed": [],
+      "surfaceReferencesInspected": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "current": false
+    },
+    {
+      "id": "rm_rustedArmoury",
+      "name": "Rusted Armoury",
+      "scene": "In the upper center of a gigantic half-collapsed armoury, two tiny enclosed-helmet workers use long tongs to reheat one corroded sword at a small failing forge, surrounded by monumental rusted racks of unusable equipment. A bright small amber forge focal area, grey metal and muted olive patched aprons against warm stone; distant architecture dwarfs the figures. The lower half is a quiet but visible pale ash-covered floor and broad rounded forge base, never crushed blacks or artificial fade.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Rusted Armoury, a medieval dark-fantasy Practice card about inherited civic disrepair. Narrative composition in the spirit of N. C. Wyeth, Dean Cornwell and Howard Pyle: one decisive action, bold silhouettes, grouped small figures subordinate to environmental/architectural scale, broad calm value masses, and one focal light/contrast. Principal action, all figures, and identifying tools/material MUST occupy the upper central 45%; the lower half contains visible coherent environmental forms at lower contrast, never blank, vignetted or faded to black. All human and depicted faces are completely indiscernible at full resolution: only back-facing figures, concealing hoods or closed helmets; no eyes, noses, mouths or facial portraits. Old-school hand-placed pixel clusters, hard edges, selective dithering, restricted Common palette of warm stone, charcoal, umber, wheat, muted olive and small material accents. Use visibly pixelated color clusters rather than smooth digital painting. Clear silhouette and narrative at 70x100 pixels. Illustration only: no text, writing, letters, symbols, interface, frame, border, vignette, watermark or distracting tiny clutter. Subject: In the upper center of a gigantic half-collapsed armoury, two tiny enclosed-helmet workers use long tongs to reheat one corroded sword at a small failing forge, surrounded by monumental rusted racks of unusable equipment. A bright small amber forge focal area, grey metal and muted olive patched aprons against warm stone; distant architecture dwarfs the figures. The lower half is a quiet but visible pale ash-covered floor and broad rounded forge base, never crushed blacks or artificial fade.",
+      "tool": "image_gen.imagegen (built-in)",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a1b4ed-bb96-7991-8e9b-154fb55f53ff\\exec-de5b9b48-7d91-48c5-bce3-793b3d89b50d.png",
+      "output": "images/dark-fantasy/settlement-pieces-v4/rm_rustedArmoury.webp",
+      "referencesPassed": [],
+      "surfaceReferencesInspected": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "current": false
+    },
+    {
+      "id": "rm_withheldSpoils",
+      "name": "Withheld Spoils",
+      "scene": "In the upper center of a ruined gatehouse treasury, a tiny back-facing hooded officer pushes a nearly empty strongbox toward two exhausted fully helmeted defenders while a much larger locked chest sits behind a broken portcullis. Hands, posture, distance and unequal piles tell the story of withheld rewards, no coins bearing symbols or readable faces. Strong triangular composition and a single small glint from the meagre open box; lower half is a coherent low-contrast expanse of warm stone stair and patched cloth.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Withheld Spoils, a medieval dark-fantasy Practice card about inherited civic disrepair. Narrative composition in the spirit of N. C. Wyeth, Dean Cornwell and Howard Pyle: one decisive action, bold silhouettes, grouped small figures subordinate to environmental/architectural scale, broad calm value masses, and one focal light/contrast. Principal action, all figures, and identifying tools/material MUST occupy the upper central 45%; the lower half contains visible coherent environmental forms at lower contrast, never blank, vignetted or faded to black. All human and depicted faces are completely indiscernible at full resolution: only back-facing figures, concealing hoods or closed helmets; no eyes, noses, mouths or facial portraits. Old-school hand-placed pixel clusters, hard edges, selective dithering, restricted Common palette of warm stone, charcoal, umber, wheat, muted olive and small material accents. Use visibly pixelated color clusters rather than smooth digital painting. Clear silhouette and narrative at 70x100 pixels. Illustration only: no text, writing, letters, symbols, interface, frame, border, vignette, watermark or distracting tiny clutter. Subject: In the upper center of a ruined gatehouse treasury, a tiny back-facing hooded officer pushes a nearly empty strongbox toward two exhausted fully helmeted defenders while a much larger locked chest sits behind a broken portcullis. Hands, posture, distance and unequal piles tell the story of withheld rewards, no coins bearing symbols or readable faces. Strong triangular composition and a single small glint from the meagre open box; lower half is a coherent low-contrast expanse of warm stone stair and patched cloth.",
+      "tool": "image_gen.imagegen (built-in)",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a1b4ed-bb96-7991-8e9b-154fb55f53ff\\exec-84bc2126-7c04-4b99-a0c1-d357d9cc64eb.png",
+      "output": "images/dark-fantasy/settlement-pieces-v4/rm_withheldSpoils.webp",
+      "referencesPassed": [],
+      "surfaceReferencesInspected": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "current": false
+    },
+    {
+      "id": "rm_siltedChannels",
+      "name": "Silted Channels",
+      "scene": "In the upper central part of an immense broken aqueduct system, two small back-facing hooded laborers strain to lift one repaired sluice gate, releasing a thin bright trickle into a mostly dry silt-choked irrigation channel. Sweeping diagonal banks, cracked masonry and overgrown waterwheels dwarf them. Sunlit warm stone, muted olive vegetation, umber mud and small cool water accent. Lower half is a broad calm visible foreground of shallow cracked channel and restrained water ripples, not a black field.",
+      "prompt": "One original opaque full-bleed 5:7 portrait illustration for Silted Channels, a medieval dark-fantasy Practice card about inherited civic disrepair. Narrative composition in the spirit of N. C. Wyeth, Dean Cornwell and Howard Pyle: one decisive action, bold silhouettes, grouped small figures subordinate to environmental/architectural scale, broad calm value masses, and one focal light/contrast. Principal action, all figures, and identifying tools/material MUST occupy the upper central 45%; the lower half contains visible coherent environmental forms at lower contrast, never blank, vignetted or faded to black. All human and depicted faces are completely indiscernible at full resolution: only back-facing figures, concealing hoods or closed helmets; no eyes, noses, mouths or facial portraits. Old-school hand-placed pixel clusters, hard edges, selective dithering, restricted Common palette of warm stone, charcoal, umber, wheat, muted olive and small material accents. Use visibly pixelated color clusters rather than smooth digital painting. Clear silhouette and narrative at 70x100 pixels. Illustration only: no text, writing, letters, symbols, interface, frame, border, vignette, watermark or distracting tiny clutter. Subject: In the upper central part of an immense broken aqueduct system, two small back-facing hooded laborers strain to lift one repaired sluice gate, releasing a thin bright trickle into a mostly dry silt-choked irrigation channel. Sweeping diagonal banks, cracked masonry and overgrown waterwheels dwarf them. Sunlit warm stone, muted olive vegetation, umber mud and small cool water accent. Lower half is a broad calm visible foreground of shallow cracked channel and restrained water ripples, not a black field.",
+      "tool": "image_gen.imagegen (built-in)",
+      "source": "C:\\Users\\User\\.codex\\generated_images\\01a1b4ed-bb96-7991-8e9b-154fb55f53ff\\exec-02325dfa-5c1a-4bd0-8f9b-ec3ecef89ad6.png",
+      "output": "images/dark-fantasy/settlement-pieces-v4/rm_siltedChannels.webp",
+      "referencesPassed": [],
+      "surfaceReferencesInspected": [
+        "ai/References/Card Art Style/l5.png",
+        "ai/References/Card Art Style/l6.png"
+      ],
+      "current": false
+    }
+  ],
+  "status": "superseded",
+  "supersededBy": "remnant-supply-prompts-v2.json"
+}

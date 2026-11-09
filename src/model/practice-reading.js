@@ -52,5 +52,6 @@ export function getPracticeReading(def, {workerGates=true}={}) {
   if(def.populationCondition==='housed')requirements.push('Housing must cover every local resident.');
   if(def.populationCondition==='relief')requirements.push('After local shortage: this allegiance must actually supply the civilian meal this Food phase.');
   return { type: charge ? 'Charge' : 'Cycle', passive: activation.type === 'passive', classLabel: def.pool === 'common' ? 'Neutral' : title(def.pool),
-    effects, requirements, trigger: charge ? describeMechanicTrigger(def.charge?.trigger).replace(/^On /, 'Charge on ') : null };
+    effects, requirements, trigger: charge ? describeMechanicTrigger(def.charge?.trigger).replace(/^On /, 'Charge on ') : null,
+    ...(def.flavour??def.flavor?{flavour:def.flavour??def.flavor}:{}) };
 }

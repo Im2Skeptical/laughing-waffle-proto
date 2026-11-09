@@ -1,4 +1,5 @@
 import { prestigeAccount, creditPrestige } from './treasury.js';
+import { buildCrossroadsOptions } from './world-choices.js';
 import { VASSAL_COMMISSION_DEFS } from '../../defs/vassal-class-rules.js';
 import { VASSAL_NODE_FAMILIES, VASSAL_STAT_IDS } from '../../defs/gamepieces/vassal-life-map-defs.js';
 import { VASSAL_INTERVENTION_PRACTICE_IDS, settlementStructureDefs } from '../../defs/gamepieces/detailed-settlement-defs.js';
@@ -21,14 +22,10 @@ function offerContext(state, vassal) {
     && getDetailedPracticeTierIndex(def.minimumQuality ?? 'bronze') <= getResearchUnlockIndex(state);
   const practices = VASSAL_INTERVENTION_PRACTICE_IDS.map(id => getDetailedPracticeDef(state, id)).filter(unlocked);
   const structures = Object.keys(settlementStructureDefs).map(id => getDetailedStructureDef(state, id)).filter(unlocked);
-  const connected = new Set([vassal.locationRegionId]);
-  // Movement uses the same existing-road reachability as Crossroads.
-  for (const id of connected) for (const edge of state.world.connections) {
-    if (edge.regionAId === id) connected.add(edge.regionBId);
-    if (edge.regionBId === id) connected.add(edge.regionAId);
-  }
-  return { nodes, practices, structures, destinations: getPlayerDetailedSites(state)
-    .filter(site => site.regionId !== vassal.locationRegionId && connected.has(site.regionId)) };
+  // Commission destinations must be reachable in one Crossroads decision.
+  const destinations = new Set(buildCrossroadsOptions(state, vassal).map(option => option.locationRegionId).filter(Boolean));
+  return { nodes, practices, structures, destinations: state.world.sites
+    .filter(site => destinations.has(site.regionId)) };
 }
 
 function parametersFor(def, context) {

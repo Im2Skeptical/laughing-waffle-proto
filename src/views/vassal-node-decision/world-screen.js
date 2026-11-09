@@ -24,10 +24,9 @@ function renderCampaignForcePanel(parent,campaign) {
   const components=[
     {label:'Prowess',value:f.prowess,contribution:f.prowess,active:true,detail:`+${f.prowess} Force`},
     {label:'Personal Retinue',value:army.retinue,contribution:f.retinue,active:retinueUsed,detail:retinueUsed?`+${f.retinue} Force`:'Not used'},
-    {label:'Warriors',value:army.warriors,contribution:f.armedWarriors,active:armyUsed,detail:armyUsed?`${army.armedWarriors} armed · +${f.armedWarriors} Force`:'Not used'},
-    {label:'Arms',value:army.arms,contribution:null,active:armyUsed,detail:armyUsed?`${army.warriors-army.armedWarriors} Warriors unarmed`:'Not used'},
+    {label:'Warriors',value:army.warriors,contribution:f.warriorForce,active:armyUsed,detail:armyUsed?`+${f.warriorForce} Force`:'Not used'},
   ];
-  const equation=[f.prowess,...(retinueUsed?[f.retinue]:[]),...(armyUsed?[f.armedWarriors]:[])].join(' + ');
+  const equation=[f.prowess,...(retinueUsed?[f.retinue]:[]),...(armyUsed?[f.warriorForce]:[])].join(' + ');
   const panel=new PIXI.Container();panel.position.set(rect.x,rect.y);panel.eventMode='none';parent.addChild(panel);
   const background=new PIXI.Graphics();roundedRect(background,0,0,rect.width,rect.height,14,PALETTE.panel,PALETTE.accent,2);panel.addChild(background);
   const total=new PIXI.Graphics();roundedRect(total,18,18,234,154,8,0x25352d,PALETTE.accent,2);panel.addChild(total);
@@ -35,8 +34,8 @@ function renderCampaignForcePanel(parent,campaign) {
     createText(String(f.total),{...TEXT_STYLES.header,fontSize:60,fill:PALETTE.accent},34,64),
     createText(equation,{...TEXT_STYLES.body,fontSize:24,fill:PALETTE.textMuted},34,136));
   components.forEach((component,index)=>{
-    const cell=new PIXI.Container();cell.position.set(264+index*345,18);panel.addChild(cell);cell.alpha=component.active?1:.4;
-    const frame=new PIXI.Graphics();roundedRect(frame,0,0,333,154,8,0x1b2827,component.active?PALETTE.stroke:0x343e38,1);cell.addChild(frame);
+    const cell=new PIXI.Container();cell.position.set(264+index*460,18);panel.addChild(cell);cell.alpha=component.active?1:.4;
+    const frame=new PIXI.Graphics();roundedRect(frame,0,0,448,154,8,0x1b2827,component.active?PALETTE.stroke:0x343e38,1);cell.addChild(frame);
     cell.addChild(createText(component.label,{...TEXT_STYLES.title,fontSize:26},16,10),
       createText(String(component.value),{...TEXT_STYLES.header,fontSize:46,fill:PALETTE.text},16,51),
       createText(component.detail,{...TEXT_STYLES.body,fontSize:24,fill:component.active?PALETTE.green:PALETTE.textMuted},16,116));
@@ -44,7 +43,7 @@ function renderCampaignForcePanel(parent,campaign) {
   return {rect,total:f.total,equation,mode:campaign.mode,components};
 }
 
-export function createVassalWorldDecisionScreen({ app, layer, getState, getVassal, onSelect, onSelectSettlement, onSelectCampaignTarget, onLeaveCampaign, onConfirm, onDismiss, tooltipView }) {
+export function createVassalWorldDecisionScreen({ app, layer, getState, getVassal, onSelect, onSelectCampaignTarget, onLeaveCampaign, onConfirm, onDismiss, tooltipView }) {
   const root = new PIXI.Container(), mapLayer = new PIXI.Container(), overlay = new PIXI.Container(), chrome = new PIXI.Container();
   root.visible = false; root.eventMode = 'static'; root.hitArea = app.screen; layer.addChild(root);
   const backdrop = new PIXI.Graphics().beginFill(0x171713,.68)
@@ -63,20 +62,19 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
   let modeButtons = [], confirmButton = null, leaveButton = null, feedback = null, forcePanel = null, locationPlaque = null, locationLabel = '', message = '';
   let overlayKey = '';
   const currentRegion = () => getVassal()?.locationRegionId;
-  const isFounding=()=>spec?.kind==='legacy'&&!!decision?.legacySettlement;
+  const isLegacy=()=>spec?.kind==='legacy';
   const isCampaign=()=>!!decision?.campaign;
-  const isMenuMap=()=>isFounding()||isCampaign();
-  const options = () => isCampaign()?decision.campaign.targets:isFounding()?decision.legacySettlement.targets:decision?.options ?? [];
+  const isMenuMap=()=>isLegacy()||isCampaign();
+  const options = () => isCampaign()?decision.campaign.targets:decision?.options ?? [];
   const groups = () => [
     options().filter(o => o.locationRegionId),
     options().filter(o => o.intervention?.kind === 'connection'),
     options().filter(o => !o.locationRegionId && !o.intervention && !o.classAction),
   ];
   const available = () => isMenuMap()?options():groups()[['move','build','tour'].indexOf(mode)] ?? [];
-  const selected = () => isCampaign()?options().find(option=>option.id===decision.campaign.selectedTargetId):isFounding()&&decision.nodeState.selectedOptionId!=='found-settlement'
-    ? decision.options.find(option=>option.id===decision.nodeState.selectedOptionId)
-    : options().find(o => isFounding()?o.settlementRegionId===decision.legacySettlement.selectedRegionId:o.id === decision?.nodeState.selectedOptionId);
-  const matchesChoice=choice=>!!choice&&(isFounding()&&decision.nodeState.selectedOptionId!=='found-settlement'||available().some(option=>option.id===choice.id));
+  const selected = () => isCampaign()?options().find(option=>option.id===decision.campaign.selectedTargetId)
+    : options().find(option=>option.id===decision?.nodeState.selectedOptionId);
+  const matchesChoice=choice=>!!choice&&available().some(option=>option.id===choice.id);
   const brightRegions = () => [...new Set([currentRegion(), ...available().filter(o=>!o.blocked).map(target)].filter(Boolean))];
   const map = createWorldMapView({layer:mapLayer,getState,getSelectedRegionId:()=>selection??currentRegion(),
     getRegionSelectionActive:()=>false,getGraphScope:()=> 'settlement',
@@ -85,13 +83,13 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
   const overlayMask = new PIXI.Graphics().beginFill(0xffffff)
     .drawRect(MAP_VIEWPORT_RECT.x,MAP_VIEWPORT_RECT.y,MAP_VIEWPORT_RECT.width,MAP_VIEWPORT_RECT.height).endFill();
   mapLayer.addChild(overlay,overlayMask); overlay.eventMode = 'passive'; overlay.mask = overlayMask;
-  function target(o) { return o.regionId ?? o.settlementRegionId ?? o.locationRegionId ?? (o.intervention?.regionAId === currentRegion() ? o.intervention?.regionBId : o.intervention?.regionAId); }
+  function target(o) { return o.regionId ?? o.locationRegionId ?? (o.intervention?.regionAId === currentRegion() ? o.intervention?.regionBId : o.intervention?.regionAId); }
   function pickRegion(id) {
     if (busy || mode === 'tour') return;
-    if(isFounding()&&decision.nodeState.selectedOptionId!=='found-settlement')return;
+    if(isLegacy())return;
     const option = available().find(o => target(o) === id);
-    if (!option || option.blocked) {message=isCampaign()?option?.blocked??'Choose a highlighted target.':isFounding()?'Choose a highlighted frontier destination.':mode==='move'?'Choose a highlighted reachable settlement.':'Choose a highlighted legal road destination.';draw();return;}
-    selection=id;message='';if(isCampaign())onSelectCampaignTarget?.(id);else if(isFounding())onSelectSettlement?.(id);else onSelect(option.id);
+    if (!option || option.blocked) {message=isCampaign()?option?.blocked??'Choose a highlighted target.':mode==='move'?'Choose a highlighted reachable settlement.':'Choose a highlighted legal road destination.';draw();return;}
+    selection=id;message='';if(isCampaign())onSelectCampaignTarget?.(id);else onSelect(option.id);
   }
   function chooseMode(next) {
     if (busy || !groups()[['move','build','tour'].indexOf(next)]?.some(o=>!o.blocked)) return;
@@ -102,9 +100,9 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
   let rewardBadges=[];
   function draw() {
     if (!root.visible) return;
-    const signature=JSON.stringify([getArtRevision(),spec,decision?.options,decision?.legacySettlement,decision?.campaign,decision?.nodeState.selectedOptionId,mode,selection,busy,message]);
+    const signature=JSON.stringify([getArtRevision(),spec,decision?.options,decision?.campaign,decision?.nodeState.selectedOptionId,mode,selection,busy,message]);
     if(signature===key)return;key=signature;clearChildren(chrome);forcePanel=null;
-    const founding=isFounding(),campaign=isCampaign(),menu=isMenuMap(),family=campaign?{...VASSAL_NODE_FAMILIES.campaign,description:''}:founding?{...VASSAL_NODE_FAMILIES.legacy,description:''}:FAMILY;
+    const founding=isLegacy(),campaign=isCampaign(),menu=isMenuMap(),family=campaign?{...VASSAL_NODE_FAMILIES.campaign,description:''}:founding?{...VASSAL_NODE_FAMILIES.legacy,description:''}:FAMILY;
     background.clear();roundedRect(background,PANEL.x,PANEL.y,PANEL.width,PANEL.height,18,0x292f2b,family.color,3);
     renderTitlePlaque(chrome,family);
     locationLabel=`CURRENT REGION - ${getRegionReference(getState(),currentRegion())}`;
@@ -112,7 +110,7 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
     const divider = new PIXI.Graphics().lineStyle(2,PALETTE.stroke,.9)
       .moveTo(958,PANEL.y+CONTENT.labelY).lineTo(958,PANEL.y+PANEL.height-28);
     chrome.addChild(divider);
-    chrome.addChild(createText(campaign?mode==='duel'?'Honour duel':'Choose a target':founding?'Choose a settlement destination':mode==='move'?'Choose a bright destination on the map':mode==='build'?'Choose a bright region to connect':'Tour your current region', {...TEXT_STYLES.title,fontSize:26},MAP_BODY.x,PANEL.y+CONTENT.labelY));
+    chrome.addChild(createText(campaign?mode==='duel'?'Honour duel':'Choose a target':founding?'Choose a Legacy option':mode==='move'?'Choose a bright destination on the map':mode==='build'?'Choose a bright region to connect':'Tour your current region', {...TEXT_STYLES.title,fontSize:26},MAP_BODY.x,PANEL.y+CONTENT.labelY));
     leaveButton=campaign?button(chrome,{x:MAP_BODY.x+MAP_BODY.width-140,y:PANEL.y+CONTENT.labelY-8,width:140,height:44},'Leave',!busy,onLeaveCampaign):null;
     const local=groups()[2][0], chance=local?.randomReward?.relicChance;
     const description=local?.randomReward ? `${Math.round(chance)}% ordinary relic · ${Math.round(100-chance)}% ${local.randomReward.statDelta?`+${local.randomReward.statDelta}`:'gain to'} a random ability`
@@ -121,7 +119,7 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
     const counts=groups().map(group=>group.filter(o=>!o.blocked).length);
     const rewards=[...new Set(groups()[0].map(o=>o.prestigeDelta??0))].sort((a,b)=>a-b);
     const travelReward=rewards.length?`\n+${rewards.join(' / +')} Prestige by destination`:'';
-    const details=menu?decision.options.map(option=>[option.description.replaceAll(' · ','\n'),...(decision.optionRequirements?.[option.id]??[]).map(entry=>entry.label)].join('\n')):[`Travel to another settlement.\n${counts[0]} reachable destination${counts[0]===1?'':'s'}${travelReward}`,`Build a road from here.\n${counts[1]} legal connection${counts[1]===1?'':'s'}`,description];
+    const details=menu?decision.options.map(option=>[option.description.replaceAll(' · ','\n'),...(decision.optionRequirements?.[option.id]??[]).map(entry=>entry.label)].join('\n')):[`Travel to an adjacent settlement.\n${counts[0]} adjacent destination${counts[0]===1?'':'s'}${travelReward}`,`Build a road from here.\n${counts[1]} legal connection${counts[1]===1?'':'s'}`,description];
     modeButtons=labels.map((label,index)=>{
       const id=menu?decision.options[index].id:['move','build','tour'][index], group=menu?[decision.options[index]]:groups()[index], enabled=!busy&&group.some(o=>!o.blocked);
       const selectedOption=group.find(o=>o.id===decision?.nodeState.selectedOptionId);
@@ -135,7 +133,7 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
         x:PANEL.x+30+index*(OPTION_COLUMN.width+OPTION_COLUMN.gap),y:PANEL.y+CONTENT.cardY,
         width:OPTION_COLUMN.width,height:OPTION_COLUMN.height,
       },{
-        title:label,artId:(campaign?['crisis','vigil','legacy']:founding?['settlement','development','legacy']:['travel','settlement','patronage'])[index],summary:details[index],
+        title:label,artId:(campaign?['crisis','vigil','legacy']:founding?['development','legacy']:['travel','settlement','patronage'])[index],summary:details[index],
         actionLabel:from?'FROM':'CHOOSE',faceLabel:from?'From':active?'Selected':'Choose',
         enabled,showCost:!founding,selected:active,costUnmet:!!option&&option.cost>(getVassal()?.prestige??0),
         cost:{phaseCost:option?.phases??0,prestigeCost:option?.cost??0,foodCost:option?.foodCost??0,monsterPressureCost:option?.monsterPressureCost??0,riskLabel:option?.riskLabel,prestigeGain:!selectedOption&&varyingReward?0:option?.prestigeDelta??0,state:getState(),prestigeFeedback:!busy},
@@ -149,7 +147,7 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
     const choice=selected(), matching=matchesChoice(choice);
     const campaignText=campaign?(choice?`${decision.campaign.lastResult?.regionId===choice.regionId&&decision.campaign.lastResult.stage==='clear'&&decision.campaign.lastResult.success?'Buildup cleared. ':''}${choice.label}${choice.stage==='duel'?` · Victory: +1 Prowess, +${choice.prestigeDelta} Prestige`:` · Distance ${choice.distance} · Food ${choice.foodCost}`}\n${campaignRiskText(choice)}`:decision.campaign.lastResult?.text??'Choose a highlighted target.'):null;
     const text=busy?'Resolving the world…':message||campaignText|| (matching ? `${choice.label}${choice.blocked?` · ${choice.blocked}`:''}`
-      : founding?decision.nodeState.selectedOptionId==='found-settlement'?'Choose a highlighted frontier destination.':'Choose a Legacy option.':mode==='tour'?description:mode==='move'?'Click a highlighted destination to preview your journey.':'Click a highlighted destination to preview a new road.');
+      : founding?'Choose a Legacy option.':mode==='tour'?description:mode==='move'?'Click a highlighted destination to preview your journey.':'Click a highlighted destination to preview a new road.');
     feedback=createText(text,{...TEXT_STYLES.body,fontSize:24,lineHeight:28,wordWrap:true,wordWrapWidth:MAP_BODY.width,fill:message?PALETTE.red:PALETTE.text},MAP_BODY.x,774);
     feedback.scale.set(Math.min(1,54/Math.max(1,feedback.height)));chrome.addChild(feedback);
     const dock=confirmDockRect(app);
@@ -163,7 +161,7 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
     confirmButton=confirmDockButton(chrome,app,{label:busy?'Resolving...':'Confirm',enabled:!busy&&!!matching&&!choice.blocked,
       onUnavailable:!busy&&matching&&choice.cost>(getVassal()?.prestige??0)
         ? ()=>flashPrestigeShortfall(modeButtons.find(card=>card.priceOptionId===choice.id)?.costPanel) : null,
-      onClick:()=>onConfirm(founding&&decision.nodeState.selectedOptionId==='found-settlement'?'found-settlement':choice.id)});
+      onClick:()=>onConfirm(choice.id)});
   }
   function updateOverlay() {
     if(!root.visible)return; map.update();
@@ -200,9 +198,8 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
   function refresh(next, node, isBusy=false) {
     decision=next;spec=node;busy=isBusy;
     if(!next){root.visible=false;map.setVisible(false);activeKey=null;dismissed=false;key='';return;}
-    if(activeKey!==node.id){activeKey=node.id;dismissed=false;mode=isCampaign()?decision.campaign.mode:isFounding()?'found':groups()[0].length?'move':groups()[1].length?'build':'tour';selection=null;message='';key='';overlayKey='';}
+    if(activeKey!==node.id){activeKey=node.id;dismissed=false;mode=isCampaign()?decision.campaign.mode:isLegacy()?'legacy':groups()[0].length?'move':groups()[1].length?'build':'tour';selection=null;message='';key='';overlayKey='';}
     if(isCampaign()){mode=decision.campaign.mode;selection=selected()?.regionId??null;message='';}
-    if(isFounding()){selection=decision.legacySettlement.selectedRegionId;message='';}
     root.visible=!dismissed;
     map.setVisible(root.visible);map.refresh();draw();updateOverlay();
   }
@@ -218,7 +215,7 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
     async prepare(renderer){await map.prepare(renderer);map.setVisible(root.visible);},
     getHudDeltas:()=>{const choice=selected();return root.visible&&matchesChoice(choice)&&!choice.blocked?{prestige:(choice.prestigeDelta??0)-choice.cost,stats:{}}:null;},update:()=>{draw();updateOverlay();},isOpen:()=>root.visible,
     open:()=>{dismissed=false;root.visible=!!decision;map.setVisible(root.visible);map.refresh();key='';draw();},close:()=>{dismissed=true;root.visible=false;map.setVisible(false);},
-    getPoint:(kind,id)=>kind==='confirm'?point(confirmButton):kind==='campaignLeave'?point(leaveButton):kind==='option'?point(modeButtons[id]?.choiceButton??modeButtons[id]):kind==='worldMode'?point(modeButtons[['move','build','tour'].indexOf(id)]):kind==='worldCost'?point(modeButtons[(isCampaign()?['attack','duel','quest']:isFounding()?['found-settlement','highest-stat','accumulated-prestige']:['move','build','tour']).indexOf(id)]?.costPanel):kind==='worldTarget'?mapPoint(id):kind==='worldReward'?point(rewardBadges.find(b=>b.regionId===id)?.control):null,
+    getPoint:(kind,id)=>kind==='confirm'?point(confirmButton):kind==='campaignLeave'?point(leaveButton):kind==='option'?point(modeButtons[id]?.choiceButton??modeButtons[id]):kind==='worldMode'?point(modeButtons[['move','build','tour'].indexOf(id)]):kind==='worldCost'?point(modeButtons[(isCampaign()?['attack','duel','quest']:isLegacy()?['highest-stat','accumulated-prestige']:['move','build','tour']).indexOf(id)]?.costPanel):kind==='worldTarget'?mapPoint(id):kind==='worldReward'?point(rewardBadges.find(b=>b.regionId===id)?.control):null,
     getSnapshot:()=>{const {illustratedTerrain,camera}=map.getSemanticSnapshot();return {open:root.visible,mode,selectedOptionId:decision?.nodeState.selectedOptionId,selectedRegionId:selected()?target(selected())??null:null,
       locationRegionId:currentRegion(),regionCount:getState()?.world?.regions?.length??0,
       connectionCount:getState()?.world?.connections?.length??0,

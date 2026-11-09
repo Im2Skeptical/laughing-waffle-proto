@@ -51,6 +51,10 @@ file is the legacy tick substrate.
 - `construction.js` — declarative paid-cycle Structure sites, with local-first atomic Stock payments.
 - `workers.js` - Scholar sockets and ordinary population worker assignment.
 - `cohorts.js` - orthogonal specialist age subsets and composition helpers.
+- `demographics.js` - read-only age, allegiance/class census and last-moon totals
+  for settlement inspection; no state writes or random draws.
+- `birth-allegiance.js` - persistent proportional entitlement per birth group;
+  independent of inherited specialty, with deterministic quota continuation.
 - `external-world.js` - neutral templates, Raid/Trade, Support/Retinue, conquest and spatial Monsters.
 - `neutral-market.js` - finite priced neutral inventories, Food-phase
   replenishment, and validation. Neutral towns install no gamepieces.

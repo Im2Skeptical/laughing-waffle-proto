@@ -4,6 +4,7 @@ import { getVassalStockOutputIds, VASSAL_NODE_FAMILIES, VASSAL_SIGNATURE_NODE_VA
 import { getVassalShopCandidatePool } from '../vassal-life-map/shop.js';
 import { getDetailedPracticeDef, getDetailedStructureDef } from '../game-config.js';
 import { VASSAL_INTERVENTION_PRACTICE_IDS } from '../../defs/gamepieces/detailed-settlement-defs.js';
+import { FULL_MAP_SEED_CARD_IDS, isFullMapOfferDefinition } from '../../defs/gamepieces/full-map-defs.js';
 import { getCurrentLifeMapVassal, enterVassalLifeNode } from '../vassal-life-map.js';
 import { getOwnedHeirloomDefinitionIds } from '../vassal-life-map/heirlooms.js';
 import { getRelicPoolAppearance } from '../vassal-life-map/relic-pools.js';
@@ -177,7 +178,7 @@ export function diagnoseLifegraphCardPools(state){
       .map(c=>({...c,label:(c.kind==='practice'?getDetailedPracticeDef(state,c.definitionId):getDetailedStructureDef(state,c.definitionId)).label}));
     rows.push({id,label,count:cards.length,common:cards.filter(c=>c.pool==='common').length,specific:cards.filter(c=>c.pool===vassal.classId).length,status:cards.length===0?'empty':cards.length<3?'thin':'varied',cards});
   };
-  const eligible=VASSAL_INTERVENTION_PRACTICE_IDS.map(id=>getDetailedPracticeDef(state,id)).filter(d=>d&&!d.locked&&['common',vassal.classId].includes(d.pool));
+  const eligible=VASSAL_INTERVENTION_PRACTICE_IDS.map(id=>getDetailedPracticeDef(state,id)).filter(d=>d&&!d.locked&&!FULL_MAP_SEED_CARD_IDS.includes(d.id)&&(!state.rulesetId||isFullMapOfferDefinition(d))&&['common',vassal.classId].includes(d.pool));
   const stateFor=family=>({family,purchasedOffers:[]});
   add('practice:random','Practice · Random',stateFor('practiceReform'),{kind:'practice'});
   add('practice:Food','Practice · Food',stateFor('practiceReform'),{kind:'practice',specialty:'Food'});

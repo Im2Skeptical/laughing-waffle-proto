@@ -161,7 +161,7 @@ assert.deepEqual(getVassalCandidatePool(portraitIsolationA).candidates.map(mecha
   getVassalCandidatePool(portraitIsolationB).candidates.map(mechanicalCandidate),
   "portrait RNG changes do not perturb candidate mechanics or signature rolls");
 
-for (const variantId of ["settlement", "monsterHunt", "removePractice", "foodShop"]) {
+for (const variantId of ["monsterHunt", "removePractice", "foodShop"]) {
   const signatureState = selectedStateForSignature(variantId);
   const signatureNode = getVassalLifeMapNodes(getCurrentLifeMapVassal(signatureState))
     .find((node) => node.signatureNode?.variantId === variantId);

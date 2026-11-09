@@ -25,7 +25,7 @@ const piece = (game, id, extra = {}) => {
   return { practiceId: id, tier: 'bronze', instanceId: `institution:${game.civilization.nextPracticeInstanceId++}`, charge: 0, work: 0,
     ...(def.category === 'influence' ? { allegiance: 'player' } : { stock: 0 }), ...extra };
 };
-const barter = buyer.detailedState.practiceSlots.find(slot => slot?.practiceId === 'barter');
+const barter = piece(state, 'barter');
 buyer.detailedState.practiceSlots = [piece(state, 'brewing'), piece(state, 'pottery', { stock: 1 }), { ...barter, stock: 4 }, null, null];
 for (const site of state.world.sites) {
   if (getRegionState(state, site.regionId)?.controller !== 'player') continue;

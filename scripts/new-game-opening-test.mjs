@@ -31,6 +31,13 @@ retryJob.finish({ ok: false, reason: 'cancelled' });
 assert.equal(loading.snapshot().phase, 'cancelled');
 
 const state = createNewGameState(123);
+const bounded=createNewGameOpeningController({
+ createState:()=>createNewGameState(123),createCache:()=>createProjectionCache(),searchLimitSec:1,
+ createWorkerService:()=>createTimegraphForecastWorkerService({createWorker:()=>{throw new Error('workers unavailable');},primeChunkSizeSec:0}),
+});
+const surviving=await bounded.prepare();assert(surviving.ok);assert.equal(surviving.lossSec,null);
+assert(surviving.forecast.endSec>=1);assert.notEqual(surviving.forecast.terminal,true);
+assert.equal(bounded.getSnapshot().coverageSec,surviving.forecast.endSec);bounded.cancel();
 for(const region of state.world.regions) {if(region.controller==="player") region.monster={defense:100};else delete region.monster;}
 state.civilization.chaos.monsterPressure=400;
 const before = JSON.stringify(serializeGameState(state));
