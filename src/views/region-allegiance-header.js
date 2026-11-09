@@ -1,6 +1,6 @@
 import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES, PALETTE } from './settlement-theme.js';
-import {regionAllegianceParts} from './region-allegiance.js';
+import {regionAllegianceParts,unrestReading} from './region-allegiance.js';
 import {CONTROL_DEFAULTS} from '../model/detailed-settlements/territory.js';
 
 const holderName=id=>id==='player'?'Free realm':id==='external-a'?'Crown':id==='frontier'?'Unheld':id;
@@ -31,10 +31,10 @@ export function addRegionAllegianceHeader(root,{x,y,vm,reference,tooltipView}){
 
   const holdingRequirement=c.required===null?'–':Number(c.required.toFixed(1));
   const status=new PIXI.Container();status.label='region-control-header';status.position.set(x+810,y+16);
-  const unheld=c.holder==='frontier',colour=unheld?PALETTE.textMuted:c.status==='contested'?0xe7947e:PALETTE.accent;
-  status.addChild(createText(unheld?'UNHELD':c.status.toUpperCase(),{...TEXT_STYLES.header,fontSize:23,fill:colour},0,0));
-  status.addChild(createText(`Force ${Number(c.force.toFixed(1))}/${holdingRequirement} · Unrest ${Math.round(c.unrest)}%`,{...TEXT_STYLES.body,fontSize:20},0,34));
-  inspect(status,[0,-3,284,70],{title:'Control and military holding',lines:[
+  const unheld=c.holder==='frontier',colour=c.unrest?0xe7947e:unheld?PALETTE.textMuted:c.status==='contested'?0xe7947e:PALETTE.accent;
+  status.addChild(createText(c.unrest?'UNREST':unheld?'UNHELD':c.status.toUpperCase(),{...TEXT_STYLES.header,fontSize:23,fill:colour},0,0));
+  status.addChild(createText(c.unrest?`${Math.ceil(c.unrest.remainingYears)} years remaining`:`Force ${Number(c.force.toFixed(1))}/${holdingRequirement}`,{...TEXT_STYLES.body,fontSize:20},0,34));
+  inspect(status,[0,-3,284,70],{title:c.unrest?'Unrest':'Control and military holding',lines:c.unrest?unrestReading(c.unrest):[
     unheld?'This region has no holder.':`${holderName(c.holder)} holds this region and its hosted Stock.`,
     `${c.loyal}/${c.total} residents support the holder (${Math.round(c.share*100)}%).`,
     `${c.availableWarriors} local loyal adult/Elder Warriors provide ${c.warriorForce} baseline Force.`,
@@ -44,10 +44,9 @@ export function addRegionAllegianceHeader(root,{x,y,vm,reference,tooltipView}){
     `${c.receivedForce} adjacent Force received; ${c.sentForce} sent to ${c.supportTarget??'no neighbour'}.`,
     'Warrior baseline Force needs no equipment or extra garrison meals.',
     ...(c.upkeep?[`Card upkeep: ${c.upkeep} Edible ${c.supplied?'paid':'MISSING; conditional bonuses inactive'}.`]:[]),
-    `Unrest ${Math.round(c.unrest)} moves toward ${Math.round(c.targetUnrest)} at each Death control check.`,
     'Force lowers required allegiance with diminishing returns. Larger populations and rival allegiance reduce its leverage.',
     `Current threshold: ${Number((c.minimumShare*100).toFixed(1))}% allegiance (${c.minimumLoyal} residents).`,
-    'Loss: unrest 75+ for two checks without population support or enough occupation Force.',
+    'Falling below the holding threshold at a Death control check removes control and starts Unrest.',
     `${vm.usedStructureCapacity} / ${vm.structureCapacity} construction cells.`,
   ],maxWidth:420,scale:2},`territory:${reference}`,tooltipView);
   root.addChild(status);

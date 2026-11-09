@@ -18,8 +18,8 @@ a fresh independent review when needed, then squash-merges after checks pass.
   residency/specialty, so minority shares do not round away in small batches.
 - Holding uses [diminishing returns from Force](crown-minority-opening.md).
   Zero-Force retention needs 70% allegiance and peaceful claims need 75% for
-  two checks; unrest/loss delays remain unchanged.
-  the shield uses the continuous holding threshold, without rounding Force.
+  two checks. Falling below the holding threshold starts [ten-year Unrest](unrest.md).
+  The shield uses the continuous holding threshold, without rounding Force.
 - Starting Crown cohorts use explicit [minority garrisons](crown-minority-opening.md)
   at the fitted population targets. Ten outer holdings have unaffiliated
   majorities; the capital and provinces have loyal citizens and small guards.
@@ -31,8 +31,8 @@ a fresh independent review when needed, then squash-merges after checks pass.
 ## Reconciliation with main
 
 Main and the prototype independently used GameState v43 for different changes.
-That integration used v44. Current tuning is **GameState v47**, runner envelope
-v33, captured config v30. Start a fresh game; obsolete trajectories are rejected.
+That integration used v44. Current tuning is **GameState v48**, runner envelope
+v33, captured config v31. Start a fresh game; obsolete trajectories are rejected.
 
 Main's degraded starter Practices, shop exclusions and
 adjacent-only map decisions are retained. Specialist-generating Muster belongs

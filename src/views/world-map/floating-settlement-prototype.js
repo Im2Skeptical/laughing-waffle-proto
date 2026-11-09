@@ -1,5 +1,6 @@
 // Throwaway visual proposal: three graphical readings around the real sprite.
 // Region selection remains the game's existing direct economy disclosure.
+import {unrestReading} from '../region-allegiance.js';
 import {createText} from '../settlement-view-primitives.js';
 import {TEXT_STYLES} from '../settlement-theme.js';
 import {addResourceIcon} from '../resource-cost-pixi.js';
@@ -24,7 +25,7 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   // written; ordinary prototype URLs continue to show actual model values.
   const p=forceSample?{...original,total:200,parts:[
     {...original.parts[0],count:70},{...original.parts[1],count:90},{...original.parts[2],count:40}],
-    unrest:forceSample==='held'?50:75}:original;
+    unrest:null}:original;
   if(forceSample) {
     const nonloyal=p.parts.filter(part=>part.id!==p.holder),disloyal=nonloyal.reduce((n,part)=>n+part.count,0);
     const units=nonloyal.reduce((n,part)=>n+part.count*(part.id==='neutral'?1:2),0);
@@ -51,7 +52,7 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   const root=new PIXI.Container();root.label='floating-settlement-readout';root.mapRegionId=indicator.regionId;
   root.position.set(point.x,point.y);parent.addChild(root);
 
-  const value=player?(forceSample?p.total/indicator.prestigePopulationPerPoint*(1-p.unrest/100):indicator.prestigePerNode):p.total/indicator.prestigePopulationPerPoint;
+  const value=player?(forceSample?p.total/indicator.prestigePopulationPerPoint:indicator.prestigePerNode):p.total/indicator.prestigePopulationPerPoint;
   const shownPrestige=String(Math.round(value));
   const badge=new PIXI.Container();badge.label='floating-summary-badge';root.addChild(badge);
   const frame=new PIXI.Graphics();badge.addChild(frame);
@@ -85,18 +86,18 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   prestige.visible=rightWidth>0;
   prestige.hitArea=new PIXI.Rectangle(divider,-24,rightWidth+2,48);
   inspect(prestige,{title:player?'Territorial Prestige':'Potential territorial Prestige',lines:[...demo,...(player?
-    [`${amount(value)} Prestige per completed node into the shared civilization treasury.`,`${Math.round(p.unrest)}% unrest reduces this region's contribution.`]:
-    [`Potential ${amount(value)} Prestige per completed node if you held this region at zero unrest.`,'Inactive: this settlement adds nothing to your shared Prestige treasury.','This is not a post-capture guarantee.']),
+    [`${amount(value)} Prestige per completed node into the shared civilization treasury.`,'Held regions contribute their population-based Prestige.']:
+    [`Potential ${amount(value)} Prestige per completed node if you held this region.`,'Inactive: this settlement adds nothing to your shared Prestige treasury.','This is not a post-capture guarantee.']),
     'Map amounts are rounded to whole numbers. Regional contributions are combined before rounding the node payout.'],maxWidth:370},tooltipView,'floating-prestige:'+indicator.regionId);
 
   const influence=new PIXI.Container();influence.label='floating-influence';root.addChild(influence);
   const bar=new PIXI.Graphics();influence.addChild(bar);
-  const forceNumber=label(influence,held?String(Math.floor(Math.max(0,p.force))):'–',27,0xffedcf);forceNumber.label='holding-force-number';
-  const status=p.status==='supported'?'Population-supported':p.status==='occupied'?'Military occupation':p.contested?'Control contested':'Unheld';
+  const forceNumber=label(influence,p.unrest?`Unrest ${Math.ceil(p.unrest.remainingYears)}y`:held?String(Math.floor(Math.max(0,p.force))):'-',p.unrest?19:27,p.unrest?0xf3b292:0xffedcf);forceNumber.label='holding-force-number';
+  const status=p.unrest?'Unrest':p.status==='supported'?'Population-supported':p.status==='occupied'?'Military occupation':p.contested?'Control contested':'Unheld';
   const holder=player?'Free realm':crown?'Crown':'Unheld';
-  inspect(influence,{title:holder+' - '+status,lines:[...demo,reference,
+  inspect(influence,{title:holder+' - '+status,lines:p.unrest?[...demo,reference,...unrestReading(p.unrest),p.parts.map(part=>`${part.name} ${part.count}`).join(' / ')]:[...demo,reference,
     p.parts.map(part=>`${part.name} ${part.count}`).join(' / '),
-    `Holding Force ${amount(p.force)}${p.required===null?' / needs local allegiance':p.required?' / '+amount(p.required)+' required':''}; unrest ${Math.round(p.unrest)}%.`,
+    `Holding Force ${amount(p.force)}${p.required===null?' / needs local allegiance':p.required?' / '+amount(p.required)+' required':''}.`,
     ...(!forceSample?[`${p.warriors} loyal adult/Elder Warriors: ${amount(p.warriorForce)} baseline Force.`,...(p.bonusForce||p.receivedForce?[`${amount(p.bonusForce)} Force from cards; ${amount(p.receivedForce)} from neighbouring garrisons.`]:[])]:[]),
     p.status==='occupied'?`${Math.round(p.parts.find(part=>part.id===p.holder)?.count/p.total*100)}% allegiance is below ${CONTROL_DEFAULTS.retain*100}%; this army keeps control.`:p.status==='supported'?'Population support currently secures control.':'Insufficient support and Force threaten control.',
     'Warriors give 1 Force each, including while working. No equipment or extra garrison meals.',
@@ -107,7 +108,7 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
       `${(params.get('regionalForce')??'onbar')==='onbar'?'Sword':'Without Force'}: ${amount(zeroForceShare*100)}% allegiance needed with no Force.`,
       `Current threshold: ${amount(thresholdShare*100)}% allegiance (${minimumLoyal} / ${p.total} residents).`,
       `Force removes ${amount(forceReductionShare*100)} percentage points from the allegiance requirement.`,
-      'More Force moves the shield left. Falling below it starts contention and rising unrest; control loss is delayed.']:
+      'More Force moves the shield left. Falling below it at a control check removes control and starts Unrest.']:
       ['No faction currently holds this town. The dash means no holding army, not that all resident Warriors have died.']),
     'The shield number rounds Force down; its position uses the exact control rule.',
   ],maxWidth:470,scale:2},tooltipView,'floating-influence:'+indicator.regionId);
@@ -126,8 +127,8 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
     influence.position.set((left+right)/2,bottom+barOffset);
     bar.clear().lineStyle(1,0x131b15,1).beginFill(0x101b15,.85).drawRoundedRect(-width/2-3,-height/2-3,width+6,height+6,4).endFill();
     let x=-width/2;
-    for(const part of parts){const w=width*part.count/p.total;bar.lineStyle(0).beginFill(part.colour).drawRect(x,-height/2,w,height).endFill();x+=w;}
-    bar.lineStyle(1,gold,.9).drawRoundedRect(-width/2-1,-height/2-1,width+2,height+2,2);
+    for(const part of parts){const w=width*part.count/Math.max(1,p.total);bar.lineStyle(0).beginFill(part.colour).drawRect(x,-height/2,w,height).endFill();x+=w;}
+    bar.lineStyle(1,p.unrest?0xe7947e:gold,.9).drawRoundedRect(-width/2-1,-height/2-1,width+2,height+2,2);
     bar.lineStyle(0).beginFill(gold).drawCircle(-width/2-5,0,2).drawCircle(width/2+5,0,2).endFill();
     const zeroForceX=held&&forceStyle==='onbar'?-width/2+width*zeroForceShare:null;
     const shieldX=drawForceTreatment(bar,width,p,forceStyle,thresholdShare);
@@ -140,7 +141,7 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
       const numberWidth=Math.min(36,forceNumber.width);
       bar.lineStyle(0).beginFill(crown?0x392323:0x18282d,.98).drawRoundedRect(shieldX-numberWidth/2,-10,numberWidth,20,2).endFill();
     }
-    forceNumber.visible=forceStyle==='onbar';forceNumber.position.set(shieldX??0,0);
+    forceNumber.visible=forceStyle==='onbar';forceNumber.position.set(shieldX??0,p.unrest?23:0);
     influence.hitArea=new PIXI.Rectangle(-width/2-26,-28,width+52,66);
     root.floatingLayout={sprite:{left,right,top,bottom},badge:{x:badge.x,y:badge.y},bar:{x:(left+right)/2,y:bottom+barOffset,width,shieldX:shieldX??0,zeroForceX}};
   };
@@ -149,7 +150,7 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
     const zeroForceSwordAnchor=track.zeroForceX===null?null:root.toGlobal({x:track.x+track.zeroForceX,y:track.y});
     const b=root.floatingLayout.sprite,a=root.toGlobal({x:b.left,y:b.top}),z=root.toGlobal({x:b.right,y:b.bottom});
     const rect=item=>{const b=item.getBounds();return {x:b.x,y:b.y,width:b.width,height:b.height};};
-    return {regionId:indicator.regionId,holder:p.holder,status:p.status,warriors:p.warriors,warriorForce:p.warriorForce,bonusForce:p.bonusForce,minimumLoyal,thresholdShare,zeroForceShare,forceReductionShare,zeroForceSwordAnchor:zeroForceSwordAnchor?{x:zeroForceSwordAnchor.x,y:zeroForceSwordAnchor.y}:null,barParts:parts.map(part=>({id:part.id,count:part.count})),sprite:{x:a.x,y:a.y,width:z.x-a.x,height:z.y-a.y},countBounds:rect(counter),badge:rect(badge),prestige:prestige.visible?rect(prestige):null,prestigeActive:player,prestigeLabel,bar:rect(influence),name:null,countKind,count,shownPrestige,exactPrestige:value,force:p.force,shownForce:held?Number(forceNumber.text):null,required:p.required,forceSample,forceStyle:lastStyle,screenScale:root.scale.x*lastZoom,shieldAnchor:{x:anchor.x,y:anchor.y},meterTrack:{x:trackA.x,y:trackA.y,width:trackB.x-trackA.x,height:trackB.y-trackA.y}};
+    return {regionId:indicator.regionId,holder:p.holder,status:p.status,warriors:p.warriors,warriorForce:p.warriorForce,bonusForce:p.bonusForce,minimumLoyal,thresholdShare,zeroForceShare,forceReductionShare,zeroForceSwordAnchor:zeroForceSwordAnchor?{x:zeroForceSwordAnchor.x,y:zeroForceSwordAnchor.y}:null,barParts:parts.map(part=>({id:part.id,count:part.count})),sprite:{x:a.x,y:a.y,width:z.x-a.x,height:z.y-a.y},countBounds:rect(counter),badge:rect(badge),prestige:prestige.visible?rect(prestige):null,prestigeActive:player,prestigeLabel,bar:rect(influence),name:null,countKind,count,shownPrestige,exactPrestige:value,unrest:p.unrest,unrestLabel:p.unrest?forceNumber.text:null,force:p.force,shownForce:held?Number(forceNumber.text):null,required:p.required,forceSample,forceStyle:lastStyle,screenScale:root.scale.x*lastZoom,shieldAnchor:{x:anchor.x,y:anchor.y},meterTrack:{x:trackA.x,y:trackA.y,width:trackB.x-trackA.x,height:trackB.y-trackA.y}};
   };
   root.updateFloatingLayout(1);
   return root;
@@ -184,6 +185,7 @@ function roundedTrack(width,height){
   points.push(points[0]);return points;
 }
 function drawForceTreatment(g,width,p,style,thresholdShare){
+  if(p.unrest)return null;
   const coverage=p.required>0?Math.min(1,p.force/p.required):0,blue=0x9bbdce,track=0x435962;
   if(style==='onbar'){
     const x=-width/2+width*(thresholdShare??.5);

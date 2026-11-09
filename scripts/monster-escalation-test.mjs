@@ -58,7 +58,7 @@ assert.throws(()=>deserializeGameState(incomplete),/Invalid serialized Monster S
 const missing=serializeGameState(initial);delete missing.civilization.chaos.lastMonsterSpawn;
 assert.throws(()=>deserializeGameState(missing),/Invalid serialized Monster Spawn result/);
 const obsolete=serializeGameState(initial);obsolete.gameStateSchemaVersion=44;
-assert.throws(()=>deserializeGameState(obsolete),/expected v47/);
+assert.throws(()=>deserializeGameState(obsolete),/expected v48/);
 const lifetimes=[];
 for(const seed of [123,42,424242]){
  const run=initializeReplayClock(createNewGameState(seed));

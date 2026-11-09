@@ -50,12 +50,6 @@ try{
     const heldCount=state.world.regions.filter(r=>r.controller==='player').length;
     if(badges().length!==heldCount)throw Error('Prestige badges must appear only on player holdings');
     const holding=state.world.sites.find(s=>s.regionId===state.civilization.capitalRegionId);
-    const originalUnrest=holding.detailedState.control.unrest;
-    holding.detailedState.control.unrest=25;revision++;map.update();
-    const {getRegionPrestigePerNode}=await import('/src/model/vassal-life-map/selectors.js');
-    const expectedBadge=`+${Math.round(getRegionPrestigePerNode(state,holding.regionId))}`;
-    if(!badges().some(b=>b.children.some(c=>c.text===expectedBadge)))throw Error('Prestige badge must refresh after unrest changes');
-    holding.detailedState.control.unrest=originalUnrest;revision++;map.update();app.render();
     const contested=JSON.parse(JSON.stringify(state));
     const held=contested.world.regions.find(r=>r.controller==='player');
     writePopulationBins(contested.world.sites.find(s=>s.regionId===held.id).detailedState,

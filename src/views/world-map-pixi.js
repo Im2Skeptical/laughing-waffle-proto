@@ -1047,6 +1047,7 @@ export function createWorldMapView({
           title: 'The Coming Dark',
           lines: [
             `Primordial pressure: ${formatChaosValue(reckoning?.primordialPressure ?? 0)}`,
+            `Unrest: ${civilizationSummary.chaos.unrestRegionCount} towns; +${formatChaosValue(civilizationSummary.chaos.unrestChaosPerYear)} Chaos/year (${formatChaosValue(reckoning?.unrestPressure ?? 0)} this moon)`,
             `Premature deaths: ${reckoning?.prematureDeaths ?? 0} · External emigrants: ${reckoning?.externalEmigrants ?? 0}`,
             `Premature pressure: ${formatChaosValue(reckoning?.prematureDeathPressure ?? 0)} · Emigration pressure: ${formatChaosValue(reckoning?.externalEmigrationPressure ?? 0)}`,
             `Old-age pressure: ${formatChaosValue(reckoning?.oldAgeDeathPressure ?? 0)} · Internal migration pressure: ${formatChaosValue(reckoning?.internalMigrationPressure ?? 0)}`,

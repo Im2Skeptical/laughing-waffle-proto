@@ -44,7 +44,8 @@ threshold. Claims, Force weights and all runtime rules remain unchanged.
 The capital and provinces retain 90% and 80% allegiance respectively. This exposes
 both a healthy civilian-backed core and army-backed outer holdings in the same
 map. The marker is the minimum allegiance needed to retain control at current
-Force, not the onset of unrest. Outer occupations start at positive unrest.
+Force. Falling below that threshold at a control check starts Unrest; sufficient
+Force keeps a minority government stable.
 
 Each loyal adult/Elder Warrior still supplies one Force, including while working.
 The former holding cost had a cliff: enough Force removed the allegiance
@@ -57,7 +58,7 @@ resistance of the current non-loyal population. An unaffiliated resident has
 weight one, a rival civilian two, and a rival adult/Elder Warrior ten. Each
 person counts once. With no non-loyal residents, the counterfactual uses weight
 one. Claims need 75% for two checks, staying above the zero-Force retention
-threshold. Existing unrest/loss delays remain. The previous trial used 45% to
+threshold. Below-threshold holdings now enter timed [Unrest](unrest.md). The previous trial used 45% to
 hold and 60% to claim; only the base values change, not the curve's Force scale.
 
 At 30 residents with unaffiliated opposition, Force 2 needs 42% allegiance and
@@ -81,19 +82,11 @@ view-only and does not change the holding rule.
 
 ### Unrest duration
 
-Unrest has no fixed expiry. Each Death phase moves it toward its target,
-increasing by up to 15 or decreasing by up to 10. With default one-second phases
-there is a control check every
-six simulation seconds; the default year is 32 seconds. If at least 70% of
-residents keep supporting the holder, the target is zero, so clearing 100 unrest takes
-ten checks (up to 60 simulation seconds, about 1.9 game years).
-
-If Force holds a less-loyal population, the target remains
-`25 + 50 × unaffiliated-or-rival share`; unrest can persist indefinitely at that
-occupation level. If both support and Force are insufficient, its target is 100.
-Two consecutive checks at 75 or above without sufficient holding strength cause
-control loss. Empty settlements and rival peaceful claims have their own control
-transfer paths. No unrest behavior changes are part of the sword marker.
+A failed holding check immediately removes faction control and starts ten years
+of [Unrest](unrest.md). Local institutions and population remain active, peaceful
+claims are blocked, and the town generates 1 Chaos per game year. At expiry it
+becomes an ordinary unheld storefront, with no automatic controller. Military
+conquest remains separate. Losing the last player holding still ends the run.
 
 Existing Barrack Levy practices can train and convert new Warriors. Provincial
 shields can return left within the first decade as their armies grow; this is
@@ -103,7 +96,7 @@ well as the shield when assessing the tuning.
 `full-map-crown.js` owns the cohorts, seeded once by `full-map-world.js`; the food
 pass fits outer housing without rescaling allegiance. Removing the actual outer
 Warriors' specialty, retaining every person and allegiance, costs control
-through the normal unrest delay. Removing core guards leaves sufficient
+at the next control check, entering Unrest. Removing core guards leaves sufficient
 civilian allegiance to retain political control, but weakens military Defense.
 
 ## Supporting the core population
@@ -147,20 +140,13 @@ majority of the fourteen holdings at year 50, and at least nine held on average
 across the broader sample. The previous all-garrison variant required ten.
 All capitals must still survive; unattended extinction must average below 200.
 
-The 70%-base, 90%-allied player sample with increased core and outer Warriors
-retains **10.875 of the original 14 Crown holdings** on average at year 50
-(range **8–13**),
+The current 70%-base, 90%-allied opening with timed Unrest retains
+**10.5625 of the original 14 Crown holdings** on average at year 50 (range 7 to 13),
 with every capital held. Total holdings, including later acquisitions, average
-10.96875. Mean unattended extinction is **171.012 years**, range
-**109.6875–219.1875**, with no censored run at the 400-year cap. The previous
-80%-allied opening averaged 115.090 years, with its earliest loss at 55.5 years.
-This is a seeded
-baseline, not a claim that each run ends before 200 or plays identically.
-The same 32 seeds use the ordinary simulation and remain below the 200-year
-average target. Political loss remains possible under the unchanged 70% holding
-rule; higher initial allegiance provides more room before it becomes a threat.
-All 32 current sample runs end in Monster Overrun, compared with twelve
-Territorial Losses in the previous opening.
+10.65625. Fixed seeds 123/42/424242 retain 10/11/8. Across 32 ordinary unattended
+starts, mean extinction is **147.135 years**, range **87.375 to 211.5**, with no
+censored run at the 400-year cap. All 32 end in Monster Overrun. This is seeded
+balance evidence, not a claim that each run ends before 200 or plays identically.
 
 The core economy check observes every meal through year 50 for seeds 123, 42
 and 424242, recording opening/later shortages and population snapshots. All 132
@@ -186,7 +172,6 @@ army-removal control loss, food, 50-year starts, JSON continuation and replay.
 `npm run probe:monsters` checks the actual map at opening and year 50, including
 desktop/phone touch inspection and rewind.
 
-GameState v47 invalidates the former Force trajectory. Runner envelope v33 and
-captured config v30 are unchanged. This follow-up changes initial cohorts only;
-existing runs retain their captured opening and continue under the same rules.
-Start a fresh game for the new composition.
+GameState v48 replaces the former numeric unrest trajectory with timed
+[Unrest](unrest.md); captured config is now v31 and runner saves remain v33.
+Start a fresh game for the new rules and opening composition.

@@ -6,7 +6,6 @@ import { stockCapacity } from './detailed-settlements/stock.js';
 import { writePopulationBins } from './detailed-settlements/population-ledger.js';
 import { seedFullMapFood } from './full-map-food.js';
 import {seedCrownOpeningPopulation} from './full-map-crown.js';
-import {CONTROL_DEFAULTS} from './detailed-settlements/territory.js';
 
 export const FULL_MAP_RULESET = 'full-map-redesign-v1';
 export function mapDistance(state,start,end) {
@@ -107,8 +106,7 @@ export function seedFullMapWorld(state) {
     if(site.neutral||monster){settlement.practiceSlots=Array(5).fill(null);settlement.structureSlots=Array(region.structureCapacity).fill(null);}
     if(!site.town){const type=player&&region.id===players[0]?'grain':province?'forager':'market';site.town={type,activated:true,market:createTownMarket(type)};}
     if(monster){site.simulationMode='ruin';region.detailedSettlementEnabled=false;region.monster={defense:2};}
-    const occupiedOpening=crown&&loyal/population<CONTROL_DEFAULTS.retain;
-    settlement.control={unrest:occupiedOpening?25+50*(population-loyal)/population:0,claimant:null,claimChecks:0,lossChecks:0};
+    settlement.control={unrest:null,claimant:null,claimChecks:0};
     settlement.garrison={supplied:true,paid:0,required:0,tSec:state.tSec};
   }
   for(const province of provinces)addWorldConnection(state,capital,province);

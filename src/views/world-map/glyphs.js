@@ -107,7 +107,7 @@ export function addRegionPrestigeBadge(parent,point,value,{tooltipView,populatio
   number.position.x=textLeft;
   root.addChild(number);
   const exact=String(Number(value.toFixed(2)));
-  const spec={title:'Territorial Prestige',lines:[`${exact} Prestige per completed node from this region.`,`Map badges are rounded; regional contributions are combined before rounding the node payout.`,`Delve and campaign encounters award no node Prestige.`,`Provisional: population / ${populationPerPoint}, reduced by unrest.`],maxWidth:320};
+  const spec={title:'Territorial Prestige',lines:[`${exact} Prestige per completed node from this region.`,`Map badges are rounded; regional contributions are combined before rounding the node payout.`,`Delve and campaign encounters award no node Prestige.`,`Provisional: population / ${populationPerPoint} while player-held.`],maxWidth:320};
   root.eventMode='static';root.cursor='help';root.hitArea=new PIXI.Rectangle(left,-21,width,40);
   root.on('pointerover',e=>{if(e.pointerType!=='touch')tooltipView?.show?.(spec,root.getBounds(),{dismissOnExit:true});});
   root.on('pointerout',()=>tooltipView?.hide?.());

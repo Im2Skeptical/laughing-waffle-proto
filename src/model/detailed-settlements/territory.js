@@ -5,8 +5,10 @@ import { allegianceSummary, populationBins } from './population-ledger.js';
 import { stockTotal, planStock, applyStockPlan, structureModifiers } from './stock.js';
 import { getCurrentLifeMapVassal } from '../vassal-life-map/selectors.js';
 import { emitPracticeEvent } from './practice-events.js';
+import { getGameSetting } from '../game-config.js';
+import { unrestSummary, secondsPerYear } from './unrest.js';
 
-export const CONTROL_DEFAULTS = Object.freeze({claim:.75,retain:.70,claimChecks:2,lossUnrest:75,lossChecks:2,unaffiliatedPerForce:10,rivalCiviliansPerForce:5,warriorsPerForce:1});
+export const CONTROL_DEFAULTS = Object.freeze({claim:.75,retain:.70,claimChecks:2,unaffiliatedPerForce:10,rivalCiviliansPerForce:5,warriorsPerForce:1});
 export function occupationResistance(settlement,holder) {
   let unaffiliated=0,rivalCivilians=0,rivalWarriors=0;
   for(const b of populationBins(settlement)) {
@@ -104,9 +106,9 @@ export function controlSummary(state,regionId) {
   const minimumShare=minimumHoldingShare(total,military.force,composition);
   const minimumLoyal=minimumHoldingAllegiance(total,military.force,composition);
   const occupied=total>0&&military.force>0&&loyal>=minimumLoyal;
-  const unrest=settlement?.control?.unrest??0;
+  const unrest=unrestSummary(state,settlement);
   return {holder:region?.controller,support,total,loyal,disloyal,share,required,resistance,...military,minimumLoyal,minimumShare,unrest,supported,occupied,
-    status:supported?'supported':occupied?'occupied':'contested',targetUnrest:supported?0:occupied?25+50*disloyal/Math.max(1,total):100};
+    status:unrest?'unrest':region?.controller==='frontier'?'unheld':supported?'supported':occupied?'occupied':'contested'};
 }
 export function availableMilitaryWarriors(state,regionId,faction=getRegionState(state,regionId)?.controller) {
   const support=controlSummary(state,regionId),military=militarySummary(state,regionId,faction);
@@ -119,25 +121,53 @@ export function changeController(state,regionId,faction,{military=false}={}) {
   if(!settlement||region.controller===faction)return;
   const previous=region.controller;region.controller=faction;
   transitionTown(state,state.world.sites.find(s=>s.regionId===regionId),faction);
-  const control=settlement.control??={unrest:0};
-  control.unrest=military?Math.max(50,control.unrest):Math.max(0,control.unrest-20);
-  control.claimant=null;control.claimChecks=0;control.lossChecks=0;
+  const control=settlement.control??={unrest:null};
+  control.unrest=null;
+  control.claimant=null;control.claimChecks=0;
   emitPracticeEvent(state,{kind:'controlChanged',regionId,previousController:previous,faction,military});
+}
+// Keep the developed board active during disorder. Ordinary unheld towns still
+// use their storefront lifecycle, which begins only when the episode expires.
+function beginUnrest(state,site) {
+  const region=getRegionState(state,site.regionId),previousController=region.controller;
+  region.controller='frontier';
+  const control=site.detailedState.control;
+  control.unrest={startedSec:state.tSec,untilSec:state.tSec+getGameSetting(state,'unrestDurationYears')*secondsPerYear(state),previousController};
+  control.claimant=null;control.claimChecks=0;
+  (site.detailedState.garrison??={}).supportTargetRegionId=null;
+  emitPracticeEvent(state,{kind:'controlChanged',regionId:site.regionId,previousController,faction:'frontier',military:false});
+  emitPracticeEvent(state,{kind:'unrestStarted',regionId:site.regionId,previousController,untilSec:control.unrest.untilSec});
+}
+
+export function stepUnrest(state) {
+  if(!state.rulesetId)return;
+  for(const site of getDetailedSettlementSites(state)) {
+    const episode=site.detailedState.control?.unrest;
+    if(!episode)continue;
+    const elapsed=Math.max(0,Math.min(state.tSec,episode.untilSec)-Math.max(state.tSec-1,episode.startedSec));
+    state.civilization.chaos.pendingUnrestIncome=(state.civilization.chaos.pendingUnrestIncome??0)
+      +elapsed*getGameSetting(state,'unrestChaosPerYear')/secondsPerYear(state);
+    if(state.tSec>=episode.untilSec) {
+      site.detailedState.control.unrest=null;
+      site.detailedState.control.claimant=null;site.detailedState.control.claimChecks=0;
+      transitionTown(state,site,'frontier');
+      emitPracticeEvent(state,{kind:'unrestEnded',regionId:site.regionId});
+    }
+  }
 }
 export function resolveControl(state) {
   if(!state.rulesetId)return;
   const snapshots=getDetailedSettlementSites(state).map(s=>({site:s,summary:controlSummary(state,s.regionId)}));
   const transfers=[];
   for(const {site,summary:s} of snapshots) {
-    const c=site.detailedState.control??={unrest:0,claimChecks:0,lossChecks:0};
-    c.unrest=Math.max(0,Math.min(100,c.unrest+Math.max(-10,Math.min(15,s.targetUnrest-c.unrest))));
+    const c=site.detailedState.control??={unrest:null,claimChecks:0};
+    if(c.unrest)continue;
+    if(s.holder!=='frontier'&&s.total>0&&!s.supported&&!s.occupied){beginUnrest(state,site);continue;}
     const claimant=Object.keys(s.support).sort().find(f=>f!=='neutral'&&f!==s.holder&&s.support[f]/s.total>=CONTROL_DEFAULTS.claim);
     c.claimChecks=claimant&&!(s.occupied&&s.holder!=='frontier')?(c.claimant===claimant?c.claimChecks+1:1):0;
     c.claimant=claimant??null;
-    c.lossChecks=!s.supported&&!s.occupied&&c.unrest>=75?(c.lossChecks??0)+1:0;
     if(!s.total)transfers.push([site.regionId,'frontier']);
     else if(c.claimChecks>=2)transfers.push([site.regionId,claimant]);
-    else if(c.lossChecks>=2)transfers.push([site.regionId,'frontier']);
   }
   for(const [id,faction] of transfers)changeController(state,id,faction);
   if(!getDetailedSettlementSites(state,{playerOnly:true}).length){state.runStatus={complete:true,reason:'territorialLoss',year:state.year,tSec:state.tSec};state.paused=true;}

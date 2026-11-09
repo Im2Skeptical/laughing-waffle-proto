@@ -4,8 +4,8 @@ import {mkdirSync,writeFileSync} from 'node:fs';
 import {BROWSER_PROBE_LAUNCH_OPTIONS} from './browser-probe-config.mjs';
 import {createNewGameState} from '../src/model/new-game.js';
 import {initializeReplayClock,advanceReplayStateToSecond} from '../src/model/replay-second-runner.js';
-const model=initializeReplayClock(createNewGameState(123));
-for(let sec=4;sec<=6400&&model.civilization.chaos.lastMonsterSpawn?.outcome!=='intercepted';sec+=4)assert(advanceReplayStateToSecond(model,sec).ok);
+const model=initializeReplayClock(createNewGameState(123));let unrestSec=null;
+for(let sec=4;sec<=6400&&model.civilization.chaos.lastMonsterSpawn?.outcome!=='intercepted';sec+=4){assert(advanceReplayStateToSecond(model,sec).ok);if(unrestSec===null&&model.world.sites.some(s=>s.detailedState?.control?.unrest))unrestSec=sec;}
 const firstSpawnSec=model.civilization.chaos.lastMonsterSpawn?.tSec;assert(Number.isFinite(firstSpawnSec));
 assert.equal(model.civilization.chaos.lastMonsterSpawn.outcome,'intercepted');
 const out='artifacts/monster-escalation';mkdirSync(out,{recursive:true});
@@ -123,10 +123,28 @@ try{
  assert(crownAt50.length>=8);
  for(const r of crownAt50){const drawn=(r.shieldAnchor.x-r.meterTrack.x)/r.meterTrack.width;assert(Math.abs(drawn-r.thresholdShare)<.00001,'drawn shields track the exact holding threshold');}
  await page.screenshot({path:out+'/desktop-year50.png'});
+ assert(Number.isFinite(unrestSec),'the real opening produces an inspectable Unrest episode');
+ await page.evaluate(t=>__SETTLEMENT_DEBUG__.browseSecond(t),unrestSec);
+ await page.waitForFunction(t=>__SETTLEMENT_DEBUG__.getSnapshot().viewedSec===t,unrestSec,{timeout:180000});
+ let unrest=(await snap()).worldMap.floatingReadouts.find(r=>r.status==='unrest');
+ assert(unrest&&unrest.holder==='frontier'&&unrest.zeroForceSwordAnchor===null);
+ assert(/^Unrest \d+y$/.test(unrest.unrestLabel),'the map shows a compact countdown');
+ for(const viewport of [{width:1440,height:900},{width:844,height:390}]){
+  await page.setViewportSize(viewport);await page.waitForTimeout(150);
+  unrest=(await snap()).worldMap.floatingReadouts.find(r=>r.status==='unrest');
+  await tap({x:unrest.bar.x+unrest.bar.width/2,y:unrest.bar.y+unrest.bar.height/2});
+  await page.waitForTimeout(150);
+  const tip=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState());
+  assert(tip.visible&&tip.pinned&&tip.title.includes('Unrest'));
+  assert(tip.x>=0&&tip.y>=0,'Unrest inspection stays inside the phone canvas');
+  await page.screenshot({path:out+`/unrest-${viewport.width}.png`});
+  await tap({x:850,y:790});
+ }
+ await page.setViewportSize({width:1440,height:900});
  await page.evaluate(()=>__SETTLEMENT_DEBUG__.browseSecond(0));
  await page.waitForFunction(()=>{const s=__SETTLEMENT_DEBUG__.getSnapshot();return s.viewedSec===0&&s.worldMap.monsterReadouts.length===1&&s.worldMap.monsterReadouts[0].strength===2;},null,{timeout:180000});
  s=await snap();assert.equal(s.worldMap.lastMonsterSpawn,null);assert.equal(s.worldMap.monsterReadouts[0].strength,2,'rewind restores the old Strength and removes future feedback');
- assert.deepEqual(errors,[]);writeFileSync(out+'/browser-check.json',JSON.stringify({errors,last,minorityOccupations:occupied.length,core:core.map(r=>({regionId:r.regionId,warriors:r.warriors,thresholdShare:r.thresholdShare})),crownAt50:crownAt50.length,checks:['opening minority occupations','civilian core and visible thresholds','year-50 shield positions','zero-Force swords and contribution gaps','sword touch inspection','opening Strength','repel +1','fixed scale','desktop/phone touch inspection','rewind']},null,2));
+ assert.deepEqual(errors,[]);writeFileSync(out+'/browser-check.json',JSON.stringify({errors,last,minorityOccupations:occupied.length,core:core.map(r=>({regionId:r.regionId,warriors:r.warriors,thresholdShare:r.thresholdShare})),crownAt50:crownAt50.length,checks:['opening minority occupations','civilian core and visible thresholds','year-50 shield positions','zero-Force swords and contribution gaps','sword touch inspection','opening Strength','repel +1','fixed scale','desktop/phone touch inspection','Unrest countdown and phone inspection','rewind']},null,2));
  console.log('[monster-browser] zero-Force swords, exact gaps, strength, touch inspection and rewind OK');
 }catch(error){
  const s=await snap().catch(()=>null);

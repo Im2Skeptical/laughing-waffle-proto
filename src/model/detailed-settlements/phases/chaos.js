@@ -52,6 +52,7 @@ export function runGlobalChaos(state) {
   };
   const { faithPopulation, populationResistance, resistance } = getChaosResistanceBreakdown(state);
   const primordialPressure = getPrimordialChaosPressure(state);
+  const unrestPressure = roundChaos(civilization.chaos.pendingUnrestIncome ?? 0);
   const prematureDeathPressure = Math.max(0,pending.prematureDeaths
     * getGameSetting(state, "prematureDeathChaosWeight")-(pending.prematureDeathMitigation??0));
   const externalEmigrationPressure = pending.externalEmigrants
@@ -64,7 +65,7 @@ export function runGlobalChaos(state) {
     + prematureDeathPressure
     + externalEmigrationPressure
     + oldAgeDeathPressure
-    + internalMigrationPressure;
+    + internalMigrationPressure + unrestPressure;
   // Resistance contains accumulated Chaos's monster threat, never its income.
   const totalIncome = Math.max(0, rawPressure);
   civilization.chaos.chaosPower = roundChaos(
@@ -76,6 +77,7 @@ export function runGlobalChaos(state) {
     oldAgeDeaths: pending.oldAgeDeaths,
     externalEmigrants: pending.externalEmigrants,
     primordialPressure,
+    unrestPressure,
     prematureDeathPressure: roundChaos(prematureDeathPressure),
     prematureDeathMitigation: roundChaos(pending.prematureDeathMitigation??0),
     externalEmigrationPressure: roundChaos(externalEmigrationPressure),
@@ -93,6 +95,7 @@ export function runGlobalChaos(state) {
   civilization.chaos.pendingLosses = {
     prematureDeaths: 0, oldAgeDeaths: 0, externalEmigrants: 0, internalMigrants: 0,
   };
+  civilization.chaos.pendingUnrestIncome = 0;
 }
 
 export function recordChaosLosses(state, losses) {

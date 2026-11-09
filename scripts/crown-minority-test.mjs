@@ -13,7 +13,7 @@ for(const seed of [123,42,424242,1,2,3,4,5,6,7,8,9]){
   assert(c.share<.70,`seed ${seed}, ${site.regionId}: popular support must not hold the town`);
   assert(c.warriors>0&&c.warriors<c.total/2,'loyal Warriors are a minority');
   assert.equal(c.status,'occupied');assert(c.force>=c.required);
-  assert.equal(c.unrest,c.targetUnrest,'the opening reflects occupation, not a calm popular holding');
+  assert.equal(c.unrest,null,'sufficient Force holds a stable minority government');
   assert(bins.filter(b=>b.specialty==='warrior').every(b=>b.allegiance==='external-a'&&b.kind==='adults'));
  }
  const core=state.world.sites.filter(s=>s.regionId===capital||s.name==='Remnant Province');

@@ -60,14 +60,13 @@ population recipes are planned before commitment; Require is retained. Foreign
 Stock is unavailable as a visiting Vassal's discretionary wallet. Every local
 meal resolves before remote leftovers are shared.
 
-Control initially requires 60% allegiance on two Death checks; an incumbent
-retains support at 45%. Otherwise supplied loyal armed Warriors provide one
-occupation Force per five, against one required Force per 25 disloyal people,
-rounded up. Extra garrison meals cost one Edible per ten armed Warriors plus
-Structure upkeep. Unrest approaches 0 when supported, 25 + 50 times disloyal
-share when occupied, or 100 when unsupported, increasing at most 15 or falling
-at most 10 per check. Unsupported unrest of at least 75 for two checks loses
-control. Regional outcomes are collected before controller changes.
+Peaceful claims require 75% allegiance on two Death checks. Retention starts at
+70%, reduced by [diminishing returns from Force](crown-minority-opening.md).
+Each loyal adult/Elder Warrior supplies one Force without equipment or extra
+meals; authored Structure bonuses retain their costs. A failed holding check
+removes control and starts [ten-year Unrest](unrest.md), generating 1 Chaos per
+year while local production and demographics continue. Peaceful claims are
+blocked until expiry into ordinary unheld status. Conquest is separate.
 
 Frontier Watch / Signal Bastion support requires an explicit adjacent allied
 assignment. The same assigned Warriors and Force cannot also hold their source
@@ -78,7 +77,7 @@ Force. Ordinary travel includes foreign inhabited destinations and physical
 expeditions where roads do not reach.
 
 The shared civilization treasury begins at 20 Prestige. Each inhabited player
-holding adds population / 20, reduced by unrest, to the normal completed-node
+holding adds population / 20, to the normal completed-node
 Prestige gain (provisional balance). The combined gain rounds once and is credited
 to that same treasury. Delve and campaign encounters award no node income; there
 is no time-based regional payout. Map badges show rounded per-node contributions.

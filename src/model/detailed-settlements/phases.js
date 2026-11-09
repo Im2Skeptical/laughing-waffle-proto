@@ -1,4 +1,4 @@
-import { resolveControl, payGarrisonUpkeep } from './territory.js';
+import { resolveControl, payGarrisonUpkeep, stepUnrest } from './territory.js';
 import { stepSpatialPressure } from "./external-world.js";
 // Moon-turn helpers, six-phase stepper, chaos, and civilization init.
 // Phase bodies live in ./phases/; this file remains the public stepper path.
@@ -28,7 +28,7 @@ export { getElderMortalityRate, resolveProbability } from "./phases/shared.js";
 export { getPrimordialChaosPressure } from "./phases/chaos.js";
 
 export function initializeDetailedSettlementCivilization(state) {
-  state.gameStateSchemaVersion = 47;
+  state.gameStateSchemaVersion = 48;
   state.civilization.practiceEvents={nextId:1,pending:[],trace:[]};
   state.civilization.candidateDevelopment={scholar:0,warrior:0};
   for (const legacyCounter of [
@@ -72,6 +72,7 @@ export function initializeDetailedSettlementCivilization(state) {
 
 export function stepDetailedSettlementsSecond(state, tSec) {
   if (state?.runStatus?.complete === true) return;
+  stepUnrest(state);
   refreshGreenAscendancy(state);
   for (const site of getDetailedSettlementSites(state)) {
     resetEmptyStrangerCohort(site.detailedState);

@@ -12,6 +12,7 @@ import { addNeutralMarketBillboard } from './neutral-market-pixi.js';
 import { addRegionAllegianceHeader } from './region-allegiance-header.js';
 
 function regionalHolderLabel(region,vm){
+  if(vm?.control?.unrest)return 'UNREST';
   if(region.monster)return `MONSTER · Strength ${region.monster.defense}`;
   if(region.controller==='player')return 'YOUR REALM';
   if(region.controller==='external-a')return vm?.control?'CROWN REMNANT':'NEUTRAL SETTLEMENT';

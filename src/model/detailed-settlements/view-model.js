@@ -34,6 +34,7 @@ import {
 
 export function getDetailedCivilizationSummary(state) {
   const sites = getDetailedSettlementSites(state, { playerOnly: true });
+  const unrestRegionCount = getDetailedSettlementSites(state).filter(site=>site.detailedState.control?.unrest).length;
   const byClass = Object.fromEntries(
     POPULATION_CLASS_ORDER.map((classId) => [
       classId,
@@ -126,6 +127,8 @@ export function getDetailedCivilizationSummary(state) {
     research: roundFood(state?.civilization?.research?.total ?? 0),
     overHousingSiteCount,
     chaos: {
+      unrestRegionCount,
+      unrestChaosPerYear: unrestRegionCount*getGameSetting(state,'unrestChaosPerYear'),
       chaosPower: Math.max(0, Number(state?.civilization?.chaos?.chaosPower) || 0),
       resistance: getChaosResistance(state),
       expansionProgress: state?.civilization?.chaos?.monsterPressure ?? 0,

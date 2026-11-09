@@ -14,7 +14,7 @@ import {
   validateVassalLifeMapGeneratorConfig,
 } from "./vassal-life-map-generator.js";
 
-export const GAME_CONFIG_SCHEMA_VERSION = 30;
+export const GAME_CONFIG_SCHEMA_VERSION = 31;
 export const GAME_SETTINGS_DRAFT_KIND = "gameSettings";
 export const GAMEPIECES_DRAFT_KIND = "gamepieces";
 
@@ -31,6 +31,8 @@ export const GAME_SETTING_EDITOR_SECTIONS = Object.freeze([
     fields: Object.freeze([
       field("seasonDurationSec", "Season duration (seconds)", 8, 1, 120, 1, true),
       field("phaseDurationSec", "Moon phase duration (seconds)", 1, 1, 20, 1, true),
+      field("unrestDurationYears", "Unrest duration (years)", 10, 1, 100, 1, true),
+      field("unrestChaosPerYear", "Chaos per Unrest region each year", 1, 0, 100, 0.1),
     ]),
   }),
   Object.freeze({

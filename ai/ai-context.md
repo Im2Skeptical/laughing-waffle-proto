@@ -14,9 +14,12 @@ and 75% for peaceful claims. Player openings are 90% allied; core guards are
 16/8 actual loyal Warriors. Opening cohorts are captured in initial snapshots;
 these population changes need a fresh start, not a schema change. See the
 [current tuning](../docs/crown-minority-opening.md).
+Below-threshold holdings enter [ten-year Unrest](../docs/unrest.md): no controller,
+local simulation, blocked peaceful claims and 1 Chaos per year, then ordinary
+unheld status. Conquest is separate; losing all player holdings remains terminal.
 Repelled Monsters gain
 +1 Strength and retain their latest Spawn result for replayable feedback.
-GameState v47 supersedes v46; start fresh to rebuild the changed trajectory.
+GameState v48 supersedes v47; start fresh to rebuild the changed trajectory.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -88,9 +91,9 @@ identifiers remain stable; see [the mapping and authoring contract](../docs/cree
 
 Authoritative numbers:
 
-- Game state v47; runner saves v33. Older saves are rejected.
+- Game state v48; runner saves v33. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
-- Each run serializes schema-v30 Game Settings, Gamepieces, and Life Map
+- Each run serializes schema-v31 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.
 - Map Lab drafts v8; scenario libraries v4.
 - Vassal Lab draft/preset schema v5.
