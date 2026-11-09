@@ -1,6 +1,6 @@
 {
   "name": "laughing-waffle-proto",
-  "version": "1.1.56",
+  "version": "1.1.57",
   "description": "Sparse prototype fork for Civilization Survivor core-system rework",
   "type": "module",
   "main": "index.html",
@@ -33,7 +33,7 @@
     "test:keywords": "node scripts/practice-keywords-test.mjs && node scripts/keywords-classes-prototype-test.mjs && node scripts/bronze-keyword-cards-test.mjs",
     "test:card-review": "node scripts/card-review-test.mjs && node scripts/catalogue-summary-test.mjs && node scripts/locked-stock-context-test.mjs",
     "test:save-recovery": "node scripts/save-recovery-test.mjs && node scripts/save-indexeddb-test.mjs && node scripts/save-load-worker-test.mjs && node scripts/save-import-boundaries-test.mjs",
-    "test:presentation": "node scripts/chronicle-art-test.mjs && node scripts/minimal-graphics-test.mjs && node scripts/progressive-art-test.mjs && node scripts/performance-start-test.mjs && node scripts/region-map-camera-test.mjs && node scripts/territory-boundary-cache-test.mjs && node scripts/presentation-time-test.mjs && node scripts/time-controls-test.mjs && node scripts/timegraph-focus-test.mjs && node scripts/edge-transfer-scrub-gate-test.mjs && node scripts/trade-corridors-test.mjs && node scripts/forecast-worker-service-test.mjs && node scripts/node-resolution-diagnostics-test.mjs && node scripts/new-game-opening-test.mjs && node scripts/prepared-forecast-handoff-test.mjs && node scripts/game-display-mode-test.mjs && node scripts/creep-terminology-test.mjs && node scripts/mechanics-catalogue-test.mjs && node scripts/life-map-interaction-test.mjs && node scripts/life-decision-test.mjs && node scripts/opening-graph-editor-test.mjs",
+    "test:presentation": "node scripts/previous-projection-test.mjs && node scripts/loading-flavour-test.mjs && node scripts/ready-roads-test.mjs && node scripts/chronicle-art-test.mjs && node scripts/minimal-graphics-test.mjs && node scripts/progressive-art-test.mjs && node scripts/performance-start-test.mjs && node scripts/region-map-camera-test.mjs && node scripts/territory-boundary-cache-test.mjs && node scripts/presentation-time-test.mjs && node scripts/time-controls-test.mjs && node scripts/timegraph-focus-test.mjs && node scripts/edge-transfer-scrub-gate-test.mjs && node scripts/trade-corridors-test.mjs && node scripts/forecast-worker-service-test.mjs && node scripts/node-resolution-diagnostics-test.mjs && node scripts/new-game-opening-test.mjs && node scripts/prepared-forecast-handoff-test.mjs && node scripts/game-display-mode-test.mjs && node scripts/creep-terminology-test.mjs && node scripts/mechanics-catalogue-test.mjs && node scripts/life-map-interaction-test.mjs && node scripts/life-decision-test.mjs && node scripts/opening-graph-editor-test.mjs",
     "probe:civilization": "node scripts/civilization-browser-probe.mjs",
     "probe:development-lab": "node scripts/development-lab-browser-probe.mjs",
     "probe:prototypes": "node scripts/prototype-workbenches-browser-probe.mjs",
@@ -77,7 +77,9 @@
     "probe:game-menu": "node scripts/game-menu-browser-probe.mjs",
     "probe:map-lab": "node scripts/map-lab-browser-probe.mjs",
     "test:differential": "node scripts/differential-regression.mjs",
-    "probe:timegraph-hold": "node scripts/timegraph-hold-browser-probe.mjs"
+    "probe:timegraph-hold": "node scripts/timegraph-hold-browser-probe.mjs",
+    "probe:ready-cards": "node scripts/ready-cards-browser-probe.mjs",
+    "probe:previous-projection": "node scripts/previous-projection-browser-probe.mjs"
   },
   "keywords": [
     "html",

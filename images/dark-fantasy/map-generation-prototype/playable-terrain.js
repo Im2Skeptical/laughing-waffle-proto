@@ -28,7 +28,7 @@ export function composePlayableTerrain(options) { return runSync(composePlayable
 export function* composePlayableTerrainSteps({map, texel, detail, ART, width, height, bounds, pixel, world,
   land, waterIndices, regionIds, colours, waterBase, surfaces, materialAt, groundBank,
   noise, mixColour, sampleBackground, islandStyle, sites, settlementScale, interactions,
-  anchors = null, connections = null, routedRoads = null, roadsOnly = false, background = null, isolatedMonsterBorders = false, peakMask = new Uint8Array(width*height)}) {
+  anchors = null, connections = null, routedRoads = null, roadsOnly = false, ferryConnections = false, roadWidthScale = 1, background = null, isolatedMonsterBorders = false, peakMask = new Uint8Array(width*height)}) {
   const timings={},started=performance.now();
   const siteDetail = detail * settlementScale / .75;
   const settlementPlans = Array.isArray(sites)
@@ -93,7 +93,7 @@ export function* composePlayableTerrainSteps({map, texel, detail, ART, width, he
     b:roadSites.findIndex(s=>s.regionId===e.regionBId),id:[e.regionAId,e.regionBId].sort().join(':')}))
     .filter(p=>p.a>=0&&p.b>=0);
   const roads = routedRoads ?? routeSampleRoads(roadSites.map(s => s.entrance), { width, height, regionIds, land, waterIndices, materialAt, scale: detail, exclusions: anchors ?? settlementPlans,
-    pairs, bounds: { minX: bx, minY: by, maxX: bx + borderCanvas.width, maxY: by + borderCanvas.height } });
+    pairs, ferryConnections, bounds: { minX: bx, minY: by, maxX: bx + borderCanvas.width, maxY: by + borderCanvas.height } });
   surfaces.registerPaths('road', roads);
   timings.routes=performance.now()-started;
   yield;
@@ -101,10 +101,12 @@ export function* composePlayableTerrainSteps({map, texel, detail, ART, width, he
   const roadCtx = roadCanvas.getContext('2d');
   let bridges = 0;
   const roadDot = (x, y, radius, colour, clear = false) => {
+    radius=Math.max(0,Math.round(radius));
     for (let dy = -radius; dy <= radius; dy++) for (let dx = -radius; dx <= radius; dx++) {
       if (dx * dx + dy * dy > radius * radius + .3) continue;
       const px = x + dx, py = y + dy, i = py * width + px;
-      if (px < bx || py < by || px >= bx + roadCanvas.width || py >= by + roadCanvas.height || !land[i] || regionIds[i] < 0) continue;
+      const sea = waterIndices[i] > 0 && !(waterIndices[i] >= 16 && waterIndices[i] <= 23);
+      if (px < bx || py < by || px >= bx + roadCanvas.width || py >= by + roadCanvas.height || !land[i] || sea || regionIds[i] < 0) continue;
       if (clear) roadClearance.data[(py - by) * roadCanvas.width + px - bx] = 1;
       else { roadCtx.fillStyle = colour; roadCtx.fillRect(px - bx, py - by, 1, 1); }
     }
@@ -117,11 +119,11 @@ export function* composePlayableTerrainSteps({map, texel, detail, ART, width, he
       for (let j = 0; j < steps; j++) samples.push({ x: Math.round(a.x + (b.x - a.x) * j / steps), y: Math.round(a.y + (b.y - a.y) * j / steps) });
     }
     samples.push(path.at(-1));
-    for (const p of samples) roadDot(p.x, p.y, 3 * detail, '', true);
+    for (const p of samples) roadDot(p.x, p.y, 3 * detail * roadWidthScale, '', true);
     roadCtx.globalAlpha = .3;
-    for (const p of samples) roadDot(p.x, p.y, Math.ceil(1.5 * detail), '#655339');
+    for (const p of samples) roadDot(p.x, p.y, Math.round(1.5 * detail * roadWidthScale), '#655339');
     roadCtx.globalAlpha = .85;
-    for (const p of samples) roadDot(p.x, p.y, detail, '#695338');
+    for (const p of samples) roadDot(p.x, p.y, detail * roadWidthScale, '#695338');
     roadCtx.globalAlpha = 1;
     for (const [n, p] of samples.entries()) {
       const biome = map.regions[regionIds[p.y * width + p.x]]?.biome;
@@ -131,7 +133,7 @@ export function* composePlayableTerrainSteps({map, texel, detail, ART, width, he
         const mask = Math.abs(b.x - a.x) > Math.abs(b.y - a.y) ? 10 : 5;
         colour = mixColour(colour, surfaces.path('road', biome, p.x, p.y, n * texel / 2, 0, mask), .42);
       }
-      roadDot(p.x, p.y, Math.max(0, detail - 1), '#' + colour.toString(16));
+      roadDot(p.x, p.y, Math.max(0, detail * roadWidthScale - 1), '#' + colour.toString(16));
     }
     // Fine broken wheel marks and irregular verge stones give the route a
     // drawn surface. Bridges get their own continuous deck and cross-planks.
@@ -139,7 +141,7 @@ export function* composePlayableTerrainSteps({map, texel, detail, ART, width, he
       const p = samples[n], a = samples[n - 3], b = samples[n + 3];
       const length = Math.hypot(b.x - a.x, b.y - a.y) || 1;
       roadCtx.globalAlpha = .35;
-      roadDot(Math.round(p.x - (b.y - a.y) / length * detail), Math.round(p.y + (b.x - a.x) / length * detail), 0, '#594d3b');
+      roadDot(Math.round(p.x - (b.y - a.y) / length * detail * roadWidthScale), Math.round(p.y + (b.x - a.x) / length * detail * roadWidthScale), 0, '#594d3b');
     }
     roadCtx.globalAlpha = 1;
     let inMountains = false;
@@ -151,12 +153,13 @@ export function* composePlayableTerrainSteps({map, texel, detail, ART, width, he
       if (!river && materialAt(p.x, p.y) === 'swamp' && n % (2 * detail) === 0) {
         const a = samples[Math.max(0, n - 2)], b = samples[Math.min(samples.length - 1, n + 2)];
         const length = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-        for (let d = -detail; d <= detail; d++) roadDot(Math.round(p.x - (b.y - a.y) / length * d), Math.round(p.y + (b.x - a.x) / length * d), 0, '#928978');
+        const halfWidth=Math.round(detail*roadWidthScale);
+        for (let d = -halfWidth; d <= halfWidth; d++) roadDot(Math.round(p.x - (b.y - a.y) / length * d), Math.round(p.y + (b.x - a.x) / length * d), 0, '#928978');
       }
     }
     const spans = bridgeSpans(samples, p => waterIndices[p.y * width + p.x], detail);
     bridges += spans.length;
-    for (const [n, span] of spans.entries()) paintBridge(span, detail, roadDot, {
+    for (const [n, span] of spans.entries()) paintBridge(span, detail*roadWidthScale, roadDot, {
       art: ART[`terrain-bridge-${(n + bridges + map.seed) % 8}`], context: roadCtx, origin: { x: bx, y: by } });
     yield;
   }
