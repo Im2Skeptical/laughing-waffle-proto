@@ -75,7 +75,8 @@ its existing weighted headcount rule; this change governs holding territory.
 The floating bar also has a thin sword at the zero-Force threshold. The horizontal
 gap from shield to sword shows how much Force lowers required allegiance;
 inspection gives the difference in percentage points. With zero Force the
-markers coincide, and the sword's hilt stays visible below the shield. This is
+markers coincide. The downward-pointing sword draws over the shield but below
+the Force number, keeping the number legible. This is
 view-only and does not change the holding rule.
 
 ### Unrest duration

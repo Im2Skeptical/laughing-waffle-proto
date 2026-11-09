@@ -130,10 +130,16 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
     bar.lineStyle(1,gold,.9).drawRoundedRect(-width/2-1,-height/2-1,width+2,height+2,2);
     bar.lineStyle(0).beginFill(gold).drawCircle(-width/2-5,0,2).drawCircle(width/2+5,0,2).endFill();
     const zeroForceX=held&&forceStyle==='onbar'?-width/2+width*zeroForceShare:null;
-    // Draw behind the shield. At zero Force their positions coincide; the
-    // sword's lower hilt remains visible without crossing the Force number.
-    if(zeroForceX!==null)drawZeroForceSword(bar,zeroForceX);
     const shieldX=drawForceTreatment(bar,width,p,forceStyle,thresholdShare);
+    // The blade points down, above the shield's paint but below the separate
+    // Force-number text child. Zero-Force overlap keeps both markers visible.
+    if(zeroForceX!==null)drawZeroForceSword(bar,zeroForceX);
+    // Match the shield fill behind the digits so the blade cannot show through
+    // the open centre of a zero when the markers coincide.
+    if(zeroForceX!==null&&Math.abs(zeroForceX-shieldX)<forceNumber.width/2+3){
+      const numberWidth=Math.min(36,forceNumber.width);
+      bar.lineStyle(0).beginFill(crown?0x392323:0x18282d,.98).drawRoundedRect(shieldX-numberWidth/2,-10,numberWidth,20,2).endFill();
+    }
     forceNumber.visible=forceStyle==='onbar';forceNumber.position.set(shieldX??0,0);
     influence.hitArea=new PIXI.Rectangle(-width/2-26,-28,width+52,66);
     root.floatingLayout={sprite:{left,right,top,bottom},badge:{x:badge.x,y:badge.y},bar:{x:(left+right)/2,y:bottom+barOffset,width,shieldX:shieldX??0,zeroForceX}};
@@ -151,13 +157,13 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
 
 function drawZeroForceSword(g,x){
   const edge=0x111b17,steel=0xc1c8bc,hilt=0xc9b27d;
-  g.lineStyle(1.2,edge).beginFill(steel,.95).drawPolygon([x,-24,x+2,-18,x+2,16,x,19,x-2,16,x-2,-18]).endFill();
-  g.lineStyle(1,0xf0ead9,.8).moveTo(x,-18).lineTo(x,14);
-  g.lineStyle(3.5,edge).moveTo(x-6,18).lineTo(x+6,18);
-  g.lineStyle(1.5,hilt).moveTo(x-6,18).lineTo(x+6,18);
-  g.lineStyle(4,edge).moveTo(x,20).lineTo(x,31);
-  g.lineStyle(2,hilt).moveTo(x,20).lineTo(x,31);
-  g.lineStyle(1,edge).beginFill(hilt).drawCircle(x,33,2).endFill();
+  g.lineStyle(1.2,edge).beginFill(steel,.95).drawPolygon([x,34,x+2,28,x+2,-6,x,-9,x-2,-6,x-2,28]).endFill();
+  g.lineStyle(1,0xf0ead9,.8).moveTo(x,28).lineTo(x,-4);
+  g.lineStyle(3.5,edge).moveTo(x-6,-8).lineTo(x+6,-8);
+  g.lineStyle(1.5,hilt).moveTo(x-6,-8).lineTo(x+6,-8);
+  g.lineStyle(4,edge).moveTo(x,-10).lineTo(x,-21);
+  g.lineStyle(2,hilt).moveTo(x,-10).lineTo(x,-21);
+  g.lineStyle(1,edge).beginFill(hilt).drawCircle(x,-23,2).endFill();
 }
 
 

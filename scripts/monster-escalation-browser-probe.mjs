@@ -98,11 +98,11 @@ try{
   await page.setViewportSize(viewport);await page.waitForTimeout(400);s=await snap();
   checkSwords(s.worldMap);
   const readout=s.worldMap.floatingReadouts.find(r=>r.holder==='external-a'&&s.worldMap.floatingReadouts.every(other=>other===r||[other.badge,other.bar].every(b=>{
-   const x=r.zeroForceSwordAnchor.x,y=r.zeroForceSwordAnchor.y+30*r.screenScale;
+   const x=r.zeroForceSwordAnchor.x,y=r.zeroForceSwordAnchor.y-21*r.screenScale;
    return x<b.x||x>b.x+b.width||y<b.y||y>b.y+b.height;
   })));
   assert(readout,'a visible sword hilt is available for touch inspection');
-  await tap({x:readout.zeroForceSwordAnchor.x,y:readout.zeroForceSwordAnchor.y+30*readout.screenScale});await page.waitForTimeout(100);
+  await tap({x:readout.zeroForceSwordAnchor.x,y:readout.zeroForceSwordAnchor.y-21*readout.screenScale});await page.waitForTimeout(100);
   const forceTip=await page.evaluate(()=>__SETTLEMENT_DEBUG__.getTooltipDebugState());assert(forceTip.visible&&forceTip.pinned&&forceTip.title.startsWith('Crown -'),'the sword hilt opens its control inspection on touch');
   await tap({x:850,y:790});await page.waitForTimeout(100);
   const monster=s.worldMap.monsterReadouts.find(r=>r.regionId===last.sourceRegionId);

@@ -6,8 +6,8 @@ region labels. Population and food-balance integration notes:
 [`docs/regional-population-ux-integration.md`](../../../docs/regional-population-ux-integration.md).
 A thin sword marks the zero-Force holding threshold (currently 70%) on held
 settlements. The shield uses the current threshold; their gap is the allegiance
-requirement removed by Force. The sword sits behind the shield, with its lower
-hilt visible when zero Force makes the two positions coincide. Unheld towns
+requirement removed by Force. The sword points down and draws over the shield
+but under the Force number when zero Force makes the positions coincide. Unheld towns
 have no holding threshold marker. Inspection gives the reduction in percentage
 points; this adds no simulation state or rule.
 `monster-readout.js` adds the matching fixed-scale Monster Strength badge and
