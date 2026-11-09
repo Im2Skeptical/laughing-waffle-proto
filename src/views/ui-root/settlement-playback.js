@@ -45,6 +45,7 @@ export function createSettlementPlayback({
     const forecastStatus = getForecastController?.()?.getForecastStatus?.() ?? null;
     return Math.max(
       getSettlementFrontierSec(),
+      getGraphView?.()?.getPreviousProjectionBrowseEndSec?.()??0,
       Math.floor(forecastStatus?.browseCapSec ?? getSettlementFrontierSec())
     );
   }
@@ -84,6 +85,8 @@ export function createSettlementPlayback({
     }
 
     const targetSec = Math.max(0, Math.floor(preview.previewSec ?? 0));
+    if(getGraphView?.()?.isPreviousProjectionSecond?.(targetSec)
+      ||getGraphView?.()?.isPreviousProjectionPreviewState?.(runner.getState?.()))return {ok:false,reason:'previousProjectionReadOnly'};
     const commitRes = runner.commitPreviewToLive?.();
     if (commitRes?.ok !== true) {
       return commitRes ?? { ok: false, reason: "commitPreviewFailed" };
@@ -224,6 +227,7 @@ export function createSettlementPlayback({
     const previewCapSec = getSettlementPreviewCapSec();
     const boundedTargetSec = Math.max(0, Math.min(Number(tSec ?? 0), previewCapSec));
     const safeTargetSec = Math.floor(boundedTargetSec);
+    if(getGraphView?.()?.isPreviousProjectionSecond?.(safeTargetSec))return {ok:false,reason:'previousProjectionReadOnly'};
     if (safeTargetSec <= frontierSec) {
       runner.clearPreviewState?.();
       return runner.browseCursorSecond?.(safeTargetSec);
@@ -264,8 +268,11 @@ export function createSettlementPlayback({
       runner.clearPreviewState?.();
       return runner.browseCursorSecond?.(safeTargetSec);
     }
-    getGraphController?.()?.ensureForecastCoverageTo?.(safeTargetSec);
-    const previewState = getGraphController?.()?.getStateAt?.(safeTargetSec) ?? null;
+    const graph=getGraphView?.();
+    const previous=graph?.isPreviousProjectionSecond?.(safeTargetSec)===true;
+    if(!previous)getGraphController?.()?.ensureForecastCoverageTo?.(safeTargetSec);
+    const previewState = previous ? graph.getPreviousProjectionStateAt(safeTargetSec)
+      : getGraphController?.()?.getStateAt?.(safeTargetSec) ?? null;
     if (!previewState) {
       return { ok: false, reason: "previewUnavailable" };
     }

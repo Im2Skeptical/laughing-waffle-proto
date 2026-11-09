@@ -37,7 +37,7 @@ export function createIllustratedTerrain(parent,rect,{getView,forceIllustrated=f
     const stats={ready:false,bakes:0,frames:0};
     const ready=state=>!destroyed && readyId===state?.world?.definitionId && illustrated?.stats.ready;
     return {container,stats,supports:ready,worldBounds:()=>readyId?illustrated?.worldBounds():null,
-      sitePoint:id=>illustrated?.sitePoint(id),roadPoints:edge=>illustrated?.roadPoints(edge),
+      sitePoint:id=>illustrated?.sitePoint(id),roadPoints:edge=>illustrated?.roadPoints(edge),roadFerries:edge=>illustrated?.roadFerries(edge)??[],
       setState:(...args)=>illustrated?.setState(...args),update(...args){illustrated?.update(...args);if(readyId)Object.assign(stats,illustrated.stats);},
       prefetch:()=>false,cancelPrefetch(){},async prepare(){},
       async prepareProgressive(state,renderer,wait,isCurrent){
@@ -220,6 +220,7 @@ export function createIllustratedTerrain(parent,rect,{getView,forceIllustrated=f
     sitePoint(regionId){return presentation?.anchors.find(s=>s.regionId===regionId)?.point;},
     worldBounds(){return terrain?.bounds??null;},
     roadPoints(edge){return active?.roads.find(r=>r.id===[edge.regionAId,edge.regionBId].sort().join(':'))?.points;},
+    roadFerries(edge){return active?.roads.find(r=>r.id===[edge.regionAId,edge.regionBId].sort().join(':'))?.ferries??[];},
     setState(state,display={}){
       if(!presentation||!stats.ready)return;
       const spec=regionalPresentationSpec(state,display),key=JSON.stringify(spec);

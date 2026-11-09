@@ -78,6 +78,8 @@ below as explicit state objects plus pure updates.
   - Staged/active overlay, truncation floor, flash/fade numbers, render key,
     and debug snapshot. Functions take the state object plus explicit args.
   - Retains one previous projection for its original subject and timeline.
+    Its browsing reader is capped at the previously unveiled second; new reveal
+    takes precedence. The faded zone carries a replacement-boundary caption.
     Context switches and close/open hide or preserve it; a new projection,
     fully overwritten coverage, explicit override, or a new run clears it.
   - No PIXI. Snapshot sampling for `stageProjectionReplacementTransition`
