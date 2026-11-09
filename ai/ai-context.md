@@ -10,7 +10,9 @@ over unaffiliated majorities. The capital and three provinces have small guards
 and loyal civilian majorities. The capital targets 120 people and provinces 60,
 using developed starter food chains and Warrior housing. Holding thresholds
 use a 70% zero-Force holding threshold with diminishing returns from Force,
-and 75% for peaceful claims. Core guards are 12/5 actual loyal Warriors; see the
+and 75% for peaceful claims. Player openings are 90% allied; core guards are
+16/8 actual loyal Warriors. Opening cohorts are captured in initial snapshots;
+these population changes need a fresh start, not a schema change. See the
 [current tuning](../docs/crown-minority-opening.md).
 Repelled Monsters gain
 +1 Strength and retain their latest Spawn result for replayable feedback.

@@ -26,11 +26,11 @@ for(const seed of seeds){
   assert.equal(board.filter(Boolean).length,site.town.market.practices.length);
   const support=allegianceSummary(site.detailedState);
   const bins=populationBins(site.detailedState),soldiers=bins.filter(b=>b.specialty==='warrior');
-  const population=region.id===capital?120:provinces.includes(site)?60:({forager:13,timber:15,quarry:15,grain:25,market:25})[site.town.type];
+  const population=region.id===capital?120:provinces.includes(site)?60:({forager:17,timber:19,quarry:19,grain:29,market:29})[site.town.type];
   assert.deepEqual(validatePopulationLedger(site.detailedState),[],'valid joint cohorts');
   assert.equal(bins.reduce((n,b)=>n+b.count,0),population,'troops replace adults without adding residents');
-  const expectedLoyal=region.id===capital?108:provinces.includes(site)?48:({forager:6,timber:7,quarry:7,grain:12,market:12})[site.town.type];
-  const expectedWarriors=region.id===capital?12:provinces.includes(site)?5:expectedLoyal;
+  const expectedLoyal=region.id===capital?108:provinces.includes(site)?48:({forager:8,timber:9,quarry:9,grain:14,market:14})[site.town.type];
+  const expectedWarriors=region.id===capital?16:provinces.includes(site)?8:expectedLoyal;
   assert.equal(support['external-a'],expectedLoyal,'core allegiance includes loyal civilians; outer allegiance is its garrison');
   assert(soldiers.length>0&&soldiers.every(b=>b.kind==='adults'&&b.allegiance==='external-a'),'every Crown region starts with loyal adult soldiers');
   const count=soldiers.reduce((n,b)=>n+b.count,0);startingCrownSoldiers+=count;
@@ -39,12 +39,16 @@ for(const seed of seeds){
   else{assert.equal(control.status,'occupied');assert(support.neutral>population/2);assert(count<population/2);}
   assert.equal(count,expectedWarriors);
  }
- assert(startingCrownSoldiers>=87&&startingCrownSoldiers<=147,'loyal citizens outnumber the core guards');
+ assert(startingCrownSoldiers>=120&&startingCrownSoldiers<=180,'loyal citizens outnumber the core guards');
  assert(provinces.some(s=>s.detailedState.practiceSlots.some(p=>p?.practiceId==='fe_salvageDetail')),'capital Salvage Detail survives in a provincial slot');
  assert(crown.every(r=>!state.world.sites.find(s=>s.regionId===r.id).detailedState.structureSlots.some(p=>p?.structureId==='fm_crowdedTenement')),'small Crown openings avoid fixed Tenement meal overhead');
  for(const region of regions.filter(r=>r.controller!=='external-a')){
   const site=state.world.sites.find(s=>s.regionId===region.id);
   assert(!populationBins(site.detailedState).some(b=>b.specialty==='warrior'),'no troops added to player, neutral or Monster regions');
+  if(region.controller==='player'){
+   const support=allegianceSummary(site.detailedState);
+   assert.deepEqual(support,{player:18,neutral:2},'each twenty-person player opening has ninety percent allied residents');
+  }
  }
  assert(neutral.every(s=>regions.find(r=>r.id===s.regionId).controller==='frontier'&&!regions.find(r=>r.id===s.regionId).monster));
  assert(neutral.some(s=>s.neutral.stocks.some(g=>g.traits.includes('Edible'))&&players.some(p=>getAdjacentRegionIds(state,p.id).includes(s.regionId)&&getConnectedRegionIds(state,p.id).includes(s.regionId))));
@@ -79,7 +83,8 @@ for(const seed of [123,42,424242]){
  const fifty=initializeReplayClock(createNewGameState(seed));
  for(const sec of [320,800,1600]){
   assert(advanceReplayStateToSecond(fifty,sec).ok);
-  assert(fifty.world.regions.filter(r=>r.controller==='external-a').length>=8,'the civilian core and outer garrisons retain a majority through year 50');
+  const held=fifty.world.regions.filter(r=>r.controller==='external-a').length;
+  assert(held>=8,`seed ${seed}, year ${sec/32}: ${held} Crown holdings; need at least 8 through year 50`);
   assert.equal(fifty.world.regions.find(r=>r.id===fifty.civilization.remnant.capitalRegionId).controller,'external-a','the capital remains held');
  }
 }

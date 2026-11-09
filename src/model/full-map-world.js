@@ -39,7 +39,7 @@ export function seedFullMapWorld(state) {
   for(const region of state.world.regions) {
     const player=players.includes(region.id),enemyCapital=region.id===capital,province=!player&&provinces.has(region.id),neutral=neutralIds.has(region.id),monster=region.id===monsterId;
     let population=20;
-    const faction=player?'player':'external-a',share=player?0.8:0;
+    const faction=player?'player':'external-a',share=player?0.9:0;
     region.controller=player?'player':neutral||monster?'frontier':'external-a';
     region.detailedSettlementEnabled=true;
     let site=state.world.sites.find(s=>s.regionId===region.id);

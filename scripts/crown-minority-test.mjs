@@ -23,7 +23,7 @@ for(const seed of [123,42,424242,1,2,3,4,5,6,7,8,9]){
   const civilians=bins.filter(b=>b.allegiance==='external-a'&&b.specialty==='ordinary').reduce((n,b)=>n+b.count,0);
   assert.equal(c.status,'supported');assert(civilians>c.warriors,'loyal citizens outnumber the core garrison');
   assert(c.minimumShare>0&&c.minimumShare<c.share,'the starting shield is visible inside a healthy allegiance bar');
-  assert.equal(c.warriors,site.regionId===capital?12:5);
+  assert.equal(c.warriors,site.regionId===capital?16:8);
   // Civilian allegiance keeps the core held if its small guard is lost.
   writePopulationBins(site.detailedState,bins.map(b=>({...b,specialty:'ordinary'})));
   assert.equal(controlSummary(state,site.regionId).status,'supported');

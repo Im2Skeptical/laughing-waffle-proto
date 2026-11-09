@@ -13,26 +13,31 @@ guards. The developed core has larger, explicitly supplied population targets.
 
 | Settlement | People | Loyal adult Warriors | Other Crown loyal | Unaffiliated |
 | --- | ---: | ---: | ---: | ---: |
-| Capital | 120 | 12 | 96 | 12 |
-| Province | 60 | 5 | 43 | 12 |
-| Forager Hamlet | 13 | 6 | 0 | 7 |
-| Timber / Quarry Village | 15 | 7 | 0 | 8 |
-| Grain Village / Market Town | 25 | 12 | 0 | 13 |
+| Capital | 120 | 16 | 92 | 12 |
+| Province | 60 | 8 | 40 | 12 |
+| Forager Hamlet | 17 | 8 | 0 | 9 |
+| Timber / Quarry Village | 19 | 9 | 0 | 10 |
+| Grain Village / Market Town | 29 | 14 | 0 | 15 |
 
 The capital's loyal civilians include 27 children; each province includes 12.
 Children give no Force. All outer Crown allegiance remains its adult garrison.
-Those outer armies are substantial 46–48% minorities, retaining a reserve for
+Those outer armies are substantial 47–48% minorities, retaining a reserve for
 the roughly 50-year opening. There is no new recruitment or movement system.
 Births continue to inherit specialty with proportional allegiance.
 
-Cam's higher-threshold trial raises core Warriors from 8/3 to 12/5 by converting
+Cam's follow-up raises core Warriors from 12/5 to 16/8 by converting
 loyal ordinary adults. Total population, allegiance shares, children and initial
-food demand stay fixed in the core. Outer garrisons gain one or two loyal
-Warriors; each outer town gains one person overall so unaffiliated residents
-remain a majority. Their existing Cottage count and one-Stock meal demand
-remain sufficient; no extra housing or food source is seeded.
+food demand stay fixed in the core. Each outer town gains two loyal Warriors
+and two unaffiliated residents, keeping an unaffiliated majority. They remain
+under 30 people and need one Stock per meal. The existing housing fitter seeds
+two Cottages for these populations; no new food source or bonus is added.
 Extra Force comes from these actual people; existing Barracks bonuses still need
 their authored local Warrior/Arms conditions.
+
+Both player towns start with 18 allied and two unaffiliated residents instead
+of 16 and four: 90% allegiance, with the same 20 people, 30 Housing and zero
+starting Warriors. This adds a 20-point margin above the 70% zero-Force holding
+threshold. Claims, Force weights and all runtime rules remain unchanged.
 
 ## Reading the shield
 
@@ -57,9 +62,9 @@ hold and 60% to claim; only the base values change, not the curve's Force scale.
 
 At 30 residents with unaffiliated opposition, Force 2 needs 42% allegiance and
 Force 4 needs 30%; at 120 residents those thresholds are 60% and 52.5%.
-Zero Force needs 70% at any population size. The opening capital has 12 baseline
-Force plus four conditional Barracks Force, giving a 30% threshold. Provinces
-start at 38.2% with five baseline Force, or 32.3% where Arms activate their two
+Zero Force needs 70% at any population size. The opening capital has 16 baseline
+Force plus four conditional Barracks Force, giving a 26.25% threshold. Provinces
+start at 30% with eight baseline Force, or 26.25% where Arms activate their two
 Barracks Force. These bonuses are existing card behavior, not a startup grant.
 More Force always helps, but never substitutes for every local ally. The actual
 minimum is rounded up to a person, while the shield uses the continuous share
@@ -119,15 +124,20 @@ majority of the fourteen holdings at year 50, and at least nine held on average
 across the broader sample. The previous all-garrison variant required ten.
 All capitals must still survive; unattended extinction must average below 200.
 
-The 70%-base sample with increased core and outer Warriors retains **10.46875
-of the original 14 Crown holdings** on average at year 50 (range **7–13**),
+The 70%-base, 90%-allied player sample with increased core and outer Warriors
+retains **10.875 of the original 14 Crown holdings** on average at year 50
+(range **8–13**),
 with every capital held. Total holdings, including later acquisitions, average
-10.53125. Mean unattended extinction is **115.090 years**, range
-**55.5–191.8125**, with no censored run at the 400-year cap. This is a seeded
+10.96875. Mean unattended extinction is **171.012 years**, range
+**109.6875–219.1875**, with no censored run at the 400-year cap. The previous
+80%-allied opening averaged 115.090 years, with its earliest loss at 55.5 years.
+This is a seeded
 baseline, not a claim that each run ends before 200 or plays identically.
-Twenty runs end in Monster Overrun and twelve in Territorial Loss. The higher
-holding base makes declining civilian allegiance consequential as well as
-increasing the need for garrisons; the shorter mean is not solely Monster damage.
+The same 32 seeds use the ordinary simulation and remain below the 200-year
+average target. Political loss remains possible under the unchanged 70% holding
+rule; higher initial allegiance provides more room before it becomes a threat.
+All 32 current sample runs end in Monster Overrun, compared with twelve
+Territorial Losses in the previous opening.
 
 The core economy check observes every meal through year 50 for seeds 123, 42
 and 424242, recording opening/later shortages and population snapshots. All 132
@@ -154,5 +164,6 @@ army-removal control loss, food, 50-year starts, JSON continuation and replay.
 desktop/phone touch inspection and rewind.
 
 GameState v47 invalidates the former Force trajectory. Runner envelope v33 and
-captured config v30 are unchanged. The opening is captured in the timeline's
-initial JSON snapshot; start a fresh game for this composition and rule.
+captured config v30 are unchanged. This follow-up changes initial cohorts only;
+existing runs retain their captured opening and continue under the same rules.
+Start a fresh game for the new composition.

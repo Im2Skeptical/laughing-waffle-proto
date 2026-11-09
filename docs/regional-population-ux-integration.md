@@ -53,21 +53,22 @@ Following Cam's population-target direction, the opening now uses:
 
 | Crown settlement | Initial people | Loyal adult Warriors |
 | --- | ---: | ---: |
-| Capital | 120 | 12 |
-| Province | 60 | 5 |
-| Forager Hamlet | 13 | 6 |
-| Timber / Quarry Village | 15 | 7 |
-| Grain Village / Market Town | 25 | 12 |
+| Capital | 120 | 16 |
+| Province | 60 | 8 |
+| Forager Hamlet | 17 | 8 |
+| Timber / Quarry Village | 19 | 9 |
+| Grain Village / Market Town | 29 | 14 |
 
 The earlier proportional scaling created loyal majorities. Crown cohorts are
 now seeded directly: outer Crown allegiance is its adult garrison. The capital
-has 96 loyal civilians alongside twelve Warriors, and provinces have 43 alongside
-five. Other residents are unaffiliated. Outer control depends on its Warriors;
+has 92 loyal civilians alongside sixteen Warriors, and provinces have 40 alongside
+eight. Other residents are unaffiliated. Outer control depends on its Warriors;
 core political control also has sufficient civilian allegiance.
 Outer housing uses enough Crumbling Cottages for its target. The developed core
 uses Warrior Barracks and Waystations, avoiding the Tenement's meal overhead.
 See [starter economy](starter-economy.md) for the exact boards and construction
-space. Player and independent starting populations retain main's defaults.
+space. Player towns retain 20 residents each and start 90% allied; independent
+starting populations retain main's defaults.
 
 Foodless timber/quarry towns prefer adjacent, road-connected neutral markets
 with affordable replenishing food. The seeder budgets one Stock per importer

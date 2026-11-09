@@ -3,13 +3,13 @@
 import {writePopulationBins} from './detailed-settlements/population-ledger.js';
 
 const CROWN_OPENINGS=Object.freeze({
- capital:{population:120,loyal:108,warriors:12,loyalChildren:27},
- province:{population:60,loyal:48,warriors:5,loyalChildren:12},
- forager:{population:13,loyal:6,warriors:6,loyalChildren:0},
- timber:{population:15,loyal:7,warriors:7,loyalChildren:0},
- quarry:{population:15,loyal:7,warriors:7,loyalChildren:0},
- grain:{population:25,loyal:12,warriors:12,loyalChildren:0},
- market:{population:25,loyal:12,warriors:12,loyalChildren:0},
+ capital:{population:120,loyal:108,warriors:16,loyalChildren:27},
+ province:{population:60,loyal:48,warriors:8,loyalChildren:12},
+ forager:{population:17,loyal:8,warriors:8,loyalChildren:0},
+ timber:{population:19,loyal:9,warriors:9,loyalChildren:0},
+ quarry:{population:19,loyal:9,warriors:9,loyalChildren:0},
+ grain:{population:29,loyal:14,warriors:14,loyalChildren:0},
+ market:{population:29,loyal:14,warriors:14,loyalChildren:0},
 });
 
 export function seedCrownOpeningPopulation(settlement,role){
