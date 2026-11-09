@@ -2,6 +2,7 @@ import { composePlayableTerrain, composePlayableTerrainSteps } from '../../../im
 import { createSurfaceSampler } from '../../../images/dark-fantasy/map-generation-prototype/terrain-surfaces.js';
 import { runSync } from '../../../images/dark-fantasy/map-generation-prototype/cooperative.js';
 import { planSettlementSites, layOutSettlements } from '../../../images/dark-fantasy/map-generation-prototype/settlement-sites.js';
+import { ferrySpans, sampleRoadPath } from '../../../images/dark-fantasy/map-generation-prototype/road-crossings.js';
 
 // The study's monster regions are examples, not permanent live-world biomes.
 // Keep their authored underlying terrain and never modify the shared definition.
@@ -46,7 +47,7 @@ export function createRegionalPresentation(terrain, baseMap) {
       const names=Object.fromEntries(Object.entries(materialIds).map(([k,v])=>[v,k])),materials=terrain.materials;
       const materialAt=(x,y)=>names[materials.data[(y-materials.y)*materials.width+x-materials.x]];
       const result=composePlayableTerrain({...source,map:baseMap,materialAt,surfaces:createSurfaceSampler({...source,map:baseMap}),
-        waterIndices:terrain.waterIndices,waterBase:null,sites:[],anchors,connections,roadsOnly:true,interactions:{mountainPass:0}});
+        waterIndices:terrain.waterIndices,waterBase:null,sites:[],anchors,connections,roadsOnly:true,ferryConnections:true,roadWidthScale:.32,interactions:{mountainPass:0}});
       const {roadClearance:mask}=result,canvas=document.createElement('canvas');canvas.width=crop.width;canvas.height=crop.height;
       const ctx=canvas.getContext('2d'),pixels=ctx.createImageData(crop.width,crop.height);
       for(let y=0;y<mask.height;y++)for(let x=0;x<mask.width;x++)if(mask.data[y*mask.width+x]){
@@ -54,7 +55,12 @@ export function createRegionalPresentation(terrain, baseMap) {
         pixels.data.fill(255,i,i+4);
       }
       ctx.putImageData(pixels,0,0);
-      return {...result,maskTexture:PIXI.Texture.from(canvas),roads:result.roads.map(path=>({id:path.connectionId,points:path.map(p=>world(p.x,p.y))}))};
+      return {...result,maskTexture:PIXI.Texture.from(canvas),roads:result.roads.map(path=>{
+        const samples=sampleRoadPath(path);
+        return {id:path.connectionId,points:samples.map(p=>world(p.x,p.y)),
+          ferries:ferrySpans(samples,p=>{const i=Math.round(p.y)*width+Math.round(p.x),wet=terrain.waterIndices[i];return !land[i] || wet>0 && !(wet>=16&&wet<=23);})
+            .map(span=>({points:span.points.map(p=>world(p.x,p.y))}))};
+      })};
     },
     build(spec){return runSync(presentation.buildSteps(spec));},
     // The same work as build(), yielding between its phases for cooperative drivers.

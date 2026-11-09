@@ -31,6 +31,16 @@ function getActiveProjection(state) {
   return state.active?.subjectKey === state.subjectKey ? state.active : null;
 }
 
+export function getPreviousProjectionBrowseEndSec(state) {
+  return getActiveProjection(state)?.browsing?.endSec ?? null;
+}
+
+export function getPreviousProjectionStateAt(state,second,currentRevealEndSec) {
+  const overlay=getActiveProjection(state);
+  if(second<=currentRevealEndSec)return null;
+  return overlay?.browsing?.getStateAt(second)??null;
+}
+
 export function clearProjectionReplacementTransition(state) {
   state.staged = null;
   state.active = null;
@@ -79,6 +89,7 @@ export function stageProjectionReplacementTransition(
     transitionDurationMs = 0,
     flashDurationMs = 0,
     fadeStrength = 1,
+    browsing = null,
   } = {}
 ) {
   const points = Array.isArray(snapshot?.pointsForDraw)
@@ -109,6 +120,7 @@ export function stageProjectionReplacementTransition(
     transitionDurationMs: Math.max(0, Number(transitionDurationMs ?? 0)),
     flashDurationMs: Math.max(0, Number(flashDurationMs ?? 0)),
     fadeStrength: clamp01(fadeStrength),
+    browsing,
   };
   return true;
 }

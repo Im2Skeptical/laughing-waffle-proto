@@ -1,4 +1,5 @@
 import { createProjectionStateRestorer } from "./state-restorer.js";
+import { retainProjectionForBrowsing } from './retained-projection.js';
 // src/model/timegraph/controller-core.js
 // Logic controller for time-series projections (e.g. gold graph).
 // Owns the cache, invalidation policies, and incremental updates.
@@ -1698,6 +1699,17 @@ export function createTimeGraphController({
     valuesDirty = true;
   }
 
+  function retainForecastForBrowsing(startSec,endSec) {
+    const tl=getTimeline?.();
+    if(!tl||!Number.isFinite(endSec))return null;
+    const start=clampSec(startSec),end=Math.min(clampSec(endSec),getEffectiveForecastCoverageEndSec(tl));
+    if(end<=start)return null;
+    const base=getStateDataAt(start);
+    if(!base)return null;
+    const anchors=projection.exportForecastChunk(end).stateDataBySecond.filter(([sec])=>sec>start);
+    return retainProjectionForBrowsing({startSec:start,endSec:end,anchors:[[start,base],...anchors]});
+  }
+
   function setSubject(nextSubject, nextKey) {
     subject = nextSubject ?? null;
     const resolved = resolveSubjectKey(metricDef, subject, nextKey);
@@ -1768,6 +1780,7 @@ export function createTimeGraphController({
     getStateDataAt,
     getSummaryAt,
     getStateAt,
+    retainForecastForBrowsing,
     ensureForecastCoverageTo,
     refreshAuthoritativeRangeFrom,
     setMetric,

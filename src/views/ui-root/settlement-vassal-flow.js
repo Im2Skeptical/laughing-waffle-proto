@@ -325,11 +325,14 @@ export function createSettlementVassalFlow({
         activateProjectionReplacementTransition: true,
       });
       setWorldViewMode?.("vassalLife");
-    } else if (result.reason === "selectionPoolMismatch") {
-      settlementPendingVassalSelection = buildDetailedVassalSelectionPool(playback.getSettlementFrontierState());
-      settlementHoveredVassalCandidate = null;
-      settlementSelectedVassalCandidateIndex = null;
-      getChooserView?.()?.refresh?.();
+    } else {
+      getGraphView?.()?.cancelStagedProjectionReplacementTransition?.();
+      if (result.reason === "selectionPoolMismatch") {
+        settlementPendingVassalSelection = buildDetailedVassalSelectionPool(playback.getSettlementFrontierState());
+        settlementHoveredVassalCandidate = null;
+        settlementSelectedVassalCandidateIndex = null;
+        getChooserView?.()?.refresh?.();
+      }
     }
     return result;
   }

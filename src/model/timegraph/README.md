@@ -13,6 +13,11 @@ Before optimising: `docs/timegraph-optimisation-guardrails.md`.
 
 ## Files
 
+- `retained-projection.js`: one previous revealed future, copied into private
+  anchors with an interned frozen config. Restores use the normal validated,
+  official-tick restorer and never return shared mutable state. It is runtime
+  projection data, outside GameState and save schemas.
+
 - `forecast-wire.js` — shares only frozen identical configs within forecast messages; keeps full snapshots and every-second summaries
 - `authoritative-history-summaries.js` — committed tick summaries for plotting; survives metric/window changes and invalidates with timeline edits
 - `controller-core.js` — `createTimeGraphController` orchestrator

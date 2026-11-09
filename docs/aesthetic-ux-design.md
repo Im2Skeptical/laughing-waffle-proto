@@ -62,12 +62,22 @@ as further design tasks reveal what works.
    [card illustration guidelines](../images/dark-fantasy/settlement-pieces-v4/README.md#current-illustration-guidelines)
    for detailed treatment.
 
+Regional architecture, boats and roads share the settlement artwork's world
+scale. Compose expanded cities from fitted parts, streets and clearings that
+respect terrain and water; avoid enlarging one painting and cropping it to a
+region. Camera zoom should scale map objects together.
+
 Prototype gameplay layouts inside the real game screens, styling and phone
 landscape layout. Use representative states and make the interactions under
 review playable, with a direct way to reach them. Keep variant switches and other
 development scaffolding outside the evaluated game UI. Record agreed behavior,
 additional proposals and temporary workarounds separately; implementation follows
 the agreement rather than every incidental detail visible in a screenshot.
+
+Loading flavour should sound like the simulation doing evocative work: constructing
+a fallen empire, ageing infrastructure or calculating unrest. Returning to an
+existing world should imply that empire persists. Keep the in-jokes, and let
+real loading work determine progress and duration.
 
 As Cam gives further feedback, refine the relevant point here when it reveals a
 reusable preference. Keep exact mechanics, individual bugs and experiment details

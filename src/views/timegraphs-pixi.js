@@ -56,6 +56,8 @@ import {
   getProjectionReplacementMaxFloorSec as readProjectionReplacementMaxFloorSec,
   getProjectionReplacementRenderKey as readProjectionReplacementRenderKey,
   getProjectionReplacementScaleRanges as readProjectionReplacementScaleRanges,
+  getPreviousProjectionBrowseEndSec,
+  getPreviousProjectionStateAt,
   stageProjectionReplacementTransition as applyStageProjectionReplacement,
   syncProjectionReplacementContext,
 } from "./timegraphs/projection-replacement-state.js";
@@ -383,10 +385,15 @@ export function createMetricGraphView({
   monsterEndpointLabel.anchor.set(1, 0);
   monsterEndpointLabel.visible = false;
   const scrubG = new PIXI.Graphics();
+  const replacementBoundaryLabel = new PIXI.Text('Replacing previous projection →', {
+    fontFamily:'Georgia',fontSize:18,fill:0xe7d29f,stroke:0x19251d,strokeThickness:2,
+  });
+  replacementBoundaryLabel.eventMode='none';replacementBoundaryLabel.visible=false;
   const legendContainer = new PIXI.Container();
 
   root.addChild(legendContainer, plotG, scrubG);
   root.addChild(monsterEndpointLabel);
+  root.addChild(replacementBoundaryLabel);
 
   const LEGEND_ICON_SIZE = TIMEGRAPH_CHROME.iconSize;
 
@@ -517,6 +524,7 @@ export function createMetricGraphView({
   const reducedMotion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)");
   const plotSnapshotCache = createPlotSnapshotCache();
   const projectionReplacement = createProjectionReplacementState();
+  const previousProjectionPreviewStates=new WeakSet();
   let hoveredEventMarkerKey = null;
 
   function syncProjectionReplacementDataContext() {
@@ -598,10 +606,13 @@ export function createMetricGraphView({
   } = {}) {
     syncProjectionReplacementDataContext();
     const snapshot = plotSnapshotCache.snapshot ?? getPlotSnapshot();
+    const unveiledEndSec=Math.min(maxSecFloor??maxSec,getCurrentForecastScrubCapSec());
+    if(unveiledEndSec<=truncationStartSec){clearStagedProjectionReplacement(projectionReplacement);return false;}
     return applyStageProjectionReplacement(projectionReplacement, {
       snapshot,
       truncationStartSec,
-      maxSecFloor,
+      maxSecFloor:unveiledEndSec,
+      browsing:controller.retainForecastForBrowsing?.(truncationStartSec,unveiledEndSec)??null,
       fallbackMaxSec: maxSec,
       transitionDurationMs,
       flashDurationMs,
@@ -756,7 +767,7 @@ export function createMetricGraphView({
     setPreviewState?.(restored);
   }
 
-  function getVisibleForecastScrubCapSec() {
+  function getCurrentForecastScrubCapSec() {
     const tl = getTimeline?.();
     const data = controller.getData?.() ?? {};
     const historyEndSec = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
@@ -773,6 +784,31 @@ export function createMetricGraphView({
       displayHistoryEndSec,
       visibleForecastCoverageEndSec
     );
+  }
+
+  function getVisibleForecastScrubCapSec() {
+    syncProjectionReplacementDataContext();
+    return Math.max(getCurrentForecastScrubCapSec(),getPreviousProjectionBrowseEndSec(projectionReplacement)??0);
+  }
+
+  function isPreviousProjectionSecond(second) {
+    syncProjectionReplacementDataContext();
+    const end=getPreviousProjectionBrowseEndSec(projectionReplacement);
+    return Number.isFinite(end)&&second>getCurrentForecastScrubCapSec()&&second<=end;
+  }
+
+  function getScrubStateAt(second) {
+    syncProjectionReplacementDataContext();
+    return isPreviousProjectionSecond(second)
+      ? restorePreviousProjectionAt(second)
+      : controller.getStateAt(second);
+  }
+
+  function restorePreviousProjectionAt(second) {
+    syncProjectionReplacementDataContext();
+    const state=getPreviousProjectionStateAt(projectionReplacement,second,getCurrentForecastScrubCapSec());
+    if(state)previousProjectionPreviewStates.add(state);
+    return state;
   }
 
   function clampScrubSecToRevealCap(targetSec) {
@@ -810,6 +846,7 @@ export function createMetricGraphView({
     const memo = latchedForecastRestoreMemo;
     const sameLatch =
       memo != null &&
+      memo.previousProjection === isPreviousProjectionSecond(latchedSecond) &&
       memo.latchedSecond === latchedSecond &&
       memo.revision === revision &&
       memo.historyEndSec === historyEnd;
@@ -821,13 +858,14 @@ export function createMetricGraphView({
       scrub.statusNote = scrub.forecastPreviewStatusNote;
       return;
     }
-    const restored = controller.getStateAt?.(latchedSecond);
+    const restored = getScrubStateAt(latchedSecond);
     if (!restored) return;
     setPreviewState?.(restored);
     latchedForecastRestoreMemo = {
       latchedSecond,
       revision,
       historyEndSec: historyEnd,
+      previousProjection:isPreviousProjectionSecond(latchedSecond),
     };
     scrub.scrubSec = clampScrubSecToRevealCap(latchedSecond);
     scrub.statusNote = scrub.forecastPreviewStatusNote;
@@ -1868,6 +1906,11 @@ export function createMetricGraphView({
       performance.now(),
       lineDrawEndSec
     );
+    replacementBoundaryLabel.visible=!!projectionReplacementState;
+    if(projectionReplacementState){
+      const boundaryX=mapTimeToX(projectionReplacementState.drawStartSec,minSec,maxSec,plot);
+      replacementBoundaryLabel.position.set(Math.max(plot.x,Math.min(boundaryX+8,plot.x+plot.w-replacementBoundaryLabel.width)),plot.y-17);
+    }
     if (projectionReplacementState) {
       if (
         projectionReplacementState.unchangedEndSec >
@@ -1966,10 +2009,11 @@ export function createMetricGraphView({
         ? Math.max(0, Math.floor(preview.previewSec))
         : null;
     const hasForecastPreview = Number.isFinite(forecastPreviewSec);
+    const previousProjection=isPreviousProjectionSecond(forecastPreviewSec);
     const metricLabel = getMetricLabel();
     const signature =
       `${scrub.isScrubbing ? 1 : 0}|${scrub.scrubSec}|${curT}|${historyEnd}|` +
-      `${minSec}:${maxSec}|${scrub.statusNote}|${metricLabel}|${hasForecastPreview ? forecastPreviewSec : -1}`;
+      `${minSec}:${maxSec}|${scrub.statusNote}|${metricLabel}|${hasForecastPreview ? forecastPreviewSec : -1}|${previousProjection}`;
     if (signature === lastScrubSignature) return;
     lastScrubSignature = signature;
 
@@ -1984,7 +2028,7 @@ export function createMetricGraphView({
       plot,
     });
 
-    scroll.setScope(metricLabel);
+    scroll.setScope(metricLabel,{previousProjection});
   }
 
   function applyPreviewThrottled(force) {
@@ -2005,7 +2049,7 @@ export function createMetricGraphView({
       return;
     }
 
-    const restored = controller.getStateAt(scrub.scrubSec);
+    const restored = getScrubStateAt(scrub.scrubSec);
     if (restored) {
       if (
         scrub.statusNote === "Forecast loading" ||
@@ -2074,7 +2118,7 @@ export function createMetricGraphView({
         return;
       }
       setLatchedForecastScrub(scrub, scrub.scrubSec);
-      if (commit && commitForecastOnScrubRelease) {
+      if (commit && commitForecastOnScrubRelease && !isPreviousProjectionSecond(scrub.scrubSec)) {
         const stateData = controller?.getStateDataAt?.(scrub.scrubSec);
         if (stateData == null) {
           scrub.statusNote = "Forecast loading";
@@ -2337,7 +2381,10 @@ export function createMetricGraphView({
       visibleForecastCoverageEndSec,
       computedCoverageEndSec: actualForecastCoverageEndSec,
       revealedCoverageEndSec: visibleForecastCoverageEndSec,
-      browseCapSec: visibleForecastCoverageEndSec,
+      browseCapSec: getVisibleForecastScrubCapSec(),
+      previousProjectionBrowseEndSec:getPreviousProjectionBrowseEndSec(projectionReplacement),
+      viewingPreviousProjection:isPreviousProjectionSecond(getActiveForecastPreviewSec()),
+      replacementBoundaryLabel:replacementBoundaryLabel.visible?replacementBoundaryLabel.text:null,
       forecastRevealFollowTargetEndSec: Math.max(
         displayHistoryEndSec,
         Math.floor(followTargetEndSec ?? displayHistoryEndSec)
@@ -2541,6 +2588,10 @@ export function createMetricGraphView({
     isScrubbing: () => scrub.isScrubbing === true,
     getVisibleTimeSpanSec: () => Math.max(1, maxSec - minSec),
     getForecastScrubCapSec: () => getVisibleForecastScrubCapSec(),
+    getPreviousProjectionBrowseEndSec:()=>{syncProjectionReplacementDataContext();return getPreviousProjectionBrowseEndSec(projectionReplacement);},
+    isPreviousProjectionSecond,
+    getPreviousProjectionStateAt:restorePreviousProjectionAt,
+    isPreviousProjectionPreviewState:state=>!!state&&previousProjectionPreviewStates.has(state),
     getForecastRevealTargetEndSec: () => Math.max(0, Math.floor(reveal.targetEndSec ?? 0)),
     render,
     setOpeningRevealSecond: (second) => { openingRevealSec = second; },
@@ -2566,6 +2617,7 @@ export function createMetricGraphView({
     resetForecastPreviewState,
     resetDataContext,
     stageProjectionReplacementTransition,
+    cancelStagedProjectionReplacementTransition:()=>clearStagedProjectionReplacement(projectionReplacement),
     clearProjectionReplacementTransition,
     setInteractionReadinessCap(sec) { reveal.readinessCapSec = sec; },
     restartForecastRevealFrom,

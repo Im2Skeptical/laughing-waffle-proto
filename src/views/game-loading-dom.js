@@ -1,3 +1,5 @@
+import { getLoadingFlavour } from './loading-flavour.js';
+
 const seconds = ms => `${(ms / 1000).toFixed(1)}s`;
 
 // Update only loading text/ink, preserving focus and the expanded timings panel.
@@ -5,6 +7,8 @@ export function createGameLoadingDom() {
   const element = document.createElement('section');
   element.className = 'game-loading-details';
   element.dataset.testid = 'game-loading-details';
+  const flavour = document.createElement('p');
+  flavour.className = 'game-loading-flavour';
   const stage = document.createElement('p');
   stage.className = 'game-loading-stage';
   stage.setAttribute('role', 'status');
@@ -24,11 +28,14 @@ export function createGameLoadingDom() {
   summary.textContent = 'Loading timings';
   const stages = document.createElement('ol');
   breakdown.append(summary, stages);
-  element.append(stage, timing, detail, progress, failure, breakdown);
+  element.append(flavour, stage, timing, detail, progress, failure, breakdown);
   let previousPhase = null;
   return { element,
     reset() { previousPhase = null; breakdown.open = false; },
     update(status, failed = false) {
+      const line = getLoadingFlavour(status ?? {});
+      if (flavour.textContent !== line) flavour.textContent = line;
+      flavour.hidden = failed;
       const current = status?.stages.at(-1);
       const label = current?.label ?? 'Getting ready to open your chronicle';
       if (stage.textContent !== label) stage.textContent = label;

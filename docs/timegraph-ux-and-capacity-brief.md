@@ -40,7 +40,7 @@ The timegraph is the main feedback and gameplay loop. The player sees when their
 - Priority if goals conflict: smooth scrubbing and examination while the unveil runs comes before unveil speed or horizon length.
 
 ## 6. Where the current build differs
-- Once a new vassal is created and in progress, the older projection cannot be browsed. It survives as a dimmed view-only overlay (`projection-replacement-state.js`, staged in `settlement-vassal-flow.js`). Navigation and graph close/open retain it, showing it only for its original subject. A new projection replaces it; explicit overrides, game reset, or reveal past its old loss or coverage second clear it. Ideally it stays browsable with clear "soon to be overwritten" FX, as long as the memory and performance cost is acceptable.
+- The previously unveiled part of the older projection remains browsable as a read-only preview while the new vassal lives (Cam, 8 November 2026). Its faded ink and marked replacement boundary show what the current projection will overwrite. Private retained anchors restore old states independently of later actions; computed but previously unexposed coverage stays inaccessible. Navigation and graph close/open retain it for its original subject. A new projection replaces it; explicit overrides, game reset, or reveal past its retained coverage release it. This retains one previous future, not an archive of earlier branches.
 - The September 25 implementation measurement (commit `f12196c`) unveiled 200 years in about 18.4 seconds on the test fixture, against a target of about 1000 years in a second or less. The old 112 sim-seconds-per-second ceiling no longer exists. Live reveal tuning is in `src/views/ui-root/settlement-graph-session.js`; it has separate default and pending-commit configurations. These are tuning values, not requirements. Later supply/cache measurements are in `docs/research/settlement-supply-performance.md`.
 - Browsing is limited to revealed coverage (`clampScrubSecToRevealCap`). This matches the intent.
 - Phone and very large world performance is unmeasured. Mobile layout at normal CPU measured a 27.8 ms worst frame, and mobile at 4x CPU fails the smooth gate (284.7 ms). The audit estimates roughly 80MB of retained state at 1000 years, before overhead, which still needs checking on the Pixel 6 floor. Sharing one frozen config across snapshots (8 Oct 2026) removed most per-anchor size; see the guardrails doc for current numbers.
@@ -55,6 +55,6 @@ On 8 Oct 2026 projection snapshots began sharing one deep-frozen config per gene
 - Keep moon-turn and meal data. Detect loss every simulated second.
 - Full detail and test gates are in the research docs listed at the top.
 
-## 8. Open questions
-- How should the "will be overwritten" FX look, and for how long is the old projection kept?
-- Is "whole-run" browsing beyond the unveiled area ever allowed, or always limited to what has been revealed?
+## 8. Clarified previous-projection presentation
+- Cam's 8 November 2026 direction: only its previously unveiled area remains browsable. Keep it faded and mark the replacement boundary.
+- The read-only previous future yields to newly unveiled current states. Beyond both revealed caps remains unavailable. Rendering and retention tuning remain provisional; physical-phone memory and performance still need measurement.
