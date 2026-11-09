@@ -13,8 +13,8 @@ one full Creep meter when caused by Creep, retaining overflow.
 
 This uses the existing `region.monster.defense` rating for both attack and
 defense. There is no additional resource or per-person equipment tracking.
-Primordial Chaos, passive Creep, the threshold, initial populations and Warrior
-Force rules remain unchanged. Existing regional activity and reaction rules
+The repel rule leaves Primordial Chaos, passive Creep and the threshold unchanged.
+The companion Crown and Force tuning is described in [the opening notes](crown-minority-opening.md). Existing regional activity and reaction rules
 apply: a repel emits advance, defense success and strengthening activity, but
 only one global `monsterSpawn` event.
 
@@ -27,15 +27,15 @@ outcome, including “Last: Repelled · +1 Strength”. Rewinding restores both 
 Strength and the appropriate historical result.
 
 The latest outcome is one bounded JSON record in
-`civilization.chaos.lastMonsterSpawn`. GameState **v45** replaces v44 so saved
+`civilization.chaos.lastMonsterSpawn`. GameState **v46** replaces v45 so saved
 forecasts cannot retain the old interception loop. Runner envelope v33 and
 captured GameConfig v30 are unchanged. Start a fresh game.
 
 ## Measured baseline
 
 With the [civilian core and minority outer garrisons](crown-minority-opening.md),
-32 ordinary, unattended seeds complete every run: **168.8-year mean**, range
-**122.3–212.1 years**, with no surviving/censored
+32 ordinary, unattended seeds complete every run: **172.043-year mean**, range
+**104.25–210.1875 years**, with no surviving/censored
 runs at the 400-year measurement cap. This is an average target, not a requirement
 that every seed end before 200. Played builds can extend survival. The retained
 50-year Crown opening contracts run alongside this new endgame check.

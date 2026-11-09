@@ -46,7 +46,7 @@ export function addRegionAllegianceHeader(root,{x,y,vm,reference,tooltipView}){
     `Unrest ${Math.round(c.unrest)} moves toward ${Math.round(c.targetUnrest)} at each Death control check.`,
     'Force lowers required allegiance with diminishing returns. Larger populations and rival allegiance reduce its leverage.',
     `Current threshold: ${Number((c.minimumShare*100).toFixed(1))}% allegiance (${c.minimumLoyal} residents).`,
-    'Loss: unrest 75 for two checks without support or sufficient Force.',
+    'Loss: unrest 75+ for two checks without population support or enough occupation Force.',
     `${vm.usedStructureCapacity} / ${vm.structureCapacity} construction cells.`,
   ],maxWidth:420,scale:2},`territory:${reference}`,tooltipView);
   root.addChild(status);

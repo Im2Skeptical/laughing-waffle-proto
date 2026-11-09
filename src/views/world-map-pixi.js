@@ -1,5 +1,6 @@
 import {regionalReadoutVariant,addRegionalReadoutPrototype,updateRegionalReadoutScale,addAtlasFocus,ATLAS_ECONOMY_POINT,getFloatingReadoutMeasurements,getMonsterReadoutMeasurements} from './world-map/regional-readout-prototype.js';
 import { getRegionTerrainStyle, getRegionNameColour } from './world-map/region-style.js';
+import { addFerryCrossing, roadBorderCrossings, landRoadSections } from './world-map/road-crossings.js';
 import { minimalGraphics } from './minimal-graphics.js';
 import { createRegionLabel } from './region-label.js';
 import { createTradeFlowHistory, getGhostPacketAgeSec, pruneGhostPackets, ghostsFromReplacedBatch, getGhostPacketAlpha, getPacketTrailSteps, getTradeCorridorWidth } from "./world-map/trade-corridors.js";
@@ -855,6 +856,7 @@ export function createWorldMapView({
       mapContent.addChild(presentRegion(hit, region.id));
     }
 
+    const roadPaths=[];
     for (const edge of state.world.connections) {
       const edges = new PIXI.Graphics();
       const a = definition.regions.find((entry) => entry.id === edge.regionAId);
@@ -862,9 +864,20 @@ export function createWorldMapView({
       const from = sitePoint(a);
       const to = sitePoint(b);
       const route=illustratedMap?illustrated.roadPoints(edge)?.map(screenPoint):null;
+      const ferries=illustratedMap?illustrated.roadFerries(edge).map(f=>({points:f.points.map(screenPoint)})):[];
+      const landSections=route?landRoadSections(route,ferries):[];
+      roadPaths.push(...landSections);
+      if(display.connections!==false)for(const ferry of ferries) {
+        const crossing=addFerryCrossing(mapContent,ferry.points);
+        crossing.root.connectionId=[a.id,b.id].sort().join(':');
+        crossing.root.islandCrossing=a.biome==='islands'||b.biome==='islands';
+        crossing.sample(visualTime());
+        if(choiceRegionIds&&(!choiceRegionIds.has(a.id)||!choiceRegionIds.has(b.id)))crossing.root.filters=[unavailableFilter];
+        layerLandmarks.push(crossing);
+      }
       if(!illustratedMap){
-        edges.lineStyle(9, 0x141511, .8).moveTo(from.x, from.y).lineTo(to.x, to.y);
-        edges.lineStyle(4, 0xb49562, .8).moveTo(from.x, from.y).lineTo(to.x, to.y);
+        edges.lineStyle(2.5, 0x141511, .8).moveTo(from.x, from.y).lineTo(to.x, to.y);
+        edges.lineStyle(1, 0xb49562, .9).moveTo(from.x, from.y).lineTo(to.x, to.y);
       } else if(!route) {
         // No dry route across disconnected islands: show a sea connection,
         // never paint an invented land causeway over animated water.
@@ -878,8 +891,9 @@ export function createWorldMapView({
           const bStyle = getRelationshipStyle(regionMapIndicators.find(entry => entry.regionId === b.id));
           const style = aKind === 'selected' ? bStyle : bKind === 'selected' ? aStyle
             : aStyle.priority < bStyle.priority ? aStyle : bStyle;
-          if(route)drawRelationshipPath(edges,route,style);
-          else drawRelationshipLine(edges, from, to, style);
+          const roadStyle={...style,width:Math.max(.7,style.width*.2)};
+          if(route)for(const section of landSections)drawRelationshipPath(edges,section,roadStyle);
+          else drawRelationshipLine(edges, from, to, roadStyle);
         }
       }
       edges.eventMode = 'none';
@@ -891,11 +905,23 @@ export function createWorldMapView({
     // Neighboring terrain must not erase the important side of a shared edge.
     const boundaries = territoryBoundarySegments(territoryBorders);
     const borderPriority = territory => territory.selected ? 5 : territory.relationship === 'connected' ? territory.relationshipStyle.priority : 0;
-    for (const territory of territoryBorders.sort((a,b)=>borderPriority(a)-borderPriority(b))) {
+    const addBorder = territory => {
       const border = new PIXI.Container();
       mapContent.addChild(presentRegion(border, territory.regionId));
       addTerritoryBorder(border, territory.points, {...territory, boundarySegments:boundaries.get(territory.regionId)});
+    };
+    const orderedBorders=territoryBorders.sort((a,b)=>borderPriority(a)-borderPriority(b));
+    for (const territory of orderedBorders.filter(t=>!t.selected&&!t.highlighted)) addBorder(territory);
+    if(display.connections!==false){
+      const gates=new PIXI.Graphics();gates.eventMode='none';gates.label='road-frontier-crossings';
+      const segments=[...boundaries.values()].flat();
+      for(const path of roadPaths)for(const p of roadBorderCrossings(path,segments)){
+        gates.lineStyle(2,0x292c24,.85).moveTo(p.x-p.dx*7,p.y-p.dy*7).lineTo(p.x+p.dx*7,p.y+p.dy*7);
+        gates.lineStyle(.8,0xb5a078,.95).moveTo(p.x-p.dx*8,p.y-p.dy*8).lineTo(p.x+p.dx*8,p.y+p.dy*8);
+      }
+      mapContent.addChild(gates);
     }
+    for (const territory of orderedBorders.filter(t=>t.selected||t.highlighted)) addBorder(territory);
 
     for (const indicator of regionMapIndicators) {
       const regionDef = definition.regions.find(

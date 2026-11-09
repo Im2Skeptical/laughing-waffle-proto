@@ -4,6 +4,7 @@ import { addMultiplierFitting, addMultiplierCompletionBadge } from '../multiplie
 import { multiplierTooltip } from '../multiplier-breakdown.js';
 import { createText } from '../settlement-view-primitives.js';
 import { TEXT_STYLES } from '../settlement-theme.js';
+import { addResourceAmount } from '../resource-cost-pixi.js';
 
 // Board and discard share physical faces. Frames remain visible around occupied
 // cards, so both empty targets and the selected replacement read as slots.
@@ -37,6 +38,16 @@ export function renderDecisionTableau(parent, settlement, {
       card.addChild(new PIXI.Graphics().lineStyle(3, 0x887452, .65)
         .moveTo(width / 2 - 12, height / 2).lineTo(width / 2 + 12, height / 2)
         .moveTo(width / 2, height / 2 - 12).lineTo(width / 2, height / 2 + 12));
+      const expansionCost = settlement.practiceExpansionCosts?.[index] ?? 0;
+      if (expansionCost > 0) {
+        const label = createText('Expansion', {...TEXT_STYLES.body, fontSize:18, fill:0xc6b48e},
+          width / 2, height - 72, .5, 0);
+        label.eventMode = 'none';
+        card.addChild(label);
+        const amount = addResourceAmount(card, 'prestige', `+${expansionCost}`, {fontSize:28, iconSize:32});
+        amount.position.set((width - amount.width) / 2, height - 47);
+        card.accessibleTitle = `Empty Practice slot: +${expansionCost} Prestige expansion fee`;
+      }
     }
     if (piece && !readOnly && !choosing) card.on('pointerdown', event => onDrag?.(event, card, piece));
     onUpgrade?.(card, piece);

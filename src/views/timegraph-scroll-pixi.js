@@ -189,8 +189,8 @@ export function createTimegraphScroll({ root, onToggleGroup, getActiveGroups, on
   });
 
   return {
-    setScope(label) {
-      scopeValue.text = label.startsWith("Local")
+    setScope(label, { previousProjection = false } = {}) {
+      scopeValue.text = previousProjection ? 'Previous projection · read only' : label.startsWith("Local")
         ? "Settlement · " + label.replace("Local • ", "")
         : "Civilization · All settlements";
       scopeValue.scale.set(1);

@@ -1,3 +1,30 @@
+// Open water gets a ferry between dry approaches, never a painted causeway.
+export function sampleRoadPath(path) {
+  const samples=[];
+  for(let i=1;i<path.length;i++){
+    const a=path[i-1],b=path[i],steps=Math.ceil(Math.hypot(b.x-a.x,b.y-a.y));
+    for(let n=0;n<steps;n++){
+      const p={x:Math.round(a.x+(b.x-a.x)*n/steps),y:Math.round(a.y+(b.y-a.y)*n/steps)};
+      if(samples.at(-1)?.x!==p.x||samples.at(-1)?.y!==p.y)samples.push(p);
+    }
+  }
+  const last=path.at(-1);
+  if(last&&(samples.at(-1)?.x!==last.x||samples.at(-1)?.y!==last.y))samples.push(last);
+  return samples;
+}
+
+export function ferrySpans(samples, isSea) {
+  const spans = [];
+  for (let i=0;i<samples.length;i++) {
+    if (!isSea(samples[i])) continue;
+    const first = i;
+    while (i+1<samples.length && isSea(samples[i+1])) i++;
+    if (first===0 || i===samples.length-1) continue;
+    spans.push({ a:samples[first-1], b:samples[i+1], points:samples.slice(first-1,i+2) });
+  }
+  return spans;
+}
+
 // Detect complete wet runs, including their dry approaches. Rendering consumes
 // one span per crossing, rather than drawing isolated planks on wet pixels.
 export function bridgeSpans(samples, waterAt, detail) {

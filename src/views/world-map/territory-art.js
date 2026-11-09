@@ -102,11 +102,11 @@ export function addTerritoryBorder(parent, points, { player, monster, crown, sel
     }
   };
   if (player || monster || crown) {
-    trace(13,0x0c171b,.95);
+    trace(13,0x0c171b,.98);
     trace(8,colour,1);
-    trace(1.5,monster ? 0xffa080 : player ? 0xffe6a2 : 0xf1d5b4);
+    trace(1.75,monster ? 0xffb09a : player ? 0xffedb7 : 0xf4d6b5,1);
     if (player) coast.lineStyle(0).beginFill(0xe4c271,.055).drawPolygon(points).endFill();
-  } else trace(1.5,colour,.65);
+  } else {trace(4,0x0c171b,.9);trace(1.75,colour,.9);}
   if (relationship === 'connected') {
     border.label = `${relationship}-region-border`;
     border.relationshipKind = relationshipStyle.kind;

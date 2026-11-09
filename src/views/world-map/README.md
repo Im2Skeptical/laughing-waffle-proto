@@ -246,6 +246,16 @@ and desktop/mobile screenshots, alongside the settlement/navigation probes.
 
 ## Territory presentation
 
+`road-crossings.js` owns dry-road frontier crossings and ferry/dock decoration.
+Ordinary borders are quieter than the selected outline; short carriageways keep
+roads continuous through them. Island connections retain land approaches, with
+two shore docks and a ferry over open water. Ferry poses use viewed simulation
+time and rewind exactly; neither routes nor decorations change gameplay roads.
+The terrain study retains dry-only routing unless live `ferryConnections` is
+requested. Relationship highlights stop at the docks rather than filling the sea.
+`npm run probe:ready-cards` checks desktop/phone views and an explicit island-road
+fixture; `--baseline` on its script captures the old unmarked water crossings.
+
 Selecting a region highlights only neighbours that share a polygon edge AND
 have a live direct road connection to it. Allied settlements use bright solid
 violet outlines with a pale inner stroke; neutral settlements use medium violet
@@ -288,3 +298,9 @@ Coverage follows actual recipe faction, adjacency and road rules, not throughput
 Population allegiance bars and contention diamonds describe full-map holdings;
 unheld neutral land is not a contested holding. Crown holdings share a copper
 boundary and capital badge; independent outskirts use resource-only boards.
+
+
+Crown region-art expansion is deferred. The existing fitted building kit remains
+active; rejected oversized region paintings are not loaded. A future pass needs
+modular buildings, walls, streets and clearings at the established settlement
+scale, integrated through the existing terrain/settlement composition.

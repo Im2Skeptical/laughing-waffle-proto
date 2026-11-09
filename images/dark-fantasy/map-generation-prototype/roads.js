@@ -35,7 +35,7 @@ export function windRoad(path, { scale = 1, clear, wet, inTown }) {
 
 // Disposable presentation routes between sample sites. No gameplay connections.
 // Search the already-baked land lattice; the generator and its RNG stay untouched.
-export function routeSampleRoads(sites, { width, height, regionIds, land, waterIndices, materialAt, bounds, scale = 1, exclusions = [], pairs = null }) {
+export function routeSampleRoads(sites, { width, height, regionIds, land, waterIndices, materialAt, bounds, scale = 1, exclusions = [], pairs = null, ferryConnections = false }) {
   const step = 2, minX = Math.max(0, bounds.minX), minY = Math.max(0, bounds.minY);
   const cols = Math.ceil((Math.min(width, bounds.maxX) - minX) / step), rows = Math.ceil((Math.min(height, bounds.maxY) - minY) / step);
   const size = cols * rows, costs = new Float32Array(size);
@@ -55,8 +55,18 @@ export function routeSampleRoads(sites, { width, height, regionIds, land, waterI
     }
     return best;
   };
-  const search = (start, end) => {
+  const navigable = (x,y) => dry(x,y) || (x>=0 && y>=0 && x<width && y<height && waterIndices[y*width+x]>0);
+  let ferryCosts=null;
+  const search = (start, end, ferry = false) => {
     if (start < 0 || end < 0) return null;
+    if(ferry&&!ferryCosts){
+      ferryCosts=costs.slice();
+      for(let n=0;n<size;n++)if(!ferryCosts[n]){
+        const p=pixel(n);
+        if(navigable(p.x,p.y)&&!inTown(p))ferryCosts[n]=20;
+      }
+    }
+    const routeCosts=ferry?ferryCosts:costs,passable=ferry?navigable:dry;
     const heap = [], score = new Float32Array(size).fill(Infinity), parent = new Int32Array(size).fill(-1);
     const closed = new Uint8Array(size), goal = pixel(end);
     const push = entry => {
@@ -87,10 +97,11 @@ export function routeSampleRoads(sites, { width, height, regionIds, land, waterI
       closed[n] = 1; const p = pixel(n), col = n % cols, row = Math.floor(n / cols);
       for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
         if ((!dx && !dy) || col + dx < 0 || row + dy < 0 || col + dx >= cols || row + dy >= rows) continue;
-        const q = n + dy * cols + dx; if (!costs[q] || closed[q]) continue;
+        const q = n + dy * cols + dx;
+        if (!routeCosts[q] || closed[q]) continue;
         // Both intermediate pixels and diagonal corners must remain on land.
-        if (!dry(p.x + dx, p.y + dy) || (dx && dy && (!dry(p.x + step * dx, p.y) || !dry(p.x, p.y + step * dy)))) continue;
-        const next = score[n] + (dx && dy ? Math.SQRT2 : 1) * (costs[n] + costs[q]) / 2;
+        if (!passable(p.x + dx, p.y + dy) || (dx && dy && (!passable(p.x + step * dx, p.y) || !passable(p.x, p.y + step * dy)))) continue;
+        const next = score[n] + (dx && dy ? Math.SQRT2 : 1) * (routeCosts[n] + routeCosts[q]) / 2;
         if (next >= score[q]) continue;
         score[q] = next; parent[q] = n; push({ n: q, f: next + heuristic(q) });
       }
@@ -99,7 +110,7 @@ export function routeSampleRoads(sites, { width, height, regionIds, land, waterI
   };
   const paths = [], connected = new Set(sites.length ? [0] : []), anchors = sites.map(nearest);
   if (pairs) for (const { a, b, id } of pairs) {
-    const path = search(anchors[a], anchors[b]);
+    const path = search(anchors[a], anchors[b]) ?? (ferryConnections ? search(anchors[a], anchors[b], true) : null);
     if (!path) continue;
     path[0] = { ...sites[a] }; path[path.length - 1] = { ...sites[b] };
     path.connectionId = id; paths.push(path);
@@ -121,7 +132,7 @@ export function routeSampleRoads(sites, { width, height, regionIds, land, waterI
   }
   return paths.map(path => {
     if (path.length < 3) return path;
-    const wet = p => waterIndices[Math.round(p.y) * width + Math.round(p.x)] >= 16 && waterIndices[Math.round(p.y) * width + Math.round(p.x)] <= 23;
+    const wet = p => !dry(Math.round(p.x),Math.round(p.y)) || waterIndices[Math.round(p.y) * width + Math.round(p.x)] > 0;
     const clear = (a, b) => {
       const count = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y)));
       for (let n = 0; n <= count; n++) if (inTown({x:a.x + (b.x-a.x)*n/count,y:a.y+(b.y-a.y)*n/count}) || !dry(Math.round(a.x + (b.x - a.x) * n / count), Math.round(a.y + (b.y - a.y) * n / count))) return false;

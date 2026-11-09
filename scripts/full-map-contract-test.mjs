@@ -1,4 +1,5 @@
 import {getVassalShopCandidatePool,generateShopInventory} from '../src/model/vassal-life-map/shop.js';
+import {getVassalNodeDecisionPresentation} from '../src/model/vassal-life-map/presentation.js';
 import {buildCampaignOptions,resolveCampaignAttempt} from '../src/model/vassal-life-map/campaign.js';
 import {getVassalYearPhaseCost} from '../src/model/vassal-life-map/selectors.js';
 import {selectPopulationComposition,compositionBins} from '../src/model/detailed-settlements/helpers.js';
@@ -504,9 +505,15 @@ test('sequential sparse shop expansion reprices on undo without charging replace
  const {s,node,ns,d}=stagedShop();s.civilization.prestige=1000;
  d.practiceSlots=[install('forage','player',3),install('dryFarming'),null,null,null];
  ns.inventory=['logging','fm_rubblePicking','barter'].map((practiceId,i)=>({offerId:`sparse-${i}`,basePrestigeCost:10,basePhaseCost:1,baseCurrencyCost:0,intervention:{kind:'practice',mode:'learn',practiceId,resultingTier:'bronze'}}));
+ const expansionCosts=()=>getVassalNodeDecisionPresentation(s,node.id).settlement.practiceExpansionCosts;
+ const beforePresentation=serializeGameState(s);
+ assert.deepEqual(expansionCosts(),[0,0,0,10,30],'empty slots show the fee for each successive expansion');
+ assert.deepEqual(serializeGameState(s),beforePresentation,'reading expansion fees cannot mutate state or RNG');
  for(let i=0;i<3;i++)assert(purchaseVassalShopOffer(s,node.id,`sparse-${i}`).ok);
+ assert.deepEqual(expansionCosts(),[0,0,0,0,0],'occupied draft slots have no expansion fee');
  assert.deepEqual([...ns.purchasedOffers].sort((a,b)=>a.purchaseSequence-b.purchaseSequence).map(p=>p.prestigeCost),[10,20,40]);
  assert(undoVassalShopPurchase(s,node.id,'sparse-0').ok);
+ assert.deepEqual(expansionCosts().filter(cost=>cost>0),[30],'undo restores the next expansion fee');
  assert.deepEqual([...ns.purchasedOffers].sort((a,b)=>a.purchaseSequence-b.purchaseSequence).map(p=>p.prestigeCost),[10,20]);
 });
 console.log(`[full-map] ${checks.length} contract groups passed`);

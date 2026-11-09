@@ -19,9 +19,8 @@ function raised(vassal, statId) {
 
 // The Lifegraph level-up. A class-tinted carved window sits
 // over the graph area (top bar and dock stay visible). Three carved stat tablets
-// show only the change; the current effect and formula live in the shared
-// tooltip (hover on mouse, tap to pin on touch), as Practices and the class
-// picker do. The queue and its blocking rules are owned by the model.
+// show the change; current effects and formulas float below the choice row,
+// clear of every tablet and the confirmation plaque.
 const FONT = 'Georgia';
 // The window starts just below the crest-bar HUD (getCrestLayout().bottom) and
 // runs to the graph area's bottom; tablets give up height on small canvases.
@@ -70,7 +69,7 @@ export function levelUpTooltipSpec(vassal, statId) {
   const before = getVassalStatPresentation(vassal, statId);
   const after = raised(vassal, statId);
   return {
-    sourceKind: 'vassalLevelUp', sourceId: statId, maxWidth: 300, scale: 2.6, pin: true,
+    sourceKind: 'vassalLevelUp', sourceId: statId, maxWidth: 320, scale: 2.6, pin: true,
     title: before.label, subtitle: `Attribute · ${before.value} → ${after.value}`,
     accentColor: STAT_COLORS[statId] ?? RELIC.gold,
     sections: [
@@ -107,13 +106,16 @@ export function createVassalLevelUpModalView({
     const w = app?.screen?.width || 2424;
     return rect?.width > 0 ? rect.width / w : 1;
   }
-  const hideTip = () => { tipStatId = null; tooltipView?.hide?.({ force: true }); };
-  const anchorFor = (node, side = 'right') => {
-    const b = node.getBounds();
-    return { x: b.x, y: b.y, width: b.width, height: b.height, side, alignY: 'top', coordinateSpace: 'screen' };
+  const hideTip = () => {tipStatId=null;tooltipView?.hide?.({force:true});};
+  const anchorFor = statId => {
+    const bottom=shell.toGlobal(new PIXI.Point(0,TABLET.y+TABLET.height));
+    const right=tablets.at(-1)?.statId===statId;
+    const x=right&&confirmRoot?confirmRoot.getBounds().right+14:14;
+    return {x,y:bottom.y,width:0,height:0,side:'right',alignY:'top',coordinateSpace:'screen',
+      belowRect:{y:bottom.y,height:0}};
   };
 
-  function addTablet(parent, vassal, statId, x, y, sizes, stud, side) {
+  function addTablet(parent, vassal, statId, x, y, sizes) {
     const before = getVassalStatPresentation(vassal, statId);
     const after = raised(vassal, statId);
     const color = STAT_COLORS[statId] ?? RELIC.gold;
@@ -145,17 +147,16 @@ export function createVassalLevelUpModalView({
     }
     node.statId = statId; node.frame = frame; node.glow = glow; node.socket = socket; node.baseY = node.y;
     node.lift = 0; node.liftFrom = 0; node.liftTo = 0; node.liftAt = 0; node.hovered = false;
-    const spec = levelUpTooltipSpec(vassal, statId);
+    const spec=levelUpTooltipSpec(vassal,statId);
     node.on('pointerover', event => {
       node.hovered = true; paintTablet(node);
-      if (event.pointerType !== 'touch' && tipStatId === null) tooltipView?.show?.(spec, anchorFor(node, side));
+      if (event.pointerType !== 'touch' && tipStatId===null) tooltipView?.show?.(spec,anchorFor(statId));
     });
-    node.on('pointerout', () => { node.hovered = false; paintTablet(node); if (tipStatId === null) tooltipView?.hide?.(); });
-    node.on('pointertap', event => {
-      if (event.pointerType !== 'touch') return;
-      // Touch: the tap that selects also pins the details; tapping again unpins.
-      tipStatId = tipStatId === statId ? null : statId;
-      tooltipView?.pin?.(spec, anchorFor(node, side), `levelUp:${statId}`);
+    node.on('pointerout', () => {node.hovered=false;paintTablet(node);if(tipStatId===null)tooltipView?.hide?.();});
+    node.on('pointertap',event=>{
+      if(event.pointerType!=='touch')return;
+      tipStatId=tipStatId===statId?null:statId;
+      tooltipView?.pin?.(spec,anchorFor(statId),`levelUp:${statId}`);
     });
     addInteractionFeedback(node, { x: 0, y: 0, width: w, height: h }, { onActivate: () => select(statId) });
     parent.addChild(node);
@@ -208,7 +209,7 @@ export function createVassalLevelUpModalView({
     const visible = !prepared && isLifegraphVisible?.() === true
       && presentation.readOnly !== true && queue.length > 0
       && isRecapOpen?.() !== true;
-    if (visible && !open) { pose = { phase: 'open', at: now() }; ghost = null; }
+    if (visible && !open) { hideTip(); pose = { phase: 'open', at: now() }; ghost = null; }
     if (!visible && open) { hideTip(); pose = { phase: 'close', at: now() }; }
     open = visible;
     root.visible = visible || pose?.phase === 'close';
@@ -227,6 +228,7 @@ export function createVassalLevelUpModalView({
     });
     if (!force && nextSignature === signature) return;
     signature = nextSignature;
+    hideTip();
     clearChildren(root);
     tablets = [];
     const min = css => css / k;
@@ -251,7 +253,7 @@ export function createVassalLevelUpModalView({
     const blocker = new PIXI.Graphics();
     blocker.beginFill(0x0b0c0b, 0.62).drawRect(0, 0, app.screen.width, app.screen.height).endFill();
     blocker.eventMode = "static";
-    blocker.on("pointerdown", (event) => { event?.stopPropagation?.(); if (tipStatId) hideTip(); });
+    blocker.on("pointerdown", (event) => { event?.stopPropagation?.(); hideTip(); });
     root.addChild(blocker);
 
     shell = new PIXI.Container();
@@ -283,10 +285,9 @@ export function createVassalLevelUpModalView({
     if (queue.length > pipCount) text(banner, `+${queue.length - pipCount}`, pipsX - 6, BANNER.height / 2, sizes.banner * .8, { fill: RELIC.gold }, 1, .5);
 
     const totalW = choice.offeredStatIds.length * TABLET.width + (choice.offeredStatIds.length - 1) * TABLET.gap;
-    const startX = (WIN.width - totalW) / 2;
+    const startX = (WIN.width-totalW)/2;
     tablets = choice.offeredStatIds.map((statId, index) => addTablet(content, vassal, statId,
-      startX + index * (TABLET.width + TABLET.gap), TABLET.y, sizes, stud,
-      index === choice.offeredStatIds.length - 1 ? 'left' : 'right'));
+      startX + index * (TABLET.width + TABLET.gap), TABLET.y, sizes));
     tablets.forEach(node => { node.lift = node.liftTo = node.statId === selectedStatId ? -LIFT_PX : 0; });
     const labelOf = statId => getVassalStatPresentation(vassal, statId).label;
     confirmRoot = addPlaque(content, (WIN.width - PLAQUE.width) / 2, PLAQUE.slotY + (PLAQUE.slotHeight - plaqueH) / 2,
@@ -351,7 +352,8 @@ export function createVassalLevelUpModalView({
       stats: tablets.map(card => card.statPresentation),
       confirmState: confirmRoot?.interactionState ?? null,
       confirmLabel: confirmRoot?.labelNode?.text ?? null,
-      tooltipPinned: tipStatId,
+      tooltipPinned:tipStatId,
+      confirmBounds:confirmRoot?(()=>{const b=confirmRoot.getBounds();return {x:b.x,y:b.y,width:b.width,height:b.height};})():null,
       confirmCssHeight: confirmRoot ? confirmRoot.hitArea.height * cssScale() : null,
     }),
     getHudState: () => ({ open, selectedStatId: open ? selectedStatId : null }),

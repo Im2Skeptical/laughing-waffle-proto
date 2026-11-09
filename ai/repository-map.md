@@ -291,6 +291,12 @@ replay (`scripts/shop-undo-replay-test.mjs`), player-facing reward/risk facts
 (`scripts/choice-display-contracts-test.mjs`), and shared-edge biome membership
 (`scripts/biome-component-contracts-test.mjs`).
 
+Full-map interaction contracts cover town activation and retention, territorial
+Prestige, escalating shop prices, hostile institution transactions, population
+recipe atomicity, and event faction scope (`npm run test:full-map`). That suite
+also checks neutral-market and garrison tooltip facts. Faction-aware Synthesis
+supply and Monster Trophy attribution run in `npm run test:keywords`.
+
 ## Maintenance guards
 
 - `npm run check:docs` checks current Markdown links, source routes, npm commands,

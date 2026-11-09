@@ -55,7 +55,7 @@ export async function checkVassalStatViews() {
       const headings = card.children.filter(child => child instanceof PIXI.Text).map(child => child.text);
       expect(headings.includes(labels[index].toUpperCase()), true, 'actual painted level-up heading');
       card.emit('pointerover', { pointerType: 'mouse' });
-      expect(tips.at(-1)?.title, labels[index], 'level-up tooltip');
+      expect(tips.at(-1)?.title, labels[index], 'level-up floating tooltip');
       card.emit('pointerout', {});
     }
     expect(JSON.stringify(serializeGameState(state)), before, 'rendering leaves simulation state and RNG untouched');
