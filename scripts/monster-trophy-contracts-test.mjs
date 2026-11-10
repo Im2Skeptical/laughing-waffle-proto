@@ -231,7 +231,7 @@ state.civilization.chaos.monsterCount = 1;
 state.civilization.chaos.monsterPressure = 0;
 const beforeDefense = trophies();
 addMonsterPressure(state, 100);
-eq(region(capitalId).monster?.defense, 1, 'defense-holds');
+eq(region(capitalId).monster?.defense, 2, 'repelled-monster-strengthens');
 eq(capital.detailedState.lastDefense?.result, 'held', 'defense-resolved');
 eq(capital.simulationMode, 'detailed', 'defense-does-not-ruin');
 eq(trophies(), beforeDefense, 'defense-not-trophy');

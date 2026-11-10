@@ -11,6 +11,7 @@ import {
 import { getCurrentLifeMapVassal, getVassalAge } from "../model/vassal-life-map.js";
 import { getRegionDefinition } from "../model/world-state.js";
 import { getGameSetting } from "../model/game-config.js";
+import {CONTROL_DEFAULTS} from '../model/detailed-settlements/territory.js';
 import {
   addCivilizationSurvivalStrip,
   getCivilizationSurvivalViewModel,
@@ -162,13 +163,13 @@ export function createSettlementPrototypeView({
         const holder=c.holder==='player'?'Free':c.holder==='external-a'?'Crown':'Unheld';
         const lines=[`${holder} / ${c.status} / ${Math.round(c.share*100)}% support`,
           `Free ${c.support.player??0} / Crown ${c.support['external-a']??0} / Unaffiliated ${c.support.neutral??0}`,
-          `Unrest ${Math.round(c.unrest)} -> ${Math.round(c.targetUnrest)} / Treasury ${vm.civilizationPrestige} Prestige`,
-          `Force ${Number(c.force.toFixed(1))}/${c.required} / ${c.availableWarriors} loyal Warriors / ${c.warriorForce} baseline`];
+          c.unrest?`Unrest: ${Math.ceil(c.unrest.remainingYears)} years / +${c.unrest.chaosPerYear} Chaos per year`:`Treasury ${vm.civilizationPrestige} Prestige`,
+          `Force ${Number(c.force.toFixed(1))}/${c.required===null?'–':Number(c.required.toFixed(1))} / ${c.availableWarriors} loyal Warriors / ${c.warriorForce} baseline`];
         lines.forEach((line,i)=>root.addChild(createText(line,{...TEXT_STYLES.body,fontSize:27},rect.x+18,rect.y+60+i*34)));
         if(c.holder==='player'&&vm.supportTargets.length){
           const targets=[null,...vm.supportTargets],current=targets.indexOf(c.supportTarget);
           addButton(root,{x:rect.x+18,y:744,width:796,height:42},`Garrison destination: ${c.supportTarget??'local'} >`,false,()=>onAssignGarrison?.(regionId,targets[(current+1)%targets.length]));
-        }else root.addChild(createText('Claim 60% twice / retain 45% / loss at 75 unrest twice',{...TEXT_STYLES.body,fontSize:23},rect.x+18,744));
+        }else root.addChild(createText(`Claim ${CONTROL_DEFAULTS.claim*100}% twice / retain ${CONTROL_DEFAULTS.retain*100}% / below holding threshold starts Unrest`,{...TEXT_STYLES.body,fontSize:23},rect.x+18,744));
       }
 
       root.addChild(

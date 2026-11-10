@@ -3,17 +3,10 @@
 import {getDetailedPracticeDef,getDetailedStructureDef} from './game-config.js';
 import {getRegionState,getAdjacentRegionIds,addWorldConnection} from './world-state.js';
 import {stockCapacity} from './detailed-settlements/stock.js';
-import {populationBins,writePopulationBins,allocatePopulation} from './detailed-settlements/population-ledger.js';
+import {populationBins} from './detailed-settlements/population-ledger.js';
 
-const CROWN_OPENING_POPULATIONS=Object.freeze({capital:30,province:20,forager:12,timber:14,quarry:14,grain:24,market:24});
-function crownOpeningPopulation(state,site) {
-  return CROWN_OPENING_POPULATIONS[site.regionId===state.civilization.remnant.capitalRegionId?'capital':site.name==='Remnant Province'?'province':site.town.type];
-}
-function fitCrownPopulation(state,site) {
-  const d=site.detailedState,target=crownOpeningPopulation(state,site);
-  // Scale the complete joint distribution; don't recruit the old absolute army
-  // again, which would turn almost every adult in a smaller town into a Warrior.
-  writePopulationBins(d,allocatePopulation(populationBins(d),target));
+function fitCrownHousing(state,site) {
+  const d=site.detailedState,target=populationBins(d).reduce((n,b)=>n+b.count,0);
   const retained=d.structureSlots.filter(s=>s&&!getDetailedStructureDef(state,s.structureId).housing);
   const cottage=getDetailedStructureDef(state,'fm_crumblingCottages');
   const count=cottage.housing>0?Math.ceil(target/cottage.housing):0;
@@ -41,20 +34,19 @@ function giveLocalSource(state,site,displaced,indexOverride) {
   const slot={practiceId:'rm_scrubForaging',tier:'bronze',instanceId:`institution:${state.civilization.nextPracticeInstanceId++}`,charge:0,work:0,stock:0};
   slots[index]=slot;slot.stock=stockCapacity(state,site.detailedState,slot);
 }
-export function seedFullMapFood(state) {
+export function seedFullMapFood(state,coreRegionIds) {
   const active=state.world.sites.filter(s=>!s.neutral&&s.simulationMode==='detailed');
   const crown=active.filter(s=>getRegionState(state,s.regionId).controller==='external-a'),displaced=[];
   for(const site of crown){
-    fitCrownPopulation(state,site);
+    // Developed core packages already include fitted Warrior housing and a
+    // seasonal food chain. This pass fits the smaller inherited outer towns.
+    if(coreRegionIds.has(site.regionId))continue;
+    fitCrownHousing(state,site);
     // A downsized Market Town needs one basic meal host. Keep the seasonal
     // Grain/Milling chain distinctive to grain villages and the capital.
     if(site.town.type==='market'&&site.regionId!==state.civilization.remnant.capitalRegionId)
       site.detailedState.practiceSlots=site.detailedState.practiceSlots.map(s=>s?.practiceId==='fm_fallowFields'?null:s);
   }
-  const capital=crown.find(s=>s.regionId===state.civilization.remnant.capitalRegionId);
-  // At this population Dole occupies the available workers before resource
-  // staffing. A baseline meal host lets the seasonal chain remain seasonal.
-  if(capital&&!capital.detailedState.practiceSlots.some(s=>s?.practiceId==='rm_scrubForaging'))giveLocalSource(state,capital,displaced,capital.detailedState.practiceSlots.findIndex(s=>s?.practiceId==='fe_salvageDetail'));
   const markets=state.world.sites.filter(s=>s.neutral);
   // Reserve replenishment for existing player access, then budget one affordable
   // meal per importing village. An allied Scrub host has no guaranteed surplus.

@@ -97,7 +97,8 @@ for (const id of ids) {
   const { state, site, local } = fixture('rm_withheldSpoils');
   local.practiceSlots[1] = slot('weaponsmithing', 6);
   local.garrison = { supplied: true };
-  writePopulationBins(local, [{ classId: 'villager', allegiance: 'player', specialty: 'warrior', kind: 'adults', age: null, count: 10 }]);
+  // This card contract needs thirteen held attacks, including +1 after each repel.
+  writePopulationBins(local, [{ classId: 'villager', allegiance: 'player', specialty: 'warrior', kind: 'adults', age: null, count: 20 }]);
   for (const region of state.world.regions) delete region.monster;
   getRegionState(state, site.regionId).monster = { defense: 1 };
   const defend = () => { assert.equal(triggerMonsterSpawn(state).outcome, 'intercepted'); flushPracticeEvents(state); };

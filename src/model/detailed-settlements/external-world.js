@@ -22,6 +22,7 @@ export function adjacentRegionIds(state, regionId) {
 }
 const siteAt = (state, id) => state.world.sites.find(s => s.regionId === id);
 const playerSites = state => (state?.world?.sites ?? []).filter(s => getRegionState(state, s.regionId)?.controller === 'player' && s.simulationMode === 'detailed' && s.detailedState);
+export const MONSTER_REPEL_STRENGTH_GAIN=1;
 function localMartialSupport(state, regionId, defense = false) {
   const settlement = siteAt(state, regionId)?.detailedState;
   const warriors = specialistCount(settlement, 'warrior');
@@ -234,6 +235,23 @@ function monsterExpansionTarget(state, region) {
   return targets.find(target => target.controller==='frontier' && !siteAt(state,target.id)) ?? targets[0];
 }
 
+const monsterDefenseHolds=(defense,strength)=>defense>0&&defense>=strength;
+
+// Read-only full-map inspection uses the resolver's exact target and comparison.
+export function getMonsterThreat(state,regionId) {
+  const region=getRegionState(state,regionId);if(!region?.monster)return null;
+  const target=monsterExpansionTarget(state,region);
+  const defense=!state.rulesetId||!target?null:siteAt(state,target.id)?.simulationMode==='detailed'?militarySummary(state,target.id).defense:0;
+  return {strength:region.monster.defense,repelStrengthGain:MONSTER_REPEL_STRENGTH_GAIN,
+    targetRegionId:target?.id??null,targetDefense:defense,
+    willBeRepelled:defense===null?null:monsterDefenseHolds(defense,region.monster.defense)};
+}
+
+function strengthenMonster(state,region,amount=1) {
+  region.monster.defense+=amount;
+  emitPracticeEvent(state,{kind:'monsterPressure',regionId:region.id,action:'strengthen'});
+}
+
 function pulseMonsterPressure(state, regions) {
   const chaos=state.civilization.chaos;
   const threats=regions.filter(region => region.monster && monsterExpansionTarget(state,region));
@@ -244,21 +262,24 @@ function pulseMonsterPressure(state, regions) {
     chaos.lastPressureRegionId=region.id;
     emitPracticeEvent(state,{kind:'monsterPressure',regionId:region.id,action:'advance'});
     const targetId = monsterExpansionTarget(state,region).id;
+    const strengthBefore=region.monster.defense;
     const outcome = expandMonster(state,region,targetId);
-    return { outcome, sourceRegionId: region.id, targetRegionId: targetId };
+    // The defender holds this attack. The same front returns stronger next time.
+    if(outcome==='intercepted')strengthenMonster(state,region,MONSTER_REPEL_STRENGTH_GAIN);
+    return { outcome, sourceRegionId: region.id, targetRegionId: targetId,strengthBefore,strengthAfter:region.monster.defense };
   }
   const target=regions.find(region => !region.monster && (state.rulesetId || region.controller==='frontier' && !siteAt(state,region.id)));
   if (target) {
     const spawnNumber=++chaos.spatialSpawns;
     target.monster={defense:CIV_CONTENT_TUNING.monsterDefense+Math.floor(spawnNumber/3)};
     emitPracticeEvent(state,{kind:'monsterPressure',regionId:target.id,action:'spawn'});
-    return { outcome: 'appeared', targetRegionId: target.id };
+    return { outcome: 'appeared', targetRegionId: target.id,strengthAfter:target.monster.defense };
   } else {
     const region=regions.filter(region => region.monster).sort((a,b)=>a.monster.defense-b.monster.defense)[0];
     if (region) {
-      region.monster.defense++;
-      emitPracticeEvent(state,{kind:'monsterPressure',regionId:region.id,action:'strengthen'});
-      return { outcome: 'strengthened', targetRegionId: region.id };
+      const strengthBefore=region.monster.defense;
+      strengthenMonster(state,region);
+      return { outcome: 'strengthened', targetRegionId: region.id,strengthBefore,strengthAfter:region.monster.defense };
     }
   }
 }
@@ -267,7 +288,7 @@ function expandMonster(state, region, targetId) {
   const target=getRegionState(state,targetId),site=siteAt(state,targetId);
   if(state.rulesetId&&site?.simulationMode==='detailed'){
     const m=militarySummary(state,targetId);
-    if(m.defense>0&&m.defense>=region.monster.defense){emitPracticeEvent(state,{kind:'defenseSucceeded',regionId:targetId,faction:target.controller});site.detailedState.lastDefense={tSec:state.tSec,result:'held',sourceRegionId:region.id};return 'intercepted';}
+    if(monsterDefenseHolds(m.defense,region.monster.defense)){emitPracticeEvent(state,{kind:'defenseSucceeded',regionId:targetId,faction:target.controller});site.detailedState.lastDefense={tSec:state.tSec,result:'held',sourceRegionId:region.id};return 'intercepted';}
     if(target.controller==='player')state.civilization.history.lostSettlements++;
     target.lostAtSec=state.tSec;emitPracticeEvent(state,{kind:'settlementLost',regionId:targetId,faction:target.controller});
   }
@@ -323,6 +344,9 @@ function resolveMonsterPressure(state) {
 function resolveMonsterSpawn(state, regions, cause) {
   state.civilization.chaos.expansionEvents++;
   const result = pulseMonsterPressure(state, regions) ?? { outcome: 'blocked' };
+  state.civilization.chaos.lastMonsterSpawn={tSec:state.tSec,cause,outcome:result.outcome,
+    sourceRegionId:result.sourceRegionId??null,targetRegionId:result.targetRegionId??null,
+    strengthBefore:result.strengthBefore??null,strengthAfter:result.strengthAfter??null};
   emitPracticeEvent(state, { kind: 'monsterSpawn', cause, ...result });
   return result;
 }

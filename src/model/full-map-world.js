@@ -5,9 +5,9 @@ import { createTownMarket } from './detailed-settlements/neutral-market.js';
 import { stockCapacity } from './detailed-settlements/stock.js';
 import { writePopulationBins } from './detailed-settlements/population-ledger.js';
 import { seedFullMapFood } from './full-map-food.js';
+import {seedCrownOpeningPopulation} from './full-map-crown.js';
 
 export const FULL_MAP_RULESET = 'full-map-redesign-v1';
-export const CROWN_STARTING_WARRIOR_MULTIPLIER = 1.75;
 export function mapDistance(state,start,end) {
   const seen=new Set([start]),queue=[[start,0]];
   for(const [id,d] of queue){if(id===end)return d;for(const next of getAdjacentRegionIds(state,id))if(!seen.has(next)){seen.add(next);queue.push([next,d+1]);}}
@@ -29,6 +29,7 @@ export function seedFullMapWorld(state) {
     &&!c.provinces.includes(r.id)&&players.some(id=>getAdjacentRegionIds(state,id).includes(r.id))));
   if(!core)throw new Error('New Game needs a Crown capital with three provinces and an opening trade neighbour');
   const capital=core.capital,provinces=new Set(core.provinces);
+  let provinceIndex=0;
   state.civilization.remnant={capitalRegionId:capital,classId:'warrior',faction:'external-a'};
   const outskirts=state.world.regions.filter(r=>!players.includes(r.id)&&r.id!==capital&&!provinces.has(r.id))
     .sort((a,b)=>Math.min(...players.map(id=>mapDistance(state,id,a.id)))-Math.min(...players.map(id=>mapDistance(state,id,b.id))));
@@ -36,8 +37,8 @@ export function seedFullMapWorld(state) {
   const monsterId=outskirts.filter(r=>!neutralIds.has(r.id)).at(-1).id;
   for(const region of state.world.regions) {
     const player=players.includes(region.id),enemyCapital=region.id===capital,province=!player&&provinces.has(region.id),neutral=neutralIds.has(region.id),monster=region.id===monsterId;
-    let population=player?20:enemyCapital?120:province?60:30;
-    const faction=player?'player':'external-a',share=neutral||monster?0:(player||enemyCapital)?0.8:province?0.6:0.35;
+    let population=20;
+    const faction=player?'player':'external-a',share=player?0.9:0;
     region.controller=player?'player':neutral||monster?'frontier':'external-a';
     region.detailedSettlementEnabled=true;
     let site=state.world.sites.find(s=>s.regionId===region.id);
@@ -53,63 +54,68 @@ export function seedFullMapWorld(state) {
       site.name=monster?'Monster-held Settlement':neutral?market.template:`Crown ${market.template}`;
       population=market.housing;
     }
-    const originalLoyal=Math.floor(population*share),children=Math.floor(population/4);
-    const loyalChildren=Math.floor(children*share);
-    const originalWarriors=player||neutral||monster?0:Math.min(originalLoyal-loyalChildren,enemyCapital?60:province?20:Math.ceil(population/4));
-    // A larger opening army recruits existing adults: loyal civilians first,
-    // then unaffiliated adults into Crown allegiance. No residents are added.
-    // The final food pass scales these reference cohorts to smaller openings.
-    const warriors=Math.min(population-children,Math.ceil(originalWarriors*CROWN_STARTING_WARRIOR_MULTIPLIER));
-    const loyal=loyalChildren+Math.max(originalLoyal-loyalChildren,warriors);
-    writePopulationBins(settlement,[
-      {classId:'villager',allegiance:faction,specialty:'ordinary',kind:'children',age:null,count:loyalChildren},
-      {classId:'villager',allegiance:'neutral',specialty:'ordinary',kind:'children',age:null,count:children-loyalChildren},
-      {classId:'villager',allegiance:faction,specialty:'warrior',kind:'adults',age:null,count:warriors},
-      {classId:'villager',allegiance:faction,specialty:'ordinary',kind:'adults',age:null,count:loyal-loyalChildren-warriors},
-      {classId:'villager',allegiance:'neutral',specialty:'ordinary',kind:'adults',age:null,count:population-loyal-children+loyalChildren},
-    ]);
+    const crown=!player&&!neutral&&!monster;
+    let loyal;
+    if(crown){
+      const opening=seedCrownOpeningPopulation(settlement,enemyCapital?'capital':province?'province':site.town.type);
+      population=opening.population;loyal=opening.loyal;
+    }else{
+      loyal=Math.floor(population*share);
+      const children=Math.floor(population/4),loyalChildren=Math.floor(children*share);
+      writePopulationBins(settlement,[
+        {classId:'villager',allegiance:faction,specialty:'ordinary',kind:'children',age:null,count:loyalChildren},
+        {classId:'villager',allegiance:'neutral',specialty:'ordinary',kind:'children',age:null,count:children-loyalChildren},
+        {classId:'villager',allegiance:faction,specialty:'ordinary',kind:'adults',age:null,count:loyal-loyalChildren},
+        {classId:'villager',allegiance:'neutral',specialty:'ordinary',kind:'adults',age:null,count:population-loyal-children+loyalChildren},
+      ]);
+    }
     const ids=player?(region.id===players[0]?['fm_fallowFields','fm_handQuern','rm_scrubForaging','fm_hearthBarter']:[getRegionDefinition(state,region.id)?.biome==='mountains'?'fm_rubblePicking':'fm_woodlotRights','rm_scrubForaging','fm_hearthBarter']):
-      enemyCapital?['fm_fallowFields','cp_ironCommunion','fe_salvageDetail','fe_capitalDole','fm_handQuern']:
-      province?['rm_scrubForaging','fe_roadRequisition','fe_barrackLevy']:
+      enemyCapital?['fm_handQuern','rm_scrubForaging','fm_fallowFields','cp_ironCommunion','fe_capitalDole']:
+      province?['fm_handQuern','rm_scrubForaging','fm_fallowFields',provinceIndex++===0?'fe_salvageDetail':'fe_roadRequisition','fe_barrackLevy']:
       neutral||monster?[]:site.town.market.practices;
     settlement.practiceSlots=ids.map(practiceId=>{
       const def=getDetailedPracticeDef(state,practiceId);
-      return {practiceId,tier:'bronze',instanceId:`institution:${state.civilization.nextPracticeInstanceId++}`,charge:0,work:0,
+      return {practiceId,tier:enemyCapital?'gold':province?'silver':'bronze',instanceId:`institution:${state.civilization.nextPracticeInstanceId++}`,charge:0,work:0,
         ...(def.category==='influence'?{allegiance:faction}:{stock:0})};
     });
     while(settlement.practiceSlots.length<5)settlement.practiceSlots.push(null);
+    if(enemyCapital||province)region.structureCapacity=Math.max(region.structureCapacity,enemyCapital?6:5);
     settlement.structureSlots=Array(region.structureCapacity).fill(null);
     let nextStructureCell=0;
-    const place=(structureId,role)=>{
+    const place=(structureId,role,qualityBonus=0)=>{
       const width=getDetailedStructureDef(state,structureId).footprint;
       if(nextStructureCell+width>region.structureCapacity)return false;
       const origin=nextStructureCell;nextStructureCell+=width;
-      settlement.structureSlots[origin]={structureId,placementId:`${region.id}:${role}`,origin,width};return true;
+      settlement.structureSlots[origin]={structureId,placementId:`${region.id}:${role}`,origin,width,...(qualityBonus?{qualityBonus}:{})};return true;
     };
-    const housingId=player?'fm_crumblingCottages':'fm_crowdedTenement';
+    const housingId=enemyCapital||province?'fe_garrisonBarracks':player?'fm_crumblingCottages':'fm_crowdedTenement';
     place(housingId,'housing');
     if(player||enemyCapital)place(housingId,'housing:2');
     // Match the local economic role, as with the authored starting Practices.
     const hasConstruction=ids.some(id=>getDetailedPracticeDef(state,id).stockTraits?.includes('Construction'));
-    if(!neutral&&!monster){
+    if(enemyCapital||province){
+      // The supply hub raises real Edible/Arms host capacity. Barracks provide
+      // housing without the Crowded Tenement's extra meal cost.
+      place('fm_imperialWaystation','support',1);
+      if(province)place('fm_villagePalisade','defense');
+    }else if(!neutral&&!monster){
       const support=province?'fm_villagePalisade':hasConstruction?'rm_saggingStorehouse':ids.some(id=>getDetailedPracticeDef(state,id).stockTraits?.includes('Edible'))?'fm_leakingGranary':'fm_villagePalisade';
       place(support,'support');
-      if(enemyCapital)place('cp_citadelOfStillness','citadel');
     }
     for(const slot of settlement.practiceSlots)if(slot&&'stock'in slot)slot.stock=slot.practiceId==='cp_ironCommunion'?2:stockCapacity(state,settlement,slot);
     if(site.neutral||monster){settlement.practiceSlots=Array(5).fill(null);settlement.structureSlots=Array(region.structureCapacity).fill(null);}
     if(!site.town){const type=player&&region.id===players[0]?'grain':province?'forager':'market';site.town={type,activated:true,market:createTownMarket(type)};}
     if(monster){site.simulationMode='ruin';region.detailedSettlementEnabled=false;region.monster={defense:2};}
-    const occupiedOpening=!player&&!enemyCapital&&!province&&!neutral&&!monster&&loyal/population<.45;
-    settlement.control={unrest:occupiedOpening?25+50*(population-loyal)/population:0,claimant:null,claimChecks:0,lossChecks:0};
+    settlement.control={unrest:null,claimant:null,claimChecks:0};
     settlement.garrison={supplied:true,paid:0,required:0,tSec:state.tSec};
   }
+  for(const province of provinces)addWorldConnection(state,capital,province);
   const trade=state.world.sites.find(s=>s.neutral&&players.some(id=>getAdjacentRegionIds(state,id).includes(s.regionId)));
   if(trade){
     if(!trade.neutral.stocks.some(s=>s.traits.includes('Edible'))){trade.neutral=createTownMarket('grain');trade.town.type='grain';trade.name=trade.neutral.template;}
     addWorldConnection(state,players.find(id=>getAdjacentRegionIds(state,id).includes(trade.regionId)),trade.regionId);
   }
-  seedFullMapFood(state);
+  seedFullMapFood(state,new Set([capital,...provinces]));
   state.civilization.chaos.monsterCount=1;state.civilization.chaos.spatialSpawns=1;
   canonicalizeWorldState(state);
 }

@@ -21,7 +21,7 @@ export const MECHANICS = freeze({
     statePath: 'civilization.chaos.monsterPressure', thresholdSetting: 'monsterExpansionThreshold',
     effects: [effect('addMonsterPressure', 'Creep', 'monster', { fixed: true })] },
   monsterSpawn: { name: 'Monster Spawn', type: 'event', icon: 'monster', status: 'implemented',
-    definition: 'One Monster threat resolution. It attempts expansion; defenses can intercept it, and blocked fronts may create or strengthen a Monster. A direct Spawn leaves Creep unchanged. Each resolution emits one global event, including interception.',
+    definition: 'One Monster threat resolution. It advances one front. A successful defense holds the region and gives the repelled Monster +1 Strength for its next attack. With no advancing front, a Spawn may create or strengthen a Monster. A direct Spawn leaves Creep unchanged. Each resolution emits one global event.',
     effects: [effect('triggerMonsterSpawn', 'Monster Spawn', 'monster', { fixed: true, integer: true, fields: ['op', 'amount'] })],
     events: [event('monsterSpawn', 'Monster Spawn', 'monster', { scopes: ['civilization'], filters: [] })] },
   monsterActivity: { name: 'Monster activity', type: 'event', icon: 'monster', status: 'implemented',

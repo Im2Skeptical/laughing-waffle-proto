@@ -7,7 +7,7 @@ import {getConnectedRegionIds,getRegionState,removeWorldConnection,getAdjacentRe
 import {initializeReplayClock,advanceReplayStateToSecond} from '../src/model/replay-second-runner.js';
 import {FULL_MAP_SEED_CARD_IDS} from '../src/defs/gamepieces/full-map-defs.js';
 const seeds=[123,42,424242,...Array.from({length:64},(_,i)=>i*7919+1)];
-const counts={imported:0,one:0,two:0},types=new Set();let importFixture;
+const counts={imported:0,one:0,two:0},outerCounts={imported:0,one:0,two:0},types=new Set();let importFixture;
 for(const seed of seeds){
  const s=createNewGameState(seed),active=s.world.sites.filter(x=>!x.neutral&&x.simulationMode==='detailed');
  for(const site of active){
@@ -15,6 +15,7 @@ for(const seed of seeds){
   assert(sources.length<=2,'preserve at most two independent sources; Grain processing is a separate chain');
   assert(sources.filter(p=>getDetailedPracticeDef(s,p.practiceId).activation.type==='food').length<=1,'one continuous basic food host');
   counts[sources.length===0?'imported':sources.length===1?'one':'two']++;
+  if(site.regionId!==s.civilization.remnant.capitalRegionId&&site.name!=='Remnant Province')outerCounts[sources.length===0?'imported':sources.length===1?'one':'two']++;
   for(const p of sources)types.add(p.practiceId);
   for(const p of site.detailedState.practiceSlots.filter(Boolean))assert(FULL_MAP_SEED_CARD_IDS.includes(p.practiceId),'food pass never installs ordinary upgrades');
   if(!sources.length){
@@ -35,7 +36,7 @@ for(const seed of seeds){
  assert(canSupply(0),'connected markets can supply all opening importers without double-counting replenishment');
  for(const site of s.world.sites.filter(x=>x.neutral||x.simulationMode==='ruin'))assert((site.neutral??site.town.market).practices.some(id=>isOpeningFoodSource(s,id)),'dormant town can activate with local basic food');
 }
-assert(counts.imported>0&&counts.one>counts.two,'local single sources predominate while some towns import');
+assert(outerCounts.imported>0&&outerCounts.one>outerCounts.two,'outside the developed core, local single sources predominate while some towns import');
 assert(types.has('rm_scrubForaging')&&types.has('fm_fallowFields'),'use inherited food roles');
 // Paid imports do real work. With neither a local meal buffer nor its roads,
 // the exact same quarry cannot feed its people on the first Food phase.
@@ -61,5 +62,5 @@ for(const seed of [123,42,424242]){
  }
  opening.push({seed,rows});
 }
-mkdirSync('artifacts',{recursive:true});writeFileSync('artifacts/inherited-food-access-report.json',JSON.stringify({counts,types:[...types],opening},null,2));
-console.log('[food-access] '+JSON.stringify({seeds:seeds.length,counts,types:[...types]})+'; paid-import/disconnection and first-two-year starvation checks OK');
+mkdirSync('artifacts',{recursive:true});writeFileSync('artifacts/inherited-food-access-report.json',JSON.stringify({counts,outerCounts,types:[...types],opening},null,2));
+console.log('[food-access] '+JSON.stringify({seeds:seeds.length,counts,outerCounts,types:[...types]})+'; paid-import/disconnection and first-two-year starvation checks OK');

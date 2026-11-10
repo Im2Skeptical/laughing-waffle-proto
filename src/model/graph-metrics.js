@@ -474,7 +474,7 @@ function getLocalCivilizationSeries() {
 // The graph reads the same per-second political summaries as authoritative replay.
 const TERRITORY_SERIES = [
   ['loyalShare','Holder support %',0x58c9ad,v=>100*(v?.share??0),'politicalPercent'],
-  ['unrest','Unrest',0xe27966,v=>v?.unrest??0,'politicalPercent'],
+  ['unrest','Unrest years remaining',0xe27966,v=>v?.unrest?.remainingYears??0,'unrestYears'],
   ['suppliedForce','Holding Force',0x9ec9ef,v=>v?.force??0,'politicalForce'],
   ['requiredForce','Required Force',0xe8b55e,v=>v?.required??0,'politicalForce'],
 ].map(([id,label,color,read,scaleGroupId])=>({id,label,color,scaleGroupId,scaleMode:'dynamic',scaleMin:0,pickerGroup:'global',

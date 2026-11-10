@@ -1,6 +1,6 @@
 // Combined territorial Prestige. Audit and test only: no runtime rule changes.
 // Independent oracle: every cohort in a player holding adds population/20
-// times (1-unrest/100). Add 3 plus Cunning (Scholars add none) and round once.
+// while controlled. Add 3 plus Cunning (Scholars add none) and round once.
 import assert from 'node:assert/strict';
 import {createNewGameState} from '../src/model/new-game.js';
 import {populationBins, writePopulationBins} from '../src/model/detailed-settlements/population-ledger.js';
@@ -17,16 +17,15 @@ const bin = (allegiance, count) => ({classId:'villager', allegiance, specialty:'
 const playerSites = state => state.world.sites.filter(site => site.simulationMode==='detailed' && site.detailedState && getRegionState(state, site.regionId)?.controller==='player');
 const headcount = site => populationBins(site.detailedState).reduce((total, cohort) => total+cohort.count, 0);
 const personal = vassal => 3+((vassal.classId??vassal.founderClassId)==='scholar' ? 0 : Math.max(0, Math.floor(vassal.stats?.cunning??0)));
-const regional = state => playerSites(state).reduce((total, site) => total+headcount(site)/20*(1-(site.detailedState.control?.unrest??0)/100), 0);
+const regional = state => playerSites(state).reduce((total, site) => total+headcount(site)/20, 0);
 const packet = (state, vassal) => Math.round(personal(vassal)+regional(state));
 const held = (state, controller) => state.world.sites.find(site => site.detailedState && getRegionState(state, site.regionId)?.controller===controller);
 const act = (state, kind, payload) => applyAction(state, {kind, payload}, {isReplay:true});
 
-function boot(populations, unrest = [0, 0]) {
+function boot(populations) {
   const state = createNewGameState(0);
   playerSites(state).forEach((site, index) => {
     writePopulationBins(site.detailedState, populations[index]??[]);
-    site.detailedState.control.unrest = unrest[index]??0;
   });
   const pool = getVassalCandidatePool(state);
   assert.equal(act(state, ActionKinds.SETTLEMENT_SELECT_VASSAL, {candidateIndex:1, expectedPoolHash:pool.expectedPoolHash}).ok, true);
@@ -117,17 +116,12 @@ function payLegacy(state) {
   assert.equal(payLegacy(state), Math.round(3+10/20));
 }
 
-// Unrest 75 still pays a quarter. It is the loss threshold, not a Prestige cliff.
-{
-  const {state} = boot([[bin('player', 20)], [bin('external-a', 20)]], [75, 75]);
-  assert.equal(payLegacy(state), Math.round(3+0.25+0.25));
-}
-
 // A captured Crown town joins the next completion. Other Crown towns stay out.
 {
   const {state, vassal} = boot([[], []]);
   const town = held(state, 'external-a');
   writePopulationBins(town.detailedState, [bin('external-a', 10)]);
+  town.detailedState.control.unrest = null;
   assert.equal(packet(state, vassal), 3);
   changeController(state, town.regionId, 'player');
   assert.equal(payLegacy(state), Math.round(3+10/20));
@@ -174,7 +168,7 @@ function payLegacy(state) {
 
 // Founding pays the holdings present on the resolution second, not the quote.
 {
-  const {state, vassal} = boot([[bin('external-a', 16)], [bin('external-a', 16)]]);
+  const {state, vassal} = boot([[bin('player', 16)], [bin('external-a', 16)]]);
   const node = vassal.lifeMap.graph.nodes.find(entry => entry.family==='warlordFounding');
   vassal.lifeMap.availableNodeIds = [node.id];
   const timeline = applyAll(state, [
@@ -189,7 +183,7 @@ function payLegacy(state) {
   assert.equal(state.civilization.treasury.grossIncome, 0);
   settle(state, timeline, 6);
   const paid = packet(state, getCurrentLifeMapVassal(state));
-  assert.equal(state.civilization.prestige-20, paid, 'founder payout follows completion-time population and unrest');
+  assert.equal(state.civilization.prestige-20, paid, 'founder payout follows completion-time population and control');
   assert.equal(state.civilization.treasury.grossIncome, paid);
   assert.notEqual(paid, decision);
   assert.equal(getCurrentLifeMapVassal(state).endedReason, null);
@@ -198,4 +192,4 @@ function payLegacy(state) {
   assert.equal(state.phase, 'simulation');
 }
 
-console.log('Territory Prestige contracts: mixed round-once, successor Cunning, empty cohort, unrest 75, Crown capture, live quote, loss payout, founder resolution replay.');
+console.log('Territory Prestige contracts: mixed round-once, successor Cunning, empty cohort, Crown capture, live quote, loss payout, founder resolution replay.');

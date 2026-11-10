@@ -45,23 +45,23 @@ const state=initializeReplayClock(createNewGameState(123)),site=state.world.site
 d.practiceSlots=Array(5).fill(null);d.structureSlots.fill(null);d.garrison={supplied:false};
 const bin=(count,allegiance,specialty='ordinary',kind='adults')=>({classId:'villager',allegiance,specialty,kind,age:kind==='elder'?60:null,count});
 for(const [bins,required,held] of [
- [[bin(10,'player','warrior'),bin(90,'neutral')],9,true],
- [[bin(10,'player','warrior'),bin(90,'external-a')],18,false],
- [[bin(10,'player','warrior'),bin(80,'neutral'),bin(10,'external-a','warrior')],18,false],
- [[bin(10,'player','warrior'),bin(80,'neutral','warrior'),bin(10,'external-a','warrior','children')],10,true],
- [[bin(10,'player','warrior'),bin(80,'neutral'),bin(10,'external-a','warrior','elder')],18,false],
+ [[bin(25,'player','warrior'),bin(75,'neutral')],18,true],
+ [[bin(25,'player','warrior'),bin(75,'external-a')],36,false],
+ [[bin(25,'player','warrior'),bin(65,'neutral'),bin(10,'external-a','warrior')],39.6,false],
+ [[bin(25,'player','warrior'),bin(65,'neutral','warrior'),bin(10,'external-a','warrior','children')],20.4,true],
+ [[bin(25,'player','warrior'),bin(65,'neutral'),bin(10,'external-a','warrior','elder')],39.6,false],
 ]){
  writePopulationBins(d,bins);const before=JSON.stringify(state),c=controlSummary(state,site.regionId);
- assert.equal(c.required,required);assert.equal(c.occupied,held);assert.equal(c.supported,false);
+ assert(Math.abs(c.required-required)<1e-10);assert.equal(c.occupied,held);assert.equal(c.supported,false);
  assert.equal(JSON.stringify(state),before,'resistance and shield queries leave state and RNG untouched');
  assert.equal(c.loyal>=c.minimumLoyal,held,'shield agrees at live mix');
 }
-writePopulationBins(d,[bin(10,'player','warrior'),bin(90,'neutral')]);
+writePopulationBins(d,[bin(25,'player','warrior'),bin(75,'neutral')]);
 for(let i=0;i<8;i++)resolveControl(state);
 assert.equal(state.world.regions.find(r=>r.id===site.regionId).controller,'player','minority holds over repeated control checks');
-const res=occupationResistance(d,'player');assert.equal(res.unaffiliated+res.rivalCivilians+res.rivalWarriors,90,'no person counted twice');
-assert.equal(minimumHoldingAllegiance(100,9,{disloyal:90,units:90}),10);
-assert.equal(minimumHoldingAllegiance(100,8.9,{disloyal:90,units:90}),20);
+const res=occupationResistance(d,'player');assert.equal(res.unaffiliated+res.rivalCivilians+res.rivalWarriors,75,'no person counted twice');
+assert.equal(minimumHoldingAllegiance(100,9,{disloyal:90,units:90}),37);
+assert.equal(minimumHoldingAllegiance(100,8.99,{disloyal:90,units:90}),37,'fractional Force has no whole-person cliff here');
 
 allocateBirthAllegiances(d,fixed,7,group);
 const encoded=serializeGameState(state),loaded=deserializeGameState(encoded);
@@ -70,7 +70,7 @@ assert.deepEqual(loadedD.birthAllegianceCredits,d.birthAllegianceCredits);
 assert.deepEqual(allocateBirthAllegiances(d,fixed,93,group),allocateBirthAllegiances(loadedD,fixed,93,group),'mid-quota save continues identically');
 const corrupt=structuredClone(encoded);corrupt.world.sites.find(x=>x.regionId===site.regionId).detailedState.birthAllegianceCredits['villager:warrior'].neutral=99;
 assert.throws(()=>deserializeGameState(corrupt),/birth allegiance/);
-const obsolete=structuredClone(encoded);obsolete.gameStateSchemaVersion=44;assert.throws(()=>deserializeGameState(obsolete),/expected v45/);
+const obsolete=structuredClone(encoded);obsolete.gameStateSchemaVersion=44;assert.throws(()=>deserializeGameState(obsolete),/expected v49/);
 
 const live=initializeReplayClock(createNewGameState(42)),timeline=createTimelineFromInitialState(live);
 advanceReplayStateToSecond(live,43);

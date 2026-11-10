@@ -10,6 +10,8 @@ file is the legacy tick substrate.
   tiny moon-result shells used by both practices and phases.
 - `queries.js` — site lookup, create state, structure counts, capacities,
   population / pressure / elder / green summaries.
+  `getPlayerAndUnrestSettlementSites` preserves Housing/Faith's player scope and
+  includes active Unrest towns until they return to ordinary unheld status.
 - `scopes.js` — `resolveDetailedRegionScope`, `evaluateDetailedMapScore`, and
   the region-order / filter helpers they share.
 - `practices.js` — slot evaluation and authoritative declarative activation.
@@ -55,6 +57,11 @@ file is the legacy tick substrate.
   for settlement inspection; no state writes or random draws.
 - `birth-allegiance.js` - persistent proportional entitlement per birth group;
   independent of inherited specialty, with deterministic quota continuation.
+- `territory.js` - shared control and military summaries. Holding allegiance
+  uses diminishing returns from Force at population-scaled resistance; the map
+  shield uses its continuous share, while retention rounds up to residents.
+  Campaign capture resistance remains a separate weighted headcount.
+- `unrest.js` - timed-state reading, year conversion and serialized episode validation.
 - `external-world.js` - neutral templates, Raid/Trade, Support/Retinue, conquest and spatial Monsters.
 - `neutral-market.js` - finite priced neutral inventories, Food-phase
   replenishment, and validation. Neutral towns install no gamepieces.
@@ -76,9 +83,12 @@ same stepper; never add a separate forecast implementation of Stock or conflict.
 Ordinary New Game uses sparse authored regional economies. Unheld towns have
 priced storefront inventories and static populations; first control activates
 captured town recipes and transfers inventory within host capacities. Loss of
-control freezes the developed board and reopens its preserved storefront;
+control through a failed holding check starts ten-year Unrest with the developed
+board still active. Expiry freezes it and reopens its preserved storefront;
 reacquisition never reseeds it. `neutral-market.js` owns this lifecycle and
 `territory.js` invokes it for political and military control changes.
 `population-ledger.js` owns joint cohort identity; `political-recipes.js` plans
 conversion; `territory.js` owns control, unrest, supplied military and treasury.
 All run through the authoritative phase/event pipeline used by replay.
+Initial Crown cohorts live in `../full-map-crown.js`; the food pass fits housing
+without rescaling those allegiances. See [minority garrisons](../../../docs/crown-minority-opening.md).

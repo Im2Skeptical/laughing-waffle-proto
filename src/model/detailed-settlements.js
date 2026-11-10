@@ -3,6 +3,7 @@
 
 export { roundFood } from "./detailed-settlements/helpers.js";
 export { CIV_CONTENT_TUNING } from "./detailed-settlements/stock.js";
+export { getMonsterThreat, MONSTER_REPEL_STRENGTH_GAIN } from './detailed-settlements/external-world.js';
 export {
   DETAILED_REGION_IDS,
   createDetailedSettlementState,

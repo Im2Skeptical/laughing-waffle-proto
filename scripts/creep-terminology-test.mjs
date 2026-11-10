@@ -17,6 +17,7 @@ assert.ok(symbols.some(symbol=>symbol.name==='Creep'));
 assert.equal(symbols.some(symbol=>symbol.name==='Monster Pressure'),false);
 const {terms}=getInspectionTerms(face,symbols);
 assert.match(terms.Creep,/100 Creep/);
-assert.match(terms['Monster Spawn'],/intercept/);
+assert.match(terms['Monster Spawn'],/holds the region/);
+assert.match(terms['Monster Spawn'],/repelled Monster \+1 Strength/);
 assert.ok(detailedSettlementPracticeDefs.watchkeeping.charge.trigger.any.some(trigger=>trigger.kind==='monsterPressure'),'regional activity hooks retain their scopes and IDs');
 console.log('[creep-terminology] card cost, effect label, glossary and unchanged DSL activity identifiers passed');

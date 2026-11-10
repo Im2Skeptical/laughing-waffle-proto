@@ -36,6 +36,15 @@ export function getDetailedSettlementSites(state, { playerOnly = false } = {}) {
     : sites;
 }
 
+// Housing and Faith retain their player scope, plus towns whose local
+// demographic simulation continues during the temporary Unrest episode.
+export function getPlayerAndUnrestSettlementSites(state) {
+  return getDetailedSettlementSites(state).filter(site => !site.neutral && (
+    getRegionState(state, site.regionId)?.controller === 'player'
+    || site.detailedState.control?.unrest
+  ));
+}
+
 export function createDetailedSettlementState() {
   return clone(createInitialDetailedSettlementData());
 }

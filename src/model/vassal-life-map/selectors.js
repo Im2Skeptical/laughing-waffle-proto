@@ -321,7 +321,7 @@ export function getRegionPrestigePerNode(state,regionId) {
   if(!state?.rulesetId||getRegionState(state,regionId)?.controller!=='player')return null;
   const settlement=getDetailedSite(state,regionId)?.detailedState;
   const population=populationBins(settlement).reduce((total,bin)=>total+bin.count,0);
-  return population/TERRITORIAL_PRESTIGE_POPULATION_PER_POINT*(1-(settlement?.control?.unrest??0)/100);
+  return population/TERRITORIAL_PRESTIGE_POPULATION_PER_POINT;
 }
 export function getVassalNodeResolutionGains(state, vassal, nodeFamily = null) {
   const modifiers = getEquippedHeirloomModifiers(vassal);
