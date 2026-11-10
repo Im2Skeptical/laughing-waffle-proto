@@ -20,6 +20,7 @@ import {runGlobalChaos} from '../src/model/detailed-settlements/phases/chaos.js'
 import {runHousingPhase} from '../src/model/detailed-settlements/phases/housing.js';
 import {runFaithPhase} from '../src/model/detailed-settlements/phases/faith.js';
 import {runMigrationPhase} from '../src/model/detailed-settlements/phases/migration.js';
+import {runDeathPhase} from '../src/model/detailed-settlements/phases/death.js';
 import {getMoonPhaseAtSecond} from '../src/model/moon-phases.js';
 import {createTimelineFromInitialState,rebuildStateAtSecond} from '../src/model/timeline/index.js';
 import {initializeReplayClock,advanceReplayStateToSecond} from '../src/model/replay-second-runner.js';
@@ -61,26 +62,27 @@ for(const overcrowded of [true,false]){
 
 // Expiry can fall between any two moon phases with captured non-default clocks.
 // Queued work must not mutate a storefront later, or lose already-booked people.
-for(const mode of ['pending','inbound','outbound','hardship']){
+for(const mode of ['pending','inbound','outbound','hardship','settled-inbound','settled-outbound']){
   const {state,site,d}=fixture();
   const other=state.world.sites.find(s=>s!==site&&getRegionState(state,s.regionId).controller==='player');
-  const phaseSeconds=mode==='pending'?3:6,startSec=mode==='pending'?16:31;
+  const settled=mode.startsWith('settled-'),direction=mode.replace('settled-','');
+  const phaseSeconds=settled?13:mode==='pending'?3:6,startSec=settled?66:mode==='pending'?16:31;
   state.gameConfig.settings.values.phaseDurationSec=phaseSeconds;
   state.gameConfig.settings.values.migrationHardshipDeathRate=1;
   state.world.connections=[];
   if(mode!=='hardship')addWorldConnection(state,site.regionId,other.regionId);
-  writePopulationBins(d,mode==='outbound'?[bin('neutral',20),bin('neutral',5,'warrior')]:[bin('neutral')]);
-  writePopulationBins(other.detailedState,mode==='inbound'?[bin('player',20),bin('player',5,'warrior')]:[bin('player',mode==='pending'?1:20)]);
+  writePopulationBins(d,direction==='outbound'?[bin('neutral',20),bin('neutral',5,'warrior')]:[bin('neutral')]);
+  writePopulationBins(other.detailedState,direction==='inbound'?[bin('player',20),bin('player',5,'warrior')]:[bin('player',mode==='pending'?1:20)]);
   d.practiceSlots[0].stock=1;
   other.detailedState.practiceSlots=Array(5).fill(null);
   other.detailedState.practiceSlots[0]={...d.practiceSlots[0],instanceId:'unrest-neighbour-food'};
   const sourceBefore=populationBins(d),otherBefore=populationBins(other.detailedState);
   state.tSec=startSec;resolveControl(state);
-  assert.equal(d.control.unrest.untilSec,mode==='pending'?336:351);
-  const housingSec=mode==='pending'?331:337,faithSec=mode==='pending'?334:343;
+  assert.equal(d.control.unrest.untilSec,settled?386:mode==='pending'?336:351);
+  const housingSec=settled?339:mode==='pending'?331:337,faithSec=settled?352:mode==='pending'?334:343;
   state.tSec=housingSec;runHousingPhase(state,getMoonPhaseAtSecond(state,housingSec));
   for(const target of [site,other]){
-    const leaving=target===site?mode!=='inbound':mode==='inbound';
+    const leaving=target===site?direction!=='inbound':direction==='inbound';
     target.detailedState.populationByClass.villager.faith={tier:leaving?'bronze':'gold',trend:null,streak:0,collapseActive:false};
     state.civilization.currentMoonTurn.regions[target.regionId].food={byClass:{villager:{targetHappiness:leaving?'negative':'positive'}}};
   }
@@ -88,18 +90,23 @@ for(const mode of ['pending','inbound','outbound','hardship']){
   const turn=state.civilization.currentMoonTurn;
   if(mode==='pending')assert(turn.migrationIntents.some(i=>i.sourceId===site.regionId&&i.requested===5));
   else{
-    state.tSec=349;runMigrationPhase(state,getMoonPhaseAtSecond(state,349));
+    const migrationSec=settled?365:349;
+    state.tSec=migrationSec;runMigrationPhase(state,getMoonPhaseAtSecond(state,migrationSec));
     if(mode==='hardship')assert.equal(turn.unresolved.find(i=>i.sourceRegionId===site.regionId)?.count,5);
-    else assert.equal(turn.movements.find(m=>m.sourceRegionId===(mode==='inbound'?other.regionId:site.regionId))?.amount,7);
+    else assert.equal(turn.movements.find(m=>m.sourceRegionId===(direction==='inbound'?other.regionId:site.regionId))?.amount,7);
   }
-  const snapshotSec=state.tSec,endSec=mode==='pending'?337:355;
+  if(settled){state.tSec=378;runDeathPhase(state,getMoonPhaseAtSecond(state,378));}
+  const expectedSource=settled?populationBins(d):sourceBefore,expectedOther=settled?populationBins(other.detailedState):otherBefore;
+  const completedMovements=settled?structuredClone(turn.movements):null;
+  const snapshotSec=state.tSec,endSec=settled?386:mode==='pending'?337:355;
   initializeReplayClock(state,snapshotSec);
   const loaded=deserializeGameState(serializeGameState(state)),timeline=createTimelineFromInitialState(state);
   assert(advanceReplayStateToSecond(state,endSec).ok);
   assert(advanceReplayStateToSecond(loaded,endSec).ok);
   assert.equal(d.control.unrest,null);assert(site.neutral);
-  same(populationBins(d),sourceBefore,`${mode}: frozen residents retain count and identity`);
-  same(populationBins(other.detailedState),otherBefore,`${mode}: booked migrants return exactly once to their source`);
+  same(populationBins(d),expectedSource,`${mode}: frozen residents retain count and identity`);
+  same(populationBins(other.detailedState),expectedOther,`${mode}: only pending bookings are returned`);
+  if(settled)same(state.civilization.currentMoonTurn.movements,completedMovements,`${mode}: completed movement history is preserved`);
   same(serializeGameState(loaded),serializeGameState(state),`${mode}: save continuation across pending work`);
   const rebuilt=rebuildStateAtSecond(timeline,endSec);assert(rebuilt.ok);
   same(serializeGameState(rebuilt.state),serializeGameState(state),`${mode}: replay across expiry`);

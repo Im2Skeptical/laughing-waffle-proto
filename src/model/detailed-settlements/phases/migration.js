@@ -502,7 +502,9 @@ function buildMoonMigrationSummary(result, regionId) {
 // rollback happens before the town freezes, retaining class/allegiance identity.
 export function cancelMoonMigrationForRegion(state, regionId) {
   const turn=state.civilization.currentMoonTurn;
-  if(!turn)return;
+  // Death has already committed these arrivals/losses. Its records remain as
+  // history until Birth; refunding them would create a second population.
+  if(!turn||turn.phaseId==='death')return;
   const cancelled=turn.movements.filter(move=>move.external!==true&&(
     move.sourceRegionId===regionId||move.destinationRegionId===regionId
   ));

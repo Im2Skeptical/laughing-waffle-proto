@@ -23,6 +23,8 @@ control, replacing the old continuously adjusted 0–100 severity value.
   Pending demographic migration is cancelled at expiry, including unresolved
   hardship and booked arrivals/departures. Booked residents return to their source
   before freezing, keeping their original residency, allegiance and specialty.
+  Death has already committed completed migration; those historical movements
+  are retained and never refunded at a later expiry.
 - Losing the last player holding still ends the run immediately, even if
   player-allied residents survive inside Unrest towns.
 
