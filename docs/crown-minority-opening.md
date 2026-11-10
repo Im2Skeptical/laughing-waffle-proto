@@ -141,11 +141,11 @@ across the broader sample. The previous all-garrison variant required ten.
 All capitals must still survive; unattended extinction must average below 200.
 
 The current 70%-base, 90%-allied opening with timed Unrest retains
-**10.5625 of the original 14 Crown holdings** on average at year 50 (range 7 to 13),
+**10.5 of the original 14 Crown holdings** on average at year 50 (range 8 to 13),
 with every capital held. Total holdings, including later acquisitions, average
-10.65625. Fixed seeds 123/42/424242 retain 10/11/8. Across 32 ordinary unattended
-starts, mean extinction is **147.135 years**, range **87.375 to 211.5**, with no
-censored run at the 400-year cap. All 32 end in Monster Overrun. This is seeded
+10.59375. Fixed seeds 123/42/424242 retain 11/11/9. Across 32 ordinary unattended
+starts, mean extinction is **149.871 years**, range **96 to 221.4375**, with no
+censored run at the 400-year cap. The sample includes both Monster Overrun and Territorial Loss. This is seeded
 balance evidence, not a claim that each run ends before 200 or plays identically.
 
 The core economy check observes every meal through year 50 for seeds 123, 42
@@ -172,6 +172,6 @@ army-removal control loss, food, 50-year starts, JSON continuation and replay.
 `npm run probe:monsters` checks the actual map at opening and year 50, including
 desktop/phone touch inspection and rewind.
 
-GameState v48 replaces the former numeric unrest trajectory with timed
+GameState v49 replaces the former numeric unrest trajectory with timed
 [Unrest](unrest.md); captured config is now v31 and runner saves remain v33.
 Start a fresh game for the new rules and opening composition.

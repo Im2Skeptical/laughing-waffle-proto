@@ -4,6 +4,18 @@ import {addMonsterPressure,triggerMonsterSpawn,getMonsterThreat} from '../src/mo
 import {serializeGameState,deserializeGameState} from '../src/model/state.js';
 import {initializeReplayClock,advanceReplayStateToSecond} from '../src/model/replay-second-runner.js';
 import {createTimelineFromInitialState,rebuildStateAtSecond} from '../src/model/timeline/index.js';
+import {createKeywordCardsState} from '../src/model/keywords-classes-prototype-fixture.js';
+
+// The supported viewing deck and Lab accept zero-Strength Monsters. Their first
+// repel must remain valid in saves and validated forecast anchors.
+const zeroStrength=createKeywordCardsState('scholar');
+assert(zeroStrength.world.regions.some(r=>r.monster?.defense===0));
+deserializeGameState(serializeGameState(zeroStrength));
+const zeroResult=triggerMonsterSpawn(zeroStrength);
+assert.equal(zeroResult.outcome,'intercepted');
+assert.equal(zeroStrength.civilization.chaos.lastMonsterSpawn.strengthBefore,0);
+assert.equal(zeroStrength.civilization.chaos.lastMonsterSpawn.strengthAfter,1);
+assert.doesNotThrow(()=>deserializeGameState(serializeGameState(zeroStrength)),'zero-Strength repel records stay loadable');
 
 for(const seed of [123,42,424242]){
  const state=createNewGameState(seed),source=state.world.regions.find(r=>r.monster),rng={...state.rng};
@@ -58,7 +70,7 @@ assert.throws(()=>deserializeGameState(incomplete),/Invalid serialized Monster S
 const missing=serializeGameState(initial);delete missing.civilization.chaos.lastMonsterSpawn;
 assert.throws(()=>deserializeGameState(missing),/Invalid serialized Monster Spawn result/);
 const obsolete=serializeGameState(initial);obsolete.gameStateSchemaVersion=44;
-assert.throws(()=>deserializeGameState(obsolete),/expected v48/);
+assert.throws(()=>deserializeGameState(obsolete),/expected v49/);
 const lifetimes=[];
 for(const seed of [123,42,424242]){
  const run=initializeReplayClock(createNewGameState(seed));

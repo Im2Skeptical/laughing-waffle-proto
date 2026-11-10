@@ -497,6 +497,45 @@ function buildMoonMigrationSummary(result, regionId) {
   };
 }
 
+// Migration books people out of their source before Death commits arrivals.
+// A town becoming a frozen storefront retires both ends of those bookings;
+// rollback happens before the town freezes, retaining class/allegiance identity.
+export function cancelMoonMigrationForRegion(state, regionId) {
+  const turn=state.civilization.currentMoonTurn;
+  if(!turn)return;
+  const cancelled=turn.movements.filter(move=>move.external!==true&&(
+    move.sourceRegionId===regionId||move.destinationRegionId===regionId
+  ));
+  for(const movement of cancelled){
+    const source=getDetailedSettlement(state,movement.sourceRegionId);
+    if(hasPopulationLedger(source))writePopulationBins(source,[
+      ...populationBins(source),...compositionBins(movement.composition),
+    ]);
+  }
+  turn.movements=turn.movements.filter(move=>!cancelled.includes(move));
+  turn.migrationIntents=turn.migrationIntents.filter(intent=>intent.sourceId!==regionId);
+  turn.unresolved=turn.unresolved.filter(intent=>intent.sourceRegionId!==regionId);
+  const refunds=cancelled.map(move=>({...move,remaining:move.amount}));
+  turn.migrationIntentSummaries=(turn.migrationIntentSummaries??[]).filter(intent=>intent.sourceRegionId!==regionId)
+    .map(intent=>{
+      let returned=0;
+      for(const move of refunds)if(move.sourceRegionId===intent.sourceRegionId
+        &&move.sourceClassId===intent.sourceClassId&&move.reason===intent.reason){
+        const amount=Math.min(Math.max(0,intent.admitted-returned),move.remaining);
+        returned+=amount;move.remaining-=amount;
+      }
+      return returned?{...intent,admitted:Math.max(0,intent.admitted-returned),
+        unresolved:intent.unresolved+returned,unresolvedOutcome:'stayed'}:intent;
+    });
+  for(const site of getDetailedSettlementSites(state)){
+    const result=turn.regions[site.regionId];
+    if(!result?.migration)continue;
+    const summary=buildMoonMigrationSummary({movements:turn.movements,intentSummaries:turn.migrationIntentSummaries},site.regionId);
+    result.migration={...result.migration,...summary};
+    if(site.detailedState.lastMeal)site.detailedState.lastMeal.migration=clone(summary);
+  }
+}
+
 export function runMigrationPhase(state, phase) {
   const turn = setMoonTurnPhase(state, phase);
   const result = resolveMigrationIntents(state, turn.migrationIntents, {

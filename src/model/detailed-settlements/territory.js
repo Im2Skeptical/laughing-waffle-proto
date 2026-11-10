@@ -7,6 +7,7 @@ import { getCurrentLifeMapVassal } from '../vassal-life-map/selectors.js';
 import { emitPracticeEvent } from './practice-events.js';
 import { getGameSetting } from '../game-config.js';
 import { unrestSummary, secondsPerYear } from './unrest.js';
+import { cancelMoonMigrationForRegion } from './phases/migration.js';
 
 export const CONTROL_DEFAULTS = Object.freeze({claim:.75,retain:.70,claimChecks:2,unaffiliatedPerForce:10,rivalCiviliansPerForce:5,warriorsPerForce:1});
 export function occupationResistance(settlement,holder) {
@@ -148,6 +149,7 @@ export function stepUnrest(state) {
     state.civilization.chaos.pendingUnrestIncome=(state.civilization.chaos.pendingUnrestIncome??0)
       +elapsed*getGameSetting(state,'unrestChaosPerYear')/secondsPerYear(state);
     if(state.tSec>=episode.untilSec) {
+      cancelMoonMigrationForRegion(state,site.regionId);
       site.detailedState.control.unrest=null;
       site.detailedState.control.claimant=null;site.detailedState.control.claimChecks=0;
       transitionTown(state,site,'frontier');

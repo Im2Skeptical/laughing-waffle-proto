@@ -10,6 +10,8 @@ file is the legacy tick substrate.
   tiny moon-result shells used by both practices and phases.
 - `queries.js` — site lookup, create state, structure counts, capacities,
   population / pressure / elder / green summaries.
+  `getPlayerAndUnrestSettlementSites` preserves Housing/Faith's player scope and
+  includes active Unrest towns until they return to ordinary unheld status.
 - `scopes.js` — `resolveDetailedRegionScope`, `evaluateDetailedMapScore`, and
   the region-order / filter helpers they share.
 - `practices.js` — slot evaluation and authoritative declarative activation.

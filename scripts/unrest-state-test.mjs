@@ -10,13 +10,17 @@ function same(actual,expected,message='state equality'){
 }
 import {createNewGameState} from '../src/model/new-game.js';
 import {serializeGameState,deserializeGameState} from '../src/model/state.js';
-import {getRegionState,validateWorldState} from '../src/model/world-state.js';
+import {getRegionState,validateWorldState,addWorldConnection} from '../src/model/world-state.js';
 import {writePopulationBins,populationBins} from '../src/model/detailed-settlements/population-ledger.js';
 import {resolveControl,controlSummary,changeController,stepUnrest} from '../src/model/detailed-settlements/territory.js';
 import {getRegionPrestigePerNode} from '../src/model/vassal-life-map/selectors.js';
 import {getDetailedCivilizationSummary} from '../src/model/detailed-settlements/view-model.js';
 import {stockProviderSlots} from '../src/model/detailed-settlements/stock.js';
 import {runGlobalChaos} from '../src/model/detailed-settlements/phases/chaos.js';
+import {runHousingPhase} from '../src/model/detailed-settlements/phases/housing.js';
+import {runFaithPhase} from '../src/model/detailed-settlements/phases/faith.js';
+import {runMigrationPhase} from '../src/model/detailed-settlements/phases/migration.js';
+import {getMoonPhaseAtSecond} from '../src/model/moon-phases.js';
 import {createTimelineFromInitialState,rebuildStateAtSecond} from '../src/model/timeline/index.js';
 import {initializeReplayClock,advanceReplayStateToSecond} from '../src/model/replay-second-runner.js';
 
@@ -27,6 +31,78 @@ function fixture(){
   site.detailedState.practiceSlots=Array(5).fill(null);
   site.detailedState.practiceSlots[0]={practiceId:'rm_scrubForaging',tier:'bronze',stock:0,charge:0,work:0,instanceId:'unrest-test-food'};
   return {state,site,d:site.detailedState};
+}
+
+// Losing control must not stop the local Housing/Faith phases before expiry.
+for(const overcrowded of [true,false]){
+  const {state,site,d}=fixture();
+  if(overcrowded)d.structureSlots.fill(null);
+  d.populationByClass.villager.faith={tier:overcrowded?'gold':'bronze',trend:null,streak:0,collapseActive:false};
+  resolveControl(state);
+  runHousingPhase(state,getMoonPhaseAtSecond(state,3));
+  const turn=state.civilization.currentMoonTurn,result=turn.regions[site.regionId];
+  assert.equal(result.housing?.overflow,overcrowded?20:0,'Unrest still assesses real local housing');
+  assert.equal(result.housing.migrants,overcrowded?20:0);
+  result.food={byClass:{villager:{targetHappiness:'negative'}}};
+  runFaithPhase(state,getMoonPhaseAtSecond(state,4));
+  assert.equal(result.faith?.byClass.villager.happiness,'negative');
+  assert.equal(result.faith.byClass.villager.faithStreak,1);
+  if(!overcrowded)assert.equal(result.faith.byClass.villager.displaced,5,'Bronze collapse still displaces residents');
+  const crown=state.world.sites.find(s=>getRegionState(state,s.regionId).controller==='external-a');
+  assert.equal(turn.regions[crown.regionId].housing,null,'ordinary Crown scope remains unchanged');
+  assert.equal(turn.regions[crown.regionId].faith,null);
+  state.tSec=320;stepUnrest(state);
+  runHousingPhase(state,getMoonPhaseAtSecond(state,321));
+  runFaithPhase(state,getMoonPhaseAtSecond(state,322));
+  const expired=state.civilization.currentMoonTurn.regions[site.regionId];
+  assert.equal(expired.housing,null,'ordinary unheld towns stop local phases after expiry');
+  assert.equal(expired.faith,null);
+}
+
+// Expiry can fall between any two moon phases with captured non-default clocks.
+// Queued work must not mutate a storefront later, or lose already-booked people.
+for(const mode of ['pending','inbound','outbound','hardship']){
+  const {state,site,d}=fixture();
+  const other=state.world.sites.find(s=>s!==site&&getRegionState(state,s.regionId).controller==='player');
+  const phaseSeconds=mode==='pending'?3:6,startSec=mode==='pending'?16:31;
+  state.gameConfig.settings.values.phaseDurationSec=phaseSeconds;
+  state.gameConfig.settings.values.migrationHardshipDeathRate=1;
+  state.world.connections=[];
+  if(mode!=='hardship')addWorldConnection(state,site.regionId,other.regionId);
+  writePopulationBins(d,mode==='outbound'?[bin('neutral',20),bin('neutral',5,'warrior')]:[bin('neutral')]);
+  writePopulationBins(other.detailedState,mode==='inbound'?[bin('player',20),bin('player',5,'warrior')]:[bin('player',mode==='pending'?1:20)]);
+  d.practiceSlots[0].stock=1;
+  other.detailedState.practiceSlots=Array(5).fill(null);
+  other.detailedState.practiceSlots[0]={...d.practiceSlots[0],instanceId:'unrest-neighbour-food'};
+  const sourceBefore=populationBins(d),otherBefore=populationBins(other.detailedState);
+  state.tSec=startSec;resolveControl(state);
+  assert.equal(d.control.unrest.untilSec,mode==='pending'?336:351);
+  const housingSec=mode==='pending'?331:337,faithSec=mode==='pending'?334:343;
+  state.tSec=housingSec;runHousingPhase(state,getMoonPhaseAtSecond(state,housingSec));
+  for(const target of [site,other]){
+    const leaving=target===site?mode!=='inbound':mode==='inbound';
+    target.detailedState.populationByClass.villager.faith={tier:leaving?'bronze':'gold',trend:null,streak:0,collapseActive:false};
+    state.civilization.currentMoonTurn.regions[target.regionId].food={byClass:{villager:{targetHappiness:leaving?'negative':'positive'}}};
+  }
+  state.tSec=faithSec;runFaithPhase(state,getMoonPhaseAtSecond(state,faithSec));
+  const turn=state.civilization.currentMoonTurn;
+  if(mode==='pending')assert(turn.migrationIntents.some(i=>i.sourceId===site.regionId&&i.requested===5));
+  else{
+    state.tSec=349;runMigrationPhase(state,getMoonPhaseAtSecond(state,349));
+    if(mode==='hardship')assert.equal(turn.unresolved.find(i=>i.sourceRegionId===site.regionId)?.count,5);
+    else assert.equal(turn.movements.find(m=>m.sourceRegionId===(mode==='inbound'?other.regionId:site.regionId))?.amount,7);
+  }
+  const snapshotSec=state.tSec,endSec=mode==='pending'?337:355;
+  initializeReplayClock(state,snapshotSec);
+  const loaded=deserializeGameState(serializeGameState(state)),timeline=createTimelineFromInitialState(state);
+  assert(advanceReplayStateToSecond(state,endSec).ok);
+  assert(advanceReplayStateToSecond(loaded,endSec).ok);
+  assert.equal(d.control.unrest,null);assert(site.neutral);
+  same(populationBins(d),sourceBefore,`${mode}: frozen residents retain count and identity`);
+  same(populationBins(other.detailedState),otherBefore,`${mode}: booked migrants return exactly once to their source`);
+  same(serializeGameState(loaded),serializeGameState(state),`${mode}: save continuation across pending work`);
+  const rebuilt=rebuildStateAtSecond(timeline,endSec);assert(rebuilt.ok);
+  same(serializeGameState(rebuilt.state),serializeGameState(state),`${mode}: replay across expiry`);
 }
 
 // Losing the holder never changes who the residents are or recreates a board.

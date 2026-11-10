@@ -27,17 +27,20 @@ outcome, including “Last: Repelled · +1 Strength”. Rewinding restores both 
 Strength and the appropriate historical result.
 
 The latest outcome is one bounded JSON record in
-`civilization.chaos.lastMonsterSpawn`. Current GameState **v48** rejects obsolete
+`civilization.chaos.lastMonsterSpawn`. Current GameState **v49** rejects obsolete
 forecasts, including the previous holding threshold. Runner envelope v33 and
 captured GameConfig v31 are current. Start a fresh game.
+Supported Lab and viewing fixtures can start Monsters at Strength zero. Their
+recorded Strength remains nonnegative, including a first repel from zero to one,
+so ordinary save and forecast-anchor validation can restore those outcomes.
 
 ## Measured baseline
 
 With the [civilian core and minority outer garrisons](crown-minority-opening.md),
 the 70% holding base, 90%-allied player opening and [ten-year Unrest](unrest.md),
-32 ordinary unattended seeds complete every run: **147.135-year mean**, range
-**87.375 to 211.5 years**, with no surviving/censored runs at the 400-year cap.
-Original Crown holdings retained at year 50 average 10.5625 (7 to 13); every
+32 ordinary unattended seeds complete every run: **149.871-year mean**, range
+**96 to 221.4375 years**, with no surviving/censored runs at the 400-year cap.
+Original Crown holdings retained at year 50 average 10.5 (8 to 13); every
 capital survives. This is an average target, not a requirement that every seed
 end before 200. Played builds can extend survival.
 Measurements use elapsed simulation years (`tSec / 32`); the HUD names the

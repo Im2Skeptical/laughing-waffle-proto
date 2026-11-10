@@ -141,7 +141,7 @@ export function createEmptyState(
   );
   const initialDetailedSite = world.sites.find((site) => site?.simulationMode === "detailed") ?? null;
   const state = {
-    gameStateSchemaVersion: 48,
+    gameStateSchemaVersion: 49,
     phase: "simulation",
     turn: 0,
     seasons: SEASONS,
@@ -450,8 +450,8 @@ export function serializeGameState(state) {
 }
 
 function validateDeserializedStateBody(state) {
-  if (state?.gameStateSchemaVersion !== 48) {
-    throw new Error("Unsupported game-state schema: expected v48");
+  if (state?.gameStateSchemaVersion !== 49) {
+    throw new Error("Unsupported game-state schema: expected v49");
   }
   if ((state.rulesetId != null && state.rulesetId !== 'full-map-redesign-v1')
       || (state.civilization?.treasury && state.rulesetId !== 'full-map-redesign-v1')) {
@@ -466,7 +466,7 @@ function validateDeserializedStateBody(state) {
   }
   const spawn=chaos.lastMonsterSpawn;
   const regionId=id=>id===null||state.world.regions.some(r=>r.id===id);
-  const strength=value=>value===null||Number.isInteger(value)&&value>=1;
+  const strength=value=>value===null||Number.isInteger(value)&&value>=0;
   if(spawn!==null&&(!spawn||!Number.isFinite(spawn.tSec)||spawn.tSec<0||spawn.tSec>state.tSec
       ||!['creep','direct'].includes(spawn.cause)||!['intercepted','expanded','appeared','strengthened','blocked'].includes(spawn.outcome)
       ||!regionId(spawn.sourceRegionId)||!regionId(spawn.targetRegionId)||!strength(spawn.strengthBefore)||!strength(spawn.strengthAfter)
@@ -551,8 +551,8 @@ export function deserializeGameState(data) {
 
   // CRITICAL: deep clone to avoid mutating stored snapshots (timeline/checkpoints).
   const state = deepCloneSerializable(raw);
-  if (state?.gameStateSchemaVersion !== 48) {
-    throw new Error("Unsupported game-state schema: expected v48");
+  if (state?.gameStateSchemaVersion !== 49) {
+    throw new Error("Unsupported game-state schema: expected v49");
   }
   const gameConfigValidation = validateGameConfig(state.gameConfig);
   if (!gameConfigValidation.ok) {
