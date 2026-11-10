@@ -49,6 +49,10 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   const countKind=params.get('regionalCount')==='population'?'population':'workers';
   const count=countKind==='workers'?(forceSample?13:indicator.totalWorkerCount):p.total;
   const gold=player?0xf1d18b:crown?0xc69872:0x9abbb0;
+  const ownershipFill=player?0x493b22:crown?0x462a26:0x202c29;
+  const ownershipEdge=player?0xf1d18b:crown?0xd18d67:0x84958c;
+  const prestigeFill=player?0xd9bc75:0x202725;
+  const prestigeInk=player?0x282113:0x9da69f;
   const root=new PIXI.Container();root.label='floating-settlement-readout';root.mapRegionId=indicator.regionId;
   root.position.set(point.x,point.y);parent.addChild(root);
 
@@ -60,18 +64,19 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   const countNumber=label(counter,String(count),27);
   const prestige=new PIXI.Container();prestige.label='floating-prestige';badge.addChild(prestige);
   const prestigeLabel=(player?'+':'')+shownPrestige;
-  const prestigeNumber=label(prestige,prestigeLabel,27,player?0xffe3a0:0x9da69f);
+  const prestigeNumber=label(prestige,prestigeLabel,27,prestigeInk);
+  if(player)prestigeNumber.style.strokeThickness=0;
   const radius=30,leftWidth=radius*2;
   const rightWidth=78;
   const badgeWidth=leftWidth+rightWidth,left=-badgeWidth/2,divider=left+leftWidth,circleX=left+radius;
   // One connected silhouette: circular worker medallion, rectangular income
   // pill. Draw the pill first so the circle's rim forms their curved join.
   if(rightWidth){
-    frame.lineStyle(1.5,player?gold:0x65736c,player?.9:.65).beginFill(player?0x17231b:0x202725,.94).drawRoundedRect(circleX,-19,radius+rightWidth,38,6).endFill();
-    if(player)frame.lineStyle(1,gold,.25).moveTo(divider+7,-15).lineTo(-left-7,-15);
+    frame.lineStyle(player?2.5:1.5,player?0xf7dfa1:0x65736c,player?1:.65).beginFill(prestigeFill,.98).drawRoundedRect(circleX,-19,radius+rightWidth,38,6).endFill();
+    if(player)frame.lineStyle(1,0xffefbc,.6).moveTo(divider+7,-15).lineTo(-left-7,-15);
   }
-  frame.lineStyle(1.5,gold,.95).beginFill(0x17231b,.97).drawCircle(circleX,0,radius).endFill();
-  frame.lineStyle(1,gold,.25).drawCircle(circleX,0,radius-4);
+  frame.lineStyle(held?3.5:2,ownershipEdge,1).beginFill(ownershipFill,.98).drawCircle(circleX,0,radius).endFill();
+  frame.lineStyle(1,ownershipEdge,.4).drawCircle(circleX,0,radius-5);
   if(countKind==='population')addResourceIcon(counter,'population',circleX-radius+12,0,22);
   else{const x=circleX-radius+12,glyph=new PIXI.Graphics().beginFill(0xf1dfb8).drawCircle(x,-7,3.5).drawRoundedRect(x-4,-1,8,11,2).endFill();counter.addChild(glyph);}
   countNumber.x=circleX+8;
@@ -81,7 +86,8 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
     `${p.total} total residents.`,`${forceSample?13:indicator.totalWorkerCount} total workers.`,
     ...(forceSample?[]:[`${indicator.activeWorkerCount} assigned; ${indicator.unusedWorkerCount} unused.`])],maxWidth:340},tooltipView,'floating-count:'+indicator.regionId);
   const prestigeIcon=addResourceIcon(prestige,'prestige',divider+17,0,25);
-  if(!player){prestigeIcon.tint=0x89968e;prestigeIcon.alpha=.6;}
+  if(player)prestigeIcon.tint=prestigeInk;
+  else{prestigeIcon.tint=0x89968e;prestigeIcon.alpha=.6;}
   prestigeNumber.x=divider+48;
   prestige.visible=rightWidth>0;
   prestige.hitArea=new PIXI.Rectangle(divider,-24,rightWidth+2,48);
@@ -121,10 +127,11 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
     const scale=REGIONAL_READOUT_SCREEN_SCALE/zoom;root.scale.set(scale);
     const left=(bounds.min.x-point.x)/scale,right=(bounds.max.x-point.x)/scale;
     const top=(bounds.min.y-point.y)/scale,bottom=(bounds.max.y-point.y)/scale;
-    badge.position.set((left+right)/2,top-radius-6);
+    badge.position.set((left+right)/2,bottom+radius+6);
     const width=132,height=9;
-    const barOffset=forceStyle==='onbar'?30:16;
-    influence.position.set((left+right)/2,bottom+barOffset);
+    // Reserve the sword's downward point and Unrest caption above the sprite.
+    const barOffset=forceStyle==='onbar'?42:30;
+    influence.position.set((left+right)/2,top-barOffset);
     bar.clear().lineStyle(1,0x131b15,1).beginFill(0x101b15,.85).drawRoundedRect(-width/2-3,-height/2-3,width+6,height+6,4).endFill();
     let x=-width/2;
     for(const part of parts){const w=width*part.count/Math.max(1,p.total);bar.lineStyle(0).beginFill(part.colour).drawRect(x,-height/2,w,height).endFill();x+=w;}
@@ -143,7 +150,7 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
     }
     forceNumber.visible=forceStyle==='onbar';forceNumber.position.set(shieldX??0,p.unrest?23:0);
     influence.hitArea=new PIXI.Rectangle(-width/2-26,-28,width+52,66);
-    root.floatingLayout={sprite:{left,right,top,bottom},badge:{x:badge.x,y:badge.y},bar:{x:(left+right)/2,y:bottom+barOffset,width,shieldX:shieldX??0,zeroForceX}};
+    root.floatingLayout={sprite:{left,right,top,bottom},badge:{x:badge.x,y:badge.y},bar:{x:(left+right)/2,y:top-barOffset,width,shieldX:shieldX??0,zeroForceX}};
   };
   root.measureFloating=()=>{
     const track=root.floatingLayout.bar,anchor=root.toGlobal({x:track.x+track.shieldX,y:track.y}),trackA=root.toGlobal({x:track.x-track.width/2,y:track.y-4.5}),trackB=root.toGlobal({x:track.x+track.width/2,y:track.y+4.5});

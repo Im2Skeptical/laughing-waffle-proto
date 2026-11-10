@@ -2,7 +2,11 @@
 
 The accepted floating settlement readout is the ordinary default, at fixed 70%
 screen scale. Worker/Prestige pills and Force shields take priority over corner
-region labels. Population and food-balance integration notes:
+region labels. Influence sits above the settlement sprite; the connected
+worker-circle/Prestige-pill sits below. Active player Prestige uses gold fill and
+dark ink; inactive potential stays charcoal and muted. Worker medallions use
+stronger gold/Crown ownership rims and tinted fills, with grey-green for unheld.
+Population and food-balance integration notes:
 [`docs/regional-population-ux-integration.md`](../../../docs/regional-population-ux-integration.md).
 A thin sword marks the zero-Force holding threshold (currently 70%) on held
 settlements. The shield uses the current threshold; their gap is the allegiance

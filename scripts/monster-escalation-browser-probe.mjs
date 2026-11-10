@@ -17,6 +17,8 @@ const snap=()=>page.evaluate(()=>__SETTLEMENT_DEBUG__.getSnapshot());
 const tap=async p=>{const b=await page.locator('canvas').boundingBox();await page.touchscreen.tap(b.x+p.x/2424*b.width,b.y+p.y/1080*b.height);};
 function checkSwords(map){
  for(const r of map.floatingReadouts){
+  assert(r.bar.y+r.bar.height<r.sprite.y,'influence and sword stay above the settlement');
+  assert(r.badge.y>r.sprite.y+r.sprite.height,'worker/Prestige stays below the settlement');
   if(!['player','external-a'].includes(r.holder)){assert.equal(r.zeroForceSwordAnchor,null);continue;}
   assert.equal(r.zeroForceShare,.70);
   const sword=(r.zeroForceSwordAnchor.x-r.meterTrack.x)/r.meterTrack.width;
@@ -30,6 +32,13 @@ function checkSwords(map){
 async function captureBar(r,name){
  const canvas=await page.locator('canvas').boundingBox(),sx=canvas.width/2424,sy=canvas.height/1080;
  await page.screenshot({path:out+'/'+name+'.png',clip:{x:canvas.x+r.bar.x*sx-8,y:canvas.y+r.bar.y*sy-8,width:r.bar.width*sx+16,height:r.bar.height*sy+16}});
+}
+async function captureReadout(r,name){
+ const canvas=await page.locator('canvas').boundingBox(),sx=canvas.width/2424,sy=canvas.height/1080;
+ const rects=[r.sprite,r.badge,r.bar];
+ const left=Math.min(...rects.map(b=>b.x)),top=Math.min(...rects.map(b=>b.y));
+ const right=Math.max(...rects.map(b=>b.x+b.width)),bottom=Math.max(...rects.map(b=>b.y+b.height));
+ await page.screenshot({path:out+'/'+name+'.png',clip:{x:canvas.x+left*sx-10,y:canvas.y+top*sy-10,width:(right-left)*sx+20,height:(bottom-top)*sy+20}});
 }
 try{
  await page.goto('http://localhost:5186/?perf=1&art=1&launch=new&regionalStart=opening');
@@ -87,6 +96,9 @@ try{
  s=await snap();checkSwords(s.worldMap);
  await captureBar(s.worldMap.floatingReadouts.find(r=>r.holder==='player'&&r.force===0),'sword-player');
  await captureBar(s.worldMap.floatingReadouts.find(r=>r.warriors===16),'sword-crown');
+ await captureReadout(s.worldMap.floatingReadouts.find(r=>r.holder==='player'),'readout-player');
+ await captureReadout(s.worldMap.floatingReadouts.find(r=>r.holder==='external-a'),'readout-crown');
+ await captureReadout(s.worldMap.floatingReadouts.find(r=>r.holder==='frontier'),'readout-unheld');
  await page.screenshot({path:out+'/desktop-opening.png'});
  await page.evaluate(t=>__SETTLEMENT_DEBUG__.browseSecond(t),firstSpawnSec);
  await page.waitForFunction(t=>__SETTLEMENT_DEBUG__.getSnapshot().viewedSec===t,firstSpawnSec);await page.waitForTimeout(400);
