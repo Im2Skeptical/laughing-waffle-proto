@@ -24,7 +24,13 @@ map, Practices, saves and simulation with polygon terrain and fallback symbols.
 Omit the query for the illustrated game. Developer tools > New game in performance
 mode starts directly in the separate `performance-dev` save (replaced by each
 new performance start). Continue performance game resumes it; slots 1-3 stay
-separate. The adjacent Load artwork progressively checkbox defaults on: card
+separate. The adjacent Random seed checkbox defaults off. When checked, every
+new performance game uses fresh entropy and computes its opening forecast on the
+device before entry. It retains the regular-game setup, ignoring custom profiles,
+edited cards and the ordinary New game seed override. The choice is remembered;
+`&seed=random` selects it in a direct performance URL, while `&seed=123` selects
+the prepared start. Continue always keeps the saved world's seed. The adjacent
+Load artwork progressively checkbox defaults on: card
 art and other atlases upload in batches after entry, then terrain prepares
 cooperatively. Stubs stay visible until everything is ready: the top-right Dev
 seal shows a tick. Tap it to reveal the prepared graphics together; holding still

@@ -1,5 +1,6 @@
 import { PERFORMANCE_SAVE_SLOT } from '../controllers/sim-runner/save-slots.js';
 import { minimalGraphics, getProgressiveArtworkPreference } from './minimal-graphics.js';
+import { getPerformanceRandomSeedPreference } from '../controllers/performance-start.js';
 import { PHONE_PORTRAIT_QUERY, getGameFullscreenElement, requestGameDisplayMode, usesTouchGameDisplay } from './game-display-mode.js';
 import { createSaveRecoveryDom, downloadSaveText } from './save-recovery-dom.js';
 import { buildSaveDiagnosticReport, createSaveDiagnosticsDom } from './save-diagnostics-dom.js';
@@ -54,6 +55,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
     } catch { message.textContent = 'Could not read this save file. Your existing saves are unchanged.'; }
   });
   let progressiveArtwork = getProgressiveArtworkPreference();
+  let performanceRandomSeed = getPerformanceRandomSeedPreference();
   let performanceEntryPending = new URLSearchParams(location.search).get("perf") === "1";
   let performanceLaunch = new URLSearchParams(location.search).get("launch");
   let mode = "home";
@@ -150,11 +152,12 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
     const url=new URL(location.href);
     url.searchParams.set('dev','1');url.searchParams.set('perf','1');
     url.searchParams.set('art',progressiveArtwork?'1':'0');url.searchParams.delete('launch');
+    url.searchParams.set('seed',performanceRandomSeed?'random':'123');
     url.hash='';history.replaceState(null,'',url.href);
     syncPerformanceDisplay();
     performanceLaunch=kind;
     performanceEntryPending=false;
-    onPerformanceMode?.({ progressiveArtwork });
+    onPerformanceMode?.({ progressiveArtwork, randomSeed: performanceRandomSeed });
     panel.style.removeProperty('--chronicle-backdrop');
     if (kind === 'continue') void enter(isCurrent=>session.continueGame(PERFORMANCE_SAVE_SLOT,{isCurrent}),PERFORMANCE_SAVE_SLOT,event);
     else start(PERFORMANCE_SAVE_SLOT,event);
@@ -302,6 +305,20 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
           ? 'Continue performance game' : 'New game in performance mode';
         content.insertBefore(performanceButton, displayHint);
       } else dev.append(performanceButton);
+      const seedLabel = document.createElement('label'); seedLabel.className = 'game-edited-cards-toggle';
+      const seedToggle = document.createElement('input'); seedToggle.type = 'checkbox'; seedToggle.checked = performanceRandomSeed;
+      seedToggle.dataset.testid = 'game-performance-random-seed';
+      const seedInfo = document.createElement('p'); seedInfo.className = 'game-menu-note'; seedInfo.dataset.testid = 'game-performance-seed-info';
+      seedInfo.id = 'game-performance-seed-info'; seedToggle.setAttribute('aria-describedby',seedInfo.id);
+      const updateSeedInfo = () => { seedInfo.textContent = performanceRandomSeed
+        ? 'Random world each start. Computes a fresh opening forecast before play.'
+        : 'Seed 123. Loads a precomputed opening forecast for faster entry.'; };
+      seedToggle.addEventListener('change', () => {
+        performanceRandomSeed = seedToggle.checked;
+        try { localStorage.setItem('dev.performanceRandomSeed', performanceRandomSeed ? 'on' : 'off'); } catch {}
+        updateSeedInfo();
+      });
+      seedLabel.append(seedToggle, document.createTextNode('Random seed')); updateSeedInfo(); dev.append(seedLabel, seedInfo);
       const artworkLabel = document.createElement('label'); artworkLabel.className = 'game-edited-cards-toggle';
       const artworkToggle = document.createElement('input'); artworkToggle.type = 'checkbox'; artworkToggle.checked = progressiveArtwork;
       artworkToggle.dataset.testid = 'game-progressive-artwork';
@@ -370,7 +387,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
     const note = document.createElement("p");
     note.className = "game-menu-note";
     note.textContent = "Three saves on this browser. Progress saves automatically during play. Gameplay uses landscape on phones.";
-    if (new URLSearchParams(location.search).get("perf") === "1") note.textContent = "Performance starts use a separate Dev save, replaced each time you start a new performance game. The fixed seed and prepared timeline are ready to test. Custom dev settings and edited cards apply through ordinary New Game outside this mode.";
+    if (new URLSearchParams(location.search).get("perf") === "1") note.textContent = "Performance starts use a separate Dev save, replaced each time you start a new performance game. Continue keeps the saved world. Custom dev settings and edited cards apply through ordinary New Game outside this mode.";
     footer.append(message, note);
     layout.append(intro, content, footer);
     panel.append(layout);

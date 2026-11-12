@@ -1,7 +1,8 @@
 import { hideChronicleArtwork } from './chronicle-art.js';
 import { progressiveGraphics, enablePerformanceGraphics } from './minimal-graphics.js';
 import { loadProgressiveArtwork } from './progressive-artwork.js';
-import { loadPerformanceStart } from '../controllers/performance-start.js';
+import { loadPerformanceStart, getPerformanceRandomSeedPreference } from '../controllers/performance-start.js';
+import { createNewGameState } from '../model/new-game.js';
 import { createEdgeTransferScrubGate } from "./ui-root/edge-transfer-scrub-gate.js";
 import { getSettlementVassalFocusWindows } from "./ui-root/settlement-timegraph-window.js";
 import { createVassalCommissionPicker } from './vassal-commission-picker-pixi.js';
@@ -236,10 +237,14 @@ let vassalHeirloomFlowView = null;
 let runCompleteView = null;
 const cardReviews=createCardReviewController();
 const newGameSettings = createNewGameSettingsController({ cardReviews });
+let performanceStart = new URLSearchParams(location.search).get('perf') === '1';
+let performanceRandomSeed = getPerformanceRandomSeedPreference();
 const opening = createNewGameOpeningController({
-  loadPrepared: new URLSearchParams(location.search).get("perf") === "1" ? loadPerformanceStart : null,
-  createState:()=>newGameSettings.createNewGame(),
-  getPreparationKey:()=>newGameSettings.getLaunchKey(),
+  loadPrepared: performanceStart && !performanceRandomSeed ? loadPerformanceStart : null,
+  createState:()=>performanceStart
+    ? createNewGameState(globalThis.crypto.getRandomValues(new Uint32Array(1))[0])
+    : newGameSettings.createNewGame(),
+  getPreparationKey:()=>performanceStart ? `performance:${performanceRandomSeed}` : newGameSettings.getLaunchKey(),
   createCache: () => createSettlementProjectionCache({ horizonSec: SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC }),
   createWorkerService: () => createTimegraphForecastWorkerService(),
   searchLimitSec: SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC,
@@ -1791,10 +1796,11 @@ gameMenu = createGameMenuDom({
   cardReviews,
   newGameSettings,
   session: gameSession,
-  onPerformanceMode: ({ progressiveArtwork }) => {
+  onPerformanceMode: ({ progressiveArtwork, randomSeed }) => {
     progressiveArtEpoch++; progressiveArtStarted=false;pendingArtworkReveal=null;
     enablePerformanceGraphics({ progressiveArtwork });
-    opening.setPreparedLoader(loadPerformanceStart);
+    performanceStart = true; performanceRandomSeed = randomSeed;
+    opening.setPreparedLoader(randomSeed ? null : loadPerformanceStart);
     hideChronicleArtwork(app.renderer);
     worldMapView.resetArtwork();
     vassalNodeDecisionModalView.resetArtwork();

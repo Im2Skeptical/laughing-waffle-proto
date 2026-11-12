@@ -1,4 +1,11 @@
 import {deserializeGameState} from '../model/state.js';
+
+export function getPerformanceRandomSeedPreference() {
+ const params=new URLSearchParams(globalThis.location?.search??'');
+ if(params.has('seed'))return params.get('seed')==='random';
+ try{return globalThis.localStorage?.getItem('dev.performanceRandomSeed')==='on';}catch{return false;}
+}
+
 // Runtime-only Dev fixture. Normal saves and authoritative replay are unchanged.
 export async function loadPerformanceStart({fetcher=globalThis.fetch}={}){
  const info=JSON.parse(document.getElementById('game-build-info')?.textContent??'null');
