@@ -2,8 +2,22 @@
 
 The accepted floating settlement readout is the ordinary default, at fixed 70%
 screen scale. Worker/Prestige pills and Force shields take priority over corner
-region labels. Population and food-balance integration notes:
+region labels. Influence sits above the settlement sprite; the connected
+worker-circle/Prestige-pill sits below. Active player Prestige uses gold fill and
+dark ink; inactive potential stays charcoal and muted. Worker medallions use
+stronger gold/Crown ownership rims and tinted fills, with grey-green for unheld.
+Population and food-balance integration notes:
 [`docs/regional-population-ux-integration.md`](../../../docs/regional-population-ux-integration.md).
+A thin sword marks the zero-Force holding threshold (currently 70%) on held
+settlements. The shield uses the current threshold; their gap is the allegiance
+requirement removed by Force. The sword points down and draws over the shield
+but under the Force number when zero Force makes the positions coincide. Unheld towns
+have no holding threshold marker. During [Unrest](../../../docs/unrest.md), the
+allegiance bar has a compact years-remaining caption instead of a holding shield. Inspection gives the reduction in percentage
+points; this adds no simulation state or rule.
+`monster-readout.js` adds the matching fixed-scale Monster Strength badge and
+touch inspection. Repel feedback and baseline timing are documented in
+[`docs/monster-escalation.md`](../../../docs/monster-escalation.md).
 
 ## Illustrated live worlds
 

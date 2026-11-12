@@ -1,6 +1,6 @@
 import { TERRITORIAL_PRESTIGE_POPULATION_PER_POINT, getRegionPrestigePerNode } from '../vassal-life-map/selectors.js';
 import { controlSummary, militarySummary, garrisonSupportTargets } from './territory.js';
-import { getMartialForce, getMartialSupport, getMonsterPressureRate } from './external-world.js';
+import { getMartialForce, getMartialSupport, getMonsterPressureRate, MONSTER_REPEL_STRENGTH_GAIN } from './external-world.js';
 import { getChaosResistance } from './phases/chaos.js';
 import { stockTotal, specialistCount } from "./stock.js";
 import { getPopulationDemographics } from './demographics.js';
@@ -34,6 +34,7 @@ import {
 
 export function getDetailedCivilizationSummary(state) {
   const sites = getDetailedSettlementSites(state, { playerOnly: true });
+  const unrestRegionCount = getDetailedSettlementSites(state).filter(site=>site.detailedState.control?.unrest).length;
   const byClass = Object.fromEntries(
     POPULATION_CLASS_ORDER.map((classId) => [
       classId,
@@ -126,12 +127,16 @@ export function getDetailedCivilizationSummary(state) {
     research: roundFood(state?.civilization?.research?.total ?? 0),
     overHousingSiteCount,
     chaos: {
+      unrestRegionCount,
+      unrestChaosPerYear: unrestRegionCount*getGameSetting(state,'unrestChaosPerYear'),
       chaosPower: Math.max(0, Number(state?.civilization?.chaos?.chaosPower) || 0),
       resistance: getChaosResistance(state),
       expansionProgress: state?.civilization?.chaos?.monsterPressure ?? 0,
       expansionThreshold: getGameSetting(state, 'monsterExpansionThreshold'),
       progressPerMoon: getMonsterPressureRate(state),
       monsterCount: Math.max(0, Math.floor(state?.civilization?.chaos?.monsterCount ?? 0)),
+      repelStrengthGain: MONSTER_REPEL_STRENGTH_GAIN,
+      lastMonsterSpawn: clone(state?.civilization?.chaos?.lastMonsterSpawn ?? null),
       lastReckoning: clone(state?.civilization?.chaos?.lastMoonIncome ?? null),
     },
     green: getGreenAscendancySummary(state),

@@ -80,7 +80,7 @@ function directCapture(seed, type) {
 directCapture(42, 'forager');
 directCapture(1, 'market');
 
-// Peaceful claim: 59/100 does not activate. 60/100 external-a does, on the second check only.
+// Peaceful claim: 74/100 does not activate. 75/100 external-a does, on the second check only.
 {
   const state = createNewGameState(7);
   const grain = state.world.sites.find(site => site.neutral && site.town.type === 'grain');
@@ -88,8 +88,8 @@ directCapture(1, 'market');
   deep(goodsOf(grain), OPEN.grain, 'grain-opening-inventory');
   deep(binsOf(grain), seedCohorts(POP.grain), 'grain-opening-cohorts');
   const below = [
-    {classId: 'villager', allegiance: 'player', specialty: 'scholar', kind: 'adults', age: null, count: 59},
-    {classId: 'villager', allegiance: 'neutral', specialty: 'ordinary', kind: 'children', age: null, count: 41},
+    {classId: 'villager', allegiance: 'player', specialty: 'scholar', kind: 'adults', age: null, count: 74},
+    {classId: 'villager', allegiance: 'neutral', specialty: 'ordinary', kind: 'children', age: null, count: 26},
   ];
   writePopulationBins(grain.detailedState, below);
   const belowSig = binsOf(grain);
@@ -101,9 +101,9 @@ directCapture(1, 'market');
   deep(binsOf(grain), belowSig, 'below-claim-cohorts');
   eq(timber.town.activated, false, 'other-town-stays-inactive');
   const claimed = [
-    {classId: 'villager', allegiance: 'external-a', specialty: 'warrior', kind: 'elder', age: 61, count: 40},
+    {classId: 'villager', allegiance: 'external-a', specialty: 'warrior', kind: 'elder', age: 61, count: 55},
     {classId: 'villager', allegiance: 'external-a', specialty: 'ordinary', kind: 'children', age: null, count: 20},
-    {classId: 'villager', allegiance: 'player', specialty: 'scholar', kind: 'adults', age: null, count: 25},
+    {classId: 'villager', allegiance: 'player', specialty: 'scholar', kind: 'adults', age: null, count: 10},
     {classId: 'stranger', allegiance: 'neutral', specialty: 'ordinary', kind: 'adults', age: null, count: 15},
   ];
   writePopulationBins(grain.detailedState, claimed);
@@ -117,7 +117,7 @@ directCapture(1, 'market');
   assertActivated(state, grain, 'grain', 'external-a');
   deep(binsOf(grain), claimedSig, 'claim-conserves-cohorts');
   eq(state.civilization.nextPracticeInstanceId, nextId + 5, 'claim-instance-ids');
-  eq(grain.detailedState.control.unrest, 40, 'peaceful-unrest');
+  eq(grain.detailedState.control.unrest, null, 'peaceful-control-has-no-unrest');
   const installed = idsOf(grain);
   resolveControl(state);
   deep(idsOf(grain), installed, 'claim-exact-once');
@@ -145,7 +145,7 @@ directCapture(1, 'market');
   eq(conquerSettlement(state, quarry.regionId, 0).ok, true, 'military-capture');
   assertActivated(state, quarry, 'quarry', 'player');
   deep(binsOf(quarry), seedCohorts(POP.quarry), 'military-cohorts-kept');
-  eq(quarry.detailedState.control.unrest >= 50, true, 'military-unrest');
+  eq(quarry.detailedState.control.unrest, null, 'conquest-is-separate-from-unrest');
   eq(state.civilization.nextPracticeInstanceId, nextId + 5, 'military-instance-ids');
   const capturedIds = idsOf(quarry);
   conquerSettlement(state, quarry.regionId, 0);
@@ -160,19 +160,12 @@ directCapture(1, 'market');
   const developedIds = idsOf(quarry);
   eq(developedHosts.fm_rubblePicking, 2, 'developed-rubble');
   eq(developedHosts.fm_hearthBarter <= 1 && developedHosts.fm_hearthBarter >= 0, true, 'developed-barter-cap');
-  eq(developedBins.every(row => /^villager\|neutral\|ordinary\|(adults|children)\|\|/.test(row)), true, 'develop-keeps-identity');
+  eq(developedBins.every(row => row.startsWith('villager|neutral|ordinary|')), true, 'develop-keeps-allegiance-and-specialty');
   deep(binsOf(timber), seedCohorts(POP.timber), 'timber-static-at-develop');
   deep(goodsOf(timber), OPEN.timber, 'timber-stock-before-food');
-  resolveControl(state);
-  eq(holder(state, quarry.regionId), 'player', 'military-retains-one-check');
-  eq(quarry.detailedState.control.unrest, 65, 'military-first-unrest');
-  eq(quarry.detailedState.control.lossChecks, 0, 'military-first-loss-count');
-  resolveControl(state);
-  eq(holder(state, quarry.regionId), 'player', 'military-retains-first-unsupported-check');
-  eq(quarry.detailedState.control.unrest, 80, 'military-second-unrest');
-  eq(quarry.detailedState.control.lossChecks, 1, 'military-second-loss-count');
-  resolveControl(state);
-  eq(holder(state, quarry.regionId), 'frontier', 'military-retention-fails');
+  // Ordinary unheld lifecycle; timed threshold-loss behavior has its own replay contracts.
+  changeController(state, quarry.regionId, 'frontier');
+  eq(holder(state, quarry.regionId), 'frontier', 'ordinary-loss');
   eq(quarry.neutral != null, true, 'loss-reopens-storefront');
   deep(goodsOf(quarry), {stone: 0, ore: 0}, 'loss-reopens-emptied-market');
   deep(hostsOf(quarry), developedHosts, 'loss-freezes-hosts');

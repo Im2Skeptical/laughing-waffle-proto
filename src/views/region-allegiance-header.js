@@ -1,6 +1,7 @@
 import { createText } from './settlement-view-primitives.js';
 import { TEXT_STYLES, PALETTE } from './settlement-theme.js';
-import {regionAllegianceParts} from './region-allegiance.js';
+import {regionAllegianceParts,unrestReading} from './region-allegiance.js';
+import {CONTROL_DEFAULTS} from '../model/detailed-settlements/territory.js';
 
 const holderName=id=>id==='player'?'Free realm':id==='external-a'?'Crown':id==='frontier'?'Unheld':id;
 
@@ -23,28 +24,29 @@ export function addRegionAllegianceHeader(root,{x,y,vm,reference,tooltipView}){
   inspect(allegiance,[0,-3,390,66],{title:'Population allegiance',lines:[
     ...parts.map(p=>`${p.name}: ${p.count} / ${c.total} (${Math.round(p.count/total*100)}%).`),
     'Each person has one allegiance. Allegiance is separate from the regional holder.',
-    'A faction can claim control at 60% for two checks; an existing holder needs 45% support.',
+    `A faction can claim control at ${CONTROL_DEFAULTS.claim*100}% for two checks; an existing holder needs ${CONTROL_DEFAULTS.retain*100}% support without Force.`,
     `Scholars ${vm.specialists.scholar} · Warriors ${vm.specialists.warrior}.`,
   ],maxWidth:420,scale:2},`allegiance:${reference}`,tooltipView);
   root.addChild(allegiance);
 
-  const holdingRequirement=c.supported?0:c.required;
+  const holdingRequirement=c.required===null?'–':Number(c.required.toFixed(1));
   const status=new PIXI.Container();status.label='region-control-header';status.position.set(x+810,y+16);
-  const unheld=c.holder==='frontier',colour=unheld?PALETTE.textMuted:c.status==='contested'?0xe7947e:PALETTE.accent;
-  status.addChild(createText(unheld?'UNHELD':c.status.toUpperCase(),{...TEXT_STYLES.header,fontSize:23,fill:colour},0,0));
-  status.addChild(createText(`Force ${Number(c.force.toFixed(1))}/${holdingRequirement} · Unrest ${Math.round(c.unrest)}%`,{...TEXT_STYLES.body,fontSize:20},0,34));
-  inspect(status,[0,-3,284,70],{title:'Control and military holding',lines:[
+  const unheld=c.holder==='frontier',colour=c.unrest?0xe7947e:unheld?PALETTE.textMuted:c.status==='contested'?0xe7947e:PALETTE.accent;
+  status.addChild(createText(c.unrest?'UNREST':unheld?'UNHELD':c.status.toUpperCase(),{...TEXT_STYLES.header,fontSize:23,fill:colour},0,0));
+  status.addChild(createText(c.unrest?`${Math.ceil(c.unrest.remainingYears)} years remaining`:`Force ${Number(c.force.toFixed(1))}/${holdingRequirement}`,{...TEXT_STYLES.body,fontSize:20},0,34));
+  inspect(status,[0,-3,284,70],{title:c.unrest?'Unrest':'Control and military holding',lines:c.unrest?unrestReading(c.unrest):[
     unheld?'This region has no holder.':`${holderName(c.holder)} holds this region and its hosted Stock.`,
     `${c.loyal}/${c.total} residents support the holder (${Math.round(c.share*100)}%).`,
     `${c.availableWarriors} local loyal adult/Elder Warriors provide ${c.warriorForce} baseline Force.`,
     `Force ${Number(c.force.toFixed(1))} / ${holdingRequirement} required to hold; Defense ${Number(c.defense.toFixed(1))}.`,
+    ...(c.required===null?['Force needs at least one local ally to hold this region.']:[]),
     ...(c.supported?['Population support holds this region without a military occupation.']:[]),
     `${c.receivedForce} adjacent Force received; ${c.sentForce} sent to ${c.supportTarget??'no neighbour'}.`,
     'Warrior baseline Force needs no equipment or extra garrison meals.',
     ...(c.upkeep?[`Card upkeep: ${c.upkeep} Edible ${c.supplied?'paid':'MISSING; conditional bonuses inactive'}.`]:[]),
-    `Unrest ${Math.round(c.unrest)} moves toward ${Math.round(c.targetUnrest)} at each Death control check.`,
-    'Resistance: 1 Force per 10 unaffiliated residents, 1 per 5 rival civilians, plus 1 per rival adult/Elder Warrior; round the total up.',
-    'Loss: unrest 75+ for two checks without population support or enough occupation Force.',
+    'Force lowers required allegiance with diminishing returns. Larger populations and rival allegiance reduce its leverage.',
+    `Current threshold: ${Number((c.minimumShare*100).toFixed(1))}% allegiance (${c.minimumLoyal} residents).`,
+    'Falling below the holding threshold at a Death control check removes control and starts Unrest.',
     `${vm.usedStructureCapacity} / ${vm.structureCapacity} construction cells.`,
   ],maxWidth:420,scale:2},`territory:${reference}`,tooltipView);
   root.addChild(status);

@@ -1,4 +1,5 @@
 import { validatePopulationLedger } from './detailed-settlements/population-ledger.js';
+import { validateUnrest } from './detailed-settlements/unrest.js';
 import {validateBirthAllegianceCredits} from './detailed-settlements/birth-allegiance.js';
 import { normalizeStructureLayout, validateStructureLayout } from "./structure-layout.js";
 import { getWorldDefinitionById } from './world-definitions.js';
@@ -466,6 +467,7 @@ export function validateWorldState(state) {
     validateDetailedSettlement(site, region, errors, state.gameConfig?.gamepieces);
     if(site.detailedState)errors.push(...validateBirthAllegianceCredits(site.detailedState).map(e=>`${site.id}: ${e}`));
     if(state.rulesetId&&site.detailedState)errors.push(...validatePopulationLedger(site.detailedState).map(e=>`${site.id}: ${e}`));
+    if(state.rulesetId&&site.detailedState)errors.push(...validateUnrest(site.detailedState,region).map(e=>`${site.id}: ${e}`));
   }
   return { ok: errors.length === 0, errors };
 }

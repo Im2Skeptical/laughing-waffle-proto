@@ -12,7 +12,8 @@ import { addNeutralMarketBillboard } from './neutral-market-pixi.js';
 import { addRegionAllegianceHeader } from './region-allegiance-header.js';
 
 function regionalHolderLabel(region,vm){
-  if(region.monster)return `MONSTER · Defense ${region.monster.defense}`;
+  if(vm?.control?.unrest)return 'UNREST';
+  if(region.monster)return `MONSTER · Strength ${region.monster.defense}`;
   if(region.controller==='player')return 'YOUR REALM';
   if(region.controller==='external-a')return vm?.control?'CROWN REMNANT':'NEUTRAL SETTLEMENT';
   if(region.lostAtSec!=null)return 'RUINS';
@@ -56,12 +57,12 @@ export function addCollapsedChaosControl(parent, rect, chaos, onPress) {
 }
 
 export function addChaosPanelContent(root, rect, summary) {
-  const portrait=addIllustration(root,'crisis',{x:rect.x+8,y:rect.y+8,width:72,height:rect.height-16},{alpha:.85});
+  const portrait=addIllustration(root,'crisis',{x:rect.x+8,y:rect.y+8,width:72,height:92},{alpha:.85});
   if(!portrait){
     const badge=new PIXI.Graphics();
-    roundedRect(badge,rect.x+8,rect.y+8,72,rect.height-16,4,0x251b21,0x765348,1);
+    roundedRect(badge,rect.x+8,rect.y+8,72,92,4,0x251b21,0x765348,1);
     badge.eventMode='none';root.addChild(badge);
-    addResourceIcon(root,'monster',rect.x+44,rect.y+rect.height/2,52);
+    addResourceIcon(root,'monster',rect.x+44,rect.y+54,52);
   }
   const x=rect.x+92,y=rect.y+8;
   root.addChild(createText('The Coming Dark',{...TEXT_STYLES.title,fontSize:22,__forceTitleSmallCaps:true,fill:PALETTE.accent},x,y),
@@ -69,6 +70,13 @@ export function addChaosPanelContent(root, rect, summary) {
       ...TEXT_STYLES.chip,fontSize:18,fill:PALETTE.textMuted,
     },x,y+29));
   addMonsterPressureBar(root,{x,y:rect.y+68,width:rect.width-104,height:28},summary.chaos,`${MECHANICS.creep.name} `);
+  const last=summary.chaos.lastMonsterSpawn;
+  const caption=!last?`Repelled monsters: +${summary.chaos.repelStrengthGain} Strength`:
+    last.outcome==='intercepted'?`Last: Repelled · +${last.strengthAfter-last.strengthBefore} Strength`:
+    last.outcome==='expanded'?'Last: A region was overrun':last.outcome==='appeared'?'Last: A new Monster appeared':
+    last.outcome==='strengthened'?'Last: A Monster grew stronger':'Last: Monster blocked';
+  const feedback=createText(caption,{...TEXT_STYLES.chip,fontSize:18,fill:PALETTE.textMuted},x,rect.y+105);
+  feedback.label='last-monster-spawn-value';feedback.eventMode='none';root.addChild(feedback);
 }
 
 export function addRegionPanelContent(root, rect, {region, reference, name, vm, defense, tooltipView}) {

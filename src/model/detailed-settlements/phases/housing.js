@@ -4,7 +4,7 @@ import { getGameSetting } from "../../game-config.js";
 import { compositionTotal } from "../helpers.js";
 import { getPhaseModifiers, runPracticeActivation } from "../practices.js";
 import {
-  getDetailedSettlementSites,
+  getPlayerAndUnrestSettlementSites,
   getPopulationSummary,
 } from "../queries.js";
 import {
@@ -22,7 +22,7 @@ export function runHousingPhase(state, phase) {
   runPracticeActivation(state, "housing");
   runConstructionCycles(state, "housing");
   flushPracticeEvents(state);
-  for (const site of getDetailedSettlementSites(state, { playerOnly: true })) {
+  for (const site of getPlayerAndUnrestSettlementSites(state)) {
     const settlement = site.detailedState;
     const population = getPopulationSummary(state, site.regionId);
     const alreadyMigrating = compositionTotal(

@@ -249,8 +249,13 @@ human playtest work.
   a full tracker immediately expands one front in rotating authored order and retains
   overflow. Empty frontier has priority. Only blocked/absent fronts allow another
   spawn; a fully occupied map instead strengthens a blocked Monster. Supplied
-  interception retains Support and Edible requirements; settlement loss remains
-  the run-ending condition.
+  interception retains its existing requirements; a repelled Monster now gains
+  +1 Strength for its next attack. Local Warrior baseline Force remains active
+  without equipment. Settlement loss remains the run-ending condition.
+  Ordinary full-map openings target mean extinction under 200 years; the first
+    32-seed sample with a civilian Crown core and minority outer garrisons
+    averages 168.8 years (122.3–212.1). See
+  [Monster escalation](monster-escalation.md) for the rule and repeatable probe.
 - Untouched Starter_02 openings target extinction between years 200 and 300.
   Chaos and Resistance use one tenth of their former unit: Starter primordial
   income is 0.1, population Resistance retains fractional 1-per-10/5/2/1 Faith

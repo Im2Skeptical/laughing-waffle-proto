@@ -119,7 +119,7 @@ export function stockProviderSlots(state, settlement, localOnly = false, context
   const beneficiary=context.beneficiary??holder;
   const sources = context.discretionary&&holder!==beneficiary?[]:[{ regionId: host?.regionId ?? null, settlement, local: true }];
   const markets = [];
-  if (!localOnly && host && (state.rulesetId ? ['player','external-a'].includes(beneficiary)&&(holder!=='frontier'||context.discretionary) : holder === 'player')) {
+  if (!localOnly && host && !settlement?.control?.unrest && (state.rulesetId ? ['player','external-a'].includes(beneficiary)&&(holder!=='frontier'||context.discretionary) : holder === 'player')) {
     const connected = getConnectedRegionIds(state, host.regionId);
     for (const regionId of getAdjacentRegionIds(state, host.regionId)) {
       if (!connected.includes(regionId)) continue;

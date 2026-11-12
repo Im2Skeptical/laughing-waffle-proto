@@ -4,7 +4,7 @@ import { POPULATION_CLASS_ORDER } from "../../../defs/gamepieces/detailed-settle
 import { getGameSetting } from "../../game-config.js";
 import { classPopulationTotal } from "../helpers.js";
 import { runPracticeActivation } from "../practices.js";
-import { getDetailedSettlementSites } from "../queries.js";
+import { getPlayerAndUnrestSettlementSites } from "../queries.js";
 import { runGlobalChaos } from "./chaos.js";
 import { addMoonMigrationIntent, selectUnreservedPopulation } from "./migration.js";
 import { setMoonTurnPhase } from "./moon-turn.js";
@@ -47,7 +47,7 @@ function applyFaithOutcome(state, classState) {
 export function runFaithPhase(state, phase) {
   const turn = setMoonTurnPhase(state, phase);
   runPracticeActivation(state, "faith");
-  for (const site of getDetailedSettlementSites(state, { playerOnly: true })) {
+  for (const site of getPlayerAndUnrestSettlementSites(state)) {
     const settlement = site.detailedState;
     const byClass = {};
     const housingCap = turn.regions[site.regionId].housing?.happinessCap ?? "positive";

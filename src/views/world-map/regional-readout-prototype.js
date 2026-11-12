@@ -1,4 +1,5 @@
 import {addFloatingSettlementPrototype} from './floating-settlement-prototype.js';
+import {addMonsterReadout} from './monster-readout.js';
 // Accepted floating default; explicit earlier variant URLs remain development
 // references. Read-only view data; model summaries own all control calculations.
 import {compactRegionName} from '../region-label.js';
@@ -12,6 +13,7 @@ export function regionalReadoutVariant() {
 }
 const readouts=new Set();
 export function getFloatingReadoutMeasurements(){return [...readouts].filter(root=>!root.destroyed&&root.measureFloating).map(root=>root.measureFloating());}
+export function getMonsterReadoutMeasurements(){return [...readouts].filter(root=>!root.destroyed&&root.worldVisible&&root.measureMonster).map(root=>root.measureMonster());}
 export function updateRegionalReadoutScale(zoom){
   for(const root of readouts){if(root.destroyed){readouts.delete(root);continue;}if(root.updateFloatingLayout){root.updateFloatingLayout(zoom);continue;}root.scale.set((root.atlasMarker?1.18:1.35)/Math.max(.25,zoom));}
 }
@@ -42,6 +44,7 @@ function VariantBracket(root,p){
 }
 
 export function addRegionalReadoutPrototype(parent,point,indicator,{tooltipView,reference,variant,spriteBounds,forceSample}){
+  if(indicator.monster){const root=addMonsterReadout(parent,point,indicator,{tooltipView,reference});if(root)readouts.add(root);return root;}
   if(variant==='floating'){const root=addFloatingSettlementPrototype(parent,point,indicator,{tooltipView,reference,spriteBounds,forceSample});if(root)readouts.add(root);return root;}
   if(variant==='atlas')return addAtlasMarker(parent,point,indicator,{tooltipView,reference});
   const p=indicator.influence;if(!p||indicator.monster)return;
@@ -69,9 +72,9 @@ export function addRegionalReadoutPrototype(parent,point,indicator,{tooltipView,
     `${indicator.totalWorkerCount} total workers: ${indicator.activeWorkerCount} assigned, ${indicator.unusedWorkerCount} unused.`,
     `${p.total} residents. Workers and residents are different counts.`,
     ...p.parts.map(part=>`${part.name}: ${part.count} (${Math.round(part.count/p.total*100)}%).`),
-    p.status==='supported'?`Population support secures control; supplied holding Force ${number(p.force)} is not needed to retain it.`:`Holder's supplied Force: ${number(p.force)} / ${p.required} required for occupation.`,
+    p.status==='supported'?`Population support secures control; holding Force ${number(p.force)} is not needed to retain it.`:`Holder's Force: ${number(p.force)} / ${p.required===null?'needs local allegiance':number(p.required)} required for occupation.`,
     'Force is military holding, not additional population allegiance.',
-    ...(held?[`${number(value)} Prestige per completed node into the shared civilization treasury.`,`${Math.round(p.unrest)}% unrest reduces this region's income.`]:crown?[`Potential ${number(value)} Prestige per completed node if player-held at zero unrest.`,`This is a settled-control estimate, not a capture quote or current income.`]:[]),
+    ...(held?[`${number(value)} Prestige per completed node into the shared civilization treasury.`,'Income is inactive during Unrest.']:crown?[`Potential ${number(value)} Prestige per completed node if player-held under settled control.`,`This is a settled-control estimate, not a capture quote or current income.`]:[]),
     'Tap the settlement artwork to inspect its economy.',
   ],maxWidth:410};
   root.eventMode='static';root.cursor='help';root.hitArea=new PIXI.Rectangle(-73,-5,146,85);
@@ -150,14 +153,14 @@ export function addAtlasFocus(root,indicator,{reference,onEconomy,onClose,addBut
   text(root,'+'+number(value),x+522,y+86,48,held?0xf1d99e:0xc4ae90);
   text(root,held?'PER COMPLETED NODE':'POTENTIAL / NODE',x+481,y+139,17,0xaeb8a6);
   const widthBar=width-56;let bx=x+28;
-  for(const part of p.parts){const w=widthBar*part.count/p.total;g.lineStyle(0).beginFill(part.colour).drawRect(bx,y+180,w,10).endFill();bx+=w;}
+  for(const part of p.parts){const w=widthBar*part.count/Math.max(1,p.total);g.lineStyle(0).beginFill(part.colour).drawRect(bx,y+180,w,10).endFill();bx+=w;}
   text(root,p.parts.map(part=>`${part.name} ${part.count}`).join('  ?  '),x+28,y+200,20,0xcac9b8);
   const status=p.status==='supported'?'Population-supported':p.status==='occupied'?'Military occupation':p.contested?'Control contested':'Unheld';
   text(root,status,x+28,y+244,22,p.contested?0xea957f:0xd5d3bc);
-  text(root,`Force ${number(p.force)}${p.required?' / '+p.required:''}  ?  Unrest ${Math.round(p.unrest)}%`,x+28,y+279,18,0xaeb8a6);
+  text(root,`Force ${number(p.force)}${p.required===null?' / –':p.required?' / '+number(p.required):''}  ?  ${p.unrest?`Unrest ${Math.ceil(p.unrest.remainingYears)}y`:p.status}`,x+28,y+279,18,0xaeb8a6);
   addButton(root,{x:x+width-294,y:y+235,width:270,height:80},'Economy',onEconomy);
   if(!held){
-    const tip={title:'Potential territorial Prestige',lines:['A zero-unrest estimate if you held this region.','Not current income, a capture quote, or a Crown treasury.','Uses the current build population divisor of '+indicator.prestigePopulationPerPoint+'.'],maxWidth:350};
+    const tip={title:'Potential territorial Prestige',lines:['Potential Prestige if you held this region.','Not current income, a capture quote, or a Crown treasury.','Uses the current build population divisor of '+indicator.prestigePopulationPerPoint+'.'],maxWidth:350};
     const hit=new PIXI.Graphics().beginFill(0xffffff,.001).drawRect(x+470,y+85,330,79).endFill();hit.eventMode='static';hit.cursor='help';hit.hitArea=new PIXI.Rectangle(x+470,y+85,330,79);
     hit.on('pointerdown',e=>{e.stopPropagation();tooltipView?.pin?.(tip,hit.getBounds(),'atlas-potential');});root.addChild(hit);
   }

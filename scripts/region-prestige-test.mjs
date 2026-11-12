@@ -13,16 +13,9 @@ const sites=getDetailedSettlementSites(state,{playerOnly:true});
 const site=sites[0];
 const setPopulation=count=>writePopulationBins(site.detailedState,count?[{classId:'villager',allegiance:'player',specialty:'ordinary',kind:'adults',age:null,count}]:[]);
 setPopulation(20);
-for(const [unrest,expected] of [[0,1],[25,.75],[100,0]]){
- site.detailedState.control.unrest=unrest;
- const before=JSON.stringify(state);
- assert.equal(getRegionPrestigePerNode(state,site.regionId),expected);
- assert.equal(JSON.stringify(state),before,'selector does not mutate state');
-}
-site.detailedState.control.unrest=25;
 for(const population of [0,1,20,50,100,200,1000]){
  setPopulation(population);
- assert.equal(getRegionPrestigePerNode(state,site.regionId),population/20*.75);
+ assert.equal(getRegionPrestigePerNode(state,site.regionId),population/20);
 }
 for(const holder of ['external-a','frontier']){
  getRegionState(state,site.regionId).controller=holder;
@@ -62,4 +55,4 @@ initializeReplayClock(idle);advanceReplayStateToSecond(idle,32);
 assert.equal(idle.civilization.prestige,balance,'simulation time alone earns no regional Prestige');
 const loaded=deserializeGameState(serializeGameState(state));
 assert.deepEqual(getVassalNodeResolutionGains(loaded,getCurrentLifeMapVassal(loaded),'development'),getVassalNodeResolutionGains(state,v,'development'));
-console.log('Regional Prestige: population/unrest, node preview, shared payout, delve/encounter exclusion, no drip and JSON continuation OK.');
+console.log('Regional Prestige: population/control, node preview, shared payout, delve/encounter exclusion, no drip and JSON continuation OK.');

@@ -66,20 +66,18 @@ if (!edibleHost) {
   edibleHost = lossSite.detailedState.practiceSlots[3];
 }
 edibleHost.stock = 2;
-lossSite.detailedState.control.unrest = 75;
 lossSite.detailedState.garrison.supplied = false;
 const edibleBefore = edibleHost.stock;
 payGarrisonUpkeep(loss);
 const before = controlSummary(loss, buyerId);
 resolveControl(loss);
-const stillHeld = getRegionState(loss, buyerId).controller === 'player';
+const enteredUnrest = controlSummary(loss,buyerId).status === 'unrest';
 resolveControl(loss);
 const lostWhilePaid = before.supplied === true && edibleBefore - edibleHost.stock === before.upkeep
-  && before.supported === false && before.occupied === false && stillHeld && getRegionState(loss, buyerId).controller === 'frontier';
-expect('food-paid unsupported holding is lost on the second check', lostWhilePaid, getRegionState(loss, buyerId).controller, 'frontier');
+  && before.supported === false && before.occupied === false && enteredUnrest && getRegionState(loss, buyerId).controller === 'frontier';
+expect('food-paid unsupported holding is enters Unrest at the failed holding check', lostWhilePaid, getRegionState(loss, buyerId).controller, 'frontier');
 const header = fs.readFileSync(new URL('../src/views/region-allegiance-header.js', import.meta.url), 'utf8');
-const lossSentence = 'Loss: unrest 75 for two unsupported, unsupplied checks.';
-expect('header does not call that paid loss unsupplied', !header.includes(lossSentence) && /Loss: unrest 75\+[^\n]*support[^\n]*occupation Force/.test(header), header.includes(lossSentence) ? lossSentence : 'replacement sentence', 'support or occupation Force prevents loss');
+expect('header explains threshold-triggered Unrest', header.includes('Falling below the holding threshold') && header.includes('starts Unrest'), 'current rule copy', 'threshold starts Unrest');
 
 if (failures.length) throw new assert.AssertionError({ message: `${failures.length} current-ui fact mismatch${failures.length === 1 ? '' : 'es'}\n\n${failures.join('\n\n')}`, expected: 0, actual: failures.length });
 console.log('full-map ui facts: checked quotes and the paid-garrison loss');
