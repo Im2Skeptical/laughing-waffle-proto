@@ -81,7 +81,8 @@
     "probe:monster-extinction": "node scripts/monster-extinction-probe.mjs",
     "probe:monsters": "node scripts/monster-escalation-browser-probe.mjs",
     "probe:ready-cards": "node scripts/ready-cards-browser-probe.mjs",
-    "probe:previous-projection": "node scripts/previous-projection-browser-probe.mjs"
+    "probe:previous-projection": "node scripts/previous-projection-browser-probe.mjs",
+    "test:perf-hillclimb-20261112": "node scripts/perf-hillclimb-20261112/statistics-test.mjs"
   },
   "keywords": [
     "html",
