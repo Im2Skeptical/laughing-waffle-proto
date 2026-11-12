@@ -157,7 +157,8 @@ export function createIllustratedTerrain(parent,rect,{getView,forceIllustrated=f
       for(let n=1;n<staticLevels.length;n++){const sprite=new PIXI.Sprite(staticLevels[n-1]);sprite.width=staticLevels[n].width;sprite.height=staticLevels[n].height;renderer.render(sprite,{renderTexture:staticLevels[n],clear:true});sprite.destroy();}
       put(staticLevels[0],art.bounds,density,staticLevels);
       await yieldToUi();if(stale())return;
-      presentation=createRegionalPresentation(terrain,map);
+      presentation=createRegionalPresentation(terrain,map,state);
+      presentation.prepareCities(landmarks.crownModular);
       presentationRoot=new PIXI.Container();container.addChild(presentationRoot);
       sky=new PIXI.Sprite(art.atmosphere.texture);container.addChild(sky);
       await yieldToUi();if(stale())return;

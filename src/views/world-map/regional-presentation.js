@@ -3,6 +3,7 @@ import { createSurfaceSampler } from '../../../images/dark-fantasy/map-generatio
 import { runSync } from '../../../images/dark-fantasy/map-generation-prototype/cooperative.js';
 import { planSettlementSites, layOutSettlements } from '../../../images/dark-fantasy/map-generation-prototype/settlement-sites.js';
 import { ferrySpans, sampleRoadPath } from '../../../images/dark-fantasy/map-generation-prototype/road-crossings.js';
+import {crownCityIdentities,crownModularEnabled,planCrownUrbanSites} from './crown-urban-prototype.js';
 
 // The study's monster regions are examples, not permanent live-world biomes.
 // Keep their authored underlying terrain and never modify the shared definition.
@@ -27,10 +28,10 @@ export const connectionKey = e => [e.regionAId,e.regionBId].sort().join(':');
 
 // Reuse the geographical raster. Occupation changes only dry material,
 // illustrations and roads; islands, rivers and animated water stay intact.
-export function createRegionalPresentation(terrain, baseMap) {
+export function createRegionalPresentation(terrain, baseMap, state=null) {
   const source=terrain.presentationSource;
   const {width,height,land,regionIds,pixel,world,detail,materialIds,mixColour,noise}=source;
-  const anchors=planSettlementSites({...source,map:baseMap,waterIndices:terrain.waterIndices,perRegion:true});
+  let anchors=planSettlementSites({...source,map:baseMap,waterIndices:terrain.waterIndices,perRegion:true});
   layOutSettlements(anchors,{detail,world,seed:baseMap.seed,dry:(x,y,id)=>{
     const i=Math.floor(y)*width+Math.floor(x);
     return x>=0&&y>=0&&x<width&&y<height&&land[i]&&!terrain.waterIndices[i]&&baseMap.regions[regionIds[i]]?.id===id;
@@ -43,6 +44,16 @@ export function createRegionalPresentation(terrain, baseMap) {
   // Shared with the base bake: the same geography, raster and texel.
   const peakMask=source.peakMask??new Uint8Array(width*height);
   const presentation={anchors,crop,map:baseMap,
+    prepareCities(modules){
+      if(!state||!crownModularEnabled())return;
+      const identities=crownCityIdentities(state);if(!identities.length)return;
+      const moduleSizes=Object.fromEntries(Object.entries(modules).map(([key,t])=>[key,{width:t.width,height:t.height}]));
+      // City plots depend on geography and original identity, never the viewed
+      // date's road edits. The composer omits whole pieces where a live road
+      // corridor passes, so reloading the same date restores the same fabric.
+      anchors=planCrownUrbanSites(anchors,{...source,map:baseMap,waterIndices:terrain.waterIndices,identities,moduleSizes});
+      presentation.anchors=anchors;
+    },
     roads(connections){
       const names=Object.fromEntries(Object.entries(materialIds).map(([k,v])=>[v,k])),materials=terrain.materials;
       const materialAt=(x,y)=>names[materials.data[(y-materials.y)*materials.width+x-materials.x]];
@@ -55,7 +66,7 @@ export function createRegionalPresentation(terrain, baseMap) {
         pixels.data.fill(255,i,i+4);
       }
       ctx.putImageData(pixels,0,0);
-      return {...result,maskTexture:PIXI.Texture.from(canvas),roads:result.roads.map(path=>{
+      return {...result,rasterRoads:result.roads,maskTexture:PIXI.Texture.from(canvas),roads:result.roads.map(path=>{
         const samples=sampleRoadPath(path);
         return {id:path.connectionId,points:samples.map(p=>world(p.x,p.y)),
           ferries:ferrySpans(samples,p=>{const i=Math.round(p.y)*width+Math.round(p.x),wet=terrain.waterIndices[i];return !land[i] || wet>0 && !(wet>=16&&wet<=23);})

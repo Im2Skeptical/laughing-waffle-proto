@@ -73,6 +73,7 @@ export function siteReliefContains(sites, x, y) {
   return sites.some(s => {
     if (!s.buildings.length) return siteContains([s],x,y,.9);
     const unit=s.rx/23;
+    if(s.buildings.some(b=>b.renderBounds&&x>=b.renderBounds.minX-unit&&x<=b.renderBounds.maxX+unit&&y>=b.renderBounds.minY-unit&&y<=b.renderBounds.maxY+unit))return true;
     if(s.apron && segmentDistance(x,y,s.entrance,s.apron)<3*unit) return true;
     if(s.buildings.some(b=>x>b.x-b.w*.6-unit && x<b.x+b.w*.6+unit
       && y>b.y-b.h-unit*2 && y<b.y+b.h*.55+unit)) return true;
@@ -161,11 +162,12 @@ export function paintSettlementSites(sites, { width, height, colours, waterIndic
   for (const site of sites) {
     const detail = site.rx / 23;
     const dry = (x, y) => x >= 0 && y >= 0 && x < width && y < height && !waterIndices[y * width + x]
-      && map.regions[regionIds[y * width + x]]?.id === site.regionId;
+      && (site.groundRegionIds??[site.regionId]).includes(map.regions[regionIds[y * width + x]]?.id);
     // Blend the original biome material into worked ground, with irregular,
     // feathered margins. No imported ground plates or blanket biome tint.
-    for (let y = Math.floor(site.y - site.ry * 1.8); y <= site.y + site.ry * 1.8; y++)
-      for (let x = Math.floor(site.x - site.rx * 1.8); x <= site.x + site.rx * 1.8; x++) {
+    const box=site.groundBounds??{minX:site.x-site.rx*1.8,maxX:site.x+site.rx*1.8,minY:site.y-site.ry*1.8,maxY:site.y+site.ry*1.8};
+    for (let y = Math.floor(box.minY); y <= box.maxY; y++)
+      for (let x = Math.floor(box.minX); x <= box.maxX; x++) {
         if (!dry(x, y)) continue;
         const ground = settlementGroundWeight(site,x,y);
         if(ground<=0) continue;
