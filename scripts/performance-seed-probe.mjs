@@ -22,7 +22,7 @@ try {
   for(const kind of ['prepared','live','prepared','live','prepared','live']){
    let workers=0;
    const opening=createNewGameOpeningController({
-    loadPrepared:kind==='prepared'?loadPerformanceStart:null,
+    loadPrepared:kind==='prepared'?()=>loadPerformanceStart({seed:123}):null,
     createState:()=>createNewGameState(123),
     createCache:()=>createSettlementProjectionCache({horizonSec:endSec}),
     createWorkerService:()=>{workers++;return createTimegraphForecastWorkerService();},

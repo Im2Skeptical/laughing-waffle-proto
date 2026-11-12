@@ -16,7 +16,7 @@ imports the summaries/anchors through the normal yielding handoff, prepares the
 screen and writes the Dev save. Later actions use normal simulation and forecasting.
 The fixed seed alone does not make those operations cheaper.
 
-The current seed-123 bake ends at terminal second 3744 and is 9,819,524 compressed
+The measured seed-123 bake ended at terminal second 3744 and was 9,819,524 compressed
 bytes. Network transfer, decompression/JSON parsing and forecast handoff remain
 real costs, especially on a phone. This investigation does not optimize them.
 
@@ -24,8 +24,17 @@ The new **Random seed** checkbox uses fresh entropy for each new performance
 game, initializes the regular-game setup and completes the ordinary opening
 forecast before play. It cannot load the seed-123 bake, even if entropy happens
 to choose 123. It ignores the ordinary developer seed/profile/card overrides.
-The setting is remembered; direct links support `seed=random` and `seed=123`.
+The setting is remembered; direct links support `seed=random` and numeric prepared seeds.
 Continue restores the saved world independently of the next-start selection.
+
+The 13 November follow-up expands the default prepared path to five seeds:
+123, 1867, 99117, 424242 and 2026. Each fresh prepared start picks uniformly from
+this pool using launch entropy, then loads only that seed's separate gzip. A
+world may repeat. `seed=prepared` selects the pool; a numeric seed from the pool
+pins a direct launch. The unlimited **Random seed** option still forecasts live.
+Builds bake all five worlds, but entry does not download the entire pool. The
+pool definition participates in the bake's invalidation key. Each payload's
+captured base seed is checked against the requested seed before installation.
 
 ## Reproduce the comparison
 
@@ -49,7 +58,8 @@ not a comparison of survival lengths across random worlds.
 
 The second probe exercises the real menu on phone layouts: fixed/random starts,
 artwork on/off, no fixed fixture request in random mode, independent new random
-seeds, reload/Continue preserving the saved seed, and switch-back to seed 123.
+seeds, all five prepared choices, one-file downloads, reload/Continue preserving
+both prepared and random saved seeds, and switch-back to the prepared pool.
 It emulates fullscreen/orientation platform calls; physical-device permissions
 remain outside its coverage. Unit tests also cover stored preferences, explicit
 URL precedence, blocked storage, cancellation and prepared-loader switching.

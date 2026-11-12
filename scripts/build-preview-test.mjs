@@ -25,6 +25,8 @@ try {
   await writeFile(previewPath,(await readFile(previewPath,'utf8')).replace('const firstPort = 5184;',`const firstPort = ${fixturePort};`));
   await mkdir(path.join(fixture,'src/model'));
   await mkdir(path.join(fixture,'src/defs'));
+  await mkdir(path.join(fixture,'src/controllers'));
+  await copyFile('src/controllers/performance-start-seeds.js',path.join(fixture,'src/controllers/performance-start-seeds.js'));
   await writeFile(path.join(fixture,'src/model/example.js'),'export const rule = 1;');
   await writeFile(path.join(fixture,'src/defs/example.js'),'export const definition = 1;');
   await mkdir(path.join(fixture,'src/views/ui-root'),{recursive:true});
