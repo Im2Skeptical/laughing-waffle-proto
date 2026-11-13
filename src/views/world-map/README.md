@@ -42,6 +42,17 @@ underlying natural biome, including the study's example monster regions.
 Only the viewed state's `region.monster` selects occupied terrain; clearing or
 rewinding restores the original biome, including island water topology.
 
+Device-local graphics experiments live in `../graphics-options.js` and the shared
+DOM controls in `../graphics-options-dom.js`. The live workshop's Graphics tab
+and the menu's Developer tools edit the same preferences. Fog, clouds, cloud
+shadows, wisps and water animation default on. `illustrated-terrain.js` applies
+changes even while paused, hides/skips atmosphere when all its effects are off,
+and samples still water at absolute second zero, refreshing only for window
+changes. Stats include the effective switches and submitted animation passes.
+These preferences never enter GameState, launch profiles, saves or replay.
+Run `npm run probe:graphics-options` to check paused toggles, disabled pass counts,
+camera moves and exact restoration, alongside the usual map probes.
+
 The one-time bake, the road/terrain composition and the three variant builds are
 generators (`bakePixelTerrainSteps`, `composePlayableTerrainSteps`,
 `composeTerrainLandscapeSteps`, `buildSteps`, `prepareRegionalTilesSteps`) that
