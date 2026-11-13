@@ -11,4 +11,3 @@ export function drawSettlementCrestFrame(g,c){
  g.lineStyle(0).beginFill(c.ownership,.98).drawPolygon([-70,10,-7,10,-7,43,-55,35,-68,29]).endFill();
  g.beginFill(c.prestige,.98).drawPolygon([-5,10,70,10,68,29,55,35,-5,43]).endFill();
 }
-
