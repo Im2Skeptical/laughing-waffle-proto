@@ -55,7 +55,7 @@ identity, active local production, isolated supply, blocked claims, exact expiry
 ten-year Chaos totals, conquest, last-holding loss, JSON validation, save continuation
 and authoritative replay. `npm run verify` includes that contract suite.
 `npm run probe:monster-extinction` measures opening survival and year-50 Crown
-retention across seeds. New Game is required: GameState v50 and captured config
+retention across seeds. New Game is required: GameState v51 and captured config
 v31 reject obsolete trajectories. Runner saves remain v33.
 
 The initial 32-seed balance sample averages 149.871 years to extinction, below the

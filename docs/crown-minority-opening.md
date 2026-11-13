@@ -172,7 +172,7 @@ army-removal control loss, food, 50-year starts, JSON continuation and replay.
 `npm run probe:monsters` checks the actual map at opening and year 50, including
 desktop/phone touch inspection and rewind.
 
-GameState v50 retains timed [Unrest](unrest.md), introduced in v49, and floors
+GameState v51 retains timed [Unrest](unrest.md), introduced in v49, and floors
 each region's node Prestige separately; captured config is v31 and runner saves
 remain v33.
 Start a fresh game for the new rules and opening composition.

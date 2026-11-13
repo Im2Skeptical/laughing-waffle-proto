@@ -70,7 +70,7 @@ assert.deepEqual(loadedD.birthAllegianceCredits,d.birthAllegianceCredits);
 assert.deepEqual(allocateBirthAllegiances(d,fixed,93,group),allocateBirthAllegiances(loadedD,fixed,93,group),'mid-quota save continues identically');
 const corrupt=structuredClone(encoded);corrupt.world.sites.find(x=>x.regionId===site.regionId).detailedState.birthAllegianceCredits['villager:warrior'].neutral=99;
 assert.throws(()=>deserializeGameState(corrupt),/birth allegiance/);
-const obsolete=structuredClone(encoded);obsolete.gameStateSchemaVersion=44;assert.throws(()=>deserializeGameState(obsolete),/expected v50/);
+const obsolete=structuredClone(encoded);obsolete.gameStateSchemaVersion=44;assert.throws(()=>deserializeGameState(obsolete),/expected v51/);
 
 const live=initializeReplayClock(createNewGameState(42)),timeline=createTimelineFromInitialState(live);
 advanceReplayStateToSecond(live,43);

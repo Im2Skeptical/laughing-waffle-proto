@@ -47,6 +47,7 @@ function open(prestige, keepTown = false) {
   }
   const debt = piece(D, 'external-a', {work: 4});
   const testimony = piece(T, 'external-a', {charge: 1, work: 6});
+  site.detailedState.unlockedPracticeSlots = 5;
   site.detailedState.practiceSlots = [piece('forage', 'player', {stock: 2, work: 5}), piece('dryFarming', 'player', {stock: 1}), piece('logging', 'player'), debt, testimony];
   const offer = (offerId, intervention) => ({offerId, basePrestigeCost: 10, basePhaseCost: 1, baseCurrencyCost: 0, inventoryIndex: ns.inventory.length, intervention});
   ns.inventory = [

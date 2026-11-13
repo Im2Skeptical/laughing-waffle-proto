@@ -48,6 +48,29 @@ them. Custom profiles and edited cards use ordinary New
 Game outside performance-start mode. The bake uses every official simulation tick;
 saves, later actions and replay use the normal engine.
 
+## Live graphics experiments
+
+Hold the top-right Dev seal, then choose **Graphics**, or open the menu's
+**Developer tools > Graphics experiments**. Fog, Clouds, Cloud shadows,
+Atmospheric wisps and Water animation can be toggled independently. Changes
+apply at the held second; close tools and scrub the same interval to compare.
+**All effects off** and **Restore defaults** make repeat comparisons easy.
+All five default on; choices persist in this browser/origin under
+`full-map.dev.graphics`, outside game saves and launch profiles.
+
+Clouds and shadows share a pass; disable both to skip that pass. Disabling all
+four atmosphere effects hides the sky overlay and skips its renderer. Water off
+uses a fixed absolute phase (second zero), reusing the image while scrubbing and
+refreshing it when the camera window changes. Terrain, towns, roads and gameplay
+remain visible. Minimal graphics mode has no illustrated effects to toggle;
+progressive artwork uses these choices once revealed. These are experiment
+controls, not measured mobile defaults or a phone frame-rate guarantee.
+
+Run `node scripts/graphics-options-test.mjs` for preference contracts and
+`node scripts/graphics-options-browser-probe.mjs` for phone-sized controls,
+paused updates, skipped animation passes, still-water panning and pixel-exact
+restoration after toggling and rewinding.
+
 ## Versions
 
 1. Every PR includes the next version bump in `package.json`, both package-lock

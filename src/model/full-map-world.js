@@ -69,7 +69,7 @@ export function seedFullMapWorld(state) {
         {classId:'villager',allegiance:'neutral',specialty:'ordinary',kind:'adults',age:null,count:population-loyal-children+loyalChildren},
       ]);
     }
-    const ids=player?(region.id===players[0]?['fm_fallowFields','fm_handQuern','rm_scrubForaging','fm_hearthBarter']:[getRegionDefinition(state,region.id)?.biome==='mountains'?'fm_rubblePicking':'fm_woodlotRights','rm_scrubForaging','fm_hearthBarter']):
+    const ids=player?(region.id===players[0]?['fm_fallowFields','fm_handQuern','fm_hearthBarter']:[getRegionDefinition(state,region.id)?.biome==='mountains'?'fm_rubblePicking':'fm_woodlotRights','rm_scrubForaging','fm_hearthBarter']):
       enemyCapital?['fm_handQuern','rm_scrubForaging','fm_fallowFields','cp_ironCommunion','fe_capitalDole']:
       province?['fm_handQuern','rm_scrubForaging','fm_fallowFields',provinceIndex++===0?'fe_salvageDetail':'fe_roadRequisition','fe_barrackLevy']:
       neutral||monster?[]:site.town.market.practices;
@@ -116,6 +116,8 @@ export function seedFullMapWorld(state) {
     addWorldConnection(state,players.find(id=>getAdjacentRegionIds(state,id).includes(trade.regionId)),trade.regionId);
   }
   seedFullMapFood(state,new Set([capital,...provinces]));
+  for (const site of state.world.sites) site.detailedState.unlockedPracticeSlots = Math.max(3,
+    site.detailedState.practiceSlots.findLastIndex(Boolean) + 1);
   state.civilization.chaos.monsterCount=1;state.civilization.chaos.spatialSpawns=1;
   canonicalizeWorldState(state);
 }

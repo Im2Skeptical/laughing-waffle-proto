@@ -52,6 +52,7 @@ export const createInitialDetailedSettlementData = (regionId = null) => ({
       },
     },
   },
+  unlockedPracticeSlots: DETAILED_PRACTICE_SLOT_COUNT,
   practiceSlots: Array.from({ length: DETAILED_PRACTICE_SLOT_COUNT }, (_, i) => i === 0 ? { practiceId: "forage", tier: "bronze", stock: 2, charge: 0, work: 0 } : null),
   structureSlots: [
     { structureId: "granary" },

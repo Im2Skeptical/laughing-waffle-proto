@@ -59,6 +59,8 @@ initializeReplayClock(idle);advanceReplayStateToSecond(idle,32);
 assert.equal(idle.civilization.prestige,balance,'simulation time alone earns no regional Prestige');
 const loaded=deserializeGameState(serializeGameState(state));
 assert.deepEqual(getVassalNodeResolutionGains(loaded,getCurrentLifeMapVassal(loaded),'development'),getVassalNodeResolutionGains(state,v,'development'));
-const obsolete=serializeGameState(state);obsolete.gameStateSchemaVersion=49;
-assert.throws(()=>deserializeGameState(obsolete),/expected v50/,'old fractional-payout trajectories are rejected');
+for(const schema of [49,50]) {
+ const obsolete=serializeGameState(state);obsolete.gameStateSchemaVersion=schema;
+ assert.throws(()=>deserializeGameState(obsolete),/expected v51/,'older Practice-capacity and fractional-payout trajectories are rejected');
+}
 console.log('Regional Prestige: per-region floor, population/control, node preview, shared payout, delve/encounter exclusion, no drip and JSON continuation OK.');

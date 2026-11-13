@@ -27,7 +27,7 @@ outcome, including “Last: Repelled · +1 Strength”. Rewinding restores both 
 Strength and the appropriate historical result.
 
 The latest outcome is one bounded JSON record in
-`civilization.chaos.lastMonsterSpawn`. Current GameState **v50** rejects obsolete
+`civilization.chaos.lastMonsterSpawn`. Current GameState **v51** rejects obsolete
 forecasts, including the previous holding threshold. Runner envelope v33 and
 captured GameConfig v31 are current. Start a fresh game.
 Supported Lab and viewing fixtures can start Monsters at Strength zero. Their

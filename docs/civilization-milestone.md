@@ -54,6 +54,12 @@ first-pass system notes below retain their original tuning context.
   Mineral/Vessel Practice providers; their gaps remain explicit diagnostics.
 
 - Practice capacity is fixed at **five** per player detailed settlement.
+  Ordinary starting regions install three Practices with three unlocked spaces.
+  Shops stage permanent fourth/fifth-space unlocks for 10/30 Prestige through
+  separate buttons on the empty slots. Card prices exclude space costs; emptied
+  unlocked spaces can be reused for free. Confirm pays the unlock, and undo is
+  available while that staged space is empty (fifth before fourth). Unlocks need
+  Prestige; the card-purchase Creep substitution remains specific to cards.
   All inhabited full-map regions have installed Practices and Structures;
   the finite neutral inventories described below belong to legacy lab fixtures. This intentional readability and composition limit was reaffirmed
   after the content pass; the temporary twelve-slot expansion was reverted.

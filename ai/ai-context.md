@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.63`.
+Game build version: `1.1.66`.
 The accepted [regional population UX](../docs/regional-population-ux-integration.md)
 uses floating 70% map readouts, visual demographics, Warrior baseline Force and
 carried proportional newborn allegiance. It preserves the degraded starter
@@ -20,8 +20,8 @@ unheld status. Conquest is separate; losing all player holdings remains terminal
 Repelled Monsters gain
 +1 Strength and retain their latest Spawn result for replayable feedback.
 Each player-held region earns one Prestige per full 20 residents per completed
-node, rounded down separately before combining node income. GameState v50
-supersedes v49; start fresh to rebuild the changed payout trajectory.
+node, rounded down separately before combining node income. GameState v51
+supersedes v50; start fresh for the combined Practice capacity and payout rules.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -61,7 +61,12 @@ Routing skills live in `.grok/skills/`.
 - `tSec` is authoritative time and advances only through simulation ticks.
 - Definitions are data, model modules own rules, controllers orchestrate, and
   views render or emit input.
-- Every player settlement has exactly five Practice slots. Controlled full-map regions have installed Practices and Structures. Unheld towns use priced storefronts with static populations; first control activates their authored boards. This fixed design
+- Every player settlement has exactly five Practice slots. Ordinary starting
+  regions install three Practices and unlock three spaces; the fourth and fifth
+  spaces are separate one-time Prestige purchases (10/30), staged in shops and
+  retained when emptied. Controlled full-map regions have installed Practices
+  and Structures. Unheld towns use priced storefronts with static populations;
+  first control activates their authored boards. This fixed design
   limit preserves readability and composition choices; UX and gamepieces must
   work within it. Structure capacity is separate.
 - Gamepiece behavior is DSL-first. Extend a generalized operation before adding
@@ -93,7 +98,7 @@ identifiers remain stable; see [the mapping and authoring contract](../docs/cree
 
 Authoritative numbers:
 
-- Game state v50; runner saves v33. Older saves are rejected.
+- Game state v51; runner saves v33. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
 - Each run serializes schema-v31 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.

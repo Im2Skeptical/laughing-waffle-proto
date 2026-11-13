@@ -96,6 +96,54 @@ try {
   });
   for(const card of columnChecks)assert.deepEqual(card,{width:338,footerWidth:326,footerY:288,titleClear:true});
   await page.screenshot({path:'artifacts/choice-columns-review.png'});
+  // Exercise the real shop faces and separately priced board-space control.
+  const shopGeometry=await page.evaluate(async()=>{
+    const {pieceOfferCard}=await import('/src/views/vassal-node-decision/cards.js');
+    const {renderDecisionTableau}=await import('/src/views/vassal-node-decision/tableau.js');
+    const {createNewGameState}=await import('/src/model/new-game.js');
+    const life=await import('/src/model/vassal-life-map.js');
+    const state=createNewGameState(42);
+    life.selectLifeMapVassal(state,0);
+    const v=life.getCurrentLifeMapVassal(state),node=v.lifeMap.graph.nodes.find(n=>n.family==='practiceReform');
+    v.lifeMap.availableNodeIds=[node.id];life.enterVassalLifeNode(state,node.id);
+    const ns=v.lifeMap.nodeStates[node.id];
+    life.selectVassalNodeOption(state,node.id,ns.shopSelection.choices.find(c=>c.enabled&&c.id!=='random').id);
+    state.civilization.prestige=100;
+    const app=globalThis.feedbackApp;app.stage.removeChildren();app.renderer.resize(1280,800);
+    const layer=new PIXI.Container();app.stage.addChild(layer);layer.scale.set(1280/2424);
+    let tableau;
+    const paint=()=>{
+      layer.removeChildren();
+      const decision=life.getVassalNodeDecisionPresentation(state,node.id);
+      const cards=decision.offers.slice(0,3).map((offer,i)=>pieceOfferCard(layer,{x:82+i*300,y:240,width:282,height:440},{
+        title:offer.label,presentation:offer.presentation,multiplierPreview:offer.multiplierPreview,cost:offer,enabled:true,
+      }));
+      tableau=renderDecisionTableau(layer,decision.settlement,{onUnlock:id=>{life.purchaseVassalShopOffer(state,node.id,id);paint();},
+        onUndoUnlock:id=>{life.undoVassalShopPurchase(state,node.id,id);paint();}});
+      globalThis.shopUnlockPoint=()=>{const c=tableau.roots[3].card.unlockControl;return c.toGlobal(new PIXI.Point(c.hitArea.width/2,c.hitArea.height/2));};
+      app.renderer.render(app.stage);
+      return cards.filter(c=>c.poolFittings.length).map(c=>({titleBottom:c.titleRoot.getBounds().bottom,faceTop:c.faceRoot.getBounds().top,
+        faceBottom:c.faceRoot.getBounds().bottom,poolTop:Math.min(...c.poolFittings.map(f=>f.root.getBounds().top)),
+        poolBottom:Math.max(...c.poolFittings.map(f=>f.root.getBounds().bottom)),costTop:c.costPanel.getBounds().top}));
+    };
+    globalThis.shopUnlockCount=()=>ns.purchasedOffers.filter(p=>p.intervention.kind==='practiceSlot').length;
+    globalThis.shopMobile=()=>{app.renderer.resize(844,390);layer.scale.set(844/2424);app.renderer.render(app.stage);};
+    return paint();
+  });
+  assert.ok(shopGeometry.length,'Real shop Practices expose multiplier bars');
+  for(const card of shopGeometry)assert.ok(card.titleBottom<card.faceTop&&card.faceBottom<card.poolTop&&card.poolBottom<card.costTop,
+    'Shop reads title, artwork, multipliers, then price without overlap');
+  await page.screenshot({path:'artifacts/practice-shop-desktop.png'});
+  await page.setViewportSize({width:844,height:390});await page.evaluate(()=>globalThis.shopMobile());
+  await page.screenshot({path:'artifacts/practice-shop-phone.png'});
+  let unlockPoint=await page.evaluate(()=>globalThis.shopUnlockPoint());
+  await page.touchscreen.tap(unlockPoint.x,unlockPoint.y);
+  assert.equal(await page.evaluate(()=>globalThis.shopUnlockCount()),1,'A phone tap stages the separate space purchase');
+  unlockPoint=await page.evaluate(()=>globalThis.shopUnlockPoint());
+  await page.touchscreen.tap(unlockPoint.x,unlockPoint.y);
+  assert.equal(await page.evaluate(()=>globalThis.shopUnlockCount()),0,'A phone tap undoes the empty staged space');
+  await page.setViewportSize({width:1500,height:1280});
+  await page.evaluate(()=>{globalThis.feedbackApp.renderer.resize(1500,1280);});
   const futurePoint = await page.evaluate(async () => {
     const {createVassalLifeMapView} = await import('/src/views/vassal-life-map-pixi.js');
     const {createEmptyState} = await import('/src/model/state.js');

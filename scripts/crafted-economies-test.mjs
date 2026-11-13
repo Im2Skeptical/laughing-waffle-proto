@@ -17,7 +17,7 @@ import {getAdjacentRegionIds,getConnectedRegionIds} from '../src/model/world-sta
 import {initializeReplayClock,advanceReplayStateToSecond} from '../src/model/replay-second-runner.js';
 for(const seed of [1,2,4,6,7,8,12,18,1867]){
  const s=createNewGameState(seed),players=s.world.sites.filter(x=>s.world.regions.find(r=>r.id===x.regionId).controller==='player');
- assert.deepEqual(players.map(x=>x.detailedState.practiceSlots.filter(Boolean).length).sort(),[3,4]);
+ assert.deepEqual(players.map(x=>x.detailedState.practiceSlots.filter(Boolean).length).sort(),[3,3]);
  assert(s.world.sites.some(x=>x.neutral&&players.some(p=>getAdjacentRegionIds(s,p.regionId).includes(x.regionId)&&getConnectedRegionIds(s,p.regionId).includes(x.regionId))));
  const buyer=players.find(p=>s.world.sites.some(x=>x.neutral&&x.neutral.stocks.some(g=>g.traits.includes('Edible'))&&getAdjacentRegionIds(s,p.regionId).includes(x.regionId)&&getConnectedRegionIds(s,p.regionId).includes(x.regionId)));
  for(const p of players)p.detailedState.practiceSlots=Array(5).fill(null);
@@ -52,13 +52,13 @@ for(const seed of [1,2,4,6,7,8,12,18,1867]){
  const site=players[0],v={locationRegionId:site.regionId,stats:{},heirlooms:{equipped:[]}},node={purchasedOffers:[]};
  const offer={basePrestigeCost:10,intervention:{kind:'practice',mode:'learn',practiceId:'forage'}};
  const slot={practiceId:'barter',tier:'bronze',stock:0};
- for(const [n,premium] of [[2,0],[3,10],[4,30]]){
+ for(const n of [2,3,4]){
   site.detailedState.practiceSlots=Array.from({length:5},(_,i)=>i<n?{...slot}:null);
   s.civilization.prestige=100;
-  assert.equal(getShopOfferPrice(v,node,offer,s).prestigeCost,10+premium);
-  assert.equal(getShopOfferPrice(v,node,offer,s,{replacement:true}).prestigeCost,10);
+  assert.equal(getShopOfferPrice(v,node,offer,s).prestigeCost,10);
+  assert.equal(getShopOfferPrice(v,node,offer,s).prestigeCost,10);
   s.civilization.prestige=1;
-  assert.equal(getShopOfferPrice(v,node,offer,s).monsterPressureCost,10+premium);
+  assert.equal(getShopOfferPrice(v,node,offer,s).monsterPressureCost,10);
  }
 }
 for(const military of [false,true]){
