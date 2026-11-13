@@ -1,9 +1,13 @@
 // Read the identity embedded in THIS page, never relabel an older loaded game
 // with the identity of newer files on the preview server.
+import { getArtworkManifest, changedArtworkCategories, reloadForArtwork } from './artwork-cache.js';
+
 export function mountBuildBadge() {
+  const loadedArtwork = getArtworkManifest();
   const info = JSON.parse(document.getElementById('game-build-info')?.textContent || 'null');
   const badge = document.createElement('div');
   badge.id = 'game-build-badge';
+  badge.setAttribute('role', 'status');
   badge.dataset.testid = 'game-build-badge';
   const preview = info?.preview ? ` · Preview${info.previewLabel ? ` ${info.previewLabel}` : ''}` : '';
   const label = info ? `v${info.version}${preview}`
@@ -30,19 +34,47 @@ export function mountBuildBadge() {
     childList: true, attributes: true, attributeFilter: ['class'],
   });
   placeBadge();
-  if (info?.channel !== 'local') return;
+  if (!info) return;
   let checking = false;
+  let stale = false;
+  let changed = [];
+  const categoryLabels = { cards: 'Cards', regions: 'Regions', chrome: 'Frames, icons & shared chrome' };
+  const render = () => {
+    badge.textContent = changed.length
+      ? `${label} · Artwork updated: ${changed.map(key => categoryLabels[key] ?? key).join('; ')}`
+      : stale ? `${label} · Updated build available; save then reload` : label;
+    badge.dataset.stale = String(stale || changed.length > 0);
+    badge.dataset.artworkUpdated = String(changed.length > 0);
+    if (changed.length) {
+      const reload = document.createElement('button');
+      reload.textContent = 'Save & reload';
+      reload.dataset.testid = 'artwork-reload';
+      reload.addEventListener('click', async () => {
+        reload.disabled = true;
+        try {
+          if (!await reloadForArtwork()) reload.textContent = 'Reload paused — finish loading or retry saving';
+        } catch { reload.textContent = 'Save failed — keep this page open'; }
+        finally { reload.disabled = false; }
+      });
+      badge.append(reload);
+    }
+  };
   const check = async () => {
     if (document.hidden || checking) return;
     checking = true;
     try {
-      const response = await fetch('./build-info.json', { cache: 'no-store' });
-      if (!response.ok) return;
-      const current = await response.json();
-      const stale = current.build !== info.build || current.preview !== info.preview
-        || current.branch !== info.branch;
-      badge.dataset.stale = String(stale);
-      badge.textContent = stale ? `${label} · Updated build available; save then reload` : label;
+      // Fresh manifests on both LAN and Pages. Never use the broad build
+      // fingerprint as an artwork cache key or mutate the pinned manifest.
+      const [buildResult, artResult] = await Promise.allSettled([
+        fetch('./build-info.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null),
+        fetch('./artwork-manifest.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null),
+      ]);
+      if (buildResult.status === 'fulfilled' && buildResult.value) {
+        const current = buildResult.value;
+        stale = current.build !== info.build || current.preview !== info.preview || current.branch !== info.branch;
+      }
+      if (artResult.status === 'fulfilled' && artResult.value) changed = changedArtworkCategories(loadedArtwork, artResult.value);
+      render();
     } catch { /* A stopped preview does not invalidate the loaded game. */ }
     finally { checking = false; }
   };

@@ -10,8 +10,9 @@ refers to the phone. Keep the computer awake. If the firewall blocks the phone,
 allow Node on the private network.
 
 Ports start at 5184; occupied ports and previews belonging to other checkouts
-are left alone. The server serves source files without caching, so reload after
-edits. It does not automatically reload a running game. The preview identity is
+are left alone. The server serves code and HTML without caching, so reload after
+edits. Runtime artwork uses immutable content URLs; unchanged images are reused
+from this origin's browser cache. It does not automatically reload a running game. The preview identity is
 available at `/__preview__/status`; process output goes to
 `artifacts/local-preview.log`. Stop that preview's reported PID when no longer
 needed. Always return the URL actually printed by the command, not a remembered
@@ -24,16 +25,26 @@ map, Practices, saves and simulation with polygon terrain and fallback symbols.
 Omit the query for the illustrated game. Developer tools > New game in performance
 mode starts directly in the separate `performance-dev` save (replaced by each
 new performance start). Continue performance game resumes it; slots 1-3 stay
-separate. The adjacent Load artwork progressively checkbox defaults on: card
+separate. The adjacent Random seed checkbox defaults off. When checked, every
+new performance game uses fresh entropy and computes its opening forecast on the
+device before entry. It retains the regular-game setup, ignoring custom profiles,
+edited cards and the ordinary New game seed override. The choice is remembered;
+`&seed=random` selects it in a direct performance URL. Unticked (or
+`&seed=prepared`), each new start chooses uniformly among five prepared seeds:
+123, 1867, 99117, 424242 and 2026. A numeric `&seed=123` (or another seed from
+that pool) pins a direct launch for repeatable debugging. Continue always keeps
+the saved world's seed. The adjacent
+Load artwork progressively checkbox defaults on: card
 art and other atlases upload in batches after entry, then terrain prepares
 cooperatively. Stubs stay visible until everything is ready: the top-right Dev
 seal shows a tick. Tap it to reveal the prepared graphics together; holding still
 opens the workshop. Turn it off to retain
 stubs (`?dev=1&perf=1&art=0`). A direct performance URL resumes its Dev save
-when available; add `&launch=new` for a fresh start. This fixed
-regular-game seed (123) loads a prepared forecast, summaries and scrub anchors.
-`npm start` and `npm run build` regenerate it when simulation sources or its recipe
-change; UI-only edits reuse it. Custom profiles and edited cards use ordinary New
+when available; add `&launch=new` for a fresh start. Each prepared regular-game
+seed loads its own forecast, summaries and scrub anchors; entry downloads only
+the chosen seed's file. `npm start` and `npm run build` regenerate the five files
+when simulation sources, the seed pool or its recipe change; UI-only edits reuse
+them. Custom profiles and edited cards use ordinary New
 Game outside performance-start mode. The bake uses every official simulation tick;
 saves, later actions and replay use the normal engine.
 
@@ -77,6 +88,49 @@ Local HTML and Pages artifacts embed their identity at load/build time. Pages
 writes the same metadata to `dist/build-info.json` and `dist/build-manifest.json`.
 The local badge checks for edits every 30 seconds and when the tab becomes
 visible, and prompts the player to save then reload when the loaded build is old.
+
+### Selective artwork caching
+
+Both previews and Pages embed a pinned artwork manifest in HTML and expose
+`artwork-manifest.json` for fresh polling every 30 seconds and on tab visibility.
+Cards, Regions, and Frames/icons/shared chrome have separate notice revisions.
+These revisions never enter resource URLs: each runtime image has its own SHA-256
+path under `artwork/`. Changing code, docs, or an unpacked source painting cannot
+invalidate unchanged runtime art. Repack source paintings before expecting a card
+art update. Atlas JSON paths include their dependency closure, with rewritten
+image and linked multipack paths; changing one packed image reuses the other
+images while refreshing the affected JSON references. Runtime regional JSON and
+images are individually addressed too. Keep new runtime atlas groups registered
+in `scripts/artwork-manifest.mjs`, with their appropriate category.
+
+The existing build badge shows `Artwork updated: Cards` (or the affected
+categories). `Save & reload` pauses through the game menu, waits for the session
+save, and only reloads on success. Continue or another game entry cancels a
+pending reload, even if the player returns to the menu before saving finishes.
+Failed saves and unfinished entry keep the page open. A normal browser reload applies the embedded new manifest. Neither action
+clears IndexedDB, preferences, browser caches, or unrelated origin data. Minimal
+graphics still requests only shared icons; progressive art keeps the page's
+original URLs until reload and retains its explicit reveal step.
+
+The LAN server gives content URLs `max-age=31536000, immutable` and supports ETag
+revalidation; code, workers, HTML and polling metadata stay `no-store`. Its
+`artifacts/artwork-cache` retains old snapshots so already open pages can finish
+deferred loads. Pages publishes the current snapshot as ordinary static files;
+its hosting cache policy applies (observed `max-age=600` with ETag/Last-Modified),
+so expired resources can revalidate instead of transferring image payloads.
+Pages app/CSS/worker filenames remain hashed by the existing build. Pixi remains
+on its version-pinned CDN URL. No service worker, offline shell, or engine change
+is introduced. Caches are per origin: changing preview hostname or port is cold.
+Network reuse does not eliminate image decoding, GPU upload, or terrain baking.
+Browser eviction still applies: incognito memory caches may refuse the existing
+card atlas pages larger than 10 MB; a normal persistent Chromium profile retained
+all runtime images in the cache probe.
+
+Run `npm run test:artwork-cache` for changed-file, category, multipack, pinned-load
+and reload-gating contracts. `node scripts/artwork-cache-browser-probe.mjs <URL>`
+checks real cold/warm transfers and graphics modes; results go to
+`artifacts/artwork-cache/`. Add `--pages` to exercise `dist/` under a nested
+Pages-style base URL. Use `npm run verify` for the required full checks.
 
 Verify `npm run verify` and check the loaded page's badge against
 `/build-info.json`. In the completion report include the inherited or integrated

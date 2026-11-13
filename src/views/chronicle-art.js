@@ -1,5 +1,6 @@
 import { getRegionTerrainStyle } from './world-map/region-style.js';
 import { minimalGraphics } from './minimal-graphics.js';
+import { artworkUrl } from './artwork-cache.js';
 import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../defs/gamepieces/detailed-settlement-defs.js';
 // Presentation assets only. Atlas choices never read or advance simulation RNG.
 const SPRITE_SHEET_ROOT = 'images/sprite-sheets/';
@@ -158,7 +159,7 @@ function artworkError(message, cause) {
 }
 
 async function loadPackedSheet(name) {
-  const url = `${SPRITE_SHEET_ROOT}${name}`;
+  const url = artworkUrl(`${SPRITE_SHEET_ROOT}${name}`);
   let sheet;
   for (let attempt = 0; attempt < 3; attempt++) {
     try { sheet = await PIXI.Assets.load(url); break; }
@@ -177,7 +178,8 @@ async function loadPackedSheet(name) {
       throw artworkError(`Artwork has invalid or undecoded textures: ${name}`);
     }
   }
-  return { sheets, linked: (sheet.data?.meta?.related_multi_packs ?? []).filter(item => typeof item === 'string') };
+  return { sheets, linked: (sheet.data?.meta?.related_multi_packs ?? [])
+    .filter(item => typeof item === 'string').map(item => item.split('/').at(-1)) };
 }
 
 async function loadPackedGroup(group, retryFailed = false, progressive = false) {
