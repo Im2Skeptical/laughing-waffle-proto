@@ -1,5 +1,5 @@
 import { PERFORMANCE_SAVE_SLOT } from '../controllers/sim-runner/save-slots.js';
-import { artworkUrl, setArtworkReloadGuard } from './artwork-cache.js';
+import { artworkUrl, setArtworkReloadGuard, saveGameForArtworkReload } from './artwork-cache.js';
 import { minimalGraphics, getProgressiveArtworkPreference } from './minimal-graphics.js';
 import { getPerformanceRandomSeedPreference } from '../controllers/performance-start.js';
 import { PERFORMANCE_START_SEEDS } from '../controllers/performance-start-seeds.js';
@@ -400,14 +400,12 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
   function returnToMenu({ force = false } = {}) {
     if (session.openMenu({ force })) { onPause?.(); show(); }
   }
-  setArtworkReloadGuard(async () => {
-    if (entering || loadingSlot !== null) return { ok: false };
-    if (!session.isInMenu()) returnToMenu({ force: true });
-    // openMenu can queue a paused capture behind an older in-flight autosave.
-    // Drain that save, then await the paused capture before navigating away.
-    const saved = await session.save();
-    if (!saved.ok) return saved;
-    return session.save();
+  setArtworkReloadGuard(() => {
+    const version = entryVersion;
+    return saveGameForArtworkReload({ session,
+      isCurrent: () => version === entryVersion && !entering && loadingSlot === null,
+      pause: () => { if (!session.isInMenu()) returnToMenu({ force: true }); },
+    });
   });
   window.addEventListener('storage', event => {
     if (panel.hidden || ![null, NEW_GAME_DEV_SETTINGS_KEY, DEBUG_PROFILE_LIBRARY_STORAGE_KEY, CARD_REVIEW_STORAGE_KEY, CARD_REVIEW_GAME_MODE_KEY].includes(event.key)) return;

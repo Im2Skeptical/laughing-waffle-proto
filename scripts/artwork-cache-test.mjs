@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createArtworkSnapshot, stampArtworkManifest } from './artwork-manifest.mjs';
-import { changedArtworkCategories, setArtworkReloadGuard, reloadForArtwork } from '../src/views/artwork-cache.js';
+import { changedArtworkCategories, setArtworkReloadGuard, reloadForArtwork, saveGameForArtworkReload } from '../src/views/artwork-cache.js';
 
 const fixture = await mkdtemp(path.join(tmpdir(), 'civilization-artwork-'));
 const output = path.join(fixture, 'output');
@@ -70,6 +70,37 @@ try {
   setArtworkReloadGuard(async () => ({ ok: true }));
   assert.equal(await reloadForArtwork(() => reloads++), true);
   assert.equal(reloads, 1, 'Reload requires a completed successful save');
+  for (const deferredSave of [1, 2]) {
+    for (const action of ['continue', 'continue-then-menu', 'replace', 'none', 'save-failure']) {
+      let entry = 0, inMenu = false, currentTime = 0, savedTime = null, calls = 0, complete;
+      const pending = new Promise(resolve => { complete = resolve; });
+      const session = { isInMenu: () => inMenu, async save() {
+        const capture = currentTime;
+        if (++calls === deferredSave) await pending;
+        savedTime = capture;
+        return { ok: action !== 'save-failure' || calls !== deferredSave };
+      } };
+      const version = entry;
+      setArtworkReloadGuard(() => saveGameForArtworkReload({ session,
+        isCurrent: () => entry === version, pause: () => { inMenu = true; },
+      }));
+      let navigated = false;
+      const reload = reloadForArtwork(() => { navigated = true; });
+      // Reach the selected in-flight capture, rather than advancing timers.
+      while (calls < deferredSave) await Promise.resolve();
+      if (action !== 'none' && action !== 'save-failure') {
+        entry++; inMenu = false; currentTime = 30;
+        if (action === 'continue-then-menu') inMenu = true;
+      }
+      complete();
+      assert.equal(await reload, action === 'none', `${action}, pending save ${deferredSave}: reload result`);
+      assert.equal(navigated, action === 'none', `${action}, pending save ${deferredSave}: navigation`);
+      if (action !== 'none' && action !== 'save-failure') {
+        assert.equal(currentTime, 30);
+        assert.equal(savedTime, 0, 'The older capture cannot authorize discarding newer progress');
+      }
+    }
+  }
   console.log('[artwork-cache] OK: per-file identity, code/master isolation, changed pages, multipack coherence, categories, pinned loads and save-gated reload');
 } finally {
   delete globalThis.document;

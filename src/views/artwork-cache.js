@@ -19,6 +19,16 @@ export function changedArtworkCategories(loaded, current) {
 // Registered by the game menu so saving/pausing stays in the session controller.
 let beforeReload = null;
 export function setArtworkReloadGuard(guard) { beforeReload = guard; }
+export async function saveGameForArtworkReload({ session, pause, isCurrent }) {
+  if (!isCurrent()) return { ok: false };
+  pause();
+  // Drain an older autosave, then capture the paused run. An entry intent
+  // (including Continue) cancels this reload even if the menu reopens later.
+  const saved = await session.save();
+  if (!saved.ok || !isCurrent() || !session.isInMenu()) return { ok: false };
+  const paused = await session.save();
+  return isCurrent() && session.isInMenu() ? paused : { ok: false };
+}
 export async function reloadForArtwork(reload = () => location.reload()) {
   if (!beforeReload || !(await beforeReload())?.ok) return false;
   reload();

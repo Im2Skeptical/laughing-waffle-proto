@@ -105,8 +105,9 @@ in `scripts/artwork-manifest.mjs`, with their appropriate category.
 
 The existing build badge shows `Artwork updated: Cards` (or the affected
 categories). `Save & reload` pauses through the game menu, waits for the session
-save, and only reloads on success. Failed saves and unfinished entry keep the page
-open. A normal browser reload applies the embedded new manifest. Neither action
+save, and only reloads on success. Continue or another game entry cancels a
+pending reload, even if the player returns to the menu before saving finishes.
+Failed saves and unfinished entry keep the page open. A normal browser reload applies the embedded new manifest. Neither action
 clears IndexedDB, preferences, browser caches, or unrelated origin data. Minimal
 graphics still requests only shared icons; progressive art keeps the page's
 original URLs until reload and retains its explicit reveal step.
