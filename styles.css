@@ -24,6 +24,9 @@ body.game-menu-open .codex-debug-panel { display: none !important; }
   font-size:min(10px, .65vw); max-width:12em; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 #game-build-badge[data-stale="true"] { color:#ffe19a; }
 #game-build-badge:hover, #game-build-badge:focus-visible { opacity:.85; }
+#game-build-badge[data-artwork-updated="true"] { opacity:.9; white-space:normal; overflow:visible; max-width:min(360px, 48vw); }
+#game-build-badge button { display:block; margin:4px 0 0 auto; min-height:32px; color:#ffe19a;
+  background:#20292d; border:1px solid #84734b; border-radius:3px; cursor:pointer; font:12px system-ui,sans-serif; }
 #game-menu { position: fixed; inset: 0; z-index: 3000; overflow: auto; color: #f6efe3;
   background: radial-gradient(ellipse at 50% 0%, #405444, #20292d 70%); font-family: Georgia, serif;
   padding: max(24px, env(safe-area-inset-top)) 20px; box-sizing: border-box; }

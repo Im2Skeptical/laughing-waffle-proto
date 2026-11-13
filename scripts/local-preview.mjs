@@ -7,9 +7,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { root, workspaceId, getBuildInfo, stampBuildInfo } from './build-info.mjs';
+import { createArtworkSnapshot, stampArtworkManifest } from './artwork-manifest.mjs';
 
-// Pool-aware fixture keys require a fresh server after upgrading older tooling.
-const protocol = 3;
+// Artwork cache delivery requires a fresh server after upgrading older tooling.
+const protocol = 5;
 const firstPort = 5184;
 const ports = Array.from({ length: 12 }, (_, i) => firstPort + i);
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
@@ -25,6 +26,14 @@ function urls(port) {
 }
 
 async function serve(port) {
+  const artworkRoot = path.join(root, 'artifacts/artwork-cache');
+  let artPending, artCached, artExpires = 0;
+  const artwork = () => {
+    if (artCached && Date.now() < artExpires) return Promise.resolve(artCached);
+    return artPending ??= createArtworkSnapshot(root, artworkRoot).then(value => {
+      artCached = value; artExpires = Date.now() + 5_000; return value;
+    }).finally(() => { artPending = null; });
+  };
   let pending;
   let cached;
   let expiresAt = 0;
@@ -51,11 +60,23 @@ async function serve(port) {
         protocol, workspaceId, pid: process.pid, ...urls(port),
       }));
       if (route === '/build-info.json') return reply(200, 'application/json', JSON.stringify(await info()));
+      if (route === '/artwork-manifest.json') return reply(200, 'application/json', JSON.stringify(await artwork()));
       if (route === '/' || route === '/index.html') {
         const build = await info();
-        return reply(200, 'text/html', stampBuildInfo(await readFile(path.join(root, 'index.html'), 'utf8'), build));
+        return reply(200, 'text/html', stampArtworkManifest(stampBuildInfo(await readFile(path.join(root, 'index.html'), 'utf8'), build), await artwork()));
       }
       const relative = route.replace(/^\/+/, '');
+      if (/^artwork\/[a-f0-9]{64}\/[\w.-]+$/.test(relative)) {
+        const full = path.join(artworkRoot, relative);
+        const details = await stat(full);
+        response.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        response.setHeader('ETag', `"${relative}"`);
+        if (request.headers['if-none-match'] === `"${relative}"`) { response.writeHead(304); return response.end(); }
+        response.writeHead(200, { 'Content-Type': mime[path.extname(full)] ?? 'application/octet-stream', 'Content-Length': details.size });
+        if (request.method === 'HEAD') return response.end();
+        const stream = createReadStream(full);
+        stream.on('error', () => response.destroy()); stream.pipe(response); return;
+      }
       if ((!/^(?:src|images)\//.test(relative) && relative !== 'styles.css')
           || relative.split('/').some(part => part.startsWith('.'))) return reply(404, 'text/plain', 'Not found');
       const full = await realpath(path.resolve(root, relative));

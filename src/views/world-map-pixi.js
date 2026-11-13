@@ -1,4 +1,4 @@
-import {regionalReadoutVariant,addRegionalReadoutPrototype,updateRegionalReadoutScale,addAtlasFocus,ATLAS_ECONOMY_POINT,getFloatingReadoutMeasurements,getMonsterReadoutMeasurements} from './world-map/regional-readout-prototype.js';
+import {regionalReadoutVariant,addRegionalReadoutPrototype,createRegionalReadoutRegistry,addAtlasFocus,ATLAS_ECONOMY_POINT} from './world-map/regional-readout-prototype.js';
 import { getRegionTerrainStyle, getRegionNameColour } from './world-map/region-style.js';
 import { addFerryCrossing, roadBorderCrossings, landRoadSections } from './world-map/road-crossings.js';
 import { minimalGraphics } from './minimal-graphics.js';
@@ -249,6 +249,7 @@ export function createWorldMapView({
   getDisplayOptions,
   tooltipView = null,
 }) {
+  const readoutRegistry=createRegionalReadoutRegistry();
   const atlasMode=regionalReadoutVariant()==='atlas';
   const floatingMode=regionalReadoutVariant()==='floating';
   let prototypeEconomyExpanded=false,lastPrototypePanelMode=null;
@@ -507,13 +508,8 @@ export function createWorldMapView({
     g.drawPolygon([bx,by,sx+px*head*0.8,sy+py*head*0.8,sx-px*head*0.8,sy-py*head*0.8]);
     g.endFill();
   }
-  const corridorLabels=[];
   function drawTradeCorridors(definition, timeSec, dragging) {
-    for(const label of corridorLabels)label.visible=false;
-    let labelIndex=0;
-    const labelRows=new Map();
     tradeCorridorGraphics.clear();
-    for(const label of corridorLabels)label.visible=false;
     if(!definition)return;
     const state=getState?.();
     const windowSec=Math.max(48,getMoonCycleDurationSec(state)*24);
@@ -525,15 +521,6 @@ export function createWorldMapView({
       const alpha=dragging?0.6+0.3*flow.intensity:0.3;
       // Keep corridor width constant on screen so it reads at overview zoom.
       drawCorridorArrow(tradeCorridorGraphics,sitePoint(source),sitePoint(destination),getTradeCorridorWidth(flow.intensity,dragging)/zoom,TRADE_GOLD,alpha,transferRoadPath(source,destination));
-      const path=transferRoadPath(source,destination);
-      const pose=getEdgeTransferPacketPose({path,progress:.5});
-      let label=corridorLabels[labelIndex];
-      if(!label){label=new PIXI.Text('',{fontFamily:'Georgia',fontSize:14,fill:0xffe6a2,stroke:0x101819,strokeThickness:4});label.anchor.set(.5,1);tradeCorridorGraphics.addChild(label);corridorLabels.push(label);}
-      labelIndex++;label.visible=true;label.text=flow.resourceId==='stock' ? (flow.traits.join(' / ')||'Stock') : flow.resourceId==='food'?'Food':'People';
-      const pairKey=[flow.from,flow.to].sort().join(':');
-      const row=labelRows.get(pairKey)??0;labelRows.set(pairKey,row+1);
-      label.position.set(pose.x,pose.y-(8+18*row)/zoom);label.scale.set(1/zoom);
-
     }
   }
   function drawGhostPacket(packet, progress, alpha) {
@@ -649,7 +636,6 @@ export function createWorldMapView({
     lastEdgeTransferDescriptorBoundarySec = null;
     tradeFlowHistory.clear();
     tradeCorridorGraphics.clear();
-    for(const label of corridorLabels)label.visible=false;
     edgeTransferGraphics.clear();
     stockTransferIcons.clear();
   }
@@ -932,16 +918,18 @@ export function createWorldMapView({
       mapContent.addChild(presentRegion(regionContent, indicator.regionId));
       const point = sitePoint(regionDef);
       if (display.actors !== false && indicator.monster) addMonsterMarker(regionContent, point, {art:!illustratedMap});
-      if (display.actors !== false && indicator.crownCapital) addCrownCapitalMarker(regionContent,point,tooltipView);
       const readoutVariant=regionalReadoutVariant();
+      if (display.actors !== false && indicator.crownCapital&&(readoutVariant!=='floating'||(new URLSearchParams(globalThis.location?.search??'').get('regionalForce')??'onbar')!=='onbar')) addCrownCapitalMarker(regionContent,point,tooltipView);
       const sampleMode=new URLSearchParams(globalThis.location?.search??'').get('regionalForceSample');
       const forceSample=floatingMode&&indicator.controller==='player'?(sampleMode==='both'?(indicator.regionId===state.civilization.capitalRegionId?'short':'held'):['short','held','fractional'].includes(sampleMode)?sampleMode:null):null;
 
       const footprint=illustrated.stats.sites?.find(site=>site.regionId===indicator.regionId)?.spriteBounds;
       const spriteBounds=footprint?{min:screenPoint({x:footprint.minX,y:footprint.minY}),max:screenPoint({x:footprint.maxX,y:footprint.maxY})}:null;
+      const landmark=illustrated.stats.sites?.find(site=>site.regionId===indicator.regionId)?.urban?.monument?.worldBounds;
+      const landmarkBounds=landmark?{min:screenPoint({x:landmark.minX,y:landmark.minY}),max:screenPoint({x:landmark.maxX,y:landmark.maxY})}:null;
 
       if(display.actors!==false&&readoutVariant){
-        const readout=addRegionalReadoutPrototype(floatingMode?floatingOverlay:regionContent,point,indicator,{tooltipView,reference:getRegionReference(state,indicator.regionId),variant:readoutVariant,spriteBounds,forceSample});
+        const readout=addRegionalReadoutPrototype(floatingMode?floatingOverlay:regionContent,point,indicator,{tooltipView,reference:getRegionReference(state,indicator.regionId),variant:readoutVariant,registry:readoutRegistry,spriteBounds,landmarkBounds,regionPolygon:polygon(regionDef).map(screenPoint),forceSample});
         if(floatingMode&&readout)presentRegion(readout,indicator.regionId);
       }
       if(display.actors!==false&&!readoutVariant)addMapInfluenceMarker(regionContent,point,indicator.influence,{tooltipView,reference:getRegionReference(state,indicator.regionId)??indicator.regionId});
@@ -982,10 +970,11 @@ export function createWorldMapView({
     // when they overlap a region title.
     // Name colours follow viewed control, including occupation and rewind.
     // Stock changes still retain their text textures.
-    floatingReferenceLayer=retained.update(mapContent,'references',[getArtRevision(),display.choiceRegionIds,
+    floatingReferenceLayer=retained.update(mapContent,'references',[getArtRevision(),display.choiceRegionIds,selectedRegionId,regionSelectionActive,
       definition.regions.map(r=>[r.id,getRegionNameColour(getRegionState(state,r.id))])],mapContent=>{
     floatingNameLabels=[];
     for (const regionDef of definition.regions) {
+      if(!regionSelectionActive||regionDef.id!==selectedRegionId)continue;
       if(atlasMode&&!getRegionState(state,regionDef.id)?.monster)continue;
       const point = getRegionReferenceCorner(definition, regionDef, screenPoint, polygon)
         ?? sitePoint(regionDef);
@@ -1111,7 +1100,7 @@ export function createWorldMapView({
       camera.update();
       panelReveal.update();
       render();
-      if(regionalReadoutVariant())updateRegionalReadoutScale(camera.snapshot().zoom);
+      if(regionalReadoutVariant())readoutRegistry.updateRegionalReadoutScale(camera.snapshot().zoom,getRegionSelectionActive?.()===true?getSelectedRegionId?.():null);
       updateEdgeTransferPackets();
       illustrated.update(visualTime(),camera.snapshot().zoom);
     },
@@ -1164,7 +1153,6 @@ export function createWorldMapView({
       lastEdgeTransferBatchKey = null;
       lastEdgeTransferDescriptorBoundarySec = null;
       tradeCorridorGraphics.clear();
-    for(const label of corridorLabels)label.visible=false;
       edgeTransferGraphics.clear();
       stockTransferIcons.clear();
     },
@@ -1205,10 +1193,10 @@ export function createWorldMapView({
         : [];
       return {
         visible: root.visible === true,
-        monsterReadouts:getMonsterReadoutMeasurements(),
+        monsterReadouts:readoutRegistry.getMonsterReadoutMeasurements(),
         lastMonsterSpawn:civilizationSummary.chaos.lastMonsterSpawn,
         floatingNamesAboveReadouts:floatingMode&&floatingReferenceLayer?.parent===mapContent&&floatingOverlay.parent===mapContent?mapContent.getChildIndex(floatingReferenceLayer)>mapContent.getChildIndex(floatingOverlay):null,
-        floatingReadouts:floatingMode?getFloatingReadoutMeasurements().map(reading=>{const label=floatingNameLabels.find(item=>!item.destroyed&&item.mapRegionId===reading.regionId),b=label?.visible?label.getBounds():null;return {...reading,name:b?{x:b.x,y:b.y,width:b.width,height:b.height}:null,nameHome:label?.floatingHome??null,namePosition:label?{x:label.x,y:label.y}:null};}):null,
+        floatingReadouts:floatingMode?readoutRegistry.getFloatingReadoutMeasurements().map(reading=>{const label=floatingNameLabels.find(item=>!item.destroyed&&item.mapRegionId===reading.regionId),b=label?.visible?label.getBounds():null;return {...reading,name:b?{x:b.x,y:b.y,width:b.width,height:b.height}:null,nameHome:label?.floatingHome??null,namePosition:label?{x:label.x,y:label.y}:null};}):null,
         regionalReadoutPrototype:atlasMode?{variant:'atlas',economyExpanded:prototypeEconomyExpanded,economyClickPoint:ATLAS_ECONOMY_POINT}:null,
         illustratedTerrain:{...illustrated.stats},
         retainedScene:retained.snapshot(),

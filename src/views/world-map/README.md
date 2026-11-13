@@ -1,11 +1,12 @@
 # World map view extract
 
-The accepted floating settlement readout is the ordinary default, at fixed 70%
-screen scale. Worker/Prestige pills and Force shields take priority over corner
-region labels. Influence sits above the settlement sprite; the connected
-worker-circle/Prestige-pill sits below. Active player Prestige uses gold fill and
-dark ink; inactive potential stays charcoal and muted. Worker medallions use
-stronger gold/Crown ownership rims and tinted fills, with grey-green for unheld.
+The default settlement readout uses the approved two-row crest at fixed 70%
+screen scale. At overview it shows workers/ownership, plus active Prestige income
+for player holdings. Unselected crests disclose influence and potential Prestige
+together when their painted footprints fit their regions; selecting a town always
+reveals its full crest. Zooming out preserves that selected crest. The capital
+Crown attaches to its shield. Region names appear only for the selected region.
+Active income uses gold/dark ink; inactive potential stays charcoal and muted.
 Population and food-balance integration notes:
 [`docs/regional-population-ux-integration.md`](../../../docs/regional-population-ux-integration.md).
 A thin sword marks the zero-Force holding threshold (currently 70%) on held
@@ -20,6 +21,15 @@ touch inspection. Repel feedback and baseline timing are documented in
 [`docs/monster-escalation.md`](../../../docs/monster-escalation.md).
 
 ## Illustrated live worlds
+
+The local Crown art iteration fixes live town/civic anchors at `region.centre`.
+The view bake reserves central dry ground before swamp pools and island shores
+are painted. Region polygons, biomes, adjacency and simulation state are unchanged.
+Existing road connections route around landmark foundation contacts; a village
+approach may move outward when it would end inside the larger city landmark.
+The persistent economic-flow resource words are removed; trade graphics and
+simulation history remain. See the current local scope in
+[`docs/crown-modular-art-iteration.md`](../../../docs/crown-modular-art-iteration.md).
 
 New games use the shared v1.0.34 regional geography and artwork. The saved
 `regional-v<revision>:<seed>` definition ID (revision 1 today, pinned by
@@ -311,7 +321,17 @@ unheld neutral land is not a contested holding. Crown holdings share a copper
 boundary and capital badge; independent outskirts use resource-only boards.
 
 
-Crown region-art expansion is deferred. The existing fitted building kit remains
-active; rejected oversized region paintings are not loaded. A future pass needs
-modular buildings, walls, streets and clearings at the established settlement
-scale, integrated through the existing terrain/settlement composition.
+The Crown capital and provinces use the approved Warlord modular city kit,
+composed at settlement architectural scale with biome-specific central structures.
+See `docs/crown-modular-art-iteration.md` for the agreed scope and source provenance.
+Rejected oversized region paintings remain unused.
+
+`settlement-readout-frame.js` owns the accepted two-row frame;
+`settlement-readout-layout.js` owns painted-footprint containment and shared zoom
+hysteresis. `regional-readout-prototype.js` gives each map its own registry and
+coordinates its unselected settlements,
+including offscreen ones. Selection always reveals its full crest above other
+readouts. Deselecting returns it to the group. Camera limits are unchanged.
+An impossible unselected fit keeps that group compact. Earlier plate/medallion/
+tall-crest trials and their URL switches are preserved in the task branch's
+checkpoint 7e9318c3, and are not shipped as alternate layouts.

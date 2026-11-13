@@ -16,7 +16,9 @@
           ['vassal-portraits.json','fetch'], ['chronicle-gate.png','image'],
         ]) {
           const link = document.createElement('link');
-          link.rel = 'preload'; link.as = as; link.href = 'images/sprite-sheets/' + href;
+          const file = 'images/sprite-sheets/' + href;
+          const manifest = JSON.parse(document.getElementById('game-artwork-manifest')?.textContent || 'null');
+          link.rel = 'preload'; link.as = as; link.href = manifest?.files?.[file]?.url ?? file;
           if (as === 'fetch') link.crossOrigin = '';
           document.head.appendChild(link);
         }

@@ -15,6 +15,7 @@ import { releaseZoomArt } from './zoom-art.js';
 import { paintOcean, paintEcotones, SHORE_TREATMENTS } from './terrain-interactions.js';
 import { prepareTerrainSurfaces, createSurfaceSampler } from './terrain-surfaces.js';
 import { paintWetlandPools } from './wetland-ground.js';
+import {settlementCentreReservations,rasterizeSettlementCentres} from './settlement-centres.js';
 
 export const ATLAS_COLOURS = { plains: 0xb7a17b, forest: 0x969174, islands: 0x688689, swamp: 0x858675, mountains: 0xa49782, monster:0x786359 };
 const ATLAS_GROUND = {
@@ -184,7 +185,7 @@ export function* bakePixelTerrainSteps(map, options) {
   finally { if (!finished) destroyPixelTerrain(partial); }
 }
 
-function* bakeTerrain(map, { texel = 2, sampleBackground, sites = true, settlementScale = .75, islandStyle = 'basalt', retainPresentation = false, windowedAnimation = false, worldBounds = null }, partial) {
+function* bakeTerrain(map, { texel = 2, sampleBackground, sites = true, settlementScale = .75, islandStyle = 'basalt', retainPresentation = false, windowedAnimation = false, worldBounds = null, centredSettlements = null }, partial) {
   const started = performance.now(), detail = texel === 2 ? 2 : 1, ART = ART_BANKS[detail];
   // The live game supplies a finite opaque extent. The standalone study keeps
   // its generous fine apron and cheap distant bake for unrestricted panning.
@@ -223,6 +224,8 @@ function* bakeTerrain(map, { texel = 2, sampleBackground, sites = true, settleme
     }
   };
   map.regions.forEach((r, i) => fill(r.outline, regionIds, i));
+  const centreReservations=centredSettlements?settlementCentreReservations(map,pixel,detail,centredSettlements):[];
+  const centreMask=rasterizeSettlementCentres(centreReservations,{map,width,height,regionIds});
   for (const cluster of map.islandClusters) {
     fill(cluster.contours[0], islandLand, 1);
     for (const contour of cluster.contours.slice(1)) fill(contour, islandLand, insidePolygon(contour[0], cluster.contours[0]) ? 0 : 1);
@@ -234,7 +237,7 @@ function* bakeTerrain(map, { texel = 2, sampleBackground, sites = true, settleme
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
     const i = y * width + x, region = map.regions[regionIds[i]];
     p.x = bounds.minX + (x + .5) * texel / 1576; p.y = bounds.minY + (y + .5) * texel / 516; sampleBackground(p, f);
-    land[i] = region ? region.biome === 'islands' ? islandLand[i] : 1 : f[0] < .5 ? 1 : 0;
+    land[i] = region ? region.biome === 'islands' ? islandLand[i]||centreMask[i] : 1 : f[0] < .5 ? 1 : 0;
     if (!land[i]) continue;
     const material = region?.biome ?? (f[1] > .5 ? 'highlands' : f[2] > .3 ? 'marsh' : f[3] > .3 ? 'scrub' : 'badlands');
     if (x >= materials.x && y >= materials.y && x < materials.x + materials.width && y < materials.y + materials.height)
@@ -296,7 +299,7 @@ function* bakeTerrain(map, { texel = 2, sampleBackground, sites = true, settleme
     regionIds, seaDistance, dryDistance, shoreTypes, waterBodies, waterBank, groundBank, noise, mixColour, waterBase, waterStrength, waterOverlays, surfaces });
   yield;
   const wetlands = paintWetlandPools({ map, pixel, width, height, detail, texel, bounds, regionIds, land, dryDistance,
-    colours, waterIndices, waterBase, waterStrength, noise, mixColour, surfaces, protectedCentres: sites ? map.regions.filter(r => r.biome !== 'islands')
+    colours, waterIndices, waterBase, waterStrength, noise, mixColour, surfaces, protectedCentres: centredSettlements?centreReservations:sites ? map.regions.filter(r => r.biome !== 'islands')
       .filter((r, i) => i === 2 || i === 7 || i === 12).map(r => pixel(r.centre)) : [] });
   yield;
   const put = (x, y, colour, water = 0, onlyDry = false) => {

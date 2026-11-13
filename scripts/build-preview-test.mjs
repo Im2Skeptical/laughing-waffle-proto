@@ -5,6 +5,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import {createServer} from 'node:net';
+import { createHash } from 'node:crypto';
 
 const fixture = await mkdtemp(path.join(tmpdir(), 'civilization-build-preview-'));
 const serverPids = [];
@@ -12,9 +13,15 @@ try {
   await mkdir(path.join(fixture, 'scripts'));
   await mkdir(path.join(fixture, 'ai'));
   await mkdir(path.join(fixture, 'src'));
-  for (const file of ['build-info.mjs', 'local-preview.mjs', 'version-game.mjs', 'performance-fixture.mjs', 'performance-fixture-recipe.mjs']) {
+  for (const file of ['artwork-manifest.mjs', 'build-info.mjs', 'local-preview.mjs', 'version-game.mjs', 'performance-fixture.mjs', 'performance-fixture-recipe.mjs']) {
     await copyFile(`scripts/${file}`, path.join(fixture, 'scripts', file));
   }
+  const registry = JSON.parse(await readFile('images/asset-manifest.json', 'utf8'));
+  Object.values(registry.spriteSheets).forEach(group => { group.data = []; });
+  await mkdir(path.join(fixture, 'images/dark-fantasy/map-generation-prototype/assets/runtime'), {recursive:true});
+  await writeFile(path.join(fixture, 'images/asset-manifest.json'), JSON.stringify(registry));
+  for (const name of ['cloud-banks-v2.png', 'cloud-banks-v3.png', 'cloud-cumulus-v1.png'])
+    await writeFile(path.join(fixture, 'images/dark-fantasy/map-generation-prototype', name), 'fixture');
   // Fixture servers must not compete with the user's running review previews.
   // Reserve an ephemeral candidate, then give only this copied preview its range.
   const probe=createServer();
@@ -37,7 +44,7 @@ try {
   await writeFile(path.join(fixture, 'package.json'), JSON.stringify(pkg));
   await writeFile(path.join(fixture, 'package-lock.json'), JSON.stringify({ ...pkg, packages: { '': pkg } }));
   await writeFile(path.join(fixture, 'ai/ai-context.md'), 'Game build version: `1.0.0`.\n');
-  await writeFile(path.join(fixture, 'index.html'), '<script id="game-build-info" type="application/json">null</script>');
+  await writeFile(path.join(fixture, 'index.html'), '<head></head><script id="game-build-info" type="application/json">null</script>');
   await writeFile(path.join(fixture, 'src/example.js'), 'export const value = 1;\n');
   const git = args => execFileSync('git', args, { cwd: fixture, stdio: 'pipe', windowsHide: true });
   git(['init', '-q', '-b', 'main']); git(['add', '.']);
@@ -62,7 +69,7 @@ try {
   assert.ok(address, `Startup must wait for readiness and print a URL; got ${JSON.stringify(first)}`);
   assert.notEqual(new URL(address).port,String(fixturePort),'the old server must be left alone and replaced by a compatible preview');
   const status = await (await fetch(`${address}__preview__/status`)).json();
-  assert.equal(status.protocol,3);
+  assert.equal(status.protocol,5);
   const serverPid = status.pid;
   serverPids.push(serverPid);
   assert.ok(Number.isInteger(serverPid));
@@ -72,6 +79,14 @@ try {
   assert.equal(response.headers.get('cache-control'), 'no-store');
   const html = await response.text();
   const original = await (await fetch(`${address}build-info.json`)).json();
+  const artwork = await (await fetch(`${address}artwork-manifest.json`)).json();
+  assert.ok(html.includes(JSON.stringify(artwork)), 'Local HTML pins its artwork snapshot');
+  const artUrl = Object.values(artwork.files)[0].url;
+  const artResponse = await fetch(`${address}${artUrl}`);
+  assert.equal(artResponse.headers.get('cache-control'), 'public, max-age=31536000, immutable');
+  assert.equal((await fetch(`${address}${artUrl}`, { headers: { 'If-None-Match': artResponse.headers.get('etag') } })).status, 304);
+  assert.equal((await fetch(`${address}artwork-manifest.json`)).headers.get('cache-control'), 'no-store');
+  assert.equal((await fetch(`${address}src/example.js`)).headers.get('cache-control'), 'no-store');
   assert.ok(html.includes(JSON.stringify(original)), 'Page and metadata identities must agree');
   assert.equal(original.channel, 'local');
   assert.equal(original.version, '1.0.0');
@@ -158,6 +173,19 @@ try {
   assert.equal(built.version, JSON.parse(await readFile('package.json', 'utf8')).version);
   assert.equal(built.build, manifest.build);
   assert.ok(page.includes(JSON.stringify(built)), 'Pages embeds the published build identity');
+  const deployedArt = JSON.parse(await readFile('dist/artwork-manifest.json', 'utf8'));
+  assert.ok(page.includes(JSON.stringify(deployedArt)), 'Pages pins its exact artwork manifest before preloads');
+  const deployedUrls = new Set(Object.values(deployedArt.files).map(file => file.url));
+  for (const [source, file] of Object.entries(deployedArt.files)) {
+    const bytes = await readFile(path.join('dist', file.url));
+    assert.equal(createHash('sha256').update(bytes).digest('hex'), file.hash, `Published bytes match the manifest: ${source}`);
+    if (!source.startsWith('images/sprite-sheets/') || !source.endsWith('.json')) continue;
+    const json = JSON.parse(bytes);
+    for (const ref of [json.meta.image, ...(json.meta.related_multi_packs ?? [])]) {
+      assert.ok(deployedUrls.has(path.posix.normalize(path.posix.join(path.posix.dirname(file.url), ref))),
+        `Every published atlas reference uses the same snapshot: ${source} -> ${ref}`);
+    }
+  }
   console.log('[build-preview] OK: old-server rejection, preview isolation, parallel worktrees, integration-only versions, content identity, Pages metadata');
 } finally {
   for (const pid of serverPids) process.kill(pid);

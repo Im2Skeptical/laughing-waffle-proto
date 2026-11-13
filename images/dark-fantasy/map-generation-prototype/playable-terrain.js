@@ -83,8 +83,9 @@ export function* composePlayableTerrainSteps({map, texel, detail, ART, width, he
   } });
   for(const site of settlementPlans){
     const rx=site.rx*2.5,ry=site.ry*2.5;
-    for(let y=Math.max(0,Math.floor(site.y-ry));y<Math.min(height,site.y+ry);y++)
-      for(let x=Math.max(0,Math.floor(site.x-rx));x<Math.min(width,site.x+rx);x++)
+    const box=site.groundBounds??{minX:site.x-rx,maxX:site.x+rx,minY:site.y-ry,maxY:site.y+ry};
+    for(let y=Math.max(0,Math.floor(box.minY));y<Math.min(height,box.maxY);y++)
+      for(let x=Math.max(0,Math.floor(box.minX));x<Math.min(width,box.maxX);x++)
         if(siteReliefContains([site],x,y))siteMask[y*width+x]=1;
   }
   // The workbench connects its sample towns. Live maps supply exact gameplay edges.
