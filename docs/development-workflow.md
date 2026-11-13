@@ -48,6 +48,33 @@ them. Custom profiles and edited cards use ordinary New
 Game outside performance-start mode. The bake uses every official simulation tick;
 saves, later actions and replay use the normal engine.
 
+## Interrupted New Game loading
+
+Switching apps, locking the phone, or browser freeze suspends opening simulation
+without cancelling entry. Returning resumes from accepted forecast coverage;
+foreground-only deadlines still detect a genuinely stalled worker. Continue's
+save-replay deadline also excludes background suspension. No wake lock is used.
+
+New Game stores one replaceable opening checkpoint in IndexedDB's `settings`
+store, outside save slots. It captures the initial world, every computed summary,
+retained anchors and the continuation tail, at most every five foreground
+seconds while progressing, plus initialization, suspension and completion.
+Writes are atomic and periodic writes do not overlap. A reload reuses compatible
+work when preparing New Game; choose the destination slot again. Graphics may
+need rebuilding. Compatibility requires the exact embedded build fingerprint and
+launch settings. Back/settings changes discard preparation; Retry retains it.
+The checkpoint remains through scene installation and first-save failures, then
+clears after a successful initial save (including a save retry). Denied storage,
+quota errors or damaged checkpoints fall back to ordinary loading. Browser
+storage eviction can still remove checkpoints.
+
+Run `npm run test:loading-recovery` for the deterministic/IndexedDB checks and
+the real-menu phone visibility and browser-reload regression probes. On a phone,
+start New Game, switch apps/lock for a minute, return and check entry completes
+without Retry. For process-loss recovery, reload during forecast preparation,
+then choose New Game and a slot: forecast preparation resumes from the last
+committed checkpoint with the same world. Artwork preparation may run again.
+
 ## Versions
 
 1. Every PR includes the next version bump in `package.json`, both package-lock

@@ -14,6 +14,8 @@ import { openLabHandoff, readLabHandoff } from '../controllers/development-lab-b
 import { openCardReviewer, createCardReviewController } from '../controllers/card-review-controller.js';
 import { createNewGameSettingsController } from '../controllers/new-game-settings-controller.js';
 import { createNewGameOpeningController } from "../controllers/new-game-opening-controller.js";
+import { createLoadingLifecycle } from '../controllers/loading-lifecycle.js';
+import { createOpeningCheckpointStore } from '../controllers/opening-checkpoint-store.js';
 import { mergePreparedForecast } from '../controllers/prepared-forecast-handoff.js';
 import { createGameMenuDom } from "./game-menu-dom.js";
 import { createResearchLibraryView } from './research-library-pixi.js';
@@ -239,12 +241,18 @@ const cardReviews=createCardReviewController();
 const newGameSettings = createNewGameSettingsController({ cardReviews });
 let performanceStart = new URLSearchParams(location.search).get('perf') === '1';
 let performanceRandomSeed = getPerformanceRandomSeedPreference();
+const loadingLifecycle = createLoadingLifecycle();
+const openingCheckpoints = createOpeningCheckpointStore({
+  build: JSON.parse(document.getElementById('game-build-info')?.textContent || 'null')?.build,
+});
 const opening = createNewGameOpeningController({
+  lifecycle: loadingLifecycle,
+  checkpoints: openingCheckpoints,
   loadPrepared: performanceStart && !performanceRandomSeed ? loadPerformanceStart : null,
   createState:()=>performanceStart
     ? createNewGameState(globalThis.crypto.getRandomValues(new Uint32Array(1))[0])
     : newGameSettings.createNewGame(),
-  getPreparationKey:()=>performanceStart ? `performance:${performanceRandomSeed}` : newGameSettings.getLaunchKey(),
+  getPreparationKey:()=>JSON.stringify([location.search, performanceStart ? `performance:${performanceRandomSeed}` : newGameSettings.getLaunchKey()]),
   createCache: () => createSettlementProjectionCache({ horizonSec: SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC }),
   createWorkerService: () => createTimegraphForecastWorkerService(),
   searchLimitSec: SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC,
@@ -1733,6 +1741,7 @@ let gameMenu;
 let progressiveArtEpoch=0,progressiveArtStarted=false;
 const nodeResolutionDiagnostics = createNodeResolutionDiagnostics();
 const gameSession = createGameSessionController({
+  waitUntilActive: () => loadingLifecycle.waitUntilActive(),
   createState:()=>newGameSettings.createNewGame(),
   runner,
   opening,
@@ -1743,6 +1752,7 @@ const gameSession = createGameSessionController({
       if (!isCurrent()) return false;
       onProgress?.({ stage: id, label });
       await new Promise(resolve => setTimeout(resolve, 0));
+      await loadingLifecycle.waitUntilActive();
       return isCurrent();
     };
     if (!await stage('artwork', 'Loading chronicle artwork')) return;
@@ -1793,6 +1803,7 @@ const gameSession = createGameSessionController({
   getForecastDiagnostics: () => forecastWorkerService.getDiagnostics(),
 });
 gameMenu = createGameMenuDom({
+  loadingLifecycle,
   cardReviews,
   newGameSettings,
   session: gameSession,

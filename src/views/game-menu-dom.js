@@ -10,8 +10,10 @@ import { createGameLoadingDom } from './game-loading-dom.js';
 import { NEW_GAME_DEV_SETTINGS_KEY } from '../controllers/new-game-settings-controller.js';
 import { DEBUG_PROFILE_LIBRARY_STORAGE_KEY } from '../model/debug-profile-library.js';
 import { CARD_REVIEW_STORAGE_KEY, CARD_REVIEW_GAME_MODE_KEY } from '../controllers/card-review-controller.js';
+import { createLoadingLifecycle } from '../controllers/loading-lifecycle.js';
 
-export function createGameMenuDom({ session, onResume, onPause, cardReviews, newGameSettings, onPerformanceMode }) {
+export function createGameMenuDom({ session, onResume, onPause, cardReviews, newGameSettings, onPerformanceMode,
+  loadingLifecycle = createLoadingLifecycle() }) {
   const portrait = window.matchMedia(PHONE_PORTRAIT_QUERY);
   const panel = document.createElement("main");
   panel.id = "game-menu";
@@ -113,7 +115,8 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
       await requestGameDisplayMode({ forceFullscreen: event?.pointerType === 'touch' });
       // Fullscreen/orientation steal window focus on phones; visibility is the
       // signal that the player actually left during the request.
-      if (version !== entryVersion || document.hidden) return;
+      await loadingLifecycle.waitUntilActive();
+      if (version !== entryVersion) return;
       if (portrait.matches) {
         if (slot === PERFORMANCE_SAVE_SLOT) performanceEntryPending = true;
         loadingSlot = null;
@@ -127,9 +130,11 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
       // Commit the loading screen after rotation and before any synchronous
       // entry work. A task after the frame gives the browser a paint opportunity.
       await new Promise(resolve => requestAnimationFrame(() => setTimeout(resolve, 0)));
-      if (version !== entryVersion || document.hidden) return;
+      await loadingLifecycle.waitUntilActive();
+      if (version !== entryVersion) return;
       loadingStarted = true;
-      const result = await action(() => version === entryVersion && !document.hidden && !portrait.matches);
+      const result = await action(() => version === entryVersion);
+      await loadingLifecycle.waitUntilActive();
       if (version !== entryVersion) return;
       if (result.ok) {
         loadingSlot = null;
@@ -210,7 +215,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
         content.append(button("Retry", event => {
           if (session.canResume() && session.getActiveSlot() === loadingSlot && session.getSaveStatus().phase === 'failed') {
             void enter(async () => { const result = await session.save(); if (result.ok) { loadingSlot = null; return session.resume(); } return result; }, null, event);
-          } else { session.cancelPreparation?.(); void enter(loadingAction, loadingSlot, event); }
+          } else { session.cancelPreparation?.({ discard: false }); void enter(loadingAction, loadingSlot, event); }
         }, "game-loading-retry"));
       }
       content.append(button("Back", () => {

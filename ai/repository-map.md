@@ -27,6 +27,12 @@ and its direct dependencies.
 - Loading status/timing view: `src/views/game-loading-dom.js`; runtime-only
   stage timings and failure reasons: `src/controllers/loading-diagnostics.js`.
   The latest entry is also included in the save diagnostic report.
+- Loading lifecycle and foreground clock: `src/controllers/loading-lifecycle.js`.
+  Opening pause/resume and checkpoint orchestration: `new-game-opening-controller.js`;
+  atomic single-record persistence: `opening-checkpoint-store.js`; derivative
+  validation: `opening-checkpoint-validation.js` (all in `src/controllers/`).
+  `npm run test:loading-recovery` covers phone visibility, native browser reload,
+  deterministic continuation, storage failures and checkpoint cleanup.
 - Continue save parsing/validation/replay worker: `src/controllers/save-load-worker.js`
   and `src/controllers/save-load-worker-service.js`. Uses the authoritative save
   inspector; cancelled entry terminates worker replay before runner installation.
