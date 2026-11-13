@@ -317,10 +317,10 @@ export function createVassalNodeDecisionModalView({
     quickInspectionId=null;
     backdropPressedPointerId = null;
     pointerHeld = false;
+    dragged = null;
     clearDragPreview();
     dragGhost?.destroy({children:true}); dragGhost = null;
     placementGuide?.destroy(); placementGuide = null;
-    dragged = null;
     replacementOfferId = null;
     dragTargetIndex = null;
     hoveredOptionId = null;
@@ -409,7 +409,10 @@ export function createVassalNodeDecisionModalView({
   function clearDragPreview() {
     dragPreviewLayer?.destroy({children:true}); dragPreviewLayer = null;
     dragPreview = null;
-    if (tableauLayer) tableauLayer.visible = true;
+    if (tableauLayer) {
+      tableauLayer.visible = true;
+      tableauLayer.setPracticeDragActive?.(dragged?.active && dragged.piece.presentation?.kind === 'practice');
+    }
   }
 
   function dragMove(local, drag) {
@@ -427,7 +430,10 @@ export function createVassalNodeDecisionModalView({
       const index=Math.max(0, Math.min(4, Math.floor((local.x - tableau.x) / (TABLEAU.cardWidth + TABLEAU.gap))));
       if (index >= (lastDecision?.settlement?.unlockedPracticeSlots ?? 5)) return null;
       return {kind, id, fromOffer:drag.fromOffer,
-        toIndex:index};
+        toIndex:index,
+        ...(drag.fromOffer && drag.piece.intervention?.mode === 'learn'
+          ? {replacePracticeId:lastDecision?.settlement?.practices[index]?.practiceId ?? null} : {}),
+      };
     }
     if (kind === 'structure' && local.y >= tableau.structureY - 30 && local.y < tableau.structureY + construction().height + 25) {
       return {kind, id, fromOffer:drag.fromOffer, origin:Math.floor((local.x - tableau.x) / construction().cell)};
@@ -463,7 +469,7 @@ export function createVassalNodeDecisionModalView({
     if (getPresentation?.()?.readOnly || lastDecision?.nodeState?.resolving) { render(true); return; }
     if (move) {
       if (move.kind === 'undo') onUndoPurchase?.(openNodeId, move.id);
-      else if (move.fromOffer) onPurchaseOffer?.(openNodeId, move.id, move.origin, move.toIndex);
+      else if (move.fromOffer) onPurchaseOffer?.(openNodeId, move.id, move.origin, move.toIndex, move.replacePracticeId);
       else if (move.kind === 'structure') onMoveStructure?.(openNodeId, move.id, move.origin);
       else onReorderPurchase?.(openNodeId, move.id, move.toIndex);
     } else if (!drag.fromOffer && drag.piece.staged && drag.piece.presentation?.kind === 'practice' && local.x < tableau.x - 30) {
@@ -509,6 +515,7 @@ export function createVassalNodeDecisionModalView({
       tableauLayer.visible = false;
       dragPreviewLayer = renderDecisionTableau(root, decision.settlement, {
         preview:true, time:getState?.()?.tSec ?? 0, targetIndex:move.toIndex, tooltipView,
+        practiceDrag:dragged.piece.presentation?.kind === 'practice',
       }).layer;
       root.setChildIndex(dragGhost, root.children.length - 1);
     } else {
@@ -1166,6 +1173,7 @@ export function createVassalNodeDecisionModalView({
         undoRects:undoRoots.map(control=>control.getBounds()),
         poolFittings:shopCardRoots.flatMap(card=>(card.poolFittings??[]).map(({kind,root:control})=>{const point=control.toGlobal(new PIXI.Point(control.hitArea.width/2,control.hitArea.height/2));return{offerId:card.offerId,kind,x:point.x,y:point.y,rect:control.getBounds()};})),
         boardPools:lastDecision?.settlement?.multiplierPreview,
+        practiceDragRotations:(dragPreviewLayer??tableauLayer)?.practiceDragRotations?.()??[],
         boardPoolFittings:(tableauLayer?.poolFittings??[]).map(({kind,practiceId,root:control})=>{const p=control.toGlobal(new PIXI.Point(control.hitArea.width/2,control.hitArea.height/2));return{kind,practiceId,x:p.x,y:p.y,completion:control.completionPreview===true};}),
         offerFacePoints:shopCardRoots.map(card=>{const face=card.faceRoot;const p=face?.toGlobal(new PIXI.Point(face.pieceGeometry.width/2,face.pieceGeometry.height/2));return{offerId:card.offerId,...p,faceRect:face?.getBounds(),titleRect:card.titleRoot?.getBounds()};}),
         purchaseOrder: (decision?.purchases ?? []).map((purchase) => purchase.offerId),

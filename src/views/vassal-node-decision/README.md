@@ -35,6 +35,14 @@ Before Confirm, staged Structure zones can be dragged back onto their shop
 or discard to undo that individual commission and release its reserved costs.
 The drop target highlights without adding controls or text.
 
+Dragging a new Practice onto an occupied slot replaces that slot's card. Both
+hover preview and drop carry the target's identity from the unchanged staged
+board, so moving between slots updates the outgoing discard without rearranging
+the other cards. Occupied board cards tilt slightly during a Practice drag and
+straighten on drop, cancellation or close. These poses are view-local.
+`node scripts/settlement-draft-browser-probe.mjs --practice-replacement` checks
+mouse/touch movement, pure previews, tilt reset, exact replacement, undo and replay.
+
 Decision card faces, buttons, and cost footers use `../interaction-feedback.js`
 for hover, visible touch presses, and cancellation. Sliding a held touch onto a
 control highlights it; activation requires a press that began on that control.

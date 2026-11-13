@@ -16,10 +16,11 @@ writeFileSync('artifacts/settlement-draft-probe.html','<!doctype html><base href
 const server=spawn(process.execPath,['node_modules/serve/bin/serve.js','-l',String(port),'--no-clipboard','.'],{stdio:'ignore',windowsHide:true});
 let browser,page;const errors=[],checks=[];
 const returnOnly=process.argv.includes('--construction-return');
+const replacementOnly=process.argv.includes('--practice-replacement');
 try {
   for(let i=0;i<100;i++){try{if((await fetch(url)).ok)break;}catch{}await delay(100);}
   browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
-  for(const mobile of [false,true]) for(const kind of returnOnly?['structure']:['practice','structure']) {
+  for(const mobile of [false,true]) for(const kind of replacementOnly?['practice']:returnOnly?['structure']:['practice','structure']) {
     page=await browser.newPage({viewport:mobile?{width:844,height:390}:{width:1280,height:800},hasTouch:mobile});
     page.on('pageerror',e=>errors.push(e.message));
     await page.goto(url+'/artifacts/settlement-draft-probe.html');
@@ -126,6 +127,51 @@ try {
       'Three offers fit on the first page, including the widest Structure');
     assert.deepEqual(initial.costPanels.map(panel=>panel.rect.width),[270,270,270],
       'Structures and Practices use the same offer columns');
+    if(replacementOnly) {
+      const original=initial.practices.map(p=>p?.practiceId??null);
+      const live=await page.evaluate(()=>probe.confirmed());
+      const hold=async()=>{
+        const source=await screen(await point('getOfferFacePoint',0));
+        const touch=mobile?await page.context().newCDPSession(page):null;
+        if(touch)await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[source]});
+        else {await page.mouse.move(source.x,source.y);await page.mouse.down();}
+        return {
+          async move(p){const q=await screen(p);if(touch)await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[q]});else await page.mouse.move(q.x,q.y,{steps:6});await delay(60);},
+          async release(){if(touch){await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await touch.detach();}else await page.mouse.up();await delay(180);},
+        };
+      };
+      let held=await hold();
+      for(const index of [0,2,4,1]) {
+        await held.move(await point('getTableauClickPoint',index));
+        const s=await snapshot(),expected=[...original];expected[index]='dryFarming';
+        assert.deepEqual(s.dragPreview?.discard,[original[index]],`Slot ${index+1} previews its own outgoing Practice`);
+        assert.deepEqual(s.dragPreview.practices,expected,'Replacing a card preserves every other slot');
+        assert.deepEqual(s.purchaseOrder,[],'Hovering cannot stage a purchase');
+        assert.deepEqual(await page.evaluate(()=>probe.confirmed()),live,'Hovering cannot change the live board');
+        assert.ok(s.practiceDragRotations.length===5&&s.practiceDragRotations.every(r=>Math.abs(r)>0&&Math.abs(r)<.04),'The board tilts subtly during the drag');
+      }
+      await page.screenshot({path:`artifacts/practice-replacement-${mobile?'phone':'desktop'}-preview.png`});
+      await held.move({x:600,y:840});
+      let s=await snapshot();assert.equal(s.dragPreview,null,'Leaving the board clears the proposed discard');
+      assert.ok(s.practiceDragRotations.every(r=>Math.abs(r)>0),'The board remains tilted until the drag ends');
+      await held.release();
+      s=await snapshot();assert.deepEqual(s.practices.map(p=>p?.practiceId??null),original);
+      assert.ok(s.practiceDragRotations.every(r=>r===0),'Cancelling the drop straightens the board');
+      held=await hold();await held.move(await point('getTableauClickPoint',2));await held.release();
+      s=await snapshot();const expected=[...original];expected[2]='dryFarming';
+      assert.deepEqual(s.practices.map(p=>p?.practiceId??null),expected,'Drop replaces the hovered card');
+      assert.deepEqual(s.discardedPractices.map(p=>p.practiceId),[original[2]]);
+      assert.ok(s.practiceDragRotations.every(r=>r===0),'Dropping straightens the board');
+      await tap(await point('getUndoClickPoint',0));
+      assert.deepEqual((await snapshot()).practices.map(p=>p?.practiceId??null),original,'Undo restores the exact original board');
+      held=await hold();await held.move(await point('getTableauClickPoint',2));await held.release();
+      await tap(await point('getConfirmClickPoint'));
+      const actual=await page.evaluate(()=>probe.confirmed()),replay=await page.evaluate(()=>probe.replay());
+      assert.deepEqual(actual.practices.map(p=>p?.practiceId??null),expected,'Confirm installs the shown replacement');
+      assert.equal(replay.ok,true);assert.deepEqual(replay.practices,actual.practices,'Replay retains the chosen replacement');
+      checks.push(`${mobile?'touch':'mouse'} replacement: moving discard, tilt, cancel, commit, undo, confirm and replay`);
+      await page.close();page=null;continue;
+    }
     await page.screenshot({path:`artifacts/settlement-draft-${mobile?'mobile':'desktop'}-${kind}-offers.png`});
     await tap(await point('getOfferFacePoint',0));
     let s=await snapshot();assert.equal(s.purchaseOrder.length,0);assert.ok(s.inspectedCardId || s.quickCardId);
@@ -181,10 +227,10 @@ try {
     assert.ok(s.inspectionRect,'The staged board card remains inspectable');
     await tap(await point('getInspectionClosePoint'));
     if(kind==='practice') {
-      await drag(await point('getOfferFacePoint',1),await point('getTableauClickPoint',0));
-      s=await snapshot();assert.deepEqual(s.practices.filter(p=>p?.staged).map(p=>p.practiceId),['quarrying','dryFarming']);
-      await drag(await point('getTableauClickPoint',0),await point('getTableauClickPoint',1));
+      await drag(await point('getOfferFacePoint',1),await point('getTableauClickPoint',1));
       s=await snapshot();assert.deepEqual(s.practices.filter(p=>p?.staged).map(p=>p.practiceId),['dryFarming','quarrying']);
+      await drag(await point('getTableauClickPoint',1),await point('getTableauClickPoint',0));
+      s=await snapshot();assert.deepEqual(s.practices.filter(p=>p?.staged).map(p=>p.practiceId),['quarrying','dryFarming']);
       assert.ok(s.discardedPractices.length,'Full board shows a recoverable discard');
       await tap(await point('getDiscardClickPoint',0));
       assert.ok((await snapshot()).inspectedCardId || (await snapshot()).quickCardId,'Discard is clickable');

@@ -11,7 +11,7 @@ import { button } from './cards.js';
 // cards, so both empty targets and the selected replacement read as slots.
 export function renderDecisionTableau(parent, settlement, {
   time = 0, readOnly = false, choosing = false, onChoose, onInspect, onHover,
-  onOut, onDrag, onUpgrade, onUnlock, onUndoUnlock, preview = false, targetIndex = null, tooltipView,
+  onOut, onDrag, onUpgrade, onUnlock, onUndoUnlock, preview = false, targetIndex = null, tooltipView, practiceDrag = false,
 } = {}) {
   const layer = new PIXI.Container();
   parent.addChild(layer);
@@ -61,6 +61,22 @@ export function renderDecisionTableau(parent, settlement, {
     onUpgrade?.(card, piece);
     roots.push({card, piece});
   }
+  // Rotate about each occupied card's centre without moving its physical slot.
+  // These poses belong to this rendered layer and never enter simulation state.
+  const poses=roots.flatMap(({card,piece},index)=>piece?[{card,index,x:card.x,y:card.y,
+    pivotX:card.pivot.x,pivotY:card.pivot.y,rotation:card.rotation}]:[]);
+  layer.setPracticeDragActive=active=>{
+    for(const pose of poses) {
+      const {card}=pose;
+      const cx=card.pieceGeometry.width/2,cy=card.pieceGeometry.height/2;
+      card.pivot.set(active?cx:pose.pivotX,active?cy:pose.pivotY);
+      card.position.set(pose.x+(active?(cx-pose.pivotX)*card.scale.x:0),
+        pose.y+(active?(cy-pose.pivotY)*card.scale.y:0));
+      card.rotation=pose.rotation+(active?(pose.index%2?1:-1)*.018:0);
+    }
+  };
+  layer.practiceDragRotations=()=>poses.map(({card})=>card.rotation);
+  layer.setPracticeDragActive(practiceDrag);
   const pools=settlement.multiplierPreview;
   const poolFittings=[];
   if(pools) {
