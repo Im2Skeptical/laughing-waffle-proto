@@ -1,5 +1,6 @@
 import {addFloatingSettlementPrototype} from './floating-settlement-prototype.js';
 import {addMonsterReadout} from './monster-readout.js';
+import {sharedCrestDisclosure} from './progressive-settlement-readout-prototype.js';
 // Accepted floating default; explicit earlier variant URLs remain development
 // references. Read-only view data; model summaries own all control calculations.
 import {compactRegionName} from '../region-label.js';
@@ -12,10 +13,19 @@ export function regionalReadoutVariant() {
   return ['floating','atlas','shield','tracks','bracket'].includes(value)?value:'floating';
 }
 const readouts=new Set();
+let crestsExpanded=false;
 export function getFloatingReadoutMeasurements(){return [...readouts].filter(root=>!root.destroyed&&root.measureFloating).map(root=>root.measureFloating());}
 export function getMonsterReadoutMeasurements(){return [...readouts].filter(root=>!root.destroyed&&root.worldVisible&&root.measureMonster).map(root=>root.measureMonster());}
-export function updateRegionalReadoutScale(zoom){
-  for(const root of readouts){if(root.destroyed){readouts.delete(root);continue;}if(root.updateFloatingLayout){root.updateFloatingLayout(zoom);continue;}root.scale.set((root.atlasMarker?1.18:1.35)/Math.max(.25,zoom));}
+export function updateRegionalReadoutScale(zoom,selectedRegionId=null){
+  const progressive=[...readouts].filter(root=>!root.destroyed&&root.progressiveReadout&&root.mapRegionId!==selectedRegionId);
+  const requirements=progressive.map(root=>root.expandedFitZoom);
+  const disclosure=sharedCrestDisclosure(zoom,requirements,crestsExpanded);
+  disclosure.selectedRegionId=selectedRegionId;
+  // Recheck the actual zoom too: a concave border can make fit non-monotonic.
+  // Each root caches unchanged zooms, so paused/panned frames do no geometry work.
+  if(disclosure.expanded&&progressive.some(root=>!root.expandedFitsAtZoom(zoom)))disclosure.expanded=false;
+  crestsExpanded=requirements.length>0&&disclosure.expanded;
+  for(const root of readouts){if(root.destroyed){readouts.delete(root);continue;}if(root.updateFloatingLayout){root.updateFloatingLayout(zoom,disclosure);if(root.progressiveReadout&&root.mapRegionId===selectedRegionId&&root.parent?.children.at(-1)!==root)root.parent.addChild(root);continue;}root.scale.set((root.atlasMarker?1.18:1.35)/Math.max(.25,zoom));}
 }
 const number=value=>String(Number(Number(value??0).toFixed(1)));
 const text=(root,value,x,y,size=18,colour=0xe6dcc4)=>{
@@ -43,9 +53,9 @@ function VariantBracket(root,p){
   root.addChild(g);text(root,'F',51,45,12,0x9bb6c5);
 }
 
-export function addRegionalReadoutPrototype(parent,point,indicator,{tooltipView,reference,variant,spriteBounds,forceSample}){
+export function addRegionalReadoutPrototype(parent,point,indicator,{tooltipView,reference,variant,spriteBounds,landmarkBounds,regionPolygon,forceSample}){
   if(indicator.monster){const root=addMonsterReadout(parent,point,indicator,{tooltipView,reference});if(root)readouts.add(root);return root;}
-  if(variant==='floating'){const root=addFloatingSettlementPrototype(parent,point,indicator,{tooltipView,reference,spriteBounds,forceSample});if(root)readouts.add(root);return root;}
+  if(variant==='floating'){const root=addFloatingSettlementPrototype(parent,point,indicator,{tooltipView,reference,spriteBounds,landmarkBounds,regionPolygon,forceSample});if(root)readouts.add(root);return root;}
   if(variant==='atlas')return addAtlasMarker(parent,point,indicator,{tooltipView,reference});
   const p=indicator.influence;if(!p||indicator.monster)return;
   const root=new PIXI.Container();root.label='regional-readout-prototype';readouts.add(root);root.position.set(point.x,point.y+27);

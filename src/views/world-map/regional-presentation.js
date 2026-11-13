@@ -44,13 +44,11 @@ export function createRegionalPresentation(terrain, baseMap, state=null) {
   // Shared with the base bake: the same geography, raster and texel.
   const peakMask=source.peakMask??new Uint8Array(width*height);
   const presentation={anchors,crop,map:baseMap,
-    prepareCities(modules){
+    prepareCities(moduleSizes){
       if(!state||!crownModularEnabled())return;
       const identities=crownCityIdentities(state);if(!identities.length)return;
-      const moduleSizes=Object.fromEntries(Object.entries(modules).map(([key,t])=>[key,{width:t.width,height:t.height}]));
-      // City plots depend on geography and original identity, never the viewed
-      // date's road edits. The composer omits whole pieces where a live road
-      // corridor passes, so reloading the same date restores the same fabric.
+      // Fix the landmark at the regional centre first. The road composer routes
+      // existing connections around its foundations, never displacing the town.
       anchors=planCrownUrbanSites(anchors,{...source,map:baseMap,waterIndices:terrain.waterIndices,identities,moduleSizes});
       presentation.anchors=anchors;
     },

@@ -8,6 +8,7 @@ import { bakePixelTerrainSteps, destroyPixelTerrain, prepareIllustratedArt, pixe
 import { prepareCloudArt } from '../../../images/dark-fantasy/map-generation-prototype/cloud-banks.js';
 import { createZoomArt, prepareLandmarkLods } from '../../../images/dark-fantasy/map-generation-prototype/zoom-art.js';
 import { getIllustratedWorldBounds } from './world-bounds.js';
+import {crownCityIdentities} from './crown-urban-prototype.js';
 
 let assets;
 const yieldToUi=()=>new Promise(resolve=>setTimeout(resolve,0));
@@ -75,7 +76,7 @@ export function createIllustratedTerrain(parent,rect,{getView,forceIllustrated=f
     if(terrain)destroyPixelTerrain(terrain);terrain=null;stats.ready=false;lastTime=null;lastView=null;lastZoom=null;
   }
   const cooperativeOptions=stats=>backgroundWait?{stats,sliceMs:8,yieldTask:backgroundWait,isCancelled:()=>!isCurrent()}:{stats};
-  const bakeOptions=map=>({texel:2,sites:false,retainPresentation:true,sampleBackground:surroundingsSampler(map),windowedAnimation:!!getView,
+  const bakeOptions=(map,state)=>({texel:2,sites:false,retainPresentation:true,centredSettlements:crownCityIdentities(state),sampleBackground:surroundingsSampler(map),windowedAnimation:!!getView,
     worldBounds:getIllustratedWorldBounds(map)});
   function discardPrefetch(){
     const entry=prefetch;if(!entry)return;
@@ -101,7 +102,7 @@ export function createIllustratedTerrain(parent,rect,{getView,forceIllustrated=f
         await prepareAssets();if(entry.cancelled)return null;
         await new Promise(resolve=>setTimeout(resolve,0));if(entry.cancelled)return null;
         const map=naturalRegionalMap(record.map);
-        const art=await runCooperative(bakePixelTerrainSteps(map,bakeOptions(map)),{isCancelled:()=>entry.cancelled});
+        const art=await runCooperative(bakePixelTerrainSteps(map,bakeOptions(map,state)),{isCancelled:()=>entry.cancelled});
         if(!art)return null;
         if(entry.cancelled){destroyPixelTerrain(art);return null;}
         return {art,map};
@@ -133,7 +134,7 @@ export function createIllustratedTerrain(parent,rect,{getView,forceIllustrated=f
       // The bake and variant builds are single-threaded CPU work. They hand the
       // main thread back between phases so the loading screen keeps painting.
       const map=early?.map??naturalRegionalMap(record.map);
-      const art=early?.art??await runCooperative(bakePixelTerrainSteps(map,bakeOptions(map)),cooperativeOptions(cooperation));
+      const art=early?.art??await runCooperative(bakePixelTerrainSteps(map,bakeOptions(map,state)),cooperativeOptions(cooperation));
       // A step-wise job finishes; a request replaced meanwhile discards the result.
       if(stale()){if(art)destroyPixelTerrain(art);return;}
       if(early)cooperation.prefetched=true;
@@ -158,7 +159,7 @@ export function createIllustratedTerrain(parent,rect,{getView,forceIllustrated=f
       put(staticLevels[0],art.bounds,density,staticLevels);
       await yieldToUi();if(stale())return;
       presentation=createRegionalPresentation(terrain,map,state);
-      presentation.prepareCities(landmarks.crownModular);
+      presentation.prepareCities(landmarks.crownModularGeometry);
       presentationRoot=new PIXI.Container();container.addChild(presentationRoot);
       sky=new PIXI.Sprite(art.atmosphere.texture);container.addChild(sky);
       await yieldToUi();if(stale())return;

@@ -13,11 +13,22 @@ export function addCrownCapitalMarker(parent, point, tooltipView) {
   marker.addChild(new PIXI.Graphics().lineStyle(2,0xd3a17b).beginFill(0x211b22,.95).drawCircle(0,0,19).endFill());
   addResourceIcon(marker,'crown',0,0,29);
   marker.eventMode='static';marker.cursor='help';marker.hitArea=new PIXI.Circle(0,0,23);
+  attachCrownInspection(marker,tooltipView);
+  parent.addChild(marker);return marker;
+}
+
+export function addCrownShieldFinial(parent,tooltipView){
+  const marker=new PIXI.Container();marker.label='crown-shield-finial';
+  addResourceIcon(marker,'crown',0,0,34);
+  marker.eventMode='static';marker.cursor='help';marker.hitArea=new PIXI.Rectangle(-23,-21,46,42);
+  attachCrownInspection(marker,tooltipView);parent.addChild(marker);return marker;
+}
+
+function attachCrownInspection(marker,tooltipView){
   const spec={title:'Crown capital',lines:['The Unbending Crown rules from this stronghold.','Its surrounding provinces share the Crown border.'],maxWidth:300};
   marker.on('pointerover',()=>tooltipView?.show?.(spec,marker.getBounds(),{dismissOnExit:true}));
   marker.on('pointerout',()=>tooltipView?.hide?.());
   marker.on('pointerdown',e=>{e.stopPropagation();tooltipView?.pin?.(spec,marker.getBounds(),'crown-capital');});
-  parent.addChild(marker);return marker;
 }
 
 export function addActiveVassalMarker(parent, point, vassal, state) {

@@ -174,5 +174,6 @@ export async function prepareLandmarkLods() {
     const [x,y,w,h]=frame.rect;
     return [frame.role,new PIXI.Texture(moduleSheet.baseTexture,new PIXI.Rectangle(x,y,w,h))];
   }));
+  result.crownModularGeometry=Object.fromEntries(modules.frames.map(frame=>[frame.role,{width:frame.rect[2],height:frame.rect[3],groundContacts:frame.groundContacts}]));
   return result;
 }

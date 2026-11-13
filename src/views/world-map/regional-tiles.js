@@ -41,7 +41,7 @@ export function* prepareRegionalTilesSteps(presentation, landmarks, renderer) {
   yield;
   const towns=yield* presentation.buildSteps({monsters:[],sites:presentation.anchors.map(a=>({regionId:a.regionId,kind:'player'})),connections,routedRoads});
   sites=towns.settlementPlans.map(s=>({regionId:s.regionId,biome:s.biome,buildings:s.buildings.length,point:s.point,urban:s.urban}));
-  buildings=towns.settlementPlans.flatMap(s=>s.buildings.map(b=>({...b,regionId:s.regionId}))).sort((a,b)=>a.point.y-b.point.y);
+  buildings=towns.settlementPlans.flatMap(s=>s.buildings.map(b=>({...b,regionId:s.regionId}))).sort((a,b)=>(a.depthY??a.point.y)-(b.depthY??b.point.y));
   markerBuildings=towns.settlementPlans.filter(s=>s.urban).flatMap(s=>s.originalBuildings.map(b=>({...b,regionId:s.regionId})));
   flatten(towns);destroyPixelTerrain(towns);
   yield;
@@ -87,10 +87,14 @@ export function* prepareRegionalTilesSteps(presentation, landmarks, renderer) {
       }
       for(const b of buildings){
         if(occupied.has(b.regionId)||occupied.has(b.landRegionId)||!kinds.has(b.regionId))continue;
-        if(b.urban){
+        if(b.urban&&(!b.monument||b.roadContacts)){
           const mask=road.roadClearance,box=b.renderBounds;
           let crosses=false;
-          for(let y=Math.floor(box.minY);y<=box.maxY&&!crosses;y++)for(let x=Math.floor(box.minX);x<=box.maxX;x++)
+          if(b.roadContacts?.length)crosses=b.roadContacts.some(p=>{
+            const x=Math.floor(p.x),y=Math.floor(p.y);
+            return x>=mask.x&&y>=mask.y&&x<mask.x+mask.width&&y<mask.y+mask.height&&!!mask.data[(y-mask.y)*mask.width+x-mask.x];
+          });
+          else for(let y=Math.floor(box.minY);y<=box.maxY&&!crosses;y++)for(let x=Math.floor(box.minX);x<=box.maxX;x++)
             if(x>=mask.x&&y>=mask.y&&x<mask.x+mask.width&&y<mask.y+mask.height&&mask.data[(y-mask.y)*mask.width+x-mask.x]){crosses=true;break;}
           if(crosses)continue;
         }
@@ -98,8 +102,8 @@ export function* prepareRegionalTilesSteps(presentation, landmarks, renderer) {
         const civic=['hall','market'].includes(b.role);
         const role=civic?kind==='player'?'hall':'market':b.role;
         const crownRole=civic?(kind==='crownCapital'?'capital':'hall'):['house','pair'].includes(b.role)?'house':null;
-        const texture=(b.urban?landmarks.crownModular[b.role]:null)??(crown&&crownRole?landmarks.crown?.[crownRole]:null)??landmarks.biomes[b.biome][role],node=new PIXI.Sprite(texture);
-        if(b.urban&&b.core&&['citadel','armoury','blade'].includes(b.role)&&kind==='player')node.tint=0xd4d6b9;
+        const texture=(b.urban?landmarks.crownModular[b.artRole]:null)??(crown&&crownRole?landmarks.crown?.[crownRole]:null)??landmarks.biomes[b.biome][role],node=new PIXI.Sprite(texture);
+        if(b.urban&&b.core&&['citadel','armoury','blade','citadelCrown','provinceHall'].includes(b.role)&&kind==='player')node.tint=0xd4d6b9;
         node.scale.set((!b.urban&&crown&&civic&&kind==='crownCapital'?b.w*1.3:b.w)/texture.width);
         node.position.set((b.point.x-bounds.minX)*1576/density-crop.x-node.width/2,
           (b.point.y-bounds.minY)*516/density-crop.y-node.height+b.h*.25);scene.addChild(node);

@@ -1,3 +1,5 @@
+import {rasterizeLandmarkFoundations} from './settlement-centres.js';
+
 // Broad route bends are planned over complete spans, never per-pixel jitter.
 export function windRoad(path, { scale = 1, clear, wet, inTown }) {
   if (path.length < 3) return path;
@@ -41,7 +43,9 @@ export function routeSampleRoads(sites, { width, height, regionIds, land, waterI
   const size = cols * rows, costs = new Float32Array(size);
   const pixel = n => ({ x: minX + n % cols * step, y: minY + Math.floor(n / cols) * step });
   const dry = (x, y) => x >= 0 && y >= 0 && x < width && y < height && regionIds[y * width + x] >= 0 && land[y * width + x];
-  const inTown = p => exclusions.some(s => ((p.x-s.x)/s.rx)**2 + ((p.y-s.y)/s.ry)**2 < .65);
+  // Include painted road width and the rounding of search/relaxation samples.
+  const foundations=rasterizeLandmarkFoundations(exclusions,width,height,scale*2.5);
+  const inTown = p => !!foundations[Math.floor(p.y)*width+Math.floor(p.x)]||exclusions.some(s => ((p.x-s.x)/s.rx)**2 + ((p.y-s.y)/s.ry)**2 < .65);
   for (let n = 0; n < size; n++) {
     const p = pixel(n), i = p.y * width + p.x;
     if (dry(p.x, p.y) && !inTown(p)) costs[n] = waterIndices[i] >= 16 && waterIndices[i] <= 23 ? 14
@@ -66,7 +70,7 @@ export function routeSampleRoads(sites, { width, height, regionIds, land, waterI
         if(navigable(p.x,p.y)&&!inTown(p))ferryCosts[n]=20;
       }
     }
-    const routeCosts=ferry?ferryCosts:costs,passable=ferry?navigable:dry;
+    const routeCosts=ferry?ferryCosts:costs,passable=(x,y)=>!foundations[Math.floor(y)*width+Math.floor(x)]&&(ferry?navigable(x,y):dry(x,y));
     const heap = [], score = new Float32Array(size).fill(Infinity), parent = new Int32Array(size).fill(-1);
     const closed = new Uint8Array(size), goal = pixel(end);
     const push = entry => {

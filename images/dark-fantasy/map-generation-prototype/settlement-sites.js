@@ -15,8 +15,10 @@ export function planSettlementSites({ map, pixel, world, width, height, land, wa
     for (const scale of perRegion ? [1,.75,.5,.3,.15] : [1]) {
     for (const region of regions) {
       const outline = region.outline.map(pixel), centre = pixel(region.centre);
-      for (let y = Math.ceil(Math.min(...outline.map(p => p.y))); y <= Math.max(...outline.map(p => p.y)); y += 5 * detail)
-        for (let x = Math.ceil(Math.min(...outline.map(p => p.x))); x <= Math.max(...outline.map(p => p.x)); x += 5 * detail) {
+      const minX=perRegion?centre.x:Math.ceil(Math.min(...outline.map(p=>p.x))),maxX=perRegion?centre.x:Math.max(...outline.map(p=>p.x));
+      const minY=perRegion?centre.y:Math.ceil(Math.min(...outline.map(p=>p.y))),maxY=perRegion?centre.y:Math.max(...outline.map(p=>p.y));
+      for (let y=minY; y<=maxY; y+=5*detail)
+        for (let x=minX; x<=maxX; x+=5*detail) {
           if (!dry(x, y, region.id)) continue;
           const rx = 23 * detail * scale, ry = 16 * detail * scale;
           let fits = true;
@@ -33,7 +35,7 @@ export function planSettlementSites({ map, pixel, world, width, height, land, wa
           }
           const score = Math.hypot(x - centre.x, (y - centre.y) * 1.3) * (biome === 'islands' ? .25 : 1)
             - reliefRoom*32*detail + decorationRandom(map.seed, x * 9173 ^ y * 673) * 4;
-          if (!best || score < best.score) best = { x, y, rx, ry, score, biome, regionId: region.id, point: world(x, y), kind: bi === 0 || bi === 3 ? 'player' : 'neutral', buildings: [], streets: [] };
+          if (!best || score < best.score) best = { x, y, rx, ry, score, biome, regionId: region.id, point:perRegion?{...region.centre}:world(x,y),centred:perRegion, kind: bi === 0 || bi === 3 ? 'player' : 'neutral', buildings: [], streets: [] };
         }
     }
     if (best) break;
@@ -125,7 +127,7 @@ export function layOutSettlements(sites, { detail, dry, world, seed }) {
     site.court = at(9, 3);
     street([site.entrance, { x: (site.entrance.x + site.court.x) / 2 + detail,
       y: (site.entrance.y + site.court.y) / 2 }, site.court]);
-    street([at(-17, 3), at(-8, 3), at(1, 4), site.court]);
+    street(site.centred?[at(-17,9),at(-8,10),at(1,11),site.court]:[at(-17,3),at(-8,3),at(1,4),site.court]);
     const plots = [
       [0,-5,'civic',17], [-9,-6,'pair',7], [9,-5,'pair',7],
       [-16,-3,'house',5.8], [16,-2,'workshop',7],
@@ -138,13 +140,14 @@ export function layOutSettlements(sites, { detail, dry, world, seed }) {
     // or compact raised wetland court. The same plan survives every zoom level.
     const stretch = site.biome === 'mountains' ? .78 : site.biome === 'forest' ? .9 : 1;
     for (const [n, [u,v,kind,size]] of plots.entries()) {
-      const p = at(u + (random(n) - .5) * 1.6, v * stretch + (random(n + 40) - .5));
+      const p = kind==='civic'&&site.centred?{x:site.x,y:site.y}:at(u + (random(n) - .5) * 1.6, v * stretch + (random(n + 40) - .5));
       const role = kind === 'civic' ? (site.kind === 'player' ? 'hall' : 'market') : kind;
       const w = size * detail, h = w * .6;
+      if(site.centred&&kind!=='civic'&&Math.abs(p.x-site.x)<(w+17*detail)*.5&&Math.abs(p.y-site.y)<(h+10.2*detail)*.5)continue;
       const entranceDistance = Math.hypot(p.x - site.entrance.x, p.y - site.entrance.y);
       if (entranceDistance < 5 * detail) continue;
       if (![-1,0,1].every(dx => [-1,0,1].every(dy => safe({ x:p.x + dx*w/2,y:p.y + dy*h/2 })))) continue;
-      site.buildings.push({ ...p,w,h,role,point:world(p.x,p.y),biome:site.biome });
+      site.buildings.push({ ...p,w,h,role,point:kind==='civic'&&site.centred?{...site.point}:world(p.x,p.y),biome:site.biome });
     }
     if ([-1,0,1].every(dx => [-1,0,1].every(dy => safe({x:site.entrance.x+dx*3.5*detail,y:site.entrance.y+dy*1.5*detail}))))
       site.buildings.push({ ...site.entrance,w:7*detail,h:3*detail,role:'gate',point:world(site.entrance.x,site.entrance.y),biome:site.biome });

@@ -1,8 +1,8 @@
 # World map view extract
 
 The accepted floating settlement readout is the ordinary default, at fixed 70%
-screen scale. Worker/Prestige pills and Force shields take priority over corner
-region labels. Influence sits above the settlement sprite; the connected
+screen scale. Region names appear only while their region is selected; the
+overview keeps Worker/Prestige pills and Force shields. Influence sits above the settlement sprite; the connected
 worker-circle/Prestige-pill sits below. Active player Prestige uses gold fill and
 dark ink; inactive potential stays charcoal and muted. Worker medallions use
 stronger gold/Crown ownership rims and tinted fills, with grey-green for unheld.
@@ -20,6 +20,15 @@ touch inspection. Repel feedback and baseline timing are documented in
 [`docs/monster-escalation.md`](../../../docs/monster-escalation.md).
 
 ## Illustrated live worlds
+
+The local Crown art iteration fixes live town/civic anchors at `region.centre`.
+The view bake reserves central dry ground before swamp pools and island shores
+are painted. Region polygons, biomes, adjacency and simulation state are unchanged.
+Existing road connections route around landmark foundation contacts; a village
+approach may move outward when it would end inside the larger city landmark.
+The persistent economic-flow resource words are removed; trade graphics and
+simulation history remain. See the current local scope in
+[`docs/crown-modular-art-iteration.md`](../../../docs/crown-modular-art-iteration.md).
 
 New games use the shared v1.0.34 regional geography and artwork. The saved
 `regional-v<revision>:<seed>` definition ID (revision 1 today, pinned by
@@ -315,3 +324,22 @@ Crown region-art expansion is deferred. The existing fitted building kit remains
 active; rejected oversized region paintings are not loaded. A future pass needs
 modular buildings, walls, streets and clearings at the established settlement
 scale, integrated through the existing terrain/settlement composition.
+
+The isolated Crown art iteration also contains three combined floating-readout
+proposals in `combined-settlement-readout-prototype.js`. Use
+`?settlementReadout=plate|medallion|crest` on the real game map; the default stays
+split. `floating-settlement-prototype.js` retains values and inspections, with
+the capital Crown now attached to its Force shield. Combined proposals anchor
+below `urban.monument.worldBounds`; ordinary split positioning remains fitted
+to the existing settlement sprite bounds. Neither changes simulation data.
+
+`?settlementReadout=progressive` is the follow-up crest proposal: worker/ownership
+shields at overview, with active player Prestige retained in a gold income tab.
+Full two-row crests expand together at a shared safe zoom, using padded painted
+footprints rather than the empty corners of a large bounding rectangle.
+`progressive-settlement-readout-prototype.js` owns polygon containment and shared
+zoom hysteresis; `regional-readout-prototype.js` applies one disclosure mode to
+unselected settlements, including offscreen ones. The selected settlement
+always shows its full crest and draws above other settlement readouts; zooming
+out does not collapse it. Deselecting returns it to the shared mode. Camera
+limits are unchanged. An impossible unselected fit keeps that group compact.
