@@ -601,6 +601,7 @@ export function confirmVassalLifeNode(state, nodeId, acquire = null) {
       }
     }
     settlement.practiceSlots = validation.reservation.practiceSlots;
+    settlement.unlockedPracticeSlots = validation.reservation.unlockedPracticeSlots;
     settlement.structureSlots = validation.reservation.structureSlots;
   }
   for (const purchase of [...nodeState.purchasedOffers].reverse()) {
