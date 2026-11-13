@@ -15,10 +15,11 @@ try{
   const app=new PIXI.Application({width:1000,height:650,backgroundColor:0x21352e});document.body.appendChild(app.view);
   globalThis.__fixture={app,addFloatingSettlementPrototype,last:null,root:null};
  });
- for(const variant of ['split','plate','medallion','crest','progressive'])for(const state of ['capital','player','unheld','unrest'])for(const zoom of [.5,2]){
+ for(const state of ['capital','player','unheld','unrest'])for(const zoom of [.5,2]){
+  const variant='progressive';
   const result=await page.evaluate(({variant,state,zoom})=>{
    const f=__fixture;f.root?.destroy({children:true});f.app.stage.removeChildren();
-   const u=new URL(location.href);u.searchParams.set('settlementReadout',variant);history.replaceState(null,'',u);
+   // Exercise the normal default without a prototype query parameter.
    const held=state==='capital'||state==='player',holder=held?(state==='capital'?'external-a':'player'):null;
    const total=state==='player'?999:120,loyal=held?Math.round(total*.9):0;
    const parts=[{id:'player',name:'Free',count:holder==='player'?loyal:0,colour:0xe4c271},{id:'external-a',name:'Crown',count:holder==='external-a'?loyal:0,colour:0xc17a57},{id:'neutral',name:'Unaffiliated',count:total-loyal,colour:0x8e9c91}];
@@ -46,18 +47,24 @@ try{
   reports.push({variant,state,zoom,layout:result.layoutVariant,scale:result.screenScale});
  }
  const shared=await page.evaluate(async()=>{
-  const {addRegionalReadoutPrototype,updateRegionalReadoutScale,getFloatingReadoutMeasurements}=await import('/src/views/world-map/regional-readout-prototype.js');
+  const {addRegionalReadoutPrototype,createRegionalReadoutRegistry}=await import('/src/views/world-map/regional-readout-prototype.js');
+  const registry=createRegionalReadoutRegistry();
   const f=__fixture;f.root.destroy({children:true});f.app.stage.removeChildren();
-  const roots=[500,60].map((bottom,i)=>addRegionalReadoutPrototype(f.app.stage,{x:0,y:0},{...f.indicator,regionId:'shared-'+i},{variant:'floating',reference:'Shared',spriteBounds:{min:{x:-25,y:-40},max:{x:25,y:0}},regionPolygon:[{x:-200,y:-200},{x:200,y:-200},{x:200,y:bottom},{x:-200,y:bottom}]}));
+  const roots=[500,60].map((bottom,i)=>addRegionalReadoutPrototype(f.app.stage,{x:0,y:0},{...f.indicator,regionId:'shared-'+i},{variant:'floating',registry,reference:'Shared',spriteBounds:{min:{x:-25,y:-40},max:{x:25,y:0}},regionPolygon:[{x:-200,y:-200},{x:200,y:-200},{x:200,y:bottom},{x:-200,y:bottom}]}));
   roots[1].visible=false; // Offscreen/hidden regions still set the common fit.
-  const modes=(z,selected=null)=>{updateRegionalReadoutScale(z,selected);return getFloatingReadoutMeasurements().map(r=>r.disclosure.mode);};
+  const modes=(z,selected=null)=>{registry.updateRegionalReadoutScale(z,selected);return registry.getFloatingReadoutMeasurements().map(r=>r.disclosure.mode);};
   const compact=modes(1),expanded=modes(2.5);
   roots[1].expandedFitsAtZoom=()=>false;const unsafe=modes(2.5);
   const selected=modes(.5,'shared-1'),selectedDoesNotBlockOthers=modes(1.5,'shared-1');
   const switched=modes(.5,'shared-0'),deselected=modes(.5);
-  return {compact,expanded,unsafe,selected,selectedDoesNotBlockOthers,switched,deselected};
+  const modal=createRegionalReadoutRegistry();
+  const modalRoot=addRegionalReadoutPrototype(f.app.stage,{x:0,y:0},{...f.indicator,regionId:'shared-0'},{variant:'floating',registry:modal,reference:'Modal',spriteBounds:{min:{x:-25,y:-40},max:{x:25,y:0}},regionPolygon:[{x:-200,y:-200},{x:200,y:-200},{x:200,y:500},{x:-200,y:500}]});
+  modes(.5,'shared-0');const before=JSON.stringify(registry.getFloatingReadoutMeasurements());
+  modalRoot.expandedFitZoom=Infinity;modal.updateRegionalReadoutScale(2.5,null);
+  const isolated=before===JSON.stringify(registry.getFloatingReadoutMeasurements())&&modal.getFloatingReadoutMeasurements().length===1&&registry.getFloatingReadoutMeasurements().length===2;
+  return {compact,expanded,unsafe,selected,selectedDoesNotBlockOthers,switched,deselected,isolated};
  });
- assert.deepEqual(shared,{compact:['compact','compact'],expanded:['expanded','expanded'],unsafe:['compact','compact'],selected:['compact','expanded'],selectedDoesNotBlockOthers:['expanded','expanded'],switched:['expanded','compact'],deselected:['compact','compact']},'Selection forces only its crest; other regions retain shared zoom and fit logic, including after switching/deselecting');
+ assert.deepEqual(shared,{compact:['compact','compact'],expanded:['expanded','expanded'],unsafe:['compact','compact'],selected:['compact','expanded'],selectedDoesNotBlockOthers:['expanded','expanded'],switched:['expanded','compact'],deselected:['compact','compact'],isolated:true},'Selection forces only its crest; other regions retain shared zoom and fit logic, including after switching/deselecting');
  assert.deepEqual(errors,[]);writeFileSync(output+'/input-report.json',JSON.stringify({errors,reports},null,2));
- console.log('Combined readout input: 40 capital/player/unheld/Unrest cases; real Pixi touch, Crown, offscreen/unsafe-fit gating, selected override, switching and deselection passed.');
+ console.log('Settlement readout input: 8 capital/player/unheld/Unrest cases; real Pixi touch, Crown, offscreen/unsafe-fit gating, selected override, switching and deselection passed.');
 }finally{await browser.close();}

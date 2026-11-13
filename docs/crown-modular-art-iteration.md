@@ -1,3 +1,28 @@
+# Release status - v1.1.62
+
+Cam approved commit, merge and Pages publication of this card on 2026-11-13.
+The approved Warlord five-biome modular capital/province art, centred civic anchors,
+biome fringes, selected-only map names, hidden economic-flow words and progressive
+readouts are the release scope. The accepted readout is now the normal default,
+without a prototype URL. Player income remains visible while compact; selection
+always shows the full crest. Simulation state, RNG, schema and replay are unchanged.
+Other enemy-class art families remain deferred. Numbers remain provisional.
+
+The iteration record below preserves the design conversation and earlier status,
+which this approval supersedes. Plate/medallion/tall-crest code and comparison
+harnesses are retained at task-branch checkpoint 7e9318c3; only the selected design
+ships. Main's prepared-start and selective artwork-cache changes are integrated.
+Current verification uses `scripts/settlement-readout-frame-test.mjs`,
+`scripts/settlement-readout-registry-test.mjs`,
+`scripts/progressive-settlement-readout-test.mjs`,
+`scripts/settlement-readout-input-probe.mjs` and
+`scripts/progressive-settlement-readout-browser-probe.mjs`.
+
+Independent release review identified shared readout state between separate map
+views. Each map now owns its registry and zoom hysteresis, with tests proving
+that embedded decision/hidden maps cannot change the main map's selection,
+threshold, scale or measurements. Offscreen regions of the same map still count.
+
 # Crown modular map art — iteration
 
 Question: can a dense, region-spanning city at the established settlement
@@ -279,12 +304,8 @@ retains the fixed screen scale, faction colours, active/inactive Prestige and
 separate inspections. The default remains split until Cam chooses a layout.
 The variant selector is a URL parameter outside the evaluated game UI.
 
-Run `node scripts/combined-settlement-readout-test.mjs` for geometry and tap-target
-separation, and `node scripts/combined-settlement-readout-browser-probe.mjs` for
-real desktop/phone captures, unchanged values and artwork/Crown clearance.
-`node scripts/combined-settlement-readout-input-probe.mjs` exercises real Pixi
-touch targets for capital, player, unheld and Unrest fixtures at two zoom levels,
-including three-digit readings and Crown movement near either end of the bar.
+The original comparison geometry, capture and input harnesses are preserved at
+checkpoint 7e9318c3; current frame/input checks are listed in the release status.
 Evidence is in `artifacts/combined-settlement-readouts/`; the comparison uses
 the fifth-iteration final captures as its before state. These prototypes do not
 authorize a push, PR, merge or settle.

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import {readoutRectInsideRegion,expandedCrestRect,expandedCrestFits,expandedCrestFootprints,expandedCrestFitZoom,sharedCrestDisclosure} from '../src/views/world-map/progressive-settlement-readout-prototype.js';
-import {TIGHT_CREST_OUTLINE,combinedReadoutGeometry} from '../src/views/world-map/combined-settlement-readout-prototype.js';
+import {readoutRectInsideRegion,expandedCrestRect,expandedCrestFits,expandedCrestFootprints,expandedCrestFitZoom,sharedCrestDisclosure} from '../src/views/world-map/settlement-readout-layout.js';
+import {TIGHT_CREST_OUTLINE,settlementCrestGeometry} from '../src/views/world-map/settlement-readout-frame.js';
 import {REGIONAL_READOUT_SCREEN_SCALE} from '../src/views/world-map/constants.js';
 
 const polygon=[{x:0,y:0},{x:240,y:0},{x:240,y:240},{x:0,y:240}],bounds={min:{x:90,y:80},max:{x:150,y:150}};
@@ -18,7 +18,7 @@ assert(expandedCrestFits(near,taper,1),'The painted crest fits a tapered regiona
 assert(!readoutRectInsideRegion(expandedCrestRect(near,1),taper),'Empty bounding-box corners must not delay disclosure');
 const painted=Array.from({length:TIGHT_CREST_OUTLINE.length/2},(_,i)=>({x:TIGHT_CREST_OUTLINE[i*2],y:TIGHT_CREST_OUTLINE[i*2+1]}));
 for(const capital of [false,true])for(const unrest of [false,true]){
- const g=combinedReadoutGeometry('tightcrest',{capital,unrest}),s=REGIONAL_READOUT_SCREEN_SCALE,footprints=expandedCrestFootprints(near,1,{capital,unrest});
+ const g=settlementCrestGeometry({capital,unrest}),s=REGIONAL_READOUT_SCREEN_SCALE,footprints=expandedCrestFootprints(near,1,{capital,unrest});
  for(let i=0;i<painted.length;i++)for(let t=0;t<=1;t+=.05)for(const [dx,dy]of [[0,0],[-1.1,0],[1.1,0],[0,-1.1],[0,1.1]]){
   const a=painted[i],b=painted[(i+1)%painted.length],p={x:120+(a.x+(b.x-a.x)*t+dx)*s,y:100+(6-g.top+a.y+(b.y-a.y)*t+dy)*s};
   assert(footprints.some(r=>p.x>=r.x&&p.x<=r.x+r.width&&p.y>=r.y&&p.y<=r.y+r.height),'Fit envelopes must cover the actual painted outline and its stroke');

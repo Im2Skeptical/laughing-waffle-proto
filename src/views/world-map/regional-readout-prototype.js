@@ -1,6 +1,6 @@
 import {addFloatingSettlementPrototype} from './floating-settlement-prototype.js';
 import {addMonsterReadout} from './monster-readout.js';
-import {sharedCrestDisclosure} from './progressive-settlement-readout-prototype.js';
+import {sharedCrestDisclosure} from './settlement-readout-layout.js';
 // Accepted floating default; explicit earlier variant URLs remain development
 // references. Read-only view data; model summaries own all control calculations.
 import {compactRegionName} from '../region-label.js';
@@ -12,21 +12,25 @@ export function regionalReadoutVariant() {
   const value=new URLSearchParams(globalThis.location?.search??'').get('regionalReadout');
   return ['floating','atlas','shield','tracks','bracket'].includes(value)?value:'floating';
 }
-const readouts=new Set();
-let crestsExpanded=false;
-export function getFloatingReadoutMeasurements(){return [...readouts].filter(root=>!root.destroyed&&root.measureFloating).map(root=>root.measureFloating());}
-export function getMonsterReadoutMeasurements(){return [...readouts].filter(root=>!root.destroyed&&root.worldVisible&&root.measureMonster).map(root=>root.measureMonster());}
-export function updateRegionalReadoutScale(zoom,selectedRegionId=null){
-  const progressive=[...readouts].filter(root=>!root.destroyed&&root.progressiveReadout&&root.mapRegionId!==selectedRegionId);
-  const requirements=progressive.map(root=>root.expandedFitZoom);
-  const disclosure=sharedCrestDisclosure(zoom,requirements,crestsExpanded);
-  disclosure.selectedRegionId=selectedRegionId;
-  // Recheck the actual zoom too: a concave border can make fit non-monotonic.
-  // Each root caches unchanged zooms, so paused/panned frames do no geometry work.
-  if(disclosure.expanded&&progressive.some(root=>!root.expandedFitsAtZoom(zoom)))disclosure.expanded=false;
-  crestsExpanded=requirements.length>0&&disclosure.expanded;
-  for(const root of readouts){if(root.destroyed){readouts.delete(root);continue;}if(root.updateFloatingLayout){root.updateFloatingLayout(zoom,disclosure);if(root.progressiveReadout&&root.mapRegionId===selectedRegionId&&root.parent?.children.at(-1)!==root)root.parent.addChild(root);continue;}root.scale.set((root.atlasMarker?1.18:1.35)/Math.max(.25,zoom));}
+export function createRegionalReadoutRegistry(){
+  const readouts=new Set();
+  let crestsExpanded=false;
+  function getFloatingReadoutMeasurements(){return [...readouts].filter(root=>!root.destroyed&&root.measureFloating).map(root=>root.measureFloating());}
+  function getMonsterReadoutMeasurements(){return [...readouts].filter(root=>!root.destroyed&&root.worldVisible&&root.measureMonster).map(root=>root.measureMonster());}
+  function updateRegionalReadoutScale(zoom,selectedRegionId=null){
+    const progressive=[...readouts].filter(root=>!root.destroyed&&root.progressiveReadout&&root.mapRegionId!==selectedRegionId);
+    const requirements=progressive.map(root=>root.expandedFitZoom);
+    const disclosure=sharedCrestDisclosure(zoom,requirements,crestsExpanded);
+    disclosure.selectedRegionId=selectedRegionId;
+    // Recheck the actual zoom too: a concave border can make fit non-monotonic.
+    // Each root caches unchanged zooms, so paused/panned frames do no geometry work.
+    if(disclosure.expanded&&progressive.some(root=>!root.expandedFitsAtZoom(zoom)))disclosure.expanded=false;
+    crestsExpanded=requirements.length>0&&disclosure.expanded;
+    for(const root of readouts){if(root.destroyed){readouts.delete(root);continue;}if(root.updateFloatingLayout){root.updateFloatingLayout(zoom,disclosure);if(root.progressiveReadout&&root.mapRegionId===selectedRegionId&&root.parent&&root.parent.children.at(-1)!==root)root.parent.addChild(root);continue;}root.scale.set((root.atlasMarker?1.18:1.35)/Math.max(.25,zoom));}
+  }
+  return {add:root=>readouts.add(root),getFloatingReadoutMeasurements,getMonsterReadoutMeasurements,updateRegionalReadoutScale};
 }
+
 const number=value=>String(Number(Number(value??0).toFixed(1)));
 const text=(root,value,x,y,size=18,colour=0xe6dcc4)=>{
   const label=createText(value,{...TEXT_STYLES.body,fontSize:size,fill:colour},x,y);
@@ -53,12 +57,12 @@ function VariantBracket(root,p){
   root.addChild(g);text(root,'F',51,45,12,0x9bb6c5);
 }
 
-export function addRegionalReadoutPrototype(parent,point,indicator,{tooltipView,reference,variant,spriteBounds,landmarkBounds,regionPolygon,forceSample}){
-  if(indicator.monster){const root=addMonsterReadout(parent,point,indicator,{tooltipView,reference});if(root)readouts.add(root);return root;}
-  if(variant==='floating'){const root=addFloatingSettlementPrototype(parent,point,indicator,{tooltipView,reference,spriteBounds,landmarkBounds,regionPolygon,forceSample});if(root)readouts.add(root);return root;}
-  if(variant==='atlas')return addAtlasMarker(parent,point,indicator,{tooltipView,reference});
+export function addRegionalReadoutPrototype(parent,point,indicator,{tooltipView,reference,variant,spriteBounds,landmarkBounds,regionPolygon,forceSample,registry}){
+  if(indicator.monster){const root=addMonsterReadout(parent,point,indicator,{tooltipView,reference});if(root)registry.add(root);return root;}
+  if(variant==='floating'){const root=addFloatingSettlementPrototype(parent,point,indicator,{tooltipView,reference,spriteBounds,landmarkBounds,regionPolygon,forceSample});if(root)registry.add(root);return root;}
+  if(variant==='atlas')return addAtlasMarker(parent,point,indicator,{tooltipView,reference,registry});
   const p=indicator.influence;if(!p||indicator.monster)return;
-  const root=new PIXI.Container();root.label='regional-readout-prototype';readouts.add(root);root.position.set(point.x,point.y+27);
+  const root=new PIXI.Container();root.label='regional-readout-prototype';registry.add(root);root.position.set(point.x,point.y+27);
   const held=indicator.controller==='player',crown=indicator.controller==='external-a';
   const ink=crown?0xb77c5b:held?0xc7ab6e:0x89998e;
   const g=new PIXI.Graphics().lineStyle(1,ink,.85).beginFill(0x14201a,.94).drawRoundedRect(-73,-5,146,85,5).endFill();
@@ -97,12 +101,12 @@ export function addRegionalReadoutPrototype(parent,point,indicator,{tooltipView,
 
 // Iteration 1: world first. Small heraldic markers, only our holdings carry
 // routine numbers. Full figures live in one deliberate regional focus panel.
-function addAtlasMarker(parent,point,indicator,{tooltipView,reference}){
+function addAtlasMarker(parent,point,indicator,{tooltipView,reference,registry}){
   const p=indicator.influence;if(!p||indicator.monster)return;
   const held=indicator.controller==='player',crown=indicator.controller==='external-a';
   const ink=held?0xf0d18a:crown?0xbe906e:0x9bbdb2;
   const root=new PIXI.Container();root.atlasMarker=true;root.label='atlas-settlement-marker';
-  root.mapRegionId=indicator.regionId;root.position.set(point.x,point.y+20);readouts.add(root);
+  root.mapRegionId=indicator.regionId;root.position.set(point.x,point.y+20);registry.add(root);
   const g=new PIXI.Graphics();root.addChild(g);
   // Population changes the heraldic seal's size, never the allegiance share.
   const radius=held?20:Math.min(16,10+Math.sqrt(p.total)*.45);

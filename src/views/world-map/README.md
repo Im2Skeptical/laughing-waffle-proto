@@ -1,11 +1,12 @@
 # World map view extract
 
-The accepted floating settlement readout is the ordinary default, at fixed 70%
-screen scale. Region names appear only while their region is selected; the
-overview keeps Worker/Prestige pills and Force shields. Influence sits above the settlement sprite; the connected
-worker-circle/Prestige-pill sits below. Active player Prestige uses gold fill and
-dark ink; inactive potential stays charcoal and muted. Worker medallions use
-stronger gold/Crown ownership rims and tinted fills, with grey-green for unheld.
+The default settlement readout uses the approved two-row crest at fixed 70%
+screen scale. At overview it shows workers/ownership, plus active Prestige income
+for player holdings. Unselected crests disclose influence and potential Prestige
+together when their painted footprints fit their regions; selecting a town always
+reveals its full crest. Zooming out preserves that selected crest. The capital
+Crown attaches to its shield. Region names appear only for the selected region.
+Active income uses gold/dark ink; inactive potential stays charcoal and muted.
 Population and food-balance integration notes:
 [`docs/regional-population-ux-integration.md`](../../../docs/regional-population-ux-integration.md).
 A thin sword marks the zero-Force holding threshold (currently 70%) on held
@@ -320,26 +321,17 @@ unheld neutral land is not a contested holding. Crown holdings share a copper
 boundary and capital badge; independent outskirts use resource-only boards.
 
 
-Crown region-art expansion is deferred. The existing fitted building kit remains
-active; rejected oversized region paintings are not loaded. A future pass needs
-modular buildings, walls, streets and clearings at the established settlement
-scale, integrated through the existing terrain/settlement composition.
+The Crown capital and provinces use the approved Warlord modular city kit,
+composed at settlement architectural scale with biome-specific central structures.
+See `docs/crown-modular-art-iteration.md` for the agreed scope and source provenance.
+Rejected oversized region paintings remain unused.
 
-The isolated Crown art iteration also contains three combined floating-readout
-proposals in `combined-settlement-readout-prototype.js`. Use
-`?settlementReadout=plate|medallion|crest` on the real game map; the default stays
-split. `floating-settlement-prototype.js` retains values and inspections, with
-the capital Crown now attached to its Force shield. Combined proposals anchor
-below `urban.monument.worldBounds`; ordinary split positioning remains fitted
-to the existing settlement sprite bounds. Neither changes simulation data.
-
-`?settlementReadout=progressive` is the follow-up crest proposal: worker/ownership
-shields at overview, with active player Prestige retained in a gold income tab.
-Full two-row crests expand together at a shared safe zoom, using padded painted
-footprints rather than the empty corners of a large bounding rectangle.
-`progressive-settlement-readout-prototype.js` owns polygon containment and shared
-zoom hysteresis; `regional-readout-prototype.js` applies one disclosure mode to
-unselected settlements, including offscreen ones. The selected settlement
-always shows its full crest and draws above other settlement readouts; zooming
-out does not collapse it. Deselecting returns it to the shared mode. Camera
-limits are unchanged. An impossible unselected fit keeps that group compact.
+`settlement-readout-frame.js` owns the accepted two-row frame;
+`settlement-readout-layout.js` owns painted-footprint containment and shared zoom
+hysteresis. `regional-readout-prototype.js` gives each map its own registry and
+coordinates its unselected settlements,
+including offscreen ones. Selection always reveals its full crest above other
+readouts. Deselecting returns it to the group. Camera limits are unchanged.
+An impossible unselected fit keeps that group compact. Earlier plate/medallion/
+tall-crest trials and their URL switches are preserved in the task branch's
+checkpoint 7e9318c3, and are not shipped as alternate layouts.

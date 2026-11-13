@@ -16,7 +16,7 @@ try{
   await route.fulfill({contentType:'text/javascript',body:code+'\nexport function planCrownUrbanSites(anchors,args){globalThis.__crownPlanFixture??={anchors,args};return capturedPlan(anchors,args);}\n'});
  });
  await page.addInitScript(()=>{Element.prototype.requestFullscreen=async()=>{};});
- await page.goto((process.env.PROBE_URL??'http://localhost:5192/')+'?perf=1&art=1&launch=new'+(phase==='before'?'&crownArt=baseline':''));
+ await page.goto((process.env.PROBE_URL??'http://localhost:5192/')+'?perf=1&seed=123&art=1&launch=new'+(phase==='before'?'&crownArt=baseline':''));
  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__?.getSnapshot()?.worldMap?.regionCount===20,null,{timeout:180000});
  await page.getByTestId('game-menu').waitFor({state:'hidden',timeout:180000});
  await page.waitForFunction(()=>document.querySelector('[data-artwork-ready="true"]'),null,{timeout:180000});

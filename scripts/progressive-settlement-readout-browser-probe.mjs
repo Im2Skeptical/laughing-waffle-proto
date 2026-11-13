@@ -4,9 +4,9 @@ import {chromium} from 'playwright';
 import {BROWSER_PROBE_LAUNCH_OPTIONS} from './browser-probe-config.mjs';
 import {getWorldDefinitionById} from '../src/model/world-definitions.js';
 import {createMapPolygonReader} from '../src/views/world-map/geometry.js';
-import {readoutRectInsideRegion} from '../src/views/world-map/progressive-settlement-readout-prototype.js';
+import {readoutRectInsideRegion} from '../src/views/world-map/settlement-readout-layout.js';
 
-const output='artifacts/earlier-prestige-settlement-readouts';mkdirSync(output,{recursive:true});
+const output=process.env.PROBE_OUTPUT??'artifacts/crown-release';mkdirSync(output,{recursive:true});
 const browser=await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS),page=await browser.newPage({viewport:{width:1440,height:900},hasTouch:true});
 const errors=[],reports=[],transitions=[];page.on('pageerror',e=>errors.push(e.message));
 const definition=getWorldDefinitionById('regional-v1:123'),polygon=createMapPolygonReader(definition),width=688*1576/516,left=488+(1448-width)/2;
@@ -31,7 +31,7 @@ async function capture(name,viewport,mode){await page.waitForFunction(()=>__SETT
 async function wheel(delta){const old=(await snapshot()).camera.zoom;await page.mouse.wheel(0,delta);await page.waitForFunction(z=>Math.abs(__SETTLEMENT_DEBUG__.getSnapshot().worldMap.camera.zoom-z)>1e-6,old);const m=await snapshot();check(m);transitions.push({zoom:m.camera.zoom,selected:m.selectedRegionId,others:m.floatingReadouts.find(r=>!r.disclosure.selected).disclosure.mode});return m;}
 try{
  await page.addInitScript(()=>{Element.prototype.requestFullscreen=async()=>{};});
- await page.goto((process.env.PROBE_URL??'http://localhost:5184/')+'?perf=1&art=1&launch=new&settlementReadout=progressive');
+ await page.goto((process.env.PROBE_URL??'http://localhost:5184/')+'?perf=1&seed=123&art=1&launch=new');
  await page.waitForFunction(()=>globalThis.__SETTLEMENT_DEBUG__?.getSnapshot()?.worldMap?.regionCount===20,null,{timeout:180000});
  await page.getByTestId('game-menu').waitFor({state:'hidden',timeout:180000});
  await page.waitForFunction(()=>document.querySelector('[data-artwork-ready="true"]'),null,{timeout:180000});await page.locator('[data-artwork-ready="true"]').click();

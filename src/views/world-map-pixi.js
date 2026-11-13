@@ -1,4 +1,4 @@
-import {regionalReadoutVariant,addRegionalReadoutPrototype,updateRegionalReadoutScale,addAtlasFocus,ATLAS_ECONOMY_POINT,getFloatingReadoutMeasurements,getMonsterReadoutMeasurements} from './world-map/regional-readout-prototype.js';
+import {regionalReadoutVariant,addRegionalReadoutPrototype,createRegionalReadoutRegistry,addAtlasFocus,ATLAS_ECONOMY_POINT} from './world-map/regional-readout-prototype.js';
 import { getRegionTerrainStyle, getRegionNameColour } from './world-map/region-style.js';
 import { addFerryCrossing, roadBorderCrossings, landRoadSections } from './world-map/road-crossings.js';
 import { minimalGraphics } from './minimal-graphics.js';
@@ -249,6 +249,7 @@ export function createWorldMapView({
   getDisplayOptions,
   tooltipView = null,
 }) {
+  const readoutRegistry=createRegionalReadoutRegistry();
   const atlasMode=regionalReadoutVariant()==='atlas';
   const floatingMode=regionalReadoutVariant()==='floating';
   let prototypeEconomyExpanded=false,lastPrototypePanelMode=null;
@@ -928,7 +929,7 @@ export function createWorldMapView({
       const landmarkBounds=landmark?{min:screenPoint({x:landmark.minX,y:landmark.minY}),max:screenPoint({x:landmark.maxX,y:landmark.maxY})}:null;
 
       if(display.actors!==false&&readoutVariant){
-        const readout=addRegionalReadoutPrototype(floatingMode?floatingOverlay:regionContent,point,indicator,{tooltipView,reference:getRegionReference(state,indicator.regionId),variant:readoutVariant,spriteBounds,landmarkBounds,regionPolygon:polygon(regionDef).map(screenPoint),forceSample});
+        const readout=addRegionalReadoutPrototype(floatingMode?floatingOverlay:regionContent,point,indicator,{tooltipView,reference:getRegionReference(state,indicator.regionId),variant:readoutVariant,registry:readoutRegistry,spriteBounds,landmarkBounds,regionPolygon:polygon(regionDef).map(screenPoint),forceSample});
         if(floatingMode&&readout)presentRegion(readout,indicator.regionId);
       }
       if(display.actors!==false&&!readoutVariant)addMapInfluenceMarker(regionContent,point,indicator.influence,{tooltipView,reference:getRegionReference(state,indicator.regionId)??indicator.regionId});
@@ -1099,7 +1100,7 @@ export function createWorldMapView({
       camera.update();
       panelReveal.update();
       render();
-      if(regionalReadoutVariant())updateRegionalReadoutScale(camera.snapshot().zoom,getRegionSelectionActive?.()===true?getSelectedRegionId?.():null);
+      if(regionalReadoutVariant())readoutRegistry.updateRegionalReadoutScale(camera.snapshot().zoom,getRegionSelectionActive?.()===true?getSelectedRegionId?.():null);
       updateEdgeTransferPackets();
       illustrated.update(visualTime(),camera.snapshot().zoom);
     },
@@ -1192,10 +1193,10 @@ export function createWorldMapView({
         : [];
       return {
         visible: root.visible === true,
-        monsterReadouts:getMonsterReadoutMeasurements(),
+        monsterReadouts:readoutRegistry.getMonsterReadoutMeasurements(),
         lastMonsterSpawn:civilizationSummary.chaos.lastMonsterSpawn,
         floatingNamesAboveReadouts:floatingMode&&floatingReferenceLayer?.parent===mapContent&&floatingOverlay.parent===mapContent?mapContent.getChildIndex(floatingReferenceLayer)>mapContent.getChildIndex(floatingOverlay):null,
-        floatingReadouts:floatingMode?getFloatingReadoutMeasurements().map(reading=>{const label=floatingNameLabels.find(item=>!item.destroyed&&item.mapRegionId===reading.regionId),b=label?.visible?label.getBounds():null;return {...reading,name:b?{x:b.x,y:b.y,width:b.width,height:b.height}:null,nameHome:label?.floatingHome??null,namePosition:label?{x:label.x,y:label.y}:null};}):null,
+        floatingReadouts:floatingMode?readoutRegistry.getFloatingReadoutMeasurements().map(reading=>{const label=floatingNameLabels.find(item=>!item.destroyed&&item.mapRegionId===reading.regionId),b=label?.visible?label.getBounds():null;return {...reading,name:b?{x:b.x,y:b.y,width:b.width,height:b.height}:null,nameHome:label?.floatingHome??null,namePosition:label?{x:label.x,y:label.y}:null};}):null,
         regionalReadoutPrototype:atlasMode?{variant:'atlas',economyExpanded:prototypeEconomyExpanded,economyClickPoint:ATLAS_ECONOMY_POINT}:null,
         illustratedTerrain:{...illustrated.stats},
         retainedScene:retained.snapshot(),
