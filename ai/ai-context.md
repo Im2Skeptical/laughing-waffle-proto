@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.63`.
+Game build version: `1.1.65`.
 The accepted [regional population UX](../docs/regional-population-ux-integration.md)
 uses floating 70% map readouts, visual demographics, Warrior baseline Force and
 carried proportional newborn allegiance. It preserves the degraded starter

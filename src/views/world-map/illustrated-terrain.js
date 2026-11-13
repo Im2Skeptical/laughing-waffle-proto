@@ -1,4 +1,5 @@
 import { minimalGraphics } from '../minimal-graphics.js';
+import { getGraphicsOptions } from '../graphics-options.js';
 import { prepareRegionalTiles, prepareRegionalTilesSteps } from './regional-tiles.js';
 import { naturalRegionalMap, regionalPresentationSpec, createRegionalPresentation } from './regional-presentation.js';
 import { getRegionalMap } from '../../model/regional-map/definition.js';
@@ -64,6 +65,7 @@ export function createIllustratedTerrain(parent,rect,{getView,forceIllustrated=f
   let variants=null;
   let animated=[],sky=null;
   let lastView=null,lastZoom=null;
+  let lastGraphics=null;
   // A bake started ahead of prepare() for the world a New Game is about to enter.
   // It owns its own textures and never touches the live terrain until adopted.
   let prefetch=null;
@@ -73,7 +75,7 @@ export function createIllustratedTerrain(parent,rect,{getView,forceIllustrated=f
     cache.clear();variants?.destroy();variants=null;presentation=null;active=null;presentationRoot=null;
     for(const child of container.removeChildren())child.destroy({children:true});
     staticLevels.forEach(t=>t.destroy(true));staticLevels=[];meshes=[];animated=[];sky=null;
-    if(terrain)destroyPixelTerrain(terrain);terrain=null;stats.ready=false;lastTime=null;lastView=null;lastZoom=null;
+    if(terrain)destroyPixelTerrain(terrain);terrain=null;stats.ready=false;lastTime=null;lastView=null;lastZoom=null;lastGraphics=null;
   }
   const cooperativeOptions=stats=>backgroundWait?{stats,sliceMs:8,yieldTask:backgroundWait,isCancelled:()=>!isCurrent()}:{stats};
   const bakeOptions=(map,state)=>({texel:2,sites:false,retainPresentation:true,centredSettlements:crownCityIdentities(state),sampleBackground:surroundingsSampler(map),windowedAnimation:!!getView,
@@ -179,6 +181,11 @@ export function createIllustratedTerrain(parent,rect,{getView,forceIllustrated=f
     },
     update(seconds,zoom=1,force=false){
       if(!terrain||!stats.ready||!container.visible)return;
+      const graphics=getGraphicsOptions();
+      // Settings must take effect even at the same held second, without waiting
+      // for the next 30 fps animation slot. Reframe on re-enabling the sky too.
+      force=force||graphics!==lastGraphics;
+      const showAtmosphere=graphics.fog||graphics.clouds||graphics.shadows||graphics.wisps;
       const view=getView?.(),density=terrain.stats.texel;
       zoom=view?.zoom??zoom;
       const effectiveZoom=zoom*renderer.resolution;
@@ -198,8 +205,8 @@ export function createIllustratedTerrain(parent,rect,{getView,forceIllustrated=f
           node.resizeSource(frame.width,frame.height);
           node.position.set(rect.x+(bounds.minX+frame.x*texel/1576)*rect.width,rect.y+(bounds.minY+frame.y*texel/516)*rect.height);
         }
-        if(view)moved=atmosphere.setView(sourceView(fine,density*4),density*4*rect.width/1576*effectiveZoom)||moved;
-        sky.visible=atmosphere.visible;
+        if(view&&showAtmosphere)moved=atmosphere.setView(sourceView(fine,density*4),density*4*rect.width/1576*effectiveZoom)||moved;
+        sky.visible=showAtmosphere&&atmosphere.visible;
         const frame=atmosphere.frame,texel=density*4;
         sky.position.set(rect.x+(fine.minX+frame.x*texel/1576)*rect.width,rect.y+(fine.minY+frame.y*texel/516)*rect.height);
         sky.width=frame.width*texel*rect.width/1576;sky.height=frame.height*texel*rect.height/516;
@@ -210,13 +217,21 @@ export function createIllustratedTerrain(parent,rect,{getView,forceIllustrated=f
       if(viewChanged||active?.zoom!==effectiveZoom){active?.node.sampleZoom(effectiveZoom,true);if(active)active.zoom=effectiveZoom;}
       const now=performance.now();if(!force&&!moved&&(seconds===lastTime||now-lastPaint<1000/30))return;
       const start=performance.now();
-      for(const entry of animated)if(entry.node.visible)entry.cycle.update(renderer,seconds,force);
-      terrain.atmosphere.update(renderer,seconds,{fog:true,clouds:true,shadows:true,wisps:true},force);
-      const water=animated.filter(e=>e.node.visible);
+      const water=[];
+      for(const entry of animated)if(entry.node.visible){
+        const frames=entry.cycle.frames;
+        // A fixed absolute phase keeps still water reproducible across toggles,
+        // rewind and camera moves. Its cached texture is reused while scrubbing.
+        entry.cycle.update(renderer,graphics.water?seconds:0,force);
+        if(entry.cycle.frames!==frames)water.push(entry);
+      }
+      const skyUpdated=sky.visible&&atmosphere.update(renderer,seconds,graphics,force);
+      lastGraphics=graphics;
       lastTime=seconds;lastPaint=now;Object.assign(stats,{frames:stats.frames+1,viewedSec:seconds,updateMs:performance.now()-start,
-        animationPasses:water.reduce((sum,e)=>sum+e.cycle.stats.passes,0)+(sky.visible?atmosphere.stats.passes:0),
-        animationPixels:water.reduce((sum,e)=>sum+e.cycle.stats.renderPixels,0)+(sky.visible?atmosphere.stats.renderPixels:0),
-        waterWindows:water.map(e=>({...e.cycle.frame,levels:e.cycle.levels.length,backdrop:false})),
+        graphics:{...graphics},waterSeconds:graphics.water?seconds:0,
+        animationPasses:water.reduce((sum,e)=>sum+e.cycle.stats.passes,0)+(skyUpdated?atmosphere.stats.passes:0),
+        animationPixels:water.reduce((sum,e)=>sum+e.cycle.stats.renderPixels,0)+(skyUpdated?atmosphere.stats.renderPixels:0),
+        waterWindows:animated.filter(e=>e.node.visible).map(e=>({...e.cycle.frame,levels:e.cycle.levels.length,backdrop:false})),
         atmosphereWindow:{...atmosphere.frame},backdropAnimating:false});
     },
     sitePoint(regionId){return presentation?.anchors.find(s=>s.regionId===regionId)?.point;},

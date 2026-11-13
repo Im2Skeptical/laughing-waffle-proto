@@ -1,6 +1,7 @@
 import { PERFORMANCE_SAVE_SLOT } from '../controllers/sim-runner/save-slots.js';
 import { artworkUrl, setArtworkReloadGuard, saveGameForArtworkReload } from './artwork-cache.js';
 import { minimalGraphics, getProgressiveArtworkPreference } from './minimal-graphics.js';
+import { createGraphicsOptionsDom } from './graphics-options-dom.js';
 import { getPerformanceRandomSeedPreference } from '../controllers/performance-start.js';
 import { PERFORMANCE_START_SEEDS } from '../controllers/performance-start-seeds.js';
 import { PHONE_PORTRAIT_QUERY, getGameFullscreenElement, requestGameDisplayMode, usesTouchGameDisplay } from './game-display-mode.js';
@@ -39,6 +40,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
     },
   });
   const diagnostics = createSaveDiagnosticsDom({ getReport: () => buildSaveDiagnosticReport(session) });
+  const graphics = createGraphicsOptionsDom();
   const importInput = document.createElement('input');
   importInput.type = 'file'; importInput.accept = '.json,application/json'; importInput.hidden = true;
   importInput.dataset.testid = 'game-save-import-file';
@@ -299,6 +301,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
       dev.dataset.testid = 'game-developer-tools'; dev.open = devExpanded;
       const summary = document.createElement('summary'); summary.textContent = 'Developer tools';
       dev.append(summary);
+      graphics.render(); dev.append(graphics.element);
       const performanceButton = button('New game in performance mode', event => {
         const kind=performanceEntryPending && (performanceLaunch==='continue' || (performanceLaunch!=='new' && session.getPerformanceSave?.())) ? 'continue' : 'new';
         launchPerformance(kind,event);
