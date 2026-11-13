@@ -4,6 +4,7 @@ import { IDBFactory } from 'fake-indexeddb';
 import { createLoadingLifecycle } from '../src/controllers/loading-lifecycle.js';
 import { createOpeningCheckpointStore, OPENING_CHECKPOINT_KEY } from '../src/controllers/opening-checkpoint-store.js';
 import { createNewGameOpeningController } from '../src/controllers/new-game-opening-controller.js';
+import { validateOpeningCheckpoint } from '../src/controllers/opening-checkpoint-validation.js';
 import { createTimegraphForecastWorkerService } from '../src/controllers/timegraph-forecast-worker-service.js';
 import { createGameSessionController } from '../src/controllers/game-session-controller.js';
 import { inspectSaveInWorker } from '../src/controllers/save-load-worker-service.js';
@@ -153,6 +154,31 @@ assert((await corrupt.prepare()).ok);
 assert.equal(replacements, 1, 'damaged derivative is discarded and rebuilt');
 corrupt.cancel({ discard: true });
 await until(async () => await checkpoints.read('regular') === null);
+// Damage away from the tail must also discard the entire derivative before
+// any anchor or summary reaches the scrub cache.
+const anchoredRecord = structuredClone({ ...record, forecast: ready.forecast });
+anchoredRecord.forecast.stateDataBySecond.push([1,
+  serializeGameState(rebuildStateAtSecond(createEmptyTimelineFromBase(ready.state), 1).state)]);
+validateOpeningCheckpoint(anchoredRecord, 12);
+for (const damage of ['rng', 'world', 'summary', 'terminal']) {
+  const damaged = structuredClone(anchoredRecord);
+  const anchor = damaged.forecast.stateDataBySecond.find(([second]) => second === 1)[1];
+  if (damage === 'rng') delete anchor.rng;
+  if (damage === 'world') anchor.world = null;
+  if (damage === 'summary') damaged.forecast.summaryBySecond.find(([second]) => second === 2)[1].graphValues = null;
+  if (damage === 'terminal') Object.assign(damaged.forecast.summaryBySecond.at(-1)[1], {
+    runComplete: true, runLossSec: 12, runLossYear: 1,
+  });
+  assert.throws(() => validateOpeningCheckpoint(damaged, 12), undefined, `${damage} corruption must be rejected`);
+  await checkpoints.write('regular', damaged);
+  let newWorlds = 0;
+  const retry = createNewGameOpeningController({ ...options, createWorkerService: worker,
+    createState: () => { newWorlds++; return createNewGameState(123); } });
+  assert((await retry.prepare()).ok, `${damage} corruption must fall back to ordinary loading`);
+  assert.equal(newWorlds, 1);
+  retry.cancel({ discard: true });
+  await until(async () => await checkpoints.read('regular') === null);
+}
 const denied = createNewGameOpeningController({ ...options, createWorkerService: worker,
   checkpoints: { read: async () => { throw new Error('denied'); }, write: async () => { throw new Error('quota'); } } });
 assert((await denied.prepare()).ok, 'unavailable checkpoint storage cannot block gameplay'); denied.cancel();
