@@ -1,6 +1,7 @@
 import { addKeywordPrototypeControls } from './keywords-classes-prototype-controls.js';
 import { createVassalDebugDom } from "./vassal-debug-dom.js";
 import { createSaveDiagnosticsDom } from './save-diagnostics-dom.js';
+import { createGraphicsOptionsDom } from './graphics-options-dom.js';
 
 export function createSettlementDebugMenuDom({
   vassalDebugPresetController,
@@ -65,8 +66,12 @@ export function createSettlementDebugMenuDom({
   const saveDiagnosticsTab = document.createElement('button');
   saveDiagnosticsTab.type = 'button'; saveDiagnosticsTab.textContent = 'Save diagnostics';
   saveDiagnosticsTab.dataset.testid = 'debug-save-diagnostics-tab';
+  const graphicsTab = document.createElement('button');
+  graphicsTab.type = 'button'; graphicsTab.textContent = 'Graphics';
+  graphicsTab.dataset.testid = 'debug-graphics-tab';
   header.style.flexWrap = 'wrap';
-  header.append(title, vassalTab, saveDiagnosticsTab);
+  header.append(title, vassalTab, graphicsTab, saveDiagnosticsTab);
+  for (const tab of [vassalTab, graphicsTab, saveDiagnosticsTab]) tab.style.minHeight = '44px';
   panel.append(header);
   const labLinks = document.createElement('div');
   labLinks.style.cssText = 'display:flex;gap:8px;margin:10px 112px';
@@ -79,8 +84,10 @@ export function createSettlementDebugMenuDom({
     button.addEventListener('click', () => { try { action?.(); } catch (error) { alert(error.message); } });
     labLinks.append(button);
   }
-  panel.append(labLinks);
-  addKeywordPrototypeControls(panel);
+  const workshopExtras = document.createElement('div');
+  workshopExtras.append(labLinks);
+  addKeywordPrototypeControls(workshopExtras);
+  panel.append(workshopExtras);
 
   const vassalLab = createVassalDebugDom({
     getState,
@@ -90,13 +97,18 @@ export function createSettlementDebugMenuDom({
   const pages = {
     vassalLab,
     saveDiagnostics: createSaveDiagnosticsDom({ getReport: () => getSaveDiagnosticReport?.() ?? {} }),
+    graphics: createGraphicsOptionsDom(),
   };
   const pageContainer = document.createElement("div");
-  pageContainer.append(vassalLab.element, pages.saveDiagnostics.element);
+  pageContainer.append(vassalLab.element, pages.saveDiagnostics.element, pages.graphics.element);
   panel.append(pageContainer);
   let activePage = "vassalLab", initialized = false;
   function setActivePage(id) {
     activePage = pages[id] ? id : "vassalLab";
+    workshopExtras.style.display = activePage === 'graphics' ? 'none' : '';
+    for (const [key, tab] of [['vassalLab', vassalTab], ['graphics', graphicsTab], ['saveDiagnostics', saveDiagnosticsTab]]) {
+      tab.setAttribute('aria-pressed', String(key === activePage));
+    }
     for (const [key, page] of Object.entries(pages)) page.element.style.display = key === activePage ? "" : "none";
     pages[activePage].render?.();
   }
@@ -172,6 +184,7 @@ export function createSettlementDebugMenuDom({
   }
   vassalTab.addEventListener("click", () => setActivePage("vassalLab"));
   saveDiagnosticsTab.addEventListener('click', () => setActivePage('saveDiagnostics'));
+  graphicsTab.addEventListener('click', () => setActivePage('graphics'));
   closeButton.addEventListener("click", close);
   return {
     init() {
