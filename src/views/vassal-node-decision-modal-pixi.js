@@ -56,6 +56,7 @@ export function createVassalNodeDecisionModalView({
   onWorldMap, onReadOnlyAction, getProtectedBackdropRects, onReview, onOpenHeirlooms, tooltipView,
   getNodeFamily = getVassalLifeMapNodeFamily,
   showShopReroll = () => true,
+  getAnimationTime = () => performance.now(),
 } = {}) {
   const backdrop = new PIXI.Graphics();
   backdrop.beginFill(0x171713, 0.68).drawRect(0, 0, app.screen.width, app.screen.height).endFill();
@@ -138,6 +139,7 @@ export function createVassalNodeDecisionModalView({
   let inspectionRoot = null;
   let lastDecision = null;
   let tableauLayer = null, dragPreviewLayer = null, dragPreview = null;
+  let practiceDragProgress = 0, practiceDragMotion = null;
   let discardRoots = [];
   let replacementOfferId = null;
   let offerPage = 0;
@@ -286,7 +288,7 @@ export function createVassalNodeDecisionModalView({
     }
   }
 
-  function advanceMotion(now = performance.now()) {
+  function advanceMotion(now = getAnimationTime()) {
     if (!motion) return;
     const t = Math.min(1, (now - motion.startedAtMs) / MOTION_MS);
     const eased = 1 - (1 - t) ** 3;
@@ -303,10 +305,35 @@ export function createVassalNodeDecisionModalView({
       finishMotion();
       return;
     }
-    motion = { from: visibility, to: target, startedAtMs: performance.now() };
+    motion = { from: visibility, to: target, startedAtMs: getAnimationTime() };
     root.eventMode = "none";
     transitionGraphic.visible = true;
     applyMotionPose();
+  }
+
+  function applyPracticeDragPose() {
+    for(const layer of [tableauLayer,dragPreviewLayer]) {
+      if(layer&&!layer.destroyed)layer.setPracticeDragProgress?.(practiceDragProgress);
+    }
+  }
+
+  function advancePracticeDragMotion(now = getAnimationTime()) {
+    if(!practiceDragMotion)return;
+    const t=Math.max(0,Math.min(1,(now-practiceDragMotion.startedAtMs)/200));
+    const eased=1-(1-t)**3;
+    practiceDragProgress=practiceDragMotion.from+(practiceDragMotion.to-practiceDragMotion.from)*eased;
+    if(t===1)practiceDragMotion=null;
+  }
+
+  function setPracticeDragTarget(target, immediate = false) {
+    const now=getAnimationTime();
+    advancePracticeDragMotion(now);
+    if(immediate||reducedMotion?.matches) {
+      practiceDragProgress=target;practiceDragMotion=null;
+    } else if((practiceDragMotion?.to??practiceDragProgress)!==target) {
+      practiceDragMotion={from:practiceDragProgress,to:target,startedAtMs:now};
+    }
+    applyPracticeDragPose();
   }
 
   function close({ immediate = false } = {}) {
@@ -318,6 +345,7 @@ export function createVassalNodeDecisionModalView({
     backdropPressedPointerId = null;
     pointerHeld = false;
     dragged = null;
+    setPracticeDragTarget(0,immediate);
     clearDragPreview();
     dragGhost?.destroy({children:true}); dragGhost = null;
     placementGuide?.destroy(); placementGuide = null;
@@ -361,6 +389,7 @@ export function createVassalNodeDecisionModalView({
 
   function open(nodeId = null, nodePoint = null) {
     advanceMotion();
+    setPracticeDragTarget(0,true);
     backdropPressedPointerId = null;
     motionOrigin = nodePoint && Number.isFinite(nodePoint.x) && Number.isFinite(nodePoint.y)
       ? { x: nodePoint.x, y: nodePoint.y } : { ...panelCenter };
@@ -411,8 +440,8 @@ export function createVassalNodeDecisionModalView({
     dragPreview = null;
     if (tableauLayer) {
       tableauLayer.visible = true;
-      tableauLayer.setPracticeDragActive?.(dragged?.active && dragged.piece.presentation?.kind === 'practice');
     }
+    applyPracticeDragPose();
   }
 
   function dragMove(local, drag) {
@@ -456,6 +485,7 @@ export function createVassalNodeDecisionModalView({
     const local = event?.global ? root.toLocal(event.global) : drag.point;
     const move = dragMove(local, drag);
     dragged = null;
+    setPracticeDragTarget(0);
     clearDragPreview();
     placementGuide?.destroy(); placementGuide = null;
     dragGhost?.destroy({children:true}); dragGhost = null;
@@ -482,6 +512,7 @@ export function createVassalNodeDecisionModalView({
     const local = root.toLocal(event.global); dragged.point = local;
     if (!dragged.active && Math.hypot(local.x - dragged.start.x, local.y - dragged.start.y) > 10) {
       dragged.active = true; dragged.card.dragConsumed = true;
+      setPracticeDragTarget(dragged.piece.presentation?.kind === 'practice'?1:0);
       pinnedInspectionId = quickInspectionId = previewOfferId = hoveredOfferId = previewTableauId = hoveredTableauId = null;
       inspectionRoot?.destroy({children:true}); inspectionRoot = null;
       const face = dragged.piece.presentation;
@@ -515,7 +546,7 @@ export function createVassalNodeDecisionModalView({
       tableauLayer.visible = false;
       dragPreviewLayer = renderDecisionTableau(root, decision.settlement, {
         preview:true, time:getState?.()?.tSec ?? 0, targetIndex:move.toIndex, tooltipView,
-        practiceDrag:dragged.piece.presentation?.kind === 'practice',
+        practiceDragProgress,
       }).layer;
       root.setChildIndex(dragGhost, root.children.length - 1);
     } else {
@@ -530,6 +561,7 @@ export function createVassalNodeDecisionModalView({
   root.on('pointercancel', () => {
     if (dragged?.card && !dragged.card.destroyed) dragged.card.dragConsumed = false;
     dragged = null; dragTargetIndex = null; clearDragPreview();
+    setPracticeDragTarget(0);
     dragGhost?.destroy({children:true}); dragGhost = null;
     placementGuide?.destroy(); placementGuide = null; render(true);
   });
@@ -577,6 +609,7 @@ export function createVassalNodeDecisionModalView({
       clearChildren(root);
       preparedLayouts.delete(nextSignature);
       restoreLayout(cached);
+      applyPracticeDragPose();
       preparedLayoutHits++;
       return;
     }
@@ -787,6 +820,7 @@ export function createVassalNodeDecisionModalView({
     if (decision?.contextKind === "settlement" && settlement) {
       const rendered = renderDecisionTableau(root, settlement, {
         time:state?.tSec ?? 0, readOnly, choosing:!!replacementOfferId, tooltipView,
+        practiceDragProgress:prepared?0:practiceDragProgress,
         onUnlock:id=>onPurchaseOffer?.(node.id,id),
         onUndoUnlock:id=>onUndoPurchase?.(node.id,id),
         onChoose:(index, piece) => {
@@ -1081,7 +1115,9 @@ export function createVassalNodeDecisionModalView({
       }
       await app.renderer?.prepare?.upload();
     },
-    init: () => {}, update: () => { advanceMotion(); render(); worldScreen.update(); },
+    init: () => {}, update: () => {
+      advanceMotion();advancePracticeDragMotion();render();applyPracticeDragPose();worldScreen.update();
+    },
     refresh: () => render(true), resize: () => render(true),
     open, close, isOpen: () => logicalOpen, getOpenNodeId: () => openNodeId,
     getWorldDecisionPoint: (kind,id) => worldScreen.getPoint(kind,id),
@@ -1174,6 +1210,8 @@ export function createVassalNodeDecisionModalView({
         poolFittings:shopCardRoots.flatMap(card=>(card.poolFittings??[]).map(({kind,root:control})=>{const point=control.toGlobal(new PIXI.Point(control.hitArea.width/2,control.hitArea.height/2));return{offerId:card.offerId,kind,x:point.x,y:point.y,rect:control.getBounds()};})),
         boardPools:lastDecision?.settlement?.multiplierPreview,
         practiceDragRotations:(dragPreviewLayer??tableauLayer)?.practiceDragRotations?.()??[],
+        practiceDragScales:(dragPreviewLayer??tableauLayer)?.practiceDragScales?.()??[],
+        practiceDragProgress,
         boardPoolFittings:(tableauLayer?.poolFittings??[]).map(({kind,practiceId,root:control})=>{const p=control.toGlobal(new PIXI.Point(control.hitArea.width/2,control.hitArea.height/2));return{kind,practiceId,x:p.x,y:p.y,completion:control.completionPreview===true};}),
         offerFacePoints:shopCardRoots.map(card=>{const face=card.faceRoot;const p=face?.toGlobal(new PIXI.Point(face.pieceGeometry.width/2,face.pieceGeometry.height/2));return{offerId:card.offerId,...p,faceRect:face?.getBounds(),titleRect:card.titleRoot?.getBounds()};}),
         purchaseOrder: (decision?.purchases ?? []).map((purchase) => purchase.offerId),

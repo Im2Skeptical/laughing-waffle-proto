@@ -11,7 +11,7 @@ import { button } from './cards.js';
 // cards, so both empty targets and the selected replacement read as slots.
 export function renderDecisionTableau(parent, settlement, {
   time = 0, readOnly = false, choosing = false, onChoose, onInspect, onHover,
-  onOut, onDrag, onUpgrade, onUnlock, onUndoUnlock, preview = false, targetIndex = null, tooltipView, practiceDrag = false,
+  onOut, onDrag, onUpgrade, onUnlock, onUndoUnlock, preview = false, targetIndex = null, tooltipView, practiceDragProgress = 0,
 } = {}) {
   const layer = new PIXI.Container();
   parent.addChild(layer);
@@ -61,22 +61,25 @@ export function renderDecisionTableau(parent, settlement, {
     onUpgrade?.(card, piece);
     roots.push({card, piece});
   }
-  // Rotate about each occupied card's centre without moving its physical slot.
+  // Lift and rotate about each occupied card's centre without moving its slot.
   // These poses belong to this rendered layer and never enter simulation state.
   const poses=roots.flatMap(({card,piece},index)=>piece?[{card,index,x:card.x,y:card.y,
-    pivotX:card.pivot.x,pivotY:card.pivot.y,rotation:card.rotation}]:[]);
-  layer.setPracticeDragActive=active=>{
+    pivotX:card.pivot.x,pivotY:card.pivot.y,rotation:card.rotation,scaleX:card.scale.x,scaleY:card.scale.y}]:[]);
+  layer.setPracticeDragProgress=progress=>{
+    const amount=Math.max(0,Math.min(1,progress));
     for(const pose of poses) {
       const {card}=pose;
       const cx=card.pieceGeometry.width/2,cy=card.pieceGeometry.height/2;
-      card.pivot.set(active?cx:pose.pivotX,active?cy:pose.pivotY);
-      card.position.set(pose.x+(active?(cx-pose.pivotX)*card.scale.x:0),
-        pose.y+(active?(cy-pose.pivotY)*card.scale.y:0));
-      card.rotation=pose.rotation+(active?(pose.index%2?1:-1)*.018:0);
+      card.pivot.set(amount?cx:pose.pivotX,amount?cy:pose.pivotY);
+      card.position.set(pose.x+(amount?(cx-pose.pivotX)*pose.scaleX:0),
+        pose.y+(amount?(cy-pose.pivotY)*pose.scaleY:0));
+      card.rotation=pose.rotation+(pose.index%2?1:-1)*Math.PI/60*amount;
+      card.scale.set(pose.scaleX*(1+.025*amount),pose.scaleY*(1+.025*amount));
     }
   };
   layer.practiceDragRotations=()=>poses.map(({card})=>card.rotation);
-  layer.setPracticeDragActive(practiceDrag);
+  layer.practiceDragScales=()=>poses.map(({card,scaleX})=>card.scale.x/scaleX);
+  layer.setPracticeDragProgress(practiceDragProgress);
   const pools=settlement.multiplierPreview;
   const poolFittings=[];
   if(pools) {

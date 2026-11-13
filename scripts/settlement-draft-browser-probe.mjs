@@ -60,7 +60,9 @@ try {
         results.push(result);return result;
       };
       const app=new PIXI.Application({width:2424,height:1080,background:0x111817,antialias:true});document.body.append(app.view);art.preloadChronicleArt();
+      let animationClock=null;
       const view=createVassalNodeDecisionModalView({app,layer:app.stage,getState:()=>state,
+        getAnimationTime:()=>animationClock??performance.now(),
         getPresentation:()=>({vassal:v,readOnly:false,viewedSec:0,frontierSec:0}),
         getDecisionPresentation:(_id,preview)=>life.getVassalNodeDecisionPresentation(state,nodeId,preview),
         onPurchaseOffer:(nodeId,offerId,origin,toIndex,replacePracticeId)=>dispatch(K.VASSAL_PURCHASE_SHOP_OFFER,{nodeId,offerId,origin,toIndex,replacePracticeId}),
@@ -71,6 +73,9 @@ try {
       });
       view.open(nodeId);app.ticker.add(()=>view.update());
       globalThis.probe={view,results,snapshot:()=>view.getSemanticSnapshot(),confirmed:()=>({practices:site.practiceSlots,structures:site.structureSlots}),
+        freezeAnimation:()=>{animationClock=performance.now();},
+        advanceAnimation:ms=>{animationClock+=ms;view.update();app.renderer.render(app.stage);},
+        resumeAnimation:()=>{animationClock=null;},
         costs:()=>{const d=life.getVassalNodeDecisionPresentation(state,nodeId);return {currency:d.settlement.currency,phases:d.mortalityEstimate.totalPhaseCost};},
         undoAfterConfirm:offerId=>dispatch(K.VASSAL_UNDO_SHOP_PURCHASE,{nodeId,offerId}),
         replay:()=>{const r=timeline.rebuildStateAtSecond(line,0);const s=r.state.world.sites.find(s=>s.regionId===v.locationRegionId).detailedState;return {ok:r.ok,practices:s.practiceSlots,structures:s.structureSlots};}};
@@ -130,6 +135,7 @@ try {
     if(replacementOnly) {
       const original=initial.practices.map(p=>p?.practiceId??null);
       const live=await page.evaluate(()=>probe.confirmed());
+      await page.evaluate(()=>probe.freezeAnimation());
       const hold=async()=>{
         const source=await screen(await point('getOfferFacePoint',0));
         const touch=mobile?await page.context().newCDPSession(page):null;
@@ -137,39 +143,56 @@ try {
         else {await page.mouse.move(source.x,source.y);await page.mouse.down();}
         return {
           async move(p){const q=await screen(p);if(touch)await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[q]});else await page.mouse.move(q.x,q.y,{steps:6});await delay(60);},
-          async release(){if(touch){await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await touch.detach();}else await page.mouse.up();await delay(180);},
+          async release(settle=true){if(touch){await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await touch.detach();}else await page.mouse.up();await delay(180);if(settle)await page.evaluate(()=>probe.advanceAnimation(200));},
         };
       };
       let held=await hold();
       for(const index of [0,2,4,1]) {
         await held.move(await point('getTableauClickPoint',index));
+        if(index===0) {
+          assert.equal((await snapshot()).practiceDragProgress,0,'The lift starts without an instant jump');
+          await page.evaluate(()=>probe.advanceAnimation(50));
+          const partial=await snapshot();
+          assert.ok(partial.practiceDragProgress>.25&&partial.practiceDragProgress<1,'The lift eases out through an intermediate pose');
+          assert.ok(partial.practiceDragScales.every(scale=>scale>1&&scale<1.025),'Scaling animates with the tilt');
+          await page.evaluate(()=>probe.advanceAnimation(150));
+        }
         const s=await snapshot(),expected=[...original];expected[index]='dryFarming';
         assert.deepEqual(s.dragPreview?.discard,[original[index]],`Slot ${index+1} previews its own outgoing Practice`);
         assert.deepEqual(s.dragPreview.practices,expected,'Replacing a card preserves every other slot');
         assert.deepEqual(s.purchaseOrder,[],'Hovering cannot stage a purchase');
         assert.deepEqual(await page.evaluate(()=>probe.confirmed()),live,'Hovering cannot change the live board');
-        assert.ok(s.practiceDragRotations.length===5&&s.practiceDragRotations.every(r=>Math.abs(r)>0&&Math.abs(r)<.04),'The board tilts subtly during the drag');
+        assert.ok(s.practiceDragRotations.length===5&&s.practiceDragRotations.every(r=>Math.abs(r)>.05&&Math.abs(r)<.056),'The board holds a roughly three-degree tilt across target changes');
+        assert.ok(s.practiceDragScales.every(scale=>Math.abs(scale-1.025)<.00001),'Cards remain slightly enlarged across preview rebuilds');
       }
       await page.screenshot({path:`artifacts/practice-replacement-${mobile?'phone':'desktop'}-preview.png`});
       await held.move({x:600,y:840});
       let s=await snapshot();assert.equal(s.dragPreview,null,'Leaving the board clears the proposed discard');
       assert.ok(s.practiceDragRotations.every(r=>Math.abs(r)>0),'The board remains tilted until the drag ends');
-      await held.release();
+      await held.release(false);
+      assert.equal((await snapshot()).practiceDragProgress,1,'The return starts without snapping to the resting pose');
+      await page.evaluate(()=>probe.advanceAnimation(50));
+      const returning=await snapshot();
+      assert.ok(returning.practiceDragProgress>0&&returning.practiceDragProgress<.75,'The return eases through an intermediate pose');
+      await page.evaluate(()=>probe.advanceAnimation(150));
       s=await snapshot();assert.deepEqual(s.practices.map(p=>p?.practiceId??null),original);
       assert.ok(s.practiceDragRotations.every(r=>r===0),'Cancelling the drop straightens the board');
-      held=await hold();await held.move(await point('getTableauClickPoint',2));await held.release();
+      assert.ok(s.practiceDragScales.every(scale=>scale===1),'Cancelling the drop restores the original size');
+      held=await hold();await held.move(await point('getTableauClickPoint',2));await page.evaluate(()=>probe.advanceAnimation(200));await held.release();
       s=await snapshot();const expected=[...original];expected[2]='dryFarming';
       assert.deepEqual(s.practices.map(p=>p?.practiceId??null),expected,'Drop replaces the hovered card');
       assert.deepEqual(s.discardedPractices.map(p=>p.practiceId),[original[2]]);
       assert.ok(s.practiceDragRotations.every(r=>r===0),'Dropping straightens the board');
+      assert.ok(s.practiceDragScales.every(scale=>scale===1),'Dropping restores the original size');
       await tap(await point('getUndoClickPoint',0));
       assert.deepEqual((await snapshot()).practices.map(p=>p?.practiceId??null),original,'Undo restores the exact original board');
-      held=await hold();await held.move(await point('getTableauClickPoint',2));await held.release();
+      held=await hold();await held.move(await point('getTableauClickPoint',2));await page.evaluate(()=>probe.advanceAnimation(200));await held.release();
+      await page.evaluate(()=>probe.resumeAnimation());
       await tap(await point('getConfirmClickPoint'));
       const actual=await page.evaluate(()=>probe.confirmed()),replay=await page.evaluate(()=>probe.replay());
       assert.deepEqual(actual.practices.map(p=>p?.practiceId??null),expected,'Confirm installs the shown replacement');
       assert.equal(replay.ok,true);assert.deepEqual(replay.practices,actual.practices,'Replay retains the chosen replacement');
-      checks.push(`${mobile?'touch':'mouse'} replacement: moving discard, tilt, cancel, commit, undo, confirm and replay`);
+      checks.push(`${mobile?'touch':'mouse'} replacement: moving discard, eased tilt/scale, preview continuity, cancel, commit, undo, confirm and replay`);
       await page.close();page=null;continue;
     }
     await page.screenshot({path:`artifacts/settlement-draft-${mobile?'mobile':'desktop'}-${kind}-offers.png`});
