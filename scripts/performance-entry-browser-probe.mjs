@@ -13,7 +13,7 @@ const browser = await chromium.launch(BROWSER_PROBE_LAUNCH_OPTIONS);
 let page;
 const errors = [];
 try {
-  for (const [artwork,randomSeed] of [[false,false],[true,false],[false,true]]) {
+  for (const [artwork,randomSeed] of (process.argv.includes('--pinned-only')?[]:[[false,false],[true,false],[false,true]])) {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
     page = await context.newPage();
     page.on('pageerror', error => errors.push(error.message));
@@ -97,8 +97,37 @@ try {
     }
     await context.close();
   }
+  const pinnedContext=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true});
+  await pinnedContext.addInitScript(()=>{
+    const native=crypto.getRandomValues.bind(crypto);
+    crypto.getRandomValues=array=>{
+      if(array instanceof Uint32Array && array.length===1){array[0]=0;return array;}
+      return native(array);
+    };
+  });
+  page=await pinnedContext.newPage();
+  page.on('pageerror',error=>errors.push(error.message));
+  const pinnedUrl=new URL(url);pinnedUrl.search='?dev=1&perf=1&art=0&launch=new&seed=1867';
+  await page.goto(pinnedUrl.href);
+  await page.waitForFunction(()=>!document.querySelector('[data-testid="game-new-performance"]')?.disabled);
+  await page.evaluate(()=>{
+    document.documentElement.requestFullscreen=async()=>{};
+    screen.orientation.lock=async()=>{};
+  });
+  await page.getByTestId('game-new-performance').click();
+  assert.equal(new URL(page.url()).searchParams.get('seed'),'1867','portrait entry preserves the numeric direct-link pin');
+  await page.setViewportSize({width:844,height:390});
+  await page.waitForFunction(()=>document.querySelector('[data-testid="game-menu"]')?.hidden,{}, {timeout:90000});
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runner.baseSeed),1867);
+  await page.getByTestId('game-menu-open').click();
+  if(!await page.getByTestId('game-performance-random-seed').isVisible())await page.getByTestId('game-developer-tools').locator('summary').click();
+  await page.getByTestId('game-new-performance').click();
+  await page.waitForFunction(()=>document.querySelector('[data-testid="game-menu"]').hidden,{}, {timeout:90000});
+  assert.equal(new URL(page.url()).searchParams.get('seed'),'prepared','subsequent ordinary starts return to the pool');
+  assert.equal(await page.evaluate(()=>globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runner.baseSeed),123,'launch entropy chooses from the pool after the pinned launch');
+  await pinnedContext.close();
   assert.deepEqual(errors, []);
-  console.log('[performance-entry] all five prepared seeds, one-file downloads, prepared/random Continue, fresh random seeds, pool switch-back, fullscreen/landscape and artwork on/off passed');
+  console.log('[performance-entry] prepared/random starts, one-file downloads, Continue, fresh seeds, pool switch-back, portrait seed pin, fullscreen/landscape and artwork passed');
 } catch (error) {
   await page?.screenshot({ path: `${output}/failure.png` }).catch(() => {});
   const loading=await page?.getByTestId('game-loading-details').textContent().catch(()=>null);

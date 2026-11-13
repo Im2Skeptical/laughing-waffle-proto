@@ -1,6 +1,7 @@
 import { PERFORMANCE_SAVE_SLOT } from '../controllers/sim-runner/save-slots.js';
 import { minimalGraphics, getProgressiveArtworkPreference } from './minimal-graphics.js';
 import { getPerformanceRandomSeedPreference } from '../controllers/performance-start.js';
+import { PERFORMANCE_START_SEEDS } from '../controllers/performance-start-seeds.js';
 import { PHONE_PORTRAIT_QUERY, getGameFullscreenElement, requestGameDisplayMode, usesTouchGameDisplay } from './game-display-mode.js';
 import { createSaveRecoveryDom, downloadSaveText } from './save-recovery-dom.js';
 import { buildSaveDiagnosticReport, createSaveDiagnosticsDom } from './save-diagnostics-dom.js';
@@ -150,9 +151,11 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
   function launchPerformance(kind, event) {
     if (entering) return;
     const url=new URL(location.href);
+    const pinnedSeed=performanceEntryPending && !performanceRandomSeed && PERFORMANCE_START_SEEDS.includes(Number(url.searchParams.get('seed')))
+      ? url.searchParams.get('seed') : null;
     url.searchParams.set('dev','1');url.searchParams.set('perf','1');
     url.searchParams.set('art',progressiveArtwork?'1':'0');url.searchParams.delete('launch');
-    url.searchParams.set('seed',performanceRandomSeed?'random':'prepared');
+    url.searchParams.set('seed',pinnedSeed??(performanceRandomSeed?'random':'prepared'));
     url.hash='';history.replaceState(null,'',url.href);
     syncPerformanceDisplay();
     performanceLaunch=kind;
@@ -312,7 +315,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
       seedInfo.id = 'game-performance-seed-info'; seedToggle.setAttribute('aria-describedby',seedInfo.id);
       const updateSeedInfo = () => { seedInfo.textContent = performanceRandomSeed
         ? 'Random world each start. Computes a fresh opening forecast before play.'
-        : 'Picks one of 5 prepared worlds. Loads its precomputed opening forecast for faster entry.'; };
+        : `Picks one of ${PERFORMANCE_START_SEEDS.length} prepared worlds. Loads its precomputed opening forecast for faster entry.`; };
       seedToggle.addEventListener('change', () => {
         performanceRandomSeed = seedToggle.checked;
         try { localStorage.setItem('dev.performanceRandomSeed', performanceRandomSeed ? 'on' : 'off'); } catch {}
