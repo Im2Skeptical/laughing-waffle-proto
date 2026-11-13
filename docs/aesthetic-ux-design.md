@@ -5,8 +5,9 @@ as further design tasks reveal what works.
 1. Make cause and effect visible in the design. Connect workers to their
    multiplier, triggers to progress, costs to choices, and consequences to the
    action that produced them. Composition and motion should help players
-   understand the engine they are building. Show unmodified amounts in meaningful
-   units before listing modifiers; separate seasonal or conditional yields when
+   understand the engine they are building. Place one-time board-space prices on
+   explicit unlock controls, and show each shop item's own price separately.
+   Show unmodified amounts in meaningful units before listing modifiers; separate seasonal or conditional yields when
    they differ. Preview a choice's effects where the affected values already live,
    with a clear distinction between active benefits and pending completion.
 

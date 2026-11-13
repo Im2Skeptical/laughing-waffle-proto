@@ -179,6 +179,9 @@ function validateDetailedSettlement(site, region, errors, gamepieces) {
     errors.push(`site ${site?.id ?? "?"} has no detailed state`);
     return;
   }
+  if (!Number.isInteger(settlement.unlockedPracticeSlots) || settlement.unlockedPracticeSlots < 3 || settlement.unlockedPracticeSlots > 5) {
+    errors.push(`site ${site.id} has invalid unlocked Practice capacity`);
+  }
   if (!Array.isArray(settlement.practiceSlots)
       || settlement.practiceSlots.length !== DETAILED_PRACTICE_SLOT_COUNT) {
     errors.push(`site ${site.id} must have ${DETAILED_PRACTICE_SLOT_COUNT} practice slots`);

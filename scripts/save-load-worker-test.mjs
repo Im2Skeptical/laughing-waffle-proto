@@ -36,7 +36,8 @@ function createWorker({ onProgress = () => {} } = {}) {
   return adapter;
 }
 
-const state = createNewGameState(735);
+// Keep the save-history fixture alive beyond its multi-slice 260-second replay.
+const state = createNewGameState(123);
 const timeline = createTimelineFromInitialState(state);
 timeline.actions = [0, 2].map(tSec => ({ tSec,
   kind: ActionKinds.SETTLEMENT_REROLL_VASSALS, payload: {} }));
@@ -47,7 +48,7 @@ timeline.cursorSec = 260;
 timeline.historyEndSec = 260;
 const text = exportSave({ state, timeline, setupId: 'twoRegionStarter01' }).text;
 const expected = inspectSaveText(text);
-assert.equal(expected.ok, true);
+assert.equal(expected.ok, true, `save inspection: ${expected.error?.message ?? expected.reason ?? 'unknown failure'}`);
 const loadingProgress = [];
 const actual = await inspectSaveInWorker(text, { createWorker, onProgress: progress => loadingProgress.push(progress) });
 assert.equal(actual.ok, true);

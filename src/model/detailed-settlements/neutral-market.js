@@ -90,6 +90,7 @@ export function transitionTown(state,site,faction) {
       ...(def.category==='influence'?{allegiance:faction}:{stock:0})};
   });
   while(settlement.practiceSlots.length<5)settlement.practiceSlots.push(null);
+  settlement.unlockedPracticeSlots=Math.max(settlement.unlockedPracticeSlots,market.practices.length);
   settlement.structureSlots[0]={structureId:'fm_crowdedTenement',placementId:`${site.regionId}:housing`,origin:0,width:2};
   for(const goods of market.stocks){
     for(const slot of settlement.practiceSlots){

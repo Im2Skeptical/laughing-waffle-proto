@@ -3,7 +3,7 @@ import { getVassalRiskDeathChance } from './class-rules.js';
 import { multiplierBoardPreview, multiplierShopPreview } from './multiplier-preview.js';
 import { getActionMonsterPressureCost } from '../detailed-settlements/practice-events.js';
 import { resolveLifeMapOptionCosts } from '../life-map-balance.js';
-import { getShopOfferPrice, getPracticeExpansionPremium } from './shop-specialties.js';
+import { getShopOfferPrice } from './shop-specialties.js';
 import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
 import { getCampaignPresentation } from './campaign.js';
 import { stockTotal, discretionaryStock } from "../detailed-settlements/stock.js";
@@ -47,6 +47,7 @@ import {
   purchaseVassalShopOffer,
   reorderVassalShopPurchase,
   moveVassalShopStructure,
+  getPracticeSlotUnlocks,
 } from "./shop.js";
 
 function capitalize(value) {
@@ -312,9 +313,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     ? validatePurchaseInterventions(state, vassal, nodeState?.purchasedOffers ?? []) : null;
   const afterPractices = projected?.reservation?.practiceSlots ?? beforePractices;
   const afterStructures = projected?.reservation?.structureSlots ?? beforeStructures;
-  let practiceOccupancy = afterPractices.filter(Boolean).length;
-  const practiceExpansionCosts = afterPractices.map(slot => slot ? 0
-    : state.rulesetId ? getPracticeExpansionPremium(++practiceOccupancy) : 0);
+  const practiceSlotUnlocks = getPracticeSlotUnlocks(state,vassal,nodeState);
   const stagedIds=(nodeState?.purchasedOffers??[]).filter(p=>p.intervention.kind==='structure').map(p=>p.placement?.placementId).filter(Boolean);
   const poolBefore={practiceSlots:beforePractices,structureSlots:beforeStructures};
   const poolAfter={practiceSlots:afterPractices,structureSlots:afterStructures};
@@ -370,7 +369,6 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       constructionPresentation: kind === 'structure' ? getVassalGamepiecePresentation(state, kind, definitionId,
         intervention.tier, { ...intervention, construction: { completedCycles: 0 } }) : null,
       prestigeCost,
-      expansionPremium: quote.expansionPremium ?? 0,
       monsterPressureCost: quote.monsterPressureCost ?? 0,
       currencyCost,
       phaseCost: purchased ? offer.phaseCost
@@ -388,7 +386,7 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
     blocked:getAdjustedVassalPrestigeCost(vassal,option.prestigeCost??0)>prestigeAccount(state,vassal).prestige?'Insufficient Prestige':null}));
   const ordinaryLegacy = nodeState?.family==='legacy' && node.signatureNode?.variantId!=='legacyPlus';
   const offers=(nodeState?.inventory??[]).map(offer=>decorateOffer(offer));
-  const purchases=(nodeState?.purchasedOffers??[]).map(offer=>decorateOffer(offer,true));
+  const purchases=(nodeState?.purchasedOffers??[]).filter(offer=>offer.intervention?.kind!=='practiceSlot').map(offer=>decorateOffer(offer,true));
   const boardPools=multiplierBoardPreview(state,previewRegionId,poolBefore,poolAfter,stagedIds);
   const hovered=offers.find(offer=>offer.offerId===preview.previewOfferId&&offer.intervention?.kind==='structure'&&!offer.purchased&&offer.canStage);
   if(boardPools&&hovered?.multiplierPreview) {
@@ -435,7 +433,8 @@ export function getVassalNodeDecisionPresentation(state, nodeId = null, preview 
       currency: Math.max(0, (stockTotal(state, previewSite.detailedState, "Currency"))
         - (previewRegionId === vassal.locationRegionId ? stagedCurrencyCost : 0)),
       practices: decorate("practice", afterPractices),
-      practiceExpansionCosts,
+      unlockedPracticeSlots:projected?.reservation?.unlockedPracticeSlots ?? previewSite.detailedState.unlockedPracticeSlots,
+      practiceSlotUnlocks,
       displacedPractices: displacedPractices.map((slot) =>
         getVassalGamepiecePresentation(state, "practice", slot.practiceId, slot.tier ?? "bronze")),
       discardedPractices: decorate('practice', displacedPractices, false),

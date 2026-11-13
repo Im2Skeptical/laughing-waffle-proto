@@ -424,8 +424,10 @@ export function createVassalNodeDecisionModalView({
     }
     if (local.x < tableau.x - 8 || local.x > tableau.x + TABLEAU.width + 8) return null;
     if (kind === 'practice' && local.y >= tableau.practiceY - 30 && local.y < tableau.practiceY + TABLEAU.cardHeight + 25) {
+      const index=Math.max(0, Math.min(4, Math.floor((local.x - tableau.x) / (TABLEAU.cardWidth + TABLEAU.gap))));
+      if (index >= (lastDecision?.settlement?.unlockedPracticeSlots ?? 5)) return null;
       return {kind, id, fromOffer:drag.fromOffer,
-        toIndex:Math.max(0, Math.min(4, Math.floor((local.x - tableau.x) / (TABLEAU.cardWidth + TABLEAU.gap))))};
+        toIndex:index};
     }
     if (kind === 'structure' && local.y >= tableau.structureY - 30 && local.y < tableau.structureY + construction().height + 25) {
       return {kind, id, fromOffer:drag.fromOffer, origin:Math.floor((local.x - tableau.x) / construction().cell)};
@@ -527,7 +529,7 @@ export function createVassalNodeDecisionModalView({
 
   function stageOffer(offer) {
     if (offer.intervention?.kind === 'practice' && offer.intervention.mode === 'learn'
-      && lastDecision?.settlement?.practices?.every(Boolean)) {
+      && lastDecision?.settlement?.practices?.slice(0,lastDecision.settlement.unlockedPracticeSlots??5).every(Boolean)) {
       replacementOfferId = replacementOfferId === offer.offerId ? null : offer.offerId;
       pinnedInspectionId = quickInspectionId = previewOfferId = hoveredOfferId = previewTableauId = null;
       render(true);
@@ -778,6 +780,8 @@ export function createVassalNodeDecisionModalView({
     if (decision?.contextKind === "settlement" && settlement) {
       const rendered = renderDecisionTableau(root, settlement, {
         time:state?.tSec ?? 0, readOnly, choosing:!!replacementOfferId, tooltipView,
+        onUnlock:id=>onPurchaseOffer?.(node.id,id),
+        onUndoUnlock:id=>onUndoPurchase?.(node.id,id),
         onChoose:(index, piece) => {
           const id = replacementOfferId; replacementOfferId = null;
           onPurchaseOffer?.(node.id, id, null, 0, piece?.practiceId ?? null);

@@ -5,48 +5,56 @@ import { multiplierTooltip } from '../multiplier-breakdown.js';
 import { createText } from '../settlement-view-primitives.js';
 import { TEXT_STYLES } from '../settlement-theme.js';
 import { addResourceAmount } from '../resource-cost-pixi.js';
+import { button } from './cards.js';
 
 // Board and discard share physical faces. Frames remain visible around occupied
 // cards, so both empty targets and the selected replacement read as slots.
 export function renderDecisionTableau(parent, settlement, {
   time = 0, readOnly = false, choosing = false, onChoose, onInspect, onHover,
-  onOut, onDrag, onUpgrade, preview = false, targetIndex = null, tooltipView,
+  onOut, onDrag, onUpgrade, onUnlock, onUndoUnlock, preview = false, targetIndex = null, tooltipView,
 } = {}) {
   const layer = new PIXI.Container();
   parent.addChild(layer);
   const roots = [], discardRoots = [];
   for (let index = 0; index < 5; index++) {
     const piece = settlement.practices[index];
+    const unlock = settlement.practiceSlotUnlocks?.find(u=>u.index===index);
+    const locked = index >= (settlement.unlockedPracticeSlots ?? 5);
     const x = TABLEAU.x + index * (TABLEAU.cardWidth + TABLEAU.gap);
-    const slot = new PIXI.Graphics().lineStyle(choosing || index === targetIndex ? 4 : 2,
-      choosing || index === targetIndex ? 0xb7e3d7 : 0x887452, .95)
+    const highlighted = choosing && !locked || index === targetIndex;
+    const slot = new PIXI.Graphics().lineStyle(highlighted ? 4 : 2,
+      highlighted ? 0xb7e3d7 : 0x887452, .95)
       .beginFill(0x101815, .9).drawRoundedRect(x - 4, TABLEAU.practiceY - 14,
         TABLEAU.cardWidth + 8, TABLEAU.cardHeight + 22, 6).endFill();
-    slot.eventMode = choosing ? 'static' : 'none';
-    slot.cursor = choosing ? 'pointer' : 'default';
+    slot.eventMode = choosing && !locked ? 'static' : 'none';
+    slot.cursor = choosing && !locked ? 'pointer' : 'default';
     slot.on('pointertap', event => {event.stopPropagation(); onChoose?.(index, piece);});
     layer.addChild(slot);
     const card = addSettlementPiece(layer, {x, y:TABLEAU.practiceY, width:TABLEAU.cardWidth, height:TABLEAU.cardHeight}, {
       face:piece?.presentation, empty:!piece, time,
       state:piece?.upgraded ? 'upgraded' : piece?.staged ? 'staged' : 'confirmed',
       onHover:piece ? () => onHover?.('practice:' + piece.practiceId) : null,
-      onOut, onInspect:event => choosing ? onChoose?.(index, piece)
+      onOut, onInspect:event => choosing && !locked ? onChoose?.(index, piece)
         : piece && onInspect?.('practice:' + piece.practiceId, piece.presentation, event),
     });
     if (!piece) {
       const {width, height} = card.pieceGeometry;
-      card.addChild(new PIXI.Graphics().lineStyle(3, 0x887452, .65)
+      if (!locked) card.addChild(new PIXI.Graphics().lineStyle(3, 0x887452, .65)
         .moveTo(width / 2 - 12, height / 2).lineTo(width / 2 + 12, height / 2)
         .moveTo(width / 2, height / 2 - 12).lineTo(width / 2, height / 2 + 12));
-      const expansionCost = settlement.practiceExpansionCosts?.[index] ?? 0;
-      if (expansionCost > 0) {
-        const label = createText('Expansion', {...TEXT_STYLES.body, fontSize:18, fill:0xc6b48e},
-          width / 2, height - 72, .5, 0);
+      if (unlock) {
+        const label = createText(unlock.staged ? 'Space staged' : 'One-time unlock', {...TEXT_STYLES.body, fontSize:18, fill:0xc6b48e},
+          width / 2, height - 146, .5, 0);
         label.eventMode = 'none';
         card.addChild(label);
-        const amount = addResourceAmount(card, 'prestige', `+${expansionCost}`, {fontSize:28, iconSize:32});
-        amount.position.set((width - amount.width) / 2, height - 47);
-        card.accessibleTitle = `Empty Practice slot: +${expansionCost} Prestige expansion fee`;
+        const enabled=!readOnly && !choosing && (unlock.staged ? unlock.canUndo : unlock.canStage);
+        const control=button(card,{x:12,y:height-118,width:width-24,height:94},unlock.staged?'Undo unlock':'Unlock space',enabled,
+          ()=>unlock.staged?onUndoUnlock?.(unlock.offerId):onUnlock?.(unlock.offerId),unlock.staged);
+        control.children[1].y=24;
+        const amount = addResourceAmount(control, 'prestige', `${unlock.prestigeCost}`, {fontSize:28, iconSize:32});
+        amount.position.set((width-24-amount.width)/2,49);
+        card.unlockControl=control;
+        card.accessibleTitle = `Practice space ${index+1}: ${unlock.prestigeCost} Prestige, one-time unlock`;
       }
     }
     if (piece && !readOnly && !choosing) card.on('pointerdown', event => onDrag?.(event, card, piece));
