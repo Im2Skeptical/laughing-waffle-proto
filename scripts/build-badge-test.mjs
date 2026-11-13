@@ -14,7 +14,7 @@ function mount(info) {
   current = info;
   globalThis.document = {
     hidden: false,
-    getElementById: () => ({ textContent: JSON.stringify(info) }),
+    getElementById: id => id === 'game-build-info' ? { textContent: JSON.stringify(info) } : null,
     createElement: () => ({ dataset: {}, setAttribute() {} }),
     querySelector: () => null,
     body: { classList: { contains: () => false }, append: element => { badge = element; } },

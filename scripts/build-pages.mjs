@@ -12,6 +12,7 @@ import {
 import path from "node:path";
 import { build } from "esbuild";
 import { getBuildInfo, stampBuildInfo } from './build-info.mjs';
+import { createArtworkSnapshot, stampArtworkManifest } from './artwork-manifest.mjs';
 
 const entryPoint = "src/views/ui-root-pixi.js";
 const workerEntryPoint = "src/controllers/timegraph-forecast-worker.js";
@@ -164,7 +165,9 @@ async function buildPagesArtifact() {
       source.split("?")[0] === studyPath ? `src="${source}${source.includes("?") ? "&" : "?"}build=${moduleHash}"` : attribute));
   }
 
-  const sourceHtml = stampBuildInfo(await readFile("index.html", "utf8"), buildInfo);
+  const artworkManifest = await createArtworkSnapshot(process.cwd(), outDir);
+  await writeFile(path.join(outDir, 'artwork-manifest.json'), JSON.stringify(artworkManifest));
+  const sourceHtml = stampArtworkManifest(stampBuildInfo(await readFile("index.html", "utf8"), buildInfo), artworkManifest);
   const bundleUrl = relativeUrl(bundleOutput);
   const stylesheetUrl = relativeUrl(stylesheetOutput);
   const deploymentHtml = sourceHtml

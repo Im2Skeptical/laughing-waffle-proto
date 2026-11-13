@@ -1,4 +1,5 @@
 import { PERFORMANCE_SAVE_SLOT } from '../controllers/sim-runner/save-slots.js';
+import { artworkUrl, setArtworkReloadGuard } from './artwork-cache.js';
 import { minimalGraphics, getProgressiveArtworkPreference } from './minimal-graphics.js';
 import { getPerformanceRandomSeedPreference } from '../controllers/performance-start.js';
 import { PERFORMANCE_START_SEEDS } from '../controllers/performance-start-seeds.js';
@@ -14,7 +15,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
   const portrait = window.matchMedia(PHONE_PORTRAIT_QUERY);
   const panel = document.createElement("main");
   panel.id = "game-menu";
-  if (!minimalGraphics) panel.style.setProperty('--chronicle-backdrop', `url("${new URL('images/sprite-sheets/chronicle-gate.png',document.baseURI).href}")`);
+  if (!minimalGraphics) panel.style.setProperty('--chronicle-backdrop', `url("${new URL(artworkUrl('images/sprite-sheets/chronicle-gate.png'),document.baseURI).href}")`);
   panel.dataset.testid = "game-menu";
   const message = document.createElement("p");
   message.setAttribute("role", "status");
@@ -399,6 +400,15 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
   function returnToMenu({ force = false } = {}) {
     if (session.openMenu({ force })) { onPause?.(); show(); }
   }
+  setArtworkReloadGuard(async () => {
+    if (entering || loadingSlot !== null) return { ok: false };
+    if (!session.isInMenu()) returnToMenu({ force: true });
+    // openMenu can queue a paused capture behind an older in-flight autosave.
+    // Drain that save, then await the paused capture before navigating away.
+    const saved = await session.save();
+    if (!saved.ok) return saved;
+    return session.save();
+  });
   window.addEventListener('storage', event => {
     if (panel.hidden || ![null, NEW_GAME_DEV_SETTINGS_KEY, DEBUG_PROFILE_LIBRARY_STORAGE_KEY, CARD_REVIEW_STORAGE_KEY, CARD_REVIEW_GAME_MODE_KEY].includes(event.key)) return;
     render(); session.cancelPreparation?.(); void session.prepareNewGame?.();
