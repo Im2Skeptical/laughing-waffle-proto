@@ -1,13 +1,4 @@
-// Practice Prestige schedule this file treats as authored, not as a guess:
-// docs/civilization-milestone.md and docs/decisions-log.md: Bronze–Diamond
-// Practice and Structure prices are 10/20/30/40. docs/full-map-redesign-implementation.md:
-// staging reserves Prestige and Pressure; confirm pays; a shortfall substitutes
-// the whole charge. The PR76 slot schedule already pinned by full-map-contract
-// (two cards, then 10/20/40) is: a learn that fills the 4th slot adds 10 and the
-// 5th adds 30. Upgrades, replacements, five-slot displacement, and structures do
-// not take that step. Equality pays Prestige. One less substitutes that charge
-// for equal Monster Pressure. Receipts reprice in purchase-sequence order.
-// Shelf rows are live quotes. Staged rows show receipts, not a second quote.
+// Card prices and permanent regional space unlocks are separate staged purchases.
 // node scripts/shop-price-interactions-test.mjs
 import assert from 'node:assert/strict';
 import {ActionKinds as A, applyAction} from '../src/model/actions.js';
@@ -16,8 +7,8 @@ import {resolveLifeMapShopPrice} from '../src/model/life-map-balance.js';
 import {createNewGameState} from '../src/model/new-game.js';
 import {deserializeGameState, serializeGameState, syncPhaseToPaused} from '../src/model/state.js';
 import {appendActionAtCursor, createTimelineFromInitialState, rebuildStateAtSecond} from '../src/model/timeline/index.js';
-import {enterVassalLifeNode, getCurrentLifeMapVassal, getVassalCandidatePool, getVassalNodeDecisionPresentation, selectLifeMapVassal, selectVassalNodeOption} from '../src/model/vassal-life-map.js';
-import {purchaseVassalShopOffer, undoVassalShopPurchase} from '../src/model/vassal-life-map/shop.js';
+import {confirmVassalLifeNode, enterVassalLifeNode, getCurrentLifeMapVassal, getVassalCandidatePool, getVassalNodeDecisionPresentation, selectLifeMapVassal, selectVassalNodeOption} from '../src/model/vassal-life-map.js';
+import {purchaseVassalShopOffer, undoVassalShopPurchase, validatePurchaseInterventions} from '../src/model/vassal-life-map/shop.js';
 import {getShopOfferPrice} from '../src/model/vassal-life-map/shop-specialties.js';
 import {fullMapPractices} from '../src/defs/gamepieces/full-map-defs.js';
 import {getAdjacentRegionIds, getRegionState} from '../src/model/world-state.js';
@@ -139,6 +130,7 @@ function session(filled, treasury) {
   const node = v.lifeMap.graph.nodes.find((entry) => entry.id === v.lifeMap.currentNodeId);
   const ns = v.lifeMap.nodeStates[node.id];
   const d = s.world.sites.find((site) => site.regionId === v.locationRegionId).detailedState;
+  d.unlockedPracticeSlots = Math.max(3, filled.length);
   d.practiceSlots = [0, 1, 2, 3, 4].map((index) => filled[index] ? install(filled[index]) : null);
   s.civilization.prestige = treasury;
   ns.purchasedOffers = []; ns.purchasedOfferIds = []; ns.removalReceipts = []; ns.accumulatedPhaseCost = 0;
@@ -152,137 +144,86 @@ const prices = deserializeGameState(saved).gameConfig.lifeMapGenerator.design.sh
 check('authored-quality-prices', ['bronze', 'silver', 'gold', 'diamond'].map((quality) => [prices.practice[quality].prestige, prices.structure[quality].prestige]), [[10, 10], [20, 20], [30, 30], [40, 40]]);
 check('opening-clock', [deserializeGameState(saved).paused, deserializeGameState(saved).phase, deserializeGameState(saved).tSec, deserializeGameState(saved).civilization.chaos.monsterPressure], [false, 'simulation', 0, 0]);
 
-for (const [treasury, expected, name] of [[20, {prestige:20, pressure:0, premium:10}, 'fourth-exact'], [19, {prestige:0, pressure:20, premium:10}, 'fourth-short']]) {
-  const box = session(['forage', 'dryFarming', 'logging'], treasury);
-  const card = offer(box, 'barter');
-  box.ns.inventory = [card];
-  const before = serializeGameState(box.s);
-  check(`${name}-quote`, quoted(box, card), same(expected));
-  if (treasury === 20) sameState('pure-read', serializeGameState(box.s), before);
-  buy(box, card);
-  check(`${name}-receipt`, paid(box, 'barter'), paidShape(expected));
-  untouched(box, `${name}-reserved`);
+// Ordinary openings are small across roads, terrain and seeds.
+for (const seed of [1,42,123,1867,99117,424242,2026]) {
+  const state=createNewGameState(seed);
+  for(const site of state.world.sites.filter(site=>getRegionState(state,site.regionId).controller==='player')) {
+    assert.equal(site.detailedState.practiceSlots.filter(Boolean).length,3,`seed ${seed}: three starting Practices`);
+    assert.equal(site.detailedState.unlockedPracticeSlots,3);
+  }
 }
+const unlocks = box => getVassalNodeDecisionPresentation(box.s,box.node.id).settlement.practiceSlotUnlocks;
+const unlock = (box, capacity) => purchaseVassalShopOffer(box.s,box.node.id,`practice-slot:${capacity}`);
 
-{
-  const box = session(['forage', 'dryFarming'], 70);
-  const cards = ['logging', 'barter', 'quarrying'].map((id) => offer(box, id));
-  box.ns.inventory = [...cards];
-  const flow = track(box);
-  const expect = [{prestige:10, pressure:0, premium:0}, {prestige:20, pressure:0, premium:10}, {prestige:40, pressure:0, premium:30}];
-  cards.forEach((card, index) => {
-    check(`sequence-${index}-quote`, quoted(box, card), same(expect[index]));
-    flow.act(A.VASSAL_PURCHASE_SHOP_OFFER, {nodeId:box.node.id, offerId:card.offerId});
-    if (index === 0) {
-      const staged = box.ns.purchasedOffers.find((entry) => entry.intervention.practiceId === 'logging');
-      check('staged-not-requoted', {receipt:pack(staged), requote:pack(getShopOfferPrice(box.v, box.ns, staged, box.s))}, {receipt:expect[0], requote:{prestige:20, pressure:0, premium:10}});
-    }
-  });
-  ['logging', 'barter', 'quarrying'].forEach((id, index) => check(`sequence-${index}-receipt`, paid(box, id), paidShape(expect[index])));
-  flow.act(A.VASSAL_UNDO_SHOP_PURCHASE, {nodeId:box.node.id, offerId:cards[1].offerId});
-  check('undo-middle', ['logging', 'quarrying'].map((id) => paid(box, id).receipt), [expect[0], {prestige:20, pressure:0, premium:10}]);
-  const again = box.ns.inventory.find((entry) => entry.intervention.practiceId === 'barter');
-  check('rebuy-quote', quoted(box, again), same(expect[2]));
-  flow.act(A.VASSAL_PURCHASE_SHOP_OFFER, {nodeId:box.node.id, offerId:again.offerId});
-  check('rebuy-receipt', ['logging', 'quarrying', 'barter'].map((id) => paid(box, id).receipt), [expect[0], {prestige:20, pressure:0, premium:10}, expect[2]]);
-  const view = getVassalNodeDecisionPresentation(box.s, box.node.id);
-  check('exact-totals', {projected:view.projectedPrestige, staged:view.stagedPrestigeCost, pressure:view.stagedMonsterPressureCost, bank:box.s.civilization.prestige}, {projected:0, staged:70, pressure:0, bank:70});
-  untouched(box, 'exact-reserved');
-  flow.act(A.VASSAL_CONFIRM_LIFE_NODE, {nodeId:box.node.id});
-  check('exact-confirm', {bank:box.s.civilization.prestige, pressure:box.s.civilization.chaos.monsterPressure, pause:[box.s.paused, box.s.phase, box.s.tSec], installed:slots(box).filter(Boolean).sort()}, {bank:0, pressure:0, pause:[false, 'simulation', 0], installed:['barter', 'dryFarming', 'forage', 'logging', 'quarrying']});
-  flow.finish('exact');
-}
-
-{
-  const box = session(['forage', 'dryFarming', 'logging'], 100);
-  const upgrade = offer(box, 'logging', 'upgrade', 'silver');
-  const learn = offer(box, 'barter');
-  box.ns.inventory = [upgrade, learn];
-  check('upgrade-quote', quoted(box, upgrade), same({prestige:20, pressure:0, premium:0}));
-  buy(box, upgrade);
-  check('upgrade-receipt', paid(box, 'logging'), paidShape({prestige:20, pressure:0, premium:0}));
-  check('learn-after-upgrade-quote', quoted(box, learn), same({prestige:20, pressure:0, premium:10}));
-  buy(box, learn);
-  check('learn-after-upgrade-receipt', paid(box, 'barter'), paidShape({prestige:20, pressure:0, premium:10}));
-  untouched(box, 'upgrade-reserved');
-}
-
-{
-  const box = session(['forage', 'dryFarming', 'logging', 'barter'], 50);
-  const learn = offer(box, 'quarrying');
-  const extra = offer(box, 'fieldStudy');
-  box.ns.inventory = [learn, extra];
-  check('replace-preview', previewReplace(box, learn, 'forage'), {prestige:10, pressure:0, premium:0});
-  check('shelf-at-fourth-open-slot', quoted(box, learn), same({prestige:40, pressure:0, premium:30}));
-  buy(box, learn, 'forage');
-  check('replace-receipt', paid(box, 'quarrying'), paidShape({prestige:10, pressure:0, premium:0}));
-  check('learn-after-replace-quote', quoted(box, extra), same({prestige:40, pressure:0, premium:30}));
-  buy(box, extra);
-  check('learn-after-replace-receipt', paid(box, 'fieldStudy'), paidShape({prestige:40, pressure:0, premium:30}));
-  untouched(box, 'replace-first-reserved');
+for (const [treasury,expected] of [[10,{prestige:10,pressure:0,premium:0}],[9,{prestige:0,pressure:10,premium:0}]]) {
+  const box=session(['forage','dryFarming','logging'],treasury),card=offer(box,'barter');box.ns.inventory=[card];
+  check('normal-card-price',quoted(box,card),same(expected));
+  buy(box,card,'forage');check('normal-replacement-receipt',paid(box,'barter'),paidShape(expected));
+  untouched(box,'replacement-only-reserved');
 }
 {
-  const box = session(['forage', 'dryFarming', 'logging', 'barter'], 50);
-  const learn = offer(box, 'quarrying');
-  const extra = offer(box, 'fieldStudy');
-  box.ns.inventory = [learn, extra];
-  buy(box, learn);
-  buy(box, extra, 'logging');
-  check('learn-then-replace', [paid(box, 'quarrying').receipt, paid(box, 'fieldStudy').receipt], [{prestige:40, pressure:0, premium:30}, {prestige:10, pressure:0, premium:0}]);
-  untouched(box, 'learn-first-reserved');
+  const box=session(['forage','dryFarming','logging'],100),card=offer(box,'barter');box.ns.inventory=[card];
+  const before=serializeGameState(box.s);
+  check('space-prices',unlocks(box).map(u=>[u.capacity,u.prestigeCost,u.canStage]),[[4,10,true],[5,30,false]]);
+  sameState('unlock-read-pure',serializeGameState(box.s),before);
+  check('fifth-before-fourth',unlock(box,5).ok,false);
+  const flow=track(box);
+  flow.act(A.VASSAL_PURCHASE_SHOP_OFFER,{nodeId:box.node.id,offerId:'practice-slot:4'});
+  check('staged-space-does-not-change-live',box.d.unlockedPracticeSlots,3);
+  check('duplicate-unlock',unlock(box,4).ok,false);
+  check('item-price-after-unlock',quoted(box,card),same({prestige:10,pressure:0,premium:0}));
+  const lockedDrop=purchaseVassalShopOffer(box.s,box.node.id,card.offerId,null,4);
+  check('locked-space-drop',lockedDrop,{ok:false,reason:'invalidPurchaseOrder'});
+  flow.act(A.VASSAL_PURCHASE_SHOP_OFFER,{nodeId:box.node.id,offerId:card.offerId,toIndex:3});
+  check('cannot-undo-occupied-unlock',undoVassalShopPurchase(box.s,box.node.id,'practice-slot:4').ok,false);
+  untouched(box,'unlock-card-still-staged');
+  check('separate-totals',getVassalNodeDecisionPresentation(box.s,box.node.id).stagedPrestigeCost,20);
+  flow.act(A.VASSAL_UNDO_SHOP_PURCHASE,{nodeId:box.node.id,offerId:card.offerId});
+  flow.act(A.VASSAL_UNDO_SHOP_PURCHASE,{nodeId:box.node.id,offerId:'practice-slot:4'});
+  check('unlock-does-not-become-shelf-card',box.ns.inventory.length,1);
+  flow.act(A.VASSAL_PURCHASE_SHOP_OFFER,{nodeId:box.node.id,offerId:'practice-slot:4'});
+  flow.act(A.VASSAL_PURCHASE_SHOP_OFFER,{nodeId:box.node.id,offerId:card.offerId,toIndex:3});
+  flow.act(A.VASSAL_CONFIRM_LIFE_NODE,{nodeId:box.node.id});
+  check('confirm-paid-once',[box.s.civilization.prestige,box.d.unlockedPracticeSlots,slots(box).includes('barter')],[80,4,true]);
+  flow.finish('unlock-confirm');
+  const loaded=deserializeGameState(serializeGameState(box.s));
+  check('save-retains-space',loaded.world.sites.find(site=>site.regionId===box.v.locationRegionId).detailedState.unlockedPracticeSlots,4);
 }
-
 {
-  const box = session(['forage', 'dryFarming', 'logging', 'barter'], 45);
-  const structure = structureOffer(box);
-  const learn = offer(box, 'quarrying');
-  box.ns.inventory = [structure, learn];
-  const flow = track(box);
-  check('structure-quote', quoted(box, structure), same({prestige:10, pressure:0, premium:0}));
-  flow.act(A.VASSAL_PURCHASE_SHOP_OFFER, {nodeId:box.node.id, offerId:structure.offerId});
-  check('fifth-after-structure-quote', quoted(box, learn), same({prestige:0, pressure:40, premium:30}));
-  flow.act(A.VASSAL_PURCHASE_SHOP_OFFER, {nodeId:box.node.id, offerId:learn.offerId});
-  check('fifth-after-structure-receipt', [paid(box, 'mudHouses').receipt, paid(box, 'quarrying').receipt], [{prestige:10, pressure:0, premium:0}, {prestige:0, pressure:40, premium:30}]);
-  untouched(box, 'structure-reserved');
-  flow.act(A.VASSAL_CONFIRM_LIFE_NODE, {nodeId:box.node.id});
-  check('structure-confirm', {bank:box.s.civilization.prestige, pressure:box.s.civilization.chaos.monsterPressure, pause:[box.s.paused, box.s.phase, box.s.tSec], built:box.d.structureSlots.some((slot) => slot?.structureId === 'mudHouses'), installed:slots(box).includes('quarrying')}, {bank:35, pressure:40, pause:[false, 'simulation', 0], built:true, installed:true});
-  flow.finish('structure');
+  const box=session(['forage','dryFarming','logging'],40),flow=track(box);
+  flow.act(A.VASSAL_PURCHASE_SHOP_OFFER,{nodeId:box.node.id,offerId:'practice-slot:4'});
+  flow.act(A.VASSAL_PURCHASE_SHOP_OFFER,{nodeId:box.node.id,offerId:'practice-slot:5'});
+  check('dependent-unlock-undo-blocked',undoVassalShopPurchase(box.s,box.node.id,'practice-slot:4').ok,false);
+  flow.act(A.VASSAL_CONFIRM_LIFE_NODE,{nodeId:box.node.id});
+  check('empty-space-purchase',[box.d.unlockedPracticeSlots,box.s.civilization.prestige,slots(box).filter(Boolean).length],[5,5,3]);
+  flow.finish('empty-unlocks');
 }
-
 {
-  const box = session(['forage', 'dryFarming'], 200);
-  box.s.gameConfig.lifeMapGenerator.design.shopPricing.prices.practice.bronze.prestige = 12;
-  const cards = ['logging', 'barter', 'quarrying'].map((id) => offer(box, id));
-  box.ns.inventory = [...cards];
-  const expect = [{prestige:12, pressure:0, premium:0}, {prestige:22, pressure:0, premium:10}, {prestige:42, pressure:0, premium:30}];
-  cards.forEach((card, index) => { check(`configured-${index}-quote`, quoted(box, card), same(expect[index])); buy(box, card); check(`configured-${index}-receipt`, paid(box, card.intervention.practiceId), paidShape(expect[index])); });
-  untouched(box, 'configured-reserved');
+  const box=session(['forage','dryFarming','logging'],9);
+  check('unlock-needs-prestige',unlock(box,4).ok,false);
+  untouched(box,'failed-unlock-pure');
 }
-
 {
-  const box = session(['forage', 'dryFarming'], 100);
-  const neighbor = box.s.world.sites.find((site) => site.regionId === getAdjacentRegionIds(box.s, box.v.locationRegionId)[0]);
-  neighbor.detailedState.practiceSlots = ['forage', 'dryFarming', 'logging', 'barter', null].map((id) => id ? install(id) : null);
-  getRegionState(box.s, box.v.locationRegionId).structureCapacity = 8;
-  const card = offer(box, 'logging');
-  box.ns.inventory = [card];
-  const before = serializeGameState(box.s);
-  check('neighbor-capacity-quote', {slots:box.d.practiceSlots.length, structureCapacity:getRegionState(box.s, box.v.locationRegionId).structureCapacity, neighbor:neighbor.detailedState.practiceSlots.filter(Boolean).length, quote:quoted(box, card)}, {slots:5, structureCapacity:8, neighbor:4, quote:same({prestige:10, pressure:0, premium:0})});
-  sameState('neighbor-pure', serializeGameState(box.s), before);
+  const box=session(['forage','dryFarming','logging'],20),card=offer(box,'barter');box.ns.inventory=[card];
+  buy(box,card,'forage');check('fourth-unlock',unlock(box,4).ok,true);
+  check('space-reserves-own-price',paid(box,'barter'),paidShape({prestige:10,pressure:0,premium:0}));
+  check('reserved-total',getVassalNodeDecisionPresentation(box.s,box.node.id).stagedPrestigeCost,20);
 }
-
+// Paid capacity survives deliberate removal and later refilling.
 {
-  const box = session(['forage', 'dryFarming', 'logging', 'barter', 'quarrying'], 100);
-  const card = offer(box, 'fieldStudy');
-  box.ns.inventory = [card];
-  check('full-board-quote', quoted(box, card), same({prestige:10, pressure:0, premium:0}));
-  buy(box, card);
-  check('full-board-receipt', paid(box, 'fieldStudy'), paidShape({prestige:10, pressure:0, premium:0}));
-  undoVassalShopPurchase(box.s, box.node.id, card.offerId);
-  const replaced = box.ns.inventory.find((entry) => entry.intervention.practiceId === 'fieldStudy');
-  buy(box, replaced, 'forage');
-  check('full-board-replacement', paid(box, 'fieldStudy'), paidShape({prestige:10, pressure:0, premium:0}));
-  untouched(box, 'full-board-reserved');
+  const box=session(['forage','dryFarming','logging','barter'],100);
+  const remove=offer(box,'barter','remove');box.ns.inventory=[remove];
+  buy(box,remove);
+  assert.equal(confirmVassalLifeNode(box.s,box.node.id).ok,true);
+  check('remove-preserves-unlock',[box.d.unlockedPracticeSlots,slots(box).includes('barter')],[4,false]);
+  // The projection accepts a new card in that already paid fourth space.
+  const card=offer(box,'quarrying');
+  const projected=validatePurchaseInterventions(box.s,box.v,[{...card,tableauIndex:3}]);
+  check('refill-paid-space',[projected.ok,projected.reservation.unlockedPracticeSlots,projected.reservation.practiceSlots[3].practiceId],[true,4,'quarrying']);
 }
-
-console.log(`[shop-prices] checks=${checks.length}; quality, premiums, treasury boundaries, undo/rebuy and replay OK`);
+{
+  const box=session(['forage','dryFarming','logging','barter','quarrying'],100),card=offer(box,'fieldStudy');box.ns.inventory=[card];
+  check('full-board-price',quoted(box,card),same({prestige:10,pressure:0,premium:0}));
+  buy(box,card,'forage');check('full-board-replacement',paid(box,'fieldStudy'),paidShape({prestige:10,pressure:0,premium:0}));
+}
+console.log(`[shop-prices] checks=${checks.length}; separate permanent unlocks, card prices, undo, save and replay OK`);

@@ -140,18 +140,18 @@ export function pieceOfferCard(parent, rect, spec) {
   const showPools=poolPreview?.kind==='practice' && poolPreview.rows.length>0;
   const title = createText(spec.presentation?.label ?? spec.title, {
     ...TEXT_STYLES.cardTitle, fontSize: 26, lineHeight: 30,
-    wordWrap: !showPools, wordWrapWidth: rect.width - 36,
-  }, 18, showPools?6:14);
+    wordWrap: true, wordWrapWidth: rect.width - 36,
+  }, 18, 14);
   root.addChild(title);
   root.titleRoot=title;
-  title.scale.set(Math.min(1, (showPools?30:62) / Math.max(1, title.height),showPools?(rect.width-36)/Math.max(1,title.width):1));
+  title.scale.set(Math.min(1, 62 / Math.max(1, title.height)));
   const isStructure = spec.presentation?.kind === 'structure';
   const aspect = PIECE_SIZE.cellWidth * (spec.presentation.footprint ?? 1) / PIECE_SIZE.structureHeight;
-  const faceHeight = isStructure ? Math.min(172, (rect.width - 48) / aspect) : 308;
-  const faceWidth = isStructure ? faceHeight * aspect : 220;
+  const faceHeight = isStructure ? Math.min(172, (rect.width - 48) / aspect) : showPools ? 270 : 308;
+  const faceWidth = isStructure ? faceHeight * aspect : 220 * faceHeight / 308;
   const staggerX = isStructure ? Math.min(28, (rect.width - faceWidth) / 3) : 0;
   const staggerY = isStructure ? faceHeight - Math.max(faceHeight * .14, faceHeight * 2 - 300) : 0;
-  const faceY = (showPools?94:84) + (308 - faceHeight - staggerY) / 2;
+  const faceY = 84 + (isStructure ? (308 - faceHeight - staggerY) / 2 : 0);
   const faceX = (rect.width - faceWidth - staggerX) / 2;
   if(isStructure) {
     // Use the Practice column's height: the plan overlaps the completed
@@ -173,13 +173,14 @@ export function pieceOfferCard(parent, rect, spec) {
     const row=poolPreview.rows[0];
     for(const [index,kind] of ['output','capacity'].entries()) {
       const scale=38/50, halfW=(rect.width-24)/2;
-      const fitting=addMultiplierFitting(root,{x:12+index*halfW,y:38,width:halfW/scale,height:50},{kind,multiplier:row[kind].multiplier,
+      const fitting=addMultiplierFitting(root,{x:12+index*halfW,y:faceY+faceHeight+10,width:halfW/scale,height:50},{kind,multiplier:row[kind].multiplier,
         tooltipView:spec.tooltipView,spec:multiplierTooltip(row,kind,poolPreview)});
       fitting.scale.set(scale);
       root.poolFittings.push({kind,root:fitting});
     }
   }
-  root.costPanel=addCostPanel(root,{x:6,y:rect.height+8,width:rect.width-12,height:COST_FOOTER_HEIGHT},{
+  const costY = Math.max(rect.height+8,showPools?faceY+faceHeight+54:0);
+  root.costPanel=addCostPanel(root,{x:6,y:costY,width:rect.width-12,height:COST_FOOTER_HEIGHT},{
     ...spec.cost,selected:spec.selected,staged:spec.staged,disabled:!spec.enabled,unaffordable:spec.costUnmet,
     label:'Stage '+spec.title,onActivate:spec.onClick,onUnavailable:spec.onUnavailable,
   });

@@ -7,6 +7,7 @@ import {compactRegionName} from '../region-label.js';
 import {createText,roundedRect} from '../settlement-view-primitives.js';
 import {TEXT_STYLES} from '../settlement-theme.js';
 import {addResourceIcon} from '../resource-cost-pixi.js';
+import {getTerritorialPrestigeForPopulation} from '../../model/vassal-life-map.js';
 
 export function regionalReadoutVariant() {
   const value=new URLSearchParams(globalThis.location?.search??'').get('regionalReadout');
@@ -75,7 +76,7 @@ export function addRegionalReadoutPrototype(parent,point,indicator,{tooltipView,
   for(const part of p.parts){const w=124*part.count/p.total;g.lineStyle(0).beginFill(part.colour).drawRect(x,29,w,8).endFill();x+=w;}
   g.lineStyle(1,0x716f56).drawRect(-63,28,126,10);
   ({shield:VariantShield,tracks:VariantTracks,bracket:VariantBracket}[variant])(root,p);
-  const value=held?indicator.prestigePerNode:p.total/indicator.prestigePopulationPerPoint;
+  const value=held?indicator.prestigePerNode:getTerritorialPrestigeForPopulation(p.total);
   if(held||crown){
     addResourceIcon(root,'prestige',-55,62,21);
     text(root,`${held?'+':'◇ '}${number(value)}`,-39,50,22,held?0xe9d49b:0xbca58a);
@@ -158,7 +159,7 @@ export function addAtlasFocus(root,indicator,{reference,onEconomy,onClose,addBut
   text(root,reference,x+26,y+18,31,0xffe7b4);
   text(root,held?'YOUR REALM':indicator.controller==='external-a'?'CROWN HOLDING':'INDEPENDENT',x+27,y+58,17,colour);
   addButton(root,{x:x+width-64,y:y+12,width:48,height:48},'X',onClose);
-  const value=held?indicator.prestigePerNode:p.total/indicator.prestigePopulationPerPoint;
+  const value=held?indicator.prestigePerNode:getTerritorialPrestigeForPopulation(p.total);
   text(root,String(indicator.totalWorkerCount),x+28,y+86,48);
   text(root,'WORKERS',x+30,y+139,18,0xaeb8a6);
   text(root,String(p.total),x+242,y+86,48);
@@ -174,7 +175,7 @@ export function addAtlasFocus(root,indicator,{reference,onEconomy,onClose,addBut
   text(root,`Force ${number(p.force)}${p.required===null?' / –':p.required?' / '+number(p.required):''}  ?  ${p.unrest?`Unrest ${Math.ceil(p.unrest.remainingYears)}y`:p.status}`,x+28,y+279,18,0xaeb8a6);
   addButton(root,{x:x+width-294,y:y+235,width:270,height:80},'Economy',onEconomy);
   if(!held){
-    const tip={title:'Potential territorial Prestige',lines:['Potential Prestige if you held this region.','Not current income, a capture quote, or a Crown treasury.','Uses the current build population divisor of '+indicator.prestigePopulationPerPoint+'.'],maxWidth:350};
+    const tip={title:'Potential territorial Prestige',lines:['Potential Prestige if you held this region.','Not current income, a capture quote, or a Crown treasury.','One Prestige per full '+indicator.prestigePopulationPerPoint+' residents, rounded down separately for this region.'],maxWidth:350};
     const hit=new PIXI.Graphics().beginFill(0xffffff,.001).drawRect(x+470,y+85,330,79).endFill();hit.eventMode='static';hit.cursor='help';hit.hitArea=new PIXI.Rectangle(x+470,y+85,330,79);
     hit.on('pointerdown',e=>{e.stopPropagation();tooltipView?.pin?.(tip,hit.getBounds(),'atlas-potential');});root.addChild(hit);
   }

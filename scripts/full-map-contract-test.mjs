@@ -185,6 +185,7 @@ function stagedShop() {
  assert(enterVassalLifeNode(s,node.id).ok);const ns=v.lifeMap.nodeStates[node.id];
  if(ns.shopSelection)assert(selectVassalNodeOption(s,node.id,'random').ok);
  const d=s.world.sites.find(x=>x.regionId===v.locationRegionId).detailedState;
+ d.unlockedPracticeSlots=5;
  d.practiceSlots=[install('forage','player',3),install('dryFarming'),install('logging'),install('fm_rubblePicking'),install('fe_rationRoll','external-a')];
  ns.inventory=[{offerId:'test-install',basePrestigeCost:10,basePhaseCost:1,baseCurrencyCost:0,intervention:{kind:'practice',mode:'learn',practiceId:'fm_oathSupper',resultingTier:'bronze',targetRegionId:v.locationRegionId}}];
  return {s,v,node,ns,d};
@@ -501,19 +502,17 @@ test('unheld Field Study has no all-frontier alliance',()=>{
  emitPracticeEvent(s,{kind:'practiceInstalled',regionId:a.regionId,practiceId:'fieldStudy'});flushPracticeEvents(s);
  assert.equal(a.detailedState.research,2);assert.equal(s.civilization.research.total,research);
 });
-test('sequential sparse shop expansion reprices on undo without charging replacements',()=>{
+test('sparse shops expose separate permanent unlock receipts',()=>{
  const {s,node,ns,d}=stagedShop();s.civilization.prestige=1000;
- d.practiceSlots=[install('forage','player',3),install('dryFarming'),null,null,null];
- ns.inventory=['logging','fm_rubblePicking','barter'].map((practiceId,i)=>({offerId:`sparse-${i}`,basePrestigeCost:10,basePhaseCost:1,baseCurrencyCost:0,intervention:{kind:'practice',mode:'learn',practiceId,resultingTier:'bronze'}}));
- const expansionCosts=()=>getVassalNodeDecisionPresentation(s,node.id).settlement.practiceExpansionCosts;
- const beforePresentation=serializeGameState(s);
- assert.deepEqual(expansionCosts(),[0,0,0,10,30],'empty slots show the fee for each successive expansion');
- assert.deepEqual(serializeGameState(s),beforePresentation,'reading expansion fees cannot mutate state or RNG');
- for(let i=0;i<3;i++)assert(purchaseVassalShopOffer(s,node.id,`sparse-${i}`).ok);
- assert.deepEqual(expansionCosts(),[0,0,0,0,0],'occupied draft slots have no expansion fee');
- assert.deepEqual([...ns.purchasedOffers].sort((a,b)=>a.purchaseSequence-b.purchaseSequence).map(p=>p.prestigeCost),[10,20,40]);
- assert(undoVassalShopPurchase(s,node.id,'sparse-0').ok);
- assert.deepEqual(expansionCosts().filter(cost=>cost>0),[30],'undo restores the next expansion fee');
- assert.deepEqual([...ns.purchasedOffers].sort((a,b)=>a.purchaseSequence-b.purchaseSequence).map(p=>p.prestigeCost),[10,20]);
+ d.practiceSlots=[install('forage','player',3),install('dryFarming'),null,null,null];d.unlockedPracticeSlots=3;
+ const before=serializeGameState(s);
+ assert.deepEqual(getVassalNodeDecisionPresentation(s,node.id).settlement.practiceSlotUnlocks.map(u=>u.prestigeCost),[10,30]);
+ assert.deepEqual(serializeGameState(s),before,'reading unlocks cannot mutate state or RNG');
+ assert(purchaseVassalShopOffer(s,node.id,'practice-slot:4').ok);
+ assert(purchaseVassalShopOffer(s,node.id,'practice-slot:5').ok);
+ assert.deepEqual(ns.purchasedOffers.map(p=>p.prestigeCost),[10,30]);
+ assert(undoVassalShopPurchase(s,node.id,'practice-slot:5').ok);
+ assert(undoVassalShopPurchase(s,node.id,'practice-slot:4').ok);
+ assert.equal(ns.purchasedOffers.length,0);
 });
 console.log(`[full-map] ${checks.length} contract groups passed`);

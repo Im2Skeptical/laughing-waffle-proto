@@ -2,7 +2,7 @@ import { isFullMapOfferDefinition, FULL_MAP_SEED_CARD_IDS } from '../../defs/gam
 import { prestigeAccount, quotePrestige, creditPrestige } from './treasury.js';
 import { rollScholarQualityBonus, getVassalDelvePhaseCost } from './class-rules.js';
 import { resolveLifeMapShopPrice, resolveLifeMapOptionCosts } from '../life-map-balance.js';
-import { getShopOfferPrice, getPracticeExpansionPremium, matchesPracticeShopSpecialty, structureShopCategory } from './shop-specialties.js';
+import { getShopOfferPrice, getPracticeSlotUnlockCost, matchesPracticeShopSpecialty, structureShopCategory } from './shop-specialties.js';
 import { VASSAL_WORKSHOP_RULES } from '../../defs/vassal-workshop-rules.js';
 import { getMoonPhaseDurationSec } from '../moon-phases.js';
 import { stockTotal, discretionaryStock } from "../detailed-settlements/stock.js";
@@ -58,9 +58,14 @@ function isDefinitionUnlocked(state, def, nodeState = null) {
 
 export function validatePurchaseInterventions(state, vassal, purchases = [], order = vassal?.lifeMap?.nodeStates?.[vassal.lifeMap.currentNodeId]?.practiceDraftOrder) {
   const site = getDetailedSite(state, vassal.locationRegionId);
-  if(state.rulesetId&&site?.neutral&&purchases.some(p=>['practice','structure'].includes(p.intervention?.kind)))return {ok:false,reason:'neutralStorefront'};
+  if(state.rulesetId&&site?.neutral&&purchases.some(p=>['practice','structure','practiceSlot'].includes(p.intervention?.kind)))return {ok:false,reason:'neutralStorefront'};
   const settlement = site?.detailedState;
-  const practices = projectPracticeDraft(settlement?.practiceSlots ?? [], purchases, id => getDetailedPracticeDef(state, id), order);
+  let capacity = settlement?.unlockedPracticeSlots ?? 5;
+  for (const p of purchases.filter(p=>p.intervention?.kind==='practiceSlot').sort((a,b)=>a.intervention.capacity-b.intervention.capacity)) {
+    if (!state.rulesetId || p.intervention.capacity !== capacity + 1 || capacity >= 5) return {ok:false,reason:'invalidPracticeUnlock'};
+    capacity++;
+  }
+  const practices = projectPracticeDraft((settlement?.practiceSlots ?? []).slice(0,capacity), purchases, id => getDetailedPracticeDef(state, id), order);
   if (!practices.ok) return practices;
   const structures = projectStructureDraft(settlement?.structureSlots ?? [], purchases.filter(p => p.intervention?.kind === 'structure').map(p => p.placement),
     vassal?.lifeMap?.nodeStates?.[vassal.lifeMap.currentNodeId]?.structureDraftEdits);
@@ -73,7 +78,30 @@ export function validatePurchaseInterventions(state, vassal, purchases = [], ord
     if ((action.mode === 'add') === connectionKeys.has(key)) return { ok: false, reason: 'connectionUnavailable' };
     if (action.mode === 'add') connectionKeys.add(key); else connectionKeys.delete(key);
   }
-  return { ok: true, reservation: { practiceSlots: practices.slots, structureSlots: structures.slots, connectionKeys }, structures, practices };
+  const practiceSlots = [...practices.slots];
+  while (practiceSlots.length < 5) practiceSlots.push(null);
+  return { ok: true, reservation: { practiceSlots, unlockedPracticeSlots:capacity, structureSlots: structures.slots, connectionKeys }, structures, practices };
+}
+
+// Board space is an ordinary staged receipt, with a permanent regional result.
+// It reserves Prestige independently of card prices and never takes discounts.
+export function getPracticeSlotUnlocks(state, vassal, nodeState) {
+  if (!state.rulesetId || !isShopNodeState(nodeState)) return [];
+  const site = getDetailedSite(state,vassal.locationRegionId);
+  if (!site?.detailedState || site.neutral) return [];
+  const confirmed = site.detailedState.unlockedPracticeSlots;
+  const staged = (nodeState.purchasedOffers??[]).filter(p=>p.intervention?.kind==='practiceSlot');
+  const next = confirmed + staged.length + 1;
+  const reserved = (nodeState.purchasedOffers??[]).reduce((n,p)=>n+(p.prestigeCost??0),0)
+    + (nodeState.removalReceipts??[]).reduce((n,p)=>n+(p.prestigeCost??0),0);
+  return Array.from({length:5-confirmed},(_,index)=> {
+    const capacity = confirmed + index + 1, offerId = `practice-slot:${capacity}`;
+    const purchase = staged.find(p=>p.intervention.capacity===capacity);
+    const cost = getPracticeSlotUnlockCost(capacity);
+    return {offerId,capacity,index:capacity-1,prestigeCost:cost,staged:!!purchase,
+      canStage:capacity===next && cost<=prestigeAccount(state,vassal).prestige-reserved,
+      canUndo:!!purchase && capacity===next-1};
+  });
 }
 
 function buildReservation(state, vassal, nodeState) {
@@ -278,11 +306,22 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
   const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId];
   if (!vassal || vassal.lifeMap.currentNodeId !== nodeId || !isShopNodeState(nodeState)
       || nodeState.resolving) return { ok: false, reason: "shopUnavailable" };
+  if (String(offerId).startsWith('practice-slot:')) {
+    const unlock = getPracticeSlotUnlocks(state,vassal,nodeState).find(u=>u.offerId===offerId);
+    if (!unlock?.canStage) return {ok:false,reason:'practiceUnlockUnavailable'};
+    nodeState.purchasedOffers.push({offerId,basePrestigeCost:unlock.prestigeCost,prestigeCost:unlock.prestigeCost,
+      monsterPressureCost:0,phaseCost:0,currencyCost:0,purchasedSec:state.tSec,
+      purchaseSequence:Math.max(0,...nodeState.purchasedOffers.map(p=>p.purchaseSequence??0))+1,
+      intervention:{kind:'practiceSlot',mode:'unlock',capacity:unlock.capacity,targetRegionId:vassal.locationRegionId}});
+    nodeState.purchasedOfferIds=nodeState.purchasedOffers.map(p=>p.offerId);
+    repriceShopDraft(state,vassal,nodeState);
+    return {ok:true,offerId,prestigeCost:unlock.prestigeCost,phaseCost:0,currencyCost:0};
+  }
   const index = nodeState.inventory.findIndex((offer) => offer.offerId === offerId);
   if (index < 0) return { ok: false, reason: "offerUnavailable" };
   const offer = nodeState.inventory[index];
   if (offer.intervention?.kind === 'practice' && toIndex != null && (!Number.isInteger(toIndex)
-      || toIndex < 0 || toIndex >= (getDetailedSite(state, vassal.locationRegionId)?.detailedState?.practiceSlots.length ?? 0))) {
+      || toIndex < 0 || toIndex >= (buildReservation(state,vassal,nodeState)?.unlockedPracticeSlots ?? 0))) {
     return {ok:false,reason:'invalidPurchaseOrder'};
   }
   const {prestigeCost, monsterPressureCost} = getShopOfferPrice(vassal,nodeState,offer,state,{replacement:!!replacePracticeId});
@@ -317,9 +356,10 @@ export function purchaseVassalShopOffer(state, nodeId, offerId, origin = null, t
   }
   if (offer.intervention?.kind==='practice' && offer.intervention.mode!=='remove') {
     const def=getDetailedPracticeDef(state,offer.intervention.practiceId);
-    const existing=buildReservation(state,vassal,nodeState)?.practiceSlots??[];
+    const reservation=buildReservation(state,vassal,nodeState);
+    const existing=reservation?.practiceSlots??[];
     if (Number.isInteger(toIndex)) purchase.tableauIndex=toIndex;
-    else if (offer.intervention.mode==='learn' && (def.consume.length||def.require.length)) purchase.tableauIndex=Math.min(existing.length-1,existing.filter(Boolean).length);
+    else if (offer.intervention.mode==='learn' && (def.consume.length||def.require.length)) purchase.tableauIndex=Math.min((reservation?.unlockedPracticeSlots??5)-1,existing.filter(Boolean).length);
   }
   const next = [...nodeState.purchasedOffers];
   const practicePositions = next.flatMap((p, i) => p.intervention.kind === 'practice' ? [i] : []);
@@ -413,10 +453,16 @@ export function undoVassalShopPurchase(state, nodeId, offerId) {
       || nodeState.resolving) return { ok: false, reason: "shopUnavailable" };
   const index = nodeState.purchasedOffers.findIndex((purchase) => purchase.offerId === offerId);
   if (index < 0) return { ok: false, reason: "purchaseUnavailable" };
+  const pending = nodeState.purchasedOffers[index];
+  if (pending.intervention?.kind==='practiceSlot') {
+    const unlock=getPracticeSlotUnlocks(state,vassal,nodeState).find(u=>u.offerId===offerId);
+    const projection=validatePurchaseInterventions(state,vassal,nodeState.purchasedOffers);
+    if (!unlock?.canUndo || projection.practices.slots[unlock.index]) return {ok:false,reason:'practiceUnlockInUse'};
+  }
   const [purchase] = nodeState.purchasedOffers.splice(index, 1);
   if (purchase.intervention?.kind === 'practice' && ['learn', 'adopt', 'upgrade'].includes(purchase.intervention.mode)) {
     const id = purchase.intervention.practiceId, replaced = purchase.replacedPracticeId;
-    const capacity = getDetailedSite(state, vassal.locationRegionId)?.detailedState?.practiceSlots?.length ?? 0;
+    const capacity = buildReservation(state,vassal,nodeState)?.unlockedPracticeSlots ?? 0;
     const laterPractices = nodeState.purchasedOffers.filter(p => p.purchaseSequence > purchase.purchaseSequence
       && p.intervention.kind === 'practice' && p.intervention.mode !== 'remove');
     const laterPracticeIds = new Set(laterPractices.map(p => p.intervention.practiceId));
@@ -457,7 +503,6 @@ export function undoVassalShopPurchase(state, nodeId, offerId) {
   nodeState.purchasedOfferIds = nodeState.purchasedOffers.map((entry) => entry.offerId);
   const restored = clone(purchase);
   delete restored.purchaseSequence;
-  delete restored.expansionPremium;
   delete restored.displacedInstanceIds;
   delete restored.removalReceipts;
   delete restored.replacedPracticeId;
@@ -475,7 +520,7 @@ export function undoVassalShopPurchase(state, nodeId, offerId) {
   const originalIndex = Math.max(0, Math.floor(restored.sourceInventoryIndex ?? nodeState.inventory.length));
   delete restored.sourceInventoryIndex;
   restored.inventoryIndex = originalIndex;
-  if (!purchase.sourceOfferId) nodeState.inventory.push(restored);
+  if (!purchase.sourceOfferId && purchase.intervention?.kind!=='practiceSlot') nodeState.inventory.push(restored);
   nodeState.inventory.sort((left, right) =>
     Math.floor(left.inventoryIndex ?? 0) - Math.floor(right.inventoryIndex ?? 0));
   nodeState.accumulatedPhaseCost = Math.max(
@@ -497,9 +542,9 @@ export function reorderVassalShopPurchase(state, nodeId, offerId, toIndex) {
     const id = offerId.slice('practice:'.length), capacity = projection.practices.slots.length;
     const pool = projection.practices.pool.map(slot => slot?.practiceId ?? null);
     const fromIndex = pool.indexOf(id);
-    if (fromIndex < 0 || !Number.isInteger(toIndex) || toIndex < 0 || toIndex > capacity) return {ok:false,reason:'invalidPurchaseOrder'};
+    if (fromIndex < 0 || !Number.isInteger(toIndex) || toIndex < 0 || (toIndex >= capacity && toIndex !== 5)) return {ok:false,reason:'invalidPurchaseOrder'};
     pool.splice(fromIndex, 1);
-    if (toIndex === capacity) {
+    if (toIndex === 5) {
       if (fromIndex < capacity) pool.splice(capacity - 1, 0, null);
       pool.splice(capacity, 0, id);
     } else {
@@ -514,7 +559,7 @@ export function reorderVassalShopPurchase(state, nodeId, offerId, toIndex) {
   const ordered = nodeState.purchasedOffers.filter(p => p.intervention.kind === 'practice');
   const fromIndex = ordered.findIndex((purchase) => purchase.offerId === offerId);
   const targetIndex = Number.isFinite(toIndex) ? Math.floor(toIndex) : -1;
-  const capacity=getDetailedSite(state,vassal.locationRegionId)?.detailedState?.practiceSlots.length??0;
+  const capacity=buildReservation(state,vassal,nodeState)?.unlockedPracticeSlots??0;
   if (fromIndex < 0 || targetIndex < 0 || targetIndex >= capacity) {
     return { ok: false, reason: "invalidPurchaseOrder" };
   }
@@ -585,24 +630,16 @@ export function repriceShopDraft(state,vassal,nodeState) {
   if(!validation.ok)return;
   const kept=new Set(validation.practices.slots.filter(Boolean).map(s=>s.instanceId));
   const removed=confirmed.filter(s=>s?.allegiance&&s.allegiance!=='player'&&!kept.has(s.instanceId));
-  let available=prestigeAccount(state,vassal).prestige;
+  let available=prestigeAccount(state,vassal).prestige - nodeState.purchasedOffers.filter(p=>p.intervention.kind==='practiceSlot').reduce((n,p)=>n+p.basePrestigeCost,0);
   const charged=new Set();
-  const explicitRemovals=new Set(nodeState.purchasedOffers.filter(p=>p.intervention.kind==='practice'&&p.intervention.mode==='remove').map(p=>p.intervention.practiceId));
-  let occupancy=confirmed.filter(slot=>slot&&!explicitRemovals.has(slot.practiceId)).length;
-  for(const [index,p] of [...nodeState.purchasedOffers].sort((a,b)=>(a.purchaseSequence??0)-(b.purchaseSequence??0)).entries()) {
+  const cards=nodeState.purchasedOffers.filter(p=>p.intervention.kind!=='practiceSlot');
+  for(const [index,p] of [...cards].sort((a,b)=>(a.purchaseSequence??0)-(b.purchaseSequence??0)).entries()) {
     const victims=removed.filter(s=>!charged.has(s.instanceId)&&p.intervention.kind==='practice'
       && (p.intervention.mode==='remove'?s.practiceId===p.intervention.practiceId
         :p.intervention.mode==='learn'&&(s.practiceId===p.replacedPracticeId||p.displacedInstanceIds?.includes(s.instanceId))));
     victims.forEach(s=>charged.add(s.instanceId));
     const base=p.intervention.mode==='adopt'?10:getVassalActionPrestigeCost(vassal,p.basePrestigeCost??0,{isFirstShopPurchase:index===0});
-    let expansionPremium=0;
-    if(p.intervention.kind==='practice'){
-      if(p.intervention.mode==='learn'&&!p.replacedPracticeId&&!p.displacedInstanceIds?.length){
-        occupancy++;expansionPremium=getPracticeExpansionPremium(occupancy);
-      }
-    }
-    const quote=quotePrestige(available,base+expansionPremium+5*victims.length,10*victims.length);
-    p.expansionPremium=expansionPremium;
+    const quote=quotePrestige(available,base+5*victims.length,10*victims.length);
     Object.assign(p,quote,{removalReceipts:victims.map(s=>({instanceId:s.instanceId,allegiance:s.allegiance,prestigeTax:5,pressureTax:10}))});
     available-=quote.prestigeCost;
   }

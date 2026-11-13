@@ -881,6 +881,14 @@ settlementGraphSeriesMenu.applySelection();
 
 prototypeView = createSettlementPrototypeView({
   app,
+  onSelectSettlement: regionId => {
+    selectedWorldRegionId = regionId;
+    worldMapRegionSelectionActive = true;
+    settlementGraphView?.pauseForecastReveal?.();
+    setSettlementGraphContext('settlement', regionId);
+    prototypeView?.refresh?.();
+    worldMapView?.refresh?.();
+  },
   onAssignGarrison: (regionId,targetRegionId) => runner.dispatchActionAtCurrentSecond?.(ActionKinds.SETTLEMENT_ASSIGN_GARRISON,{regionId,targetRegionId}),
   layer: playfieldLayer,
   getState: () => runner.getState?.(),

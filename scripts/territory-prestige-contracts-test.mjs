@@ -1,6 +1,6 @@
-// Combined territorial Prestige. Audit and test only: no runtime rule changes.
-// Independent oracle: every cohort in a player holding adds population/20
-// while controlled. Add 3 plus Cunning (Scholars add none) and round once.
+// Territorial Prestige floors each region before it enters node income.
+// Independent oracle: every cohort counts, but only complete groups of 20
+// residents in each player holding contribute. Personal income is unchanged.
 import assert from 'node:assert/strict';
 import {createNewGameState} from '../src/model/new-game.js';
 import {populationBins, writePopulationBins} from '../src/model/detailed-settlements/population-ledger.js';
@@ -17,7 +17,7 @@ const bin = (allegiance, count) => ({classId:'villager', allegiance, specialty:'
 const playerSites = state => state.world.sites.filter(site => site.simulationMode==='detailed' && site.detailedState && getRegionState(state, site.regionId)?.controller==='player');
 const headcount = site => populationBins(site.detailedState).reduce((total, cohort) => total+cohort.count, 0);
 const personal = vassal => 3+((vassal.classId??vassal.founderClassId)==='scholar' ? 0 : Math.max(0, Math.floor(vassal.stats?.cunning??0)));
-const regional = state => playerSites(state).reduce((total, site) => total+headcount(site)/20, 0);
+const regional = state => playerSites(state).reduce((total, site) => total+Math.floor(headcount(site)/20), 0);
 const packet = (state, vassal) => Math.round(personal(vassal)+regional(state));
 const held = (state, controller) => state.world.sites.find(site => site.detailedState && getRegionState(state, site.regionId)?.controller===controller);
 const act = (state, kind, payload) => applyAction(state, {kind, payload}, {isReplay:true});
@@ -69,7 +69,7 @@ function payLegacy(state) {
     {kind:ActionKinds.VASSAL_SELECT_LIFE_OPTION, payload:{nodeId:node.id, optionId:'highest-stat'}},
     {kind:ActionKinds.VASSAL_CONFIRM_LIFE_NODE, payload:{nodeId:node.id}},
   ]), 0);
-  assert.equal(state.civilization.prestige-before, expected, 'civ pool receives the rounded combined packet');
+  assert.equal(state.civilization.prestige-before, expected, 'civ pool receives the packet with separately floored regions');
   assert.equal(state.civilization.treasury.grossIncome-gross, expected, 'gross income records that packet once');
   assert.equal(vassal.prestige, own, 'the packet stays out of personal Prestige');
   assert.equal(vassal.endedReason, 'retired');
@@ -79,25 +79,25 @@ function payLegacy(state) {
   return expected;
 }
 
-// Both holdings contribute fractions that round together, not per site.
+// Fractions cannot pool across regions, even when their sum would round up.
 {
   const {state, vassal} = boot([[bin('player', 4), bin('external-a', 5)], [bin('neutral', 3), bin('external-a', 6)]]);
   const saved = serializeGameState(state), rng = JSON.stringify(state.rng);
-  assert.equal(getRegionPrestigePerNode(state, playerSites(state)[0].regionId), 9/20, 'mixed-site includes every cohort');
-  assert.equal(getRegionPrestigePerNode(state, playerSites(state)[1].regionId), 9/20);
+  assert.equal(getRegionPrestigePerNode(state, playerSites(state)[0].regionId), 0, 'nine residents are below one full group');
+  assert.equal(getRegionPrestigePerNode(state, playerSites(state)[1].regionId), 0);
   assert.ok(headcount(held(state, 'external-a'))>0);
   assert.equal(getRegionPrestigePerNode(state, held(state, 'external-a').regionId), null, 'Crown site is excluded');
   assert.ok(headcount(held(state, 'frontier'))>0);
   assert.equal(getRegionPrestigePerNode(state, held(state, 'frontier').regionId), null);
   for (const family of ['legacy', 'warlordFounding', 'practiceReform', 'development']) {
-    assert.equal(getVassalNodeResolutionGains(state, vassal, family).prestige, Math.round(3+9/20+9/20), family);
+    assert.equal(getVassalNodeResolutionGains(state, vassal, family).prestige, 3, family);
   }
   assert.deepEqual(serializeGameState(state), saved);
   assert.equal(JSON.stringify(state.rng), rng);
   assert.equal(state.paused, false);
   assert.equal(state.phase, 'simulation');
   assert.equal(state.tSec, 0);
-  assert.equal(payLegacy(state), 4);
+  assert.equal(payLegacy(state), 3);
   const pool = getVassalCandidatePool(state);
   const index = pool.candidates.findIndex(candidate => candidate.stats?.cunning===1);
   assert.ok(index>=0);
@@ -106,36 +106,36 @@ function payLegacy(state) {
   const successor = getCurrentLifeMapVassal(state);
   assert.notEqual(successor.founderClassId, 'scholar');
   assert.equal(successor.stats.cunning, 1);
-  assert.equal(payLegacy(state), Math.round(3+1+9/20+9/20));
+  assert.equal(payLegacy(state), 4);
 }
 
-// One hostile-heavy holding rounds up; an empty player holding adds nothing.
+// Partial groups round down; an empty player holding adds nothing.
 {
   const {state} = boot([[bin('player', 1), bin('external-a', 9)], []]);
   assert.equal(getRegionPrestigePerNode(state, playerSites(state)[1].regionId), 0);
-  assert.equal(payLegacy(state), Math.round(3+10/20));
+  assert.equal(payLegacy(state), 3);
 }
 
 // A captured Crown town joins the next completion. Other Crown towns stay out.
 {
   const {state, vassal} = boot([[], []]);
   const town = held(state, 'external-a');
-  writePopulationBins(town.detailedState, [bin('external-a', 10)]);
+  writePopulationBins(town.detailedState, [bin('external-a', 31)]);
   town.detailedState.control.unrest = null;
   assert.equal(packet(state, vassal), 3);
   changeController(state, town.regionId, 'player');
-  assert.equal(payLegacy(state), Math.round(3+10/20));
+  assert.equal(payLegacy(state), 4);
 }
 
 // The development quote follows a holding lost after the node is open.
 {
-  const {state, vassal} = boot([[bin('external-a', 16)], [bin('external-a', 16)]]);
+  const {state, vassal} = boot([[bin('external-a', 31)], [bin('external-a', 39)]]);
   const node = vassal.lifeMap.graph.nodes.find(entry => entry.family==='development');
   vassal.lifeMap.availableNodeIds = [node.id];
   assert.equal(act(state, ActionKinds.VASSAL_ENTER_LIFE_NODE, {nodeId:node.id}).ok, true);
   const saved = serializeGameState(state), rng = JSON.stringify(state.rng);
   const quote = () => getVassalNodeDecisionPresentation(state).vassalProjection.ifSurvives.prestigeIncome;
-  assert.equal(quote(), Math.round(3+16/20+16/20));
+  assert.equal(quote(), 5);
   assert.deepEqual(serializeGameState(state), saved);
   assert.equal(JSON.stringify(state.rng), rng);
   assert.equal(state.paused, false);
@@ -144,16 +144,16 @@ function payLegacy(state) {
   const away = playerSites(state).find(site => site.regionId!==vassal.locationRegionId);
   changeController(state, away.regionId, 'frontier');
   assert.equal(getRegionPrestigePerNode(state, away.regionId), null);
-  assert.equal(quote(), Math.round(3+16/20));
+  assert.equal(quote(), 4);
 }
 
 // Losing one mixed holding between entry and completion changes the payout.
 {
-  const {state, vassal} = boot([[bin('player', 4), bin('external-a', 5)], [bin('neutral', 3), bin('external-a', 6)]]);
+  const {state, vassal} = boot([[bin('player', 4), bin('external-a', 25)], [bin('neutral', 3), bin('external-a', 36)]]);
   const node = vassal.lifeMap.graph.nodes.find(entry => entry.family==='legacy');
   vassal.lifeMap.availableNodeIds = [node.id];
   assert.equal(act(state, ActionKinds.VASSAL_ENTER_LIFE_NODE, {nodeId:node.id}).ok, true);
-  assert.equal(packet(state, vassal), 4);
+  assert.equal(packet(state, vassal), 5);
   const away = playerSites(state).find(site => site.regionId!==vassal.locationRegionId);
   changeController(state, away.regionId, 'frontier');
   const before = state.civilization.prestige, gross = state.civilization.treasury.grossIncome, own = vassal.prestige;
@@ -161,14 +161,14 @@ function payLegacy(state) {
     {kind:ActionKinds.VASSAL_SELECT_LIFE_OPTION, payload:{nodeId:node.id, optionId:'highest-stat'}},
     {kind:ActionKinds.VASSAL_CONFIRM_LIFE_NODE, payload:{nodeId:node.id}},
   ]), 0);
-  assert.equal(state.civilization.prestige-before, Math.round(3+9/20), 'payout uses the holding that remains');
-  assert.equal(state.civilization.treasury.grossIncome-gross, Math.round(3+9/20));
+  assert.equal(state.civilization.prestige-before, 4, 'payout uses the holding that remains');
+  assert.equal(state.civilization.treasury.grossIncome-gross, 4);
   assert.equal(vassal.prestige, own);
 }
 
 // Founding pays the holdings present on the resolution second, not the quote.
 {
-  const {state, vassal} = boot([[bin('player', 16)], [bin('external-a', 16)]]);
+  const {state, vassal} = boot([[bin('player', 31)], [bin('external-a', 39)]]);
   const node = vassal.lifeMap.graph.nodes.find(entry => entry.family==='warlordFounding');
   vassal.lifeMap.availableNodeIds = [node.id];
   const timeline = applyAll(state, [
@@ -176,7 +176,7 @@ function payLegacy(state) {
     {kind:ActionKinds.VASSAL_SELECT_LIFE_OPTION, payload:{nodeId:node.id, optionId:'train-estate'}},
     {kind:ActionKinds.VASSAL_CONFIRM_LIFE_NODE, payload:{nodeId:node.id}},
   ]);
-  const decision = Math.round(3+16/20+16/20);
+  const decision = 5;
   assert.equal(getVassalNodeResolutionGains(state, vassal, 'warlordFounding').prestige, decision);
   assert.equal(vassal.lifeMap.pendingResolution.resolveSec, 6);
   assert.equal(state.civilization.prestige, 20);
@@ -192,4 +192,4 @@ function payLegacy(state) {
   assert.equal(state.phase, 'simulation');
 }
 
-console.log('Territory Prestige contracts: mixed round-once, successor Cunning, empty cohort, Crown capture, live quote, loss payout, founder resolution replay.');
+console.log('Territory Prestige contracts: per-region floor, successor Cunning, empty cohort, Crown capture, live quote, loss payout, founder resolution replay.');
