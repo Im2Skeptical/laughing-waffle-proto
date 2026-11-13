@@ -4,6 +4,8 @@ Local instructions for agents working in this repo.
 
 ## Project context
 - Always read `ai/ai-context.md` (invariants and schema numbers).
+- Native successor work (C++/SDL3/RmlUi): read [native/AGENTS.md](native/AGENTS.md)
+  and its start/resume sequence. Keep the browser game independently runnable.
 - New card proposals or playable Practices/Structures use
   [add-gamepiece](.agents/skills/add-gamepiece/SKILL.md), which routes design,
   implementation and artwork through the shared workflow.
