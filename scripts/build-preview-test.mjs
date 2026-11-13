@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { mkdtemp, mkdir, copyFile, writeFile, readFile, rm } from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
 import { tmpdir } from 'node:os';
@@ -23,8 +23,12 @@ try {
   await new Promise(resolve=>probe.close(resolve));
   const previewPath=path.join(fixture,'scripts/local-preview.mjs');
   await writeFile(previewPath,(await readFile(previewPath,'utf8')).replace('const firstPort = 5184;',`const firstPort = ${fixturePort};`));
+  const legacyPreviewPath=path.join(fixture,'scripts/legacy-preview.mjs');
+  await writeFile(legacyPreviewPath,(await readFile(previewPath,'utf8')).replace(/const protocol = \d+;/,'const protocol = 2;'));
   await mkdir(path.join(fixture,'src/model'));
   await mkdir(path.join(fixture,'src/defs'));
+  await mkdir(path.join(fixture,'src/controllers'));
+  await copyFile('src/controllers/performance-start-seeds.js',path.join(fixture,'src/controllers/performance-start-seeds.js'));
   await writeFile(path.join(fixture,'src/model/example.js'),'export const rule = 1;');
   await writeFile(path.join(fixture,'src/defs/example.js'),'export const definition = 1;');
   await mkdir(path.join(fixture,'src/views/ui-root'),{recursive:true});
@@ -38,13 +42,27 @@ try {
   const git = args => execFileSync('git', args, { cwd: fixture, stdio: 'pipe', windowsHide: true });
   git(['init', '-q', '-b', 'main']); git(['add', '.']);
   git(['-c', 'user.name=Preview test', '-c', 'user.email=preview@example.invalid', 'commit', '-qm', 'Fixture']);
+  // A protocol-2 process keeps the old fixture-key algorithm in memory after an
+  // upgrade. It must not be reused even when it belongs to the same checkout.
+  const legacy=spawn(process.execPath,[legacyPreviewPath,'--serve',String(fixturePort)],{
+    cwd:fixture,windowsHide:true,stdio:'ignore',
+  });
+  serverPids.push(legacy.pid);
+  let legacyStatus=null;
+  for(let attempt=0;attempt<80;attempt++){
+    try{legacyStatus=await(await fetch(`http://127.0.0.1:${fixturePort}/__preview__/status`,{signal:AbortSignal.timeout(250)})).json();break;}catch{}
+    await delay(50);
+  }
+  assert.equal(legacyStatus?.protocol,2,'legacy fixture must be serving before the new launcher runs');
   const start = (cwd = fixture) => execFileSync(process.execPath, ['scripts/local-preview.mjs'], {
     cwd, encoding: 'utf8', timeout: 40_000, windowsHide: true,
   });
   const first = start();
   const address = first.match(/Local preview: (http:\/\/localhost:\d+\/)/)?.[1];
   assert.ok(address, `Startup must wait for readiness and print a URL; got ${JSON.stringify(first)}`);
+  assert.notEqual(new URL(address).port,String(fixturePort),'the old server must be left alone and replaced by a compatible preview');
   const status = await (await fetch(`${address}__preview__/status`)).json();
+  assert.equal(status.protocol,3);
   const serverPid = status.pid;
   serverPids.push(serverPid);
   assert.ok(Number.isInteger(serverPid));
@@ -140,7 +158,7 @@ try {
   assert.equal(built.version, JSON.parse(await readFile('package.json', 'utf8')).version);
   assert.equal(built.build, manifest.build);
   assert.ok(page.includes(JSON.stringify(built)), 'Pages embeds the published build identity');
-  console.log('[build-preview] OK: preview isolation, parallel worktrees, integration-only versions, content identity, Pages metadata');
+  console.log('[build-preview] OK: old-server rejection, preview isolation, parallel worktrees, integration-only versions, content identity, Pages metadata');
 } finally {
   for (const pid of serverPids) process.kill(pid);
   // mkdtemp owns this exact child of the OS temporary directory.

@@ -24,16 +24,26 @@ map, Practices, saves and simulation with polygon terrain and fallback symbols.
 Omit the query for the illustrated game. Developer tools > New game in performance
 mode starts directly in the separate `performance-dev` save (replaced by each
 new performance start). Continue performance game resumes it; slots 1-3 stay
-separate. The adjacent Load artwork progressively checkbox defaults on: card
+separate. The adjacent Random seed checkbox defaults off. When checked, every
+new performance game uses fresh entropy and computes its opening forecast on the
+device before entry. It retains the regular-game setup, ignoring custom profiles,
+edited cards and the ordinary New game seed override. The choice is remembered;
+`&seed=random` selects it in a direct performance URL. Unticked (or
+`&seed=prepared`), each new start chooses uniformly among five prepared seeds:
+123, 1867, 99117, 424242 and 2026. A numeric `&seed=123` (or another seed from
+that pool) pins a direct launch for repeatable debugging. Continue always keeps
+the saved world's seed. The adjacent
+Load artwork progressively checkbox defaults on: card
 art and other atlases upload in batches after entry, then terrain prepares
 cooperatively. Stubs stay visible until everything is ready: the top-right Dev
 seal shows a tick. Tap it to reveal the prepared graphics together; holding still
 opens the workshop. Turn it off to retain
 stubs (`?dev=1&perf=1&art=0`). A direct performance URL resumes its Dev save
-when available; add `&launch=new` for a fresh start. This fixed
-regular-game seed (123) loads a prepared forecast, summaries and scrub anchors.
-`npm start` and `npm run build` regenerate it when simulation sources or its recipe
-change; UI-only edits reuse it. Custom profiles and edited cards use ordinary New
+when available; add `&launch=new` for a fresh start. Each prepared regular-game
+seed loads its own forecast, summaries and scrub anchors; entry downloads only
+the chosen seed's file. `npm start` and `npm run build` regenerate the five files
+when simulation sources, the seed pool or its recipe change; UI-only edits reuse
+them. Custom profiles and edited cards use ordinary New
 Game outside performance-start mode. The bake uses every official simulation tick;
 saves, later actions and replay use the normal engine.
 

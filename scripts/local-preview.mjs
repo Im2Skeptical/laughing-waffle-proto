@@ -8,7 +8,8 @@ import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { root, workspaceId, getBuildInfo, stampBuildInfo } from './build-info.mjs';
 
-const protocol = 2;
+// Pool-aware fixture keys require a fresh server after upgrading older tooling.
+const protocol = 3;
 const firstPort = 5184;
 const ports = Array.from({ length: 12 }, (_, i) => firstPort + i);
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
