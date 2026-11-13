@@ -10,8 +10,9 @@ refers to the phone. Keep the computer awake. If the firewall blocks the phone,
 allow Node on the private network.
 
 Ports start at 5184; occupied ports and previews belonging to other checkouts
-are left alone. The server serves source files without caching, so reload after
-edits. It does not automatically reload a running game. The preview identity is
+are left alone. The server serves code and HTML without caching, so reload after
+edits. Runtime artwork uses immutable content URLs; unchanged images are reused
+from this origin's browser cache. It does not automatically reload a running game. The preview identity is
 available at `/__preview__/status`; process output goes to
 `artifacts/local-preview.log`. Stop that preview's reported PID when no longer
 needed. Always return the URL actually printed by the command, not a remembered
@@ -87,6 +88,49 @@ Local HTML and Pages artifacts embed their identity at load/build time. Pages
 writes the same metadata to `dist/build-info.json` and `dist/build-manifest.json`.
 The local badge checks for edits every 30 seconds and when the tab becomes
 visible, and prompts the player to save then reload when the loaded build is old.
+
+### Selective artwork caching
+
+Both previews and Pages embed a pinned artwork manifest in HTML and expose
+`artwork-manifest.json` for fresh polling every 30 seconds and on tab visibility.
+Cards, Regions, and Frames/icons/shared chrome have separate notice revisions.
+These revisions never enter resource URLs: each runtime image has its own SHA-256
+path under `artwork/`. Changing code, docs, or an unpacked source painting cannot
+invalidate unchanged runtime art. Repack source paintings before expecting a card
+art update. Atlas JSON paths include their dependency closure, with rewritten
+image and linked multipack paths; changing one packed image reuses the other
+images while refreshing the affected JSON references. Runtime regional JSON and
+images are individually addressed too. Keep new runtime atlas groups registered
+in `scripts/artwork-manifest.mjs`, with their appropriate category.
+
+The existing build badge shows `Artwork updated: Cards` (or the affected
+categories). `Save & reload` pauses through the game menu, waits for the session
+save, and only reloads on success. Continue or another game entry cancels a
+pending reload, even if the player returns to the menu before saving finishes.
+Failed saves and unfinished entry keep the page open. A normal browser reload applies the embedded new manifest. Neither action
+clears IndexedDB, preferences, browser caches, or unrelated origin data. Minimal
+graphics still requests only shared icons; progressive art keeps the page's
+original URLs until reload and retains its explicit reveal step.
+
+The LAN server gives content URLs `max-age=31536000, immutable` and supports ETag
+revalidation; code, workers, HTML and polling metadata stay `no-store`. Its
+`artifacts/artwork-cache` retains old snapshots so already open pages can finish
+deferred loads. Pages publishes the current snapshot as ordinary static files;
+its hosting cache policy applies (observed `max-age=600` with ETag/Last-Modified),
+so expired resources can revalidate instead of transferring image payloads.
+Pages app/CSS/worker filenames remain hashed by the existing build. Pixi remains
+on its version-pinned CDN URL. No service worker, offline shell, or engine change
+is introduced. Caches are per origin: changing preview hostname or port is cold.
+Network reuse does not eliminate image decoding, GPU upload, or terrain baking.
+Browser eviction still applies: incognito memory caches may refuse the existing
+card atlas pages larger than 10 MB; a normal persistent Chromium profile retained
+all runtime images in the cache probe.
+
+Run `npm run test:artwork-cache` for changed-file, category, multipack, pinned-load
+and reload-gating contracts. `node scripts/artwork-cache-browser-probe.mjs <URL>`
+checks real cold/warm transfers and graphics modes; results go to
+`artifacts/artwork-cache/`. Add `--pages` to exercise `dist/` under a nested
+Pages-style base URL. Use `npm run verify` for the required full checks.
 
 Verify `npm run verify` and check the loaded page's badge against
 `/build-info.json`. In the completion report include the inherited or integrated
