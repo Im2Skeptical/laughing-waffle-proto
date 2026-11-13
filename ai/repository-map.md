@@ -6,6 +6,10 @@ and its direct dependencies.
 
 ## Active application path
 
+- Native successor (C++/SDL3/RmlUi): start at [native/AGENTS.md](../native/AGENTS.md).
+  Its README owns the accepted scope and WORKPLAN owns resumable execution status.
+  The browser application below remains independently runnable.
+
 - Ordinary full-map initialization: `src/model/new-game.js` and
   `src/model/full-map-world.js`; admitted offers: `src/defs/gamepieces/full-map-defs.js`.
 - Full-map settlement rules: read `src/model/detailed-settlements/README.md`,
