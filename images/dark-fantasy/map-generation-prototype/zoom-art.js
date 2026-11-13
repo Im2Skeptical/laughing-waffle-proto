@@ -168,5 +168,12 @@ export async function prepareLandmarkLods() {
     const [x,y,w,h] = frame.rect;
     return [frame.role,new PIXI.Texture(crownSheet.baseTexture,new PIXI.Rectangle(x,y,w,h))];
   }));
+  const modules=await(await fetch(mapAssetUrl('./assets/runtime/crown-modular-v1.json'))).json();
+  const moduleSheet=await PIXI.Assets.load(mapAssetUrl('./assets/runtime/crown-modular-v1.webp'));
+  result.crownModular=Object.fromEntries(modules.frames.map(frame=>{
+    const [x,y,w,h]=frame.rect;
+    return [frame.role,new PIXI.Texture(moduleSheet.baseTexture,new PIXI.Rectangle(x,y,w,h))];
+  }));
+  result.crownModularGeometry=Object.fromEntries(modules.frames.map(frame=>[frame.role,{width:frame.rect[2],height:frame.rect[3],groundContacts:frame.groundContacts}]));
   return result;
 }

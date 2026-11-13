@@ -10,7 +10,7 @@ export function* prepareRegionalTilesSteps(presentation, landmarks, renderer) {
   const {crop,map}=presentation,started=performance.now();
   const textures=[],grounds=[],bones=[],monsterCounts=new Map(),roadCache=new Map();
   const connections=[];
-  let monsterArt,sites,buildings;
+  let monsterArt,sites,buildings,markerBuildings;
   function sceneFor(art){
     const scene=new PIXI.Container(),density=art.stats.texel;
     scene.addChild(new PIXI.Sprite(art.groundTexture));
@@ -40,8 +40,9 @@ export function* prepareRegionalTilesSteps(presentation, landmarks, renderer) {
   flatten(empty);destroyPixelTerrain(empty);
   yield;
   const towns=yield* presentation.buildSteps({monsters:[],sites:presentation.anchors.map(a=>({regionId:a.regionId,kind:'player'})),connections,routedRoads});
-  sites=towns.settlementPlans.map(s=>({regionId:s.regionId,biome:s.biome,buildings:s.buildings.length,point:s.point}));
-  buildings=towns.settlementPlans.flatMap(s=>s.buildings.map(b=>({...b,regionId:s.regionId}))).sort((a,b)=>a.point.y-b.point.y);
+  sites=towns.settlementPlans.map(s=>({regionId:s.regionId,biome:s.biome,buildings:s.buildings.length,point:s.point,urban:s.urban}));
+  buildings=towns.settlementPlans.flatMap(s=>s.buildings.map(b=>({...b,regionId:s.regionId}))).sort((a,b)=>(a.depthY??a.point.y)-(b.depthY??b.point.y));
+  markerBuildings=towns.settlementPlans.filter(s=>s.urban).flatMap(s=>s.originalBuildings.map(b=>({...b,regionId:s.regionId})));
   flatten(towns);destroyPixelTerrain(towns);
   yield;
   monsterArt=yield* presentation.buildSteps({monsters:map.regions.map(r=>r.id),sites:[],connections,routedRoads,isolatedMonsterBorders:true});
@@ -51,7 +52,7 @@ export function* prepareRegionalTilesSteps(presentation, landmarks, renderer) {
   const density=monsterArt.stats.texel,bounds=monsterArt.bounds;
   return {buildMs:performance.now()-started,sites,
     compose(spec){
-      const scene=new PIXI.Container(),occupied=new Set(spec.monsters),kinds=new Map(spec.sites.map(s=>[s.regionId,s.kind])),spriteBounds=new Map();
+      const scene=new PIXI.Container(),occupied=new Set(spec.monsters),kinds=new Map(spec.sites.map(s=>[s.regionId,s.kind])),spriteBounds=new Map(),renderedUrban=new Map();
       const roadKey=JSON.stringify(spec.connections);
       if(!roadCache.has(roadKey)){
         roadCache.set(roadKey,presentation.roads(spec.connections));
@@ -85,15 +86,28 @@ export function* prepareRegionalTilesSteps(presentation, landmarks, renderer) {
           (road.borderBounds.minY-bounds.minY)*516/density-crop.y);scene.addChild(node);
       }
       for(const b of buildings){
-        if(occupied.has(b.regionId)||!kinds.has(b.regionId))continue;
+        if(occupied.has(b.regionId)||occupied.has(b.landRegionId)||!kinds.has(b.regionId))continue;
+        if(b.urban&&(!b.monument||b.roadContacts)){
+          const mask=road.roadClearance,box=b.renderBounds;
+          let crosses=false;
+          if(b.roadContacts?.length)crosses=b.roadContacts.some(p=>{
+            const x=Math.floor(p.x),y=Math.floor(p.y);
+            return x>=mask.x&&y>=mask.y&&x<mask.x+mask.width&&y<mask.y+mask.height&&!!mask.data[(y-mask.y)*mask.width+x-mask.x];
+          });
+          else for(let y=Math.floor(box.minY);y<=box.maxY&&!crosses;y++)for(let x=Math.floor(box.minX);x<=box.maxX;x++)
+            if(x>=mask.x&&y>=mask.y&&x<mask.x+mask.width&&y<mask.y+mask.height&&mask.data[(y-mask.y)*mask.width+x-mask.x]){crosses=true;break;}
+          if(crosses)continue;
+        }
         const kind=kinds.get(b.regionId),crown=kind==='crown'||kind==='crownCapital';
         const civic=['hall','market'].includes(b.role);
         const role=civic?kind==='player'?'hall':'market':b.role;
         const crownRole=civic?(kind==='crownCapital'?'capital':'hall'):['house','pair'].includes(b.role)?'house':null;
-        const texture=(crown&&crownRole?landmarks.crown?.[crownRole]:null)??landmarks.biomes[b.biome][role],node=new PIXI.Sprite(texture);
-        node.scale.set((crown&&civic&&kind==='crownCapital'?b.w*1.3:b.w)/texture.width);
+        const texture=(b.urban?landmarks.crownModular[b.artRole]:null)??(crown&&crownRole?landmarks.crown?.[crownRole]:null)??landmarks.biomes[b.biome][role],node=new PIXI.Sprite(texture);
+        if(b.urban&&b.core&&['citadel','armoury','blade','citadelCrown','provinceHall'].includes(b.role)&&kind==='player')node.tint=0xd4d6b9;
+        node.scale.set((!b.urban&&crown&&civic&&kind==='crownCapital'?b.w*1.3:b.w)/texture.width);
         node.position.set((b.point.x-bounds.minX)*1576/density-crop.x-node.width/2,
           (b.point.y-bounds.minY)*516/density-crop.y-node.height+b.h*.25);scene.addChild(node);
+        if(b.urban){const counts=renderedUrban.get(b.regionId)??{};counts[b.role]=(counts[b.role]??0)+1;renderedUrban.set(b.regionId,counts);}
         // View-only footprint of the exact drawn buildings, including Crown
         // texture proportions. Floating chrome can leave this rectangle clear.
         const box={minX:bounds.minX+(node.x+crop.x)*density/1576,minY:bounds.minY+(node.y+crop.y)*density/516,
@@ -102,8 +116,23 @@ export function* prepareRegionalTilesSteps(presentation, landmarks, renderer) {
         spriteBounds.set(b.regionId,old?{minX:Math.min(old.minX,box.minX),minY:Math.min(old.minY,box.minY),maxX:Math.max(old.maxX,box.maxX),maxY:Math.max(old.maxY,box.maxY)}:box);
 
       }
+      // The art expands, the accepted readout anchors do not. Keep the compact
+      // original town's measured footprint and reserve its surrounding quiet
+      // area in the urban planner instead of pushing chrome to the city edge.
+      const markerBounds=new Map();
+      for(const b of markerBuildings){
+        const kind=kinds.get(b.regionId),civic=['hall','market'].includes(b.role),crown=kind==='crown'||kind==='crownCapital';
+        const role=civic?kind==='player'?'hall':'market':b.role;
+        const crownRole=civic?(kind==='crownCapital'?'capital':'hall'):['house','pair'].includes(b.role)?'house':null;
+        const t=(crown&&crownRole?landmarks.crown?.[crownRole]:null)??landmarks.biomes[b.biome][role];
+        const w=crown&&civic&&kind==='crownCapital'?b.w*1.3:b.w,h=t.height*w/t.width;
+        const box={minX:b.point.x-w/2*density/1576,maxX:b.point.x+w/2*density/1576,
+          minY:b.point.y+(-h+b.h*.25)*density/516,maxY:b.point.y+b.h*.25*density/516};
+        const old=markerBounds.get(b.regionId);markerBounds.set(b.regionId,old?{minX:Math.min(old.minX,box.minX),minY:Math.min(old.minY,box.minY),maxX:Math.max(old.maxX,box.maxX),maxY:Math.max(old.maxY,box.maxY)}:box);
+      }
+      for(const [id,box]of markerBounds)spriteBounds.set(id,box);
       const biomes=map.regions.map(r=>({id:r.id,underlying:r.biome,biome:occupied.has(r.id)?'monster':r.biome}));
-      return {scene,biomes,roads:road.roads,sites:sites.filter(s=>kinds.has(s.regionId)&&!occupied.has(s.regionId)).map(s=>({...s,kind:kinds.get(s.regionId),spriteBounds:spriteBounds.get(s.regionId)})),
+      return {scene,biomes,roads:road.roads,sites:sites.filter(s=>kinds.has(s.regionId)&&!occupied.has(s.regionId)).map(s=>({...s,kind:kinds.get(s.regionId),spriteBounds:spriteBounds.get(s.regionId),renderedUrban:renderedUrban.get(s.regionId)})),
         monsterPieces:spec.monsters.reduce((n,id)=>n+(monsterCounts.get(id)??0),0)};
     },
     destroy(){textures.forEach(t=>t.destroy(true));for(const t of new Set(grounds))t.destroy(true);destroyPixelTerrain(monsterArt);
