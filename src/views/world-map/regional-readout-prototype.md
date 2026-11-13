@@ -126,8 +126,9 @@ are placed on the evaluated map. Omitting the parameter retains the shipped UI.
   simulation fixtures or cohort sizes are modified to manufacture cases.
 - Crown potential is a read-only display estimate. No Crown income simulation
   or player income before capture is introduced.
-- Regional income displays one decimal; total payout still uses the model's
-  aggregate rounding. No global treasury or node-payout changes.
+- Regional income uses the model's per-region floor: one Prestige per full 20
+  residents. Potential income uses the same calculation. Fractions do not pool
+  across regions when a node pays the global treasury.
 - Retention, all game rules, RNG, schema and replay remain unchanged. Variant is
   chosen on page load and switching requires reload.
 - Readouts retain a constant screen size as the map zooms.

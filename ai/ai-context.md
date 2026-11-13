@@ -19,7 +19,9 @@ local simulation, blocked peaceful claims and 1 Chaos per year, then ordinary
 unheld status. Conquest is separate; losing all player holdings remains terminal.
 Repelled Monsters gain
 +1 Strength and retain their latest Spawn result for replayable feedback.
-GameState v49 supersedes v48; start fresh to rebuild the changed trajectory.
+Each player-held region earns one Prestige per full 20 residents per completed
+node, rounded down separately before combining node income. GameState v50
+supersedes v49; start fresh to rebuild the changed payout trajectory.
 This checked marker matches `package.json`; app versions are independent of save
 schemas and isolated art prototype versions. Every PR includes a version bump;
 unintegrated builds show a compact Preview label. Source fingerprints and branch
@@ -91,7 +93,7 @@ identifiers remain stable; see [the mapping and authoring contract](../docs/cree
 
 Authoritative numbers:
 
-- Game state v49; runner saves v33. Older saves are rejected.
+- Game state v50; runner saves v33. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
 - Each run serializes schema-v31 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.

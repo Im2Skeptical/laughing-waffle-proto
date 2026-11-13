@@ -17,6 +17,7 @@ export {
   getVassalLifeMapPlayheadNodeId,
   getVassalAge,
   getVassalPrestigeIncome,
+  getTerritorialPrestigeForPopulation,
   getVassalDevelopmentIncome,
   getVassalEffectiveStats,
   getVassalNodeResolutionGains,

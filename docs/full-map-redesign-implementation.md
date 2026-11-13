@@ -77,10 +77,12 @@ Force. Ordinary travel includes foreign inhabited destinations and physical
 expeditions where roads do not reach.
 
 The shared civilization treasury begins at 20 Prestige. Each inhabited player
-holding adds population / 20, to the normal completed-node
-Prestige gain (provisional balance). The combined gain rounds once and is credited
+holding adds floor(population / 20) to the normal completed-node
+Prestige gain (provisional balance). Each region rounds down separately before
+its contribution is added; fractional residents never pool across regions.
+The combined gain is credited
 to that same treasury. Delve and campaign encounters award no node income; there
-is no time-based regional payout. Map badges show rounded per-node contributions.
+is no time-based regional payout. Map badges show these integer contributions.
 Commission rewards use the same ledger. Installations
 use the retained all-or-nothing 10-Pressure fallback when Prestige is short.
 Each hostile institution removed or displaced adds 5 Prestige and 10 explicit

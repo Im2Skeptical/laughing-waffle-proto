@@ -97,6 +97,7 @@ try {
     const {createSettlementPrototypeView}=await import('/src/views/settlement-prototype-view.js');
     const {detailedSettlementPracticeDefs}=await import('/src/defs/gamepieces/detailed-settlement-defs.js');
     const {getDetailedPracticeDef}=await import('/src/model/game-config.js');
+    const {writePopulationBins}=await import('/src/model/detailed-settlements/population-ledger.js');
     const state=createNewGameState(7),regionId='R03';
     const keys=new Set();
     const stockIds=Object.keys(detailedSettlementPracticeDefs).filter(id=>{
@@ -108,6 +109,8 @@ try {
       const site=state.world.sites.find(s=>s.regionId===id);site.neutral=null;
       site.detailedState.practiceSlots=stockIds.slice(i*5,i*5+5).map((practiceId,j)=>({practiceId,stock:j+1,tier:'bronze',instanceId:`fixture:${i}:${j}`,charge:0,work:0}));
     }
+    writePopulationBins(state.world.sites.find(site=>site.regionId===regionId).detailedState,
+      [{classId:'villager',allegiance:'player',specialty:'ordinary',kind:'adults',age:null,count:31}]);
     const app=new PIXI.Application({width:2424,height:1080,backgroundColor:0x111718,resolution:1});
     app.view.style.cssText='position:fixed;width:min(100vw,224.444vh);height:auto;left:50%;top:50%;transform:translate(-50%,-50%);z-index:9999;';document.body.append(app.view);
     const view=createSettlementPrototypeView({layer:app.stage,getState:()=>state,getSelectedRegionId:()=>regionId,onSelectSettlement:()=>{globalThis.fixtureSelected=true;}});
@@ -115,6 +118,8 @@ try {
   });
   const fixtureSnapshot=()=>page.evaluate(()=>overviewFixture.view.getSemanticSnapshot());
   const fixture=await fixtureSnapshot();
+  assert.equal(fixture.overviewVisual.population.population,31);
+  assert.equal(fixture.overviewVisual.population.prestigePerNode,1,'overview uses the simulated per-region floor');
   assert.ok(fixture.overviewVisual.stock.pageCount>1,'crowded inventory is bounded and paged');
   const stockRect=fixture.overviewVisual.layout.stock;
   await click({x:stockRect.x+223,y:stockRect.y+582},true);

@@ -123,7 +123,7 @@ export function drawPopulationOverview(parent,{state,vm,tooltipView,onAssignGarr
   overviewInspect(parent,{x:x+318,y:y+62,width:width-336,height:108},{title:'Territorial Prestige',lines:[
     vm.prestigePerNode===null?'This settlement contributes no Prestige to your realm.':`${amount(vm.prestigePerNode)} Prestige per completed node from this settlement.`,
     `Shared treasury: ${amount(vm.civilizationPrestige)} Prestige.`,
-    'Regional contributions are combined before rounding the node payout. Income is inactive during Unrest.',
+    `One Prestige per full ${vm.prestigePopulationPerPoint} residents, rounded down per region. Income is inactive during Unrest.`,
   ]},tooltipView,'overview:prestige',targets);
   const workers=vm.workerPool;
   text(parent,`${workers.availableWorkerCount} ${workers.availableWorkerCount===1?'worker':'workers'}`,x+22,y+188,32,PALETTE.text,true);
