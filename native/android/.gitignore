@@ -4,3 +4,4 @@ app/build/
 app/.cxx/
 app/src/main/assets/
 app/src/main/res/mipmap-*/
+build/
