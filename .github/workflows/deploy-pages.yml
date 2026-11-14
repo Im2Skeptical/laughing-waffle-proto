@@ -24,7 +24,8 @@ jobs:
   build:
     # Explicitly approved prototype publication; keep the branch allowlist exact.
     if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/proto/keywords-classes') && inputs.confirm_publish
-    runs-on: ubuntu-latest
+    # Keep the runner compatible with the pinned Playwright browser build.
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -37,6 +38,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install Chromium for loading recovery checks
+        run: npx playwright install --with-deps chromium
 
       - name: Check approved game version
         env:

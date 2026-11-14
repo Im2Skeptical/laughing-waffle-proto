@@ -4,6 +4,7 @@ import { importSaveToSlot, inspectSaveText, listSaveSlotSummaries, SAVE_SCHEMA_V
 import { inspectSaveStorageUsage, saveFailureExplanation, saveFailureMessage } from './sim-runner/save-diagnostics.js';
 
 export function createGameSessionController({ runner, opening, onEnter, prepareEntry, prefetchEntry, cancelPrefetch, onError, onSaved, onSaveStatusChange,
+  waitUntilActive = async () => {},
   getPresentationDiagnostics = () => [], getForecastDiagnostics = () => null,
   createState = () => createNewGameState(globalThis.crypto.getRandomValues(new Uint32Array(1))[0]) }) {
   let activeSlot = null;
@@ -16,6 +17,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
   const recentSaveAttempts = [];
   let preparedImport = null;
   let pendingSave = null;
+  let openingSavePending = false;
   let replacing = false;
   let runVersion = 0;
   const loadingDiagnostics = createLoadingDiagnostics();
@@ -90,6 +92,10 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
       const stored = await runner.saveToSlot(slot);
       if (version !== runVersion) return stored;
       const result = await record(stored, slot);
+      if (result.ok && openingSavePending) {
+        openingSavePending = false;
+        await opening?.clearCheckpoint?.();
+      }
       if (!result.ok) onError?.(saveFailureMessage(lastAttempt.category));
       return result;
     })().finally(() => { pendingSave = null; notify(); });
@@ -109,10 +115,12 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
     // presentation assets and the retained settlement scene are ready.
     onProgress?.({ stage: 'scene', label: 'Building your game scene' });
     await new Promise(resolve => setTimeout(resolve, 0));
+    await waitUntilActive();
     if (!isCurrent()) return { ok: false, reason: 'cancelled' };
     enter(slot, prepared, { deferResume: true });
     const version = runVersion;
     await prepareEntry?.(prepared, { isCurrent: () => isCurrent() && version === runVersion, onProgress });
+    await waitUntilActive();
     if (!isCurrent() || version !== runVersion) return { ok: false, reason: 'cancelled' };
     hasLiveGame = true;
     inMenu = false;
@@ -127,6 +135,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
     try { result = await runner.loadFromSlot(slot, { isCurrent: () => isCurrent() && version === runVersion, onProgress }); }
     finally { replacing = false; notify(); }
     if (!result.ok) { if (result.reason !== 'cancelled') onError?.('This save could not be loaded.'); return result; }
+    openingSavePending = false;
     opening?.reset();
     phase = 'saved'; lastAttempt = null;
     lastSuccessfulSave = { slot, savedAt: result.meta?.savedAt ?? null, tSec: result.meta?.tSec ?? null };
@@ -192,10 +201,11 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
     slots: () => slotSummaries,
     getPerformanceSave: () => performanceSave,
     prepareNewGame: () => opening?.prepare(),
-    cancelPreparation: () => opening?.cancel(),
+    cancelPreparation: (options = { discard: true }) => opening?.cancel(options),
     getPreparationStatus: () => opening?.getSnapshot(),
     getLoadingStatus: () => loadingDiagnostics.snapshot(),
     enterDisposableState(state) {
+      openingSavePending = false;
       opening?.reset();
       const result = runner.resetToState(state, 'developmentLab');
       if (!result.ok) return result;
@@ -217,6 +227,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
         const initialState = prepared?.state ?? createState();
         onProgress({ stage: 'install', label: 'Starting your new chronicle' });
         await new Promise(resolve => setTimeout(resolve, 0));
+        await waitUntilActive();
         if (!isCurrent()) return { ok: false, reason: 'cancelled' };
         activeSlot = null;
         hasLiveGame = false;
@@ -225,6 +236,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
         phase = 'idle'; lastSuccessfulSave = null; lastAttempt = null;
         const entry = prepareEntry ? await prepareAndEnter(slot, prepared, isCurrent, onProgress) : enter(slot, prepared);
         if (!entry.ok) return entry;
+        openingSavePending = true;
         onProgress({ stage: 'save', label: 'Saving your new chronicle', detail: slot === PERFORMANCE_SAVE_SLOT ? 'Performance Dev save' : `Browser save slot ${slot}` });
         const saved = await save();
         if (!isCurrent()) {

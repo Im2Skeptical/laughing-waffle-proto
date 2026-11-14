@@ -1,6 +1,6 @@
 # Current Project Context
 
-Game build version: `1.1.66`.
+Game build version: `1.1.67`.
 The accepted [regional population UX](../docs/regional-population-ux-integration.md)
 uses floating 70% map readouts, visual demographics, Warrior baseline Force and
 carried proportional newborn allegiance. It preserves the degraded starter
@@ -100,6 +100,10 @@ Authoritative numbers:
 
 - Game state v51; runner saves v33. Older saves are rejected.
 - Browser save slots use IndexedDB database v1; the runner-save envelope is unchanged.
+- New Game retains one disposable opening-forecast checkpoint in the same
+  database's settings store, independent of player slots. Exact loaded-build
+  identity and launch settings gate reuse; successful initial save or explicit
+  abandonment clears it. Background time does not exhaust loading deadlines.
 - Each run serializes schema-v31 Game Settings, Gamepieces, and Life Map
   generator settings in `gameConfig`.
 - Map Lab drafts v8; scenario libraries v4.
