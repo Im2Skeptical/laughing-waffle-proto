@@ -67,6 +67,8 @@ The checkpoint remains through scene installation and first-save failures, then
 clears after a successful initial save (including a save retry). Denied storage,
 quota errors or damaged checkpoints fall back to ordinary loading. Browser
 storage eviction can still remove checkpoints.
+Save cleanup targets the checkpoint identity captured for that opening, so a
+completed save cannot delete a later preparation's checkpoint.
 
 Run `npm run test:loading-recovery` for the deterministic/IndexedDB checks and
 the real-menu phone visibility and browser-reload regression probes. On a phone,

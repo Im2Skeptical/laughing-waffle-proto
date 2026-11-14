@@ -1,0 +1,33 @@
+<rml>
+<head>
+<title>waffle native</title>
+<style>
+body {
+	font-family: Lato;
+	font-size: 18px;
+	width: 640px;
+	height: 360px;
+	color: #f4f1ea;
+	background-color: #141820;
+}
+#status {
+	display: block;
+	margin: 24px 24px 8px 24px;
+}
+#hit {
+	display: block;
+	width: 220px;
+	height: 48px;
+	margin: 16px 24px;
+	padding: 10px 12px;
+	background-color: #3d6b8a;
+	color: #ffffff;
+	font-size: 18px;
+}
+</style>
+</head>
+<body>
+<p id="status">ready</p>
+<div id="hit">Press</div>
+</body>
+</rml>

@@ -25,7 +25,7 @@ export function createNewGameOpeningController({ createCache, createWorkerServic
 
   function clearCheckpoint(ref = checkpointRef) {
     if (!ref || !checkpoints) return Promise.resolve();
-    if (checkpointRef === ref) checkpointRef = null;
+    if (checkpointRef?.key === ref.key && checkpointRef.owner === ref.owner) checkpointRef = null;
     checkpointQueue = checkpointQueue.then(() => checkpoints.clear(ref.key, ref.owner)).catch(() => {});
     return checkpointQueue;
   }
@@ -180,6 +180,7 @@ export function createNewGameOpeningController({ createCache, createWorkerServic
               report({ stage: 'forecast', label: 'Opening future ready',
                 detail: `Prepared through game second ${end}`, completed: end, total: end });
               const prepared = { ok: true, state, lossSec: summary?.runComplete?end:null,
+                checkpointRef: checkpoints ? { key, owner: current.owner } : null,
                 forecast: cache.exportForecastChunk(end) };
               void checkpoint(true).then(() => { if (job === current) current.resolve(prepared); });
               return;
