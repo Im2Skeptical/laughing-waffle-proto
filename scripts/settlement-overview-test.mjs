@@ -1,0 +1,55 @@
+import assert from 'node:assert/strict';
+import {createNewGameState} from '../src/model/new-game.js';
+import {getDetailedPracticeDef} from '../src/model/game-config.js';
+import {getRegionState, getAdjacentRegionIds, getConnectedRegionIds} from '../src/model/world-state.js';
+import {getRegionalStockOverview, getControlledSettlementIds, cycleControlledSettlement} from '../src/views/settlement-overview-data.js';
+
+const state=createNewGameState(7);
+const ids=getControlledSettlementIds(state),[homeId,allyId]=ids;
+const home=state.world.sites.find(s=>s.regionId===homeId).detailedState;
+const ally=state.world.sites.find(s=>s.regionId===allyId).detailedState;
+const slot=(practiceId,stock)=>({practiceId,stock,tier:'bronze'});
+for(const site of state.world.sites)if(!site.neutral)site.detailedState.practiceSlots=Array(5).fill(null);
+home.practiceSlots=[slot('dryFarming',2),slot('barter',3),null,null,null];
+ally.practiceSlots=[slot('dryFarming',4),slot('forage',1),null,null,null];
+assert.deepEqual(getDetailedPracticeDef(state,'dryFarming').stockTraits.slice().sort(),['Edible','Grain']);
+const initial=JSON.stringify(state);
+const stock=getRegionalStockOverview(state,homeId);
+assert.equal(stock.total,10,'five local + five allied units, without double-counting Edible/Grain');
+const grain=stock.rows.find(row=>row.key==='Edible|Grain');
+assert.deepEqual([grain.local,grain.linked,grain.total],[2,4,6]);
+assert.deepEqual(stock.linkedRegionIds,[allyId]);
+assert.ok(stock.markets.length,'seed 7 has reachable priced neutral offers');
+assert.ok(stock.markets.every(s=>Number.isFinite(s.price)));
+assert.equal(cycleControlledSettlement(state,homeId,1),allyId);
+assert.equal(cycleControlledSettlement(state,homeId,-1),allyId);
+assert.equal(cycleControlledSettlement(state,allyId,1),homeId,'wraps');
+assert.equal(JSON.stringify(state),initial,'all reads and navigation preserve serialized state and RNG');
+
+// Direct roads and polygon adjacency both matter. Transitive connectivity is
+// not shared inventory; hostile boards are not free supplies.
+getRegionState(state,allyId).controller='external-a';
+assert.equal(getRegionalStockOverview(state,homeId).total,5);
+assert.deepEqual(getControlledSettlementIds(state),[homeId]);
+assert.equal(cycleControlledSettlement(state,allyId,1),homeId,'foreign selection enters player cycle');
+getRegionState(state,allyId).controller='player';
+const disconnected=getAdjacentRegionIds(state,homeId).find(id=>!getConnectedRegionIds(state,homeId).includes(id));
+assert.ok(disconnected);
+const disconnectedSite=state.world.sites.find(s=>s.regionId===disconnected);
+disconnectedSite.neutral=null;
+getRegionState(state,disconnected).controller='player';
+disconnectedSite.detailedState.practiceSlots=[slot('forage',99),null,null,null,null];
+assert.equal(getRegionalStockOverview(state,homeId).total,10,'adjacent without road is excluded');
+const distant=state.world.regions.find(r=>r.id!==homeId&&!getAdjacentRegionIds(state,homeId).includes(r.id));
+const distantSite=state.world.sites.find(s=>s.regionId===distant.id);
+distantSite.neutral=null;distant.controller='player';
+distantSite.detailedState.practiceSlots=[slot('forage',88),null,null,null,null];
+assert.equal(getRegionalStockOverview(state,homeId).total,10,'nonadjacent boards excluded');
+home.control.unrest={startedSec:0,untilSec:10,previousController:'player'};
+assert.equal(getRegionalStockOverview(state,homeId).total,5,'Unrest blocks allied reach');
+assert.equal(getRegionalStockOverview(state,homeId).markets.length,0);
+for(const region of state.world.regions)region.controller='frontier';
+assert.equal(cycleControlledSettlement(state,homeId,1),null);
+assert.deepEqual(getControlledSettlementIds(state),[]);
+assert.deepEqual(getRegionalStockOverview(state,'missing').rows,[]);
+console.log('[settlement-overview] exact Stock, paid-market separation, access boundaries, control cycling and read-only state OK');

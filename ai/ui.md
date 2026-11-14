@@ -158,7 +158,15 @@ Save/load preserves the generated map through its versioned seeded definition.
   structure-capacity readings, food and population transfer packets, a
   civilization summary, and a compact selected-region card. Regional readings follow the currently viewed state; hover and the
   selected-region card expose the underlying counts.
-- Settlement Overview and Demographics are local to the opened detailed site.
+- Settlement Overview centres the five Practices and regional Structure strip.
+  Its Stock ledger separates local inventory, directly connected allied supply,
+  and priced market offers. Whole trait sets count each Stock unit once; rows
+  expose named sources on hover/tap and page when needed. The population panel
+  shares the map's allegiance colours, current holding threshold, workers,
+  Force and territorial Prestige, alongside housing and the last meal.
+  Header chevrons cycle player-controlled detailed settlements in world order,
+  wrap in both directions, retain the current tab/time, and update graph scope.
+  Demographics remains the detailed census for the opened site.
   Tapping a Practice pins its quick read across visual redraws; its title opens
   inspect. Structures retain their existing pinned details. Tapping the source
   again or elsewhere dismisses compact details.

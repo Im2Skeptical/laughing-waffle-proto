@@ -315,13 +315,16 @@ export function getVassalDevelopmentIncome(vassal) {
   return VASSAL_LIFE_TUNING.baseDevelopmentIncome + Math.floor(wisdom * multiplier);
 }
 
-// Provisional, not final balance: 20 residents earn 1 Prestige per completed node.
+// Provisional balance: each region earns one Prestige per full 20 residents.
 export const TERRITORIAL_PRESTIGE_POPULATION_PER_POINT = 20;
+export function getTerritorialPrestigeForPopulation(population) {
+  return Math.floor(population/TERRITORIAL_PRESTIGE_POPULATION_PER_POINT);
+}
 export function getRegionPrestigePerNode(state,regionId) {
   if(!state?.rulesetId||getRegionState(state,regionId)?.controller!=='player')return null;
   const settlement=getDetailedSite(state,regionId)?.detailedState;
   const population=populationBins(settlement).reduce((total,bin)=>total+bin.count,0);
-  return population/TERRITORIAL_PRESTIGE_POPULATION_PER_POINT;
+  return getTerritorialPrestigeForPopulation(population);
 }
 export function getVassalNodeResolutionGains(state, vassal, nodeFamily = null) {
   const modifiers = getEquippedHeirloomModifiers(vassal);

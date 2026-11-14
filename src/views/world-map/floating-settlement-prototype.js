@@ -4,6 +4,7 @@ import {unrestReading} from '../region-allegiance.js';
 import {createText} from '../settlement-view-primitives.js';
 import {TEXT_STYLES} from '../settlement-theme.js';
 import {addResourceIcon} from '../resource-cost-pixi.js';
+import {getTerritorialPrestigeForPopulation} from '../../model/vassal-life-map.js';
 import {minimumHoldingAllegiance,minimumHoldingShare,minimumHoldingForce,CONTROL_DEFAULTS} from '../../model/detailed-settlements/territory.js';
 import {REGIONAL_READOUT_SCREEN_SCALE} from './constants.js';
 import {addCrownShieldFinial} from './glyphs.js';
@@ -60,7 +61,7 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   const root=new PIXI.Container();root.label='floating-settlement-readout';root.mapRegionId=indicator.regionId;
   root.position.set(point.x,point.y);parent.addChild(root);
 
-  const value=player?(forceSample?p.total/indicator.prestigePopulationPerPoint:indicator.prestigePerNode):p.total/indicator.prestigePopulationPerPoint;
+  const value=player?(forceSample?getTerritorialPrestigeForPopulation(p.total):indicator.prestigePerNode):getTerritorialPrestigeForPopulation(p.total);
   const shownPrestige=String(Math.round(value));
   const badge=new PIXI.Container();badge.label='floating-summary-badge';root.addChild(badge);
   const frame=new PIXI.Graphics();badge.addChild(frame);
@@ -90,7 +91,7 @@ export function addFloatingSettlementPrototype(parent,point,indicator,{reference
   inspect(prestige,{title:player?'Territorial Prestige':'Potential territorial Prestige',lines:[...demo,...(player?
     [`${amount(value)} Prestige per completed node into the shared civilization treasury.`,'Held regions contribute their population-based Prestige.']:
     [`Potential ${amount(value)} Prestige per completed node if you held this region.`,'Inactive: this settlement adds nothing to your shared Prestige treasury.','This is not a post-capture guarantee.']),
-    'Map amounts are rounded to whole numbers. Regional contributions are combined before rounding the node payout.'],maxWidth:370},tooltipView,'floating-prestige:'+indicator.regionId);
+    `Each region contributes one Prestige per full ${indicator.prestigePopulationPerPoint} residents, rounded down before combining node income.`],maxWidth:370},tooltipView,'floating-prestige:'+indicator.regionId);
 
   const influence=new PIXI.Container();influence.label='floating-influence';root.addChild(influence);
   const bar=new PIXI.Graphics();influence.addChild(bar);

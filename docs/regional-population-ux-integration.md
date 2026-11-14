@@ -34,7 +34,7 @@ a fresh independent review when needed, then squash-merges after checks pass.
 ## Reconciliation with main
 
 Main and the prototype independently used GameState v43 for different changes.
-That integration used v44. Current tuning is **GameState v49**, runner envelope
+That integration used v44. Current tuning is **GameState v51**, runner envelope
 v33, captured config v31. Start a fresh game; obsolete trajectories are rejected.
 
 Main's degraded starter Practices, shop exclusions and
