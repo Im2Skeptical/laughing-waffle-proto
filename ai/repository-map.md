@@ -9,6 +9,8 @@ and its direct dependencies.
 - Native successor (C++/SDL3/RmlUi): start at [native/AGENTS.md](../native/AGENTS.md).
   Its README owns the accepted scope and WORKPLAN owns resumable execution status.
   The browser application below remains independently runnable.
+  `npm run test:native-reference` verifies the frozen browser corpus under
+  `native/reference/`; it does not establish C++ parity.
 
 - Ordinary full-map initialization: `src/model/new-game.js` and
   `src/model/full-map-world.js`; admitted offers: `src/defs/gamepieces/full-map-defs.js`.
@@ -36,7 +38,8 @@ and its direct dependencies.
   atomic single-record persistence: `opening-checkpoint-store.js`; derivative
   validation: `opening-checkpoint-validation.js` (all in `src/controllers/`).
   `npm run test:loading-recovery` covers phone visibility, native browser reload,
-  deterministic continuation, storage failures and checkpoint cleanup.
+  deterministic continuation, storage failures and save-owned checkpoint cleanup
+  while a newer opening is being prepared.
 - Continue save parsing/validation/replay worker: `src/controllers/save-load-worker.js`
   and `src/controllers/save-load-worker-service.js`. Uses the authoritative save
   inspector; cancelled entry terminates worker replay before runner installation.

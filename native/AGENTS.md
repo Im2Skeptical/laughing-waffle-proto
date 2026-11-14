@@ -53,6 +53,33 @@ when they exist. The current npm architecture/reachability checks cover browser
 JavaScript; they do not validate C++ layering, compilation or native performance.
 Native work needs native checks as soon as executable code is introduced.
 
+### Commands that have run
+
+From the repository root in PowerShell. `native/tools/env.ps1` changes only the
+current process. It does not write user or machine environment variables.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/bootstrap-windows.ps1
+. native/tools/env.ps1
+Set-Location native
+cmake --preset dev
+cmake --build --preset dev
+ctest --preset dev --output-on-failure
+.\build\dev\waffle_native_demo.exe --smoke
+```
+
+The optimized preset uses the same three commands with preset `optimized` and
+`.\build\optimized\waffle_native_demo.exe --smoke`. CTest has two tests,
+`headless_rmlui` and `headless_utf8_assets`, timeout 60 seconds. They link RmlUi and FreeType and do not
+open a window. `--smoke` must exit by itself. Do not leave `waffle_native_demo`
+running. Recorded results are in [WORKPLAN.md](WORKPLAN.md).
+
+For an Android debug APK, run
+`powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/bootstrap-android.ps1`
+from the repository root. It uses project-local tools, assets and debug signing;
+see README for cache reuse and output paths. Building a package is not evidence
+of device runtime, lifecycle recovery or performance.
+
 Before a PR, review the diff for unrelated edits, verify the task, apply the
 required repository version bump and provide a local handoff. This directory
 does not grant permission to merge, publish Pages, replace the live game, or

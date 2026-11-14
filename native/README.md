@@ -13,9 +13,64 @@ implementation afresh: the JavaScript/Pixi implementation is a behavioral
 reference, not a required architecture or a dependency of the native executable.
 Differences between intended rules and observed bugs must be recorded explicitly.
 
-**Current state:** workspace and instructions only. No native executable, native
-toolchain setup, Android package or device benchmark has been completed here.
-Start with [agent instructions](AGENTS.md) and the [work plan](WORKPLAN.md).
+**Current state:** Windows development/optimized builds, both headless tests,
+and rendered input smoke checks pass. An arm64 Android debug APK compiles;
+it has not been installed or run on a device. Exact commands and results are in
+[WORKPLAN.md](WORKPLAN.md). Start with [agent instructions](AGENTS.md).
+
+## Windows build
+
+From the repository root in PowerShell, after a clean checkout:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/bootstrap-windows.ps1
+. native/tools/env.ps1
+Set-Location native
+cmake --preset dev
+cmake --build --preset dev
+ctest --preset dev --output-on-failure
+.\build\dev\waffle_native_demo.exe --smoke
+cmake --preset optimized
+cmake --build --preset optimized
+ctest --preset optimized --output-on-failure
+.\build\optimized\waffle_native_demo.exe --smoke
+```
+
+`bootstrap-windows.ps1` only fills `native/.tools`, which git ignores. It
+downloads CMake and Ninja. It does not install them for the machine. If
+`vswhere` finds Visual Studio Build Tools, that MSVC is the compiler and
+llvm-mingw is not downloaded. Otherwise the script downloads the pinned
+llvm-mingw UCRT toolchain. `env.ps1` imports `vcvars64` or the llvm-mingw
+binaries into the current PowerShell process only.
+
+`--smoke` opens a window, renders one RmlUi document, injects a click, checks
+the label and a pixel readback, then exits. Without `--smoke` the window stays
+open until Escape. The headless test does not open a window and does not link SDL.
+Fetched dependencies build under each preset's binary directory; Debug and Release objects stay separate.
+
+Dependency versions and licenses: [THIRD_PARTY.md](THIRD_PARTY.md).
+
+## Android debug package
+
+From the repository root in PowerShell:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File native/tools/bootstrap-android.ps1
+```
+
+The script downloads and verifies pinned JDK/SDK/NDK and build tools into
+ignored `native/.tools`, accepts SDK licenses in that local SDK, generates a
+local debug key, and builds `native/android/app/build/outputs/apk/debug/app-debug.apk`.
+It also copies the APK and package inspection to
+`artifacts/grok-nov14-spend/android-bootstrap/`. It does not install the APK.
+First setup needs network access and several GB of disk space. An existing native
+workspace cache can be reused with `-ToolsRoot <absolute-path-to-native/.tools>`;
+the selected tools path is recorded only in ignored `android/local.properties`.
+
+The optional CMake `android` preset builds native libraries with the default
+project-local NDK; Gradle is the APK entry point. API 31/arm64 is the minimum,
+with compile/target API 35. N02 still owns physical Pixel 6 validation,
+touch, background/resume and graphics resource recovery.
 
 ## What we own
 
