@@ -9,9 +9,15 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { startServer, launchPage, closeSession } from './browser.mjs';
 import { quantile } from './statistics.mjs';
+import { finalizeRun } from './manifest.mjs';
 import { REPO_ROOT, ARTIFACT_ROOT_REL, CONTRACT_ID, HARNESS_ID, collectBuildAssets } from './identities.mjs';
 
-const STALL_MS = 250;
+// Design 2 (r2): design 1 (r1, 250 ms stall, awaited mouseMoved first) failed
+// because the awaited mouseMoved itself waited out the stall, so the press was
+// created after it. Now the hover move is sent before arming the stall and the
+// press is sent 30 ms into a 400 ms stall.
+const STALL_MS = 400;
+const PRE_SEND_WAIT_MS = 30;
 const PASS_STALLED_MS = 150;
 const PASS_UNSTALLED_MS = 50;
 
@@ -30,6 +36,8 @@ async function trial({ server, stalled, index, screenshotPath = null }) {
     await page.waitForTimeout(1500);
     const box = await title.boundingBox();
     const x = Math.round(box.x + box.width / 2), y = Math.round(box.y + box.height / 2);
+    await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
+    await page.waitForTimeout(100);
     await page.evaluate(() => { globalThis.__hcInputMarks = []; });
     const stallInfo = await page.evaluate((ms) => {
       const info = { scheduledAt: performance.now(), stallStart: null, stallEnd: null };
@@ -46,7 +54,7 @@ async function trial({ server, stalled, index, screenshotPath = null }) {
     }, stalled ? STALL_MS : 0);
     // Raw CDP input, no Playwright actionability waits. Not awaited in sequence
     // with the stall: the browser process timestamps it while the renderer is busy.
-    await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
+    await new Promise((r) => setTimeout(r, PRE_SEND_WAIT_MS));
     await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
     await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
     await page.waitForTimeout(300);
@@ -121,6 +129,7 @@ if (process.argv[1]?.endsWith('input-delay.mjs')) {
   const id = arg('id', `a1-01-${Date.now()}`);
   const outDir = path.join(REPO_ROOT, ARTIFACT_ROOT_REL, id);
   const summary = await runInputDelayControl({ outDir, reps: Number(arg('reps', '3')) });
+  finalizeRun(outDir);
   console.log(JSON.stringify({ id, passed: summary.passed, stalled: summary.stalled, unstalled: summary.unstalled, artifact: outDir }));
   process.exit(summary.passed ? 0 : 1);
 }

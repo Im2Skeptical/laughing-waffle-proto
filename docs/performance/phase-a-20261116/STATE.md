@@ -1,6 +1,6 @@
 # Phase A — STATE (HC-20261116-A1)
 
-Updated 2026-11-15 23:46 AEDT (Australia/Sydney). Builder: Code Health box executor (Grok Bot). Session start 23:02 AEDT, hard stop 02:32 AEDT. Scope this session: WP1 → WP2 → WP3 of the Code Health audit. No suites (WP4–5), no audit (WP6).
+Updated 2026-11-15 23:47 AEDT (Australia/Sydney). Builder: Code Health box executor (Grok Bot). Session start 23:02 AEDT, hard stop 02:32 AEDT. Scope this session: WP1 → WP2 → WP3 of the Code Health audit. No suites (WP4–5), no audit (WP6).
 
 **Phase A verdict: NOT SOUND (construction).** `HARNESS_REVIEW.md` is **NOT AUDITED**. No baseline, no scorecard, no gains.
 
@@ -10,8 +10,8 @@ Branch `perf/phase-a-20261116` from `origin/main` `930801a5` (v1.1.69). Worktree
 
 | WP | Status | Notes |
 | --- | --- | --- |
-| WP1 re-base + re-prove base | **PASS** (23:02–23:46, 44 min of 75) | See control table and findings. |
-| WP2 A1-01 pre-dispatch stall | pending | |
+| WP1 re-base + re-prove base | **PASS** (23:02–23:43, 41 min of 75) | See control table and findings. |
+| WP2 A1-01 pre-dispatch stall | **PASS on design 2 of 2** (23:43–23:47) | Design 1 failed (input landed after the stall); design 2 passed. |
 | WP3 scrub-drag job | pending | |
 
 ## Control table (raw evidence committed under `docs/performance/phase-a-20261116/runs/`)
@@ -30,7 +30,8 @@ Branch `perf/phase-a-20261116` from `origin/main` `930801a5` (v1.1.69). Worktree
 | A1-05 worker wrap off / on | PASS / PASS | | wp1-browser-controls |
 | New Game positive (1×) | PASS | 84.36 s to reveal complete; loss 6138; bake 25.4 s; graphics pinned; Chrome 156.0.8078.47 | wp1-browser-controls |
 | scrub positive / wrong / +200 ms / deferred | PASS ×4 | p50 198.6 ms (n=8); wrong all failed; delay +201.9, deferred +202.0 (quantile p50) | wp1-browser-controls |
-| A1-01 pre-dispatch input stall | pending (WP2) | | |
+| A1-01 pre-dispatch input stall, design 1 | FAIL (design bug, kept as evidence) | stalled 0.7–4.8 ms; `arrivedDuringStall` false ×3: the awaited CDP `mouseMoved` waited out the stall, so the press was created after it | wp2-a1-01-r1 |
+| **A1-01 pre-dispatch input stall, design 2** | **PASS** | 400 ms stall, raw CDP press 30 ms in. Stalled: harness `handlerNow − timeStamp` 369.3 / 369.4 / 365.3 ms, Event Timing `processingStart − startTime` 369.2 / 369.3 / 365.1 ms, all arrived during the stall. Unstalled twin: 3.6 / 0.5 / 0.4 ms and 3.5 / 0.4 / 0.3 ms. Every rep, both clocks, alternating order. | wp2-a1-01-r2 |
 | scrub-drag positive + controls | pending (WP3) | | |
 
 Superseded run: `wp1-node-20261115` used a stale `controls.mjs` (first commit missed the rewrite), so it kept no raw control rows. Results matched r2, but it is not evidence; use `wp1-node-controls-r2`.
@@ -51,10 +52,18 @@ Superseded run: `wp1-node-20261115` used a stale `controls.mjs` (first commit mi
 - **F-W1-3 (variance, open for WP4):** Node window launch 118 took 5.74 s against a 1.0 s median, and horizon spread was 13.2–18.0 s (36%). Box 1-min load was 1.35 at start and no other workload was running. WP4 must check for recurrence before pooling.
 - **Product measurement hook (flag-gated, view-only):** `__SETTLEMENT_DEBUG__.getScrubProbe()` returns null unless `globalThis.__PERF_MEASUREMENT_HOOKS__ === true`. It reads viewedSec, playbackTarget, graph `isScrubbing`/`scrubSec`, the edge-transfer skip gate and current packet descriptors. No model, save, RNG or replay change. Files: `src/views/ui-root/settlement-debug-api.js`, `src/views/ui-root-settlement-pixi.js`, `src/views/timegraphs-pixi.js`, `src/views/world-map-pixi.js`. No version bump, because there is no PR.
 
+## WP2 notes
+
+- Mechanism: `scripts/perf-phase-a-20261116/input-delay.mjs`. Cheap click target is the static menu title (no app handler). Each trial uses a fresh context, so Event Timing `first-input` is always present. The harness mark is a window capture listener registered at document start, which runs before any app listener.
+- What this proves: once the browser has created the input event, `event.timeStamp` is set before a busy main thread dispatches it. The harness arrival clock then includes queueing delay, and Event Timing agrees within 0.2 ms. The New Game and scrub-drag jobs use `event.timeStamp` as their start clock.
+- Stated limit (not a failure): CDP-injected input enters at the browser process, so OS, compositor and touchscreen latency before that point is not covered. There is no physical Pixel 6 touch-queue evidence.
+
 ## Screenshots
 
 - New Game finished (1×, reveal complete, Foreseen Extinction recap): `artifacts/perf-phase-a-20261116/wp1-browser-controls/controls/ctrl-ng-positive-new-game-finished.png` (box path under the worktree; gitignored, sha256 in the run MANIFEST).
 
+- A1-01 trial screens (menu after the cheap click): `artifacts/perf-phase-a-20261116/wp2-a1-01-r2/a1-01-stalled-0.png`, `artifacts/perf-phase-a-20261116/wp2-a1-01-r2/a1-01-unstalled-0.png`.
+
 ## Next step
 
-WP2: `node scripts/perf-phase-a-20261116/input-delay.mjs --id=wp2-a1-01-r1`.
+WP3: `node scripts/perf-phase-a-20261116/scrub-drag.mjs --id=wp3-drag-r1`.

@@ -7,6 +7,7 @@ import { summarize } from './statistics.mjs';
 import { runForecastWindow, runForecastHorizon, runReprojection } from './forecast.mjs';
 import { startServer, runNewGameJob, runScrubJob, closeSession } from './browser.mjs';
 import { runAllControls } from './controls.mjs';
+import { finalizeRun } from './manifest.mjs';
 import {
   REPO_ROOT, CONTRACT_ID, HARNESS_ID, FROZEN_SEED, FORECAST_WINDOW_SEC, EXPECTED_OPENING_LOSS_SEC,
   SCRUB_WARM_STEPS, HARNESS_DIR_REL, ARTIFACT_ROOT_REL, DOCS_RUNS_REL, PINNED_GRAPHICS, ARTWORK_MODE,
@@ -32,29 +33,6 @@ function runStatisticsTest() {
     cwd: REPO_ROOT, encoding: 'utf8',
   });
   return { passed: r.status === 0, stdout: (r.stdout || '').trim(), stderr: (r.stderr || '').trim() };
-}
-
-// Raw retention: every artifact file gets a sha256 manifest; small JSON files
-// (<= 256 KiB) are also copied into the committed docs run folder so the
-// Auditor can recompute from committed bytes. Large files stay under artifacts/.
-function finalizeRun(outDir, docsDir) {
-  const walk = (dir) => readdirSync(dir).flatMap((n) => {
-    const p = path.join(dir, n);
-    return statSync(p).isDirectory() ? walk(p) : [p];
-  });
-  const files = walk(outDir).sort().map((p) => {
-    const bytes = readFileSync(p);
-    const rel = path.relative(outDir, p);
-    const committed = rel.endsWith('.json') && bytes.length <= 256 * 1024;
-    if (committed) {
-      mkdirSync(path.dirname(path.join(docsDir, rel)), { recursive: true });
-      copyFileSync(p, path.join(docsDir, rel));
-    }
-    return { path: rel, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex'), committed };
-  });
-  const manifest = { artifactDir: path.relative(REPO_ROOT, outDir), files, at: new Date().toISOString() };
-  writeFileSync(path.join(docsDir, 'MANIFEST.json'), JSON.stringify(manifest, null, 2));
-  return manifest;
 }
 
 function dropSession(obs) {

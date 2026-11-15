@@ -14,6 +14,7 @@ import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { startServer, launchPage, runNewGameJob, closeSession } from './browser.mjs';
 import { quantile } from './statistics.mjs';
+import { finalizeRun } from './manifest.mjs';
 import {
   REPO_ROOT, ARTIFACT_ROOT_REL, CONTRACT_ID, HARNESS_ID, FROZEN_SEED, EXPECTED_OPENING_LOSS_SEC,
   frozenFixtureId, oracleSdkId, population, collectBuildAssets,
@@ -341,5 +342,6 @@ if (process.argv[1]?.endsWith('scrub-drag.mjs')) {
   const kinds = arg('kinds', 'prepared-desktop,ordinary-desktop').split(',');
   const outDir = path.join(REPO_ROOT, ARTIFACT_ROOT_REL, id);
   const r = await runScrubDragSuite({ outDir, kinds });
+  finalizeRun(outDir);
   console.log(JSON.stringify({ id, runs: r.runs.map((x) => ({ id: x.launchId, ok: x.ok, reason: x.reason, p50: x.p50, completed: x.completed, delivered: x.delivered, failed: x.oracle ? Object.entries(x.oracle).filter(([k, v]) => v !== true).map(([k]) => k) : null })), controls: r.controls.map((c) => ({ id: c.id, passed: c.passed })), artifact: outDir }));
 }

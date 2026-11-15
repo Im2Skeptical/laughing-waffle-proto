@@ -1,0 +1,30 @@
+{
+  "artifactDir": "artifacts/perf-phase-a-20261116/wp2-a1-01-r2",
+  "files": [
+    {
+      "path": "a1-01-stalled-0.png",
+      "bytes": 1573108,
+      "sha256": "17ffe7c2a3ee8dfcd407db4f441514f094cd7ab14c5c2418fc9dc77196eec549",
+      "committed": false
+    },
+    {
+      "path": "a1-01-summary.json",
+      "bytes": 906,
+      "sha256": "09ac9177dab1f0d5f44faa02edaf30397832ca4d987f98c5fa6cf252c0b68342",
+      "committed": true
+    },
+    {
+      "path": "a1-01-unstalled-0.png",
+      "bytes": 1573108,
+      "sha256": "17ffe7c2a3ee8dfcd407db4f441514f094cd7ab14c5c2418fc9dc77196eec549",
+      "committed": false
+    },
+    {
+      "path": "raw-a1-01.json",
+      "bytes": 29457,
+      "sha256": "30a06b1902794bdcb53fbbac80110c701692967f1a9e4a00135647c592af3fdc",
+      "committed": true
+    }
+  ],
+  "at": "2026-11-15T12:44:55.721Z"
+}
