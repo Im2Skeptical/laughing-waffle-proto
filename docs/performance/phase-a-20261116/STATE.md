@@ -1,6 +1,6 @@
 # Phase A — STATE (HC-20261116-A1)
 
-Updated 2026-11-16 00:15 AEDT (Australia/Sydney). Builder: Code Health box executor (Grok Bot). Session start 23:02 AEDT, hard stop 02:32 AEDT. Scope this session: WP1 → WP2 → WP3 of the Code Health audit. No suites (WP4–5), no audit (WP6).
+Updated 2026-11-16 01:00 AEDT (Australia/Sydney). Builder: Code Health box executor (Grok Bot). Session start 23:02 AEDT, hard stop 02:32 AEDT. Scope: WP1 → WP2 → WP3, then WP3b (orchestrator, 00:14, max 60 min; WP4–5 only if WP3b passes). No audit (WP6).
 
 **Phase A verdict: NOT SOUND (construction).** `HARNESS_REVIEW.md` is **NOT AUDITED**. No baseline, no scorecard, no gains.
 
@@ -12,6 +12,7 @@ Branch `perf/phase-a-20261116` from `origin/main` `930801a5` (v1.1.69). Worktree
 | --- | --- | --- |
 | WP1 re-base + re-prove base | **PASS** (23:02–23:43, 41 min of 75) | See control table and findings. |
 | WP2 A1-01 pre-dispatch stall | **PASS on design 2 of 2** (23:43–23:47) | Design 1 failed (input landed after the stall); design 2 passed. |
+| WP3b prepared playing start + mobile touch + repeats/A-A | **STOPPED — mobile 4× deferred-completion control failed twice** (00:14–00:55, 41 of 60 min) | (a) prepared start PASS via documented direct URL, playing, Hold meaningful; (c) desktop 1× repeats + A/A + all controls PASS; (b) mobile 4× touch: correctness, wrong-target, A/A PASS, but deferred control not separable from A/A noise on attempts 1 (n=5) and 2 (n=10). WP4–5 **not started** per rule. |
 | WP3 scrub-drag job | **PARTIAL PASS** (23:47–00:10, 23 min of 90) | Ordinary New Game desktop mouse drag: positive oracle and all 3 controls PASS on metric design 2 (r3). Prepared `?seed=424242` start **STOPPED** (same failure twice: Developer tools button not reachable). Mobile touch drag not run. Hold assertion vacuous (see F-W3-3). |
 
 ## Control table (raw evidence committed under `docs/performance/phase-a-20261116/runs/`)
@@ -37,6 +38,13 @@ Branch `perf/phase-a-20261116` from `origin/main` `930801a5` (v1.1.69). Worktree
 | drag added delay (capture pointermove busy-wait) | PASS on design 2 | p50 506.6 → 1511.3 ms (+1004.7). Design 1 (r2): +128 ms, FAIL | wp3-drag-r3 (r2 kept) |
 | drag deferred completion (rAF busy-wait after move) | PASS on design 2 | p50 506.6 → 1087.5 ms (+580.9). Design 1 (r2): deferred read faster (172.3 vs 238.7), FAIL | wp3-drag-r3 (r2 kept) |
 | prepared start `?perf=1&seed=424242` drag | STOPPED | `game-new-performance` inside collapsed Developer tools not visible; same failure after fix attempt | wp3-drag-dry1/dry2 |
+| **WP3b prepared start** (`/?dev=1&perf=1&art=0&seed=424242&launch=new`, then Minimise → Present → Space) | PASS | seed 424242, loss 6138, opened 22.9 s desktop / 69–83 s mobile 4×; playbackTarget 1 before every drag; `holdMeaningful` now required and true on all 60 drags | wp3b-repeat-desktop-r2, wp3b-repeat-mobile-r3 |
+| WP3b desktop 1× mouse, 5 drags × 4 interleaved arms | PASS (20/20 drags pass full oracle) | per-drag p50 median: A1 218.4, A2 230.5, delay 1293.4, deferred 1343.8 ms; pooled A1 p50 218.4 ms (n=121, 95% [196.5, 237.2]) | wp3b-repeat-desktop-r2 |
+| WP3b desktop A/A (A1 vs A2) | PASS | Δ +12.1 ms, 95% bootstrap [−37.1, +88.1] (5 vs 5 drags) | same |
+| WP3b desktop added delay / deferred | PASS / PASS | +1075.0 [1022.3, 1155.2] / +1125.4 [816.9, 1336.3] ms vs pooled baseline; both lower bounds > A/A envelope 88.1 | same |
+| WP3b desktop wrong target ×5 | PASS | caught-up → 0 on every A1 drag | same |
+| WP3b mobile 4× touch (844×390), attempt 1, n=5/arm | correctness PASS (20/20), wrong PASS, A/A PASS (Δ +186.7 [−630.8, +470.4]); **delay FAIL** (+1231.1, low 71.1 < env 630.8); **deferred FAIL** (+509.7 [−70.2, +1340.9]) | baseline p50 ~1.0–1.2 s; only 4–8 of 40 moves delivered per drag; rAF p50 ~300 ms | wp3b-repeat-desktop-r2 (mobile section) |
+| WP3b mobile 4× touch, attempt 2, n=10/arm | correctness PASS (40/40), wrong PASS, A/A PASS (Δ +186.2 [−71.8, +543.4]), delay PASS (+1251.2 [644.3, 1558.1]); **deferred FAIL** (+673.5 [266.6, 1342.8], low < A/A envelope 543.4) | pooled p50 A1 981.4 [850, 1076] vs A2 1265.1 [1050.9, 1359.4] | wp3b-repeat-mobile-r3 |
 | `npm run verify` (Linux) after product probe + WP3 harness | PASS (exit 0) | 00:13 AEDT; artifacts/…/verify-linux-wp3/verify.log | — |
 
 Superseded run: `wp1-node-20261115` used a stale `controls.mjs` (first commit missed the rewrite), so it kept no raw control rows. Results matched r2, but it is not evidence; use `wp1-node-controls-r2`.
@@ -69,11 +77,21 @@ Superseded run: `wp1-node-20261115` used a stale `controls.mjs` (first commit mi
 - Design 1 (r2) metric (own-target completed only, stamped inside rAF) failed the delay and deferred controls: survivorship bias (slow moves get superseded and drop out) and the stamp ran before deferred and Pixi render work. Design 2 (r3) fixed both; this was the 2nd and last allowed design.
 - **Calibration caveat:** the controls prove sensitivity and direction, not linear calibration. Per-move work compounds across the open-loop stream: +200 ms injected per move → +1005 ms p50; deferred → +581 ms. Delivered moves also fall 21 → 7 under load. Each figure is n=1 drag (one run per arm); no A/A yet. WP4 must add repeated reps and an A/A before any comparison.
 
+## WP3b notes
+
+- (a) Root cause of the WP3 prepared-start STOP (harness, not product): any `?perf=1` URL auto-enters the performance game on load (`startPerformanceEntry` in `src/views/game-menu-dom.js`), so the menu was already leaving when the harness looked for the Developer tools button. The documented entry (`docs/development-workflow.md`: numeric `&seed=` pins a direct launch, `&launch=new` forces a fresh start) is used instead. The menu button path cannot pin seed 424242 without `perf=1` (it draws uniformly from the five prepared worlds), so it is not used. No product UI change.
+- Playing state reached by user actions: Minimise the Foreseen Extinction recap (Pixi click point mapped from 2424×1080 design space), press the Present time action, press Space (`togglePause`). Before each drag the harness presses Space again if Hold left it paused. The WP3 ordinary-desktop "Minimise" was a DOM-role lookup that never matched (Pixi button); fixed for all paths.
+- Repeat design: per rep the 4 arms (A1, A2, +200 ms in-path delay, +200 ms deferred rAF work) are rotated; uncertainty = deterministic seeded percentile bootstrap (5000 reps) over whole drags of the difference in median per-drag p50. Predeclared pass: A/A 95% interval contains 0; a control passes if Δ ≥ 150 ms, lower bound > 0 and lower bound > A/A envelope (max |A/A bound|).
+- **Stated limit (mobile 4×):** with only 4–8 of 40 moves delivered per drag and ~300 ms frames, a +200 ms deferred perturbation shifts the drag metric by +510–674 ms, detectably positive at n=10 (lower bound +267) but not beyond the A/A envelope (±543 ms). The mobile 4× drag job therefore cannot yet resolve changes smaller than ~0.5–0.6 s per-drag p50 at n=10/arm. Desktop 1× resolves ~0.1 s.
+- **F-W3b-1 (harness, for Auditor):** mobile A/A shows a consistent +186 ms A2−A1 offset in both attempts (pooled intervals barely overlap in attempt 2). The rotation puts A2 directly after A1 in 3 of 4 positions, so carry-over between consecutive drags is a candidate. Within the predeclared rule it passed, but full counterbalancing (or a settle gap between drags) should be checked before WP4.
+- **F-W3b-2 (environment):** the box restarted at about 00:26 AEDT during the first mobile attempt (uptime reset; `node_modules`, `dist` and uncommitted edits were lost). The WP3b edits were re-applied, committed (`9664a877`) and pushed; `npm ci` and `npm run build` were rerun. The first desktop repeat run (00:20, all controls PASS, A1 p50 ≈ 131 ms) was lost with its artifacts; only console output exists, so it is not evidence. The retained desktop run (r2, post-rebuild) has a higher baseline (≈218 ms), which is also a between-session variance signal for WP4.
+- WP4 suite integration for scrub-drag is drafted but NOT run: `docs/performance/phase-a-20261116/wp4-scrub-drag-suite.UNRUN.patch` (adds 5 prepared playing drags per population per suite to `run.mjs`).
+
 ## WP3 findings (Builder; not audited)
 
 - **F-W3-1 (product observation):** during a drag on the ordinary New Game end state, frames are long (r3 rAF p50 150 ms / max 567 ms; r1 ~467 ms p50) and ~half of 50 ms moves are coalesced. Phase B gap observation; not debugged.
-- **F-W3-2 (harness limit):** prepared-start population stopped (see control table). Fix needed before WP4: open the `<details>` by its summary or use a URL route; one attempt failed the same way twice so it was not pursued.
-- **F-W3-3 (harness limit):** Hold assertion is vacuous here: playbackTarget was already 0 before the drag because the run is at the loss/recap state. Recorded as `holdMeaningful=false` (informational). A meaningful Hold check needs a playing start (prepared start).
+- **F-W3-2 (harness limit, resolved in WP3b):** prepared-start population stopped in WP3; root cause and fix in WP3b notes.
+- **F-W3-3 (resolved in WP3b for prepared starts):** Hold assertion is vacuous on the ordinary end state: playbackTarget was already 0 before the drag because the run is at the loss/recap state. Recorded as `holdMeaningful=false` (informational). A meaningful Hold check needs a playing start (prepared start).
 - Mobile 4× touch drag not run this session.
 
 ## Screenshots
@@ -84,6 +102,8 @@ Superseded run: `wp1-node-20261115` used a stale `controls.mjs` (first commit mi
 
 - WP3 drag (r3): mid-drag `artifacts/perf-phase-a-20261116/wp3-drag-r3/ordinary-desktop-mid-drag.png`, after settle `artifacts/perf-phase-a-20261116/wp3-drag-r3/ordinary-desktop-after-settle.png` (r2 equivalents also kept).
 
+- WP3b: desktop playing-before-drag / mid-drag / after-settle `artifacts/perf-phase-a-20261116/wp3b-repeat-desktop-r2/prepared-desktop-{playing-before-drag,mid-drag,after-settle}.png`; mobile 4× `artifacts/perf-phase-a-20261116/wp3b-repeat-mobile-r3/prepared-mobile-{playing-before-drag,mid-drag,after-settle}.png`.
+
 ## Next step
 
-Not ready for WP4–5 by Builder judgement: needs (1) prepared-start fix (F-W3-2) with a meaningful Hold check, (2) mobile touch drag, (3) drag A/A and repeat controls, then (4) independent Auditor review of HARNESS_REVIEW.md (still NOT AUDITED). Cam/Auditor decide.
+WP3b STOPPED (same failure twice: mobile 4× deferred control within A/A noise). WP4–5 not started. Cam/orchestrator decision: (1) accept the mobile 4× drag job with a stated resolution limit (~0.5–0.6 s) and proceed to WP4; (2) raise mobile reps (n≈20/arm, ~10 min) and add full counterbalancing / a settle gap (F-W3b-1) as a new package; or (3) measure mobile drag at 1× touch and keep 4× as diagnostic. HARNESS_REVIEW.md stays NOT AUDITED (not ready for audit until WP4–5).

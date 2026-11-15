@@ -1,0 +1,96 @@
+diff --git a/scripts/perf-phase-a-20261116/run.mjs b/scripts/perf-phase-a-20261116/run.mjs
+index 3f01b53a..45a6239c 100644
+--- a/scripts/perf-phase-a-20261116/run.mjs
++++ b/scripts/perf-phase-a-20261116/run.mjs
+@@ -7,6 +7,7 @@ import { summarize } from './statistics.mjs';
+ import { runForecastWindow, runForecastHorizon, runReprojection } from './forecast.mjs';
+ import { startServer, runNewGameJob, runScrubJob, closeSession } from './browser.mjs';
+ import { runAllControls } from './controls.mjs';
++import { openPreparedStart, enterPlaying, runDrag } from './scrub-drag.mjs';
+ import { finalizeRun } from './manifest.mjs';
+ import {
+   REPO_ROOT, CONTRACT_ID, HARNESS_ID, FROZEN_SEED, FORECAST_WINDOW_SEC, EXPECTED_OPENING_LOSS_SEC,
+@@ -52,12 +53,16 @@ async function runForecastPopulation({ count, job, runOne, idPrefix }) {
+   return rows;
+ }
+ 
++const SUITE_DRAGS = 5;
++
+ async function runBrowserSuites({ suites, populations, outDir }) {
+   const server = await startServer();
+   const newGameRows = [];
+   const bakeRows = [];
+   const scrubRows = [];
+   const unveilRows = [];
++  const dragRows = [];
++  const dragRuns = [];
+   const suiteReports = [];
+   try {
+     for (let s = 0; s < suites; s++) {
+@@ -122,6 +127,25 @@ async function runBrowserSuites({ suites, populations, outDir }) {
+           scrubTotal: scrub.length,
+         });
+         await closeSession(ng._session);
++        // scrub-drag (WP3/WP3b): prepared 424242 start, playing, 5 baseline drags.
++        let drags = [];
++        let prep = null;
++        try {
++          prep = await openPreparedStart({ server, cpuThrottle: pop.cpuThrottle, viewport: pop.viewport });
++          await enterPlaying(prep.page);
++          for (let r = 0; r < SUITE_DRAGS; r++) {
++            const d = await runDrag({ session: prep, launchId: `${launchId}-drag${r}`, kind: pop.viewport === 'mobile' ? 'touch' : 'mouse', playing: true, arm: 'baseline', rep: r,
++              screenshotDir: r === 0 && s === 0 ? outDir : null, tag: `${launchId}-drag` });
++            drags.push(d);
++            dragRows.push(...d.observations);
++            dragRuns.push({ launchId: d.launchId, ok: d.ok, p50: d.p50, p95: d.p95, delivered: d.delivered, caughtUp: d.caughtUp, rafP50: d.rafP50, rafMax: d.rafMax,
++              failed: Object.entries(d.oracle ?? {}).filter(([k, v]) => d.required?.includes(k) && v !== true).map(([k]) => k), screenshots: d.screenshots });
++          }
++        } catch (err) {
++          dragRuns.push({ launchId: `${launchId}-drag`, ok: false, reason: `error: ${err.message}` });
++        } finally { await closeSession(prep); }
++        suiteRep.populations.at(-1).dragPassed = drags.filter((d) => d.ok).length;
++        suiteRep.populations.at(-1).dragTotal = SUITE_DRAGS;
+       }
+       suiteReports.push(suiteRep);
+     }
+@@ -133,7 +157,9 @@ async function runBrowserSuites({ suites, populations, outDir }) {
+   writeJson(path.join(outDir, 'raw-bake.json'), bakeRows);
+   writeJson(path.join(outDir, 'raw-scrub.json'), scrubRows);
+   writeJson(path.join(outDir, 'raw-opening-unveil.json'), unveilRows);
+-  return { newGameRows, bakeRows, scrubRows, unveilRows, suiteReports };
++  writeJson(path.join(outDir, 'raw-scrub-drag.json'), dragRows);
++  writeJson(path.join(outDir, 'scrub-drag-runs.json'), dragRuns);
++  return { newGameRows, bakeRows, scrubRows, unveilRows, dragRows, dragRuns, suiteReports };
+ }
+ 
+ async function main() {
+@@ -234,16 +260,19 @@ async function main() {
+     const ngSum = summarize(browser.newGameRows);
+     const bakeSum = summarize(browser.bakeRows);
+     const scrubSum = summarize(browser.scrubRows);
+-    writeJson(path.join(outDir, 'browser-summaries.json'), { newGame: ngSum, bake: bakeSum, scrub: scrubSum });
++    const dragSum = browser.dragRows.length ? summarize(browser.dragRows) : [];
++    const unveilSum = summarize(browser.unveilRows);
++    writeJson(path.join(outDir, 'browser-summaries.json'), { newGame: ngSum, bake: bakeSum, scrub: scrubSum, scrubDrag: dragSum, openingUnveil: unveilSum });
+     report.results.browser = {
+       suites,
+       functional: {
+         newGame: browser.newGameRows.every((r) => r.ok),
+         bake: browser.bakeRows.every((r) => r.ok),
+         scrub: browser.scrubRows.every((r) => r.ok) && browser.scrubRows.length === suites * populations.length * SCRUB_WARM_STEPS,
++        scrubDrag: browser.dragRuns.length === suites * populations.length * SUITE_DRAGS && browser.dragRuns.every((r) => r.ok),
+       },
+       suiteReports: browser.suiteReports,
+-      summaries: { newGame: ngSum, bake: bakeSum, scrub: scrubSum },
++      summaries: { newGame: ngSum, bake: bakeSum, scrub: scrubSum, scrubDrag: dragSum, openingUnveil: unveilSum },
+     };
+   }
+ 
+@@ -255,6 +284,7 @@ async function main() {
+     report.results.browser?.functional.newGame,
+     report.results.browser?.functional.bake,
+     report.results.browser?.functional.scrub,
++    report.results.browser?.functional.scrubDrag,
+   ].every((v) => v !== false);
+ 
+   report.functionalOk = functionalOk;
