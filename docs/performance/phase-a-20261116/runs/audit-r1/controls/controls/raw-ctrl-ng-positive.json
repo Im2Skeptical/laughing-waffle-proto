@@ -1,0 +1,118 @@
+{
+  "job": "new-game-opening",
+  "step": "useful-interaction",
+  "population": {
+    "cpuThrottle": 1,
+    "viewport": "desktop",
+    "cold": true,
+    "artwork": "illustrated-default-graphics",
+    "start": "ordinary-new-game",
+    "machine": "box-linux-xeon-8",
+    "renderer": "swiftshader"
+  },
+  "launchId": "ctrl-ng-positive",
+  "observationId": "ctrl-ng-positive",
+  "elapsedMs": 81648.80000001192,
+  "handlerElapsedMs": 81534,
+  "queueDelayMs": 114.80000001192093,
+  "ok": true,
+  "timeout": false,
+  "buildId": "c1ebca6a041f890641baefcaf0136896512edda9b0558f7ce3c44eea3f9e91f1",
+  "fixture": "ordinary-new-game-seed-424242",
+  "harnessId": "perf-phase-a-20261116-v1",
+  "measurementContractId": "HC-20261116-A1",
+  "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+  "oracleSdkSha256": "4f8e9cc1a1240dc183ddd22dab823b68d7479e5a50adf9112186ebb3f774d920",
+  "comparisonEligible": true,
+  "lossSec": 6138,
+  "coverageSec": 6138,
+  "openingPhase": "completed",
+  "openingElapsedSec": 5,
+  "bake": {
+    "bakeMs": 19025.5,
+    "terrainBakeMs": 4396,
+    "variantBuildMs": 5782.5
+  },
+  "heapMB": 764,
+  "workerWrapped": false,
+  "originalWorkerIntact": true,
+  "instrument": false,
+  "milestones": {
+    "preparing": 596.9000000357628,
+    "coverageFirst": 596.9000000357628,
+    "coverageReachedLoss": 23867,
+    "preparationReady": 23867,
+    "revealing": 64019.80000001192,
+    "menuHidden": 66219.70000004768,
+    "revealComplete": 81647.5
+  },
+  "forecastReadyMs": 23867,
+  "coverageReachedLossMs": 23867,
+  "menuHiddenMs": 66219.70000004768,
+  "revealCompleteMs": 81647.5,
+  "graphicsApplied": {
+    "graphicsOptions": {
+      "fog": true,
+      "clouds": true,
+      "shadows": true,
+      "wisps": true,
+      "water": true
+    },
+    "search": "",
+    "minimalGraphicsUrl": false,
+    "performanceUrl": false,
+    "progressiveArtwork": null,
+    "devicePixelRatio": 1,
+    "innerWidth": 1280,
+    "innerHeight": 800
+  },
+  "graphicsPinned": true,
+  "browserVersion": "157.0.8103.52",
+  "screenshotPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\audit-phase-a-20261116--e560db2d6b413807\\artifacts\\perf-phase-a-20261116\\audit-r1-controls\\controls\\ctrl-ng-positive-new-game-finished.png",
+  "longTaskSumMs": 56314,
+  "longTasks200": 106,
+  "longestTaskMs": 11226,
+  "oracle": {
+    "ok": true,
+    "reasons": [],
+    "errors": []
+  },
+  "click": {
+    "tArm": 2118,
+    "startArrival": 2469.399999976158,
+    "startHandler": 2584.199999988079,
+    "slotClick": true,
+    "marks": [
+      {
+        "type": "pointerdown",
+        "timeStamp": 2469.399999976158,
+        "handlerNow": 2584.199999988079
+      },
+      {
+        "type": "mousedown",
+        "timeStamp": 2469.399999976158,
+        "handlerNow": 2584.399999976158
+      },
+      {
+        "type": "click",
+        "timeStamp": 2469.5,
+        "handlerNow": 2584.699999988079
+      },
+      {
+        "type": "pointerdown",
+        "timeStamp": 2972,
+        "handlerNow": 2972.699999988079
+      },
+      {
+        "type": "mousedown",
+        "timeStamp": 2972,
+        "handlerNow": 2972.800000011921
+      },
+      {
+        "type": "click",
+        "timeStamp": 2972,
+        "handlerNow": 2973
+      }
+    ]
+  }
+}

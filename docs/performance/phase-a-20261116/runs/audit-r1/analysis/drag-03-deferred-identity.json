@@ -1,0 +1,55 @@
+{
+  "runComplete": {
+    "info": {
+      "year": 192,
+      "tSec": 6138,
+      "reason": "monsterOverrun",
+      "projected": true,
+      "cause": "Overrun by monsters",
+      "explanation": "Monster Spawns have taken every player settlement. Supplied defenses can repel them while their Stock lasts. Chaos creates monsters over time; reducing its pressure can delay this outcome.",
+      "monsterCount": 17,
+      "title": "FORESEEN EXTINCTION",
+      "guidance": "Return to the present and choose a vassal to change it."
+    },
+    "open": false,
+    "indicatorVisible": true,
+    "spotlightRects": [],
+    "panelRect": null,
+    "clock": null,
+    "emphasis": null,
+    "copyRects": []
+  },
+  "projectedLossInfo": {
+    "lossSec": 6138,
+    "lossYear": 192,
+    "resolved": true
+  },
+  "displayedLossInfo": {
+    "lossSec": 6138,
+    "lossYear": 192,
+    "resolved": true,
+    "finalLossSec": 6138,
+    "finalLossYear": 192,
+    "maxLossYear": 192,
+    "observedEnd": {
+      "year": 192,
+      "tSec": 6138,
+      "reason": "monsterOverrun",
+      "projected": true,
+      "cause": "Overrun by monsters",
+      "explanation": "Monster Spawns have taken every player settlement. Supplied defenses can repel them while their Stock lasts. Chaos creates monsters over time; reducing its pressure can delay this outcome.",
+      "monsterCount": 17,
+      "title": "FORESEEN EXTINCTION",
+      "guidance": "Return to the present and choose a vassal to change it."
+    }
+  },
+  "seed": 424242,
+  "gameConfigSha256": "1b2b3da9f27484624dc345d153e674109cc1f787f4924202888481fb1b89764c",
+  "opening": {
+    "phase": "completed",
+    "preparation": "idle",
+    "coverageSec": 6138,
+    "elapsedSec": 5,
+    "lossSec": 6138
+  }
+}

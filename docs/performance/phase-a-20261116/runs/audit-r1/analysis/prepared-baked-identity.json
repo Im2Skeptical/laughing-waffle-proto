@@ -1,0 +1,21 @@
+{
+  "seed": 424242,
+  "lossSec": 6138,
+  "lastState": {
+    "year": 192,
+    "tSec": 6138,
+    "runStatus": {
+      "complete": true,
+      "reason": "monsterOverrun",
+      "year": 192,
+      "tSec": 6138
+    }
+  },
+  "initial": {
+    "year": 1,
+    "tSec": 0
+  },
+  "configSha256": "1b2b3da9f27484624dc345d153e674109cc1f787f4924202888481fb1b89764c",
+  "fixtureKey": "98edb4cac9ee5f920b5608c417d92eb161e4be8c881e241231a5daef4a703bd7",
+  "source": "images/dev-fixtures/performance-start-424242.json.gz"
+}

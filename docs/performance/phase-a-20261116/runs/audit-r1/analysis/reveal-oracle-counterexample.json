@@ -1,0 +1,27 @@
+{
+  "input": {
+    "opening": {
+      "phase": "revealing",
+      "lossSec": 6138,
+      "coverageSec": 6138,
+      "elapsedSec": 0
+    },
+    "runner": {
+      "baseSeed": 424242
+    },
+    "slots": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "result": {
+    "ok": true,
+    "reasons": [],
+    "errors": []
+  },
+  "expected": "fail: required reveal is unfinished",
+  "source": "browser.mjs oracleNewGame; reveal timeout caught in waitForUseful without changing timedOut"
+}

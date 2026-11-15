@@ -1,0 +1,104 @@
+{
+  "contractId": "HC-20261116-A1",
+  "harnessId": "perf-phase-a-20261116-v1",
+  "seed": 424242,
+  "expectedOpeningLossSec": 6138,
+  "productVersion": "1.1.69",
+  "gitDirtyHarness": false,
+  "gitHead": "76c5bb37eba90eceb0d0e4580f074e42b1c7c761",
+  "pinnedGraphics": {
+    "fog": true,
+    "clouds": true,
+    "shadows": true,
+    "wisps": true,
+    "water": true
+  },
+  "artworkMode": "illustrated-default-graphics",
+  "loadavg1AtStart": 0,
+  "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+  "oracleSdkSha256": "4f8e9cc1a1240dc183ddd22dab823b68d7479e5a50adf9112186ebb3f774d920",
+  "harness": {
+    "files": [
+      {
+        "path": "scripts\\perf-phase-a-20261116\\browser.mjs",
+        "sha256": "1b29e5caf2ff4de0460406df0696b165232558f6f50d62056c0f95a7aeb8a4b9"
+      },
+      {
+        "path": "scripts\\perf-phase-a-20261116\\controls.mjs",
+        "sha256": "f0c482676bb74c92c24c0e19496ff4b7e0088363038ab98858b17c2e08f8a5a5"
+      },
+      {
+        "path": "scripts\\perf-phase-a-20261116\\forecast.mjs",
+        "sha256": "63dad8f8339d94bafe10b84b7797c31f9a455125de8c654c1d5142308a73108d"
+      },
+      {
+        "path": "scripts\\perf-phase-a-20261116\\identities.mjs",
+        "sha256": "e95d95d0fc98561e22337be2957f2c61138e3126a35dba1a0014f247aaabc134"
+      },
+      {
+        "path": "scripts\\perf-phase-a-20261116\\input-delay.mjs",
+        "sha256": "3d6b95e80f3c6e2df765f318b1cbeb7b1036dcad0021a8d9db03d0c81a6cb001"
+      },
+      {
+        "path": "scripts\\perf-phase-a-20261116\\manifest.mjs",
+        "sha256": "63683bada57d3e6c09ff02b3853957cddf10aea5b4c650eba21dd4346ff2e1fc"
+      },
+      {
+        "path": "scripts\\perf-phase-a-20261116\\run.mjs",
+        "sha256": "3b129b88b7d4ddfe461b033d66fd02b1f9c67a980d689da0f99cac72a5456685"
+      },
+      {
+        "path": "scripts\\perf-phase-a-20261116\\scrub-drag.mjs",
+        "sha256": "2500651de10663c4525ec23851dfd8b8ab91d861c986ae514918c91a417d781f"
+      },
+      {
+        "path": "scripts\\perf-phase-a-20261116\\statistics-test.mjs",
+        "sha256": "8836016cf55fea08bde33c32dc8fff7396eb114d3957372921c2960e89105449"
+      },
+      {
+        "path": "scripts\\perf-phase-a-20261116\\statistics.mjs",
+        "sha256": "81f66e9d68dab02aef3868bec500d8daeafe2b866fc8b5acdfa4f3227709d63e"
+      }
+    ],
+    "harnessSourceSha256": "6d8f2c21edba419a43d00f8b9f662a4f9e9800e077be1b940306bc686e6ac89d"
+  },
+  "build": {
+    "distExists": true,
+    "files": [
+      {
+        "path": "dist\\assets\\app-RIZG63CL.js",
+        "sha256": "4a761f46393e4b8522ea68e265e3fcfeee02a5bd26a868f7b7995e2f20a238c1"
+      },
+      {
+        "path": "dist\\assets\\life-decision-worker-K44F44Q6.js",
+        "sha256": "10329646fb09e235a89f55f074ce27c67cecffa9e8c6fbfa05f7e40208e8fdbc"
+      },
+      {
+        "path": "dist\\assets\\save-load-worker-RSELRJM4.js",
+        "sha256": "2146f1643016a5c857ff36eba763d6b6fac5bdd208b47ac81d9fcbf453e31bb5"
+      },
+      {
+        "path": "dist\\assets\\styles-9c05735bd909.css",
+        "sha256": "9c05735bd909204f47d514e870d31d08dbf8cc48cf864255fd71fdf6299ea67b"
+      },
+      {
+        "path": "dist\\assets\\timegraph-forecast-worker-A3W535YF.js",
+        "sha256": "5148b18bc195327abeb2f18010a5343cc37dbbf71de774ed95e9011dfeeda1e2"
+      }
+    ],
+    "buildAssetSha256": "c1ebca6a041f890641baefcaf0136896512edda9b0558f7ce3c44eea3f9e91f1"
+  },
+  "machine": {
+    "hostname": "DESKTOP-R0AMF0N",
+    "os": "Windows_NT 10.0.26200 x64",
+    "cpu": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz x20 @ 3696 MHz",
+    "ramGi": 32,
+    "loadavg1": 0,
+    "node": "v24.15.0",
+    "renderer": "headless Chromium, SwiftShader software GL — NOT Pixel 6 GPU truth",
+    "cpuThrottle": 1,
+    "viewport": "desktop",
+    "pixel6Note": "Pixel 6 / Android Chrome is the documented device floor. Box measurements at CDP CPU throttle 4x with a mobile viewport are a CPU-bound phone proxy only. There is no physical-device evidence in this run."
+  },
+  "at": "2026-11-15T16:18:57.485Z"
+}

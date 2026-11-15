@@ -1,0 +1,54 @@
+{
+  "artifactDir": "artifacts\\perf-phase-a-20261116\\audit-r1-controls",
+  "files": [
+    {
+      "path": "PROOF_SUMMARY.json",
+      "bytes": 9031,
+      "sha256": "ece642e49195e539ee3723bb9e5eda7dcffbbe847b8ff545d918f1961cad26bf",
+      "committed": true
+    },
+    {
+      "path": "controls-summary.json",
+      "bytes": 3603,
+      "sha256": "ea7e98091cb92a9d92614c9f294b655e91f85f31e9966b6afeb58fcba5bc2900",
+      "committed": true
+    },
+    {
+      "path": "controls\\controls.json",
+      "bytes": 3443,
+      "sha256": "923bce4e83f6e49899630b65b88e73d543026ace2c7572c5a0216ac88d95dd97",
+      "committed": true
+    },
+    {
+      "path": "controls\\ctrl-ng-positive-new-game-finished.png",
+      "bytes": 591743,
+      "sha256": "a9bd871dd9a2cc18c5feacff5a2588bdd1da11087f3a5891550bddc66f179f78",
+      "committed": false
+    },
+    {
+      "path": "controls\\raw-ctrl-ng-positive.json",
+      "bytes": 3251,
+      "sha256": "344dbfd66383a251421eca1fc17e2c682355ad3abbc1da441e5df3745decbdbc",
+      "committed": true
+    },
+    {
+      "path": "controls\\raw-ctrl-scrub.json",
+      "bytes": 30524,
+      "sha256": "4547940711af1db7e697481c4f1ffe830e399b7578788fcc612c6841e13c0e5a",
+      "committed": true
+    },
+    {
+      "path": "controls\\raw-forecast-controls.json",
+      "bytes": 9910,
+      "sha256": "0424b625f6ba8114b894f08088799a0b827a1eb601173bc6279f98de73f4d49d",
+      "committed": true
+    },
+    {
+      "path": "identities.json",
+      "bytes": 4017,
+      "sha256": "2379fc35995409da4b4ca620c047ec6ab133ac88ada8c8d927c6db5bd17d72af",
+      "committed": true
+    }
+  ],
+  "at": "2026-11-15T16:21:56.437Z"
+}

@@ -1,0 +1,45 @@
+{
+  "id": "a1-01-pre-dispatch-input-stall",
+  "passed": true,
+  "reps": 3,
+  "stallMs": 400,
+  "thresholds": {
+    "stalledMinMs": 150,
+    "unstalledMaxMs": 50,
+    "rule": "every rep, both clocks"
+  },
+  "stalled": {
+    "harnessDelayMs": [
+      356,
+      355.69999998807907,
+      354.7999999523163
+    ],
+    "eventTimingDelayMs": [
+      356,
+      355.5,
+      354.69999998807907
+    ],
+    "harnessP50": 355.69999998807907,
+    "eventTimingP50": 355.5,
+    "arrivedDuringStall": [
+      true,
+      true,
+      true
+    ]
+  },
+  "unstalled": {
+    "harnessDelayMs": [
+      6.899999976158142,
+      0.5,
+      0.3999999761581421
+    ],
+    "eventTimingDelayMs": [
+      6.799999952316284,
+      0.3999999761581421,
+      0.30000001192092896
+    ],
+    "harnessP50": 0.5,
+    "eventTimingP50": 0.3999999761581421
+  },
+  "at": "2026-11-15T16:22:33.678Z"
+}

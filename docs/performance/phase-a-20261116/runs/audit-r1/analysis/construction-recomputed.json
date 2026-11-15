@@ -1,0 +1,1764 @@
+{
+  "repeats": {
+    "wp3b-repeat-desktop-r2": {
+      "prepared-desktop": {
+        "drags": 20,
+        "arms": {
+          "A1": {
+            "drags": 5,
+            "okDrags": 5,
+            "perDragP50": [
+              218.39999999990687,
+              192.19999999995343,
+              237.20000000006985,
+              189.79999999993015,
+              234.20000000006985
+            ],
+            "medianOfP50": 218.39999999990687,
+            "pooledN": 121,
+            "pooledP50": 218.39999999990687,
+            "pooledP50Interval": {
+              "n": 121,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 218.39999999990687,
+              "low": 196.5,
+              "high": 237.20000000006985,
+              "lowerRank": 50,
+              "upperRank": 72,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          },
+          "A2": {
+            "drags": 5,
+            "okDrags": 5,
+            "perDragP50": [
+              197.09999999997672,
+              199.30000000004657,
+              256.89999999990687,
+              230.5,
+              306.5
+            ],
+            "medianOfP50": 230.5,
+            "pooledN": 115,
+            "pooledP50": 230.5,
+            "pooledP50Interval": {
+              "n": 115,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 230.5,
+              "low": 199.30000000004657,
+              "high": 256.89999999990687,
+              "lowerRank": 47,
+              "upperRank": 69,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          },
+          "delay": {
+            "drags": 5,
+            "okDrags": 5,
+            "perDragP50": [
+              1305.6999999999534,
+              1373.5999999999767,
+              1273.4000000000233,
+              1252.7999999999302,
+              1293.4000000000233
+            ],
+            "medianOfP50": 1293.4000000000233,
+            "pooledN": 40,
+            "pooledP50": 1373.5999999999767,
+            "pooledP50Interval": {
+              "n": 40,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 1373.5999999999767,
+              "low": 1054.1000000000931,
+              "high": 1806.1999999999534,
+              "lowerRank": 14,
+              "upperRank": 27,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          },
+          "deferred": {
+            "drags": 5,
+            "okDrags": 5,
+            "perDragP50": [
+              1528.5,
+              1035.3000000000466,
+              1535.6999999999534,
+              1343.7999999999302,
+              1305.9000000000233
+            ],
+            "medianOfP50": 1343.7999999999302,
+            "pooledN": 39,
+            "pooledP50": 1343.7999999999302,
+            "pooledP50Interval": {
+              "n": 39,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 1343.7999999999302,
+              "low": 1044.7000000000698,
+              "high": 1839.6999999999534,
+              "lowerRank": 13,
+              "upperRank": 27,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          }
+        },
+        "controls": [
+          {
+            "id": "repeat-correctness",
+            "passed": true,
+            "detail": {
+              "drags": 20,
+              "failed": []
+            }
+          },
+          {
+            "id": "drag-wrong-target-repeat",
+            "passed": true,
+            "detail": [
+              {
+                "positiveCaughtUp": 24,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 26,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 22,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 24,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 25,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              }
+            ]
+          },
+          {
+            "id": "drag-aa",
+            "passed": true,
+            "detail": {
+              "delta": 12.100000000093132,
+              "low": -37.10000000009313,
+              "high": 88.10000000009313,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1094791217,
+              "nA": 5,
+              "nB": 5,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n"
+            }
+          },
+          {
+            "id": "drag-added-delay-repeat",
+            "passed": true,
+            "detail": {
+              "delta": 1075.0000000001164,
+              "low": 1022.2999999999302,
+              "high": 1155.2000000000698,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1145392177,
+              "nA": 10,
+              "nB": 5,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+              "aaEnvelopeMs": 88.10000000009313
+            }
+          },
+          {
+            "id": "drag-carry-over",
+            "passed": false,
+            "detail": null
+          },
+          {
+            "id": "drag-deferred-completion-repeat",
+            "passed": true,
+            "detail": {
+              "delta": 1125.4000000000233,
+              "low": 816.9000000001397,
+              "high": 1336.3000000000466,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1145390641,
+              "nA": 10,
+              "nB": 5,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+              "aaEnvelopeMs": 88.10000000009313
+            }
+          }
+        ]
+      },
+      "prepared-mobile": {
+        "drags": 20,
+        "arms": {
+          "A1": {
+            "drags": 5,
+            "okDrags": 5,
+            "perDragP50": [
+              1028.2000000000698,
+              1451.1000000000931,
+              946.3999999999069,
+              954.1000000000931,
+              1762.0999999999767
+            ],
+            "medianOfP50": 1028.2000000000698,
+            "pooledN": 30,
+            "pooledP50": 1144.4000000000233,
+            "pooledP50Interval": {
+              "n": 30,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 1144.4000000000233,
+              "low": 1007.6999999999534,
+              "high": 1394.7000000000698,
+              "lowerRank": 10,
+              "upperRank": 21,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          },
+          "A2": {
+            "drags": 5,
+            "okDrags": 5,
+            "perDragP50": [
+              1498.6000000000931,
+              1214.9000000000233,
+              1391.1999999999534,
+              1131.2999999999302,
+              641
+            ],
+            "medianOfP50": 1214.9000000000233,
+            "pooledN": 32,
+            "pooledP50": 1153,
+            "pooledP50Interval": {
+              "n": 32,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 1153,
+              "low": 806.0999999999767,
+              "high": 1366.5999999999767,
+              "lowerRank": 10,
+              "upperRank": 23,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          },
+          "delay": {
+            "drags": 5,
+            "okDrags": 5,
+            "perDragP50": [
+              2262.8000000000466,
+              3185.8000000000466,
+              2943.3000000000466,
+              1202.4000000000233,
+              2362.399999999907
+            ],
+            "medianOfP50": 2362.399999999907,
+            "pooledN": 27,
+            "pooledP50": 2414.9000000000233,
+            "pooledP50Interval": {
+              "n": 27,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 2414.9000000000233,
+              "low": 1812.4000000000233,
+              "high": 2943.3000000000466,
+              "lowerRank": 8,
+              "upperRank": 20,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          },
+          "deferred": {
+            "drags": 5,
+            "okDrags": 5,
+            "perDragP50": [
+              1582.6999999999534,
+              2283.3000000000466,
+              2472.20000000007,
+              1641,
+              1061.1000000000931
+            ],
+            "medianOfP50": 1641,
+            "pooledN": 22,
+            "pooledP50": 1715.8999999999069,
+            "pooledP50Interval": {
+              "n": 22,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 1715.8999999999069,
+              "low": 1487.9000000000233,
+              "high": 2365.79999999993,
+              "lowerRank": 6,
+              "upperRank": 17,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          }
+        },
+        "controls": [
+          {
+            "id": "repeat-correctness",
+            "passed": true,
+            "detail": {
+              "drags": 20,
+              "failed": []
+            }
+          },
+          {
+            "id": "drag-wrong-target-repeat",
+            "passed": true,
+            "detail": [
+              {
+                "positiveCaughtUp": 5,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              }
+            ]
+          },
+          {
+            "id": "drag-aa",
+            "passed": true,
+            "detail": {
+              "delta": 186.69999999995343,
+              "low": -630.8000000000466,
+              "high": 470.4000000000233,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1094791217,
+              "nA": 5,
+              "nB": 5,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n"
+            }
+          },
+          {
+            "id": "drag-added-delay-repeat",
+            "passed": false,
+            "detail": {
+              "delta": 1231.0999999999767,
+              "low": 71.10000000009313,
+              "high": 2054.5000000001164,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1145392177,
+              "nA": 10,
+              "nB": 5,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+              "aaEnvelopeMs": 630.8000000000466
+            }
+          },
+          {
+            "id": "drag-carry-over",
+            "passed": false,
+            "detail": null
+          },
+          {
+            "id": "drag-deferred-completion-repeat",
+            "passed": false,
+            "detail": {
+              "delta": 509.70000000006985,
+              "low": -70.19999999983702,
+              "high": 1340.9000000001397,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1145390641,
+              "nA": 10,
+              "nB": 5,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+              "aaEnvelopeMs": 630.8000000000466
+            }
+          }
+        ]
+      }
+    },
+    "wp3b-repeat-mobile-r3": {
+      "prepared-mobile": {
+        "drags": 40,
+        "arms": {
+          "A1": {
+            "drags": 10,
+            "okDrags": 10,
+            "perDragP50": [
+              1633,
+              1060.8000000000466,
+              1241.8000000000466,
+              788.5,
+              988,
+              1018.5999999998603,
+              740.2999999998137,
+              734.1999999999534,
+              940,
+              983.8000000000466
+            ],
+            "medianOfP50": 983.8000000000466,
+            "pooledN": 66,
+            "pooledP50": 981.4000000001397,
+            "pooledP50Interval": {
+              "n": 66,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 981.4000000001397,
+              "low": 850,
+              "high": 1076,
+              "lowerRank": 25,
+              "upperRank": 42,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          },
+          "A2": {
+            "drags": 10,
+            "okDrags": 10,
+            "perDragP50": [
+              1971.3000000000466,
+              858.0999999998603,
+              1076.3000000000466,
+              1359.4000000001397,
+              870.5,
+              1646.5,
+              1170,
+              1331.9000000001397,
+              1045.8000000000466,
+              1265.1000000000931
+            ],
+            "medianOfP50": 1170,
+            "pooledN": 64,
+            "pooledP50": 1265.1000000000931,
+            "pooledP50Interval": {
+              "n": 64,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 1265.1000000000931,
+              "low": 1050.9000000001397,
+              "high": 1359.4000000001397,
+              "lowerRank": 24,
+              "upperRank": 41,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          },
+          "delay": {
+            "drags": 10,
+            "okDrags": 10,
+            "perDragP50": [
+              3090.9000000001397,
+              3081.1999999999534,
+              1705.0999999998603,
+              2457.1999999999534,
+              1554.6999999999534,
+              2548,
+              2297,
+              2011.5,
+              1781.3999999999069,
+              2541.899999999907
+            ],
+            "medianOfP50": 2297,
+            "pooledN": 51,
+            "pooledP50": 2296.100000000093,
+            "pooledP50Interval": {
+              "n": 51,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 2296.100000000093,
+              "low": 1985.3999999999069,
+              "high": 2548,
+              "lowerRank": 19,
+              "upperRank": 33,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          },
+          "deferred": {
+            "drags": 10,
+            "okDrags": 10,
+            "perDragP50": [
+              2139.0999999998603,
+              2554.5999999998603,
+              1719.2999999998137,
+              2868.0999999998603,
+              937.5,
+              1657.5999999998603,
+              1301.1999999999534,
+              1508.3999999999069,
+              2388.600000000093,
+              2073.7000000001863
+            ],
+            "medianOfP50": 1719.2999999998137,
+            "pooledN": 49,
+            "pooledP50": 1752,
+            "pooledP50Interval": {
+              "n": 49,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 1752,
+              "low": 1553.3000000000466,
+              "high": 2073.7000000001863,
+              "lowerRank": 18,
+              "upperRank": 32,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          }
+        },
+        "controls": [
+          {
+            "id": "repeat-correctness",
+            "passed": true,
+            "detail": {
+              "drags": 40,
+              "failed": []
+            }
+          },
+          {
+            "id": "drag-wrong-target-repeat",
+            "passed": true,
+            "detail": [
+              {
+                "positiveCaughtUp": 5,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 8,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 5,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 8,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 8,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              }
+            ]
+          },
+          {
+            "id": "drag-aa",
+            "passed": true,
+            "detail": {
+              "delta": 186.19999999995343,
+              "low": -71.80000000004657,
+              "high": 543.4000000001397,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1094791217,
+              "nA": 10,
+              "nB": 10,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n"
+            }
+          },
+          {
+            "id": "drag-added-delay-repeat",
+            "passed": true,
+            "detail": {
+              "delta": 1251.1999999999534,
+              "low": 644.2999999998137,
+              "high": 1558.0999999998603,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1145392177,
+              "nA": 20,
+              "nB": 10,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+              "aaEnvelopeMs": 543.4000000001397
+            }
+          },
+          {
+            "id": "drag-carry-over",
+            "passed": false,
+            "detail": null
+          },
+          {
+            "id": "drag-deferred-completion-repeat",
+            "passed": false,
+            "detail": {
+              "delta": 673.4999999997672,
+              "low": 266.5999999998603,
+              "high": 1342.8000000000466,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1145390641,
+              "nA": 20,
+              "nB": 10,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+              "aaEnvelopeMs": 543.4000000001397
+            }
+          }
+        ]
+      }
+    },
+    "wp3c-mobile-a1": {
+      "prepared-mobile": {
+        "drags": 84,
+        "arms": {
+          "A1": {
+            "drags": 21,
+            "okDrags": 21,
+            "perDragP50": [
+              1693.8999999999069,
+              1316.2000000001863,
+              767.6000000000931,
+              1425.1000000000931,
+              1256.5999999996275,
+              833.5,
+              1208.2999999998137,
+              1250.1999999997206,
+              1004.1000000000931,
+              876.7999999998137,
+              943.8999999999069,
+              1033.3999999999069,
+              941.1999999997206,
+              741,
+              1410.1000000000931,
+              1039.2999999998137,
+              1055.5,
+              1952,
+              2280.5,
+              1222.1999999997206,
+              787.8999999999069
+            ],
+            "medianOfP50": 1055.5,
+            "pooledN": 131,
+            "pooledP50": 1067,
+            "pooledP50Interval": {
+              "n": 131,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 1067,
+              "low": 1010.3999999999069,
+              "high": 1141.3000000002794,
+              "lowerRank": 54,
+              "upperRank": 78,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          },
+          "A2": {
+            "drags": 21,
+            "okDrags": 21,
+            "perDragP50": [
+              2108,
+              1407.3000000002794,
+              1432,
+              1665.9000000003725,
+              1683.6999999997206,
+              1106.1999999997206,
+              1346.1000000000931,
+              980.8999999999069,
+              1495.4000000003725,
+              711.6000000000931,
+              1631.3999999999069,
+              1705.5999999996275,
+              948.7000000001863,
+              1411.1000000000931,
+              1280.1999999997206,
+              2178.4000000003725,
+              1410.6999999997206,
+              1413.2000000001863,
+              1057.7999999998137,
+              835.7000000001863,
+              1188.3999999999069
+            ],
+            "medianOfP50": 1410.6999999997206,
+            "pooledN": 133,
+            "pooledP50": 1331,
+            "pooledP50Interval": {
+              "n": 133,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 1331,
+              "low": 1214.8000000002794,
+              "high": 1410.6999999997206,
+              "lowerRank": 55,
+              "upperRank": 79,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          },
+          "delay": {
+            "drags": 21,
+            "okDrags": 21,
+            "perDragP50": [
+              2494.5,
+              1377.5999999996275,
+              1225.7999999998137,
+              2503.5999999996275,
+              1473.8999999999069,
+              2048.899999999907,
+              2633.2999999998137,
+              2656.2999999998137,
+              2638.6999999997206,
+              2565.600000000093,
+              2610.7999999998137,
+              1406.2000000001863,
+              2656.399999999907,
+              2486.6999999997206,
+              2436.399999999907,
+              2493.8000000002794,
+              1078.8000000002794,
+              1677.2999999998137,
+              2060.1999999997206,
+              2623.5,
+              1607.3999999999069
+            ],
+            "medianOfP50": 2486.6999999997206,
+            "pooledN": 104,
+            "pooledP50": 2152.399999999907,
+            "pooledP50Interval": {
+              "n": 104,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 2152.399999999907,
+              "low": 2008.2000000001863,
+              "high": 2436.399999999907,
+              "lowerRank": 42,
+              "upperRank": 63,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          },
+          "deferred": {
+            "drags": 21,
+            "okDrags": 21,
+            "perDragP50": [
+              2173.5999999996275,
+              1534,
+              2194.9000000003725,
+              2618.4000000003725,
+              1522.5999999996275,
+              2759.399999999907,
+              1029.6000000000931,
+              1168.3000000002794,
+              1781.7999999998137,
+              2462.7000000001863,
+              2347.2999999998137,
+              2625.399999999907,
+              2147.600000000093,
+              1526.4000000003725,
+              1623.7000000001863,
+              1392,
+              2381.2999999998137,
+              1942.3999999999069,
+              2202.2000000001863,
+              2144.5999999996275,
+              2125.100000000093
+            ],
+            "medianOfP50": 2144.5999999996275,
+            "pooledN": 105,
+            "pooledP50": 1993.7999999998137,
+            "pooledP50Interval": {
+              "n": 105,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 1993.7999999998137,
+              "low": 1660.5,
+              "high": 2156.7999999998137,
+              "lowerRank": 42,
+              "upperRank": 64,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          }
+        },
+        "controls": [
+          {
+            "id": "repeat-correctness",
+            "passed": true,
+            "detail": {
+              "drags": 84,
+              "failed": []
+            }
+          },
+          {
+            "id": "drag-wrong-target-repeat",
+            "passed": true,
+            "detail": [
+              {
+                "positiveCaughtUp": 5,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 5,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 8,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 5,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 5,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              }
+            ]
+          },
+          {
+            "id": "drag-aa",
+            "passed": true,
+            "detail": {
+              "delta": 355.1999999997206,
+              "low": -19.899999999906868,
+              "high": 469.5,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1094791217,
+              "nA": 21,
+              "nB": 21,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n"
+            }
+          },
+          {
+            "id": "drag-added-delay-repeat",
+            "passed": false,
+            "detail": {
+              "delta": 1236.5,
+              "low": 397.10000000009313,
+              "high": 1438.3000000002794,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1145392177,
+              "nA": 42,
+              "nB": 21,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+              "aaEnvelopeMs": 469.5
+            }
+          },
+          {
+            "id": "drag-carry-over",
+            "passed": true,
+            "detail": {
+              "delta": 58,
+              "low": -217.29999999981374,
+              "high": 458.60000000009313,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1128354353,
+              "nA": 14,
+              "nB": 27,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n"
+            }
+          },
+          {
+            "id": "drag-deferred-completion-repeat",
+            "passed": false,
+            "detail": {
+              "delta": 894.3999999999069,
+              "low": 343.50000000046566,
+              "high": 1115.7999999998137,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1145390641,
+              "nA": 42,
+              "nB": 21,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+              "aaEnvelopeMs": 469.5
+            }
+          }
+        ]
+      }
+    },
+    "wp3c-mobile-a2": {
+      "prepared-mobile": {
+        "drags": 84,
+        "arms": {
+          "A1": {
+            "drags": 21,
+            "okDrags": 21,
+            "perDragP50": [
+              877.0999999996275,
+              1399,
+              1445.9000000003725,
+              1344.6000000000931,
+              797.8000000002794,
+              1277,
+              1038.8000000002794,
+              951.5,
+              941.1000000000931,
+              792.3000000002794,
+              736.7000000001863,
+              1412.8999999999069,
+              1350.5999999996275,
+              1066.8999999999069,
+              1204.2999999998137,
+              1741,
+              1503.5,
+              2203.600000000093,
+              1167.5,
+              746.3999999994412,
+              1365.5999999996275
+            ],
+            "medianOfP50": 1204.2999999998137,
+            "pooledN": 136,
+            "pooledP50": 1131.4000000003725,
+            "pooledP50Interval": {
+              "n": 136,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 1131.4000000003725,
+              "low": 1032.5,
+              "high": 1266.6000000000931,
+              "lowerRank": 57,
+              "upperRank": 80,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          },
+          "A2": {
+            "drags": 21,
+            "okDrags": 21,
+            "perDragP50": [
+              1335.6000000000931,
+              966.1000000000931,
+              1441.8999999999069,
+              743.5,
+              1077.2999999998137,
+              837.7999999998137,
+              1170.1000000000931,
+              1148.6999999997206,
+              754.2999999998137,
+              1086.3999999999069,
+              648.0999999996275,
+              935.0999999996275,
+              1391.2000000001863,
+              1585.5,
+              1136.4000000003725,
+              1237.2999999998137,
+              1049.2999999998137,
+              1245.6000000000931,
+              960.8000000002794,
+              978.8999999999069,
+              766.7999999998137
+            ],
+            "medianOfP50": 1077.2999999998137,
+            "pooledN": 133,
+            "pooledP50": 1049.2999999998137,
+            "pooledP50Interval": {
+              "n": 133,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 1049.2999999998137,
+              "low": 961.2999999998137,
+              "high": 1148.6999999997206,
+              "lowerRank": 55,
+              "upperRank": 79,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          },
+          "delay": {
+            "drags": 21,
+            "okDrags": 21,
+            "perDragP50": [
+              2355,
+              1876.3999999999069,
+              2430.7000000001863,
+              1784.7000000001863,
+              2453.899999999907,
+              2616.100000000093,
+              2395.2999999998137,
+              1375.5,
+              1511.7999999998137,
+              2012.1999999997206,
+              1756.8000000002794,
+              1620.6000000000931,
+              1999.5,
+              1965,
+              2745.2999999998137,
+              1965.3000000002794,
+              2077.3000000002794,
+              2724.5,
+              2502.2999999998137,
+              1437.7999999998137,
+              2465.2000000001863
+            ],
+            "medianOfP50": 2012.1999999997206,
+            "pooledN": 108,
+            "pooledP50": 2012.1999999997206,
+            "pooledP50Interval": {
+              "n": 108,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 2012.1999999997206,
+              "low": 1876.3999999999069,
+              "high": 2297.7999999998137,
+              "lowerRank": 44,
+              "upperRank": 65,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          },
+          "deferred": {
+            "drags": 21,
+            "okDrags": 21,
+            "perDragP50": [
+              1342.2999999998137,
+              1353.3000000002794,
+              2105.100000000093,
+              2369.100000000093,
+              2209.1999999997206,
+              1598.5,
+              1718,
+              1417.5999999996275,
+              1196.1000000000931,
+              1054.7999999998137,
+              1783,
+              1784.6999999997206,
+              1977.8000000002794,
+              1760.1999999997206,
+              2100.899999999907,
+              2105.600000000093,
+              2286.9000000003725,
+              1795.8999999999069,
+              2217,
+              1587.5,
+              1770.7000000001863
+            ],
+            "medianOfP50": 1783,
+            "pooledN": 101,
+            "pooledP50": 1760.1999999997206,
+            "pooledP50Interval": {
+              "n": 101,
+              "p": 0.5,
+              "confidence": 0.95,
+              "estimate": 1760.1999999997206,
+              "low": 1642.5,
+              "high": 1835.8000000002794,
+              "lowerRank": 41,
+              "upperRank": 61,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            }
+          }
+        },
+        "controls": [
+          {
+            "id": "repeat-correctness",
+            "passed": true,
+            "detail": {
+              "drags": 84,
+              "failed": []
+            }
+          },
+          {
+            "id": "drag-wrong-target-repeat",
+            "passed": true,
+            "detail": [
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 8,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 5,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 8,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 6,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              },
+              {
+                "positiveCaughtUp": 7,
+                "wrongCaughtUp": 0,
+                "wrongOwnTargetCompleted": 0
+              }
+            ]
+          },
+          {
+            "id": "drag-aa",
+            "passed": true,
+            "detail": {
+              "delta": -127,
+              "low": -384.49999999953434,
+              "high": 134.89999999990687,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1094791217,
+              "nA": 21,
+              "nB": 21,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n"
+            }
+          },
+          {
+            "id": "drag-added-delay-repeat",
+            "passed": true,
+            "detail": {
+              "delta": 925.7999999998137,
+              "low": 717.8000000002794,
+              "high": 1381.4000000003725,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1145392177,
+              "nA": 42,
+              "nB": 21,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+              "aaEnvelopeMs": 384.49999999953434
+            }
+          },
+          {
+            "id": "drag-carry-over",
+            "passed": true,
+            "detail": {
+              "delta": -50.00000000046566,
+              "low": -277.70000000018626,
+              "high": 332.3000000002794,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1128354353,
+              "nA": 13,
+              "nB": 28,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n"
+            }
+          },
+          {
+            "id": "drag-deferred-completion-repeat",
+            "passed": true,
+            "detail": {
+              "delta": 696.6000000000931,
+              "low": 451.09999999962747,
+              "high": 1023.6000000000931,
+              "confidence": 0.95,
+              "replicates": 5000,
+              "seed": 1145390641,
+              "nA": 42,
+              "nB": 21,
+              "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+              "aaEnvelopeMs": 384.49999999953434
+            }
+          }
+        ]
+      }
+    }
+  },
+  "singleDrags": {
+    "wp3-drag-r1": [
+      {
+        "file": "docs/performance/phase-a-20261116/runs/wp3-drag-r1/raw-drag-ordinary-desktop-positive.json",
+        "ok": false,
+        "p50": null,
+        "p95": null,
+        "delivered": 21,
+        "computedAnalysisMatchesSaved": false,
+        "oracle": {
+          "latchedIsScrubbing": true,
+          "isScrubbingMidDrag": true,
+          "edgeSkipMidDrag": true,
+          "holdAfterDown": true,
+          "holdMeaningful": false,
+          "releasedNotScrubbing": true,
+          "edgeSettledAfterRelease": true,
+          "pointerMappingOk": false,
+          "settledEqualsReferenceState": true,
+          "settledEqualsReferencePackets": true,
+          "frontierUnchanged": true,
+          "seedUnchanged": true,
+          "timelineUnchanged": true,
+          "movesCompletedAny": true
+        }
+      }
+    ],
+    "wp3-drag-r2": [
+      {
+        "file": "docs/performance/phase-a-20261116/runs/wp3-drag-r2/raw-drag-ordinary-desktop-deferred.json",
+        "ok": true,
+        "p50": null,
+        "p95": null,
+        "delivered": 7,
+        "computedAnalysisMatchesSaved": false,
+        "oracle": {
+          "latchedIsScrubbing": true,
+          "isScrubbingMidDrag": true,
+          "edgeSkipMidDrag": true,
+          "holdAfterDown": true,
+          "holdMeaningful": false,
+          "releasedNotScrubbing": true,
+          "edgeSettledAfterRelease": true,
+          "pointerMappingOk": true,
+          "settledEqualsReferenceState": true,
+          "settledEqualsReferencePackets": true,
+          "frontierUnchanged": true,
+          "seedUnchanged": true,
+          "timelineUnchanged": true,
+          "movesCompletedAny": true
+        }
+      },
+      {
+        "file": "docs/performance/phase-a-20261116/runs/wp3-drag-r2/raw-drag-ordinary-desktop-delay.json",
+        "ok": true,
+        "p50": null,
+        "p95": null,
+        "delivered": 7,
+        "computedAnalysisMatchesSaved": false,
+        "oracle": {
+          "latchedIsScrubbing": true,
+          "isScrubbingMidDrag": true,
+          "edgeSkipMidDrag": true,
+          "holdAfterDown": true,
+          "holdMeaningful": false,
+          "releasedNotScrubbing": true,
+          "edgeSettledAfterRelease": true,
+          "pointerMappingOk": true,
+          "settledEqualsReferenceState": true,
+          "settledEqualsReferencePackets": true,
+          "frontierUnchanged": true,
+          "seedUnchanged": true,
+          "timelineUnchanged": true,
+          "movesCompletedAny": true
+        }
+      },
+      {
+        "file": "docs/performance/phase-a-20261116/runs/wp3-drag-r2/raw-drag-ordinary-desktop-positive.json",
+        "ok": true,
+        "p50": null,
+        "p95": null,
+        "delivered": 23,
+        "computedAnalysisMatchesSaved": false,
+        "oracle": {
+          "latchedIsScrubbing": true,
+          "isScrubbingMidDrag": true,
+          "edgeSkipMidDrag": true,
+          "holdAfterDown": true,
+          "holdMeaningful": false,
+          "releasedNotScrubbing": true,
+          "edgeSettledAfterRelease": true,
+          "pointerMappingOk": true,
+          "settledEqualsReferenceState": true,
+          "settledEqualsReferencePackets": true,
+          "frontierUnchanged": true,
+          "seedUnchanged": true,
+          "timelineUnchanged": true,
+          "movesCompletedAny": true
+        }
+      }
+    ],
+    "wp3-drag-r3": [
+      {
+        "file": "docs/performance/phase-a-20261116/runs/wp3-drag-r3/raw-drag-ordinary-desktop-deferred.json",
+        "ok": true,
+        "p50": 1087.5,
+        "p95": 1562.6000000014901,
+        "delivered": 7,
+        "computedAnalysisMatchesSaved": true,
+        "oracle": {
+          "latchedIsScrubbing": true,
+          "isScrubbingMidDrag": true,
+          "edgeSkipMidDrag": true,
+          "holdAfterDown": true,
+          "holdMeaningful": false,
+          "releasedNotScrubbing": true,
+          "edgeSettledAfterRelease": true,
+          "pointerMappingOk": true,
+          "settledEqualsReferenceState": true,
+          "settledEqualsReferencePackets": true,
+          "frontierUnchanged": true,
+          "seedUnchanged": true,
+          "timelineUnchanged": true,
+          "movesCompletedAny": true,
+          "allDeliveredMovesCaughtUp": true
+        }
+      },
+      {
+        "file": "docs/performance/phase-a-20261116/runs/wp3-drag-r3/raw-drag-ordinary-desktop-delay.json",
+        "ok": true,
+        "p50": 1511.2999999970198,
+        "p95": 2244,
+        "delivered": 7,
+        "computedAnalysisMatchesSaved": true,
+        "oracle": {
+          "latchedIsScrubbing": true,
+          "isScrubbingMidDrag": true,
+          "edgeSkipMidDrag": true,
+          "holdAfterDown": true,
+          "holdMeaningful": false,
+          "releasedNotScrubbing": true,
+          "edgeSettledAfterRelease": true,
+          "pointerMappingOk": true,
+          "settledEqualsReferenceState": true,
+          "settledEqualsReferencePackets": true,
+          "frontierUnchanged": true,
+          "seedUnchanged": true,
+          "timelineUnchanged": true,
+          "movesCompletedAny": true,
+          "allDeliveredMovesCaughtUp": true
+        }
+      },
+      {
+        "file": "docs/performance/phase-a-20261116/runs/wp3-drag-r3/raw-drag-ordinary-desktop-positive.json",
+        "ok": true,
+        "p50": 506.6000000014901,
+        "p95": 798.5,
+        "delivered": 21,
+        "computedAnalysisMatchesSaved": true,
+        "oracle": {
+          "latchedIsScrubbing": true,
+          "isScrubbingMidDrag": true,
+          "edgeSkipMidDrag": true,
+          "holdAfterDown": true,
+          "holdMeaningful": false,
+          "releasedNotScrubbing": true,
+          "edgeSettledAfterRelease": true,
+          "pointerMappingOk": true,
+          "settledEqualsReferenceState": true,
+          "settledEqualsReferencePackets": true,
+          "frontierUnchanged": true,
+          "seedUnchanged": true,
+          "timelineUnchanged": true,
+          "movesCompletedAny": true,
+          "allDeliveredMovesCaughtUp": true
+        }
+      }
+    ]
+  },
+  "controls": {
+    "wp1-node-controls-r2": {
+      "forecastDelay": 200.60842300000002
+    },
+    "wp1-browser-controls": {
+      "forecastDelay": 191.503081,
+      "scrub": {
+        "positiveP50": 198.60000000149012,
+        "wrong": [
+          false,
+          false,
+          false
+        ],
+        "delay": 201.89999999850988,
+        "deferred": 202
+      }
+    }
+  },
+  "proofTableChecks": [
+    {
+      "section": "wp4-node",
+      "job": "window",
+      "profile": "120/120",
+      "arm": "1188.2",
+      "passed": true
+    },
+    {
+      "section": "wp4-node",
+      "job": "horizon",
+      "profile": "6/6",
+      "arm": "14535.6",
+      "passed": true
+    },
+    {
+      "section": "wp4-node",
+      "job": "reproject",
+      "profile": "6/6",
+      "arm": "9281.1",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites",
+      "job": "newGame",
+      "profile": "desktop 1×",
+      "arm": "—",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites",
+      "job": "newGame",
+      "profile": "mobile 4×",
+      "arm": "—",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites",
+      "job": "bake",
+      "profile": "desktop 1×",
+      "arm": "—",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites",
+      "job": "bake",
+      "profile": "mobile 4×",
+      "arm": "—",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites",
+      "job": "scrub",
+      "profile": "desktop 1×",
+      "arm": "—",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites",
+      "job": "scrub",
+      "profile": "mobile 4×",
+      "arm": "—",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites",
+      "job": "scrubDrag",
+      "profile": "desktop 1×",
+      "arm": "A1",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites",
+      "job": "scrubDrag",
+      "profile": "desktop 1×",
+      "arm": "delay",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites",
+      "job": "scrubDrag",
+      "profile": "desktop 1×",
+      "arm": "A2",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites",
+      "job": "scrubDrag",
+      "profile": "desktop 1×",
+      "arm": "deferred",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites",
+      "job": "scrubDrag",
+      "profile": "mobile 4×",
+      "arm": "A1",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites",
+      "job": "scrubDrag",
+      "profile": "mobile 4×",
+      "arm": "delay",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites",
+      "job": "scrubDrag",
+      "profile": "mobile 4×",
+      "arm": "A2",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites",
+      "job": "scrubDrag",
+      "profile": "mobile 4×",
+      "arm": "deferred",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites",
+      "job": "openingUnveil",
+      "profile": "desktop 1×",
+      "arm": "—",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites",
+      "job": "openingUnveil",
+      "profile": "mobile 4×",
+      "arm": "—",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites-mobile-r2",
+      "job": "newGame",
+      "profile": "mobile 4×",
+      "arm": "—",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites-mobile-r2",
+      "job": "bake",
+      "profile": "mobile 4×",
+      "arm": "—",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites-mobile-r2",
+      "job": "scrub",
+      "profile": "mobile 4×",
+      "arm": "—",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites-mobile-r2",
+      "job": "scrubDrag",
+      "profile": "mobile 4×",
+      "arm": "A1",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites-mobile-r2",
+      "job": "scrubDrag",
+      "profile": "mobile 4×",
+      "arm": "delay",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites-mobile-r2",
+      "job": "scrubDrag",
+      "profile": "mobile 4×",
+      "arm": "A2",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites-mobile-r2",
+      "job": "scrubDrag",
+      "profile": "mobile 4×",
+      "arm": "deferred",
+      "passed": true
+    },
+    {
+      "section": "wp4-suites-mobile-r2",
+      "job": "openingUnveil",
+      "profile": "mobile 4×",
+      "arm": "—",
+      "passed": true
+    }
+  ],
+  "mismatches": []
+}

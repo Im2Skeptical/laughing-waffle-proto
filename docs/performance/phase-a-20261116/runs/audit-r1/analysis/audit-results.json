@@ -1,0 +1,178 @@
+{
+  "reviewedHead": "76c5bb37eba90eceb0d0e4580f074e42b1c7c761",
+  "at": "2026-11-15T16:26:05.572Z",
+  "dragRecheck": {
+    "rawDrags": 20,
+    "allAnalysisMatch": true,
+    "evaluationMatchesSaved": true,
+    "controls": [
+      {
+        "id": "repeat-correctness",
+        "passed": true,
+        "detail": {
+          "drags": 20,
+          "failed": []
+        }
+      },
+      {
+        "id": "drag-wrong-target-repeat",
+        "passed": true,
+        "detail": [
+          {
+            "positiveCaughtUp": 25,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 25,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 26,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 24,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 27,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          }
+        ]
+      },
+      {
+        "id": "drag-aa",
+        "passed": true,
+        "detail": {
+          "delta": 12.699999988079071,
+          "low": -54.39999997615814,
+          "high": 64.09999996423721,
+          "confidence": 0.95,
+          "replicates": 5000,
+          "seed": 1094791217,
+          "nA": 5,
+          "nB": 5,
+          "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n"
+        }
+      },
+      {
+        "id": "drag-added-delay-repeat",
+        "passed": true,
+        "detail": {
+          "delta": 1118.699999988079,
+          "low": 931.1000000238419,
+          "high": 1172.9000000357628,
+          "confidence": 0.95,
+          "replicates": 5000,
+          "seed": 1145392177,
+          "nA": 10,
+          "nB": 5,
+          "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+          "aaEnvelopeMs": 64.09999996423721
+        }
+      },
+      {
+        "id": "drag-carry-over",
+        "passed": true,
+        "detail": {
+          "delta": -46.60000002384186,
+          "low": -87.90000003576279,
+          "high": 2.0000000596046448,
+          "confidence": 0.95,
+          "replicates": 5000,
+          "seed": 1128354353,
+          "nA": 4,
+          "nB": 5,
+          "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n"
+        }
+      },
+      {
+        "id": "drag-deferred-completion-repeat",
+        "passed": true,
+        "detail": {
+          "delta": 815.3000000119209,
+          "low": 764.6000000238419,
+          "high": 1222.7999999523163,
+          "confidence": 0.95,
+          "replicates": 5000,
+          "seed": 1145390641,
+          "nA": 10,
+          "nB": 5,
+          "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+          "aaEnvelopeMs": 64.09999996423721
+        }
+      }
+    ],
+    "allOraclesPassed": true,
+    "delivered": 337,
+    "sent": 800
+  },
+  "build": {
+    "performanceFixtureKey": "98edb4cac9ee5f920b5608c417d92eb161e4be8c881e241231a5daef4a703bd7",
+    "version": "1.1.69",
+    "build": "0bca41f2f586",
+    "revision": "76c5bb37eba9",
+    "channel": "pages",
+    "branch": "audit/phase-a-20261116-r1",
+    "dirty": false,
+    "preview": true,
+    "previewLabel": null
+  },
+  "identityCheck": {
+    "ordinary": {
+      "year": 192,
+      "lossSec": 6138,
+      "configSha256": "1b2b3da9f27484624dc345d153e674109cc1f787f4924202888481fb1b89764c"
+    },
+    "prepared": {
+      "year": 192,
+      "lossSec": 6138,
+      "configSha256": "1b2b3da9f27484624dc345d153e674109cc1f787f4924202888481fb1b89764c"
+    },
+    "baked": {
+      "seed": 424242,
+      "lossSec": 6138,
+      "lastState": {
+        "year": 192,
+        "tSec": 6138,
+        "runStatus": {
+          "complete": true,
+          "reason": "monsterOverrun",
+          "year": 192,
+          "tSec": 6138
+        }
+      },
+      "initial": {
+        "year": 1,
+        "tSec": 0
+      },
+      "configSha256": "1b2b3da9f27484624dc345d153e674109cc1f787f4924202888481fb1b89764c",
+      "fixtureKey": "98edb4cac9ee5f920b5608c417d92eb161e4be8c881e241231a5daef4a703bd7",
+      "source": "images/dev-fixtures/performance-start-424242.json.gz"
+    },
+    "recapCounter": {
+      "explanation": "Animated 2200ms completed-years passage counter; completed years floor(6138/32)=191, ordinal model year 192. Intermediate screenshot counter is not a state-identity oracle.",
+      "source": [
+        "src/views/run-complete-pixi.js:130",
+        "src/views/run-complete-pixi.js:160",
+        "src/views/consequential-time-pixi.js:6",
+        "src/views/consequential-time-pixi.js:23"
+      ]
+    }
+  },
+  "preview": {
+    "attempts": 2,
+    "passed": false,
+    "reason": "Preview ports 5184–5195 occupied; no existing preview serves checkout. Node then reports UV_HANDLE_CLOSING assertion (0xC0000409). No port debugging or further attempt.",
+    "logs": [
+      "artifacts/phase-a-audit-r1/preview.log",
+      "artifacts/phase-a-audit-r1/preview-retry.log"
+    ],
+    "mobileUrl": null
+  }
+}

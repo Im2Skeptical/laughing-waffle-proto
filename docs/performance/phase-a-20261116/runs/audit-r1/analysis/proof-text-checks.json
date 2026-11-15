@@ -1,0 +1,215 @@
+{
+  "dragProofRows": [
+    {
+      "id": "wp4-suites",
+      "profile": "desktop-x1",
+      "passed": true
+    },
+    {
+      "id": "wp4-suites",
+      "profile": "mobile-x4",
+      "passed": true
+    },
+    {
+      "id": "wp4-suites-mobile-r2",
+      "profile": "mobile-x4",
+      "passed": true
+    }
+  ],
+  "reconstructedAggregate": {
+    "bytes": 816648,
+    "sha256": "dbdd1dcdbbe61d069c641c8828c53d8a86eeb6e99be07bc264b1243b7e38450c",
+    "expected": "dbdd1dcdbbe61d069c641c8828c53d8a86eeb6e99be07bc264b1243b7e38450c",
+    "matches": true
+  },
+  "constructionApproximation": {
+    "wp3cA2": [
+      {
+        "id": "repeat-correctness",
+        "passed": true,
+        "detail": {
+          "drags": 84,
+          "failed": []
+        }
+      },
+      {
+        "id": "drag-wrong-target-repeat",
+        "passed": true,
+        "detail": [
+          {
+            "positiveCaughtUp": 7,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 6,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 8,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 6,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 6,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 5,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 7,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 7,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 8,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 6,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 7,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 6,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 6,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 6,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 7,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 6,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 6,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 7,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 6,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 6,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          },
+          {
+            "positiveCaughtUp": 7,
+            "wrongCaughtUp": 0,
+            "wrongOwnTargetCompleted": 0
+          }
+        ]
+      },
+      {
+        "id": "drag-aa",
+        "passed": true,
+        "detail": {
+          "delta": -127,
+          "low": -384.49999999953434,
+          "high": 134.89999999990687,
+          "confidence": 0.95,
+          "replicates": 5000,
+          "seed": 1094791217,
+          "nA": 21,
+          "nB": 21,
+          "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n"
+        }
+      },
+      {
+        "id": "drag-added-delay-repeat",
+        "passed": true,
+        "detail": {
+          "delta": 925.7999999998137,
+          "low": 717.8000000002794,
+          "high": 1381.4000000003725,
+          "confidence": 0.95,
+          "replicates": 5000,
+          "seed": 1145392177,
+          "nA": 42,
+          "nB": 21,
+          "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+          "aaEnvelopeMs": 384.49999999953434
+        }
+      },
+      {
+        "id": "drag-carry-over",
+        "passed": true,
+        "detail": {
+          "delta": -50.00000000046566,
+          "low": -277.70000000018626,
+          "high": 332.3000000002794,
+          "confidence": 0.95,
+          "replicates": 5000,
+          "seed": 1128354353,
+          "nA": 13,
+          "nB": 28,
+          "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n"
+        }
+      },
+      {
+        "id": "drag-deferred-completion-repeat",
+        "passed": true,
+        "detail": {
+          "delta": 696.6000000000931,
+          "low": 451.09999999962747,
+          "high": 1023.6000000000931,
+          "confidence": 0.95,
+          "replicates": 5000,
+          "seed": 1145390641,
+          "nA": 42,
+          "nB": 21,
+          "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+          "aaEnvelopeMs": 384.49999999953434
+        }
+      }
+    ]
+  },
+  "manifestUnavailable": {
+    "screenshots": 53,
+    "oversizedRepeatSummaries": 4
+  },
+  "summary": "All 27 summary table rows and all 3 drag evaluation rows checked against PROOF_RUN. WP3c values match to stated approximate precision; exact A/A lower bound is -384.5 ms."
+}

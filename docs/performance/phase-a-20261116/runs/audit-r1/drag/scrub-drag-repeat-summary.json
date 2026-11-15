@@ -1,0 +1,4691 @@
+{
+  "at": "2026-11-15T16:22:53.354Z",
+  "reps": 5,
+  "design": "rotation",
+  "settleGapMs": 0,
+  "arms": [
+    {
+      "arm": "A1",
+      "addedDelayMs": 0,
+      "deferredMs": 0
+    },
+    {
+      "arm": "A2",
+      "addedDelayMs": 0,
+      "deferredMs": 0
+    },
+    {
+      "arm": "delay",
+      "addedDelayMs": 200,
+      "deferredMs": 0
+    },
+    {
+      "arm": "deferred",
+      "addedDelayMs": 0,
+      "deferredMs": 200
+    }
+  ],
+  "kinds": {
+    "prepared-desktop": {
+      "input": "mouse",
+      "cpuThrottle": 1,
+      "viewport": "desktop-1280x800",
+      "drags": [
+        {
+          "launchId": "prepared-desktop-A1-r0",
+          "arm": "A1",
+          "rep": 0,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "b8a8630b2b92f357833b323cd57abb77421d4fa2710c076ddfba03725d32efb9",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2,
+              "packets": [
+                "R09>R08|stock|1|1",
+                "R04>R12|stock|1|2",
+                "R12>R04|food|1|2",
+                "R05>R12|stock|1|2",
+                "R12>R05|food|1|2"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2532,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.29998600937597075,
+          "sent": 40,
+          "delivered": 25,
+          "coalescedOrDropped": 15,
+          "completed": 14,
+          "superseded": 11,
+          "p50": 344.19999998807907,
+          "p95": 800.1999999880791,
+          "caughtUp": 25,
+          "ownTargetP50": 118,
+          "rafP50": 111.10000000000218,
+          "rafMax": 208.29999999999927,
+          "framesOver50": 18,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 0,
+          "deferredMs": 0,
+          "screenshots": {
+            "midDrag": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\audit-phase-a-20261116--e560db2d6b413807\\artifacts\\perf-phase-a-20261116\\audit-r1-drag\\prepared-desktop-mid-drag.png",
+            "afterSettle": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\audit-phase-a-20261116--e560db2d6b413807\\artifacts\\perf-phase-a-20261116\\audit-r1-drag\\prepared-desktop-after-settle.png"
+          },
+          "errors": [],
+          "prevArm": null,
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-A2-r0",
+          "arm": "A2",
+          "rep": 0,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2711,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.30008218114653573,
+          "sent": 40,
+          "delivered": 26,
+          "coalescedOrDropped": 14,
+          "completed": 14,
+          "superseded": 12,
+          "p50": 299.69999998807907,
+          "p95": 666.4000000357628,
+          "caughtUp": 26,
+          "ownTargetP50": 123.30000001192093,
+          "rafP50": 104.19999999999709,
+          "rafMax": 159.70000000000073,
+          "framesOver50": 16,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 0,
+          "deferredMs": 0,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "A1",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-delay-r0",
+          "arm": "delay",
+          "rep": 0,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2532,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.19983901601699472,
+          "sent": 40,
+          "delivered": 8,
+          "coalescedOrDropped": 32,
+          "completed": 3,
+          "superseded": 5,
+          "p50": 1208.2000000476837,
+          "p95": 2008,
+          "caughtUp": 8,
+          "ownTargetP50": 305.19999998807907,
+          "rafP50": 493,
+          "rafMax": 499.8999999999942,
+          "framesOver50": 3,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 200,
+          "deferredMs": 0,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "A2",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-deferred-r0",
+          "arm": "deferred",
+          "rep": 0,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2532,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.22476072727295104,
+          "sent": 40,
+          "delivered": 8,
+          "coalescedOrDropped": 32,
+          "completed": 4,
+          "superseded": 4,
+          "p50": 1294,
+          "p95": 1844,
+          "caughtUp": 8,
+          "ownTargetP50": 120,
+          "rafP50": 500,
+          "rafMax": 534.6999999999971,
+          "framesOver50": 5,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 0,
+          "deferredMs": 200,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "delay",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-A2-r1",
+          "arm": "A2",
+          "rep": 1,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2711,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.2751604698896699,
+          "sent": 40,
+          "delivered": 25,
+          "coalescedOrDropped": 15,
+          "completed": 17,
+          "superseded": 8,
+          "p50": 234.69999998807907,
+          "p95": 485.9000000357628,
+          "caughtUp": 25,
+          "ownTargetP50": 110.69999998807907,
+          "rafP50": 97.30000000000291,
+          "rafMax": 138.8000000000029,
+          "framesOver50": 19,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 0,
+          "deferredMs": 0,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "deferred",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-delay-r1",
+          "arm": "delay",
+          "rep": 1,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2532,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.19983901601699472,
+          "sent": 40,
+          "delivered": 9,
+          "coalescedOrDropped": 31,
+          "completed": 3,
+          "superseded": 6,
+          "p50": 1425.199999988079,
+          "p95": 2238.2999999523163,
+          "caughtUp": 9,
+          "ownTargetP50": 287.5,
+          "rafP50": 486.09999999999854,
+          "rafMax": 1118,
+          "framesOver50": 4,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 200,
+          "deferredMs": 0,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "A2",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-deferred-r1",
+          "arm": "deferred",
+          "rep": 1,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2532,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.2502387586328041,
+          "sent": 40,
+          "delivered": 8,
+          "coalescedOrDropped": 32,
+          "completed": 2,
+          "superseded": 6,
+          "p50": 1499.8999999761581,
+          "p95": 2118,
+          "caughtUp": 8,
+          "ownTargetP50": 111.90000003576279,
+          "rafP50": 479,
+          "rafMax": 507,
+          "framesOver50": 5,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 0,
+          "deferredMs": 200,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "delay",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-A1-r1",
+          "arm": "A1",
+          "rep": 1,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2711,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.30008218114653573,
+          "sent": 40,
+          "delivered": 25,
+          "coalescedOrDropped": 15,
+          "completed": 16,
+          "superseded": 9,
+          "p50": 277.10000002384186,
+          "p95": 491.69999998807907,
+          "caughtUp": 25,
+          "ownTargetP50": 112,
+          "rafP50": 104.19999999999709,
+          "rafMax": 152.90000000000146,
+          "framesOver50": 18,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 0,
+          "deferredMs": 0,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "deferred",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-delay-r2",
+          "arm": "delay",
+          "rep": 2,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2532,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.19983901601699472,
+          "sent": 40,
+          "delivered": 9,
+          "coalescedOrDropped": 31,
+          "completed": 3,
+          "superseded": 6,
+          "p50": 1395.800000011921,
+          "p95": 2201,
+          "caughtUp": 9,
+          "ownTargetP50": 307.19999998807907,
+          "rafP50": 486.20000000000437,
+          "rafMax": 493,
+          "framesOver50": 3,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 200,
+          "deferredMs": 0,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "A1",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-deferred-r2",
+          "arm": "deferred",
+          "rep": 2,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2532,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.2751604698896699,
+          "sent": 40,
+          "delivered": 9,
+          "coalescedOrDropped": 31,
+          "completed": 3,
+          "superseded": 6,
+          "p50": 1084.699999988079,
+          "p95": 1658.5,
+          "caughtUp": 9,
+          "ownTargetP50": 107.10000002384186,
+          "rafP50": 305.6000000000058,
+          "rafMax": 500,
+          "framesOver50": 5,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 0,
+          "deferredMs": 200,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "delay",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-A1-r2",
+          "arm": "A1",
+          "rep": 2,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2532,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.2751604698896699,
+          "sent": 40,
+          "delivered": 26,
+          "coalescedOrDropped": 14,
+          "completed": 16,
+          "superseded": 10,
+          "p50": 235.60000002384186,
+          "p95": 391.5,
+          "caughtUp": 26,
+          "ownTargetP50": 114.30000001192093,
+          "rafP50": 104.09999999999127,
+          "rafMax": 152.8000000000029,
+          "framesOver50": 19,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 0,
+          "deferredMs": 0,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "deferred",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-A2-r2",
+          "arm": "A2",
+          "rep": 2,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2532,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.2751604698896699,
+          "sent": 40,
+          "delivered": 25,
+          "coalescedOrDropped": 15,
+          "completed": 14,
+          "superseded": 11,
+          "p50": 331.10000002384186,
+          "p95": 524.3999999761581,
+          "caughtUp": 25,
+          "ownTargetP50": 119,
+          "rafP50": 111.09999999999127,
+          "rafMax": 152.8000000000029,
+          "framesOver50": 17,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 0,
+          "deferredMs": 0,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "A1",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-deferred-r3",
+          "arm": "deferred",
+          "rep": 3,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2711,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.1749173047601289,
+          "sent": 40,
+          "delivered": 8,
+          "coalescedOrDropped": 32,
+          "completed": 2,
+          "superseded": 6,
+          "p50": 1092.4000000357628,
+          "p95": 1721.699999988079,
+          "caughtUp": 8,
+          "ownTargetP50": 128,
+          "rafP50": 486.1999999999971,
+          "rafMax": 562.4000000000087,
+          "framesOver50": 4,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 0,
+          "deferredMs": 200,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "A2",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-A1-r3",
+          "arm": "A1",
+          "rep": 3,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2532,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.2751604698896699,
+          "sent": 40,
+          "delivered": 24,
+          "coalescedOrDropped": 16,
+          "completed": 15,
+          "superseded": 9,
+          "p50": 243.19999998807907,
+          "p95": 490.5,
+          "caughtUp": 24,
+          "ownTargetP50": 118.89999997615814,
+          "rafP50": 104.19999999999709,
+          "rafMax": 152.70000000001164,
+          "framesOver50": 17,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 0,
+          "deferredMs": 0,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "deferred",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-A2-r3",
+          "arm": "A2",
+          "rep": 3,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2711,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2711,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.30008218114653573,
+          "sent": 40,
+          "delivered": 25,
+          "coalescedOrDropped": 15,
+          "completed": 19,
+          "superseded": 6,
+          "p50": 289.80000001192093,
+          "p95": 592.5999999642372,
+          "caughtUp": 25,
+          "ownTargetP50": 110.80000001192093,
+          "rafP50": 97.19999999999709,
+          "rafMax": 138.90000000000873,
+          "framesOver50": 19,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 0,
+          "deferredMs": 0,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "A1",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-delay-r3",
+          "arm": "delay",
+          "rep": 3,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2532,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.19983901601699472,
+          "sent": 40,
+          "delivered": 9,
+          "coalescedOrDropped": 31,
+          "completed": 3,
+          "superseded": 6,
+          "p50": 1416.1000000238419,
+          "p95": 2210.400000035763,
+          "caughtUp": 9,
+          "ownTargetP50": 315.60000002384186,
+          "rafP50": 479.20000000001164,
+          "rafMax": 1152.699999999997,
+          "framesOver50": 4,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 200,
+          "deferredMs": 0,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "A2",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-A1-r4",
+          "arm": "A1",
+          "rep": 4,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2711,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2711,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.30008218114653573,
+          "sent": 40,
+          "delivered": 27,
+          "coalescedOrDropped": 13,
+          "completed": 16,
+          "superseded": 11,
+          "p50": 285.30000001192093,
+          "p95": 471.5,
+          "caughtUp": 27,
+          "ownTargetP50": 113.79999995231628,
+          "rafP50": 97.19999999999709,
+          "rafMax": 145.89999999999418,
+          "framesOver50": 19,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 0,
+          "deferredMs": 0,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "delay",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-A2-r4",
+          "arm": "A2",
+          "rep": 4,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2711,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2711,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.30008218114653573,
+          "sent": 40,
+          "delivered": 26,
+          "coalescedOrDropped": 14,
+          "completed": 17,
+          "superseded": 9,
+          "p50": 275.0999999642372,
+          "p95": 465.80000001192093,
+          "caughtUp": 26,
+          "ownTargetP50": 111.79999995231628,
+          "rafP50": 104.10000000000582,
+          "rafMax": 145.8000000000029,
+          "framesOver50": 19,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 0,
+          "deferredMs": 0,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "A1",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-delay-r4",
+          "arm": "delay",
+          "rep": 4,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2532,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.19983901601699472,
+          "sent": 40,
+          "delivered": 8,
+          "coalescedOrDropped": 32,
+          "completed": 3,
+          "superseded": 5,
+          "p50": 1234.199999988079,
+          "p95": 2036.300000011921,
+          "caughtUp": 8,
+          "ownTargetP50": 308.39999997615814,
+          "rafP50": 486.1000000000058,
+          "rafMax": 972.1999999999971,
+          "framesOver50": 4,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 200,
+          "deferredMs": 0,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "A2",
+          "settleGap": null
+        },
+        {
+          "launchId": "prepared-desktop-deferred-r4",
+          "arm": "deferred",
+          "rep": 4,
+          "playing": true,
+          "kind": "mouse",
+          "ok": true,
+          "oracle": {
+            "latchedIsScrubbing": true,
+            "isScrubbingMidDrag": true,
+            "edgeSkipMidDrag": true,
+            "holdAfterDown": true,
+            "holdMeaningful": true,
+            "releasedNotScrubbing": true,
+            "edgeSettledAfterRelease": true,
+            "pointerMappingOk": true,
+            "settledEqualsReferenceState": true,
+            "settledEqualsReferencePackets": true,
+            "frontierUnchanged": true,
+            "seedUnchanged": true,
+            "timelineUnchanged": true,
+            "movesCompletedAny": true,
+            "allDeliveredMovesCaughtUp": true
+          },
+          "required": [
+            "holdMeaningful",
+            "latchedIsScrubbing",
+            "isScrubbingMidDrag",
+            "edgeSkipMidDrag",
+            "holdAfterDown",
+            "releasedNotScrubbing",
+            "edgeSettledAfterRelease",
+            "pointerMappingOk",
+            "settledEqualsReferenceState",
+            "settledEqualsReferencePackets",
+            "frontierUnchanged",
+            "seedUnchanged",
+            "timelineUnchanged",
+            "movesCompletedAny",
+            "allDeliveredMovesCaughtUp"
+          ],
+          "before": {
+            "viewedSec": 2533,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 1,
+            "isScrubbing": false,
+            "scrubSec": 2533,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "fe272e896c0d75f02bf56a924833924f28b8703068a5e5701ea4d2bd1a6a3ae8",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2533,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "midProbe": {
+            "viewedSec": 2532,
+            "playbackTarget": 0,
+            "isScrubbing": true,
+            "scrubSec": 2532,
+            "edge": {
+              "skipping": true,
+              "boundarySec": null,
+              "packets": []
+            }
+          },
+          "afterRelease": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "reference": {
+            "viewedSec": 2532,
+            "frontierSec": 0,
+            "baseSeed": 424242,
+            "timeline": {
+              "cursorSec": 0,
+              "historyEndSec": 0,
+              "maxReachedHistoryEndSec": 0,
+              "revision": 0,
+              "actionContentVersion": 0,
+              "actionCount": 0,
+              "actions": []
+            },
+            "playbackTarget": 0,
+            "isScrubbing": false,
+            "scrubSec": 2532,
+            "minSec": 0,
+            "maxSec": 6138,
+            "browseCapSec": 6138,
+            "revealedCoverageEndSec": 6138,
+            "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+            "edge": {
+              "skipping": false,
+              "boundarySec": 2532,
+              "packets": [
+                "R09>R16|food|1|2531",
+                "R09>R08|stock|1|2532"
+              ]
+            },
+            "previewStatus": {
+              "active": true,
+              "previewSec": 2532,
+              "liveSec": 0,
+              "historyEndSec": 0,
+              "isForecastPreview": true
+            }
+          },
+          "plot": {
+            "a": {
+              "x": 302.7890037128713,
+              "y": 620.3623762376237
+            },
+            "b": {
+              "x": 976.2030816831684,
+              "y": 620.3623762376237
+            }
+          },
+          "secPerPx": 9.114748563766637,
+          "maxMappingError": 0.2502387586328041,
+          "sent": 40,
+          "delivered": 7,
+          "coalescedOrDropped": 33,
+          "completed": 5,
+          "superseded": 2,
+          "p50": 1049.9000000357628,
+          "p95": 1346.5,
+          "caughtUp": 7,
+          "ownTargetP50": 113.60000002384186,
+          "rafP50": 298.6000000000058,
+          "rafMax": 500,
+          "framesOver50": 6,
+          "edgeSkippingDuring": 1,
+          "addedDelayMs": 0,
+          "deferredMs": 200,
+          "screenshots": {
+            "midDrag": null,
+            "afterSettle": null
+          },
+          "errors": [],
+          "prevArm": "delay",
+          "settleGap": null
+        }
+      ],
+      "playing": {
+        "playbackTarget": 1,
+        "viewedSec": 1,
+        "runCompleteOpen": false
+      },
+      "opening": {
+        "lossSec": 6138,
+        "seed": 424242
+      },
+      "openMs": 19251,
+      "entry": "/?dev=1&perf=1&art=0&seed=424242&launch=new",
+      "playingShot": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\audit-phase-a-20261116--e560db2d6b413807\\artifacts\\perf-phase-a-20261116\\audit-r1-drag\\prepared-desktop-playing-before-drag.png",
+      "arms": {
+        "A1": {
+          "drags": 5,
+          "okDrags": 5,
+          "perDragP50": [
+            344.19999998807907,
+            277.10000002384186,
+            235.60000002384186,
+            243.19999998807907,
+            285.30000001192093
+          ],
+          "medianOfP50": 277.10000002384186,
+          "pooledN": 127,
+          "pooledP50": 283.39999997615814,
+          "pooledP50Interval": {
+            "n": 127,
+            "p": 0.5,
+            "confidence": 0.95,
+            "estimate": 283.39999997615814,
+            "low": 255.5999999642372,
+            "high": 304.5,
+            "lowerRank": 52,
+            "upperRank": 76,
+            "bounded": true,
+            "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+          }
+        },
+        "A2": {
+          "drags": 5,
+          "okDrags": 5,
+          "perDragP50": [
+            299.69999998807907,
+            234.69999998807907,
+            331.10000002384186,
+            289.80000001192093,
+            275.0999999642372
+          ],
+          "medianOfP50": 289.80000001192093,
+          "pooledN": 127,
+          "pooledP50": 290.89999997615814,
+          "pooledP50Interval": {
+            "n": 127,
+            "p": 0.5,
+            "confidence": 0.95,
+            "estimate": 290.89999997615814,
+            "low": 273.9000000357628,
+            "high": 300,
+            "lowerRank": 52,
+            "upperRank": 76,
+            "bounded": true,
+            "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+          }
+        },
+        "delay": {
+          "drags": 5,
+          "okDrags": 5,
+          "perDragP50": [
+            1208.2000000476837,
+            1425.199999988079,
+            1395.800000011921,
+            1416.1000000238419,
+            1234.199999988079
+          ],
+          "medianOfP50": 1395.800000011921,
+          "pooledN": 43,
+          "pooledP50": 1410.7000000476837,
+          "pooledP50Interval": {
+            "n": 43,
+            "p": 0.5,
+            "confidence": 0.95,
+            "estimate": 1410.7000000476837,
+            "low": 980.3999999761581,
+            "high": 1711.300000011921,
+            "lowerRank": 15,
+            "upperRank": 29,
+            "bounded": true,
+            "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+          }
+        },
+        "deferred": {
+          "drags": 5,
+          "okDrags": 5,
+          "perDragP50": [
+            1294,
+            1499.8999999761581,
+            1084.699999988079,
+            1092.4000000357628,
+            1049.9000000357628
+          ],
+          "medianOfP50": 1092.4000000357628,
+          "pooledN": 40,
+          "pooledP50": 1096.9000000357628,
+          "pooledP50Interval": {
+            "n": 40,
+            "p": 0.5,
+            "confidence": 0.95,
+            "estimate": 1096.9000000357628,
+            "low": 1049.9000000357628,
+            "high": 1537.3999999761581,
+            "lowerRank": 14,
+            "upperRank": 27,
+            "bounded": true,
+            "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+          }
+        }
+      },
+      "controls": [
+        {
+          "id": "repeat-correctness",
+          "passed": true,
+          "detail": {
+            "drags": 20,
+            "failed": []
+          }
+        },
+        {
+          "id": "drag-wrong-target-repeat",
+          "passed": true,
+          "detail": [
+            {
+              "positiveCaughtUp": 25,
+              "wrongCaughtUp": 0,
+              "wrongOwnTargetCompleted": 0
+            },
+            {
+              "positiveCaughtUp": 25,
+              "wrongCaughtUp": 0,
+              "wrongOwnTargetCompleted": 0
+            },
+            {
+              "positiveCaughtUp": 26,
+              "wrongCaughtUp": 0,
+              "wrongOwnTargetCompleted": 0
+            },
+            {
+              "positiveCaughtUp": 24,
+              "wrongCaughtUp": 0,
+              "wrongOwnTargetCompleted": 0
+            },
+            {
+              "positiveCaughtUp": 27,
+              "wrongCaughtUp": 0,
+              "wrongOwnTargetCompleted": 0
+            }
+          ]
+        },
+        {
+          "id": "drag-aa",
+          "passed": true,
+          "detail": {
+            "delta": 12.699999988079071,
+            "low": -54.39999997615814,
+            "high": 64.09999996423721,
+            "confidence": 0.95,
+            "replicates": 5000,
+            "seed": 1094791217,
+            "nA": 5,
+            "nB": 5,
+            "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n"
+          }
+        },
+        {
+          "id": "drag-added-delay-repeat",
+          "passed": true,
+          "detail": {
+            "delta": 1118.699999988079,
+            "low": 931.1000000238419,
+            "high": 1172.9000000357628,
+            "confidence": 0.95,
+            "replicates": 5000,
+            "seed": 1145392177,
+            "nA": 10,
+            "nB": 5,
+            "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+            "aaEnvelopeMs": 64.09999996423721
+          }
+        },
+        {
+          "id": "drag-carry-over",
+          "passed": true,
+          "detail": {
+            "delta": -46.60000002384186,
+            "low": -87.90000003576279,
+            "high": 2.0000000596046448,
+            "confidence": 0.95,
+            "replicates": 5000,
+            "seed": 1128354353,
+            "nA": 4,
+            "nB": 5,
+            "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n"
+          }
+        },
+        {
+          "id": "drag-deferred-completion-repeat",
+          "passed": true,
+          "detail": {
+            "delta": 815.3000000119209,
+            "low": 764.6000000238419,
+            "high": 1222.7999999523163,
+            "confidence": 0.95,
+            "replicates": 5000,
+            "seed": 1145390641,
+            "nA": 10,
+            "nB": 5,
+            "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+            "aaEnvelopeMs": 64.09999996423721
+          }
+        }
+      ],
+      "summaries": [
+        {
+          "key": [
+            "c1ebca6a041f890641baefcaf0136896512edda9b0558f7ce3c44eea3f9e91f1",
+            "perf-phase-a-20261116-v1",
+            "HC-20261116-A1",
+            "prepared-performance-start-seed-424242",
+            "scrub-drag",
+            "move-arrival-to-caught-up-frame",
+            {
+              "arm": "A1",
+              "artwork": "performance-mode-stubs-art0",
+              "cadenceMs": 50,
+              "cold": false,
+              "cpuThrottle": 1,
+              "input": "mouse",
+              "machine": "box-linux-xeon-8",
+              "renderer": "swiftshader",
+              "start": "prepared-424242",
+              "viewport": "desktop"
+            },
+            "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+            "4f8e9cc1a1240dc183ddd22dab823b68d7479e5a50adf9112186ebb3f774d920",
+            true
+          ],
+          "attempted": 127,
+          "passed": 127,
+          "failed": 0,
+          "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+          "oracleSdkSha256": "4f8e9cc1a1240dc183ddd22dab823b68d7479e5a50adf9112186ebb3f774d920",
+          "comparisonEligible": true,
+          "invalid": 0,
+          "timeouts": 0,
+          "independentLaunches": 5,
+          "p50": 283.39999997615814,
+          "p95": 589,
+          "min": 82.80000001192093,
+          "max": 836.0999999642372,
+          "successOnly": {
+            "count": 127,
+            "p50": 283.39999997615814,
+            "p95": 589,
+            "min": 82.80000001192093,
+            "max": 836.0999999642372,
+            "population": "conditional on valid successful completion"
+          },
+          "p95Interval": {
+            "n": 127,
+            "clusters": 5,
+            "p": 0.95,
+            "confidence": 0.99,
+            "estimate": 589,
+            "low": null,
+            "high": null,
+            "bounded": false,
+            "equalClusterSize": false,
+            "operationsPerLaunch": null,
+            "minimaInterval": {
+              "n": 5,
+              "p": 0.95,
+              "confidence": 0.99,
+              "estimate": 199.89999997615814,
+              "low": 154.89999997615814,
+              "high": null,
+              "lowerRank": 3,
+              "upperRank": 6,
+              "bounded": false,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            },
+            "maximaInterval": {
+              "n": 5,
+              "p": 0.95,
+              "confidence": 0.99,
+              "estimate": 836.0999999642372,
+              "low": 589,
+              "high": null,
+              "lowerRank": 3,
+              "upperRank": 6,
+              "bounded": false,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            },
+            "eligibleForInference": false,
+            "method": "conservative exact binomial envelope of independent-session minima/maxima; null endpoint unbounded",
+            "assumptions": "independent identically distributed sessions, fixed equal offered operation counts; no workload-dependent sample loss"
+          },
+          "p95BootstrapDiagnostic": {
+            "n": 127,
+            "clusters": 5,
+            "p": 0.95,
+            "confidence": 0.95,
+            "estimate": 589,
+            "low": 471.5,
+            "high": 705.1999999880791,
+            "bounded": true,
+            "method": "percentile bootstrap of whole launch clusters (operation-weighted quantile)",
+            "replicates": 5000,
+            "seed": 1279477809,
+            "eligibleForInference": false,
+            "limitation": "diagnostic only: empirical bootstrap cannot discover unobserved tail modes; never used for hard regression gates"
+          },
+          "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+          "latencyBounds": {
+            "p50": {
+              "low": 283.39999997615814,
+              "high": 283.39999997615814
+            },
+            "p95": {
+              "low": 589,
+              "high": 589
+            },
+            "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+          },
+          "correctnessGate": true,
+          "tailSampleQuotaMet": false,
+          "eligibleForTailInference": false,
+          "censored": [],
+          "inference": "conservative exact envelope of independent launch extrema; bootstrap diagnostic only"
+        },
+        {
+          "key": [
+            "c1ebca6a041f890641baefcaf0136896512edda9b0558f7ce3c44eea3f9e91f1",
+            "perf-phase-a-20261116-v1",
+            "HC-20261116-A1",
+            "prepared-performance-start-seed-424242",
+            "scrub-drag",
+            "move-arrival-to-caught-up-frame",
+            {
+              "arm": "A2",
+              "artwork": "performance-mode-stubs-art0",
+              "cadenceMs": 50,
+              "cold": false,
+              "cpuThrottle": 1,
+              "input": "mouse",
+              "machine": "box-linux-xeon-8",
+              "renderer": "swiftshader",
+              "start": "prepared-424242",
+              "viewport": "desktop"
+            },
+            "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+            "4f8e9cc1a1240dc183ddd22dab823b68d7479e5a50adf9112186ebb3f774d920",
+            true
+          ],
+          "attempted": 127,
+          "passed": 127,
+          "failed": 0,
+          "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+          "oracleSdkSha256": "4f8e9cc1a1240dc183ddd22dab823b68d7479e5a50adf9112186ebb3f774d920",
+          "comparisonEligible": true,
+          "invalid": 0,
+          "timeouts": 0,
+          "independentLaunches": 5,
+          "p50": 290.89999997615814,
+          "p95": 592.5999999642372,
+          "min": 79.30000001192093,
+          "max": 719.4000000357628,
+          "successOnly": {
+            "count": 127,
+            "p50": 290.89999997615814,
+            "p95": 592.5999999642372,
+            "min": 79.30000001192093,
+            "max": 719.4000000357628,
+            "population": "conditional on valid successful completion"
+          },
+          "p95Interval": {
+            "n": 127,
+            "clusters": 5,
+            "p": 0.95,
+            "confidence": 0.99,
+            "estimate": 592.5999999642372,
+            "low": null,
+            "high": null,
+            "bounded": false,
+            "equalClusterSize": false,
+            "operationsPerLaunch": null,
+            "minimaInterval": {
+              "n": 5,
+              "p": 0.95,
+              "confidence": 0.99,
+              "estimate": 193.10000002384186,
+              "low": 190.5,
+              "high": null,
+              "lowerRank": 3,
+              "upperRank": 6,
+              "bounded": false,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            },
+            "maximaInterval": {
+              "n": 5,
+              "p": 0.95,
+              "confidence": 0.99,
+              "estimate": 719.4000000357628,
+              "low": 641,
+              "high": null,
+              "lowerRank": 3,
+              "upperRank": 6,
+              "bounded": false,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            },
+            "eligibleForInference": false,
+            "method": "conservative exact binomial envelope of independent-session minima/maxima; null endpoint unbounded",
+            "assumptions": "independent identically distributed sessions, fixed equal offered operation counts; no workload-dependent sample loss"
+          },
+          "p95BootstrapDiagnostic": {
+            "n": 127,
+            "clusters": 5,
+            "p": 0.95,
+            "confidence": 0.95,
+            "estimate": 592.5999999642372,
+            "low": 485.9000000357628,
+            "high": 666.4000000357628,
+            "bounded": true,
+            "method": "percentile bootstrap of whole launch clusters (operation-weighted quantile)",
+            "replicates": 5000,
+            "seed": 1279477809,
+            "eligibleForInference": false,
+            "limitation": "diagnostic only: empirical bootstrap cannot discover unobserved tail modes; never used for hard regression gates"
+          },
+          "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+          "latencyBounds": {
+            "p50": {
+              "low": 290.89999997615814,
+              "high": 290.89999997615814
+            },
+            "p95": {
+              "low": 592.5999999642372,
+              "high": 592.5999999642372
+            },
+            "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+          },
+          "correctnessGate": true,
+          "tailSampleQuotaMet": false,
+          "eligibleForTailInference": false,
+          "censored": [],
+          "inference": "conservative exact envelope of independent launch extrema; bootstrap diagnostic only"
+        },
+        {
+          "key": [
+            "c1ebca6a041f890641baefcaf0136896512edda9b0558f7ce3c44eea3f9e91f1",
+            "perf-phase-a-20261116-v1",
+            "HC-20261116-A1",
+            "prepared-performance-start-seed-424242",
+            "scrub-drag",
+            "move-arrival-to-caught-up-frame",
+            {
+              "arm": "delay",
+              "artwork": "performance-mode-stubs-art0",
+              "cadenceMs": 50,
+              "cold": false,
+              "cpuThrottle": 1,
+              "input": "mouse",
+              "machine": "box-linux-xeon-8",
+              "renderer": "swiftshader",
+              "start": "prepared-424242",
+              "viewport": "desktop"
+            },
+            "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+            "4f8e9cc1a1240dc183ddd22dab823b68d7479e5a50adf9112186ebb3f774d920",
+            false
+          ],
+          "attempted": 43,
+          "passed": 43,
+          "failed": 0,
+          "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+          "oracleSdkSha256": "4f8e9cc1a1240dc183ddd22dab823b68d7479e5a50adf9112186ebb3f774d920",
+          "comparisonEligible": false,
+          "invalid": 0,
+          "timeouts": 0,
+          "independentLaunches": 5,
+          "p50": 1410.7000000476837,
+          "p95": 2201,
+          "min": 485.89999997615814,
+          "max": 2238.2999999523163,
+          "successOnly": {
+            "count": 43,
+            "p50": 1410.7000000476837,
+            "p95": 2201,
+            "min": 485.89999997615814,
+            "max": 2238.2999999523163,
+            "population": "conditional on valid successful completion"
+          },
+          "p95Interval": {
+            "n": 43,
+            "clusters": 5,
+            "p": 0.95,
+            "confidence": 0.99,
+            "estimate": 2201,
+            "low": null,
+            "high": null,
+            "bounded": false,
+            "equalClusterSize": false,
+            "operationsPerLaunch": null,
+            "minimaInterval": {
+              "n": 5,
+              "p": 0.95,
+              "confidence": 0.99,
+              "estimate": 518.5999999642372,
+              "low": 503.2000000476837,
+              "high": null,
+              "lowerRank": 3,
+              "upperRank": 6,
+              "bounded": false,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            },
+            "maximaInterval": {
+              "n": 5,
+              "p": 0.95,
+              "confidence": 0.99,
+              "estimate": 2238.2999999523163,
+              "low": 2201,
+              "high": null,
+              "lowerRank": 3,
+              "upperRank": 6,
+              "bounded": false,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            },
+            "eligibleForInference": false,
+            "method": "conservative exact binomial envelope of independent-session minima/maxima; null endpoint unbounded",
+            "assumptions": "independent identically distributed sessions, fixed equal offered operation counts; no workload-dependent sample loss"
+          },
+          "p95BootstrapDiagnostic": {
+            "n": 43,
+            "clusters": 5,
+            "p": 0.95,
+            "confidence": 0.95,
+            "estimate": 2201,
+            "low": 2036.300000011921,
+            "high": 2238.2999999523163,
+            "bounded": true,
+            "method": "percentile bootstrap of whole launch clusters (operation-weighted quantile)",
+            "replicates": 5000,
+            "seed": 1279477809,
+            "eligibleForInference": false,
+            "limitation": "diagnostic only: empirical bootstrap cannot discover unobserved tail modes; never used for hard regression gates"
+          },
+          "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+          "latencyBounds": {
+            "p50": {
+              "low": 1410.7000000476837,
+              "high": 1410.7000000476837
+            },
+            "p95": {
+              "low": 2201,
+              "high": 2201
+            },
+            "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+          },
+          "correctnessGate": true,
+          "tailSampleQuotaMet": false,
+          "eligibleForTailInference": false,
+          "censored": [],
+          "inference": "CONSTRUCTION OR UNPINNED ORACLE: diagnostic only; explicit frozen corpus and SDK identities required"
+        },
+        {
+          "key": [
+            "c1ebca6a041f890641baefcaf0136896512edda9b0558f7ce3c44eea3f9e91f1",
+            "perf-phase-a-20261116-v1",
+            "HC-20261116-A1",
+            "prepared-performance-start-seed-424242",
+            "scrub-drag",
+            "move-arrival-to-caught-up-frame",
+            {
+              "arm": "deferred",
+              "artwork": "performance-mode-stubs-art0",
+              "cadenceMs": 50,
+              "cold": false,
+              "cpuThrottle": 1,
+              "input": "mouse",
+              "machine": "box-linux-xeon-8",
+              "renderer": "swiftshader",
+              "start": "prepared-424242",
+              "viewport": "desktop"
+            },
+            "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+            "4f8e9cc1a1240dc183ddd22dab823b68d7479e5a50adf9112186ebb3f774d920",
+            false
+          ],
+          "attempted": 40,
+          "passed": 40,
+          "failed": 0,
+          "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+          "oracleSdkSha256": "4f8e9cc1a1240dc183ddd22dab823b68d7479e5a50adf9112186ebb3f774d920",
+          "comparisonEligible": false,
+          "invalid": 0,
+          "timeouts": 0,
+          "independentLaunches": 5,
+          "p50": 1096.9000000357628,
+          "p95": 2005.0999999642372,
+          "min": 545.8000000119209,
+          "max": 2118,
+          "successOnly": {
+            "count": 40,
+            "p50": 1096.9000000357628,
+            "p95": 2005.0999999642372,
+            "min": 545.8000000119209,
+            "max": 2118,
+            "population": "conditional on valid successful completion"
+          },
+          "p95Interval": {
+            "n": 40,
+            "clusters": 5,
+            "p": 0.95,
+            "confidence": 0.99,
+            "estimate": 2005.0999999642372,
+            "low": null,
+            "high": null,
+            "bounded": false,
+            "equalClusterSize": false,
+            "operationsPerLaunch": null,
+            "minimaInterval": {
+              "n": 5,
+              "p": 0.95,
+              "confidence": 0.99,
+              "estimate": 819.3999999761581,
+              "low": 586.1999999880791,
+              "high": null,
+              "lowerRank": 3,
+              "upperRank": 6,
+              "bounded": false,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            },
+            "maximaInterval": {
+              "n": 5,
+              "p": 0.95,
+              "confidence": 0.99,
+              "estimate": 2118,
+              "low": 1721.699999988079,
+              "high": null,
+              "lowerRank": 3,
+              "upperRank": 6,
+              "bounded": false,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            },
+            "eligibleForInference": false,
+            "method": "conservative exact binomial envelope of independent-session minima/maxima; null endpoint unbounded",
+            "assumptions": "independent identically distributed sessions, fixed equal offered operation counts; no workload-dependent sample loss"
+          },
+          "p95BootstrapDiagnostic": {
+            "n": 40,
+            "clusters": 5,
+            "p": 0.95,
+            "confidence": 0.95,
+            "estimate": 2005.0999999642372,
+            "low": 1658.5,
+            "high": 2118,
+            "bounded": true,
+            "method": "percentile bootstrap of whole launch clusters (operation-weighted quantile)",
+            "replicates": 5000,
+            "seed": 1279477809,
+            "eligibleForInference": false,
+            "limitation": "diagnostic only: empirical bootstrap cannot discover unobserved tail modes; never used for hard regression gates"
+          },
+          "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+          "latencyBounds": {
+            "p50": {
+              "low": 1096.9000000357628,
+              "high": 1096.9000000357628
+            },
+            "p95": {
+              "low": 2005.0999999642372,
+              "high": 2005.0999999642372
+            },
+            "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+          },
+          "correctnessGate": true,
+          "tailSampleQuotaMet": false,
+          "eligibleForTailInference": false,
+          "censored": [],
+          "inference": "CONSTRUCTION OR UNPINNED ORACLE: diagnostic only; explicit frozen corpus and SDK identities required"
+        }
+      ]
+    }
+  }
+}

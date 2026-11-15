@@ -1,0 +1,30 @@
+{
+  "artifactDir": "artifacts\\perf-phase-a-20261116\\audit-r1-a1-01",
+  "files": [
+    {
+      "path": "a1-01-stalled-0.png",
+      "bytes": 1573323,
+      "sha256": "c7dd3f36d92d5e0ce6dfd9af3289b4590144efc2a166a21202ebbd529dc43cc6",
+      "committed": false
+    },
+    {
+      "path": "a1-01-summary.json",
+      "bytes": 862,
+      "sha256": "b1a3c733f1c2992d907c4b1615df4b4ffb4e2817538d229d5da26b95104e4389",
+      "committed": true
+    },
+    {
+      "path": "a1-01-unstalled-0.png",
+      "bytes": 1573323,
+      "sha256": "c7dd3f36d92d5e0ce6dfd9af3289b4590144efc2a166a21202ebbd529dc43cc6",
+      "committed": false
+    },
+    {
+      "path": "raw-a1-01.json",
+      "bytes": 29356,
+      "sha256": "6ba93a87ee545985e240afb57cd95428fc8152cfb44c1633e6f47739cbb5fb90",
+      "committed": true
+    }
+  ],
+  "at": "2026-11-15T16:22:33.690Z"
+}
