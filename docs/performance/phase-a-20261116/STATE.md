@@ -1,6 +1,6 @@
 # Phase A — STATE (HC-20261116-A1)
 
-Updated 2026-11-16 02:05 AEDT (Australia/Sydney). Builder: Code Health box executor (Grok Bot). Session start 23:02 AEDT, hard stop 02:32 AEDT. Scope: WP1 → WP2 → WP3, then WP3b (orchestrator, 00:14, max 60 min; WP4–5 only if WP3b passes). No audit (WP6).
+Updated 2026-11-16 01:55 AEDT (Australia/Sydney). Builder: Code Health box executor (Grok Bot). Session start 23:02 AEDT, hard stop 02:32 AEDT. Scope: WP1 → WP2 → WP3, then WP3b (orchestrator, 00:14, max 60 min; WP4–5 only if WP3b passes). No audit (WP6).
 
 **Phase A verdict: NOT SOUND (construction).** `HARNESS_REVIEW.md` is **NOT AUDITED**. No baseline, no scorecard, no gains.
 
@@ -82,7 +82,7 @@ Superseded run: `wp1-node-20261115` used a stale `controls.mjs` (first commit mi
 - Design 1 (r2) metric (own-target completed only, stamped inside rAF) failed the delay and deferred controls: survivorship bias (slow moves get superseded and drop out) and the stamp ran before deferred and Pixi render work. Design 2 (r3) fixed both; this was the 2nd and last allowed design.
 - **Calibration caveat:** the controls prove sensitivity and direction, not linear calibration. Per-move work compounds across the open-loop stream: +200 ms injected per move → +1005 ms p50; deferred → +581 ms. Delivered moves also fall 21 → 7 under load. Each figure is n=1 drag (one run per arm); no A/A yet. WP4 must add repeated reps and an A/A before any comparison.
 
-## WP4–5 — PREDECLARED pass rules (written 02:05 AEDT, before running)
+## WP4–5 — PREDECLARED pass rules (written 01:54 AEDT, before running)
 
 Runs: (1) Node `node scripts/perf-phase-a-20261116/run.mjs --id=wp4-node --phase=forecast` (window 480 s ×120, horizon ×6, re-projection ×6, each with F-W1-3 diagnostics: wall start, loadavg1, heap before/after, GC pauses overlapping the call). (2) Browser `node scripts/perf-phase-a-20261116/run.mjs --id=wp4-suites --phase=suites --allow-suites`: profile-outer, 3 suites desktop 1280×800 1× then 3 suites mobile 844×390 4×. Each suite = fresh browser for ordinary New Game (+ bake, opening-unveil pacing, 40 warm scrub steps) and a second fresh browser for the prepared 424242 playing start with one 12-drag `CARRYOVER_CIRCUIT_4B` cycle (3 drags per arm A1/A2/+200 ms delay/+200 ms deferred), 5 s held-idle settle gap. Node runs are sequential with the browser suites (not concurrent) so they do not perturb each other.
 
@@ -129,7 +129,7 @@ All predeclared gates passed (numbers in the control table). The A/A sign flippe
 - **Stated limit (mobile 4×):** with only 4–8 of 40 moves delivered per drag and ~300 ms frames, a +200 ms deferred perturbation shifts the drag metric by +510–674 ms, detectably positive at n=10 (lower bound +267) but not beyond the A/A envelope (±543 ms). The mobile 4× drag job therefore cannot yet resolve changes smaller than ~0.5–0.6 s per-drag p50 at n=10/arm. Desktop 1× resolves ~0.1 s.
 - **F-W3b-1 (harness, for Auditor):** mobile A/A shows a consistent +186 ms A2−A1 offset in both attempts (pooled intervals barely overlap in attempt 2). The rotation puts A2 directly after A1 in 3 of 4 positions, so carry-over between consecutive drags is a candidate. Within the predeclared rule it passed, but full counterbalancing (or a settle gap between drags) should be checked before WP4.
 - **F-W3b-2 (environment):** the box restarted at about 00:26 AEDT during the first mobile attempt (uptime reset; `node_modules`, `dist` and uncommitted edits were lost). The WP3b edits were re-applied, committed (`9664a877`) and pushed; `npm ci` and `npm run build` were rerun. The first desktop repeat run (00:20, all controls PASS, A1 p50 ≈ 131 ms) was lost with its artifacts; only console output exists, so it is not evidence. The retained desktop run (r2, post-rebuild) has a higher baseline (≈218 ms), which is also a between-session variance signal for WP4.
-- WP4 suite integration for scrub-drag is drafted but NOT run: `docs/performance/phase-a-20261116/wp4-scrub-drag-suite.UNRUN.patch` (adds 5 prepared playing drags per population per suite to `run.mjs`).
+- WP4 suite integration for scrub-drag is drafted but NOT run: the former UNRUN patch, now applied to `scripts/perf-phase-a-20261116/run.mjs` (35872c47) (adds 5 prepared playing drags per population per suite to `run.mjs`).
 
 ## WP3 findings (Builder; not audited)
 
@@ -150,4 +150,4 @@ All predeclared gates passed (numbers in the control table). The A/A sign flippe
 
 ## Next step
 
-WP3c PASS. Next session: WP4–5, the 3 back-to-back suites (desktop 1×, mobile 4×) for all five jobs + Node. Scrub-drag integration is drafted in `docs/performance/phase-a-20261116/wp4-scrub-drag-suite.UNRUN.patch` and should switch to the WP3c mobile design (circuit2, 5 s gap). Recheck F-W1-3 and between-session drag variance. `HARNESS_REVIEW.md` stays NOT AUDITED until WP4–5 pass.
+WP3c PASS. Next session: WP4–5, the 3 back-to-back suites (desktop 1×, mobile 4×) for all five jobs + Node. Scrub-drag integration is drafted in the former UNRUN patch, now applied to `scripts/perf-phase-a-20261116/run.mjs` (35872c47) and should switch to the WP3c mobile design (circuit2, 5 s gap). Recheck F-W1-3 and between-session drag variance. `HARNESS_REVIEW.md` stays NOT AUDITED until WP4–5 pass.
