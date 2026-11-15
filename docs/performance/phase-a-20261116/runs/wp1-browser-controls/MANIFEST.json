@@ -1,0 +1,54 @@
+{
+  "artifactDir": "artifacts/perf-phase-a-20261116/wp1-browser-controls",
+  "files": [
+    {
+      "path": "PROOF_SUMMARY.json",
+      "bytes": 8804,
+      "sha256": "aebccfc566b8ef1cedf3e35fb1ee256bcd1804996c053740e990a5d5cb185c99",
+      "committed": true
+    },
+    {
+      "path": "controls-summary.json",
+      "bytes": 3588,
+      "sha256": "f15a330fd48e5c4378768c9174856a29367d6275a195ce95033efeab51338f2c",
+      "committed": true
+    },
+    {
+      "path": "controls/controls.json",
+      "bytes": 3428,
+      "sha256": "283feea7819a90e9526e367627372dc679345ae11b464ea0210c104263961ada",
+      "committed": true
+    },
+    {
+      "path": "controls/ctrl-ng-positive-new-game-finished.png",
+      "bytes": 590058,
+      "sha256": "ba6978b107de343ca478f914ddc0a28625b1139fb4d1eb123208c926df4c4cf3",
+      "committed": false
+    },
+    {
+      "path": "controls/raw-ctrl-ng-positive.json",
+      "bytes": 3278,
+      "sha256": "cdd033a5fcc151612a2f5ca4ba9339e917d78a3e81aab5021ffdf4bd4e7f53ea",
+      "committed": true
+    },
+    {
+      "path": "controls/raw-ctrl-scrub.json",
+      "bytes": 30463,
+      "sha256": "87b1726d31a47ef2a1af40adfc62a3c0b85b2e8b2f15bb400184ddb23342a25d",
+      "committed": true
+    },
+    {
+      "path": "controls/raw-forecast-controls.json",
+      "bytes": 9934,
+      "sha256": "d347519b1d3c3c37a49fe1f6a8c31df0e5904284c42d230533428e10d1470760",
+      "committed": true
+    },
+    {
+      "path": "identities.json",
+      "bytes": 3810,
+      "sha256": "c0d99db866e1536cc28aa3b19e00a5bdab48dc650962499d073e43b4bb7d7337",
+      "committed": true
+    }
+  ],
+  "at": "2026-11-15T12:41:46.097Z"
+}

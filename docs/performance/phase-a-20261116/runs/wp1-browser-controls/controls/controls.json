@@ -1,0 +1,160 @@
+{
+  "passed": true,
+  "outcomes": [
+    {
+      "id": "statistics-unit",
+      "passed": null,
+      "detail": "run via statistics-test.mjs in run.mjs"
+    },
+    {
+      "id": "forecast-added-delay",
+      "passed": true,
+      "detail": {
+        "baseMs": 228.242613,
+        "delayedMs": 419.745694,
+        "delta": 191.503081
+      }
+    },
+    {
+      "id": "forecast-wrong-result",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "endSec": 96
+      }
+    },
+    {
+      "id": "forecast-window-positive",
+      "passed": true,
+      "detail": {
+        "elapsedMs": 214.314027,
+        "endSec": 96
+      }
+    },
+    {
+      "id": "forecast-horizon-positive",
+      "passed": true,
+      "detail": {
+        "endSec": 6138,
+        "expected": 6138,
+        "elapsedMs": 13513.983869,
+        "simPerSec": 454.19619110838823
+      }
+    },
+    {
+      "id": "forecast-horizon-wrong-loss",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "endSec": 6138
+      }
+    },
+    {
+      "id": "reproject-positive",
+      "passed": true,
+      "detail": {
+        "frontierSec": 2032,
+        "openingLossSec": 6138,
+        "reprojectLossSec": 6138,
+        "twinAgreed": true,
+        "elapsedMs": 9047.872298
+      }
+    },
+    {
+      "id": "instrument-off-no-worker-wrap",
+      "passed": true,
+      "detail": {
+        "wrapped": false,
+        "sameRef": true,
+        "instrumentFlag": false
+      }
+    },
+    {
+      "id": "instrument-on-wraps-worker",
+      "passed": true,
+      "detail": {
+        "wrapped": true,
+        "sameRef": false,
+        "instrumentFlag": true
+      }
+    },
+    {
+      "id": "new-game-positive",
+      "passed": true,
+      "detail": {
+        "elapsedMs": 84355.10000000149,
+        "lossSec": 6138,
+        "coverageSec": 6138,
+        "phase": "completed",
+        "milestones": {
+          "preparing": 802.8000000044703,
+          "coverageFirst": 802.8000000044703,
+          "coverageReachedLoss": 17906,
+          "preparationReady": 17906,
+          "revealing": 69690.20000000298,
+          "menuHidden": 71468.5,
+          "revealComplete": 84347.40000000596
+        },
+        "bake": {
+          "bakeMs": 25372.20000000298,
+          "terrainBakeMs": 2995,
+          "variantBuildMs": 6367.60000000149
+        },
+        "graphicsPinned": true,
+        "oracle": {
+          "ok": true,
+          "reasons": [],
+          "errors": []
+        }
+      }
+    },
+    {
+      "id": "scrub-positive",
+      "passed": true,
+      "detail": {
+        "n": 8,
+        "p50": 198.60000000149012,
+        "max": 553.5999999940395,
+        "failed": 0
+      }
+    },
+    {
+      "id": "scrub-wrong-result",
+      "passed": true,
+      "detail": {
+        "oks": [
+          false,
+          false,
+          false
+        ],
+        "viewed": [
+          3069,
+          3375,
+          3677
+        ]
+      }
+    },
+    {
+      "id": "scrub-added-delay",
+      "passed": true,
+      "detail": {
+        "baseMed": 160.5,
+        "delMed": 362.3999999985099,
+        "delta": 201.89999999850988,
+        "method": "statistics.quantile p50"
+      }
+    },
+    {
+      "id": "scrub-deferred-completion",
+      "passed": true,
+      "detail": {
+        "baseMed": 160.5,
+        "defMed": 362.5,
+        "delta": 202,
+        "method": "statistics.quantile p50"
+      }
+    }
+  ],
+  "at": "2026-11-15T12:41:46.094Z",
+  "includeBrowser": true
+}

@@ -1,0 +1,118 @@
+{
+  "job": "new-game-opening",
+  "step": "useful-interaction",
+  "population": {
+    "cpuThrottle": 1,
+    "viewport": "desktop",
+    "cold": true,
+    "artwork": "illustrated-default-graphics",
+    "start": "ordinary-new-game",
+    "machine": "box-linux-xeon-8",
+    "renderer": "swiftshader"
+  },
+  "launchId": "ctrl-ng-positive",
+  "observationId": "ctrl-ng-positive",
+  "elapsedMs": 84355.10000000149,
+  "handlerElapsedMs": 84177.60000000149,
+  "queueDelayMs": 177.5,
+  "ok": true,
+  "timeout": false,
+  "buildId": "0fa4e215c5923390f30aec1e74f220e38a46d2c252cbead23b9a5078a3cbd608",
+  "fixture": "ordinary-new-game-seed-424242",
+  "harnessId": "perf-phase-a-20261116-v1",
+  "measurementContractId": "HC-20261116-A1",
+  "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+  "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+  "comparisonEligible": true,
+  "lossSec": 6138,
+  "coverageSec": 6138,
+  "openingPhase": "completed",
+  "openingElapsedSec": 5,
+  "bake": {
+    "bakeMs": 25372.20000000298,
+    "terrainBakeMs": 2995,
+    "variantBuildMs": 6367.60000000149
+  },
+  "heapMB": 662,
+  "workerWrapped": false,
+  "originalWorkerIntact": true,
+  "instrument": false,
+  "milestones": {
+    "preparing": 802.8000000044703,
+    "coverageFirst": 802.8000000044703,
+    "coverageReachedLoss": 17906,
+    "preparationReady": 17906,
+    "revealing": 69690.20000000298,
+    "menuHidden": 71468.5,
+    "revealComplete": 84347.40000000596
+  },
+  "forecastReadyMs": 17906,
+  "coverageReachedLossMs": 17906,
+  "menuHiddenMs": 71468.5,
+  "revealCompleteMs": 84347.40000000596,
+  "graphicsApplied": {
+    "graphicsOptions": {
+      "fog": true,
+      "clouds": true,
+      "shadows": true,
+      "wisps": true,
+      "water": true
+    },
+    "search": "",
+    "minimalGraphicsUrl": false,
+    "performanceUrl": false,
+    "progressiveArtwork": null,
+    "devicePixelRatio": 1,
+    "innerWidth": 1280,
+    "innerHeight": 800
+  },
+  "graphicsPinned": true,
+  "browserVersion": "156.0.8078.47",
+  "screenshotPath": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp1-browser-controls/controls/ctrl-ng-positive-new-game-finished.png",
+  "longTaskSumMs": 61694,
+  "longTasks200": 65,
+  "longestTaskMs": 15571,
+  "oracle": {
+    "ok": true,
+    "reasons": [],
+    "errors": []
+  },
+  "click": {
+    "tArm": 1679.1999999955297,
+    "startArrival": 2481.6999999955297,
+    "startHandler": 2659.1999999955297,
+    "slotClick": true,
+    "marks": [
+      {
+        "type": "pointerdown",
+        "timeStamp": 2481.6999999955297,
+        "handlerNow": 2659.1999999955297
+      },
+      {
+        "type": "mousedown",
+        "timeStamp": 2481.6999999955297,
+        "handlerNow": 2659.2999999970198
+      },
+      {
+        "type": "click",
+        "timeStamp": 2481.6999999955297,
+        "handlerNow": 2659.6999999955297
+      },
+      {
+        "type": "pointerdown",
+        "timeStamp": 3134.7999999970198,
+        "handlerNow": 3135.89999999851
+      },
+      {
+        "type": "mousedown",
+        "timeStamp": 3134.7999999970198,
+        "handlerNow": 3136
+      },
+      {
+        "type": "click",
+        "timeStamp": 3134.7999999970198,
+        "handlerNow": 3136.1999999955297
+      }
+    ]
+  }
+}
