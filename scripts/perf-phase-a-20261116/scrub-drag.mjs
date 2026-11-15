@@ -465,6 +465,10 @@ export function evaluateRepeat(drags) {
 // indices): within each block of 4 rows every arm immediately follows every
 // other arm exactly once (first-order carry-over balanced).
 export const WILLIAMS_4 = [[0, 1, 3, 2], [1, 2, 0, 3], [2, 3, 1, 0], [3, 0, 2, 1]];
+// Eulerian circuit of the complete directed graph on 4 arms: repeated
+// cyclically, every ordered pair (including the wrap) occurs exactly once per
+// 12 drags, so carry-over is balanced across row boundaries too (WP3c).
+export const CARRYOVER_CIRCUIT_4 = [0, 1, 0, 2, 0, 3, 1, 2, 1, 3, 2, 3];
 
 // Fixed settle gap: wait until playback is held and the drag/edge state is
 // idle, then a further gapMs (recorded per drag).
@@ -494,13 +498,15 @@ export async function runRepeatSuite({ outDir, kinds = ['prepared-desktop', 'pre
         if (screenshotDir) { k.playingShot = path.join(screenshotDir, `${kindName}-playing-before-drag.png`); await session.page.screenshot({ path: k.playingShot }); }
         console.log(`${stamp()} ${kindName} opened ${session.openMs} ms playing=${JSON.stringify(k.playing)}`);
         const drags = [];
-        for (let r = 0; r < reps; r++) {
-          for (let j = 0; j < ARMS.length; j++) {
-            const a = design === 'williams' ? ARMS[WILLIAMS_4[r % 4][j]] : ARMS[(j + r) % ARMS.length];
+        const total = design === 'circuit' ? Math.ceil(reps * 4 / 12) * 12 : reps * 4;
+        for (let idx = 0; idx < total; idx++) {
+          const r = Math.floor(idx / 4), j = idx % 4;
+          {
+            const a = design === 'circuit' ? ARMS[CARRYOVER_CIRCUIT_4[idx % 12]] : design === 'williams' ? ARMS[WILLIAMS_4[r % 4][j]] : ARMS[(j + r) % ARMS.length];
             const prevArm = drags.at(-1)?.arm ?? null;
             const gap = settleGapMs > 0 && drags.length ? await settleGap(session.page, settleGapMs) : null;
-            const launchId = `${kindName}-${a.arm}-r${r}`;
-            const shotTag = r === 0 && a.arm === 'A1' ? kindName : null;
+            const launchId = design === 'circuit' ? `${kindName}-${String(idx).padStart(2, '0')}-${a.arm}` : `${kindName}-${a.arm}-r${r}`;
+            const shotTag = idx === 0 ? kindName : null;
             const d = await runDrag({ session, launchId, kind: input, addedDelayMs: a.addedDelayMs, deferredMs: a.deferredMs, playing: true, arm: a.arm, rep: r,
               screenshotDir: shotTag ? screenshotDir : null, tag: shotTag ?? launchId });
             d.prevArm = prevArm; d.settleGap = gap;
