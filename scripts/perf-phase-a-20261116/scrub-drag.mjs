@@ -39,7 +39,11 @@ export async function openPreparedStart({ server, cpuThrottle = 1, viewport = 'd
   const session = await launchPage({ url: server.url, cpuThrottle, viewport, query: `/?perf=1&seed=${FROZEN_SEED}&art=0`, setSeed: false });
   const { page } = session;
   const t0 = Date.now();
-  await page.getByTestId('game-new-performance').click({ timeout: 60000 });
+  // Desktop: the performance button lives inside the collapsed Developer tools <details>.
+  const perfBtn = page.getByTestId('game-new-performance');
+  await page.getByText('Developer tools', { exact: true }).waitFor({ timeout: 60000 });
+  if (!(await perfBtn.isVisible().catch(() => false))) await page.getByText('Developer tools', { exact: true }).click();
+  await perfBtn.click({ timeout: 60000 });
   const start = page.getByRole('button', { name: 'Start here', exact: true }).first();
   if (await start.isVisible({ timeout: 3000 }).catch(() => false)) await start.click();
   await page.waitForFunction(() => {
@@ -98,7 +102,9 @@ async function installRecorder(page, { addedDelayMs = 0, deferredMs = 0 }) {
     const d = globalThis.__SETTLEMENT_DEBUG__;
     const rec = { frames: [], marks: [], running: true };
     globalThis.__hcDrag = rec;
-    const mark = (ev) => rec.marks.push({ type: ev.type, timeStamp: ev.timeStamp, handlerNow: performance.now(), x: ev.clientX, y: ev.clientY, pointerType: ev.pointerType, coalesced: ev.getCoalescedEvents ? ev.getCoalescedEvents().length : null });
+    const mark = (ev) => rec.marks.push({ type: ev.type, timeStamp: ev.timeStamp,
+      // Earliest coalesced sample: a coalesced move's arrival is not lost (no coordinated omission).
+      arrival: Math.min(ev.timeStamp, ...(ev.getCoalescedEvents ? ev.getCoalescedEvents().map((c) => c.timeStamp) : [])), handlerNow: performance.now(), x: ev.clientX, y: ev.clientY, pointerType: ev.pointerType, coalesced: ev.getCoalescedEvents ? ev.getCoalescedEvents().length : null });
     rec.mark = mark;
     for (const type of ['pointerdown', 'pointermove', 'pointerup']) window.addEventListener(type, mark, true);
     if (addedDelayMs > 0) {
@@ -111,9 +117,16 @@ async function installRecorder(page, { addedDelayMs = 0, deferredMs = 0 }) {
       rec.defer = (ev) => { if (ev.type === 'pointermove') requestAnimationFrame(() => { const u = performance.now() + deferredMs; while (performance.now() < u) { /* deferred completion */ } }); };
       window.addEventListener('pointermove', rec.defer, true);
     }
+    // Post-frame stamp: a MessageChannel task queued from rAF runs after every
+    // rAF callback of that frame (including Pixi's ticker render and any deferred
+    // work) and after the rendering update, so completion cannot be stamped
+    // before work that the frame still has to do (r2 deferred-control lesson).
+    const ch = new MessageChannel(); const pendingAfter = [];
+    ch.port1.onmessage = () => { const f = pendingAfter.shift(); if (f) f.after = performance.now(); };
     const loop = (t) => {
       const p = d.getScrubProbe();
-      rec.frames.push({ t, now: performance.now(), viewedSec: p.viewedSec, scrubSec: p.scrubSec, isScrubbing: p.isScrubbing, playbackTarget: p.playbackTarget, edgeSkipping: p.edge?.skipping ?? null });
+      const f = { t, now: performance.now(), after: null, viewedSec: p.viewedSec, scrubSec: p.scrubSec, isScrubbing: p.isScrubbing, playbackTarget: p.playbackTarget, edgeSkipping: p.edge?.skipping ?? null };
+      rec.frames.push(f); pendingAfter.push(f); ch.port2.postMessage(0);
       if (rec.running) requestAnimationFrame(loop);
     };
     requestAnimationFrame(loop);
@@ -148,8 +161,10 @@ function dispatcher(cdp, kind) {
 
 // Per-move analysis from raw frames/marks; pure, so the Auditor can recompute it.
 export function analyzeDrag({ frames, marks, wrongOffset = 0 }) {
-  const moves = marks.filter((m) => m.type === 'pointermove');
   const down = marks.find((m) => m.type === 'pointerdown') ?? null;
+  // Only moves delivered while the button/finger is down are drag moves; the
+  // hover move sent before the press (r1 analysis bug) is excluded.
+  const moves = marks.filter((m) => m.type === 'pointermove' && down && m.handlerNow >= down.handlerNow);
   const up = marks.find((m) => m.type === 'pointerup') ?? null;
   const rows = moves.map((m, i) => {
     const next = moves[i + 1]?.handlerNow ?? up?.handlerNow ?? Infinity;
@@ -166,6 +181,16 @@ export function analyzeDrag({ frames, marks, wrongOffset = 0 }) {
       censoredLowerBoundMs: complete ? null : (Number.isFinite(next) ? next - m.timeStamp : null),
     };
   });
+  // Primary metric (r3): per delivered move, arrival (earliest coalesced
+  // timeStamp) → post-frame stamp of the first frame at/after its handler whose
+  // viewedSec equals the live pointer-mapped scrubSec (+ wrongOffset). That
+  // target is this move's or a newer one, so superseded moves are satisfied by
+  // the newer position the user sees, not dropped and not censored forever.
+  const caught = moves.map((m, i) => {
+    const f = frames.find((x) => x.now >= m.handlerNow && x.after != null && x.scrubSec != null && x.viewedSec === x.scrubSec + wrongOffset);
+    const arrival = Number.isFinite(m.arrival) ? m.arrival : m.timeStamp;
+    return { i, arrival, handlerNow: m.handlerNow, ok: !!f, elapsedMs: f ? f.after - arrival : null, frameNow: f?.now ?? null, viewedSec: f?.viewedSec ?? null };
+  });
   const during = frames.filter((f) => down && f.now >= down.handlerNow && (!up || f.now < up.handlerNow));
   const intervals = during.slice(1).map((f, i) => f.t - during[i].t);
   return {
@@ -180,12 +205,18 @@ export function analyzeDrag({ frames, marks, wrongOffset = 0 }) {
     framesOver50: intervals.filter((v) => v > 50).length,
     completed: rows.filter((r) => r.ok).length,
     superseded: rows.filter((r) => r.superseded).length,
-    p50: rows.some((r) => r.ok) ? median(rows.filter((r) => r.ok).map((r) => r.elapsedMs)) : null,
+    ownTargetP50: rows.some((r) => r.ok) ? median(rows.filter((r) => r.ok).map((r) => r.elapsedMs)) : null,
+    caught, caughtUp: caught.filter((c) => c.ok).length,
+    p50: caught.some((c) => c.ok) ? median(caught.filter((c) => c.ok).map((c) => c.elapsedMs)) : null,
+    p95: caught.length && caught.every((c) => c.ok) ? quantile(caught.map((c) => c.elapsedMs), 0.95) : null,
   };
 }
 
 export async function runDrag({ session, launchId, kind = 'mouse', moves = DRAG_MOVES, cadenceMs = DRAG_CADENCE_MS, addedDelayMs = 0, deferredMs = 0, screenshotDir = null, tag = launchId }) {
   const { page, cdp } = session;
+  // Off-clock: dismiss the opening Foreseen Extinction recap so the plot is unobstructed.
+  const minimise = page.getByRole('button', { name: /Minimise/i }).first();
+  if (await minimise.isVisible({ timeout: 1000 }).catch(() => false)) { await minimise.click().catch(() => {}); await delay(500); }
   const probe0 = await enableProbe(page);
   if (!probe0) return { launchId, ok: false, reason: 'probe-unavailable' };
   await waitForRevealSettled(page);
@@ -252,28 +283,35 @@ export async function runDrag({ session, launchId, kind = 'mouse', moves = DRAG_
     seedUnchanged: before.baseSeed === afterRelease.baseSeed && before.baseSeed === FROZEN_SEED,
     timelineUnchanged: JSON.stringify(before.timeline) === JSON.stringify(afterRelease.timeline),
     movesCompletedAny: analysis.completed > 0,
+    allDeliveredMovesCaughtUp: analysis.caught.length > 0 && analysis.caughtUp === analysis.caught.length,
   };
   const required = ['latchedIsScrubbing', 'isScrubbingMidDrag', 'edgeSkipMidDrag', 'holdAfterDown', 'releasedNotScrubbing', 'edgeSettledAfterRelease',
-    'pointerMappingOk', 'settledEqualsReferenceState', 'settledEqualsReferencePackets', 'frontierUnchanged', 'seedUnchanged', 'timelineUnchanged', 'movesCompletedAny'];
+    'pointerMappingOk', 'settledEqualsReferenceState', 'settledEqualsReferencePackets', 'frontierUnchanged', 'seedUnchanged', 'timelineUnchanged', 'movesCompletedAny', 'allDeliveredMovesCaughtUp'];
   const ok = required.every((k) => oracle[k] === true);
   const buildId = collectBuildAssets().buildAssetSha256 ?? 'missing-dist';
   const pop = population({ cpuThrottle: session.cpuThrottle ?? 1, viewport: session.viewport ?? 'desktop', cold: false, artwork: session.artwork, start: session.start ?? 'ordinary-new-game' });
   const control = addedDelayMs > 0 || deferredMs > 0;
-  const observations = analysis.rows.map((r) => ({
+  const observations = analysis.caught.map((c) => ({
+    job: 'scrub-drag', step: 'move-arrival-to-caught-up-frame', population: { ...pop, input: kind, cadenceMs },
+    launchId, observationId: `${launchId}-m${c.i}`, elapsedMs: c.ok ? c.elapsedMs : 0, ok: c.ok && ok, timeout: !c.ok, buildId,
+    fixture: session.fixture ?? `ordinary-new-game-seed-${FROZEN_SEED}`, harnessId: HARNESS_ID, measurementContractId: CONTRACT_ID,
+    fixtureManifestId: frozenFixtureId(), oracleSdkSha256: oracleSdkId(), comparisonEligible: !control, addedDelayMs, deferredMs,
+  }));
+  const ownTargetObservations = analysis.rows.map((r) => ({
     job: 'scrub-drag', step: 'move-to-viewed-frame', population: { ...pop, input: kind, cadenceMs },
-    launchId, observationId: `${launchId}-m${r.i}`, elapsedMs: r.ok ? r.elapsedMs : (r.censoredLowerBoundMs ?? 0),
+    launchId, observationId: `${launchId}-own-m${r.i}`, elapsedMs: r.ok ? r.elapsedMs : (r.censoredLowerBoundMs ?? 0),
     ok: r.ok && ok, timeout: false, superseded: r.superseded, buildId,
     fixture: session.fixture ?? `ordinary-new-game-seed-${FROZEN_SEED}`, harnessId: HARNESS_ID, measurementContractId: CONTRACT_ID,
     fixtureManifestId: frozenFixtureId(), oracleSdkSha256: oracleSdkId(), comparisonEligible: !control,
     targetSec: r.targetSec, queueDelayMs: r.queueDelayMs, addedDelayMs, deferredMs,
   }));
-  console.log(`${stamp()} drag ${launchId} ok=${ok} delivered=${analysis.delivered}/${moves} completed=${analysis.completed} superseded=${analysis.superseded} p50=${analysis.p50?.toFixed?.(1)} latched=${analysis.latchedIsScrubbing}`);
+  console.log(`${stamp()} drag ${launchId} ok=${ok} delivered=${analysis.delivered}/${moves} completed=${analysis.completed} superseded=${analysis.superseded} p50=${analysis.p50?.toFixed?.(1)} caughtUp=${analysis.caughtUp}/${analysis.caught.length} ownP50=${analysis.ownTargetP50?.toFixed?.(1)} latched=${analysis.latchedIsScrubbing}`);
   return {
     launchId, kind, ok, oracle, required, before, midProbe, afterRelease, reference, plot, secPerPx, maxMappingError: mappingErrors.length ? Math.max(...mappingErrors) : null,
     sent: moves, delivered: analysis.delivered, coalescedOrDropped: moves - analysis.delivered,
-    completed: analysis.completed, superseded: analysis.superseded, p50: analysis.p50,
+    completed: analysis.completed, superseded: analysis.superseded, p50: analysis.p50, p95: analysis.p95, caughtUp: analysis.caughtUp, ownTargetP50: analysis.ownTargetP50,
     rafP50: analysis.rafP50, rafMax: analysis.rafMax, framesOver50: analysis.framesOver50, edgeSkippingDuring: analysis.edgeSkippingDuring,
-    addedDelayMs, deferredMs, sendLog, raw, analysis, observations, screenshots: { midDrag: midShot, afterSettle: settleShot },
+    addedDelayMs, deferredMs, sendLog, raw, analysis, observations, ownTargetObservations, screenshots: { midDrag: midShot, afterSettle: settleShot },
     errors: session.errors.slice(0, 6),
   };
 }
@@ -281,7 +319,7 @@ export async function runDrag({ session, launchId, kind = 'mouse', moves = DRAG_
 // Wrong-target control: re-analyse the same raw frames with an offset target.
 export function wrongTargetControl(drag) {
   const wrong = analyzeDrag({ ...drag.raw, wrongOffset: 7 });
-  return { id: 'drag-wrong-target', passed: drag.completed > 0 && wrong.completed === 0, detail: { positiveCompleted: drag.completed, wrongCompleted: wrong.completed } };
+  return { id: 'drag-wrong-target', passed: drag.analysis.caughtUp > 0 && wrong.caughtUp === 0 && wrong.completed === 0, detail: { positiveCaughtUp: drag.analysis.caughtUp, wrongCaughtUp: wrong.caughtUp, wrongOwnTargetCompleted: wrong.completed } };
 }
 
 export async function runScrubDragSuite({ outDir, kinds = ['prepared-desktop', 'ordinary-desktop'], screenshotDir = outDir }) {
@@ -290,7 +328,7 @@ export async function runScrubDragSuite({ outDir, kinds = ['prepared-desktop', '
   const results = { at: new Date().toISOString(), runs: [], controls: [] };
   const save = () => writeFileSync(path.join(outDir, 'scrub-drag-summary.json'), JSON.stringify({
     ...results,
-    runs: results.runs.map(({ raw, analysis, observations, sendLog, ...r }) => r),
+    runs: results.runs.map(({ raw, analysis, observations, ownTargetObservations, sendLog, ...r }) => r),
   }, null, 2));
   try {
     for (const kindName of kinds) {
@@ -318,8 +356,8 @@ export async function runScrubDragSuite({ outDir, kinds = ['prepared-desktop', '
           writeFileSync(path.join(outDir, `raw-drag-${kindName}-deferred.json`), JSON.stringify(deferred, null, 2));
           // Recompute positive median from the same module for the comparison.
           const base = pos.p50;
-          results.controls.push({ id: 'drag-added-delay', passed: delayed.completed > 0 && Number.isFinite(base) && delayed.p50 - base >= 150, detail: { baseP50: base, delayedP50: delayed.p50, delta: delayed.p50 - base, delayedCompleted: delayed.completed } });
-          results.controls.push({ id: 'drag-deferred-completion', passed: deferred.completed > 0 && Number.isFinite(base) && deferred.p50 - base >= 150, detail: { baseP50: base, deferredP50: deferred.p50, delta: deferred.p50 - base, deferredCompleted: deferred.completed } });
+          results.controls.push({ id: 'drag-added-delay', passed: delayed.caughtUp > 0 && Number.isFinite(base) && delayed.p50 - base >= 150, detail: { baseP50: base, delayedP50: delayed.p50, delta: delayed.p50 - base, delayedCompleted: delayed.completed } });
+          results.controls.push({ id: 'drag-deferred-completion', passed: deferred.caughtUp > 0 && Number.isFinite(base) && deferred.p50 - base >= 150, detail: { baseP50: base, deferredP50: deferred.p50, delta: deferred.p50 - base, deferredCompleted: deferred.completed } });
           results.runs.push({ ...delayed, raw: undefined }, { ...deferred, raw: undefined });
         }
         save();
@@ -344,4 +382,5 @@ if (process.argv[1]?.endsWith('scrub-drag.mjs')) {
   const r = await runScrubDragSuite({ outDir, kinds });
   finalizeRun(outDir);
   console.log(JSON.stringify({ id, runs: r.runs.map((x) => ({ id: x.launchId, ok: x.ok, reason: x.reason, p50: x.p50, completed: x.completed, delivered: x.delivered, failed: x.oracle ? Object.entries(x.oracle).filter(([k, v]) => v !== true).map(([k]) => k) : null })), controls: r.controls.map((c) => ({ id: c.id, passed: c.passed })), artifact: outDir }));
+  process.exit(0);
 }

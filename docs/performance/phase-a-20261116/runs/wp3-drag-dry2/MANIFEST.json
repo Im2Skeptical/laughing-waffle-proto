@@ -1,0 +1,12 @@
+{
+  "artifactDir": "artifacts/perf-phase-a-20261116/wp3-drag-dry2",
+  "files": [
+    {
+      "path": "scrub-drag-summary.json",
+      "bytes": 2049,
+      "sha256": "238f80cc0dc288c2f957d8ba3a9f7d0adefde8fdd7a5a125202d54908cc2ec9e",
+      "committed": true
+    }
+  ],
+  "at": "2026-11-15T12:54:38.338Z"
+}

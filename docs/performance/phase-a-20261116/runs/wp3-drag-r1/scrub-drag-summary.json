@@ -1,0 +1,190 @@
+{
+  "at": "2026-11-15T12:56:21.025Z",
+  "runs": [
+    {
+      "launchId": "ordinary-desktop-positive",
+      "kind": "mouse",
+      "ok": false,
+      "oracle": {
+        "latchedIsScrubbing": true,
+        "isScrubbingMidDrag": true,
+        "edgeSkipMidDrag": true,
+        "holdAfterDown": true,
+        "holdMeaningful": false,
+        "releasedNotScrubbing": true,
+        "edgeSettledAfterRelease": true,
+        "pointerMappingOk": false,
+        "settledEqualsReferenceState": true,
+        "settledEqualsReferencePackets": true,
+        "frontierUnchanged": true,
+        "seedUnchanged": true,
+        "timelineUnchanged": true,
+        "movesCompletedAny": true
+      },
+      "required": [
+        "latchedIsScrubbing",
+        "isScrubbingMidDrag",
+        "edgeSkipMidDrag",
+        "holdAfterDown",
+        "releasedNotScrubbing",
+        "edgeSettledAfterRelease",
+        "pointerMappingOk",
+        "settledEqualsReferenceState",
+        "settledEqualsReferencePackets",
+        "frontierUnchanged",
+        "seedUnchanged",
+        "timelineUnchanged",
+        "movesCompletedAny"
+      ],
+      "before": {
+        "viewedSec": 6138,
+        "frontierSec": 0,
+        "baseSeed": 424242,
+        "timeline": {
+          "cursorSec": 0,
+          "historyEndSec": 0,
+          "maxReachedHistoryEndSec": 0,
+          "revision": 0,
+          "actionContentVersion": 0,
+          "actionCount": 0,
+          "actions": []
+        },
+        "playbackTarget": 0,
+        "isScrubbing": false,
+        "scrubSec": 6138,
+        "minSec": 0,
+        "maxSec": 6138,
+        "browseCapSec": 6138,
+        "revealedCoverageEndSec": 6138,
+        "viewedStateSha256": "9d742204c001cf097bc1aead8ddab7a1a503089f9e73ad188ea254c6580b0829",
+        "edge": {
+          "skipping": false,
+          "boundarySec": 6137,
+          "packets": []
+        },
+        "previewStatus": {
+          "active": true,
+          "previewSec": 6138,
+          "liveSec": 0,
+          "historyEndSec": 0,
+          "isForecastPreview": true
+        }
+      },
+      "midProbe": {
+        "viewedSec": 2532,
+        "playbackTarget": 0,
+        "isScrubbing": true,
+        "scrubSec": 2532,
+        "edge": {
+          "skipping": true,
+          "boundarySec": null,
+          "packets": []
+        }
+      },
+      "afterRelease": {
+        "viewedSec": 2532,
+        "frontierSec": 0,
+        "baseSeed": 424242,
+        "timeline": {
+          "cursorSec": 0,
+          "historyEndSec": 0,
+          "maxReachedHistoryEndSec": 0,
+          "revision": 0,
+          "actionContentVersion": 0,
+          "actionCount": 0,
+          "actions": []
+        },
+        "playbackTarget": 0,
+        "isScrubbing": false,
+        "scrubSec": 2532,
+        "minSec": 0,
+        "maxSec": 6138,
+        "browseCapSec": 6138,
+        "revealedCoverageEndSec": 6138,
+        "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+        "edge": {
+          "skipping": false,
+          "boundarySec": 2532,
+          "packets": [
+            "R09>R16|food|1|2531",
+            "R09>R08|stock|1|2532"
+          ]
+        },
+        "previewStatus": {
+          "active": true,
+          "previewSec": 2532,
+          "liveSec": 0,
+          "historyEndSec": 0,
+          "isForecastPreview": true
+        }
+      },
+      "reference": {
+        "viewedSec": 2532,
+        "frontierSec": 0,
+        "baseSeed": 424242,
+        "timeline": {
+          "cursorSec": 0,
+          "historyEndSec": 0,
+          "maxReachedHistoryEndSec": 0,
+          "revision": 0,
+          "actionContentVersion": 0,
+          "actionCount": 0,
+          "actions": []
+        },
+        "playbackTarget": 0,
+        "isScrubbing": false,
+        "scrubSec": 2532,
+        "minSec": 0,
+        "maxSec": 6138,
+        "browseCapSec": 6138,
+        "revealedCoverageEndSec": 6138,
+        "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+        "edge": {
+          "skipping": false,
+          "boundarySec": 2532,
+          "packets": [
+            "R09>R16|food|1|2531",
+            "R09>R08|stock|1|2532"
+          ]
+        },
+        "previewStatus": {
+          "active": true,
+          "previewSec": 2532,
+          "liveSec": 0,
+          "historyEndSec": 0,
+          "isForecastPreview": true
+        }
+      },
+      "plot": {
+        "a": {
+          "x": 302.7890037128713,
+          "y": 620.3623762376237
+        },
+        "b": {
+          "x": 976.2030816831684,
+          "y": 620.3623762376237
+        }
+      },
+      "secPerPx": 9.114748563766637,
+      "maxMappingError": 5217.299986009376,
+      "sent": 40,
+      "delivered": 22,
+      "coalescedOrDropped": 18,
+      "completed": 5,
+      "superseded": 17,
+      "p50": 210.5,
+      "rafP50": 466.6999999999971,
+      "rafMax": 633.2999999999884,
+      "framesOver50": 8,
+      "edgeSkippingDuring": 1,
+      "addedDelayMs": 0,
+      "deferredMs": 0,
+      "screenshots": {
+        "midDrag": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp3-drag-r1/ordinary-desktop-mid-drag.png",
+        "afterSettle": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp3-drag-r1/ordinary-desktop-after-settle.png"
+      },
+      "errors": []
+    }
+  ],
+  "controls": []
+}

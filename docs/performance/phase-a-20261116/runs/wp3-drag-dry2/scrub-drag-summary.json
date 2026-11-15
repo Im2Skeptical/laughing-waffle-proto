@@ -1,0 +1,11 @@
+{
+  "at": "2026-11-15T12:53:33.596Z",
+  "runs": [
+    {
+      "launchId": "prepared-desktop",
+      "ok": false,
+      "reason": "error: locator.click: Timeout 60000ms exceeded.\nCall log:\n  - waiting for getByTestId('game-new-performance')\n    - locator resolved to <button disabled type=\"button\" data-testid=\"game-new-performance\">New game in performance mode</button>\n  - attempting click action\n    - waiting for element to be visible, enabled and stable\n  - element was detached from the DOM, retrying\n    - locator resolved to <button type=\"button\" data-testid=\"game-new-performance\">New game in performance mode</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n      - waiting 100ms\n    3 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n      - waiting 500ms\n    - waiting for element to be visible, enabled and stable\n    - element is not stable\n  5 × retrying click action\n      - waiting 500ms\n      - waiting for element to be visible, enabled and stable\n      - element is not visible\n  - retrying click action\n    - waiting 500ms\n    - waiting for element to be visible, enabled and stable\n  - element was detached from the DOM, retrying\n    - locator resolved to <button type=\"button\" data-testid=\"game-new-performance\">New game in performance mode</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n      - waiting 100ms\n    - waiting for element to be visible, enabled and stable\n"
+    }
+  ],
+  "controls": []
+}

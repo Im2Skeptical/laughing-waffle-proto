@@ -1,0 +1,42 @@
+{
+  "artifactDir": "artifacts/perf-phase-a-20261116/wp3-drag-r3",
+  "files": [
+    {
+      "path": "ordinary-desktop-after-settle.png",
+      "bytes": 1019226,
+      "sha256": "32b30073fdd1cb33130b168d60f035ec7be56d1a51836a09761c0f50c497b2af",
+      "committed": false
+    },
+    {
+      "path": "ordinary-desktop-mid-drag.png",
+      "bytes": 1019226,
+      "sha256": "a544bb518092c2c7a3f1fd28523932aa0f5514c55ac6d3a78309c464475faf63",
+      "committed": false
+    },
+    {
+      "path": "raw-drag-ordinary-desktop-deferred.json",
+      "bytes": 38578,
+      "sha256": "0a231b8e5aadfe746cb95304bc958810e9aadb1805cc798d814fb3d19e324dc3",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-ordinary-desktop-delay.json",
+      "bytes": 38413,
+      "sha256": "91e4de41574bc3116ab96a3f1dcaf557d9a4b4aba809fcd02aa050e387066e56",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-ordinary-desktop-positive.json",
+      "bytes": 84392,
+      "sha256": "e820cdc620c2c5e3c3b8bdfe62f89a3427ce1f63a737b7f81c8d9c8c8c788584",
+      "committed": true
+    },
+    {
+      "path": "scrub-drag-summary.json",
+      "bytes": 16681,
+      "sha256": "0bbec4740f8cc1615b66d9d8b38de7e13f6c88564d649dc16386073702a4add8",
+      "committed": true
+    }
+  ],
+  "at": "2026-11-15T13:02:30.547Z"
+}

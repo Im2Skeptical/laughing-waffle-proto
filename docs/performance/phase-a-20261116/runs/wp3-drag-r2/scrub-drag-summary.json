@@ -1,0 +1,593 @@
+{
+  "at": "2026-11-15T12:58:34.513Z",
+  "runs": [
+    {
+      "launchId": "ordinary-desktop-positive",
+      "kind": "mouse",
+      "ok": true,
+      "oracle": {
+        "latchedIsScrubbing": true,
+        "isScrubbingMidDrag": true,
+        "edgeSkipMidDrag": true,
+        "holdAfterDown": true,
+        "holdMeaningful": false,
+        "releasedNotScrubbing": true,
+        "edgeSettledAfterRelease": true,
+        "pointerMappingOk": true,
+        "settledEqualsReferenceState": true,
+        "settledEqualsReferencePackets": true,
+        "frontierUnchanged": true,
+        "seedUnchanged": true,
+        "timelineUnchanged": true,
+        "movesCompletedAny": true
+      },
+      "required": [
+        "latchedIsScrubbing",
+        "isScrubbingMidDrag",
+        "edgeSkipMidDrag",
+        "holdAfterDown",
+        "releasedNotScrubbing",
+        "edgeSettledAfterRelease",
+        "pointerMappingOk",
+        "settledEqualsReferenceState",
+        "settledEqualsReferencePackets",
+        "frontierUnchanged",
+        "seedUnchanged",
+        "timelineUnchanged",
+        "movesCompletedAny"
+      ],
+      "before": {
+        "viewedSec": 6138,
+        "frontierSec": 0,
+        "baseSeed": 424242,
+        "timeline": {
+          "cursorSec": 0,
+          "historyEndSec": 0,
+          "maxReachedHistoryEndSec": 0,
+          "revision": 0,
+          "actionContentVersion": 0,
+          "actionCount": 0,
+          "actions": []
+        },
+        "playbackTarget": 0,
+        "isScrubbing": false,
+        "scrubSec": 6138,
+        "minSec": 0,
+        "maxSec": 6138,
+        "browseCapSec": 6138,
+        "revealedCoverageEndSec": 6138,
+        "viewedStateSha256": "9d742204c001cf097bc1aead8ddab7a1a503089f9e73ad188ea254c6580b0829",
+        "edge": {
+          "skipping": false,
+          "boundarySec": 6137,
+          "packets": []
+        },
+        "previewStatus": {
+          "active": true,
+          "previewSec": 6138,
+          "liveSec": 0,
+          "historyEndSec": 0,
+          "isForecastPreview": true
+        }
+      },
+      "midProbe": {
+        "viewedSec": 2532,
+        "playbackTarget": 0,
+        "isScrubbing": true,
+        "scrubSec": 2532,
+        "edge": {
+          "skipping": true,
+          "boundarySec": null,
+          "packets": []
+        }
+      },
+      "afterRelease": {
+        "viewedSec": 2532,
+        "frontierSec": 0,
+        "baseSeed": 424242,
+        "timeline": {
+          "cursorSec": 0,
+          "historyEndSec": 0,
+          "maxReachedHistoryEndSec": 0,
+          "revision": 0,
+          "actionContentVersion": 0,
+          "actionCount": 0,
+          "actions": []
+        },
+        "playbackTarget": 0,
+        "isScrubbing": false,
+        "scrubSec": 2532,
+        "minSec": 0,
+        "maxSec": 6138,
+        "browseCapSec": 6138,
+        "revealedCoverageEndSec": 6138,
+        "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+        "edge": {
+          "skipping": false,
+          "boundarySec": 2532,
+          "packets": [
+            "R09>R16|food|1|2531",
+            "R09>R08|stock|1|2532"
+          ]
+        },
+        "previewStatus": {
+          "active": true,
+          "previewSec": 2532,
+          "liveSec": 0,
+          "historyEndSec": 0,
+          "isForecastPreview": true
+        }
+      },
+      "reference": {
+        "viewedSec": 2532,
+        "frontierSec": 0,
+        "baseSeed": 424242,
+        "timeline": {
+          "cursorSec": 0,
+          "historyEndSec": 0,
+          "maxReachedHistoryEndSec": 0,
+          "revision": 0,
+          "actionContentVersion": 0,
+          "actionCount": 0,
+          "actions": []
+        },
+        "playbackTarget": 0,
+        "isScrubbing": false,
+        "scrubSec": 2532,
+        "minSec": 0,
+        "maxSec": 6138,
+        "browseCapSec": 6138,
+        "revealedCoverageEndSec": 6138,
+        "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+        "edge": {
+          "skipping": false,
+          "boundarySec": 2532,
+          "packets": [
+            "R09>R16|food|1|2531",
+            "R09>R08|stock|1|2532"
+          ]
+        },
+        "previewStatus": {
+          "active": true,
+          "previewSec": 2532,
+          "liveSec": 0,
+          "historyEndSec": 0,
+          "isForecastPreview": true
+        }
+      },
+      "plot": {
+        "a": {
+          "x": 302.7890037128713,
+          "y": 620.3623762376237
+        },
+        "b": {
+          "x": 976.2030816831684,
+          "y": 620.3623762376237
+        }
+      },
+      "secPerPx": 9.114748563766637,
+      "maxMappingError": 0.1749173047601289,
+      "sent": 40,
+      "delivered": 23,
+      "coalescedOrDropped": 17,
+      "completed": 3,
+      "superseded": 20,
+      "p50": 238.69999999552965,
+      "rafP50": 483.1999999999971,
+      "rafMax": 750,
+      "framesOver50": 6,
+      "edgeSkippingDuring": 1,
+      "addedDelayMs": 0,
+      "deferredMs": 0,
+      "screenshots": {
+        "midDrag": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp3-drag-r2/ordinary-desktop-mid-drag.png",
+        "afterSettle": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp3-drag-r2/ordinary-desktop-after-settle.png"
+      },
+      "errors": []
+    },
+    {
+      "launchId": "ordinary-desktop-delay",
+      "kind": "mouse",
+      "ok": true,
+      "oracle": {
+        "latchedIsScrubbing": true,
+        "isScrubbingMidDrag": true,
+        "edgeSkipMidDrag": true,
+        "holdAfterDown": true,
+        "holdMeaningful": false,
+        "releasedNotScrubbing": true,
+        "edgeSettledAfterRelease": true,
+        "pointerMappingOk": true,
+        "settledEqualsReferenceState": true,
+        "settledEqualsReferencePackets": true,
+        "frontierUnchanged": true,
+        "seedUnchanged": true,
+        "timelineUnchanged": true,
+        "movesCompletedAny": true
+      },
+      "required": [
+        "latchedIsScrubbing",
+        "isScrubbingMidDrag",
+        "edgeSkipMidDrag",
+        "holdAfterDown",
+        "releasedNotScrubbing",
+        "edgeSettledAfterRelease",
+        "pointerMappingOk",
+        "settledEqualsReferenceState",
+        "settledEqualsReferencePackets",
+        "frontierUnchanged",
+        "seedUnchanged",
+        "timelineUnchanged",
+        "movesCompletedAny"
+      ],
+      "before": {
+        "viewedSec": 2532,
+        "frontierSec": 0,
+        "baseSeed": 424242,
+        "timeline": {
+          "cursorSec": 0,
+          "historyEndSec": 0,
+          "maxReachedHistoryEndSec": 0,
+          "revision": 0,
+          "actionContentVersion": 0,
+          "actionCount": 0,
+          "actions": []
+        },
+        "playbackTarget": 0,
+        "isScrubbing": false,
+        "scrubSec": 2532,
+        "minSec": 0,
+        "maxSec": 6138,
+        "browseCapSec": 6138,
+        "revealedCoverageEndSec": 6138,
+        "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+        "edge": {
+          "skipping": false,
+          "boundarySec": 2532,
+          "packets": [
+            "R09>R16|food|1|2531",
+            "R09>R08|stock|1|2532"
+          ]
+        },
+        "previewStatus": {
+          "active": true,
+          "previewSec": 2532,
+          "liveSec": 0,
+          "historyEndSec": 0,
+          "isForecastPreview": true
+        }
+      },
+      "midProbe": {
+        "viewedSec": 2532,
+        "playbackTarget": 0,
+        "isScrubbing": true,
+        "scrubSec": 2532,
+        "edge": {
+          "skipping": true,
+          "boundarySec": null,
+          "packets": []
+        }
+      },
+      "afterRelease": {
+        "viewedSec": 2532,
+        "frontierSec": 0,
+        "baseSeed": 424242,
+        "timeline": {
+          "cursorSec": 0,
+          "historyEndSec": 0,
+          "maxReachedHistoryEndSec": 0,
+          "revision": 0,
+          "actionContentVersion": 0,
+          "actionCount": 0,
+          "actions": []
+        },
+        "playbackTarget": 0,
+        "isScrubbing": false,
+        "scrubSec": 2532,
+        "minSec": 0,
+        "maxSec": 6138,
+        "browseCapSec": 6138,
+        "revealedCoverageEndSec": 6138,
+        "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+        "edge": {
+          "skipping": false,
+          "boundarySec": 2532,
+          "packets": [
+            "R09>R16|food|1|2531",
+            "R09>R08|stock|1|2532"
+          ]
+        },
+        "previewStatus": {
+          "active": true,
+          "previewSec": 2532,
+          "liveSec": 0,
+          "historyEndSec": 0,
+          "isForecastPreview": true
+        }
+      },
+      "reference": {
+        "viewedSec": 2532,
+        "frontierSec": 0,
+        "baseSeed": 424242,
+        "timeline": {
+          "cursorSec": 0,
+          "historyEndSec": 0,
+          "maxReachedHistoryEndSec": 0,
+          "revision": 0,
+          "actionContentVersion": 0,
+          "actionCount": 0,
+          "actions": []
+        },
+        "playbackTarget": 0,
+        "isScrubbing": false,
+        "scrubSec": 2532,
+        "minSec": 0,
+        "maxSec": 6138,
+        "browseCapSec": 6138,
+        "revealedCoverageEndSec": 6138,
+        "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+        "edge": {
+          "skipping": false,
+          "boundarySec": 2532,
+          "packets": [
+            "R09>R16|food|1|2531",
+            "R09>R08|stock|1|2532"
+          ]
+        },
+        "previewStatus": {
+          "active": true,
+          "previewSec": 2532,
+          "liveSec": 0,
+          "historyEndSec": 0,
+          "isForecastPreview": true
+        }
+      },
+      "plot": {
+        "a": {
+          "x": 302.7890037128713,
+          "y": 620.3623762376237
+        },
+        "b": {
+          "x": 976.2030816831684,
+          "y": 620.3623762376237
+        }
+      },
+      "secPerPx": 9.114748563766637,
+      "maxMappingError": 0.2502387586328041,
+      "sent": 40,
+      "delivered": 7,
+      "coalescedOrDropped": 33,
+      "completed": 4,
+      "superseded": 3,
+      "p50": 366.70000000298023,
+      "rafP50": 283.3999999999942,
+      "rafMax": 600,
+      "framesOver50": 5,
+      "edgeSkippingDuring": 1,
+      "addedDelayMs": 200,
+      "deferredMs": 0,
+      "screenshots": {
+        "midDrag": null,
+        "afterSettle": null
+      },
+      "errors": []
+    },
+    {
+      "launchId": "ordinary-desktop-deferred",
+      "kind": "mouse",
+      "ok": true,
+      "oracle": {
+        "latchedIsScrubbing": true,
+        "isScrubbingMidDrag": true,
+        "edgeSkipMidDrag": true,
+        "holdAfterDown": true,
+        "holdMeaningful": false,
+        "releasedNotScrubbing": true,
+        "edgeSettledAfterRelease": true,
+        "pointerMappingOk": true,
+        "settledEqualsReferenceState": true,
+        "settledEqualsReferencePackets": true,
+        "frontierUnchanged": true,
+        "seedUnchanged": true,
+        "timelineUnchanged": true,
+        "movesCompletedAny": true
+      },
+      "required": [
+        "latchedIsScrubbing",
+        "isScrubbingMidDrag",
+        "edgeSkipMidDrag",
+        "holdAfterDown",
+        "releasedNotScrubbing",
+        "edgeSettledAfterRelease",
+        "pointerMappingOk",
+        "settledEqualsReferenceState",
+        "settledEqualsReferencePackets",
+        "frontierUnchanged",
+        "seedUnchanged",
+        "timelineUnchanged",
+        "movesCompletedAny"
+      ],
+      "before": {
+        "viewedSec": 2532,
+        "frontierSec": 0,
+        "baseSeed": 424242,
+        "timeline": {
+          "cursorSec": 0,
+          "historyEndSec": 0,
+          "maxReachedHistoryEndSec": 0,
+          "revision": 0,
+          "actionContentVersion": 0,
+          "actionCount": 0,
+          "actions": []
+        },
+        "playbackTarget": 0,
+        "isScrubbing": false,
+        "scrubSec": 2532,
+        "minSec": 0,
+        "maxSec": 6138,
+        "browseCapSec": 6138,
+        "revealedCoverageEndSec": 6138,
+        "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+        "edge": {
+          "skipping": false,
+          "boundarySec": 2532,
+          "packets": [
+            "R09>R16|food|1|2531",
+            "R09>R08|stock|1|2532"
+          ]
+        },
+        "previewStatus": {
+          "active": true,
+          "previewSec": 2532,
+          "liveSec": 0,
+          "historyEndSec": 0,
+          "isForecastPreview": true
+        }
+      },
+      "midProbe": {
+        "viewedSec": 2532,
+        "playbackTarget": 0,
+        "isScrubbing": true,
+        "scrubSec": 2532,
+        "edge": {
+          "skipping": true,
+          "boundarySec": null,
+          "packets": []
+        }
+      },
+      "afterRelease": {
+        "viewedSec": 2532,
+        "frontierSec": 0,
+        "baseSeed": 424242,
+        "timeline": {
+          "cursorSec": 0,
+          "historyEndSec": 0,
+          "maxReachedHistoryEndSec": 0,
+          "revision": 0,
+          "actionContentVersion": 0,
+          "actionCount": 0,
+          "actions": []
+        },
+        "playbackTarget": 0,
+        "isScrubbing": false,
+        "scrubSec": 2532,
+        "minSec": 0,
+        "maxSec": 6138,
+        "browseCapSec": 6138,
+        "revealedCoverageEndSec": 6138,
+        "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+        "edge": {
+          "skipping": false,
+          "boundarySec": 2532,
+          "packets": [
+            "R09>R16|food|1|2531",
+            "R09>R08|stock|1|2532"
+          ]
+        },
+        "previewStatus": {
+          "active": true,
+          "previewSec": 2532,
+          "liveSec": 0,
+          "historyEndSec": 0,
+          "isForecastPreview": true
+        }
+      },
+      "reference": {
+        "viewedSec": 2532,
+        "frontierSec": 0,
+        "baseSeed": 424242,
+        "timeline": {
+          "cursorSec": 0,
+          "historyEndSec": 0,
+          "maxReachedHistoryEndSec": 0,
+          "revision": 0,
+          "actionContentVersion": 0,
+          "actionCount": 0,
+          "actions": []
+        },
+        "playbackTarget": 0,
+        "isScrubbing": false,
+        "scrubSec": 2532,
+        "minSec": 0,
+        "maxSec": 6138,
+        "browseCapSec": 6138,
+        "revealedCoverageEndSec": 6138,
+        "viewedStateSha256": "1540b6a6219d5c7153ebbc5cdfefb6d967f8d4d8949830f5982a8b7de1a955d0",
+        "edge": {
+          "skipping": false,
+          "boundarySec": 2532,
+          "packets": [
+            "R09>R16|food|1|2531",
+            "R09>R08|stock|1|2532"
+          ]
+        },
+        "previewStatus": {
+          "active": true,
+          "previewSec": 2532,
+          "liveSec": 0,
+          "historyEndSec": 0,
+          "isForecastPreview": true
+        }
+      },
+      "plot": {
+        "a": {
+          "x": 302.7890037128713,
+          "y": 620.3623762376237
+        },
+        "b": {
+          "x": 976.2030816831684,
+          "y": 620.3623762376237
+        }
+      },
+      "secPerPx": 9.114748563766637,
+      "maxMappingError": 0.2751604698896699,
+      "sent": 40,
+      "delivered": 7,
+      "coalescedOrDropped": 33,
+      "completed": 4,
+      "superseded": 3,
+      "p50": 172.29999999701977,
+      "rafP50": 366.6000000000058,
+      "rafMax": 933.4000000000087,
+      "framesOver50": 4,
+      "edgeSkippingDuring": 1,
+      "addedDelayMs": 0,
+      "deferredMs": 200,
+      "screenshots": {
+        "midDrag": null,
+        "afterSettle": null
+      },
+      "errors": []
+    }
+  ],
+  "controls": [
+    {
+      "id": "drag-wrong-target",
+      "passed": true,
+      "detail": {
+        "positiveCompleted": 3,
+        "wrongCompleted": 0
+      }
+    },
+    {
+      "id": "drag-added-delay",
+      "passed": false,
+      "detail": {
+        "baseP50": 238.69999999552965,
+        "delayedP50": 366.70000000298023,
+        "delta": 128.00000000745058,
+        "delayedCompleted": 4
+      }
+    },
+    {
+      "id": "drag-deferred-completion",
+      "passed": false,
+      "detail": {
+        "baseP50": 238.69999999552965,
+        "deferredP50": 172.29999999701977,
+        "delta": -66.39999999850988,
+        "deferredCompleted": 4
+      }
+    }
+  ]
+}
