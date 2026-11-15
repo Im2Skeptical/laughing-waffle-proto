@@ -6,6 +6,15 @@ QUESTIONS FOR CAM (from Code Health). These are decisions only. Auditor: do not 
 3. OK to log the Windows 0xC0000409 crash in test:build-preview as a separate repo-health issue, outside Phase A?
 4. Phone drag resolution: at 4x, drag changes smaller than ~0.4 s (21 drags per arm) or ~0.8 s (9 per arm) can't be told from noise, while desktop resolves ~0.1 s. Accept that limit, or pay ~15 extra minutes per phone suite for 21 drags per arm in Phase C?
 
+## Cam's follow-up decisions
+
+This addendum records Cam's answers after the round-one report. It is not a repair recheck or acceptance of later Builder commits; the round-one verdict and evidence below retain their original scope.
+
+1. **Include a browser test after a vassal dies.** Calculation-only Node coverage is insufficient for the requested browser experience.
+2. **The 4× CPU-throttled phone proxy is acceptable for Phase A.** Physical Pixel 6 behavior remains unmeasured; the proxy is not evidence of actual-device performance.
+3. **Windows crash disposition remains undecided.** Cam asked whether it is an easy fix. Read-only inspection separates two observed failures: the preview launcher exhausts its fixed 12-port range, then Node asserts `UV_HANDLE_CLOSING` while exiting. The port-allocation limitation appears bounded; the native assertion's cause is not established. The earlier `test:build-preview` crash has not been reproduced or shown to share that cause. No further crash attempt, source repair, or issue creation was performed for this assessment.
+4. **Coarser phone measurements are acceptable.** More repetitions are not required merely to detect small changes. Differences below the demonstrated resolution should remain INCONCLUSIVE. The Builder should align the measurement contract and validity controls with this accepted resolution, using a perturbation large enough to distinguish unfinished work from noise. This decision does not establish that a failed control passed, or clear the separate oracle/timeout findings.
+
 **PROOF: NOT SOUND.** Round 1, independent Harness Auditor: Codex (gpt-6.1-sol), separate from the Code Health/Grok Bot Builder. Git author/committer: Im2Skeptical <SOLOcan@gmail.com>. All numbers are provisional; nothing is LOCKED. No scoring, baseline acceptance or product optimization is authorized by this review.
 
 Review target: Builder tip `46d21c0a`; audited checkout `76c5bb37eba90eceb0d0e4580f074e42b1c7c761`, branch `audit/phase-a-20261116-r1`. The diff after the target is only `AUDITOR_PACKET.md`. Session began 2026-11-16 03:14 AEDT (2026-11-15 16:14 UTC); one session, within 90 minutes. This report and new audit JSON are the only tracked changes. No harness/product repairs, version bump, PR, main update, merge, Pages publication, bot callback, automation or scheduled continuation. Repair rounds used: 0 of 2; only the Dispatcher may queue a recheck after Builder repairs.
