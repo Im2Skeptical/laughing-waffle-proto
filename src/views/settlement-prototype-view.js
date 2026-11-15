@@ -243,6 +243,8 @@ export function createSettlementPrototypeView({
     getScreenRect: () => root.visible ? root.getBounds?.() ?? null : null,
     getEndDetailsClickPoint: () => getSurvivalEndDetailsClickPoint(endDetailsTarget, root.visible),
     getSemanticSnapshot: () => semanticSnapshot && { ...semanticSnapshot, visible: root.visible === true },
+    capturePanelState:()=>({activeTab}),
+    restorePanelState(saved){activeTab=saved?.activeTab==='demographics'?'demographics':'overview';lastSignature='';render(true);},
     destroy: () => {
       clearChildren(root);
       root.removeFromParent();

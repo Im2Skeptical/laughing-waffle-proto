@@ -116,6 +116,11 @@ export function createVassalHeirloomFlowView({
   const point=node=>{const b=node?.getBounds?.();return b?{x:b.x+b.width/2,y:b.y+b.height/2}:null;};
   return {init:()=>render(true),update:()=>render(),refresh:()=>render(true),isOpen:()=>root.visible===true,
     openInventory,closeInventory,
+    capturePanelState:()=>({browsing,tab,page,selectedIds:[...selectedIds],dismissedReportId}),
+    restorePanelState(saved){
+      browsing=saved?.browsing===true;tab=TABS[saved?.tab]?saved.tab:'carry';dismissedReportId=saved?.dismissedReportId??null;
+      render(true);page=saved?.page??0;selectedIds=[...(saved?.selectedIds??[])];render(true);
+    },
     getSemanticSnapshot:()=>({open:root.visible,mode:snapshot().mode,tab,page,selectedIds:[...selectedIds],cards:cardRoots.map(node=>({rect:node.getBounds()})),controls:Object.fromEntries([...controls].map(([id,node])=>[id,point(node)]))}),
   };
 }

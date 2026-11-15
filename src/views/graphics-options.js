@@ -18,10 +18,10 @@ export function getGraphicsOptions() {
   return options;
 }
 
-export function setGraphicsOptions(patch) {
+export function setGraphicsOptions(patch, { persist = true } = {}) {
   const next = normalize({ ...getGraphicsOptions(), ...patch });
   if (Object.keys(next).every(key => next[key] === options[key])) return options;
   options = next;
-  try { globalThis.localStorage?.setItem(GRAPHICS_OPTIONS_KEY, JSON.stringify(options)); } catch {}
+  if(persist)try { globalThis.localStorage?.setItem(GRAPHICS_OPTIONS_KEY, JSON.stringify(options)); } catch {}
   return options;
 }

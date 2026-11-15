@@ -17,6 +17,7 @@ const workerUrl = typeof __LIFE_DECISION_WORKER_URL__ !== 'undefined'
 // succeeds. Every worker result is tied to the frontier it was prepared from.
 export function createLifeDecisionController({
   getRunner, getState, onChange = () => {}, onPrepare = () => {}, onPrepareChoices = () => {}, onChunk = () => {},
+  onDraftAction = () => {},
   createWorker = () => new Worker(new URL(workerUrl, import.meta.url), { type: 'module' }),
   workerTimeoutMs = 15000,
 }) {
@@ -189,6 +190,24 @@ export function createLifeDecisionController({
   }
 
   return {
+    capturePanelState() {
+      sync();
+      if (job) throw Error('A decision is still processing. Capture again after it settles.');
+      return {actions:JSON.parse(JSON.stringify(actions))};
+    },
+    restorePanelState(saved) {
+      sync();
+      if(job)throw Error('Cannot restore a draft during decision processing.');
+      const restored=[];let next=null;
+      for(const action of saved?.actions??[]) {
+        if(!LIFE_DRAFT_ACTIONS.has(action.kind))throw Error('Unsupported staged decision action.');
+        next??=deserializeGameState(serializeGameState(getState()));
+        const result=applyAction(next,action,{isReplay:true});
+        if(!result.ok)throw Error(`Could not restore staged decision: ${result.reason}`);
+        restored.push(action);
+      }
+      draft=next;actions=restored;changed();
+    },
     handles: kind => LIFE_DRAFT_ACTIONS.has(kind) || TRANSACTIONS.has(kind),
     getState: current,
     getStatus() {
@@ -259,7 +278,7 @@ export function createLifeDecisionController({
       if (LIFE_DRAFT_ACTIONS.has(kind)) {
         draft ??= deserializeGameState(serializeGameState(getState()));
         const result = applyAction(draft, { kind, payload }, { isReplay: true });
-        if (result.ok) { actions.push({ kind, payload }); changed(); }
+        if (result.ok) { actions.push({ kind, payload }); onDraftAction(kind,payload,result); changed(); }
         return result;
       }
       const cached = nodes[payload.nodeId];

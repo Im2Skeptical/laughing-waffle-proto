@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="images/dark-fantasy/card-chrome-prototype/display.css" />
     <!-- Keep illustrated preloads out of the minimal-graphics request path. -->
     <script>
-      if (new URLSearchParams(location.search).get('dev') !== '1') {
+      if (!/[?&]test(?:File)?=/.test(location.hash) && new URLSearchParams(location.search).get('dev') !== '1') {
         for (const [href, as] of [
           ['resource-language.json','fetch'], ['resource-language.png','fetch'],
           ['chronicle-illustrations.json','fetch'], ['chronicle-illustrations.png','fetch'],

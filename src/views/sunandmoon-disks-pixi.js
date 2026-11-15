@@ -1114,6 +1114,8 @@ let feedbackText = null;
     isDragging: () => !!dragSession,
     stopMomentum: () => { if (dragSession?.coasting) endDrag(); },
     getPhaseReferenceSnapshot: () => phaseReference?.getSnapshot() ?? null,
+    capturePanelState:()=>phaseReference?.capturePanelState()??null,
+    restorePanelState:saved=>phaseReference?.restorePanelState(saved),
     getPhaseReferenceClickPoint: id => phaseReference?.getClickPoint(id) ?? null,
     getSemanticSnapshot: () => ({
       activePhaseId: getMoonPhaseAtSecond(getState?.()).id,

@@ -79,6 +79,11 @@ Local instructions for agents working in this repo.
   Prepare and verify locally first; only dispatch deployment after confirmation.
   Committing or pushing source is not permission to publish Pages.
 - Commit only verified task changes; leave unrelated user changes out.
+- Reports of browser-game behavior or UI changes must include a verified test
+  link when a captured game situation can demonstrate the change. Read the
+  [test-link reporting requirement](docs/agent-test-links-prototype.md#reporting-requirement)
+  for the capture recipe, exceptions and file fallback. Include relevant
+  screenshots as well, with before/after images for visual changes.
 
 1. Every PR includes the next version bump in `package.json`, both package-lock
    version fields, and `ai/ai-context.md`, per [development workflow](docs/development-workflow.md).
