@@ -1,0 +1,183 @@
+{
+  "id": "wp1-node-controls-r2",
+  "phase": "controls",
+  "identities": {
+    "contractId": "HC-20261116-A1",
+    "harnessId": "perf-phase-a-20261116-v1",
+    "seed": 424242,
+    "expectedOpeningLossSec": 6138,
+    "productVersion": "1.1.69",
+    "gitDirtyHarness": true,
+    "gitHead": "b614acc6f667fffb81c19f422e716ba2546a9473",
+    "pinnedGraphics": {
+      "fog": true,
+      "clouds": true,
+      "shadows": true,
+      "wisps": true,
+      "water": true
+    },
+    "artworkMode": "illustrated-default-graphics",
+    "loadavg1AtStart": 1.43,
+    "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+    "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+    "harness": {
+      "files": [
+        {
+          "path": "scripts/perf-phase-a-20261116/browser.mjs",
+          "sha256": "9f9f72f080236b88d5be7c0a622a8a5a59b50dfc2ace8f50c53c73adf48e89f5"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/controls.mjs",
+          "sha256": "b73a4b2013d38ba78ba4df866ffbee6fe2f5150f8402e2a16d89db3d8b182cbf"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/forecast.mjs",
+          "sha256": "d37121ef8acc7cb4329a4c8c333b85a61e8cdf672ed5229bd483bde1c563a44c"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/identities.mjs",
+          "sha256": "2fcf4ba6147757405516b7536efc24f97565f7519cc53da4f3cfa9d1cd77eeec"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/input-delay.mjs",
+          "sha256": "52bac653e99339e850fd37cc716fb411d939669f9a0bb7a5ca385aaf4cd018d9"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/run.mjs",
+          "sha256": "6ae64dec817feb61a0e654dc55c199d528f887b2710f19ab53c6d4d0096ef1ef"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/scrub-drag.mjs",
+          "sha256": "196636ebc8956423ed89af8377553eeabed6a7e73f640346fbc0357dd39d66ab"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/statistics-test.mjs",
+          "sha256": "036e6579bfb39d6bd203c5df5e48c6581cde543ea274930586881c18330d44f5"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/statistics.mjs",
+          "sha256": "9443d67041037fe97b1f9198067be8cfb2e0a9c065b40ed02f6ef24521bd4153"
+        }
+      ],
+      "harnessSourceSha256": "3a86aeccc7124b17b46d3102d976e5c82ac4ddeaaecce45d1c68d9a7a4c772fc"
+    },
+    "build": {
+      "distExists": true,
+      "files": [
+        {
+          "path": "dist/assets/app-CWBV5QFT.js",
+          "sha256": "ed64393131c041d72def205c6e42b496fdb1b9855aeefd5dc4e9c19b2c0c7bf2"
+        },
+        {
+          "path": "dist/assets/life-decision-worker-K44F44Q6.js",
+          "sha256": "10329646fb09e235a89f55f074ce27c67cecffa9e8c6fbfa05f7e40208e8fdbc"
+        },
+        {
+          "path": "dist/assets/save-load-worker-RSELRJM4.js",
+          "sha256": "2146f1643016a5c857ff36eba763d6b6fac5bdd208b47ac81d9fcbf453e31bb5"
+        },
+        {
+          "path": "dist/assets/styles-615acc950132.css",
+          "sha256": "615acc950132bd7498158a48e550baeee5f9e29b7e5758a479e72f59e1708cf2"
+        },
+        {
+          "path": "dist/assets/timegraph-forecast-worker-A3W535YF.js",
+          "sha256": "5148b18bc195327abeb2f18010a5343cc37dbbf71de774ed95e9011dfeeda1e2"
+        }
+      ],
+      "buildAssetSha256": "f86a2b7c5627093c1945d8bd97856cd4ba804e81d330e35ad6b7cee21608d683"
+    },
+    "machine": {
+      "hostname": "grok-bot-vm-438267029",
+      "os": "Linux 6.12.113+ x64",
+      "cpu": "Intel(R) Xeon(R) Processor x8 @ 0 MHz",
+      "ramGi": 16,
+      "loadavg1": 1.43,
+      "node": "v24.22.1",
+      "renderer": "headless Chromium, SwiftShader software GL — NOT Pixel 6 GPU truth",
+      "cpuThrottle": 1,
+      "viewport": "desktop",
+      "pixel6Note": "Pixel 6 / Android Chrome is the documented device floor. Box measurements at CDP CPU throttle 4x with a mobile viewport are a CPU-bound phone proxy only. There is no physical-device evidence in this run."
+    },
+    "at": "2026-11-15T12:37:10.337Z"
+  },
+  "at": "2026-11-15T12:37:10.338Z",
+  "results": {
+    "statistics": {
+      "passed": true,
+      "stdout": "[hillclimb-statistics] controls passed: stable intervals, honest unbounded/censored tails, invalid timing, launch quotas and clustered inference",
+      "stderr": ""
+    },
+    "controls": {
+      "passed": true,
+      "outcomes": [
+        {
+          "id": "statistics-unit",
+          "passed": null,
+          "detail": "run via statistics-test.mjs in run.mjs"
+        },
+        {
+          "id": "forecast-added-delay",
+          "passed": true,
+          "detail": {
+            "baseMs": 207.648278,
+            "delayedMs": 408.256701,
+            "delta": 200.60842300000002
+          }
+        },
+        {
+          "id": "forecast-wrong-result",
+          "passed": true,
+          "detail": {
+            "ok": false,
+            "endSec": 96
+          }
+        },
+        {
+          "id": "forecast-window-positive",
+          "passed": true,
+          "detail": {
+            "elapsedMs": 199.586831,
+            "endSec": 96
+          }
+        },
+        {
+          "id": "forecast-horizon-positive",
+          "passed": true,
+          "detail": {
+            "endSec": 6138,
+            "expected": 6138,
+            "elapsedMs": 13628.896549,
+            "simPerSec": 450.3666146361913
+          }
+        },
+        {
+          "id": "forecast-horizon-wrong-loss",
+          "passed": true,
+          "detail": {
+            "ok": false,
+            "endSec": 6138
+          }
+        },
+        {
+          "id": "reproject-positive",
+          "passed": true,
+          "detail": {
+            "frontierSec": 2032,
+            "openingLossSec": 6138,
+            "reprojectLossSec": 6138,
+            "twinAgreed": true,
+            "elapsedMs": 8893.294117
+          }
+        }
+      ],
+      "statistics": {
+        "passed": true,
+        "stdout": "[hillclimb-statistics] controls passed: stable intervals, honest unbounded/censored tails, invalid timing, launch quotas and clustered inference",
+        "stderr": ""
+      }
+    }
+  },
+  "functionalOk": true,
+  "proposedVerdict": "CONSTRUCTION ONLY (phase=controls): gates in this run passed; no Phase A verdict without the 3-rep suites and an independent audit."
+}

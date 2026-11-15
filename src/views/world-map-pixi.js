@@ -1177,6 +1177,11 @@ export function createWorldMapView({
         stockTransferIcons.beginFrame();
       }
     },
+    // Flag-gated performance harness probe: current packet descriptors only.
+    getEdgeTransferProbe: () => ({
+      boundarySec: lastEdgeTransferDescriptorBoundarySec,
+      packets: edgeTransferPacketDescriptors.map(p => `${p.route}|${p.resourceId}|${p.amount ?? ''}|${p.startedSec}`),
+    }),
     getSemanticSnapshot: () => {
       const state = getState?.();
       const regionId = getSelectedRegionId?.();

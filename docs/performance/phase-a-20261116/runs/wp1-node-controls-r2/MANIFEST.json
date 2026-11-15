@@ -1,0 +1,36 @@
+{
+  "artifactDir": "artifacts/perf-phase-a-20261116/wp1-node-controls-r2",
+  "files": [
+    {
+      "path": "PROOF_SUMMARY.json",
+      "bytes": 6340,
+      "sha256": "c1f5aac2a1859eb411dc8b3b494c1f53f1c35f9f840f63793772c0fe844b9920",
+      "committed": true
+    },
+    {
+      "path": "controls-summary.json",
+      "bytes": 1501,
+      "sha256": "0ebcc613119115e3cd53c07a416a98d658cdc0194cfc4c088def718535f59587",
+      "committed": true
+    },
+    {
+      "path": "controls/controls.json",
+      "bytes": 1342,
+      "sha256": "2860506bad774bee9abc156fec6dd381f4727e21966ac24e8cb42ef6a5296f8c",
+      "committed": true
+    },
+    {
+      "path": "controls/raw-forecast-controls.json",
+      "bytes": 9932,
+      "sha256": "0a6abe8b718dc51694ddc6fcd61eb40017bc69c52a2bdb15a938e23dc01719df",
+      "committed": true
+    },
+    {
+      "path": "identities.json",
+      "bytes": 3809,
+      "sha256": "f2d78bc74542355d560a942519a0ab533af6a646e06427c602e78e6a4f214c42",
+      "committed": true
+    }
+  ],
+  "at": "2026-11-15T12:38:12.471Z"
+}

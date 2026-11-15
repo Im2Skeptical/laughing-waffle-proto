@@ -2586,6 +2586,8 @@ export function createMetricGraphView({
     getPlotStageRect,
     getDebugState,
     isScrubbing: () => scrub.isScrubbing === true,
+    // Cheap read for the flag-gated performance harness probe (no layout work).
+    getScrubProbe: () => ({ isScrubbing: scrub.isScrubbing === true, scrubSec: scrub.scrubSec }),
     getVisibleTimeSpanSec: () => Math.max(1, maxSec - minSec),
     getForecastScrubCapSec: () => getVisibleForecastScrubCapSec(),
     getPreviousProjectionBrowseEndSec:()=>{syncProjectionReplacementDataContext();return getPreviousProjectionBrowseEndSec(projectionReplacement);},

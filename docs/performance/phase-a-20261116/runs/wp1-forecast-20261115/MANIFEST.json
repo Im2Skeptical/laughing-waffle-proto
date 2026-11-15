@@ -1,0 +1,42 @@
+{
+  "artifactDir": "artifacts/perf-phase-a-20261116/wp1-forecast-20261115",
+  "files": [
+    {
+      "path": "PROOF_SUMMARY.json",
+      "bytes": 13362,
+      "sha256": "a2c89ab981d6540e367fb9941fea13ceec973d181562873402539a03b18be3f3",
+      "committed": true
+    },
+    {
+      "path": "forecast-summaries.json",
+      "bytes": 7450,
+      "sha256": "470853f7116c73498deae4e0f5b90733efc713ba083b3c672e811466e1d52656",
+      "committed": true
+    },
+    {
+      "path": "identities.json",
+      "bytes": 3810,
+      "sha256": "c7181c819490f27eb699793ca68fa2d8da68f1308e04fe3e41a2d6327565f75c",
+      "committed": true
+    },
+    {
+      "path": "raw-forecast-horizon.json",
+      "bytes": 5949,
+      "sha256": "5cee211ec839c50c96cbdde0bdd3c0f5f0bfc527fbdcb65bb8e1337bd0d14061",
+      "committed": true
+    },
+    {
+      "path": "raw-forecast-window.json",
+      "bytes": 118931,
+      "sha256": "a4e9f530bd7c62117388e871ea700097d0d81fc22a72c481dc2177d1fdd519c8",
+      "committed": true
+    },
+    {
+      "path": "raw-reproject.json",
+      "bytes": 6486,
+      "sha256": "d9823feb98334d5a1e8f006cab847cc1a7a0cb490f5fc8ad45b12ea70e12346d",
+      "committed": true
+    }
+  ],
+  "at": "2026-11-15T12:36:35.376Z"
+}

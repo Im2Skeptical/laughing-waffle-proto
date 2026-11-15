@@ -1,0 +1,69 @@
+{
+  "passed": true,
+  "outcomes": [
+    {
+      "id": "statistics-unit",
+      "passed": null,
+      "detail": "run via statistics-test.mjs"
+    },
+    {
+      "id": "forecast-added-delay",
+      "passed": true,
+      "detail": {
+        "baseMs": 259.805036,
+        "delayedMs": 420.586753,
+        "delta": 160.78171700000001
+      }
+    },
+    {
+      "id": "forecast-wrong-result",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "endSec": 96
+      }
+    },
+    {
+      "id": "forecast-window-positive",
+      "passed": true,
+      "detail": {
+        "elapsedMs": 203.473191,
+        "endSec": 96
+      }
+    },
+    {
+      "id": "forecast-horizon-positive",
+      "passed": true,
+      "detail": {
+        "endSec": 6138,
+        "expected": 6138,
+        "elapsedMs": 12649.330746,
+        "simPerSec": 485.2430633091772
+      }
+    },
+    {
+      "id": "forecast-horizon-wrong-loss",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "endSec": 6138
+      }
+    },
+    {
+      "id": "reproject-positive",
+      "passed": true,
+      "detail": {
+        "frontierSec": 2032,
+        "openingLossSec": 6138,
+        "reprojectLossSec": 6138,
+        "twinAgreed": true,
+        "elapsedMs": 8299.797377
+      }
+    }
+  ],
+  "statistics": {
+    "passed": true,
+    "stdout": "[hillclimb-statistics] controls passed: stable intervals, honest unbounded/censored tails, invalid timing, launch quotas and clustered inference",
+    "stderr": ""
+  }
+}

@@ -1,0 +1,227 @@
+{
+  "window": [
+    {
+      "key": [
+        "node-model-v1.1.69-00f31fb31ec34d6d",
+        "perf-phase-a-20261116-v1",
+        "HC-20261116-A1",
+        "ordinary-new-game-seed-424242",
+        "forecast-window",
+        "chunk-complete",
+        {
+          "artwork": "n/a",
+          "cold": true,
+          "cpuThrottle": 1,
+          "machine": "box-linux-xeon-8",
+          "renderer": "swiftshader",
+          "start": "ordinary-new-game",
+          "viewport": "node"
+        },
+        "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+        "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+        true
+      ],
+      "attempted": 120,
+      "passed": 120,
+      "failed": 0,
+      "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+      "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+      "comparisonEligible": true,
+      "invalid": 0,
+      "timeouts": 0,
+      "independentLaunches": 120,
+      "p50": 1006.716919,
+      "p95": 1128.925487,
+      "min": 932.187841,
+      "max": 5738.050475,
+      "successOnly": {
+        "count": 120,
+        "p50": 1006.716919,
+        "p95": 1128.925487,
+        "min": 932.187841,
+        "max": 5738.050475,
+        "population": "conditional on valid successful completion"
+      },
+      "p95Interval": {
+        "n": 120,
+        "p": 0.95,
+        "confidence": 0.99,
+        "estimate": 1128.925487,
+        "low": 1091.361156,
+        "high": 5738.050475,
+        "lowerRank": 107,
+        "upperRank": 120,
+        "bounded": true,
+        "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+      },
+      "p95BootstrapDiagnostic": null,
+      "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+      "latencyBounds": {
+        "p50": {
+          "low": 1006.716919,
+          "high": 1006.716919
+        },
+        "p95": {
+          "low": 1128.925487,
+          "high": 1128.925487
+        },
+        "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+      },
+      "correctnessGate": true,
+      "tailSampleQuotaMet": true,
+      "eligibleForTailInference": true,
+      "censored": [],
+      "inference": "iid interval only if manifest proves separate independent launches"
+    }
+  ],
+  "horizon": [
+    {
+      "key": [
+        "node-model-v1.1.69-00f31fb31ec34d6d",
+        "perf-phase-a-20261116-v1",
+        "HC-20261116-A1",
+        "ordinary-new-game-seed-424242",
+        "forecast-horizon",
+        "loss-complete",
+        {
+          "artwork": "n/a",
+          "cold": true,
+          "cpuThrottle": 1,
+          "machine": "box-linux-xeon-8",
+          "renderer": "swiftshader",
+          "start": "ordinary-new-game",
+          "viewport": "node"
+        },
+        "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+        "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+        true
+      ],
+      "attempted": 6,
+      "passed": 6,
+      "failed": 0,
+      "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+      "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+      "comparisonEligible": true,
+      "invalid": 0,
+      "timeouts": 0,
+      "independentLaunches": 6,
+      "p50": 14260.363432,
+      "p95": 18047.905877,
+      "min": 13209.302352,
+      "max": 18047.905877,
+      "successOnly": {
+        "count": 6,
+        "p50": 14260.363432,
+        "p95": 18047.905877,
+        "min": 13209.302352,
+        "max": 18047.905877,
+        "population": "conditional on valid successful completion"
+      },
+      "p95Interval": {
+        "n": 6,
+        "p": 0.95,
+        "confidence": 0.99,
+        "estimate": 18047.905877,
+        "low": 14594.907052,
+        "high": null,
+        "lowerRank": 4,
+        "upperRank": 7,
+        "bounded": false,
+        "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+      },
+      "p95BootstrapDiagnostic": null,
+      "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+      "latencyBounds": {
+        "p50": {
+          "low": 14260.363432,
+          "high": 14260.363432
+        },
+        "p95": {
+          "low": 18047.905877,
+          "high": 18047.905877
+        },
+        "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+      },
+      "correctnessGate": true,
+      "tailSampleQuotaMet": false,
+      "eligibleForTailInference": false,
+      "censored": [],
+      "inference": "iid interval only if manifest proves separate independent launches"
+    }
+  ],
+  "reproject": [
+    {
+      "key": [
+        "node-model-v1.1.69-00f31fb31ec34d6d",
+        "perf-phase-a-20261116-v1",
+        "HC-20261116-A1",
+        "ordinary-new-game-seed-424242",
+        "unveil-reproject",
+        "reproject-compute",
+        {
+          "artwork": "n/a",
+          "cold": true,
+          "cpuThrottle": 1,
+          "machine": "box-linux-xeon-8",
+          "renderer": "swiftshader",
+          "start": "ordinary-new-game",
+          "viewport": "node"
+        },
+        "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+        "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+        true
+      ],
+      "attempted": 6,
+      "passed": 6,
+      "failed": 0,
+      "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+      "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+      "comparisonEligible": true,
+      "invalid": 0,
+      "timeouts": 0,
+      "independentLaunches": 6,
+      "p50": 8006.644662,
+      "p95": 8703.636259,
+      "min": 7842.631102,
+      "max": 8703.636259,
+      "successOnly": {
+        "count": 6,
+        "p50": 8006.644662,
+        "p95": 8703.636259,
+        "min": 7842.631102,
+        "max": 8703.636259,
+        "population": "conditional on valid successful completion"
+      },
+      "p95Interval": {
+        "n": 6,
+        "p": 0.95,
+        "confidence": 0.99,
+        "estimate": 8703.636259,
+        "low": 8045.102339,
+        "high": null,
+        "lowerRank": 4,
+        "upperRank": 7,
+        "bounded": false,
+        "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+      },
+      "p95BootstrapDiagnostic": null,
+      "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+      "latencyBounds": {
+        "p50": {
+          "low": 8006.644662,
+          "high": 8006.644662
+        },
+        "p95": {
+          "low": 8703.636259,
+          "high": 8703.636259
+        },
+        "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+      },
+      "correctnessGate": true,
+      "tailSampleQuotaMet": false,
+      "eligibleForTailInference": false,
+      "censored": [],
+      "inference": "iid interval only if manifest proves separate independent launches"
+    }
+  ]
+}

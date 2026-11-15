@@ -280,9 +280,10 @@ async function main() {
   ].every((v) => v !== false);
 
   report.functionalOk = functionalOk;
-  report.proposedVerdict = functionalOk
-    ? 'Builder proposes SOUND, subject to independent audit of raw artifacts and control reproduction. Tail inference remains INCONCLUSIVE where eligibleForTailInference is false.'
-    : 'NOT SOUND: a required functional or control gate failed.';
+  const fullProof = report.results.browser && report.results.forecast && report.results.controls;
+  report.proposedVerdict = !functionalOk ? 'NOT SOUND: a required functional or control gate failed.'
+    : fullProof ? 'Builder proposes SOUND, subject to independent audit of raw artifacts and control reproduction. Tail inference remains INCONCLUSIVE where eligibleForTailInference is false.'
+      : `CONSTRUCTION ONLY (phase=${phase}): gates in this run passed; no Phase A verdict without the 3-rep suites and an independent audit.`;
   const summaryPath = writeJson(path.join(outDir, 'PROOF_SUMMARY.json'), report);
   finalizeRun(outDir, docsDir);
   console.log(JSON.stringify({

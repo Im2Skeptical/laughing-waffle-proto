@@ -95,6 +95,7 @@ function summarizeLineage(state) {
 
 export function publishSettlementDebugApi({
   getForecastStatus,
+  getScrubProbe,
   getFrontierSec,
   getViewedSec,
   getPreviewCapSec,
@@ -267,6 +268,9 @@ export function publishSettlementDebugApi({
     getTooltipDebugState: () => getTooltipDebugState?.() ?? null,
     getTimeActionClickPoint: () => getTimeActionClickPoint?.() ?? null,
     browseSecond: (tSec) => browseSecond?.(nonNegativeFloor(tSec)),
+    // Performance harness probe (scripts/perf-phase-a-20261116). Returns null
+    // unless the page sets globalThis.__PERF_MEASUREMENT_HOOKS__ = true.
+    getScrubProbe: () => (globalThis.__PERF_MEASUREMENT_HOOKS__ === true ? getScrubProbe?.() ?? null : null),
     getNavigationClickPoint: (id) => getNavigationClickPoint?.(id) ?? null,
     getVassalCandidateClickPoint: (candidateIndex = 0) =>
       getVassalCandidateClickPoint?.(

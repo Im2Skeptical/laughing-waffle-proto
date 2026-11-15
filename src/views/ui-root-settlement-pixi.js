@@ -1563,6 +1563,12 @@ function publishSettlementDebugApi() {
   publishSettlementDebugApiForSettlement({
     getForecastStatus: () => settlementForecastController?.getForecastStatus?.() ?? null,
     getFrontierSec: () => getSettlementFrontierSec(),
+    getScrubProbe: () => ({
+      viewedSec: Math.max(0, Math.floor(getSettlementViewedSec() ?? 0)),
+      playbackTarget: getSettlementPlaybackState().target,
+      ...(settlementGraphView?.getScrubProbe?.() ?? {}),
+      edge: { skipping: settlementEdgeTransferScrubGate.isSkipping(), ...(worldMapView?.getEdgeTransferProbe?.() ?? {}) },
+    }),
     getViewedSec: () => getSettlementViewedSec(),
     getPreviewCapSec: () => getSettlementPreviewCapSec(),
     getPlaybackTarget: () => getSettlementPlaybackState().target,

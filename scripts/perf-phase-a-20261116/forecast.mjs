@@ -172,7 +172,7 @@ export function runForecastControls({ rawSink = null } = {}) {
   };
   // Unmeasured warmup so the added-delay pair is a warm/warm comparison.
   // The first cold attempt on 12 Nov showed only +86 ms (JIT noise); warmup is required.
-  keep(runForecastWindow({ launchId: 'ctrl-delay-warmup', observationId: 'ctrl-delay-warmup', endSec: 96 }));
+  for (let w = 0; w < 3; w++) keep(runForecastWindow({ launchId: `ctrl-delay-warmup-${w}`, observationId: `ctrl-delay-warmup-${w}`, endSec: 96 }));
   const base = keep(runForecastWindow({ launchId: 'ctrl-delay-base', observationId: 'ctrl-delay-base', endSec: 96 }));
   const delayed = keep(runForecastWindow({ launchId: 'ctrl-delay-added', observationId: 'ctrl-delay-added', endSec: 96, addedDelayMs: 200 }));
   outcomes.push({
