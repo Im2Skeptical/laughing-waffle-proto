@@ -1,6 +1,6 @@
 # Phase A — STATE (HC-20261116-A1)
 
-Updated 2026-11-16 01:53 AEDT (Australia/Sydney). Builder: Code Health box executor (Grok Bot). Session start 23:02 AEDT, hard stop 02:32 AEDT. Scope: WP1 → WP2 → WP3, then WP3b (orchestrator, 00:14, max 60 min; WP4–5 only if WP3b passes). No audit (WP6).
+Updated 2026-11-16 02:05 AEDT (Australia/Sydney). Builder: Code Health box executor (Grok Bot). Session start 23:02 AEDT, hard stop 02:32 AEDT. Scope: WP1 → WP2 → WP3, then WP3b (orchestrator, 00:14, max 60 min; WP4–5 only if WP3b passes). No audit (WP6).
 
 **Phase A verdict: NOT SOUND (construction).** `HARNESS_REVIEW.md` is **NOT AUDITED**. No baseline, no scorecard, no gains.
 
@@ -12,6 +12,7 @@ Branch `perf/phase-a-20261116` from `origin/main` `930801a5` (v1.1.69). Worktree
 | --- | --- | --- |
 | WP1 re-base + re-prove base | **PASS** (23:02–23:43, 41 min of 75) | See control table and findings. |
 | WP2 A1-01 pre-dispatch stall | **PASS on design 2 of 2** (23:43–23:47) | Design 1 failed (input landed after the stall); design 2 passed. |
+| WP4–5 three suites per profile + Node | RUNNING (session 01:52, hard stop 04:00, no extension) | Pass rules predeclared below. |
 | WP3c mobile 4× touch drag: carry-over-balanced order, settle gap, n=21/arm | **PASS on attempt 2 of 2** (01:05–01:39, 34 of 50 min) | Attempt 1 (circuit 1, 2 s gap) failed delay+deferred vs A/A envelope; attempt 2 (position-balanced circuit, 5 s gap) passed every predeclared gate. WP4 not started (next session, per orchestrator). |
 | WP3b prepared playing start + mobile touch + repeats/A-A | **STOPPED — mobile 4× deferred-completion control failed twice** (00:14–00:55, 41 of 60 min) | (a) prepared start PASS via documented direct URL, playing, Hold meaningful; (c) desktop 1× repeats + A/A + all controls PASS; (b) mobile 4× touch: correctness, wrong-target, A/A PASS, but deferred control not separable from A/A noise on attempts 1 (n=5) and 2 (n=10). WP4–5 **not started** per rule. |
 | WP3 scrub-drag job | **PARTIAL PASS** (23:47–00:10, 23 min of 90) | Ordinary New Game desktop mouse drag: positive oracle and all 3 controls PASS on metric design 2 (r3). Prepared `?seed=424242` start **STOPPED** (same failure twice: Developer tools button not reachable). Mobile touch drag not run. Hold assertion vacuous (see F-W3-3). |
@@ -80,6 +81,21 @@ Superseded run: `wp1-node-20261115` used a stale `controls.mjs` (first commit mi
 - Mechanism: `scripts/perf-phase-a-20261116/scrub-drag.mjs`. Real CDP pointerdown → 40 moves (25 forward then back, 50 ms open loop) → up on the settlement timegraph, after minimising the recap. Start clock = earliest coalesced `timeStamp` of each move (window capture listener). End = first frame (post-frame MessageChannel stamp) at/after the handler where flag-gated `getScrubProbe()` shows viewedSec equal to that move's scrubSec. Never-dragged reference: browse away and back.
 - Design 1 (r2) metric (own-target completed only, stamped inside rAF) failed the delay and deferred controls: survivorship bias (slow moves get superseded and drop out) and the stamp ran before deferred and Pixi render work. Design 2 (r3) fixed both; this was the 2nd and last allowed design.
 - **Calibration caveat:** the controls prove sensitivity and direction, not linear calibration. Per-move work compounds across the open-loop stream: +200 ms injected per move → +1005 ms p50; deferred → +581 ms. Delivered moves also fall 21 → 7 under load. Each figure is n=1 drag (one run per arm); no A/A yet. WP4 must add repeated reps and an A/A before any comparison.
+
+## WP4–5 — PREDECLARED pass rules (written 02:05 AEDT, before running)
+
+Runs: (1) Node `node scripts/perf-phase-a-20261116/run.mjs --id=wp4-node --phase=forecast` (window 480 s ×120, horizon ×6, re-projection ×6, each with F-W1-3 diagnostics: wall start, loadavg1, heap before/after, GC pauses overlapping the call). (2) Browser `node scripts/perf-phase-a-20261116/run.mjs --id=wp4-suites --phase=suites --allow-suites`: profile-outer, 3 suites desktop 1280×800 1× then 3 suites mobile 844×390 4×. Each suite = fresh browser for ordinary New Game (+ bake, opening-unveil pacing, 40 warm scrub steps) and a second fresh browser for the prepared 424242 playing start with one 12-drag `CARRYOVER_CIRCUIT_4B` cycle (3 drags per arm A1/A2/+200 ms delay/+200 ms deferred), 5 s held-idle settle gap. Node runs are sequential with the browser suites (not concurrent) so they do not perturb each other.
+
+Gates (all required; a failure of the same gate twice = STOP):
+- New Game: every launch ok (seed 424242, loss 6138, graphics pinned, reveal reached); bake reported and finite; opening-unveil ok.
+- Scrub step: all 40×3 per profile reach the target; wrong target fails (WP1 control).
+- Scrub drag: every drag passes the full oracle incl. `holdMeaningful`; wrong-target fails closed on every A1 drag; per profile, pooled over 3 sessions (n=9/arm): A/A 95% interval contains 0; delay and deferred Δ ≥ 150 ms with lower bound > 0 and > A/A envelope.
+- Node: window 120/120, horizon 6/6 terminal at 6138, re-projection 6/6 with twin agreement.
+- Statistics: every number from `statistics.mjs` (`summarize`, `quantile`, `quantileInterval`) or the seeded bootstrap in `scrub-drag.mjs`; P95 INCONCLUSIVE wherever `eligibleForTailInference` is false (expected for New Game n=3, scrub, drag).
+
+Reported, not stop gates:
+- **Between-session check:** per profile, the 3 sessions' baseline (A1+A2, 6 drags each) per-drag p50s compared pairwise by the seeded bootstrap of the median difference. **Cross-session A/A envelope** = max |bound| over the 3 pairwise 95% intervals; a later baseline-vs-candidate comparison made across sessions must exceed it. Also New Game / scrub-step medians per session.
+- **F-W1-3 recheck:** does any window launch exceed 3× the median? If so, which diagnostics coincide (GC pause, load, heap, launch index)? Record only.
 
 ## WP3c (started 01:05 AEDT, max 50 min, 2 attempts) — PREDECLARED before running
 

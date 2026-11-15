@@ -7,6 +7,10 @@ import { summarize } from './statistics.mjs';
 import { runForecastWindow, runForecastHorizon, runReprojection } from './forecast.mjs';
 import { startServer, runNewGameJob, runScrubJob, closeSession } from './browser.mjs';
 import { runAllControls } from './controls.mjs';
+import { openPreparedStart, enterPlaying, runDrag, settleGap, ARMS, CARRYOVER_CIRCUIT_4B, bootstrapMedianDelta, wrongTargetControl } from './scrub-drag.mjs';
+import { quantile } from './statistics.mjs';
+import { loadavg } from 'node:os';
+import { PerformanceObserver, performance as perfNow } from 'node:perf_hooks';
 import { finalizeRun } from './manifest.mjs';
 import {
   REPO_ROOT, CONTRACT_ID, HARNESS_ID, FROZEN_SEED, FORECAST_WINDOW_SEC, EXPECTED_OPENING_LOSS_SEC,
@@ -42,14 +46,68 @@ function dropSession(obs) {
 
 async function runForecastPopulation({ count, job, runOne, idPrefix }) {
   const rows = [];
+  // F-W1-3 recheck (record only): per-launch wall clock, load, heap and GC
+  // pauses overlapping the measured call.
+  const gc = [];
+  const obs = new PerformanceObserver((list) => { for (const e of list.getEntries()) gc.push({ start: e.startTime, duration: e.duration, kind: e.detail?.kind ?? e.kind ?? null }); });
+  obs.observe({ entryTypes: ['gc'] });
   // One unmeasured warmup of the window job to leave JIT in a steady state.
   runForecastWindow({ launchId: `${idPrefix}-warmup`, observationId: `${idPrefix}-warmup`, endSec: 96 });
   for (let i = 0; i < count; i++) {
     const launchId = `${idPrefix}-${i}`;
+    const heap0 = process.memoryUsage().heapUsed, la = loadavg()[0], wall = nowIso(), t0 = perfNow.now();
     const row = runOne({ launchId, observationId: launchId });
-    rows.push(dropSession(row));
+    const t1 = perfNow.now(), heap1 = process.memoryUsage().heapUsed;
+    await new Promise((r) => setImmediate(r));
+    const hits = gc.filter((g) => g.start < t1 && g.start + g.duration > t0);
+    rows.push({ ...dropSession(row), diag: { index: i, wallStart: wall, loadavg1: la, heapUsedBeforeMB: heap0 / 1048576, heapUsedAfterMB: heap1 / 1048576,
+      gcCount: hits.length, gcMs: hits.reduce((a, g) => a + g.duration, 0), gcMaxMs: hits.length ? Math.max(...hits.map((g) => g.duration)) : 0, gcKinds: hits.map((g) => g.kind) } });
   }
+  obs.disconnect();
   return rows;
+}
+
+const SUITE_DRAGS = 12;
+const SUITE_SETTLE_GAP_MS = 5000;
+
+// WP4: scrub-drag evaluation per profile (predeclared in STATE.md).
+// Within profile (pooled over 3 sessions): A/A, delay, deferred as in WP3c.
+// Between sessions: pairwise bootstrap of per-drag baseline (A1+A2) p50s;
+// cross-session envelope = max |bound| over the pairwise intervals.
+function evaluateDragSuites(dragRuns) {
+  const out = {};
+  const profiles = [...new Set(dragRuns.filter((r) => r.profile).map((r) => r.profile))];
+  for (const profile of profiles) {
+    const runs = dragRuns.filter((r) => r.profile === profile);
+    const per = (pred) => runs.filter((r) => r.ok && Number.isFinite(r.p50) && pred(r)).map((r) => r.p50);
+    const base = per((r) => r.arm === 'A1' || r.arm === 'A2');
+    const aa = bootstrapMedianDelta(per((r) => r.arm === 'A1'), per((r) => r.arm === 'A2'));
+    const env = aa ? Math.max(Math.abs(aa.low), Math.abs(aa.high)) : Infinity;
+    const dDelay = bootstrapMedianDelta(base, per((r) => r.arm === 'delay'), { seed: 0x44454c31 });
+    const dDefer = bootstrapMedianDelta(base, per((r) => r.arm === 'deferred'), { seed: 0x44454631 });
+    const sessions = [...new Set(runs.map((r) => r.session))];
+    const sessionBase = Object.fromEntries(sessions.map((sId) => { const v = per((r) => r.session === sId && (r.arm === 'A1' || r.arm === 'A2')); return [sId, { n: v.length, median: v.length ? quantile(v, 0.5) : null, values: v }]; }));
+    const pairs = [];
+    for (let i = 0; i < sessions.length; i++) for (let j = i + 1; j < sessions.length; j++) {
+      const b = bootstrapMedianDelta(sessionBase[sessions[i]].values, sessionBase[sessions[j]].values, { seed: 0x53455331 + i * 7 + j });
+      if (b) pairs.push({ a: sessions[i], b: sessions[j], ...b, containsZero: b.low <= 0 && b.high >= 0 });
+    }
+    const crossEnvelope = pairs.length ? Math.max(...pairs.map((p) => Math.max(Math.abs(p.low), Math.abs(p.high)))) : null;
+    const wrong = runs.filter((r) => r.arm === 'A1' && r.ok);
+    out[profile] = {
+      drags: runs.length, okDrags: runs.filter((r) => r.ok).length, sessions: sessions.length,
+      controls: {
+        correctness: runs.length > 0 && runs.every((r) => r.ok),
+        wrongTarget: wrong.length > 0 && wrong.every((r) => r.wrongTargetPassed === true),
+        aa: { passed: !!aa && aa.low <= 0 && aa.high >= 0, ...aa },
+        delay: { passed: !!dDelay && dDelay.delta >= 150 && dDelay.low > 0 && dDelay.low > env, aaEnvelopeMs: env, ...dDelay },
+        deferred: { passed: !!dDefer && dDefer.delta >= 150 && dDefer.low > 0 && dDefer.low > env, aaEnvelopeMs: env, ...dDefer },
+      },
+      betweenSession: { sessionBaselines: sessionBase, pairs, allContainZero: pairs.length > 0 && pairs.every((p) => p.containsZero), crossSessionEnvelopeMs: crossEnvelope,
+        rule: 'cross-session comparisons (e.g. baseline vs candidate in different sessions) must exceed crossSessionEnvelopeMs; reported, not a stop gate' },
+    };
+  }
+  return out;
 }
 
 async function runBrowserSuites({ suites, populations, outDir }) {
@@ -58,11 +116,16 @@ async function runBrowserSuites({ suites, populations, outDir }) {
   const bakeRows = [];
   const scrubRows = [];
   const unveilRows = [];
+  const dragRows = [];
+  const dragRuns = [];
   const suiteReports = [];
   try {
-    for (let s = 0; s < suites; s++) {
-      const suiteRep = { index: s, populations: [] };
-      for (const pop of populations) {
+    // Profile-outer: all suites of one profile complete before the next starts.
+    for (const pop of populations) {
+      for (let s = 0; s < suites; s++) {
+      console.log(`[${new Date().toLocaleTimeString('en-AU', { hour12: false, timeZone: 'Australia/Sydney' })} AEDT] suite ${s} ${pop.viewport}-x${pop.cpuThrottle} start`);
+      const suiteRep = { index: s, pop, populations: [] };
+      {
         const launchId = `suite${s}-${pop.viewport}-x${pop.cpuThrottle}`;
         const ng = await runNewGameJob({
           server,
@@ -71,6 +134,7 @@ async function runBrowserSuites({ suites, populations, outDir }) {
           instrument: false,
           launchId,
           observationId: `${launchId}-ng`,
+          screenshotPath: path.join(outDir, `${launchId}-new-game-finished.png`),
         });
         newGameRows.push(dropSession(ng));
         if (ng.bake && Number.isFinite(ng.bake.bakeMs)) {
@@ -122,8 +186,45 @@ async function runBrowserSuites({ suites, populations, outDir }) {
           scrubTotal: scrub.length,
         });
         await closeSession(ng._session);
+        // scrub-drag (WP3/WP3b): prepared 424242 start, playing, 5 baseline drags.
+        let drags = [];
+        let prep = null;
+        try {
+          prep = await openPreparedStart({ server, cpuThrottle: pop.cpuThrottle, viewport: pop.viewport });
+          await enterPlaying(prep.page);
+          // WP3c attempt 2 design: one carry-over/position-balanced 12-drag cycle
+          // (A1, delay, A2, deferred, ...) with a 5 s held-idle settle gap.
+          for (let r = 0; r < SUITE_DRAGS; r++) {
+            const arm = ARMS[CARRYOVER_CIRCUIT_4B[r % 12]];
+            const prevArm = drags.at(-1)?.arm ?? null;
+            const gap = drags.length ? await settleGap(prep.page, SUITE_SETTLE_GAP_MS) : null;
+            const d = await runDrag({ session: prep, launchId: `${launchId}-drag${String(r).padStart(2, '0')}-${arm.arm}`, kind: pop.viewport === 'mobile' ? 'touch' : 'mouse',
+              addedDelayMs: arm.addedDelayMs, deferredMs: arm.deferredMs, playing: true, arm: arm.arm, rep: r,
+              screenshotDir: r === 0 ? outDir : null, tag: `${launchId}-drag` });
+            d.prevArm = prevArm; d.settleGap = gap;
+            drags.push(d);
+            dragRows.push(...d.observations);
+            writeJson(path.join(outDir, 'drags', `raw-${d.launchId}.json`), d);
+            dragRuns.push({ launchId: d.launchId, session: launchId, profile: `${pop.viewport}-x${pop.cpuThrottle}`, suite: s, arm: arm.arm, prevArm, settleGap: gap, ok: d.ok, p50: d.p50, p95: d.p95, delivered: d.delivered, caughtUp: d.caughtUp, rafP50: d.rafP50, rafMax: d.rafMax,
+              wrongTargetPassed: arm.arm === 'A1' && d.ok ? wrongTargetControl(d).passed : null,
+              failed: Object.entries(d.oracle ?? {}).filter(([k, v]) => d.required?.includes(k) && v !== true).map(([k]) => k), screenshots: d.screenshots });
+            writeJson(path.join(outDir, 'scrub-drag-runs.json'), dragRuns);
+          }
+        } catch (err) {
+          dragRuns.push({ launchId: `${launchId}-drag`, ok: false, reason: `error: ${err.message}` });
+        } finally { await closeSession(prep); }
+        suiteRep.populations.at(-1).dragPassed = drags.filter((d) => d.ok).length;
+        suiteRep.populations.at(-1).dragTotal = SUITE_DRAGS;
       }
       suiteReports.push(suiteRep);
+      // Incremental, so a box restart keeps finished suites.
+      writeJson(path.join(outDir, 'suites.json'), { suiteReports, at: nowIso(), partial: true });
+      writeJson(path.join(outDir, 'raw-new-game.json'), newGameRows);
+      writeJson(path.join(outDir, 'raw-bake.json'), bakeRows);
+      writeJson(path.join(outDir, 'raw-scrub.json'), scrubRows);
+      writeJson(path.join(outDir, 'raw-opening-unveil.json'), unveilRows);
+      writeJson(path.join(outDir, 'raw-scrub-drag.json'), dragRows);
+      }
     }
   } finally {
     await server.close();
@@ -133,7 +234,9 @@ async function runBrowserSuites({ suites, populations, outDir }) {
   writeJson(path.join(outDir, 'raw-bake.json'), bakeRows);
   writeJson(path.join(outDir, 'raw-scrub.json'), scrubRows);
   writeJson(path.join(outDir, 'raw-opening-unveil.json'), unveilRows);
-  return { newGameRows, bakeRows, scrubRows, unveilRows, suiteReports };
+  writeJson(path.join(outDir, 'raw-scrub-drag.json'), dragRows);
+  writeJson(path.join(outDir, 'scrub-drag-runs.json'), dragRuns);
+  return { newGameRows, bakeRows, scrubRows, unveilRows, dragRows, dragRuns, suiteReports };
 }
 
 async function main() {
@@ -234,16 +337,23 @@ async function main() {
     const ngSum = summarize(browser.newGameRows);
     const bakeSum = summarize(browser.bakeRows);
     const scrubSum = summarize(browser.scrubRows);
-    writeJson(path.join(outDir, 'browser-summaries.json'), { newGame: ngSum, bake: bakeSum, scrub: scrubSum });
+    const dragSum = browser.dragRows.length ? summarize(browser.dragRows) : [];
+    const unveilSum = summarize(browser.unveilRows);
+    const dragEval = evaluateDragSuites(browser.dragRuns);
+    writeJson(path.join(outDir, 'scrub-drag-evaluation.json'), dragEval);
+    writeJson(path.join(outDir, 'browser-summaries.json'), { newGame: ngSum, bake: bakeSum, scrub: scrubSum, scrubDrag: dragSum, openingUnveil: unveilSum });
     report.results.browser = {
       suites,
       functional: {
         newGame: browser.newGameRows.every((r) => r.ok),
         bake: browser.bakeRows.every((r) => r.ok),
         scrub: browser.scrubRows.every((r) => r.ok) && browser.scrubRows.length === suites * populations.length * SCRUB_WARM_STEPS,
+        scrubDrag: browser.dragRuns.length === suites * populations.length * SUITE_DRAGS && browser.dragRuns.every((r) => r.ok),
+        scrubDragControls: Object.values(dragEval).every((e) => e.controls.correctness && e.controls.wrongTarget && e.controls.aa.passed && e.controls.delay.passed && e.controls.deferred.passed),
       },
+      dragEval,
       suiteReports: browser.suiteReports,
-      summaries: { newGame: ngSum, bake: bakeSum, scrub: scrubSum },
+      summaries: { newGame: ngSum, bake: bakeSum, scrub: scrubSum, scrubDrag: dragSum, openingUnveil: unveilSum },
     };
   }
 
@@ -255,6 +365,8 @@ async function main() {
     report.results.browser?.functional.newGame,
     report.results.browser?.functional.bake,
     report.results.browser?.functional.scrub,
+    report.results.browser?.functional.scrubDrag,
+    report.results.browser?.functional.scrubDragControls,
   ].every((v) => v !== false);
 
   report.functionalOk = functionalOk;

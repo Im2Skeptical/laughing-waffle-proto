@@ -476,7 +476,7 @@ export const CARRYOVER_CIRCUIT_4B = [0, 2, 1, 3, 1, 2, 3, 0, 3, 2, 0, 1];
 
 // Fixed settle gap: wait until playback is held and the drag/edge state is
 // idle, then a further gapMs (recorded per drag).
-async function settleGap(page, gapMs) {
+export async function settleGap(page, gapMs) {
   const t0 = Date.now();
   await page.waitForFunction(() => { const p = globalThis.__SETTLEMENT_DEBUG__.getScrubProbe(); return p && p.playbackTarget === 0 && p.isScrubbing === false && p.edge?.skipping !== true; }, null, { timeout: 30000, polling: 100 }).catch(() => {});
   const idleAt = Date.now();
