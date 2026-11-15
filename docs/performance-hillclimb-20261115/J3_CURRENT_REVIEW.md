@@ -1,0 +1,29 @@
+# Current desktop-pan actual review — 2026-11-15
+
+**ACCEPT current desktop pan linkage/functional diagnostic only.** The one admitted current-source launch has pending current work at its first trusted input-handler read, matching successful chunks after that read inside the original browser operation, actual camera movement and rendered-frame opportunities, and complete reported cleanup. Current mobile/zoom/settlement open/close, full J3, offered-load/observer overhead, tails, scores and whole Phase A remain unaccepted. **Phase A remains NOT SOUND.** No retry or further case follows from this verdict.
+
+## Independent evidence and identity
+
+Authoritative leaf: OLD `artifacts/perf-hillclimb/j3-linkage-current-desktop-pan-r1-20261115/`. Independently parsed original raw observations, manifest, summary, fixture metadata, map-before source and feedback, plus admitted plan/launch/result/receipt/driver identities. All parsed inputs are bounded under2MiB before read. Parent wrapper booleans and historical old-app positives were not substituted for actual checks.
+
+Fresh evidence `artifacts/perf-hillclimb/auditor-j3-current-20261115-r1/{extract.mjs,input-sha256.json,extraction.json,receipt.json}`. Final independent extraction01:47:20Z, exit0. Input manifest SHA256 `ef4a62c628e77a520c0707dd0179bedba3f8e27630afcf2b18972da22b6e58d9`; extraction `fd69488ef2227cea5571ef7b1cc95103f66b86dcbc515508372b8cd4c887d62f`. Detailed source/input pins and bounded scalar witnesses are retained there; no frame/state arrays are printed by the collector.
+
+Rehashed all683 admitted source/H paths, five compiled/fixture assets and current build-manifest bytes; no drift. Actual current runner `d1a81bf6d99be2e35ddc167e8688b11ae2907c0f35acb0526e8d0f3e53b6a714`, served app `2650f059863769f98da13622798df92cf8a338c082f5fd5a695094aee2a48ea8`, contract `a2c16fae584d77f0ab45478a0604b54eaae92227ae2cde2f99852c45d5682017`, build-manifest `0955ff002faa221929bc7866c93f32b052c64d6bc5830af2681bccf3f324f950`. Manifest build/source/served/fixture hashes match the sealed plan. Driver `709ed8d293e483ff7545009383a13481da29eb2dd29cad173c09d45971d7fa21` and admission/authority identities match; admission precedes actual launch01:43:11Z, before strict01:45 cutoff.
+
+Actual selected history `97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb`, state `651ba92d0e2cdfbdc440c0087c92374f5a0460aec8c5eff7f173795d91228065`, frozen corpus `406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000`. Exactly seed123/desktop/cold/artoff, instrumentation and feedback on, worker delay0, no control, sample1, original180000ms operation timeout. One canonical map-pan launch/one successful raw J3 observation; summary attempted1/passed1/failed0/invalid0/timeouts0/independentLaunches1. Child exit0/null signal, not expired.
+
+## Actual linkage, input and endpoint checks
+
+Native document times: event start3523.4ms, first trusted handler/passive read3524.1ms, read cost0.3ms, semantic predicate3860.4ms, double-rAF completion4326.3ms. The0.7ms event queue remains included. Input snapshot is passive DTOv2, matches declared source revision/frontier, and has current projection signature/token `sig:4`, matching history/frontier, pending requested supply beyond computed196. Navigation leaves revision/frontier/action count unchanged.
+
+Independently filtered11 successful current-token/history forecast chunks **after the read completed and before original4326.3ms completion**; terminal same-source computed supply is416. No stale-control token occurs. Thus this proof does not depend on a pre-read response, retained completed worker, generic reply or post-marker source snapshot. It remains a current work/delivery proxy, not proof of continuous worker CPU occupancy.
+
+Independently recomputed native clock subtraction, stable NavigationStart, JS bracketing, nine causal offset bounds and1ms allowance from11 retained native metrics. Uncertainty1.30465ms is below unchanged4.16667ms threshold; dueBrowser/host translation and all fixed host due intervals agree with those bounds.
+
+Gesture is the actual fixed clear-east pan: one stable mouse pointer,14 trusted matched samples comprising press/12 moves/release at nominal60Hz; requested and received types/coordinates agree. Recomputed maximum dispatch lateness14.80953ms remains below16.66667ms saturation threshold. No dropped/cancelled/invalid-timestamp/protocol/missing-frame samples. Every offered sample has its bounded native frame witness, and a changed raw camera is present in that frame evidence. This does not accept broader offered-load overhead or physical presentation.
+
+Actual retained camera moves x0→-334.879991 with y0/zoom1 unchanged; terminal mode is usable visible map with focus animation false. Native predicate/double-rAF completion retains four revalidations and seven operation frame observations. These are rendered-frame opportunities, not physical scanout. Feedback's camera record is completed, baseline/current trusted input matches, observer/error fields null and marker not after completion; feedback remains comparison-ineligible. No feedback timing or neutral-observer claim is accepted here.
+
+Original manifest reports one closed context/page and one closed owned browser, no cleanup/failed-launch errors. The pinned successful map path additionally asserts its page-error list is empty before closure. No source/asset drift, interruption or unresolved owned cleanup is reported. This scoped acceptance does not manufacture a clean whole suite or erase any earlier native failure.
+
+Independent audit complete; no browser, test, build, benchmark, source edit or additional measurement machinery was started. Parent owns final registered verification, source/evidence/preview authentication and handoff. No new case is recommended after the cutoff.

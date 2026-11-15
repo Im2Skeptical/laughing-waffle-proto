@@ -1,0 +1,39 @@
+# Native prefix admission — extension chunk1
+
+Independent source/guard review **WITHHOLDS ADMISSION** at the initial pins below. No `admission.json`, actual fixture, helper-start experiment, browser, build or full test was created/run. Cam's explicit extension supersedes the prior stop-only plan; hard deadline is **2026-11-16T02:40Z**. Whole Phase A remains NOT SOUND and all eight jobs/three complete suites/120 independent launches per scored population remain required.
+
+## Reviewed identity and allowed controls
+
+Reviewed NATIVE_STARTUP_PROTOCOL_R1, actual prepare/probe/driver/cleanup/source-authentication and original build-preview-test prefix. Initial driver `00f2b293de496ae65659a47cc89bc206921950c18dafb80ca5de40c8b3c2dd62`; probe `da1d75076a3d6472eaeac9ead86d33093f4906cdef85b424144ce56be35b7f6e`; cleanup `9c806cf49043d3ba29cdceedd4d1f8ac1484718679e627e3bf06e3ab60a7ee38`; source authentication `4b2a784770a8f340cbad9fa39731d05c82b2257db5dee4b7f1d64ff4f048318f`.
+
+Fresh OLD evidence `artifacts/perf-hillclimb/auditor-native-prefix-admission-20261115-r1/{check.mjs,receipt.json,wrong-root-0.log,wrong-root-1.log}`; receipt02:59:57Z SHA256 `8d193c7b138c137d8a14d7ad42264c246da49a5df7b62e913ccb3150e686e076`. Only pure predicates extracted from the actual driver and two guarded wrong-root invocations of cleanup were executed. Both existing wrong roots (OLD workspace and OS-temp directory itself) throw the intended ownership error before candidate enumeration/kill, producing no cleanup receipt. No Node preview was stopped.
+
+Independently reversed declared registration/start-wrapper substitutions from generated probe and obtained the exact normalized original test prefix through the linked-worktree loop. Original synchronous execFileSync start/40000ms helper bound, ephemeral12-port patch, full initial/reuse/identity/cache/version checks/waits and both worktrees are preserved. Seven original subject/helper hashes match source authentication. Copied local-preview is guarded at every original helper call against normalized original bytes with only that original port substitution. No production app/harness/contract edit or asynchronous-path ablation is involved.
+
+The preserved-root cleanup admits only immediate OS-temp children with the expected prefix; filters Node --serve commands containing that registered root and creation after attempt start; rechecks PID command/creation before stopping; records errors/remaining IDs and performs no recursive filesystem deletion. Outer300s work cap plus bounded10s child-tree termination and20s independent cleanup settles/unrefs, retaining interrupted outcomes. No cause/fix or whole-verifier acceptance follows from this diagnostic.
+
+## Minimal blocking findings
+
+1. **Prior-signature recomputation lacks actual linked cwd validation.** It uses `stage.startsWith('worktrees/')` but never checks `c.cwd` against registered fixture/worktrees/task-a or task-b. Pure controls with valid advertised stage but wrong or missing cwd still classify native signature true. Validate exact allowed stage and normalized corresponding absolute cwd under the registered fixture, retaining the raw cwd/start receipt. This is a source/provenance condition, not a new scheduling mechanism.
+2. **Missing helper evidence can become NO REPRODUCTION.** `probe.finished && prefixCompleted && !originalError` can classify NO_REPRODUCTION with missing/empty `helperCalls`. Require typed, internally consistent per-call records/start evidence/raw files; all-normal completion should require the four original calls (main,reuse,task-a,task-b) at their exact stages/cwds and successful statuses. Failed-prefix classification must likewise retain the actual stop/error call rather than invent missing-data completion. Missing/inconsistent evidence is INCOMPLETE_OR_INFRASTRUCTURE, never red or no-reproduction completion.
+3. **Cleanup success needs typed fail-closed evidence.** The predicate accepts nonarrays `{remaining:'',errors:''}` because both lengths are0. Require arrays explicitly plus normal cleanup process status/null signal/no error. Missing/unconfirmed cleanup must block completed classification and another runtime.
+
+The existing pure controls correctly reject different native status, main rather than linked stage, nonnull signal, missing stdout/stderr and nonempty remaining-owned-PID cleanup. These passing checks do not excuse the four failing data/cwd controls above. Source subject-prefix and wrong-root guards passed; no broader investigation or actual rerun is needed to repair these metadata/classification seams.
+
+Parent received findings promptly and owns wrapper-only repair. Recheck a fresh final file pin plus affected pure controls before writing admission. CPU slot released; no actual native-prefix run is authorized by this withheld review. A future accepted run can establish only exact red reproduction, a distinct failure or no reproduction; none establishes native cause/fix, speed, observer neutrality or full SOUND.
+
+## Targeted repaired-driver recheck —03:06Z
+
+Driver `1150f3d913bed5ebafcad2a20d4f292ef97d53f55e247b6f4a303ed805ca56bf` repairs the three original findings for shaped evidence: exact canonical registered cwd/stage, original call/start/subject/raw-output/count consistency, typed cleanup arrays/status/signal/error/root/time. Independent virtual pure-classification controls accept valid four-call NO_REPRODUCTION and valid linked native RED, while rejecting wrong/missing cwd, missing call/raw evidence, malformed/unconfirmed cleanup and wrong propagated PID.
+
+**Admission remains withheld for two null-object escapes.** `calls.every(c=>c.status===0&&c.signal===null)` throws when prefixCompleted has a null call; `probe.originalError.pid===last.pid` throws when a prior native call is followed by a null last call. The main per-call loop records invalidity safely, but these terminal checks bypass that safety. Guard nullable members or avoid terminal checks after invalid shape, so both cases retain an INCOMPLETE result instead of losing the result receipt.
+
+Evidence: fresh owned `recheck-r2.mjs`/`recheck-r2.json`,14 virtual cases,12 passing; receipt SHA256 `f5ec8c5bb228d756b0eacac6ba0d082c783d2be5152bb94128cb60eb4c91bfc3`. No actual fixture or startup was created. Original withheld source/guard receipt remains preserved. Parent received this exact minimal guard repair; no new broad finding or measurement change is requested.
+
+## Final scoped admission —03:08Z
+
+**ACCEPTED** driver `655555128ddb7d18675dc227764c521d8000f30d5e131cf03c47aebebfc5edbb`. Only targeted changes since r2 use nullable member access in both terminal checks, preserving invalid-shape evidence and INCOMPLETE classification. Independent `recheck-r3.mjs` repeats the same14 virtual controls: **14/14 PASS**, including both null-object cases, valid native RED and four-call NO_REPRODUCTION. Receipt SHA256 `45fe5e1e348640525c67ca27b45046663bcd891065b460cda299bd4105c75e5a`. Earlier withheld receipts/findings remain unchanged.
+
+Probe/cleanup/source-authentication hashes remain the exact initial pins above, so exact original-prefix reconstruction and both wrong-root rejection controls remain applicable without repetition. Rehashed all four admission files immediately before writing owned `native-preview-prefix-r1-20261115/admission.json`; confirmed no prior admission, launch or fixture-registration existed.
+
+This accepts only the bounded unchanged-prefix diagnostic and its repaired fail-closed source/provenance/classification/owned-cleanup guards. It does not establish an actual reproduction, native cause/fix, full verifier PASS, performance gain, observer neutrality, score or full SOUND. Parent owns the single actual invocation and subsequent independent original-evidence review. Auditor created no real fixture or startup and releases the focused CPU slot. New hard deadline remains2026-11-16T02:40Z.

@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "purpose": "Final preservation only; Phase A owned by Code Health; no acceptance or performance claim",
+  "worktree": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\t3-b6a8e362-4c1c21b30f50461f",
+  "createdUtc": "2026-11-15T12:09:05Z",
+  "rawThresholdBytes": 5000000,
+  "evidenceRoots": [],
+  "rawFileCount": 0,
+  "rawBytes": 0,
+  "linksStoredWithoutFollowing": 0,
+  "excludedRawFiles": [],
+  "gitMetadataStoredOnlyInZip": [],
+  "zip": {
+    "path": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\t3-b6a8e362-4c1c21b30f50461f-performance-evidence-20261115.zip",
+    "sizeBytes": 22,
+    "sha256": "8739c76e681f900923b900c9df0ef75cf421d39cabb54650c4b9ad19b6a76d85",
+    "fileCount": 0,
+    "complete": true
+  }
+}

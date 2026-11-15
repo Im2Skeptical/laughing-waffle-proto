@@ -1,0 +1,42 @@
+# Connected controller r1 — admission WITHHELD
+
+Independent gate owner `/root/harness_auditor`,2026-11-15T05:45Z. **Do not run the six slots. No admission.json issued.** This candidate has concrete connected-source and oracle defects. Whole Phase A remains NOT SOUND; this is an actionable source-repair finding, not an external blocker or a scope waiver.
+
+Reviewed current STATUS, NATIVE_CAPTURE_CONTROLLER_BRIEF_R1 and actual OLD `native-capture-controller-r1-20261115/README.md`, connected C#/PowerShell/JS sources and exact selected pins. Candidate manifest SHA `77a625b03ab1572dfce1dfad87c84d56e5d335c42cdb2617a2cee1fcb4e95fca`; plan SHA `985a38a4a45faf7d06bced286dc2ef7769073f1a0317ef356f4e7b79db7814a5`; selected observer DLL `e13d0a0d140c0fbd665fb8690fad0006af519e5a927e5c90114f6bea8d772c02`; target EXE `e7497e622c39b068a9ad0816382a31ae978d4e455d1127bf5ce85eedb1dc63d0`. All selected and plan-pinned files—including host/ntdll—matched before the independent controls. All six actual attempt/result roots were checked unconsumed. Preliminary output/source-hash history is separate: full preliminary source snapshots were not retained; it cannot stand in for selected source proof.
+
+## Independent checker evidence
+
+Fresh OLD `artifacts/perf-hillclimb/auditor-native-capture-controller-r1-20261115/` contains `checker-controls.mjs` SHA `de325870e4b7efe689942b684a861f552c5f3a2edd82b9c68d946b1aafe3c933` and `checker-controls.json` SHA `2454ea6a09912dae429c0ab12f569bee412f7a7d6f6027607c0f3929d2e6c9b7`. The deterministic adapter retains the complete virtual input generator and exact failed mutations. It evaluates the actual frozen checker body (imports replaced with supplied modules) in a VM with memory-only read/write filesystem bindings. It never writes the real six slots or invokes next/invoke/stop/controller/target.
+
+Twenty fixed virtual cases executed. Six self-consistent virtual mode receipts were accepted; six negative cases were correctly rejected (missing EXIT, wrong owner, raw-length mismatch, stream error, wrong supplied native parameter, incorrect timeout error). **Eight required invalid-evidence cases were falsely accepted:**
+
+| Mutation | Actual checker verdict |
+|---|---|
+| Remove loader breakpoint event; keep LoaderBreakpoint:true | PASS |
+| Supply only an EXIT event; keep all fact flags true | PASS |
+| Replace loader exception address with arbitrary address while swallowing it | PASS |
+| Change loader exception continuation to NOT_HANDLED | PASS |
+| Native classification with MatchingFatalRecords:0 | PASS |
+| Normal classification with MatchingFatalRecords:1 | PASS |
+| Normal result with supervisor host exit2 (INCOMPLETE) | PASS |
+| Descendant flags true while all original child registration/identity/await evidence is absent | PASS |
+
+These are checker false acceptances of synthetic files, not native control outcomes. Checker SHA is `b9f888e43095604d2ee40146ce13ac6de3281fc67283f8a1dc4951095737a17a`. Source admission is already decisively withheld. After the parent directed consolidation without further test expansion, no independent C# compile or rerun of the Builder's27 flag/policy checks was attempted; those remain Builder evidence only.
+
+## Connected defects and minimum consolidated patch
+
+**1. Pre-resume reader readiness is not enforced.** CaptureController38 calls both StartReader methods;40 unconditionally sets initComplete and resumes. Actual RepairedResources115–125 can record a startup timeout, return without ready, or catch a startup error without throwing. The target can therefore execute before either raw reader has proved readiness. Return/expose a typed startup outcome; require both ready, live/owned and error-free before Resume. Retain startup receipts and route failure to suspended-target cleanup. Pure connected sequencing controls must show that either failed/missing/late reader prevents Resume, while two successful readers permit exactly one Resume.
+
+**2. The checker trusts claimed facts instead of reconstructing the trace.** check-control11 accepts host0 or2 for every mode;16 trusts LoaderBreakpoint and other claims;26 checks EXIT but no required CREATE/loader sequence;28 trusts only two descendant booleans. Native/normal classification is not independently recomputed from fatal records. Add bounded reconstruction from original event/launch/raw/child evidence: exact owned CREATE before the one legitimate loader breakpoint, primary TID/address/chance/continuation, one continued EXIT, computed fatal count and classification, config/source/runtime links and expected host-code consistency. Export the loader RVA/module identity/base needed to audit its address and independently derive/check the RVA against the frozen ntdll export. Read and cross-link original descendant registration/identity/await receipts plus retained actual handle/FILETIME/image/job-membership/exit observations; absence, mismatch, wrong-generation identity or child debug events must fail. Reject all eight retained mutations, and keep the six existing rejection controls. Passing self-authored flags alone remains insufficient.
+
+**3. The observer-error fixture depends on an unrelated future debug event.** EventSession32 polls/possibly verifies the child, but78 injects the declared error only after another root event has been received and continued. The supplied target can already be sleeping indefinitely, and DEBUG_ONLY_THIS_PROCESS does not supply a child event. A subsequent root event is not guaranteed; this cell can timeout instead of exercising the intended observer error. Perform the declared injection immediately after successful verified Poll, before waiting for another event, and retain that phase witness. A pure connected idle-event fixture should prove verification triggers the error without requiring another event. Do not modify the six fixed meanings or add replacement slots.
+
+**4. Failed-constructor native close outcomes are still not carried to the controller.** Pipe setup catch at Resources107 delegates to SetupRollback, which only catches thrown Dispose errors (Contracts67). OwnedResource records CloseHandle:false without throwing; when construction fails the object is inaccessible, and the controller retains only its primary exception text. The job configuration-failure path at Resources40 has the same outcome loss. The prior readiness allocation leak is repaired, but full source admission also needs a contained creation/rollback receipt that survives a failed constructor and retains per-resource returned close outcomes/pending adoption. Unconfirmed rollback must remain INCOMPLETE and require recovery, never be inferred from method return. Include managed injected return-only-close/partial-creation cases in the consolidated candidate.
+
+These are one connected revision's requirements, not requests for another series of isolated helper reviews. Preserve r1/source/binaries/plan/VM evidence; freeze a fresh complete revision and new plan after repairs. No admitted or actual roots may be reused.
+
+## Retained limits for that revision
+
+The declared identity/handle-list/suspended-job/normal-EXIT handoff paths are now present in source, but have not been exercised with native APIs. Existing safe-handle leases and finite drain policy do not establish Windows ABI, real close/EOF/cancel, descendant exit or OS timing. Descendant file Poll currently precedes the work-deadline check and uses a metadata length check followed by File.ReadAllText; only ArgumentException is retried. Make bounded transient/partial witness reads explicit in the connected deadline/failure policy. Do not treat an outer host stop as proof that job descendants/raw EOF closed; retain INCOMPLETE and demand fresh owned recovery evidence before further workload. The batch timer can be followed by its8s stop and10s checker, so document/enforce the full lifetime rather than labeling the admission deadline as total90s closure.
+
+No C# native-helper constructor, Native/ExtraNative/Api method (including StopExactHost), Run/Main, target, browser, benchmark or preview ran. Only a Node VM pure-check process was used. Parent/source files, real slots and frozen old evidence stayed unchanged. All six native synthetic controls remain UNATTEMPTED/UNADMITTED; real preview trial-wide daemon lifetime remains separate. No native cause/fix, neutrality, timing, full verifier PASS or SOUND acceptance. Review complete and focused CPU lease released; deadline2026-11-16T02:40Z/eight jobs/three suites/120 independent launches remain unchanged.

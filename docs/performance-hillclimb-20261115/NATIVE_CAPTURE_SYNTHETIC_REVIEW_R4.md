@@ -1,0 +1,42 @@
+# R4 actual six-cell assessment — scoped outcomes supported
+
+Independent gate owner `/root/harness_auditor`,2026-11-15T07:46Z. **All six predeclared synthetic expected outcomes are supported by the original retained evidence.** The timeout and observer-error targets remain INCOMPLETE; their control oracles correctly accept those intended failures. This establishes this narrow diagnostic mechanism on these six Windows runs, not whole Phase A SOUND, a preview crash reproduction or a native fix.
+
+Read STATUS and NATIVE_CAPTURE_SYNTHETIC_RESULT_R4, then independently parsed original admitted r4/controls files. Exact plan SHA `b214566772d421c89df8bd4156cbf2560e843dd30b9359ced70d04c7f49167bb`, manifest `4d53fe562628598ea6ef15c91040f076f3e7e2362d9144b1ae6693909712bc66`, source admission `3c55e9b605ffa9e45a68436d16a764c5827e87be974b94202117e5dd94b30a6c` matched. All45 plan inputs remained unchanged. Fresh OLD `artifacts/perf-hillclimb/auditor-native-capture-result-r4-20261115/extraction.json` SHA `6532bbf02acecf3d14982da1c8ba12e76daa993d6b9582ab126f969f3345f638` pins76 original cell files plus inputs and retains bounded native/phase/handle/child evidence. `extract.mjs` uses its own original-evidence assertions; it does not invoke or rewrite the original checker.
+
+## Exact outcomes
+
+| Mode | Target / child PID | Classification / exit | Events | Original result SHA |
+|---|---|---|---:|---|
+| normal |6076|NORMAL_EXIT /0|51|`f14283e50c06662e893614f7c6e2e03c225b475c43da04a0e2da6a80c308768d`|
+| nonzero |36004|NONZERO_EXIT_WITHOUT_MATCHED_EXCEPTION /23|50|`21ed55cae166a099996b98f06cddb449f15a6c4b108e351aa76433582ea70889`|
+| synthetic-native |26780|NATIVE_EXCEPTION_CAPTURED /0xc0000409|51|`ab6a7ff81dbaab415c7fd1ab7d343258463bccd01c095482a178864762722cf2`|
+| timeout |13088 /38096|INCOMPLETE /0xe0000001 teardown|50|`c6358fc10639a0f026644ca97651877eadf7fdd98b9464195a653d19980f4f7d`|
+| descendant |26724 /18716|NORMAL_EXIT /0|50|`ccbbf547077e640da20054bb23ee2bf772a7bf843a1f91bdb17dddff21bb850d`|
+| observer-failure |16732 /34600|INCOMPLETE /0xe0000001 teardown|50|`c19f99eb66029e80dfff8755d7c691ec917a0db5f13ae9a16589b8e28d92806c`|
+
+Exactly six dispatch/attempt/result sets match the frozen order/config fingerprints and original PASS checks. Host/launch/supervisor PIDs and plan bindings agree. Each next dispatch follows the preceding checker completion; all hosts exited normally (0 or the declared2), with null signal/error and no outer expiry. Recorded first batch start to final check spans10723ms, below configured90s work/108s terminal limits; each recorded host interval is below35s. These are retained wall-time/host observations, not performance samples. No retry/replacement or r3 continuation occurred in the recorded batch.
+
+## Original evidence reconstructed
+
+Each owned CREATE precedes the matching module and first owned exception; one continued EXIT is terminal. The one handled first-chance STATUS_BREAKPOINT is on the primary thread at `0x00007ff94fdd5245`, exactly the frozen PE/PDB-derived trap, with original certain FileNotFoundException/HRESULT0x80070002 at that cell's Main identity path. Loader image/body/contract/instruction identities and remote base agree with independently re-derived frozen inputs. Every other exception is NOT_HANDLED. This supports the declared pinned-image startup rule in these cases, not a portable rule for arbitrary binaries/Windows builds.
+
+The supplied native record is second-chance, noncontinuable0xc0000409, parameterCount2 with exact `0x50455246`/7 values and NOT_HANDLED continuation; terminal exit matches. It is the supplied synthetic RaiseFailFastException population, not the original Node/preview failure or proof of its cause. No other cell has a matching fatal record.
+
+Each report links original creation process/thread handles to two independent duplicates, records originals closed before debug CREATE, then links a third independent duplicate to the system-owned CREATE process handle. Live ownership sets contain no simultaneous aliases; original event process/thread values match the raw CREATE record. All18 duplication receipts report success/noninheritance/same access and all30 expected owned release receipts report native success. There is no manual system-owned debug-handle release entry. Every root has exactly one post-continued-EXIT wait on its matching independent CREATE duplicate with PID/FILETIME/image identity, raw signaled0, positive requested wait at most1000ms, positive remaining shared budget and no deadline/ownership/error-validity failure. No recovery call was needed.
+
+All six wait elapsed values are0ms **at the recorded millisecond resolution**, not demonstrated zero latency. Synthetic/timeout waits retain raw last-error121 and several successful duplicates retain2 while ErrorValid:false/Error:null; these are correctly not treated as failure results. Per-source raw error validity is now auditable, unlike the r3 bool-only wait. This does not establish what caused r3's old unsafe recovery.
+
+Both stream startup snapshots are ready/live/owned/error-free in every cell. Normal raw output is exactly15bytes stdout and15bytes stderr; all other cells are empty. Every raw length, EOF/released flag, zero stream/dropped-error record and explicit image-file close agrees;211 image closes report success across the batch. SourceStable/job-empty/owned-handle-closed facts are reported with supporting event/wait/close receipts. Stream/job state remains source-derived Win32 evidence; there is no independent post-close inventory of every kernel handle.
+
+The three child registrations/identity files, hashes, retained handle observations and verification signals cross-link exact parent/child PID, FILETIME, image and job membership. Each child reports debuggerPresent:false; no child PID appears in root debug events. All retained child exit waits succeed. The normal descendant's original awaited receipt and exit are0. Timeout/observer children exit with controlled job-teardown0xe0000001. The observer failure phase is VERIFIED_DESCENDANT_BEFORE_WAIT at eventCount44, child34600, elapsed144ms; its one exact declared error is retained. Timeout sets TimedOut only, with no observer error. Both stay INCOMPLETE target outcomes with successful observed cleanup.
+
+The later07:39:24Z snapshot independently read by this review contains22 exact recorded target/child/host/supervisor/wrapper PIDs and zero live entries; SHA `47a97ad32156dc3e5088220a3cc14400ab7310d344ffa035473a087148b063f2`. No cleanup kill is recorded. It supports absence at that snapshot, not global process absence or reconstruction of earlier shutdown timing. Parent summary SHA `9b6643b047a4c56470d7214f2dd039500c8bd2b8447170dcd3dd59f7377e886c` matched; original data, not that summary, drove this assessment. No material contradiction was found.
+
+## Smallest next gate
+
+**A separate complete trial-wide daemon-lifetime protocol/source proof is required before any real preview capture.** The current per-helper job teardown would kill a preview daemon before the original reuse call. Retain the original synchronous startup/reuse/linked-worktree actions, helper40s limit/port behavior and all outcomes while holding one owned nonbreakaway trial job across helper returns. Per-helper EXIT/handle cleanup must leave the declared daemon alive until prefix closure; error/timeout paths must still prove final job zero, child exit, raw EOF and owned handle release without touching unrelated previews.
+
+First prepare that reviewable source/config/ownership boundary and bounded pure/synthetic lifetime controls for two sequential helper returns with same owned daemon reuse, plus failure after the first return. Freeze it and obtain separate independent admission before any native/preview run. These are next-proof requirements, not authorization to execute them here. Do not rerun the six consumed r4 cells, original verifier or failed r3 cell. A debugger/launcher remains a changed diagnostic population; no neutrality or timing pooling follows.
+
+Only bounded original artifact parsing/reconstruction ran. No original checker rewrite/rerun, native helper/API/Run/Main/target/stop, compiler/test/browser/capture/download/install/settings action occurred. No proof of every OS failure path, original preview C0000409 reproduction, cause/fix, full verifier PASS, performance gain, score or whole SOUND. Read-only lease released; deadline2026-11-16T02:40Z/eight jobs/three suites/120 independent launches remain unchanged.
