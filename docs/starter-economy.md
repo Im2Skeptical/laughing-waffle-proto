@@ -61,8 +61,8 @@ references, sources and output paths are in
 
 ## Placement and playable openings
 
-The capital starts with Fallow Fields, Hand Quern, Scrub Foraging and Hearth
-Barter. The other player region starts with Woodlot Rights or Rubble Picking,
+The player capital starts with three Practices: Fallow Fields, Hand Quern and
+Hearth Barter. The other player region starts with Woodlot Rights or Rubble Picking,
 Scrub Foraging and Hearth Barter. Existing populations and seeded RNG draws are
 retained. Two Crumbling Cottages supply the same initial player Housing as one
 former Mud House; the repair opportunity costs more inherited space.

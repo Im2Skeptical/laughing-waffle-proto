@@ -258,9 +258,11 @@ human playtest work.
   interception retains its existing requirements; a repelled Monster now gains
   +1 Strength for its next attack. Local Warrior baseline Force remains active
   without equipment. Settlement loss remains the run-ending condition.
-  Ordinary full-map openings target mean extinction under 200 years; the first
-    32-seed sample with a civilian Crown core and minority outer garrisons
-    averages 168.8 years (122.3–212.1). See
+  Ordinary full-map openings target mean extinction under 200 years; the
+  32-seed sample with a civilian Crown core, minority outer garrisons, 70%
+  holding base, 90%-allied player opening and ten-year Unrest averages
+  141.891 years (31.5–226.7), reproduced at source revision `930801a5`.
+  One run ends before the year-50 Crown checkpoint, failing that probe guardrail. See
   [Monster escalation](monster-escalation.md) for the rule and repeatable probe.
 - Untouched Starter_02 openings target extinction between years 200 and 300.
   Chaos and Resistance use one tenth of their former unit: Starter primordial

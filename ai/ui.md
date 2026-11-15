@@ -6,8 +6,9 @@ the run freezes with history browsing and New game available (#68).
 The ordinary game on main uses the full-map renderer:
 Resource Practices show hosted Stock, while teal-framed Influence Practices show
 conversion/Force and an explicit institution allegiance badge. Territory panels
-show holder, population shares, unrest, supplied Force and holding upkeep; their
-values come from the viewed authoritative state. The Life Map uses shared
+show holder, population shares, an Unrest years-remaining countdown, supplied Force
+and holding upkeep; their values come from the viewed authoritative state.
+The Life Map uses shared
 Prestige, foreign travel, explicit hostile-removal receipts and adoption offers.
 Staging and Undo preserve confirmed institutions and currencies. See
 `docs/full-map-redesign-implementation.md` for the full-map contract.

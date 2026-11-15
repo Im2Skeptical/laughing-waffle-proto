@@ -8,12 +8,15 @@ a fresh independent review when needed, then squash-merges after checks pass.
 
 ## Accepted behavior
 
-- Floating worker-circle / Prestige-pill and numbered Force shield are the
-  ordinary map default, fixed at 70%. Readouts cover region names; names retain
+- The floating two-row settlement crest is the ordinary map default, fixed at
+  70% scale. Influence and the numbered Force shield sit above the connected
+  worker/Prestige row. Region names appear only for the selected region, retaining
   their original placement and zoom behavior. Only player Prestige is active.
-  Influence is above each sprite, with the connected worker/Prestige widget below.
-  Active Prestige uses a gold background with dark text. Worker-circle fills and
-  stronger rims identify player/Crown control; unheld circles stay grey-green.
+  Unselected crests show workers/ownership and active player Prestige at overview;
+  Influence and potential Prestige appear together when the full crests fit their
+  regions. Selection always reveals that settlement's full crest, even zoomed out.
+  Active Prestige uses a gold background with dark text. Crest ownership fills and
+  rims identify player/Crown control; unheld crests stay grey-green.
 - Demographics has age composition, housing/meal coverage, allegiance-by-class
   counts, recent events and touch inspection. Static towns are inspectable too.
 - Loyal adult/Elder Warriors supply one baseline Force while working. Births

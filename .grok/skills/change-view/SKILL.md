@@ -20,7 +20,10 @@ orchestrator.
 | Map orchestrator | `src/views/world-map-pixi.js` |
 | Map glyphs | `src/views/world-map/glyphs.js` |
 | Map packets / constants | `src/views/world-map/packets.js`, `constants.js` |
-| Settlement overview/demographics | `src/views/settlement-prototype-view.js` |
+| Settlement overview/demographics shell | `src/views/settlement-prototype-view.js` |
+| Settlement overview drawing / data and navigation helpers | `src/views/settlement-overview-pixi.js`, `src/views/settlement-overview-data.js` |
+| Pinned artwork URLs / notices / guarded reload | `src/views/artwork-cache.js` |
+| Loading flavour copy | `src/views/loading-flavour.js` |
 | Timegraph (prefer `change-timegraph`) | `src/views/timegraphs-pixi.js`, `src/views/timegraphs/`, `src/model/graph-metrics.js`, `src/views/ui-root/settlement-graph-*.js` |
 | Illustrated scroll chrome | `src/views/timegraph-scroll-pixi.js` |
 | Shared nav / time dock | `src/views/settlement-navigation-pixi.js` |
