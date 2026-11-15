@@ -1,0 +1,1850 @@
+[
+  {
+    "launchId": "suite0-desktop-x1-drag00-A1",
+    "session": "suite0-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 0,
+    "arm": "A1",
+    "prevArm": null,
+    "settleGap": null,
+    "ok": true,
+    "p50": 239.79999999981374,
+    "p95": 682,
+    "delivered": 22,
+    "caughtUp": 22,
+    "rafP50": 100,
+    "rafMax": 183.29999999999927,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp4-suites/suite0-desktop-x1-drag-mid-drag.png",
+      "afterSettle": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp4-suites/suite0-desktop-x1-drag-after-settle.png"
+    }
+  },
+  {
+    "launchId": "suite0-desktop-x1-drag01-delay",
+    "session": "suite0-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 0,
+    "arm": "delay",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 3,
+      "extraMs": 5000,
+      "totalMs": 5004
+    },
+    "ok": true,
+    "p50": 1420.5,
+    "p95": 2219.399999999441,
+    "delivered": 9,
+    "caughtUp": 9,
+    "rafP50": 483.3000000000029,
+    "rafMax": 716.6999999999971,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-desktop-x1-drag02-A2",
+    "session": "suite0-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 0,
+    "arm": "A2",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 8,
+      "extraMs": 5000,
+      "totalMs": 5010
+    },
+    "ok": true,
+    "p50": 180.5,
+    "p95": 490.20000000018626,
+    "delivered": 23,
+    "caughtUp": 23,
+    "rafP50": 100,
+    "rafMax": 200.09999999999854,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-desktop-x1-drag03-deferred",
+    "session": "suite0-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 0,
+    "arm": "deferred",
+    "prevArm": "A2",
+    "settleGap": {
+      "waitIdleMs": 20,
+      "extraMs": 5000,
+      "totalMs": 5023
+    },
+    "ok": true,
+    "p50": 1788.6000000005588,
+    "p95": 2442.9000000003725,
+    "delivered": 9,
+    "caughtUp": 9,
+    "rafP50": 500,
+    "rafMax": 516.6000000000058,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-desktop-x1-drag04-A2",
+    "session": "suite0-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 0,
+    "arm": "A2",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 19,
+      "extraMs": 5000,
+      "totalMs": 5022
+    },
+    "ok": true,
+    "p50": 244.79999999981374,
+    "p95": 617.2000000001863,
+    "delivered": 21,
+    "caughtUp": 21,
+    "rafP50": 116.69999999999709,
+    "rafMax": 300,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-desktop-x1-drag05-delay",
+    "session": "suite0-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 0,
+    "arm": "delay",
+    "prevArm": "A2",
+    "settleGap": {
+      "waitIdleMs": 40,
+      "extraMs": 5000,
+      "totalMs": 5040
+    },
+    "ok": true,
+    "p50": 1292.5999999996275,
+    "p95": 2086.0999999996275,
+    "delivered": 8,
+    "caughtUp": 8,
+    "rafP50": 483.40000000000873,
+    "rafMax": 516.6999999999971,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-desktop-x1-drag06-deferred",
+    "session": "suite0-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 0,
+    "arm": "deferred",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 7,
+      "extraMs": 5000,
+      "totalMs": 5009
+    },
+    "ok": true,
+    "p50": 1047.7000000001863,
+    "p95": 1614.3999999994412,
+    "delivered": 8,
+    "caughtUp": 8,
+    "rafP50": 283.3000000000029,
+    "rafMax": 500,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-desktop-x1-drag07-A1",
+    "session": "suite0-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 0,
+    "arm": "A1",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 8,
+      "extraMs": 5000,
+      "totalMs": 5009
+    },
+    "ok": true,
+    "p50": 182,
+    "p95": 498,
+    "delivered": 27,
+    "caughtUp": 27,
+    "rafP50": 100,
+    "rafMax": 100.09999999999127,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-desktop-x1-drag08-deferred",
+    "session": "suite0-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 0,
+    "arm": "deferred",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 20,
+      "extraMs": 5000,
+      "totalMs": 5023
+    },
+    "ok": true,
+    "p50": 1281.4000000003725,
+    "p95": 1641.2999999998137,
+    "delivered": 9,
+    "caughtUp": 9,
+    "rafP50": 283.3000000000029,
+    "rafMax": 500,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-desktop-x1-drag09-delay",
+    "session": "suite0-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 0,
+    "arm": "delay",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 3,
+      "extraMs": 5000,
+      "totalMs": 5011
+    },
+    "ok": true,
+    "p50": 1228.4000000003725,
+    "p95": 2067.4000000003725,
+    "delivered": 8,
+    "caughtUp": 8,
+    "rafP50": 499.90000000000873,
+    "rafMax": 500.09999999999127,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-desktop-x1-drag10-A1",
+    "session": "suite0-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 0,
+    "arm": "A1",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 19,
+      "extraMs": 5000,
+      "totalMs": 5020
+    },
+    "ok": true,
+    "p50": 186.6000000005588,
+    "p95": 455.70000000018626,
+    "delivered": 23,
+    "caughtUp": 23,
+    "rafP50": 100,
+    "rafMax": 166.59999999999127,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-desktop-x1-drag11-A2",
+    "session": "suite0-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 0,
+    "arm": "A2",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 14,
+      "extraMs": 5000,
+      "totalMs": 5017
+    },
+    "ok": true,
+    "p50": 295.69999999925494,
+    "p95": 570.7000000001863,
+    "delivered": 23,
+    "caughtUp": 23,
+    "rafP50": 116.60000000000582,
+    "rafMax": 216.59999999997672,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-desktop-x1-drag00-A1",
+    "session": "suite1-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 1,
+    "arm": "A1",
+    "prevArm": null,
+    "settleGap": null,
+    "ok": true,
+    "p50": 281.69999999925494,
+    "p95": 592.1000000005588,
+    "delivered": 21,
+    "caughtUp": 21,
+    "rafP50": 150,
+    "rafMax": 216.70000000000073,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp4-suites/suite1-desktop-x1-drag-mid-drag.png",
+      "afterSettle": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp4-suites/suite1-desktop-x1-drag-after-settle.png"
+    }
+  },
+  {
+    "launchId": "suite1-desktop-x1-drag01-delay",
+    "session": "suite1-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 1,
+    "arm": "delay",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 18,
+      "extraMs": 5000,
+      "totalMs": 5019
+    },
+    "ok": true,
+    "p50": 1249.8999999994412,
+    "p95": 1987.0999999996275,
+    "delivered": 8,
+    "caughtUp": 8,
+    "rafP50": 483.1999999999971,
+    "rafMax": 649.9000000000015,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-desktop-x1-drag02-A2",
+    "session": "suite1-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 1,
+    "arm": "A2",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 31,
+      "extraMs": 5000,
+      "totalMs": 5041
+    },
+    "ok": true,
+    "p50": 236.29999999981374,
+    "p95": 490.79999999981374,
+    "delivered": 23,
+    "caughtUp": 23,
+    "rafP50": 133.20000000000437,
+    "rafMax": 250,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-desktop-x1-drag03-deferred",
+    "session": "suite1-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 1,
+    "arm": "deferred",
+    "prevArm": "A2",
+    "settleGap": {
+      "waitIdleMs": 23,
+      "extraMs": 5000,
+      "totalMs": 5027
+    },
+    "ok": true,
+    "p50": 1343.6000000005588,
+    "p95": 2190.2999999998137,
+    "delivered": 8,
+    "caughtUp": 8,
+    "rafP50": 316.59999999999854,
+    "rafMax": 516.6000000000058,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-desktop-x1-drag04-A2",
+    "session": "suite1-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 1,
+    "arm": "A2",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 21,
+      "extraMs": 5000,
+      "totalMs": 5021
+    },
+    "ok": true,
+    "p50": 218,
+    "p95": 354.1000000005588,
+    "delivered": 21,
+    "caughtUp": 21,
+    "rafP50": 116.69999999999709,
+    "rafMax": 183.39999999999418,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-desktop-x1-drag05-delay",
+    "session": "suite1-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 1,
+    "arm": "delay",
+    "prevArm": "A2",
+    "settleGap": {
+      "waitIdleMs": 29,
+      "extraMs": 5000,
+      "totalMs": 5031
+    },
+    "ok": true,
+    "p50": 1214.7000000001863,
+    "p95": 2066.0999999996275,
+    "delivered": 8,
+    "caughtUp": 8,
+    "rafP50": 499.8999999999942,
+    "rafMax": 716.6999999999971,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-desktop-x1-drag06-deferred",
+    "session": "suite1-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 1,
+    "arm": "deferred",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 21,
+      "extraMs": 5000,
+      "totalMs": 5021
+    },
+    "ok": true,
+    "p50": 1719.800000000745,
+    "p95": 2357.5,
+    "delivered": 9,
+    "caughtUp": 9,
+    "rafP50": 499.90000000000873,
+    "rafMax": 516.6999999999971,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-desktop-x1-drag07-A1",
+    "session": "suite1-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 1,
+    "arm": "A1",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 18,
+      "extraMs": 5000,
+      "totalMs": 5018
+    },
+    "ok": true,
+    "p50": 195.40000000037253,
+    "p95": 430.09999999962747,
+    "delivered": 24,
+    "caughtUp": 24,
+    "rafP50": 100,
+    "rafMax": 200,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-desktop-x1-drag08-deferred",
+    "session": "suite1-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 1,
+    "arm": "deferred",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 16,
+      "extraMs": 5000,
+      "totalMs": 5020
+    },
+    "ok": true,
+    "p50": 1034.6000000005588,
+    "p95": 1350,
+    "delivered": 8,
+    "caughtUp": 8,
+    "rafP50": 300,
+    "rafMax": 516.5999999999913,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-desktop-x1-drag09-delay",
+    "session": "suite1-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 1,
+    "arm": "delay",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 3,
+      "extraMs": 5000,
+      "totalMs": 5002
+    },
+    "ok": true,
+    "p50": 1297.5999999996275,
+    "p95": 2100.4000000003725,
+    "delivered": 8,
+    "caughtUp": 8,
+    "rafP50": 483.3000000000029,
+    "rafMax": 516.6999999999971,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-desktop-x1-drag10-A1",
+    "session": "suite1-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 1,
+    "arm": "A1",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 31,
+      "extraMs": 5000,
+      "totalMs": 5034
+    },
+    "ok": true,
+    "p50": 211.40000000037253,
+    "p95": 333.70000000018626,
+    "delivered": 22,
+    "caughtUp": 22,
+    "rafP50": 116.69999999999709,
+    "rafMax": 216.79999999998836,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-desktop-x1-drag11-A2",
+    "session": "suite1-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 1,
+    "arm": "A2",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 18,
+      "extraMs": 5000,
+      "totalMs": 5021
+    },
+    "ok": true,
+    "p50": 365.29999999981374,
+    "p95": 738.5,
+    "delivered": 20,
+    "caughtUp": 20,
+    "rafP50": 133.39999999999418,
+    "rafMax": 283.30000000001746,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-desktop-x1-drag00-A1",
+    "session": "suite2-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 2,
+    "arm": "A1",
+    "prevArm": null,
+    "settleGap": null,
+    "ok": true,
+    "p50": 326.5,
+    "p95": 877.5,
+    "delivered": 20,
+    "caughtUp": 20,
+    "rafP50": 133.29999999999927,
+    "rafMax": 216.59999999999854,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp4-suites/suite2-desktop-x1-drag-mid-drag.png",
+      "afterSettle": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp4-suites/suite2-desktop-x1-drag-after-settle.png"
+    }
+  },
+  {
+    "launchId": "suite2-desktop-x1-drag01-delay",
+    "session": "suite2-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 2,
+    "arm": "delay",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 33,
+      "extraMs": 5000,
+      "totalMs": 5034
+    },
+    "ok": true,
+    "p50": 1299,
+    "p95": 2209.4000000003725,
+    "delivered": 8,
+    "caughtUp": 8,
+    "rafP50": 516.5999999999985,
+    "rafMax": 550,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-desktop-x1-drag02-A2",
+    "session": "suite2-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 2,
+    "arm": "A2",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 4,
+      "extraMs": 5000,
+      "totalMs": 5006
+    },
+    "ok": true,
+    "p50": 220.59999999962747,
+    "p95": 433.09999999962747,
+    "delivered": 25,
+    "caughtUp": 25,
+    "rafP50": 116.70000000000437,
+    "rafMax": 216.6999999999971,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-desktop-x1-drag03-deferred",
+    "session": "suite2-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 2,
+    "arm": "deferred",
+    "prevArm": "A2",
+    "settleGap": {
+      "waitIdleMs": 13,
+      "extraMs": 5000,
+      "totalMs": 5013
+    },
+    "ok": true,
+    "p50": 881.4000000003725,
+    "p95": 1592.5,
+    "delivered": 7,
+    "caughtUp": 7,
+    "rafP50": 299.90000000000146,
+    "rafMax": 316.6999999999971,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-desktop-x1-drag04-A2",
+    "session": "suite2-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 2,
+    "arm": "A2",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 33,
+      "extraMs": 5000,
+      "totalMs": 5036
+    },
+    "ok": true,
+    "p50": 284.90000000037253,
+    "p95": 488.6000000005588,
+    "delivered": 21,
+    "caughtUp": 21,
+    "rafP50": 150,
+    "rafMax": 283.3000000000029,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-desktop-x1-drag05-delay",
+    "session": "suite2-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 2,
+    "arm": "delay",
+    "prevArm": "A2",
+    "settleGap": {
+      "waitIdleMs": 36,
+      "extraMs": 5000,
+      "totalMs": 5042
+    },
+    "ok": true,
+    "p50": 1342,
+    "p95": 2157.699999999255,
+    "delivered": 8,
+    "caughtUp": 8,
+    "rafP50": 533.3000000000029,
+    "rafMax": 683.3999999999942,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-desktop-x1-drag06-deferred",
+    "session": "suite2-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 2,
+    "arm": "deferred",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 3,
+      "extraMs": 5000,
+      "totalMs": 5005
+    },
+    "ok": true,
+    "p50": 1061.8999999994412,
+    "p95": 1548.7000000001863,
+    "delivered": 8,
+    "caughtUp": 8,
+    "rafP50": 283.3000000000029,
+    "rafMax": 516.6999999999971,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-desktop-x1-drag07-A1",
+    "session": "suite2-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 2,
+    "arm": "A1",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 3,
+      "extraMs": 5000,
+      "totalMs": 5005
+    },
+    "ok": true,
+    "p50": 200.59999999962747,
+    "p95": 385.40000000037253,
+    "delivered": 25,
+    "caughtUp": 25,
+    "rafP50": 116.60000000000582,
+    "rafMax": 233.40000000000873,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-desktop-x1-drag08-deferred",
+    "session": "suite2-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 2,
+    "arm": "deferred",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 33,
+      "extraMs": 5000,
+      "totalMs": 5036
+    },
+    "ok": true,
+    "p50": 1124.2999999998137,
+    "p95": 2061.2000000001863,
+    "delivered": 8,
+    "caughtUp": 8,
+    "rafP50": 300,
+    "rafMax": 533.3000000000029,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-desktop-x1-drag09-delay",
+    "session": "suite2-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 2,
+    "arm": "delay",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 3,
+      "extraMs": 5000,
+      "totalMs": 5005
+    },
+    "ok": true,
+    "p50": 1389.8999999994412,
+    "p95": 2013.5999999996275,
+    "delivered": 7,
+    "caughtUp": 7,
+    "rafP50": 516.6000000000058,
+    "rafMax": 550,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-desktop-x1-drag10-A1",
+    "session": "suite2-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 2,
+    "arm": "A1",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 3,
+      "extraMs": 5000,
+      "totalMs": 5006
+    },
+    "ok": true,
+    "p50": 270.70000000018626,
+    "p95": 411.79999999981374,
+    "delivered": 24,
+    "caughtUp": 24,
+    "rafP50": 150,
+    "rafMax": 233.29999999998836,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-desktop-x1-drag11-A2",
+    "session": "suite2-desktop-x1",
+    "profile": "desktop-x1",
+    "suite": 2,
+    "arm": "A2",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 3,
+      "extraMs": 5000,
+      "totalMs": 5004
+    },
+    "ok": true,
+    "p50": 255.79999999981374,
+    "p95": 605.5999999996275,
+    "delivered": 22,
+    "caughtUp": 22,
+    "rafP50": 116.60000000000582,
+    "rafMax": 250,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-mobile-x4-drag00-A1",
+    "session": "suite0-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 0,
+    "arm": "A1",
+    "prevArm": null,
+    "settleGap": null,
+    "ok": true,
+    "p50": 2519.5,
+    "p95": 2872.5,
+    "delivered": 5,
+    "caughtUp": 5,
+    "rafP50": 166.8000000000029,
+    "rafMax": 633.1999999999971,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp4-suites/suite0-mobile-x4-drag-mid-drag.png",
+      "afterSettle": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp4-suites/suite0-mobile-x4-drag-after-settle.png"
+    }
+  },
+  {
+    "launchId": "suite0-mobile-x4-drag01-delay",
+    "session": "suite0-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 0,
+    "arm": "delay",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 28,
+      "extraMs": 5000,
+      "totalMs": 5027
+    },
+    "ok": true,
+    "p50": 2668.7000000001863,
+    "p95": 3120.600000000559,
+    "delivered": 5,
+    "caughtUp": 5,
+    "rafP50": 316.6999999999971,
+    "rafMax": 599.9000000000087,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-mobile-x4-drag02-A2",
+    "session": "suite0-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 0,
+    "arm": "A2",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 24,
+      "extraMs": 5000,
+      "totalMs": 5029
+    },
+    "ok": true,
+    "p50": 1296.0999999996275,
+    "p95": 1427.5,
+    "delivered": 6,
+    "caughtUp": 6,
+    "rafP50": 316.6999999999971,
+    "rafMax": 399.90000000000873,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-mobile-x4-drag03-deferred",
+    "session": "suite0-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 0,
+    "arm": "deferred",
+    "prevArm": "A2",
+    "settleGap": {
+      "waitIdleMs": 43,
+      "extraMs": 5000,
+      "totalMs": 5044
+    },
+    "ok": true,
+    "p50": 2921.5999999996275,
+    "p95": 3352.9000000003725,
+    "delivered": 6,
+    "caughtUp": 6,
+    "rafP50": 499.8999999999942,
+    "rafMax": 750,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-mobile-x4-drag04-A2",
+    "session": "suite0-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 0,
+    "arm": "A2",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 27,
+      "extraMs": 5000,
+      "totalMs": 5030
+    },
+    "ok": true,
+    "p50": 1183.2999999998137,
+    "p95": 1339,
+    "delivered": 5,
+    "caughtUp": 5,
+    "rafP50": 316.6000000000058,
+    "rafMax": 366.6999999999971,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-mobile-x4-drag05-delay",
+    "session": "suite0-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 0,
+    "arm": "delay",
+    "prevArm": "A2",
+    "settleGap": {
+      "waitIdleMs": 20,
+      "extraMs": 5000,
+      "totalMs": 5021
+    },
+    "ok": true,
+    "p50": 3045.2000000001863,
+    "p95": 3509.600000000559,
+    "delivered": 7,
+    "caughtUp": 7,
+    "rafP50": 483.3999999999942,
+    "rafMax": 749.8999999999942,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-mobile-x4-drag06-deferred",
+    "session": "suite0-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 0,
+    "arm": "deferred",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 16,
+      "extraMs": 5000,
+      "totalMs": 5018
+    },
+    "ok": true,
+    "p50": 1729.2000000001863,
+    "p95": 2409.5,
+    "delivered": 5,
+    "caughtUp": 5,
+    "rafP50": 350,
+    "rafMax": 833.3000000000175,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-mobile-x4-drag07-A1",
+    "session": "suite0-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 0,
+    "arm": "A1",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 70,
+      "extraMs": 5000,
+      "totalMs": 5073
+    },
+    "ok": true,
+    "p50": 818.3999999994412,
+    "p95": 1577.699999999255,
+    "delivered": 9,
+    "caughtUp": 9,
+    "rafP50": 133.39999999999418,
+    "rafMax": 416.70000000001164,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-mobile-x4-drag08-deferred",
+    "session": "suite0-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 0,
+    "arm": "deferred",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 12,
+      "extraMs": 5000,
+      "totalMs": 5017
+    },
+    "ok": true,
+    "p50": 1602.4000000003725,
+    "p95": 2052.7999999998137,
+    "delivered": 5,
+    "caughtUp": 5,
+    "rafP50": 466.6000000000058,
+    "rafMax": 549.9000000000233,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-mobile-x4-drag09-delay",
+    "session": "suite0-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 0,
+    "arm": "delay",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 26,
+      "extraMs": 5000,
+      "totalMs": 5028
+    },
+    "ok": true,
+    "p50": 2023.2999999998137,
+    "p95": 2673.100000000559,
+    "delivered": 5,
+    "caughtUp": 5,
+    "rafP50": 150.10000000000582,
+    "rafMax": 550.1000000000058,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-mobile-x4-drag10-A1",
+    "session": "suite0-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 0,
+    "arm": "A1",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 37,
+      "extraMs": 5000,
+      "totalMs": 5038
+    },
+    "ok": true,
+    "p50": 1237.9000000003725,
+    "p95": 1316,
+    "delivered": 6,
+    "caughtUp": 6,
+    "rafP50": 316.6000000000058,
+    "rafMax": 333.29999999998836,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite0-mobile-x4-drag11-A2",
+    "session": "suite0-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 0,
+    "arm": "A2",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 31,
+      "extraMs": 5000,
+      "totalMs": 5032
+    },
+    "ok": true,
+    "p50": 1395.3999999994412,
+    "p95": 1815,
+    "delivered": 6,
+    "caughtUp": 6,
+    "rafP50": 333.29999999998836,
+    "rafMax": 383.30000000001746,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-mobile-x4-drag00-A1",
+    "session": "suite1-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 1,
+    "arm": "A1",
+    "prevArm": null,
+    "settleGap": null,
+    "ok": true,
+    "p50": 1923.300000000745,
+    "p95": 2401,
+    "delivered": 6,
+    "caughtUp": 6,
+    "rafP50": 150.10000000000582,
+    "rafMax": 600,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp4-suites/suite1-mobile-x4-drag-mid-drag.png",
+      "afterSettle": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp4-suites/suite1-mobile-x4-drag-after-settle.png"
+    }
+  },
+  {
+    "launchId": "suite1-mobile-x4-drag01-delay",
+    "session": "suite1-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 1,
+    "arm": "delay",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 26,
+      "extraMs": 5000,
+      "totalMs": 5028
+    },
+    "ok": true,
+    "p50": 2638.5,
+    "p95": 3059.399999999441,
+    "delivered": 5,
+    "caughtUp": 5,
+    "rafP50": 349.90000000000873,
+    "rafMax": 616.6000000000058,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-mobile-x4-drag02-A2",
+    "session": "suite1-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 1,
+    "arm": "A2",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 14,
+      "extraMs": 5000,
+      "totalMs": 5015
+    },
+    "ok": true,
+    "p50": 949.2999999998137,
+    "p95": 1414.9000000003725,
+    "delivered": 6,
+    "caughtUp": 6,
+    "rafP50": 316.59999999999127,
+    "rafMax": 399.90000000000873,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-mobile-x4-drag03-deferred",
+    "session": "suite1-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 1,
+    "arm": "deferred",
+    "prevArm": "A2",
+    "settleGap": {
+      "waitIdleMs": 29,
+      "extraMs": 5000,
+      "totalMs": 5030
+    },
+    "ok": true,
+    "p50": 1331.2999999998137,
+    "p95": 1724.199999999255,
+    "delivered": 5,
+    "caughtUp": 5,
+    "rafP50": 133.40000000000873,
+    "rafMax": 866.6000000000058,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-mobile-x4-drag04-A2",
+    "session": "suite1-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 1,
+    "arm": "A2",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 43,
+      "extraMs": 5000,
+      "totalMs": 5048
+    },
+    "ok": true,
+    "p50": 1640.3999999994412,
+    "p95": 1912,
+    "delivered": 6,
+    "caughtUp": 6,
+    "rafP50": 333.3000000000029,
+    "rafMax": 600,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-mobile-x4-drag05-delay",
+    "session": "suite1-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 1,
+    "arm": "delay",
+    "prevArm": "A2",
+    "settleGap": {
+      "waitIdleMs": 32,
+      "extraMs": 5000,
+      "totalMs": 5035
+    },
+    "ok": true,
+    "p50": 1658.8999999994412,
+    "p95": 2575.7000000001863,
+    "delivered": 5,
+    "caughtUp": 5,
+    "rafP50": 283.4000000000233,
+    "rafMax": 833.3000000000175,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-mobile-x4-drag06-deferred",
+    "session": "suite1-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 1,
+    "arm": "deferred",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 37,
+      "extraMs": 5000,
+      "totalMs": 5040
+    },
+    "ok": true,
+    "p50": 2794.0999999996275,
+    "p95": 3040.5999999996275,
+    "delivered": 6,
+    "caughtUp": 6,
+    "rafP50": 466.70000000001164,
+    "rafMax": 866.6000000000058,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-mobile-x4-drag07-A1",
+    "session": "suite1-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 1,
+    "arm": "A1",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 45,
+      "extraMs": 5000,
+      "totalMs": 5048
+    },
+    "ok": true,
+    "p50": 1142.8999999994412,
+    "p95": 1312,
+    "delivered": 7,
+    "caughtUp": 7,
+    "rafP50": 266.69999999998254,
+    "rafMax": 366.6000000000058,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-mobile-x4-drag08-deferred",
+    "session": "suite1-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 1,
+    "arm": "deferred",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 19,
+      "extraMs": 5000,
+      "totalMs": 5023
+    },
+    "ok": true,
+    "p50": 2121.5999999996275,
+    "p95": 2348.399999999441,
+    "delivered": 5,
+    "caughtUp": 5,
+    "rafP50": 500,
+    "rafMax": 649.9000000000233,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-mobile-x4-drag09-delay",
+    "session": "suite1-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 1,
+    "arm": "delay",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 13,
+      "extraMs": 5000,
+      "totalMs": 5014
+    },
+    "ok": true,
+    "p50": 1916.5,
+    "p95": 2865.600000000559,
+    "delivered": 6,
+    "caughtUp": 6,
+    "rafP50": 150,
+    "rafMax": 883.1999999999825,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-mobile-x4-drag10-A1",
+    "session": "suite1-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 1,
+    "arm": "A1",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 36,
+      "extraMs": 5000,
+      "totalMs": 5040
+    },
+    "ok": true,
+    "p50": 870.5,
+    "p95": 1017.7999999998137,
+    "delivered": 5,
+    "caughtUp": 5,
+    "rafP50": 283.3999999999942,
+    "rafMax": 366.6000000000058,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite1-mobile-x4-drag11-A2",
+    "session": "suite1-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 1,
+    "arm": "A2",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 32,
+      "extraMs": 5000,
+      "totalMs": 5035
+    },
+    "ok": true,
+    "p50": 959.7999999998137,
+    "p95": 1552.7999999998137,
+    "delivered": 7,
+    "caughtUp": 7,
+    "rafP50": 283.30000000001746,
+    "rafMax": 399.8999999999942,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-mobile-x4-drag00-A1",
+    "session": "suite2-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 2,
+    "arm": "A1",
+    "prevArm": null,
+    "settleGap": null,
+    "ok": true,
+    "p50": 1939.7999999998137,
+    "p95": 2269.100000000559,
+    "delivered": 5,
+    "caughtUp": 5,
+    "rafP50": 150,
+    "rafMax": 633.4000000000087,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp4-suites/suite2-mobile-x4-drag-mid-drag.png",
+      "afterSettle": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp4-suites/suite2-mobile-x4-drag-after-settle.png"
+    }
+  },
+  {
+    "launchId": "suite2-mobile-x4-drag01-delay",
+    "session": "suite2-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 2,
+    "arm": "delay",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 56,
+      "extraMs": 5000,
+      "totalMs": 5060
+    },
+    "ok": true,
+    "p50": 2126.7000000001863,
+    "p95": 2829.5999999996275,
+    "delivered": 5,
+    "caughtUp": 5,
+    "rafP50": 483.29999999998836,
+    "rafMax": 566.6999999999971,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-mobile-x4-drag02-A2",
+    "session": "suite2-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 2,
+    "arm": "A2",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 37,
+      "extraMs": 5000,
+      "totalMs": 5036
+    },
+    "ok": true,
+    "p50": 1780.2000000001863,
+    "p95": 2222.100000000559,
+    "delivered": 6,
+    "caughtUp": 6,
+    "rafP50": 333.3000000000029,
+    "rafMax": 433.3000000000029,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-mobile-x4-drag03-deferred",
+    "session": "suite2-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 2,
+    "arm": "deferred",
+    "prevArm": "A2",
+    "settleGap": {
+      "waitIdleMs": 24,
+      "extraMs": 5000,
+      "totalMs": 5026
+    },
+    "ok": true,
+    "p50": 2517.7999999998137,
+    "p95": 2927.5,
+    "delivered": 4,
+    "caughtUp": 4,
+    "rafP50": 566.6999999999971,
+    "rafMax": 816.5,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-mobile-x4-drag04-A2",
+    "session": "suite2-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 2,
+    "arm": "A2",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 46,
+      "extraMs": 5000,
+      "totalMs": 5046
+    },
+    "ok": true,
+    "p50": 1800.9000000003725,
+    "p95": 2163.7999999998137,
+    "delivered": 7,
+    "caughtUp": 7,
+    "rafP50": 333.3000000000029,
+    "rafMax": 383.3000000000029,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-mobile-x4-drag05-delay",
+    "session": "suite2-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 2,
+    "arm": "delay",
+    "prevArm": "A2",
+    "settleGap": {
+      "waitIdleMs": 32,
+      "extraMs": 5000,
+      "totalMs": 5036
+    },
+    "ok": true,
+    "p50": 2724,
+    "p95": 3212.0999999996275,
+    "delivered": 5,
+    "caughtUp": 5,
+    "rafP50": 466.69999999998254,
+    "rafMax": 566.5999999999767,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-mobile-x4-drag06-deferred",
+    "session": "suite2-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 2,
+    "arm": "deferred",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 25,
+      "extraMs": 5000,
+      "totalMs": 5028
+    },
+    "ok": true,
+    "p50": 2124.300000000745,
+    "p95": 2425,
+    "delivered": 5,
+    "caughtUp": 5,
+    "rafP50": 499.8999999999942,
+    "rafMax": 616.7000000000116,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-mobile-x4-drag07-A1",
+    "session": "suite2-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 2,
+    "arm": "A1",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 44,
+      "extraMs": 5000,
+      "totalMs": 5045
+    },
+    "ok": true,
+    "p50": 1037.4000000003725,
+    "p95": 1278.1000000005588,
+    "delivered": 8,
+    "caughtUp": 8,
+    "rafP50": 283.30000000001746,
+    "rafMax": 416.5999999999767,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-mobile-x4-drag08-deferred",
+    "session": "suite2-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 2,
+    "arm": "deferred",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 23,
+      "extraMs": 5000,
+      "totalMs": 5024
+    },
+    "ok": true,
+    "p50": 1680.7000000001863,
+    "p95": 2181.2000000001863,
+    "delivered": 6,
+    "caughtUp": 6,
+    "rafP50": 499.8999999999942,
+    "rafMax": 666.7000000000116,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-mobile-x4-drag09-delay",
+    "session": "suite2-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 2,
+    "arm": "delay",
+    "prevArm": "deferred",
+    "settleGap": {
+      "waitIdleMs": 63,
+      "extraMs": 5000,
+      "totalMs": 5063
+    },
+    "ok": true,
+    "p50": 2396.5999999996275,
+    "p95": 2721,
+    "delivered": 5,
+    "caughtUp": 5,
+    "rafP50": 333.3999999999942,
+    "rafMax": 650,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-mobile-x4-drag10-A1",
+    "session": "suite2-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 2,
+    "arm": "A1",
+    "prevArm": "delay",
+    "settleGap": {
+      "waitIdleMs": 34,
+      "extraMs": 5000,
+      "totalMs": 5037
+    },
+    "ok": true,
+    "p50": 1043.7000000001863,
+    "p95": 1648.2999999998137,
+    "delivered": 8,
+    "caughtUp": 8,
+    "rafP50": 350,
+    "rafMax": 566.6000000000058,
+    "wrongTargetPassed": true,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  },
+  {
+    "launchId": "suite2-mobile-x4-drag11-A2",
+    "session": "suite2-mobile-x4",
+    "profile": "mobile-x4",
+    "suite": 2,
+    "arm": "A2",
+    "prevArm": "A1",
+    "settleGap": {
+      "waitIdleMs": 19,
+      "extraMs": 5000,
+      "totalMs": 5025
+    },
+    "ok": true,
+    "p50": 1196.199999999255,
+    "p95": 1732.4000000003725,
+    "delivered": 8,
+    "caughtUp": 8,
+    "rafP50": 333.29999999998836,
+    "rafMax": 400,
+    "wrongTargetPassed": null,
+    "failed": [],
+    "screenshots": {
+      "midDrag": null,
+      "afterSettle": null
+    }
+  }
+]

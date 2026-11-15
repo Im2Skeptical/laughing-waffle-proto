@@ -1,0 +1,149 @@
+{
+  "suiteReports": [
+    {
+      "index": 0,
+      "pop": {
+        "cpuThrottle": 1,
+        "viewport": "desktop"
+      },
+      "populations": [
+        {
+          "pop": {
+            "cpuThrottle": 1,
+            "viewport": "desktop"
+          },
+          "launchId": "suite0-desktop-x1",
+          "newGameOk": true,
+          "newGameMs": 86139,
+          "lossSec": 6138,
+          "bakeMs": 25762.700000000186,
+          "scrubPassed": 40,
+          "scrubTotal": 40,
+          "dragPassed": 12,
+          "dragTotal": 12
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "pop": {
+        "cpuThrottle": 1,
+        "viewport": "desktop"
+      },
+      "populations": [
+        {
+          "pop": {
+            "cpuThrottle": 1,
+            "viewport": "desktop"
+          },
+          "launchId": "suite1-desktop-x1",
+          "newGameOk": true,
+          "newGameMs": 100016.29999999981,
+          "lossSec": 6138,
+          "bakeMs": 28480.60000000056,
+          "scrubPassed": 40,
+          "scrubTotal": 40,
+          "dragPassed": 12,
+          "dragTotal": 12
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "pop": {
+        "cpuThrottle": 1,
+        "viewport": "desktop"
+      },
+      "populations": [
+        {
+          "pop": {
+            "cpuThrottle": 1,
+            "viewport": "desktop"
+          },
+          "launchId": "suite2-desktop-x1",
+          "newGameOk": true,
+          "newGameMs": 111451.60000000056,
+          "lossSec": 6138,
+          "bakeMs": 30688.700000000186,
+          "scrubPassed": 40,
+          "scrubTotal": 40,
+          "dragPassed": 12,
+          "dragTotal": 12
+        }
+      ]
+    },
+    {
+      "index": 0,
+      "pop": {
+        "cpuThrottle": 4,
+        "viewport": "mobile"
+      },
+      "populations": [
+        {
+          "pop": {
+            "cpuThrottle": 4,
+            "viewport": "mobile"
+          },
+          "launchId": "suite0-mobile-x4",
+          "newGameOk": true,
+          "newGameMs": 176640.90000000037,
+          "lossSec": 6138,
+          "bakeMs": 39494.10000000056,
+          "scrubPassed": 40,
+          "scrubTotal": 40,
+          "dragPassed": 12,
+          "dragTotal": 12
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "pop": {
+        "cpuThrottle": 4,
+        "viewport": "mobile"
+      },
+      "populations": [
+        {
+          "pop": {
+            "cpuThrottle": 4,
+            "viewport": "mobile"
+          },
+          "launchId": "suite1-mobile-x4",
+          "newGameOk": true,
+          "newGameMs": 160023.7999999998,
+          "lossSec": 6138,
+          "bakeMs": 35513.699999999255,
+          "scrubPassed": 40,
+          "scrubTotal": 40,
+          "dragPassed": 12,
+          "dragTotal": 12
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "pop": {
+        "cpuThrottle": 4,
+        "viewport": "mobile"
+      },
+      "populations": [
+        {
+          "pop": {
+            "cpuThrottle": 4,
+            "viewport": "mobile"
+          },
+          "launchId": "suite2-mobile-x4",
+          "newGameOk": true,
+          "newGameMs": 161867.90000000037,
+          "lossSec": 6138,
+          "bakeMs": 38548.60000000056,
+          "scrubPassed": 40,
+          "scrubTotal": 40,
+          "dragPassed": 12,
+          "dragTotal": 12
+        }
+      ]
+    }
+  ],
+  "at": "2026-11-15T15:36:25.539Z"
+}

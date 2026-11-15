@@ -329,10 +329,11 @@ async function main() {
     process.exit(2);
   }
   if (phase === 'suites' || phase === 'all') {
+    const profiles = arg('profiles', 'desktop-x1,mobile-x4').split(',');
     const populations = [
       { cpuThrottle: 1, viewport: 'desktop' },
       { cpuThrottle: 4, viewport: 'mobile' },
-    ];
+    ].filter((p) => profiles.includes(`${p.viewport}-x${p.cpuThrottle}`));
     const browser = await runBrowserSuites({ suites, populations, outDir });
     const ngSum = summarize(browser.newGameRows);
     const bakeSum = summarize(browser.bakeRows);
