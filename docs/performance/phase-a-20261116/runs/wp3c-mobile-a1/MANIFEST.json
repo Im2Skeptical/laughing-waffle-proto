@@ -1,0 +1,534 @@
+{
+  "artifactDir": "artifacts/perf-phase-a-20261116/wp3c-mobile-a1",
+  "files": [
+    {
+      "path": "prepared-mobile-after-settle.png",
+      "bytes": 344602,
+      "sha256": "81af17ad99a72e0a23c0dcd0f3ca7972695a75b911e981ead1a7f0eff2d2a3de",
+      "committed": false
+    },
+    {
+      "path": "prepared-mobile-mid-drag.png",
+      "bytes": 344669,
+      "sha256": "99cd96a02f70eddb402607fced2a00052dc3344d8005924108a865c7e7724b8d",
+      "committed": false
+    },
+    {
+      "path": "prepared-mobile-playing-before-drag.png",
+      "bytes": 334394,
+      "sha256": "601041d305ba2c0a31585b68312d39f8a0cf52b1ce66eee22f142cedf015339b",
+      "committed": false
+    },
+    {
+      "path": "raw-drag-prepared-mobile-00-A1.json",
+      "bytes": 24138,
+      "sha256": "8c27794cbc6fc8a4dcfbc21b4383e0ab026baf3213b92dfcbb285ca5ba8476f5",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-01-A2.json",
+      "bytes": 25299,
+      "sha256": "ca7c1abf9a03224104557c5c703625ea3cfd6651265f1dbdc2d63da905c551cd",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-02-A1.json",
+      "bytes": 25228,
+      "sha256": "0d8ee5a7cf199b7dab6296cf395d2c3e6fa2994bc1ef6a1f7a0e3526c91d1154",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-03-delay.json",
+      "bytes": 25036,
+      "sha256": "e74e368166d3cd5b1e38ff56f87a0994b3ff87adf3e4b592ddbb9aff38bf2f48",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-04-A1.json",
+      "bytes": 28412,
+      "sha256": "8e13f51c90c6f676d82f4dde0a80ef7b9dde09c0a65229979dfb803f55eeaccb",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-05-deferred.json",
+      "bytes": 20507,
+      "sha256": "0e7e685748e5ec242e0f9c7eda54dc75ca13daf8f57c3629966bbe420ee3968a",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-06-A2.json",
+      "bytes": 25589,
+      "sha256": "4c0bea10aeae135309380c874c9591971ddc114f7cacb1faa2c437cdab6ce7f9",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-07-delay.json",
+      "bytes": 20781,
+      "sha256": "5219a9c53aa4828affd5a52c4b3f26f1abd06a4a31c8637e1f9667db09e1395f",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-08-A2.json",
+      "bytes": 23061,
+      "sha256": "62d53e536eb7ee5e173d14f53ce6b608b3fa4b9a45e238550635b0bb28c7f779",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-09-deferred.json",
+      "bytes": 23065,
+      "sha256": "0308960c1e7e7c22c8db43ef2f7c8e906a695585af6562e8714d0c4ce409a794",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-10-delay.json",
+      "bytes": 20591,
+      "sha256": "6c53ff29e962db34d33f8867ce36af09e0e4cd94ae1b3cf4831338b49e30eab8",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-11-deferred.json",
+      "bytes": 22969,
+      "sha256": "b78b56ee4d9183160bf23d70f7f45c5a824f9bac31f60c643d683556f9639cc1",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-12-A1.json",
+      "bytes": 25230,
+      "sha256": "4ee5dfa9324c9e5714906af72232339976e3e013a6b147200f504cbfbd258fb3",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-13-A2.json",
+      "bytes": 27977,
+      "sha256": "d08926ec1f4facb75f10fad57ec1dc46fe166c96d3d16806fcb430e34f231ce5",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-14-A1.json",
+      "bytes": 25453,
+      "sha256": "d0b3f67eb2411440cd0fb1a122a65a71339cee7bec1a66c481efafe25c37ee8a",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-15-delay.json",
+      "bytes": 23287,
+      "sha256": "91d9e083703c74217476195c392623828e28a51b7e4d3b0ca8b23edf2256f91c",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-16-A1.json",
+      "bytes": 28167,
+      "sha256": "41356b68b4e7fdc44c1b9b07dd3684eba63471fcf73b045b5dc4599c6b20215b",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-17-deferred.json",
+      "bytes": 23787,
+      "sha256": "5240e0c536385be264bfa3149b15361bfc519c2fd933fdd458dfe8d9a6e61e35",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-18-A2.json",
+      "bytes": 25011,
+      "sha256": "342585efb3f66e0a60e023e963f9819abd1de8e594512f5243b488a6f7034be0",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-19-delay.json",
+      "bytes": 23336,
+      "sha256": "e36faf0170f64e2f533bc50f9bc86490ef8a93f6dee44c2826245932903365e0",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-20-A2.json",
+      "bytes": 25384,
+      "sha256": "7f10b22588a36f4a8d932bd3f3bfc1f776106dcea970302465bb68477ac47b08",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-21-deferred.json",
+      "bytes": 23105,
+      "sha256": "c671f832619475500cdf8c8d723108f29435bef89c2de15331447705cc91687d",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-22-delay.json",
+      "bytes": 23141,
+      "sha256": "7670f96c314347574337da64bd8eef1280cc9ffd44a52aab3f6d875ee09fa9d5",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-23-deferred.json",
+      "bytes": 22820,
+      "sha256": "9cedb0e09cbbd33039fea1b307477f6fda3f2f70bf98c5968a938dc6fa95bb07",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-24-A1.json",
+      "bytes": 25470,
+      "sha256": "6359977e42bcf753d2151c31981f579ecf87e07faeb0e2a0b9d781e99c5a9d4b",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-25-A2.json",
+      "bytes": 25310,
+      "sha256": "d685793cd0e3ea6a3ae14be812479cc202c6e4aa3598383c0d0a70b55e56ca13",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-26-A1.json",
+      "bytes": 23620,
+      "sha256": "a13b7eb96309c08544c3eb52306c336811b58699983239bc821993c8bca4329d",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-27-delay.json",
+      "bytes": 22966,
+      "sha256": "8b9d4908891a7bbaa65a4d9bbdec4174e8f3f5b24867aa42720cb206555d450e",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-28-A1.json",
+      "bytes": 25455,
+      "sha256": "bfcda61ca1387adfe0dc84a89f88c7a6a2722f2ecf5f3e12a4dca82fd889ea33",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-29-deferred.json",
+      "bytes": 20807,
+      "sha256": "8e5ba09e624ccf70c5a84cda24993de3cf5f6f3796240f12e9c2a9ec83371a35",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-30-A2.json",
+      "bytes": 30573,
+      "sha256": "3e07397c49dc5dfbf786ee4dc6970e8baaeb70472717c0b96af1f632a4fb67ff",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-31-delay.json",
+      "bytes": 23084,
+      "sha256": "c48f7c6bc7f94df7f9a8915c72c77e7199e1b95eefbf7f3651c53706c1a5003a",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-32-A2.json",
+      "bytes": 27533,
+      "sha256": "9cfa3026f42d336233b62b658d4acb9fb0276e013d0557ad0729a6b236fcf893",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-33-deferred.json",
+      "bytes": 23390,
+      "sha256": "8e5301e2a8001a57d78eadf990954ee735c60b57258a3b732cadd5fc3b2beeb1",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-34-delay.json",
+      "bytes": 23203,
+      "sha256": "dd46ebc2e999dca483b65c6d3c2c896804b3ec80a60e660c7053a91cf1bacf46",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-35-deferred.json",
+      "bytes": 23321,
+      "sha256": "44d5d02817adacb077773c3de7764c8042a0ea7ce8742ee7495ac5491efcf5d0",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-36-A1.json",
+      "bytes": 30705,
+      "sha256": "c67c200a11c930ebcb211a501d2e9633a97e91c2294fda4f913a90445c38cd6f",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-37-A2.json",
+      "bytes": 25984,
+      "sha256": "0cf9235073c79f8cacba5e56c17fb25e4311c7aa2d61b81a7243c71f0f546115",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-38-A1.json",
+      "bytes": 23206,
+      "sha256": "409e6656cbdddbb669ce20679d0ddabae632b9d6f35ebc3543ed8ff98791744f",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-39-delay.json",
+      "bytes": 23388,
+      "sha256": "dcc8e9ebdcb8dccce0e95574351dec61594f0679ead3fa2e2f8de118e3f137b3",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-40-A1.json",
+      "bytes": 25694,
+      "sha256": "597dfa1231b3d41b6b9f920b5eb38f45ba50f8ded25089050a503f72fd98a079",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-41-deferred.json",
+      "bytes": 23418,
+      "sha256": "20321b54a2ac91d29b9970b835059620faaf11ebba9662b0d65b76db6bfde214",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-42-A2.json",
+      "bytes": 27841,
+      "sha256": "24d68798d46df09495415ae70f192d36605d26fd591def9990ae70ae106b4c6d",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-43-delay.json",
+      "bytes": 23163,
+      "sha256": "ad53429571aecf41f75c2c5c4c1af70f1406ef2d25e3d0aa61a322a9c0df205c",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-44-A2.json",
+      "bytes": 25555,
+      "sha256": "7bc82ddb64882243061cb7467236907b90bbaa711618ccbafb13fccc67699fbb",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-45-deferred.json",
+      "bytes": 23087,
+      "sha256": "5d41ec28c3f3e29ba7f530b1c7788d03f11f3eed1b8a9765a4aea9532021012c",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-46-delay.json",
+      "bytes": 23317,
+      "sha256": "f514211d0d91c1764da3461cbd0d9531a8ed9f133b6636c713a33a56a7865499",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-47-deferred.json",
+      "bytes": 23165,
+      "sha256": "7b08a8a1df65aab65a34e49f94a6a1c155bec107da18c49cc742e9ff994abb19",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-48-A1.json",
+      "bytes": 25574,
+      "sha256": "f7188e6d73df873b2e662b0c63f2d610a6609c603f46cab2905bca68f7c4d90d",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-49-A2.json",
+      "bytes": 30660,
+      "sha256": "371da2572c28b122bb53e92e2b151bd5cd199afd8f2e8fa47f71f11abce3f406",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-50-A1.json",
+      "bytes": 28250,
+      "sha256": "f1d2a40229c4aa396b968dded8a72f3bee8e17168a3448d7ec2a30f591263e13",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-51-delay.json",
+      "bytes": 23131,
+      "sha256": "5960f970b6b396abc411a633727c26ce956785287e57cdc9290824dd6bf4a97f",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-52-A1.json",
+      "bytes": 28169,
+      "sha256": "d37e2f71689ff1e9d5896136c4e67d03a6bee73c5364188b4127cc045576ff74",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-53-deferred.json",
+      "bytes": 25101,
+      "sha256": "c889a77fcf695b5f761ae0109c22b1c6dfc4797564689923e9d1a391ee87b8b2",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-54-A2.json",
+      "bytes": 27981,
+      "sha256": "b9c2fa148d0e166805cd7e0f10b4fa34675438122e0b22ada4e6105ffeefb36a",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-55-delay.json",
+      "bytes": 23393,
+      "sha256": "55797ea78f3704b5d5f0fac7cda28f9603e2f24c1a0fcb2f1b7ced8210a78ad9",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-56-A2.json",
+      "bytes": 25471,
+      "sha256": "fff2df2e8ff7681e0b23dbf8df1b7d19a7ae45ca94b8faed93eee20fe8deffe8",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-57-deferred.json",
+      "bytes": 23049,
+      "sha256": "75abae8deb3c7c089a0fcb30d69e55a0fe0404e6f53d09dcd491c86e75336249",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-58-delay.json",
+      "bytes": 22948,
+      "sha256": "0f142367a749e6cb7563e119d687e46a0bb275c8160109ba5bb17aa925e5bb49",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-59-deferred.json",
+      "bytes": 23089,
+      "sha256": "100c91d3432bfc78c8dd4119ddb0a2986a8b4d0a75bce230e77c3c3c99e91315",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-60-A1.json",
+      "bytes": 25373,
+      "sha256": "100428f6d33f1df0eed000c975f7518400169c628cc2a1132edfd98c79e78b07",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-61-A2.json",
+      "bytes": 28000,
+      "sha256": "f63a2a647674cb81d49d527a45d4830e255fd1ecff6842f38256394215745459",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-62-A1.json",
+      "bytes": 28031,
+      "sha256": "bdca3775388e7618abd871bcde0c9130e30b53945fc920a46d6f66006f455cdd",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-63-delay.json",
+      "bytes": 23108,
+      "sha256": "b51d1f02c96230bdf6a7ebcada7216e8326aee5414361ca9c0736aaaf9ff2e4e",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-64-A1.json",
+      "bytes": 22784,
+      "sha256": "3333638c29ddc3f8ae6efb3837780c925023383af8da4622ea71b2665361c42a",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-65-deferred.json",
+      "bytes": 22989,
+      "sha256": "333888058ab59673112cb7bc25016cf01eab78f7a8e7c6508144681cb097f279",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-66-A2.json",
+      "bytes": 22936,
+      "sha256": "365b326e3f0eae83e6babc33840fe9436a661d67b6eec1386d9b39d404496dc5",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-67-delay.json",
+      "bytes": 20940,
+      "sha256": "1e11f285c07f71ae0d9b530ffca96e172a4772f816aafc224961a5cffe8fc907",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-68-A2.json",
+      "bytes": 22942,
+      "sha256": "2236ec33aecb83af02a64eb7ebbfd020e3240f61e1329abad5b52d33a91c6c01",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-69-deferred.json",
+      "bytes": 26043,
+      "sha256": "849d8dbed03f6e37827cd879b32dcf78c46172514c391064c96d2f1e487b1393",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-70-delay.json",
+      "bytes": 25642,
+      "sha256": "0a12939fa1d0fda76c4cc94b176ddb3b16eddc380780bdebf4511a4f5874a2de",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-71-deferred.json",
+      "bytes": 23147,
+      "sha256": "2f332c2d210447ac2e720c0ea8d3210f91846fe20b0739faf4d9d07e2e186f76",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-72-A1.json",
+      "bytes": 25587,
+      "sha256": "d6fcdcf469d84d7ea7663c2e37ff0d3e1db4ff9932f72c0d00fba2bb88f69f67",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-73-A2.json",
+      "bytes": 25745,
+      "sha256": "8a5be3fa1dab8db2fe92545fca7455df074f3e29e448252412fb41c642a6e62f",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-74-A1.json",
+      "bytes": 27879,
+      "sha256": "891e5fe57adce493ef260ec20700ab1adc967099c60ec68baaf85488d9063420",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-75-delay.json",
+      "bytes": 21039,
+      "sha256": "4c741af2cab0e234ac641f94cb62aada66f06de65e658737eee500a683f5854c",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-76-A1.json",
+      "bytes": 28289,
+      "sha256": "106b6c8be144a19120086726cf145ed73bf57a174a03ae085e1ecc5c8ccf135e",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-77-deferred.json",
+      "bytes": 22905,
+      "sha256": "a9623f913157ca4dcfcd9694e8b9f71e484f9eae43b494e4bebdc460e5b9e3c1",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-78-A2.json",
+      "bytes": 28064,
+      "sha256": "292cc678a5e5e131ccbcd18f23b35da7c58955c28d0ae2738d25816467371b8b",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-79-delay.json",
+      "bytes": 22963,
+      "sha256": "918c3dcc503349a4064144f1691fc9b829ec3ef644a4398eab24a40b1272896c",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-80-A2.json",
+      "bytes": 25651,
+      "sha256": "2c815ef972ac184de7b0059375c77ebe80d79566d9b687d41db94357dc1af8ac",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-81-deferred.json",
+      "bytes": 23122,
+      "sha256": "d3470cb6edb5f207ec397a5c2a413a0d6cabecc357fc8b3ab3919a02b5dff01a",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-82-delay.json",
+      "bytes": 26063,
+      "sha256": "09fed7b23b66b1f820836838f0ad63cb2f7eb6a9b70391f62d6b982d639af3fa",
+      "committed": true
+    },
+    {
+      "path": "raw-drag-prepared-mobile-83-deferred.json",
+      "bytes": 23020,
+      "sha256": "9fe05b4aed05e566a771e2efe667a9fd6ec739971ecbb9f2f2e8f2f82ea43c5a",
+      "committed": true
+    },
+    {
+      "path": "scrub-drag-repeat-summary.json",
+      "bytes": 560361,
+      "sha256": "7a0c1a6e5c8c069fac053577b0727b79f99faa7890d814b44508ad5ebc5475ce",
+      "committed": false
+    }
+  ],
+  "at": "2026-11-15T14:19:19.246Z"
+}
