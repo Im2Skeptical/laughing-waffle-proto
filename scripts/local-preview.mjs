@@ -2,17 +2,20 @@ import http from 'node:http';
 import { networkInterfaces } from 'node:os';
 import { spawn } from 'node:child_process';
 import { createReadStream, openSync, closeSync, mkdirSync } from 'node:fs';
-import { readFile, stat, realpath } from 'node:fs/promises';
+import { readFile, writeFile, stat, realpath } from 'node:fs/promises';
+import { createServer } from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { root, workspaceId, getBuildInfo, stampBuildInfo } from './build-info.mjs';
 import { createArtworkSnapshot, stampArtworkManifest } from './artwork-manifest.mjs';
+import { requestPreview } from './preview-http.mjs';
 
 // Artwork cache delivery requires a fresh server after upgrading older tooling.
 const protocol = 5;
 const firstPort = 5184;
 const ports = Array.from({ length: 12 }, (_, i) => firstPort + i);
+const portRecord = path.join(root, 'artifacts/local-preview.json');
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript',
   '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.webp': 'image/webp',
   '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon',
@@ -95,18 +98,18 @@ async function serve(port) {
       reply(missing ? 404 : 500, 'text/plain', missing ? 'Not found' : 'Preview failed; see local preview log');
     }
   });
-  server.on('error', error => { console.error(error.message); process.exit(1); });
+  server.on('error', error => { console.error(error.message); process.exitCode = 1; });
   server.listen(port, '0.0.0.0', () => console.log(JSON.stringify({ workspaceId, ...urls(port) })));
 }
 
 async function status(port) {
   try {
-    const response = await fetch(`http://127.0.0.1:${port}/__preview__/status`, { signal: AbortSignal.timeout(800) });
+    const response = await requestPreview(`http://127.0.0.1:${port}/__preview__/status`, { maxBytes: 65_536 });
     if (!response.ok) return { occupied: true };
     const value = await response.json();
     return value.protocol === protocol && value.workspaceId === workspaceId ? value : { occupied: true };
   } catch (error) {
-    return error.cause?.code === 'ECONNREFUSED' ? null : { occupied: true };
+    return error.code === 'ECONNREFUSED' ? null : { occupied: true };
   }
 }
 
@@ -116,29 +119,64 @@ function report(value) {
 }
 
 async function ensure() {
-  const existing = await Promise.all(ports.map(status));
+  // The record is only a discovery hint. Revalidate checkout and protocol over
+  // HTTP before reusing it; never trust a stale PID or stop its current owner.
+  const candidates = [...ports];
+  try {
+    const saved = JSON.parse(await readFile(portRecord, 'utf8'));
+    if (saved?.workspaceId === workspaceId && saved.protocol === protocol
+        && Number.isInteger(saved.port) && saved.port > 0 && saved.port <= 65535
+        && !candidates.includes(saved.port)) candidates.push(saved.port);
+  } catch (error) {
+    if (error.code !== 'ENOENT' && !(error instanceof SyntaxError)) throw error;
+  }
+  const existing = await Promise.all(candidates.map(status));
   const match = existing.find(value => value?.workspaceId === workspaceId);
   if (match) return report(match);
-  const port = ports.find((_, index) => !existing[index]);
-  if (!port) throw new Error(`Preview ports ${ports[0]}–${ports.at(-1)} are occupied; no existing preview serves this checkout`);
+  let port = candidates.find((_, index) => !existing[index]);
+  if (!port) {
+    const probe = createServer();
+    await new Promise((resolve, reject) => {
+      probe.once('error', reject); probe.listen(0, '0.0.0.0', resolve);
+    });
+    port = probe.address().port;
+    await new Promise((resolve, reject) => probe.close(error => error ? reject(error) : resolve()));
+  }
   mkdirSync(path.join(root, 'artifacts'), { recursive: true });
   const log = openSync(path.join(root, 'artifacts/local-preview.log'), 'a');
   const child = spawn(process.execPath, [fileURLToPath(import.meta.url), '--serve', String(port)], {
     cwd: root, detached: true, windowsHide: true, stdio: ['ignore', log, log],
   });
-  child.on('error', error => { console.error(error); process.exitCode = 1; });
+  let failure;
+  child.on('error', error => { failure = error; });
+  child.on('exit', (code, signal) => { failure = new Error(`Local preview exited before readiness (${signal ?? code}); see artifacts/local-preview.log`); });
   child.unref();
   closeSync(log);
-  for (let attempt = 0; attempt < 120; attempt++) {
-    await delay(250);
-    const value = await status(port);
-    if (value?.workspaceId === workspaceId) return report(value);
+  try {
+    for (let attempt = 0; attempt < 120; attempt++) {
+      await delay(250);
+      if (failure) throw failure;
+      const value = await status(port);
+      if (value?.workspaceId === workspaceId && value.pid === child.pid) {
+        await writeFile(portRecord, JSON.stringify({ protocol, workspaceId, port }));
+        return report(value);
+      }
+    }
+    throw new Error('Local preview did not start; see artifacts/local-preview.log');
+  } catch (error) {
+    // Only a child launched by this invocation can be cleaned up on failure.
+    if (child.pid && child.exitCode === null && !child.signalCode) child.kill();
+    throw error;
   }
-  throw new Error('Local preview did not start; see artifacts/local-preview.log');
 }
 
-if (process.argv[2] === '--serve') {
-  const port = Number(process.argv[3]);
-  if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid port');
-  await serve(port);
-} else await ensure();
+try {
+  if (process.argv[2] === '--serve') {
+    const port = Number(process.argv[3]);
+    if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid port');
+    await serve(port);
+  } else await ensure();
+} catch (error) {
+  console.error(error);
+  process.exitCode = 1;
+}
