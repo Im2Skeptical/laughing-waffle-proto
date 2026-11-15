@@ -1,0 +1,192 @@
+{
+  "passed": true,
+  "outcomes": [
+    {
+      "id": "statistics-unit",
+      "passed": null,
+      "detail": "run via statistics-test.mjs in run.mjs"
+    },
+    {
+      "id": "forecast-added-delay",
+      "passed": true,
+      "detail": {
+        "baseMs": 224.306944,
+        "delayedMs": 446.877552,
+        "delta": 222.570608
+      }
+    },
+    {
+      "id": "forecast-wrong-result",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "endSec": 96
+      }
+    },
+    {
+      "id": "forecast-window-positive",
+      "passed": true,
+      "detail": {
+        "elapsedMs": 219.208176,
+        "endSec": 96
+      }
+    },
+    {
+      "id": "forecast-horizon-positive",
+      "passed": true,
+      "detail": {
+        "endSec": 6138,
+        "expected": 6138,
+        "elapsedMs": 14613.703573,
+        "simPerSec": 420.0167308265683
+      }
+    },
+    {
+      "id": "forecast-horizon-wrong-loss",
+      "passed": true,
+      "detail": {
+        "ok": false,
+        "endSec": 6138
+      }
+    },
+    {
+      "id": "reproject-positive",
+      "passed": true,
+      "detail": {
+        "frontierSec": 2032,
+        "openingLossSec": 6138,
+        "reprojectLossSec": 6138,
+        "twinAgreed": true,
+        "elapsedMs": 9912.70415
+      }
+    },
+    {
+      "id": "instrument-off-no-worker-wrap",
+      "passed": true,
+      "detail": {
+        "wrapped": false,
+        "sameRef": true,
+        "instrumentFlag": false
+      }
+    },
+    {
+      "id": "instrument-on-wraps-worker",
+      "passed": true,
+      "detail": {
+        "wrapped": true,
+        "sameRef": false,
+        "instrumentFlag": true
+      }
+    },
+    {
+      "id": "new-game-positive",
+      "passed": true,
+      "detail": {
+        "elapsedMs": 84579.59999999963,
+        "lossSec": 6138,
+        "coverageSec": 6138,
+        "phase": "completed",
+        "milestones": {
+          "preparing": 399,
+          "coverageFirst": 399,
+          "coverageReachedLoss": 18514,
+          "revealing": 69724.20000000112,
+          "menuHidden": 70939.30000000075,
+          "revealComplete": 84577.70000000112
+        },
+        "bake": {
+          "bakeMs": 25813.599999999627,
+          "terrainBakeMs": 3017,
+          "variantBuildMs": 6364.300000000745
+        },
+        "graphicsPinned": true,
+        "oracle": {
+          "ok": true,
+          "reasons": [],
+          "errors": []
+        }
+      }
+    },
+    {
+      "id": "scrub-positive",
+      "passed": true,
+      "detail": {
+        "n": 8,
+        "p50": 211.80000000074506,
+        "max": 498.5,
+        "failed": 0
+      }
+    },
+    {
+      "id": "scrub-wrong-result",
+      "passed": true,
+      "detail": {
+        "oks": [
+          false,
+          false,
+          false
+        ],
+        "viewed": [
+          3069,
+          3375,
+          3677
+        ]
+      }
+    },
+    {
+      "id": "scrub-added-delay",
+      "passed": true,
+      "detail": {
+        "baseMed": 199.40000000037253,
+        "delMed": 405.30000000074506,
+        "delta": 205.90000000037253,
+        "method": "statistics.quantile p50"
+      }
+    },
+    {
+      "id": "scrub-deferred-completion",
+      "passed": true,
+      "detail": {
+        "baseMed": 199.40000000037253,
+        "defMed": 479.90000000037253,
+        "delta": 280.5,
+        "method": "statistics.quantile p50"
+      }
+    },
+    {
+      "id": "scrub-deferred-async-fail-closed",
+      "passed": true,
+      "detail": {
+        "oks": [
+          false,
+          false,
+          false
+        ],
+        "timeouts": [
+          true,
+          true,
+          true
+        ],
+        "elapsed": [
+          207.90000000037253,
+          314.5,
+          267
+        ]
+      }
+    },
+    {
+      "id": "scrub-deferred-async-mode",
+      "passed": true,
+      "detail": {
+        "elapsed": [
+          447.69999999925494,
+          479.90000000037253,
+          491,
+          485.40000000037253
+        ]
+      }
+    }
+  ],
+  "at": "2026-11-15T17:31:58.789Z",
+  "includeBrowser": true
+}

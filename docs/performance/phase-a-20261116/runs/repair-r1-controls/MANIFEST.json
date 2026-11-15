@@ -1,0 +1,36 @@
+{
+  "artifactDir": "artifacts/perf-phase-a-20261116/repair-r1-controls",
+  "files": [
+    {
+      "path": "controls.json",
+      "bytes": 3999,
+      "sha256": "04c9acd19d0b66195118b5b6ebe81561dde16b96ed2369fc48cc38d9345c490f",
+      "committed": true
+    },
+    {
+      "path": "ctrl-ng-positive-new-game-finished.png",
+      "bytes": 589864,
+      "sha256": "521d499f68ddc519f807906f2b66b81d46cb55e46818680025b3863cab759016",
+      "committed": false
+    },
+    {
+      "path": "raw-ctrl-ng-positive.json",
+      "bytes": 3207,
+      "sha256": "f579169f9177e3ff8f61a9f134a2dab73b9ac36e4db2bb7a065cad313f7a9e01",
+      "committed": true
+    },
+    {
+      "path": "raw-ctrl-scrub.json",
+      "bytes": 35624,
+      "sha256": "655e362029147c3b4ddb16ecffc7c4c371186f331f8052053257cac477f35c99",
+      "committed": true
+    },
+    {
+      "path": "raw-forecast-controls.json",
+      "bytes": 9933,
+      "sha256": "238057d09999ed4441998d24c4bae60b6ddc01b6e6a34d833deaec111d06c6f5",
+      "committed": true
+    }
+  ],
+  "at": "2026-11-15T17:32:24.286Z"
+}
