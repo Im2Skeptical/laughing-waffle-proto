@@ -443,6 +443,9 @@ export function evaluateRepeat(drags) {
   const dDelay = bootstrapMedianDelta(base, per('delay'), { seed: 0x44454c31 });
   const dDefer = bootstrapMedianDelta(base, per('deferred'), { seed: 0x44454631 });
   const aaHalf = aa ? Math.max(Math.abs(aa.low), Math.abs(aa.high)) : Infinity;
+  // F-W3b-1 carry-over: baseline (A1/A2) drags preceded by a control arm vs by a baseline arm.
+  const baseAfter = (pred) => drags.filter((d) => (d.arm === 'A1' || d.arm === 'A2') && d.ok && Number.isFinite(d.p50) && d.prevArm && pred(d.prevArm)).map((d) => d.p50);
+  const carry = bootstrapMedianDelta(baseAfter((p) => p === 'A1' || p === 'A2'), baseAfter((p) => p === 'delay' || p === 'deferred'), { seed: 0x43415231 });
   const allOk = drags.every((d) => d.ok);
   const wrong = drags.filter((d) => d.arm === 'A1' && d.ok).map(wrongTargetControl);
   const controls = [
@@ -452,15 +455,31 @@ export function evaluateRepeat(drags) {
     { id: 'drag-aa', passed: !!aa && aa.low <= 0 && aa.high >= 0 && per('A1').length >= 5 && per('A2').length >= 5, detail: aa },
     // Predeclared: control shift >= 150 ms, lower bound > 0 and beyond the A/A envelope.
     { id: 'drag-added-delay-repeat', passed: !!dDelay && per('delay').length >= 5 && dDelay.delta >= 150 && dDelay.low > 0 && dDelay.low > aaHalf, detail: { ...dDelay, aaEnvelopeMs: aaHalf } },
+    { id: 'drag-carry-over', passed: !!carry && carry.nA >= 3 && carry.nB >= 3 && carry.low <= 0 && carry.high >= 0, detail: carry },
     { id: 'drag-deferred-completion-repeat', passed: !!dDefer && per('deferred').length >= 5 && dDefer.delta >= 150 && dDefer.low > 0 && dDefer.low > aaHalf, detail: { ...dDefer, aaEnvelopeMs: aaHalf } },
   ];
   return { arms, controls };
 }
 
-export async function runRepeatSuite({ outDir, kinds = ['prepared-desktop', 'prepared-mobile'], reps = 5, screenshotDir = outDir }) {
+// WP3c: Williams balanced Latin square for 4 arms (rows over A1,A2,delay,deferred
+// indices): within each block of 4 rows every arm immediately follows every
+// other arm exactly once (first-order carry-over balanced).
+export const WILLIAMS_4 = [[0, 1, 3, 2], [1, 2, 0, 3], [2, 3, 1, 0], [3, 0, 2, 1]];
+
+// Fixed settle gap: wait until playback is held and the drag/edge state is
+// idle, then a further gapMs (recorded per drag).
+async function settleGap(page, gapMs) {
+  const t0 = Date.now();
+  await page.waitForFunction(() => { const p = globalThis.__SETTLEMENT_DEBUG__.getScrubProbe(); return p && p.playbackTarget === 0 && p.isScrubbing === false && p.edge?.skipping !== true; }, null, { timeout: 30000, polling: 100 }).catch(() => {});
+  const idleAt = Date.now();
+  await delay(gapMs);
+  return { waitIdleMs: idleAt - t0, extraMs: gapMs, totalMs: Date.now() - t0 };
+}
+
+export async function runRepeatSuite({ outDir, kinds = ['prepared-desktop', 'prepared-mobile'], reps = 5, screenshotDir = outDir, design = 'rotation', settleGapMs = 0 }) {
   mkdirSync(outDir, { recursive: true });
   const server = await startServer();
-  const results = { at: new Date().toISOString(), reps, arms: ARMS, kinds: {} };
+  const results = { at: new Date().toISOString(), reps, design, settleGapMs, arms: ARMS, kinds: {} };
   const save = () => writeFileSync(path.join(outDir, 'scrub-drag-repeat-summary.json'), JSON.stringify(results, null, 2));
   try {
     for (const kindName of kinds) {
@@ -477,11 +496,14 @@ export async function runRepeatSuite({ outDir, kinds = ['prepared-desktop', 'pre
         const drags = [];
         for (let r = 0; r < reps; r++) {
           for (let j = 0; j < ARMS.length; j++) {
-            const a = ARMS[(j + r) % ARMS.length];
+            const a = design === 'williams' ? ARMS[WILLIAMS_4[r % 4][j]] : ARMS[(j + r) % ARMS.length];
+            const prevArm = drags.at(-1)?.arm ?? null;
+            const gap = settleGapMs > 0 && drags.length ? await settleGap(session.page, settleGapMs) : null;
             const launchId = `${kindName}-${a.arm}-r${r}`;
             const shotTag = r === 0 && a.arm === 'A1' ? kindName : null;
             const d = await runDrag({ session, launchId, kind: input, addedDelayMs: a.addedDelayMs, deferredMs: a.deferredMs, playing: true, arm: a.arm, rep: r,
               screenshotDir: shotTag ? screenshotDir : null, tag: shotTag ?? launchId });
+            d.prevArm = prevArm; d.settleGap = gap;
             drags.push(d);
             const { raw, sendLog, ...rest } = d;
             writeFileSync(path.join(outDir, `raw-drag-${launchId}.json`), JSON.stringify(d));
@@ -508,7 +530,7 @@ if (process.argv[1]?.endsWith('scrub-drag.mjs')) {
   const outDir = path.join(REPO_ROOT, ARTIFACT_ROOT_REL, id);
   const reps = Number(arg('repeat', '0'));
   if (reps > 0) {
-    const r = await runRepeatSuite({ outDir, kinds, reps });
+    const r = await runRepeatSuite({ outDir, kinds, reps, design: arg('design', 'rotation'), settleGapMs: Number(arg('settle-gap-ms', '0')) });
     finalizeRun(outDir);
     console.log(JSON.stringify({ id, kinds: Object.fromEntries(Object.entries(r.kinds).map(([n, k]) => [n, { error: k.error, arms: k.arms && Object.fromEntries(Object.entries(k.arms).map(([a, v]) => [a, { ok: v.okDrags, med: v.medianOfP50 }])), controls: k.controls?.map((c) => ({ id: c.id, passed: c.passed, delta: c.detail?.delta, low: c.detail?.low, high: c.detail?.high })) }])), artifact: outDir }));
     process.exit(0);

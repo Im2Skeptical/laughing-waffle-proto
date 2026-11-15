@@ -1,6 +1,6 @@
 # Phase A — STATE (HC-20261116-A1)
 
-Updated 2026-11-16 01:00 AEDT (Australia/Sydney). Builder: Code Health box executor (Grok Bot). Session start 23:02 AEDT, hard stop 02:32 AEDT. Scope: WP1 → WP2 → WP3, then WP3b (orchestrator, 00:14, max 60 min; WP4–5 only if WP3b passes). No audit (WP6).
+Updated 2026-11-16 01:10 AEDT (Australia/Sydney). Builder: Code Health box executor (Grok Bot). Session start 23:02 AEDT, hard stop 02:32 AEDT. Scope: WP1 → WP2 → WP3, then WP3b (orchestrator, 00:14, max 60 min; WP4–5 only if WP3b passes). No audit (WP6).
 
 **Phase A verdict: NOT SOUND (construction).** `HARNESS_REVIEW.md` is **NOT AUDITED**. No baseline, no scorecard, no gains.
 
@@ -76,6 +76,15 @@ Superseded run: `wp1-node-20261115` used a stale `controls.mjs` (first commit mi
 - Mechanism: `scripts/perf-phase-a-20261116/scrub-drag.mjs`. Real CDP pointerdown → 40 moves (25 forward then back, 50 ms open loop) → up on the settlement timegraph, after minimising the recap. Start clock = earliest coalesced `timeStamp` of each move (window capture listener). End = first frame (post-frame MessageChannel stamp) at/after the handler where flag-gated `getScrubProbe()` shows viewedSec equal to that move's scrubSec. Never-dragged reference: browse away and back.
 - Design 1 (r2) metric (own-target completed only, stamped inside rAF) failed the delay and deferred controls: survivorship bias (slow moves get superseded and drop out) and the stamp ran before deferred and Pixi render work. Design 2 (r3) fixed both; this was the 2nd and last allowed design.
 - **Calibration caveat:** the controls prove sensitivity and direction, not linear calibration. Per-move work compounds across the open-loop stream: +200 ms injected per move → +1005 ms p50; deferred → +581 ms. Delivered moves also fall 21 → 7 under load. Each figure is n=1 drag (one run per arm); no A/A yet. WP4 must add repeated reps and an A/A before any comparison.
+
+## WP3c (started 01:05 AEDT, max 50 min, 2 attempts) — PREDECLARED before running
+
+Mobile 4× touch drag only (844×390, prepared 424242 playing start). Run: `node scripts/perf-phase-a-20261116/scrub-drag.mjs --id=wp3c-mobile-a1 --kinds=prepared-mobile --repeat=20 --design=williams --settle-gap-ms=2000`.
+
+- Ordering: Williams balanced Latin square (`WILLIAMS_4`), 20 rows = 5 blocks → n=20 drags per arm (80 drags). Within each block every arm immediately follows every other arm exactly once; the 4 row-boundary transitions per block add one extra C→B, D→C, A→D, B→A each (recorded via `prevArm`).
+- Settle gap before every drag after the first: wait until `playbackTarget === 0`, `isScrubbing === false`, edge skip off, then 2000 ms (recorded as `settleGap`), then Space to resume playing (Hold stays meaningful).
+- Pass rule (all required): every drag passes the full oracle incl. `holdMeaningful`; wrong-target fails closed on every A1 drag; **A/A**: 95% bootstrap interval of median(per-drag p50) A2−A1 contains 0; **delay** and **deferred**: Δ vs pooled A1+A2 ≥ 150 ms, lower bound > 0 and lower bound > A/A envelope (max |A/A bound|); **carry-over (F-W3b-1)**: baseline drags preceded by a control arm vs preceded by a baseline arm, 95% bootstrap interval of the median difference contains 0.
+- If deferred still cannot be separated after 2 attempts: record the resolution limit = A/A envelope (smallest per-drag-p50 shift distinguishable from A/A noise at n=20/arm) in ms and STOP. No third design. WP4 is not started this session regardless.
 
 ## WP3b notes
 
