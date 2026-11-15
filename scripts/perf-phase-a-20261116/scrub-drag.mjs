@@ -13,7 +13,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { startServer, launchPage, runNewGameJob, closeSession } from './browser.mjs';
-import { quantile } from './statistics.mjs';
+import { quantile, quantileInterval, summarize } from './statistics.mjs';
 import { finalizeRun } from './manifest.mjs';
 import {
   REPO_ROOT, ARTIFACT_ROOT_REL, CONTRACT_ID, HARNESS_ID, FROZEN_SEED, EXPECTED_OPENING_LOSS_SEC,
@@ -34,29 +34,57 @@ function arg(name, fallback) {
   return hit ? hit.slice(name.length + 3) : fallback;
 }
 
+// Pixi debug click points are in the 2424x1080 design space (as in
+// scripts/full-map-browser-probe.mjs); map them onto the canvas box.
+async function designClick(page, pt) {
+  if (!pt) return false;
+  const b = await page.locator('canvas').first().boundingBox();
+  await page.mouse.click(b.x + pt.x / 2424 * b.width, b.y + pt.y / 1080 * b.height);
+  return true;
+}
+
 // Prepared performance start (seed 424242), labelled separately from ordinary New Game.
+// WP3b: the documented direct performance URL (docs/development-workflow.md:
+// "A numeric &seed=123 ... pins a direct launch"; "&launch=new for a fresh
+// start"). `?perf=1` auto-enters on load (game-menu-dom startPerformanceEntry),
+// which is why WP3 dry1/dry2 found the Developer tools button detached/hidden:
+// the menu was already leaving. The menu button path cannot pin a seed without
+// perf=1 (it picks uniformly among five prepared worlds), so it is not used.
 export async function openPreparedStart({ server, cpuThrottle = 1, viewport = 'desktop', timeoutMs = 240000 }) {
-  const session = await launchPage({ url: server.url, cpuThrottle, viewport, query: `/?perf=1&seed=${FROZEN_SEED}&art=0`, setSeed: false });
+  const session = await launchPage({ url: server.url, cpuThrottle, viewport, query: `/?dev=1&perf=1&art=0&seed=${FROZEN_SEED}&launch=new`, setSeed: false });
   const { page } = session;
   const t0 = Date.now();
-  // Desktop: the performance button lives inside the collapsed Developer tools <details>.
-  const perfBtn = page.getByTestId('game-new-performance');
-  await page.getByText('Developer tools', { exact: true }).waitFor({ timeout: 60000 });
-  if (!(await perfBtn.isVisible().catch(() => false))) await page.getByText('Developer tools', { exact: true }).click();
-  await perfBtn.click({ timeout: 60000 });
-  const start = page.getByRole('button', { name: 'Start here', exact: true }).first();
-  if (await start.isVisible({ timeout: 3000 }).catch(() => false)) await start.click();
   await page.waitForFunction(() => {
     const menu = document.querySelector('#game-menu');
     const o = globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.opening;
-    return (!menu || menu.hidden) && (o?.phase === 'revealing' || o?.phase === 'completed') && o?.lossSec > 0;
+    return (!menu || menu.hidden) && o?.phase === 'completed' && o?.lossSec > 0;
   }, null, { timeout: timeoutMs, polling: 250 });
-  await page.waitForFunction(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().opening?.phase === 'completed', null, { timeout: 30000, polling: 200 }).catch(() => {});
+  const opening = await page.evaluate(() => { const s = globalThis.__SETTLEMENT_DEBUG__.getSnapshot(); return { lossSec: s.opening.lossSec, seed: s.runner?.baseSeed ?? null }; });
   Object.assign(session, {
-    fixture: `prepared-performance-start-seed-${FROZEN_SEED}`, start: 'prepared-424242', artwork: 'performance-mode-minimal',
-    openMs: Date.now() - t0,
+    fixture: `prepared-performance-start-seed-${FROZEN_SEED}`, start: 'prepared-424242', artwork: 'performance-mode-stubs-art0',
+    openMs: Date.now() - t0, opening, entry: `/?dev=1&perf=1&art=0&seed=${FROZEN_SEED}&launch=new`,
   });
   return session;
+}
+
+// User path to a playing state: Minimise the Foreseen Extinction recap,
+// press the Present time action, press Space (togglePause -> playbackTarget 1).
+export async function enterPlaying(page) {
+  const d = (m, a) => page.evaluate(([m, a]) => globalThis.__SETTLEMENT_DEBUG__[m]?.(a) ?? null, [m, a]);
+  if ((await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().runComplete?.open)) === true) {
+    await designClick(page, await d('getRunCompleteClickPoint', 'browse')); await delay(600);
+  }
+  await designClick(page, await d('getNavigationClickPoint', 'present')); await delay(800);
+  return resumePlaying(page);
+}
+
+export async function resumePlaying(page) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if ((await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getSnapshot().playbackTarget)) !== 0) break;
+    await page.keyboard.press('Space'); await delay(400);
+  }
+  await delay(600);
+  return page.evaluate(() => { const s = globalThis.__SETTLEMENT_DEBUG__.getSnapshot(); return { playbackTarget: s.playbackTarget, viewedSec: s.viewedSec, runCompleteOpen: s.runComplete?.open ?? null }; });
 }
 
 async function enableProbe(page) {
@@ -212,11 +240,13 @@ export function analyzeDrag({ frames, marks, wrongOffset = 0 }) {
   };
 }
 
-export async function runDrag({ session, launchId, kind = 'mouse', moves = DRAG_MOVES, cadenceMs = DRAG_CADENCE_MS, addedDelayMs = 0, deferredMs = 0, screenshotDir = null, tag = launchId }) {
+export async function runDrag({ session, launchId, kind = 'mouse', moves = DRAG_MOVES, cadenceMs = DRAG_CADENCE_MS, addedDelayMs = 0, deferredMs = 0, screenshotDir = null, tag = launchId, playing = false, arm = null, rep = null }) {
   const { page, cdp } = session;
   // Off-clock: dismiss the opening Foreseen Extinction recap so the plot is unobstructed.
-  const minimise = page.getByRole('button', { name: /Minimise/i }).first();
-  if (await minimise.isVisible({ timeout: 1000 }).catch(() => false)) { await minimise.click().catch(() => {}); await delay(500); }
+  if ((await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.()?.runComplete?.open)) === true) {
+    await designClick(page, await page.evaluate(() => globalThis.__SETTLEMENT_DEBUG__.getRunCompleteClickPoint('browse'))); await delay(600);
+  }
+  if (playing) await resumePlaying(page);
   const probe0 = await enableProbe(page);
   if (!probe0) return { launchId, ok: false, reason: 'probe-unavailable' };
   await waitForRevealSettled(page);
@@ -285,14 +315,14 @@ export async function runDrag({ session, launchId, kind = 'mouse', moves = DRAG_
     movesCompletedAny: analysis.completed > 0,
     allDeliveredMovesCaughtUp: analysis.caught.length > 0 && analysis.caughtUp === analysis.caught.length,
   };
-  const required = ['latchedIsScrubbing', 'isScrubbingMidDrag', 'edgeSkipMidDrag', 'holdAfterDown', 'releasedNotScrubbing', 'edgeSettledAfterRelease',
+  const required = [...(playing ? ['holdMeaningful'] : []), 'latchedIsScrubbing', 'isScrubbingMidDrag', 'edgeSkipMidDrag', 'holdAfterDown', 'releasedNotScrubbing', 'edgeSettledAfterRelease',
     'pointerMappingOk', 'settledEqualsReferenceState', 'settledEqualsReferencePackets', 'frontierUnchanged', 'seedUnchanged', 'timelineUnchanged', 'movesCompletedAny', 'allDeliveredMovesCaughtUp'];
   const ok = required.every((k) => oracle[k] === true);
   const buildId = collectBuildAssets().buildAssetSha256 ?? 'missing-dist';
   const pop = population({ cpuThrottle: session.cpuThrottle ?? 1, viewport: session.viewport ?? 'desktop', cold: false, artwork: session.artwork, start: session.start ?? 'ordinary-new-game' });
   const control = addedDelayMs > 0 || deferredMs > 0;
   const observations = analysis.caught.map((c) => ({
-    job: 'scrub-drag', step: 'move-arrival-to-caught-up-frame', population: { ...pop, input: kind, cadenceMs },
+    job: 'scrub-drag', step: 'move-arrival-to-caught-up-frame', population: { ...pop, input: kind, cadenceMs, arm: arm ?? (control ? 'control' : 'baseline') },
     launchId, observationId: `${launchId}-m${c.i}`, elapsedMs: c.ok ? c.elapsedMs : 0, ok: c.ok && ok, timeout: !c.ok, buildId,
     fixture: session.fixture ?? `ordinary-new-game-seed-${FROZEN_SEED}`, harnessId: HARNESS_ID, measurementContractId: CONTRACT_ID,
     fixtureManifestId: frozenFixtureId(), oracleSdkSha256: oracleSdkId(), comparisonEligible: !control, addedDelayMs, deferredMs,
@@ -307,7 +337,7 @@ export async function runDrag({ session, launchId, kind = 'mouse', moves = DRAG_
   }));
   console.log(`${stamp()} drag ${launchId} ok=${ok} delivered=${analysis.delivered}/${moves} completed=${analysis.completed} superseded=${analysis.superseded} p50=${analysis.p50?.toFixed?.(1)} caughtUp=${analysis.caughtUp}/${analysis.caught.length} ownP50=${analysis.ownTargetP50?.toFixed?.(1)} latched=${analysis.latchedIsScrubbing}`);
   return {
-    launchId, kind, ok, oracle, required, before, midProbe, afterRelease, reference, plot, secPerPx, maxMappingError: mappingErrors.length ? Math.max(...mappingErrors) : null,
+    launchId, arm, rep, playing, kind, ok, oracle, required, before, midProbe, afterRelease, reference, plot, secPerPx, maxMappingError: mappingErrors.length ? Math.max(...mappingErrors) : null,
     sent: moves, delivered: analysis.delivered, coalescedOrDropped: moves - analysis.delivered,
     completed: analysis.completed, superseded: analysis.superseded, p50: analysis.p50, p95: analysis.p95, caughtUp: analysis.caughtUp, ownTargetP50: analysis.ownTargetP50,
     rafP50: analysis.rafP50, rafMax: analysis.rafMax, framesOver50: analysis.framesOver50, edgeSkippingDuring: analysis.edgeSkippingDuring,
@@ -375,10 +405,114 @@ export async function runScrubDragSuite({ outDir, kinds = ['prepared-desktop', '
   return results;
 }
 
+// WP3b: repeated, interleaved arms. Arms per rep are rotated (Latin square),
+// so each arm takes each position once in 4 reps. A1/A2 are identical
+// baselines (A/A). Uncertainty: deterministic seeded bootstrap over whole drags
+// (clusters) of the difference in medians of per-drag p50s.
+export const ARMS = [
+  { arm: 'A1', addedDelayMs: 0, deferredMs: 0 },
+  { arm: 'A2', addedDelayMs: 0, deferredMs: 0 },
+  { arm: 'delay', addedDelayMs: 200, deferredMs: 0 },
+  { arm: 'deferred', addedDelayMs: 0, deferredMs: 200 },
+];
+
+function xorshift(seed) { let w = seed >>> 0 || 1; return (n) => { w ^= w << 13; w ^= w >>> 17; w ^= w << 5; return Math.floor((w >>> 0) / 4294967296 * n); }; }
+
+export function bootstrapMedianDelta(a, b, { replicates = 5000, seed = 0x41413031, confidence = 0.95 } = {}) {
+  if (!a.length || !b.length) return null;
+  const draw = xorshift(seed), est = [];
+  for (let r = 0; r < replicates; r++) {
+    const ra = a.map(() => a[draw(a.length)]), rb = b.map(() => b[draw(b.length)]);
+    est.push(quantile(rb, 0.5) - quantile(ra, 0.5));
+  }
+  const alpha = (1 - confidence) / 2;
+  return { delta: quantile(b, 0.5) - quantile(a, 0.5), low: quantile(est, alpha), high: quantile(est, 1 - alpha), confidence, replicates, seed, nA: a.length, nB: b.length,
+    method: 'percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n' };
+}
+
+export function evaluateRepeat(drags) {
+  const per = (arm) => drags.filter((d) => d.arm === arm && d.ok && Number.isFinite(d.p50)).map((d) => d.p50);
+  const pooled = (arm) => drags.filter((d) => d.arm === arm && d.ok).flatMap((d) => d.analysis.caught.filter((c) => c.ok).map((c) => c.elapsedMs));
+  const arms = Object.fromEntries(ARMS.map(({ arm }) => {
+    const p = pooled(arm);
+    return [arm, { drags: drags.filter((d) => d.arm === arm).length, okDrags: per(arm).length, perDragP50: per(arm), medianOfP50: per(arm).length ? quantile(per(arm), 0.5) : null,
+      pooledN: p.length, pooledP50: p.length ? quantile(p, 0.5) : null, pooledP50Interval: p.length ? quantileInterval(p, 0.5, 0.95) : null }];
+  }));
+  const base = [...per('A1'), ...per('A2')];
+  const aa = bootstrapMedianDelta(per('A1'), per('A2'));
+  const dDelay = bootstrapMedianDelta(base, per('delay'), { seed: 0x44454c31 });
+  const dDefer = bootstrapMedianDelta(base, per('deferred'), { seed: 0x44454631 });
+  const aaHalf = aa ? Math.max(Math.abs(aa.low), Math.abs(aa.high)) : Infinity;
+  const allOk = drags.every((d) => d.ok);
+  const wrong = drags.filter((d) => d.arm === 'A1' && d.ok).map(wrongTargetControl);
+  const controls = [
+    { id: 'repeat-correctness', passed: allOk && drags.length >= 20, detail: { drags: drags.length, failed: drags.filter((d) => !d.ok).map((d) => ({ launchId: d.launchId, failed: d.oracle ? Object.entries(d.oracle).filter(([k, v]) => d.required.includes(k) && v !== true).map(([k]) => k) : d.reason })) } },
+    { id: 'drag-wrong-target-repeat', passed: wrong.length >= 5 && wrong.every((w) => w.passed), detail: wrong.map((w) => w.detail) },
+    // Predeclared: A/A 95% interval contains 0 (runner/order bias within noise).
+    { id: 'drag-aa', passed: !!aa && aa.low <= 0 && aa.high >= 0 && per('A1').length >= 5 && per('A2').length >= 5, detail: aa },
+    // Predeclared: control shift >= 150 ms, lower bound > 0 and beyond the A/A envelope.
+    { id: 'drag-added-delay-repeat', passed: !!dDelay && per('delay').length >= 5 && dDelay.delta >= 150 && dDelay.low > 0 && dDelay.low > aaHalf, detail: { ...dDelay, aaEnvelopeMs: aaHalf } },
+    { id: 'drag-deferred-completion-repeat', passed: !!dDefer && per('deferred').length >= 5 && dDefer.delta >= 150 && dDefer.low > 0 && dDefer.low > aaHalf, detail: { ...dDefer, aaEnvelopeMs: aaHalf } },
+  ];
+  return { arms, controls };
+}
+
+export async function runRepeatSuite({ outDir, kinds = ['prepared-desktop', 'prepared-mobile'], reps = 5, screenshotDir = outDir }) {
+  mkdirSync(outDir, { recursive: true });
+  const server = await startServer();
+  const results = { at: new Date().toISOString(), reps, arms: ARMS, kinds: {} };
+  const save = () => writeFileSync(path.join(outDir, 'scrub-drag-repeat-summary.json'), JSON.stringify(results, null, 2));
+  try {
+    for (const kindName of kinds) {
+      const mobile = kindName.endsWith('mobile');
+      const input = mobile ? 'touch' : 'mouse';
+      const k = results.kinds[kindName] = { input, cpuThrottle: mobile ? 4 : 1, viewport: mobile ? 'mobile-844x390' : 'desktop-1280x800', drags: [], playing: null };
+      let session = null;
+      try {
+        session = await openPreparedStart({ server, cpuThrottle: mobile ? 4 : 1, viewport: mobile ? 'mobile' : 'desktop' });
+        k.opening = session.opening; k.openMs = session.openMs; k.entry = session.entry;
+        k.playing = await enterPlaying(session.page);
+        if (screenshotDir) { k.playingShot = path.join(screenshotDir, `${kindName}-playing-before-drag.png`); await session.page.screenshot({ path: k.playingShot }); }
+        console.log(`${stamp()} ${kindName} opened ${session.openMs} ms playing=${JSON.stringify(k.playing)}`);
+        const drags = [];
+        for (let r = 0; r < reps; r++) {
+          for (let j = 0; j < ARMS.length; j++) {
+            const a = ARMS[(j + r) % ARMS.length];
+            const launchId = `${kindName}-${a.arm}-r${r}`;
+            const shotTag = r === 0 && a.arm === 'A1' ? kindName : null;
+            const d = await runDrag({ session, launchId, kind: input, addedDelayMs: a.addedDelayMs, deferredMs: a.deferredMs, playing: true, arm: a.arm, rep: r,
+              screenshotDir: shotTag ? screenshotDir : null, tag: shotTag ?? launchId });
+            drags.push(d);
+            const { raw, sendLog, ...rest } = d;
+            writeFileSync(path.join(outDir, `raw-drag-${launchId}.json`), JSON.stringify(d));
+            k.drags.push({ ...rest, analysis: undefined, observations: undefined, ownTargetObservations: undefined });
+            save();
+          }
+        }
+        const ev = evaluateRepeat(drags);
+        k.arms = ev.arms; k.controls = ev.controls;
+        k.summaries = summarize(drags.flatMap((d) => d.observations));
+        console.log(`${stamp()} ${kindName} controls ${ev.controls.map((c) => `${c.id}=${c.passed}`).join(' ')}`);
+      } catch (err) {
+        k.error = `error: ${err.message}`; console.log(`${stamp()} ${kindName} ${k.error}`);
+      } finally { save(); await closeSession(session); }
+    }
+  } finally { await server.close(); }
+  save();
+  return results;
+}
+
 if (process.argv[1]?.endsWith('scrub-drag.mjs')) {
   const id = arg('id', `drag-${Date.now()}`);
   const kinds = arg('kinds', 'prepared-desktop,ordinary-desktop').split(',');
   const outDir = path.join(REPO_ROOT, ARTIFACT_ROOT_REL, id);
+  const reps = Number(arg('repeat', '0'));
+  if (reps > 0) {
+    const r = await runRepeatSuite({ outDir, kinds, reps });
+    finalizeRun(outDir);
+    console.log(JSON.stringify({ id, kinds: Object.fromEntries(Object.entries(r.kinds).map(([n, k]) => [n, { error: k.error, arms: k.arms && Object.fromEntries(Object.entries(k.arms).map(([a, v]) => [a, { ok: v.okDrags, med: v.medianOfP50 }])), controls: k.controls?.map((c) => ({ id: c.id, passed: c.passed, delta: c.detail?.delta, low: c.detail?.low, high: c.detail?.high })) }])), artifact: outDir }));
+    process.exit(0);
+  }
   const r = await runScrubDragSuite({ outDir, kinds });
   finalizeRun(outDir);
   console.log(JSON.stringify({ id, runs: r.runs.map((x) => ({ id: x.launchId, ok: x.ok, reason: x.reason, p50: x.p50, completed: x.completed, delivered: x.delivered, failed: x.oracle ? Object.entries(x.oracle).filter(([k, v]) => v !== true).map(([k]) => k) : null })), controls: r.controls.map((c) => ({ id: c.id, passed: c.passed })), artifact: outDir }));
