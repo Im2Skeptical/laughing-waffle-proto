@@ -469,6 +469,10 @@ export const WILLIAMS_4 = [[0, 1, 3, 2], [1, 2, 0, 3], [2, 3, 1, 0], [3, 0, 2, 1
 // cyclically, every ordered pair (including the wrap) occurs exactly once per
 // 12 drags, so carry-over is balanced across row boundaries too (WP3c).
 export const CARRYOVER_CIRCUIT_4 = [0, 1, 0, 2, 0, 3, 1, 2, 1, 3, 2, 3];
+// WP3c attempt 2: also position-balanced within the 12-cycle (A1 and A2 mean
+// position 5.67, controls never more than 2 in a row), chosen by exhaustive
+// search over all 768 Eulerian circuits starting at A1.
+export const CARRYOVER_CIRCUIT_4B = [0, 2, 1, 3, 1, 2, 3, 0, 3, 2, 0, 1];
 
 // Fixed settle gap: wait until playback is held and the drag/edge state is
 // idle, then a further gapMs (recorded per drag).
@@ -498,14 +502,15 @@ export async function runRepeatSuite({ outDir, kinds = ['prepared-desktop', 'pre
         if (screenshotDir) { k.playingShot = path.join(screenshotDir, `${kindName}-playing-before-drag.png`); await session.page.screenshot({ path: k.playingShot }); }
         console.log(`${stamp()} ${kindName} opened ${session.openMs} ms playing=${JSON.stringify(k.playing)}`);
         const drags = [];
-        const total = design === 'circuit' ? Math.ceil(reps * 4 / 12) * 12 : reps * 4;
+        const circuit = design === 'circuit2' ? CARRYOVER_CIRCUIT_4B : CARRYOVER_CIRCUIT_4;
+        const total = design.startsWith('circuit') ? Math.ceil(reps * 4 / 12) * 12 : reps * 4;
         for (let idx = 0; idx < total; idx++) {
           const r = Math.floor(idx / 4), j = idx % 4;
           {
-            const a = design === 'circuit' ? ARMS[CARRYOVER_CIRCUIT_4[idx % 12]] : design === 'williams' ? ARMS[WILLIAMS_4[r % 4][j]] : ARMS[(j + r) % ARMS.length];
+            const a = design.startsWith('circuit') ? ARMS[circuit[idx % 12]] : design === 'williams' ? ARMS[WILLIAMS_4[r % 4][j]] : ARMS[(j + r) % ARMS.length];
             const prevArm = drags.at(-1)?.arm ?? null;
             const gap = settleGapMs > 0 && drags.length ? await settleGap(session.page, settleGapMs) : null;
-            const launchId = design === 'circuit' ? `${kindName}-${String(idx).padStart(2, '0')}-${a.arm}` : `${kindName}-${a.arm}-r${r}`;
+            const launchId = design.startsWith('circuit') ? `${kindName}-${String(idx).padStart(2, '0')}-${a.arm}` : `${kindName}-${a.arm}-r${r}`;
             const shotTag = idx === 0 ? kindName : null;
             const d = await runDrag({ session, launchId, kind: input, addedDelayMs: a.addedDelayMs, deferredMs: a.deferredMs, playing: true, arm: a.arm, rep: r,
               screenshotDir: shotTag ? screenshotDir : null, tag: shotTag ?? launchId });

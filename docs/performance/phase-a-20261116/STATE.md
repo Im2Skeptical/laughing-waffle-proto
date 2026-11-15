@@ -86,6 +86,14 @@ Mobile 4× touch drag only (844×390, prepared 424242 playing start). Run: `node
 - Pass rule (all required): every drag passes the full oracle incl. `holdMeaningful`; wrong-target fails closed on every A1 drag; **A/A**: 95% bootstrap interval of median(per-drag p50) A2−A1 contains 0; **delay** and **deferred**: Δ vs pooled A1+A2 ≥ 150 ms, lower bound > 0 and lower bound > A/A envelope (max |A/A bound|); **carry-over (F-W3b-1)**: baseline drags preceded by a control arm vs preceded by a baseline arm, 95% bootstrap interval of the median difference contains 0.
 - If deferred still cannot be separated after 2 attempts: record the resolution limit = A/A envelope (smallest per-drag-p50 shift distinguishable from A/A noise at n=20/arm) in ms and STOP. No third design. WP4 is not started this session regardless.
 
+### WP3c attempt 1 result (01:06–01:19) — FAIL
+
+`wp3c-mobile-a1`, 84/84 drags pass the full oracle incl. Hold; wrong-target PASS; A/A Δ +355.2 ms [−19.9, +469.5] (PASS, but envelope 469.5); carry-over Δ +58.0 [−217.3, +458.6] (PASS); delay +1236.5 [397.1, 1438.3] **FAIL** (low < envelope); deferred +894.4 [343.5, 1115.8] **FAIL** (low < envelope). A2 slower than A1 for the 4th time (+187, +186, +355); circuit 1 places A1 early (positions 0,2,4) and A2 later (1,6,8) in each 12-cycle, with controls bunched at the end.
+
+### WP3c attempt 2 — PREDECLARED (same pass rule)
+
+Change only: `--design=circuit2` (`CARRYOVER_CIRCUIT_4B` = [A1,delay,A2,deferred,A2,delay,deferred,A1,deferred,delay,A1,A2], still every ordered pair once per cycle, plus A1/A2 mean position equal and at most 2 controls in a row) and `--settle-gap-ms=5000`. n=21/arm. Last attempt; if deferred or delay still fail, record the resolution limit and STOP.
+
 ## WP3b notes
 
 - (a) Root cause of the WP3 prepared-start STOP (harness, not product): any `?perf=1` URL auto-enters the performance game on load (`startPerformanceEntry` in `src/views/game-menu-dom.js`), so the menu was already leaving when the harness looked for the Developer tools button. The documented entry (`docs/development-workflow.md`: numeric `&seed=` pins a direct launch, `&launch=new` forces a fresh start) is used instead. The menu button path cannot pin seed 424242 without `perf=1` (it draws uniformly from the five prepared worlds), so it is not used. No product UI change.
