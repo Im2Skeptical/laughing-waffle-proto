@@ -81,9 +81,15 @@ export async function runBrowserControls({ outDir, screenshotDir = outDir } = {}
       const deferred = await run('deferred', { steps: 4, deferredMs: 200 });
       const defMed = median(deferred.map((r) => r.elapsedMs));
       outcomes.push({ id: 'scrub-deferred-completion', passed: deferred.every((r) => r.ok) && (defMed - baseMed) >= 150, detail: { baseMed, defMed, delta: defMed - baseMed, method: 'statistics.quantile p50' } });
+      // B02: deferred completion is genuinely async (setTimeout after return).
+      // With a deadline shorter than the deferral, the completion oracle must
+      // time out and fail closed (B03) instead of crediting the early return.
+      const early = await run('deferred-deadline', { steps: 3, deferredMs: 400, deadlineMs: 100 });
+      outcomes.push({ id: 'scrub-deferred-async-fail-closed', passed: early.length === 3 && early.every((r) => r.ok === false && r.timeout === true && r.deferredMode === 'setTimeout-async'), detail: { oks: early.map((r) => r.ok), timeouts: early.map((r) => r.timeout), elapsed: early.map((r) => r.elapsedMs) } });
+      outcomes.push({ id: 'scrub-deferred-async-mode', passed: deferred.every((r) => r.deferredMode === 'setTimeout-async') && deferred.every((r) => r.elapsedMs >= 200), detail: { elapsed: deferred.map((r) => r.elapsedMs) } });
       writeJson(outDir, 'raw-ctrl-scrub.json', scrubRows);
     } else {
-      for (const id of ['scrub-positive', 'scrub-wrong-result', 'scrub-added-delay', 'scrub-deferred-completion']) {
+      for (const id of ['scrub-positive', 'scrub-wrong-result', 'scrub-added-delay', 'scrub-deferred-completion', 'scrub-deferred-async-fail-closed', 'scrub-deferred-async-mode']) {
         outcomes.push({ id, passed: false, detail: 'skipped: new-game failed' });
       }
     }

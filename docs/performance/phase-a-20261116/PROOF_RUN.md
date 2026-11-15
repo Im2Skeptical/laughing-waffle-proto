@@ -14,9 +14,11 @@ Runs: `wp4-node`, `wp4-suites` (desktop 1× ×3, mobile 4× ×3), `wp4-suites-mo
 
 ### Node (run `wp4-node`, statistics.mjs `summarize`)
 
+> **Repair round 1 (B05):** the Node rows are **sequential calls inside one Node process** (shared JIT, heap and GC), not independent launches. The original summary got synthetic per-call launchIds, so `statistics.mjs` wrongly treated them as 120 independent launches and marked the window tail eligible. That tail claim is withdrawn: P95 is **INCONCLUSIVE**. From repair round 1 on, `run.mjs` gives all Node rows one process launch identity (`independence: "sequential-in-process"`), so `summarize` reports 1 launch, an unbounded P95 interval and `eligibleForTailInference: false` (proved in `scripts/perf-phase-a-20261116/failclosed-test.mjs`). The p50/p95 point values are descriptive only.
+
 | Job | n pass/attempt | p50 ms | p95 ms | min–max ms | P95 99% interval | Tail inference |
 |---|---|---|---|---|---|---|
-| window | 120/120 | 1188.2 | 1285.5 | 1065.6–1402.7 | [1258.3, 1402.7] | eligible |
+| window | 120/120 | 1188.2 | 1285.5 | 1065.6–1402.7 | (not valid: see B05 note) | **INCONCLUSIVE** (sequential in-process calls) |
 | horizon | 6/6 | 14535.6 | 15051.5 | 14036.2–15051.5 | [14611.6, null] | INCONCLUSIVE |
 | reproject | 6/6 | 9281.1 | 9574.6 | 8839.6–9574.6 | [9400.5, null] | INCONCLUSIVE |
 

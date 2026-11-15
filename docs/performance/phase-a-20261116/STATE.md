@@ -6,6 +6,21 @@ Updated 2026-11-16 03:13 AEDT (Australia/Sydney). Builder: Code Health box execu
 
 Branch `perf/phase-a-20261116` from `origin/main` `930801a5` (v1.1.69). Worktree `/workspace/perf-phase-a-20261116` (box). `origin/perf/hillclimb-20261104@02b05d97` untouched.
 
+## Repair round 1 (04:26–05:00 AEDT, round 1 of max 2) — response to auditor b223dd87
+
+Harness code only; no product code touched. Code commit `12b8e728`, plus the control and docs commits after it.
+
+| Finding | Status | Change | Evidence |
+|---|---|---|---|
+| B02 scrub-step deferred control synchronous | FIXED (code + control) | `browser.mjs` `runScrubJob`: `deferredMs` now returns at once and runs the real `browseSecond` later via `setTimeout(deferredMs)` (`deferredMode: 'setTimeout-async'`), so only the `viewedSec` completion oracle can see when it finishes. A new `deadlineMs` parameter (default 30000) makes the negative control possible. | New browser controls in `controls.mjs`: `scrub-deferred-async-fail-closed` (defer 400 ms, deadline 100 ms → every row must have `ok=false`, `timeout=true`) and `scrub-deferred-async-mode` (every deferred row ≥ 200 ms). Smoke result: SMOKE_RESULT |
+| B03 swallowed timeouts | FIXED (code + test) | `oracleNewGame` (now exported) needs reveal reached (`phase==='completed'` or `elapsedSec>=5`); otherwise it records `reveal-incomplete`. Scrub step: `ok` needs completion seen before the deadline, and `timeout` = not reached. `scrub-drag.mjs`: `waitForRevealSettled`, both reference-browse waits and the `settleGap` idle wait return booleans. These are now required oracle keys (`revealSettled`, `referenceAwayReached`, `referenceReached`), and a gap idle timeout rejects the drag and its observations (`applyGapOutcome`). | `failclosed-test.mjs`: the auditor's counterexample (phase `revealing`, elapsedSec 0) → ok=false; gap idle timeout → drag and rows ok=false. |
+| B04 prepared drag loss not pinned | FIXED (code + test) | `openPreparedStart` runs `preparedPinCheck`: loss must equal 6138, seed 424242 and graphics must be pinned, or it throws (fail closed). The `runDrag` oracle requires `lossPinned` (loss 6138 before and at reference) and `graphicsPinned`. | `failclosed-test.mjs`: loss 6137 → fails with `loss-mismatch`; seed 12345 → fails; `lossPinned` is in `DRAG_REQUIRED_PRECONDITIONS`. |
+| B05 Node rows labelled independent | FIXED (code + test + docs) | New `independence.mjs`. `run.mjs` `runForecastPopulation` gives every Node row one process launch identity (`<prefix>-process-<pid>`), unique per-call observationIds, `independence: 'sequential-in-process'` and `tailInference: 'INCONCLUSIVE'`. `statistics.mjs` is unchanged (hash kept). The window tail claim is withdrawn in PROOF_RUN.md and here. | `failclosed-test.mjs`: 130 labelled rows → `summarize` gives 1 launch, unbounded P95 interval, `eligibleForTailInference=false`. The raw WP4 Node JSON is not re-run; its tail is INCONCLUSIVE in the docs. |
+| B01 mobile drag resolution | NOT ATTEMPTED (per instruction) | Needs either (a) about 3 mobile 4× suites at n=21 drags per arm (≈ +15 min per suite, ≈ 45–60 min plus the audit) using the existing `runBrowserSuites --profiles=mobile-x4` with `SUITE_DRAGS` raised, or (b) Cam accepting the stated ~0.8–0.9 s suite-level resolution limit (Cam Q4). | — |
+| B06 desktop New Game drift (86.1 → 100.0 → 111.5 s) | NOT ATTEMPTED (per instruction) | Needs a bounded drift investigation: 3 more back-to-back desktop New Game sessions, each with a fresh browser profile, logging memory (JS heap and process RSS), GC and loadavg per session, to tell box drift from harness carry-over. About 6–8 min of runs. | — |
+
+Verify: VERIFY_RESULT
+
 ## Package status
 
 | WP | Status | Notes |
@@ -28,7 +43,7 @@ Branch `perf/phase-a-20261116` from `origin/main` `930801a5` (v1.1.69). Worktree
 | forecast wrong endSec | PASS (fails closed) | ok=false | same |
 | horizon positive / wrong loss | PASS / PASS (fails closed) | endSec 6138, 13.5–13.6 s, ~450 sim-s/s | same |
 | re-projection twin | PASS | anchor 2032 → 6138, twin agrees, 8.9–9.0 s | same |
-| Node window 480 s ×120 | PASS 120/120 | p50 1006.7, p95 1128.9 ms (tail-eligible, 99% interval [1091.4, 5738.1]); max 5738 at launch 118 (unexplained, see F-W1-3) | wp1-forecast-20261115 |
+| Node window 480 s ×120 | PASS 120/120 | p50 1006.7, p95 1128.9 ms (tail INCONCLUSIVE: sequential in-process calls, B05); max 5738 at launch 118 (unexplained, see F-W1-3) | wp1-forecast-20261115 |
 | Node horizon ×6 / re-projection ×6 | PASS 6/6, 6/6 | horizon p50 14.26 s (13.2–18.0 s), re-projection p50 8.01 s (7.84–8.70 s); INCONCLUSIVE tails | wp1-forecast-20261115 |
 | A1-05 worker wrap off / on | PASS / PASS | | wp1-browser-controls |
 | New Game positive (1×) | PASS | 84.36 s to reveal complete; loss 6138; bake 25.4 s; graphics pinned; Chrome 156.0.8078.47 | wp1-browser-controls |
@@ -100,7 +115,7 @@ Reported, not stop gates:
 
 ## WP4–5 results so far (Builder; not audited)
 
-- **Node `wp4-node` (01:55–02:01): PASS.** Window ×120 120/120, p50 1188.2 / p95 1285.5 ms, min 1065.6, max 1402.7, tail-eligible (99% P95 interval [1258.3, 1402.7]); horizon 6/6 terminal at 6138, p50 14535.6 ms (14036–15052), INCONCLUSIVE tail; re-projection 6/6, p50 9281.1 ms (8840–9575), INCONCLUSIVE tail.
+- **Node `wp4-node` (01:55–02:01): PASS.** Window ×120 120/120, p50 1188.2 / p95 1285.5 ms, min 1065.6, max 1402.7, tail **INCONCLUSIVE** (sequential in-process calls; the earlier "tail-eligible" claim is withdrawn, see repair round 1 / B05); horizon 6/6 terminal at 6138, p50 14535.6 ms (14036–15052), INCONCLUSIVE tail; re-projection 6/6, p50 9281.1 ms (8840–9575), INCONCLUSIVE tail.
 - **F-W1-3 recheck: did not recur.** No window launch exceeded 3× the median (max 1402.7 ms = 1.18× median, launch 0, the first measured launch after warmup). Load 0.4–1.8 during the run. Window median moved 1006.7 (WP1) → 1188.2 ms (+18%) between sessions. Trigger diagnostics: wall time, load and heap were recorded per launch; the GC PerformanceObserver recorded **no entries** (gcCount 0 although heap dropped), so GC attribution is not available from this run (harness diagnostic limit, recorded only). The 5.74 s WP1 outlier remains unexplained and non-recurring in 120 further launches.
 - **Desktop 1× `wp4-suites` (02:02–02:15): PASS on every gate.** New Game 3/3 (86.1, 100.0, 111.5 s; loss 6138), bake 3/3 (25.8, 28.5, 30.7 s), opening-unveil 3/3, scrub step 120/120 (p50 294.7, p95 864.9 ms), scrub drag 36/36 full oracle incl. Hold; pooled n=9/arm: A/A +33.4 [−45.4, +89.5], delay +1061.3 [992.1, 1145.1], deferred +888.0 [791.2, 1480.0].
 - **Between-session (desktop):** session baseline medians 186.6 / 218.0 / 255.8 ms; all three pairwise 95% intervals contain 0; **cross-session A/A envelope = 102.9 ms**. Answer to the 131 vs 218 ms question: drift of that size between sessions is within the cross-session noise at 6 drags/session, so a baseline-vs-candidate comparison across sessions must exceed ~103 ms (desktop) to count. New Game drifted upward across the three sessions (+29%, 86 → 111 s), above the 25% spread flag: labelled, cause not established (no other workload; load was the run's own).
