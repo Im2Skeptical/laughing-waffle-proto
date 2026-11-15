@@ -1,6 +1,6 @@
 # Phase A — STATE (HC-20261116-A1)
 
-Updated 2026-11-16 03:05 AEDT (Australia/Sydney). Builder: Code Health box executor (Grok Bot). Session start 23:02 AEDT, hard stop 02:32 AEDT. Scope: WP1 → WP2 → WP3, then WP3b (orchestrator, 00:14, max 60 min; WP4–5 only if WP3b passes). No audit (WP6).
+Updated 2026-11-16 03:13 AEDT (Australia/Sydney). Builder: Code Health box executor (Grok Bot). Session start 23:02 AEDT, hard stop 02:32 AEDT. Scope: WP1 → WP2 → WP3, then WP3b (orchestrator, 00:14, max 60 min; WP4–5 only if WP3b passes). No audit (WP6).
 
 **Phase A verdict: NOT SOUND (construction).** `HARNESS_REVIEW.md` is **NOT AUDITED**. No baseline, no scorecard, no gains.
 
@@ -49,6 +49,7 @@ Branch `perf/phase-a-20261116` from `origin/main` `930801a5` (v1.1.69). Worktree
 | WP3b mobile 4× touch, attempt 2, n=10/arm | correctness PASS (40/40), wrong PASS, A/A PASS (Δ +186.2 [−71.8, +543.4]), delay PASS (+1251.2 [644.3, 1558.1]); **deferred FAIL** (+673.5 [266.6, 1342.8], low < A/A envelope 543.4) | pooled p50 A1 981.4 [850, 1076] vs A2 1265.1 [1050.9, 1359.4] | wp3b-repeat-mobile-r3 |
 | **WP3c mobile 4× attempt 2** (84 drags, n=21/arm, `CARRYOVER_CIRCUIT_4B`, 5 s settle gap) | **PASS (all gates)** | 84/84 drags full oracle incl. Hold; wrong-target PASS ×21; **A/A** Δ −127.0 ms, 95% [−384.5, +134.9] (envelope 384.5); **delay** +925.8 [717.8, 1381.4]; **deferred** +696.6 [451.1, 1023.6]; **carry-over** −50.0 [−277.7, +332.3]. Pooled move p50: A1 1131.4 (n=136, [1032.5, 1266.6]), A2 1049.3 (n=133, [961.3, 1148.7]), delay 2012.2 (n=108), deferred 1760.2 (n=101). Gap 5005–5100 ms, idle reached ≤ 99 ms | wp3c-mobile-a2 |
 | WP3c mobile 4× attempt 1 (circuit 1, 2 s gap) | FAIL (delay, deferred) | see WP3c section | wp3c-mobile-a1 |
+| `npm run verify` (Linux) after WP4 harness + docs (tip dcfdb071) | PASS (exit 0) | 02:59–03:12 AEDT; artifacts/…/verify-linux-wp4/verify.log | — |
 | `npm run verify` (Linux) after WP3b/WP3c harness (tip 47254a58) | PASS (exit 0) | 01:51 AEDT; artifacts/…/verify-linux-wp3c/verify.log (WP3b attempt aborted by box restart / missing Playwright browsers, reinstalled) | — |
 | `npm run verify` (Linux) after product probe + WP3 harness | PASS (exit 0) | 00:13 AEDT; artifacts/…/verify-linux-wp3/verify.log | — |
 

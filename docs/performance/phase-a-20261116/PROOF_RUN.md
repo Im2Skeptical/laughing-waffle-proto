@@ -78,3 +78,7 @@ Not recurred: in 120 window launches the maximum was 1402.7 ms (1.18× median 11
 ## Spreads flagged (>25% on a critical step)
 
 - Desktop New Game rose 86.1 → 100.0 → 111.5 s across three back-to-back sessions (+29%); cause not established; labelled.
+
+## Verify
+
+Linux `npm run verify` exit 0 on `dcfdb071` (02:59–03:12 AEDT), log `artifacts/perf-phase-a-20261116/verify-linux-wp4/verify.log` (box, gitignored).
