@@ -18,6 +18,10 @@ available at `/__preview__/status`; process output goes to
 needed. Always return the URL actually printed by the command, not a remembered
 address or a link to another checkout.
 
+Before reporting browser-game changes, follow the
+[test-link reporting requirement](agent-test-links-prototype.md#reporting-requirement)
+for captured-state links, screenshot evidence and capture limitations.
+
 Minimal graphics: append `?dev=1` to the preview URL (before any `#` route).
 This loads shared resource/Stock/clock icons but skips illustration atlases and
 terrain baking, retaining the full New Game,

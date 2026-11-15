@@ -207,6 +207,8 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
   const point=control=>{if(!root.visible||!control)return null;const r=control.getBounds();return{x:r.x+r.width/2,y:r.y+r.height/2};};
   const bounds=control=>{const r=control.getBounds();return{x:r.x,y:r.y,width:r.width,height:r.height};};
   return {refresh,
+    capturePanelState:()=>({mode,selection,dismissed}),
+    restorePanelState(saved){if(!saved)return;mode=saved.mode;selection=saved.selection;dismissed=saved.dismissed===true;root.visible=!!decision&&!dismissed;map.setVisible(root.visible);key='';draw();updateOverlay();},
     getTerrainStats:()=>({...map.getSemanticSnapshot().illustratedTerrain}),
     resetArtwork:()=>map.resetArtwork(),
     prepareProgressive:(renderer,wait,isCurrent)=>map.prepareProgressive(renderer,wait,isCurrent),

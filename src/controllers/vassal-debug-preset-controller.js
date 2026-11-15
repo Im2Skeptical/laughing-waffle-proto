@@ -94,6 +94,12 @@ export function createVassalDebugPresetController() {
       };
     },
     setCurrentDraft,
+    restoreTransientDraft(draft) {
+      if(draft===null){currentDraft=null;selectedPresetId=null;return;}
+      const validation=validateVassalDebugDraft(draft);
+      if(!validation.ok)throw Error('The captured Vassal Lab draft is invalid.');
+      currentDraft=canonicalizeVassalDebugDraft(draft);selectedPresetId=null;
+    },
     clearCurrentDraft,
     loadPreset(presetId) {
       const preset = library.presets.find((entry) => entry.id === presetId);

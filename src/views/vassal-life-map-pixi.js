@@ -597,6 +597,12 @@ export function createVassalLifeMapView({
     },
     getPreparationSnapshot: () => ({ visible: root.visible, nodeCount: nodeRoots.size, buildCount }),
     getPinnedNodeIds: () => [...pinnedNodeIds],
+    capturePanelState:()=>({inspectedNodeId,candidateNodeId,pinnedNodeIds:[...pinnedNodeIds],entryConfirmationOpen}),
+    restorePanelState(saved){
+      render(true);inspectedNodeId=saved?.inspectedNodeId??null;candidateNodeId=saved?.candidateNodeId??null;
+      pinnedNodeIds=[...(saved?.pinnedNodeIds??[])];entryConfirmationOpen=saved?.entryConfirmationOpen===true;
+      render(true);
+    },
     getInspectedNodeId: () => inspectedNodeId,
   };
 }

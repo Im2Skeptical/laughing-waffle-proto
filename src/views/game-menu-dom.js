@@ -12,8 +12,9 @@ import { NEW_GAME_DEV_SETTINGS_KEY } from '../controllers/new-game-settings-cont
 import { DEBUG_PROFILE_LIBRARY_STORAGE_KEY } from '../model/debug-profile-library.js';
 import { CARD_REVIEW_STORAGE_KEY, CARD_REVIEW_GAME_MODE_KEY } from '../controllers/card-review-controller.js';
 import { createLoadingLifecycle } from '../controllers/loading-lifecycle.js';
+import { TEST_LINK_MAX_DECODED } from '../controllers/agent-test-links.js';
 
-export function createGameMenuDom({ session, onResume, onPause, cardReviews, newGameSettings, onPerformanceMode,
+export function createGameMenuDom({ session, onResume, onPause, cardReviews, newGameSettings, onPerformanceMode, onOpenTestCaptureFile,
   loadingLifecycle = createLoadingLifecycle() }) {
   const portrait = window.matchMedia(PHONE_PORTRAIT_QUERY);
   const panel = document.createElement("main");
@@ -44,6 +45,15 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
   const diagnostics = createSaveDiagnosticsDom({ getReport: () => buildSaveDiagnosticReport(session) });
   const graphics = createGraphicsOptionsDom();
   const importInput = document.createElement('input');
+  const testCaptureInput=document.createElement('input');testCaptureInput.type='file';testCaptureInput.accept='.json,application/json';
+  testCaptureInput.dataset.testid='game-test-capture-file';
+  testCaptureInput.addEventListener('change',async()=>{
+    const file=testCaptureInput.files[0];testCaptureInput.value='';if(!file)return;
+    try {
+      if(file.size>TEST_LINK_MAX_DECODED)throw Error('This test capture exceeds the prototype file limit.');
+      await onOpenTestCaptureFile?.(await file.text());
+    } catch(error){message.textContent=`Could not open test capture: ${error.message}`;}
+  });
   importInput.type = 'file'; importInput.accept = '.json,application/json'; importInput.hidden = true;
   importInput.dataset.testid = 'game-save-import-file';
   let importMeta = null;
@@ -379,6 +389,7 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
         update(); settings.append(label, profileLabel, seedLabel, edit, info); dev.append(settings);
       }
       dev.append(button('Save diagnostics', () => { mode = 'diagnostics'; render(); }, 'game-save-diagnostics'));
+      if(onOpenTestCaptureFile)dev.append(button('Open test capture file',()=>testCaptureInput.click(),'game-test-capture-open'));
       if(cardReviews) {
         const label=document.createElement('label');label.className='game-edited-cards-toggle';
         const toggle=document.createElement('input');toggle.type='checkbox';toggle.dataset.testid='game-use-edited-cards';toggle.checked=cardReviews.useInNewGames();
@@ -473,6 +484,18 @@ export function createGameMenuDom({ session, onResume, onPause, cardReviews, new
   return {
     show,
     hide,
+    capturePanelState(){
+      if(entering||loadingSlot!==null)throw Error('Game entry is still in progress. Capture after it completes.');
+      if(!panel.hidden&&mode==='import')throw Error('Finish or cancel save import before capturing this menu.');
+      return panel.hidden?null:{mode,overwriteSlot,developerTools:panel.querySelector('[data-testid="game-developer-tools"]')?.open===true,scroll:panel.scrollTop};
+    },
+    restorePanelState(saved){
+      if(!saved){hide();return;}
+      if(!['home','new','load','diagnostics'].includes(saved.mode))throw Error('Unsupported game menu panel.');
+      session.openMenu({force:true});show();mode=saved.mode;overwriteSlot=saved.overwriteSlot??null;render();
+      const dev=panel.querySelector('[data-testid="game-developer-tools"]');if(dev)dev.open=saved.developerTools===true;
+      panel.scrollTop=saved.scroll??0;
+    },
     openNewGame() {
       if (!session.openMenu()) return false;
       onPause?.();

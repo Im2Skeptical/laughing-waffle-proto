@@ -5,6 +5,14 @@ root in `src/views/ui-root-settlement-pixi.js`.
 
 ## Current modules
 
+- `agent-test-link-session.js`
+  - Captures explicit panel state, validates build-pinned test links and restores
+    them through disposable session entry. Transport and Dev journals stay in
+    controllers. See `docs/agent-test-links-prototype.md` for current coverage.
+- `agent-test-link-display.js`
+  - Offers touch graphics choices before importing game views, with the local
+    fullscreen/landscape gesture and a landscape browser fallback.
+
 - `settlement-debug-api.js`
   - Publishes the narrow semantic/debug snapshot used by browser probes.
 - `settlement-graph-series-menu.js`

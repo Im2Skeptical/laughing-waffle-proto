@@ -37,6 +37,8 @@ export function createResearchLibraryView({ layer, getState, tooltipView, onOpen
   let scroll=0,visibleKey='',pieces=[],activeMenu=null,menuPage=0,drag=null,suppressTapUntil=0,barDrag=false;
   let focusBefore=null,artRevision=-1,summaryLabel=null,controls=new Map();
   let loading=false,prepareFrame=null,loadingMessage=null,loadingDetail=null,loadingProgress=null;
+  let readyWaiters=[];
+  const settleReady=error=>{const waiting=readyWaiters;readyWaiters=[];for(const waiter of waiting){if(error)waiter.reject(error);else waiter.resolve();}};
   const faces=new Map();
 
   function text(parent,label,x,y,size=28,fill=RELIC.bone,width=null,anchor=0) {
@@ -207,7 +209,7 @@ export function createResearchLibraryView({ layer, getState, tooltipView, onOpen
       prepareFrame=requestAnimationFrame(()=>{prepareFrame=null;callback();});
     });
   }
-  function open() {
+  function open(saved = null) {
     if(root.visible)return;
     focusBefore=document.activeElement;input.value='';
     cards=[];filtered=[];layout={entries:[],groups:[],height:0};pieces=[];progression=null;scroll=0;
@@ -224,18 +226,22 @@ export function createResearchLibraryView({ layer, getState, tooltipView, onOpen
     afterPaint(()=>{
       try {
         state=getState();if(!state){close();return;}
-        filters=getResearchLibraryDefaultFilters(state);
+        filters=saved?.filters?{...saved.filters}:getResearchLibraryDefaultFilters(state);
+        input.value=filters.search??'';
         progression=getResearchProgression(state);cards=getResearchLibraryCards(state);
-        drawChrome();refreshResults();artRevision=getArtRevision();
+        drawChrome();refreshResults();if(saved)setScroll(saved.scroll??0);artRevision=getArtRevision();
+        if(saved?.activeMenu)drawMenu(saved.activeMenu,saved.menuPage??0);
         afterPaint(()=>{
           loading=false;loadingScreen.visible=false;input.disabled=false;
           controls.delete('loading:return');clearChildren(loadingScreen);
           loadingMessage=null;loadingDetail=null;loadingProgress=null;
+          settleReady();
         });
       } catch(error) {
         console.error('Research library preparation failed',error);
         loadingMessage.text='Research could not be prepared';
         loadingDetail.text='Return to the game and try again.';loadingProgress.visible=false;
+        settleReady(error);
       }
     });
   }
@@ -243,6 +249,7 @@ export function createResearchLibraryView({ layer, getState, tooltipView, onOpen
     if(!root.visible)return;
     if(prepareFrame!==null)cancelAnimationFrame(prepareFrame);
     prepareFrame=null;loading=false;loadingScreen.visible=false;clearChildren(loadingScreen);
+    settleReady();
     controls.delete('loading:return');loadingMessage=null;loadingDetail=null;loadingProgress=null;
     root.visible=false;input.disabled=true;input.blur();hideMenu();drag=null;barDrag=false;
     tooltipView.hide({force:true});clearChildren(ink);pieces=[];faces.clear();onClose?.();focusBefore?.focus?.();
@@ -260,7 +267,12 @@ export function createResearchLibraryView({ layer, getState, tooltipView, onOpen
     const targets={PageDown:scroll+VIEW.height-90,PageUp:scroll-VIEW.height+90,ArrowDown:scroll+120,ArrowUp:scroll-120,Home:0,End:layout.height};
     if(event.key in targets){event.preventDefault();setScroll(targets[event.key]);}
   }
-  return {open,close,handleKeyDown,isOpen:()=>root.visible,update:()=>{
+  return {open,close,handleKeyDown,isOpen:()=>root.visible,
+    capturePanelState:()=>{if(loading)throw Error('Research is still loading. Capture again after it settles.');return root.visible?{filters:{...filters},scroll,activeMenu,menuPage}:null;},
+    restorePanelState:saved=>{close();if(saved)open(saved);},
+    isPanelReady:()=>!loading,
+    whenPanelReady:()=>loading?new Promise((resolve,reject)=>readyWaiters.push({resolve,reject})):Promise.resolve(),
+    update:()=>{
     if(loading&&loadingProgress){
       const x=882+(Math.sin(performance.now()/350)+1)*240;
       loadingProgress.clear().beginFill(RELIC.brass).drawRect(882,566,660,6).endFill();
