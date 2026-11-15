@@ -1,0 +1,348 @@
+{
+  "id": "wp4-node",
+  "phase": "forecast",
+  "identities": {
+    "contractId": "HC-20261116-A1",
+    "harnessId": "perf-phase-a-20261116-v1",
+    "seed": 424242,
+    "expectedOpeningLossSec": 6138,
+    "productVersion": "1.1.69",
+    "gitDirtyHarness": false,
+    "gitHead": "e8138e8de389273307d143f8402894169d83356d",
+    "pinnedGraphics": {
+      "fog": true,
+      "clouds": true,
+      "shadows": true,
+      "wisps": true,
+      "water": true
+    },
+    "artworkMode": "illustrated-default-graphics",
+    "loadavg1AtStart": 0.38,
+    "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+    "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+    "harness": {
+      "files": [
+        {
+          "path": "scripts/perf-phase-a-20261116/browser.mjs",
+          "sha256": "9f9f72f080236b88d5be7c0a622a8a5a59b50dfc2ace8f50c53c73adf48e89f5"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/controls.mjs",
+          "sha256": "b73a4b2013d38ba78ba4df866ffbee6fe2f5150f8402e2a16d89db3d8b182cbf"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/forecast.mjs",
+          "sha256": "d37121ef8acc7cb4329a4c8c333b85a61e8cdf672ed5229bd483bde1c563a44c"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/identities.mjs",
+          "sha256": "2fcf4ba6147757405516b7536efc24f97565f7519cc53da4f3cfa9d1cd77eeec"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/input-delay.mjs",
+          "sha256": "56be15ac18b8b613550491f7ad9923de2b21be99b9e963fedb162360d955ba87"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/manifest.mjs",
+          "sha256": "59d79be9a4bda919df206ad436d2e3feb5cf4edafcfe235537ec37bc4dc5554b"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/run.mjs",
+          "sha256": "4fbf6e780b47e2d6e44f226381d1889d9d854255fe18159a081cfb23774a81c9"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/scrub-drag.mjs",
+          "sha256": "443c35815e1457d1cd30c3c962f533f8137e1a224dde296f6f514a31edada4b3"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/statistics-test.mjs",
+          "sha256": "036e6579bfb39d6bd203c5df5e48c6581cde543ea274930586881c18330d44f5"
+        },
+        {
+          "path": "scripts/perf-phase-a-20261116/statistics.mjs",
+          "sha256": "9443d67041037fe97b1f9198067be8cfb2e0a9c065b40ed02f6ef24521bd4153"
+        }
+      ],
+      "harnessSourceSha256": "7b3bb6375978a6fe9bff72c5b39e153acec4c9ffb758058df95e26493e09f001"
+    },
+    "build": {
+      "distExists": true,
+      "files": [
+        {
+          "path": "dist/assets/app-RIZG63CL.js",
+          "sha256": "4a761f46393e4b8522ea68e265e3fcfeee02a5bd26a868f7b7995e2f20a238c1"
+        },
+        {
+          "path": "dist/assets/life-decision-worker-K44F44Q6.js",
+          "sha256": "10329646fb09e235a89f55f074ce27c67cecffa9e8c6fbfa05f7e40208e8fdbc"
+        },
+        {
+          "path": "dist/assets/save-load-worker-RSELRJM4.js",
+          "sha256": "2146f1643016a5c857ff36eba763d6b6fac5bdd208b47ac81d9fcbf453e31bb5"
+        },
+        {
+          "path": "dist/assets/styles-615acc950132.css",
+          "sha256": "615acc950132bd7498158a48e550baeee5f9e29b7e5758a479e72f59e1708cf2"
+        },
+        {
+          "path": "dist/assets/timegraph-forecast-worker-A3W535YF.js",
+          "sha256": "5148b18bc195327abeb2f18010a5343cc37dbbf71de774ed95e9011dfeeda1e2"
+        }
+      ],
+      "buildAssetSha256": "0fa4e215c5923390f30aec1e74f220e38a46d2c252cbead23b9a5078a3cbd608"
+    },
+    "machine": {
+      "hostname": "grok-bot-vm-438267029",
+      "os": "Linux 6.12.113+ x64",
+      "cpu": "Intel(R) Xeon(R) Processor x8 @ 0 MHz",
+      "ramGi": 16,
+      "loadavg1": 0.38,
+      "node": "v24.22.1",
+      "renderer": "headless Chromium, SwiftShader software GL — NOT Pixel 6 GPU truth",
+      "cpuThrottle": 1,
+      "viewport": "desktop",
+      "pixel6Note": "Pixel 6 / Android Chrome is the documented device floor. Box measurements at CDP CPU throttle 4x with a mobile viewport are a CPU-bound phone proxy only. There is no physical-device evidence in this run."
+    },
+    "at": "2026-11-15T14:54:41.483Z"
+  },
+  "at": "2026-11-15T14:54:41.484Z",
+  "results": {
+    "forecast": {
+      "windowN": 120,
+      "horizonN": 6,
+      "reprojN": 6,
+      "windowPassed": true,
+      "horizonPassed": true,
+      "reprojectPassed": true,
+      "summaries": {
+        "window": [
+          {
+            "key": [
+              "node-model-v1.1.69-00f31fb31ec34d6d",
+              "perf-phase-a-20261116-v1",
+              "HC-20261116-A1",
+              "ordinary-new-game-seed-424242",
+              "forecast-window",
+              "chunk-complete",
+              {
+                "artwork": "n/a",
+                "cold": true,
+                "cpuThrottle": 1,
+                "machine": "box-linux-xeon-8",
+                "renderer": "swiftshader",
+                "start": "ordinary-new-game",
+                "viewport": "node"
+              },
+              "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+              "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+              true
+            ],
+            "attempted": 120,
+            "passed": 120,
+            "failed": 0,
+            "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+            "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+            "comparisonEligible": true,
+            "invalid": 0,
+            "timeouts": 0,
+            "independentLaunches": 120,
+            "p50": 1188.161293,
+            "p95": 1285.491782,
+            "min": 1065.558166,
+            "max": 1402.704757,
+            "successOnly": {
+              "count": 120,
+              "p50": 1188.161293,
+              "p95": 1285.491782,
+              "min": 1065.558166,
+              "max": 1402.704757,
+              "population": "conditional on valid successful completion"
+            },
+            "p95Interval": {
+              "n": 120,
+              "p": 0.95,
+              "confidence": 0.99,
+              "estimate": 1285.491782,
+              "low": 1258.299785,
+              "high": 1402.704757,
+              "lowerRank": 107,
+              "upperRank": 120,
+              "bounded": true,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            },
+            "p95BootstrapDiagnostic": null,
+            "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+            "latencyBounds": {
+              "p50": {
+                "low": 1188.161293,
+                "high": 1188.161293
+              },
+              "p95": {
+                "low": 1285.491782,
+                "high": 1285.491782
+              },
+              "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+            },
+            "correctnessGate": true,
+            "tailSampleQuotaMet": true,
+            "eligibleForTailInference": true,
+            "censored": [],
+            "inference": "iid interval only if manifest proves separate independent launches"
+          }
+        ],
+        "horizon": [
+          {
+            "key": [
+              "node-model-v1.1.69-00f31fb31ec34d6d",
+              "perf-phase-a-20261116-v1",
+              "HC-20261116-A1",
+              "ordinary-new-game-seed-424242",
+              "forecast-horizon",
+              "loss-complete",
+              {
+                "artwork": "n/a",
+                "cold": true,
+                "cpuThrottle": 1,
+                "machine": "box-linux-xeon-8",
+                "renderer": "swiftshader",
+                "start": "ordinary-new-game",
+                "viewport": "node"
+              },
+              "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+              "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+              true
+            ],
+            "attempted": 6,
+            "passed": 6,
+            "failed": 0,
+            "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+            "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+            "comparisonEligible": true,
+            "invalid": 0,
+            "timeouts": 0,
+            "independentLaunches": 6,
+            "p50": 14535.592934,
+            "p95": 15051.487388,
+            "min": 14036.213261,
+            "max": 15051.487388,
+            "successOnly": {
+              "count": 6,
+              "p50": 14535.592934,
+              "p95": 15051.487388,
+              "min": 14036.213261,
+              "max": 15051.487388,
+              "population": "conditional on valid successful completion"
+            },
+            "p95Interval": {
+              "n": 6,
+              "p": 0.95,
+              "confidence": 0.99,
+              "estimate": 15051.487388,
+              "low": 14611.635329,
+              "high": null,
+              "lowerRank": 4,
+              "upperRank": 7,
+              "bounded": false,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            },
+            "p95BootstrapDiagnostic": null,
+            "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+            "latencyBounds": {
+              "p50": {
+                "low": 14535.592934,
+                "high": 14535.592934
+              },
+              "p95": {
+                "low": 15051.487388,
+                "high": 15051.487388
+              },
+              "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+            },
+            "correctnessGate": true,
+            "tailSampleQuotaMet": false,
+            "eligibleForTailInference": false,
+            "censored": [],
+            "inference": "iid interval only if manifest proves separate independent launches"
+          }
+        ],
+        "reproject": [
+          {
+            "key": [
+              "node-model-v1.1.69-00f31fb31ec34d6d",
+              "perf-phase-a-20261116-v1",
+              "HC-20261116-A1",
+              "ordinary-new-game-seed-424242",
+              "unveil-reproject",
+              "reproject-compute",
+              {
+                "artwork": "n/a",
+                "cold": true,
+                "cpuThrottle": 1,
+                "machine": "box-linux-xeon-8",
+                "renderer": "swiftshader",
+                "start": "ordinary-new-game",
+                "viewport": "node"
+              },
+              "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+              "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+              true
+            ],
+            "attempted": 6,
+            "passed": 6,
+            "failed": 0,
+            "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+            "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+            "comparisonEligible": true,
+            "invalid": 0,
+            "timeouts": 0,
+            "independentLaunches": 6,
+            "p50": 9281.051205,
+            "p95": 9574.563564,
+            "min": 8839.555784,
+            "max": 9574.563564,
+            "successOnly": {
+              "count": 6,
+              "p50": 9281.051205,
+              "p95": 9574.563564,
+              "min": 8839.555784,
+              "max": 9574.563564,
+              "population": "conditional on valid successful completion"
+            },
+            "p95Interval": {
+              "n": 6,
+              "p": 0.95,
+              "confidence": 0.99,
+              "estimate": 9574.563564,
+              "low": 9400.467345,
+              "high": null,
+              "lowerRank": 4,
+              "upperRank": 7,
+              "bounded": false,
+              "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+            },
+            "p95BootstrapDiagnostic": null,
+            "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+            "latencyBounds": {
+              "p50": {
+                "low": 9281.051205,
+                "high": 9281.051205
+              },
+              "p95": {
+                "low": 9574.563564,
+                "high": 9574.563564
+              },
+              "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+            },
+            "correctnessGate": true,
+            "tailSampleQuotaMet": false,
+            "eligibleForTailInference": false,
+            "censored": [],
+            "inference": "iid interval only if manifest proves separate independent launches"
+          }
+        ]
+      }
+    }
+  },
+  "functionalOk": true,
+  "proposedVerdict": "CONSTRUCTION ONLY (phase=forecast): gates in this run passed; no Phase A verdict without the 3-rep suites and an independent audit."
+}
