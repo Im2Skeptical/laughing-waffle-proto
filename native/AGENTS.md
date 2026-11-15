@@ -13,6 +13,9 @@ with the accepted stack and scope in [README.md](README.md).
 3. Read only the subsystem references needed for that item. Before simulation
    or timegraph work, follow the root timegraph routing/guardrails. For UI work,
    read the aesthetic/UX guidance and inspect the relevant existing interaction.
+   For simulation, time inspection or performance work, use the shared
+   [performance handoff](README.md#performance-handoff-between-runtimes) to find
+   relevant browser evidence and record the native disposition.
 4. State the impact on determinism, serialization, replay and layering. Implement
    the item's smallest useful result and verify its stated completion criteria.
 5. Update WORKPLAN with what exists, exact reproducible commands/results,
