@@ -14,6 +14,8 @@ import { requestPreview as fetch } from './preview-http.mjs';
 const fixture = await mkdtemp(path.join(tmpdir(), 'civilization-build-preview-'));
 const serverPids = [];
 const blockers = [];
+let neighborGuard;
+let rangeRetries = 0;
 const exec = promisify(execFile);
 async function stopOwnedServer(pid) {
   try { process.kill(pid); } catch (error) { if (error.code !== 'ESRCH') throw error; }
@@ -22,6 +24,55 @@ async function stopOwnedServer(pid) {
     await delay(20);
   }
   throw new Error(`Fixture server ${pid} did not exit`);
+}
+async function reserveFixtureRange() {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const probe = createServer();
+    await new Promise((resolve, reject) => {
+      probe.once('error', reject); probe.listen(0, '127.0.0.1', resolve);
+    });
+    const candidate = Math.min(probe.address().port, 65_524);
+    await new Promise((resolve, reject) => probe.close(error => error ? reject(error) : resolve()));
+    if (attempt === 0) {
+      // Keep an adversarial neighbor occupied through the entire test. If a
+      // foreign listener already owns it, leave that listener untouched instead.
+      const guard = createServer();
+      try {
+        await new Promise((resolve, reject) => {
+          guard.once('error', reject); guard.listen(candidate + 1, '0.0.0.0', resolve);
+        });
+        neighborGuard = guard;
+      } catch (error) { if (error.code !== 'EADDRINUSE') throw error; }
+    }
+    try {
+      // Reserve the WHOLE range with the actual HTTP blockers before exposing
+      // these ports to the copied launcher. A free first port proves no more
+      // than that; every neighbor must be reserved successfully too.
+      for (let offset = 0; offset < 12; offset++) {
+        const blocker = http.createServer((request, response) => {
+          if (offset === 1) return; // No headers: bounded probe deadline.
+          response.setHeader('Content-Type', 'application/json');
+          if (offset === 2) { response.writeHead(200); response.write('{'); return; } // Stalled body.
+          if (offset === 3) { response.statusCode = 404; response.end('not a preview'); return; }
+          if (offset === 4) { response.end('{invalid JSON'); return; }
+          response.end(JSON.stringify({ protocol: 5, workspaceId: 'another-checkout', pid: process.pid }));
+        });
+        await new Promise((resolve, reject) => {
+          blocker.once('error', reject); blocker.listen(candidate + offset, '0.0.0.0', resolve);
+        });
+        blockers.push(blocker);
+      }
+      assert.ok(rangeRetries > 0, 'The retained occupied neighbor must exercise a full-range retry');
+      return candidate;
+    } catch (error) {
+      // Release only this attempt's successfully bound fixture servers. The
+      // conflicting listener (including the adversarial neighbor) stays alive.
+      await Promise.all(blockers.splice(0).map(server => new Promise(resolve => server.close(resolve))));
+      if (error.code !== 'EADDRINUSE') throw error;
+      rangeRetries++;
+    }
+  }
+  throw new Error('Could not reserve all twelve fixture ports after 20 attempts');
 }
 try {
   await mkdir(path.join(fixture, 'scripts'));
@@ -36,12 +87,8 @@ try {
   await writeFile(path.join(fixture, 'images/asset-manifest.json'), JSON.stringify(registry));
   for (const name of ['cloud-banks-v2.png', 'cloud-banks-v3.png', 'cloud-cumulus-v1.png'])
     await writeFile(path.join(fixture, 'images/dark-fantasy/map-generation-prototype', name), 'fixture');
-  // Fixture servers must not compete with the user's running review previews.
-  // Reserve an ephemeral candidate, then give only this copied preview its range.
-  const probe=createServer();
-  await new Promise((resolve,reject)=>{probe.once('error',reject);probe.listen(0,'127.0.0.1',resolve);});
-  const fixturePort=Math.min(probe.address().port,65_524);
-  await new Promise(resolve=>probe.close(resolve));
+  // Reserve every port before configuring the fixture; retry occupied ranges.
+  const fixturePort = await reserveFixtureRange();
   const previewPath=path.join(fixture,'scripts/local-preview.mjs');
   await writeFile(previewPath,(await readFile(previewPath,'utf8')).replace('const firstPort = 5184;',`const firstPort = ${fixturePort};`));
   const legacyPreviewPath=path.join(fixture,'scripts/legacy-preview.mjs');
@@ -66,22 +113,6 @@ try {
   const start = async (cwd = fixture) => (await exec(process.execPath, ['scripts/local-preview.mjs'], {
     cwd, encoding: 'utf8', timeout: 40_000, windowsHide: true,
   })).stdout;
-  // Saturate exactly this fixture's preferred range, never the user's ports.
-  // Respond promptly: timeouts alone miss the Windows fetch/exit assertion.
-  for (let offset = 0; offset < 12; offset++) {
-    const blocker = http.createServer((request, response) => {
-      if (offset === 1) return; // No headers: bounded probe deadline.
-      response.setHeader('Content-Type', 'application/json');
-      if (offset === 2) { response.writeHead(200); response.write('{'); return; } // Stalled body.
-      if (offset === 3) { response.statusCode = 404; response.end('not a preview'); return; }
-      if (offset === 4) { response.end('{invalid JSON'); return; }
-      response.end(JSON.stringify({ protocol: 5, workspaceId: 'another-checkout', pid: process.pid }));
-    });
-    blockers.push(blocker);
-    await new Promise((resolve, reject) => {
-      blocker.once('error', reject); blocker.listen(fixturePort + offset, '0.0.0.0', resolve);
-    });
-  }
   // Exercise the Windows failure boundary in an external process, including an
   // intentional uncaught error after concurrent successful HTTP probes.
   const clientScript = path.join(fixture, 'scripts/client-failure.mjs');
@@ -259,8 +290,10 @@ try {
         `Every published atlas reference uses the same snapshot: ${source} -> ${ref}`);
     }
   }
-  console.log('[build-preview] OK: saturated ports, bounded probes, Windows failure exits, startup failure, old-server rejection, preview isolation, parallel worktrees, integration-only versions, content identity, Pages metadata');
+  if (neighborGuard) assert.ok(neighborGuard.listening, 'The owned adversarial neighbor stays alive through every check');
+  console.log(`[build-preview] OK: full-range reservation (${rangeRetries} retries), retained occupied neighbor, saturated ports, bounded probes, Windows failure exits, startup failure, old-server rejection, preview isolation, parallel worktrees, integration-only versions, content identity, Pages metadata`);
 } finally {
+  if (neighborGuard) await new Promise(resolve => neighborGuard.close(resolve));
   await Promise.all(blockers.map(server => new Promise(resolve => server.close(resolve))));
   const stopped = await Promise.allSettled(serverPids.map(stopOwnedServer));
   // mkdtemp owns this exact child of the OS temporary directory.
