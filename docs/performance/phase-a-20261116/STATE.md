@@ -19,7 +19,7 @@ Harness code only; no product code touched. Code commit `12b8e728`, plus the con
 | B01 mobile drag resolution | NOT ATTEMPTED (per instruction) | Needs either (a) about 3 mobile 4× suites at n=21 drags per arm (≈ +15 min per suite, ≈ 45–60 min plus the audit) using the existing `runBrowserSuites --profiles=mobile-x4` with `SUITE_DRAGS` raised, or (b) Cam accepting the stated ~0.8–0.9 s suite-level resolution limit (Cam Q4). | — |
 | B06 desktop New Game drift (86.1 → 100.0 → 111.5 s) | NOT ATTEMPTED (per instruction) | Needs a bounded drift investigation: 3 more back-to-back desktop New Game sessions, each with a fresh browser profile, logging memory (JS heap and process RSS), GC and loadavg per session, to tell box drift from harness carry-over. About 6–8 min of runs. | — |
 
-Verify: VERIFY_RESULT
+Verify (Linux, 04:30–04:44 AEDT, on `4b297cf9` code): `npm run verify` **exit 1, failing only at `check:docs`**: 106 missing link targets, all in the auditor's `HARNESS_REVIEW.md` (commit b223dd87). They point to `../../../artifacts/phase-a-audit-r1/*`, which is gitignored and not on this box. The Builder cannot edit that file. Every other step that `verify` chains (`check:architecture`, `check:source`, `check:assets`, `build`, `test:build-preview`, `test:graphics-options`, `npm test`) was run separately: **exit 0**. `npm run test:perf-phase-a-20261116` (statistics plus failclosed): pass. Fix for the auditor: commit the linked audit evidence under `docs/` or change those links to plain text.
 
 ## Package status
 
