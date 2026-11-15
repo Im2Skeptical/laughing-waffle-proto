@@ -2,15 +2,15 @@
 
 Ready-to-paste T3 launch packet for the independent Harness Auditor (WP6). Code Health does not message T3 threads: the Dispatcher launches this. Adapted from the Code Health audit plan (`/workspace/phase-a-audit-20261115/AUDIT.md` §4, packet T-A) for this branch and tip.
 
-- Branch: `perf/phase-a-20261116` (origin). Review tip: **`TIP_SHA`** (set at WP5 handoff; see `STATE.md` "Next step" for the pushed hash).
+- Branch: `perf/phase-a-20261116` (origin). Review tip: **`46d21c0a`** (Builder WP5 evidence tip; later commits on the branch touch only this packet). Use `46d21c0a` or the branch head if the diff from it is docs-only.
 - Harness sources: `scripts/perf-phase-a-20261116/` (statistics module `statistics.mjs`, sha256 `9443d670…`).
 - Contract and evidence: `HARNESS.md`, `STATE.md` and `PROOF_RUN.md` in this folder; committed raw JSON + sha256 `MANIFEST.json` per run under `docs/performance/phase-a-20261116/runs/<run-id>/`.
-- Acceptance runs to recompute: `wp4-node` (Node window ×120, horizon ×6, re-projection ×6), `wp4-suites` (3 suites × desktop 1× and mobile 4×: New Game, bake, opening-unveil pacing, scrub step, scrub drag), plus controls `wp1-node-controls-r2`, `wp1-browser-controls`, `wp2-a1-01-r2`, `wp3-drag-r3`, `wp3b-repeat-desktop-r2`, `wp3c-mobile-a2`. Failed attempts kept as evidence: `wp2-a1-01-r1`, `wp3-drag-r2`, `wp3c-mobile-a1`, mobile section of `wp3b-repeat-desktop-r2`, `wp3b-repeat-mobile-r3`.
+- Acceptance runs to recompute: `wp4-node` (Node window ×120, horizon ×6, re-projection ×6), `wp4-suites` (3 suites × desktop 1× and mobile 4×: New Game, bake, opening-unveil pacing, scrub step, scrub drag), `wp4-suites-mobile-r2` (mobile 4× fresh-ID rerun), plus controls `wp1-node-controls-r2`, `wp1-browser-controls`, `wp2-a1-01-r2`, `wp3-drag-r3`, `wp3b-repeat-desktop-r2`, `wp3c-mobile-a2`. Failed attempts kept as evidence: `wp2-a1-01-r1`, `wp3-drag-r2`, `wp3c-mobile-a1`, mobile section of `wp3b-repeat-desktop-r2`, `wp3b-repeat-mobile-r3`.
 - `HARNESS_REVIEW.md` is the Auditor's file. The Builder left it **NOT AUDITED**.
 
 ```
 Title: Phase A Auditor — Civilization Survivor perf hillclimb (HC-20261116-A1)
-Project: laughing-waffle-proto. Runtime: full-access. New worktree from origin/perf/phase-a-20261116 at commit TIP_SHA. Read-only on product code and on the Builder's files except docs/performance/phase-a-20261116/HARNESS_REVIEW.md, which you own.
+Project: laughing-waffle-proto. Runtime: full-access. New worktree from origin/perf/phase-a-20261116 at commit 46d21c0a (or the branch head if the diff from 46d21c0a is docs-only). Read-only on product code and on the Builder's files except docs/performance/phase-a-20261116/HARNESS_REVIEW.md, which you own.
 
 You are the independent Harness Auditor (HillclimbPerformanceLoop skill, Phase A). You did not build this harness; do not repair it. Read AGENTS.md, ai/ai-context.md, docs/performance/phase-a-20261116/{HARNESS,PROOF_RUN,STATE,AUDITOR_PACKET}.md and the frozen sources under scripts/perf-phase-a-20261116/.
 
@@ -26,4 +26,6 @@ Do, in order:
 Hard limits: one session, max 90 minutes. No automations, scheduled tasks, self-continuations or "continue" wakes. No deadline extension. If an environment problem (install, browser launch, port) blocks a step twice, stop and report it as a finding instead of debugging. Repairs: at most 2 repair rounds in total (WP7); each round is a Builder fix of listed blocking findings only, then a recheck turn queued by the Dispatcher, never self-scheduled. Final report: verdict, findings table, evidence paths, screenshot paths.
 ```
 
-Known limits the Auditor should weigh (Builder-stated, not audited): CDP input enters at the browser process (no OS/compositor/touchscreen latency; no physical Pixel 6); mobile 4× is a CPU-throttle proxy on SwiftShader; mobile 4× drag resolution ≈ 0.4 s per-drag median at n=21/arm; New Game n=3 and drag/scrub tails are INCONCLUSIVE by design.
+Builder status at handoff: WP4–5 PARTIAL. Every functional gate passed (desktop 1×, mobile 4× ×6 sessions, Node); desktop drag controls and the between-session check passed (cross-session envelope 102.9 ms desktop, 871–910 ms mobile); the mobile 4× drag deferred-completion control failed at suite size n=9/arm in both mobile runs (resolution limit ~0.77 s; WP3c n=21 passed at ~0.39 s). F-W1-3 did not recur. Linux verify exit 0 on dcfdb071. Judge whether the mobile limit is acceptable as stated or blocking.
+
+Known limits the Auditor should weigh (Builder-stated, not audited): CDP input enters at the browser process (no OS/compositor/touchscreen latency; no physical Pixel 6); mobile 4× is a CPU-throttle proxy on SwiftShader; mobile 4× drag resolution ≈ 0.4 s per-drag median at n=21/arm and ≈ 0.77 s (within profile) / 0.9 s (across sessions) at the suite's n=9/arm; GC attribution for F-W1-3 unavailable (observer recorded no entries); desktop New Game drifted +29% across three back-to-back sessions; New Game n=3 and drag/scrub tails are INCONCLUSIVE by design.
