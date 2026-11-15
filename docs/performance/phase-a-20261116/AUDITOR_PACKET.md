@@ -1,0 +1,29 @@
+# AUDITOR_PACKET — Phase A, HC-20261116-A1
+
+Ready-to-paste T3 launch packet for the independent Harness Auditor (WP6). Code Health does not message T3 threads: the Dispatcher launches this. Adapted from the Code Health audit plan (`/workspace/phase-a-audit-20261115/AUDIT.md` §4, packet T-A) for this branch and tip.
+
+- Branch: `perf/phase-a-20261116` (origin). Review tip: **`TIP_SHA`** (set at WP5 handoff; see `STATE.md` "Next step" for the pushed hash).
+- Harness sources: `scripts/perf-phase-a-20261116/` (statistics module `statistics.mjs`, sha256 `9443d670…`).
+- Contract and evidence: `docs/performance/phase-a-20261116/{HARNESS,STATE,PROOF_RUN}.md`; committed raw JSON + sha256 `MANIFEST.json` per run under `docs/performance/phase-a-20261116/runs/<run-id>/`.
+- Acceptance runs to recompute: `wp4-node` (Node window ×120, horizon ×6, re-projection ×6), `wp4-suites` (3 suites × desktop 1× and mobile 4×: New Game, bake, opening-unveil pacing, scrub step, scrub drag), plus controls `wp1-node-controls-r2`, `wp1-browser-controls`, `wp2-a1-01-r2`, `wp3-drag-r3`, `wp3b-repeat-desktop-r2`, `wp3c-mobile-a2`. Failed attempts kept as evidence: `wp2-a1-01-r1`, `wp3-drag-r2`, `wp3c-mobile-a1`, mobile section of `wp3b-repeat-desktop-r2`, `wp3b-repeat-mobile-r3`.
+- `HARNESS_REVIEW.md` is the Auditor's file. The Builder left it **NOT AUDITED**.
+
+```
+Title: Phase A Auditor — Civilization Survivor perf hillclimb (HC-20261116-A1)
+Project: laughing-waffle-proto. Runtime: full-access. New worktree from origin/perf/phase-a-20261116 at commit TIP_SHA. Read-only on product code and on the Builder's files except docs/performance/phase-a-20261116/HARNESS_REVIEW.md, which you own.
+
+You are the independent Harness Auditor (HillclimbPerformanceLoop skill, Phase A). You did not build this harness; do not repair it. Read AGENTS.md, ai/ai-context.md, docs/performance/phase-a-20261116/{HARNESS,PROOF_RUN,STATE,AUDITOR_PACKET}.md and the frozen sources under scripts/perf-phase-a-20261116/.
+
+Do, in order:
+1. npm ci --no-audit --no-fund && npm run build && npx playwright install chromium. Do NOT run npm run verify on this Windows machine (known out-of-scope 0xC0000409 in test:build-preview; Linux verify evidence is in STATE.md).
+2. node scripts/perf-phase-a-20261116/statistics-test.mjs; record the SHA-256 of statistics.mjs and re-accept or reject the module at that hash.
+3. Recompute every summary in PROOF_RUN.md from the committed raw JSON under docs/performance/phase-a-20261116/runs/ using statistics.mjs (summarize/quantile/quantileInterval) and the seeded bootstrap in scrub-drag.mjs (bootstrapMedianDelta, evaluateRepeat). Check every MANIFEST.json sha256. List any mismatch.
+4. Inspect each oracle and timing mechanism against HARNESS.md: start/end events, fail-closed oracles, timeout/censoring, identity pins (seed 424242, opening loss 6138, graphics pins, build asset hash), A1-01 pre-dispatch stall + Event Timing (input-delay.mjs), scrub-drag oracle (isScrubbing latched, edge skip, Hold meaningful, release clears scrubbing, settle equals never-dragged reference, frontier/seed/timeline unchanged), the caught-up metric, the carry-over/position-balanced drag order (CARRYOVER_CIRCUIT_4B) and the 5 s settle gap, the between-session envelope, and the flag-gated product probe (__SETTLEMENT_DEBUG__.getScrubProbe, null unless __PERF_MEASUREMENT_HOOKS__ === true).
+5. Reproduce on this machine, desktop 1x only: Browser controls (node scripts/perf-phase-a-20261116/run.mjs --id=audit-r1-controls --phase=controls): scrub positive, wrong-result, +200 ms delay, deferred completion; A1-01 stalled and unstalled (node scripts/perf-phase-a-20261116/input-delay.mjs --id=audit-r1-a1-01); one scrub-drag repeat (node scripts/perf-phase-a-20261116/scrub-drag.mjs --id=audit-r1-drag --kinds=prepared-desktop --repeat=5). Judge by deltas and pass/fail, not absolute times. Save raw JSON and at least one screenshot per control under artifacts/phase-a-audit-r1/ (the scripts write screenshots next to their raw JSON) and list every evidence path in your report.
+6. Write HARNESS_REVIEW.md: auditor identity, reviewed SHA and run ids, reproduced checks with numbers, findings table (ID, blocking/non-blocking, evidence file:line or run id, required repair), and an explicit PROOF: SOUND or PROOF: NOT SOUND.
+7. Commit only HARNESS_REVIEW.md (+ small raw JSON from your artifacts dir under docs/performance/phase-a-20261116/runs/audit-r1/) to perf/phase-a-20261116 and push. No main, no PR, no merge, no Pages, no deletions, no force-push. No product source changes, so no version bump.
+
+Hard limits: one session, max 90 minutes. No automations, scheduled tasks, self-continuations or "continue" wakes. No deadline extension. If an environment problem (install, browser launch, port) blocks a step twice, stop and report it as a finding instead of debugging. Repairs: at most 2 repair rounds in total (WP7); each round is a Builder fix of listed blocking findings only, then a recheck turn queued by the Dispatcher, never self-scheduled. Final report: verdict, findings table, evidence paths, screenshot paths.
+```
+
+Known limits the Auditor should weigh (Builder-stated, not audited): CDP input enters at the browser process (no OS/compositor/touchscreen latency; no physical Pixel 6); mobile 4× is a CPU-throttle proxy on SwiftShader; mobile 4× drag resolution ≈ 0.4 s per-drag median at n=21/arm; New Game n=3 and drag/scrub tails are INCONCLUSIVE by design.
