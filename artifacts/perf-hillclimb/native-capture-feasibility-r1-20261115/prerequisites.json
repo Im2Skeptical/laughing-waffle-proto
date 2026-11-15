@@ -1,0 +1,58 @@
+{
+    "at":  "2026-11-15T03:56:46.8806115Z",
+    "hostPid":  35636,
+    "host64Bit":  true,
+    "os64Bit":  true,
+    "powerShell":  "5.1.26100.9818",
+    "files":  [
+                  {
+                      "path":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                      "state":  "PRESENT_METADATA_ONLY",
+                      "bytes":  495616,
+                      "version":  "10.0.26100.9818 (WinBuild.160101.0800)",
+                      "sha256":  "d8f182560210d43baaf767d482ad1dc1207372522e91413b9d5e515a875e552d",
+                      "error":  null
+                  },
+                  {
+                      "path":  "C:/Program Files/nodejs/node.exe",
+                      "state":  "PRESENT_METADATA_ONLY",
+                      "bytes":  91694408,
+                      "version":  "24.15.0",
+                      "sha256":  "3331e1ffe19874215472217c5e94f5a0c6d8e18c4ac7111d3937aa0ad5e9b4a5",
+                      "error":  null
+                  },
+                  {
+                      "path":  "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe",
+                      "state":  "PRESENT_METADATA_ONLY",
+                      "bytes":  2569832,
+                      "version":  "4.8.9221.0 built by: NET481REL1LAST_25H2",
+                      "sha256":  "46809206887326d2d24db1eff1f3064de972c3451abe766b49111450a5e08e00",
+                      "error":  null
+                  },
+                  {
+                      "path":  "C:\\WINDOWS\\System32\\kernel32.dll",
+                      "state":  "PRESENT_METADATA_ONLY",
+                      "bytes":  862016,
+                      "version":  "10.0.26100.9974 (WinBuild.160101.0800)",
+                      "sha256":  "970e5e15eed7d53c8b88e06ddc71884c31804f1cb5286abf01fbce39b7f0e29f",
+                      "error":  null
+                  },
+                  {
+                      "path":  "C:\\WINDOWS\\System32\\dbghelp.dll",
+                      "state":  "PRESENT_METADATA_ONLY",
+                      "bytes":  2317664,
+                      "version":  "10.0.26100.9818 (WinBuild.160101.0800)",
+                      "sha256":  "547a1a6b57ca6c3d77bf8a1ab1096377c11e7c35d28622463729daf28841e578",
+                      "error":  null
+                  },
+                  {
+                      "path":  "C:\\WINDOWS\\System32\\dbgcore.dll",
+                      "state":  "PRESENT_METADATA_ONLY",
+                      "bytes":  241664,
+                      "version":  "10.0.26100.9818 (WinBuild.160101.0800)",
+                      "sha256":  "133437b8989029ec6ab4c14a5f2ebd1393522af057ac580452cf573a9a05a0cb",
+                      "error":  null
+                  }
+              ],
+    "scope":  "Six explicit prerequisite files read/hash only. No compiler/native export invocation, prototype, child launch, capture, install or settings change. Presence does not prove compile/API/capture capability."
+}

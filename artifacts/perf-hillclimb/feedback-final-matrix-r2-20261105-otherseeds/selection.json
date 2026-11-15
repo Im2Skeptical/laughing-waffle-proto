@@ -1,0 +1,16 @@
+{
+  "requestedJobs": [
+    "performance-continue",
+    "scrub",
+    "life",
+    "save"
+  ],
+  "executableJobs": [
+    "performance-continue",
+    "scrub-anchor",
+    "scrub-off-anchor",
+    "life",
+    "save-history",
+    "save-opening"
+  ]
+}

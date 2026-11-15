@@ -1,0 +1,70 @@
+{
+  "trace": [
+    {
+      "second": 0,
+      "kind": "settlementSelectVassal",
+      "payload": {
+        "candidateIndex": 0,
+        "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":20,\"locationRegionId\":\"R04\",\"originRegionId\":\"R04\",\"prestige\":21,\"stats\":{\"cunning\":2,\"wisdom\":1,\"effectiveness\":0,\"intelligence\":0},\"portrait\":{\"skinTone\":\"ivory\",\"hairStyle\":\"long\",\"hairColor\":\"gold\",\"faceShape\":\"angular\",\"clothingColor\":\"charcoal\",\"accessory\":\"none\",\"expression\":\"stern\"},\"signatureNode\":{\"id\":\"knowledgeShop\",\"groupId\":\"tagShop\",\"tag\":\"Knowledge\",\"label\":\"Knowledge Shop\",\"glyph\":\"KN\",\"color\":6200271,\"description\":\"A mixed shop containing only Knowledge-tagged gamepieces.\",\"variantId\":\"knowledgeShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":16,\"locationRegionId\":\"R04\",\"originRegionId\":\"R04\",\"prestige\":21,\"stats\":{\"cunning\":1,\"wisdom\":2,\"effectiveness\":0,\"intelligence\":2},\"portrait\":{\"skinTone\":\"umber\",\"hairStyle\":\"long\",\"hairColor\":\"black\",\"faceShape\":\"round\",\"clothingColor\":\"red\",\"accessory\":\"none\",\"expression\":\"calm\"},\"signatureNode\":{\"id\":\"settlement\",\"groupId\":\"settlement\",\"label\":\"Found Settlement\",\"glyph\":\"FS\",\"color\":7842405,\"description\":\"Found a nearby settlement and move this Vassal there.\",\"variantId\":\"settlement\"}}]"
+      }
+    },
+    {
+      "second": 0,
+      "kind": "vassalEnterLifeNode",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1"
+      }
+    },
+    {
+      "second": 0,
+      "kind": "vassalSelectLifeOption",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1",
+        "optionId": "random"
+      }
+    },
+    {
+      "second": 0,
+      "kind": "vassalPurchaseShopOffer",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1",
+        "offerId": "life-milestone-milestone-1:r0:practice:0"
+      }
+    },
+    {
+      "second": 0,
+      "kind": "vassalConfirmLifeNode",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1"
+      }
+    }
+  ],
+  "nodeId": "life-milestone-milestone-1",
+  "offerId": "life-milestone-milestone-1:r0:practice:0",
+  "offerIndex": 0,
+  "offer": {
+    "offerId": "life-milestone-milestone-1:r0:practice:0",
+    "label": "Learn Bronze Woodlot Rights",
+    "basePrestigeCost": 10,
+    "basePhaseCost": 64,
+    "intervention": {
+      "kind": "practice",
+      "targetRegionId": "R04",
+      "practiceId": "fm_woodlotRights",
+      "mode": "learn",
+      "tier": "bronze",
+      "resultingTier": "bronze"
+    },
+    "baseCurrencyCost": 0,
+    "priceQuality": "bronze",
+    "inventoryIndex": 0
+  },
+  "targetSec": 64,
+  "presentationArgs": {
+    "nodeId": "life-milestone-milestone-1",
+    "preview": {
+      "previewOptionId": null,
+      "previewOfferId": null
+    }
+  }
+}

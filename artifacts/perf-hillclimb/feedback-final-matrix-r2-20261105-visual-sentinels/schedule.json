@@ -1,0 +1,86 @@
+[
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "entry",
+    "artwork": "off"
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "life",
+    "artwork": "off"
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "save-history",
+    "artwork": "off"
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "save-opening",
+    "artwork": "off"
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "map-open",
+    "artwork": "off"
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "scrub-anchor",
+    "artwork": "off"
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "entry",
+    "artwork": "off"
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "life",
+    "artwork": "off"
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "save-history",
+    "artwork": "off"
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "save-opening",
+    "artwork": "off"
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "map-open",
+    "artwork": "off"
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "scrub-anchor",
+    "artwork": "off"
+  }
+]

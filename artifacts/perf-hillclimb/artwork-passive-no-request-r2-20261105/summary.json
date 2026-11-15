@@ -1,0 +1,16 @@
+{
+  "ok": false,
+  "results": [],
+  "observations": 3,
+  "failures": 1,
+  "caseFailures": [
+    {
+      "case": "deferred",
+      "error": "deferred atlas request observation timeout after 1000ms",
+      "detailsFile": "deferred-failure.json"
+    }
+  ],
+  "requestedCases": 1,
+  "completedCases": 0,
+  "scope": "construction controls and diagnostics only; independent audit and representative sampling still required"
+}

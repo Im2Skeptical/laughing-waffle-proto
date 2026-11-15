@@ -1,0 +1,29 @@
+{
+  "at": "2026-11-15T04:31:00Z",
+  "deadline": "2026-11-16T02:40:00Z",
+  "runtimeActive": false,
+  "agentsActive": false,
+  "scope": "Source/pure support accepted in bounded scope; compiled job/pipe draft has three source critique findings, not admitted. No Native API/target launched. Whole Phase A NOT SOUND.",
+  "supportManifestSha256": "7f59346d71e6160be8e663981c167be150e6a2aa80436e1d0ecb2f4a58b691c1",
+  "draftManifestSha256": "42cb6898cd4d2f0a2a3564821d0695dcd0b02d10c9ab19fdbe439511d1319718",
+  "independentSourceCritiqueSha256": "ab4d1d6dc5f7c3b0c210f39fff5944d7f1940defee5fbd24e88ac83ad8466637",
+  "sourceAssetChanges": [],
+  "sourceCount": 683,
+  "assetCount": 5,
+  "next": "NATIVE_OBSERVER_CONTINUATION_R2.md: fresh source repair of SafeHandle leases, shared finite cleanup deadline/drain, reader error/finalization. Build/pure only before fresh source admission.",
+  "schedule": {
+    "scheduledTaskId": "scheduled-task:9ec80581-e6bf-4df4-bdb7-1995e6e7be34",
+    "title": "Continue performance hillclimb until 13:40 Sydney Nov16",
+    "prompt": "Continue Cam's EXISTING authorized performance hillclimb. Cam explicitly EXTENDED the original deadline24 HOURS; new hard deadline2026-11-16T02:40:00Z (13:40 Sydney Monday November16). This supersedes the old Nov15 finalization-only plan. Read docs/performance-hillclimb-20261115/STATUS.md in coordinator checkout FIRST and check ownership/clock. Actual harness/product work remains C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104 (perf/hillclimb-20261104, frozen old v1.1.53 checkpoint), NOT newer coordinator main. Follow HillclimbPerformanceLoop/AGENTS; preserve all8jobs/inherited120-launch/3-suite contract, original frozen evidence and unrelated worktrees. Parent owns ONE test/browser/CPUslot; narrowly scoped independent Auditor/Judge agents only as skill permits; no competing benchmarks or duplicate active run. Current PhaseA NOT SOUND; no optimization/scoring before independent SOUND. Resume smallest documented unfinished proof from STATUS.md. Current source-only progress: partial capture support independently accepted (bounded known ABI dictionary only), separate job/pipe draft compiled but NOT admitted; no native API or debug/control/preview target launched. Next NATIVE_OBSERVER_CONTINUATION_R2.md: preserve frozen r1 sources/proofs and repair draft findings in FRESH source revision: scoped SafeHandle leases/ownership, concrete finite same-thread event drain with ONE shared monotonic cleanup deadline, and exception-contained/idempotent reader finalization. Check source-review ownership before starting; no duplicate active critique. Build/pure source checks only, no Native methods/target construction. Complete launch/controller/loop/classifier and six UNATTEMPTED controls still require fresh independent affected SOURCE admission; real preview trial-wide daemon lifetime remains separate gate. Never repeat closed ABBA/OS lookup/inventory or claim capture/neutrality/cause/fix/SOUND. Prefer~20min chunks and persist exact active session/PIDs/resume state/evidence in STATUS.md. Preserve all failed/native attempts and separate populations. Reserve final35min from2026-11-16T02:05Z for confirmation/verify/npmstart/coherentversionedPRifverified; no new10min case after2026-11-16T01:45Z. Never merge or deployPages. At/after NEW deadline stop new experiments, finalize honest evidence/previewhand-off and disable SAME task scheduledTaskId scheduled-task:9ec80581-e6bf-4df4-bdb7-1995e6e7be34. Do NOT finalize/disable at superseded Nov15 deadline. If actual success/hardblock reached, document/disable. Do not duplicate active workloads.",
+    "enabled": true,
+    "projectId": "cf68fa26-6219-4056-83dc-1cd9d3f8f13a",
+    "boundThreadId": "95f53b04-d994-4904-add1-4c4209fbdfde",
+    "freshSession": false,
+    "schedule": {
+      "type": "interval",
+      "everyMs": 300000
+    },
+    "nextRunAt": "2026-11-15T04:35:03.477Z",
+    "lastRunStatus": "succeeded"
+  }
+}

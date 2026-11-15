@@ -1,0 +1,16 @@
+{
+  "launchId": "feedback-final-matrix-r2-20261105-otherseeds-6-mobile4-performance-continue-off-s424242-cold:launch-0-performance-continue",
+  "job": "performance-continue",
+  "originalError": {
+    "name": "AssertionError",
+    "message": "persisted/source state differs: persistentKnowledge.maxObservedCivilizationSurvivalYear; launch-0-performance-continue-continued-state-comparison.json",
+    "stack": "AssertionError [ERR_ASSERTION]: persisted/source state differs: persistentKnowledge.maxObservedCivilizationSurvivalYear; launch-0-performance-continue-continued-state-comparison.json\n    at fullSaveOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:515:10)\n    at async persistedEntryOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:587:14)\n    at async withDeadline (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/deadline.mjs:7:12)\n    at async record (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:170:31)\n    at async performanceContinue (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:686:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:1119:9"
+  },
+  "observationCount": 2,
+  "document": {
+    "available": false,
+    "reason": "current launch page is closed"
+  },
+  "passive": null,
+  "collectionErrors": []
+}

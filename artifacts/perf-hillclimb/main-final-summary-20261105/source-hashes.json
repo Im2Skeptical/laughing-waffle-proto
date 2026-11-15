@@ -1,0 +1,14 @@
+{
+  "run.mjs": "282d7ebaa49f6527a09049edee6f69e1f526372ae5e58f07307b3fc9153f3a5b",
+  "offered-input.mjs": "dd92f961f1a0ce3efc0aa2f64a5ea789f7aa69403fb5a9e7734d89ec7843dfc0",
+  "offered-input-test.mjs": "ea794e396533e03c692f5c8bb0faac6200b146af05503b576b09fc9fe6c65b20",
+  "active-work-oracle.mjs": "678596e562a19bde6a8fba7ce715b64974a2493903c56d4c1d2aaf3a2e749778",
+  "active-work-oracle-test.mjs": "9bcba931ddfae60428d8b14ff073931879dda7e32cded8f46a8a3041acd61d1d",
+  "save-state-oracle.mjs": "6b8633f93324007f6a2592fb0de93b7d514d957875261187146c8df2962e0aff",
+  "save-state-oracle-test.mjs": "930160e6c05c69e08c02cbcd0a228baf93b2cf2a148f0deb5b04bd63e450fb0f",
+  "main-discovery.mjs": "d1d6c6e12c4be88690bb352f83436d7948ac2f335509749726833ffe64faf132",
+  "main-controls.mjs": "3516c0e019a0e1e1f07c324a045a90402323eaa5f033c47088a38157b7b595cb",
+  "main-job-oracles.mjs": "9e162823376c56cba35b2fe0b43fade1c9b18462a3251bcf21bbca7cdb276d24",
+  "main-job-oracles-test.mjs": "5055ae20f7110d5706486200d71f54865388fde567d6f21cee7f27dc520062f3",
+  "main-stage-report.mjs": "e22fde3d53a4f43dc558c8aa1f4cc9f9e36f576a941fcb3cded7d17853583d23"
+}

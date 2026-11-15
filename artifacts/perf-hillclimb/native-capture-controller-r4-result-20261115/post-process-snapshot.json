@@ -1,0 +1,139 @@
+{
+    "at":  "2026-11-15T07:39:24.0651253Z",
+    "recorded":  [
+                     {
+                         "role":  "target",
+                         "pid":  6076,
+                         "image":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r4-20261115\\SyntheticCaptureTarget-final.exe",
+                         "createdFileTimeHex":  "0x01dd74d3fe422620"
+                     },
+                     {
+                         "role":  "host",
+                         "pid":  24980
+                     },
+                     {
+                         "role":  "supervisor",
+                         "pid":  18544
+                     },
+                     {
+                         "role":  "target",
+                         "pid":  36004,
+                         "image":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r4-20261115\\SyntheticCaptureTarget-final.exe",
+                         "createdFileTimeHex":  "0x01dd74d3fef57c0a"
+                     },
+                     {
+                         "role":  "host",
+                         "pid":  11056
+                     },
+                     {
+                         "role":  "supervisor",
+                         "pid":  21968
+                     },
+                     {
+                         "role":  "target",
+                         "pid":  26780,
+                         "image":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r4-20261115\\SyntheticCaptureTarget-final.exe",
+                         "createdFileTimeHex":  "0x01dd74d3ffa81f56"
+                     },
+                     {
+                         "role":  "host",
+                         "pid":  7192
+                     },
+                     {
+                         "role":  "supervisor",
+                         "pid":  33812
+                     },
+                     {
+                         "role":  "target",
+                         "pid":  13088,
+                         "image":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r4-20261115\\SyntheticCaptureTarget-final.exe",
+                         "createdFileTimeHex":  "0x01dd74d401e493d6"
+                     },
+                     {
+                         "role":  "host",
+                         "pid":  35696
+                     },
+                     {
+                         "role":  "supervisor",
+                         "pid":  39248
+                     },
+                     {
+                         "role":  "descendant",
+                         "pid":  38096,
+                         "image":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r4-20261115\\SyntheticCaptureTarget-final.exe",
+                         "createdFileTimeHex":  "0x01dd74d401efe4cd"
+                     },
+                     {
+                         "role":  "target",
+                         "pid":  26724,
+                         "image":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r4-20261115\\SyntheticCaptureTarget-final.exe",
+                         "createdFileTimeHex":  "0x01dd74d4033339db"
+                     },
+                     {
+                         "role":  "host",
+                         "pid":  28444
+                     },
+                     {
+                         "role":  "supervisor",
+                         "pid":  23264
+                     },
+                     {
+                         "role":  "descendant",
+                         "pid":  18716,
+                         "image":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r4-20261115\\SyntheticCaptureTarget-final.exe",
+                         "createdFileTimeHex":  "0x01dd74d4033e4181"
+                     },
+                     {
+                         "role":  "target",
+                         "pid":  16732,
+                         "image":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r4-20261115\\SyntheticCaptureTarget-final.exe",
+                         "createdFileTimeHex":  "0x01dd74d403f81d97"
+                     },
+                     {
+                         "role":  "host",
+                         "pid":  34652
+                     },
+                     {
+                         "role":  "supervisor",
+                         "pid":  22844
+                     },
+                     {
+                         "role":  "descendant",
+                         "pid":  34600,
+                         "image":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r4-20261115\\SyntheticCaptureTarget-final.exe",
+                         "createdFileTimeHex":  "0x01dd74d40402e0db"
+                     },
+                     {
+                         "role":  "wrapper",
+                         "pid":  15860
+                     }
+                 ],
+    "uniqueRecordedPids":  [
+                               6076,
+                               24980,
+                               18544,
+                               36004,
+                               11056,
+                               21968,
+                               26780,
+                               7192,
+                               33812,
+                               13088,
+                               35696,
+                               39248,
+                               38096,
+                               26724,
+                               28444,
+                               23264,
+                               18716,
+                               16732,
+                               34652,
+                               22844,
+                               34600,
+                               15860
+                           ],
+    "liveRecordedPids":  [
+
+                         ],
+    "scope":  "Read-only exact recorded PID snapshot; no kills or global absence claim, any reused PID requires identity distinction"
+}

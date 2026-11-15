@@ -1,0 +1,133 @@
+{
+  "armed": true,
+  "events": [
+    {
+      "time": 3522.699999988079,
+      "kind": "chunkResult",
+      "originalToken": "sig:4",
+      "deliveredToken": "stale-control-generation",
+      "endSec": 216,
+      "resultOk": true
+    },
+    {
+      "time": 3597.5999999940395,
+      "kind": "chunkResult",
+      "originalToken": "sig:4",
+      "deliveredToken": "stale-control-generation",
+      "endSec": 236,
+      "resultOk": true
+    },
+    {
+      "time": 3669.300000011921,
+      "kind": "chunkResult",
+      "originalToken": "sig:4",
+      "deliveredToken": "stale-control-generation",
+      "endSec": 256,
+      "resultOk": true
+    },
+    {
+      "time": 3785.800000011921,
+      "kind": "chunkResult",
+      "originalToken": "sig:4",
+      "deliveredToken": "stale-control-generation",
+      "endSec": 276,
+      "resultOk": true
+    },
+    {
+      "time": 3819.800000011921,
+      "kind": "chunkResult",
+      "originalToken": "sig:4",
+      "deliveredToken": "stale-control-generation",
+      "endSec": 296,
+      "resultOk": true
+    },
+    {
+      "time": 3884.5999999940395,
+      "kind": "chunkResult",
+      "originalToken": "sig:4",
+      "deliveredToken": "stale-control-generation",
+      "endSec": 316,
+      "resultOk": true
+    },
+    {
+      "time": 3950.199999988079,
+      "kind": "chunkResult",
+      "originalToken": "sig:4",
+      "deliveredToken": "stale-control-generation",
+      "endSec": 336,
+      "resultOk": true
+    },
+    {
+      "time": 4021.0999999940395,
+      "kind": "chunkResult",
+      "originalToken": "sig:4",
+      "deliveredToken": "stale-control-generation",
+      "endSec": 356,
+      "resultOk": true
+    },
+    {
+      "time": 4090.9000000059605,
+      "kind": "chunkResult",
+      "originalToken": "sig:4",
+      "deliveredToken": "stale-control-generation",
+      "endSec": 376,
+      "resultOk": true
+    },
+    {
+      "time": 4248.9000000059605,
+      "kind": "chunkResult",
+      "originalToken": "sig:4",
+      "deliveredToken": "stale-control-generation",
+      "endSec": 216,
+      "resultOk": true
+    },
+    {
+      "time": 4321,
+      "kind": "chunkResult",
+      "originalToken": "sig:4",
+      "deliveredToken": "stale-control-generation",
+      "endSec": 236,
+      "resultOk": true
+    },
+    {
+      "time": 4388.0999999940395,
+      "kind": "chunkResult",
+      "originalToken": "sig:4",
+      "deliveredToken": "stale-control-generation",
+      "endSec": 256,
+      "resultOk": true
+    },
+    {
+      "time": 4450.5,
+      "kind": "chunkResult",
+      "originalToken": "sig:4",
+      "deliveredToken": "stale-control-generation",
+      "endSec": 276,
+      "resultOk": true
+    },
+    {
+      "time": 4524,
+      "kind": "chunkResult",
+      "originalToken": "sig:4",
+      "deliveredToken": "stale-control-generation",
+      "endSec": 296,
+      "resultOk": true
+    },
+    {
+      "time": 4581.4000000059605,
+      "kind": "chunkResult",
+      "originalToken": "sig:4",
+      "deliveredToken": "stale-control-generation",
+      "endSec": 316,
+      "resultOk": true
+    },
+    {
+      "time": 4649.800000011921,
+      "kind": "chunkResult",
+      "originalToken": "sig:4",
+      "deliveredToken": "stale-control-generation",
+      "endSec": 336,
+      "resultOk": true
+    }
+  ]
+}

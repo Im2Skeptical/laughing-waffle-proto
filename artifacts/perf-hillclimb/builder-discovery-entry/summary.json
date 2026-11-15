@@ -1,0 +1,72 @@
+[
+  {
+    "key": [
+      "J1",
+      "ordinary-new-through-opening",
+      {
+        "layout": "desktop",
+        "cpuRate": 1,
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0
+      }
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "timeouts": 1,
+    "p50": 65908.09999999404,
+    "p95": 65908.09999999404,
+    "min": 65908.09999999404,
+    "max": 65908.09999999404,
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.95,
+      "estimate": 65908.09999999404,
+      "low": null,
+      "high": null,
+      "bounded": false,
+      "unit": "ms",
+      "method": "binomial order statistics; null endpoint is unbounded"
+    },
+    "independentLaunches": 1,
+    "inference": "descriptive until declared independent-launch/retest quota is met"
+  },
+  {
+    "key": [
+      "J1",
+      "opening-to-responsive-present",
+      {
+        "layout": "desktop",
+        "cpuRate": 1,
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0
+      }
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "timeouts": 0,
+    "p50": 713.0999999940395,
+    "p95": 713.0999999940395,
+    "min": 713.0999999940395,
+    "max": 713.0999999940395,
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.95,
+      "estimate": 713.0999999940395,
+      "low": null,
+      "high": null,
+      "bounded": false,
+      "unit": "ms",
+      "method": "binomial order statistics; null endpoint is unbounded"
+    },
+    "independentLaunches": 1,
+    "inference": "descriptive until declared independent-launch/retest quota is met"
+  }
+]

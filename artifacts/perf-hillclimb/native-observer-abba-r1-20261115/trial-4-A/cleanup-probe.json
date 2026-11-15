@@ -1,0 +1,38 @@
+{
+    "at":  "2026-11-15T03:41:18.4243929Z",
+    "fixtureRoot":  "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-1HvSLQ",
+    "since":  "2026-11-15T03:41:05.103Z",
+    "before":  [
+                   {
+                       "pid":  40152,
+                       "parentPid":  26984,
+                       "createdUtc":  "2026-11-15T03:41:05.4196800Z",
+                       "commandLine":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-1HvSLQ\\scripts\\local-preview.mjs --serve 63889"
+                   },
+                   {
+                       "pid":  28060,
+                       "parentPid":  27056,
+                       "createdUtc":  "2026-11-15T03:41:16.5629670Z",
+                       "commandLine":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-1HvSLQ\\worktrees\\task-a\\scripts\\local-preview.mjs --serve 63890"
+                   },
+                   {
+                       "pid":  40352,
+                       "parentPid":  24656,
+                       "createdUtc":  "2026-11-15T03:41:17.1654910Z",
+                       "commandLine":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-1HvSLQ\\worktrees\\task-b\\scripts\\local-preview.mjs --serve 63891"
+                   }
+               ],
+    "stopped":  [
+                    40152,
+                    28060,
+                    40352
+                ],
+    "remaining":  [
+
+                  ],
+    "errors":  [
+
+               ],
+    "fixturePreserved":  true,
+    "scope":  "Only exact registered fixture preview servers created during this attempt; no filesystem delete or other preview stopped"
+}

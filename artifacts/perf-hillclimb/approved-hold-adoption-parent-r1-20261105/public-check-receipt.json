@@ -1,0 +1,42 @@
+{
+  "at": "2026-11-05T00:39:11.734Z",
+  "version": "1.1.53",
+  "checks": [
+    {
+      "viewport": 1280,
+      "direction": 1,
+      "gesture": "click",
+      "second": 1175
+    },
+    {
+      "viewport": 1280,
+      "direction": -1,
+      "gesture": "drag",
+      "second": 1567
+    },
+    {
+      "viewport": 1280,
+      "gesture": "touch",
+      "second": 979
+    },
+    {
+      "viewport": 844,
+      "direction": 1,
+      "gesture": "click",
+      "second": 1175
+    },
+    {
+      "viewport": 844,
+      "direction": -1,
+      "gesture": "drag",
+      "second": 1567
+    },
+    {
+      "viewport": 844,
+      "gesture": "touch",
+      "second": 980
+    }
+  ],
+  "verificationExit": "0",
+  "scope": "Incoming six-check functional regression, no timing/overhead/whole Phase A acceptance. Nonzero momentum/order/resume/native feedback and scoped current reference remain pending."
+}

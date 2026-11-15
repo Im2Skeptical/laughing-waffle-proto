@@ -1,0 +1,33 @@
+{
+    "reviewedHead":  "a9df52cbd6255ed95c51c9e7d524cf9ab557472b",
+    "sourceHashes":  {
+                         "browser-runtime.mjs":  "9c1bf20e43ea32c9fe8da01e4dc3e065b782bce8ef7fcbafaa84d87a6a927e95",
+                         "browser-runtime-test.mjs":  "875057942d42adc8d38a72f69d788f0c23bbcfd2f00704c21dd653b9d5b33bf5",
+                         "deadline.mjs":  "b38266f2e0e32344e1128150b7156868f95ad4f96a4c0d835ebcd1c44a747073",
+                         "deadline-test.mjs":  "57b47ae59b4cd5d4fab35bbd789701a723e0ed06a8d044698d84e4a2a52be6d7",
+                         "mechanism-controls.mjs":  "778cc9ebd0ad789edf42b4bbed0277ccf95eb4b214ecbd852b2980f1b01747c7"
+                     },
+    "commands":  [
+                     "node scripts/perf-hillclimb/browser-runtime-test.mjs",
+                     "node scripts/perf-hillclimb/deadline-test.mjs",
+                     "node scripts/perf-hillclimb/mechanism-controls.mjs artifacts/perf-hillclimb/timing-runtime-audit-round3-20261104T232323686/browser-controls"
+                 ],
+    "exitCodes":  [
+                      0,
+                      0,
+                      0
+                  ],
+    "browserControlCount":  8,
+    "chromium":  "147.0.7727.15",
+    "postMarkerControl":  {
+                              "terminalReadinessMs":  0.30000001192092896,
+                              "maxFrameMs":  200.09999999403951,
+                              "maxLongTaskMs":  200,
+                              "semanticToFrameOpportunityMs":  31.599999994039536,
+                              "postSemanticToFinishCallMs":  232.69999998807907,
+                              "firstFeedbackMs":  null,
+                              "finishCallRelativeToFrameOpportunityMs":  201.09999999403954
+                          },
+    "edgeControls":  "edge-controls.json",
+    "scope":  "Independent mechanism controls only, no product/tail/physical-device acceptance"
+}

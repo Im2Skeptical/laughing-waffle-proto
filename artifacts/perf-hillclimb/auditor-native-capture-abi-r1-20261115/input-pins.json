@@ -1,0 +1,17 @@
+{
+    "at":  "2026-11-15T04:09:35.5151773Z",
+    "manifestSha256":  "d1aa623eb08f2711802f45563379e77a5fba63075ee1f36fba78801dbb6631f8",
+    "checkedFiles":  {
+                         "NativeCaptureAbi.cs":  "8c7a7d5d70ba871e2341d40ce147cef5d80d664d475777b33366b670eefe4337",
+                         "pure-abi.ps1":  "b54150b41f7571016f5b609811d0d930183646135aa6291f62a80b23a7455b64",
+                         "pure-abi.json":  "7f94c59e64dbd133905522737ec7a41b99f45f8d3f7af01058dbd89923bb2bd5",
+                         "authenticate.mjs":  "f58f9d2b92a2713009c66d6a9618aaf961740d9cfdad6a52198c616ea8136227"
+                     },
+    "authoritySha256":  "8c45bbf674f60ac7f6dc7214fb1abc76bc9617f02bb943c73bb7e318a2dc172e",
+    "builderSourceCount":  683,
+    "builderAssetCount":  5,
+    "builderSourceAssetChanges":  [
+
+                                  ],
+    "scope":  "Four foundation receipts/source files independently hashed. Builder683source/5asset authentication remains a separate pinned receipt; no corpus scan or native capture."
+}

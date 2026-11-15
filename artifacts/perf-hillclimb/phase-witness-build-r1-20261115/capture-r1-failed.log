@@ -1,0 +1,1 @@
+2026-11-15T00:15:05Z exit1 ERR_MODULE_NOT_FOUND: evidence-only capture script used four parent path segments rather than three; failed during import before any capture mutation. Preserved exact failed script as capture-r1-failed.mjs. Original tool output retained in transcript.

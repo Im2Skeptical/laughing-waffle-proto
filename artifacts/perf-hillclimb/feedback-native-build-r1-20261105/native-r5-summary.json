@@ -1,0 +1,1227 @@
+{
+  "sourceDirectory": "artifacts\\perf-hillclimb\\feedback-native-controls-r5-20261105",
+  "phaseA": "NOT SOUND",
+  "passScope": "intended injected native controls; no scoring or physical pixels",
+  "count": 39,
+  "passed": 39,
+  "phases": {
+    "completed": 18,
+    "censored": 12,
+    "failed": 3,
+    "cancelled": 6
+  },
+  "records": [
+    {
+      "index": 0,
+      "population": "desktop",
+      "control": "immediate-delayed-completion",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 2214.699999988079,
+      "readerCpuMs": 0.9000000059604645,
+      "maxReaderCpuMs": 0.4000000059604645,
+      "readCount": 5,
+      "collectionCpuMs": 0.09999999403953552,
+      "receiptCpuMs": 0.20000001788139343,
+      "nativeCallbackCpuMs": 0.30000001192092896,
+      "nativeStopCpuMs": 0.09999999403953552,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 24
+      },
+      "collectionWait": {
+        "startMs": 2913.899999976158,
+        "endMs": 2913.899999976158,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 2897.0999999940395,
+        "elapsedMs": 0,
+        "overrun": false
+      }
+    },
+    {
+      "index": 1,
+      "population": "desktop",
+      "control": "immediate-completion",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 1408.300000011921,
+      "readerCpuMs": 1.199999988079071,
+      "maxReaderCpuMs": 0.5,
+      "readCount": 5,
+      "collectionCpuMs": 0.20000001788139343,
+      "receiptCpuMs": 0.09999999403953552,
+      "nativeCallbackCpuMs": 0.20000001788139343,
+      "nativeStopCpuMs": 0.09999999403953552,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 24
+      },
+      "collectionWait": {
+        "startMs": 1452.800000011921,
+        "endMs": 1453,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1441.800000011921,
+        "elapsedMs": 0.19999998807907104,
+        "overrun": false
+      }
+    },
+    {
+      "index": 2,
+      "population": "desktop",
+      "control": "queue",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 1458.9000000059605,
+      "readerCpuMs": 0.8999999761581421,
+      "maxReaderCpuMs": 0.29999998211860657,
+      "readCount": 5,
+      "collectionCpuMs": 0.20000001788139343,
+      "receiptCpuMs": 0.29999998211860657,
+      "nativeCallbackCpuMs": 0.29999998211860657,
+      "nativeStopCpuMs": 0.09999999403953552,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 24
+      },
+      "collectionWait": {
+        "startMs": 1983.5999999940395,
+        "endMs": 1983.5999999940395,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1973.300000011921,
+        "elapsedMs": 0,
+        "overrun": false
+      }
+    },
+    {
+      "index": 3,
+      "population": "desktop",
+      "control": "capture-cost",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 1418.7000000178814,
+      "readerCpuMs": 1.0000000298023224,
+      "maxReaderCpuMs": 0.4000000059604645,
+      "readCount": 5,
+      "collectionCpuMs": 0.10000002384185791,
+      "receiptCpuMs": 0.09999999403953552,
+      "nativeCallbackCpuMs": 0.30000001192092896,
+      "nativeStopCpuMs": 0.09999999403953552,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 24
+      },
+      "collectionWait": {
+        "startMs": 1961.800000011921,
+        "endMs": 1961.9000000059605,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1951,
+        "elapsedMs": 0.09999999403953552,
+        "overrun": false
+      }
+    },
+    {
+      "index": 4,
+      "population": "desktop",
+      "control": "no-op",
+      "pass": true,
+      "feedback": "censored",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 2.600000023841858,
+      "maxReaderCpuMs": 0.5,
+      "readCount": 54,
+      "collectionCpuMs": 0.30000001192092896,
+      "receiptCpuMs": 0,
+      "nativeCallbackCpuMs": 0.20000001788139343,
+      "nativeStopCpuMs": 0.19999998807907104,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 8,
+        "unique": 3
+      },
+      "collectionWait": {
+        "startMs": 1685.5999999940395,
+        "endMs": 2697,
+        "limitMs": 1000,
+        "expired": true,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1678,
+        "elapsedMs": 1011.4000000059605,
+        "overrun": true
+      }
+    },
+    {
+      "index": 5,
+      "population": "desktop",
+      "control": "clipped-cue",
+      "pass": true,
+      "feedback": "censored",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 9.100000083446503,
+      "maxReaderCpuMs": 0.5,
+      "readCount": 57,
+      "collectionCpuMs": 0.30000001192092896,
+      "receiptCpuMs": 0.19999998807907104,
+      "nativeCallbackCpuMs": 0.20000001788139343,
+      "nativeStopCpuMs": 0.09999999403953552,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 14
+      },
+      "collectionWait": {
+        "startMs": 2137.300000011921,
+        "endMs": 3162.5,
+        "limitMs": 1000,
+        "expired": true,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 2130.800000011921,
+        "elapsedMs": 1025.199999988079,
+        "overrun": true
+      }
+    },
+    {
+      "index": 6,
+      "population": "desktop",
+      "control": "pre-input-drift",
+      "pass": true,
+      "feedback": "failed",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 0.7999999821186066,
+      "maxReaderCpuMs": 0.5,
+      "readCount": 2,
+      "collectionCpuMs": 0.19999998807907104,
+      "receiptCpuMs": 0.19999998807907104,
+      "nativeCallbackCpuMs": 0.10000002384185791,
+      "nativeStopCpuMs": 0,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 12,
+        "unique": 3
+      },
+      "collectionWait": {
+        "startMs": 1888.9000000059605,
+        "endMs": 1889,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1881.4000000059605,
+        "elapsedMs": 0.09999999403953552,
+        "overrun": false
+      }
+    },
+    {
+      "index": 7,
+      "population": "desktop",
+      "control": "transient",
+      "pass": true,
+      "feedback": "censored",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 3.799999952316284,
+      "maxReaderCpuMs": 0.30000001192092896,
+      "readCount": 57,
+      "collectionCpuMs": 0.3999999761581421,
+      "receiptCpuMs": 0,
+      "nativeCallbackCpuMs": 0.19999998807907104,
+      "nativeStopCpuMs": 0.09999999403953552,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 14
+      },
+      "collectionWait": {
+        "startMs": 1966.2999999821186,
+        "endMs": 2979.199999988079,
+        "limitMs": 1000,
+        "expired": true,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1958.2999999821186,
+        "elapsedMs": 1012.9000000059605,
+        "overrun": true
+      }
+    },
+    {
+      "index": 8,
+      "population": "desktop",
+      "control": "render-delay",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 1539.2000000178814,
+      "readerCpuMs": 1.6999999284744263,
+      "maxReaderCpuMs": 0.5,
+      "readCount": 14,
+      "collectionCpuMs": 0.09999999403953552,
+      "receiptCpuMs": 0.09999999403953552,
+      "nativeCallbackCpuMs": 0.30000001192092896,
+      "nativeStopCpuMs": 0.10000002384185791,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 24
+      },
+      "collectionWait": {
+        "startMs": 1840,
+        "endMs": 1840.1000000238419,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1831.7000000178814,
+        "elapsedMs": 0.10000002384185791,
+        "overrun": false
+      }
+    },
+    {
+      "index": 9,
+      "population": "desktop",
+      "control": "missing-frame",
+      "pass": true,
+      "feedback": "censored",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 0.7000000178813934,
+      "maxReaderCpuMs": 0.4000000059604645,
+      "readCount": 3,
+      "collectionCpuMs": 0.09999999403953552,
+      "receiptCpuMs": 0.09999999403953552,
+      "nativeCallbackCpuMs": 0.19999998807907104,
+      "nativeStopCpuMs": 0.09999999403953552,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 24
+      },
+      "collectionWait": {
+        "startMs": 2693.7000000178814,
+        "endMs": 2693.7000000178814,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 2689.2000000178814,
+        "elapsedMs": 0,
+        "overrun": false
+      }
+    },
+    {
+      "index": 10,
+      "population": "desktop",
+      "control": "cancel-before-input",
+      "pass": true,
+      "feedback": "cancelled",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 0.19999998807907104,
+      "maxReaderCpuMs": 0.19999998807907104,
+      "readCount": 1,
+      "collectionCpuMs": 0.09999999403953552,
+      "receiptCpuMs": 0,
+      "nativeCallbackCpuMs": 0,
+      "nativeStopCpuMs": 0,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": null,
+      "joins": {},
+      "collectionWait": {
+        "startMs": 1714.4000000059605,
+        "endMs": 1714.5,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1205.300000011921,
+        "elapsedMs": 0.09999999403953552,
+        "overrun": false
+      }
+    },
+    {
+      "index": 11,
+      "population": "desktop",
+      "control": "runtime-replacement",
+      "pass": true,
+      "feedback": "cancelled",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 0.5,
+      "maxReaderCpuMs": 0.5,
+      "readCount": 1,
+      "collectionCpuMs": 0.09999999403953552,
+      "receiptCpuMs": 0.20000001788139343,
+      "nativeCallbackCpuMs": 0.3999999761581421,
+      "nativeStopCpuMs": 0,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 24
+      },
+      "collectionWait": {
+        "startMs": 1847.199999988079,
+        "endMs": 1847.199999988079,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1834.4000000059605,
+        "elapsedMs": 0,
+        "overrun": false
+      }
+    },
+    {
+      "index": 12,
+      "population": "desktop",
+      "control": "host-failure",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 1353.7000000178814,
+      "readerCpuMs": 1,
+      "maxReaderCpuMs": 0.5,
+      "readCount": 5,
+      "collectionCpuMs": 0.30000001192092896,
+      "receiptCpuMs": 0.09999999403953552,
+      "nativeCallbackCpuMs": 0.19999998807907104,
+      "nativeStopCpuMs": 0.10000002384185791,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 24
+      },
+      "collectionWait": {
+        "startMs": 1849.7000000178814,
+        "endMs": 1849.800000011921,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1841.4000000059605,
+        "elapsedMs": 0.09999999403953552,
+        "overrun": false
+      }
+    },
+    {
+      "index": 13,
+      "population": "mobile",
+      "control": "immediate-delayed-completion",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 1854.0999999940395,
+      "readerCpuMs": 0.699999988079071,
+      "maxReaderCpuMs": 0.29999998211860657,
+      "readCount": 5,
+      "collectionCpuMs": 0.09999999403953552,
+      "receiptCpuMs": 0.20000001788139343,
+      "nativeCallbackCpuMs": 0.4000000059604645,
+      "nativeStopCpuMs": 0.10000002384185791,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 2413.0999999940395,
+        "endMs": 2413.0999999940395,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 2403.5,
+        "elapsedMs": 0,
+        "overrun": false
+      }
+    },
+    {
+      "index": 14,
+      "population": "mobile",
+      "control": "immediate-completion",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 1333.4000000059605,
+      "readerCpuMs": 0.7999999523162842,
+      "maxReaderCpuMs": 0.29999998211860657,
+      "readCount": 5,
+      "collectionCpuMs": 0.09999999403953552,
+      "receiptCpuMs": 0.10000002384185791,
+      "nativeCallbackCpuMs": 0.09999999403953552,
+      "nativeStopCpuMs": 0,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 10
+      },
+      "collectionWait": {
+        "startMs": 1353.800000011921,
+        "endMs": 1353.9000000059605,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1349.4000000059605,
+        "elapsedMs": 0.09999999403953552,
+        "overrun": false
+      }
+    },
+    {
+      "index": 15,
+      "population": "mobile",
+      "control": "queue",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 1515.9000000059605,
+      "readerCpuMs": 0.9999999701976776,
+      "maxReaderCpuMs": 0.4000000059604645,
+      "readCount": 5,
+      "collectionCpuMs": 0.09999999403953552,
+      "receiptCpuMs": 0.10000002384185791,
+      "nativeCallbackCpuMs": 0.30000001192092896,
+      "nativeStopCpuMs": 0.09999999403953552,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 2032.4000000059605,
+        "endMs": 2032.5,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 2022.7000000178814,
+        "elapsedMs": 0.09999999403953552,
+        "overrun": false
+      }
+    },
+    {
+      "index": 16,
+      "population": "mobile",
+      "control": "capture-cost",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 1281.6000000238419,
+      "readerCpuMs": 0.8999999761581421,
+      "maxReaderCpuMs": 0.30000001192092896,
+      "readCount": 5,
+      "collectionCpuMs": 0.09999999403953552,
+      "receiptCpuMs": 0.09999999403953552,
+      "nativeCallbackCpuMs": 0.30000001192092896,
+      "nativeStopCpuMs": 0.09999999403953552,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 1816.6000000238419,
+        "endMs": 1816.7000000178814,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1797.6000000238419,
+        "elapsedMs": 0.09999999403953552,
+        "overrun": false
+      }
+    },
+    {
+      "index": 17,
+      "population": "mobile",
+      "control": "no-op",
+      "pass": true,
+      "feedback": "censored",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 2.4999999701976776,
+      "maxReaderCpuMs": 0.3999999761581421,
+      "readCount": 81,
+      "collectionCpuMs": 0.5,
+      "receiptCpuMs": 0.09999999403953552,
+      "nativeCallbackCpuMs": 0.10000002384185791,
+      "nativeStopCpuMs": 0.20000001788139343,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 8,
+        "unique": 3
+      },
+      "collectionWait": {
+        "startMs": 1857,
+        "endMs": 2858,
+        "limitMs": 1000,
+        "expired": true,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1849.7000000178814,
+        "elapsedMs": 1001,
+        "overrun": false
+      }
+    },
+    {
+      "index": 18,
+      "population": "mobile",
+      "control": "clipped-cue",
+      "pass": true,
+      "feedback": "censored",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 11.99999988079071,
+      "maxReaderCpuMs": 0.4000000059604645,
+      "readCount": 77,
+      "collectionCpuMs": 0.5,
+      "receiptCpuMs": 0.19999998807907104,
+      "nativeCallbackCpuMs": 0.19999998807907104,
+      "nativeStopCpuMs": 0.09999999403953552,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 1874,
+        "endMs": 2885.5,
+        "limitMs": 1000,
+        "expired": true,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1864.4000000059605,
+        "elapsedMs": 1011.5,
+        "overrun": true
+      }
+    },
+    {
+      "index": 19,
+      "population": "mobile",
+      "control": "pre-input-drift",
+      "pass": true,
+      "feedback": "failed",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 0.699999988079071,
+      "maxReaderCpuMs": 0.3999999761581421,
+      "readCount": 2,
+      "collectionCpuMs": 0.09999999403953552,
+      "receiptCpuMs": 0.09999999403953552,
+      "nativeCallbackCpuMs": 0.30000001192092896,
+      "nativeStopCpuMs": 0.09999999403953552,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 27,
+        "unique": 3
+      },
+      "collectionWait": {
+        "startMs": 1904.5,
+        "endMs": 1904.5,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1894.3999999761581,
+        "elapsedMs": 0,
+        "overrun": false
+      }
+    },
+    {
+      "index": 20,
+      "population": "mobile",
+      "control": "transient",
+      "pass": true,
+      "feedback": "censored",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 5.200000166893005,
+      "maxReaderCpuMs": 0.4000000059604645,
+      "readCount": 77,
+      "collectionCpuMs": 0.30000001192092896,
+      "receiptCpuMs": 0.09999999403953552,
+      "nativeCallbackCpuMs": 0.30000001192092896,
+      "nativeStopCpuMs": 0.09999999403953552,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 1936.699999988079,
+        "endMs": 2946.0999999940395,
+        "limitMs": 1000,
+        "expired": true,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1929.199999988079,
+        "elapsedMs": 1009.4000000059605,
+        "overrun": true
+      }
+    },
+    {
+      "index": 21,
+      "population": "mobile",
+      "control": "render-delay",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 1535.199999988079,
+      "readerCpuMs": 2,
+      "maxReaderCpuMs": 0.4000000059604645,
+      "readCount": 16,
+      "collectionCpuMs": 0.09999999403953552,
+      "receiptCpuMs": 0,
+      "nativeCallbackCpuMs": 0.20000001788139343,
+      "nativeStopCpuMs": 0.09999999403953552,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 1914.9000000059605,
+        "endMs": 1914.9000000059605,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1906.0999999940395,
+        "elapsedMs": 0,
+        "overrun": false
+      }
+    },
+    {
+      "index": 22,
+      "population": "mobile",
+      "control": "missing-frame",
+      "pass": true,
+      "feedback": "censored",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 0.4999999701976776,
+      "maxReaderCpuMs": 0.29999998211860657,
+      "readCount": 3,
+      "collectionCpuMs": 0.09999999403953552,
+      "receiptCpuMs": 0.09999999403953552,
+      "nativeCallbackCpuMs": 0.19999998807907104,
+      "nativeStopCpuMs": 0,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 2656.9000000059605,
+        "endMs": 2656.9000000059605,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 2652.4000000059605,
+        "elapsedMs": 0,
+        "overrun": false
+      }
+    },
+    {
+      "index": 23,
+      "population": "mobile",
+      "control": "cancel-before-input",
+      "pass": true,
+      "feedback": "cancelled",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 0.5,
+      "maxReaderCpuMs": 0.5,
+      "readCount": 1,
+      "collectionCpuMs": 0.09999999403953552,
+      "receiptCpuMs": 0,
+      "nativeCallbackCpuMs": 0,
+      "nativeStopCpuMs": 0.09999999403953552,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": null,
+      "joins": {},
+      "collectionWait": {
+        "startMs": 1781.699999988079,
+        "endMs": 1781.800000011921,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1269.300000011921,
+        "elapsedMs": 0.10000002384185791,
+        "overrun": false
+      }
+    },
+    {
+      "index": 24,
+      "population": "mobile",
+      "control": "runtime-replacement",
+      "pass": true,
+      "feedback": "cancelled",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 0.4000000059604645,
+      "maxReaderCpuMs": 0.4000000059604645,
+      "readCount": 1,
+      "collectionCpuMs": 0.19999998807907104,
+      "receiptCpuMs": 0.09999999403953552,
+      "nativeCallbackCpuMs": 0.30000001192092896,
+      "nativeStopCpuMs": 0.09999999403953552,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 1826.5,
+        "endMs": 1826.5999999940395,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1818.699999988079,
+        "elapsedMs": 0.09999999403953552,
+        "overrun": false
+      }
+    },
+    {
+      "index": 25,
+      "population": "mobile",
+      "control": "host-failure",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 1405.699999988079,
+      "readerCpuMs": 1.0999999940395355,
+      "maxReaderCpuMs": 0.3999999761581421,
+      "readCount": 5,
+      "collectionCpuMs": 0.19999998807907104,
+      "receiptCpuMs": 0.09999999403953552,
+      "nativeCallbackCpuMs": 0.20000001788139343,
+      "nativeStopCpuMs": 0,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 1901.7999999821186,
+        "endMs": 1901.7999999821186,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 1892.2999999821186,
+        "elapsedMs": 0,
+        "overrun": false
+      }
+    },
+    {
+      "index": 26,
+      "population": "mobile4",
+      "control": "immediate-delayed-completion",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 6670.5,
+      "readerCpuMs": 6.199999958276749,
+      "maxReaderCpuMs": 2.199999988079071,
+      "readCount": 5,
+      "collectionCpuMs": 0.5999999940395355,
+      "receiptCpuMs": 0.7999999821186066,
+      "nativeCallbackCpuMs": 1.399999976158142,
+      "nativeStopCpuMs": 1,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 7252.5,
+        "endMs": 7252.9000000059605,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 7170.800000011921,
+        "elapsedMs": 0.4000000059604645,
+        "overrun": false
+      }
+    },
+    {
+      "index": 27,
+      "population": "mobile4",
+      "control": "immediate-completion",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 6167.5,
+      "readerCpuMs": 6.199999988079071,
+      "maxReaderCpuMs": 2.4000000059604645,
+      "readCount": 5,
+      "collectionCpuMs": 0.800000011920929,
+      "receiptCpuMs": 1.0000000298023224,
+      "nativeCallbackCpuMs": 1.5,
+      "nativeStopCpuMs": 0.4000000059604645,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 6580.300000011921,
+        "endMs": 6581,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 6553.300000011921,
+        "elapsedMs": 0.699999988079071,
+        "overrun": false
+      }
+    },
+    {
+      "index": 28,
+      "population": "mobile4",
+      "control": "queue",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 6967.199999988079,
+      "readerCpuMs": 6,
+      "maxReaderCpuMs": 2.199999988079071,
+      "readCount": 5,
+      "collectionCpuMs": 0.09999999403953552,
+      "receiptCpuMs": 0.800000011920929,
+      "nativeCallbackCpuMs": 1,
+      "nativeStopCpuMs": 0.5,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 7466.5,
+        "endMs": 7467,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 7433.0999999940395,
+        "elapsedMs": 0.5,
+        "overrun": false
+      }
+    },
+    {
+      "index": 29,
+      "population": "mobile4",
+      "control": "capture-cost",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 6760.0999999940395,
+      "readerCpuMs": 5.39999994635582,
+      "maxReaderCpuMs": 2.399999976158142,
+      "readCount": 5,
+      "collectionCpuMs": 1.4000000059604645,
+      "receiptCpuMs": 0.8000000417232513,
+      "nativeCallbackCpuMs": 2.0999999940395355,
+      "nativeStopCpuMs": 0.5,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 7308.700000017881,
+        "endMs": 7309.0999999940395,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 7210.4000000059605,
+        "elapsedMs": 0.3999999761581421,
+        "overrun": false
+      }
+    },
+    {
+      "index": 30,
+      "population": "mobile4",
+      "control": "no-op",
+      "pass": true,
+      "feedback": "censored",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 13.50000011920929,
+      "maxReaderCpuMs": 2.2999999821186066,
+      "readCount": 64,
+      "collectionCpuMs": 2.300000011920929,
+      "receiptCpuMs": 0.4000000059604645,
+      "nativeCallbackCpuMs": 0.8999999761581421,
+      "nativeStopCpuMs": 0.5999999940395355,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 8,
+        "unique": 3
+      },
+      "collectionWait": {
+        "startMs": 6765.5,
+        "endMs": 7799.200000017881,
+        "limitMs": 1000,
+        "expired": true,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 6686.5999999940395,
+        "elapsedMs": 1033.7000000178814,
+        "overrun": true
+      }
+    },
+    {
+      "index": 31,
+      "population": "mobile4",
+      "control": "clipped-cue",
+      "pass": true,
+      "feedback": "censored",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 44.199999928474426,
+      "maxReaderCpuMs": 2.5999999940395355,
+      "readCount": 51,
+      "collectionCpuMs": 2.600000023841858,
+      "receiptCpuMs": 0.5999999940395355,
+      "nativeCallbackCpuMs": 1.300000011920929,
+      "nativeStopCpuMs": 0.7000000178813934,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 6991,
+        "endMs": 8025,
+        "limitMs": 1000,
+        "expired": true,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 6951.200000017881,
+        "elapsedMs": 1034,
+        "overrun": true
+      }
+    },
+    {
+      "index": 32,
+      "population": "mobile4",
+      "control": "pre-input-drift",
+      "pass": true,
+      "feedback": "failed",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 3.7000000178813934,
+      "maxReaderCpuMs": 2.800000011920929,
+      "readCount": 2,
+      "collectionCpuMs": 0.800000011920929,
+      "receiptCpuMs": 0.5,
+      "nativeCallbackCpuMs": 1.699999988079071,
+      "nativeStopCpuMs": 0.7999999821186066,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 27,
+        "unique": 3
+      },
+      "collectionWait": {
+        "startMs": 7315.5,
+        "endMs": 7315.799999982119,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 7233.0999999940395,
+        "elapsedMs": 0.29999998211860657,
+        "overrun": false
+      }
+    },
+    {
+      "index": 33,
+      "population": "mobile4",
+      "control": "transient",
+      "pass": true,
+      "feedback": "censored",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 19.199999898672104,
+      "maxReaderCpuMs": 2.5999999940395355,
+      "readCount": 42,
+      "collectionCpuMs": 1.300000011920929,
+      "receiptCpuMs": 0.7999999821186066,
+      "nativeCallbackCpuMs": 1.5,
+      "nativeStopCpuMs": 0.7000000178813934,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 7122.4000000059605,
+        "endMs": 8135.200000017881,
+        "limitMs": 1000,
+        "expired": true,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 7081.5,
+        "elapsedMs": 1012.8000000119209,
+        "overrun": true
+      }
+    },
+    {
+      "index": 34,
+      "population": "mobile4",
+      "control": "render-delay",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 6780.5999999940395,
+      "readerCpuMs": 7.300000011920929,
+      "maxReaderCpuMs": 2.9000000059604645,
+      "readCount": 5,
+      "collectionCpuMs": 1.100000023841858,
+      "receiptCpuMs": 0.8999999761581421,
+      "nativeCallbackCpuMs": 1.300000011920929,
+      "nativeStopCpuMs": 0.800000011920929,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 7284.9000000059605,
+        "endMs": 7285.0999999940395,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 7249.699999988079,
+        "elapsedMs": 0.19999998807907104,
+        "overrun": false
+      }
+    },
+    {
+      "index": 35,
+      "population": "mobile4",
+      "control": "missing-frame",
+      "pass": true,
+      "feedback": "censored",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 4.399999976158142,
+      "maxReaderCpuMs": 2.199999988079071,
+      "readCount": 3,
+      "collectionCpuMs": 0.5999999940395355,
+      "receiptCpuMs": 0.699999988079071,
+      "nativeCallbackCpuMs": 1.199999988079071,
+      "nativeStopCpuMs": 0.699999988079071,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 14
+      },
+      "collectionWait": {
+        "startMs": 7720.0999999940395,
+        "endMs": 7720.5,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 7704.800000011921,
+        "elapsedMs": 0.4000000059604645,
+        "overrun": false
+      }
+    },
+    {
+      "index": 36,
+      "population": "mobile4",
+      "control": "cancel-before-input",
+      "pass": true,
+      "feedback": "cancelled",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 1.800000011920929,
+      "maxReaderCpuMs": 1.800000011920929,
+      "readCount": 1,
+      "collectionCpuMs": 0.8999999761581421,
+      "receiptCpuMs": 0,
+      "nativeCallbackCpuMs": 0,
+      "nativeStopCpuMs": 0.3999999761581421,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": null,
+      "joins": {},
+      "collectionWait": {
+        "startMs": 6326.800000011921,
+        "endMs": 6327,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 5761.700000017881,
+        "elapsedMs": 0.19999998807907104,
+        "overrun": false
+      }
+    },
+    {
+      "index": 37,
+      "population": "mobile4",
+      "control": "runtime-replacement",
+      "pass": true,
+      "feedback": "cancelled",
+      "firstChangedFrameAtMs": null,
+      "readerCpuMs": 2.4000000059604645,
+      "maxReaderCpuMs": 2.4000000059604645,
+      "readCount": 1,
+      "collectionCpuMs": 0.9000000059604645,
+      "receiptCpuMs": 0.7999999821186066,
+      "nativeCallbackCpuMs": 1.5999999940395355,
+      "nativeStopCpuMs": 0.29999998211860657,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 7040.5999999940395,
+        "endMs": 7040.899999976158,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 6949.899999976158,
+        "elapsedMs": 0.29999998211860657,
+        "overrun": false
+      }
+    },
+    {
+      "index": 38,
+      "population": "mobile4",
+      "control": "host-failure",
+      "pass": true,
+      "feedback": "completed",
+      "firstChangedFrameAtMs": 6621.700000017881,
+      "readerCpuMs": 5.299999982118607,
+      "maxReaderCpuMs": 1.800000011920929,
+      "readCount": 5,
+      "collectionCpuMs": 0.20000001788139343,
+      "receiptCpuMs": 0.40000003576278687,
+      "nativeCallbackCpuMs": 1.2999999821186066,
+      "nativeStopCpuMs": 0.5999999940395355,
+      "nativeOverflow": 0,
+      "droppedEntriesCount": 0,
+      "joins": {
+        "unmatched": 26
+      },
+      "collectionWait": {
+        "startMs": 7193.300000011921,
+        "endMs": 7193.4000000059605,
+        "limitMs": 1000,
+        "expired": false,
+        "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+        "originalHostEndAtMs": 7104.4000000059605,
+        "elapsedMs": 0.09999999403953552,
+        "overrun": false
+      }
+    }
+  ],
+  "traces": [
+    {
+      "path": "artifacts\\perf-hillclimb\\feedback-native-controls-r5-20261105\\0-trace.json.identity.json",
+      "bytes": 3006470,
+      "complete": true,
+      "handleClosed": true,
+      "clock": {
+        "lowTraceMinusPageMs": 231834581.34600002,
+        "highTraceMinusPageMs": 231834581.252,
+        "valid": false,
+        "scope": "10 same-document JS mark brackets; trace microseconds explicitly converted to ms; no epoch/scanout conversion"
+      },
+      "matchingMenuPaints": 1,
+      "parseCpuMs": 28.043499999999767,
+      "event": {
+        "dataLossOccurred": false,
+        "stream": "1",
+        "traceFormat": "json",
+        "streamCompression": "none"
+      }
+    },
+    {
+      "path": "artifacts\\perf-hillclimb\\feedback-native-controls-r5-20261105\\29-trace.json.identity.json",
+      "bytes": 1755792,
+      "complete": true,
+      "handleClosed": true,
+      "clock": {
+        "lowTraceMinusPageMs": 231933100.621,
+        "highTraceMinusPageMs": 231933100.519,
+        "valid": false,
+        "scope": "10 same-document JS mark brackets; trace microseconds explicitly converted to ms; no epoch/scanout conversion"
+      },
+      "matchingMenuPaints": 2,
+      "parseCpuMs": 19.80010000000766,
+      "event": {
+        "dataLossOccurred": false,
+        "stream": "1",
+        "traceFormat": "json",
+        "streamCompression": "none"
+      }
+    }
+  ]
+}

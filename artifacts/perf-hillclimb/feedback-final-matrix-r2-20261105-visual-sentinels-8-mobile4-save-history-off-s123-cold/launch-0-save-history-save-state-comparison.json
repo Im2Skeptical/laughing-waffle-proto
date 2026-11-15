@@ -1,0 +1,24 @@
+{
+  "sourceFixture": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+  "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+  "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+  "sourceState": "bc098effb2e4c3e69b09b839081e73c9d15d34f94e2aea387731f470ad76f4b9",
+  "knowledgeDerivation": null,
+  "expectedReplayState": "bc098effb2e4c3e69b09b839081e73c9d15d34f94e2aea387731f470ad76f4b9",
+  "expectedOpeningKnowledge": null,
+  "expectedRawSavedState": "c75ba90b23c644454736c2c37ec0f3c5d3a455d1814ce6e7abd9179a2f1509fc",
+  "rawSavedState": "35c86f635c0a170f3d1880f936c1c6809249d07c0b547db0a346c0c269a8c90c",
+  "decodedSavedState": "35c86f635c0a170f3d1880f936c1c6809249d07c0b547db0a346c0c269a8c90c",
+  "rebuiltSavedState": "a51664c7d7a84b7964b0640a77db348426249f4ca9f30d0a7f5496e2041514d8",
+  "deltaPaths": [
+    "persistentKnowledge.maxObservedCivilizationSurvivalYear"
+  ],
+  "rawDeltaPaths": [
+    "persistentKnowledge.maxObservedCivilizationSurvivalYear"
+  ],
+  "decodedDeltaPaths": [
+    "persistentKnowledge.maxObservedCivilizationSurvivalYear"
+  ],
+  "expectedControlTransition": "explicit Present/paid-time commit pauses into planning; independently derived with frozen SDK",
+  "transform": "actual raw/decoded/rebuilt output is not transformed; every field including controls, persistent knowledge and RNG is compared"
+}

@@ -1,0 +1,21 @@
+{
+  "at": "2026-11-15T05:09:41.988Z",
+  "node": "v24.15.0",
+  "phase": "CONSTRUCTOR_ROLLBACK_SOURCE_MANAGED_ONLY",
+  "sourceCount": 683,
+  "assetCount": 5,
+  "sourceAssetChanges": [],
+  "files": {
+    "RepairContracts.cs": "0ba8a31d799bdc7797d5232c13f293acd505e93f76244dd569a3b2840eb9b541",
+    "RepairedResources.cs": "0dc6563be7e329b6f40d853bffe0f43d81c970af0376ac723d3c5dcca379fc01",
+    "PureFixtures.cs": "a0aa1792417759846530d163f4123972467faf901f7eddc75ab847c2e5c2331c",
+    "build-pure.ps1": "088911ae151b9344cf42bd55270ffb69d44ca2ee64727627e49ca89eef13fb7f",
+    "NativeCaptureRepair.dll": "2f0d7e80c755ccd7f292e7ddd7c97611f29783bbb1ad271be13551d5d691cdbb",
+    "compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compile-exit.txt": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+    "pure-result.json": "defbaf81581b37ec6b1e91b21e2ba55f9ae1ca5da9af6af0f71ad5153e3cc43a",
+    "README.md": "d458e9c74459db889c109c341d0b267f44e7e5fbbe45de5ee2c955a17279bd87",
+    "authenticate.mjs": "f54f87f69f056ad4998ac0adf6598ceca7a4f237e88316bcb4ae0df2977aff04"
+  },
+  "scope": "Builder198 managed mechanisms/setup-rollback checks; no native helper/API/target/capture. No independent or source/child admission."
+}

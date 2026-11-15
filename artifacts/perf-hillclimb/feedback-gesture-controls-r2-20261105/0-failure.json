@@ -1,0 +1,4 @@
+{
+  "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'censored'\n- 'completed'\n",
+  "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'censored'\n- 'completed'\n\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/feedback-gesture-controls.mjs:50:11"
+}

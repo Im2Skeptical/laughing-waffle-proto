@@ -1,0 +1,2334 @@
+{
+  "case": "reference",
+  "prepared": {
+    "time": 94790.30000001192,
+    "frontier": 0,
+    "viewed": 0,
+    "actions": 0,
+    "mode": "map",
+    "main": {
+      "ready": false,
+      "bakes": 1,
+      "frames": 1,
+      "flattenedProps": 145,
+      "updateMs": 572.4000000059605,
+      "variantBuilds": 1,
+      "variantBuildMs": 28117.5,
+      "cooperation": {
+        "steps": 504,
+        "longestStepMs": 709.5999999940395,
+        "slowSteps": [
+          [
+            2,
+            209
+          ],
+          [
+            3,
+            272
+          ],
+          [
+            4,
+            208
+          ],
+          [
+            6,
+            678
+          ],
+          [
+            7,
+            305
+          ],
+          [
+            10,
+            137
+          ],
+          [
+            13,
+            145
+          ],
+          [
+            14,
+            329
+          ],
+          [
+            115,
+            117
+          ],
+          [
+            118,
+            105
+          ],
+          [
+            122,
+            106
+          ],
+          [
+            128,
+            220
+          ],
+          [
+            129,
+            546
+          ],
+          [
+            130,
+            119
+          ],
+          [
+            132,
+            281
+          ],
+          [
+            134,
+            168
+          ],
+          [
+            237,
+            146
+          ],
+          [
+            240,
+            117
+          ],
+          [
+            244,
+            121
+          ],
+          [
+            251,
+            475
+          ],
+          [
+            252,
+            105
+          ],
+          [
+            254,
+            710
+          ],
+          [
+            256,
+            112
+          ],
+          [
+            356,
+            111
+          ],
+          [
+            359,
+            106
+          ],
+          [
+            363,
+            130
+          ],
+          [
+            370,
+            309
+          ],
+          [
+            372,
+            131
+          ],
+          [
+            373,
+            341
+          ],
+          [
+            374,
+            133
+          ],
+          [
+            500,
+            439
+          ],
+          [
+            503,
+            570
+          ]
+        ],
+        "yields": 174
+      },
+      "bakeMs": 36639.20000001788,
+      "terrainBakeMs": 5243,
+      "bounds": {
+        "minX": -0.47715736040609136,
+        "minY": -0.8682170542635659,
+        "maxX": 1.4314720812182742,
+        "maxY": 1.9534883720930232
+      },
+      "textureMiB": 4.2,
+      "width": 1504,
+      "height": 728,
+      "presentationBuilds": 1,
+      "presentationMs": 304.5,
+      "presentationTotalMs": 304.59999999403954,
+      "biomes": [
+        {
+          "id": "R01",
+          "underlying": "islands",
+          "biome": "islands"
+        },
+        {
+          "id": "R02",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R03",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R04",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R05",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R06",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R07",
+          "underlying": "islands",
+          "biome": "islands"
+        },
+        {
+          "id": "R08",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R09",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R10",
+          "underlying": "plains",
+          "biome": "monster"
+        },
+        {
+          "id": "R11",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R12",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R13",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R14",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R15",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R16",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R17",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R18",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R19",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R20",
+          "underlying": "mountains",
+          "biome": "mountains"
+        }
+      ],
+      "sites": [
+        {
+          "regionId": "R01",
+          "biome": "islands",
+          "buildings": 19,
+          "point": {
+            "x": 0.7569796954314721,
+            "y": 0.013565891472868241
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R02",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.956218274111675,
+            "y": -0.02131782945736438
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R03",
+          "biome": "mountains",
+          "buildings": 17,
+          "point": {
+            "x": -0.14276649746192893,
+            "y": 0.34302325581395343
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R04",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.04758883248730961,
+            "y": 0.35077519379844957
+          },
+          "kind": "crownCapital"
+        },
+        {
+          "regionId": "R05",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.18718274111675126,
+            "y": 0.3701550387596899
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R06",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.37373096446700504,
+            "y": 0.3236434108527131
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R07",
+          "biome": "islands",
+          "buildings": 19,
+          "point": {
+            "x": 0.5843908629441624,
+            "y": 0.35077519379844957
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R08",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.7468274111675127,
+            "y": 0.2848837209302326
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R09",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.958756345177665,
+            "y": 0.32751937984496116
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R11",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.04378172588832485,
+            "y": 0.7151162790697674
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R12",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.2607868020304569,
+            "y": 0.7073643410852712
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R13",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.43464467005076146,
+            "y": 0.7112403100775193
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R14",
+          "biome": "swamp",
+          "buildings": 19,
+          "point": {
+            "x": 0.5691624365482234,
+            "y": 0.7926356589147288
+          },
+          "kind": "player"
+        },
+        {
+          "regionId": "R15",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.8039340101522844,
+            "y": 0.5910852713178294
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R16",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.9435279187817259,
+            "y": 0.7383720930232558
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R17",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.2074873096446701,
+            "y": 0.9748062015503876
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R18",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.4498730964467005,
+            "y": 1.0910852713178294
+          },
+          "kind": "player"
+        },
+        {
+          "regionId": "R19",
+          "biome": "mountains",
+          "buildings": 18,
+          "point": {
+            "x": 0.5615482233502539,
+            "y": 1.0872093023255813
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R20",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.7569796954314721,
+            "y": 1.0368217054263567
+          },
+          "kind": "crown"
+        }
+      ],
+      "roads": 9,
+      "connections": 9,
+      "monsterPieces": 6,
+      "presentationCache": 1,
+      "cameraUpdates": 1,
+      "viewedSec": 0,
+      "animationPasses": 4,
+      "animationPixels": 583680,
+      "waterWindows": [
+        {
+          "x": 256,
+          "y": 128,
+          "width": 1056,
+          "height": 448,
+          "levels": 1,
+          "backdrop": false
+        }
+      ],
+      "atmosphereWindow": {
+        "x": 64,
+        "y": 32,
+        "width": 288,
+        "height": 128
+      },
+      "backdropAnimating": false,
+      "prepared": true
+    },
+    "decision": {
+      "ready": false,
+      "bakes": 1,
+      "frames": 1,
+      "flattenedProps": 145,
+      "updateMs": 5.5999999940395355,
+      "variantBuilds": 1,
+      "variantBuildMs": 24689.59999999404,
+      "cooperation": {
+        "steps": 504,
+        "longestStepMs": 840.5,
+        "yields": 183,
+        "slowSteps": [
+          [
+            2,
+            328
+          ],
+          [
+            3,
+            841
+          ],
+          [
+            6,
+            614
+          ],
+          [
+            7,
+            246
+          ],
+          [
+            10,
+            138
+          ],
+          [
+            14,
+            240
+          ],
+          [
+            115,
+            159
+          ],
+          [
+            118,
+            126
+          ],
+          [
+            122,
+            122
+          ],
+          [
+            128,
+            223
+          ],
+          [
+            129,
+            589
+          ],
+          [
+            132,
+            212
+          ],
+          [
+            134,
+            180
+          ],
+          [
+            136,
+            125
+          ],
+          [
+            237,
+            162
+          ],
+          [
+            240,
+            134
+          ],
+          [
+            244,
+            146
+          ],
+          [
+            251,
+            466
+          ],
+          [
+            252,
+            102
+          ],
+          [
+            254,
+            671
+          ],
+          [
+            256,
+            106
+          ],
+          [
+            356,
+            153
+          ],
+          [
+            359,
+            126
+          ],
+          [
+            363,
+            149
+          ],
+          [
+            370,
+            328
+          ],
+          [
+            371,
+            124
+          ],
+          [
+            372,
+            123
+          ],
+          [
+            373,
+            340
+          ],
+          [
+            374,
+            127
+          ],
+          [
+            500,
+            499
+          ],
+          [
+            501,
+            110
+          ],
+          [
+            503,
+            589
+          ]
+        ]
+      },
+      "bakeMs": 35035.59999999404,
+      "terrainBakeMs": 8481,
+      "bounds": {
+        "minX": -0.47715736040609136,
+        "minY": -0.8682170542635659,
+        "maxX": 1.4314720812182742,
+        "maxY": 1.9534883720930232
+      },
+      "textureMiB": 4.2,
+      "width": 1504,
+      "height": 728,
+      "presentationBuilds": 1,
+      "presentationMs": 188,
+      "presentationTotalMs": 188,
+      "biomes": [
+        {
+          "id": "R01",
+          "underlying": "islands",
+          "biome": "islands"
+        },
+        {
+          "id": "R02",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R03",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R04",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R05",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R06",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R07",
+          "underlying": "islands",
+          "biome": "islands"
+        },
+        {
+          "id": "R08",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R09",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R10",
+          "underlying": "plains",
+          "biome": "monster"
+        },
+        {
+          "id": "R11",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R12",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R13",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R14",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R15",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R16",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R17",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R18",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R19",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R20",
+          "underlying": "mountains",
+          "biome": "mountains"
+        }
+      ],
+      "sites": [
+        {
+          "regionId": "R01",
+          "biome": "islands",
+          "buildings": 19,
+          "point": {
+            "x": 0.7569796954314721,
+            "y": 0.013565891472868241
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R02",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.956218274111675,
+            "y": -0.02131782945736438
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R03",
+          "biome": "mountains",
+          "buildings": 17,
+          "point": {
+            "x": -0.14276649746192893,
+            "y": 0.34302325581395343
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R04",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.04758883248730961,
+            "y": 0.35077519379844957
+          },
+          "kind": "crownCapital"
+        },
+        {
+          "regionId": "R05",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.18718274111675126,
+            "y": 0.3701550387596899
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R06",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.37373096446700504,
+            "y": 0.3236434108527131
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R07",
+          "biome": "islands",
+          "buildings": 19,
+          "point": {
+            "x": 0.5843908629441624,
+            "y": 0.35077519379844957
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R08",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.7468274111675127,
+            "y": 0.2848837209302326
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R09",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.958756345177665,
+            "y": 0.32751937984496116
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R11",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.04378172588832485,
+            "y": 0.7151162790697674
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R12",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.2607868020304569,
+            "y": 0.7073643410852712
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R13",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.43464467005076146,
+            "y": 0.7112403100775193
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R14",
+          "biome": "swamp",
+          "buildings": 19,
+          "point": {
+            "x": 0.5691624365482234,
+            "y": 0.7926356589147288
+          },
+          "kind": "player"
+        },
+        {
+          "regionId": "R15",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.8039340101522844,
+            "y": 0.5910852713178294
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R16",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.9435279187817259,
+            "y": 0.7383720930232558
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R17",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.2074873096446701,
+            "y": 0.9748062015503876
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R18",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.4498730964467005,
+            "y": 1.0910852713178294
+          },
+          "kind": "player"
+        },
+        {
+          "regionId": "R19",
+          "biome": "mountains",
+          "buildings": 18,
+          "point": {
+            "x": 0.5615482233502539,
+            "y": 1.0872093023255813
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R20",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.7569796954314721,
+            "y": 1.0368217054263567
+          },
+          "kind": "crown"
+        }
+      ],
+      "roads": 9,
+      "connections": 9,
+      "monsterPieces": 6,
+      "presentationCache": 1,
+      "cameraUpdates": 1,
+      "viewedSec": 0,
+      "animationPasses": 4,
+      "animationPixels": 583680,
+      "waterWindows": [
+        {
+          "x": 256,
+          "y": 128,
+          "width": 1056,
+          "height": 448,
+          "levels": 1,
+          "backdrop": false
+        }
+      ],
+      "atmosphereWindow": {
+        "x": 64,
+        "y": 32,
+        "width": 288,
+        "height": 128
+      },
+      "backdropAnimating": false,
+      "prepared": true
+    },
+    "sealReady": true
+  },
+  "revealed": {
+    "time": 104358.80000001192,
+    "frontier": 0,
+    "viewed": 0,
+    "actions": 0,
+    "mode": "map",
+    "main": {
+      "ready": true,
+      "bakes": 1,
+      "frames": 8,
+      "flattenedProps": 145,
+      "updateMs": 0.09999999403953552,
+      "variantBuilds": 1,
+      "variantBuildMs": 28117.5,
+      "cooperation": {
+        "steps": 504,
+        "longestStepMs": 709.5999999940395,
+        "slowSteps": [
+          [
+            2,
+            209
+          ],
+          [
+            3,
+            272
+          ],
+          [
+            4,
+            208
+          ],
+          [
+            6,
+            678
+          ],
+          [
+            7,
+            305
+          ],
+          [
+            10,
+            137
+          ],
+          [
+            13,
+            145
+          ],
+          [
+            14,
+            329
+          ],
+          [
+            115,
+            117
+          ],
+          [
+            118,
+            105
+          ],
+          [
+            122,
+            106
+          ],
+          [
+            128,
+            220
+          ],
+          [
+            129,
+            546
+          ],
+          [
+            130,
+            119
+          ],
+          [
+            132,
+            281
+          ],
+          [
+            134,
+            168
+          ],
+          [
+            237,
+            146
+          ],
+          [
+            240,
+            117
+          ],
+          [
+            244,
+            121
+          ],
+          [
+            251,
+            475
+          ],
+          [
+            252,
+            105
+          ],
+          [
+            254,
+            710
+          ],
+          [
+            256,
+            112
+          ],
+          [
+            356,
+            111
+          ],
+          [
+            359,
+            106
+          ],
+          [
+            363,
+            130
+          ],
+          [
+            370,
+            309
+          ],
+          [
+            372,
+            131
+          ],
+          [
+            373,
+            341
+          ],
+          [
+            374,
+            133
+          ],
+          [
+            500,
+            439
+          ],
+          [
+            503,
+            570
+          ]
+        ],
+        "yields": 174
+      },
+      "bakeMs": 36639.20000001788,
+      "terrainBakeMs": 5243,
+      "bounds": {
+        "minX": -0.47715736040609136,
+        "minY": -0.8682170542635659,
+        "maxX": 1.4314720812182742,
+        "maxY": 1.9534883720930232
+      },
+      "textureMiB": 4.2,
+      "width": 1504,
+      "height": 728,
+      "presentationBuilds": 1,
+      "presentationMs": 304.5,
+      "presentationTotalMs": 304.59999999403954,
+      "biomes": [
+        {
+          "id": "R01",
+          "underlying": "islands",
+          "biome": "islands"
+        },
+        {
+          "id": "R02",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R03",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R04",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R05",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R06",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R07",
+          "underlying": "islands",
+          "biome": "islands"
+        },
+        {
+          "id": "R08",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R09",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R10",
+          "underlying": "plains",
+          "biome": "monster"
+        },
+        {
+          "id": "R11",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R12",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R13",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R14",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R15",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R16",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R17",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R18",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R19",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R20",
+          "underlying": "mountains",
+          "biome": "mountains"
+        }
+      ],
+      "sites": [
+        {
+          "regionId": "R01",
+          "biome": "islands",
+          "buildings": 19,
+          "point": {
+            "x": 0.7569796954314721,
+            "y": 0.013565891472868241
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R02",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.956218274111675,
+            "y": -0.02131782945736438
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R03",
+          "biome": "mountains",
+          "buildings": 17,
+          "point": {
+            "x": -0.14276649746192893,
+            "y": 0.34302325581395343
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R04",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.04758883248730961,
+            "y": 0.35077519379844957
+          },
+          "kind": "crownCapital"
+        },
+        {
+          "regionId": "R05",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.18718274111675126,
+            "y": 0.3701550387596899
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R06",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.37373096446700504,
+            "y": 0.3236434108527131
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R07",
+          "biome": "islands",
+          "buildings": 19,
+          "point": {
+            "x": 0.5843908629441624,
+            "y": 0.35077519379844957
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R08",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.7468274111675127,
+            "y": 0.2848837209302326
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R09",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.958756345177665,
+            "y": 0.32751937984496116
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R11",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.04378172588832485,
+            "y": 0.7151162790697674
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R12",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.2607868020304569,
+            "y": 0.7073643410852712
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R13",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.43464467005076146,
+            "y": 0.7112403100775193
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R14",
+          "biome": "swamp",
+          "buildings": 19,
+          "point": {
+            "x": 0.5691624365482234,
+            "y": 0.7926356589147288
+          },
+          "kind": "player"
+        },
+        {
+          "regionId": "R15",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.8039340101522844,
+            "y": 0.5910852713178294
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R16",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.9435279187817259,
+            "y": 0.7383720930232558
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R17",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.2074873096446701,
+            "y": 0.9748062015503876
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R18",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.4498730964467005,
+            "y": 1.0910852713178294
+          },
+          "kind": "player"
+        },
+        {
+          "regionId": "R19",
+          "biome": "mountains",
+          "buildings": 18,
+          "point": {
+            "x": 0.5615482233502539,
+            "y": 1.0872093023255813
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R20",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.7569796954314721,
+            "y": 1.0368217054263567
+          },
+          "kind": "crown"
+        }
+      ],
+      "roads": 9,
+      "connections": 9,
+      "monsterPieces": 6,
+      "presentationCache": 1,
+      "cameraUpdates": 22,
+      "viewedSec": 0,
+      "animationPasses": 4,
+      "animationPixels": 583680,
+      "waterWindows": [
+        {
+          "x": 256,
+          "y": 128,
+          "width": 1056,
+          "height": 448,
+          "levels": 1,
+          "backdrop": false
+        }
+      ],
+      "atmosphereWindow": {
+        "x": 64,
+        "y": 32,
+        "width": 288,
+        "height": 128
+      },
+      "backdropAnimating": false,
+      "prepared": true
+    },
+    "decision": {
+      "ready": true,
+      "bakes": 1,
+      "frames": 1,
+      "flattenedProps": 145,
+      "updateMs": 5.5999999940395355,
+      "variantBuilds": 1,
+      "variantBuildMs": 24689.59999999404,
+      "cooperation": {
+        "steps": 504,
+        "longestStepMs": 840.5,
+        "yields": 183,
+        "slowSteps": [
+          [
+            2,
+            328
+          ],
+          [
+            3,
+            841
+          ],
+          [
+            6,
+            614
+          ],
+          [
+            7,
+            246
+          ],
+          [
+            10,
+            138
+          ],
+          [
+            14,
+            240
+          ],
+          [
+            115,
+            159
+          ],
+          [
+            118,
+            126
+          ],
+          [
+            122,
+            122
+          ],
+          [
+            128,
+            223
+          ],
+          [
+            129,
+            589
+          ],
+          [
+            132,
+            212
+          ],
+          [
+            134,
+            180
+          ],
+          [
+            136,
+            125
+          ],
+          [
+            237,
+            162
+          ],
+          [
+            240,
+            134
+          ],
+          [
+            244,
+            146
+          ],
+          [
+            251,
+            466
+          ],
+          [
+            252,
+            102
+          ],
+          [
+            254,
+            671
+          ],
+          [
+            256,
+            106
+          ],
+          [
+            356,
+            153
+          ],
+          [
+            359,
+            126
+          ],
+          [
+            363,
+            149
+          ],
+          [
+            370,
+            328
+          ],
+          [
+            371,
+            124
+          ],
+          [
+            372,
+            123
+          ],
+          [
+            373,
+            340
+          ],
+          [
+            374,
+            127
+          ],
+          [
+            500,
+            499
+          ],
+          [
+            501,
+            110
+          ],
+          [
+            503,
+            589
+          ]
+        ]
+      },
+      "bakeMs": 35035.59999999404,
+      "terrainBakeMs": 8481,
+      "bounds": {
+        "minX": -0.47715736040609136,
+        "minY": -0.8682170542635659,
+        "maxX": 1.4314720812182742,
+        "maxY": 1.9534883720930232
+      },
+      "textureMiB": 4.2,
+      "width": 1504,
+      "height": 728,
+      "presentationBuilds": 1,
+      "presentationMs": 188,
+      "presentationTotalMs": 188,
+      "biomes": [
+        {
+          "id": "R01",
+          "underlying": "islands",
+          "biome": "islands"
+        },
+        {
+          "id": "R02",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R03",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R04",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R05",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R06",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R07",
+          "underlying": "islands",
+          "biome": "islands"
+        },
+        {
+          "id": "R08",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R09",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R10",
+          "underlying": "plains",
+          "biome": "monster"
+        },
+        {
+          "id": "R11",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R12",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R13",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R14",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R15",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R16",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R17",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R18",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R19",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R20",
+          "underlying": "mountains",
+          "biome": "mountains"
+        }
+      ],
+      "sites": [
+        {
+          "regionId": "R01",
+          "biome": "islands",
+          "buildings": 19,
+          "point": {
+            "x": 0.7569796954314721,
+            "y": 0.013565891472868241
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R02",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.956218274111675,
+            "y": -0.02131782945736438
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R03",
+          "biome": "mountains",
+          "buildings": 17,
+          "point": {
+            "x": -0.14276649746192893,
+            "y": 0.34302325581395343
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R04",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.04758883248730961,
+            "y": 0.35077519379844957
+          },
+          "kind": "crownCapital"
+        },
+        {
+          "regionId": "R05",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.18718274111675126,
+            "y": 0.3701550387596899
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R06",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.37373096446700504,
+            "y": 0.3236434108527131
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R07",
+          "biome": "islands",
+          "buildings": 19,
+          "point": {
+            "x": 0.5843908629441624,
+            "y": 0.35077519379844957
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R08",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.7468274111675127,
+            "y": 0.2848837209302326
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R09",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.958756345177665,
+            "y": 0.32751937984496116
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R11",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.04378172588832485,
+            "y": 0.7151162790697674
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R12",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.2607868020304569,
+            "y": 0.7073643410852712
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R13",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.43464467005076146,
+            "y": 0.7112403100775193
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R14",
+          "biome": "swamp",
+          "buildings": 19,
+          "point": {
+            "x": 0.5691624365482234,
+            "y": 0.7926356589147288
+          },
+          "kind": "player"
+        },
+        {
+          "regionId": "R15",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.8039340101522844,
+            "y": 0.5910852713178294
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R16",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.9435279187817259,
+            "y": 0.7383720930232558
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R17",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.2074873096446701,
+            "y": 0.9748062015503876
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R18",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.4498730964467005,
+            "y": 1.0910852713178294
+          },
+          "kind": "player"
+        },
+        {
+          "regionId": "R19",
+          "biome": "mountains",
+          "buildings": 18,
+          "point": {
+            "x": 0.5615482233502539,
+            "y": 1.0872093023255813
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R20",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.7569796954314721,
+            "y": 1.0368217054263567
+          },
+          "kind": "crown"
+        }
+      ],
+      "roads": 9,
+      "connections": 9,
+      "monsterPieces": 6,
+      "presentationCache": 1,
+      "cameraUpdates": 1,
+      "viewedSec": 0,
+      "animationPasses": 4,
+      "animationPixels": 583680,
+      "waterWindows": [
+        {
+          "x": 256,
+          "y": 128,
+          "width": 1056,
+          "height": 448,
+          "levels": 1,
+          "backdrop": false
+        }
+      ],
+      "atmosphereWindow": {
+        "x": 64,
+        "y": 32,
+        "width": 288,
+        "height": 128
+      },
+      "backdropAnimating": false,
+      "prepared": true
+    },
+    "sealReady": false
+  },
+  "uploaded": [
+    {
+      "file": "full-map-content-prototype.json",
+      "textures": 50,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "full-map-chaos-dictator.json",
+      "textures": 22,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "heirlooms.json",
+      "textures": 15,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "resource-language.json",
+      "textures": 52,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "settlement-pieces-0.json",
+      "textures": 104,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "settlement-pieces-1.json",
+      "textures": 108,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "settlement-pieces-2.json",
+      "textures": 12,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "piece-frames.json",
+      "textures": 9,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "chronicle-illustrations.json",
+      "textures": 18,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "region-landmarks.json",
+      "textures": 4,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "vassal-portraits.json",
+      "textures": 24,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "vassal-class.json",
+      "textures": 6,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "chronicle-gate.json",
+      "textures": 1,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "class-picker-frames.json",
+      "textures": 9,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "chronicle-hud-frames.json",
+      "textures": 19,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "timegraph-chronicle.json",
+      "textures": 1,
+      "valid": true,
+      "uploaded": true
+    }
+  ],
+  "memory": [
+    {
+      "stage": "entry",
+      "usedSize": 344576340,
+      "totalSize": 470466560,
+      "embedderHeapUsedSize": 23679888,
+      "backingStorageSize": 21691140
+    },
+    {
+      "stage": "prepared-hidden",
+      "usedSize": 264467940,
+      "totalSize": 342188032,
+      "embedderHeapUsedSize": 10931552,
+      "backingStorageSize": 121204810
+    },
+    {
+      "stage": "revealed",
+      "usedSize": 280158508,
+      "totalSize": 353382400,
+      "embedderHeapUsedSize": 13538088,
+      "backingStorageSize": 97074334
+    },
+    {
+      "stage": "navigation-block-1",
+      "operations": 2,
+      "usedSize": 316304232,
+      "totalSize": 376729600,
+      "embedderHeapUsedSize": 22041488,
+      "backingStorageSize": 100966616
+    },
+    {
+      "stage": "navigation-block-2",
+      "operations": 2,
+      "usedSize": 336293392,
+      "totalSize": 386166784,
+      "embedderHeapUsedSize": 26654136,
+      "backingStorageSize": 104204344
+    }
+  ],
+  "memoryPolicy": "raw JS heap, same settled map endpoint, no forced GC; one run cannot establish retained-memory growth or tails",
+  "samplingPolicy": "250ms compact state snapshots when instrumentation on; endpoint checks retained off; transient unsampled publication cannot be ruled out from sampling alone",
+  "witness": {
+    "samples": [],
+    "warnings": [],
+    "resourceEvents": [],
+    "assetLoadCalls": [
+      {
+        "time": 302.69999998807907,
+        "paths": [
+          "images/sprite-sheets/resource-language.json"
+        ],
+        "operation": "setup"
+      },
+      {
+        "time": 13381.699999988079,
+        "paths": [
+          "images/sprite-sheets/full-map-content-prototype.json"
+        ],
+        "operation": "performance-entry-useful"
+      },
+      {
+        "time": 13656.699999988079,
+        "paths": [
+          "images/sprite-sheets/full-map-chaos-dictator.json"
+        ],
+        "operation": "background-to-prepared"
+      },
+      {
+        "time": 13805.300000011921,
+        "paths": [
+          "images/sprite-sheets/settlement-pieces-0.json"
+        ],
+        "operation": "background-to-prepared"
+      },
+      {
+        "time": 15124.09999999404,
+        "paths": [
+          "images/sprite-sheets/heirlooms.json"
+        ],
+        "operation": "background-to-prepared"
+      },
+      {
+        "time": 15629.699999988079,
+        "paths": [
+          "images/sprite-sheets/piece-frames.json"
+        ],
+        "operation": "background-to-prepared"
+      },
+      {
+        "time": 15937.800000011921,
+        "paths": [
+          "images/sprite-sheets/chronicle-illustrations.json"
+        ],
+        "operation": "background-to-prepared"
+      },
+      {
+        "time": 16348.59999999404,
+        "paths": [
+          "images/sprite-sheets/region-landmarks.json"
+        ],
+        "operation": "background-to-prepared"
+      },
+      {
+        "time": 16674.40000000596,
+        "paths": [
+          "images/sprite-sheets/vassal-portraits.json"
+        ],
+        "operation": "background-to-prepared"
+      },
+      {
+        "time": 17233,
+        "paths": [
+          "images/sprite-sheets/vassal-class.json"
+        ],
+        "operation": "background-to-prepared"
+      },
+      {
+        "time": 17559.59999999404,
+        "paths": [
+          "images/sprite-sheets/chronicle-gate.json"
+        ],
+        "operation": "background-to-prepared"
+      },
+      {
+        "time": 17888.90000000596,
+        "paths": [
+          "images/sprite-sheets/class-picker-frames.json"
+        ],
+        "operation": "background-to-prepared"
+      },
+      {
+        "time": 18323.40000000596,
+        "paths": [
+          "images/sprite-sheets/chronicle-hud-frames.json"
+        ],
+        "operation": "background-to-prepared"
+      },
+      {
+        "time": 18464.69999998808,
+        "paths": [
+          "images/sprite-sheets/timegraph-chronicle.json"
+        ],
+        "operation": "background-to-prepared"
+      },
+      {
+        "time": 18781.69999998808,
+        "paths": [
+          "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/cloud-banks-v2.png"
+        ],
+        "operation": "background-to-prepared"
+      },
+      {
+        "time": 18781.90000000596,
+        "paths": [
+          "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/cloud-banks-v3.png"
+        ],
+        "operation": "background-to-prepared"
+      },
+      {
+        "time": 18782,
+        "paths": [
+          "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/cloud-cumulus-v1.png"
+        ],
+        "operation": "background-to-prepared"
+      },
+      {
+        "time": 21720.80000001192,
+        "paths": [
+          "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/settlement-buildings-v1.webp"
+        ],
+        "operation": "background-to-prepared"
+      },
+      {
+        "time": 21975.5,
+        "paths": [
+          "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/crown-buildings-v1.webp"
+        ],
+        "operation": "background-to-prepared"
+      }
+    ],
+    "droppedSamples": 0,
+    "samplingCpuMs": 0,
+    "startInput": 1289,
+    "revealInput": 99235.5,
+    "firstReadyAt": null,
+    "assetWitnessInstalled": true,
+    "pixiVersion": "7.2.4",
+    "resources": [
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 1160.0999999940395,
+        "duration": 4.700000017881393,
+        "responseEnd": 1164.800000011921,
+        "transferSize": 1209
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-content-prototype.json",
+        "start": 13383.5,
+        "duration": 9.599999994039536,
+        "responseEnd": 13393.09999999404,
+        "transferSize": 1486
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-chaos-dictator.json",
+        "start": 13657.09999999404,
+        "duration": 4.300000011920929,
+        "responseEnd": 13661.40000000596,
+        "transferSize": 1104
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-0.json",
+        "start": 13805.800000011921,
+        "duration": 4.899999976158142,
+        "responseEnd": 13810.699999988079,
+        "transferSize": 2162
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-1.json",
+        "start": 13974.90000000596,
+        "duration": 7.5999999940395355,
+        "responseEnd": 13982.5,
+        "transferSize": 2040
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-2.json",
+        "start": 13975.09999999404,
+        "duration": 9.599999994039536,
+        "responseEnd": 13984.699999988079,
+        "transferSize": 836
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/heirlooms.json",
+        "start": 15124.5,
+        "duration": 4.9000000059604645,
+        "responseEnd": 15129.40000000596,
+        "transferSize": 858
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/piece-frames.json",
+        "start": 15630,
+        "duration": 3.5999999940395355,
+        "responseEnd": 15633.59999999404,
+        "transferSize": 829
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/chronicle-illustrations.json",
+        "start": 15938.199999988079,
+        "duration": 4,
+        "responseEnd": 15942.199999988079,
+        "transferSize": 915
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/region-landmarks.json",
+        "start": 16348.90000000596,
+        "duration": 4.299999982118607,
+        "responseEnd": 16353.199999988079,
+        "transferSize": 724
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/vassal-portraits.json",
+        "start": 16674.90000000596,
+        "duration": 4.299999982118607,
+        "responseEnd": 16679.19999998808,
+        "transferSize": 875
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/vassal-class.json",
+        "start": 17233.5,
+        "duration": 3.9000000059604645,
+        "responseEnd": 17237.40000000596,
+        "transferSize": 780
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/chronicle-gate.json",
+        "start": 17560,
+        "duration": 4,
+        "responseEnd": 17564,
+        "transferSize": 862
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/class-picker-frames.json",
+        "start": 17889.19999998808,
+        "duration": 4.300000011920929,
+        "responseEnd": 17893.5,
+        "transferSize": 794
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/chronicle-hud-frames.json",
+        "start": 18323.80000001192,
+        "duration": 4.199999988079071,
+        "responseEnd": 18328,
+        "transferSize": 1003
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/timegraph-chronicle.json",
+        "start": 18465,
+        "duration": 3.199999988079071,
+        "responseEnd": 18468.19999998808,
+        "transferSize": 877
+      }
+    ]
+  },
+  "errors": [],
+  "consoleErrors": [],
+  "requestFailures": []
+}

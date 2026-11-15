@@ -1,0 +1,14 @@
+﻿{
+    "at":  "2026-11-15T02:01:51.0852225Z",
+    "pid":  39864,
+    "parentPid":  18652,
+    "stopped":  true,
+    "logs":  [
+                 {
+                     "path":  "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-TqnM7H\\worktrees\\task-b\\artifacts\\local-preview.log",
+                     "bytes":  142,
+                     "sha256":  null
+                 }
+             ],
+    "scope":  "Only isolated-test-owned task-b server stopped to unblock/diagnose cleanup; not a product fix, original test pass or attribution of native cause. Unrelated November13 preview servers preserved."
+}

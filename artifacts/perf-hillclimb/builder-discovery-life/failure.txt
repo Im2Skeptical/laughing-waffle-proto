@@ -1,0 +1,6 @@
+page.waitForFunction: Timeout 90000ms exceeded.
+    at wait (C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\scripts\perf-hillclimb\run.mjs:103:34)
+    at record.input (C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\scripts\perf-hillclimb\run.mjs:330:20)
+    at async record (C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\scripts\perf-hillclimb\run.mjs:86:19)
+    at async life (C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\scripts\perf-hillclimb\run.mjs:328:5)
+    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:421:37

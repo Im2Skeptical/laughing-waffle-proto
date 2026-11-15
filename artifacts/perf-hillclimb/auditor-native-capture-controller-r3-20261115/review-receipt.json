@@ -1,0 +1,27 @@
+{
+  "at": "2026-11-15T06:17:29.013Z",
+  "verdict": "AFFECTED_PURE_SOURCE_CHECKS_PASS",
+  "cases": 30,
+  "accepted": 8,
+  "rejected": 22,
+  "prior24DefinitionsMatch": true,
+  "causalReasonsVerified": {
+    "fatal record after continued EXIT": "fatal record outside owned CREATE/EXIT lifetime",
+    "event after continued EXIT": "continued EXIT must be terminal",
+    "failed module CloseHandle hidden by facts": "explicit image handle close outcome is not success",
+    "failed rollback receipt hidden by facts": "constructor rollback means declared control setup incomplete",
+    "missing native image file handle identity": "native image file handle identity unavailable",
+    "owned native image file handle missing close": "owned native image file handle release unconfirmed",
+    "pending image handle close hidden by facts": "explicit image handle close outcome is not success",
+    "missing typed rollback array": "constructor rollback means declared control setup incomplete"
+  },
+  "manifestSha256": "a2ab60e4f2450330df6120e663ca0646d0ffcd22a32f5764c98ae7b53c5a8410",
+  "planSha256": "d9a3d4dff9226d9615bf7f4f23249fbfb8b825e4d2119994dac213531225dcb5",
+  "authenticationSha256": "50706bdd0adeae4d99d52a2be29b2326a0f48d13e8b497da814479171e98330c",
+  "checkerSha256": "9014d279b859dd76c53ffa5fc938425140935d4066920bfd8dd92282a520fab1",
+  "adapterSha256": "30acf2b5661d0ca407dd162865e4e6d5eb5aaaeb369631863ac1a4fffacd3d10",
+  "checkerReceiptSha256": "b91e762180d54babf0153e76622f35e41a79d839451f40d40fb30ebf4097bbea",
+  "allPlanPinsUnchanged": true,
+  "allSixUnattempted": true,
+  "scope": "Actual selected checker VM, memory-only raw evidence; no native/helper/API/target/realroot calls. Scoped admission decision recorded separately."
+}

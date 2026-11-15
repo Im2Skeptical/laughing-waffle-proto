@@ -1,0 +1,29 @@
+{
+  "at": "2026-11-15T05:14:48Z",
+  "deadline": "2026-11-16T02:40:00Z",
+  "runtimeActive": false,
+  "agentsActive": false,
+  "verdict": "Whole Phase A NOT SOUND. R3 repair mechanisms and r4 readiness/managed rollback supported in scope; no native constructor/API/target/capture.",
+  "r3ManifestSha256": "6f18c91fbfe9ad0dbb7abb639ff45aa4509ebb323939439c78653da515226adb",
+  "r4ManifestSha256": "bb73744168f62c3e2bd66779f3557f433cdd14a01c40559fde59a967bc0a1ef1",
+  "independentR4ReceiptSha256": "e88ebc47c4b5286477400bcffc35a5085ff7df4793f7805564b29b7de9b07671",
+  "sourceAssetChanges": [],
+  "sourceCount": 683,
+  "assetCount": 5,
+  "next": "NATIVE_CAPTURE_CONTROLLER_BRIEF_R1.md: complete fresh controller source/compile/pure batch, then affected source review before any child. Six targets unattempted.",
+  "schedule": {
+    "scheduledTaskId": "scheduled-task:9ec80581-e6bf-4df4-bdb7-1995e6e7be34",
+    "title": "Continue performance hillclimb until 13:40 Sydney Nov16",
+    "prompt": "Continue Cam's EXISTING authorized performance hillclimb. Cam explicitly EXTENDED the original deadline24 HOURS; new hard deadline2026-11-16T02:40:00Z (13:40 Sydney Monday November16). This supersedes the old Nov15 finalization-only plan. Read docs/performance-hillclimb-20261115/STATUS.md in coordinator checkout FIRST and check ownership/clock. Actual harness/product work remains C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104 (perf/hillclimb-20261104, frozen old v1.1.53 checkpoint), NOT newer coordinator main. Follow HillclimbPerformanceLoop/AGENTS; preserve all8jobs/inherited120-launch/3-suite contract, original frozen evidence and unrelated worktrees. Parent owns ONE test/browser/CPUslot; narrowly scoped independent Auditor/Judge agents only as skill permits; no competing benchmarks or duplicate active run. Current PhaseA NOT SOUND; no optimization/scoring before independent SOUND. Resume smallest documented unfinished proof from STATUS.md. At05:14Z checkpoint all compiler/control/review leases CLOSED; source repairsr3/r4 scoped-supported, no native helper constructor/API/target/capture ran. Next NATIVE_CAPTURE_CONTROLLER_BRIEF_R1.md: build a complete fresh controller SOURCE/compile/pure batch (immutable creation/identity, suspended job assignment, handle-list+rollback/errorclose accounting, readers/write-copy lifetime, normal loader+EXIT transfer, unsafe recovery/failsafe, bounded wire/classifier), then ONE affected independent source review. Avoid more isolated helper reviews unless a material finding requires one. R4manifestbb73744168f62c3e2bd66779f3557f433cdd14a01c40559fde59a967bc0a1ef1 is frozen. Six synthetic target slots stillUNATTEMPTED/UNADMITTED; staged target source may be compiledONLYasdata/build butneverinvokeMain before complete sourceadmission. Realpreviewtrial-wide daemon lifetime remains separate futuregate. No repeat oldproofs/ABBA/OSlookup/inventory, no globals/install/attach, no capture/cause/fix/neutrality/SOUND claim. Prefer~20min chunks and persist exact active session/PIDs/resume state/evidence in STATUS.md. Preserve all failed/native attempts and separate populations. Reserve final35min from2026-11-16T02:05Z for confirmation/verify/npmstart/coherentversionedPRifverified; no new10min case after2026-11-16T01:45Z. Never merge or deployPages. At/after NEW deadline stop new experiments, finalize honest evidence/previewhand-off and disable SAME task scheduledTaskId scheduled-task:9ec80581-e6bf-4df4-bdb7-1995e6e7be34. Do NOT finalize/disable at superseded Nov15 deadline. If actual success/hardblock reached, document/disable. Do not duplicate active workloads.",
+    "enabled": true,
+    "projectId": "cf68fa26-6219-4056-83dc-1cd9d3f8f13a",
+    "boundThreadId": "95f53b04-d994-4904-add1-4c4209fbdfde",
+    "freshSession": false,
+    "schedule": {
+      "type": "interval",
+      "everyMs": 300000
+    },
+    "nextRunAt": "2026-11-15T05:15:07.461Z",
+    "lastRunStatus": "succeeded"
+  }
+}

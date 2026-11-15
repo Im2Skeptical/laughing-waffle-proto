@@ -1,0 +1,6 @@
+{
+  "name": "base-corrupt-sdk",
+  "status": "PASS expected rejection",
+  "expected": "/file size|file hash/",
+  "error": "AssertionError [ERR_ASSERTION]: file size: baseline-sdk-8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0.mjs\n\n52 !== 1329028\n\n    at match (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:43:10)\n    at validateBase (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:87:102)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:129:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:171:3"
+}

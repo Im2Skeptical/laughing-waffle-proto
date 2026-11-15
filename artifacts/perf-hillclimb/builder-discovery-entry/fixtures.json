@@ -1,0 +1,430 @@
+{
+  "ordinary": {
+    "id": "ordinary",
+    "seed": 123,
+    "meta": {
+      "schemaVersion": 32,
+      "setupId": "hillclimb:ordinary",
+      "savedAt": "2026-11-04T00:00:00.000Z",
+      "tSec": 0,
+      "seasonKey": "spring",
+      "year": 1,
+      "actionPoints": 0,
+      "actionPointCap": 0
+    },
+    "sha256": "fefa69e74b1a5376a7092430a7b2fc75062b97a7fc0a83c2ae8fa250c41e4322",
+    "stateSha256": "df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f",
+    "seconds": 0,
+    "actions": 0,
+    "checkpoints": 0,
+    "characters": 704499,
+    "expected": {
+      "baseSeed": 123,
+      "second": 0,
+      "lineage": null,
+      "practiceSlots": [
+        {
+          "regionId": "R01",
+          "count": 5
+        },
+        {
+          "regionId": "R02",
+          "count": 5
+        },
+        {
+          "regionId": "R03",
+          "count": 5
+        },
+        {
+          "regionId": "R04",
+          "count": 5
+        },
+        {
+          "regionId": "R05",
+          "count": 5
+        },
+        {
+          "regionId": "R06",
+          "count": 5
+        },
+        {
+          "regionId": "R07",
+          "count": 5
+        },
+        {
+          "regionId": "R08",
+          "count": 5
+        },
+        {
+          "regionId": "R09",
+          "count": 5
+        },
+        {
+          "regionId": "R10",
+          "count": 5
+        },
+        {
+          "regionId": "R11",
+          "count": 5
+        },
+        {
+          "regionId": "R12",
+          "count": 5
+        },
+        {
+          "regionId": "R13",
+          "count": 5
+        },
+        {
+          "regionId": "R14",
+          "count": 5
+        },
+        {
+          "regionId": "R15",
+          "count": 5
+        },
+        {
+          "regionId": "R16",
+          "count": 5
+        },
+        {
+          "regionId": "R17",
+          "count": 5
+        },
+        {
+          "regionId": "R18",
+          "count": 5
+        },
+        {
+          "regionId": "R19",
+          "count": 5
+        },
+        {
+          "regionId": "R20",
+          "count": 5
+        }
+      ]
+    }
+  },
+  "selected": {
+    "id": "selected",
+    "seed": 123,
+    "meta": {
+      "schemaVersion": 32,
+      "setupId": "hillclimb:selected",
+      "savedAt": "2026-11-04T00:00:00.000Z",
+      "tSec": 0,
+      "seasonKey": "spring",
+      "year": 1,
+      "actionPoints": 0,
+      "actionPointCap": 0
+    },
+    "sha256": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+    "stateSha256": "651ba92d0e2cdfbdc440c0087c92374f5a0460aec8c5eff7f173795d91228065",
+    "seconds": 0,
+    "actions": 1,
+    "checkpoints": 0,
+    "characters": 725775,
+    "expected": {
+      "baseSeed": 123,
+      "second": 0,
+      "lineage": "vassal-1",
+      "practiceSlots": [
+        {
+          "regionId": "R01",
+          "count": 5
+        },
+        {
+          "regionId": "R02",
+          "count": 5
+        },
+        {
+          "regionId": "R03",
+          "count": 5
+        },
+        {
+          "regionId": "R04",
+          "count": 5
+        },
+        {
+          "regionId": "R05",
+          "count": 5
+        },
+        {
+          "regionId": "R06",
+          "count": 5
+        },
+        {
+          "regionId": "R07",
+          "count": 5
+        },
+        {
+          "regionId": "R08",
+          "count": 5
+        },
+        {
+          "regionId": "R09",
+          "count": 5
+        },
+        {
+          "regionId": "R10",
+          "count": 5
+        },
+        {
+          "regionId": "R11",
+          "count": 5
+        },
+        {
+          "regionId": "R12",
+          "count": 5
+        },
+        {
+          "regionId": "R13",
+          "count": 5
+        },
+        {
+          "regionId": "R14",
+          "count": 5
+        },
+        {
+          "regionId": "R15",
+          "count": 5
+        },
+        {
+          "regionId": "R16",
+          "count": 5
+        },
+        {
+          "regionId": "R17",
+          "count": 5
+        },
+        {
+          "regionId": "R18",
+          "count": 5
+        },
+        {
+          "regionId": "R19",
+          "count": 5
+        },
+        {
+          "regionId": "R20",
+          "count": 5
+        }
+      ]
+    }
+  },
+  "shop": {
+    "id": "shop",
+    "seed": 123,
+    "meta": {
+      "schemaVersion": 32,
+      "setupId": "hillclimb:shop",
+      "savedAt": "2026-11-04T00:00:00.000Z",
+      "tSec": 0,
+      "seasonKey": "spring",
+      "year": 1,
+      "actionPoints": 0,
+      "actionPointCap": 0
+    },
+    "sha256": "c30cb8cf50efa5dd12d9da10cb14a01f36e94e517c016e37842efa0cef46e28e",
+    "stateSha256": "5c4e40607ff3d97ed3205fa731df84861353d336cc3c719334038e32fdffe3d5",
+    "seconds": 0,
+    "actions": 3,
+    "checkpoints": 0,
+    "characters": 727971,
+    "expected": {
+      "baseSeed": 123,
+      "second": 0,
+      "lineage": "vassal-1",
+      "practiceSlots": [
+        {
+          "regionId": "R01",
+          "count": 5
+        },
+        {
+          "regionId": "R02",
+          "count": 5
+        },
+        {
+          "regionId": "R03",
+          "count": 5
+        },
+        {
+          "regionId": "R04",
+          "count": 5
+        },
+        {
+          "regionId": "R05",
+          "count": 5
+        },
+        {
+          "regionId": "R06",
+          "count": 5
+        },
+        {
+          "regionId": "R07",
+          "count": 5
+        },
+        {
+          "regionId": "R08",
+          "count": 5
+        },
+        {
+          "regionId": "R09",
+          "count": 5
+        },
+        {
+          "regionId": "R10",
+          "count": 5
+        },
+        {
+          "regionId": "R11",
+          "count": 5
+        },
+        {
+          "regionId": "R12",
+          "count": 5
+        },
+        {
+          "regionId": "R13",
+          "count": 5
+        },
+        {
+          "regionId": "R14",
+          "count": 5
+        },
+        {
+          "regionId": "R15",
+          "count": 5
+        },
+        {
+          "regionId": "R16",
+          "count": 5
+        },
+        {
+          "regionId": "R17",
+          "count": 5
+        },
+        {
+          "regionId": "R18",
+          "count": 5
+        },
+        {
+          "regionId": "R19",
+          "count": 5
+        },
+        {
+          "regionId": "R20",
+          "count": 5
+        }
+      ]
+    }
+  },
+  "history": {
+    "id": "history",
+    "seed": 123,
+    "meta": {
+      "schemaVersion": 32,
+      "setupId": "hillclimb:history",
+      "savedAt": "2026-11-04T00:00:00.000Z",
+      "tSec": 54,
+      "seasonKey": "autumn",
+      "year": 2,
+      "actionPoints": 0,
+      "actionPointCap": 0
+    },
+    "sha256": "f2af95b6a7f78af25cd6a410fe6f1cc888bf0564a3f96b06622fd23b96a84235",
+    "stateSha256": "96e4574b4cf24c185bd8742007d882feb984aa28f8425fa72b2fd7fc94dca2b3",
+    "seconds": 54,
+    "actions": 5,
+    "checkpoints": 0,
+    "characters": 1140141,
+    "expected": {
+      "baseSeed": 123,
+      "second": 54,
+      "lineage": "vassal-1",
+      "practiceSlots": [
+        {
+          "regionId": "R01",
+          "count": 5
+        },
+        {
+          "regionId": "R02",
+          "count": 5
+        },
+        {
+          "regionId": "R03",
+          "count": 5
+        },
+        {
+          "regionId": "R04",
+          "count": 5
+        },
+        {
+          "regionId": "R05",
+          "count": 5
+        },
+        {
+          "regionId": "R06",
+          "count": 5
+        },
+        {
+          "regionId": "R07",
+          "count": 5
+        },
+        {
+          "regionId": "R08",
+          "count": 5
+        },
+        {
+          "regionId": "R09",
+          "count": 5
+        },
+        {
+          "regionId": "R10",
+          "count": 5
+        },
+        {
+          "regionId": "R11",
+          "count": 5
+        },
+        {
+          "regionId": "R12",
+          "count": 5
+        },
+        {
+          "regionId": "R13",
+          "count": 5
+        },
+        {
+          "regionId": "R14",
+          "count": 5
+        },
+        {
+          "regionId": "R15",
+          "count": 5
+        },
+        {
+          "regionId": "R16",
+          "count": 5
+        },
+        {
+          "regionId": "R17",
+          "count": 5
+        },
+        {
+          "regionId": "R18",
+          "count": 5
+        },
+        {
+          "regionId": "R19",
+          "count": 5
+        },
+        {
+          "regionId": "R20",
+          "count": 5
+        }
+      ]
+    }
+  }
+}

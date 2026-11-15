@@ -1,0 +1,2 @@
+[hillclimb] FAIL J2/performance-continue-present: settled pre-save full read timeout after 1500ms; C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\artifacts\perf-hillclimb\auditor-continue-missing-frame-20261115-r1
+[hillclimb] FAILED observations=2 path=C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\artifacts\perf-hillclimb\auditor-continue-missing-frame-20261115-r1

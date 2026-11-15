@@ -1,0 +1,155 @@
+{
+  "op": {
+    "id": 1,
+    "name": "after-marker-render-block",
+    "armed": 12.399999976158142,
+    "started": 57.19999998807907,
+    "timeoutMs": 2000,
+    "event": "pointerdown",
+    "frames": [
+      {
+        "time": 69.2999999821186,
+        "dt": 16.299999982118607
+      },
+      {
+        "time": 86,
+        "dt": 16.700000017881393
+      }
+    ],
+    "longTasks": [
+      {
+        "start": 86,
+        "duration": 200
+      }
+    ],
+    "probes": 3,
+    "probeCpuMs": 0.09999999403953552,
+    "workerOffset": 0,
+    "inputCount": 1,
+    "lastTerminalInvalidation": {
+      "time": 58.099999994039536,
+      "reason": "predicate identity changed"
+    },
+    "handlerStarted": 57.79999998211861,
+    "eventTimeStamp": 57.19999998807907,
+    "inputQueueMs": 0.5999999940395355,
+    "trustedInput": true,
+    "inputType": "pointerdown",
+    "probeKey": "terminal",
+    "terminalPredicateKey": "terminal",
+    "terminalRevalidations": 4,
+    "revalidationCpuMs": 0,
+    "hostFinishCalledAt": 288,
+    "semanticEnd": 58.19999998807907,
+    "finished": 86.09999999403954,
+    "hostCompletionGapMs": 229.80000001192093,
+    "completionClock": "browser predicate observation + double-rAF (host delivery excluded)",
+    "witness": {
+      "text": "ready"
+    },
+    "elapsedMs": 28.900000005960464,
+    "timeout": false,
+    "feedbackMs": 1,
+    "armToDispatchMs": 44.80000001192093,
+    "workerEvents": [],
+    "saveEvents": []
+  },
+  "witness": {
+    "block": {
+      "start": 86.19999998807907,
+      "end": 286.19999998807907
+    },
+    "events": [
+      {
+        "name": "pointerover",
+        "startTime": 57.099999994039536,
+        "duration": 16,
+        "processingStart": 57.29999998211861,
+        "processingEnd": 57.29999998211861,
+        "interactionId": 0
+      },
+      {
+        "name": "pointerenter",
+        "startTime": 57.099999994039536,
+        "duration": 16,
+        "processingStart": 57.29999998211861,
+        "processingEnd": 57.29999998211861,
+        "interactionId": 0
+      },
+      {
+        "name": "pointerenter",
+        "startTime": 57.099999994039536,
+        "duration": 16,
+        "processingStart": 57.29999998211861,
+        "processingEnd": 57.29999998211861,
+        "interactionId": 0
+      },
+      {
+        "name": "pointerenter",
+        "startTime": 57.099999994039536,
+        "duration": 16,
+        "processingStart": 57.29999998211861,
+        "processingEnd": 57.29999998211861,
+        "interactionId": 0
+      },
+      {
+        "name": "pointerenter",
+        "startTime": 57.099999994039536,
+        "duration": 16,
+        "processingStart": 57.29999998211861,
+        "processingEnd": 57.29999998211861,
+        "interactionId": 0
+      },
+      {
+        "name": "mouseover",
+        "startTime": 57.099999994039536,
+        "duration": 16,
+        "processingStart": 57.29999998211861,
+        "processingEnd": 57.29999998211861,
+        "interactionId": 0
+      },
+      {
+        "name": "pointerdown",
+        "startTime": 57.19999998807907,
+        "duration": 16,
+        "processingStart": 57.5,
+        "processingEnd": 57.79999998211861,
+        "interactionId": 9668
+      },
+      {
+        "name": "mousedown",
+        "startTime": 57.19999998807907,
+        "duration": 16,
+        "processingStart": 57.79999998211861,
+        "processingEnd": 57.79999998211861,
+        "interactionId": 0
+      },
+      {
+        "name": "pointerup",
+        "startTime": 57.19999998807907,
+        "duration": 16,
+        "processingStart": 57.89999997615814,
+        "processingEnd": 57.89999997615814,
+        "interactionId": 9668
+      },
+      {
+        "name": "mouseup",
+        "startTime": 57.19999998807907,
+        "duration": 16,
+        "processingStart": 57.89999997615814,
+        "processingEnd": 57.89999997615814,
+        "interactionId": 0
+      },
+      {
+        "name": "click",
+        "startTime": 57.19999998807907,
+        "duration": 16,
+        "processingStart": 57.89999997615814,
+        "processingEnd": 58.19999998807907,
+        "interactionId": 9668
+      }
+    ]
+  },
+  "chromium": "147.0.7727.15",
+  "scope": "independent actual-browser same-frame render-block counterexample"
+}

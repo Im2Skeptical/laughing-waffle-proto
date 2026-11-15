@@ -1,0 +1,17 @@
+{
+  "at": "2026-11-15T06:20:09.382Z",
+  "slot": 0,
+  "mode": "normal",
+  "verdict": "FAIL_OR_INCOMPLETE",
+  "problems": [
+    "mode-bound host exit/timeout incomplete",
+    "missing required fact LoaderBreakpoint",
+    "overflow/unsafe recovery",
+    "exactly one loader exception must be handled",
+    "normal outcome mismatch",
+    "computed trace classification mismatch",
+    "unexpected observer errors"
+  ],
+  "resultSha256": "a932e405b5c5e958a86682e6226a916f6f96ab3ca313644c64739996ee7a1402",
+  "scope": "Synthetic control oracle only; no native cause/fix/product timing/whole SOUND."
+}

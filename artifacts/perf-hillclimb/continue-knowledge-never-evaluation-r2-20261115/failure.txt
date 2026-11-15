@@ -1,0 +1,4 @@
+Error: settled pre-save full read timeout after 1500ms
+    at Timeout.<anonymous> (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/deadline.mjs:8:35)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)

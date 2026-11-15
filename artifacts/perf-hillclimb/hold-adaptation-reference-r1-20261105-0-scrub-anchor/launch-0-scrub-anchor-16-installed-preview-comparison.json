@@ -1,0 +1,43 @@
+{
+  "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+  "immutableStateSha256": "651ba92d0e2cdfbdc440c0087c92374f5a0460aec8c5eff7f173795d91228065",
+  "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+  "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+  "second": 16,
+  "actualFile": "launch-0-scrub-anchor-16-installed-preview-actual.json",
+  "expectedFile": "launch-0-scrub-anchor-16-installed-preview-expected.json",
+  "cost": {
+    "readerStartMs": 26525,
+    "readerEndMs": 26549.100000023842,
+    "readerCpuMs": 24.100000023841858,
+    "hostReadAndTransferMs": 1428.8911000000007,
+    "scope": "expensive opt-in reader after latency/frame marker; raw bytes untouched; file writes and expected replay are covered by the enclosing untimed correctness window"
+  },
+  "expectedTerminal": {
+    "lossSec": 3918,
+    "lossYear": 123,
+    "officialSeconds": 3918
+  },
+  "sourceBefore": {
+    "frontier": 0,
+    "revision": 2,
+    "actions": 1,
+    "viewed": 16,
+    "projectionToken": "sig:4",
+    "history": 0
+  },
+  "sourceAfter": {
+    "frontier": 0,
+    "revision": 2,
+    "actions": 1,
+    "viewed": 16,
+    "projectionToken": "sig:4",
+    "history": 0
+  },
+  "actualHash": "7d6ca69e5c7e864245fad8c93b55e3379b8c574b24ea7778ab3e7e21da9757a6",
+  "expectedPreviewHash": "1e8d3d6b69ec7275ff1af9d95b885742014d40eafdaa36d37141d9cfffa0f8cf",
+  "expectedFrontierHash": "5c724c8a9775e211ca6d229902f4ecc9c8726b45f4c4af72525c58d668a778b6",
+  "previewDeltaPaths": [],
+  "frontierDeltaPaths": [],
+  "knowledgeDeltaPaths": []
+}

@@ -1,0 +1,9 @@
+{
+    "at":  "2026-11-15T05:11:18.9749702Z",
+    "stage":  "SOURCE_ADAPTER_ONLY_BEFORE_COMPILE",
+    "check":  "setupContainsAdoptionAndReady",
+    "reason":  "Auditor adapter assumed CRLF, while actual source may use LF; no Builder source finding",
+    "originalAdapterSha256":  "1006ba906c9d809f173810eab9b763c6bb6afa2dbb5a70c7f1fba570e83edc87",
+    "compileAttempted":  false,
+    "nativeInvoked":  false
+}

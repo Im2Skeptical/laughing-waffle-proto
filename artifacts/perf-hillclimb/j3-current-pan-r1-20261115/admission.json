@@ -1,0 +1,7 @@
+{
+    "verdict":  "ACCEPTED",
+    "driverSha256":  "709ed8d293e483ff7545009383a13481da29eb2dd29cad173c09d45971d7fa21",
+    "authoritySha256":  "8c45bbf674f60ac7f6dc7214fb1abc76bc9617f02bb943c73bb7e318a2dc172e",
+    "at":  "2026-11-15T01:42:44.0160600Z",
+    "scope":  "Source-only admission for exactly ONE existing-runner current desktop/cold/artoff seed123 pan, same selected immutable history/state, original180000ms operation/current oracles and bounded600000ms host lease with unconfirmed interrupted outcome on expiry; no retry/other-current-J3/score/wholeSOUND acceptance. Actual linkage requires independent closed-row review."
+}

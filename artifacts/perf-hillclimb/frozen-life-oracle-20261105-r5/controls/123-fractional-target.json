@@ -1,0 +1,6 @@
+{
+  "name": "123-fractional-target",
+  "status": "PASS expected rejection",
+  "expected": "/exact integer replay target/",
+  "error": "AssertionError [ERR_ASSERTION]: exact integer replay target required\n    at Object.replayPrefix (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:39:117)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:69:56\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:69:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:156:3"
+}

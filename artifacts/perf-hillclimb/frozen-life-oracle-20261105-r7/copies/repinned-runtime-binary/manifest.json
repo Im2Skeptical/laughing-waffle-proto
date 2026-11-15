@@ -1,0 +1,991 @@
+{
+  "format": "hillclimb-frozen-life-oracle-v1",
+  "created": "2026-11-04T18:03:19.751Z",
+  "base": {
+    "identity": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "sdk": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "sourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+    "manifestSha256": "9e477109c2c10d6c566bf287c4d896ae6eee9a3b475ec63bc7dd2eb20decc8a1"
+  },
+  "entry": "life-entry.mjs",
+  "options": "build-options.json",
+  "sdk": "life-sdk.mjs",
+  "metafile": "metafile.json",
+  "resolutions": "resolutions.json",
+  "inputs": {
+    "life-entry.mjs": {
+      "bytes": 225,
+      "sha256": "25844c3c140539f7af606e53b73a3112d296cb96e77c2c835d77a2f5b3f3093b"
+    },
+    "src/defs/gamepieces/bronze-keyword-defs.js": {
+      "bytes": 3419,
+      "sha256": "6a9aab4a5006e5cddc84bc16ec61b23a1cae475b8d1120c4231a4a3b7de45e77"
+    },
+    "src/defs/gamepieces/detailed-settlement-defs.js": {
+      "bytes": 231403,
+      "sha256": "d779022c356fb5c3dbcb2d126d0838044a417bdb39c3009f07f3d5b123ad2c72"
+    },
+    "src/defs/gamepieces/env-events-defs.js": {
+      "bytes": 12965,
+      "sha256": "611719a6b4183addd453e9590ee42edff4fb7fde211124c0fccd4329c5574fa5"
+    },
+    "src/defs/gamepieces/env-tiles-defs.js": {
+      "bytes": 13693,
+      "sha256": "722e1f7513d923ecc183d9403c01132dac3af153a0adeb128795ad88756105db"
+    },
+    "src/defs/gamepieces/full-map-defs.js": {
+      "bytes": 82667,
+      "sha256": "004c26dbf22d7d0eb201ad3bd085eb73e6dc50fedc5fffe7281ed46c117151b9"
+    },
+    "src/defs/gamepieces/hub-structure-defs.js": {
+      "bytes": 6748,
+      "sha256": "516a7a7afbe90afa0152bae401cf93e48511130bd96f921a450060ffa479473a"
+    },
+    "src/defs/gamepieces/regional-practice-defs.js": {
+      "bytes": 1462,
+      "sha256": "d089dbaea79fa63b25a93a8754e33ba3699d047489d33ed519adaad0a9f182a0"
+    },
+    "src/defs/gamepieces/settlement-order-defs.js": {
+      "bytes": 3105,
+      "sha256": "a15b587e4e6a1d33a211852eb16b78f034376814bba24165f2777882d70aa01c"
+    },
+    "src/defs/gamepieces/settlement-practice-defs.js": {
+      "bytes": 18011,
+      "sha256": "bb753b6bb4956b1ae601ea6ca228f5c0a1615063972c0f53bd2c03507788d8a8"
+    },
+    "src/defs/gamepieces/vassal-heirloom-defs.js": {
+      "bytes": 5446,
+      "sha256": "14250d09bbbb55c93471d412432dff6204f96b18cb955f6e0b2529f920e6e758"
+    },
+    "src/defs/gamepieces/vassal-life-map-defs.js": {
+      "bytes": 13069,
+      "sha256": "7596f9265a01de2e8205a4f1c32340ec68fad165702d45dc130107b762906ccf"
+    },
+    "src/defs/gamesettings/gamerules-defs.js": {
+      "bytes": 3817,
+      "sha256": "09b3972b8498ec3e31c877789ce0a6e8863d70a9aeb1d29ba4fe55cac37620df"
+    },
+    "src/defs/gamesettings/moon-phase-defs.js": {
+      "bytes": 1286,
+      "sha256": "4d24a13aeec4ba83b61d2ad87a43c8ae21a1c708f8ba23296aa0e0dcb6fe10d7"
+    },
+    "src/defs/gamesettings/variant-flags-defs.js": {
+      "bytes": 905,
+      "sha256": "3624d1379ae3582c8f08dbec07bef9b904e967bd7a77333ebf74e48a66379d15"
+    },
+    "src/defs/gamesystems/hub-system-defs.js": {
+      "bytes": 4773,
+      "sha256": "97a098b938ca22343dc49ab1c8cf7d103e2ca365277f95147285acc084f5eebb"
+    },
+    "src/defs/lifegraph-defaults.js": {
+      "bytes": 43723,
+      "sha256": "2a8ca5c23d0b509ee8aee8412a84f9d05173df32a55a8d1a3596e3c5702818e6"
+    },
+    "src/defs/mechanics.js": {
+      "bytes": 12680,
+      "sha256": "b2310a78655f9e8038ee627cd8d3919c986df38b4285a5d9151a246051884848"
+    },
+    "src/defs/tooltip-ui-utils.js": {
+      "bytes": 1249,
+      "sha256": "17271af047e22584e6f93b5133490e0d471608ff7b0a59507d749fcb961d4797"
+    },
+    "src/defs/vassal-class-rules.js": {
+      "bytes": 2582,
+      "sha256": "3680bcbb2303fd0bc3e86dd880963c2c16bb4fcd7f7241d17b61a6a460be1250"
+    },
+    "src/defs/vassal-stat-defs.js": {
+      "bytes": 986,
+      "sha256": "e03a758ea3f5b3920f6ce9b734d506d6cdb94faaf2039785e349ebc4303a41c0"
+    },
+    "src/defs/vassal-workshop-rules.js": {
+      "bytes": 557,
+      "sha256": "0f6fc13197f5ca2d584870654faa5889682ed4cc9fc7fdfbfdbf27fc4fd30179"
+    },
+    "src/defs/world/biome-multiplier-rules.js": {
+      "bytes": 420,
+      "sha256": "a0db068b38af11243ceb387a51e9690c66041e02baf35d81094ee9975d0a5739"
+    },
+    "src/defs/world/detailed-settlement-scenario.js": {
+      "bytes": 2012,
+      "sha256": "996987c281013d772a8911e0027d0dbee7aa475e3ab6bf4f4b3365c0008e0dcf"
+    },
+    "src/defs/world/world-map-defs.js": {
+      "bytes": 5604,
+      "sha256": "33484ae93039af8a93fb09ac12ceee390ef573e4db6d461507cc1fe0bcaa5cc1"
+    },
+    "src/model/actions.js": {
+      "bytes": 7937,
+      "sha256": "6405851c73197009500fb2988b7d13e7059293398bbb630c84e0e4e352c47c37"
+    },
+    "src/model/canonicalize.js": {
+      "bytes": 1071,
+      "sha256": "e187ac6488f4542d48f6b1fd13d56763d2ee5fb0c8fadfeb8d417719892ec0aa"
+    },
+    "src/model/chaos-values.js": {
+      "bytes": 484,
+      "sha256": "c06c5f9e7d81964128e1994f0f328fa02c6e7ad6aa6e2418e00d2c02df184938"
+    },
+    "src/model/commands/ap-helpers.js": {
+      "bytes": 1387,
+      "sha256": "e53700729454a1e6362c6dd982ac6c931f21d11d09987122349face22c87d1b2"
+    },
+    "src/model/commands/debug-commands.js": {
+      "bytes": 11131,
+      "sha256": "396900d3c9c7a22203feac4a95c4fd8c3286b2aeef79fe80ad51526d0b24d28d"
+    },
+    "src/model/commands/regional-practice-commands.js": {
+      "bytes": 1336,
+      "sha256": "aeb8a35cc07851f44257b31dcc6d9d58b0b6405756dbec7b9a703be8c3f0838c"
+    },
+    "src/model/commands/settlement-vassal-commands.js": {
+      "bytes": 2632,
+      "sha256": "81eca18dea2d3d5e2d435a135a2dc097c290882ec7f76633b502b1b3e82a44d1"
+    },
+    "src/model/detailed-practice-tiers.js": {
+      "bytes": 1511,
+      "sha256": "a9f82a077fb9619cd153eba3e6e5af8783707d44d778fa64fd6d701371c136be"
+    },
+    "src/model/detailed-settlements/biome-multipliers.js": {
+      "bytes": 1961,
+      "sha256": "4954baf286b43b2909afc483ae318efb628727ed4664d7973b524fe4e70819cb"
+    },
+    "src/model/detailed-settlements/cohorts.js": {
+      "bytes": 3506,
+      "sha256": "9169025a1b2ae69dbe50898b51222c10e529d119b35f23d1490941a07ee0b3a0"
+    },
+    "src/model/detailed-settlements/external-world.js": {
+      "bytes": 24293,
+      "sha256": "c36822045679ac0bd151537fc071923a813b22a471880ae8c1f907fab52eb9e1"
+    },
+    "src/model/detailed-settlements/helpers.js": {
+      "bytes": 9768,
+      "sha256": "a32ac617925082fa19d04402271f692cab7a9227a13c403a1387ecc4c5a57deb"
+    },
+    "src/model/detailed-settlements/neutral-market.js": {
+      "bytes": 6257,
+      "sha256": "acb2954ec1d29d643213ed22927f638b3c6574e2319d20334792a14e56817ca8"
+    },
+    "src/model/detailed-settlements/phases/chaos.js": {
+      "bytes": 5138,
+      "sha256": "3248152217161ecb7cdce4901dddc78649cee596c0491fb32062dd513ba171fe"
+    },
+    "src/model/detailed-settlements/phases/migration.js": {
+      "bytes": 22527,
+      "sha256": "95b2542b395b3c38ac8adaa6721067427f8b9df0cecda534b8f2f0110fc32197"
+    },
+    "src/model/detailed-settlements/phases/moon-turn.js": {
+      "bytes": 1653,
+      "sha256": "84b60ac3b92324a7b5b409e935541e3c6a8f3875428e2a6b6597c41e350cc33c"
+    },
+    "src/model/detailed-settlements/phases/shared.js": {
+      "bytes": 2106,
+      "sha256": "bf3b3f317d6f1883a45049a73d1ec5c0769c086c2a86b04c41bde0a4fa4a003f"
+    },
+    "src/model/detailed-settlements/political-recipes.js": {
+      "bytes": 6693,
+      "sha256": "dad82bac851aea133c6e044ef01865c89e64a65081f6698943d5a7262f260e74"
+    },
+    "src/model/detailed-settlements/population-ledger.js": {
+      "bytes": 4880,
+      "sha256": "d4aa045370b320deeabd49b85f93da1ec7b8e0972133c1bbe087742591021705"
+    },
+    "src/model/detailed-settlements/practice-events.js": {
+      "bytes": 3005,
+      "sha256": "f2fe30d0efc4ef0ef5986a02c6df3cb2efe6229eea4b54beef1c2027c00a2d93"
+    },
+    "src/model/detailed-settlements/practices.js": {
+      "bytes": 32742,
+      "sha256": "4f7ec7ddedf0ae3812bb6af9c1ca54758c05c672a2c8be5b037f3bb638e40faf"
+    },
+    "src/model/detailed-settlements/queries.js": {
+      "bytes": 7566,
+      "sha256": "6861cfcba7cbea824770e53eeefe5d6c43c611823272542d01b05394c0843ad6"
+    },
+    "src/model/detailed-settlements/stock.js": {
+      "bytes": 22671,
+      "sha256": "6efc1eef7ac57698beca8508af9559058152d0164beecbe30a96ca9671cbd2b1"
+    },
+    "src/model/detailed-settlements/synthesis.js": {
+      "bytes": 1568,
+      "sha256": "c7f7c77f92561808db02fdddb8cf34329244fcf22538b4dd5bb20a3585d14d24"
+    },
+    "src/model/detailed-settlements/territory.js": {
+      "bytes": 9422,
+      "sha256": "6c8128d8423cfb49601f1a92090f50db10fac9c07f8bd81e5683d445481922fd"
+    },
+    "src/model/detailed-settlements/workers.js": {
+      "bytes": 4489,
+      "sha256": "52405cba7bd845a08bd630cb5836afcc20907b1327c79540b82080d9967aa3df"
+    },
+    "src/model/effects/core/tiers.js": {
+      "bytes": 335,
+      "sha256": "4020a14df7f746a18ed626f061e9b4cdac8ed732b273dbea8ac244ce8c94ea29"
+    },
+    "src/model/game-config.js": {
+      "bytes": 28451,
+      "sha256": "6d8a2e20223d86a969f50d574238572258d88eacbe8376c45a9345eb5cc5cbac"
+    },
+    "src/model/gamepiece-presentation.js": {
+      "bytes": 16247,
+      "sha256": "8020264b2c9086aa38a5a54a9a4375c57797ad07b83c238f7ba75f226783888e"
+    },
+    "src/model/keywords-classes-prototype.js": {
+      "bytes": 8491,
+      "sha256": "610d48fb6ce3c976a7afde61f789a1070ca4dc3ce1a2b9b95231e6f6ed633a99"
+    },
+    "src/model/life-map-balance.js": {
+      "bytes": 9930,
+      "sha256": "19dbc6f6656c7c2cbd83198a9307d3f2b6b684bb4b811de664fabd34c24e219a"
+    },
+    "src/model/life-map-columns.js": {
+      "bytes": 6659,
+      "sha256": "fe955979856493cd345829b7a7957f6eb2ab7e213ec50dc1c4c453d9791e5db2"
+    },
+    "src/model/life-map-design.js": {
+      "bytes": 15477,
+      "sha256": "1e0ddbcabe146ef5429c2a7ae09654233bab47d35e614a57fb0bd4b60b80aa31"
+    },
+    "src/model/mechanic-readings.js": {
+      "bytes": 4365,
+      "sha256": "1f08e5c22659a33f11c710667dfd0d44730560eb69bca4d3e89fa5ab7b4178e7"
+    },
+    "src/model/mechanic-validation.js": {
+      "bytes": 3494,
+      "sha256": "371863eae529f5ca87df86b09af2505ee645832c63e5e43c57816f1c1a76d970"
+    },
+    "src/model/moon-phases.js": {
+      "bytes": 1668,
+      "sha256": "ec3644d7e25df476cecef27a5ad5f9c608100d55f057f85d4b80705f4bfedec3"
+    },
+    "src/model/moon.js": {
+      "bytes": 1472,
+      "sha256": "181c5ace7b93f34547cb1bb20ec15892b65924bfb3d59cffb7facf78fc3026ca"
+    },
+    "src/model/persistent-memory.js": {
+      "bytes": 8132,
+      "sha256": "17e5fa39d4fd65ce9dc06fb78eb5efa420149751cafe9fc6bfd796042109b985"
+    },
+    "src/model/practice-draft.js": {
+      "bytes": 3140,
+      "sha256": "09d076586d34fb69dd26aa36fd9cd37f0093a83148ccd7ccb08b83225d0b30e2"
+    },
+    "src/model/practice-keywords.js": {
+      "bytes": 5888,
+      "sha256": "ae3987ec280e130009850d9618b9e3d3f90ff42fd7026f29970804fdcbe85faf"
+    },
+    "src/model/practice-outputs.js": {
+      "bytes": 4069,
+      "sha256": "6a29fd6491d68f99e3ab3fa6ecb71758c4a9f86a6dbc1a2c8b41f17a32b2ed74"
+    },
+    "src/model/practice-reading.js": {
+      "bytes": 5244,
+      "sha256": "7345283e5c33cf8c8fa622e676f3e054258d0dd8358e3d755cbb7ee2fa52c56d"
+    },
+    "src/model/regional-map/biome-clustering.js": {
+      "bytes": 6597,
+      "sha256": "4dc2d592a4bd277626533111a0be461778f68eccf5cc5ee91eeb8381a794cd19"
+    },
+    "src/model/regional-map/definition.js": {
+      "bytes": 3369,
+      "sha256": "152c37f9bbc03358c6585e4da798eaee71bdcdfdc606214a4bda6e7b68503f4c"
+    },
+    "src/model/regional-map/generator.js": {
+      "bytes": 42168,
+      "sha256": "2d44d05096f6cd10be83e175c61563a97049b99ebb87db834ecf3fe4d747cb7d"
+    },
+    "src/model/regional-map/names.js": {
+      "bytes": 5751,
+      "sha256": "05a758f48a57bfab78d918ec821f44ab0af5d07fabc3ebfe003e618c146cb13b"
+    },
+    "src/model/regional-practices.js": {
+      "bytes": 8461,
+      "sha256": "93c1770e5681d7e879ad3415572658ac32524d69491d30a508b6c8a20e0a3ede"
+    },
+    "src/model/research-progression.js": {
+      "bytes": 2244,
+      "sha256": "82940560337be81c59d36fff5b4dca8568ff8a0de4b0b6eebab3e5cf2c4b14ac"
+    },
+    "src/model/rng.js": {
+      "bytes": 3818,
+      "sha256": "682c501a2d942118a81027713baa166ff216704ef8e9f5a2bff36cf81df9d5f7"
+    },
+    "src/model/settlement-exec.js": {
+      "bytes": 43246,
+      "sha256": "0fd122d3432bec9df93ee47683fc3fab47f586399e2cafa923fe323f587231cf"
+    },
+    "src/model/settlement-leadership.js": {
+      "bytes": 12800,
+      "sha256": "06f31c30232e6c0b365ed175cf47b65bc09781414159838dacba5f2607b7036d"
+    },
+    "src/model/settlement-order-exec.js": {
+      "bytes": 32517,
+      "sha256": "14b36fce8d57717102738986be00771cef3e85b6a3ffab7eb5ae8d3e71fa561f"
+    },
+    "src/model/settlement-state.js": {
+      "bytes": 20149,
+      "sha256": "2d6000193593b1ae2738c8266fe56462598d23151aa0a3afada57f5dac69c106"
+    },
+    "src/model/settlement-state/hub-legacy.js": {
+      "bytes": 31348,
+      "sha256": "f817862ab4c62c940b4880bd83306ebce79cacd40281a536ddd836d04a40f64e"
+    },
+    "src/model/settlement-upgrades.js": {
+      "bytes": 7687,
+      "sha256": "5cd7564bd6098b4921be799cfb230b9289e1fa3a090bdfaef9f8f0fdc9d228e6"
+    },
+    "src/model/skills.js": {
+      "bytes": 10832,
+      "sha256": "ec7644e0721ce36111b053c5791fab2c1620f5fead22660808991a810b628f45"
+    },
+    "src/model/state.js": {
+      "bytes": 34030,
+      "sha256": "e549208034c613872497f8fe05b7251cbba81689451d23637ecce4bcf99969af"
+    },
+    "src/model/state/board-legacy.js": {
+      "bytes": 18036,
+      "sha256": "652677e5332720b94f16a926a6cbb2ecdf6e81d3a3a26f42fb2c75e241d278d1"
+    },
+    "src/model/state/pawn-legacy.js": {
+      "bytes": 8547,
+      "sha256": "221ede0df5e7a7cc0cda81ffa74268c591989d98fb646ff664605f4398932348"
+    },
+    "src/model/structure-layout.js": {
+      "bytes": 6310,
+      "sha256": "cc8d988d1b96ec542d30fcc5d280b981176e8a95896e22bd8ab380b076ee99af"
+    },
+    "src/model/structure-reading.js": {
+      "bytes": 8791,
+      "sha256": "3ec743b86c0757ff43b6d923c892b4ca3bb1e36e71ba2fc36ca58520d5578381"
+    },
+    "src/model/vassal-life-map-generator.js": {
+      "bytes": 32565,
+      "sha256": "4360be2d27821e1ecaa16680542d8efac89560433af76a46345bb5caaadd0341"
+    },
+    "src/model/vassal-life-map.js": {
+      "bytes": 2101,
+      "sha256": "e29f068b1b56e73e64e2da05f69560db52c225bff0c7f48dac5af6bc7571097f"
+    },
+    "src/model/vassal-life-map/campaign.js": {
+      "bytes": 14443,
+      "sha256": "6aeb26ecb8052503e293963d646c5d8b30225dc57df1867316f145441c99d2fa"
+    },
+    "src/model/vassal-life-map/class-actions.js": {
+      "bytes": 12824,
+      "sha256": "abaa6027c139aacf58ae6bef212fe910437d3c87051ba99030736ee73a0797b2"
+    },
+    "src/model/vassal-life-map/class-rules.js": {
+      "bytes": 1663,
+      "sha256": "97be56b6367f23bbbbf1192fc09920e98736bc828e7d49b67cb32fa0d029c8ad"
+    },
+    "src/model/vassal-life-map/commissions.js": {
+      "bytes": 9510,
+      "sha256": "7a8246a7306647637666fd25d999c63b895b08b779fe600d106163682060978e"
+    },
+    "src/model/vassal-life-map/heirlooms.js": {
+      "bytes": 21734,
+      "sha256": "0743a4ac6c2b508d8fd31234078b5b129a740e06d47cbd19940469782d7abeaf"
+    },
+    "src/model/vassal-life-map/lifecycle.js": {
+      "bytes": 765,
+      "sha256": "696e3e00ae7512458b5cd0d5c62b43850db5520011a7c1880d8ce5c0e526d3d9"
+    },
+    "src/model/vassal-life-map/lifecycle/candidates.js": {
+      "bytes": 13814,
+      "sha256": "fbfc72e4a4ea0e03492e7c2cdec05b9f3d0fddaee51a95a841f0f9aff33da390"
+    },
+    "src/model/vassal-life-map/lifecycle/node-confirm.js": {
+      "bytes": 44924,
+      "sha256": "d3da267d97212740aef7c01f60cdd578d889a5c0deda52e151ba119dded4117b"
+    },
+    "src/model/vassal-life-map/lifecycle/step.js": {
+      "bytes": 12955,
+      "sha256": "39d2b3d99f533e58ab0e094c2638d81d5923e266c80ead10d3ca63c836483784"
+    },
+    "src/model/vassal-life-map/multiplier-preview.js": {
+      "bytes": 3258,
+      "sha256": "e18d9dd2142ea444189abe9b8c8577d388c2212b11cfe9afb066c6ffdf03899d"
+    },
+    "src/model/vassal-life-map/presentation.js": {
+      "bytes": 27254,
+      "sha256": "0353e89aa4ab39f6967d6bcd249020dd6f5aea14e8189637db1f3b1684fa37d7"
+    },
+    "src/model/vassal-life-map/relic-pools.js": {
+      "bytes": 2503,
+      "sha256": "2e1a078b5a81cc6a9c01e90f1870c91cd0630d014dc3339c46efa4586c058f8f"
+    },
+    "src/model/vassal-life-map/selectors.js": {
+      "bytes": 20863,
+      "sha256": "ca05adb1ee7f4738be4340f3a5d2208723e47d31394b16a32811361cdd513fd3"
+    },
+    "src/model/vassal-life-map/shop-specialties.js": {
+      "bytes": 4821,
+      "sha256": "2e80bca044664a68677863882f43f25cd24b27b6836ca996ca34f55014dea44e"
+    },
+    "src/model/vassal-life-map/shop.js": {
+      "bytes": 35507,
+      "sha256": "150a669e61eed679829f1990ff3754489cf66cf34760327719bd794eb6d3328e"
+    },
+    "src/model/vassal-life-map/stock-shops.js": {
+      "bytes": 2681,
+      "sha256": "f93786f25f5e3faab148bf2f1423bff65e9758c72968d85ddd1fc07c7e07e1c5"
+    },
+    "src/model/vassal-life-map/treasury.js": {
+      "bytes": 908,
+      "sha256": "0d77fb851a9fd8a932d390b4315c0898d415d6631d8da05a5dc84cd308d4a91f"
+    },
+    "src/model/vassal-life-map/world-choices.js": {
+      "bytes": 6537,
+      "sha256": "fe7513db49288e7d7f4fc813a66515cb4efe7282f0dc1c683632aecd1f8bfca9"
+    },
+    "src/model/world-definitions.js": {
+      "bytes": 250,
+      "sha256": "eab2c93cee2ff15dc675fd3bfc8892b2a120a0c0b1c88a671121b35eb8a21c29"
+    },
+    "src/model/world-state.js": {
+      "bytes": 27703,
+      "sha256": "4f0a4690e209f6bd4b1f49f1299e47bf8778af7f5e93112673f4b8bf22076f34"
+    }
+  },
+  "construction": [
+    "construction/frozen-life-oracle.mjs",
+    "construction/frozen-life-expectations.mjs",
+    "construction/frozen-life-oracle-test.mjs"
+  ],
+  "tool": {
+    "version": "0.25.12",
+    "files": {
+      "node_modules/esbuild/lib/main.js": {
+        "bytes": 88706,
+        "sha256": "0d1241812c443111d39475dfc66836003e9ef8b87e54d990dd67df29d20010e1"
+      },
+      "node_modules/esbuild/package.json": {
+        "bytes": 1490,
+        "sha256": "cb7d5b1fe478f8cbaae566a86031b6fdf5f7d444354f35d1cb3cba9adf6d2935"
+      },
+      "node_modules/@esbuild/win32-x64/esbuild.exe": {
+        "bytes": 10617344,
+        "sha256": "cae1bbc86f4df800b01d99e28aea0a154b02243de6797e98f48a9b88a64a7be0"
+      },
+      "node_modules/@esbuild/win32-x64/package.json": {
+        "bytes": 375,
+        "sha256": "5b41ac77d55bf2ae0de680d83a9095904e89523c6ef42460cffd0df5ef5a6947"
+      }
+    }
+  },
+  "runtime": {
+    "node": "v24.15.0",
+    "versions": {
+      "node": "24.15.0",
+      "acorn": "8.16.0",
+      "ada": "3.4.4",
+      "amaro": "1.1.8",
+      "ares": "1.34.6",
+      "brotli": "1.2.0",
+      "cldr": "48.0",
+      "icu": "78.2",
+      "llhttp": "9.3.1",
+      "merve": "1.2.2",
+      "modules": "137",
+      "napi": "10",
+      "nbytes": "0.1.3",
+      "ncrypto": "0.0.1",
+      "nghttp2": "1.68.0",
+      "openssl": "3.5.5",
+      "simdjson": "4.5.0",
+      "simdutf": "6.4.0",
+      "sqlite": "3.51.3",
+      "tz": "2026a",
+      "undici": "7.24.4",
+      "unicode": "17.0",
+      "uv": "1.51.0",
+      "uvwasi": "0.0.23",
+      "v8": "13.6.233.17-node.48",
+      "zlib": "1.3.1-e00f703",
+      "zstd": "1.5.7"
+    },
+    "platform": "win32",
+    "arch": "x64",
+    "execArgv": [
+      "--experimental-vm-modules"
+    ],
+    "nodeExecutable": {
+      "bytes": 91694408,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  },
+  "policy": {
+    "candidateImports": false,
+    "createFixturesCalled": false,
+    "builtinAllowlist": [],
+    "phaseA": "NOT SOUND",
+    "conformance": "separate focused test required",
+    "independentAudit": "NOT ACCEPTED"
+  },
+  "files": {
+    "construction/frozen-life-oracle.mjs": {
+      "bytes": 18338,
+      "sha256": "642492aef553296a5522cffaf3c4868f19b822e6c7c896645bd6b53fe5840e83"
+    },
+    "construction/frozen-life-expectations.mjs": {
+      "bytes": 8172,
+      "sha256": "fd2303e57d59a4852675bc30c311835f3fe82b7fa2ee6c4d6294197e1418be22"
+    },
+    "construction/frozen-life-oracle-test.mjs": {
+      "bytes": 19303,
+      "sha256": "b2880d9bed36f6f89541369d0775970d8aabc6cdec70196afcf42b34e3e2b3fb"
+    },
+    "life-entry.mjs": {
+      "bytes": 225,
+      "sha256": "25844c3c140539f7af606e53b73a3112d296cb96e77c2c835d77a2f5b3f3093b"
+    },
+    "build-options.json": {
+      "bytes": 217,
+      "sha256": "53c42919b13834843f23fcb42292c9165847962843663f0122333bacb1b3e131"
+    },
+    "life-sdk.mjs": {
+      "bytes": 1115663,
+      "sha256": "f2d8da7555a253a14915720924b9bfdeaf0410f114b4b8d687df89d7eba1f540"
+    },
+    "metafile.json": {
+      "bytes": 102685,
+      "sha256": "748ee5995c5c325357f9859708dc710e0faee94ca903c08d72c3ce231e85ba7b"
+    },
+    "resolutions.json": {
+      "bytes": 83945,
+      "sha256": "2703c166b28faee8fdf1dc5c9d24512b9590c7f5236ba66d43515cc28ee4bcf1"
+    },
+    "inputs/src/defs/gamepieces/bronze-keyword-defs.js": {
+      "bytes": 3419,
+      "sha256": "6a9aab4a5006e5cddc84bc16ec61b23a1cae475b8d1120c4231a4a3b7de45e77"
+    },
+    "inputs/src/defs/gamepieces/detailed-settlement-defs.js": {
+      "bytes": 231403,
+      "sha256": "d779022c356fb5c3dbcb2d126d0838044a417bdb39c3009f07f3d5b123ad2c72"
+    },
+    "inputs/src/defs/gamepieces/env-events-defs.js": {
+      "bytes": 12965,
+      "sha256": "611719a6b4183addd453e9590ee42edff4fb7fde211124c0fccd4329c5574fa5"
+    },
+    "inputs/src/defs/gamepieces/env-tiles-defs.js": {
+      "bytes": 13693,
+      "sha256": "722e1f7513d923ecc183d9403c01132dac3af153a0adeb128795ad88756105db"
+    },
+    "inputs/src/defs/gamepieces/full-map-defs.js": {
+      "bytes": 82667,
+      "sha256": "004c26dbf22d7d0eb201ad3bd085eb73e6dc50fedc5fffe7281ed46c117151b9"
+    },
+    "inputs/src/defs/gamepieces/hub-structure-defs.js": {
+      "bytes": 6748,
+      "sha256": "516a7a7afbe90afa0152bae401cf93e48511130bd96f921a450060ffa479473a"
+    },
+    "inputs/src/defs/gamepieces/regional-practice-defs.js": {
+      "bytes": 1462,
+      "sha256": "d089dbaea79fa63b25a93a8754e33ba3699d047489d33ed519adaad0a9f182a0"
+    },
+    "inputs/src/defs/gamepieces/settlement-order-defs.js": {
+      "bytes": 3105,
+      "sha256": "a15b587e4e6a1d33a211852eb16b78f034376814bba24165f2777882d70aa01c"
+    },
+    "inputs/src/defs/gamepieces/settlement-practice-defs.js": {
+      "bytes": 18011,
+      "sha256": "bb753b6bb4956b1ae601ea6ca228f5c0a1615063972c0f53bd2c03507788d8a8"
+    },
+    "inputs/src/defs/gamepieces/vassal-heirloom-defs.js": {
+      "bytes": 5446,
+      "sha256": "14250d09bbbb55c93471d412432dff6204f96b18cb955f6e0b2529f920e6e758"
+    },
+    "inputs/src/defs/gamepieces/vassal-life-map-defs.js": {
+      "bytes": 13069,
+      "sha256": "7596f9265a01de2e8205a4f1c32340ec68fad165702d45dc130107b762906ccf"
+    },
+    "inputs/src/defs/gamesettings/gamerules-defs.js": {
+      "bytes": 3817,
+      "sha256": "09b3972b8498ec3e31c877789ce0a6e8863d70a9aeb1d29ba4fe55cac37620df"
+    },
+    "inputs/src/defs/gamesettings/moon-phase-defs.js": {
+      "bytes": 1286,
+      "sha256": "4d24a13aeec4ba83b61d2ad87a43c8ae21a1c708f8ba23296aa0e0dcb6fe10d7"
+    },
+    "inputs/src/defs/gamesettings/variant-flags-defs.js": {
+      "bytes": 905,
+      "sha256": "3624d1379ae3582c8f08dbec07bef9b904e967bd7a77333ebf74e48a66379d15"
+    },
+    "inputs/src/defs/gamesystems/hub-system-defs.js": {
+      "bytes": 4773,
+      "sha256": "97a098b938ca22343dc49ab1c8cf7d103e2ca365277f95147285acc084f5eebb"
+    },
+    "inputs/src/defs/lifegraph-defaults.js": {
+      "bytes": 43723,
+      "sha256": "2a8ca5c23d0b509ee8aee8412a84f9d05173df32a55a8d1a3596e3c5702818e6"
+    },
+    "inputs/src/defs/mechanics.js": {
+      "bytes": 12680,
+      "sha256": "b2310a78655f9e8038ee627cd8d3919c986df38b4285a5d9151a246051884848"
+    },
+    "inputs/src/defs/tooltip-ui-utils.js": {
+      "bytes": 1249,
+      "sha256": "17271af047e22584e6f93b5133490e0d471608ff7b0a59507d749fcb961d4797"
+    },
+    "inputs/src/defs/vassal-class-rules.js": {
+      "bytes": 2582,
+      "sha256": "3680bcbb2303fd0bc3e86dd880963c2c16bb4fcd7f7241d17b61a6a460be1250"
+    },
+    "inputs/src/defs/vassal-stat-defs.js": {
+      "bytes": 986,
+      "sha256": "e03a758ea3f5b3920f6ce9b734d506d6cdb94faaf2039785e349ebc4303a41c0"
+    },
+    "inputs/src/defs/vassal-workshop-rules.js": {
+      "bytes": 557,
+      "sha256": "0f6fc13197f5ca2d584870654faa5889682ed4cc9fc7fdfbfdbf27fc4fd30179"
+    },
+    "inputs/src/defs/world/biome-multiplier-rules.js": {
+      "bytes": 420,
+      "sha256": "a0db068b38af11243ceb387a51e9690c66041e02baf35d81094ee9975d0a5739"
+    },
+    "inputs/src/defs/world/detailed-settlement-scenario.js": {
+      "bytes": 2012,
+      "sha256": "996987c281013d772a8911e0027d0dbee7aa475e3ab6bf4f4b3365c0008e0dcf"
+    },
+    "inputs/src/defs/world/world-map-defs.js": {
+      "bytes": 5604,
+      "sha256": "33484ae93039af8a93fb09ac12ceee390ef573e4db6d461507cc1fe0bcaa5cc1"
+    },
+    "inputs/src/model/actions.js": {
+      "bytes": 7937,
+      "sha256": "6405851c73197009500fb2988b7d13e7059293398bbb630c84e0e4e352c47c37"
+    },
+    "inputs/src/model/canonicalize.js": {
+      "bytes": 1071,
+      "sha256": "e187ac6488f4542d48f6b1fd13d56763d2ee5fb0c8fadfeb8d417719892ec0aa"
+    },
+    "inputs/src/model/chaos-values.js": {
+      "bytes": 484,
+      "sha256": "c06c5f9e7d81964128e1994f0f328fa02c6e7ad6aa6e2418e00d2c02df184938"
+    },
+    "inputs/src/model/commands/ap-helpers.js": {
+      "bytes": 1387,
+      "sha256": "e53700729454a1e6362c6dd982ac6c931f21d11d09987122349face22c87d1b2"
+    },
+    "inputs/src/model/commands/debug-commands.js": {
+      "bytes": 11131,
+      "sha256": "396900d3c9c7a22203feac4a95c4fd8c3286b2aeef79fe80ad51526d0b24d28d"
+    },
+    "inputs/src/model/commands/regional-practice-commands.js": {
+      "bytes": 1336,
+      "sha256": "aeb8a35cc07851f44257b31dcc6d9d58b0b6405756dbec7b9a703be8c3f0838c"
+    },
+    "inputs/src/model/commands/settlement-vassal-commands.js": {
+      "bytes": 2632,
+      "sha256": "81eca18dea2d3d5e2d435a135a2dc097c290882ec7f76633b502b1b3e82a44d1"
+    },
+    "inputs/src/model/detailed-practice-tiers.js": {
+      "bytes": 1511,
+      "sha256": "a9f82a077fb9619cd153eba3e6e5af8783707d44d778fa64fd6d701371c136be"
+    },
+    "inputs/src/model/detailed-settlements/biome-multipliers.js": {
+      "bytes": 1961,
+      "sha256": "4954baf286b43b2909afc483ae318efb628727ed4664d7973b524fe4e70819cb"
+    },
+    "inputs/src/model/detailed-settlements/cohorts.js": {
+      "bytes": 3506,
+      "sha256": "9169025a1b2ae69dbe50898b51222c10e529d119b35f23d1490941a07ee0b3a0"
+    },
+    "inputs/src/model/detailed-settlements/external-world.js": {
+      "bytes": 24293,
+      "sha256": "c36822045679ac0bd151537fc071923a813b22a471880ae8c1f907fab52eb9e1"
+    },
+    "inputs/src/model/detailed-settlements/helpers.js": {
+      "bytes": 9768,
+      "sha256": "a32ac617925082fa19d04402271f692cab7a9227a13c403a1387ecc4c5a57deb"
+    },
+    "inputs/src/model/detailed-settlements/neutral-market.js": {
+      "bytes": 6257,
+      "sha256": "acb2954ec1d29d643213ed22927f638b3c6574e2319d20334792a14e56817ca8"
+    },
+    "inputs/src/model/detailed-settlements/phases/chaos.js": {
+      "bytes": 5138,
+      "sha256": "3248152217161ecb7cdce4901dddc78649cee596c0491fb32062dd513ba171fe"
+    },
+    "inputs/src/model/detailed-settlements/phases/migration.js": {
+      "bytes": 22527,
+      "sha256": "95b2542b395b3c38ac8adaa6721067427f8b9df0cecda534b8f2f0110fc32197"
+    },
+    "inputs/src/model/detailed-settlements/phases/moon-turn.js": {
+      "bytes": 1653,
+      "sha256": "84b60ac3b92324a7b5b409e935541e3c6a8f3875428e2a6b6597c41e350cc33c"
+    },
+    "inputs/src/model/detailed-settlements/phases/shared.js": {
+      "bytes": 2106,
+      "sha256": "bf3b3f317d6f1883a45049a73d1ec5c0769c086c2a86b04c41bde0a4fa4a003f"
+    },
+    "inputs/src/model/detailed-settlements/political-recipes.js": {
+      "bytes": 6693,
+      "sha256": "dad82bac851aea133c6e044ef01865c89e64a65081f6698943d5a7262f260e74"
+    },
+    "inputs/src/model/detailed-settlements/population-ledger.js": {
+      "bytes": 4880,
+      "sha256": "d4aa045370b320deeabd49b85f93da1ec7b8e0972133c1bbe087742591021705"
+    },
+    "inputs/src/model/detailed-settlements/practice-events.js": {
+      "bytes": 3005,
+      "sha256": "f2fe30d0efc4ef0ef5986a02c6df3cb2efe6229eea4b54beef1c2027c00a2d93"
+    },
+    "inputs/src/model/detailed-settlements/practices.js": {
+      "bytes": 32742,
+      "sha256": "4f7ec7ddedf0ae3812bb6af9c1ca54758c05c672a2c8be5b037f3bb638e40faf"
+    },
+    "inputs/src/model/detailed-settlements/queries.js": {
+      "bytes": 7566,
+      "sha256": "6861cfcba7cbea824770e53eeefe5d6c43c611823272542d01b05394c0843ad6"
+    },
+    "inputs/src/model/detailed-settlements/stock.js": {
+      "bytes": 22671,
+      "sha256": "6efc1eef7ac57698beca8508af9559058152d0164beecbe30a96ca9671cbd2b1"
+    },
+    "inputs/src/model/detailed-settlements/synthesis.js": {
+      "bytes": 1568,
+      "sha256": "c7f7c77f92561808db02fdddb8cf34329244fcf22538b4dd5bb20a3585d14d24"
+    },
+    "inputs/src/model/detailed-settlements/territory.js": {
+      "bytes": 9422,
+      "sha256": "6c8128d8423cfb49601f1a92090f50db10fac9c07f8bd81e5683d445481922fd"
+    },
+    "inputs/src/model/detailed-settlements/workers.js": {
+      "bytes": 4489,
+      "sha256": "52405cba7bd845a08bd630cb5836afcc20907b1327c79540b82080d9967aa3df"
+    },
+    "inputs/src/model/effects/core/tiers.js": {
+      "bytes": 335,
+      "sha256": "4020a14df7f746a18ed626f061e9b4cdac8ed732b273dbea8ac244ce8c94ea29"
+    },
+    "inputs/src/model/game-config.js": {
+      "bytes": 28451,
+      "sha256": "6d8a2e20223d86a969f50d574238572258d88eacbe8376c45a9345eb5cc5cbac"
+    },
+    "inputs/src/model/gamepiece-presentation.js": {
+      "bytes": 16247,
+      "sha256": "8020264b2c9086aa38a5a54a9a4375c57797ad07b83c238f7ba75f226783888e"
+    },
+    "inputs/src/model/keywords-classes-prototype.js": {
+      "bytes": 8491,
+      "sha256": "610d48fb6ce3c976a7afde61f789a1070ca4dc3ce1a2b9b95231e6f6ed633a99"
+    },
+    "inputs/src/model/life-map-balance.js": {
+      "bytes": 9930,
+      "sha256": "19dbc6f6656c7c2cbd83198a9307d3f2b6b684bb4b811de664fabd34c24e219a"
+    },
+    "inputs/src/model/life-map-columns.js": {
+      "bytes": 6659,
+      "sha256": "fe955979856493cd345829b7a7957f6eb2ab7e213ec50dc1c4c453d9791e5db2"
+    },
+    "inputs/src/model/life-map-design.js": {
+      "bytes": 15477,
+      "sha256": "1e0ddbcabe146ef5429c2a7ae09654233bab47d35e614a57fb0bd4b60b80aa31"
+    },
+    "inputs/src/model/mechanic-readings.js": {
+      "bytes": 4365,
+      "sha256": "1f08e5c22659a33f11c710667dfd0d44730560eb69bca4d3e89fa5ab7b4178e7"
+    },
+    "inputs/src/model/mechanic-validation.js": {
+      "bytes": 3494,
+      "sha256": "371863eae529f5ca87df86b09af2505ee645832c63e5e43c57816f1c1a76d970"
+    },
+    "inputs/src/model/moon-phases.js": {
+      "bytes": 1668,
+      "sha256": "ec3644d7e25df476cecef27a5ad5f9c608100d55f057f85d4b80705f4bfedec3"
+    },
+    "inputs/src/model/moon.js": {
+      "bytes": 1472,
+      "sha256": "181c5ace7b93f34547cb1bb20ec15892b65924bfb3d59cffb7facf78fc3026ca"
+    },
+    "inputs/src/model/persistent-memory.js": {
+      "bytes": 8132,
+      "sha256": "17e5fa39d4fd65ce9dc06fb78eb5efa420149751cafe9fc6bfd796042109b985"
+    },
+    "inputs/src/model/practice-draft.js": {
+      "bytes": 3140,
+      "sha256": "09d076586d34fb69dd26aa36fd9cd37f0093a83148ccd7ccb08b83225d0b30e2"
+    },
+    "inputs/src/model/practice-keywords.js": {
+      "bytes": 5888,
+      "sha256": "ae3987ec280e130009850d9618b9e3d3f90ff42fd7026f29970804fdcbe85faf"
+    },
+    "inputs/src/model/practice-outputs.js": {
+      "bytes": 4069,
+      "sha256": "6a29fd6491d68f99e3ab3fa6ecb71758c4a9f86a6dbc1a2c8b41f17a32b2ed74"
+    },
+    "inputs/src/model/practice-reading.js": {
+      "bytes": 5244,
+      "sha256": "7345283e5c33cf8c8fa622e676f3e054258d0dd8358e3d755cbb7ee2fa52c56d"
+    },
+    "inputs/src/model/regional-map/biome-clustering.js": {
+      "bytes": 6597,
+      "sha256": "4dc2d592a4bd277626533111a0be461778f68eccf5cc5ee91eeb8381a794cd19"
+    },
+    "inputs/src/model/regional-map/definition.js": {
+      "bytes": 3369,
+      "sha256": "152c37f9bbc03358c6585e4da798eaee71bdcdfdc606214a4bda6e7b68503f4c"
+    },
+    "inputs/src/model/regional-map/generator.js": {
+      "bytes": 42168,
+      "sha256": "2d44d05096f6cd10be83e175c61563a97049b99ebb87db834ecf3fe4d747cb7d"
+    },
+    "inputs/src/model/regional-map/names.js": {
+      "bytes": 5751,
+      "sha256": "05a758f48a57bfab78d918ec821f44ab0af5d07fabc3ebfe003e618c146cb13b"
+    },
+    "inputs/src/model/regional-practices.js": {
+      "bytes": 8461,
+      "sha256": "93c1770e5681d7e879ad3415572658ac32524d69491d30a508b6c8a20e0a3ede"
+    },
+    "inputs/src/model/research-progression.js": {
+      "bytes": 2244,
+      "sha256": "82940560337be81c59d36fff5b4dca8568ff8a0de4b0b6eebab3e5cf2c4b14ac"
+    },
+    "inputs/src/model/rng.js": {
+      "bytes": 3818,
+      "sha256": "682c501a2d942118a81027713baa166ff216704ef8e9f5a2bff36cf81df9d5f7"
+    },
+    "inputs/src/model/settlement-exec.js": {
+      "bytes": 43246,
+      "sha256": "0fd122d3432bec9df93ee47683fc3fab47f586399e2cafa923fe323f587231cf"
+    },
+    "inputs/src/model/settlement-leadership.js": {
+      "bytes": 12800,
+      "sha256": "06f31c30232e6c0b365ed175cf47b65bc09781414159838dacba5f2607b7036d"
+    },
+    "inputs/src/model/settlement-order-exec.js": {
+      "bytes": 32517,
+      "sha256": "14b36fce8d57717102738986be00771cef3e85b6a3ffab7eb5ae8d3e71fa561f"
+    },
+    "inputs/src/model/settlement-state.js": {
+      "bytes": 20149,
+      "sha256": "2d6000193593b1ae2738c8266fe56462598d23151aa0a3afada57f5dac69c106"
+    },
+    "inputs/src/model/settlement-state/hub-legacy.js": {
+      "bytes": 31348,
+      "sha256": "f817862ab4c62c940b4880bd83306ebce79cacd40281a536ddd836d04a40f64e"
+    },
+    "inputs/src/model/settlement-upgrades.js": {
+      "bytes": 7687,
+      "sha256": "5cd7564bd6098b4921be799cfb230b9289e1fa3a090bdfaef9f8f0fdc9d228e6"
+    },
+    "inputs/src/model/skills.js": {
+      "bytes": 10832,
+      "sha256": "ec7644e0721ce36111b053c5791fab2c1620f5fead22660808991a810b628f45"
+    },
+    "inputs/src/model/state.js": {
+      "bytes": 34030,
+      "sha256": "e549208034c613872497f8fe05b7251cbba81689451d23637ecce4bcf99969af"
+    },
+    "inputs/src/model/state/board-legacy.js": {
+      "bytes": 18036,
+      "sha256": "652677e5332720b94f16a926a6cbb2ecdf6e81d3a3a26f42fb2c75e241d278d1"
+    },
+    "inputs/src/model/state/pawn-legacy.js": {
+      "bytes": 8547,
+      "sha256": "221ede0df5e7a7cc0cda81ffa74268c591989d98fb646ff664605f4398932348"
+    },
+    "inputs/src/model/structure-layout.js": {
+      "bytes": 6310,
+      "sha256": "cc8d988d1b96ec542d30fcc5d280b981176e8a95896e22bd8ab380b076ee99af"
+    },
+    "inputs/src/model/structure-reading.js": {
+      "bytes": 8791,
+      "sha256": "3ec743b86c0757ff43b6d923c892b4ca3bb1e36e71ba2fc36ca58520d5578381"
+    },
+    "inputs/src/model/vassal-life-map-generator.js": {
+      "bytes": 32565,
+      "sha256": "4360be2d27821e1ecaa16680542d8efac89560433af76a46345bb5caaadd0341"
+    },
+    "inputs/src/model/vassal-life-map.js": {
+      "bytes": 2101,
+      "sha256": "e29f068b1b56e73e64e2da05f69560db52c225bff0c7f48dac5af6bc7571097f"
+    },
+    "inputs/src/model/vassal-life-map/campaign.js": {
+      "bytes": 14443,
+      "sha256": "6aeb26ecb8052503e293963d646c5d8b30225dc57df1867316f145441c99d2fa"
+    },
+    "inputs/src/model/vassal-life-map/class-actions.js": {
+      "bytes": 12824,
+      "sha256": "abaa6027c139aacf58ae6bef212fe910437d3c87051ba99030736ee73a0797b2"
+    },
+    "inputs/src/model/vassal-life-map/class-rules.js": {
+      "bytes": 1663,
+      "sha256": "97be56b6367f23bbbbf1192fc09920e98736bc828e7d49b67cb32fa0d029c8ad"
+    },
+    "inputs/src/model/vassal-life-map/commissions.js": {
+      "bytes": 9510,
+      "sha256": "7a8246a7306647637666fd25d999c63b895b08b779fe600d106163682060978e"
+    },
+    "inputs/src/model/vassal-life-map/heirlooms.js": {
+      "bytes": 21734,
+      "sha256": "0743a4ac6c2b508d8fd31234078b5b129a740e06d47cbd19940469782d7abeaf"
+    },
+    "inputs/src/model/vassal-life-map/lifecycle.js": {
+      "bytes": 765,
+      "sha256": "696e3e00ae7512458b5cd0d5c62b43850db5520011a7c1880d8ce5c0e526d3d9"
+    },
+    "inputs/src/model/vassal-life-map/lifecycle/candidates.js": {
+      "bytes": 13814,
+      "sha256": "fbfc72e4a4ea0e03492e7c2cdec05b9f3d0fddaee51a95a841f0f9aff33da390"
+    },
+    "inputs/src/model/vassal-life-map/lifecycle/node-confirm.js": {
+      "bytes": 44924,
+      "sha256": "d3da267d97212740aef7c01f60cdd578d889a5c0deda52e151ba119dded4117b"
+    },
+    "inputs/src/model/vassal-life-map/lifecycle/step.js": {
+      "bytes": 12955,
+      "sha256": "39d2b3d99f533e58ab0e094c2638d81d5923e266c80ead10d3ca63c836483784"
+    },
+    "inputs/src/model/vassal-life-map/multiplier-preview.js": {
+      "bytes": 3258,
+      "sha256": "e18d9dd2142ea444189abe9b8c8577d388c2212b11cfe9afb066c6ffdf03899d"
+    },
+    "inputs/src/model/vassal-life-map/presentation.js": {
+      "bytes": 27254,
+      "sha256": "0353e89aa4ab39f6967d6bcd249020dd6f5aea14e8189637db1f3b1684fa37d7"
+    },
+    "inputs/src/model/vassal-life-map/relic-pools.js": {
+      "bytes": 2503,
+      "sha256": "2e1a078b5a81cc6a9c01e90f1870c91cd0630d014dc3339c46efa4586c058f8f"
+    },
+    "inputs/src/model/vassal-life-map/selectors.js": {
+      "bytes": 20863,
+      "sha256": "ca05adb1ee7f4738be4340f3a5d2208723e47d31394b16a32811361cdd513fd3"
+    },
+    "inputs/src/model/vassal-life-map/shop-specialties.js": {
+      "bytes": 4821,
+      "sha256": "2e80bca044664a68677863882f43f25cd24b27b6836ca996ca34f55014dea44e"
+    },
+    "inputs/src/model/vassal-life-map/shop.js": {
+      "bytes": 35507,
+      "sha256": "150a669e61eed679829f1990ff3754489cf66cf34760327719bd794eb6d3328e"
+    },
+    "inputs/src/model/vassal-life-map/stock-shops.js": {
+      "bytes": 2681,
+      "sha256": "f93786f25f5e3faab148bf2f1423bff65e9758c72968d85ddd1fc07c7e07e1c5"
+    },
+    "inputs/src/model/vassal-life-map/treasury.js": {
+      "bytes": 908,
+      "sha256": "0d77fb851a9fd8a932d390b4315c0898d415d6631d8da05a5dc84cd308d4a91f"
+    },
+    "inputs/src/model/vassal-life-map/world-choices.js": {
+      "bytes": 6537,
+      "sha256": "fe7513db49288e7d7f4fc813a66515cb4efe7282f0dc1c683632aecd1f8bfca9"
+    },
+    "inputs/src/model/world-definitions.js": {
+      "bytes": 250,
+      "sha256": "eab2c93cee2ff15dc675fd3bfc8892b2a120a0c0b1c88a671121b35eb8a21c29"
+    },
+    "inputs/src/model/world-state.js": {
+      "bytes": 27703,
+      "sha256": "4f0a4690e209f6bd4b1f49f1299e47bf8778af7f5e93112673f4b8bf22076f34"
+    },
+    "original-integrity.json": {
+      "bytes": 950,
+      "sha256": "c0a339850ed78dd76ca0fdfd4a62af47a1d6f44427610d6550fd400f7682e9db"
+    }
+  },
+  "identity": "159e14f213ded7c3065cdd95ec251ae2a984c7efe679cf87e63b5ce4d1cc53bf"
+}

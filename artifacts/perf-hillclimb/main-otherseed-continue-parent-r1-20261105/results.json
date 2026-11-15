@@ -1,0 +1,226 @@
+[
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "performance-continue",
+    "artwork": "off",
+    "id": "main-otherseed-continue-parent-r1-20261105-0-desktop-performance-continue-off-s424242-cold",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=performance-continue",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-otherseed-continue-parent-r1-20261105-0-desktop-performance-continue-off-s424242-cold"
+    ],
+    "started": "2026-11-04T17:30:01.253Z",
+    "finished": "2026-11-04T17:30:22.477Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "main-otherseed-continue-parent-r1-20261105-0-desktop-performance-continue-off-s424242-cold:launch-0-performance-continue",
+      "job": "performance-continue"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "performance-continue",
+    "artwork": "off",
+    "id": "main-otherseed-continue-parent-r1-20261105-1-mobile4-performance-continue-off-s424242-cold",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=performance-continue",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-otherseed-continue-parent-r1-20261105-1-mobile4-performance-continue-off-s424242-cold"
+    ],
+    "started": "2026-11-04T17:30:22.478Z",
+    "finished": "2026-11-04T17:31:46.699Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "main-otherseed-continue-parent-r1-20261105-1-mobile4-performance-continue-off-s424242-cold:launch-0-performance-continue",
+      "job": "performance-continue"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "warm",
+    "population": "desktop",
+    "job": "performance-continue",
+    "artwork": "off",
+    "id": "main-otherseed-continue-parent-r1-20261105-2-desktop-performance-continue-off-s424242-warm",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=performance-continue",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=warm",
+      "--samples=1",
+      "--id=main-otherseed-continue-parent-r1-20261105-2-desktop-performance-continue-off-s424242-warm"
+    ],
+    "started": "2026-11-04T17:31:46.700Z",
+    "finished": "2026-11-04T17:32:22.896Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "main-otherseed-continue-parent-r1-20261105-2-desktop-performance-continue-off-s424242-warm:launch-0-performance-continue",
+      "job": "performance-continue"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "warm",
+    "population": "mobile4",
+    "job": "performance-continue",
+    "artwork": "off",
+    "id": "main-otherseed-continue-parent-r1-20261105-3-mobile4-performance-continue-off-s424242-warm",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=performance-continue",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=warm",
+      "--samples=1",
+      "--id=main-otherseed-continue-parent-r1-20261105-3-mobile4-performance-continue-off-s424242-warm"
+    ],
+    "started": "2026-11-04T17:32:22.897Z",
+    "finished": "2026-11-04T17:34:46.112Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "main-otherseed-continue-parent-r1-20261105-3-mobile4-performance-continue-off-s424242-warm:launch-0-performance-continue",
+      "job": "performance-continue"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "performance-continue",
+    "artwork": "off",
+    "id": "main-otherseed-continue-parent-r1-20261105-4-desktop-performance-continue-off-s99117-cold",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=performance-continue",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-otherseed-continue-parent-r1-20261105-4-desktop-performance-continue-off-s99117-cold"
+    ],
+    "started": "2026-11-04T17:34:46.113Z",
+    "finished": "2026-11-04T17:35:10.845Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "main-otherseed-continue-parent-r1-20261105-4-desktop-performance-continue-off-s99117-cold:launch-0-performance-continue",
+      "job": "performance-continue"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "performance-continue",
+    "artwork": "off",
+    "id": "main-otherseed-continue-parent-r1-20261105-5-mobile4-performance-continue-off-s99117-cold",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=performance-continue",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-otherseed-continue-parent-r1-20261105-5-mobile4-performance-continue-off-s99117-cold"
+    ],
+    "started": "2026-11-04T17:35:10.846Z",
+    "finished": "2026-11-04T17:36:41.020Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "main-otherseed-continue-parent-r1-20261105-5-mobile4-performance-continue-off-s99117-cold:launch-0-performance-continue",
+      "job": "performance-continue"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "warm",
+    "population": "desktop",
+    "job": "performance-continue",
+    "artwork": "off",
+    "id": "main-otherseed-continue-parent-r1-20261105-6-desktop-performance-continue-off-s99117-warm",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=performance-continue",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=warm",
+      "--samples=1",
+      "--id=main-otherseed-continue-parent-r1-20261105-6-desktop-performance-continue-off-s99117-warm"
+    ],
+    "started": "2026-11-04T17:36:41.021Z",
+    "finished": "2026-11-04T17:37:18.944Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "main-otherseed-continue-parent-r1-20261105-6-desktop-performance-continue-off-s99117-warm:launch-0-performance-continue",
+      "job": "performance-continue"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "warm",
+    "population": "mobile4",
+    "job": "performance-continue",
+    "artwork": "off",
+    "id": "main-otherseed-continue-parent-r1-20261105-7-mobile4-performance-continue-off-s99117-warm",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=performance-continue",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=warm",
+      "--samples=1",
+      "--id=main-otherseed-continue-parent-r1-20261105-7-mobile4-performance-continue-off-s99117-warm"
+    ],
+    "started": "2026-11-04T17:37:18.945Z",
+    "finished": "2026-11-04T17:39:44.069Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "main-otherseed-continue-parent-r1-20261105-7-mobile4-performance-continue-off-s99117-warm:launch-0-performance-continue",
+      "job": "performance-continue"
+    }
+  }
+]

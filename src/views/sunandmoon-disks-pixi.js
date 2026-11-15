@@ -1112,6 +1112,13 @@ let feedbackText = null;
     destroy,
     getRoot: () => root,
     isDragging: () => !!dragSession,
+    getRetainedMomentumSnapshot: () => ({
+      active: dragSession !== null,
+      coasting: dragSession?.coasting ?? false,
+      velocity: dragSession?.velocity ?? 0,
+      diskId: dragSession?.diskId ?? null,
+      visualTargetSec: dragSession?.visualTargetSec ?? null,
+    }),
     stopMomentum: () => { if (dragSession?.coasting) endDrag(); },
     getPhaseReferenceSnapshot: () => phaseReference?.getSnapshot() ?? null,
     getPhaseReferenceClickPoint: id => phaseReference?.getClickPoint(id) ?? null,

@@ -1,0 +1,79 @@
+[
+  {
+    "kind": "trusted-click",
+    "point": {
+      "x": 300,
+      "y": 861.4375
+    }
+  },
+  {
+    "kind": "trusted-click",
+    "point": {
+      "x": 102.5,
+      "y": 974.4375
+    }
+  },
+  {
+    "kind": "trusted-click",
+    "point": {
+      "x": 150,
+      "y": 497
+    }
+  },
+  {
+    "kind": "trusted-click",
+    "point": {
+      "x": 2242,
+      "y": 976.1875
+    }
+  },
+  {
+    "kind": "trusted-click",
+    "point": {
+      "x": 1448,
+      "y": 564
+    }
+  },
+  {
+    "kind": "trusted-click",
+    "point": {
+      "x": 811,
+      "y": 683
+    }
+  },
+  {
+    "kind": "trusted-click",
+    "point": {
+      "x": 215,
+      "y": 690
+    }
+  },
+  {
+    "kind": "trusted-click",
+    "point": {
+      "x": 2242,
+      "y": 976.1875
+    }
+  },
+  {
+    "kind": "trusted-click",
+    "point": {
+      "x": 1575,
+      "y": 936
+    }
+  },
+  {
+    "kind": "trusted-click",
+    "point": {
+      "x": 279,
+      "y": 974.4375
+    }
+  },
+  {
+    "kind": "trusted-click",
+    "point": {
+      "x": 300,
+      "y": 861.4375
+    }
+  }
+]

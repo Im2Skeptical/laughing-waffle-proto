@@ -1,0 +1,6 @@
+{
+  "name": "corrupt-sdk",
+  "status": "PASS expected rejection",
+  "expected": "/file size|file hash/",
+  "error": "AssertionError [ERR_ASSERTION]: file size: life-sdk.mjs\n\n41 !== 1115663\n\n    at match (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:43:10)\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:177:117)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:93:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:171:3"
+}

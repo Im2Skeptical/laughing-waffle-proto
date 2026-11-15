@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-04T15:48:11.282Z",
+  "url": "http://localhost:5184/",
+  "info": {
+    "performanceFixtureKey": "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+    "version": "1.1.52",
+    "build": "32921c8004ac",
+    "revision": "a9df52cbd625",
+    "channel": "local",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": "5184"
+  },
+  "htmlSha256": "acecca1b11ea31a59ceaf840b603da55304b43f0783252e6e47c42426b3bcca0",
+  "versionEmbedded": true,
+  "mobileUrls": [
+    "http://192.168.1.103:5184/",
+    "http://100.105.63.49:5184/"
+  ],
+  "fingerprintEmbedded": true
+}

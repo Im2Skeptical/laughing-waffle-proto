@@ -17,7 +17,7 @@ import {collectFeedback} from './feedback-collection.mjs';
 import {installFeedbackBindings,feedbackBinding} from './feedback-bindings.mjs';
 import {withDeadline} from './deadline.mjs';
 import {inspectAtlasUploads,assertArtworkPublication} from './artwork-oracles.mjs';
-import {instrumentArtworkBundle} from './artwork-bundle-controls.mjs';
+import {instrumentArtworkBundle,PHASE_WITNESS_VERSION,COOPERATIVE_WITNESS_VERSION} from './artwork-bundle-controls.mjs';
 import {loadFrozenCorpus} from './freeze-corpus.mjs';
 import {expectedPlanningPause,expectedOpeningKnowledge} from './save-state-oracle.mjs';
 import {attributeObservationWindow} from './observation-windows.mjs';
@@ -27,11 +27,14 @@ const args=Object.fromEntries(process.argv.slice(2).map(a=>{const[k,...v]=a.repl
 const config={cases:String(args.cases??'deferred,retry,exhausted').split(','),population:String(args.population??'desktop'),
   instrumentation:args.instrumentation!=='off',timeoutMs:Number(args.timeout??240000),navigationCycles:Number(args.cycles??5),
   gateTimeoutMs:Number(args['gate-timeout']??args.timeout??240000),controlNoRequest:args['control-no-request']==='1',
-  tracePublication:args['publication-witness']!=='sampled',
+  tracePublication:args['publication-witness']!=='sampled',phaseWitness:args['phase-witness']==='1',cooperativeWitness:args['cooperative-witness']==='1',
   controlDiagnostic:String(args['control-diagnostic']??'none'),controlFinalRead:String(args['control-final-read']??'none'),
   controlCaseHang:args['control-case-hang']==='1',
   port:Number(args.port??18246),dist:path.resolve(String(args.dist??'dist'))};
 config.caseTimeoutMs=Number(args['case-timeout']??config.timeoutMs*(8+4*config.navigationCycles));
+assert.ok(args['phase-witness']===undefined||['0','1'].includes(args['phase-witness']),'phase-witness requires explicit 0 or 1');
+assert.ok(args['cooperative-witness']===undefined||['0','1'].includes(args['cooperative-witness']),'cooperative-witness requires explicit 0 or 1');
+assert.ok(!config.cooperativeWitness||config.phaseWitness,'cooperative-witness requires phase-witness=1');
 assert.ok(config.cases.every(c=>['deferred','retry','exhausted','reference','early-publication'].includes(c)),'known control cases required');
 assert.equal(new Set(config.cases).size,config.cases.length,'use separate run IDs for repeated cases');
 assert.ok(['desktop','mobile','mobile4'].includes(config.population));
@@ -100,6 +103,10 @@ const manifest={runId,started:new Date().toISOString(),config,build,buildId:hash
 manifest.publicationWitness={mode:config.tracePublication?'specific private visibility Set and packed-Map mutations plus passive samples':'passive samples/endpoints only',
   cachePolicy:'new browser/context per case; interception is explicit and this script makes browser-cold claims only',
   overhead:'private-Set and common asset hooks require matched A/A/on-off proof before timing acceptance'};
+manifest.phaseWitness={enabled:config.phaseWitness,requiredVersion:config.phaseWitness?PHASE_WITNESS_VERSION:null,
+  scope:'bounded routed-response diagnostic; post-clock reads only; no observer neutrality or timing acceptance'};
+manifest.cooperativeWitness={enabled:config.cooperativeWitness,requiredVersion:config.cooperativeWitness?COOPERATIVE_WITNESS_VERSION:null,
+  scope:'paired existing wait spans/progress at existing yield boundaries; post-clock diagnostic only'};
 for(const file of ['scripts/perf-hillclimb/artwork-controls.mjs','scripts/perf-hillclimb/browser-runtime.mjs',
   'scripts/perf-hillclimb/feedback-runtime.mjs','scripts/perf-hillclimb/feedback-bindings.mjs','scripts/perf-hillclimb/feedback-collection.mjs',
   'scripts/perf-hillclimb/deadline.mjs','scripts/perf-hillclimb/artwork-oracles.mjs','scripts/perf-hillclimb/artwork-bundle-controls.mjs',
@@ -240,9 +247,12 @@ async function session(s) {
   // Entry preparation can reuse an initial lazy resource load. Capture both
   // phases rather than installing a hook too late and missing its first call.
   const original=await readFile(path.join(config.dist,build.bundle),'utf8');
-  const variant=instrumentArtworkBundle(original,{tracePublication:config.tracePublication,allowFault:caseId==='early-publication'});
+  const variant=instrumentArtworkBundle(original,{tracePublication:config.tracePublication,allowFault:caseId==='early-publication',phaseWitness:config.phaseWitness,cooperativeWitness:config.cooperativeWitness});
+  assert.equal(variant.phaseWitness,config.phaseWitness,'requested phase witness applied to served variant');
+  assert.equal(variant.cooperativeWitness,config.cooperativeWitness,'requested cooperative witness applied to served variant');
   const appVariant={originalSha256:hash(original),servedSha256:hash(variant.body),tracePublication:variant.tracePublication,
-    localFaultApi:variant.allowFault,scope:variant.scope};
+    localFaultApi:variant.allowFault,phaseWitness:variant.phaseWitness,phaseWitnessVersion:variant.phaseWitnessVersion,
+    cooperativeWitness:variant.cooperativeWitness,cooperativeWitnessVersion:variant.cooperativeWitnessVersion,scope:variant.scope};
   (manifest.caseVariants??={})[caseId]=appVariant;
   await writeFile(path.join(output,`${caseId}-observer-prefix.js`),variant.prefix);
   await writeFile(path.join(output,`${caseId}-control-extension.js`),variant.extension);
@@ -310,11 +320,13 @@ async function record(s,step,body,{startNow=false,fault='none',timeoutMs=config.
     fixture:'prepared:seed123',population:{layout:config.population,cpuRate:config.population==='mobile4'?4:1,
       cache:'browser-cold',artwork:s.artwork??'progressive',instrumentation:config.instrumentation,fault,
       publicationWitness:config.tracePublication?'private-stores':'sampled',appVariantSha256:s.appVariant.servedSha256,
+      phaseWitness:config.phaseWitness,phaseWitnessVersion:s.appVariant.phaseWitnessVersion,
+      cooperativeWitness:config.cooperativeWitness,cooperativeWitnessVersion:s.appVariant.cooperativeWitnessVersion,
       diagnosticControl:config.controlDiagnostic,finalReadControl:config.controlFinalRead,caseHangControl:config.controlCaseHang},kind:'validity-control',
     comparisonEligible:false,fixtureManifestId:manifest.fixtureManifestId,oracleSdkSha256:manifest.oracleSdkSha256};
   const hostEnd=performance.now()+timeoutMs+5000;
   const bounded=(work,label)=>s.lifetime.wait(work,{timeoutMs:Math.max(1,hostEnd-performance.now()),label:`${step} ${label}`});
-  let armed=false,completedTiming,oracleWindow=null,feedback=null;
+  let armed=false,completedTiming,oracleWindow=null,feedback=null,phaseWitness=null;
   const binding=feedbackBinding(step);
   try{
     await bounded(()=>currentPage.evaluate(({name,timeoutMs,startNow,binding})=>{const operationId=__HC__.arm({name,timeoutMs,startNow});if(binding)__HC_FEEDBACK__.arm({operationId,binding,backgroundStart:startNow,readCue:()=>__HC_READ_FEEDBACK__(binding)});},{name:step,timeoutMs,startNow,binding}),'arm');armed=true;
@@ -325,6 +337,7 @@ async function record(s,step,body,{startNow=false,fault='none',timeoutMs=config.
       timing.feedback=feedback.record;timing.firstFeedbackMs=feedback.record.firstFeedbackMs;timing.feedbackScope=feedback.record.scope;
       timing.feedbackCollectionWindow=feedback.collectionWait;
     }
+    if(config.phaseWitness)phaseWitness=await readPhaseWitness(s);
     assert.ok(startNow||timing.trustedInput,'real trusted input required');
     let correctness=null;
     if(oracle){
@@ -334,7 +347,7 @@ async function record(s,step,body,{startNow=false,fault='none',timeoutMs=config.
       finally{const window=s.diagnosticWindows[index];
         if(window)oracleWindow={startMs:window.startMs,endMs:window.endMs,diagnosticId:window.id};}
     }
-    const row={...header,ok:true,...timing,feedbackReceipt:feedback,untimedOracle:correctness,
+    const row={...header,ok:true,...timing,feedbackReceipt:feedback,phaseWitness,untimedOracle:correctness,
       untimedOracleWindow:oracleWindow};
     s.lifetime.throwIfStopped();observations.push(row);await appendFile(path.join(output,'observations.jsonl'),JSON.stringify(row)+'\n');return row;
   }catch(error){
@@ -343,9 +356,23 @@ async function record(s,step,body,{startNow=false,fault='none',timeoutMs=config.
       feedback=await withDeadline(currentPage.evaluate(e=>{const record=__HC_FEEDBACK__.cancel(e);return {record,export:__HC_FEEDBACK__.drain()};},error.message),5000,'feedback failure cleanup').catch(e=>({collectionError:e.message}));
       feedback.hostRpcMs=performance.now()-feedbackRpcStarted;
     }
-    const row={...header,ok:false,feedback,...timing,feedbackReceipt:feedback,untimedOracleWindow:oracleWindow,error:error.message,timeout:/timeout/i.test(error.message)};
+    if(config.phaseWitness&&!phaseWitness)phaseWitness=await readPhaseWitness(s).catch(e=>({collectionError:e.message}));
+    const row={...header,ok:false,feedback,...timing,feedbackReceipt:feedback,phaseWitness,untimedOracleWindow:oracleWindow,error:error.message,timeout:/timeout/i.test(error.message)};
     observations.push(row);await appendFile(path.join(output,'observations.jsonl'),JSON.stringify(row)+'\n');throw error;
   }
+}
+async function readPhaseWitness(s){
+  return withDeadline(s.page.evaluate(({version,cooperative,cooperativeVersion})=>{
+    if(globalThis.__HC__?.active)throw new Error('phase read under original operation clock');
+    const w=globalThis.__HC_ART_PHASE__;
+    if(w?.version!==version)throw new Error('required phase witness missing or wrong version');
+    if(w.events.length>32||w.loaders.length>8)throw new Error('phase witness bounds violated');
+    const c=globalThis.__HC_ART_COOP__;
+    if(cooperative?c?.version!==cooperativeVersion:c!==undefined)throw new Error('required cooperative witness presence/version mismatch');
+    if(c&&(c.loaders.length>8||c.loaders.some(l=>l.jobs.length>4||Object.keys(l.waits).length>16)))throw new Error('cooperative witness bounds violated');
+    const collectedAt=performance.now();
+    return {collectedAt,...w,...(cooperative?{cooperative:{collectedAt,...c}}:{})};
+  },{version:PHASE_WITNESS_VERSION,cooperative:config.cooperativeWitness,cooperativeVersion:COOPERATIVE_WITNESS_VERSION}),5000,'post-clock phase witness');
 }
 async function menu(s,{progressive=true}={}) {
   s.artwork=progressive?'progressive':'off';
@@ -355,17 +382,25 @@ async function menu(s,{progressive=true}={}) {
   await s.page.getByTestId('game-developer-tools').locator('summary').click();
   await s.page.getByTestId('game-progressive-artwork').setChecked(progressive);
   await condition(()=>!document.querySelector('[data-testid=game-new-performance]')?.disabled);
-  const setup=await s.page.evaluate(()=>{
+  const setup=await s.page.evaluate(({enabled,version,cooperative,cooperativeVersion})=>{
     const api=__SETTLEMENT_DEBUG__;
     if(api.getTimingSnapshot().version!==2)throw new Error('passive DTO v2 required');
     if(!__HC_ART__.assetWitnessInstalled)throw new Error('asset-attempt witness missed app initialization');
+    const phase=globalThis.__HC_ART_PHASE__;
+    if(enabled?phase?.version!==version:phase!==undefined)throw new Error('served phase witness presence/version does not match requested variant');
+    const coop=globalThis.__HC_ART_COOP__;
+    if(cooperative?coop?.version!==cooperativeVersion:coop!==undefined)throw new Error('served cooperative witness presence/version does not match requested variant');
     for(const name of ['getSnapshot','getWorldMapClickPoint','getNavigationClickPoint','getTimeActionClickPoint']){
       const original=api[name];api[name]=(...args)=>{
         if(__HC__.active)throw new Error(`intrusive ${name} under artwork clock`);return original(...args);
       };
     }
-    return {passiveVersion:api.getTimingSnapshot().version,assetWitnessInstalled:true};
-  });
+    return {passiveVersion:api.getTimingSnapshot().version,assetWitnessInstalled:true,
+      phaseWitnessObserved:{present:phase!==undefined,version:phase?.version??null},
+      cooperativeWitnessObserved:{present:coop!==undefined,version:coop?.version??null}};
+  },{enabled:config.phaseWitness,version:PHASE_WITNESS_VERSION,cooperative:config.cooperativeWitness,cooperativeVersion:COOPERATIVE_WITNESS_VERSION});
+  s.appVariant.phaseWitnessObserved=setup.phaseWitnessObserved;
+  s.appVariant.cooperativeWitnessObserved=setup.cooperativeWitnessObserved;
   s.setup=setup;
 }
 async function openingReady() {
@@ -552,7 +587,7 @@ async function finishSession(s,details) {
 }
 async function retainRawObservation(s,{phase,anchor=null}){
   const file=`${s.caseId}-${phase}-observation.json`;
-  const result={file,phase,hostCollectedAt:new Date().toISOString(),continuous:null,witness:null,
+  const result={file,phase,hostCollectedAt:new Date().toISOString(),continuous:null,witness:null,phaseWitness:null,
     diagnosticWindows:s.diagnosticWindows.map(window=>({...window})),collectionErrors:[]};
   const read=(work,label)=>phase==='failure'?withDeadline(work(),5000,label):s.lifetime.wait(work,{timeoutMs:5000,label});
   if(!s.page||s.page.isClosed())result.collectionErrors.push({stage:'document',error:'current case page unavailable or closed'});
@@ -578,6 +613,8 @@ async function retainRawObservation(s,{phase,anchor=null}){
         .map(e=>({name:e.name,start:e.startTime,duration:e.duration,responseEnd:e.responseEnd,transferSize:e.transferSize}))};
     }),`${phase} artwork witness evidence`);}
     catch(error){result.collectionErrors.push({stage:'witness',error:error.message});}
+    if(config.phaseWitness){try{result.phaseWitness=await readPhaseWitness(s);}
+      catch(error){result.collectionErrors.push({stage:'phase-witness',error:error.message});}}
   }
   result.availability={continuous:result.continuous!==null,witness:result.witness!==null,
     completePostWindow:result.continuous?.fullPostWindowReached===true};

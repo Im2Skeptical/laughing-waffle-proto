@@ -1,0 +1,908 @@
+{
+  "at": "2026-11-15T03:37:14.201Z",
+  "planSha256": "b575a07fea8abbc51ca8d8c9945e6174705e749127241a8b01ecb8d039928715",
+  "prefixInvariant": true,
+  "modeRootOnly": true,
+  "controls": [
+    {
+      "id": "trial-1-A",
+      "caseCount": 17,
+      "sha256": "e8de212f72221378337498235fa02f0c324b8f1e7df447c4aec70937d05c6129"
+    },
+    {
+      "id": "trial-2-B",
+      "caseCount": 17,
+      "sha256": "d6a47c0b0af4425e5e219b5b5ab2a01a0a016d9ed838e399e4b58b09ae04d1e1"
+    },
+    {
+      "id": "trial-3-B",
+      "caseCount": 17,
+      "sha256": "458e9442cf4fc40299abb3db804cb07d0c5f8cb0b0ca0c259b2cf4112824e678"
+    },
+    {
+      "id": "trial-4-A",
+      "caseCount": 17,
+      "sha256": "599bc17afbe7a1870f218d5b7ab33c52acd38abc26ba23848bda9532cc074d63"
+    }
+  ],
+  "io": [
+    {
+      "id": "trial-1-A",
+      "native": false,
+      "childCalls": 4,
+      "perCallIoCount": 0,
+      "errorStackAfterClosure": true,
+      "ADeferred": true,
+      "events": [
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-a",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-b",
+          "closed": false
+        },
+        {
+          "kind": "prefixClosed"
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\scripts\\local-preview.mjs",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\call-0-start.json",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\call-0-stdout.txt",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\calls.json",
+          "closed": true
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\scripts\\local-preview.mjs",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\call-1-start.json",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\call-1-stdout.txt",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\calls.json",
+          "closed": true
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-a\\scripts\\local-preview.mjs",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\call-2-start.json",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\call-2-stdout.txt",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\calls.json",
+          "closed": true
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-b\\scripts\\local-preview.mjs",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\call-3-start.json",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\call-3-stdout.txt",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\calls.json",
+          "closed": true
+        }
+      ]
+    },
+    {
+      "id": "trial-1-A",
+      "native": true,
+      "childCalls": 3,
+      "perCallIoCount": 0,
+      "errorStackAfterClosure": true,
+      "ADeferred": true,
+      "events": [
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-a",
+          "closed": false
+        },
+        {
+          "kind": "prefixClosed"
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\original-error.txt",
+          "closed": true
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\scripts\\local-preview.mjs",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\call-0-start.json",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\call-0-stdout.txt",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\calls.json",
+          "closed": true
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\scripts\\local-preview.mjs",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\call-1-start.json",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\call-1-stdout.txt",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\calls.json",
+          "closed": true
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-a\\scripts\\local-preview.mjs",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\call-2-start.json",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\call-2-stdout.txt",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\call-2-stderr.txt",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-1-A\\calls.json",
+          "closed": true
+        }
+      ]
+    },
+    {
+      "id": "trial-2-B",
+      "native": false,
+      "childCalls": 4,
+      "perCallIoCount": 16,
+      "errorStackAfterClosure": true,
+      "ADeferred": false,
+      "events": [
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\scripts\\local-preview.mjs",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\call-0-start.json",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\call-0-stdout.txt",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\calls.json",
+          "closed": false
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\scripts\\local-preview.mjs",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\call-1-start.json",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\call-1-stdout.txt",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\calls.json",
+          "closed": false
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-a\\scripts\\local-preview.mjs",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\call-2-start.json",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-a",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\call-2-stdout.txt",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\calls.json",
+          "closed": false
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-b\\scripts\\local-preview.mjs",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\call-3-start.json",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-b",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\call-3-stdout.txt",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\calls.json",
+          "closed": false
+        },
+        {
+          "kind": "prefixClosed"
+        }
+      ]
+    },
+    {
+      "id": "trial-2-B",
+      "native": true,
+      "childCalls": 3,
+      "perCallIoCount": 13,
+      "errorStackAfterClosure": true,
+      "ADeferred": false,
+      "events": [
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\scripts\\local-preview.mjs",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\call-0-start.json",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\call-0-stdout.txt",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\calls.json",
+          "closed": false
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\scripts\\local-preview.mjs",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\call-1-start.json",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\call-1-stdout.txt",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\calls.json",
+          "closed": false
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-a\\scripts\\local-preview.mjs",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\call-2-start.json",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-a",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\call-2-stdout.txt",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\call-2-stderr.txt",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\calls.json",
+          "closed": false
+        },
+        {
+          "kind": "prefixClosed"
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-2-B\\original-error.txt",
+          "closed": true
+        }
+      ]
+    },
+    {
+      "id": "trial-3-B",
+      "native": false,
+      "childCalls": 4,
+      "perCallIoCount": 16,
+      "errorStackAfterClosure": true,
+      "ADeferred": false,
+      "events": [
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\scripts\\local-preview.mjs",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\call-0-start.json",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\call-0-stdout.txt",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\calls.json",
+          "closed": false
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\scripts\\local-preview.mjs",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\call-1-start.json",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\call-1-stdout.txt",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\calls.json",
+          "closed": false
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-a\\scripts\\local-preview.mjs",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\call-2-start.json",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-a",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\call-2-stdout.txt",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\calls.json",
+          "closed": false
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-b\\scripts\\local-preview.mjs",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\call-3-start.json",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-b",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\call-3-stdout.txt",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\calls.json",
+          "closed": false
+        },
+        {
+          "kind": "prefixClosed"
+        }
+      ]
+    },
+    {
+      "id": "trial-3-B",
+      "native": true,
+      "childCalls": 3,
+      "perCallIoCount": 13,
+      "errorStackAfterClosure": true,
+      "ADeferred": false,
+      "events": [
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\scripts\\local-preview.mjs",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\call-0-start.json",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\call-0-stdout.txt",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\calls.json",
+          "closed": false
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\scripts\\local-preview.mjs",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\call-1-start.json",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\call-1-stdout.txt",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\calls.json",
+          "closed": false
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-a\\scripts\\local-preview.mjs",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\call-2-start.json",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-a",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\call-2-stdout.txt",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\call-2-stderr.txt",
+          "closed": false
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\calls.json",
+          "closed": false
+        },
+        {
+          "kind": "prefixClosed"
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-3-B\\original-error.txt",
+          "closed": true
+        }
+      ]
+    },
+    {
+      "id": "trial-4-A",
+      "native": false,
+      "childCalls": 4,
+      "perCallIoCount": 0,
+      "errorStackAfterClosure": true,
+      "ADeferred": true,
+      "events": [
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-a",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-b",
+          "closed": false
+        },
+        {
+          "kind": "prefixClosed"
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\scripts\\local-preview.mjs",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\call-0-start.json",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\call-0-stdout.txt",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\calls.json",
+          "closed": true
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\scripts\\local-preview.mjs",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\call-1-start.json",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\call-1-stdout.txt",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\calls.json",
+          "closed": true
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-a\\scripts\\local-preview.mjs",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\call-2-start.json",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\call-2-stdout.txt",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\calls.json",
+          "closed": true
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-b\\scripts\\local-preview.mjs",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\call-3-start.json",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\call-3-stdout.txt",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\calls.json",
+          "closed": true
+        }
+      ]
+    },
+    {
+      "id": "trial-4-A",
+      "native": true,
+      "childCalls": 3,
+      "perCallIoCount": 0,
+      "errorStackAfterClosure": true,
+      "ADeferred": true,
+      "events": [
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY",
+          "closed": false
+        },
+        {
+          "kind": "child",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-a",
+          "closed": false
+        },
+        {
+          "kind": "prefixClosed"
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\original-error.txt",
+          "closed": true
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\scripts\\local-preview.mjs",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\call-0-start.json",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\call-0-stdout.txt",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\calls.json",
+          "closed": true
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\scripts\\local-preview.mjs",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\call-1-start.json",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\call-1-stdout.txt",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\calls.json",
+          "closed": true
+        },
+        {
+          "kind": "read",
+          "file": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-VIRTUAL-ONLY\\worktrees\\task-a\\scripts\\local-preview.mjs",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\call-2-start.json",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\call-2-stdout.txt",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\call-2-stderr.txt",
+          "closed": true
+        },
+        {
+          "kind": "write",
+          "file": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-observer-abba-r1-20261115\\trial-4-A\\calls.json",
+          "closed": true
+        }
+      ]
+    }
+  ],
+  "inputs": {
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/plan.json": "b575a07fea8abbc51ca8d8c9945e6174705e749127241a8b01ecb8d039928715",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/prepare.mjs": "4389eff619c288d41383faee5dbf7398a7081d4695557241e7e3b86c029f993e",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/next.mjs": "c53c4f0cb04f8cb8d0b7ce4ab16e0020a956482605ff204a379839baba4e98da",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/repair-r0.mjs": "cc34c08e46c72a09f08eb55bcaa9d5e5aae07340333fb8c9410284f966b6e072",
+    "artifacts/perf-hillclimb/auditor-native-prefix-admission-20261115-r1/recheck-r3.mjs": "a5ee8568783b6e7f03b3f08f86d42bd5b6bf5b6cabfbdc7523a1b87024f8034e",
+    "scripts/build-preview-test.mjs": "3cb9132b0f020aec42287508c45c126adec8953d40a6b53e59fb4585f0c11245",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-1-A/prepare.mjs": "ed125ace5edfaa12584c333e1c5670d96d3f72d307c1bc74ba9f485fe373e767",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-1-A/probe.mjs": "37145088b0f43229df255f38ae6e18906ad864a1ead9e0872952eb9c029ac2c3",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-1-A/driver.mjs": "fadf7ddca92439d38cc3b4dcbaa2d88b3ab279271c8cf4e4bb5c54330bd2c1da",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-1-A/cleanup-owned.ps1": "9c806cf49043d3ba29cdceedd4d1f8ac1484718679e627e3bf06e3ab60a7ee38",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-1-A/source-authentication.json": "4b2a784770a8f340cbad9fa39731d05c82b2257db5dee4b7f1d64ff4f048318f",
+    "artifacts/perf-hillclimb/auditor-native-observer-admission-r1-20261115/trial-1-A-pure-r2.json": "e8de212f72221378337498235fa02f0c324b8f1e7df447c4aec70937d05c6129",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-2-B/prepare.mjs": "1826f7be00c288fcd5aac75c2f414bcb60ccc6a1ae9f1f08005f85fbae088624",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-2-B/probe.mjs": "2317009e2943aefb607ada75eefb008297b26cc3e25fe1ce73c412e4f320d4fe",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-2-B/driver.mjs": "0373169c28eb4c376daa93a0bdc91ada8b82ac637f2c608be3d5c09bf14cc01d",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-2-B/cleanup-owned.ps1": "9c806cf49043d3ba29cdceedd4d1f8ac1484718679e627e3bf06e3ab60a7ee38",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-2-B/source-authentication.json": "4b2a784770a8f340cbad9fa39731d05c82b2257db5dee4b7f1d64ff4f048318f",
+    "artifacts/perf-hillclimb/auditor-native-observer-admission-r1-20261115/trial-2-B-pure-r2.json": "d6a47c0b0af4425e5e219b5b5ab2a01a0a016d9ed838e399e4b58b09ae04d1e1",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-3-B/prepare.mjs": "39c93d1745d50c467e48d5fe65679a394b2b56d7f5979c6619394922490d76df",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-3-B/probe.mjs": "67eae316f15612a87db81856b0ec1148bc6ad9e0779ed707deb85a523d0bc5ff",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-3-B/driver.mjs": "80e43eee5e5ba9e825f9b92a331cd26715d04181723fcbb726624db941ae41b7",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-3-B/cleanup-owned.ps1": "9c806cf49043d3ba29cdceedd4d1f8ac1484718679e627e3bf06e3ab60a7ee38",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-3-B/source-authentication.json": "4b2a784770a8f340cbad9fa39731d05c82b2257db5dee4b7f1d64ff4f048318f",
+    "artifacts/perf-hillclimb/auditor-native-observer-admission-r1-20261115/trial-3-B-pure-r2.json": "458e9442cf4fc40299abb3db804cb07d0c5f8cb0b0ca0c259b2cf4112824e678",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-4-A/prepare.mjs": "1f28210d5b15a1ffb7c30295d828fd75c982adb3e701a19413fedcc92ba5f744",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-4-A/probe.mjs": "14ed36f90cef04d9b3a6b27f04baaf7b0095c7e0c38cd676b4bc3a1ceda65866",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-4-A/driver.mjs": "e9eb4f0cb6e7e8c53a0b8ba18332c6566ea1abf04af7ec817456b32de738870a",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-4-A/cleanup-owned.ps1": "9c806cf49043d3ba29cdceedd4d1f8ac1484718679e627e3bf06e3ab60a7ee38",
+    "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-4-A/source-authentication.json": "4b2a784770a8f340cbad9fa39731d05c82b2257db5dee4b7f1d64ff4f048318f",
+    "artifacts/perf-hillclimb/auditor-native-observer-admission-r1-20261115/trial-4-A-pure-r2.json": "599bc17afbe7a1870f218d5b7ab33c52acd38abc26ba23848bda9532cc074d63"
+  },
+  "verdict": "SOURCE_AND_PURE_CONTROLS_PASS",
+  "scope": "No original prefix/preview/fixture/browser/build/test/benchmark executed; virtual child and virtual filesystem only. Actual outcomes remain separate."
+}

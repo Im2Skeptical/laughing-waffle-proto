@@ -1,0 +1,44 @@
+{
+  "started": "2026-11-15T01:43:11.982Z",
+  "finished": "2026-11-15T01:43:25.207Z",
+  "cell": {
+    "id": "j3-linkage-current-desktop-pan-r1-20261115",
+    "job": "map-pan",
+    "seed": 123,
+    "population": "desktop",
+    "cache": "cold",
+    "artwork": "off"
+  },
+  "exitCode": 0,
+  "signal": null,
+  "expired": false,
+  "spawnError": null,
+  "killReceipt": null,
+  "identityVerified": true,
+  "identityError": null,
+  "successValidation": {
+    "ok": true,
+    "launchId": "j3-linkage-current-desktop-pan-r1-20261115:launch-0-map-pan",
+    "job": "map-pan"
+  },
+  "cleanupVerified": true,
+  "ownedContextCleanup": [
+    {
+      "launchId": "j3-linkage-current-desktop-pan-r1-20261115:launch-0-map-pan",
+      "closed": true,
+      "pageClosed": true,
+      "at": "2026-11-15T01:43:23.613Z"
+    }
+  ],
+  "ownedBrowserCleanup": [
+    {
+      "launchId": "j3-linkage-current-desktop-pan-r1-20261115:launch-0-map-pan",
+      "closed": true,
+      "at": "2026-11-15T01:43:25.020Z"
+    }
+  ],
+  "cleanupErrors": [],
+  "failedLaunches": [],
+  "sourceAssetChanges": [],
+  "scope": "Original actual rows and native-clock evidence require independent affected review; one launch never supplies tails/wholeSOUND."
+}

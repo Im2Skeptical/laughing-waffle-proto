@@ -1,0 +1,82 @@
+{
+  "at": "2026-11-04T12:02:20.075Z",
+  "hashes": {
+    "browser-runtime.mjs": "28dbc6efd95572a75ead37e97cb3c01d97066120e8e2687a6ef627b1cfc467f4",
+    "browser-runtime-test.mjs": "bf08405a107c7e30399becb9d0426ca1b69723eec0fcbccb99601d919ff19074",
+    "deadline.mjs": "b38266f2e0e32344e1128150b7156868f95ad4f96a4c0d835ebcd1c44a747073",
+    "deadline-test.mjs": "57b47ae59b4cd5d4fab35bbd789701a723e0ed06a8d044698d84e4a2a52be6d7",
+    "mechanism-controls.mjs": "2c91391c429856bd77890d216dca2b69fb68627db32dc4ea028a7f5c61430ae0"
+  },
+  "sourceStable": true,
+  "independentlyReproduced": {
+    "virtual": true,
+    "deadline": true,
+    "chromiumSevenGroups": true
+  },
+  "summaries": [
+    {
+      "mechanism": "trusted-input/deferred-visible-completion"
+    },
+    {
+      "mechanism": "same-key transient terminal readiness across actual frames",
+      "elapsed": 263.30000001192093,
+      "inputQueue": 0.30000001192092896,
+      "firstTransientSemantic": 1816.5,
+      "semantic": 2047.2000000178814
+    },
+    {
+      "mechanism": "actual-worker-delivery"
+    },
+    {
+      "mechanism": "IndexedDB committed transaction"
+    },
+    {
+      "mechanism": "no-hook reference",
+      "elapsed": 63.70000001788139,
+      "inputQueue": 0.5999999940395355,
+      "semantic": 89.2000000178814
+    },
+    {
+      "mechanism": "already-dispatched input during renderer main-thread block",
+      "elapsed": 320.19999998807907,
+      "inputQueue": 298.59999999403954,
+      "semantic": 338.40000000596046
+    },
+    {
+      "mechanism": "missing frame opportunity is bounded",
+      "missingFrameFailure": "visible completion timeout: frame opportunity deadline exceeded",
+      "missingFrameElapsed": 59.599999994039536
+    }
+  ],
+  "builderNoRequestEvidence": {
+    "config": {
+      "cases": [
+        "deferred"
+      ],
+      "population": "desktop",
+      "instrumentation": true,
+      "timeoutMs": 90000,
+      "navigationCycles": 1,
+      "gateTimeoutMs": 1000,
+      "controlNoRequest": true,
+      "port": 18246,
+      "dist": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\dist"
+    },
+    "rows": [
+      {
+        "step": "performance-entry-useful",
+        "ok": true,
+        "timeout": false,
+        "elapsed": 12425.699999988079
+      },
+      {
+        "step": "deferred-atlas-request-observed",
+        "ok": false,
+        "timeout": true,
+        "elapsed": 1002.3000000119209,
+        "error": "deferred atlas request observation timeout after 1000ms"
+      }
+    ]
+  },
+  "scope": "runtime audit only, no whole PhaseA acceptance"
+}

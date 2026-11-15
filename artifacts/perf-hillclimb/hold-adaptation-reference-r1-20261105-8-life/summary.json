@@ -1,0 +1,950 @@
+[
+  {
+    "key": [
+      "cb9b16916f926f41438027164cdc4c48ea4e868aa776e9c0ce6ebf646afa9a1e",
+      "148ce1d43b2c6b53583394b7cbde6d1343d4bfb35a5daa8960afbe9b28879b8a",
+      "cb6cd004ed85c53dde460b9abcff8c3818c34a99f20fe1f7945a0a310492867f",
+      "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+      "J4",
+      "life-map-open",
+      {
+        "artwork": "off",
+        "cache": "cold",
+        "control": null,
+        "cpuRate": 1,
+        "entryPath": "continue-fixture",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "inputType": "mouse",
+        "instrumentation": true,
+        "layout": "desktop",
+        "seed": 424242,
+        "workerDelayMs": 0,
+        "workloadMode": "frozen-baseline"
+      },
+      "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+      true
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "comparisonEligible": true,
+    "invalid": 0,
+    "timeouts": 0,
+    "independentLaunches": 1,
+    "p50": 175.40000000596046,
+    "p95": 175.40000000596046,
+    "min": 175.40000000596046,
+    "max": 175.40000000596046,
+    "successOnly": {
+      "count": 1,
+      "p50": 175.40000000596046,
+      "p95": 175.40000000596046,
+      "min": 175.40000000596046,
+      "max": 175.40000000596046,
+      "population": "conditional on valid successful completion"
+    },
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.99,
+      "estimate": 175.40000000596046,
+      "low": null,
+      "high": null,
+      "lowerRank": 0,
+      "upperRank": 2,
+      "bounded": false,
+      "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+    },
+    "p95BootstrapDiagnostic": null,
+    "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+    "latencyBounds": {
+      "p50": {
+        "low": 175.40000000596046,
+        "high": 175.40000000596046
+      },
+      "p95": {
+        "low": 175.40000000596046,
+        "high": 175.40000000596046
+      },
+      "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+    },
+    "correctnessGate": true,
+    "tailSampleQuotaMet": false,
+    "eligibleForTailInference": false,
+    "censored": [],
+    "inference": "iid interval only if manifest proves separate independent launches",
+    "workloadMode": "frozen-baseline"
+  },
+  {
+    "key": [
+      "cb9b16916f926f41438027164cdc4c48ea4e868aa776e9c0ce6ebf646afa9a1e",
+      "148ce1d43b2c6b53583394b7cbde6d1343d4bfb35a5daa8960afbe9b28879b8a",
+      "cb6cd004ed85c53dde460b9abcff8c3818c34a99f20fe1f7945a0a310492867f",
+      "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+      "J4",
+      "node-select",
+      {
+        "artwork": "off",
+        "cache": "cold",
+        "control": null,
+        "cpuRate": 1,
+        "entryPath": "continue-fixture",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "inputType": "mouse",
+        "instrumentation": true,
+        "layout": "desktop",
+        "seed": 424242,
+        "workerDelayMs": 0,
+        "workloadMode": "frozen-baseline"
+      },
+      "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+      true
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "comparisonEligible": true,
+    "invalid": 0,
+    "timeouts": 0,
+    "independentLaunches": 1,
+    "p50": 178.59999999403954,
+    "p95": 178.59999999403954,
+    "min": 178.59999999403954,
+    "max": 178.59999999403954,
+    "successOnly": {
+      "count": 1,
+      "p50": 178.59999999403954,
+      "p95": 178.59999999403954,
+      "min": 178.59999999403954,
+      "max": 178.59999999403954,
+      "population": "conditional on valid successful completion"
+    },
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.99,
+      "estimate": 178.59999999403954,
+      "low": null,
+      "high": null,
+      "lowerRank": 0,
+      "upperRank": 2,
+      "bounded": false,
+      "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+    },
+    "p95BootstrapDiagnostic": null,
+    "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+    "latencyBounds": {
+      "p50": {
+        "low": 178.59999999403954,
+        "high": 178.59999999403954
+      },
+      "p95": {
+        "low": 178.59999999403954,
+        "high": 178.59999999403954
+      },
+      "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+    },
+    "correctnessGate": true,
+    "tailSampleQuotaMet": false,
+    "eligibleForTailInference": false,
+    "censored": [],
+    "inference": "iid interval only if manifest proves separate independent launches",
+    "workloadMode": "frozen-baseline"
+  },
+  {
+    "key": [
+      "cb9b16916f926f41438027164cdc4c48ea4e868aa776e9c0ce6ebf646afa9a1e",
+      "148ce1d43b2c6b53583394b7cbde6d1343d4bfb35a5daa8960afbe9b28879b8a",
+      "cb6cd004ed85c53dde460b9abcff8c3818c34a99f20fe1f7945a0a310492867f",
+      "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+      "J4",
+      "entry-dialog-open",
+      {
+        "artwork": "off",
+        "cache": "cold",
+        "control": null,
+        "cpuRate": 1,
+        "entryPath": "continue-fixture",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "inputType": "mouse",
+        "instrumentation": true,
+        "layout": "desktop",
+        "seed": 424242,
+        "workerDelayMs": 0,
+        "workloadMode": "frozen-baseline"
+      },
+      "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+      true
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "comparisonEligible": true,
+    "invalid": 0,
+    "timeouts": 0,
+    "independentLaunches": 1,
+    "p50": 444.80000001192093,
+    "p95": 444.80000001192093,
+    "min": 444.80000001192093,
+    "max": 444.80000001192093,
+    "successOnly": {
+      "count": 1,
+      "p50": 444.80000001192093,
+      "p95": 444.80000001192093,
+      "min": 444.80000001192093,
+      "max": 444.80000001192093,
+      "population": "conditional on valid successful completion"
+    },
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.99,
+      "estimate": 444.80000001192093,
+      "low": null,
+      "high": null,
+      "lowerRank": 0,
+      "upperRank": 2,
+      "bounded": false,
+      "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+    },
+    "p95BootstrapDiagnostic": null,
+    "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+    "latencyBounds": {
+      "p50": {
+        "low": 444.80000001192093,
+        "high": 444.80000001192093
+      },
+      "p95": {
+        "low": 444.80000001192093,
+        "high": 444.80000001192093
+      },
+      "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+    },
+    "correctnessGate": true,
+    "tailSampleQuotaMet": false,
+    "eligibleForTailInference": false,
+    "censored": [],
+    "inference": "iid interval only if manifest proves separate independent launches",
+    "workloadMode": "frozen-baseline"
+  },
+  {
+    "key": [
+      "cb9b16916f926f41438027164cdc4c48ea4e868aa776e9c0ce6ebf646afa9a1e",
+      "148ce1d43b2c6b53583394b7cbde6d1343d4bfb35a5daa8960afbe9b28879b8a",
+      "cb6cd004ed85c53dde460b9abcff8c3818c34a99f20fe1f7945a0a310492867f",
+      "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+      "J4",
+      "node-entry-confirm",
+      {
+        "artwork": "off",
+        "cache": "cold",
+        "control": null,
+        "cpuRate": 1,
+        "entryPath": "continue-fixture",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "inputType": "mouse",
+        "instrumentation": true,
+        "layout": "desktop",
+        "seed": 424242,
+        "workerDelayMs": 0,
+        "workloadMode": "frozen-baseline"
+      },
+      "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+      true
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "comparisonEligible": true,
+    "invalid": 0,
+    "timeouts": 0,
+    "independentLaunches": 1,
+    "p50": 1199.300000011921,
+    "p95": 1199.300000011921,
+    "min": 1199.300000011921,
+    "max": 1199.300000011921,
+    "successOnly": {
+      "count": 1,
+      "p50": 1199.300000011921,
+      "p95": 1199.300000011921,
+      "min": 1199.300000011921,
+      "max": 1199.300000011921,
+      "population": "conditional on valid successful completion"
+    },
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.99,
+      "estimate": 1199.300000011921,
+      "low": null,
+      "high": null,
+      "lowerRank": 0,
+      "upperRank": 2,
+      "bounded": false,
+      "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+    },
+    "p95BootstrapDiagnostic": null,
+    "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+    "latencyBounds": {
+      "p50": {
+        "low": 1199.300000011921,
+        "high": 1199.300000011921
+      },
+      "p95": {
+        "low": 1199.300000011921,
+        "high": 1199.300000011921
+      },
+      "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+    },
+    "correctnessGate": true,
+    "tailSampleQuotaMet": false,
+    "eligibleForTailInference": false,
+    "censored": [],
+    "inference": "iid interval only if manifest proves separate independent launches",
+    "workloadMode": "frozen-baseline"
+  },
+  {
+    "key": [
+      "cb9b16916f926f41438027164cdc4c48ea4e868aa776e9c0ce6ebf646afa9a1e",
+      "148ce1d43b2c6b53583394b7cbde6d1343d4bfb35a5daa8960afbe9b28879b8a",
+      "cb6cd004ed85c53dde460b9abcff8c3818c34a99f20fe1f7945a0a310492867f",
+      "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+      "J4",
+      "shop-category-selection",
+      {
+        "artwork": "off",
+        "cache": "cold",
+        "control": null,
+        "cpuRate": 1,
+        "entryPath": "continue-fixture",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "inputType": "mouse",
+        "instrumentation": true,
+        "layout": "desktop",
+        "seed": 424242,
+        "workerDelayMs": 0,
+        "workloadMode": "frozen-baseline"
+      },
+      "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+      true
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "comparisonEligible": true,
+    "invalid": 0,
+    "timeouts": 0,
+    "independentLaunches": 1,
+    "p50": 216.7999999821186,
+    "p95": 216.7999999821186,
+    "min": 216.7999999821186,
+    "max": 216.7999999821186,
+    "successOnly": {
+      "count": 1,
+      "p50": 216.7999999821186,
+      "p95": 216.7999999821186,
+      "min": 216.7999999821186,
+      "max": 216.7999999821186,
+      "population": "conditional on valid successful completion"
+    },
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.99,
+      "estimate": 216.7999999821186,
+      "low": null,
+      "high": null,
+      "lowerRank": 0,
+      "upperRank": 2,
+      "bounded": false,
+      "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+    },
+    "p95BootstrapDiagnostic": null,
+    "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+    "latencyBounds": {
+      "p50": {
+        "low": 216.7999999821186,
+        "high": 216.7999999821186
+      },
+      "p95": {
+        "low": 216.7999999821186,
+        "high": 216.7999999821186
+      },
+      "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+    },
+    "correctnessGate": true,
+    "tailSampleQuotaMet": false,
+    "eligibleForTailInference": false,
+    "censored": [],
+    "inference": "iid interval only if manifest proves separate independent launches",
+    "workloadMode": "frozen-baseline"
+  },
+  {
+    "key": [
+      "cb9b16916f926f41438027164cdc4c48ea4e868aa776e9c0ce6ebf646afa9a1e",
+      "148ce1d43b2c6b53583394b7cbde6d1343d4bfb35a5daa8960afbe9b28879b8a",
+      "cb6cd004ed85c53dde460b9abcff8c3818c34a99f20fe1f7945a0a310492867f",
+      "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+      "J6",
+      "purchase-to-staged-preview",
+      {
+        "artwork": "off",
+        "cache": "cold",
+        "control": null,
+        "cpuRate": 1,
+        "entryPath": "continue-fixture",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "inputType": "mouse",
+        "instrumentation": true,
+        "layout": "desktop",
+        "seed": 424242,
+        "workerDelayMs": 0,
+        "workloadMode": "frozen-baseline"
+      },
+      "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+      true
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "comparisonEligible": true,
+    "invalid": 0,
+    "timeouts": 0,
+    "independentLaunches": 1,
+    "p50": 208.80000001192093,
+    "p95": 208.80000001192093,
+    "min": 208.80000001192093,
+    "max": 208.80000001192093,
+    "successOnly": {
+      "count": 1,
+      "p50": 208.80000001192093,
+      "p95": 208.80000001192093,
+      "min": 208.80000001192093,
+      "max": 208.80000001192093,
+      "population": "conditional on valid successful completion"
+    },
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.99,
+      "estimate": 208.80000001192093,
+      "low": null,
+      "high": null,
+      "lowerRank": 0,
+      "upperRank": 2,
+      "bounded": false,
+      "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+    },
+    "p95BootstrapDiagnostic": null,
+    "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+    "latencyBounds": {
+      "p50": {
+        "low": 208.80000001192093,
+        "high": 208.80000001192093
+      },
+      "p95": {
+        "low": 208.80000001192093,
+        "high": 208.80000001192093
+      },
+      "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+    },
+    "correctnessGate": true,
+    "tailSampleQuotaMet": false,
+    "eligibleForTailInference": false,
+    "censored": [],
+    "inference": "iid interval only if manifest proves separate independent launches",
+    "workloadMode": "frozen-baseline"
+  },
+  {
+    "key": [
+      "cb9b16916f926f41438027164cdc4c48ea4e868aa776e9c0ce6ebf646afa9a1e",
+      "148ce1d43b2c6b53583394b7cbde6d1343d4bfb35a5daa8960afbe9b28879b8a",
+      "cb6cd004ed85c53dde460b9abcff8c3818c34a99f20fe1f7945a0a310492867f",
+      "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+      "J6",
+      "confirm-to-recomputed-preview",
+      {
+        "artwork": "off",
+        "cache": "cold",
+        "control": null,
+        "cpuRate": 1,
+        "entryPath": "continue-fixture",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "inputType": "mouse",
+        "instrumentation": true,
+        "layout": "desktop",
+        "seed": 424242,
+        "workerDelayMs": 0,
+        "workloadMode": "frozen-baseline"
+      },
+      "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+      true
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "comparisonEligible": true,
+    "invalid": 0,
+    "timeouts": 0,
+    "independentLaunches": 1,
+    "p50": 2938.5999999940395,
+    "p95": 2938.5999999940395,
+    "min": 2938.5999999940395,
+    "max": 2938.5999999940395,
+    "successOnly": {
+      "count": 1,
+      "p50": 2938.5999999940395,
+      "p95": 2938.5999999940395,
+      "min": 2938.5999999940395,
+      "max": 2938.5999999940395,
+      "population": "conditional on valid successful completion"
+    },
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.99,
+      "estimate": 2938.5999999940395,
+      "low": null,
+      "high": null,
+      "lowerRank": 0,
+      "upperRank": 2,
+      "bounded": false,
+      "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+    },
+    "p95BootstrapDiagnostic": null,
+    "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+    "latencyBounds": {
+      "p50": {
+        "low": 2938.5999999940395,
+        "high": 2938.5999999940395
+      },
+      "p95": {
+        "low": 2938.5999999940395,
+        "high": 2938.5999999940395
+      },
+      "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+    },
+    "correctnessGate": true,
+    "tailSampleQuotaMet": false,
+    "eligibleForTailInference": false,
+    "censored": [],
+    "inference": "iid interval only if manifest proves separate independent launches",
+    "workloadMode": "frozen-baseline"
+  },
+  {
+    "key": [
+      "cb9b16916f926f41438027164cdc4c48ea4e868aa776e9c0ce6ebf646afa9a1e",
+      "148ce1d43b2c6b53583394b7cbde6d1343d4bfb35a5daa8960afbe9b28879b8a",
+      "cb6cd004ed85c53dde460b9abcff8c3818c34a99f20fe1f7945a0a310492867f",
+      "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+      "J4",
+      "recap-return",
+      {
+        "artwork": "off",
+        "cache": "cold",
+        "control": null,
+        "cpuRate": 1,
+        "entryPath": "continue-fixture",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "inputType": "mouse",
+        "instrumentation": true,
+        "layout": "desktop",
+        "seed": 424242,
+        "workerDelayMs": 0,
+        "workloadMode": "frozen-baseline"
+      },
+      "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+      true
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "comparisonEligible": true,
+    "invalid": 0,
+    "timeouts": 0,
+    "independentLaunches": 1,
+    "p50": 136.80000001192093,
+    "p95": 136.80000001192093,
+    "min": 136.80000001192093,
+    "max": 136.80000001192093,
+    "successOnly": {
+      "count": 1,
+      "p50": 136.80000001192093,
+      "p95": 136.80000001192093,
+      "min": 136.80000001192093,
+      "max": 136.80000001192093,
+      "population": "conditional on valid successful completion"
+    },
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.99,
+      "estimate": 136.80000001192093,
+      "low": null,
+      "high": null,
+      "lowerRank": 0,
+      "upperRank": 2,
+      "bounded": false,
+      "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+    },
+    "p95BootstrapDiagnostic": null,
+    "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+    "latencyBounds": {
+      "p50": {
+        "low": 136.80000001192093,
+        "high": 136.80000001192093
+      },
+      "p95": {
+        "low": 136.80000001192093,
+        "high": 136.80000001192093
+      },
+      "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+    },
+    "correctnessGate": true,
+    "tailSampleQuotaMet": false,
+    "eligibleForTailInference": false,
+    "censored": [],
+    "inference": "iid interval only if manifest proves separate independent launches",
+    "workloadMode": "frozen-baseline"
+  },
+  {
+    "key": [
+      "cb9b16916f926f41438027164cdc4c48ea4e868aa776e9c0ce6ebf646afa9a1e",
+      "148ce1d43b2c6b53583394b7cbde6d1343d4bfb35a5daa8960afbe9b28879b8a",
+      "cb6cd004ed85c53dde460b9abcff8c3818c34a99f20fe1f7945a0a310492867f",
+      "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+      "J4",
+      "return-to-map",
+      {
+        "artwork": "off",
+        "cache": "cold",
+        "control": null,
+        "cpuRate": 1,
+        "entryPath": "continue-fixture",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "inputType": "mouse",
+        "instrumentation": true,
+        "layout": "desktop",
+        "seed": 424242,
+        "workerDelayMs": 0,
+        "workloadMode": "frozen-baseline"
+      },
+      "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+      true
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "comparisonEligible": true,
+    "invalid": 0,
+    "timeouts": 0,
+    "independentLaunches": 1,
+    "p50": 395,
+    "p95": 395,
+    "min": 395,
+    "max": 395,
+    "successOnly": {
+      "count": 1,
+      "p50": 395,
+      "p95": 395,
+      "min": 395,
+      "max": 395,
+      "population": "conditional on valid successful completion"
+    },
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.99,
+      "estimate": 395,
+      "low": null,
+      "high": null,
+      "lowerRank": 0,
+      "upperRank": 2,
+      "bounded": false,
+      "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+    },
+    "p95BootstrapDiagnostic": null,
+    "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+    "latencyBounds": {
+      "p50": {
+        "low": 395,
+        "high": 395
+      },
+      "p95": {
+        "low": 395,
+        "high": 395
+      },
+      "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+    },
+    "correctnessGate": true,
+    "tailSampleQuotaMet": false,
+    "eligibleForTailInference": false,
+    "censored": [],
+    "inference": "iid interval only if manifest proves separate independent launches",
+    "workloadMode": "frozen-baseline"
+  },
+  {
+    "key": [
+      "cb9b16916f926f41438027164cdc4c48ea4e868aa776e9c0ce6ebf646afa9a1e",
+      "148ce1d43b2c6b53583394b7cbde6d1343d4bfb35a5daa8960afbe9b28879b8a",
+      "cb6cd004ed85c53dde460b9abcff8c3818c34a99f20fe1f7945a0a310492867f",
+      "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+      "J6",
+      "life-history-16",
+      {
+        "artwork": "off",
+        "cache": "cold",
+        "control": null,
+        "cpuRate": 1,
+        "entryPath": "continue-fixture",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "inputType": "mouse",
+        "instrumentation": true,
+        "layout": "desktop",
+        "seed": 424242,
+        "workerDelayMs": 0,
+        "workloadMode": "frozen-baseline"
+      },
+      "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+      true
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "comparisonEligible": true,
+    "invalid": 0,
+    "timeouts": 0,
+    "independentLaunches": 1,
+    "p50": 2297.7999999821186,
+    "p95": 2297.7999999821186,
+    "min": 2297.7999999821186,
+    "max": 2297.7999999821186,
+    "successOnly": {
+      "count": 1,
+      "p50": 2297.7999999821186,
+      "p95": 2297.7999999821186,
+      "min": 2297.7999999821186,
+      "max": 2297.7999999821186,
+      "population": "conditional on valid successful completion"
+    },
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.99,
+      "estimate": 2297.7999999821186,
+      "low": null,
+      "high": null,
+      "lowerRank": 0,
+      "upperRank": 2,
+      "bounded": false,
+      "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+    },
+    "p95BootstrapDiagnostic": null,
+    "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+    "latencyBounds": {
+      "p50": {
+        "low": 2297.7999999821186,
+        "high": 2297.7999999821186
+      },
+      "p95": {
+        "low": 2297.7999999821186,
+        "high": 2297.7999999821186
+      },
+      "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+    },
+    "correctnessGate": true,
+    "tailSampleQuotaMet": false,
+    "eligibleForTailInference": false,
+    "censored": [],
+    "inference": "iid interval only if manifest proves separate independent launches",
+    "workloadMode": "frozen-baseline"
+  },
+  {
+    "key": [
+      "cb9b16916f926f41438027164cdc4c48ea4e868aa776e9c0ce6ebf646afa9a1e",
+      "148ce1d43b2c6b53583394b7cbde6d1343d4bfb35a5daa8960afbe9b28879b8a",
+      "cb6cd004ed85c53dde460b9abcff8c3818c34a99f20fe1f7945a0a310492867f",
+      "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+      "J6",
+      "life-history-17",
+      {
+        "artwork": "off",
+        "cache": "cold",
+        "control": null,
+        "cpuRate": 1,
+        "entryPath": "continue-fixture",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "inputType": "mouse",
+        "instrumentation": true,
+        "layout": "desktop",
+        "seed": 424242,
+        "workerDelayMs": 0,
+        "workloadMode": "frozen-baseline"
+      },
+      "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+      true
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "comparisonEligible": true,
+    "invalid": 0,
+    "timeouts": 0,
+    "independentLaunches": 1,
+    "p50": 1708.5,
+    "p95": 1708.5,
+    "min": 1708.5,
+    "max": 1708.5,
+    "successOnly": {
+      "count": 1,
+      "p50": 1708.5,
+      "p95": 1708.5,
+      "min": 1708.5,
+      "max": 1708.5,
+      "population": "conditional on valid successful completion"
+    },
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.99,
+      "estimate": 1708.5,
+      "low": null,
+      "high": null,
+      "lowerRank": 0,
+      "upperRank": 2,
+      "bounded": false,
+      "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+    },
+    "p95BootstrapDiagnostic": null,
+    "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+    "latencyBounds": {
+      "p50": {
+        "low": 1708.5,
+        "high": 1708.5
+      },
+      "p95": {
+        "low": 1708.5,
+        "high": 1708.5
+      },
+      "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+    },
+    "correctnessGate": true,
+    "tailSampleQuotaMet": false,
+    "eligibleForTailInference": false,
+    "censored": [],
+    "inference": "iid interval only if manifest proves separate independent launches",
+    "workloadMode": "frozen-baseline"
+  },
+  {
+    "key": [
+      "cb9b16916f926f41438027164cdc4c48ea4e868aa776e9c0ce6ebf646afa9a1e",
+      "148ce1d43b2c6b53583394b7cbde6d1343d4bfb35a5daa8960afbe9b28879b8a",
+      "cb6cd004ed85c53dde460b9abcff8c3818c34a99f20fe1f7945a0a310492867f",
+      "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+      "J6",
+      "life-present",
+      {
+        "artwork": "off",
+        "cache": "cold",
+        "control": null,
+        "cpuRate": 1,
+        "entryPath": "continue-fixture",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "inputType": "mouse",
+        "instrumentation": true,
+        "layout": "desktop",
+        "seed": 424242,
+        "workerDelayMs": 0,
+        "workloadMode": "frozen-baseline"
+      },
+      "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+      true
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "comparisonEligible": true,
+    "invalid": 0,
+    "timeouts": 0,
+    "independentLaunches": 1,
+    "p50": 226.59999999403954,
+    "p95": 226.59999999403954,
+    "min": 226.59999999403954,
+    "max": 226.59999999403954,
+    "successOnly": {
+      "count": 1,
+      "p50": 226.59999999403954,
+      "p95": 226.59999999403954,
+      "min": 226.59999999403954,
+      "max": 226.59999999403954,
+      "population": "conditional on valid successful completion"
+    },
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.99,
+      "estimate": 226.59999999403954,
+      "low": null,
+      "high": null,
+      "lowerRank": 0,
+      "upperRank": 2,
+      "bounded": false,
+      "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+    },
+    "p95BootstrapDiagnostic": null,
+    "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+    "latencyBounds": {
+      "p50": {
+        "low": 226.59999999403954,
+        "high": 226.59999999403954
+      },
+      "p95": {
+        "low": 226.59999999403954,
+        "high": 226.59999999403954
+      },
+      "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+    },
+    "correctnessGate": true,
+    "tailSampleQuotaMet": false,
+    "eligibleForTailInference": false,
+    "censored": [],
+    "inference": "iid interval only if manifest proves separate independent launches",
+    "workloadMode": "frozen-baseline"
+  }
+]

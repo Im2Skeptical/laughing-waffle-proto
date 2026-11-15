@@ -1,0 +1,11 @@
+{
+  "requestedJobs": [
+    "entry",
+    "performance"
+  ],
+  "executableJobs": [
+    "entry",
+    "performance-new",
+    "performance-continue"
+  ]
+}

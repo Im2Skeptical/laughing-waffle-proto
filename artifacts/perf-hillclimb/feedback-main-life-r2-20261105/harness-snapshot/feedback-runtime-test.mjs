@@ -1,0 +1,417 @@
+// Virtual mechanism controls for the root-owned feedback observer.
+// Actual HC runtime in a virtual loop: not native trust/painting/device evidence.
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {access,writeFile} from 'node:fs/promises';
+import {installRuntime} from './browser-runtime.mjs';
+import {installFeedbackObserver} from './feedback-runtime.mjs';
+
+function fixture({timeoutMs = 1000, event = 'pointerdown', capacity = 16,
+  captureInputTiming = false, captureCostMs = 0} = {}) {
+  let clock = 100, nextId = 1, phase = 'idle';
+  const frames = new Map(), timers = new Map(), microtasks = [];
+  const listeners = new Map(), order = [];
+  const target = name => ({
+    addEventListener(type, fn) {
+      const key = `${name}:${type}`, list = listeners.get(key) ?? [];
+      list.push(fn); listeners.set(key, list);
+    },
+    removeEventListener(type, fn) {
+      const key = `${name}:${type}`;
+      listeners.set(key, (listeners.get(key) ?? []).filter(item => item !== fn));
+    },
+    querySelector: () => null,
+  });
+  const window = target('window'), document = target('document');
+  const context = vm.createContext({window, document,
+    performance: {now: () => clock},
+    requestAnimationFrame(fn) { const id = nextId++; frames.set(id, fn); return id; },
+    cancelAnimationFrame(id) { frames.delete(id); },
+    setTimeout(fn, delay = 0) { const id = nextId++; timers.set(id, {fn, at: clock + Math.max(0, delay)}); return id; },
+    clearTimeout(id) { timers.delete(id); },
+    queueMicrotask(fn) { microtasks.push(fn); },
+    advanceReaderClock(ms) { clock += ms; },
+    recordOrder(label) { order.push(label); },
+    eventLoopPhase() { return phase; },
+    __SETTLEMENT_DEBUG__: {getTimingSnapshot() { clock += captureCostMs; return {version: 2}; }},
+  });
+  const run = source => vm.runInContext(source, context);
+  run(`(${installRuntime.toString()})({instrumentation:false})`);
+  run(`(${installFeedbackObserver.toString()})({maxRetainedOperations:${capacity}})`);
+  run("globalThis.cue={sourceKey:'recorded-action-lineage',sourceValid:true,visible:true,responseKey:'baseline'}");
+  const microtaskCheckpoint = () => {
+    let remaining = 1000;
+    while (microtasks.length) { assert.ok(remaining-- > 0); microtasks.shift()(); }
+  };
+  const dueTimers = () => {
+    let remaining = 1000;
+    while (true) {
+      const due = [...timers].filter(([, item]) => item.at <= clock).sort((a, b) => a[1].at - b[1].at);
+      if (!due.length) return;
+      assert.ok(remaining-- > 0, 'bounded virtual timer drain');
+      const [id, item] = due[0]; timers.delete(id);
+      const before = phase; phase = 'task'; item.fn(); microtaskCheckpoint(); phase = before;
+    }
+  };
+  const advance = (ms, {timers: executeTimers = true} = {}) => {
+    assert.ok(Number.isFinite(ms) && ms >= 0); clock += ms;
+    if (executeTimers) dueTimers();
+  };
+  const frame = (ms = 1000 / 60, options) => {
+    advance(ms, options);
+    const due = [...frames];
+    for (const [id] of due) frames.delete(id);
+    order.push('frame'); const before = phase; phase = 'frame';
+    for (const [, fn] of due) { fn(clock); microtaskCheckpoint(); }
+    phase = before;
+  };
+  const dispatch = ({type = event, trusted = true, timestamp = clock,
+    app = null, checkpointsBetweenListeners = false, postTasks = true,
+    pointerId = 1, pointerType = 'mouse'} = {}) => {
+    const input = {type, isTrusted: trusted, timeStamp: timestamp, pointerId, pointerType};
+    const before = phase;
+    for (const name of ['window', 'document']) {
+      phase = name;
+      order.push(name);
+      for (const fn of [...(listeners.get(`${name}:${type}`) ?? [])]) {
+        fn(input); if (checkpointsBetweenListeners) microtaskCheckpoint();
+      }
+    }
+    phase = 'target'; order.push('target'); if (app) run(app); microtaskCheckpoint();
+    phase = before;
+    if (postTasks) dueTimers();
+    return input;
+  };
+  const arm = (reader = '() => cue') => {
+    run(`__HC__.arm({name:'feedback-control',event:${JSON.stringify(event)},timeoutMs:${timeoutMs},captureInputTiming:${captureInputTiming}})`);
+    return run(`__HC_FEEDBACK__.arm({operationId:__HC__.active.id,binding:'virtual-control',readCue:${reader}})`);
+  };
+  const json = source => JSON.parse(JSON.stringify(run(source)));
+  const status = () => json('__HC_FEEDBACK__.status()');
+  const completeHost = async () => {
+    if (!run('__HC__.active !== null')) return;
+    if (run('__HC__.active.timeout === true')) {
+      run("__HC__.cancel('virtual host deadline cleanup')"); return;
+    }
+    run("__HC__.probe(()=>true,{key:'virtual-functional-completion',terminal:true})");
+    const pending = run("__HC__.finish({scope:'virtual functional completion'})");
+    let settled = false, failure = null;
+    Promise.resolve(pending).then(() => { settled = true; }, error => { failure = error; settled = true; });
+    for (let index = 0; !settled && index < 12; index++) {
+      frame(); await Promise.resolve(); await Promise.resolve();
+    }
+    assert.ok(settled, 'existing HC.finish settles under bounded virtual frames');
+    if (failure) {
+      if (run('__HC__.active !== null')) {
+        context.hostFailureText = String(failure.message);
+        run('__HC__.cancel(hostFailureText)');
+      } else throw failure;
+    }
+  };
+  const collect = async ({finishHost = true} = {}) => {
+    if (finishHost) await completeHost();
+    return json('__HC_FEEDBACK__.finish()');
+  };
+  const assertClean = () => {
+    assert.equal(status().active, false);
+    assert.equal(run('__HC__.active !== null'), false);
+    assert.equal(frames.size, 0, 'no observer/completion frame survives');
+    assert.equal(timers.size, 0, 'no host/observer task survives');
+    assert.equal([...listeners.values()].reduce((n, list) => n + list.length, 0), 0);
+    assert.equal(microtasks.length, 0);
+  };
+  return {run, json, arm, status, dispatch, frame, advance, completeHost, collect, assertClean,
+    order, get now() { return clock; }, get queuedFrames() { return frames.size; },
+    get queuedTimers() { return timers.size; }};
+}
+
+const controls = [];
+const test = (name, body) => controls.push({name, body});
+const respond = "cue.responseKey='applied-response'";
+
+test('idle observer schedules no callbacks', async () => {
+  const f = fixture(); assert.equal(f.queuedFrames, 0); assert.equal(f.queuedTimers, 0);
+  assert.equal(f.status().active, false);
+});
+
+test('known HC capture read does not replace original queue delay', async () => {
+  const f = fixture({captureInputTiming: true, captureCostMs: 20}); f.arm(); f.advance(10);
+  f.dispatch({timestamp: 105, app: respond}); f.frame(); f.frame();
+  const actual = await f.collect();
+  assert.equal(actual.phase, 'completed'); assert.equal(actual.startedAtMs, 105);
+  assert.equal(actual.hostHandlerAtMs, 110); assert.equal(actual.inputQueueMs, 5);
+  assert.equal(actual.observerHandlerAtMs, 130); assert.equal(actual.hostToObserverMs, 20);
+  assert.equal(actual.hostCaptureReadMs, 20);
+  assert.equal(actual.inputQueueMs, actual.hostAtCollection.inputQueueMs);
+  assert.equal(actual.hostAtCollection.status, 'completed'); f.assertClean();
+});
+
+test('input-time cue read cost is separately recorded', async () => {
+  const f = fixture(); f.run('globalThis.cueReadCost=0');
+  f.arm('() => {advanceReaderClock(cueReadCost);return cue}');
+  f.run('cueReadCost=7'); f.advance(10); f.dispatch({timestamp: 105, app: respond});
+  f.frame(); f.frame();
+  const actual = await f.collect();
+  assert.equal(actual.preHandlerQueueMs, 5);
+  assert.equal(actual.inputQueueMs, 12, 'HC arrival includes the preceding instrumentation read');
+  assert.ok(actual.readSamples.some(s => s.label === 'input-window-capture-before-app' && s.cpuMs === 7));
+  assert.ok(actual.readCpuMs >= 7); f.assertClean();
+});
+
+test('arm-to-input same-source autonomous drift plus no-op cannot become feedback', async () => {
+  const f = fixture(); f.arm(); f.run("cue.responseKey='autonomous-drift'"); f.dispatch();
+  const actual = await f.collect();
+  assert.equal(actual.phase, 'failed'); assert.equal(actual.firstFeedbackMs, null);
+  assert.equal(actual.inputBaselineMatches, false); assert.match(actual.observerError, /arm-to-input/);
+  assert.equal(actual.baseline.responseKey, 'baseline');
+  assert.equal(actual.preHandlerCue.responseKey, 'autonomous-drift'); f.assertClean();
+});
+
+test('post-dispatch cue detection survives microtask checkpoints between native-style listeners', async () => {
+  const f = fixture(); f.arm("() => {recordOrder(eventLoopPhase()+':'+cue.responseKey);return cue}");
+  f.dispatch({checkpointsBetweenListeners: true, app: respond});
+  const target = f.order.indexOf('target'), read = f.order.indexOf('task:applied-response');
+  assert.ok(target >= 0 && read > target);
+  assert.ok(!f.order.some(label => label.startsWith('document:')), 'no cue read at an inter-listener microtask checkpoint');
+  f.frame(); f.frame(); const actual = await f.collect();
+  assert.equal(actual.phase, 'completed'); assert.ok(actual.postDispatchAtMs !== null);
+  assert.match(actual.detectionScope, /post-dispatch/); f.assertClean();
+});
+
+test('actual down/move/up model permits early feedback before final release', async () => {
+  const f = fixture(); f.arm(); f.dispatch();
+  let early = null;
+  for (let index = 1; index <= 12; index++) {
+    f.advance(1000 / 60);
+    f.dispatch({type: 'pointermove', app: `cue.responseKey='applied-pose-${index}'`}); f.frame(0);
+    if (!early && f.status().phase === 'completed') early = f.status();
+  }
+  f.dispatch({type: 'pointerup'}); const last = f.now;
+  assert.equal(f.run('__HC__.active.inputCount'), 1, 'pointerdown-armed runtime does not count moves');
+  const actual = await f.collect();
+  assert.ok(early && actual.firstFeedbackAtMs < last);
+  assert.equal(actual.observedArmedEventCount, 1); f.assertClean();
+});
+
+test('two-contact start plus later motion does not postpone feedback until release', async () => {
+  const f = fixture(); f.arm();
+  f.dispatch({pointerType:'touch',pointerId:1}); f.advance(1);
+  f.dispatch({pointerType:'touch',pointerId:2});
+  for (let index = 1; index <= 12; index++) {
+    f.advance(1000 / 60);
+    f.dispatch({type:'pointermove',pointerType:'touch',pointerId:1,app:`cue.responseKey='pinch-pose-${index}'`});
+    f.dispatch({type:'pointermove',pointerType:'touch',pointerId:2}); f.frame(0);
+  }
+  const last = f.now;
+  f.dispatch({type:'pointerup',pointerType:'touch',pointerId:1});
+  f.dispatch({type:'pointerup',pointerType:'touch',pointerId:2});
+  assert.equal(f.run('__HC__.active.inputCount'), 2);
+  const actual = await f.collect();
+  assert.equal(actual.phase, 'completed'); assert.ok(actual.firstFeedbackAtMs < last);
+  assert.equal(actual.observedArmedEventCount, 2); f.assertClean();
+});
+
+test('repeated armed wheel events do not reset an early feedback candidate', async () => {
+  const f = fixture({event: 'wheel'}); f.arm(); f.dispatch();
+  for (let index = 1; index <= 14; index++) {
+    f.advance(1000 / 60); f.dispatch({app: `cue.responseKey='wheel-pose-${index}'`}); f.frame(0);
+  }
+  const last = f.now; assert.equal(f.run('__HC__.active.inputCount'), 15);
+  const actual = await f.collect();
+  assert.ok(actual.firstFeedbackAtMs < last); assert.equal(actual.phase, 'completed'); f.assertClean();
+});
+
+test('transient cue disappearing before validated frames is not feedback', async () => {
+  const f = fixture(); f.arm(); f.dispatch({app: respond});
+  f.run("cue.responseKey='baseline'"); f.frame(); f.frame();
+  const actual = await f.collect();
+  assert.equal(actual.phase, 'censored'); assert.equal(actual.firstFeedbackMs, null);
+  assert.ok(actual.rejectedCandidates.some(r => r.reason === 'cue returned to baseline'));
+  assert.equal(actual.censorAtMs, actual.lastNegativeFrameCueAtMs); f.assertClean();
+});
+
+test('source unavailable cannot manufacture feedback or visual-absence bound', async () => {
+  const f = fixture(); f.arm(); f.dispatch({app: "cue.sourceValid=false;cue.responseKey='changed'"});
+  f.frame(); f.frame(); const actual = await f.collect();
+  assert.equal(actual.firstFeedbackMs, null); assert.equal(actual.censorAtMs, null); f.assertClean();
+});
+
+test('host cancellation before input is preserved at collection without any frame', async () => {
+  const f = fixture(); f.arm(); f.run("__HC__.cancel('original functional failure')");
+  const actual = await f.collect({finishHost: false});
+  assert.equal(actual.phase, 'cancelled'); assert.equal(actual.overallStatus, 'failed');
+  assert.equal(actual.hostAtCollection.error, 'original functional failure');
+  assert.equal(actual.error, 'original functional failure'); assert.equal(actual.firstFeedbackMs, null); f.assertClean();
+});
+
+test('host cancellation cause survives a feedback deadline with frames suppressed', async () => {
+  const f = fixture({timeoutMs: 100}); f.arm(); f.run("__HC__.cancel('first host cause')"); f.advance(101);
+  const actual = await f.collect({finishHost: false});
+  assert.equal(actual.phase, 'cancelled'); assert.equal(actual.hostAtStop.error, 'first host cause');
+  assert.equal(actual.error, 'first host cause'); f.assertClean();
+});
+
+test('paired cancellation before input is immediate and permits the next arm', async () => {
+  const f = fixture(); f.arm();
+  const actual = f.json("__HC_FEEDBACK__.cancel('paired before-input failure')");
+  assert.equal(actual.error, 'paired before-input failure'); assert.equal(actual.phase, 'cancelled'); f.assertClean();
+  f.arm(); f.dispatch({app: respond}); f.frame(); f.frame(); await f.collect(); f.assertClean();
+  assert.equal(f.status().createdRecords, 2); assert.equal(f.status().collectedRecords, 2);
+});
+
+test('runtime replacement before input is not relabelled no-feedback timeout', async () => {
+  const f = fixture({timeoutMs: 100}); f.arm();
+  f.run("globalThis.oldRuntime=__HC__;oldRuntime.cancel('original replaced runtime cause');globalThis.__HC__={active:null}");
+  f.advance(101); const actual = await f.collect({finishHost: false});
+  assert.equal(actual.hostAtStop.status, 'runtime-replaced');
+  assert.equal(actual.hostAtStop.error, 'original replaced runtime cause');
+  assert.equal(actual.overallStatus, 'failed'); f.assertClean();
+});
+
+test('missing frames reach deadline with original host timeout retained', async () => {
+  const f = fixture({timeoutMs: 100}); f.arm(); f.dispatch({app: respond}); f.advance(101);
+  const actual = await f.collect();
+  assert.equal(actual.phase, 'censored'); assert.equal(actual.firstFeedbackMs, null);
+  assert.equal(actual.hostAtStop.timeout, true); assert.equal(actual.censorAtMs, null); f.assertClean();
+});
+
+test('no input preserves null start and host timeout cause', async () => {
+  const f = fixture({timeoutMs: 100}); f.arm(); f.advance(101);
+  const actual = await f.collect();
+  assert.equal(actual.startedAtMs, null); assert.equal(actual.firstFeedbackMs, null);
+  assert.equal(actual.hostAtStop.timeout, true); assert.equal(actual.censorAtMs, null); f.assertClean();
+});
+
+test('late final-read validation retains absolute marker after earlier real HC completion', async () => {
+  const f = fixture({timeoutMs: 200}); f.run('globalThis.cost=0');
+  f.arm('() => {advanceReaderClock(cost);return cue}'); f.dispatch();
+  await f.completeHost(); const completion = f.run('__HC__.operations.at(-1).finished');
+  f.run(respond); f.frame(1, {timers: false}); f.frame(1, {timers: false});
+  f.run('cost=250'); f.frame(1, {timers: false});
+  const actual = await f.collect({finishHost: false});
+  assert.equal(actual.phase, 'censored'); assert.equal(actual.firstFeedbackMs, null);
+  assert.ok(actual.lateValidatedAtMs > completion); assert.ok(actual.lateValidatedFeedbackMs > 200);
+  assert.equal(actual.markerAfterCompletion, true); assert.equal(actual.comparisonEligible, false); f.assertClean();
+});
+
+test('failed baseline is collected once without leaking the HC or observer slot', async () => {
+  const f = fixture(); f.run('cue.sourceValid=false');
+  assert.throws(() => f.arm(), /baseline source/); f.assertClean();
+  const history = f.json('__HC_FEEDBACK__.history()');
+  assert.equal(history.length, 1); assert.equal(history[0].phase, 'failed');
+  assert.equal(f.status().failedArms, 1); assert.equal(f.status().createdRecords, 1);
+  assert.equal(f.status().collectedRecords, 1);
+});
+
+test('malformed/accessor/then/Promise cues retain errors without executing getters', async () => {
+  for (const reader of [
+    "() => {const x={...cue};Object.defineProperty(x,'responseKey',{enumerable:true,get(){getterCalls++;return 'bad'}});return x}",
+    "() => {const x={...cue};Object.defineProperty(x,'then',{enumerable:true,get(){getterCalls++;return ()=>{}}});return x}",
+    "() => ({...cue,extra:'unexpected'})",
+    "() => Promise.resolve(cue)",
+  ]) {
+    const f = fixture(); f.run('globalThis.getterCalls=0');
+    assert.throws(() => f.arm(reader), /cue/); assert.equal(f.run('getterCalls'), 0);
+    f.assertClean(); assert.equal(f.json('__HC_FEEDBACK__.history()').length, 1);
+  }
+});
+
+test('post-input reader failure stays distinct from later host success', async () => {
+  const f = fixture(); f.run('globalThis.throwReader=false');
+  f.arm("() => {if(throwReader)throw new Error('controlled reader fault');return cue}");
+  f.dispatch({app: 'throwReader=true'}); const actual = await f.collect();
+  assert.equal(actual.phase, 'failed'); assert.equal(actual.hostAtCollection.status, 'completed');
+  assert.equal(actual.overallStatus, 'failed'); assert.equal(actual.observerError, 'controlled reader fault');
+  assert.ok(actual.readSamples.some(s => s.failure)); f.assertClean();
+});
+
+test('untrusted first event cannot be repaired into trusted feedback by a later event', async () => {
+  const f = fixture(); f.arm(); f.dispatch({trusted: false}); f.dispatch({app: respond});
+  const actual = await f.collect();
+  assert.equal(actual.phase, 'failed'); assert.equal(actual.firstFeedbackMs, null);
+  assert.match(actual.observerError, /trusted timestamp/); f.assertClean();
+});
+
+test('completed feedback does not hide a later original host failure', async () => {
+  const f = fixture(); f.arm(); f.dispatch({app: respond}); f.frame(); f.frame();
+  f.run("__HC__.cancel('later original host failure')");
+  const actual = await f.collect({finishHost: false});
+  assert.equal(actual.phase, 'completed'); assert.equal(actual.overallStatus, 'failed');
+  assert.equal(actual.error, 'later original host failure'); assert.ok(actual.firstFeedbackMs !== null); f.assertClean();
+});
+
+test('bounded capacity blocks new work without dropping failed/cancelled records', async () => {
+  const f = fixture({capacity: 2});
+  f.arm(); f.json("__HC_FEEDBACK__.cancel('first failure')");
+  f.run('cue.sourceValid=false'); assert.throws(() => f.arm(), /baseline source/); f.assertClean();
+  f.run('cue.sourceValid=true'); assert.throws(() => f.arm(), /drain retained/);
+  f.run("__HC__.cancel('rejected-capacity host cleanup')"); f.assertClean();
+  const before = f.status(), batch = f.json('__HC_FEEDBACK__.drain()');
+  assert.equal(before.retainedRecords, 2); assert.equal(before.createdRecords, 2);
+  assert.equal(before.collectedRecords, 2); assert.equal(before.rejectedArms, 1);
+  assert.equal(batch.records.length, 2); assert.equal(batch.status.exportedRecords, 2);
+  assert.equal(batch.status.retainedRecords, 0); assert.equal(batch.status.exportBatches, 1);
+  assert.match(batch.records[0].error, /first failure/);
+});
+
+test('reinstall cannot silently erase evidence or cumulative counts', async () => {
+  const f = fixture(); f.arm(); f.json("__HC_FEEDBACK__.cancel('retained failure')");
+  assert.throws(() => f.run(`(${installFeedbackObserver.toString()})()`), /explicit drained inactive/);
+  assert.throws(() => f.run(`(${installFeedbackObserver.toString()})({replaceDrained:true})`), /explicit drained inactive/);
+  f.json('__HC_FEEDBACK__.drain()'); const before = f.status();
+  f.run(`(${installFeedbackObserver.toString()})({replaceDrained:true})`);
+  const after = f.status(); assert.equal(after.generation, before.generation + 1);
+  for (const key of ['createdRecords', 'collectedRecords', 'exportedRecords', 'exportBatches']) {
+    assert.equal(after[key], before[key]);
+  }
+  assert.equal(after.explicitReplacements, before.explicitReplacements + 1); f.assertClean();
+});
+
+test('many operations retain exact bounded export accounting', async () => {
+  const f = fixture({capacity: 8});
+  let exported = 0;
+  for (let index = 0; index < 40; index++) {
+    f.arm(); f.json(`__HC_FEEDBACK__.cancel('retained-failure-${index}')`); f.assertClean();
+    assert.ok(f.status().retainedRecords <= 8);
+    if ((index + 1) % 8 === 0) {
+      const batch = f.json('__HC_FEEDBACK__.drain()');
+      assert.equal(batch.records.length, 8); exported += batch.records.length;
+      for (let offset = 0; offset < 8; offset++) {
+        assert.equal(batch.records[offset].error, `retained-failure-${index - 7 + offset}`);
+      }
+    }
+  }
+  const status = f.status();
+  assert.equal(exported, 40); assert.equal(status.createdRecords, 40);
+  assert.equal(status.collectedRecords, 40); assert.equal(status.exportedRecords, 40);
+  assert.equal(status.retainedRecords, 0); assert.equal(status.exportBatches, 5);
+});
+
+test('full export and replacement are prohibited while a host clock runs', async () => {
+  const f = fixture(); f.arm();
+  for (const code of ['__HC_FEEDBACK__.history()', '__HC_FEEDBACK__.drain()', '__HC_FEEDBACK__.snapshot()', '__HC_FEEDBACK__.finish()']) {
+    assert.throws(() => f.run(code), /host operation clock/);
+  }
+  assert.throws(() => f.run(`(${installFeedbackObserver.toString()})({replaceDrained:true})`), /outside host operation/);
+  f.json("__HC_FEEDBACK__.cancel('outside-clock control cleanup')"); f.assertClean();
+});
+
+const output = process.argv.find(arg=>arg.startsWith('--output='))?.slice('--output='.length) ?? null;
+if(output){
+  try {await access(output);throw new Error(`Refusing to overwrite feedback control evidence: ${output}`);}
+  catch(error){if(error.code!=='ENOENT')throw error;}
+}
+const results = [];let failure=null;
+for (const {name, body} of controls) {
+  try {await body();results.push({name,ok:true});}
+  catch(error){
+    results.push({name,ok:false,error:{name:error.name,message:error.message,stack:error.stack,
+      actual:error.actual,expected:error.expected,operator:error.operator}});
+    failure=error;break;
+  }
+}
+const report={ok:failure===null,plannedControls:controls.length,completedControls:results.length,results,
+  scope:'actual HC runtime in virtual event loop only; no native trust/paint/device latency claim'};
+if(output)await writeFile(output,JSON.stringify(report,null,2)+'\n',{flag:'wx'});
+console.log(`[perf-feedback] ${failure?'FAIL':'PASS'} completed=${results.length}/${controls.length}${failure?` control=${results.at(-1).name}`:''}${output?` evidence=${output}`:''}`);
+if(failure)throw failure;

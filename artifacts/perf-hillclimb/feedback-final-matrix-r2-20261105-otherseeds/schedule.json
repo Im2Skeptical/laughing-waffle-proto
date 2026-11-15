@@ -1,0 +1,170 @@
+[
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "performance-continue",
+    "artwork": "off"
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "scrub-anchor",
+    "artwork": "off"
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "scrub-off-anchor",
+    "artwork": "off"
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "life",
+    "artwork": "off"
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "save-history",
+    "artwork": "off"
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "save-opening",
+    "artwork": "off"
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "performance-continue",
+    "artwork": "off"
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "scrub-anchor",
+    "artwork": "off"
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "scrub-off-anchor",
+    "artwork": "off"
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "life",
+    "artwork": "off"
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "save-history",
+    "artwork": "off"
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "save-opening",
+    "artwork": "off"
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "performance-continue",
+    "artwork": "off"
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "scrub-anchor",
+    "artwork": "off"
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "scrub-off-anchor",
+    "artwork": "off"
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "life",
+    "artwork": "off"
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "save-history",
+    "artwork": "off"
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "save-opening",
+    "artwork": "off"
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "performance-continue",
+    "artwork": "off"
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "scrub-anchor",
+    "artwork": "off"
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "scrub-off-anchor",
+    "artwork": "off"
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "life",
+    "artwork": "off"
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "save-history",
+    "artwork": "off"
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "save-opening",
+    "artwork": "off"
+  }
+]

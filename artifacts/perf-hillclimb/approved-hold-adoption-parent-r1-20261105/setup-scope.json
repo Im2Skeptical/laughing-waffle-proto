@@ -1,0 +1,13 @@
+{
+  "phaseA": "NOT SOUND",
+  "approvedMain": "83c0049710882fd182c6542892d77fb30cd12ce6",
+  "constructionCheckpoint": "d7cb84a8",
+  "setupConcurrency": "npm start returned a running session while baking the version-keyed prepared fixture; npm run verify started before that session completed. Both are functional/setup work only. No acceptance latency/overhead run is collected concurrently. This overlap is retained and never represented as uncontended timing.",
+  "impact": "The approved diff adds optional onScrubStart, calls it before beginScrubSession, and wires requestPauseBeforeDrag. Version bookkeeping and a browser regression probe are included. No simulation rule, schema, RNG, replay, artwork pacing or official-second implementation changes.",
+  "requiredAfterSetup": [
+    "Run the adopted public Hold regression probe after all setup/full verification completes.",
+    "Revalidate actual handler ordering, nonzero momentum, click/drag/touch, forward/reverse, release and resume; adapt genuine drawn Hold feedback separately from internal flags.",
+    "Rerun affected J5/J6 full-state and negative controls under new exact build/contract identities.",
+    "Establish a comparable current-build reference before any later optimization judgment; no performance credit for this UX adoption."
+  ]
+}

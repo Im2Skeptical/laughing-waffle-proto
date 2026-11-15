@@ -1,0 +1,14 @@
+﻿[
+    {
+        "pid":  11304,
+        "parentPid":  10516,
+        "createdUtc":  "2026-11-15T01:54:52.0602880Z",
+        "commandLine":  "\"C:\\Program Files\\nodejs\\node.exe\" scripts/build-preview-test.mjs"
+    },
+    {
+        "pid":  39864,
+        "parentPid":  18652,
+        "createdUtc":  "2026-11-15T01:55:04.1512850Z",
+        "commandLine":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-TqnM7H\\worktrees\\task-b\\scripts\\local-preview.mjs --serve 56868"
+    }
+]

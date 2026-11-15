@@ -1,0 +1,254 @@
+[
+  {
+    "population": "desktop",
+    "control": "immediate-delayed-completion",
+    "pass": true,
+    "feedback": "completed",
+    "firstChangedFrameAtMs": 2254.9000000059605
+  },
+  {
+    "population": "desktop",
+    "control": "queue",
+    "pass": true,
+    "feedback": "completed",
+    "firstChangedFrameAtMs": 1502
+  },
+  {
+    "population": "desktop",
+    "control": "capture-cost",
+    "pass": true,
+    "feedback": "completed",
+    "firstChangedFrameAtMs": 1390.5999999940395
+  },
+  {
+    "population": "desktop",
+    "control": "no-op",
+    "pass": true,
+    "feedback": "censored",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "desktop",
+    "control": "clipped-cue",
+    "pass": true,
+    "feedback": "censored",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "desktop",
+    "control": "pre-input-drift",
+    "pass": true,
+    "feedback": "failed",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "desktop",
+    "control": "transient",
+    "pass": true,
+    "feedback": "censored",
+    "firstChangedFrameAtMs": 1451.5
+  },
+  {
+    "population": "desktop",
+    "control": "render-delay",
+    "pass": true,
+    "feedback": "completed",
+    "firstChangedFrameAtMs": 1585.5
+  },
+  {
+    "population": "desktop",
+    "control": "missing-frame",
+    "pass": true,
+    "feedback": "censored",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "desktop",
+    "control": "cancel-before-input",
+    "pass": true,
+    "feedback": "cancelled",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "desktop",
+    "control": "runtime-replacement",
+    "pass": true,
+    "feedback": "cancelled",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "desktop",
+    "control": "host-failure",
+    "pass": true,
+    "feedback": "completed",
+    "firstChangedFrameAtMs": 1329.699999988079
+  },
+  {
+    "population": "mobile",
+    "control": "immediate-delayed-completion",
+    "pass": true,
+    "feedback": "completed",
+    "firstChangedFrameAtMs": 1853.2000000178814
+  },
+  {
+    "population": "mobile",
+    "control": "queue",
+    "pass": true,
+    "feedback": "completed",
+    "firstChangedFrameAtMs": 1545.5
+  },
+  {
+    "population": "mobile",
+    "control": "capture-cost",
+    "pass": true,
+    "feedback": "completed",
+    "firstChangedFrameAtMs": 1383.699999988079
+  },
+  {
+    "population": "mobile",
+    "control": "no-op",
+    "pass": true,
+    "feedback": "censored",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "mobile",
+    "control": "clipped-cue",
+    "pass": true,
+    "feedback": "censored",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "mobile",
+    "control": "pre-input-drift",
+    "pass": true,
+    "feedback": "failed",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "mobile",
+    "control": "transient",
+    "pass": true,
+    "feedback": "censored",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "mobile",
+    "control": "render-delay",
+    "pass": true,
+    "feedback": "completed",
+    "firstChangedFrameAtMs": 1581.5
+  },
+  {
+    "population": "mobile",
+    "control": "missing-frame",
+    "pass": true,
+    "feedback": "censored",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "mobile",
+    "control": "cancel-before-input",
+    "pass": true,
+    "feedback": "cancelled",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "mobile",
+    "control": "runtime-replacement",
+    "pass": true,
+    "feedback": "cancelled",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "mobile",
+    "control": "host-failure",
+    "pass": true,
+    "feedback": "completed",
+    "firstChangedFrameAtMs": 1358.0999999940395
+  },
+  {
+    "population": "mobile4",
+    "control": "immediate-delayed-completion",
+    "pass": true,
+    "feedback": "completed",
+    "firstChangedFrameAtMs": 6901.299999982119
+  },
+  {
+    "population": "mobile4",
+    "control": "queue",
+    "pass": true,
+    "feedback": "completed",
+    "firstChangedFrameAtMs": 6740.800000011921
+  },
+  {
+    "population": "mobile4",
+    "control": "capture-cost",
+    "pass": true,
+    "feedback": "completed",
+    "firstChangedFrameAtMs": 6627.0999999940395
+  },
+  {
+    "population": "mobile4",
+    "control": "no-op",
+    "pass": true,
+    "feedback": "censored",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "mobile4",
+    "control": "clipped-cue",
+    "pass": true,
+    "feedback": "censored",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "mobile4",
+    "control": "pre-input-drift",
+    "pass": true,
+    "feedback": "failed",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "mobile4",
+    "control": "transient",
+    "pass": true,
+    "feedback": "censored",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "mobile4",
+    "control": "render-delay",
+    "pass": true,
+    "feedback": "completed",
+    "firstChangedFrameAtMs": 6762.300000011921
+  },
+  {
+    "population": "mobile4",
+    "control": "missing-frame",
+    "pass": true,
+    "feedback": "censored",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "mobile4",
+    "control": "cancel-before-input",
+    "pass": true,
+    "feedback": "cancelled",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "mobile4",
+    "control": "runtime-replacement",
+    "pass": true,
+    "feedback": "cancelled",
+    "firstChangedFrameAtMs": null
+  },
+  {
+    "population": "mobile4",
+    "control": "host-failure",
+    "pass": true,
+    "feedback": "completed",
+    "firstChangedFrameAtMs": 6510.300000011921
+  }
+]

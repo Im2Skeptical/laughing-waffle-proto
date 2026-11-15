@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "results": [
+    {
+      "case": "retry",
+      "ok": true,
+      "detailsFile": "retry.json"
+    }
+  ],
+  "observations": 4,
+  "failures": 0,
+  "scope": "construction controls and diagnostics only; independent audit and representative sampling still required"
+}

@@ -1,0 +1,1558 @@
+{
+  "node": {
+    "id": "life-milestone-milestone-1",
+    "depth": 0,
+    "lane": 2,
+    "band": "early",
+    "family": "practiceReform",
+    "milestoneId": "milestone-1",
+    "generationRuleId": "milestone:milestone-1",
+    "position": {
+      "x": 0,
+      "y": 0.5
+    }
+  },
+  "liveWorld": false,
+  "continuousVisit": false,
+  "options": [],
+  "campaign": null,
+  "legacySettlement": null,
+  "shopTag": "random",
+  "nodeState": {
+    "nodeId": "life-milestone-milestone-1",
+    "family": "practiceReform",
+    "signatureNode": null,
+    "contentMode": "shop",
+    "entered": true,
+    "enteredSec": 0,
+    "resolved": false,
+    "resolving": false,
+    "options": [],
+    "inventory": [
+      {
+        "offerId": "life-milestone-milestone-1:r0:practice:1",
+        "label": "Learn Bronze Rubble Picking",
+        "basePrestigeCost": 10,
+        "basePhaseCost": 64,
+        "intervention": {
+          "kind": "practice",
+          "targetRegionId": "R18",
+          "practiceId": "fm_rubblePicking",
+          "mode": "learn",
+          "tier": "bronze",
+          "resultingTier": "bronze"
+        },
+        "baseCurrencyCost": 0,
+        "priceQuality": "bronze",
+        "inventoryIndex": 1
+      },
+      {
+        "offerId": "life-milestone-milestone-1:r0:practice:2",
+        "label": "Learn Bronze Fallow Fields",
+        "basePrestigeCost": 10,
+        "basePhaseCost": 64,
+        "intervention": {
+          "kind": "practice",
+          "targetRegionId": "R18",
+          "practiceId": "fm_fallowFields",
+          "mode": "learn",
+          "tier": "bronze",
+          "resultingTier": "bronze"
+        },
+        "baseCurrencyCost": 0,
+        "priceQuality": "bronze",
+        "inventoryIndex": 2
+      }
+    ],
+    "purchasedOffers": [
+      {
+        "offerId": "life-milestone-milestone-1:r0:practice:0",
+        "label": "Learn Bronze Field Study",
+        "basePrestigeCost": 10,
+        "basePhaseCost": 64,
+        "intervention": {
+          "kind": "practice",
+          "targetRegionId": "R18",
+          "practiceId": "fieldStudy",
+          "mode": "learn",
+          "tier": "bronze",
+          "resultingTier": "bronze",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0"
+        },
+        "baseCurrencyCost": 0,
+        "priceQuality": "bronze",
+        "inventoryIndex": 0,
+        "prestigeCost": 10,
+        "monsterPressureCost": 0,
+        "phaseCost": 54,
+        "currencyCost": 0,
+        "purchasedSec": 0,
+        "purchaseSequence": 1,
+        "sourceInventoryRoll": 0,
+        "sourceInventoryIndex": 0,
+        "displacedInstanceIds": [],
+        "hourglassApplied": true,
+        "expansionPremium": 0,
+        "removalReceipts": []
+      }
+    ],
+    "purchasedOfferIds": [
+      "life-milestone-milestone-1:r0:practice:0"
+    ],
+    "nextCommissionId": 0,
+    "inventoryRoll": 0,
+    "selectedOptionId": null,
+    "accumulatedPhaseCost": 54,
+    "resolutionResult": null,
+    "shopSelection": {
+      "kind": "practice",
+      "selectedTag": "random",
+      "choices": [
+        {
+          "id": "Food",
+          "label": "Food",
+          "iconId": "stock-edible",
+          "description": "Practices with the Food tag.",
+          "enabled": true
+        },
+        {
+          "id": "Grain",
+          "label": "Grain",
+          "iconId": "stock-grain",
+          "description": "Practices producing Grain Stock.",
+          "enabled": true
+        },
+        {
+          "id": "random",
+          "label": "Random",
+          "prestigeGain": 10,
+          "description": "Open the general Practice pool. Gain 10 Prestige now.",
+          "enabled": true
+        }
+      ]
+    },
+    "practiceDraftOrder": [
+      "fieldStudy",
+      "logging",
+      "barter",
+      null,
+      null
+    ],
+    "heirloomTimeActionUsed": true,
+    "removalReceipts": []
+  },
+  "optionRequirements": {},
+  "currentPrestige": 30,
+  "projectedPrestige": 20,
+  "stagedPrestigeCost": 10,
+  "stagedMonsterPressureCost": 0,
+  "stagedCurrencyCost": 0,
+  "mortalityEstimate": {
+    "totalPhaseCost": 54,
+    "timeLabel": "1 year, 3 moons, 4 phases",
+    "currentAge": 13,
+    "projectedAge": 14,
+    "immediateDeathChance": 0,
+    "naturalDeathChance": 0,
+    "totalDeathChance": 0
+  },
+  "previewRegionId": "R18",
+  "previewRegionLabel": "Southern Swamp",
+  "settlement": {
+    "multiplierPreview": {
+      "afterCompletion": false,
+      "rows": [
+        {
+          "index": 1,
+          "practiceId": "logging",
+          "name": "Logging",
+          "baseOutput": [
+            {
+              "timing": "Spring",
+              "amount": 2
+            },
+            {
+              "timing": "Summer",
+              "amount": 2
+            },
+            {
+              "timing": "Autumn",
+              "amount": 3
+            }
+          ],
+          "output": {
+            "multiplier": 1,
+            "sources": []
+          },
+          "capacity": {
+            "base": 6,
+            "quality": 0,
+            "scholar": 0,
+            "multiplier": 2,
+            "sources": [
+              {
+                "id": "storehouse",
+                "label": "Storehouse",
+                "amount": 1,
+                "query": {
+                  "traitsAny": [
+                    "Construction"
+                  ]
+                },
+                "instanceId": "R18:support",
+                "pending": false
+              }
+            ],
+            "total": 12
+          },
+          "before": {
+            "index": 0,
+            "practiceId": "logging",
+            "name": "Logging",
+            "baseOutput": [
+              {
+                "timing": "Spring",
+                "amount": 2
+              },
+              {
+                "timing": "Summer",
+                "amount": 2
+              },
+              {
+                "timing": "Autumn",
+                "amount": 3
+              }
+            ],
+            "output": {
+              "multiplier": 1,
+              "sources": []
+            },
+            "capacity": {
+              "base": 6,
+              "quality": 0,
+              "scholar": 0,
+              "multiplier": 2,
+              "sources": [
+                {
+                  "id": "storehouse",
+                  "label": "Storehouse",
+                  "amount": 1,
+                  "query": {
+                    "traitsAny": [
+                      "Construction"
+                    ]
+                  },
+                  "instanceId": "R18:support",
+                  "pending": false
+                }
+              ],
+              "total": 12
+            }
+          }
+        },
+        {
+          "index": 2,
+          "practiceId": "barter",
+          "name": "Barter",
+          "baseOutput": [
+            {
+              "timing": "Birth phase",
+              "amount": 1
+            }
+          ],
+          "output": {
+            "multiplier": 1,
+            "sources": []
+          },
+          "capacity": {
+            "base": 4,
+            "quality": 0,
+            "scholar": 0,
+            "multiplier": 1,
+            "sources": [],
+            "total": 4
+          },
+          "before": {
+            "index": 1,
+            "practiceId": "barter",
+            "name": "Barter",
+            "baseOutput": [
+              {
+                "timing": "Birth phase",
+                "amount": 1
+              }
+            ],
+            "output": {
+              "multiplier": 1,
+              "sources": []
+            },
+            "capacity": {
+              "base": 4,
+              "quality": 0,
+              "scholar": 0,
+              "multiplier": 1,
+              "sources": [],
+              "total": 4
+            }
+          }
+        }
+      ]
+    },
+    "storedFood": 0,
+    "looseFood": 0,
+    "currentCurrency": 4,
+    "currency": 4,
+    "practices": [
+      {
+        "practiceId": "fieldStudy",
+        "tier": "bronze",
+        "stock": 0,
+        "charge": 0,
+        "work": 0,
+        "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+        "staged": true,
+        "offerId": "life-milestone-milestone-1:r0:practice:0",
+        "upgraded": false,
+        "previousPresentation": null,
+        "presentation": {
+          "kind": "practice",
+          "definitionId": "fieldStudy",
+          "label": "Field Study",
+          "tier": "bronze",
+          "tags": [
+            "Knowledge"
+          ],
+          "qualityLabel": "bronze",
+          "rule": "Whenever a Practice is installed in any allied settlement, gain 1 Charge. At 1 Charge, Discharge: gain 2 Research.",
+          "category": "resource",
+          "allegiance": null,
+          "politicalIcon": "support",
+          "politicalOutput": null,
+          "inputs": [],
+          "chaosCost": 0,
+          "monsterPressureCost": 0,
+          "production": [
+            {
+              "icon": "research",
+              "symbolLabel": "Research",
+              "value": 2,
+              "label": "Gain 2 Research"
+            }
+          ],
+          "baseStockProduction": [],
+          "workerMultiplier": 1,
+          "chargeTriggers": [
+            {
+              "event": "practiceInstalled",
+              "mechanicId": "installation",
+              "name": "Practice installation",
+              "label": "On Practice installation anywhere in the civilisation (controller: this Practice's beneficiary).",
+              "icon": "stock"
+            }
+          ],
+          "construction": null,
+          "reading": {
+            "type": "Charge",
+            "passive": false,
+            "classLabel": "Neutral",
+            "effects": [
+              {
+                "timing": "",
+                "text": "Gain 2 Research"
+              }
+            ],
+            "requirements": [],
+            "trigger": "Charge on Practice installation anywhere in the civilisation (controller: this Practice's beneficiary)."
+          },
+          "mechanics": [
+            {
+              "id": "research",
+              "name": "Research",
+              "type": "resource",
+              "icon": "research",
+              "definition": "Research gained by the realm, separate from hosted Stock."
+            },
+            {
+              "id": "installation",
+              "name": "Practice installation",
+              "type": "event",
+              "icon": "stock",
+              "definition": "A Practice installed in a settlement."
+            }
+          ],
+          "keywordReading": null,
+          "structureBonuses": [],
+          "structureQualityBonus": 0,
+          "chargeGain": 1,
+          "stock": 0,
+          "stockCapacity": 0,
+          "stockCapacityBreakdown": {
+            "base": 0,
+            "quality": 0,
+            "scholar": 0,
+            "multiplier": 1,
+            "sources": [],
+            "total": 0
+          },
+          "outputMultiplierBreakdown": null,
+          "stockTraits": [],
+          "providers": [],
+          "missing": null,
+          "mode": "charge",
+          "charge": 0,
+          "chargeThreshold": 1,
+          "chargeTrigger": "On Practice installation anywhere in the civilisation (controller: this Practice's beneficiary).",
+          "dischargeEffect": "Gain 2 Research.",
+          "blocked": false,
+          "blockedReason": null,
+          "viewedTime": 0,
+          "activationAge": null,
+          "nextTrigger": null,
+          "outputs": [],
+          "footprint": 1,
+          "lane": "charge",
+          "source": {
+            "icon": "charge",
+            "cadence": "charge"
+          },
+          "workerCapacity": 0,
+          "workerBonus": 0,
+          "workers": 0,
+          "fill": 0,
+          "detailLines": [
+            "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+            "Face yields are base amounts; local modifiers apply on Discharge. Workers multiply incoming Charge only.",
+            "Gain 2 Research.",
+            "Workers: 0 sockets; +0% Charge gained (not output) per effective worker.",
+            "When its authored event occurs, gain 1 Charge; automatically Discharge at 1. No Stock consumed or required. Icons above the meter are Charge triggers; arrows distinguish Stock generated (up) from consumed (down).",
+            "Charge: 0 / 1.",
+            "On Practice installation anywhere in the civilisation (controller: this Practice's beneficiary).",
+            "Discharge: Gain 2 Research."
+          ]
+        }
+      },
+      {
+        "practiceId": "logging",
+        "tier": "bronze",
+        "instanceId": "institution:36",
+        "charge": 0,
+        "work": 0,
+        "stock": 12,
+        "staged": false,
+        "offerId": null,
+        "upgraded": false,
+        "previousPresentation": null,
+        "presentation": {
+          "kind": "practice",
+          "definitionId": "logging",
+          "label": "Logging",
+          "tier": "bronze",
+          "tags": [],
+          "qualityLabel": "bronze",
+          "rule": "Spring / Summer / Autumn; Spring +2; Summer +2; Autumn +3; Broad construction/fuel source; flexible but not exceptionally fast.",
+          "category": "resource",
+          "allegiance": null,
+          "politicalIcon": "support",
+          "politicalOutput": null,
+          "inputs": [],
+          "chaosCost": 0,
+          "monsterPressureCost": 0,
+          "production": [
+            {
+              "season": "spring",
+              "icon": "stock",
+              "value": 2,
+              "label": "spring: 2 base stock"
+            },
+            {
+              "season": "summer",
+              "icon": "stock",
+              "value": 2,
+              "label": "summer: 2 base stock"
+            },
+            {
+              "season": "autumn",
+              "icon": "stock",
+              "value": 3,
+              "label": "autumn: 3 base stock"
+            }
+          ],
+          "baseStockProduction": [
+            {
+              "timing": "Spring",
+              "amount": 2
+            },
+            {
+              "timing": "Summer",
+              "amount": 2
+            },
+            {
+              "timing": "Autumn",
+              "amount": 3
+            }
+          ],
+          "workerMultiplier": 2,
+          "chargeTriggers": [],
+          "construction": null,
+          "reading": {
+            "type": "Cycle",
+            "passive": false,
+            "classLabel": "Neutral",
+            "effects": [
+              {
+                "timing": "Spring",
+                "text": "Produce 2 Stock"
+              },
+              {
+                "timing": "Summer",
+                "text": "Produce 2 Stock"
+              },
+              {
+                "timing": "Autumn",
+                "text": "Produce 3 Stock"
+              }
+            ],
+            "requirements": [],
+            "trigger": null
+          },
+          "mechanics": [
+            {
+              "id": "stock",
+              "name": "Stock",
+              "type": "resource",
+              "icon": "stock",
+              "definition": "Resources held by a Practice. Each unit carries its host's Stock traits. Produce adds units up to capacity; Consume spends matching units."
+            }
+          ],
+          "keywordReading": null,
+          "structureBonuses": [],
+          "structureQualityBonus": 0,
+          "chargeGain": null,
+          "stock": 12,
+          "stockCapacity": 12,
+          "stockCapacityBreakdown": {
+            "base": 6,
+            "quality": 0,
+            "scholar": 0,
+            "multiplier": 1,
+            "sources": [],
+            "total": 6
+          },
+          "outputMultiplierBreakdown": {
+            "multiplier": 1,
+            "sources": []
+          },
+          "stockTraits": [
+            "Timber",
+            "Construction"
+          ],
+          "providers": [],
+          "missing": null,
+          "mode": "scheduled",
+          "charge": 0,
+          "chargeThreshold": null,
+          "chargeTrigger": null,
+          "dischargeEffect": null,
+          "blocked": false,
+          "blockedReason": null,
+          "viewedTime": 0,
+          "activationAge": null,
+          "nextTrigger": {
+            "season": "summer",
+            "tSec": 9
+          },
+          "outputs": [],
+          "footprint": 1,
+          "lane": "scheduled",
+          "source": {
+            "icon": "season",
+            "cadence": "season"
+          },
+          "workerCapacity": 1,
+          "workerBonus": 1,
+          "workers": 1,
+          "fill": 0,
+          "detailLines": [
+            "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+            "spring: 2 base stock",
+            "summer: 2 base stock",
+            "autumn: 3 base stock",
+            "Face yields are base amounts; worker bonuses and local modifiers apply at activation.",
+            "Produce 2 Stock.",
+            "Workers: 1 sockets; +100% Stock per effective worker.",
+            "Scheduled: season.",
+            "Secondary hook uses current numeric training/candidate/preview/support grammar; authored choice, Legacy and specialized action variants remain deferred."
+          ]
+        }
+      },
+      {
+        "practiceId": "barter",
+        "tier": "bronze",
+        "instanceId": "institution:37",
+        "charge": 0,
+        "work": 0,
+        "stock": 4,
+        "staged": false,
+        "offerId": null,
+        "upgraded": false,
+        "previousPresentation": null,
+        "presentation": {
+          "kind": "practice",
+          "definitionId": "barter",
+          "label": "Barter",
+          "tier": "bronze",
+          "tags": [
+            "Trade"
+          ],
+          "qualityLabel": "bronze",
+          "rule": "Birth / Trade; +1; +1 more if connected to any external settlement, max +2; Require At least 2 stocked Practices with different Stock Traits; Creates local [Currency] Stock from economic diversity and external contact. Currency is ordinary hosted Stock, not a separate settlement number.",
+          "category": "resource",
+          "allegiance": null,
+          "politicalIcon": "support",
+          "politicalOutput": null,
+          "inputs": [],
+          "chaosCost": 0,
+          "monsterPressureCost": 0,
+          "production": [
+            {
+              "icon": "stock",
+              "symbolLabel": "Stock",
+              "value": 1,
+              "label": "Produce 1 Stock"
+            }
+          ],
+          "baseStockProduction": [
+            {
+              "timing": "Birth phase",
+              "amount": 1
+            }
+          ],
+          "workerMultiplier": 1,
+          "chargeTriggers": [],
+          "construction": null,
+          "reading": {
+            "type": "Cycle",
+            "passive": false,
+            "classLabel": "Neutral",
+            "effects": [
+              {
+                "timing": "Birth phase",
+                "text": "Produce 1 Stock"
+              }
+            ],
+            "requirements": [
+              "Requires two stocked Practices with different Stock traits in the supply network."
+            ],
+            "trigger": null
+          },
+          "mechanics": [
+            {
+              "id": "stock",
+              "name": "Stock",
+              "type": "resource",
+              "icon": "stock",
+              "definition": "Resources held by a Practice. Each unit carries its host's Stock traits. Produce adds units up to capacity; Consume spends matching units."
+            }
+          ],
+          "keywordReading": null,
+          "structureBonuses": [],
+          "structureQualityBonus": 0,
+          "chargeGain": null,
+          "stock": 4,
+          "stockCapacity": 4,
+          "stockCapacityBreakdown": {
+            "base": 4,
+            "quality": 0,
+            "scholar": 0,
+            "multiplier": 1,
+            "sources": [],
+            "total": 4
+          },
+          "outputMultiplierBreakdown": {
+            "multiplier": 1,
+            "sources": []
+          },
+          "stockTraits": [
+            "Currency"
+          ],
+          "providers": [],
+          "missing": null,
+          "mode": "scheduled",
+          "charge": 0,
+          "chargeThreshold": null,
+          "chargeTrigger": null,
+          "dischargeEffect": null,
+          "blocked": false,
+          "blockedReason": null,
+          "viewedTime": 0,
+          "activationAge": null,
+          "nextTrigger": null,
+          "outputs": [],
+          "footprint": 1,
+          "lane": "scheduled",
+          "source": {
+            "icon": "birth",
+            "cadence": "birth"
+          },
+          "workerCapacity": 2,
+          "workerBonus": 1,
+          "workers": 0,
+          "fill": 0,
+          "detailLines": [
+            "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+            "Face yields are base amounts; worker bonuses and local modifiers apply at activation.",
+            "Produce 1 Stock.",
+            "Workers: 2 sockets; +100% Stock per effective worker.",
+            "Scheduled: birth.",
+            "Secondary hook uses current numeric training/candidate/preview/support grammar; authored choice, Legacy and specialized action variants remain deferred."
+          ]
+        }
+      },
+      null,
+      null
+    ],
+    "displacedPractices": [],
+    "discardedPractices": [],
+    "structures": [
+      {
+        "structureId": "mudHouses",
+        "placementId": "R18:housing",
+        "origin": 0,
+        "width": 1,
+        "staged": false,
+        "offerId": null,
+        "upgraded": false,
+        "previousPresentation": null,
+        "presentation": {
+          "kind": "structure",
+          "definitionId": "mudHouses",
+          "label": "Mud House",
+          "tier": "bronze",
+          "tags": [
+            "Housing"
+          ],
+          "qualityLabel": "Bronze",
+          "rule": "+30 Housing Capacity.",
+          "category": "resource",
+          "allegiance": null,
+          "politicalIcon": "support",
+          "politicalOutput": null,
+          "inputs": [],
+          "chaosCost": 0,
+          "monsterPressureCost": 0,
+          "production": [],
+          "baseStockProduction": [],
+          "workerMultiplier": 1,
+          "chargeTriggers": [],
+          "construction": null,
+          "reading": {
+            "type": "Structure",
+            "classLabel": "Neutral",
+            "passive": true,
+            "effects": [
+              {
+                "timing": "",
+                "text": "+30 Housing Capacity"
+              }
+            ],
+            "bonuses": [
+              {
+                "kind": "housingCapacity",
+                "amount": 30,
+                "label": "Housing capacity",
+                "traits": []
+              }
+            ],
+            "requirements": [],
+            "trigger": null,
+            "active": true,
+            "flavour": "A little earth between the hearth and the storm."
+          },
+          "mechanics": [],
+          "keywordReading": null,
+          "structureBonuses": [
+            {
+              "kind": "housingCapacity",
+              "amount": 30,
+              "label": "Housing capacity",
+              "traits": []
+            }
+          ],
+          "structureQualityBonus": 0,
+          "chargeGain": null,
+          "stock": 0,
+          "stockCapacity": 0,
+          "stockCapacityBreakdown": null,
+          "outputMultiplierBreakdown": null,
+          "stockTraits": [],
+          "providers": [],
+          "missing": null,
+          "mode": null,
+          "charge": 0,
+          "chargeThreshold": null,
+          "chargeTrigger": null,
+          "dischargeEffect": null,
+          "blocked": false,
+          "blockedReason": null,
+          "viewedTime": 0,
+          "activationAge": null,
+          "nextTrigger": null,
+          "outputs": [],
+          "footprint": 1,
+          "lane": null,
+          "source": null,
+          "workerCapacity": 0,
+          "workerBonus": 1,
+          "workers": 0,
+          "fill": 0,
+          "detailLines": [
+            "30 Housing. Numeric bonuses from duplicate structures add.",
+            "Construction footprint: 1 horizontal cells.",
+            "Secondary hook uses current numeric training/candidate/preview/support grammar; authored choice, Legacy and specialized action variants remain deferred.",
+            "Passive coefficients are provisional; see docs/civcontent-2.6-implementation.md for exact runtime modifiers and deviations."
+          ],
+          "details": [
+            "30 Housing. Numeric bonuses from duplicate structures add.",
+            "Construction footprint: 1 horizontal cells.",
+            "Secondary hook uses current numeric training/candidate/preview/support grammar; authored choice, Legacy and specialized action variants remain deferred.",
+            "Passive coefficients are provisional; see docs/civcontent-2.6-implementation.md for exact runtime modifiers and deviations."
+          ]
+        }
+      },
+      {
+        "structureId": "storehouse",
+        "placementId": "R18:support",
+        "origin": 1,
+        "width": 1,
+        "staged": false,
+        "offerId": null,
+        "upgraded": false,
+        "previousPresentation": null,
+        "presentation": {
+          "kind": "structure",
+          "definitionId": "storehouse",
+          "label": "Storehouse",
+          "tier": "bronze",
+          "tags": [
+            "Civic",
+            "Trade"
+          ],
+          "qualityLabel": "Bronze",
+          "rule": "Local Practices whose Stock has [Construction] have +1 Capacity Multiplier.",
+          "category": "resource",
+          "allegiance": null,
+          "politicalIcon": "support",
+          "politicalOutput": null,
+          "inputs": [],
+          "chaosCost": 0,
+          "monsterPressureCost": 0,
+          "production": [],
+          "baseStockProduction": [],
+          "workerMultiplier": 1,
+          "chargeTriggers": [],
+          "construction": null,
+          "reading": {
+            "type": "Structure",
+            "classLabel": "Neutral",
+            "passive": true,
+            "effects": [
+              {
+                "timing": "",
+                "text": "+1 Capacity Multiplier for Construction"
+              }
+            ],
+            "bonuses": [
+              {
+                "kind": "stock",
+                "amount": 1,
+                "label": "Capacity Multiplier",
+                "traits": [
+                  "Construction"
+                ],
+                "scope": "local Practices with Construction Stock"
+              }
+            ],
+            "requirements": [],
+            "trigger": null,
+            "active": true,
+            "flavour": "Every beam kept dry is a promise of tomorrow."
+          },
+          "mechanics": [],
+          "keywordReading": null,
+          "structureBonuses": [
+            {
+              "kind": "stock",
+              "amount": 1,
+              "label": "Capacity Multiplier",
+              "traits": [
+                "Construction"
+              ],
+              "scope": "local Practices with Construction Stock"
+            }
+          ],
+          "structureQualityBonus": 0,
+          "chargeGain": null,
+          "stock": 0,
+          "stockCapacity": 0,
+          "stockCapacityBreakdown": null,
+          "outputMultiplierBreakdown": null,
+          "stockTraits": [],
+          "providers": [],
+          "missing": null,
+          "mode": null,
+          "charge": 0,
+          "chargeThreshold": null,
+          "chargeTrigger": null,
+          "dischargeEffect": null,
+          "blocked": false,
+          "blockedReason": null,
+          "viewedTime": 0,
+          "activationAge": null,
+          "nextTrigger": null,
+          "outputs": [],
+          "footprint": 1,
+          "lane": null,
+          "source": null,
+          "workerCapacity": 0,
+          "workerBonus": 1,
+          "workers": 0,
+          "fill": 0,
+          "detailLines": [
+            "Construction footprint: 1 horizontal cells.",
+            "Secondary hook uses current numeric training/candidate/preview/support grammar; authored choice, Legacy and specialized action variants remain deferred.",
+            "Passive coefficients are provisional; see docs/civcontent-2.6-implementation.md for exact runtime modifiers and deviations."
+          ],
+          "details": [
+            "Construction footprint: 1 horizontal cells.",
+            "Secondary hook uses current numeric training/candidate/preview/support grammar; authored choice, Legacy and specialized action variants remain deferred.",
+            "Passive coefficients are provisional; see docs/civcontent-2.6-implementation.md for exact runtime modifiers and deviations."
+          ]
+        }
+      },
+      null,
+      null,
+      null
+    ],
+    "structureCapacity": 5,
+    "demolishedStructures": []
+  },
+  "offers": [
+    {
+      "offerId": "life-milestone-milestone-1:r0:practice:1",
+      "label": "Learn Bronze Rubble Picking",
+      "basePrestigeCost": 10,
+      "basePhaseCost": 64,
+      "intervention": {
+        "kind": "practice",
+        "targetRegionId": "R18",
+        "practiceId": "fm_rubblePicking",
+        "mode": "learn",
+        "tier": "bronze",
+        "resultingTier": "bronze"
+      },
+      "baseCurrencyCost": 0,
+      "priceQuality": "bronze",
+      "inventoryIndex": 1,
+      "multiplierPreview": {
+        "afterCompletion": false,
+        "rows": [
+          {
+            "index": 0,
+            "practiceId": "fm_rubblePicking",
+            "name": "Rubble Picking",
+            "baseOutput": [
+              {
+                "timing": "Housing phase",
+                "amount": 1
+              }
+            ],
+            "output": {
+              "multiplier": 1,
+              "sources": []
+            },
+            "capacity": {
+              "base": 3,
+              "quality": 0,
+              "scholar": 0,
+              "multiplier": 2,
+              "sources": [
+                {
+                  "id": "storehouse",
+                  "label": "Storehouse",
+                  "amount": 1,
+                  "query": {
+                    "traitsAny": [
+                      "Construction"
+                    ]
+                  },
+                  "instanceId": "R18:support",
+                  "pending": false
+                }
+              ],
+              "total": 6
+            },
+            "before": {
+              "index": 0,
+              "practiceId": "fm_rubblePicking",
+              "name": "Rubble Picking",
+              "baseOutput": [
+                {
+                  "timing": "Housing phase",
+                  "amount": 1
+                }
+              ],
+              "output": {
+                "multiplier": 1,
+                "sources": []
+              },
+              "capacity": {
+                "base": 3,
+                "quality": 0,
+                "scholar": 0,
+                "multiplier": 2,
+                "sources": [
+                  {
+                    "id": "storehouse",
+                    "label": "Storehouse",
+                    "amount": 1,
+                    "query": {
+                      "traitsAny": [
+                        "Construction"
+                      ]
+                    },
+                    "instanceId": "R18:support",
+                    "pending": false
+                  }
+                ],
+                "total": 6
+              }
+            }
+          }
+        ],
+        "kind": "practice"
+      },
+      "purchased": false,
+      "canStage": true,
+      "stageBlockedReason": null,
+      "validOrigins": [],
+      "presentation": {
+        "kind": "practice",
+        "definitionId": "fm_rubblePicking",
+        "label": "Rubble Picking",
+        "tier": "bronze",
+        "tags": [
+          "Civic"
+        ],
+        "qualityLabel": "Bronze",
+        "rule": "Generate 1 hosted Stock.",
+        "category": "resource",
+        "allegiance": null,
+        "politicalIcon": "support",
+        "politicalOutput": null,
+        "inputs": [],
+        "chaosCost": 0,
+        "monsterPressureCost": 0,
+        "production": [
+          {
+            "icon": "stock",
+            "symbolLabel": "Stock",
+            "value": 1,
+            "label": "Produce 1 Stock"
+          }
+        ],
+        "baseStockProduction": [
+          {
+            "timing": "Housing phase",
+            "amount": 1
+          }
+        ],
+        "workerMultiplier": 1,
+        "chargeTriggers": [],
+        "construction": null,
+        "reading": {
+          "type": "Cycle",
+          "passive": false,
+          "classLabel": "Neutral",
+          "effects": [
+            {
+              "timing": "Housing phase",
+              "text": "Produce 1 Stock"
+            }
+          ],
+          "requirements": [],
+          "trigger": null
+        },
+        "mechanics": [
+          {
+            "id": "stock",
+            "name": "Stock",
+            "type": "resource",
+            "icon": "stock",
+            "definition": "Resources held by a Practice. Each unit carries its host's Stock traits. Produce adds units up to capacity; Consume spends matching units."
+          }
+        ],
+        "keywordReading": null,
+        "structureBonuses": [],
+        "structureQualityBonus": 0,
+        "chargeGain": null,
+        "stock": 0,
+        "stockCapacity": 6,
+        "stockCapacityBreakdown": {
+          "base": 3,
+          "quality": 0,
+          "scholar": 0,
+          "multiplier": 2,
+          "sources": [
+            {
+              "id": "storehouse",
+              "label": "Storehouse",
+              "amount": 1,
+              "query": {
+                "traitsAny": [
+                  "Construction"
+                ]
+              },
+              "instanceId": "R18:support"
+            }
+          ],
+          "total": 6
+        },
+        "outputMultiplierBreakdown": {
+          "multiplier": 1,
+          "sources": []
+        },
+        "stockTraits": [
+          "Stone",
+          "Construction"
+        ],
+        "providers": [],
+        "missing": null,
+        "mode": "scheduled",
+        "charge": 0,
+        "chargeThreshold": null,
+        "chargeTrigger": null,
+        "dischargeEffect": null,
+        "blocked": false,
+        "blockedReason": null,
+        "viewedTime": 0,
+        "activationAge": null,
+        "nextTrigger": null,
+        "outputs": [],
+        "footprint": 1,
+        "lane": "scheduled",
+        "source": {
+          "icon": "housing",
+          "cadence": "housing"
+        },
+        "workerCapacity": 2,
+        "workerBonus": 1,
+        "workers": 0,
+        "fill": 0,
+        "detailLines": [
+          "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+          "Face yields are base amounts; worker bonuses and local modifiers apply at activation.",
+          "Produce 1 Stock.",
+          "Workers: 2 sockets; +100% Stock per effective worker.",
+          "Scheduled: housing."
+        ],
+        "details": [
+          "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+          "Face yields are base amounts; worker bonuses and local modifiers apply at activation.",
+          "Produce 1 Stock.",
+          "Workers: 2 sockets; +100% Stock per effective worker.",
+          "Scheduled: housing."
+        ]
+      },
+      "constructionPresentation": null,
+      "prestigeCost": 20,
+      "expansionPremium": 10,
+      "monsterPressureCost": 0,
+      "currencyCost": 0,
+      "phaseCost": 54
+    },
+    {
+      "offerId": "life-milestone-milestone-1:r0:practice:2",
+      "label": "Learn Bronze Fallow Fields",
+      "basePrestigeCost": 10,
+      "basePhaseCost": 64,
+      "intervention": {
+        "kind": "practice",
+        "targetRegionId": "R18",
+        "practiceId": "fm_fallowFields",
+        "mode": "learn",
+        "tier": "bronze",
+        "resultingTier": "bronze"
+      },
+      "baseCurrencyCost": 0,
+      "priceQuality": "bronze",
+      "inventoryIndex": 2,
+      "multiplierPreview": {
+        "afterCompletion": false,
+        "rows": [
+          {
+            "index": 0,
+            "practiceId": "fm_fallowFields",
+            "name": "Fallow Fields",
+            "baseOutput": [
+              {
+                "timing": "Autumn",
+                "amount": 2
+              }
+            ],
+            "output": {
+              "multiplier": 1,
+              "sources": []
+            },
+            "capacity": {
+              "base": 4,
+              "quality": 0,
+              "scholar": 0,
+              "multiplier": 1,
+              "sources": [],
+              "total": 4
+            },
+            "before": {
+              "index": 0,
+              "practiceId": "fm_fallowFields",
+              "name": "Fallow Fields",
+              "baseOutput": [
+                {
+                  "timing": "Autumn",
+                  "amount": 2
+                }
+              ],
+              "output": {
+                "multiplier": 1,
+                "sources": []
+              },
+              "capacity": {
+                "base": 4,
+                "quality": 0,
+                "scholar": 0,
+                "multiplier": 1,
+                "sources": [],
+                "total": 4
+              }
+            }
+          }
+        ],
+        "kind": "practice"
+      },
+      "purchased": false,
+      "canStage": true,
+      "stageBlockedReason": null,
+      "validOrigins": [],
+      "presentation": {
+        "kind": "practice",
+        "definitionId": "fm_fallowFields",
+        "label": "Fallow Fields",
+        "tier": "bronze",
+        "tags": [
+          "Civic",
+          "Food"
+        ],
+        "qualityLabel": "Bronze",
+        "rule": "Generate 2 hosted Stock.",
+        "category": "resource",
+        "allegiance": null,
+        "politicalIcon": "support",
+        "politicalOutput": null,
+        "inputs": [],
+        "chaosCost": 0,
+        "monsterPressureCost": 0,
+        "production": [
+          {
+            "season": "autumn",
+            "icon": "stock",
+            "value": 2,
+            "label": "autumn: 2 base stock"
+          }
+        ],
+        "baseStockProduction": [
+          {
+            "timing": "Autumn",
+            "amount": 2
+          }
+        ],
+        "workerMultiplier": 1,
+        "chargeTriggers": [],
+        "construction": null,
+        "reading": {
+          "type": "Cycle",
+          "passive": false,
+          "classLabel": "Neutral",
+          "effects": [
+            {
+              "timing": "Autumn",
+              "text": "Produce 2 Stock"
+            }
+          ],
+          "requirements": [],
+          "trigger": null
+        },
+        "mechanics": [
+          {
+            "id": "stock",
+            "name": "Stock",
+            "type": "resource",
+            "icon": "stock",
+            "definition": "Resources held by a Practice. Each unit carries its host's Stock traits. Produce adds units up to capacity; Consume spends matching units."
+          }
+        ],
+        "keywordReading": null,
+        "structureBonuses": [],
+        "structureQualityBonus": 0,
+        "chargeGain": null,
+        "stock": 0,
+        "stockCapacity": 4,
+        "stockCapacityBreakdown": {
+          "base": 4,
+          "quality": 0,
+          "scholar": 0,
+          "multiplier": 1,
+          "sources": [],
+          "total": 4
+        },
+        "outputMultiplierBreakdown": {
+          "multiplier": 1,
+          "sources": []
+        },
+        "stockTraits": [
+          "Grain",
+          "Edible"
+        ],
+        "providers": [],
+        "missing": null,
+        "mode": "scheduled",
+        "charge": 0,
+        "chargeThreshold": null,
+        "chargeTrigger": null,
+        "dischargeEffect": null,
+        "blocked": false,
+        "blockedReason": null,
+        "viewedTime": 0,
+        "activationAge": null,
+        "nextTrigger": {
+          "season": "autumn",
+          "tSec": 17
+        },
+        "outputs": [],
+        "footprint": 1,
+        "lane": "scheduled",
+        "source": {
+          "icon": "season",
+          "cadence": "season"
+        },
+        "workerCapacity": 2,
+        "workerBonus": 1,
+        "workers": 0,
+        "fill": 0,
+        "detailLines": [
+          "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+          "autumn: 2 base stock",
+          "Face yields are base amounts; worker bonuses and local modifiers apply at activation.",
+          "Produce 2 Stock.",
+          "Workers: 2 sockets; +100% Stock per effective worker.",
+          "Scheduled: season."
+        ],
+        "details": [
+          "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+          "autumn: 2 base stock",
+          "Face yields are base amounts; worker bonuses and local modifiers apply at activation.",
+          "Produce 2 Stock.",
+          "Workers: 2 sockets; +100% Stock per effective worker.",
+          "Scheduled: season."
+        ]
+      },
+      "constructionPresentation": null,
+      "prestigeCost": 20,
+      "expansionPremium": 10,
+      "monsterPressureCost": 0,
+      "currencyCost": 0,
+      "phaseCost": 54
+    }
+  ],
+  "purchases": [
+    {
+      "offerId": "life-milestone-milestone-1:r0:practice:0",
+      "label": "Learn Bronze Field Study",
+      "basePrestigeCost": 10,
+      "basePhaseCost": 64,
+      "intervention": {
+        "kind": "practice",
+        "targetRegionId": "R18",
+        "practiceId": "fieldStudy",
+        "mode": "learn",
+        "tier": "bronze",
+        "resultingTier": "bronze",
+        "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0"
+      },
+      "baseCurrencyCost": 0,
+      "priceQuality": "bronze",
+      "inventoryIndex": 0,
+      "prestigeCost": 10,
+      "monsterPressureCost": 0,
+      "phaseCost": 54,
+      "currencyCost": 0,
+      "purchasedSec": 0,
+      "purchaseSequence": 1,
+      "sourceInventoryRoll": 0,
+      "sourceInventoryIndex": 0,
+      "displacedInstanceIds": [],
+      "hourglassApplied": true,
+      "expansionPremium": 0,
+      "removalReceipts": [],
+      "multiplierPreview": {
+        "afterCompletion": false,
+        "rows": [],
+        "kind": "practice"
+      },
+      "purchased": true,
+      "canStage": true,
+      "stageBlockedReason": null,
+      "validOrigins": [],
+      "presentation": {
+        "kind": "practice",
+        "definitionId": "fieldStudy",
+        "label": "Field Study",
+        "tier": "bronze",
+        "tags": [
+          "Knowledge"
+        ],
+        "qualityLabel": "Bronze",
+        "rule": "Whenever a Practice is installed in any allied settlement, gain 1 Charge. At 1 Charge, Discharge: gain 2 Research.",
+        "category": "resource",
+        "allegiance": null,
+        "politicalIcon": "support",
+        "politicalOutput": null,
+        "inputs": [],
+        "chaosCost": 0,
+        "monsterPressureCost": 0,
+        "production": [
+          {
+            "icon": "research",
+            "symbolLabel": "Research",
+            "value": 2,
+            "label": "Gain 2 Research"
+          }
+        ],
+        "baseStockProduction": [],
+        "workerMultiplier": 1,
+        "chargeTriggers": [
+          {
+            "event": "practiceInstalled",
+            "mechanicId": "installation",
+            "name": "Practice installation",
+            "label": "On Practice installation anywhere in the civilisation (controller: this Practice's beneficiary).",
+            "icon": "stock"
+          }
+        ],
+        "construction": null,
+        "reading": {
+          "type": "Charge",
+          "passive": false,
+          "classLabel": "Neutral",
+          "effects": [
+            {
+              "timing": "",
+              "text": "Gain 2 Research"
+            }
+          ],
+          "requirements": [],
+          "trigger": "Charge on Practice installation anywhere in the civilisation (controller: this Practice's beneficiary)."
+        },
+        "mechanics": [
+          {
+            "id": "research",
+            "name": "Research",
+            "type": "resource",
+            "icon": "research",
+            "definition": "Research gained by the realm, separate from hosted Stock."
+          },
+          {
+            "id": "installation",
+            "name": "Practice installation",
+            "type": "event",
+            "icon": "stock",
+            "definition": "A Practice installed in a settlement."
+          }
+        ],
+        "keywordReading": null,
+        "structureBonuses": [],
+        "structureQualityBonus": 0,
+        "chargeGain": 1,
+        "stock": 0,
+        "stockCapacity": 0,
+        "stockCapacityBreakdown": {
+          "base": 0,
+          "quality": 0,
+          "scholar": 0,
+          "multiplier": 1,
+          "sources": [],
+          "total": 0
+        },
+        "outputMultiplierBreakdown": null,
+        "stockTraits": [],
+        "providers": [],
+        "missing": null,
+        "mode": "charge",
+        "charge": 0,
+        "chargeThreshold": 1,
+        "chargeTrigger": "On Practice installation anywhere in the civilisation (controller: this Practice's beneficiary).",
+        "dischargeEffect": "Gain 2 Research.",
+        "blocked": false,
+        "blockedReason": null,
+        "viewedTime": 0,
+        "activationAge": null,
+        "nextTrigger": null,
+        "outputs": [],
+        "footprint": 1,
+        "lane": "charge",
+        "source": {
+          "icon": "charge",
+          "cadence": "charge"
+        },
+        "workerCapacity": 0,
+        "workerBonus": 0,
+        "workers": 0,
+        "fill": 0,
+        "detailLines": [
+          "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+          "Face yields are base amounts; local modifiers apply on Discharge. Workers multiply incoming Charge only.",
+          "Gain 2 Research.",
+          "Workers: 0 sockets; +0% Charge gained (not output) per effective worker.",
+          "When its authored event occurs, gain 1 Charge; automatically Discharge at 1. No Stock consumed or required. Icons above the meter are Charge triggers; arrows distinguish Stock generated (up) from consumed (down).",
+          "Charge: 0 / 1.",
+          "On Practice installation anywhere in the civilisation (controller: this Practice's beneficiary).",
+          "Discharge: Gain 2 Research."
+        ],
+        "details": [
+          "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+          "Face yields are base amounts; local modifiers apply on Discharge. Workers multiply incoming Charge only.",
+          "Gain 2 Research.",
+          "Workers: 0 sockets; +0% Charge gained (not output) per effective worker.",
+          "When its authored event occurs, gain 1 Charge; automatically Discharge at 1. No Stock consumed or required. Icons above the meter are Charge triggers; arrows distinguish Stock generated (up) from consumed (down).",
+          "Charge: 0 / 1.",
+          "On Practice installation anywhere in the civilisation (controller: this Practice's beneficiary).",
+          "Discharge: Gain 2 Research."
+        ]
+      },
+      "constructionPresentation": null
+    }
+  ],
+  "contextKind": "settlement",
+  "heirlooms": {
+    "equipped": [
+      null,
+      null,
+      null
+    ],
+    "carry": [
+      null,
+      null,
+      null
+    ]
+  },
+  "regionalMap": null,
+  "vassalProjection": null
+}

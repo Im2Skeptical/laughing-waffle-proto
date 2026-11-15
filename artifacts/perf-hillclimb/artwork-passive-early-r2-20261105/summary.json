@@ -1,0 +1,16 @@
+{
+  "ok": true,
+  "results": [
+    {
+      "case": "early-publication",
+      "ok": true,
+      "detailsFile": "early-publication.json"
+    }
+  ],
+  "observations": 3,
+  "failures": 0,
+  "caseFailures": [],
+  "requestedCases": 1,
+  "completedCases": 1,
+  "scope": "construction controls and diagnostics only; independent audit and representative sampling still required"
+}

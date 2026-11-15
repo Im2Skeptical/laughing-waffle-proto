@@ -1,0 +1,47 @@
+{
+  "at": "2026-11-04T19:25:21.685Z",
+  "status": {
+    "protocol": 2,
+    "workspaceId": "318fcd5d72880280",
+    "pid": 4484,
+    "desktop": "http://localhost:5184/",
+    "mobile": [
+      "http://100.105.63.49:5184/",
+      "http://192.168.1.103:5184/"
+    ]
+  },
+  "build": {
+    "performanceFixtureKey": "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+    "version": "1.1.52",
+    "build": "96ca1aa448c0",
+    "revision": "a9df52cbd625",
+    "channel": "local",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": "5184"
+  },
+  "servedSources": {
+    "src/controllers/life-decision-controller.js": "8408c4820980c9fa3a7fe7a59a13fad618aa74978e29db5c192caa75ef405ed8",
+    "src/views/vassal-node-decision-modal-pixi.js": "6bfeb9cf25e2864d1462045d79a6ee7b732a243bff5a1b2ba0af3abd10bf9d86",
+    "src/views/ui-root/settlement-debug-api.js": "5e2800bb9508583684c6829bef1edafacbbc7a2099c2c7eebeae423685240604",
+    "src/views/ui-root-settlement-pixi.js": "d0110b208f627a295599a4221fd47f1bf621f11f7c3a78c42330d73df09dab23"
+  },
+  "htmlSha256": "eab2bcac1e3cd1219ca50807e2d0b1774e8514c3ef87e190d651034833e1cec4",
+  "htmlContainsActualFingerprint": true,
+  "mobile": [
+    {
+      "url": "http://100.105.63.49:5184/",
+      "verified": true,
+      "fingerprint": "96ca1aa448c0"
+    },
+    {
+      "url": "http://192.168.1.103:5184/",
+      "verified": true,
+      "fingerprint": "96ca1aa448c0"
+    }
+  ],
+  "identityOnly": "actual LAN source preview; not device/browser latency proof",
+  "integration": "dirty isolated branch; not integrated into main",
+  "ownership": "reused inherited preview; no owned preview server started"
+}

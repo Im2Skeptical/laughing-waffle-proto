@@ -1,0 +1,276 @@
+// UNAPPLIED, UNEXECUTED DRAFT. Intended sibling of feedback-runtime.mjs.
+// Virtual mechanism controls do not prove native trust, painting or device time.
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {installRuntime} from './browser-runtime.mjs';
+import {installFeedbackObserver} from './feedback-runtime.mjs';
+
+function fixture({timeoutMs = 1000} = {}) {
+  let clock = 100, nextId = 1;
+  const frames = new Map(), timers = new Map(), microtasks = [];
+  const listeners = new Map();
+  const document = {
+    addEventListener(type, fn) {
+      const list = listeners.get(type) ?? [];
+      list.push(fn); listeners.set(type, list);
+    },
+    removeEventListener(type, fn) {
+      listeners.set(type, (listeners.get(type) ?? []).filter(item => item !== fn));
+    },
+    querySelector: () => null,
+  };
+  const context = vm.createContext({document,
+    performance: {now: () => clock},
+    requestAnimationFrame(fn) { const id = nextId++; frames.set(id, fn); return id; },
+    cancelAnimationFrame(id) { frames.delete(id); },
+    setTimeout(fn, delay = 0) { const id = nextId++; timers.set(id, {fn, at: clock + Math.max(0, delay)}); return id; },
+    clearTimeout(id) { timers.delete(id); },
+    queueMicrotask(fn) { microtasks.push(fn); },
+  });
+  const run = source => vm.runInContext(source, context);
+  run(`(${installRuntime.toString()})({instrumentation:false})`);
+  run(`(${installFeedbackObserver.toString()})()`);
+  run("globalThis.cue = {sourceKey:'recorded-action-lineage',sourceValid:true,visible:true,responseKey:'baseline'}");
+  const drainMicrotasks = () => {
+    let remaining = 1000;
+    while (microtasks.length) {
+      assert.ok(remaining-- > 0, 'bounded virtual microtask drain');
+      microtasks.shift()();
+    }
+  };
+  const drainTimers = () => {
+    let remaining = 1000;
+    while (true) {
+      const due = [...timers].filter(([, t]) => t.at <= clock).sort((a, b) => a[1].at - b[1].at);
+      if (!due.length) return;
+      assert.ok(remaining-- > 0, 'bounded virtual timer drain');
+      const [id, item] = due[0]; timers.delete(id); item.fn(); drainMicrotasks();
+    }
+  };
+  const advance = (ms, {timers: executeTimers = true} = {}) => {
+    assert.ok(Number.isFinite(ms) && ms >= 0);
+    clock += ms;
+    if (executeTimers) drainTimers();
+  };
+  const frame = (ms = 1000 / 60, options) => {
+    advance(ms, options);
+    const due = [...frames];
+    for (const [id] of due) frames.delete(id);
+    for (const [, fn] of due) { fn(clock); drainMicrotasks(); }
+  };
+  const dispatch = ({trusted = true, timestamp = clock, type = 'pointerdown'} = {}) => {
+    const event = {isTrusted: trusted, timeStamp: timestamp, type};
+    for (const fn of [...(listeners.get(type) ?? [])]) fn(event);
+    drainMicrotasks();
+    return event;
+  };
+  const arm = (reader = '() => cue') => {
+    run(`__HC__.arm({name:'feedback-control',timeoutMs:${timeoutMs}})`);
+    return run(`__HC_FEEDBACK__.arm({operationId:__HC__.active.id,binding:'virtual-control',readCue:${reader}})`);
+  };
+  const snapshot = () => JSON.parse(JSON.stringify(run('__HC_FEEDBACK__.snapshot()')));
+  const finish = completionAtMs => JSON.parse(JSON.stringify(run(
+    completionAtMs === undefined ? '__HC_FEEDBACK__.finish()'
+      : `__HC_FEEDBACK__.finish({completionAtMs:${completionAtMs}})`)));
+  const assertClean = () => {
+    if (run('__HC__.active !== null')) run("__HC__.cancel('virtual fixture cleanup')");
+    assert.equal(run('__HC_FEEDBACK__.active'), false, 'feedback collection releases active slot');
+    assert.equal(frames.size, 0, 'no observer animation frame survives collection');
+    assert.equal(timers.size, 0, 'no runtime/observer timer survives cleanup');
+    assert.equal([...listeners.values()].reduce((n, list) => n + list.length, 0), 0, 'no input listener survives cleanup');
+    assert.equal(microtasks.length, 0, 'no queued observer microtask survives');
+  };
+  return {run, arm, snapshot, finish, frame, advance, dispatch, assertClean,
+    get now() { return clock; },
+    get queuedFrames() { return frames.size; },
+    get queuedTimers() { return timers.size; },
+    history: () => JSON.parse(JSON.stringify(run('__HC_FEEDBACK__.history()'))),
+  };
+}
+
+const results = [];
+function test(name, body) {
+  body(); results.push({name, ok: true});
+}
+const changed = f => f.run("cue.responseKey='applied-response'");
+
+test('idle installation schedules no observer work', () => {
+  const f = fixture();
+  assert.equal(f.queuedFrames, 0); assert.equal(f.queuedTimers, 0);
+  assert.equal(f.run('__HC_FEEDBACK__.active'), false);
+});
+
+test('original trusted timestamp retains queue delay and separate semantic/frame markers', () => {
+  const f = fixture(); f.arm(); f.advance(20);
+  // Runtime capture handler runs before feedback; app changes the cue after input.
+  f.dispatch({timestamp: 105}); changed(f);
+  f.frame(); assert.equal(f.snapshot().phase, 'observing');
+  f.frame(); assert.equal(f.snapshot().phase, 'observing');
+  f.frame();
+  const actual = f.finish(f.now);
+  assert.equal(actual.phase, 'completed'); assert.equal(actual.startedAtMs, 105);
+  assert.equal(actual.inputQueueMs, 15); assert.equal(actual.trustedInput, true);
+  assert.ok(actual.firstFeedbackMs > actual.firstResponseSemanticMs);
+  assert.equal(actual.firstFeedbackMs, actual.firstFeedbackAtMs - 105);
+  assert.equal(actual.comparisonEligible, false); assert.ok(actual.readCount >= 4);
+  f.assertClean();
+});
+
+test('early feedback precedes the final event of sustained60Hz input', () => {
+  const f = fixture(); f.arm(); f.dispatch();
+  let first = null;
+  for (let index = 1; index <= 14; index++) {
+    f.advance(1000 / 60);
+    f.run(`cue.responseKey='applied-pose-${index}'`);
+    f.dispatch();
+    f.frame(0);
+    const state = f.snapshot();
+    if (!first && state.phase === 'completed') first = state;
+  }
+  const finalEventAt = f.now, actual = f.finish(finalEventAt);
+  assert.ok(first); assert.equal(actual.phase, 'completed');
+  assert.ok(actual.firstFeedbackAtMs < finalEventAt);
+  assert.equal(f.run('__HC__.active.inputCount'), 15, 'real runtime still receives all offered input');
+  assert.equal(f.run('__HC__.active.completionCandidate ?? null'), null, 'feedback does not forge final readiness');
+  f.assertClean();
+});
+
+test('later heavy completion does not rewrite an earlier feedback marker', () => {
+  const f = fixture(); f.arm(); f.dispatch(); changed(f);
+  f.frame(); f.frame(); f.frame();
+  const before = f.snapshot(); f.advance(400);
+  const actual = f.finish(f.now);
+  assert.equal(actual.firstFeedbackAtMs, before.firstFeedbackAtMs);
+  assert.equal(actual.firstFeedbackMs, before.firstFeedbackMs);
+  assert.equal(actual.markerAfterCompletion, false); f.assertClean();
+});
+
+test('transient cue restored before validation cannot complete', () => {
+  const f = fixture(); f.arm(); f.dispatch(); changed(f); f.frame();
+  f.run("cue.responseKey='baseline'"); f.frame();
+  const actual = f.finish(f.now);
+  assert.equal(actual.phase, 'censored'); assert.equal(actual.firstFeedbackMs, null);
+  assert.ok(actual.rejectedCandidates.some(r => r.reason === 'cue returned to baseline'));
+  assert.equal(actual.censorAtMs, actual.lastNegativeFrameCueAtMs); f.assertClean();
+});
+
+test('invalid source never becomes a negative-visual-absence bound', () => {
+  const f = fixture(); f.arm(); f.dispatch();
+  f.run("cue.responseKey='changed';cue.sourceValid=false"); f.frame(); f.frame();
+  const actual = f.finish(f.now);
+  assert.equal(actual.firstFeedbackMs, null); assert.equal(actual.censorAtMs, null);
+  assert.equal(actual.lastNegativeFrameCueAtMs, null); f.assertClean();
+});
+
+test('new source lineage restarts frame validation without mixing sources', () => {
+  const f = fixture(); f.arm(); f.dispatch(); changed(f); f.frame();
+  f.run("cue.sourceKey='replacement-source'"); f.frame();
+  assert.equal(f.snapshot().phase, 'observing');
+  f.frame(); assert.equal(f.snapshot().phase, 'observing');
+  f.frame();
+  const actual = f.finish(f.now);
+  assert.equal(actual.phase, 'completed');
+  assert.equal(actual.validatedCue.sourceKey, 'replacement-source');
+  assert.ok(actual.rejectedCandidates.some(r => r.reason === 'cue source lineage changed')); f.assertClean();
+});
+
+test('missing animation frames reaches deadline with unavailable absence bound', () => {
+  const f = fixture({timeoutMs: 100}); f.arm(); f.dispatch(); changed(f);
+  f.advance(101);
+  const actual = f.finish(f.now);
+  assert.equal(actual.phase, 'censored'); assert.equal(actual.firstFeedbackMs, null);
+  assert.equal(actual.censorAtMs, null); assert.match(actual.censor, /deadline/); f.assertClean();
+});
+
+test('late frame validation remains censored and preserves the late marker', () => {
+  const f = fixture({timeoutMs: 100}); f.arm(); f.dispatch(); changed(f);
+  f.frame(1, {timers: false});
+  f.frame(150, {timers: false}); f.frame(1, {timers: false});
+  const actual = f.finish(f.now);
+  assert.equal(actual.phase, 'censored'); assert.equal(actual.firstFeedbackMs, null);
+  assert.ok(actual.lateValidatedFeedbackMs > 100); f.assertClean();
+});
+
+test('missing trusted input cannot acquire a timestamp or numeric censor bound', () => {
+  const f = fixture({timeoutMs: 100}); f.arm(); f.advance(101);
+  const actual = f.finish(f.now);
+  assert.equal(actual.startedAtMs, null); assert.equal(actual.firstFeedbackMs, null);
+  assert.equal(actual.censorAtMs, null); assert.match(actual.censor, /no trusted.*input/); f.assertClean();
+});
+
+test('failed baseline retains failure and releases observer for another arm', () => {
+  const f = fixture(); f.run('cue.sourceValid=false');
+  assert.throws(() => f.arm(), /baseline source/);
+  assert.equal(f.run('__HC_FEEDBACK__.active'), false);
+  const failure = f.history().at(-1);
+  assert.equal(failure.phase, 'failed'); assert.match(failure.error, /baseline source/);
+  f.assertClean();
+  f.run('cue.sourceValid=true'); f.arm();
+  f.run("__HC_FEEDBACK__.cancel('rearm control cleanup')"); f.assertClean();
+});
+
+test('cue accessors and then getter are rejected without execution', () => {
+  for (const setup of [
+    "Object.defineProperty(cue,'responseKey',{enumerable:true,get(){globalThis.getterCalls++;return 'changed'}})",
+    "Object.defineProperty(cue,'then',{enumerable:true,get(){globalThis.getterCalls++;return ()=>{}}})",
+    "cue[Symbol('extra')]='unexpected'",
+  ]) {
+    const f = fixture(); f.run('globalThis.getterCalls=0'); f.run(setup);
+    assert.throws(() => f.arm(), /cue/); assert.equal(f.run('getterCalls'), 0);
+    assert.equal(f.history().at(-1).phase, 'failed'); f.assertClean();
+  }
+});
+
+test('Promise cue reader cannot enqueue a false synchronous response', () => {
+  const f = fixture(); assert.throws(() => f.arm('() => Promise.resolve(cue)'), /synchronous DTO/);
+  assert.equal(f.history().at(-1).phase, 'failed'); f.assertClean();
+});
+
+test('post-input reader exception remains an explicit failure', () => {
+  const f = fixture(); f.run('globalThis.throwReader=false');
+  f.arm("() => {if(throwReader)throw new Error('controlled reader fault');return cue}");
+  f.run('throwReader=true'); f.dispatch();
+  const actual = f.finish(f.now);
+  assert.equal(actual.phase, 'failed'); assert.match(actual.error, /controlled reader fault/);
+  assert.equal(actual.firstFeedbackMs, null); assert.ok(actual.readSamples.some(s => s.failure)); f.assertClean();
+});
+
+test('untrusted first input cannot masquerade as a successful trusted action', () => {
+  const f = fixture(); f.arm(); f.dispatch({trusted: false}); changed(f); f.dispatch();
+  const actual = f.finish(f.now);
+  assert.equal(actual.phase, 'failed'); assert.match(actual.error, /trusted timestamp/);
+  assert.equal(actual.firstFeedbackMs, null); f.assertClean();
+});
+
+test('runtime cancellation invalidates a pending feedback candidate', () => {
+  const f = fixture(); f.arm(); f.dispatch(); changed(f); f.frame();
+  f.run("__HC__.cancel('controlled original-operation cancellation')"); f.frame();
+  const actual = f.finish(f.now);
+  assert.equal(actual.phase, 'cancelled'); assert.equal(actual.firstFeedbackMs, null); f.assertClean();
+});
+
+test('explicit observer cancellation retains evidence and releases all callbacks', () => {
+  const f = fixture(); f.arm(); f.dispatch(); changed(f); f.frame();
+  const actual = JSON.parse(JSON.stringify(f.run("__HC_FEEDBACK__.cancel('controlled cancellation')")));
+  assert.equal(actual.phase, 'cancelled'); assert.match(actual.censor, /controlled cancellation/);
+  assert.equal(f.history().length, 1); f.assertClean();
+});
+
+test('marker after independent completion is retained rather than silently moved', () => {
+  const f = fixture(); f.arm(); f.dispatch(); changed(f); f.frame(); f.frame(); f.frame();
+  const actual = f.finish(101);
+  assert.equal(actual.phase, 'completed'); assert.equal(actual.markerAfterCompletion, true);
+  assert.ok(actual.firstFeedbackAtMs > actual.completionAtMs);
+  assert.equal(actual.comparisonEligible, false); f.assertClean();
+});
+
+test('active installation replacement and overlapping arm reject without erasing evidence', () => {
+  const f = fixture(); f.arm();
+  assert.throws(() => f.run(`(${installFeedbackObserver.toString()})()`), /active feedback observer/);
+  assert.throws(() => f.run("__HC_FEEDBACK__.arm({operationId:__HC__.active.id,binding:'overlap',readCue:()=>cue})"), /overlapping/);
+  f.run("__HC_FEEDBACK__.cancel('overlap control cleanup')");
+  assert.equal(f.history().length, 1); f.assertClean();
+});
+
+console.log(JSON.stringify({scope:'virtual mechanism controls only; no native trust/paint/device claim',
+  ok: true, controls: results.length, results}));

@@ -1,0 +1,16 @@
+{
+  "launchId": "launch-failure-controls-parent-r1-20261105-first:launch-0-entry",
+  "job": "entry",
+  "originalError": {
+    "name": "Error",
+    "message": "deliberate pre-page harness control",
+    "stack": "Error: deliberate pre-page harness control\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:959:80"
+  },
+  "observationCount": 0,
+  "document": {
+    "available": false,
+    "reason": "no page was created for this launch"
+  },
+  "passive": null,
+  "collectionErrors": []
+}

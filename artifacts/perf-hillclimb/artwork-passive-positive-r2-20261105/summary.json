@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "results": [
+    {
+      "case": "reference",
+      "ok": true,
+      "detailsFile": "reference.json"
+    },
+    {
+      "case": "deferred",
+      "ok": true,
+      "detailsFile": "deferred.json"
+    },
+    {
+      "case": "retry",
+      "ok": true,
+      "detailsFile": "retry.json"
+    },
+    {
+      "case": "exhausted",
+      "ok": true,
+      "detailsFile": "exhausted.json"
+    }
+  ],
+  "observations": 28,
+  "failures": 0,
+  "caseFailures": [],
+  "requestedCases": 4,
+  "completedCases": 4,
+  "scope": "construction controls and diagnostics only; independent audit and representative sampling still required"
+}

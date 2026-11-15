@@ -1,0 +1,23 @@
+{
+  "at": "2026-11-15T06:14:44.135Z",
+  "priorRoot": "artifacts/perf-hillclimb/native-capture-controller-r2-20261115",
+  "priorManifestSha256": "716dd4d96b15e16d556eadd77e302765bfc426f61b6b4c5d92ccc8df99e0ffc2",
+  "priorBuildReceiptSha256": "2d9d9b6a6718e4bbbed7c4cf5ec786ca6545223414a06eda3c33c9fde6cfc381",
+  "priorIndependentManagedSha256": "499f08cb87aceb34ed81727f1aa6191b54680e26676a563afcd348ef4f874617",
+  "files": {
+    "CaptureController.cs": "94ebc0631483d18142e2eea9d9144d4d8902237aaa7619c3ccda216a0340d890",
+    "ControllerNative.cs": "a3d239b8c21279964dba433565cfb389963ea2c1aa41a8926166d625312e7fc4",
+    "ControllerPolicy.cs": "9113f6e6071620e4b3630bd0e2506a60ae547c0c39eb52e92a265c1aa9d439c0",
+    "DescendantWitness.cs": "7ff7ba6eaffe7ce59165bd35a0420a44610fa0285d075bd176cbc3514b4b1bcb",
+    "EventSession.cs": "31d9c0da006fa70c55bc780f5057a40fc34347f55d2ddfb038ab6ab74cef5da9",
+    "NativeCaptureAbi.cs": "8c7a7d5d70ba871e2341d40ce147cef5d80d664d475777b33366b670eefe4337",
+    "NativeCaptureSupport.cs": "fc3d4881e8e40089063eddfb3868db5570021d410b786b087e5912318e5d8442",
+    "PureControllerChecks.cs": "568ead17e42e40b423f761c6c178011fe08649d675d9100c6332fed379dce0b7",
+    "RepairContracts.cs": "5d3b07086a42e12345a21a39c805c83335669d70d0aae53f99b91ee2a189bf19",
+    "RepairedResources.cs": "2126baeebe91a60541e03a1a844ae8f9773526a606b0ca8317cf82e9d25d53b3",
+    "SyntheticCaptureTarget.cs": "dcab449478a325c9591b4f13220b2b83ffa2e78698dcbb42b6d5240bd4082937",
+    "CaptureController-final.dll": "6caf98e3f5b78fea2e500c369052c051eef9a3dd9126cd8a34c728cff10c2929",
+    "SyntheticCaptureTarget-final.exe": "1fd1d69e68363495e9742c65cdb2a193b630a3dc9af32754f65026ec3339fdde"
+  },
+  "scope": "Byte-identical C# sources and selected binaries inherited from r2 compile0/0,47Builder+42independent managed checks. No new C# compilation/check rerun needed for checker-only repair. No native helper/API/Run/Main/target/control invocation."
+}

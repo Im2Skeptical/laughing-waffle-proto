@@ -1,0 +1,1042 @@
+{
+  "record": {
+    "version": 2,
+    "generation": 1,
+    "operationId": 1,
+    "binding": "slot-picker",
+    "event": "pointerdown",
+    "phase": "censored",
+    "armedAtMs": 1284.199999988079,
+    "startedAtMs": 1285,
+    "hostHandlerAtMs": 1286,
+    "inputQueueMs": 1,
+    "hostCaptureReadMs": null,
+    "observerHandlerAtMs": 1286.0999999940395,
+    "hostToObserverMs": 0.09999999403953552,
+    "preHandlerAtMs": 1285.7999999821186,
+    "preHandlerQueueMs": 0.7999999821186066,
+    "preHandlerCue": {
+      "responseKey": "false",
+      "sourceKey": "1793823626105.3:slot-picker",
+      "sourceValid": true,
+      "visible": false
+    },
+    "preHandlerOrdering": "window capture; adapter must prove this precedes its app mutation path",
+    "baseline": {
+      "responseKey": "false",
+      "sourceKey": "1793823626105.3:slot-picker",
+      "sourceValid": true,
+      "visible": false
+    },
+    "inputBaselineMatches": true,
+    "trustedInput": true,
+    "postDispatchAtMs": 1326.7999999821186,
+    "firstResponseSemanticMs": null,
+    "firstChangedAtMs": 1327.0999999940395,
+    "firstChangedFrameAtMs": null,
+    "firstFeedbackAtMs": null,
+    "firstFeedbackMs": null,
+    "lateValidatedAtMs": null,
+    "lateValidatedFeedbackMs": null,
+    "frameValidations": 2,
+    "observedArmedEventCount": 1,
+    "readCount": 3,
+    "readCpuMs": 0.5,
+    "maxReadCpuMs": 0.30000001192092896,
+    "lastCueReadAtMs": 1327.0999999940395,
+    "lastFrameCueReadAtMs": null,
+    "lastNegativeFrameCueAtMs": null,
+    "readSamples": [
+      {
+        "atMs": 1284.199999988079,
+        "cpuMs": 0.30000001192092896,
+        "label": "before-input-arm-baseline",
+        "failure": null,
+        "cue": {
+          "responseKey": "false",
+          "sourceKey": "1793823626105.3:slot-picker",
+          "sourceValid": true,
+          "visible": false
+        }
+      },
+      {
+        "atMs": 1285.7999999821186,
+        "cpuMs": 0.09999999403953552,
+        "label": "input-window-capture-before-app",
+        "failure": null,
+        "cue": {
+          "responseKey": "false",
+          "sourceKey": "1793823626105.3:slot-picker",
+          "sourceValid": true,
+          "visible": false
+        }
+      },
+      {
+        "atMs": 1327,
+        "cpuMs": 0.09999999403953552,
+        "label": "post-dispatch-timer-task",
+        "failure": null,
+        "cue": {
+          "responseKey": "true",
+          "sourceKey": "1793823626105.3:slot-picker",
+          "sourceValid": true,
+          "visible": true
+        }
+      }
+    ],
+    "readSamplesTruncated": false,
+    "rejectedCandidates": [
+      {
+        "semanticAtMs": 1327.0999999940395,
+        "rejectedAtMs": 2498.199999988079,
+        "reason": "feedback observation deadline",
+        "validatedFrames": 0,
+        "sourceKey": "1793823626105.3:slot-picker"
+      }
+    ],
+    "rejectedCandidatesTruncated": false,
+    "observerError": null,
+    "error": "native missing frame deadline",
+    "censor": "no validated visible response before operation deadline",
+    "stoppedAtMs": 2498.2999999821186,
+    "hostAtStop": {
+      "status": "active",
+      "globalRuntimeMatches": true,
+      "activeMatches": true,
+      "recordedLast": false,
+      "error": null,
+      "timeout": false,
+      "startedAtMs": 1285,
+      "handlerAtMs": 1286,
+      "inputQueueMs": 1,
+      "finishedAtMs": null,
+      "trustedInput": true
+    },
+    "hostAtCollection": {
+      "status": "error",
+      "globalRuntimeMatches": true,
+      "activeMatches": false,
+      "recordedLast": true,
+      "error": "native missing frame deadline",
+      "timeout": true,
+      "startedAtMs": 1285,
+      "handlerAtMs": 1286,
+      "inputQueueMs": 1,
+      "finishedAtMs": 2641,
+      "trustedInput": true
+    },
+    "scope": "action-related retained cue plus double-rAF opportunity; no physical scanout claim",
+    "detectionScope": "cancellable post-dispatch timer task, then frame probes; task scheduling delay included",
+    "overallStatus": "failed",
+    "hostEndAtMs": 2641,
+    "completionAtMs": null,
+    "markerAfterHostEnd": null,
+    "markerAfterCompletion": null,
+    "censorAtMs": null,
+    "censorScope": "no supported negative-frame bound",
+    "comparisonEligible": false,
+    "eligibilityScope": "construction draft; adapters/controls/overhead/native corroboration unaudited"
+  },
+  "export": {
+    "records": [
+      {
+        "version": 2,
+        "generation": 1,
+        "operationId": 1,
+        "binding": "slot-picker",
+        "event": "pointerdown",
+        "phase": "censored",
+        "armedAtMs": 1284.199999988079,
+        "startedAtMs": 1285,
+        "hostHandlerAtMs": 1286,
+        "inputQueueMs": 1,
+        "hostCaptureReadMs": null,
+        "observerHandlerAtMs": 1286.0999999940395,
+        "hostToObserverMs": 0.09999999403953552,
+        "preHandlerAtMs": 1285.7999999821186,
+        "preHandlerQueueMs": 0.7999999821186066,
+        "preHandlerCue": {
+          "responseKey": "false",
+          "sourceKey": "1793823626105.3:slot-picker",
+          "sourceValid": true,
+          "visible": false
+        },
+        "preHandlerOrdering": "window capture; adapter must prove this precedes its app mutation path",
+        "baseline": {
+          "responseKey": "false",
+          "sourceKey": "1793823626105.3:slot-picker",
+          "sourceValid": true,
+          "visible": false
+        },
+        "inputBaselineMatches": true,
+        "trustedInput": true,
+        "postDispatchAtMs": 1326.7999999821186,
+        "firstResponseSemanticMs": null,
+        "firstChangedAtMs": 1327.0999999940395,
+        "firstChangedFrameAtMs": null,
+        "firstFeedbackAtMs": null,
+        "firstFeedbackMs": null,
+        "lateValidatedAtMs": null,
+        "lateValidatedFeedbackMs": null,
+        "frameValidations": 2,
+        "observedArmedEventCount": 1,
+        "readCount": 3,
+        "readCpuMs": 0.5,
+        "maxReadCpuMs": 0.30000001192092896,
+        "lastCueReadAtMs": 1327.0999999940395,
+        "lastFrameCueReadAtMs": null,
+        "lastNegativeFrameCueAtMs": null,
+        "readSamples": [
+          {
+            "atMs": 1284.199999988079,
+            "cpuMs": 0.30000001192092896,
+            "label": "before-input-arm-baseline",
+            "failure": null,
+            "cue": {
+              "responseKey": "false",
+              "sourceKey": "1793823626105.3:slot-picker",
+              "sourceValid": true,
+              "visible": false
+            }
+          },
+          {
+            "atMs": 1285.7999999821186,
+            "cpuMs": 0.09999999403953552,
+            "label": "input-window-capture-before-app",
+            "failure": null,
+            "cue": {
+              "responseKey": "false",
+              "sourceKey": "1793823626105.3:slot-picker",
+              "sourceValid": true,
+              "visible": false
+            }
+          },
+          {
+            "atMs": 1327,
+            "cpuMs": 0.09999999403953552,
+            "label": "post-dispatch-timer-task",
+            "failure": null,
+            "cue": {
+              "responseKey": "true",
+              "sourceKey": "1793823626105.3:slot-picker",
+              "sourceValid": true,
+              "visible": true
+            }
+          }
+        ],
+        "readSamplesTruncated": false,
+        "rejectedCandidates": [
+          {
+            "semanticAtMs": 1327.0999999940395,
+            "rejectedAtMs": 2498.199999988079,
+            "reason": "feedback observation deadline",
+            "validatedFrames": 0,
+            "sourceKey": "1793823626105.3:slot-picker"
+          }
+        ],
+        "rejectedCandidatesTruncated": false,
+        "observerError": null,
+        "error": "native missing frame deadline",
+        "censor": "no validated visible response before operation deadline",
+        "stoppedAtMs": 2498.2999999821186,
+        "hostAtStop": {
+          "status": "active",
+          "globalRuntimeMatches": true,
+          "activeMatches": true,
+          "recordedLast": false,
+          "error": null,
+          "timeout": false,
+          "startedAtMs": 1285,
+          "handlerAtMs": 1286,
+          "inputQueueMs": 1,
+          "finishedAtMs": null,
+          "trustedInput": true
+        },
+        "hostAtCollection": {
+          "status": "error",
+          "globalRuntimeMatches": true,
+          "activeMatches": false,
+          "recordedLast": true,
+          "error": "native missing frame deadline",
+          "timeout": true,
+          "startedAtMs": 1285,
+          "handlerAtMs": 1286,
+          "inputQueueMs": 1,
+          "finishedAtMs": 2641,
+          "trustedInput": true
+        },
+        "scope": "action-related retained cue plus double-rAF opportunity; no physical scanout claim",
+        "detectionScope": "cancellable post-dispatch timer task, then frame probes; task scheduling delay included",
+        "overallStatus": "failed",
+        "hostEndAtMs": 2641,
+        "completionAtMs": null,
+        "markerAfterHostEnd": null,
+        "markerAfterCompletion": null,
+        "censorAtMs": null,
+        "censorScope": "no supported negative-frame bound",
+        "comparisonEligible": false,
+        "eligibilityScope": "construction draft; adapters/controls/overhead/native corroboration unaudited"
+      }
+    ],
+    "status": {
+      "generation": 1,
+      "createdRecords": 1,
+      "collectedRecords": 1,
+      "exportedRecords": 1,
+      "exportBatches": 1,
+      "rejectedArms": 0,
+      "failedArms": 0,
+      "explicitReplacements": 0,
+      "active": false,
+      "phase": null,
+      "error": null,
+      "firstFeedbackAtMs": null,
+      "firstFeedbackMs": null,
+      "retainedRecords": 0,
+      "maxRetainedOperations": 16,
+      "exportScope": "export means drained to caller, not durable disk persistence"
+    },
+    "exportCpuMs": 0,
+    "scope": "outside-clock export to caller; caller must persist and retain its own failures"
+  },
+  "host": {
+    "id": 1,
+    "name": "native-slot-picker-control",
+    "armed": 1284,
+    "started": 1285,
+    "timeoutMs": 1200,
+    "event": "pointerdown",
+    "frames": [
+      {
+        "time": 1325.199999988079,
+        "dt": 54.80000001192093
+      }
+    ],
+    "longTasks": [],
+    "probes": 0,
+    "probeCpuMs": 0,
+    "workerOffset": 15,
+    "inputCount": 1,
+    "lastTerminalInvalidation": {
+      "time": 1286,
+      "reason": "another input arrived"
+    },
+    "handlerStarted": 1286,
+    "eventTimeStamp": 1285,
+    "inputQueueMs": 1,
+    "trustedInput": true,
+    "inputType": "pointerdown",
+    "timeout": true,
+    "finished": 2641,
+    "elapsedMs": 1356,
+    "error": "native missing frame deadline"
+  },
+  "native": {
+    "timeOrigin": 1793823626105.3,
+    "visibility": "visible",
+    "supported": [
+      "element",
+      "event",
+      "first-input",
+      "largest-contentful-paint",
+      "layout-shift",
+      "long-animation-frame",
+      "longtask",
+      "mark",
+      "measure",
+      "navigation",
+      "paint",
+      "resource",
+      "visibility-state"
+    ],
+    "entries": [
+      {
+        "name": "pointerover",
+        "entryType": "event",
+        "startTime": 1285,
+        "duration": 56,
+        "interactionId": 0,
+        "processingStart": 1285.2999999821186,
+        "processingEnd": 1285.2999999821186,
+        "cancelable": true,
+        "target": null
+      },
+      {
+        "name": "pointerenter",
+        "entryType": "event",
+        "startTime": 1285,
+        "duration": 56,
+        "interactionId": 0,
+        "processingStart": 1285.2999999821186,
+        "processingEnd": 1285.2999999821186,
+        "cancelable": false,
+        "target": null
+      },
+      {
+        "name": "pointerenter",
+        "entryType": "event",
+        "startTime": 1285,
+        "duration": 56,
+        "interactionId": 0,
+        "processingStart": 1285.2999999821186,
+        "processingEnd": 1285.2999999821186,
+        "cancelable": false,
+        "target": "HTML"
+      },
+      {
+        "name": "pointerenter",
+        "entryType": "event",
+        "startTime": 1285,
+        "duration": 56,
+        "interactionId": 0,
+        "processingStart": 1285.2999999821186,
+        "processingEnd": 1285.2999999821186,
+        "cancelable": false,
+        "target": "BODY"
+      },
+      {
+        "name": "pointerenter",
+        "entryType": "event",
+        "startTime": 1285,
+        "duration": 56,
+        "interactionId": 0,
+        "processingStart": 1285.2999999821186,
+        "processingEnd": 1285.2999999821186,
+        "cancelable": false,
+        "target": "game-menu"
+      },
+      {
+        "name": "pointerenter",
+        "entryType": "event",
+        "startTime": 1285,
+        "duration": 56,
+        "interactionId": 0,
+        "processingStart": 1285.2999999821186,
+        "processingEnd": 1285.2999999821186,
+        "cancelable": false,
+        "target": null
+      },
+      {
+        "name": "pointerenter",
+        "entryType": "event",
+        "startTime": 1285,
+        "duration": 56,
+        "interactionId": 0,
+        "processingStart": 1285.2999999821186,
+        "processingEnd": 1285.2999999821186,
+        "cancelable": false,
+        "target": null
+      },
+      {
+        "name": "pointerenter",
+        "entryType": "event",
+        "startTime": 1285,
+        "duration": 56,
+        "interactionId": 0,
+        "processingStart": 1285.2999999821186,
+        "processingEnd": 1285.2999999821186,
+        "cancelable": false,
+        "target": null
+      },
+      {
+        "name": "mouseover",
+        "entryType": "event",
+        "startTime": 1285,
+        "duration": 56,
+        "interactionId": 0,
+        "processingStart": 1285.2999999821186,
+        "processingEnd": 1285.3999999761581,
+        "cancelable": true,
+        "target": null
+      },
+      {
+        "name": "pointerdown",
+        "entryType": "event",
+        "startTime": 1285,
+        "duration": 56,
+        "interactionId": 4801,
+        "processingStart": 1285.3999999761581,
+        "processingEnd": 1286.0999999940395,
+        "cancelable": true,
+        "target": null
+      },
+      {
+        "name": "mousedown",
+        "entryType": "event",
+        "startTime": 1285,
+        "duration": 56,
+        "interactionId": 0,
+        "processingStart": 1286.0999999940395,
+        "processingEnd": 1286.0999999940395,
+        "cancelable": true,
+        "target": null
+      },
+      {
+        "name": "pointerup",
+        "entryType": "event",
+        "startTime": 1286.699999988079,
+        "duration": 56,
+        "interactionId": 4801,
+        "processingStart": 1286.8999999761581,
+        "processingEnd": 1288.199999988079,
+        "cancelable": true,
+        "target": null
+      },
+      {
+        "name": "mouseup",
+        "entryType": "event",
+        "startTime": 1286.699999988079,
+        "duration": 56,
+        "interactionId": 0,
+        "processingStart": 1288.199999988079,
+        "processingEnd": 1288.199999988079,
+        "cancelable": true,
+        "target": null
+      },
+      {
+        "name": "click",
+        "entryType": "event",
+        "startTime": 1286.699999988079,
+        "duration": 56,
+        "interactionId": 4801,
+        "processingStart": 1288.199999988079,
+        "processingEnd": 1324.8999999761581,
+        "cancelable": true,
+        "target": null
+      },
+      {
+        "name": "pointerover",
+        "entryType": "event",
+        "startTime": 1325.0999999940395,
+        "duration": 16,
+        "interactionId": 0,
+        "processingStart": 1325.0999999940395,
+        "processingEnd": 1325.199999988079,
+        "cancelable": true,
+        "target": "H2"
+      },
+      {
+        "name": "pointerenter",
+        "entryType": "event",
+        "startTime": 1325.0999999940395,
+        "duration": 16,
+        "interactionId": 0,
+        "processingStart": 1325.199999988079,
+        "processingEnd": 1325.199999988079,
+        "cancelable": false,
+        "target": null
+      },
+      {
+        "name": "pointerenter",
+        "entryType": "event",
+        "startTime": 1325.0999999940395,
+        "duration": 16,
+        "interactionId": 0,
+        "processingStart": 1325.199999988079,
+        "processingEnd": 1325.199999988079,
+        "cancelable": false,
+        "target": "HTML"
+      },
+      {
+        "name": "pointerenter",
+        "entryType": "event",
+        "startTime": 1325.0999999940395,
+        "duration": 16,
+        "interactionId": 0,
+        "processingStart": 1325.199999988079,
+        "processingEnd": 1325.199999988079,
+        "cancelable": false,
+        "target": "BODY"
+      },
+      {
+        "name": "pointerenter",
+        "entryType": "event",
+        "startTime": 1325.0999999940395,
+        "duration": 16,
+        "interactionId": 0,
+        "processingStart": 1325.199999988079,
+        "processingEnd": 1325.199999988079,
+        "cancelable": false,
+        "target": "game-menu"
+      },
+      {
+        "name": "pointerenter",
+        "entryType": "event",
+        "startTime": 1325.0999999940395,
+        "duration": 16,
+        "interactionId": 0,
+        "processingStart": 1325.199999988079,
+        "processingEnd": 1325.199999988079,
+        "cancelable": false,
+        "target": "DIV"
+      },
+      {
+        "name": "pointerenter",
+        "entryType": "event",
+        "startTime": 1325.0999999940395,
+        "duration": 16,
+        "interactionId": 0,
+        "processingStart": 1325.199999988079,
+        "processingEnd": 1325.199999988079,
+        "cancelable": false,
+        "target": "DIV"
+      },
+      {
+        "name": "pointerenter",
+        "entryType": "event",
+        "startTime": 1325.0999999940395,
+        "duration": 16,
+        "interactionId": 0,
+        "processingStart": 1325.199999988079,
+        "processingEnd": 1325.199999988079,
+        "cancelable": false,
+        "target": "DIV"
+      },
+      {
+        "name": "pointerenter",
+        "entryType": "event",
+        "startTime": 1325.0999999940395,
+        "duration": 16,
+        "interactionId": 0,
+        "processingStart": 1325.199999988079,
+        "processingEnd": 1325.199999988079,
+        "cancelable": false,
+        "target": "H2"
+      },
+      {
+        "name": "mouseover",
+        "entryType": "event",
+        "startTime": 1325.0999999940395,
+        "duration": 16,
+        "interactionId": 0,
+        "processingStart": 1325.199999988079,
+        "processingEnd": 1325.199999988079,
+        "cancelable": true,
+        "target": "H2"
+      }
+    ],
+    "receipts": [
+      {
+        "type": "pointerdown",
+        "trusted": true,
+        "timeStamp": 1285,
+        "arrival": 1285.3999999761581,
+        "target": "game-new",
+        "pointerId": 1,
+        "pointerType": "mouse",
+        "x": 267,
+        "y": 431.625,
+        "coalesced": [],
+        "operationId": 1
+      },
+      {
+        "type": "pointerup",
+        "trusted": true,
+        "timeStamp": 1286.699999988079,
+        "arrival": 1286.8999999761581,
+        "target": "game-new",
+        "pointerId": 1,
+        "pointerType": "mouse",
+        "x": 267,
+        "y": 431.625,
+        "coalesced": [],
+        "operationId": 1
+      },
+      {
+        "type": "click",
+        "trusted": true,
+        "timeStamp": 1286.699999988079,
+        "arrival": 1288.199999988079,
+        "target": "game-new",
+        "pointerId": 1,
+        "pointerType": "mouse",
+        "x": 267,
+        "y": 431,
+        "coalesced": [],
+        "operationId": 1
+      }
+    ],
+    "overflow": 0,
+    "droppedEntriesCount": 0,
+    "thresholdMs": 16,
+    "timestampJoinToleranceMs": 0.25,
+    "scope": "filtered Event Timing dispatch; not meaningful pixels",
+    "joins": [
+      {
+        "entry": {
+          "name": "pointerover",
+          "entryType": "event",
+          "startTime": 1285,
+          "duration": 56,
+          "interactionId": 0,
+          "processingStart": 1285.2999999821186,
+          "processingEnd": 1285.2999999821186,
+          "cancelable": true,
+          "target": null
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1285,
+          "duration": 56,
+          "interactionId": 0,
+          "processingStart": 1285.2999999821186,
+          "processingEnd": 1285.2999999821186,
+          "cancelable": false,
+          "target": null
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1285,
+          "duration": 56,
+          "interactionId": 0,
+          "processingStart": 1285.2999999821186,
+          "processingEnd": 1285.2999999821186,
+          "cancelable": false,
+          "target": "HTML"
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1285,
+          "duration": 56,
+          "interactionId": 0,
+          "processingStart": 1285.2999999821186,
+          "processingEnd": 1285.2999999821186,
+          "cancelable": false,
+          "target": "BODY"
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1285,
+          "duration": 56,
+          "interactionId": 0,
+          "processingStart": 1285.2999999821186,
+          "processingEnd": 1285.2999999821186,
+          "cancelable": false,
+          "target": "game-menu"
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1285,
+          "duration": 56,
+          "interactionId": 0,
+          "processingStart": 1285.2999999821186,
+          "processingEnd": 1285.2999999821186,
+          "cancelable": false,
+          "target": null
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1285,
+          "duration": 56,
+          "interactionId": 0,
+          "processingStart": 1285.2999999821186,
+          "processingEnd": 1285.2999999821186,
+          "cancelable": false,
+          "target": null
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1285,
+          "duration": 56,
+          "interactionId": 0,
+          "processingStart": 1285.2999999821186,
+          "processingEnd": 1285.2999999821186,
+          "cancelable": false,
+          "target": null
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "mouseover",
+          "entryType": "event",
+          "startTime": 1285,
+          "duration": 56,
+          "interactionId": 0,
+          "processingStart": 1285.2999999821186,
+          "processingEnd": 1285.3999999761581,
+          "cancelable": true,
+          "target": null
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerdown",
+          "entryType": "event",
+          "startTime": 1285,
+          "duration": 56,
+          "interactionId": 4801,
+          "processingStart": 1285.3999999761581,
+          "processingEnd": 1286.0999999940395,
+          "cancelable": true,
+          "target": null
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "mousedown",
+          "entryType": "event",
+          "startTime": 1285,
+          "duration": 56,
+          "interactionId": 0,
+          "processingStart": 1286.0999999940395,
+          "processingEnd": 1286.0999999940395,
+          "cancelable": true,
+          "target": null
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerup",
+          "entryType": "event",
+          "startTime": 1286.699999988079,
+          "duration": 56,
+          "interactionId": 4801,
+          "processingStart": 1286.8999999761581,
+          "processingEnd": 1288.199999988079,
+          "cancelable": true,
+          "target": null
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "mouseup",
+          "entryType": "event",
+          "startTime": 1286.699999988079,
+          "duration": 56,
+          "interactionId": 0,
+          "processingStart": 1288.199999988079,
+          "processingEnd": 1288.199999988079,
+          "cancelable": true,
+          "target": null
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "click",
+          "entryType": "event",
+          "startTime": 1286.699999988079,
+          "duration": 56,
+          "interactionId": 4801,
+          "processingStart": 1288.199999988079,
+          "processingEnd": 1324.8999999761581,
+          "cancelable": true,
+          "target": null
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerover",
+          "entryType": "event",
+          "startTime": 1325.0999999940395,
+          "duration": 16,
+          "interactionId": 0,
+          "processingStart": 1325.0999999940395,
+          "processingEnd": 1325.199999988079,
+          "cancelable": true,
+          "target": "H2"
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1325.0999999940395,
+          "duration": 16,
+          "interactionId": 0,
+          "processingStart": 1325.199999988079,
+          "processingEnd": 1325.199999988079,
+          "cancelable": false,
+          "target": null
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1325.0999999940395,
+          "duration": 16,
+          "interactionId": 0,
+          "processingStart": 1325.199999988079,
+          "processingEnd": 1325.199999988079,
+          "cancelable": false,
+          "target": "HTML"
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1325.0999999940395,
+          "duration": 16,
+          "interactionId": 0,
+          "processingStart": 1325.199999988079,
+          "processingEnd": 1325.199999988079,
+          "cancelable": false,
+          "target": "BODY"
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1325.0999999940395,
+          "duration": 16,
+          "interactionId": 0,
+          "processingStart": 1325.199999988079,
+          "processingEnd": 1325.199999988079,
+          "cancelable": false,
+          "target": "game-menu"
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1325.0999999940395,
+          "duration": 16,
+          "interactionId": 0,
+          "processingStart": 1325.199999988079,
+          "processingEnd": 1325.199999988079,
+          "cancelable": false,
+          "target": "DIV"
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1325.0999999940395,
+          "duration": 16,
+          "interactionId": 0,
+          "processingStart": 1325.199999988079,
+          "processingEnd": 1325.199999988079,
+          "cancelable": false,
+          "target": "DIV"
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1325.0999999940395,
+          "duration": 16,
+          "interactionId": 0,
+          "processingStart": 1325.199999988079,
+          "processingEnd": 1325.199999988079,
+          "cancelable": false,
+          "target": "DIV"
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "pointerenter",
+          "entryType": "event",
+          "startTime": 1325.0999999940395,
+          "duration": 16,
+          "interactionId": 0,
+          "processingStart": 1325.199999988079,
+          "processingEnd": 1325.199999988079,
+          "cancelable": false,
+          "target": "H2"
+        },
+        "candidates": [],
+        "status": "unmatched"
+      },
+      {
+        "entry": {
+          "name": "mouseover",
+          "entryType": "event",
+          "startTime": 1325.0999999940395,
+          "duration": 16,
+          "interactionId": 0,
+          "processingStart": 1325.199999988079,
+          "processingEnd": 1325.199999988079,
+          "cancelable": true,
+          "target": "H2"
+        },
+        "candidates": [],
+        "status": "unmatched"
+      }
+    ],
+    "unmatchedReceiptScope": "missing entry is filtered/pending/ineligible/unknown, never zero latency"
+  },
+  "order": [
+    {
+      "label": "window-capture",
+      "at": 1285.699999988079
+    },
+    {
+      "label": "capture-microtask",
+      "at": 1285.699999988079
+    },
+    {
+      "label": "target-down",
+      "at": 1286.0999999940395
+    }
+  ]
+}

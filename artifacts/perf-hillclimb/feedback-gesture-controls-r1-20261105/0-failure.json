@@ -1,0 +1,4 @@
+{
+  "message": "page.waitForFunction: Timeout 180000ms exceeded.",
+  "stack": "page.waitForFunction: Timeout 180000ms exceeded.\n    at C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\feedback-gesture-controls.mjs:35:15"
+}

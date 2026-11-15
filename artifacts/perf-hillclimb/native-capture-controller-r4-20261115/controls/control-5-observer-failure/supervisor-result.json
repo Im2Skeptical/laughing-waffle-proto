@@ -1,0 +1,9 @@
+{
+  "at": "2026-11-15T07:36:24.214Z",
+  "slot": 5,
+  "hostExitCode": 2,
+  "hostSignal": null,
+  "hostError": null,
+  "expired": false,
+  "scope": "Supervisor outcome only; no automatic native/cleanup/control PASS."
+}

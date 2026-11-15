@@ -1,0 +1,28 @@
+{
+  "at": "2026-11-15T04:10:36Z",
+  "deadline": "2026-11-16T02:40:00Z",
+  "runtimeActive": false,
+  "agentsActive": false,
+  "verdict": "Whole Phase A NOT SOUND. Managed foundation only independently accepted; no debug/control/preview target launched.",
+  "sourceAssetChanges": [],
+  "sourceCount": 683,
+  "assetCount": 5,
+  "buildManifestSha256": "d1aa623eb08f2711802f45563379e77a5fba63075ee1f36fba78801dbb6631f8",
+  "independentAbiReceiptSha256": "5aa58a6a29731cca83f78edc5af8692edc0e360a4bafd8f3268e5951e67611b4",
+  "next": "NATIVE_OBSERVER_IMPLEMENTATION_BRIEF.md; artifacts-only source/pure implementation. Independent affected source admission before any target.",
+  "schedule": {
+    "scheduledTaskId": "scheduled-task:9ec80581-e6bf-4df4-bdb7-1995e6e7be34",
+    "title": "Continue performance hillclimb until 13:40 Sydney Nov16",
+    "prompt": "Continue Cam's EXISTING authorized performance hillclimb. Cam explicitly EXTENDED the original deadline24 HOURS; new hard deadline2026-11-16T02:40:00Z (13:40 Sydney Monday November16). This supersedes the old Nov15 finalization-only plan. Read docs/performance-hillclimb-20261115/STATUS.md in coordinator checkout FIRST and check ownership/clock. Actual harness/product work remains C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104 (perf/hillclimb-20261104, frozen old v1.1.53 checkpoint), NOT newer coordinator main. Follow HillclimbPerformanceLoop/AGENTS; preserve all8jobs/inherited120-launch/3-suite contract, original frozen evidence and unrelated worktrees. Parent owns ONE test/browser/CPUslot; narrowly scoped independent Auditor/Judge agents only as skill permits; no competing benchmarks or duplicate active run. Current PhaseA NOT SOUND; no optimization/scoring before independent SOUND. Resume smallest documented unfinished proof from STATUS.md. At04:10Z checkpoint installed capture-tool inventory, primary-Microsoft feasibility critique and pure ABI foundation reviews CLOSED. All runtime/review leases released; no real debug/control/preview target launched this chunk. Next NATIVE_OBSERVER_IMPLEMENTATION_BRIEF.md: fresh artifacts-only observer manifest/ownership/job/pipe/same-OS-thread event-loop SOURCE construction +pure checks. SIX future synthetic controls are predeclared but NOT admitted/launched. Fresh independent affected SOURCE admission before any child; trial-wide preview-daemon lifetime remains separate future gate. Preserve frozen ABI source/proofs, lossless UInt64 wire, no repeat inventory/OS lookup/ABBA cells; no global setting/install/attach. Prefer~20min chunks and persist exact active session/PIDs/resume state/evidence in STATUS.md. Preserve all failed/native attempts and separate populations. Reserve final35min from2026-11-16T02:05Z for confirmation/verify/npmstart/coherentversionedPRifverified; no new10min case after2026-11-16T01:45Z. Never merge or deployPages. At/after NEW deadline stop new experiments, finalize honest evidence/previewhand-off and disable SAME task scheduledTaskId scheduled-task:9ec80581-e6bf-4df4-bdb7-1995e6e7be34. Do NOT finalize/disable at superseded Nov15 deadline. If actual success/hardblock reached, document/disable. Do not duplicate active workloads.",
+    "enabled": true,
+    "projectId": "cf68fa26-6219-4056-83dc-1cd9d3f8f13a",
+    "boundThreadId": "95f53b04-d994-4904-add1-4c4209fbdfde",
+    "freshSession": false,
+    "schedule": {
+      "type": "interval",
+      "everyMs": 300000
+    },
+    "nextRunAt": "2026-11-15T04:15:01.550Z",
+    "lastRunStatus": "succeeded"
+  }
+}

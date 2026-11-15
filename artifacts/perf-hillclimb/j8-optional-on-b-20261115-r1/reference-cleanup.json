@@ -1,0 +1,16 @@
+{
+  "case": "reference",
+  "contextClosed": true,
+  "browserClosed": true,
+  "errors": [],
+  "browserConnected": false,
+  "lifetime": {
+    "label": "artwork reference",
+    "status": "cancelled",
+    "hostStartedMs": 10842.3469,
+    "hostDeadlineMs": 610842.3469,
+    "reason": "page.waitForFunction: Timeout 240000ms exceeded.",
+    "unconfirmedWork": [],
+    "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+  }
+}

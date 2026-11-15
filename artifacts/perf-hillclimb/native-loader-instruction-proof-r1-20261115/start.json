@@ -1,0 +1,14 @@
+{
+  "at": "2026-11-15T06:44:37.351Z",
+  "sourcePins": {
+    "decode.mjs": "aaab992e244ef6006dba45de175453eb6e81a8d1b3116653f2ebb0bcaddb6e19",
+    "controls.mjs": "c2d1ffb3ab5299105406d7968469b6a65936c6c2dc46d9e15c315fdd67446cb9",
+    "prove.mjs": "3f0570e230e11320e5774d1504e538445b30593efd69a93e63a791e114623dc9",
+    "README.md": "43f312c237f2b182f5f2e2c9a4e88b855b1a6fceaee0719c7526115b5f9c7a89"
+  },
+  "controlsSha256": "c536ee439762ff11c53d666d10a2d0a440e736396e84fca687e80f0c8edc4b94",
+  "provenanceSha256": "1eed7f6d54e7ee6cdaf793f2787c80f6db34bf2256576d81e71b7045911281c3",
+  "imageSha256": "a0f81bf5c610c0ff0a550adc020a58446f214790c748057bb575042e972e6a34",
+  "exportParserSha256": "fefe4a12276591cb1d05590659dfc989fe4fad0f7164abf395752f899ae088d3",
+  "scope": "Frozen data/subset decode only; no native/API/target or startup-policy acceptance."
+}

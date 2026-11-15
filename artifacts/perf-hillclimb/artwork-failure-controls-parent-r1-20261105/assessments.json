@@ -1,0 +1,137 @@
+﻿[
+    {
+        "name":  "throw",
+        "id":  "artwork-failure-controls-parent-r1-20261105-throw",
+        "argv":  [
+                     "scripts/perf-hillclimb/artwork-controls.mjs",
+                     "--cases=reference",
+                     "--cycles=1",
+                     "--id=artwork-failure-controls-parent-r1-20261105-throw",
+                     "--control-diagnostic=throw"
+                 ],
+        "exitCode":  1,
+        "expectedNegativeControlPassed":  true,
+        "productCasePassed":  false,
+        "rawFrames":  111,
+        "priorObservations":  2,
+        "knownCrossingStalls":  1,
+        "completedRawRetained":  false,
+        "contextClosed":  true,
+        "browserClosed":  true,
+        "unconfirmedWork":  [
+
+                            ],
+        "started":  "2026-11-04T17:19:58.8778750Z",
+        "finished":  "2026-11-04T17:20:23.7718351Z",
+        "scope":  "expected failures and liveness controls, comparison-ineligible; no product latency pass"
+    },
+    {
+        "name":  "never",
+        "id":  "artwork-failure-controls-parent-r1-20261105-never",
+        "argv":  [
+                     "scripts/perf-hillclimb/artwork-controls.mjs",
+                     "--cases=reference",
+                     "--cycles=1",
+                     "--id=artwork-failure-controls-parent-r1-20261105-never",
+                     "--control-diagnostic=never"
+                 ],
+        "exitCode":  1,
+        "expectedNegativeControlPassed":  true,
+        "productCasePassed":  false,
+        "rawFrames":  129,
+        "priorObservations":  2,
+        "knownCrossingStalls":  0,
+        "completedRawRetained":  false,
+        "contextClosed":  true,
+        "browserClosed":  true,
+        "unconfirmedWork":  [
+
+                            ],
+        "started":  "2026-11-04T17:20:23.7908348Z",
+        "finished":  "2026-11-04T17:20:50.1844819Z",
+        "scope":  "expected failures and liveness controls, comparison-ineligible; no product latency pass"
+    },
+    {
+        "name":  "post-collection",
+        "id":  "artwork-failure-controls-parent-r1-20261105-post-collection",
+        "argv":  [
+                     "scripts/perf-hillclimb/artwork-controls.mjs",
+                     "--cases=reference",
+                     "--cycles=1",
+                     "--id=artwork-failure-controls-parent-r1-20261105-post-collection",
+                     "--control-diagnostic=post-collection"
+                 ],
+        "exitCode":  1,
+        "expectedNegativeControlPassed":  true,
+        "productCasePassed":  false,
+        "rawFrames":  795,
+        "priorObservations":  8,
+        "knownCrossingStalls":  0,
+        "completedRawRetained":  true,
+        "contextClosed":  true,
+        "browserClosed":  true,
+        "unconfirmedWork":  [
+
+                            ],
+        "started":  "2026-11-04T17:20:50.1864820Z",
+        "finished":  "2026-11-04T17:22:44.6286257Z",
+        "scope":  "expected failures and liveness controls, comparison-ineligible; no product latency pass"
+    },
+    {
+        "name":  "final-read",
+        "id":  "artwork-failure-controls-parent-r1-20261105-final-read",
+        "argv":  [
+                     "scripts/perf-hillclimb/artwork-controls.mjs",
+                     "--cases=reference",
+                     "--cycles=1",
+                     "--id=artwork-failure-controls-parent-r1-20261105-final-read",
+                     "--control-final-read=never"
+                 ],
+        "exitCode":  1,
+        "expectedNegativeControlPassed":  true,
+        "productCasePassed":  false,
+        "rawFrames":  838,
+        "priorObservations":  8,
+        "knownCrossingStalls":  0,
+        "completedRawRetained":  false,
+        "contextClosed":  true,
+        "browserClosed":  true,
+        "unconfirmedWork":  [
+
+                            ],
+        "started":  "2026-11-04T17:22:44.6306296Z",
+        "finished":  "2026-11-04T17:24:43.0687210Z",
+        "scope":  "expected failures and liveness controls, comparison-ineligible; no product latency pass"
+    },
+    {
+        "name":  "case-hang",
+        "id":  "artwork-failure-controls-parent-r1-20261105-case-hang",
+        "argv":  [
+                     "scripts/perf-hillclimb/artwork-controls.mjs",
+                     "--cases=reference",
+                     "--cycles=1",
+                     "--id=artwork-failure-controls-parent-r1-20261105-case-hang",
+                     "--control-case-hang=1",
+                     "--case-timeout=30000"
+                 ],
+        "exitCode":  1,
+        "expectedNegativeControlPassed":  true,
+        "productCasePassed":  false,
+        "rawFrames":  257,
+        "priorObservations":  2,
+        "knownCrossingStalls":  0,
+        "completedRawRetained":  false,
+        "contextClosed":  true,
+        "browserClosed":  true,
+        "unconfirmedWork":  [
+                                {
+                                    "id":  2,
+                                    "label":  "artwork case body",
+                                    "hostStartedMs":  8951.768
+                                }
+                            ],
+        "started":  "2026-11-04T17:24:43.0697264Z",
+        "finished":  "2026-11-04T17:25:39.2431464Z",
+        "scope":  "expected failures and liveness controls, comparison-ineligible; no product latency pass"
+    }
+]

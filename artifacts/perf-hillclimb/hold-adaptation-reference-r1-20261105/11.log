@@ -1,0 +1,3 @@
+(node:40616) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+[hillclimb] completed observations=12 path=C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\artifacts\perf-hillclimb\hold-adaptation-reference-r1-20261105-11-life

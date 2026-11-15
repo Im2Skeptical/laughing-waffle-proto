@@ -1,0 +1,16 @@
+{
+  "control": {
+    "events": [
+      {
+        "nativeCompleteAt": 7117.5999999940395,
+        "delayMs": 200,
+        "deliveredAt": 7324.9000000059605
+      }
+    ]
+  },
+  "timing": {
+    "started": 6952.800000011921,
+    "semanticEnd": 7436.0999999940395,
+    "finished": 7511
+  }
+}

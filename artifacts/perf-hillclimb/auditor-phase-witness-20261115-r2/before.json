@@ -1,0 +1,47 @@
+{
+  "at": "2026-11-15T00:17:50.826Z",
+  "entries": [
+    [
+      "scripts/perf-hillclimb/artwork-bundle-controls.mjs",
+      "409e33c6c9a02bcfa7d1c8bd571739aaaec7b6d58b179baaff6ef9e7debd63a3"
+    ],
+    [
+      "scripts/perf-hillclimb/artwork-bundle-controls-test.mjs",
+      "9ab832985a96738797ff4a220979a739dd8614fb4b1656b4d4fe452324a08315"
+    ],
+    [
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "57aa43e3efff91ef48e3066f7b6d446a3e9e872c27c652530c025a8384ff68b3"
+    ],
+    [
+      "docs/performance/perf-hillclimb-20261104/PHASE_WITNESS_IMPLEMENTATION_20261115.md",
+      "6197945919d248b7cf81ee58ecf3c23b3a57370f22ba40ec2143f9372a57aa38"
+    ],
+    [
+      "docs/performance/perf-hillclimb-20261104/HARNESS.md",
+      "ebc9da83422b58a195415dac178bba2fd80453979050219f05daaece66afce7b"
+    ],
+    [
+      "dist/./assets/app-6H5PP5LS.js",
+      "2650f059863769f98da13622798df92cf8a338c082f5fd5a695094aee2a48ea8"
+    ],
+    [
+      "dist/./assets/timegraph-forecast-worker-YOB3XRD7.js",
+      "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a"
+    ],
+    [
+      "dist/./assets/save-load-worker-7YJYILEJ.js",
+      "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5"
+    ],
+    [
+      "dist/./assets/styles-ec05c6a73a6e.css",
+      "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+    ],
+    [
+      "dist/images/dev-fixtures/performance-start.json.gz",
+      "7d07599499c43871cea5bb261bd91fb372cb7f6437c4d2dd0238a9190751ee1d"
+    ]
+  ],
+  "changed": [],
+  "previousAttempt": "r1 invalid audit-wrapper asset property mapping; no test executed"
+}

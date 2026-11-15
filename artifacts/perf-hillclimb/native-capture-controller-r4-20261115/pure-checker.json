@@ -1,0 +1,804 @@
+{
+  "at": "2026-11-15T07:24:51.030Z",
+  "checkerSha256": "7f14cb4c05ab6a6b3fdd7d992b3546674705b0e4fbf8f0c76766bc5a78ca1bc1",
+  "parentCorpusReceipt": "b91e762180d54babf0153e76622f35e41a79d839451f40d40fb30ebf4097bbea",
+  "caseCount": 67,
+  "allExpected": true,
+  "cases": [
+    {
+      "name": "self-consistent virtual normal",
+      "mode": "normal",
+      "expected": "PASS",
+      "actual": "PASS",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "self-consistent virtual nonzero",
+      "mode": "nonzero",
+      "expected": "PASS",
+      "actual": "PASS",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "self-consistent virtual synthetic-native",
+      "mode": "synthetic-native",
+      "expected": "PASS",
+      "actual": "PASS",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "self-consistent virtual timeout",
+      "mode": "timeout",
+      "expected": "PASS",
+      "actual": "PASS",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "self-consistent virtual descendant",
+      "mode": "descendant",
+      "expected": "PASS",
+      "actual": "PASS",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "self-consistent virtual observer-failure",
+      "mode": "observer-failure",
+      "expected": "PASS",
+      "actual": "PASS",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "missing loader event despite fact true",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "exactly one loader exception must be handled"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "only exit event despite facts true",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "exact initial owned CREATE missing",
+        "observed ntdll module/base missing",
+        "exactly one loader exception must be handled",
+        "evidence parse/read:Cannot read properties of undefined (reading 'processHandle')"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "arbitrary loader address swallowed",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "legitimate loader breakpoint trace mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wrong loader continuation",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "exactly one loader exception must be handled"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "native classification with fatal count zero",
+      "mode": "synthetic-native",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "computed fatal-record count contradicts claim"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "normal classification with fatal count one",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "computed fatal-record count contradicts claim"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "normal with host incomplete code2",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "mode-bound host exit/timeout incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "descendant missing all original child evidence",
+      "mode": "descendant",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "evidence parse/read:Virtual file absent:C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r4-20261115\\controls\\control-4-descendant/descendant-registration.json"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "missing exit event",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "actual exit event missing/double/mismatch",
+        "continued EXIT must be terminal",
+        "legitimate loader breakpoint trace mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wrong event owner",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "event ownership/continuation error"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wrong raw byte length",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "raw byte lengths incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "stream error retained",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "stream errors/dropped errors"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wrong synthetic parameter",
+      "mode": "synthetic-native",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "supplied native record/parameters/chance mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wrong timeout error",
+      "mode": "timeout",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "expected timeout mismatch",
+        "unexpected observer errors"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "fatal record after continued EXIT",
+      "mode": "synthetic-native",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "continued EXIT must be terminal",
+        "fatal record outside owned CREATE/EXIT lifetime"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "event after continued EXIT",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "continued EXIT must be terminal"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "failed module CloseHandle hidden by facts",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "explicit image handle close outcome is not success",
+        "owned native image file handle release unconfirmed"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "failed rollback receipt hidden by facts",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "constructor rollback means declared control setup incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "null image file handle is not owned",
+      "mode": "normal",
+      "expected": "PASS",
+      "actual": "PASS",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "invalid image file handle is not owned",
+      "mode": "normal",
+      "expected": "PASS",
+      "actual": "PASS",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "missing native image file handle identity",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "native image file handle identity unavailable"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "owned native image file handle missing close",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "owned native image file handle release unconfirmed"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "pending image handle close hidden by facts",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "explicit image handle close outcome is not success",
+        "owned native image file handle release unconfirmed"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "missing typed rollback array",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [
+        "constructor rollback means declared control setup incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "derived role name cannot be stale",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "loader static provenance mismatch",
+      "causal": true,
+      "problems": [
+        "loader static provenance mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "derived body identity cannot be stale",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "loader static provenance mismatch",
+      "causal": true,
+      "problems": [
+        "loader static provenance mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "loader contract drift cannot hide",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "loader contract plan binding mismatch",
+      "causal": true,
+      "problems": [
+        "loader contract plan binding mismatch",
+        "evidence parse/read:The \"paths[0]\" argument must be of type string. Received undefined"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "padding INT3 is not startup trap",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "legitimate loader breakpoint trace mismatch",
+      "causal": true,
+      "problems": [
+        "legitimate loader breakpoint trace mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "operand byte is not startup trap",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "legitimate loader breakpoint trace mismatch",
+      "causal": true,
+      "problems": [
+        "legitimate loader breakpoint trace mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wrong primary thread startup trap",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "legitimate loader breakpoint trace mismatch",
+      "causal": true,
+      "problems": [
+        "legitimate loader breakpoint trace mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "repeat startup trap cannot be swallowed",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "exactly one loader exception must be handled",
+      "causal": true,
+      "problems": [
+        "exactly one loader exception must be handled"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "earlier other exception invalidates first-loader claim",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "legitimate loader breakpoint trace mismatch",
+      "causal": true,
+      "problems": [
+        "legitimate loader breakpoint trace mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "main marker already exists",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "original startup phase/marker absence unavailable",
+      "causal": true,
+      "problems": [
+        "original startup phase/marker absence unavailable"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "uncertain marker probe cannot be absence",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "original startup phase/marker absence unavailable",
+      "causal": true,
+      "problems": [
+        "original startup phase/marker absence unavailable"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "access denied cannot be marker absence",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "original startup phase/marker absence unavailable",
+      "causal": true,
+      "problems": [
+        "original startup phase/marker absence unavailable"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wrong marker path cannot prove startup stage",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "original startup phase/marker absence unavailable",
+      "causal": true,
+      "problems": [
+        "original startup phase/marker absence unavailable"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "claimed later startup phase rejected",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "original startup phase/marker absence unavailable",
+      "causal": true,
+      "problems": [
+        "original startup phase/marker absence unavailable"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "missing original handle evidence",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "target handle identity/lifetime unavailable",
+      "causal": true,
+      "problems": [
+        "target handle identity/lifetime unavailable",
+        "evidence parse/read:Cannot read properties of null (reading 'creationReturnedProcess')"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "missing CREATE wait identity",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "target handle identity/lifetime unavailable",
+      "causal": true,
+      "problems": [
+        "target handle identity/lifetime unavailable"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "original handles not closed before CREATE",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "target handle identity/lifetime unavailable",
+      "causal": true,
+      "problems": [
+        "target handle identity/lifetime unavailable"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "live wait handle aliases system-owned event handle",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "live wait/event/creation handles alias",
+      "causal": true,
+      "problems": [
+        "live wait/event/creation handles alias"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "failed duplication cannot hide behind facts",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "original independent duplication receipts incomplete",
+      "causal": true,
+      "problems": [
+        "original independent duplication receipts incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "pending duplicate release cannot hide behind facts",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "owned handle release receipt incomplete",
+      "causal": true,
+      "problems": [
+        "owned handle release receipt incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "manual system-owned event close is extra ownership",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "owned handle release receipt incomplete",
+      "causal": true,
+      "problems": [
+        "owned handle release receipt incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "missing post-EXIT wait cannot hide behind facts",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "one original post-EXIT wait required",
+      "causal": true,
+      "problems": [
+        "one original post-EXIT wait required",
+        "post-EXIT wait source/generation mismatch",
+        "raw post-EXIT signal outcome incomplete",
+        "post-EXIT shared deadline evidence incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wait source creation fallback not normal proof",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "post-EXIT wait source/generation mismatch",
+      "causal": true,
+      "problems": [
+        "post-EXIT wait source/generation mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wait source wrong generation",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "post-EXIT wait source/generation mismatch",
+      "causal": true,
+      "problems": [
+        "post-EXIT wait source/generation mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wait source not independent",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "post-EXIT wait source/generation mismatch",
+      "causal": true,
+      "problems": [
+        "post-EXIT wait source/generation mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wait timeout cannot claim signal",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "raw post-EXIT signal outcome incomplete",
+      "causal": true,
+      "problems": [
+        "raw post-EXIT signal outcome incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "WAIT_FAILED cannot claim signal",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "raw post-EXIT signal outcome incomplete",
+      "causal": true,
+      "problems": [
+        "raw post-EXIT signal outcome incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "uncalled wait cannot claim signal",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "raw post-EXIT signal outcome incomplete",
+      "causal": true,
+      "problems": [
+        "raw post-EXIT signal outcome incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "expired signal remains incomplete",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "raw post-EXIT signal outcome incomplete",
+      "causal": true,
+      "problems": [
+        "raw post-EXIT signal outcome incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "successful wait cannot label stale error valid",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "raw post-EXIT signal outcome incomplete",
+      "causal": true,
+      "problems": [
+        "raw post-EXIT signal outcome incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "exhausted shared budget cannot be hidden",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "post-EXIT shared deadline evidence incomplete",
+      "causal": true,
+      "problems": [
+        "post-EXIT shared deadline evidence incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "broadened wait cap rejected",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "post-EXIT shared deadline evidence incomplete",
+      "causal": true,
+      "problems": [
+        "post-EXIT shared deadline evidence incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "reset shared budget rejected",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "post-EXIT shared deadline evidence incomplete",
+      "causal": true,
+      "problems": [
+        "post-EXIT shared deadline evidence incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "recovery call cannot hide behind complete facts",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "expectedReason": "unexpected recovery calls",
+      "causal": true,
+      "problems": [
+        "unexpected recovery calls cannot establish declared complete cell"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "successful wait stale last-error5 stays success",
+      "mode": "normal",
+      "expected": "PASS",
+      "actual": "PASS",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "successful duplication stale last-error5 stays success",
+      "mode": "normal",
+      "expected": "PASS",
+      "actual": "PASS",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "debug event may reuse closed creation handle number",
+      "mode": "normal",
+      "expected": "PASS",
+      "actual": "PASS",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "wait duplicate may reuse closed creation handle number",
+      "mode": "normal",
+      "expected": "PASS",
+      "actual": "PASS",
+      "expectedReason": null,
+      "causal": true,
+      "problems": [],
+      "asExpected": true
+    }
+  ],
+  "scope": "Builder adaptation preserves exact30prior names/mutations/expectations with coherent actual new schema; affected new cases predeclared with causal reasons and legitimate stale-error/closed-number-reuse positives. Actual checker VM+memoryFS, frozen PE/PDB pure reconstruction; no real control root/native/API mutation. Not independent acceptance."
+}

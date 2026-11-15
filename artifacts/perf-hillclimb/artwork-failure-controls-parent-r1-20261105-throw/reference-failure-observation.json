@@ -1,0 +1,1201 @@
+{
+  "file": "reference-failure-observation.json",
+  "phase": "failure",
+  "hostCollectedAt": "2026-11-04T17:20:21.224Z",
+  "continuous": {
+    "session": {
+      "available": true,
+      "longTasksAvailable": true,
+      "startMs": 1280.5999999940395,
+      "endMs": 13315.300000011921,
+      "readAtMs": 13315.300000011921,
+      "frames": [
+        {
+          "time": 1320.9000000059605,
+          "dt": 44.30000001192093
+        },
+        {
+          "time": 1323,
+          "dt": 2.0999999940395355
+        },
+        {
+          "time": 1328.699999988079,
+          "dt": 5.699999988079071
+        },
+        {
+          "time": 1474.5,
+          "dt": 145.80000001192093
+        },
+        {
+          "time": 1605,
+          "dt": 130.5
+        },
+        {
+          "time": 1771.4000000059605,
+          "dt": 166.40000000596046
+        },
+        {
+          "time": 2778.0999999940395,
+          "dt": 1006.6999999880791
+        },
+        {
+          "time": 2994.0999999940395,
+          "dt": 216
+        },
+        {
+          "time": 3127,
+          "dt": 132.90000000596046
+        },
+        {
+          "time": 3405.699999988079,
+          "dt": 278.69999998807907
+        },
+        {
+          "time": 3448.800000011921,
+          "dt": 43.10000002384186
+        },
+        {
+          "time": 3529.300000011921,
+          "dt": 80.5
+        },
+        {
+          "time": 3562.0999999940395,
+          "dt": 32.79999998211861
+        },
+        {
+          "time": 3568.300000011921,
+          "dt": 6.200000017881393
+        },
+        {
+          "time": 3594.4000000059605,
+          "dt": 26.099999994039536
+        },
+        {
+          "time": 3601,
+          "dt": 6.5999999940395355
+        },
+        {
+          "time": 3620.0999999940395,
+          "dt": 19.099999994039536
+        },
+        {
+          "time": 3628.4000000059605,
+          "dt": 8.300000011920929
+        },
+        {
+          "time": 3643.5999999940395,
+          "dt": 15.199999988079071
+        },
+        {
+          "time": 3659.4000000059605,
+          "dt": 15.800000011920929
+        },
+        {
+          "time": 3677.5,
+          "dt": 18.099999994039536
+        },
+        {
+          "time": 3693.4000000059605,
+          "dt": 15.900000005960464
+        },
+        {
+          "time": 3709.5,
+          "dt": 16.099999994039536
+        },
+        {
+          "time": 3729.800000011921,
+          "dt": 20.30000001192093
+        },
+        {
+          "time": 3743.4000000059605,
+          "dt": 13.599999994039536
+        },
+        {
+          "time": 3759.5,
+          "dt": 16.099999994039536
+        },
+        {
+          "time": 3776.5,
+          "dt": 17
+        },
+        {
+          "time": 3794.5,
+          "dt": 18
+        },
+        {
+          "time": 3816.9000000059605,
+          "dt": 22.400000005960464
+        },
+        {
+          "time": 3832.4000000059605,
+          "dt": 15.5
+        },
+        {
+          "time": 3872.300000011921,
+          "dt": 39.900000005960464
+        },
+        {
+          "time": 3880.300000011921,
+          "dt": 8
+        },
+        {
+          "time": 3893.800000011921,
+          "dt": 13.5
+        },
+        {
+          "time": 3976.199999988079,
+          "dt": 82.39999997615814
+        },
+        {
+          "time": 4037.5,
+          "dt": 61.30000001192093
+        },
+        {
+          "time": 4044.9000000059605,
+          "dt": 7.4000000059604645
+        },
+        {
+          "time": 4061.0999999940395,
+          "dt": 16.19999998807907
+        },
+        {
+          "time": 4127.5999999940395,
+          "dt": 66.5
+        },
+        {
+          "time": 4144.4000000059605,
+          "dt": 16.80000001192093
+        },
+        {
+          "time": 4210.300000011921,
+          "dt": 65.90000000596046
+        },
+        {
+          "time": 4291.0999999940395,
+          "dt": 80.7999999821186
+        },
+        {
+          "time": 4298.5,
+          "dt": 7.4000000059604645
+        },
+        {
+          "time": 4367.5,
+          "dt": 69
+        },
+        {
+          "time": 4460.800000011921,
+          "dt": 93.30000001192093
+        },
+        {
+          "time": 4462.5,
+          "dt": 1.699999988079071
+        },
+        {
+          "time": 4529.199999988079,
+          "dt": 66.69999998807907
+        },
+        {
+          "time": 4602.5,
+          "dt": 73.30000001192093
+        },
+        {
+          "time": 4610.4000000059605,
+          "dt": 7.9000000059604645
+        },
+        {
+          "time": 4721.699999988079,
+          "dt": 111.2999999821186
+        },
+        {
+          "time": 5024.0999999940395,
+          "dt": 302.40000000596046
+        },
+        {
+          "time": 5176.800000011921,
+          "dt": 152.7000000178814
+        },
+        {
+          "time": 5312.199999988079,
+          "dt": 135.39999997615814
+        },
+        {
+          "time": 5481.0999999940395,
+          "dt": 168.90000000596046
+        },
+        {
+          "time": 5728,
+          "dt": 246.90000000596046
+        },
+        {
+          "time": 5881.4000000059605,
+          "dt": 153.40000000596046
+        },
+        {
+          "time": 6037,
+          "dt": 155.59999999403954
+        },
+        {
+          "time": 6297.199999988079,
+          "dt": 260.19999998807907
+        },
+        {
+          "time": 6432.300000011921,
+          "dt": 135.10000002384186
+        },
+        {
+          "time": 6552.800000011921,
+          "dt": 120.5
+        },
+        {
+          "time": 6727.5,
+          "dt": 174.69999998807907
+        },
+        {
+          "time": 6865.9000000059605,
+          "dt": 138.40000000596046
+        },
+        {
+          "time": 7016.5999999940395,
+          "dt": 150.69999998807907
+        },
+        {
+          "time": 7194.9000000059605,
+          "dt": 178.30000001192093
+        },
+        {
+          "time": 7349.9000000059605,
+          "dt": 155
+        },
+        {
+          "time": 7496.5999999940395,
+          "dt": 146.69999998807907
+        },
+        {
+          "time": 7642.0999999940395,
+          "dt": 145.5
+        },
+        {
+          "time": 7770.800000011921,
+          "dt": 128.7000000178814
+        },
+        {
+          "time": 7901.4000000059605,
+          "dt": 130.59999999403954
+        },
+        {
+          "time": 8039,
+          "dt": 137.59999999403954
+        },
+        {
+          "time": 8154.9000000059605,
+          "dt": 115.90000000596046
+        },
+        {
+          "time": 8257,
+          "dt": 102.09999999403954
+        },
+        {
+          "time": 8391.199999988079,
+          "dt": 134.19999998807907
+        },
+        {
+          "time": 8534.199999988079,
+          "dt": 143
+        },
+        {
+          "time": 8669,
+          "dt": 134.80000001192093
+        },
+        {
+          "time": 8910,
+          "dt": 241
+        },
+        {
+          "time": 9070.40000000596,
+          "dt": 160.40000000596046
+        },
+        {
+          "time": 9337.5,
+          "dt": 267.09999999403954
+        },
+        {
+          "time": 9464.59999999404,
+          "dt": 127.09999999403954
+        },
+        {
+          "time": 9586.90000000596,
+          "dt": 122.30000001192093
+        },
+        {
+          "time": 9701.5,
+          "dt": 114.59999999403954
+        },
+        {
+          "time": 9842.5,
+          "dt": 141
+        },
+        {
+          "time": 10098.199999988079,
+          "dt": 255.69999998807907
+        },
+        {
+          "time": 10231.300000011921,
+          "dt": 133.10000002384186
+        },
+        {
+          "time": 10354.300000011921,
+          "dt": 123
+        },
+        {
+          "time": 10535.5,
+          "dt": 181.19999998807907
+        },
+        {
+          "time": 10638.90000000596,
+          "dt": 103.40000000596046
+        },
+        {
+          "time": 10754.5,
+          "dt": 115.59999999403954
+        },
+        {
+          "time": 10918.300000011921,
+          "dt": 163.80000001192093
+        },
+        {
+          "time": 11087.199999988079,
+          "dt": 168.89999997615814
+        },
+        {
+          "time": 11180.699999988079,
+          "dt": 93.5
+        },
+        {
+          "time": 11307.300000011921,
+          "dt": 126.60000002384186
+        },
+        {
+          "time": 11488.59999999404,
+          "dt": 181.2999999821186
+        },
+        {
+          "time": 11627.90000000596,
+          "dt": 139.30000001192093
+        },
+        {
+          "time": 11809.90000000596,
+          "dt": 182
+        },
+        {
+          "time": 12002.59999999404,
+          "dt": 192.69999998807907
+        },
+        {
+          "time": 12119.300000011921,
+          "dt": 116.7000000178814
+        },
+        {
+          "time": 12290.800000011921,
+          "dt": 171.5
+        },
+        {
+          "time": 12450.40000000596,
+          "dt": 159.59999999403954
+        },
+        {
+          "time": 12602.5,
+          "dt": 152.09999999403954
+        },
+        {
+          "time": 12792.40000000596,
+          "dt": 189.90000000596046
+        },
+        {
+          "time": 12801.199999988079,
+          "dt": 8.799999982118607
+        },
+        {
+          "time": 12810.199999988079,
+          "dt": 9
+        },
+        {
+          "time": 12829.5,
+          "dt": 19.30000001192093
+        },
+        {
+          "time": 12843.09999999404,
+          "dt": 13.599999994039536
+        },
+        {
+          "time": 12859.09999999404,
+          "dt": 16
+        },
+        {
+          "time": 12910.199999988079,
+          "dt": 51.099999994039536
+        },
+        {
+          "time": 13047.90000000596,
+          "dt": 137.7000000178814
+        },
+        {
+          "time": 13059.199999988079,
+          "dt": 11.299999982118607
+        },
+        {
+          "time": 13076.199999988079,
+          "dt": 17
+        },
+        {
+          "time": 13306.699999988079,
+          "dt": 230.5
+        },
+        {
+          "time": 13312.09999999404,
+          "dt": 5.4000000059604645
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 2995.699999988079,
+          "duration": 131
+        },
+        {
+          "start": 3140.5,
+          "duration": 263
+        },
+        {
+          "start": 3451.800000011921,
+          "duration": 76
+        },
+        {
+          "start": 4669.199999988079,
+          "duration": 52
+        },
+        {
+          "start": 4721.4000000059605,
+          "duration": 300
+        },
+        {
+          "start": 5024,
+          "duration": 152
+        },
+        {
+          "start": 5176.4000000059605,
+          "duration": 100
+        },
+        {
+          "start": 5312.0999999940395,
+          "duration": 168
+        },
+        {
+          "start": 5481,
+          "duration": 171
+        },
+        {
+          "start": 5652.5999999940395,
+          "duration": 62
+        },
+        {
+          "start": 5727.5,
+          "duration": 153
+        },
+        {
+          "start": 5881.300000011921,
+          "duration": 133
+        },
+        {
+          "start": 6036.800000011921,
+          "duration": 136
+        },
+        {
+          "start": 6297.0999999940395,
+          "duration": 134
+        },
+        {
+          "start": 6432.300000011921,
+          "duration": 120
+        },
+        {
+          "start": 6552.800000011921,
+          "duration": 172
+        },
+        {
+          "start": 6727.5,
+          "duration": 132
+        },
+        {
+          "start": 6865.800000011921,
+          "duration": 150
+        },
+        {
+          "start": 7016.5999999940395,
+          "duration": 173
+        },
+        {
+          "start": 7194.800000011921,
+          "duration": 154
+        },
+        {
+          "start": 7349.800000011921,
+          "duration": 145
+        },
+        {
+          "start": 7496.5999999940395,
+          "duration": 145
+        },
+        {
+          "start": 7642.0999999940395,
+          "duration": 127
+        },
+        {
+          "start": 7770.800000011921,
+          "duration": 130
+        },
+        {
+          "start": 7901.4000000059605,
+          "duration": 137
+        },
+        {
+          "start": 8038.9000000059605,
+          "duration": 115
+        },
+        {
+          "start": 8154.800000011921,
+          "duration": 102
+        },
+        {
+          "start": 8257,
+          "duration": 134
+        },
+        {
+          "start": 8391.199999988079,
+          "duration": 142
+        },
+        {
+          "start": 8534.199999988079,
+          "duration": 134
+        },
+        {
+          "start": 8669,
+          "duration": 240
+        },
+        {
+          "start": 8910,
+          "duration": 159
+        },
+        {
+          "start": 9070.40000000596,
+          "duration": 265
+        },
+        {
+          "start": 9337.40000000596,
+          "duration": 119
+        },
+        {
+          "start": 9464.59999999404,
+          "duration": 122
+        },
+        {
+          "start": 9586.90000000596,
+          "duration": 109
+        },
+        {
+          "start": 9701.5,
+          "duration": 140
+        },
+        {
+          "start": 9842.40000000596,
+          "duration": 255
+        },
+        {
+          "start": 10098.199999988079,
+          "duration": 132
+        },
+        {
+          "start": 10231.300000011921,
+          "duration": 122
+        },
+        {
+          "start": 10354.300000011921,
+          "duration": 180
+        },
+        {
+          "start": 10535.5,
+          "duration": 103
+        },
+        {
+          "start": 10638.800000011921,
+          "duration": 115
+        },
+        {
+          "start": 10754.5,
+          "duration": 163
+        },
+        {
+          "start": 10918.300000011921,
+          "duration": 156
+        },
+        {
+          "start": 11086.59999999404,
+          "duration": 93
+        },
+        {
+          "start": 11180.699999988079,
+          "duration": 126
+        },
+        {
+          "start": 11307.199999988079,
+          "duration": 179
+        },
+        {
+          "start": 11488.09999999404,
+          "duration": 138
+        },
+        {
+          "start": 11627.800000011921,
+          "duration": 181
+        },
+        {
+          "start": 11809.90000000596,
+          "duration": 186
+        },
+        {
+          "start": 12002.09999999404,
+          "duration": 116
+        },
+        {
+          "start": 12119.300000011921,
+          "duration": 164
+        },
+        {
+          "start": 12290.699999988079,
+          "duration": 157
+        },
+        {
+          "start": 12450.300000011921,
+          "duration": 151
+        },
+        {
+          "start": 12602.5,
+          "duration": 188
+        },
+        {
+          "start": 12910.09999999404,
+          "duration": 135
+        }
+      ],
+      "trailingFrameRightCensored": true,
+      "trailingFrameLowerBoundMs": 3.2000000178813934,
+      "scope": "continuous main-thread rAF intervals/long tasks; keep a declared post-action observation window, not only transaction markers"
+    },
+    "sessionStartScope": "trusted entry input",
+    "postAction": {
+      "available": true,
+      "longTasksAvailable": true,
+      "startMs": 13061.699999988079,
+      "endMs": 13315.300000011921,
+      "readAtMs": 13315.5,
+      "frames": [
+        {
+          "time": 13076.199999988079,
+          "dt": 17
+        },
+        {
+          "time": 13306.699999988079,
+          "dt": 230.5
+        },
+        {
+          "time": 13312.09999999404,
+          "dt": 5.4000000059604645
+        }
+      ],
+      "longTasks": [],
+      "trailingFrameRightCensored": true,
+      "trailingFrameLowerBoundMs": 3.2000000178813934,
+      "scope": "continuous main-thread rAF intervals/long tasks; keep a declared post-action observation window, not only transaction markers"
+    },
+    "postAnchor": 13061.699999988079,
+    "desiredPostEnd": 15561.699999988079,
+    "fullPostWindowReached": false,
+    "partialByFailure": true
+  },
+  "witness": {
+    "samples": [
+      {
+        "time": 6014.5999999940395,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 6267,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 6725.300000011921,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 7015.9000000059605,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 7495.800000011921,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 7770,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 8154,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 8533.40000000596,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 9069.300000011921,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 9463.59999999404,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 9700.59999999404,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 10097.59999999404,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 10534.59999999404,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 11074.5,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 11486.90000000596,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 11809.300000011921,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 12289.699999988079,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 12791.40000000596,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 13050.5,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 13311.09999999404,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      }
+    ],
+    "warnings": [],
+    "resourceEvents": [
+      {
+        "name": "http://127.0.0.1:18246/assets/styles-ec05c6a73a6e.css",
+        "start": 9.5,
+        "duration": 6.9000000059604645,
+        "responseEnd": 16.400000005960464,
+        "transferSize": 14875,
+        "decodedBodySize": 78135
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dark-fantasy/card-chrome-prototype/display.css",
+        "start": 9.599999994039536,
+        "duration": 7.700000017881393,
+        "responseEnd": 17.30000001192093,
+        "transferSize": 876,
+        "decodedBodySize": 1262
+      },
+      {
+        "name": "https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js",
+        "start": 9.599999994039536,
+        "duration": 40.70000001788139,
+        "responseEnd": 50.30000001192093,
+        "transferSize": 134058,
+        "decodedBodySize": 452451
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/app-XYOFGS5O.js",
+        "start": 9.800000011920929,
+        "duration": 110.59999999403954,
+        "responseEnd": 120.40000000596046,
+        "transferSize": 3979774,
+        "decodedBodySize": 3979474
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/fonts/libron/Libron-Regular.woff2",
+        "start": 209.59999999403954,
+        "duration": 4.5,
+        "responseEnd": 214.09999999403954,
+        "transferSize": 85072,
+        "decodedBodySize": 84772
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/fonts/libron/Libron-Bold.woff2",
+        "start": 209.80000001192093,
+        "duration": 4.5,
+        "responseEnd": 214.30000001192093,
+        "transferSize": 85416,
+        "decodedBodySize": 85116
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/timegraph-forecast-worker-YOB3XRD7.js",
+        "start": 788.5999999940395,
+        "duration": -298.69999998807907,
+        "responseEnd": 489.90000000596046,
+        "transferSize": 230987,
+        "decodedBodySize": 1243957
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/timegraph-forecast-worker-YOB3XRD7.js",
+        "start": 1106.4000000059605,
+        "duration": 7.699999988079071,
+        "responseEnd": 1114.0999999940395,
+        "transferSize": 230987,
+        "decodedBodySize": 1243957
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 1148.5,
+        "duration": 4.5,
+        "responseEnd": 1153,
+        "transferSize": 1209,
+        "decodedBodySize": 10761
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dev-fixtures/performance-start.json.gz?key=1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+        "start": 1325.699999988079,
+        "duration": 234.30000001192093,
+        "responseEnd": 1560,
+        "transferSize": 9636754,
+        "decodedBodySize": 9636454
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/timegraph-forecast-worker-YOB3XRD7.js",
+        "start": 3453.699999988079,
+        "duration": -202.09999999403954,
+        "responseEnd": 3251.5999999940395,
+        "transferSize": 230987,
+        "decodedBodySize": 1243957
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-content-prototype.json",
+        "start": 12806.699999988079,
+        "duration": 5.800000011920929,
+        "responseEnd": 12812.5,
+        "transferSize": 1486,
+        "decodedBodySize": 10646
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-chaos-dictator.json",
+        "start": 13081.300000011921,
+        "duration": 6.699999988079071,
+        "responseEnd": 13088,
+        "transferSize": 1104,
+        "decodedBodySize": 5002
+      }
+    ],
+    "assetLoadCalls": [
+      {
+        "time": 303.5,
+        "paths": [
+          "images/sprite-sheets/resource-language.json"
+        ],
+        "operation": "setup"
+      },
+      {
+        "time": 12805,
+        "paths": [
+          "images/sprite-sheets/full-map-content-prototype.json"
+        ],
+        "operation": "performance-entry-full-opening"
+      },
+      {
+        "time": 13080.90000000596,
+        "paths": [
+          "images/sprite-sheets/full-map-chaos-dictator.json"
+        ],
+        "operation": "setup"
+      }
+    ],
+    "droppedSamples": 0,
+    "samplingCpuMs": 12.199999958276749,
+    "publicationEvents": [
+      {
+        "kind": "hide",
+        "time": 1283.0999999940395,
+        "prefix": "full-map-content-prototype/art/"
+      },
+      {
+        "kind": "hide",
+        "time": 1283.0999999940395,
+        "prefix": "full-map-chaos-prototype/art/"
+      },
+      {
+        "kind": "hide",
+        "time": 1283.0999999940395,
+        "prefix": "heirlooms-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1283.0999999940395,
+        "prefix": "settlement-pieces-v4/"
+      },
+      {
+        "kind": "hide",
+        "time": 1283.0999999940395,
+        "prefix": "piece-frames-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1283.0999999940395,
+        "prefix": "chronicle-illustrations-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1283.0999999940395,
+        "prefix": "region-landmarks-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1283.0999999940395,
+        "prefix": "vassal-portraits-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1283.0999999940395,
+        "prefix": "vassal-class-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1283.0999999940395,
+        "prefix": "chronicle-gate-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1283.0999999940395,
+        "prefix": "class-picker-frames-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1283.0999999940395,
+        "prefix": "chronicle-hud-frames-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1283.0999999940395,
+        "prefix": "timegraph-chronicle-v1/"
+      }
+    ],
+    "terrainEvents": [],
+    "terrainProbeCount": 111,
+    "terrainProbeCpuMs": 5.300000011920929,
+    "startInput": 1280.5999999940395,
+    "revealInput": null,
+    "firstReadyAt": null,
+    "firstReadyFrameAt": null,
+    "assetWitnessInstalled": true,
+    "pixiVersion": "7.2.4",
+    "resources": [
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 1148.5,
+        "duration": 4.5,
+        "responseEnd": 1153,
+        "transferSize": 1209
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-content-prototype.json",
+        "start": 12806.699999988079,
+        "duration": 5.800000011920929,
+        "responseEnd": 12812.5,
+        "transferSize": 1486
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-chaos-dictator.json",
+        "start": 13081.300000011921,
+        "duration": 6.699999988079071,
+        "responseEnd": 13088,
+        "transferSize": 1104
+      }
+    ]
+  },
+  "diagnosticWindows": [
+    {
+      "id": "artwork-failure-controls-parent-r1-20261105-throw:reference:browser:diagnostic:1",
+      "label": "legacy getTimeActionClickPoint geometry calibration",
+      "startMs": 12849.300000011921,
+      "endMs": 12866.199999988079,
+      "status": "completed"
+    },
+    {
+      "id": "artwork-failure-controls-parent-r1-20261105-throw:reference:browser:diagnostic:2",
+      "label": "deliberate throw diagnostic control",
+      "startMs": 13085.199999988079,
+      "endMs": null,
+      "status": "failed",
+      "error": "page.evaluate: Error: deliberate artwork diagnostic stall-and-throw control\n    at eval (eval at evaluate (:302:30), <anonymous>:4:13)\n    at UtilityScript.evaluate (<anonymous>:304:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)"
+    }
+  ],
+  "collectionErrors": [],
+  "availability": {
+    "continuous": true,
+    "witness": true,
+    "completePostWindow": false
+  }
+}

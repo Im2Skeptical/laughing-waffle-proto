@@ -1,0 +1,63 @@
+{
+  "at": "2026-11-15T03:48:04.649Z",
+  "gateOwner": "/root/harness_auditor",
+  "verdict": "NO_ATTRIBUTABLE_RECORD_IN_QUERIED_SOURCES",
+  "scriptSha256": "a88417c81d64af709b325c4a94340db8a3a911aed55149af3dad5835eae50cb1",
+  "lookupSha256": "b38bf8fb6166b9cc32bb7ab68036b8923b6f0038cff8d10774b6e0a788b745c1",
+  "lookupAt": "2026-11-15T03:45:59.2939008Z",
+  "targetPid": 35760,
+  "targetExe": "C:/Program Files/nodejs/node.exe",
+  "window": {
+    "start": "2026-11-15T03:39:30.0000000+00:00",
+    "end": "2026-11-15T03:41:30.0000000+00:00"
+  },
+  "application": {
+    "ids": [
+      1000,
+      1001
+    ],
+    "state": "NO_MATCHING_EVENTS",
+    "records": 0
+  },
+  "wer": [
+    {
+      "root": "C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportArchive",
+      "state": "QUERY_COMPLETED",
+      "nodeNamedImmediateDirectoryCap": 20,
+      "candidates": 0
+    },
+    {
+      "root": "C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportQueue",
+      "state": "QUERY_COMPLETED",
+      "nodeNamedImmediateDirectoryCap": 20,
+      "candidates": 0
+    },
+    {
+      "root": "C:\\Users\\User\\AppData\\Local\\Microsoft\\Windows\\WER\\ReportArchive",
+      "state": "ROOT_UNAVAILABLE",
+      "nodeNamedImmediateDirectoryCap": 20,
+      "candidates": 0
+    },
+    {
+      "root": "C:\\Users\\User\\AppData\\Local\\Microsoft\\Windows\\WER\\ReportQueue",
+      "state": "ROOT_UNAVAILABLE",
+      "nodeNamedImmediateDirectoryCap": 20,
+      "candidates": 0
+    }
+  ],
+  "dumpMetadata": {
+    "root": "C:\\Users\\User\\AppData\\Local\\CrashDumps",
+    "state": "QUERY_COMPLETED",
+    "exactName": "node.exe.35760.dmp",
+    "matches": 0
+  },
+  "limits": [
+    "No OS lookup repeated by Auditor.",
+    "Application query is limited to specified IDs/log/two-minute window.",
+    "WER only immediate node.exe-named folders in four explicit roots, newest20 per available root; Report.wer <=256KiB and first180lines/selectedfields.",
+    "Two user WER roots unavailable.",
+    "CrashDumps exact filename only; no arbitrary-name/other-location scan or dump creation.",
+    "Missing queried records do not contradict raw native exit, establish no-crash, or identify cause."
+  ],
+  "scope": "Bounded source/receipt review only; no execution, settings change, retry or native cause/fix/SOUND acceptance."
+}

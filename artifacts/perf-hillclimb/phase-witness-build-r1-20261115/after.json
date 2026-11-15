@@ -1,0 +1,93 @@
+{
+  "at": "2026-11-15T00:15:20.525Z",
+  "phaseA": "NOT SOUND",
+  "independentReview": "PENDING",
+  "actualCases": "NOT RUN",
+  "files": {
+    "scripts/perf-hillclimb/artwork-bundle-controls.mjs": {
+      "sha256": "409e33c6c9a02bcfa7d1c8bd571739aaaec7b6d58b179baaff6ef9e7debd63a3",
+      "bytes": 14868,
+      "beforeSha256": "74da29d61ca2758498170efeca46e38e77148e26f91ff6e72a05c92a463d80ac",
+      "syntaxCheck": 0
+    },
+    "scripts/perf-hillclimb/artwork-bundle-controls-test.mjs": {
+      "sha256": "9ab832985a96738797ff4a220979a739dd8614fb4b1656b4d4fe452324a08315",
+      "bytes": 20517,
+      "beforeSha256": "6820e97197eb20e87bba54fe9e173b43df5501d40cc52876a01c013cf4958c84",
+      "syntaxCheck": 0
+    },
+    "scripts/perf-hillclimb/artwork-controls.mjs": {
+      "sha256": "57aa43e3efff91ef48e3066f7b6d446a3e9e872c27c652530c025a8384ff68b3",
+      "bytes": 64887,
+      "beforeSha256": "f2f2d32ba3ee5d0e22b25a598ee2c6604488da298dd7c20f8065127bd35bcf42",
+      "syntaxCheck": 0
+    },
+    "docs/performance/perf-hillclimb-20261104/PHASE_WITNESS_IMPLEMENTATION_20261115.md": {
+      "sha256": "6197945919d248b7cf81ee58ecf3c23b3a57370f22ba40ec2143f9372a57aa38",
+      "bytes": 6133,
+      "beforeSha256": null
+    }
+  },
+  "assets": {
+    "./assets/app-6H5PP5LS.js": {
+      "expected": "2650f059863769f98da13622798df92cf8a338c082f5fd5a695094aee2a48ea8",
+      "actual": "2650f059863769f98da13622798df92cf8a338c082f5fd5a695094aee2a48ea8",
+      "unchanged": true
+    },
+    "./assets/timegraph-forecast-worker-YOB3XRD7.js": {
+      "expected": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+      "actual": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+      "unchanged": true
+    },
+    "./assets/save-load-worker-7YJYILEJ.js": {
+      "expected": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+      "actual": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+      "unchanged": true
+    },
+    "./assets/styles-ec05c6a73a6e.css": {
+      "expected": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0",
+      "actual": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0",
+      "unchanged": true
+    },
+    "images/dev-fixtures/performance-start.json.gz": {
+      "expected": "7d07599499c43871cea5bb261bd91fb372cb7f6437c4d2dd0238a9190751ee1d",
+      "actual": "7d07599499c43871cea5bb261bd91fb372cb7f6437c4d2dd0238a9190751ee1d",
+      "unchanged": true
+    }
+  },
+  "controls": {
+    "focused-r1.log": {
+      "sha256": "2e19c4d5fd742f7abc5f6e16e4f5dc3bf880268f82e07bd4900d8dc47c147a18",
+      "result": "FAIL: Script parser rejects actual ESM import.meta; corrected to module parser"
+    },
+    "focused-r2.log": {
+      "sha256": "3417d1a8ab77d98729cb7de372debdb4ee369aef2f7ee0a881462820fc3273e4",
+      "result": "PASS"
+    },
+    "focused-r3.log": {
+      "sha256": "3417d1a8ab77d98729cb7de372debdb4ee369aef2f7ee0a881462820fc3273e4",
+      "result": "PASS"
+    },
+    "focused-r4.log": {
+      "sha256": "3417d1a8ab77d98729cb7de372debdb4ee369aef2f7ee0a881462820fc3273e4",
+      "result": "PASS"
+    },
+    "focused-r5.log": {
+      "sha256": "3417d1a8ab77d98729cb7de372debdb4ee369aef2f7ee0a881462820fc3273e4",
+      "result": "PASS"
+    }
+  },
+  "processes": "All focused commands synchronous and completed; no browser/build/benchmark/server launched by Builder",
+  "scope": "Three harness files plus implementation note only; parent HARNESS addendum excluded from Builder ownership",
+  "variants": {
+    "original": "2650f059863769f98da13622798df92cf8a338c082f5fd5a695094aee2a48ea8",
+    "defaultOff": "371417c244819e7497d937a0e8b8d81b9446322aa7fed781fdc33f98693eaa80",
+    "phaseOn": "17f47be07781132627ffca0cad656800c1f77b9871b58c241492ad16c467ead6",
+    "phaseVersion": 1
+  },
+  "diffCheck": {
+    "status": 0,
+    "stderr": "warning: LF will be replaced by CRLF in scripts/perf-hillclimb/artwork-bundle-controls-test.mjs.\nThe file will have its original line endings in your working directory\nwarning: LF will be replaced by CRLF in scripts/perf-hillclimb/artwork-bundle-controls.mjs.\nThe file will have its original line endings in your working directory\n"
+  },
+  "currentContractSha256": "ebc9da83422b58a195415dac178bba2fd80453979050219f05daaece66afce7b"
+}

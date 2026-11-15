@@ -1,0 +1,29 @@
+[
+  {
+    "population": "desktop",
+    "kind": "pan",
+    "pass": true
+  },
+  {
+    "population": "desktop",
+    "kind": "wheel",
+    "pass": false,
+    "error": "Expected values to be strictly equal:\n\n17 !== 18\n"
+  },
+  {
+    "population": "mobile4",
+    "kind": "pan",
+    "pass": true
+  },
+  {
+    "population": "mobile4",
+    "kind": "pinch",
+    "pass": true
+  },
+  {
+    "population": "mobile4",
+    "kind": "wheel",
+    "pass": false,
+    "error": "Expected values to be strictly equal:\n\n17 !== 18\n"
+  }
+]

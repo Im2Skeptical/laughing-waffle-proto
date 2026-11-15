@@ -1,0 +1,14 @@
+{
+  "at": "2026-11-15T01:12:16.804Z",
+  "build": {
+    "performanceFixtureKey": "d8e62f7018a37c9148e6215a4360de14978ada6a3d4085b144251b386bc70dde",
+    "version": "1.1.53",
+    "build": "b502cc73de89",
+    "revision": "0e47aa72bb8d",
+    "channel": "pages",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": null
+  }
+}

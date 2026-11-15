@@ -1,0 +1,199 @@
+{
+  "knowledge": [
+    {
+      "actions": [
+        {
+          "kind": "settlementSelectVassal",
+          "payload": {
+            "candidateIndex": 0,
+            "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":17,\"locationRegionId\":\"R17\",\"originRegionId\":\"R17\",\"prestige\":19,\"stats\":{\"cunning\":2,\"wisdom\":1,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"olive\",\"hairStyle\":\"long\",\"hairColor\":\"auburn\",\"faceShape\":\"round\",\"clothingColor\":\"green\",\"accessory\":\"beads\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"housingShop\",\"tag\":\"Housing\",\"label\":\"Housing Shop\",\"glyph\":\"HO\",\"color\":6466946,\"description\":\"A mixed shop containing only Housing-tagged gamepieces.\",\"groupId\":\"tagShop\",\"variantId\":\"housingShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":14,\"locationRegionId\":\"R18\",\"originRegionId\":\"R18\",\"prestige\":22,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":1,\"intelligence\":0},\"portrait\":{\"skinTone\":\"umber\",\"hairStyle\":\"coils\",\"hairColor\":\"silver\",\"faceShape\":\"round\",\"clothingColor\":\"charcoal\",\"accessory\":\"band\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"removePractice\",\"groupId\":\"removal\",\"removalKind\":\"practice\",\"label\":\"Remove Practice\",\"glyph\":\"−P\",\"color\":10776516,\"description\":\"Pay to remove Practices from the Vassal's current settlement.\",\"variantId\":\"removePractice\"}}]"
+          },
+          "tSec": 0
+        }
+      ],
+      "year": 148,
+      "lossSec": 4728,
+      "startMs": 18596.19999998808,
+      "endMs": 18617.69999998808,
+      "timing": {
+        "version": 2,
+        "mode": "map",
+        "selectedRegionId": "R17",
+        "regionSelectionActive": false,
+        "runner": {
+          "frontierSec": 0,
+          "cursorSec": 0,
+          "viewedSec": 4430,
+          "previewActive": true,
+          "forecastPreview": true,
+          "revision": 2,
+          "actionCount": 1,
+          "checkpointCount": 0
+        },
+        "opening": {
+          "phase": "idle",
+          "preparation": "idle",
+          "coverageSec": 136,
+          "elapsedSec": 0,
+          "lossSec": null
+        },
+        "map": {
+          "visible": true,
+          "detailVisible": false,
+          "camera": {
+            "x": 0,
+            "y": 0,
+            "zoom": 1
+          },
+          "focusAnimating": false,
+          "panelPhase": "closed",
+          "panelAnimating": false,
+          "artReady": false,
+          "artPrepared": null
+        },
+        "graph": {
+          "visible": true,
+          "minSec": 0,
+          "maxSec": 4558,
+          "plotRect": {
+            "x": 573.855,
+            "y": 884.1,
+            "width": 1276.275,
+            "height": 145.86
+          },
+          "plotRectSpace": "stage-retained-transform",
+          "projection": {
+            "signatureVersion": 4,
+            "timelineToken": "sig:4",
+            "signatureMatches": true
+          },
+          "scrubSec": 4430,
+          "isScrubbing": false,
+          "latchedForecastScrubSec": null,
+          "historyEndSec": 0,
+          "revealedSec": 4430,
+          "browseCapSec": 4430,
+          "targetSec": 4672,
+          "computedSec": 4728,
+          "requestedSec": 4736,
+          "pending": true,
+          "cacheVersion": 130,
+          "subjectKey": "civilization",
+          "asyncToken": "sig:4",
+          "asyncPollMs": 18595.90000000596,
+          "asyncHistoryEndSec": 0,
+          "asyncRequestedSec": 4736,
+          "asyncComputedSec": 4728,
+          "revealHistoryEndSec": 0,
+          "animatedSec": 4430.94474891722,
+          "visibleEndSec": 4430.94474891722,
+          "startSecOverride": 0,
+          "readinessCapSec": null,
+          "capEndSec": null,
+          "paused": false,
+          "presentationSuspended": false,
+          "openingRevealSec": null
+        },
+        "life": {
+          "visible": false,
+          "selectedCandidateNodeId": null,
+          "displayedVassalId": "vassal-1",
+          "entryConfirmationOpen": false,
+          "entryOpen": false,
+          "entryVisible": false,
+          "entryPhase": "closed",
+          "decisionOpen": false,
+          "decisionNodeId": null,
+          "decisionPhase": "closed",
+          "pendingInteractionCount": null,
+          "family": null,
+          "selectedOptionId": null,
+          "resolving": null,
+          "shopTag": null,
+          "offerIds": null,
+          "purchaseOrder": null,
+          "boardPracticeIds": null,
+          "observedDecisionNodeId": null,
+          "boardRegionId": null,
+          "decisionArtReady": false,
+          "decisionArtPrepared": null,
+          "entryPoint": null,
+          "processingPhase": null,
+          "sourceRevision": 2,
+          "ready": null,
+          "processing": {
+            "sourceRevision": 2,
+            "sourceSec": 0,
+            "baseRevision": 2,
+            "baseSec": 0,
+            "timelineMatches": true,
+            "sourceMatches": true,
+            "requestId": 2,
+            "revision": 2,
+            "adopting": false,
+            "workerActive": false,
+            "draftActive": false,
+            "draftActionCount": 0,
+            "jobActive": false,
+            "phase": null,
+            "error": null,
+            "accepted": null,
+            "jobReady": null,
+            "ready": null,
+            "targetSec": null,
+            "computedSec": null,
+            "revealSec": null
+          },
+          "recapOpen": false,
+          "continueState": null,
+          "recapClock": null,
+          "recapClockStartedAt": null
+        }
+      }
+    }
+  ],
+  "uiTrace": [
+    {
+      "second": 0,
+      "kind": "settlementSelectVassal",
+      "payload": {
+        "candidateIndex": 0,
+        "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":17,\"locationRegionId\":\"R17\",\"originRegionId\":\"R17\",\"prestige\":19,\"stats\":{\"cunning\":2,\"wisdom\":1,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"olive\",\"hairStyle\":\"long\",\"hairColor\":\"auburn\",\"faceShape\":\"round\",\"clothingColor\":\"green\",\"accessory\":\"beads\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"housingShop\",\"tag\":\"Housing\",\"label\":\"Housing Shop\",\"glyph\":\"HO\",\"color\":6466946,\"description\":\"A mixed shop containing only Housing-tagged gamepieces.\",\"groupId\":\"tagShop\",\"variantId\":\"housingShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":14,\"locationRegionId\":\"R18\",\"originRegionId\":\"R18\",\"prestige\":22,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":1,\"intelligence\":0},\"portrait\":{\"skinTone\":\"umber\",\"hairStyle\":\"coils\",\"hairColor\":\"silver\",\"faceShape\":\"round\",\"clothingColor\":\"charcoal\",\"accessory\":\"band\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"removePractice\",\"groupId\":\"removal\",\"removalKind\":\"practice\",\"label\":\"Remove Practice\",\"glyph\":\"−P\",\"color\":10776516,\"description\":\"Pay to remove Practices from the Vassal's current settlement.\",\"variantId\":\"removePractice\"}}]"
+      }
+    },
+    {
+      "second": 0,
+      "kind": "vassalEnterLifeNode",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1"
+      }
+    },
+    {
+      "second": 0,
+      "kind": "vassalSelectLifeOption",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1",
+        "optionId": "random"
+      }
+    },
+    {
+      "second": 0,
+      "kind": "vassalPurchaseShopOffer",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1",
+        "offerId": "life-milestone-milestone-1:r0:practice:0"
+      }
+    },
+    {
+      "second": 0,
+      "kind": "vassalConfirmLifeNode",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1",
+        "acquire": null
+      }
+    }
+  ],
+  "nullAcquisitionCause": "no acquisition selected by the recorded trusted itinerary; frozen direct-action equivalence proven",
+  "entryCloneMs": 20648.80000001192,
+  "confirmCloneMs": 24262.30000001192
+}

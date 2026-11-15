@@ -1,0 +1,7 @@
+page.evaluate: Execution context was destroyed, most likely because of a navigation.
+    at prepareSettledSaveKnowledge (C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\scripts\perf-hillclimb\run.mjs:594:50)
+    at async persistedEntryOracle (C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\scripts\perf-hillclimb\run.mjs:622:36)
+    at async withDeadline (C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\scripts\perf-hillclimb\deadline.mjs:7:12)
+    at async record (C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\scripts\perf-hillclimb\run.mjs:182:31)
+    at async performanceContinue (C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\scripts\perf-hillclimb\run.mjs:750:5)
+    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:1189:9

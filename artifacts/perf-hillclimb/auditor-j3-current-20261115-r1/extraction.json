@@ -1,0 +1,167 @@
+{
+  "at": "2026-11-15T01:47:20.853Z",
+  "verdict": "ACCEPT_CURRENT_DESKTOP_PAN_LINKAGE_ONLY",
+  "sourceCount": 683,
+  "assetCount": 5,
+  "runSha256": "d1a81bf6d99be2e35ddc167e8688b11ae2907c0f35acb0526e8d0f3e53b6a714",
+  "appSha256": "2650f059863769f98da13622798df92cf8a338c082f5fd5a695094aee2a48ea8",
+  "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+  "state": "651ba92d0e2cdfbdc440c0087c92374f5a0460aec8c5eff7f173795d91228065",
+  "started": 3523.400000035763,
+  "handlerStarted": 3524.100000023842,
+  "inputTimingReadStarted": 3524.100000023842,
+  "inputTimingReadMs": 0.30000001192092896,
+  "semanticEnd": 3860.400000035763,
+  "finished": 4326.300000011921,
+  "queueMs": 0.699999988079071,
+  "inputSource": {
+    "token": "sig:4",
+    "frontier": 0,
+    "revision": 2,
+    "actionCount": 1,
+    "pending": true,
+    "requestedSec": 1280,
+    "computedSec": 196
+  },
+  "computedAtTerminal": 416,
+  "chunksAfterRead": [
+    {
+      "time": 3541.800000011921,
+      "timelineToken": "sig:4",
+      "historyEndSec": 0,
+      "baseSec": 196,
+      "endSec": 216
+    },
+    {
+      "time": 3617.199999988079,
+      "timelineToken": "sig:4",
+      "historyEndSec": 0,
+      "baseSec": 216,
+      "endSec": 236
+    },
+    {
+      "time": 3692.600000023842,
+      "timelineToken": "sig:4",
+      "historyEndSec": 0,
+      "baseSec": 236,
+      "endSec": 256
+    },
+    {
+      "time": 3761,
+      "timelineToken": "sig:4",
+      "historyEndSec": 0,
+      "baseSec": 256,
+      "endSec": 276
+    },
+    {
+      "time": 3841.100000023842,
+      "timelineToken": "sig:4",
+      "historyEndSec": 0,
+      "baseSec": 276,
+      "endSec": 296
+    },
+    {
+      "time": 3906.900000035763,
+      "timelineToken": "sig:4",
+      "historyEndSec": 0,
+      "baseSec": 296,
+      "endSec": 316
+    },
+    {
+      "time": 3976.400000035763,
+      "timelineToken": "sig:4",
+      "historyEndSec": 0,
+      "baseSec": 316,
+      "endSec": 336
+    },
+    {
+      "time": 4049.600000023842,
+      "timelineToken": "sig:4",
+      "historyEndSec": 0,
+      "baseSec": 336,
+      "endSec": 356
+    },
+    {
+      "time": 4114.600000023842,
+      "timelineToken": "sig:4",
+      "historyEndSec": 0,
+      "baseSec": 356,
+      "endSec": 376
+    },
+    {
+      "time": 4220.5,
+      "timelineToken": "sig:4",
+      "historyEndSec": 0,
+      "baseSec": 376,
+      "endSec": 396
+    },
+    {
+      "time": 4298.300000011921,
+      "timelineToken": "sig:4",
+      "historyEndSec": 0,
+      "baseSec": 396,
+      "endSec": 416
+    }
+  ],
+  "cameraAtInput": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "cameraAtTerminal": {
+    "x": -334.8799912346069,
+    "y": 0,
+    "zoom": 1
+  },
+  "nativeCalibration": {
+    "uncertaintyMs": 1.3046500000000378,
+    "domainCheck": {
+      "domainBefore": 3484.5060000079684,
+      "javascriptNow": 3485.800000011921,
+      "domainAfter": 3486.406000040006
+    },
+    "sampleCount": 9,
+    "nativeMetricCount": 11
+  },
+  "gesture": {
+    "commands": 14,
+    "moves": 12,
+    "intervalMs": 16.666666666666668,
+    "pointerIds": [
+      1
+    ],
+    "summary": {
+      "model": "fixed offered rate; acknowledgements do not pace dispatch",
+      "input": "mouse",
+      "offered": 14,
+      "matched": 14,
+      "dropped": 0,
+      "offeredContacts": 14,
+      "matchedContacts": 14,
+      "droppedContacts": 0,
+      "cancelled": 0,
+      "missingFrames": 0,
+      "invalidTimestamps": 0,
+      "coalesced": 12,
+      "unmatchedObserved": 0,
+      "protocolErrors": 0,
+      "maxHostDispatchLatenessMs": 14.809533333333093,
+      "frameWitness": "double-rAF opportunity with passive raw camera DTO, not physical scanout",
+      "intervalMs": 16.666666666666668,
+      "steps": 12,
+      "generatorSaturated": false,
+      "calibrationResolved": true
+    }
+  },
+  "frameCount": 7,
+  "terminalRevalidations": 4,
+  "feedback": {
+    "phase": "completed",
+    "error": null,
+    "firstFeedbackMs": 41.89999997615814,
+    "comparisonEligible": false,
+    "scope": "Raw mechanism observation only, overhead/feedback acceptance separate"
+  },
+  "cleanupVerified": true,
+  "limitations": "Single desktop pan only; no mobile/zoom/open/close/full-J3/observer-neutrality/tails/score/whole-SOUND acceptance. Native frame opportunity is not physical scanout."
+}

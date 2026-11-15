@@ -1,0 +1,122 @@
+{
+  "at": "2026-11-05T01:52:53.378Z",
+  "status": "PAUSED",
+  "phaseA": "NOT SOUND",
+  "head": "0e47aa72bb8da272006a4dba2c70f4ba92775276",
+  "branch": "perf/hillclimb-20261104",
+  "gitStatus": " M docs/performance/perf-hillclimb-20261104/HARNESS.md\n M docs/performance/perf-hillclimb-20261104/STATE.md\n M package.json\n M scripts/perf-hillclimb/feedback-bindings-passive-test.mjs\n M scripts/perf-hillclimb/feedback-bindings.mjs\n M scripts/perf-hillclimb/run.mjs\n M src/views/sunandmoon-disks-pixi.js\n M src/views/time-controls-pixi.js\n M src/views/time-lever-pixi.js\n M src/views/ui-root-settlement-pixi.js\n M src/views/ui-root/settlement-playback.js\n?? docs/performance/perf-hillclimb-20261104/OPERATOR_PAUSE.md\n?? docs/performance/perf-hillclimb-20261104/PAUSED_HANDOFF.md\n?? scripts/perf-hillclimb/hold-adoption-controls-test.mjs\n?? scripts/perf-hillclimb/hold-adoption-controls.mjs\n",
+  "dirty": [
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/HARNESS.md",
+      "bytes": 41315,
+      "sha256": "cb6cd004ed85c53dde460b9abcff8c3818c34a99f20fe1f7945a0a310492867f"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/OPERATOR_PAUSE.md",
+      "bytes": 6017,
+      "sha256": "880511a36f5ad084cba2bf55d60f89b622213bd716b9a72d63d5681a679e9630"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/PAUSED_HANDOFF.md",
+      "bytes": 5474,
+      "sha256": "7d5695ac947c55f8f85f037c67655dfdee2accb68bfdda858d02a88863b136f7"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/STATE.md",
+      "bytes": 40498,
+      "sha256": "28bc6f17b4d917553c9267e742e8d67e692d779ff766298e9f943acbcac04eb3"
+    },
+    {
+      "file": "package.json",
+      "bytes": 11327,
+      "sha256": "54082c8b0dbc3148e52e2dc1c5b8767a4168ea4ced26b6743566c4adc70a7630"
+    },
+    {
+      "file": "scripts/perf-hillclimb/feedback-bindings-passive-test.mjs",
+      "bytes": 5280,
+      "sha256": "cd12a37826e2a5c253f1da2196c3fb047f32a632a460184fe0252672fa87cb25"
+    },
+    {
+      "file": "scripts/perf-hillclimb/feedback-bindings.mjs",
+      "bytes": 7722,
+      "sha256": "a17bb0c3c003e9eb1efcbdc50ac9fc788bc4b25e98d08984a6f9b835eb726072"
+    },
+    {
+      "file": "scripts/perf-hillclimb/hold-adoption-controls-test.mjs",
+      "bytes": 4390,
+      "sha256": "a391bda98ccc7bfa36bc4687ece878bcbc8e6cdb03aeeeee8cbfb404a98fa939"
+    },
+    {
+      "file": "scripts/perf-hillclimb/hold-adoption-controls.mjs",
+      "bytes": 17423,
+      "sha256": "68ef1bc2df0725c6da42569ad6fc479c5aacc519345d4aa2f515e3c0af8f5257"
+    },
+    {
+      "file": "scripts/perf-hillclimb/run.mjs",
+      "bytes": 95759,
+      "sha256": "282477e03794247c49bda74b5fa5f4722590a009619867553044c9649018b61a"
+    },
+    {
+      "file": "src/views/sunandmoon-disks-pixi.js",
+      "bytes": 40523,
+      "sha256": "02b04fe3fb9ece5b34251b0721070b85f33a09fb46c4c8fdd598a37f1ee76bd9"
+    },
+    {
+      "file": "src/views/time-controls-pixi.js",
+      "bytes": 3709,
+      "sha256": "6ad1abcecaee950e46ae7d19b7995580361c51b6d1b6345691eee686664afe80"
+    },
+    {
+      "file": "src/views/time-lever-pixi.js",
+      "bytes": 8676,
+      "sha256": "ba73069c396637dce766107ef5eab5e39f08c9c23d1d77fa3d812fd1692969be"
+    },
+    {
+      "file": "src/views/ui-root-settlement-pixi.js",
+      "bytes": 87186,
+      "sha256": "32e55c11d55094d8a893a5d9f3f0e0226e7edd8bedb5b79456f5c1af8bd8e3d9"
+    },
+    {
+      "file": "src/views/ui-root/settlement-playback.js",
+      "bytes": 14335,
+      "sha256": "e8a3a668a53685d9f37b806e4968385310ce0e32dd21063f4cd3d7da2be3ba75"
+    }
+  ],
+  "sourcesCount": 683,
+  "sourcesInventorySha256": "0e8d6c1ea5403635e918e04bab6b3a8324ae7a55b86f51075102f5a30da2ba35",
+  "builds": {
+    "dist/./assets/app-6H5PP5LS.js": {
+      "bytes": 3984355,
+      "sha256": "2650f059863769f98da13622798df92cf8a338c082f5fd5a695094aee2a48ea8"
+    },
+    "dist/./assets/timegraph-forecast-worker-YOB3XRD7.js": {
+      "bytes": 1243957,
+      "sha256": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a"
+    },
+    "dist/./assets/save-load-worker-7YJYILEJ.js": {
+      "bytes": 1259756,
+      "sha256": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5"
+    },
+    "dist/./assets/styles-ec05c6a73a6e.css": {
+      "bytes": 78135,
+      "sha256": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+    },
+    "dist/images/dev-fixtures/performance-start.json.gz": {
+      "bytes": 9636456,
+      "sha256": "7d07599499c43871cea5bb261bd91fb372cb7f6437c4d2dd0238a9190751ee1d"
+    },
+    "dist/build-manifest.json": {
+      "bytes": 559,
+      "sha256": "16e5043debb97c82b4998fc7bda83b16b6a33e872ee4514eca9e9463e950da87"
+    },
+    "dist/build-info.json": {
+      "bytes": 299,
+      "sha256": "951d4daa6222cf8765ff841f16cbb8eaa14383c9bdf5ae7d4babc823f1ecf026"
+    }
+  },
+  "evidenceCount": 1904,
+  "evidenceInventorySha256": "3887a45961844bb7639a83e8a16f3033bd7f6af3876226ef6441efce5710fde6",
+  "basePin": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+  "lifePin": "6b7456c5594cf05393b81c16a3cfc3682bff8c92fbba8821bfe8af16e911d8b8",
+  "scope": "Raw byte preservation and identity inventory; no new verification/audit/score/acceptance. Dirty files copied; ignored evidence remains in its original paths with hashes. No reset/stash/commit/push/merge/deploy."
+}

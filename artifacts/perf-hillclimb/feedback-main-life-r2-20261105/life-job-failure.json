@@ -1,0 +1,16 @@
+{
+  "launchId": "feedback-main-life-r2-20261105:launch-0-life",
+  "job": "life",
+  "originalError": {
+    "name": "TimeoutError",
+    "message": "page.waitForFunction: Timeout 180000ms exceeded.",
+    "stack": "page.waitForFunction: Timeout 180000ms exceeded.\n    at wait (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:234:34)\n    at observe (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:239:75)\n    at useful (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:398:10)\n    at life (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:952:43)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:1101:9"
+  },
+  "observationCount": 9,
+  "document": {
+    "available": false,
+    "reason": "current launch page is closed"
+  },
+  "passive": null,
+  "collectionErrors": []
+}

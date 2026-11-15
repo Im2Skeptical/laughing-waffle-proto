@@ -1,0 +1,86 @@
+{
+  "at": "2026-11-15T01:20:23.232Z",
+  "inputSha256": "3369fddeec12797d2a88798d53d19f6e67680884654db3d4b08ca665c6877c0f",
+  "extractionSha256": "d33f94298337654c262bc9af8ecd855ee46bf527b47b87e7227cc720da9cbf77",
+  "primary": {
+    "collectedAt": 304072.7000000477,
+    "cancelAt": 303766.5,
+    "collectionAfterCancelMs": 306.2000000476837,
+    "mainStarted": 87586,
+    "windowMs": 216486.70000004768,
+    "completedWaitMs": 161077.80000036955,
+    "completedWaitCount": 287,
+    "open": {
+      "kind": "idle",
+      "phase": "main",
+      "started": 303371.40000003576,
+      "ambiguous": false
+    },
+    "rightCensoredWaitMs": 701.3000000119209,
+    "totalWaitMs": 161779.10000038147,
+    "waitShare": 0.7472934826959154,
+    "residualOtherWorkOrWaitMs": 54707.599999666214,
+    "hypothesis": "wait share at least0.8 with matched progress",
+    "verdict": "FALSIFIED_IN_THIS_DIAGNOSTIC",
+    "jobs": [
+      {
+        "name": "bake",
+        "phase": "main",
+        "started": 92384,
+        "updatedAt": 146955.70000004768,
+        "status": "complete",
+        "steps": 135,
+        "yields": 95,
+        "longestStepMs": 2654.100000023842,
+        "longestStepScope": "existing shared stats, cumulative across jobs"
+      },
+      {
+        "name": "regional",
+        "phase": "main",
+        "started": 155342.30000001192,
+        "updatedAt": 303371.40000003576,
+        "status": "yield-enter",
+        "steps": 285,
+        "yields": 192,
+        "longestStepMs": 2654.100000023842,
+        "longestStepScope": "existing shared stats, cumulative across jobs"
+      }
+    ],
+    "droppedEvents": 1241,
+    "gates": {
+      "wait-current": {
+        "count": 317,
+        "denied": 0,
+        "last": true,
+        "lastAt": 303371.40000003576
+      },
+      "pre-idle-load": {
+        "count": 317,
+        "denied": 0,
+        "last": true,
+        "lastAt": 303371.40000003576
+      },
+      "post-idle-load": {
+        "count": 316,
+        "denied": 0,
+        "last": true,
+        "lastAt": 303361.3000000119
+      },
+      "atlas-ok": {
+        "count": 1,
+        "denied": 0,
+        "last": true,
+        "lastAt": 86584.70000004768
+      },
+      "loader-current": {
+        "count": 1,
+        "denied": 0,
+        "last": true,
+        "lastAt": 87585.60000002384
+      }
+    }
+  },
+  "laterBoundary": 304079.40000003576,
+  "sourceAssetsIdentity": true,
+  "cleanupVerified": true
+}

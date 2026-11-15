@@ -1,0 +1,33 @@
+{
+  "at": "2026-11-05T00:42:40.453Z",
+  "badge": {
+    "build": "6ebd1c71ebf6",
+    "text": "v1.1.53 · Preview 5184",
+    "title": "Game v1.1.53 | Build 6ebd1c71ebf6 | Revision 0e47aa72bb8d | local | Branch perf/hillclimb-20261104 | Preview checkout",
+    "version": "1.1.53"
+  },
+  "embedded": {
+    "branch": "perf/hillclimb-20261104",
+    "build": "6ebd1c71ebf6",
+    "channel": "local",
+    "dirty": false,
+    "performanceFixtureKey": "d8e62f7018a37c9148e6215a4360de14978ada6a3d4085b144251b386bc70dde",
+    "preview": true,
+    "previewLabel": "5184",
+    "revision": "0e47aa72bb8d",
+    "version": "1.1.53"
+  },
+  "match": true,
+  "served": {
+    "branch": "perf/hillclimb-20261104",
+    "build": "6ebd1c71ebf6",
+    "channel": "local",
+    "dirty": false,
+    "performanceFixtureKey": "d8e62f7018a37c9148e6215a4360de14978ada6a3d4085b144251b386bc70dde",
+    "preview": true,
+    "previewLabel": "5184",
+    "revision": "0e47aa72bb8d",
+    "version": "1.1.53"
+  },
+  "scope": "Owned shared-browser incognito menu page, actual badge and embedded identity match HTTP build-info; no gameplay timing claim."
+}

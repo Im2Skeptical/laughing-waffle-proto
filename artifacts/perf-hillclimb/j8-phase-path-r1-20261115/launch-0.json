@@ -1,0 +1,23 @@
+{
+  "cell": {
+    "index": 0,
+    "id": "j8-phase-off-20261115-r1",
+    "instrumentation": "off",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--id=j8-phase-off-20261115-r1",
+      "--population=mobile4",
+      "--cases=reference",
+      "--cycles=5",
+      "--instrumentation=off",
+      "--phase-witness=1",
+      "--timeout=240000",
+      "--gate-timeout=240000",
+      "--case-timeout=600000"
+    ]
+  },
+  "started": "2026-11-15T00:36:30.900Z",
+  "parentPid": 38904,
+  "childPid": 21268
+}

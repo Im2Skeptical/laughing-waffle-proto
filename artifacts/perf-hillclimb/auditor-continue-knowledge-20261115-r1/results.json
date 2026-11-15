@@ -1,0 +1,130 @@
+[
+  {
+    "id": "auditor-continue-mobile424242-20261115-r1",
+    "args": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--jobs=performance-continue",
+      "--population=mobile4",
+      "--seed=424242",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--id=auditor-continue-mobile424242-20261115-r1",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000"
+    ],
+    "start": "2026-11-14T22:06:16.012Z",
+    "finished": "2026-11-14T22:07:53.320Z",
+    "exit": 0,
+    "expected": 0,
+    "pass": true,
+    "witness": {
+      "observations": 2,
+      "allRowsOk": true,
+      "expectedYear": 138,
+      "observedYear": 138,
+      "frames": 2,
+      "source": {
+        "frontierSec": 574,
+        "actionCount": 21,
+        "revision": 22,
+        "token": "sig:4",
+        "historyEndSec": 574,
+        "subjectKey": "civilization"
+      },
+      "rawEqual": true,
+      "decodedEqual": true,
+      "rebuiltEqual": true,
+      "deltas": [],
+      "advancedSeconds": 3,
+      "allFieldsAndRng": true,
+      "span": {
+        "policy": "frozen-terminal-observed-before-save-v1",
+        "artifact": "launch-0-performance-continue-continued-settled-save-preparation.json",
+        "window": {
+          "launchId": "auditor-continue-mobile424242-20261115-r1:launch-0-performance-continue",
+          "startMs": 59227.40000000596,
+          "endMs": 66596.30000001192,
+          "reason": "declared settled-terminal pre-save setup; includes frozen derivation/full inspection and is not a product speedup"
+        },
+        "setupThroughPersistedMs": 26670.5,
+        "scope": "full setup-plus-save span retained; setup is outside existing transaction latency, never free or a speedup"
+      },
+      "pass": true
+    },
+    "cleanup": {
+      "contexts": [
+        {
+          "launchId": "auditor-continue-mobile424242-20261115-r1:launch-0-performance-continue",
+          "closed": true,
+          "pageClosed": true,
+          "at": "2026-11-14T22:07:52.104Z"
+        }
+      ],
+      "browsers": [
+        {
+          "launchId": "auditor-continue-mobile424242-20261115-r1:launch-0-performance-continue",
+          "closed": true,
+          "at": "2026-11-14T22:07:52.833Z"
+        }
+      ],
+      "errors": []
+    },
+    "changed": []
+  },
+  {
+    "id": "auditor-continue-missing-frame-20261115-r1",
+    "args": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--jobs=performance-continue",
+      "--population=desktop",
+      "--seed=123",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--id=auditor-continue-missing-frame-20261115-r1",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--control=settled-missing-frame"
+    ],
+    "start": "2026-11-14T22:07:53.728Z",
+    "finished": "2026-11-14T22:08:25.182Z",
+    "exit": 1,
+    "expected": 1,
+    "pass": true,
+    "witness": {
+      "errorMatches": true,
+      "phase": "frames",
+      "frames": 0,
+      "readyRetained": true,
+      "window": {
+        "launchId": "auditor-continue-missing-frame-20261115-r1:launch-0-performance-continue",
+        "startMs": 10084.09999999404,
+        "endMs": null,
+        "reason": "declared settled-terminal pre-save setup; includes frozen derivation/full inspection and is not a product speedup"
+      },
+      "pass": true
+    },
+    "cleanup": {
+      "contexts": [
+        {
+          "launchId": "auditor-continue-missing-frame-20261115-r1:launch-0-performance-continue",
+          "closed": true,
+          "pageClosed": true,
+          "at": "2026-11-14T22:08:23.400Z"
+        }
+      ],
+      "browsers": [
+        {
+          "launchId": "auditor-continue-missing-frame-20261115-r1:launch-0-performance-continue",
+          "closed": true,
+          "at": "2026-11-14T22:08:24.754Z"
+        }
+      ],
+      "errors": []
+    },
+    "changed": []
+  }
+]

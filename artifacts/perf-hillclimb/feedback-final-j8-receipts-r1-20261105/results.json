@@ -1,0 +1,178 @@
+[
+  {
+    "population": "desktop",
+    "case": "reference",
+    "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--population=desktop",
+      "--cases=reference",
+      "--cycles=5",
+      "--id=feedback-final-j8-receipts-r1-20261105-desktop-reference"
+    ],
+    "started": "2026-11-04T23:48:54.728Z",
+    "finished": "2026-11-04T23:51:05.748Z",
+    "exit": 0,
+    "summary": {
+      "ok": true,
+      "requestedCases": 1,
+      "completedCases": 1
+    },
+    "receiptValidationOk": true
+  },
+  {
+    "population": "desktop",
+    "case": "deferred",
+    "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--population=desktop",
+      "--cases=deferred",
+      "--cycles=5",
+      "--id=feedback-final-j8-receipts-r1-20261105-desktop-deferred"
+    ],
+    "started": "2026-11-04T23:51:05.927Z",
+    "finished": "2026-11-04T23:53:26.613Z",
+    "exit": 0,
+    "summary": {
+      "ok": true,
+      "requestedCases": 1,
+      "completedCases": 1
+    },
+    "receiptValidationOk": true
+  },
+  {
+    "population": "desktop",
+    "case": "retry",
+    "id": "feedback-final-j8-receipts-r1-20261105-desktop-retry",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--population=desktop",
+      "--cases=retry",
+      "--cycles=5",
+      "--id=feedback-final-j8-receipts-r1-20261105-desktop-retry"
+    ],
+    "started": "2026-11-04T23:53:26.843Z",
+    "finished": "2026-11-04T23:54:03.492Z",
+    "exit": 0,
+    "summary": {
+      "ok": true,
+      "requestedCases": 1,
+      "completedCases": 1
+    },
+    "receiptValidationOk": true
+  },
+  {
+    "population": "desktop",
+    "case": "exhausted",
+    "id": "feedback-final-j8-receipts-r1-20261105-desktop-exhausted",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--population=desktop",
+      "--cases=exhausted",
+      "--cycles=5",
+      "--id=feedback-final-j8-receipts-r1-20261105-desktop-exhausted"
+    ],
+    "started": "2026-11-04T23:54:03.703Z",
+    "finished": "2026-11-04T23:55:03.896Z",
+    "exit": 0,
+    "summary": {
+      "ok": true,
+      "requestedCases": 1,
+      "completedCases": 1
+    },
+    "receiptValidationOk": true
+  },
+  {
+    "population": "mobile4",
+    "case": "reference",
+    "id": "feedback-final-j8-receipts-r1-20261105-mobile4-reference",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--population=mobile4",
+      "--cases=reference",
+      "--cycles=5",
+      "--id=feedback-final-j8-receipts-r1-20261105-mobile4-reference"
+    ],
+    "started": "2026-11-04T23:55:04.120Z",
+    "finished": "2026-11-05T00:00:15.952Z",
+    "exit": 1,
+    "summary": {
+      "ok": false,
+      "requestedCases": 1,
+      "completedCases": 0
+    },
+    "receiptValidationOk": true
+  },
+  {
+    "population": "mobile4",
+    "case": "deferred",
+    "id": "feedback-final-j8-receipts-r1-20261105-mobile4-deferred",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--population=mobile4",
+      "--cases=deferred",
+      "--cycles=5",
+      "--id=feedback-final-j8-receipts-r1-20261105-mobile4-deferred"
+    ],
+    "started": "2026-11-05T00:00:16.114Z",
+    "finished": "2026-11-05T00:05:18.763Z",
+    "exit": 1,
+    "summary": {
+      "ok": false,
+      "requestedCases": 1,
+      "completedCases": 0
+    },
+    "receiptValidationOk": true
+  },
+  {
+    "population": "mobile4",
+    "case": "retry",
+    "id": "feedback-final-j8-receipts-r1-20261105-mobile4-retry",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--population=mobile4",
+      "--cases=retry",
+      "--cycles=5",
+      "--id=feedback-final-j8-receipts-r1-20261105-mobile4-retry"
+    ],
+    "started": "2026-11-05T00:05:18.967Z",
+    "finished": "2026-11-05T00:07:01.336Z",
+    "exit": 0,
+    "summary": {
+      "ok": true,
+      "requestedCases": 1,
+      "completedCases": 1
+    },
+    "receiptValidationOk": true
+  },
+  {
+    "population": "mobile4",
+    "case": "exhausted",
+    "id": "feedback-final-j8-receipts-r1-20261105-mobile4-exhausted",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--population=mobile4",
+      "--cases=exhausted",
+      "--cycles=5",
+      "--id=feedback-final-j8-receipts-r1-20261105-mobile4-exhausted"
+    ],
+    "started": "2026-11-05T00:07:01.536Z",
+    "finished": "2026-11-05T00:08:59.823Z",
+    "exit": 0,
+    "summary": {
+      "ok": true,
+      "requestedCases": 1,
+      "completedCases": 1
+    },
+    "receiptValidationOk": true
+  }
+]

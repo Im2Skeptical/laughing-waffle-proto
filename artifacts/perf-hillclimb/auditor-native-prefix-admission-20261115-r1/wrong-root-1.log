@@ -1,0 +1,8 @@
+Unexpected fixture ownership root
+At C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\artifacts\perf-hillclimb\native-preview-pr
+efix-r1-20261115\cleanup-owned.ps1:5 char:193
++ ... lization-build-preview-*'){throw 'Unexpected fixture ownership root'}
++                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Unexpected fixture ownership root:String) [], RuntimeException
+    + FullyQualifiedErrorId : Unexpected fixture ownership root
+ 

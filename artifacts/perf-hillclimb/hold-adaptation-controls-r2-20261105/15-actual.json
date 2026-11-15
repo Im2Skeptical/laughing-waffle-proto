@@ -1,0 +1,2884 @@
+{
+  "cell": {
+    "population": "mobile4",
+    "direction": 1,
+    "gesture": "drag"
+  },
+  "speedPrecondition": {
+    "a": {
+      "timing": {
+        "version": 2,
+        "mode": "map",
+        "selectedRegionId": "R14",
+        "regionSelectionActive": false,
+        "runner": {
+          "frontierSec": 0,
+          "cursorSec": 0,
+          "viewedSec": 1959,
+          "previewActive": true,
+          "forecastPreview": true,
+          "revision": 0,
+          "actionCount": 0,
+          "checkpointCount": 1
+        },
+        "opening": {
+          "phase": "completed",
+          "preparation": "idle",
+          "coverageSec": 3918,
+          "elapsedSec": 5,
+          "lossSec": 3918
+        },
+        "map": {
+          "visible": true,
+          "detailVisible": false,
+          "camera": {
+            "x": 0,
+            "y": 0,
+            "zoom": 1
+          },
+          "focusAnimating": false,
+          "panelPhase": "closed",
+          "panelAnimating": false,
+          "panelPose": {
+            "x": 0,
+            "y": 0,
+            "scale": 1
+          },
+          "artReady": false,
+          "artPrepared": null
+        },
+        "graph": {
+          "visible": true,
+          "minSec": 0,
+          "maxSec": 3918,
+          "scrubDrawSignature": "0|1959|0|0|0:3918|Viewing forecast|Civilization • All player settlements|1959",
+          "plotRect": {
+            "x": 573.855,
+            "y": 884.1,
+            "width": 1276.275,
+            "height": 145.86
+          },
+          "plotRectSpace": "stage-retained-transform",
+          "scrubSec": 1959,
+          "isScrubbing": false,
+          "latchedForecastScrubSec": 1959,
+          "historyEndSec": 0,
+          "revealedSec": 3918,
+          "browseCapSec": 3918,
+          "targetSec": 3918,
+          "computedSec": 3918,
+          "requestedSec": 3920,
+          "pending": true,
+          "cacheVersion": 564,
+          "subjectKey": "civilization",
+          "asyncToken": "sig:4",
+          "asyncPollMs": 69186.79999998212,
+          "asyncHistoryEndSec": 0,
+          "asyncRequestedSec": 3920,
+          "asyncComputedSec": 3918,
+          "revealHistoryEndSec": 0,
+          "animatedSec": 3918,
+          "visibleEndSec": 3918,
+          "startSecOverride": null,
+          "readinessCapSec": null,
+          "capEndSec": null,
+          "paused": true,
+          "presentationSuspended": false,
+          "openingRevealSec": null
+        },
+        "life": {
+          "visible": false,
+          "selectedCandidateNodeId": null,
+          "displayedVassalId": null,
+          "entryConfirmationOpen": false,
+          "entryOpen": false,
+          "entryVisible": false,
+          "entryPhase": "closed",
+          "decisionOpen": false,
+          "decisionNodeId": null,
+          "decisionPhase": "closed",
+          "pendingInteractionCount": null,
+          "family": null,
+          "selectedOptionId": null,
+          "resolving": null,
+          "shopTag": null,
+          "offerIds": null,
+          "purchaseOrder": null,
+          "boardPracticeIds": null,
+          "observedDecisionNodeId": null,
+          "boardRegionId": null,
+          "decisionArtReady": false,
+          "decisionArtPrepared": null,
+          "entryPoint": null,
+          "processingPhase": null,
+          "sourceRevision": 0,
+          "ready": null,
+          "processing": {
+            "sourceRevision": 0,
+            "sourceSec": 0,
+            "baseRevision": 0,
+            "baseSec": 0,
+            "timelineMatches": true,
+            "sourceMatches": true,
+            "requestId": 2,
+            "revision": 2,
+            "adopting": false,
+            "workerActive": false,
+            "draftActive": false,
+            "draftActionCount": 0,
+            "jobActive": false,
+            "phase": null,
+            "error": null,
+            "accepted": null,
+            "jobReady": null,
+            "ready": null,
+            "targetSec": null,
+            "computedSec": null,
+            "revealSec": null
+          },
+          "recapOpen": false,
+          "continueState": null,
+          "recapClock": null,
+          "recapClockStartedAt": null
+        }
+      },
+      "retained": {
+        "settlement": {
+          "visible": false,
+          "regionId": "R14",
+          "activeTab": "overview"
+        },
+        "map": {
+          "visible": true,
+          "detailVisible": false,
+          "camera": {
+            "x": 0,
+            "y": 0,
+            "zoom": 1
+          },
+          "focusAnimating": false,
+          "panelPhase": "closed",
+          "panelAnimating": false,
+          "panelPose": {
+            "x": 0,
+            "y": 0,
+            "scale": 1
+          },
+          "artReady": false,
+          "artPrepared": null
+        },
+        "graph": {
+          "visible": true,
+          "minSec": 0,
+          "maxSec": 3918,
+          "scrubDrawSignature": "0|1959|0|0|0:3918|Viewing forecast|Civilization • All player settlements|1959",
+          "plotRect": {
+            "x": 573.855,
+            "y": 884.1,
+            "width": 1276.275,
+            "height": 145.86
+          },
+          "plotRectSpace": "stage-retained-transform",
+          "scrubSec": 1959,
+          "isScrubbing": false,
+          "latchedForecastScrubSec": 1959,
+          "historyEndSec": 0,
+          "revealedSec": 3918,
+          "browseCapSec": 3918,
+          "targetSec": 3918,
+          "computedSec": 3918,
+          "requestedSec": 3920,
+          "pending": true,
+          "cacheVersion": 564,
+          "subjectKey": "civilization",
+          "asyncToken": "sig:4",
+          "asyncPollMs": 69186.79999998212,
+          "asyncHistoryEndSec": 0,
+          "asyncRequestedSec": 3920,
+          "asyncComputedSec": 3918,
+          "revealHistoryEndSec": 0,
+          "animatedSec": 3918,
+          "visibleEndSec": 3918,
+          "startSecOverride": null,
+          "readinessCapSec": null,
+          "capEndSec": null,
+          "paused": true,
+          "presentationSuspended": false,
+          "openingRevealSec": null
+        },
+        "transport": {
+          "target": 1,
+          "current": 1,
+          "visualSec": 1959.0665999999999
+        },
+        "timeControls": {
+          "visible": true,
+          "lever": {
+            "visible": true,
+            "labelVisible": true,
+            "label": "x1.0",
+            "handleY": 52.25197896063601
+          }
+        },
+        "momentum": {
+          "active": false,
+          "coasting": false,
+          "velocity": 0,
+          "diskId": null,
+          "visualTargetSec": null
+        },
+        "life": {
+          "visible": false,
+          "selectedCandidateNodeId": null,
+          "displayedVassalId": null,
+          "entryConfirmationOpen": false,
+          "entryVisible": false,
+          "entryOpen": false,
+          "entryPhase": "closed",
+          "entryPoint": null
+        },
+        "decision": {
+          "open": false,
+          "nodeId": null,
+          "renderedVisible": false,
+          "renderedPose": {
+            "x": 0,
+            "y": 0,
+            "alpha": 0
+          },
+          "renderedTransition": {
+            "visible": false,
+            "alpha": 1,
+            "rect": {
+              "x": 1176,
+              "y": 452,
+              "width": 72,
+              "height": 72
+            }
+          },
+          "phase": "closed",
+          "pendingInteractionCount": null,
+          "family": null,
+          "selectedOptionId": null,
+          "resolving": null,
+          "shopTag": null,
+          "offerIds": null,
+          "purchaseOrder": null,
+          "boardPracticeIds": null,
+          "observedDecisionNodeId": null,
+          "boardRegionId": null,
+          "artReady": false,
+          "artPrepared": null
+        },
+        "processingVisible": false,
+        "recap": {
+          "open": false,
+          "continueState": null,
+          "clockStartedAt": null,
+          "clock": null
+        }
+      }
+    },
+    "b": {
+      "timing": {
+        "version": 2,
+        "mode": "map",
+        "selectedRegionId": "R14",
+        "regionSelectionActive": false,
+        "runner": {
+          "frontierSec": 0,
+          "cursorSec": 0,
+          "viewedSec": 1959,
+          "previewActive": true,
+          "forecastPreview": true,
+          "revision": 0,
+          "actionCount": 0,
+          "checkpointCount": 1
+        },
+        "opening": {
+          "phase": "completed",
+          "preparation": "idle",
+          "coverageSec": 3918,
+          "elapsedSec": 5,
+          "lossSec": 3918
+        },
+        "map": {
+          "visible": true,
+          "detailVisible": false,
+          "camera": {
+            "x": 0,
+            "y": 0,
+            "zoom": 1
+          },
+          "focusAnimating": false,
+          "panelPhase": "closed",
+          "panelAnimating": false,
+          "panelPose": {
+            "x": 0,
+            "y": 0,
+            "scale": 1
+          },
+          "artReady": false,
+          "artPrepared": null
+        },
+        "graph": {
+          "visible": true,
+          "minSec": 0,
+          "maxSec": 3918,
+          "scrubDrawSignature": "0|1959|0|0|0:3918|Viewing forecast|Civilization • All player settlements|1959",
+          "plotRect": {
+            "x": 573.855,
+            "y": 884.1,
+            "width": 1276.275,
+            "height": 145.86
+          },
+          "plotRectSpace": "stage-retained-transform",
+          "scrubSec": 1959,
+          "isScrubbing": false,
+          "latchedForecastScrubSec": 1959,
+          "historyEndSec": 0,
+          "revealedSec": 3918,
+          "browseCapSec": 3918,
+          "targetSec": 3918,
+          "computedSec": 3918,
+          "requestedSec": 3920,
+          "pending": true,
+          "cacheVersion": 570,
+          "subjectKey": "civilization",
+          "asyncToken": "sig:4",
+          "asyncPollMs": 69348.39999997616,
+          "asyncHistoryEndSec": 0,
+          "asyncRequestedSec": 3920,
+          "asyncComputedSec": 3918,
+          "revealHistoryEndSec": 0,
+          "animatedSec": 3918,
+          "visibleEndSec": 3918,
+          "startSecOverride": null,
+          "readinessCapSec": null,
+          "capEndSec": null,
+          "paused": true,
+          "presentationSuspended": false,
+          "openingRevealSec": null
+        },
+        "life": {
+          "visible": false,
+          "selectedCandidateNodeId": null,
+          "displayedVassalId": null,
+          "entryConfirmationOpen": false,
+          "entryOpen": false,
+          "entryVisible": false,
+          "entryPhase": "closed",
+          "decisionOpen": false,
+          "decisionNodeId": null,
+          "decisionPhase": "closed",
+          "pendingInteractionCount": null,
+          "family": null,
+          "selectedOptionId": null,
+          "resolving": null,
+          "shopTag": null,
+          "offerIds": null,
+          "purchaseOrder": null,
+          "boardPracticeIds": null,
+          "observedDecisionNodeId": null,
+          "boardRegionId": null,
+          "decisionArtReady": false,
+          "decisionArtPrepared": null,
+          "entryPoint": null,
+          "processingPhase": null,
+          "sourceRevision": 0,
+          "ready": null,
+          "processing": {
+            "sourceRevision": 0,
+            "sourceSec": 0,
+            "baseRevision": 0,
+            "baseSec": 0,
+            "timelineMatches": true,
+            "sourceMatches": true,
+            "requestId": 2,
+            "revision": 2,
+            "adopting": false,
+            "workerActive": false,
+            "draftActive": false,
+            "draftActionCount": 0,
+            "jobActive": false,
+            "phase": null,
+            "error": null,
+            "accepted": null,
+            "jobReady": null,
+            "ready": null,
+            "targetSec": null,
+            "computedSec": null,
+            "revealSec": null
+          },
+          "recapOpen": false,
+          "continueState": null,
+          "recapClock": null,
+          "recapClockStartedAt": null
+        }
+      },
+      "retained": {
+        "settlement": {
+          "visible": false,
+          "regionId": "R14",
+          "activeTab": "overview"
+        },
+        "map": {
+          "visible": true,
+          "detailVisible": false,
+          "camera": {
+            "x": 0,
+            "y": 0,
+            "zoom": 1
+          },
+          "focusAnimating": false,
+          "panelPhase": "closed",
+          "panelAnimating": false,
+          "panelPose": {
+            "x": 0,
+            "y": 0,
+            "scale": 1
+          },
+          "artReady": false,
+          "artPrepared": null
+        },
+        "graph": {
+          "visible": true,
+          "minSec": 0,
+          "maxSec": 3918,
+          "scrubDrawSignature": "0|1959|0|0|0:3918|Viewing forecast|Civilization • All player settlements|1959",
+          "plotRect": {
+            "x": 573.855,
+            "y": 884.1,
+            "width": 1276.275,
+            "height": 145.86
+          },
+          "plotRectSpace": "stage-retained-transform",
+          "scrubSec": 1959,
+          "isScrubbing": false,
+          "latchedForecastScrubSec": 1959,
+          "historyEndSec": 0,
+          "revealedSec": 3918,
+          "browseCapSec": 3918,
+          "targetSec": 3918,
+          "computedSec": 3918,
+          "requestedSec": 3920,
+          "pending": true,
+          "cacheVersion": 570,
+          "subjectKey": "civilization",
+          "asyncToken": "sig:4",
+          "asyncPollMs": 69348.39999997616,
+          "asyncHistoryEndSec": 0,
+          "asyncRequestedSec": 3920,
+          "asyncComputedSec": 3918,
+          "revealHistoryEndSec": 0,
+          "animatedSec": 3918,
+          "visibleEndSec": 3918,
+          "startSecOverride": null,
+          "readinessCapSec": null,
+          "capEndSec": null,
+          "paused": true,
+          "presentationSuspended": false,
+          "openingRevealSec": null
+        },
+        "transport": {
+          "target": 1,
+          "current": 1,
+          "visualSec": 1959.2332999999999
+        },
+        "timeControls": {
+          "visible": true,
+          "lever": {
+            "visible": true,
+            "labelVisible": true,
+            "label": "x1.0",
+            "handleY": 52.25197896063601
+          }
+        },
+        "momentum": {
+          "active": false,
+          "coasting": false,
+          "velocity": 0,
+          "diskId": null,
+          "visualTargetSec": null
+        },
+        "life": {
+          "visible": false,
+          "selectedCandidateNodeId": null,
+          "displayedVassalId": null,
+          "entryConfirmationOpen": false,
+          "entryVisible": false,
+          "entryOpen": false,
+          "entryPhase": "closed",
+          "entryPoint": null
+        },
+        "decision": {
+          "open": false,
+          "nodeId": null,
+          "renderedVisible": false,
+          "renderedPose": {
+            "x": 0,
+            "y": 0,
+            "alpha": 0
+          },
+          "renderedTransition": {
+            "visible": false,
+            "alpha": 1,
+            "rect": {
+              "x": 1176,
+              "y": 452,
+              "width": 72,
+              "height": 72
+            }
+          },
+          "phase": "closed",
+          "pendingInteractionCount": null,
+          "family": null,
+          "selectedOptionId": null,
+          "resolving": null,
+          "shopTag": null,
+          "offerIds": null,
+          "purchaseOrder": null,
+          "boardPracticeIds": null,
+          "observedDecisionNodeId": null,
+          "boardRegionId": null,
+          "artReady": false,
+          "artPrepared": null
+        },
+        "processingVisible": false,
+        "recap": {
+          "open": false,
+          "continueState": null,
+          "clockStartedAt": null,
+          "clock": null
+        }
+      }
+    }
+  },
+  "before": {
+    "timing": {
+      "version": 2,
+      "mode": "map",
+      "selectedRegionId": "R14",
+      "regionSelectionActive": false,
+      "runner": {
+        "frontierSec": 0,
+        "cursorSec": 0,
+        "viewedSec": 1959,
+        "previewActive": true,
+        "forecastPreview": true,
+        "revision": 0,
+        "actionCount": 0,
+        "checkpointCount": 1
+      },
+      "opening": {
+        "phase": "completed",
+        "preparation": "idle",
+        "coverageSec": 3918,
+        "elapsedSec": 5,
+        "lossSec": 3918
+      },
+      "map": {
+        "visible": true,
+        "detailVisible": false,
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 1
+        },
+        "focusAnimating": false,
+        "panelPhase": "closed",
+        "panelAnimating": false,
+        "panelPose": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        },
+        "artReady": false,
+        "artPrepared": null
+      },
+      "graph": {
+        "visible": true,
+        "minSec": 0,
+        "maxSec": 3918,
+        "scrubDrawSignature": "0|1959|0|0|0:3918|Viewing forecast|Civilization • All player settlements|1959",
+        "plotRect": {
+          "x": 573.855,
+          "y": 884.1,
+          "width": 1276.275,
+          "height": 145.86
+        },
+        "plotRectSpace": "stage-retained-transform",
+        "scrubSec": 1959,
+        "isScrubbing": false,
+        "latchedForecastScrubSec": 1959,
+        "historyEndSec": 0,
+        "revealedSec": 3918,
+        "browseCapSec": 3918,
+        "targetSec": 3918,
+        "computedSec": 3918,
+        "requestedSec": 3920,
+        "pending": true,
+        "cacheVersion": 570,
+        "subjectKey": "civilization",
+        "asyncToken": "sig:4",
+        "asyncPollMs": 69348.39999997616,
+        "asyncHistoryEndSec": 0,
+        "asyncRequestedSec": 3920,
+        "asyncComputedSec": 3918,
+        "revealHistoryEndSec": 0,
+        "animatedSec": 3918,
+        "visibleEndSec": 3918,
+        "startSecOverride": null,
+        "readinessCapSec": null,
+        "capEndSec": null,
+        "paused": true,
+        "presentationSuspended": false,
+        "openingRevealSec": null
+      },
+      "life": {
+        "visible": false,
+        "selectedCandidateNodeId": null,
+        "displayedVassalId": null,
+        "entryConfirmationOpen": false,
+        "entryOpen": false,
+        "entryVisible": false,
+        "entryPhase": "closed",
+        "decisionOpen": false,
+        "decisionNodeId": null,
+        "decisionPhase": "closed",
+        "pendingInteractionCount": null,
+        "family": null,
+        "selectedOptionId": null,
+        "resolving": null,
+        "shopTag": null,
+        "offerIds": null,
+        "purchaseOrder": null,
+        "boardPracticeIds": null,
+        "observedDecisionNodeId": null,
+        "boardRegionId": null,
+        "decisionArtReady": false,
+        "decisionArtPrepared": null,
+        "entryPoint": null,
+        "processingPhase": null,
+        "sourceRevision": 0,
+        "ready": null,
+        "processing": {
+          "sourceRevision": 0,
+          "sourceSec": 0,
+          "baseRevision": 0,
+          "baseSec": 0,
+          "timelineMatches": true,
+          "sourceMatches": true,
+          "requestId": 2,
+          "revision": 2,
+          "adopting": false,
+          "workerActive": false,
+          "draftActive": false,
+          "draftActionCount": 0,
+          "jobActive": false,
+          "phase": null,
+          "error": null,
+          "accepted": null,
+          "jobReady": null,
+          "ready": null,
+          "targetSec": null,
+          "computedSec": null,
+          "revealSec": null
+        },
+        "recapOpen": false,
+        "continueState": null,
+        "recapClock": null,
+        "recapClockStartedAt": null
+      }
+    },
+    "retained": {
+      "settlement": {
+        "visible": false,
+        "regionId": "R14",
+        "activeTab": "overview"
+      },
+      "map": {
+        "visible": true,
+        "detailVisible": false,
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 1
+        },
+        "focusAnimating": false,
+        "panelPhase": "closed",
+        "panelAnimating": false,
+        "panelPose": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        },
+        "artReady": false,
+        "artPrepared": null
+      },
+      "graph": {
+        "visible": true,
+        "minSec": 0,
+        "maxSec": 3918,
+        "scrubDrawSignature": "0|1959|0|0|0:3918|Viewing forecast|Civilization • All player settlements|1959",
+        "plotRect": {
+          "x": 573.855,
+          "y": 884.1,
+          "width": 1276.275,
+          "height": 145.86
+        },
+        "plotRectSpace": "stage-retained-transform",
+        "scrubSec": 1959,
+        "isScrubbing": false,
+        "latchedForecastScrubSec": 1959,
+        "historyEndSec": 0,
+        "revealedSec": 3918,
+        "browseCapSec": 3918,
+        "targetSec": 3918,
+        "computedSec": 3918,
+        "requestedSec": 3920,
+        "pending": true,
+        "cacheVersion": 570,
+        "subjectKey": "civilization",
+        "asyncToken": "sig:4",
+        "asyncPollMs": 69348.39999997616,
+        "asyncHistoryEndSec": 0,
+        "asyncRequestedSec": 3920,
+        "asyncComputedSec": 3918,
+        "revealHistoryEndSec": 0,
+        "animatedSec": 3918,
+        "visibleEndSec": 3918,
+        "startSecOverride": null,
+        "readinessCapSec": null,
+        "capEndSec": null,
+        "paused": true,
+        "presentationSuspended": false,
+        "openingRevealSec": null
+      },
+      "transport": {
+        "target": 1,
+        "current": 1,
+        "visualSec": 1959.2499999999998
+      },
+      "timeControls": {
+        "visible": true,
+        "lever": {
+          "visible": true,
+          "labelVisible": true,
+          "label": "x1.0",
+          "handleY": 52.25197896063601
+        }
+      },
+      "momentum": {
+        "active": false,
+        "coasting": false,
+        "velocity": 0,
+        "diskId": null,
+        "visualTargetSec": null
+      },
+      "life": {
+        "visible": false,
+        "selectedCandidateNodeId": null,
+        "displayedVassalId": null,
+        "entryConfirmationOpen": false,
+        "entryVisible": false,
+        "entryOpen": false,
+        "entryPhase": "closed",
+        "entryPoint": null
+      },
+      "decision": {
+        "open": false,
+        "nodeId": null,
+        "renderedVisible": false,
+        "renderedPose": {
+          "x": 0,
+          "y": 0,
+          "alpha": 0
+        },
+        "renderedTransition": {
+          "visible": false,
+          "alpha": 1,
+          "rect": {
+            "x": 1176,
+            "y": 452,
+            "width": 72,
+            "height": 72
+          }
+        },
+        "phase": "closed",
+        "pendingInteractionCount": null,
+        "family": null,
+        "selectedOptionId": null,
+        "resolving": null,
+        "shopTag": null,
+        "offerIds": null,
+        "purchaseOrder": null,
+        "boardPracticeIds": null,
+        "observedDecisionNodeId": null,
+        "boardRegionId": null,
+        "artReady": false,
+        "artPrepared": null
+      },
+      "processingVisible": false,
+      "recap": {
+        "open": false,
+        "continueState": null,
+        "clockStartedAt": null,
+        "clock": null
+      }
+    }
+  },
+  "pressed": {
+    "timing": {
+      "version": 2,
+      "mode": "map",
+      "selectedRegionId": "R14",
+      "regionSelectionActive": false,
+      "runner": {
+        "frontierSec": 0,
+        "cursorSec": 0,
+        "viewedSec": 1175,
+        "previewActive": true,
+        "forecastPreview": true,
+        "revision": 0,
+        "actionCount": 0,
+        "checkpointCount": 1
+      },
+      "opening": {
+        "phase": "completed",
+        "preparation": "idle",
+        "coverageSec": 3918,
+        "elapsedSec": 5,
+        "lossSec": 3918
+      },
+      "map": {
+        "visible": true,
+        "detailVisible": false,
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 1
+        },
+        "focusAnimating": false,
+        "panelPhase": "closed",
+        "panelAnimating": false,
+        "panelPose": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        },
+        "artReady": false,
+        "artPrepared": null
+      },
+      "graph": {
+        "visible": true,
+        "minSec": 0,
+        "maxSec": 3918,
+        "scrubDrawSignature": "1|1175|0|0|0:3918||Civilization • All player settlements|1175",
+        "plotRect": {
+          "x": 573.855,
+          "y": 884.1,
+          "width": 1276.275,
+          "height": 145.86
+        },
+        "plotRectSpace": "stage-retained-transform",
+        "scrubSec": 1175,
+        "isScrubbing": true,
+        "latchedForecastScrubSec": 1175,
+        "historyEndSec": 0,
+        "revealedSec": 3918,
+        "browseCapSec": 3918,
+        "targetSec": 3918,
+        "computedSec": 3918,
+        "requestedSec": 3920,
+        "pending": true,
+        "cacheVersion": 578,
+        "subjectKey": "civilization",
+        "asyncToken": "sig:4",
+        "asyncPollMs": 69658.79999998212,
+        "asyncHistoryEndSec": 0,
+        "asyncRequestedSec": 3920,
+        "asyncComputedSec": 3918,
+        "revealHistoryEndSec": 0,
+        "animatedSec": 3918,
+        "visibleEndSec": 3918,
+        "startSecOverride": null,
+        "readinessCapSec": null,
+        "capEndSec": null,
+        "paused": true,
+        "presentationSuspended": false,
+        "openingRevealSec": null
+      },
+      "life": {
+        "visible": false,
+        "selectedCandidateNodeId": null,
+        "displayedVassalId": null,
+        "entryConfirmationOpen": false,
+        "entryOpen": false,
+        "entryVisible": false,
+        "entryPhase": "closed",
+        "decisionOpen": false,
+        "decisionNodeId": null,
+        "decisionPhase": "closed",
+        "pendingInteractionCount": null,
+        "family": null,
+        "selectedOptionId": null,
+        "resolving": null,
+        "shopTag": null,
+        "offerIds": null,
+        "purchaseOrder": null,
+        "boardPracticeIds": null,
+        "observedDecisionNodeId": null,
+        "boardRegionId": null,
+        "decisionArtReady": false,
+        "decisionArtPrepared": null,
+        "entryPoint": null,
+        "processingPhase": null,
+        "sourceRevision": 0,
+        "ready": null,
+        "processing": {
+          "sourceRevision": 0,
+          "sourceSec": 0,
+          "baseRevision": 0,
+          "baseSec": 0,
+          "timelineMatches": true,
+          "sourceMatches": true,
+          "requestId": 2,
+          "revision": 2,
+          "adopting": false,
+          "workerActive": false,
+          "draftActive": false,
+          "draftActionCount": 0,
+          "jobActive": false,
+          "phase": null,
+          "error": null,
+          "accepted": null,
+          "jobReady": null,
+          "ready": null,
+          "targetSec": null,
+          "computedSec": null,
+          "revealSec": null
+        },
+        "recapOpen": false,
+        "continueState": null,
+        "recapClock": null,
+        "recapClockStartedAt": null
+      }
+    },
+    "retained": {
+      "settlement": {
+        "visible": false,
+        "regionId": "R14",
+        "activeTab": "overview"
+      },
+      "map": {
+        "visible": true,
+        "detailVisible": false,
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 1
+        },
+        "focusAnimating": false,
+        "panelPhase": "closed",
+        "panelAnimating": false,
+        "panelPose": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        },
+        "artReady": false,
+        "artPrepared": null
+      },
+      "graph": {
+        "visible": true,
+        "minSec": 0,
+        "maxSec": 3918,
+        "scrubDrawSignature": "1|1175|0|0|0:3918||Civilization • All player settlements|1175",
+        "plotRect": {
+          "x": 573.855,
+          "y": 884.1,
+          "width": 1276.275,
+          "height": 145.86
+        },
+        "plotRectSpace": "stage-retained-transform",
+        "scrubSec": 1175,
+        "isScrubbing": true,
+        "latchedForecastScrubSec": 1175,
+        "historyEndSec": 0,
+        "revealedSec": 3918,
+        "browseCapSec": 3918,
+        "targetSec": 3918,
+        "computedSec": 3918,
+        "requestedSec": 3920,
+        "pending": true,
+        "cacheVersion": 578,
+        "subjectKey": "civilization",
+        "asyncToken": "sig:4",
+        "asyncPollMs": 69658.79999998212,
+        "asyncHistoryEndSec": 0,
+        "asyncRequestedSec": 3920,
+        "asyncComputedSec": 3918,
+        "revealHistoryEndSec": 0,
+        "animatedSec": 3918,
+        "visibleEndSec": 3918,
+        "startSecOverride": null,
+        "readinessCapSec": null,
+        "capEndSec": null,
+        "paused": true,
+        "presentationSuspended": false,
+        "openingRevealSec": null
+      },
+      "transport": {
+        "target": 0,
+        "current": 0,
+        "visualSec": 1959.3665999999998
+      },
+      "timeControls": {
+        "visible": true,
+        "lever": {
+          "visible": true,
+          "labelVisible": true,
+          "label": "HOLD",
+          "handleY": 84
+        }
+      },
+      "momentum": {
+        "active": false,
+        "coasting": false,
+        "velocity": 0,
+        "diskId": null,
+        "visualTargetSec": null
+      },
+      "life": {
+        "visible": false,
+        "selectedCandidateNodeId": null,
+        "displayedVassalId": null,
+        "entryConfirmationOpen": false,
+        "entryVisible": false,
+        "entryOpen": false,
+        "entryPhase": "closed",
+        "entryPoint": null
+      },
+      "decision": {
+        "open": false,
+        "nodeId": null,
+        "renderedVisible": false,
+        "renderedPose": {
+          "x": 0,
+          "y": 0,
+          "alpha": 0
+        },
+        "renderedTransition": {
+          "visible": false,
+          "alpha": 1,
+          "rect": {
+            "x": 1176,
+            "y": 452,
+            "width": 72,
+            "height": 72
+          }
+        },
+        "phase": "closed",
+        "pendingInteractionCount": null,
+        "family": null,
+        "selectedOptionId": null,
+        "resolving": null,
+        "shopTag": null,
+        "offerIds": null,
+        "purchaseOrder": null,
+        "boardPracticeIds": null,
+        "observedDecisionNodeId": null,
+        "boardRegionId": null,
+        "artReady": false,
+        "artPrepared": null
+      },
+      "processingVisible": false,
+      "recap": {
+        "open": false,
+        "continueState": null,
+        "clockStartedAt": null,
+        "clock": null
+      }
+    }
+  },
+  "host": {
+    "id": 2,
+    "name": "hold-press",
+    "armed": 69459.59999999404,
+    "started": 69461.59999999404,
+    "timeoutMs": 10000,
+    "event": "pointerdown",
+    "frames": [
+      {
+        "time": 69481.79999998212,
+        "dt": 20.69999998807907
+      },
+      {
+        "time": 69538.39999997616,
+        "dt": 56.599999994039536
+      },
+      {
+        "time": 69794.09999999404,
+        "dt": 255.7000000178814
+      },
+      {
+        "time": 69822,
+        "dt": 27.900000005960464
+      },
+      {
+        "time": 69839.19999998808,
+        "dt": 17.19999998807907
+      },
+      {
+        "time": 69856.29999998212,
+        "dt": 17.099999994039536
+      },
+      {
+        "time": 70103.29999998212,
+        "dt": 247
+      },
+      {
+        "time": 70369.79999998212,
+        "dt": 266.5
+      },
+      {
+        "time": 70390.59999999404,
+        "dt": 20.80000001192093
+      },
+      {
+        "time": 70406,
+        "dt": 15.400000005960464
+      },
+      {
+        "time": 70586.5,
+        "dt": 180.5
+      },
+      {
+        "time": 70842.29999998212,
+        "dt": 255.7999999821186
+      },
+      {
+        "time": 70862.89999997616,
+        "dt": 20.599999994039536
+      },
+      {
+        "time": 70878.69999998808,
+        "dt": 15.800000011920929
+      },
+      {
+        "time": 71048.59999999404,
+        "dt": 169.90000000596046
+      },
+      {
+        "time": 71273.09999999404,
+        "dt": 224.5
+      },
+      {
+        "time": 71312.09999999404,
+        "dt": 39
+      },
+      {
+        "time": 71623.89999997616,
+        "dt": 311.7999999821186
+      },
+      {
+        "time": 71848.69999998808,
+        "dt": 224.80000001192093
+      },
+      {
+        "time": 71871.19999998808,
+        "dt": 22.5
+      },
+      {
+        "time": 71890.19999998808,
+        "dt": 19
+      },
+      {
+        "time": 71999.59999999404,
+        "dt": 109.40000000596046
+      },
+      {
+        "time": 72240.19999998808,
+        "dt": 240.59999999403954
+      },
+      {
+        "time": 72261.89999997616,
+        "dt": 21.69999998807907
+      },
+      {
+        "time": 72518.89999997616,
+        "dt": 257
+      },
+      {
+        "time": 72726.59999999404,
+        "dt": 207.7000000178814
+      },
+      {
+        "time": 72749,
+        "dt": 22.400000005960464
+      },
+      {
+        "time": 73012.19999998808,
+        "dt": 263.19999998807907
+      },
+      {
+        "time": 73087.29999998212,
+        "dt": 75.09999999403954
+      },
+      {
+        "time": 73107.79999998212,
+        "dt": 20.5
+      }
+    ],
+    "longTasks": [
+      {
+        "start": 69500.89999997616,
+        "duration": 284
+      },
+      {
+        "start": 69874.59999999404,
+        "duration": 489
+      },
+      {
+        "start": 70420.5,
+        "duration": 413
+      },
+      {
+        "start": 70894.09999999404,
+        "duration": 371
+      },
+      {
+        "start": 71328.79999998212,
+        "duration": 512
+      },
+      {
+        "start": 71908.29999998212,
+        "duration": 324
+      },
+      {
+        "start": 72279.79999998212,
+        "duration": 445
+      },
+      {
+        "start": 72748.79999998212,
+        "duration": 260
+      },
+      {
+        "start": 73012,
+        "duration": 73
+      }
+    ],
+    "probes": 3,
+    "probeCpuMs": 1.4000000059604645,
+    "workerOffset": 38,
+    "inputCount": 1,
+    "lastTerminalInvalidation": {
+      "time": 73010.69999998808,
+      "reason": "predicate identity changed"
+    },
+    "handlerStarted": 69502.69999998808,
+    "eventTimeStamp": 69461.59999999404,
+    "inputQueueMs": 41.099999994039536,
+    "trustedInput": true,
+    "inputType": "pointerdown",
+    "probeKey": "drawn-hold",
+    "terminalPredicateKey": "drawn-hold",
+    "terminalRevalidations": 4,
+    "revalidationCpuMs": 0.6000000238418579,
+    "hostFinishCalledAt": 73187.89999997616,
+    "semanticEnd": 73011,
+    "finished": 73106.29999998212,
+    "completionClock": "browser predicate observation + double-rAF opportunity; not physical scanout or completion of all later app work",
+    "witness": {
+      "hold": true
+    },
+    "elapsedMs": 3644.699999988079,
+    "timeout": false,
+    "terminalReadinessMs": 3549.4000000059605,
+    "firstFeedbackMs": null,
+    "feedbackScope": "first visible feedback unmeasured; terminal readiness must not be relabelled as feedback",
+    "semanticToFrameOpportunityMs": 95.2999999821186,
+    "finishCallRelativeToFrameOpportunityMs": 81.59999999403954,
+    "postSemanticToFinishCallMs": 176.89999997615814,
+    "gapScope": "post-marker interval may contain app work, later stalls and driver delivery; no pure-overhead attribution",
+    "armToDispatchMs": 2,
+    "workerEvents": [],
+    "saveEvents": [],
+    "frameObservationEndMs": 73188.5,
+    "frameScope": "per-operation observations may extend past latency marker; session window required for continuous-stall claims"
+  },
+  "feedback": {
+    "record": {
+      "version": 3,
+      "generation": 1,
+      "operationId": 2,
+      "binding": "scrub",
+      "event": "pointerdown",
+      "phase": "completed",
+      "armedAtMs": 69459.79999998212,
+      "startedAtMs": 69461.59999999404,
+      "hostHandlerAtMs": 69502.69999998808,
+      "inputQueueMs": 41.099999994039536,
+      "hostCaptureReadMs": null,
+      "observerHandlerAtMs": 69503,
+      "hostToObserverMs": 0.30000001192092896,
+      "preHandlerAtMs": 69501.69999998808,
+      "preHandlerQueueMs": 40.099999994039536,
+      "preHandlerCue": {
+        "responseKey": "[[\"0\",\"1959\"],[\"x1.0\",52.25197896063601]]",
+        "sourceKey": "1793840006627.4:scrub",
+        "sourceValid": true,
+        "visible": true
+      },
+      "preHandlerOrdering": "window capture; adapter must prove this precedes its app mutation path",
+      "baseline": {
+        "responseKey": "[[\"0\",\"1959\"],[\"x1.0\",52.25197896063601]]",
+        "sourceKey": "1793840006627.4:scrub",
+        "sourceValid": true,
+        "visible": true
+      },
+      "inputBaselineMatches": true,
+      "trustedInput": true,
+      "postDispatchAtMs": 69787.09999999404,
+      "firstResponseSemanticMs": 326.09999999403954,
+      "firstChangedAtMs": 69787.69999998808,
+      "firstChangedFrameAtMs": 69815.09999999404,
+      "firstFeedbackAtMs": 69838.19999998808,
+      "firstFeedbackMs": 376.59999999403954,
+      "lateValidatedAtMs": null,
+      "lateValidatedFeedbackMs": null,
+      "frameValidations": 2,
+      "observedArmedEventCount": 1,
+      "readCount": 5,
+      "readCpuMs": 3.4000000059604645,
+      "maxReadCpuMs": 0.800000011920929,
+      "lastCueReadAtMs": 69838.19999998808,
+      "lastFrameCueReadAtMs": 69838.19999998808,
+      "lastNegativeFrameCueAtMs": null,
+      "readSamples": [
+        {
+          "atMs": 69459.79999998212,
+          "cpuMs": 0.800000011920929,
+          "label": "before-input-arm-baseline",
+          "failure": null,
+          "cue": {
+            "responseKey": "[[\"0\",\"1959\"],[\"x1.0\",52.25197896063601]]",
+            "sourceKey": "1793840006627.4:scrub",
+            "sourceValid": true,
+            "visible": true
+          }
+        },
+        {
+          "atMs": 69501.69999998808,
+          "cpuMs": 0.5999999940395355,
+          "label": "input-window-capture-before-app",
+          "failure": null,
+          "cue": {
+            "responseKey": "[[\"0\",\"1959\"],[\"x1.0\",52.25197896063601]]",
+            "sourceKey": "1793840006627.4:scrub",
+            "sourceValid": true,
+            "visible": true
+          }
+        },
+        {
+          "atMs": 69787.29999998212,
+          "cpuMs": 0.4000000059604645,
+          "label": "post-dispatch-timer-task",
+          "failure": null,
+          "cue": {
+            "responseKey": "[[\"1\",\"1175\"],[\"HOLD\",84]]",
+            "sourceKey": "1793840006627.4:scrub",
+            "sourceValid": true,
+            "visible": true
+          }
+        },
+        {
+          "atMs": 69814.09999999404,
+          "cpuMs": 0.7999999821186066,
+          "label": "animation-frame",
+          "failure": null,
+          "cue": {
+            "responseKey": "[[\"1\",\"1175\"],[\"HOLD\",84]]",
+            "sourceKey": "1793840006627.4:scrub",
+            "sourceValid": true,
+            "visible": true
+          }
+        },
+        {
+          "atMs": 69837.19999998808,
+          "cpuMs": 0.800000011920929,
+          "label": "animation-frame",
+          "failure": null,
+          "cue": {
+            "responseKey": "[[\"1\",\"1175\"],[\"HOLD\",84]]",
+            "sourceKey": "1793840006627.4:scrub",
+            "sourceValid": true,
+            "visible": true
+          }
+        }
+      ],
+      "readSamplesTruncated": false,
+      "rejectedCandidates": [],
+      "rejectedCandidatesTruncated": false,
+      "observerError": null,
+      "error": null,
+      "censor": null,
+      "stoppedAtMs": 69838.29999998212,
+      "hostAtStop": {
+        "status": "active",
+        "globalRuntimeMatches": true,
+        "activeMatches": true,
+        "recordedLast": false,
+        "error": null,
+        "timeout": false,
+        "startedAtMs": 69461.59999999404,
+        "handlerAtMs": 69502.69999998808,
+        "inputQueueMs": 41.099999994039536,
+        "finishedAtMs": null,
+        "trustedInput": true
+      },
+      "hostAtCollection": {
+        "status": "completed",
+        "globalRuntimeMatches": true,
+        "activeMatches": false,
+        "recordedLast": true,
+        "error": null,
+        "timeout": false,
+        "startedAtMs": 69461.59999999404,
+        "handlerAtMs": 69502.69999998808,
+        "inputQueueMs": 41.099999994039536,
+        "finishedAtMs": 73106.29999998212,
+        "trustedInput": true
+      },
+      "scope": "action-related retained cue plus double-rAF opportunity; no physical scanout claim",
+      "detectionScope": "cancellable post-dispatch timer task, then frame probes; task scheduling delay included",
+      "validatedCue": {
+        "responseKey": "[[\"1\",\"1175\"],[\"HOLD\",84]]",
+        "sourceKey": "1793840006627.4:scrub",
+        "sourceValid": true,
+        "visible": true
+      },
+      "overallStatus": "completed",
+      "hostEndAtMs": 73106.29999998212,
+      "completionAtMs": 73106.29999998212,
+      "markerAfterHostEnd": false,
+      "markerAfterCompletion": false,
+      "censorAtMs": null,
+      "censorScope": "no supported negative-frame bound",
+      "comparisonEligible": false,
+      "eligibilityScope": "construction draft; adapters/controls/overhead/native corroboration unaudited",
+      "collectionCpuMs": 0.4000000059604645,
+      "collectionScope": "outside host clock; validation and full record copies; host RPC separately measured"
+    },
+    "export": {
+      "records": [
+        {
+          "version": 3,
+          "generation": 1,
+          "operationId": 2,
+          "binding": "scrub",
+          "event": "pointerdown",
+          "phase": "completed",
+          "armedAtMs": 69459.79999998212,
+          "startedAtMs": 69461.59999999404,
+          "hostHandlerAtMs": 69502.69999998808,
+          "inputQueueMs": 41.099999994039536,
+          "hostCaptureReadMs": null,
+          "observerHandlerAtMs": 69503,
+          "hostToObserverMs": 0.30000001192092896,
+          "preHandlerAtMs": 69501.69999998808,
+          "preHandlerQueueMs": 40.099999994039536,
+          "preHandlerCue": {
+            "responseKey": "[[\"0\",\"1959\"],[\"x1.0\",52.25197896063601]]",
+            "sourceKey": "1793840006627.4:scrub",
+            "sourceValid": true,
+            "visible": true
+          },
+          "preHandlerOrdering": "window capture; adapter must prove this precedes its app mutation path",
+          "baseline": {
+            "responseKey": "[[\"0\",\"1959\"],[\"x1.0\",52.25197896063601]]",
+            "sourceKey": "1793840006627.4:scrub",
+            "sourceValid": true,
+            "visible": true
+          },
+          "inputBaselineMatches": true,
+          "trustedInput": true,
+          "postDispatchAtMs": 69787.09999999404,
+          "firstResponseSemanticMs": 326.09999999403954,
+          "firstChangedAtMs": 69787.69999998808,
+          "firstChangedFrameAtMs": 69815.09999999404,
+          "firstFeedbackAtMs": 69838.19999998808,
+          "firstFeedbackMs": 376.59999999403954,
+          "lateValidatedAtMs": null,
+          "lateValidatedFeedbackMs": null,
+          "frameValidations": 2,
+          "observedArmedEventCount": 1,
+          "readCount": 5,
+          "readCpuMs": 3.4000000059604645,
+          "maxReadCpuMs": 0.800000011920929,
+          "lastCueReadAtMs": 69838.19999998808,
+          "lastFrameCueReadAtMs": 69838.19999998808,
+          "lastNegativeFrameCueAtMs": null,
+          "readSamples": [
+            {
+              "atMs": 69459.79999998212,
+              "cpuMs": 0.800000011920929,
+              "label": "before-input-arm-baseline",
+              "failure": null,
+              "cue": {
+                "responseKey": "[[\"0\",\"1959\"],[\"x1.0\",52.25197896063601]]",
+                "sourceKey": "1793840006627.4:scrub",
+                "sourceValid": true,
+                "visible": true
+              }
+            },
+            {
+              "atMs": 69501.69999998808,
+              "cpuMs": 0.5999999940395355,
+              "label": "input-window-capture-before-app",
+              "failure": null,
+              "cue": {
+                "responseKey": "[[\"0\",\"1959\"],[\"x1.0\",52.25197896063601]]",
+                "sourceKey": "1793840006627.4:scrub",
+                "sourceValid": true,
+                "visible": true
+              }
+            },
+            {
+              "atMs": 69787.29999998212,
+              "cpuMs": 0.4000000059604645,
+              "label": "post-dispatch-timer-task",
+              "failure": null,
+              "cue": {
+                "responseKey": "[[\"1\",\"1175\"],[\"HOLD\",84]]",
+                "sourceKey": "1793840006627.4:scrub",
+                "sourceValid": true,
+                "visible": true
+              }
+            },
+            {
+              "atMs": 69814.09999999404,
+              "cpuMs": 0.7999999821186066,
+              "label": "animation-frame",
+              "failure": null,
+              "cue": {
+                "responseKey": "[[\"1\",\"1175\"],[\"HOLD\",84]]",
+                "sourceKey": "1793840006627.4:scrub",
+                "sourceValid": true,
+                "visible": true
+              }
+            },
+            {
+              "atMs": 69837.19999998808,
+              "cpuMs": 0.800000011920929,
+              "label": "animation-frame",
+              "failure": null,
+              "cue": {
+                "responseKey": "[[\"1\",\"1175\"],[\"HOLD\",84]]",
+                "sourceKey": "1793840006627.4:scrub",
+                "sourceValid": true,
+                "visible": true
+              }
+            }
+          ],
+          "readSamplesTruncated": false,
+          "rejectedCandidates": [],
+          "rejectedCandidatesTruncated": false,
+          "observerError": null,
+          "error": null,
+          "censor": null,
+          "stoppedAtMs": 69838.29999998212,
+          "hostAtStop": {
+            "status": "active",
+            "globalRuntimeMatches": true,
+            "activeMatches": true,
+            "recordedLast": false,
+            "error": null,
+            "timeout": false,
+            "startedAtMs": 69461.59999999404,
+            "handlerAtMs": 69502.69999998808,
+            "inputQueueMs": 41.099999994039536,
+            "finishedAtMs": null,
+            "trustedInput": true
+          },
+          "hostAtCollection": {
+            "status": "completed",
+            "globalRuntimeMatches": true,
+            "activeMatches": false,
+            "recordedLast": true,
+            "error": null,
+            "timeout": false,
+            "startedAtMs": 69461.59999999404,
+            "handlerAtMs": 69502.69999998808,
+            "inputQueueMs": 41.099999994039536,
+            "finishedAtMs": 73106.29999998212,
+            "trustedInput": true
+          },
+          "scope": "action-related retained cue plus double-rAF opportunity; no physical scanout claim",
+          "detectionScope": "cancellable post-dispatch timer task, then frame probes; task scheduling delay included",
+          "validatedCue": {
+            "responseKey": "[[\"1\",\"1175\"],[\"HOLD\",84]]",
+            "sourceKey": "1793840006627.4:scrub",
+            "sourceValid": true,
+            "visible": true
+          },
+          "overallStatus": "completed",
+          "hostEndAtMs": 73106.29999998212,
+          "completionAtMs": 73106.29999998212,
+          "markerAfterHostEnd": false,
+          "markerAfterCompletion": false,
+          "censorAtMs": null,
+          "censorScope": "no supported negative-frame bound",
+          "comparisonEligible": false,
+          "eligibilityScope": "construction draft; adapters/controls/overhead/native corroboration unaudited",
+          "collectionCpuMs": 0.4000000059604645,
+          "collectionScope": "outside host clock; validation and full record copies; host RPC separately measured"
+        }
+      ],
+      "status": {
+        "generation": 1,
+        "createdRecords": 2,
+        "collectedRecords": 2,
+        "exportedRecords": 2,
+        "exportBatches": 2,
+        "rejectedArms": 0,
+        "failedArms": 0,
+        "explicitReplacements": 0,
+        "active": false,
+        "phase": null,
+        "error": null,
+        "firstFeedbackAtMs": null,
+        "firstFeedbackMs": null,
+        "retainedRecords": 0,
+        "maxRetainedOperations": 16,
+        "exportScope": "export means drained to caller, not durable disk persistence"
+      },
+      "exportCpuMs": 0.19999998807907104,
+      "scope": "outside-clock export to caller; caller must persist and retain its own failures"
+    },
+    "collectionWait": {
+      "startMs": 73221.39999997616,
+      "endMs": 73221.39999997616,
+      "limitMs": 1000,
+      "expired": false,
+      "scope": "bounded post-HC-marker observation; original latency/terminal fields unchanged; no physical first-pixel claim",
+      "originalHostEndAtMs": 73106.29999998212,
+      "elapsedMs": 0,
+      "overrun": false
+    }
+  },
+  "released": {
+    "timing": {
+      "version": 2,
+      "mode": "map",
+      "selectedRegionId": "R14",
+      "regionSelectionActive": false,
+      "runner": {
+        "frontierSec": 0,
+        "cursorSec": 0,
+        "viewedSec": 1881,
+        "previewActive": true,
+        "forecastPreview": true,
+        "revision": 0,
+        "actionCount": 0,
+        "checkpointCount": 1
+      },
+      "opening": {
+        "phase": "completed",
+        "preparation": "idle",
+        "coverageSec": 3918,
+        "elapsedSec": 5,
+        "lossSec": 3918
+      },
+      "map": {
+        "visible": true,
+        "detailVisible": false,
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 1
+        },
+        "focusAnimating": false,
+        "panelPhase": "closed",
+        "panelAnimating": false,
+        "panelPose": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        },
+        "artReady": false,
+        "artPrepared": null
+      },
+      "graph": {
+        "visible": true,
+        "minSec": 0,
+        "maxSec": 3918,
+        "scrubDrawSignature": "0|1881|0|0|0:3918|Viewing forecast|Civilization • All player settlements|1881",
+        "plotRect": {
+          "x": 573.855,
+          "y": 884.1,
+          "width": 1276.275,
+          "height": 145.86
+        },
+        "plotRectSpace": "stage-retained-transform",
+        "scrubSec": 1881,
+        "isScrubbing": false,
+        "latchedForecastScrubSec": 1881,
+        "historyEndSec": 0,
+        "revealedSec": 3918,
+        "browseCapSec": 3918,
+        "targetSec": 3918,
+        "computedSec": 3918,
+        "requestedSec": 3920,
+        "pending": true,
+        "cacheVersion": 624,
+        "subjectKey": "civilization",
+        "asyncToken": "sig:4",
+        "asyncPollMs": 73195.29999998212,
+        "asyncHistoryEndSec": 0,
+        "asyncRequestedSec": 3920,
+        "asyncComputedSec": 3918,
+        "revealHistoryEndSec": 0,
+        "animatedSec": 3918,
+        "visibleEndSec": 3918,
+        "startSecOverride": null,
+        "readinessCapSec": null,
+        "capEndSec": null,
+        "paused": true,
+        "presentationSuspended": false,
+        "openingRevealSec": null
+      },
+      "life": {
+        "visible": false,
+        "selectedCandidateNodeId": null,
+        "displayedVassalId": null,
+        "entryConfirmationOpen": false,
+        "entryOpen": false,
+        "entryVisible": false,
+        "entryPhase": "closed",
+        "decisionOpen": false,
+        "decisionNodeId": null,
+        "decisionPhase": "closed",
+        "pendingInteractionCount": null,
+        "family": null,
+        "selectedOptionId": null,
+        "resolving": null,
+        "shopTag": null,
+        "offerIds": null,
+        "purchaseOrder": null,
+        "boardPracticeIds": null,
+        "observedDecisionNodeId": null,
+        "boardRegionId": null,
+        "decisionArtReady": false,
+        "decisionArtPrepared": null,
+        "entryPoint": null,
+        "processingPhase": null,
+        "sourceRevision": 0,
+        "ready": null,
+        "processing": {
+          "sourceRevision": 0,
+          "sourceSec": 0,
+          "baseRevision": 0,
+          "baseSec": 0,
+          "timelineMatches": true,
+          "sourceMatches": true,
+          "requestId": 2,
+          "revision": 2,
+          "adopting": false,
+          "workerActive": false,
+          "draftActive": false,
+          "draftActionCount": 0,
+          "jobActive": false,
+          "phase": null,
+          "error": null,
+          "accepted": null,
+          "jobReady": null,
+          "ready": null,
+          "targetSec": null,
+          "computedSec": null,
+          "revealSec": null
+        },
+        "recapOpen": false,
+        "continueState": null,
+        "recapClock": null,
+        "recapClockStartedAt": null
+      }
+    },
+    "retained": {
+      "settlement": {
+        "visible": false,
+        "regionId": "R14",
+        "activeTab": "overview"
+      },
+      "map": {
+        "visible": true,
+        "detailVisible": false,
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 1
+        },
+        "focusAnimating": false,
+        "panelPhase": "closed",
+        "panelAnimating": false,
+        "panelPose": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        },
+        "artReady": false,
+        "artPrepared": null
+      },
+      "graph": {
+        "visible": true,
+        "minSec": 0,
+        "maxSec": 3918,
+        "scrubDrawSignature": "0|1881|0|0|0:3918|Viewing forecast|Civilization • All player settlements|1881",
+        "plotRect": {
+          "x": 573.855,
+          "y": 884.1,
+          "width": 1276.275,
+          "height": 145.86
+        },
+        "plotRectSpace": "stage-retained-transform",
+        "scrubSec": 1881,
+        "isScrubbing": false,
+        "latchedForecastScrubSec": 1881,
+        "historyEndSec": 0,
+        "revealedSec": 3918,
+        "browseCapSec": 3918,
+        "targetSec": 3918,
+        "computedSec": 3918,
+        "requestedSec": 3920,
+        "pending": true,
+        "cacheVersion": 624,
+        "subjectKey": "civilization",
+        "asyncToken": "sig:4",
+        "asyncPollMs": 73195.29999998212,
+        "asyncHistoryEndSec": 0,
+        "asyncRequestedSec": 3920,
+        "asyncComputedSec": 3918,
+        "revealHistoryEndSec": 0,
+        "animatedSec": 3918,
+        "visibleEndSec": 3918,
+        "startSecOverride": null,
+        "readinessCapSec": null,
+        "capEndSec": null,
+        "paused": true,
+        "presentationSuspended": false,
+        "openingRevealSec": null
+      },
+      "transport": {
+        "target": 0,
+        "current": 0,
+        "visualSec": 1959.3665999999998
+      },
+      "timeControls": {
+        "visible": true,
+        "lever": {
+          "visible": true,
+          "labelVisible": true,
+          "label": "HOLD",
+          "handleY": 84
+        }
+      },
+      "momentum": {
+        "active": false,
+        "coasting": false,
+        "velocity": 0,
+        "diskId": null,
+        "visualTargetSec": null
+      },
+      "life": {
+        "visible": false,
+        "selectedCandidateNodeId": null,
+        "displayedVassalId": null,
+        "entryConfirmationOpen": false,
+        "entryVisible": false,
+        "entryOpen": false,
+        "entryPhase": "closed",
+        "entryPoint": null
+      },
+      "decision": {
+        "open": false,
+        "nodeId": null,
+        "renderedVisible": false,
+        "renderedPose": {
+          "x": 0,
+          "y": 0,
+          "alpha": 0
+        },
+        "renderedTransition": {
+          "visible": false,
+          "alpha": 1,
+          "rect": {
+            "x": 1176,
+            "y": 452,
+            "width": 72,
+            "height": 72
+          }
+        },
+        "phase": "closed",
+        "pendingInteractionCount": null,
+        "family": null,
+        "selectedOptionId": null,
+        "resolving": null,
+        "shopTag": null,
+        "offerIds": null,
+        "purchaseOrder": null,
+        "boardPracticeIds": null,
+        "observedDecisionNodeId": null,
+        "boardRegionId": null,
+        "artReady": false,
+        "artPrepared": null
+      },
+      "processingVisible": false,
+      "recap": {
+        "open": false,
+        "continueState": null,
+        "clockStartedAt": null,
+        "clock": null
+      }
+    }
+  },
+  "settled": {
+    "timing": {
+      "version": 2,
+      "mode": "map",
+      "selectedRegionId": "R14",
+      "regionSelectionActive": false,
+      "runner": {
+        "frontierSec": 0,
+        "cursorSec": 0,
+        "viewedSec": 1881,
+        "previewActive": true,
+        "forecastPreview": true,
+        "revision": 0,
+        "actionCount": 0,
+        "checkpointCount": 1
+      },
+      "opening": {
+        "phase": "completed",
+        "preparation": "idle",
+        "coverageSec": 3918,
+        "elapsedSec": 5,
+        "lossSec": 3918
+      },
+      "map": {
+        "visible": true,
+        "detailVisible": false,
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 1
+        },
+        "focusAnimating": false,
+        "panelPhase": "closed",
+        "panelAnimating": false,
+        "panelPose": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        },
+        "artReady": false,
+        "artPrepared": null
+      },
+      "graph": {
+        "visible": true,
+        "minSec": 0,
+        "maxSec": 3918,
+        "scrubDrawSignature": "0|1881|0|0|0:3918|Viewing forecast|Civilization • All player settlements|1881",
+        "plotRect": {
+          "x": 573.855,
+          "y": 884.1,
+          "width": 1276.275,
+          "height": 145.86
+        },
+        "plotRectSpace": "stage-retained-transform",
+        "scrubSec": 1881,
+        "isScrubbing": false,
+        "latchedForecastScrubSec": 1881,
+        "historyEndSec": 0,
+        "revealedSec": 3918,
+        "browseCapSec": 3918,
+        "targetSec": 3918,
+        "computedSec": 3918,
+        "requestedSec": 3920,
+        "pending": true,
+        "cacheVersion": 638,
+        "subjectKey": "civilization",
+        "asyncToken": "sig:4",
+        "asyncPollMs": 73582,
+        "asyncHistoryEndSec": 0,
+        "asyncRequestedSec": 3920,
+        "asyncComputedSec": 3918,
+        "revealHistoryEndSec": 0,
+        "animatedSec": 3918,
+        "visibleEndSec": 3918,
+        "startSecOverride": null,
+        "readinessCapSec": null,
+        "capEndSec": null,
+        "paused": true,
+        "presentationSuspended": false,
+        "openingRevealSec": null
+      },
+      "life": {
+        "visible": false,
+        "selectedCandidateNodeId": null,
+        "displayedVassalId": null,
+        "entryConfirmationOpen": false,
+        "entryOpen": false,
+        "entryVisible": false,
+        "entryPhase": "closed",
+        "decisionOpen": false,
+        "decisionNodeId": null,
+        "decisionPhase": "closed",
+        "pendingInteractionCount": null,
+        "family": null,
+        "selectedOptionId": null,
+        "resolving": null,
+        "shopTag": null,
+        "offerIds": null,
+        "purchaseOrder": null,
+        "boardPracticeIds": null,
+        "observedDecisionNodeId": null,
+        "boardRegionId": null,
+        "decisionArtReady": false,
+        "decisionArtPrepared": null,
+        "entryPoint": null,
+        "processingPhase": null,
+        "sourceRevision": 0,
+        "ready": null,
+        "processing": {
+          "sourceRevision": 0,
+          "sourceSec": 0,
+          "baseRevision": 0,
+          "baseSec": 0,
+          "timelineMatches": true,
+          "sourceMatches": true,
+          "requestId": 2,
+          "revision": 2,
+          "adopting": false,
+          "workerActive": false,
+          "draftActive": false,
+          "draftActionCount": 0,
+          "jobActive": false,
+          "phase": null,
+          "error": null,
+          "accepted": null,
+          "jobReady": null,
+          "ready": null,
+          "targetSec": null,
+          "computedSec": null,
+          "revealSec": null
+        },
+        "recapOpen": false,
+        "continueState": null,
+        "recapClock": null,
+        "recapClockStartedAt": null
+      }
+    },
+    "retained": {
+      "settlement": {
+        "visible": false,
+        "regionId": "R14",
+        "activeTab": "overview"
+      },
+      "map": {
+        "visible": true,
+        "detailVisible": false,
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 1
+        },
+        "focusAnimating": false,
+        "panelPhase": "closed",
+        "panelAnimating": false,
+        "panelPose": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        },
+        "artReady": false,
+        "artPrepared": null
+      },
+      "graph": {
+        "visible": true,
+        "minSec": 0,
+        "maxSec": 3918,
+        "scrubDrawSignature": "0|1881|0|0|0:3918|Viewing forecast|Civilization • All player settlements|1881",
+        "plotRect": {
+          "x": 573.855,
+          "y": 884.1,
+          "width": 1276.275,
+          "height": 145.86
+        },
+        "plotRectSpace": "stage-retained-transform",
+        "scrubSec": 1881,
+        "isScrubbing": false,
+        "latchedForecastScrubSec": 1881,
+        "historyEndSec": 0,
+        "revealedSec": 3918,
+        "browseCapSec": 3918,
+        "targetSec": 3918,
+        "computedSec": 3918,
+        "requestedSec": 3920,
+        "pending": true,
+        "cacheVersion": 638,
+        "subjectKey": "civilization",
+        "asyncToken": "sig:4",
+        "asyncPollMs": 73582,
+        "asyncHistoryEndSec": 0,
+        "asyncRequestedSec": 3920,
+        "asyncComputedSec": 3918,
+        "revealHistoryEndSec": 0,
+        "animatedSec": 3918,
+        "visibleEndSec": 3918,
+        "startSecOverride": null,
+        "readinessCapSec": null,
+        "capEndSec": null,
+        "paused": true,
+        "presentationSuspended": false,
+        "openingRevealSec": null
+      },
+      "transport": {
+        "target": 0,
+        "current": 0,
+        "visualSec": 1959.3665999999998
+      },
+      "timeControls": {
+        "visible": true,
+        "lever": {
+          "visible": true,
+          "labelVisible": true,
+          "label": "HOLD",
+          "handleY": 84
+        }
+      },
+      "momentum": {
+        "active": false,
+        "coasting": false,
+        "velocity": 0,
+        "diskId": null,
+        "visualTargetSec": null
+      },
+      "life": {
+        "visible": false,
+        "selectedCandidateNodeId": null,
+        "displayedVassalId": null,
+        "entryConfirmationOpen": false,
+        "entryVisible": false,
+        "entryOpen": false,
+        "entryPhase": "closed",
+        "entryPoint": null
+      },
+      "decision": {
+        "open": false,
+        "nodeId": null,
+        "renderedVisible": false,
+        "renderedPose": {
+          "x": 0,
+          "y": 0,
+          "alpha": 0
+        },
+        "renderedTransition": {
+          "visible": false,
+          "alpha": 1,
+          "rect": {
+            "x": 1176,
+            "y": 452,
+            "width": 72,
+            "height": 72
+          }
+        },
+        "phase": "closed",
+        "pendingInteractionCount": null,
+        "family": null,
+        "selectedOptionId": null,
+        "resolving": null,
+        "shopTag": null,
+        "offerIds": null,
+        "purchaseOrder": null,
+        "boardPracticeIds": null,
+        "observedDecisionNodeId": null,
+        "boardRegionId": null,
+        "artReady": false,
+        "artPrepared": null
+      },
+      "processingVisible": false,
+      "recap": {
+        "open": false,
+        "continueState": null,
+        "clockStartedAt": null,
+        "clock": null
+      }
+    }
+  },
+  "inputs": [
+    {
+      "stage": "capture",
+      "type": "pointerdown",
+      "pointerType": "touch",
+      "timeStamp": 69461.59999999404,
+      "atMs": 69502.59999999404,
+      "transport": {
+        "target": 1,
+        "current": 1,
+        "visualSec": 1959.3665999999998
+      },
+      "momentum": {
+        "active": false,
+        "coasting": false,
+        "velocity": 0,
+        "diskId": null,
+        "visualTargetSec": null
+      },
+      "timeControls": {
+        "visible": true,
+        "lever": {
+          "visible": true,
+          "labelVisible": true,
+          "label": "x1.0",
+          "handleY": 52.25197896063601
+        }
+      },
+      "cpuMs": 0.09999999403953552
+    },
+    {
+      "stage": "task",
+      "type": "pointerdown",
+      "atMs": 69786.69999998808,
+      "transport": {
+        "target": 0,
+        "current": 0,
+        "visualSec": 1959.3665999999998
+      },
+      "momentum": {
+        "active": false,
+        "coasting": false,
+        "velocity": 0,
+        "diskId": null,
+        "visualTargetSec": null
+      },
+      "timeControls": {
+        "visible": true,
+        "lever": {
+          "visible": true,
+          "labelVisible": true,
+          "label": "HOLD",
+          "handleY": 84
+        }
+      },
+      "cpuMs": 0.4000000059604645
+    },
+    {
+      "stage": "capture",
+      "type": "pointerup",
+      "pointerType": "touch",
+      "timeStamp": 72519.5,
+      "atMs": 72746.89999997616,
+      "transport": {
+        "target": 0,
+        "current": 0,
+        "visualSec": 1959.3665999999998
+      },
+      "momentum": {
+        "active": false,
+        "coasting": false,
+        "velocity": 0,
+        "diskId": null,
+        "visualTargetSec": null
+      },
+      "timeControls": {
+        "visible": true,
+        "lever": {
+          "visible": true,
+          "labelVisible": true,
+          "label": "HOLD",
+          "handleY": 84
+        }
+      },
+      "cpuMs": 0.30000001192092896
+    },
+    {
+      "stage": "task",
+      "type": "pointerup",
+      "atMs": 73009.69999998808,
+      "transport": {
+        "target": 0,
+        "current": 0,
+        "visualSec": 1959.3665999999998
+      },
+      "momentum": {
+        "active": false,
+        "coasting": false,
+        "velocity": 0,
+        "diskId": null,
+        "visualTargetSec": null
+      },
+      "timeControls": {
+        "visible": true,
+        "lever": {
+          "visible": true,
+          "labelVisible": true,
+          "label": "HOLD",
+          "handleY": 84
+        }
+      },
+      "cpuMs": 0.30000001192092896
+    }
+  ],
+  "resume": {
+    "a": {
+      "timing": {
+        "version": 2,
+        "mode": "map",
+        "selectedRegionId": "R14",
+        "regionSelectionActive": false,
+        "runner": {
+          "frontierSec": 0,
+          "cursorSec": 0,
+          "viewedSec": 1881,
+          "previewActive": true,
+          "forecastPreview": true,
+          "revision": 0,
+          "actionCount": 0,
+          "checkpointCount": 1
+        },
+        "opening": {
+          "phase": "completed",
+          "preparation": "idle",
+          "coverageSec": 3918,
+          "elapsedSec": 5,
+          "lossSec": 3918
+        },
+        "map": {
+          "visible": true,
+          "detailVisible": false,
+          "camera": {
+            "x": 0,
+            "y": 0,
+            "zoom": 1
+          },
+          "focusAnimating": false,
+          "panelPhase": "closed",
+          "panelAnimating": false,
+          "panelPose": {
+            "x": 0,
+            "y": 0,
+            "scale": 1
+          },
+          "artReady": false,
+          "artPrepared": null
+        },
+        "graph": {
+          "visible": true,
+          "minSec": 0,
+          "maxSec": 3918,
+          "scrubDrawSignature": "0|1881|0|0|0:3918|Viewing forecast|Civilization • All player settlements|1881",
+          "plotRect": {
+            "x": 573.855,
+            "y": 884.1,
+            "width": 1276.275,
+            "height": 145.86
+          },
+          "plotRectSpace": "stage-retained-transform",
+          "scrubSec": 1881,
+          "isScrubbing": false,
+          "latchedForecastScrubSec": 1881,
+          "historyEndSec": 0,
+          "revealedSec": 3918,
+          "browseCapSec": 3918,
+          "targetSec": 3918,
+          "computedSec": 3918,
+          "requestedSec": 3920,
+          "pending": true,
+          "cacheVersion": 644,
+          "subjectKey": "civilization",
+          "asyncToken": "sig:4",
+          "asyncPollMs": 73754.79999998212,
+          "asyncHistoryEndSec": 0,
+          "asyncRequestedSec": 3920,
+          "asyncComputedSec": 3918,
+          "revealHistoryEndSec": 0,
+          "animatedSec": 3918,
+          "visibleEndSec": 3918,
+          "startSecOverride": null,
+          "readinessCapSec": null,
+          "capEndSec": null,
+          "paused": true,
+          "presentationSuspended": false,
+          "openingRevealSec": null
+        },
+        "life": {
+          "visible": false,
+          "selectedCandidateNodeId": null,
+          "displayedVassalId": null,
+          "entryConfirmationOpen": false,
+          "entryOpen": false,
+          "entryVisible": false,
+          "entryPhase": "closed",
+          "decisionOpen": false,
+          "decisionNodeId": null,
+          "decisionPhase": "closed",
+          "pendingInteractionCount": null,
+          "family": null,
+          "selectedOptionId": null,
+          "resolving": null,
+          "shopTag": null,
+          "offerIds": null,
+          "purchaseOrder": null,
+          "boardPracticeIds": null,
+          "observedDecisionNodeId": null,
+          "boardRegionId": null,
+          "decisionArtReady": false,
+          "decisionArtPrepared": null,
+          "entryPoint": null,
+          "processingPhase": null,
+          "sourceRevision": 0,
+          "ready": null,
+          "processing": {
+            "sourceRevision": 0,
+            "sourceSec": 0,
+            "baseRevision": 0,
+            "baseSec": 0,
+            "timelineMatches": true,
+            "sourceMatches": true,
+            "requestId": 2,
+            "revision": 2,
+            "adopting": false,
+            "workerActive": false,
+            "draftActive": false,
+            "draftActionCount": 0,
+            "jobActive": false,
+            "phase": null,
+            "error": null,
+            "accepted": null,
+            "jobReady": null,
+            "ready": null,
+            "targetSec": null,
+            "computedSec": null,
+            "revealSec": null
+          },
+          "recapOpen": false,
+          "continueState": null,
+          "recapClock": null,
+          "recapClockStartedAt": null
+        }
+      },
+      "retained": {
+        "settlement": {
+          "visible": false,
+          "regionId": "R14",
+          "activeTab": "overview"
+        },
+        "map": {
+          "visible": true,
+          "detailVisible": false,
+          "camera": {
+            "x": 0,
+            "y": 0,
+            "zoom": 1
+          },
+          "focusAnimating": false,
+          "panelPhase": "closed",
+          "panelAnimating": false,
+          "panelPose": {
+            "x": 0,
+            "y": 0,
+            "scale": 1
+          },
+          "artReady": false,
+          "artPrepared": null
+        },
+        "graph": {
+          "visible": true,
+          "minSec": 0,
+          "maxSec": 3918,
+          "scrubDrawSignature": "0|1881|0|0|0:3918|Viewing forecast|Civilization • All player settlements|1881",
+          "plotRect": {
+            "x": 573.855,
+            "y": 884.1,
+            "width": 1276.275,
+            "height": 145.86
+          },
+          "plotRectSpace": "stage-retained-transform",
+          "scrubSec": 1881,
+          "isScrubbing": false,
+          "latchedForecastScrubSec": 1881,
+          "historyEndSec": 0,
+          "revealedSec": 3918,
+          "browseCapSec": 3918,
+          "targetSec": 3918,
+          "computedSec": 3918,
+          "requestedSec": 3920,
+          "pending": true,
+          "cacheVersion": 644,
+          "subjectKey": "civilization",
+          "asyncToken": "sig:4",
+          "asyncPollMs": 73754.79999998212,
+          "asyncHistoryEndSec": 0,
+          "asyncRequestedSec": 3920,
+          "asyncComputedSec": 3918,
+          "revealHistoryEndSec": 0,
+          "animatedSec": 3918,
+          "visibleEndSec": 3918,
+          "startSecOverride": null,
+          "readinessCapSec": null,
+          "capEndSec": null,
+          "paused": true,
+          "presentationSuspended": false,
+          "openingRevealSec": null
+        },
+        "transport": {
+          "target": 1,
+          "current": 1,
+          "visualSec": 1881.0499999999997
+        },
+        "timeControls": {
+          "visible": true,
+          "lever": {
+            "visible": true,
+            "labelVisible": true,
+            "label": "x1.0",
+            "handleY": 52.25197896063601
+          }
+        },
+        "momentum": {
+          "active": false,
+          "coasting": false,
+          "velocity": 0,
+          "diskId": null,
+          "visualTargetSec": null
+        },
+        "life": {
+          "visible": false,
+          "selectedCandidateNodeId": null,
+          "displayedVassalId": null,
+          "entryConfirmationOpen": false,
+          "entryVisible": false,
+          "entryOpen": false,
+          "entryPhase": "closed",
+          "entryPoint": null
+        },
+        "decision": {
+          "open": false,
+          "nodeId": null,
+          "renderedVisible": false,
+          "renderedPose": {
+            "x": 0,
+            "y": 0,
+            "alpha": 0
+          },
+          "renderedTransition": {
+            "visible": false,
+            "alpha": 1,
+            "rect": {
+              "x": 1176,
+              "y": 452,
+              "width": 72,
+              "height": 72
+            }
+          },
+          "phase": "closed",
+          "pendingInteractionCount": null,
+          "family": null,
+          "selectedOptionId": null,
+          "resolving": null,
+          "shopTag": null,
+          "offerIds": null,
+          "purchaseOrder": null,
+          "boardPracticeIds": null,
+          "observedDecisionNodeId": null,
+          "boardRegionId": null,
+          "artReady": false,
+          "artPrepared": null
+        },
+        "processingVisible": false,
+        "recap": {
+          "open": false,
+          "continueState": null,
+          "clockStartedAt": null,
+          "clock": null
+        }
+      }
+    },
+    "b": {
+      "timing": {
+        "version": 2,
+        "mode": "map",
+        "selectedRegionId": "R14",
+        "regionSelectionActive": false,
+        "runner": {
+          "frontierSec": 0,
+          "cursorSec": 0,
+          "viewedSec": 1881,
+          "previewActive": true,
+          "forecastPreview": true,
+          "revision": 0,
+          "actionCount": 0,
+          "checkpointCount": 1
+        },
+        "opening": {
+          "phase": "completed",
+          "preparation": "idle",
+          "coverageSec": 3918,
+          "elapsedSec": 5,
+          "lossSec": 3918
+        },
+        "map": {
+          "visible": true,
+          "detailVisible": false,
+          "camera": {
+            "x": 0,
+            "y": 0,
+            "zoom": 1
+          },
+          "focusAnimating": false,
+          "panelPhase": "closed",
+          "panelAnimating": false,
+          "panelPose": {
+            "x": 0,
+            "y": 0,
+            "scale": 1
+          },
+          "artReady": false,
+          "artPrepared": null
+        },
+        "graph": {
+          "visible": true,
+          "minSec": 0,
+          "maxSec": 3918,
+          "scrubDrawSignature": "0|1881|0|0|0:3918|Viewing forecast|Civilization • All player settlements|1881",
+          "plotRect": {
+            "x": 573.855,
+            "y": 884.1,
+            "width": 1276.275,
+            "height": 145.86
+          },
+          "plotRectSpace": "stage-retained-transform",
+          "scrubSec": 1881,
+          "isScrubbing": false,
+          "latchedForecastScrubSec": 1881,
+          "historyEndSec": 0,
+          "revealedSec": 3918,
+          "browseCapSec": 3918,
+          "targetSec": 3918,
+          "computedSec": 3918,
+          "requestedSec": 3920,
+          "pending": true,
+          "cacheVersion": 650,
+          "subjectKey": "civilization",
+          "asyncToken": "sig:4",
+          "asyncPollMs": 73949.39999997616,
+          "asyncHistoryEndSec": 0,
+          "asyncRequestedSec": 3920,
+          "asyncComputedSec": 3918,
+          "revealHistoryEndSec": 0,
+          "animatedSec": 3918,
+          "visibleEndSec": 3918,
+          "startSecOverride": null,
+          "readinessCapSec": null,
+          "capEndSec": null,
+          "paused": true,
+          "presentationSuspended": false,
+          "openingRevealSec": null
+        },
+        "life": {
+          "visible": false,
+          "selectedCandidateNodeId": null,
+          "displayedVassalId": null,
+          "entryConfirmationOpen": false,
+          "entryOpen": false,
+          "entryVisible": false,
+          "entryPhase": "closed",
+          "decisionOpen": false,
+          "decisionNodeId": null,
+          "decisionPhase": "closed",
+          "pendingInteractionCount": null,
+          "family": null,
+          "selectedOptionId": null,
+          "resolving": null,
+          "shopTag": null,
+          "offerIds": null,
+          "purchaseOrder": null,
+          "boardPracticeIds": null,
+          "observedDecisionNodeId": null,
+          "boardRegionId": null,
+          "decisionArtReady": false,
+          "decisionArtPrepared": null,
+          "entryPoint": null,
+          "processingPhase": null,
+          "sourceRevision": 0,
+          "ready": null,
+          "processing": {
+            "sourceRevision": 0,
+            "sourceSec": 0,
+            "baseRevision": 0,
+            "baseSec": 0,
+            "timelineMatches": true,
+            "sourceMatches": true,
+            "requestId": 2,
+            "revision": 2,
+            "adopting": false,
+            "workerActive": false,
+            "draftActive": false,
+            "draftActionCount": 0,
+            "jobActive": false,
+            "phase": null,
+            "error": null,
+            "accepted": null,
+            "jobReady": null,
+            "ready": null,
+            "targetSec": null,
+            "computedSec": null,
+            "revealSec": null
+          },
+          "recapOpen": false,
+          "continueState": null,
+          "recapClock": null,
+          "recapClockStartedAt": null
+        }
+      },
+      "retained": {
+        "settlement": {
+          "visible": false,
+          "regionId": "R14",
+          "activeTab": "overview"
+        },
+        "map": {
+          "visible": true,
+          "detailVisible": false,
+          "camera": {
+            "x": 0,
+            "y": 0,
+            "zoom": 1
+          },
+          "focusAnimating": false,
+          "panelPhase": "closed",
+          "panelAnimating": false,
+          "panelPose": {
+            "x": 0,
+            "y": 0,
+            "scale": 1
+          },
+          "artReady": false,
+          "artPrepared": null
+        },
+        "graph": {
+          "visible": true,
+          "minSec": 0,
+          "maxSec": 3918,
+          "scrubDrawSignature": "0|1881|0|0|0:3918|Viewing forecast|Civilization • All player settlements|1881",
+          "plotRect": {
+            "x": 573.855,
+            "y": 884.1,
+            "width": 1276.275,
+            "height": 145.86
+          },
+          "plotRectSpace": "stage-retained-transform",
+          "scrubSec": 1881,
+          "isScrubbing": false,
+          "latchedForecastScrubSec": 1881,
+          "historyEndSec": 0,
+          "revealedSec": 3918,
+          "browseCapSec": 3918,
+          "targetSec": 3918,
+          "computedSec": 3918,
+          "requestedSec": 3920,
+          "pending": true,
+          "cacheVersion": 650,
+          "subjectKey": "civilization",
+          "asyncToken": "sig:4",
+          "asyncPollMs": 73949.39999997616,
+          "asyncHistoryEndSec": 0,
+          "asyncRequestedSec": 3920,
+          "asyncComputedSec": 3918,
+          "revealHistoryEndSec": 0,
+          "animatedSec": 3918,
+          "visibleEndSec": 3918,
+          "startSecOverride": null,
+          "readinessCapSec": null,
+          "capEndSec": null,
+          "paused": true,
+          "presentationSuspended": false,
+          "openingRevealSec": null
+        },
+        "transport": {
+          "target": 1,
+          "current": 1,
+          "visualSec": 1881.2332999999996
+        },
+        "timeControls": {
+          "visible": true,
+          "lever": {
+            "visible": true,
+            "labelVisible": true,
+            "label": "x1.0",
+            "handleY": 52.25197896063601
+          }
+        },
+        "momentum": {
+          "active": false,
+          "coasting": false,
+          "velocity": 0,
+          "diskId": null,
+          "visualTargetSec": null
+        },
+        "life": {
+          "visible": false,
+          "selectedCandidateNodeId": null,
+          "displayedVassalId": null,
+          "entryConfirmationOpen": false,
+          "entryVisible": false,
+          "entryOpen": false,
+          "entryPhase": "closed",
+          "entryPoint": null
+        },
+        "decision": {
+          "open": false,
+          "nodeId": null,
+          "renderedVisible": false,
+          "renderedPose": {
+            "x": 0,
+            "y": 0,
+            "alpha": 0
+          },
+          "renderedTransition": {
+            "visible": false,
+            "alpha": 1,
+            "rect": {
+              "x": 1176,
+              "y": 452,
+              "width": 72,
+              "height": 72
+            }
+          },
+          "phase": "closed",
+          "pendingInteractionCount": null,
+          "family": null,
+          "selectedOptionId": null,
+          "resolving": null,
+          "shopTag": null,
+          "offerIds": null,
+          "purchaseOrder": null,
+          "boardPracticeIds": null,
+          "observedDecisionNodeId": null,
+          "boardRegionId": null,
+          "artReady": false,
+          "artPrepared": null
+        },
+        "processingVisible": false,
+        "recap": {
+          "open": false,
+          "continueState": null,
+          "clockStartedAt": null,
+          "clock": null
+        }
+      }
+    }
+  },
+  "pass": true
+}

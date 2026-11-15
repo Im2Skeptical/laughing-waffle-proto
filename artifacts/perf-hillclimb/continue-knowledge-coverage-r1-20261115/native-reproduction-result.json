@@ -1,0 +1,25 @@
+{
+  "at": "2026-11-14T22:59:56.194Z",
+  "id": "native-setup-repro-r1-20261115",
+  "exitCode": 0,
+  "failed": false,
+  "observations": 2,
+  "sourceAssetChanges": [],
+  "ownedContextCleanup": [
+    {
+      "launchId": "native-setup-repro-r1-20261115:launch-0-save-opening",
+      "closed": true,
+      "pageClosed": true,
+      "at": "2026-11-14T22:59:24.929Z"
+    }
+  ],
+  "ownedBrowserCleanup": [
+    {
+      "launchId": "native-setup-repro-r1-20261115:launch-0-save-opening",
+      "closed": true,
+      "at": "2026-11-14T22:59:26.061Z"
+    }
+  ],
+  "cleanupErrors": [],
+  "disposition": "Native termination not reproduced in the one predeclared standalone attempt. Original failed attempt remains unresolved and ineligible; no fix/root-cause/reliability claim."
+}

@@ -1,0 +1,5734 @@
+{
+  "fixture": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+  "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+  "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+  "second": 1314,
+  "replayedStateSha256": "b7b9dd56ba21a36e86e76c5c9e25b266a8bea70f044f8a00f19cd111ec5a37bd",
+  "actualHash": "b68a7566afb07f94b8574539fcf5053c2ab4865c6e6e7d0b294930090872370a",
+  "expectedHash": "b68a7566afb07f94b8574539fcf5053c2ab4865c6e6e7d0b294930090872370a",
+  "deltaPaths": [],
+  "actual": {
+    "civilization": {
+      "settlementCount": 2,
+      "regionIds": [
+        "R04",
+        "R11"
+      ],
+      "specialists": {
+        "scholar": 0,
+        "warrior": 0
+      },
+      "population": {
+        "children": 33,
+        "adults": 29,
+        "elders": 10,
+        "total": 72,
+        "mealDemand": 4,
+        "housingCapacity": 60,
+        "byClass": {
+          "villager": {
+            "children": 33,
+            "adults": 29,
+            "elders": 10,
+            "total": 72,
+            "assignedWorkers": 3,
+            "freePopulation": 36
+          },
+          "stranger": {
+            "children": 0,
+            "adults": 0,
+            "elders": 0,
+            "total": 0,
+            "assignedWorkers": 0,
+            "freePopulation": 0
+          }
+        }
+      },
+      "food": {
+        "stored": 13,
+        "loose": 0,
+        "total": 13,
+        "storedCapacity": 28
+      },
+      "research": 0,
+      "overHousingSiteCount": 2,
+      "chaos": {
+        "chaosPower": 24.7777,
+        "resistance": 24.9,
+        "expansionProgress": 52.537020918,
+        "expansionThreshold": 100,
+        "progressPerMoon": 0,
+        "monsterCount": 1,
+        "lastReckoning": {
+          "prematureDeaths": 0,
+          "oldAgeDeaths": 0,
+          "externalEmigrants": 0,
+          "primordialPressure": 0.1331,
+          "prematureDeathPressure": 0,
+          "prematureDeathMitigation": 0,
+          "externalEmigrationPressure": 0,
+          "oldAgeDeathPressure": 0,
+          "internalMigrationPressure": 0,
+          "rawPressure": 0.1331,
+          "faithPopulation": {
+            "bronze": 0,
+            "silver": 37,
+            "gold": 35,
+            "diamond": 0
+          },
+          "resistance": 24.9,
+          "populationResistance": 24.9,
+          "incomingChaos": 0.1331,
+          "totalIncome": 0.1331,
+          "accumulatedChaos": 24.7777,
+          "spawned": 0
+        }
+      },
+      "green": {
+        "tier": 0,
+        "label": "Dormant",
+        "automatic": true,
+        "cadenceYears": 100,
+        "nextEscalationYears": 58
+      }
+    },
+    "settlement": {
+      "regionId": "R04",
+      "siteId": "R04-settlement",
+      "control": {
+        "holder": "player",
+        "support": {
+          "neutral": 1,
+          "player": 36
+        },
+        "total": 37,
+        "loyal": 36,
+        "disloyal": 1,
+        "share": 0.972972972972973,
+        "required": 1,
+        "faction": "player",
+        "warriors": 0,
+        "armed": 0,
+        "supplied": true,
+        "force": 0,
+        "defense": 0,
+        "upkeep": 0,
+        "supportTarget": null,
+        "sentForce": 0,
+        "receivedForce": 0,
+        "supportSources": [],
+        "unrest": 0,
+        "supported": true,
+        "occupied": false,
+        "status": "supported",
+        "targetUnrest": 0
+      },
+      "prestigePopulationPerPoint": 20,
+      "prestigePerNode": 1.85,
+      "civilizationPrestige": 54,
+      "supportTargets": [],
+      "name": "Free Settlement",
+      "neutral": false,
+      "marketStocks": [],
+      "marketCurrency": 0,
+      "lastDefense": null,
+      "martialForce": 0,
+      "martialSupport": 0,
+      "defensiveSupport": 0,
+      "storedFood": 13,
+      "looseFood": 0,
+      "currency": 4,
+      "currencySpentThisMoon": 0,
+      "currencySpentLastMoon": 0,
+      "storedFoodCapacity": 28,
+      "specialists": {
+        "scholar": 0,
+        "warrior": 0
+      },
+      "population": {
+        "children": 21,
+        "adults": 12,
+        "elders": 4,
+        "total": 37,
+        "mealDemand": 2,
+        "mealOverhead": 0,
+        "housingCapacity": 30,
+        "byClass": {
+          "villager": {
+            "children": 21,
+            "adults": 12,
+            "elders": 4,
+            "total": 37,
+            "mealDemand": 1.2333333333333334
+          },
+          "stranger": {
+            "children": 0,
+            "adults": 0,
+            "elders": 0,
+            "total": 0,
+            "mealDemand": 0
+          }
+        }
+      },
+      "pressure": {
+        "starvation": false,
+        "starvationMigrants": 0,
+        "unfedMealDemand": 0,
+        "overcrowding": true,
+        "housingOverflow": 7
+      },
+      "workerPool": {
+        "availableWorkerCount": 1,
+        "activeWorkerCount": 1,
+        "unusedWorkerCount": 0
+      },
+      "practices": [
+        {
+          "practiceId": "fm_woodlotRights",
+          "tier": "bronze",
+          "stock": 4,
+          "charge": 0,
+          "work": 0,
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "label": "Woodlot Rights",
+          "tags": [
+            "Civic"
+          ],
+          "face": {
+            "kind": "practice",
+            "definitionId": "fm_woodlotRights",
+            "label": "Woodlot Rights",
+            "tier": "bronze",
+            "tags": [
+              "Civic"
+            ],
+            "qualityLabel": "bronze",
+            "rule": "Generate 1 hosted Stock. Removed political clause: Resource Practice produces only its visible Stock and authored nonpolitical effects.",
+            "category": "resource",
+            "allegiance": null,
+            "politicalIcon": "support",
+            "politicalOutput": null,
+            "inputs": [],
+            "chaosCost": 0,
+            "monsterPressureCost": 0,
+            "production": [
+              {
+                "icon": "stock",
+                "symbolLabel": "Stock",
+                "value": 1,
+                "label": "Produce 1 Stock"
+              }
+            ],
+            "baseStockProduction": [
+              {
+                "timing": "Birth phase",
+                "amount": 1
+              }
+            ],
+            "workerMultiplier": 2,
+            "chargeTriggers": [],
+            "construction": null,
+            "reading": {
+              "type": "Cycle",
+              "passive": false,
+              "classLabel": "Neutral",
+              "effects": [
+                {
+                  "timing": "Birth phase",
+                  "text": "Produce 1 Stock"
+                }
+              ],
+              "requirements": [],
+              "trigger": null
+            },
+            "mechanics": [
+              {
+                "id": "stock",
+                "name": "Stock",
+                "type": "resource",
+                "icon": "stock",
+                "definition": "Resources held by a Practice. Each unit carries its host's Stock traits. Produce adds units up to capacity; Consume spends matching units."
+              }
+            ],
+            "keywordReading": null,
+            "structureBonuses": [],
+            "structureQualityBonus": 0,
+            "chargeGain": null,
+            "stock": 4,
+            "stockCapacity": 4,
+            "stockCapacityBreakdown": {
+              "base": 4,
+              "quality": 0,
+              "scholar": 0,
+              "multiplier": 1,
+              "sources": [],
+              "total": 4
+            },
+            "outputMultiplierBreakdown": {
+              "multiplier": 1,
+              "sources": []
+            },
+            "stockTraits": [
+              "Timber",
+              "Construction"
+            ],
+            "providers": [],
+            "missing": null,
+            "mode": "scheduled",
+            "charge": 0,
+            "chargeThreshold": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "blocked": false,
+            "blockedReason": null,
+            "viewedTime": 1314,
+            "activationAge": 5,
+            "nextTrigger": null,
+            "outputs": [],
+            "footprint": 1,
+            "lane": "scheduled",
+            "source": {
+              "icon": "birth",
+              "cadence": "birth"
+            },
+            "workerCapacity": 2,
+            "workerBonus": 1,
+            "workers": 1,
+            "fill": 0.8333333333333334,
+            "detailLines": [
+              "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+              "Face yields are base amounts; worker bonuses and local modifiers apply at activation.",
+              "Produce 1 Stock.",
+              "Workers: 2 sockets; +100% Stock per effective worker.",
+              "Scheduled: birth."
+            ]
+          },
+          "workers": {
+            "slotIndex": 0,
+            "practiceId": "fm_woodlotRights",
+            "tokens": [
+              {
+                "classId": "villager",
+                "allegiance": "player",
+                "specialist": null,
+                "effectiveness": 1
+              }
+            ],
+            "effectiveWorkers": 1
+          },
+          "evaluation": {
+            "practiceId": "fm_woodlotRights",
+            "label": "Woodlot Rights",
+            "workerCapacity": 2,
+            "activation": {
+              "type": "birth"
+            },
+            "rule": "Generate 1 hosted Stock. Removed political clause: Resource Practice produces only its visible Stock and authored nonpolitical effects.",
+            "mode": "scheduled",
+            "charge": null,
+            "chargeThreshold": null,
+            "chargeGain": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "ready": false,
+            "blocked": false,
+            "blockedReason": null,
+            "conversionTargets": [],
+            "stock": 4,
+            "stockCapacity": 4,
+            "stockTraits": [
+              "Timber",
+              "Construction"
+            ],
+            "providers": [],
+            "missing": null,
+            "supplied": true,
+            "effects": [
+              {
+                "op": "generateStock",
+                "scaledValue": {
+                  "effectiveValue": 2,
+                  "baseValue": 1,
+                  "workerMultiplier": 2
+                }
+              }
+            ]
+          }
+        },
+        {
+          "practiceId": "dryFarming",
+          "tier": "bronze",
+          "instanceId": "institution:4",
+          "charge": 0,
+          "work": 0,
+          "stock": 5,
+          "label": "Dry Farming",
+          "tags": [
+            "Food"
+          ],
+          "face": {
+            "kind": "practice",
+            "definitionId": "dryFarming",
+            "label": "Dry Farming",
+            "tier": "bronze",
+            "tags": [
+              "Food"
+            ],
+            "qualityLabel": "bronze",
+            "rule": "Summer / Autumn; Summer +2; Autumn +6; Large seasonal harvest with pronounced stockpile/lag gameplay.",
+            "category": "resource",
+            "allegiance": null,
+            "politicalIcon": "support",
+            "politicalOutput": null,
+            "inputs": [],
+            "chaosCost": 0,
+            "monsterPressureCost": 0,
+            "production": [
+              {
+                "season": "summer",
+                "icon": "stock",
+                "value": 2,
+                "label": "summer: 2 base stock"
+              },
+              {
+                "season": "autumn",
+                "icon": "stock",
+                "value": 6,
+                "label": "autumn: 6 base stock"
+              }
+            ],
+            "baseStockProduction": [
+              {
+                "timing": "Summer",
+                "amount": 2
+              },
+              {
+                "timing": "Autumn",
+                "amount": 6
+              }
+            ],
+            "workerMultiplier": 1,
+            "chargeTriggers": [],
+            "construction": null,
+            "reading": {
+              "type": "Cycle",
+              "passive": false,
+              "classLabel": "Neutral",
+              "effects": [
+                {
+                  "timing": "Summer",
+                  "text": "Produce 2 Stock"
+                },
+                {
+                  "timing": "Autumn",
+                  "text": "Produce 6 Stock"
+                }
+              ],
+              "requirements": [],
+              "trigger": null
+            },
+            "mechanics": [
+              {
+                "id": "stock",
+                "name": "Stock",
+                "type": "resource",
+                "icon": "stock",
+                "definition": "Resources held by a Practice. Each unit carries its host's Stock traits. Produce adds units up to capacity; Consume spends matching units."
+              }
+            ],
+            "keywordReading": null,
+            "structureBonuses": [],
+            "structureQualityBonus": 0,
+            "chargeGain": null,
+            "stock": 5,
+            "stockCapacity": 20,
+            "stockCapacityBreakdown": {
+              "base": 10,
+              "quality": 0,
+              "scholar": 0,
+              "multiplier": 2,
+              "sources": [
+                {
+                  "id": "granary",
+                  "label": "Granary",
+                  "amount": 1,
+                  "query": {
+                    "traitsAny": [
+                      "Edible"
+                    ]
+                  },
+                  "instanceId": "R04:support"
+                }
+              ],
+              "total": 20
+            },
+            "outputMultiplierBreakdown": {
+              "multiplier": 5,
+              "sources": [
+                {
+                  "id": "biome:plains",
+                  "label": "4 contiguous plains",
+                  "amount": 4,
+                  "query": {
+                    "traitsAny": [
+                      "Grain"
+                    ]
+                  },
+                  "regionIds": [
+                    "R01",
+                    "R04",
+                    "R11",
+                    "R10"
+                  ]
+                }
+              ]
+            },
+            "stockTraits": [
+              "Edible",
+              "Grain"
+            ],
+            "providers": [],
+            "missing": null,
+            "mode": "scheduled",
+            "charge": 0,
+            "chargeThreshold": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "blocked": false,
+            "blockedReason": null,
+            "viewedTime": 1314,
+            "activationAge": 17,
+            "nextTrigger": {
+              "season": "summer",
+              "tSec": 1321
+            },
+            "outputs": [],
+            "footprint": 1,
+            "lane": "scheduled",
+            "source": {
+              "icon": "season",
+              "cadence": "season"
+            },
+            "workerCapacity": 2,
+            "workerBonus": 1,
+            "workers": 0,
+            "fill": 0.7083333333333334,
+            "detailLines": [
+              "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+              "summer: 2 base stock",
+              "autumn: 6 base stock",
+              "Face yields are base amounts; worker bonuses and local modifiers apply at activation.",
+              "Produce 2 Stock.",
+              "Workers: 2 sockets; +100% Stock per effective worker.",
+              "Scheduled: season.",
+              "Secondary hook uses current numeric training/candidate/preview/support grammar; authored choice, Legacy and specialized action variants remain deferred."
+            ]
+          },
+          "workers": {
+            "slotIndex": 1,
+            "practiceId": "dryFarming",
+            "tokens": [],
+            "effectiveWorkers": 0
+          },
+          "evaluation": {
+            "practiceId": "dryFarming",
+            "label": "Dry Farming",
+            "workerCapacity": 2,
+            "activation": {
+              "type": "season",
+              "seasonKeys": [
+                "summer",
+                "autumn"
+              ]
+            },
+            "rule": "Summer / Autumn; Summer +2; Autumn +6; Large seasonal harvest with pronounced stockpile/lag gameplay.",
+            "mode": "scheduled",
+            "charge": null,
+            "chargeThreshold": null,
+            "chargeGain": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "ready": false,
+            "blocked": false,
+            "blockedReason": null,
+            "conversionTargets": [],
+            "stock": 5,
+            "stockCapacity": 20,
+            "stockTraits": [
+              "Edible",
+              "Grain"
+            ],
+            "providers": [],
+            "missing": null,
+            "supplied": true,
+            "effects": [
+              {
+                "op": "generateStock",
+                "scaledValue": {
+                  "effectiveValue": 10,
+                  "baseValue": 2,
+                  "workerMultiplier": 1
+                }
+              }
+            ]
+          }
+        },
+        {
+          "practiceId": "fm_handQuern",
+          "tier": "bronze",
+          "instanceId": "institution:5",
+          "charge": 0,
+          "work": 0,
+          "stock": 8,
+          "label": "Hand Quern",
+          "tags": [
+            "Civic",
+            "Food"
+          ],
+          "face": {
+            "kind": "practice",
+            "definitionId": "fm_handQuern",
+            "label": "Hand Quern",
+            "tier": "bronze",
+            "tags": [
+              "Civic",
+              "Food"
+            ],
+            "qualityLabel": "bronze",
+            "rule": "Consume 1 Grain. Generate 2 hosted Stock.",
+            "category": "resource",
+            "allegiance": null,
+            "politicalIcon": "support",
+            "politicalOutput": null,
+            "inputs": [
+              {
+                "kind": "consume",
+                "amount": 1,
+                "traits": [
+                  "Grain"
+                ]
+              }
+            ],
+            "chaosCost": 0,
+            "monsterPressureCost": 0,
+            "production": [
+              {
+                "icon": "stock",
+                "symbolLabel": "Stock",
+                "value": 2,
+                "label": "Produce 2 Stock"
+              }
+            ],
+            "baseStockProduction": [
+              {
+                "timing": "Food phase",
+                "amount": 2
+              }
+            ],
+            "workerMultiplier": 1,
+            "chargeTriggers": [],
+            "construction": null,
+            "reading": {
+              "type": "Cycle",
+              "passive": false,
+              "classLabel": "Neutral",
+              "effects": [
+                {
+                  "timing": "Food phase",
+                  "text": "Produce 2 Stock"
+                }
+              ],
+              "requirements": [
+                "Consume 1 Grain Stock."
+              ],
+              "trigger": null
+            },
+            "mechanics": [
+              {
+                "id": "stock",
+                "name": "Stock",
+                "type": "resource",
+                "icon": "stock",
+                "definition": "Resources held by a Practice. Each unit carries its host's Stock traits. Produce adds units up to capacity; Consume spends matching units."
+              }
+            ],
+            "keywordReading": null,
+            "structureBonuses": [],
+            "structureQualityBonus": 0,
+            "chargeGain": null,
+            "stock": 8,
+            "stockCapacity": 8,
+            "stockCapacityBreakdown": {
+              "base": 4,
+              "quality": 0,
+              "scholar": 0,
+              "multiplier": 2,
+              "sources": [
+                {
+                  "id": "granary",
+                  "label": "Granary",
+                  "amount": 1,
+                  "query": {
+                    "traitsAny": [
+                      "Edible"
+                    ]
+                  },
+                  "instanceId": "R04:support"
+                }
+              ],
+              "total": 8
+            },
+            "outputMultiplierBreakdown": {
+              "multiplier": 1,
+              "sources": []
+            },
+            "stockTraits": [
+              "Edible"
+            ],
+            "providers": [
+              {
+                "kind": "consume",
+                "regionId": "R04",
+                "slotIndex": 1,
+                "practiceId": "dryFarming",
+                "amount": 1,
+                "traits": [
+                  "Grain"
+                ]
+              }
+            ],
+            "missing": null,
+            "mode": "scheduled",
+            "charge": 0,
+            "chargeThreshold": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "blocked": false,
+            "blockedReason": null,
+            "viewedTime": 1314,
+            "activationAge": 4,
+            "nextTrigger": null,
+            "outputs": [],
+            "footprint": 1,
+            "lane": "scheduled",
+            "source": {
+              "icon": "food",
+              "cadence": "food"
+            },
+            "workerCapacity": 2,
+            "workerBonus": 1,
+            "workers": 0,
+            "fill": 0.6666666666666666,
+            "detailLines": [
+              "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+              "Consume 1 [Grain].",
+              "Uses local Stock first, then adjacent road-connected holdings of the beneficiary. No shared neutral market.",
+              "Face yields are base amounts; worker bonuses and local modifiers apply at activation.",
+              "Consume 1 from Central Plains slot 2: dryFarming",
+              "Produce 2 Stock.",
+              "Workers: 2 sockets; +100% Stock per effective worker.",
+              "Scheduled: food."
+            ]
+          },
+          "workers": {
+            "slotIndex": 2,
+            "practiceId": "fm_handQuern",
+            "tokens": [],
+            "effectiveWorkers": 0
+          },
+          "evaluation": {
+            "practiceId": "fm_handQuern",
+            "label": "Hand Quern",
+            "workerCapacity": 2,
+            "activation": {
+              "type": "food",
+              "stage": "preRouting"
+            },
+            "rule": "Consume 1 Grain. Generate 2 hosted Stock.",
+            "mode": "scheduled",
+            "charge": null,
+            "chargeThreshold": null,
+            "chargeGain": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "ready": false,
+            "blocked": false,
+            "blockedReason": null,
+            "conversionTargets": [],
+            "stock": 8,
+            "stockCapacity": 8,
+            "stockTraits": [
+              "Edible"
+            ],
+            "providers": [
+              {
+                "kind": "consume",
+                "regionId": "R04",
+                "slotIndex": 1,
+                "practiceId": "dryFarming",
+                "amount": 1,
+                "traits": [
+                  "Grain"
+                ]
+              }
+            ],
+            "missing": null,
+            "supplied": true,
+            "effects": [
+              {
+                "op": "generateStock",
+                "scaledValue": {
+                  "effectiveValue": 2,
+                  "baseValue": 2,
+                  "workerMultiplier": 1
+                }
+              }
+            ]
+          }
+        },
+        {
+          "practiceId": "barter",
+          "tier": "bronze",
+          "instanceId": "institution:6",
+          "charge": 0,
+          "work": 0,
+          "stock": 4,
+          "label": "Barter",
+          "tags": [
+            "Trade"
+          ],
+          "face": {
+            "kind": "practice",
+            "definitionId": "barter",
+            "label": "Barter",
+            "tier": "bronze",
+            "tags": [
+              "Trade"
+            ],
+            "qualityLabel": "bronze",
+            "rule": "Birth / Trade; +1; +1 more if connected to any external settlement, max +2; Require At least 2 stocked Practices with different Stock Traits; Creates local [Currency] Stock from economic diversity and external contact. Currency is ordinary hosted Stock, not a separate settlement number.",
+            "category": "resource",
+            "allegiance": null,
+            "politicalIcon": "support",
+            "politicalOutput": null,
+            "inputs": [],
+            "chaosCost": 0,
+            "monsterPressureCost": 0,
+            "production": [
+              {
+                "icon": "stock",
+                "symbolLabel": "Stock",
+                "value": 1,
+                "label": "Produce 1 Stock"
+              }
+            ],
+            "baseStockProduction": [
+              {
+                "timing": "Birth phase",
+                "amount": 1
+              }
+            ],
+            "workerMultiplier": 1,
+            "chargeTriggers": [],
+            "construction": null,
+            "reading": {
+              "type": "Cycle",
+              "passive": false,
+              "classLabel": "Neutral",
+              "effects": [
+                {
+                  "timing": "Birth phase",
+                  "text": "Produce 1 Stock"
+                }
+              ],
+              "requirements": [
+                "Requires two stocked Practices with different Stock traits in the supply network."
+              ],
+              "trigger": null
+            },
+            "mechanics": [
+              {
+                "id": "stock",
+                "name": "Stock",
+                "type": "resource",
+                "icon": "stock",
+                "definition": "Resources held by a Practice. Each unit carries its host's Stock traits. Produce adds units up to capacity; Consume spends matching units."
+              }
+            ],
+            "keywordReading": null,
+            "structureBonuses": [],
+            "structureQualityBonus": 0,
+            "chargeGain": null,
+            "stock": 4,
+            "stockCapacity": 4,
+            "stockCapacityBreakdown": {
+              "base": 4,
+              "quality": 0,
+              "scholar": 0,
+              "multiplier": 1,
+              "sources": [],
+              "total": 4
+            },
+            "outputMultiplierBreakdown": {
+              "multiplier": 1,
+              "sources": []
+            },
+            "stockTraits": [
+              "Currency"
+            ],
+            "providers": [],
+            "missing": null,
+            "mode": "scheduled",
+            "charge": 0,
+            "chargeThreshold": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "blocked": false,
+            "blockedReason": null,
+            "viewedTime": 1314,
+            "activationAge": 5,
+            "nextTrigger": null,
+            "outputs": [],
+            "footprint": 1,
+            "lane": "scheduled",
+            "source": {
+              "icon": "birth",
+              "cadence": "birth"
+            },
+            "workerCapacity": 2,
+            "workerBonus": 1,
+            "workers": 0,
+            "fill": 0.8333333333333334,
+            "detailLines": [
+              "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+              "Face yields are base amounts; worker bonuses and local modifiers apply at activation.",
+              "Produce 1 Stock.",
+              "Workers: 2 sockets; +100% Stock per effective worker.",
+              "Scheduled: birth.",
+              "Secondary hook uses current numeric training/candidate/preview/support grammar; authored choice, Legacy and specialized action variants remain deferred."
+            ]
+          },
+          "workers": {
+            "slotIndex": 3,
+            "practiceId": "barter",
+            "tokens": [],
+            "effectiveWorkers": 0
+          },
+          "evaluation": {
+            "practiceId": "barter",
+            "label": "Barter",
+            "workerCapacity": 2,
+            "activation": {
+              "type": "birth"
+            },
+            "rule": "Birth / Trade; +1; +1 more if connected to any external settlement, max +2; Require At least 2 stocked Practices with different Stock Traits; Creates local [Currency] Stock from economic diversity and external contact. Currency is ordinary hosted Stock, not a separate settlement number.",
+            "mode": "scheduled",
+            "charge": null,
+            "chargeThreshold": null,
+            "chargeGain": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "ready": false,
+            "blocked": false,
+            "blockedReason": null,
+            "conversionTargets": [],
+            "stock": 4,
+            "stockCapacity": 4,
+            "stockTraits": [
+              "Currency"
+            ],
+            "providers": [],
+            "missing": null,
+            "supplied": true,
+            "effects": [
+              {
+                "op": "generateStock",
+                "scaledValue": {
+                  "effectiveValue": 1,
+                  "baseValue": 1,
+                  "workerMultiplier": 1
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": null,
+          "tags": [],
+          "face": null,
+          "workers": {
+            "slotIndex": 4,
+            "practiceId": null,
+            "tokens": [],
+            "effectiveWorkers": 0
+          },
+          "evaluation": null
+        }
+      ],
+      "structures": [
+        {
+          "structureId": "mudHouses",
+          "placementId": "R04:housing",
+          "origin": 0,
+          "width": 1,
+          "face": {
+            "kind": "structure",
+            "definitionId": "mudHouses",
+            "label": "Mud House",
+            "tier": "bronze",
+            "tags": [
+              "Housing"
+            ],
+            "qualityLabel": "bronze",
+            "rule": "+30 Housing Capacity.",
+            "category": "resource",
+            "allegiance": null,
+            "politicalIcon": "support",
+            "politicalOutput": null,
+            "inputs": [],
+            "chaosCost": 0,
+            "monsterPressureCost": 0,
+            "production": [],
+            "baseStockProduction": [],
+            "workerMultiplier": 1,
+            "chargeTriggers": [],
+            "construction": null,
+            "reading": {
+              "type": "Structure",
+              "classLabel": "Neutral",
+              "passive": true,
+              "effects": [
+                {
+                  "timing": "",
+                  "text": "+30 Housing Capacity"
+                }
+              ],
+              "bonuses": [
+                {
+                  "kind": "housingCapacity",
+                  "amount": 30,
+                  "label": "Housing capacity",
+                  "traits": []
+                }
+              ],
+              "requirements": [],
+              "trigger": null,
+              "active": true,
+              "flavour": "A little earth between the hearth and the storm."
+            },
+            "mechanics": [],
+            "keywordReading": null,
+            "structureBonuses": [
+              {
+                "kind": "housingCapacity",
+                "amount": 30,
+                "label": "Housing capacity",
+                "traits": []
+              }
+            ],
+            "structureQualityBonus": 0,
+            "chargeGain": null,
+            "stock": 0,
+            "stockCapacity": 0,
+            "stockCapacityBreakdown": null,
+            "outputMultiplierBreakdown": null,
+            "stockTraits": [],
+            "providers": [],
+            "missing": null,
+            "mode": null,
+            "charge": 0,
+            "chargeThreshold": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "blocked": false,
+            "blockedReason": null,
+            "viewedTime": 1314,
+            "activationAge": null,
+            "nextTrigger": null,
+            "outputs": [],
+            "footprint": 1,
+            "lane": null,
+            "source": null,
+            "workerCapacity": 0,
+            "workerBonus": 1,
+            "workers": 0,
+            "fill": 0.8333333333333334,
+            "detailLines": [
+              "30 Housing. Numeric bonuses from duplicate structures add.",
+              "Construction footprint: 1 horizontal cells.",
+              "Secondary hook uses current numeric training/candidate/preview/support grammar; authored choice, Legacy and specialized action variants remain deferred.",
+              "Passive coefficients are provisional; see docs/civcontent-2.6-implementation.md for exact runtime modifiers and deviations."
+            ]
+          },
+          "label": "Mud House",
+          "tags": [
+            "Housing"
+          ]
+        },
+        {
+          "structureId": "granary",
+          "placementId": "R04:support",
+          "origin": 1,
+          "width": 1,
+          "face": {
+            "kind": "structure",
+            "definitionId": "granary",
+            "label": "Granary",
+            "tier": "bronze",
+            "tags": [
+              "Food"
+            ],
+            "qualityLabel": "bronze",
+            "rule": "Practices whose Stock has [Edible] have +1 Capacity Multiplier.",
+            "category": "resource",
+            "allegiance": null,
+            "politicalIcon": "support",
+            "politicalOutput": null,
+            "inputs": [],
+            "chaosCost": 0,
+            "monsterPressureCost": 0,
+            "production": [],
+            "baseStockProduction": [],
+            "workerMultiplier": 1,
+            "chargeTriggers": [],
+            "construction": null,
+            "reading": {
+              "type": "Structure",
+              "classLabel": "Neutral",
+              "passive": true,
+              "effects": [
+                {
+                  "timing": "",
+                  "text": "+1 Capacity Multiplier for Edible"
+                }
+              ],
+              "bonuses": [
+                {
+                  "kind": "stock",
+                  "amount": 1,
+                  "label": "Capacity Multiplier",
+                  "traits": [
+                    "Edible"
+                  ],
+                  "scope": "local Practices with Edible Stock"
+                }
+              ],
+              "requirements": [],
+              "trigger": null,
+              "active": true,
+              "flavour": "What summer leaves behind, winter will ask for."
+            },
+            "mechanics": [],
+            "keywordReading": null,
+            "structureBonuses": [
+              {
+                "kind": "stock",
+                "amount": 1,
+                "label": "Capacity Multiplier",
+                "traits": [
+                  "Edible"
+                ],
+                "scope": "local Practices with Edible Stock"
+              }
+            ],
+            "structureQualityBonus": 0,
+            "chargeGain": null,
+            "stock": 0,
+            "stockCapacity": 0,
+            "stockCapacityBreakdown": null,
+            "outputMultiplierBreakdown": null,
+            "stockTraits": [],
+            "providers": [],
+            "missing": null,
+            "mode": null,
+            "charge": 0,
+            "chargeThreshold": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "blocked": false,
+            "blockedReason": null,
+            "viewedTime": 1314,
+            "activationAge": null,
+            "nextTrigger": null,
+            "outputs": [],
+            "footprint": 1,
+            "lane": null,
+            "source": null,
+            "workerCapacity": 0,
+            "workerBonus": 1,
+            "workers": 0,
+            "fill": 0.8333333333333334,
+            "detailLines": [
+              "Construction footprint: 1 horizontal cells.",
+              "Secondary hook uses current numeric training/candidate/preview/support grammar; authored choice, Legacy and specialized action variants remain deferred.",
+              "Passive coefficients are provisional; see docs/civcontent-2.6-implementation.md for exact runtime modifiers and deviations."
+            ]
+          },
+          "label": "Granary",
+          "tags": [
+            "Food"
+          ]
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "structureCapacity": 8,
+      "usedStructureCapacity": 2,
+      "elderOrder": {
+        "regionId": "R04",
+        "workerPolicyId": "populationDecileVillagersFirst",
+        "ages": [
+          45,
+          46,
+          47,
+          58
+        ],
+        "count": 4,
+        "totalPrestige": 20,
+        "averagePrestige": 5,
+        "coordinationResistance": 6,
+        "resistance": 11
+      },
+      "lastMeal": {
+        "tSec": 1310,
+        "demand": 2,
+        "savedStock": 0,
+        "consumed": 2,
+        "ratio": 1,
+        "byClass": {
+          "villager": {
+            "demand": 37,
+            "consumed": 37,
+            "ratio": 1,
+            "migrants": 0,
+            "previousHappiness": "negative",
+            "targetHappiness": "negative"
+          },
+          "stranger": {
+            "demand": 0,
+            "consumed": 0,
+            "ratio": 1,
+            "migrants": 0
+          }
+        },
+        "migration": {
+          "tSec": 1313,
+          "intents": [],
+          "outbound": [],
+          "inbound": [],
+          "sourceLosses": []
+        }
+      },
+      "currentMoonResult": {
+        "regionId": "R04",
+        "birth": {
+          "tSec": 1309,
+          "year": 41,
+          "byClass": {
+            "villager": {
+              "births": 0,
+              "matured": 0,
+              "newElders": 0,
+              "ageAdvance": 0,
+              "birthRate": 0,
+              "childToAdultRate": 0.01,
+              "adultToElderRate": 0.005
+            },
+            "stranger": {
+              "births": 0,
+              "matured": 0,
+              "newElders": 0,
+              "ageAdvance": 0,
+              "birthRate": 0.02,
+              "childToAdultRate": 0.01,
+              "adultToElderRate": 0.005
+            }
+          }
+        },
+        "food": {
+          "tSec": 1310,
+          "demand": 2,
+          "savedStock": 0,
+          "consumed": 2,
+          "ratio": 1,
+          "byClass": {
+            "villager": {
+              "demand": 37,
+              "consumed": 37,
+              "ratio": 1,
+              "migrants": 0,
+              "previousHappiness": "negative",
+              "targetHappiness": "negative"
+            },
+            "stranger": {
+              "demand": 0,
+              "consumed": 0,
+              "ratio": 1,
+              "migrants": 0
+            }
+          },
+          "migration": {
+            "intents": [],
+            "outbound": [],
+            "inbound": [],
+            "sourceLosses": []
+          }
+        },
+        "housing": {
+          "tSec": 1311,
+          "population": 37,
+          "capacity": 30,
+          "overflow": 7,
+          "migrants": 7,
+          "happinessCap": "negative"
+        },
+        "faith": {
+          "tSec": 1312,
+          "byClass": {
+            "villager": {
+              "previousHappiness": "negative",
+              "happiness": "negative",
+              "previousFaith": "silver",
+              "faith": "silver",
+              "faithShifted": false,
+              "faithTrend": "negative",
+              "faithStreak": 1,
+              "collapseEntered": false,
+              "displaced": 0
+            }
+          }
+        },
+        "migration": {
+          "tSec": 1313,
+          "intents": [],
+          "outbound": [],
+          "inbound": [],
+          "sourceLosses": []
+        },
+        "death": {
+          "tSec": 1314,
+          "byClass": {
+            "villager": {
+              "naturalDeaths": 0
+            },
+            "stranger": {
+              "naturalDeaths": 0
+            }
+          },
+          "hardshipDeaths": 0,
+          "arrivalDeaths": 0,
+          "storedFoodRot": 0,
+          "looseFoodRot": 0
+        },
+        "currencySpent": 0
+      },
+      "lastMoonResult": {
+        "regionId": "R04",
+        "birth": {
+          "tSec": 1303,
+          "year": 41,
+          "byClass": {
+            "villager": {
+              "births": 0,
+              "matured": 0,
+              "newElders": 0,
+              "ageAdvance": 0,
+              "birthRate": 0.02,
+              "childToAdultRate": 0.01,
+              "adultToElderRate": 0.005
+            },
+            "stranger": {
+              "births": 0,
+              "matured": 0,
+              "newElders": 0,
+              "ageAdvance": 0,
+              "birthRate": 0.02,
+              "childToAdultRate": 0.01,
+              "adultToElderRate": 0.005
+            }
+          }
+        },
+        "food": {
+          "tSec": 1304,
+          "demand": 2,
+          "savedStock": 0,
+          "consumed": 2,
+          "ratio": 1,
+          "byClass": {
+            "villager": {
+              "demand": 37,
+              "consumed": 37,
+              "ratio": 1,
+              "migrants": 0,
+              "previousHappiness": "negative",
+              "targetHappiness": "negative"
+            },
+            "stranger": {
+              "demand": 0,
+              "consumed": 0,
+              "ratio": 1,
+              "migrants": 0
+            }
+          },
+          "migration": {
+            "intents": [],
+            "outbound": [],
+            "inbound": [],
+            "sourceLosses": []
+          }
+        },
+        "housing": {
+          "tSec": 1305,
+          "population": 37,
+          "capacity": 30,
+          "overflow": 7,
+          "migrants": 7,
+          "happinessCap": "negative"
+        },
+        "faith": {
+          "tSec": 1306,
+          "byClass": {
+            "villager": {
+              "previousHappiness": "negative",
+              "happiness": "negative",
+              "previousFaith": "gold",
+              "faith": "silver",
+              "faithShifted": true,
+              "faithTrend": "negative",
+              "faithStreak": 0,
+              "collapseEntered": false,
+              "displaced": 0
+            }
+          }
+        },
+        "migration": {
+          "tSec": 1307,
+          "intents": [],
+          "outbound": [],
+          "inbound": [],
+          "sourceLosses": []
+        },
+        "death": {
+          "tSec": 1308,
+          "byClass": {
+            "villager": {
+              "naturalDeaths": 0
+            },
+            "stranger": {
+              "naturalDeaths": 0
+            }
+          },
+          "hardshipDeaths": 0,
+          "arrivalDeaths": 0,
+          "storedFoodRot": 0,
+          "looseFoodRot": 0
+        },
+        "currencySpent": 0
+      },
+      "research": 0,
+      "localTags": [
+        "Civic",
+        "Food",
+        "Housing",
+        "Trade"
+      ],
+      "retiredVassals": [],
+      "activationTrace": [
+        {
+          "tSec": 1280,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "stockConsumed",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "traits": [
+            "Edible",
+            "Grain"
+          ],
+          "tags": [
+            "Civic",
+            "Food"
+          ],
+          "pool": "common",
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ],
+          "id": 40881,
+          "rootId": 40880,
+          "parentId": 40880
+        },
+        {
+          "tSec": 1280,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "discharge": false,
+          "id": 40882,
+          "rootId": 40880,
+          "parentId": 40880
+        },
+        {
+          "tSec": 1280,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "food",
+          "id": 40920,
+          "rootId": 40920,
+          "parentId": null
+        },
+        {
+          "tSec": 1281,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "housing",
+          "id": 40941,
+          "rootId": 40941,
+          "parentId": null
+        },
+        {
+          "tSec": 1282,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "faith",
+          "id": 40961,
+          "rootId": 40961,
+          "parentId": null
+        },
+        {
+          "tSec": 1283,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "migration",
+          "id": 40980,
+          "rootId": 40980,
+          "parentId": null
+        },
+        {
+          "tSec": 1284,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "death",
+          "id": 41006,
+          "rootId": 41006,
+          "parentId": null
+        },
+        {
+          "tSec": 1285,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "rootId": 41022,
+          "parentId": 41022,
+          "providers": []
+        },
+        {
+          "tSec": 1285,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "barter",
+          "slotIndex": 3,
+          "rootId": 41024,
+          "parentId": 41024,
+          "providers": []
+        },
+        {
+          "tSec": 1285,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "activationType": "birth",
+          "id": 41022,
+          "rootId": 41022,
+          "parentId": null
+        },
+        {
+          "tSec": 1285,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "discharge": false,
+          "id": 41023,
+          "rootId": 41022,
+          "parentId": 41022
+        },
+        {
+          "tSec": 1285,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "activationType": "birth",
+          "id": 41024,
+          "rootId": 41024,
+          "parentId": null
+        },
+        {
+          "tSec": 1285,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "externalTrade",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "id": 41025,
+          "rootId": 41024,
+          "parentId": 41024
+        },
+        {
+          "tSec": 1285,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "slotIndex": 3,
+          "discharge": false,
+          "id": 41026,
+          "rootId": 41024,
+          "parentId": 41024
+        },
+        {
+          "tSec": 1285,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "birth",
+          "id": 41032,
+          "rootId": 41032,
+          "parentId": null
+        },
+        {
+          "tSec": 1286,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_handQuern",
+          "slotIndex": 2,
+          "rootId": 41051,
+          "parentId": 41051,
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ]
+        },
+        {
+          "tSec": 1286,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "activationType": "food",
+          "id": 41051,
+          "rootId": 41051,
+          "parentId": null
+        },
+        {
+          "tSec": 1286,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "stockConsumed",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "traits": [
+            "Edible",
+            "Grain"
+          ],
+          "tags": [
+            "Civic",
+            "Food"
+          ],
+          "pool": "common",
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ],
+          "id": 41052,
+          "rootId": 41051,
+          "parentId": 41051
+        },
+        {
+          "tSec": 1286,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "discharge": false,
+          "id": 41053,
+          "rootId": 41051,
+          "parentId": 41051
+        },
+        {
+          "tSec": 1286,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "food",
+          "id": 41084,
+          "rootId": 41084,
+          "parentId": null
+        },
+        {
+          "tSec": 1287,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "housing",
+          "id": 41103,
+          "rootId": 41103,
+          "parentId": null
+        },
+        {
+          "tSec": 1288,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "faith",
+          "id": 41123,
+          "rootId": 41123,
+          "parentId": null
+        },
+        {
+          "tSec": 1289,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "dryFarming",
+          "slotIndex": 1,
+          "rootId": 41142,
+          "parentId": 41142,
+          "providers": []
+        },
+        {
+          "tSec": 1289,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:4",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "dryFarming",
+          "activationType": "season",
+          "id": 41142,
+          "rootId": 41142,
+          "parentId": null
+        },
+        {
+          "tSec": 1289,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:4",
+          "kind": "stockGenerated",
+          "regionId": "R04",
+          "practiceId": "dryFarming",
+          "slotIndex": 1,
+          "amount": 10,
+          "traits": [
+            "Edible",
+            "Grain"
+          ],
+          "tags": [
+            "Food"
+          ],
+          "pool": "common",
+          "scholarStaffed": false,
+          "id": 41143,
+          "rootId": 41142,
+          "parentId": 41142
+        },
+        {
+          "tSec": 1289,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:4",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "dryFarming",
+          "slotIndex": 1,
+          "discharge": false,
+          "id": 41144,
+          "rootId": 41142,
+          "parentId": 41142
+        },
+        {
+          "tSec": 1289,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "migration",
+          "id": 41168,
+          "rootId": 41168,
+          "parentId": null
+        },
+        {
+          "tSec": 1290,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "death",
+          "id": 41192,
+          "rootId": 41192,
+          "parentId": null
+        },
+        {
+          "tSec": 1291,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "rootId": 41210,
+          "parentId": 41210,
+          "providers": []
+        },
+        {
+          "tSec": 1291,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "barter",
+          "slotIndex": 3,
+          "rootId": 41212,
+          "parentId": 41212,
+          "providers": []
+        },
+        {
+          "tSec": 1291,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "activationType": "birth",
+          "id": 41210,
+          "rootId": 41210,
+          "parentId": null
+        },
+        {
+          "tSec": 1291,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "discharge": false,
+          "id": 41211,
+          "rootId": 41210,
+          "parentId": 41210
+        },
+        {
+          "tSec": 1291,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "activationType": "birth",
+          "id": 41212,
+          "rootId": 41212,
+          "parentId": null
+        },
+        {
+          "tSec": 1291,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "externalTrade",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "id": 41213,
+          "rootId": 41212,
+          "parentId": 41212
+        },
+        {
+          "tSec": 1291,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "slotIndex": 3,
+          "discharge": false,
+          "id": 41214,
+          "rootId": 41212,
+          "parentId": 41212
+        },
+        {
+          "tSec": 1291,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "birth",
+          "id": 41226,
+          "rootId": 41226,
+          "parentId": null
+        },
+        {
+          "tSec": 1292,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_handQuern",
+          "slotIndex": 2,
+          "rootId": 41245,
+          "parentId": 41245,
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ]
+        },
+        {
+          "tSec": 1292,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "activationType": "food",
+          "id": 41245,
+          "rootId": 41245,
+          "parentId": null
+        },
+        {
+          "tSec": 1292,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "stockConsumed",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "traits": [
+            "Edible",
+            "Grain"
+          ],
+          "tags": [
+            "Civic",
+            "Food"
+          ],
+          "pool": "common",
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ],
+          "id": 41246,
+          "rootId": 41245,
+          "parentId": 41245
+        },
+        {
+          "tSec": 1292,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "discharge": false,
+          "id": 41247,
+          "rootId": 41245,
+          "parentId": 41245
+        },
+        {
+          "tSec": 1292,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "food",
+          "id": 41290,
+          "rootId": 41290,
+          "parentId": null
+        },
+        {
+          "tSec": 1293,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "housing",
+          "id": 41309,
+          "rootId": 41309,
+          "parentId": null
+        },
+        {
+          "tSec": 1294,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "faith",
+          "id": 41329,
+          "rootId": 41329,
+          "parentId": null
+        },
+        {
+          "tSec": 1295,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "migration",
+          "id": 41348,
+          "rootId": 41348,
+          "parentId": null
+        },
+        {
+          "tSec": 1296,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "death",
+          "id": 41371,
+          "rootId": 41371,
+          "parentId": null
+        },
+        {
+          "tSec": 1297,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "dryFarming",
+          "slotIndex": 1,
+          "rootId": 41390,
+          "parentId": 41390,
+          "providers": []
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:4",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "dryFarming",
+          "activationType": "season",
+          "id": 41390,
+          "rootId": 41390,
+          "parentId": null
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:4",
+          "kind": "stockGenerated",
+          "regionId": "R04",
+          "practiceId": "dryFarming",
+          "slotIndex": 1,
+          "amount": 15,
+          "traits": [
+            "Edible",
+            "Grain"
+          ],
+          "tags": [
+            "Food"
+          ],
+          "pool": "common",
+          "scholarStaffed": false,
+          "id": 41391,
+          "rootId": 41390,
+          "parentId": 41390
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:4",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "dryFarming",
+          "slotIndex": 1,
+          "discharge": false,
+          "id": 41392,
+          "rootId": 41390,
+          "parentId": 41390
+        },
+        {
+          "tSec": 1297,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "rootId": 41415,
+          "parentId": 41415,
+          "providers": []
+        },
+        {
+          "tSec": 1297,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "barter",
+          "slotIndex": 3,
+          "rootId": 41417,
+          "parentId": 41417,
+          "providers": []
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "activationType": "birth",
+          "id": 41415,
+          "rootId": 41415,
+          "parentId": null
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "discharge": false,
+          "id": 41416,
+          "rootId": 41415,
+          "parentId": 41415
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "activationType": "birth",
+          "id": 41417,
+          "rootId": 41417,
+          "parentId": null
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "externalTrade",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "id": 41418,
+          "rootId": 41417,
+          "parentId": 41417
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "slotIndex": 3,
+          "discharge": false,
+          "id": 41419,
+          "rootId": 41417,
+          "parentId": 41417
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "birth",
+          "id": 41431,
+          "rootId": 41431,
+          "parentId": null
+        },
+        {
+          "tSec": 1298,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_handQuern",
+          "slotIndex": 2,
+          "rootId": 41450,
+          "parentId": 41450,
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ]
+        },
+        {
+          "tSec": 1298,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "activationType": "food",
+          "id": 41450,
+          "rootId": 41450,
+          "parentId": null
+        },
+        {
+          "tSec": 1298,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "stockConsumed",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "traits": [
+            "Edible",
+            "Grain"
+          ],
+          "tags": [
+            "Civic",
+            "Food"
+          ],
+          "pool": "common",
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ],
+          "id": 41451,
+          "rootId": 41450,
+          "parentId": 41450
+        },
+        {
+          "tSec": 1298,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "discharge": false,
+          "id": 41452,
+          "rootId": 41450,
+          "parentId": 41450
+        },
+        {
+          "tSec": 1298,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "food",
+          "id": 41495,
+          "rootId": 41495,
+          "parentId": null
+        },
+        {
+          "tSec": 1299,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "housing",
+          "id": 41514,
+          "rootId": 41514,
+          "parentId": null
+        },
+        {
+          "tSec": 1300,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "faith",
+          "id": 41534,
+          "rootId": 41534,
+          "parentId": null
+        },
+        {
+          "tSec": 1301,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "migration",
+          "id": 41553,
+          "rootId": 41553,
+          "parentId": null
+        },
+        {
+          "tSec": 1302,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "death",
+          "id": 41575,
+          "rootId": 41575,
+          "parentId": null
+        },
+        {
+          "tSec": 1303,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "rootId": 41593,
+          "parentId": 41593,
+          "providers": []
+        },
+        {
+          "tSec": 1303,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "barter",
+          "slotIndex": 3,
+          "rootId": 41595,
+          "parentId": 41595,
+          "providers": []
+        },
+        {
+          "tSec": 1303,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "activationType": "birth",
+          "id": 41593,
+          "rootId": 41593,
+          "parentId": null
+        },
+        {
+          "tSec": 1303,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "discharge": false,
+          "id": 41594,
+          "rootId": 41593,
+          "parentId": 41593
+        },
+        {
+          "tSec": 1303,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "activationType": "birth",
+          "id": 41595,
+          "rootId": 41595,
+          "parentId": null
+        },
+        {
+          "tSec": 1303,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "externalTrade",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "id": 41596,
+          "rootId": 41595,
+          "parentId": 41595
+        },
+        {
+          "tSec": 1303,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "slotIndex": 3,
+          "discharge": false,
+          "id": 41597,
+          "rootId": 41595,
+          "parentId": 41595
+        },
+        {
+          "tSec": 1303,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "birth",
+          "id": 41609,
+          "rootId": 41609,
+          "parentId": null
+        },
+        {
+          "tSec": 1304,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_handQuern",
+          "slotIndex": 2,
+          "rootId": 41628,
+          "parentId": 41628,
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ]
+        },
+        {
+          "tSec": 1304,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "activationType": "food",
+          "id": 41628,
+          "rootId": 41628,
+          "parentId": null
+        },
+        {
+          "tSec": 1304,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "stockConsumed",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "traits": [
+            "Edible",
+            "Grain"
+          ],
+          "tags": [
+            "Civic",
+            "Food"
+          ],
+          "pool": "common",
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ],
+          "id": 41629,
+          "rootId": 41628,
+          "parentId": 41628
+        },
+        {
+          "tSec": 1304,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "discharge": false,
+          "id": 41630,
+          "rootId": 41628,
+          "parentId": 41628
+        },
+        {
+          "tSec": 1304,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "food",
+          "id": 41672,
+          "rootId": 41672,
+          "parentId": null
+        },
+        {
+          "tSec": 1305,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "housing",
+          "id": 41691,
+          "rootId": 41691,
+          "parentId": null
+        },
+        {
+          "tSec": 1306,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "faith",
+          "id": 41711,
+          "rootId": 41711,
+          "parentId": null
+        },
+        {
+          "tSec": 1307,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "migration",
+          "id": 41730,
+          "rootId": 41730,
+          "parentId": null
+        },
+        {
+          "tSec": 1308,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "death",
+          "id": 41755,
+          "rootId": 41755,
+          "parentId": null
+        },
+        {
+          "tSec": 1309,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "rootId": 41771,
+          "parentId": 41771,
+          "providers": []
+        },
+        {
+          "tSec": 1309,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "barter",
+          "slotIndex": 3,
+          "rootId": 41773,
+          "parentId": 41773,
+          "providers": []
+        },
+        {
+          "tSec": 1309,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "activationType": "birth",
+          "id": 41771,
+          "rootId": 41771,
+          "parentId": null
+        },
+        {
+          "tSec": 1309,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "discharge": false,
+          "id": 41772,
+          "rootId": 41771,
+          "parentId": 41771
+        },
+        {
+          "tSec": 1309,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "activationType": "birth",
+          "id": 41773,
+          "rootId": 41773,
+          "parentId": null
+        },
+        {
+          "tSec": 1309,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "externalTrade",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "id": 41774,
+          "rootId": 41773,
+          "parentId": 41773
+        },
+        {
+          "tSec": 1309,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "slotIndex": 3,
+          "discharge": false,
+          "id": 41775,
+          "rootId": 41773,
+          "parentId": 41773
+        },
+        {
+          "tSec": 1309,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "birth",
+          "id": 41783,
+          "rootId": 41783,
+          "parentId": null
+        },
+        {
+          "tSec": 1310,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_handQuern",
+          "slotIndex": 2,
+          "rootId": 41802,
+          "parentId": 41802,
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ]
+        },
+        {
+          "tSec": 1310,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "activationType": "food",
+          "id": 41802,
+          "rootId": 41802,
+          "parentId": null
+        },
+        {
+          "tSec": 1310,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "stockConsumed",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "traits": [
+            "Edible",
+            "Grain"
+          ],
+          "tags": [
+            "Civic",
+            "Food"
+          ],
+          "pool": "common",
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ],
+          "id": 41803,
+          "rootId": 41802,
+          "parentId": 41802
+        },
+        {
+          "tSec": 1310,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "discharge": false,
+          "id": 41804,
+          "rootId": 41802,
+          "parentId": 41802
+        },
+        {
+          "tSec": 1310,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "food",
+          "id": 41842,
+          "rootId": 41842,
+          "parentId": null
+        },
+        {
+          "tSec": 1311,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "housing",
+          "id": 41861,
+          "rootId": 41861,
+          "parentId": null
+        },
+        {
+          "tSec": 1312,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "faith",
+          "id": 41881,
+          "rootId": 41881,
+          "parentId": null
+        },
+        {
+          "tSec": 1313,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "migration",
+          "id": 41902,
+          "rootId": 41902,
+          "parentId": null
+        },
+        {
+          "tSec": 1314,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "death",
+          "id": 41925,
+          "rootId": 41925,
+          "parentId": null
+        }
+      ]
+    }
+  },
+  "expected": {
+    "civilization": {
+      "settlementCount": 2,
+      "regionIds": [
+        "R04",
+        "R11"
+      ],
+      "specialists": {
+        "scholar": 0,
+        "warrior": 0
+      },
+      "population": {
+        "children": 33,
+        "adults": 29,
+        "elders": 10,
+        "total": 72,
+        "mealDemand": 4,
+        "housingCapacity": 60,
+        "byClass": {
+          "villager": {
+            "children": 33,
+            "adults": 29,
+            "elders": 10,
+            "total": 72,
+            "assignedWorkers": 3,
+            "freePopulation": 36
+          },
+          "stranger": {
+            "children": 0,
+            "adults": 0,
+            "elders": 0,
+            "total": 0,
+            "assignedWorkers": 0,
+            "freePopulation": 0
+          }
+        }
+      },
+      "food": {
+        "stored": 13,
+        "loose": 0,
+        "total": 13,
+        "storedCapacity": 28
+      },
+      "research": 0,
+      "overHousingSiteCount": 2,
+      "chaos": {
+        "chaosPower": 24.7777,
+        "resistance": 24.9,
+        "expansionProgress": 52.537020918,
+        "expansionThreshold": 100,
+        "progressPerMoon": 0,
+        "monsterCount": 1,
+        "lastReckoning": {
+          "prematureDeaths": 0,
+          "oldAgeDeaths": 0,
+          "externalEmigrants": 0,
+          "primordialPressure": 0.1331,
+          "prematureDeathPressure": 0,
+          "prematureDeathMitigation": 0,
+          "externalEmigrationPressure": 0,
+          "oldAgeDeathPressure": 0,
+          "internalMigrationPressure": 0,
+          "rawPressure": 0.1331,
+          "faithPopulation": {
+            "bronze": 0,
+            "silver": 37,
+            "gold": 35,
+            "diamond": 0
+          },
+          "resistance": 24.9,
+          "populationResistance": 24.9,
+          "incomingChaos": 0.1331,
+          "totalIncome": 0.1331,
+          "accumulatedChaos": 24.7777,
+          "spawned": 0
+        }
+      },
+      "green": {
+        "tier": 0,
+        "label": "Dormant",
+        "automatic": true,
+        "cadenceYears": 100,
+        "nextEscalationYears": 58
+      }
+    },
+    "settlement": {
+      "regionId": "R04",
+      "siteId": "R04-settlement",
+      "control": {
+        "holder": "player",
+        "support": {
+          "neutral": 1,
+          "player": 36
+        },
+        "total": 37,
+        "loyal": 36,
+        "disloyal": 1,
+        "share": 0.972972972972973,
+        "required": 1,
+        "faction": "player",
+        "warriors": 0,
+        "armed": 0,
+        "supplied": true,
+        "force": 0,
+        "defense": 0,
+        "upkeep": 0,
+        "supportTarget": null,
+        "sentForce": 0,
+        "receivedForce": 0,
+        "supportSources": [],
+        "unrest": 0,
+        "supported": true,
+        "occupied": false,
+        "status": "supported",
+        "targetUnrest": 0
+      },
+      "prestigePopulationPerPoint": 20,
+      "prestigePerNode": 1.85,
+      "civilizationPrestige": 54,
+      "supportTargets": [],
+      "name": "Free Settlement",
+      "neutral": false,
+      "marketStocks": [],
+      "marketCurrency": 0,
+      "lastDefense": null,
+      "martialForce": 0,
+      "martialSupport": 0,
+      "defensiveSupport": 0,
+      "storedFood": 13,
+      "looseFood": 0,
+      "currency": 4,
+      "currencySpentThisMoon": 0,
+      "currencySpentLastMoon": 0,
+      "storedFoodCapacity": 28,
+      "specialists": {
+        "scholar": 0,
+        "warrior": 0
+      },
+      "population": {
+        "children": 21,
+        "adults": 12,
+        "elders": 4,
+        "total": 37,
+        "mealDemand": 2,
+        "mealOverhead": 0,
+        "housingCapacity": 30,
+        "byClass": {
+          "villager": {
+            "children": 21,
+            "adults": 12,
+            "elders": 4,
+            "total": 37,
+            "mealDemand": 1.2333333333333334
+          },
+          "stranger": {
+            "children": 0,
+            "adults": 0,
+            "elders": 0,
+            "total": 0,
+            "mealDemand": 0
+          }
+        }
+      },
+      "pressure": {
+        "starvation": false,
+        "starvationMigrants": 0,
+        "unfedMealDemand": 0,
+        "overcrowding": true,
+        "housingOverflow": 7
+      },
+      "workerPool": {
+        "availableWorkerCount": 1,
+        "activeWorkerCount": 1,
+        "unusedWorkerCount": 0
+      },
+      "practices": [
+        {
+          "practiceId": "fm_woodlotRights",
+          "tier": "bronze",
+          "stock": 4,
+          "charge": 0,
+          "work": 0,
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "label": "Woodlot Rights",
+          "tags": [
+            "Civic"
+          ],
+          "face": {
+            "kind": "practice",
+            "definitionId": "fm_woodlotRights",
+            "label": "Woodlot Rights",
+            "tier": "bronze",
+            "tags": [
+              "Civic"
+            ],
+            "qualityLabel": "bronze",
+            "rule": "Generate 1 hosted Stock. Removed political clause: Resource Practice produces only its visible Stock and authored nonpolitical effects.",
+            "category": "resource",
+            "allegiance": null,
+            "politicalIcon": "support",
+            "politicalOutput": null,
+            "inputs": [],
+            "chaosCost": 0,
+            "monsterPressureCost": 0,
+            "production": [
+              {
+                "icon": "stock",
+                "symbolLabel": "Stock",
+                "value": 1,
+                "label": "Produce 1 Stock"
+              }
+            ],
+            "baseStockProduction": [
+              {
+                "timing": "Birth phase",
+                "amount": 1
+              }
+            ],
+            "workerMultiplier": 2,
+            "chargeTriggers": [],
+            "construction": null,
+            "reading": {
+              "type": "Cycle",
+              "passive": false,
+              "classLabel": "Neutral",
+              "effects": [
+                {
+                  "timing": "Birth phase",
+                  "text": "Produce 1 Stock"
+                }
+              ],
+              "requirements": [],
+              "trigger": null
+            },
+            "mechanics": [
+              {
+                "id": "stock",
+                "name": "Stock",
+                "type": "resource",
+                "icon": "stock",
+                "definition": "Resources held by a Practice. Each unit carries its host's Stock traits. Produce adds units up to capacity; Consume spends matching units."
+              }
+            ],
+            "keywordReading": null,
+            "structureBonuses": [],
+            "structureQualityBonus": 0,
+            "chargeGain": null,
+            "stock": 4,
+            "stockCapacity": 4,
+            "stockCapacityBreakdown": {
+              "base": 4,
+              "quality": 0,
+              "scholar": 0,
+              "multiplier": 1,
+              "sources": [],
+              "total": 4
+            },
+            "outputMultiplierBreakdown": {
+              "multiplier": 1,
+              "sources": []
+            },
+            "stockTraits": [
+              "Timber",
+              "Construction"
+            ],
+            "providers": [],
+            "missing": null,
+            "mode": "scheduled",
+            "charge": 0,
+            "chargeThreshold": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "blocked": false,
+            "blockedReason": null,
+            "viewedTime": 1314,
+            "activationAge": 5,
+            "nextTrigger": null,
+            "outputs": [],
+            "footprint": 1,
+            "lane": "scheduled",
+            "source": {
+              "icon": "birth",
+              "cadence": "birth"
+            },
+            "workerCapacity": 2,
+            "workerBonus": 1,
+            "workers": 1,
+            "fill": 0.8333333333333334,
+            "detailLines": [
+              "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+              "Face yields are base amounts; worker bonuses and local modifiers apply at activation.",
+              "Produce 1 Stock.",
+              "Workers: 2 sockets; +100% Stock per effective worker.",
+              "Scheduled: birth."
+            ]
+          },
+          "workers": {
+            "slotIndex": 0,
+            "practiceId": "fm_woodlotRights",
+            "tokens": [
+              {
+                "classId": "villager",
+                "allegiance": "player",
+                "specialist": null,
+                "effectiveness": 1
+              }
+            ],
+            "effectiveWorkers": 1
+          },
+          "evaluation": {
+            "practiceId": "fm_woodlotRights",
+            "label": "Woodlot Rights",
+            "workerCapacity": 2,
+            "activation": {
+              "type": "birth"
+            },
+            "rule": "Generate 1 hosted Stock. Removed political clause: Resource Practice produces only its visible Stock and authored nonpolitical effects.",
+            "mode": "scheduled",
+            "charge": null,
+            "chargeThreshold": null,
+            "chargeGain": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "ready": false,
+            "blocked": false,
+            "blockedReason": null,
+            "conversionTargets": [],
+            "stock": 4,
+            "stockCapacity": 4,
+            "stockTraits": [
+              "Timber",
+              "Construction"
+            ],
+            "providers": [],
+            "missing": null,
+            "supplied": true,
+            "effects": [
+              {
+                "op": "generateStock",
+                "scaledValue": {
+                  "effectiveValue": 2,
+                  "baseValue": 1,
+                  "workerMultiplier": 2
+                }
+              }
+            ]
+          }
+        },
+        {
+          "practiceId": "dryFarming",
+          "tier": "bronze",
+          "instanceId": "institution:4",
+          "charge": 0,
+          "work": 0,
+          "stock": 5,
+          "label": "Dry Farming",
+          "tags": [
+            "Food"
+          ],
+          "face": {
+            "kind": "practice",
+            "definitionId": "dryFarming",
+            "label": "Dry Farming",
+            "tier": "bronze",
+            "tags": [
+              "Food"
+            ],
+            "qualityLabel": "bronze",
+            "rule": "Summer / Autumn; Summer +2; Autumn +6; Large seasonal harvest with pronounced stockpile/lag gameplay.",
+            "category": "resource",
+            "allegiance": null,
+            "politicalIcon": "support",
+            "politicalOutput": null,
+            "inputs": [],
+            "chaosCost": 0,
+            "monsterPressureCost": 0,
+            "production": [
+              {
+                "season": "summer",
+                "icon": "stock",
+                "value": 2,
+                "label": "summer: 2 base stock"
+              },
+              {
+                "season": "autumn",
+                "icon": "stock",
+                "value": 6,
+                "label": "autumn: 6 base stock"
+              }
+            ],
+            "baseStockProduction": [
+              {
+                "timing": "Summer",
+                "amount": 2
+              },
+              {
+                "timing": "Autumn",
+                "amount": 6
+              }
+            ],
+            "workerMultiplier": 1,
+            "chargeTriggers": [],
+            "construction": null,
+            "reading": {
+              "type": "Cycle",
+              "passive": false,
+              "classLabel": "Neutral",
+              "effects": [
+                {
+                  "timing": "Summer",
+                  "text": "Produce 2 Stock"
+                },
+                {
+                  "timing": "Autumn",
+                  "text": "Produce 6 Stock"
+                }
+              ],
+              "requirements": [],
+              "trigger": null
+            },
+            "mechanics": [
+              {
+                "id": "stock",
+                "name": "Stock",
+                "type": "resource",
+                "icon": "stock",
+                "definition": "Resources held by a Practice. Each unit carries its host's Stock traits. Produce adds units up to capacity; Consume spends matching units."
+              }
+            ],
+            "keywordReading": null,
+            "structureBonuses": [],
+            "structureQualityBonus": 0,
+            "chargeGain": null,
+            "stock": 5,
+            "stockCapacity": 20,
+            "stockCapacityBreakdown": {
+              "base": 10,
+              "quality": 0,
+              "scholar": 0,
+              "multiplier": 2,
+              "sources": [
+                {
+                  "id": "granary",
+                  "label": "Granary",
+                  "amount": 1,
+                  "query": {
+                    "traitsAny": [
+                      "Edible"
+                    ]
+                  },
+                  "instanceId": "R04:support"
+                }
+              ],
+              "total": 20
+            },
+            "outputMultiplierBreakdown": {
+              "multiplier": 5,
+              "sources": [
+                {
+                  "id": "biome:plains",
+                  "label": "4 contiguous plains",
+                  "amount": 4,
+                  "query": {
+                    "traitsAny": [
+                      "Grain"
+                    ]
+                  },
+                  "regionIds": [
+                    "R01",
+                    "R04",
+                    "R11",
+                    "R10"
+                  ]
+                }
+              ]
+            },
+            "stockTraits": [
+              "Edible",
+              "Grain"
+            ],
+            "providers": [],
+            "missing": null,
+            "mode": "scheduled",
+            "charge": 0,
+            "chargeThreshold": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "blocked": false,
+            "blockedReason": null,
+            "viewedTime": 1314,
+            "activationAge": 17,
+            "nextTrigger": {
+              "season": "summer",
+              "tSec": 1321
+            },
+            "outputs": [],
+            "footprint": 1,
+            "lane": "scheduled",
+            "source": {
+              "icon": "season",
+              "cadence": "season"
+            },
+            "workerCapacity": 2,
+            "workerBonus": 1,
+            "workers": 0,
+            "fill": 0.7083333333333334,
+            "detailLines": [
+              "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+              "summer: 2 base stock",
+              "autumn: 6 base stock",
+              "Face yields are base amounts; worker bonuses and local modifiers apply at activation.",
+              "Produce 2 Stock.",
+              "Workers: 2 sockets; +100% Stock per effective worker.",
+              "Scheduled: season.",
+              "Secondary hook uses current numeric training/candidate/preview/support grammar; authored choice, Legacy and specialized action variants remain deferred."
+            ]
+          },
+          "workers": {
+            "slotIndex": 1,
+            "practiceId": "dryFarming",
+            "tokens": [],
+            "effectiveWorkers": 0
+          },
+          "evaluation": {
+            "practiceId": "dryFarming",
+            "label": "Dry Farming",
+            "workerCapacity": 2,
+            "activation": {
+              "type": "season",
+              "seasonKeys": [
+                "summer",
+                "autumn"
+              ]
+            },
+            "rule": "Summer / Autumn; Summer +2; Autumn +6; Large seasonal harvest with pronounced stockpile/lag gameplay.",
+            "mode": "scheduled",
+            "charge": null,
+            "chargeThreshold": null,
+            "chargeGain": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "ready": false,
+            "blocked": false,
+            "blockedReason": null,
+            "conversionTargets": [],
+            "stock": 5,
+            "stockCapacity": 20,
+            "stockTraits": [
+              "Edible",
+              "Grain"
+            ],
+            "providers": [],
+            "missing": null,
+            "supplied": true,
+            "effects": [
+              {
+                "op": "generateStock",
+                "scaledValue": {
+                  "effectiveValue": 10,
+                  "baseValue": 2,
+                  "workerMultiplier": 1
+                }
+              }
+            ]
+          }
+        },
+        {
+          "practiceId": "fm_handQuern",
+          "tier": "bronze",
+          "instanceId": "institution:5",
+          "charge": 0,
+          "work": 0,
+          "stock": 8,
+          "label": "Hand Quern",
+          "tags": [
+            "Civic",
+            "Food"
+          ],
+          "face": {
+            "kind": "practice",
+            "definitionId": "fm_handQuern",
+            "label": "Hand Quern",
+            "tier": "bronze",
+            "tags": [
+              "Civic",
+              "Food"
+            ],
+            "qualityLabel": "bronze",
+            "rule": "Consume 1 Grain. Generate 2 hosted Stock.",
+            "category": "resource",
+            "allegiance": null,
+            "politicalIcon": "support",
+            "politicalOutput": null,
+            "inputs": [
+              {
+                "kind": "consume",
+                "amount": 1,
+                "traits": [
+                  "Grain"
+                ]
+              }
+            ],
+            "chaosCost": 0,
+            "monsterPressureCost": 0,
+            "production": [
+              {
+                "icon": "stock",
+                "symbolLabel": "Stock",
+                "value": 2,
+                "label": "Produce 2 Stock"
+              }
+            ],
+            "baseStockProduction": [
+              {
+                "timing": "Food phase",
+                "amount": 2
+              }
+            ],
+            "workerMultiplier": 1,
+            "chargeTriggers": [],
+            "construction": null,
+            "reading": {
+              "type": "Cycle",
+              "passive": false,
+              "classLabel": "Neutral",
+              "effects": [
+                {
+                  "timing": "Food phase",
+                  "text": "Produce 2 Stock"
+                }
+              ],
+              "requirements": [
+                "Consume 1 Grain Stock."
+              ],
+              "trigger": null
+            },
+            "mechanics": [
+              {
+                "id": "stock",
+                "name": "Stock",
+                "type": "resource",
+                "icon": "stock",
+                "definition": "Resources held by a Practice. Each unit carries its host's Stock traits. Produce adds units up to capacity; Consume spends matching units."
+              }
+            ],
+            "keywordReading": null,
+            "structureBonuses": [],
+            "structureQualityBonus": 0,
+            "chargeGain": null,
+            "stock": 8,
+            "stockCapacity": 8,
+            "stockCapacityBreakdown": {
+              "base": 4,
+              "quality": 0,
+              "scholar": 0,
+              "multiplier": 2,
+              "sources": [
+                {
+                  "id": "granary",
+                  "label": "Granary",
+                  "amount": 1,
+                  "query": {
+                    "traitsAny": [
+                      "Edible"
+                    ]
+                  },
+                  "instanceId": "R04:support"
+                }
+              ],
+              "total": 8
+            },
+            "outputMultiplierBreakdown": {
+              "multiplier": 1,
+              "sources": []
+            },
+            "stockTraits": [
+              "Edible"
+            ],
+            "providers": [
+              {
+                "kind": "consume",
+                "regionId": "R04",
+                "slotIndex": 1,
+                "practiceId": "dryFarming",
+                "amount": 1,
+                "traits": [
+                  "Grain"
+                ]
+              }
+            ],
+            "missing": null,
+            "mode": "scheduled",
+            "charge": 0,
+            "chargeThreshold": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "blocked": false,
+            "blockedReason": null,
+            "viewedTime": 1314,
+            "activationAge": 4,
+            "nextTrigger": null,
+            "outputs": [],
+            "footprint": 1,
+            "lane": "scheduled",
+            "source": {
+              "icon": "food",
+              "cadence": "food"
+            },
+            "workerCapacity": 2,
+            "workerBonus": 1,
+            "workers": 0,
+            "fill": 0.6666666666666666,
+            "detailLines": [
+              "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+              "Consume 1 [Grain].",
+              "Uses local Stock first, then adjacent road-connected holdings of the beneficiary. No shared neutral market.",
+              "Face yields are base amounts; worker bonuses and local modifiers apply at activation.",
+              "Consume 1 from Central Plains slot 2: dryFarming",
+              "Produce 2 Stock.",
+              "Workers: 2 sockets; +100% Stock per effective worker.",
+              "Scheduled: food."
+            ]
+          },
+          "workers": {
+            "slotIndex": 2,
+            "practiceId": "fm_handQuern",
+            "tokens": [],
+            "effectiveWorkers": 0
+          },
+          "evaluation": {
+            "practiceId": "fm_handQuern",
+            "label": "Hand Quern",
+            "workerCapacity": 2,
+            "activation": {
+              "type": "food",
+              "stage": "preRouting"
+            },
+            "rule": "Consume 1 Grain. Generate 2 hosted Stock.",
+            "mode": "scheduled",
+            "charge": null,
+            "chargeThreshold": null,
+            "chargeGain": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "ready": false,
+            "blocked": false,
+            "blockedReason": null,
+            "conversionTargets": [],
+            "stock": 8,
+            "stockCapacity": 8,
+            "stockTraits": [
+              "Edible"
+            ],
+            "providers": [
+              {
+                "kind": "consume",
+                "regionId": "R04",
+                "slotIndex": 1,
+                "practiceId": "dryFarming",
+                "amount": 1,
+                "traits": [
+                  "Grain"
+                ]
+              }
+            ],
+            "missing": null,
+            "supplied": true,
+            "effects": [
+              {
+                "op": "generateStock",
+                "scaledValue": {
+                  "effectiveValue": 2,
+                  "baseValue": 2,
+                  "workerMultiplier": 1
+                }
+              }
+            ]
+          }
+        },
+        {
+          "practiceId": "barter",
+          "tier": "bronze",
+          "instanceId": "institution:6",
+          "charge": 0,
+          "work": 0,
+          "stock": 4,
+          "label": "Barter",
+          "tags": [
+            "Trade"
+          ],
+          "face": {
+            "kind": "practice",
+            "definitionId": "barter",
+            "label": "Barter",
+            "tier": "bronze",
+            "tags": [
+              "Trade"
+            ],
+            "qualityLabel": "bronze",
+            "rule": "Birth / Trade; +1; +1 more if connected to any external settlement, max +2; Require At least 2 stocked Practices with different Stock Traits; Creates local [Currency] Stock from economic diversity and external contact. Currency is ordinary hosted Stock, not a separate settlement number.",
+            "category": "resource",
+            "allegiance": null,
+            "politicalIcon": "support",
+            "politicalOutput": null,
+            "inputs": [],
+            "chaosCost": 0,
+            "monsterPressureCost": 0,
+            "production": [
+              {
+                "icon": "stock",
+                "symbolLabel": "Stock",
+                "value": 1,
+                "label": "Produce 1 Stock"
+              }
+            ],
+            "baseStockProduction": [
+              {
+                "timing": "Birth phase",
+                "amount": 1
+              }
+            ],
+            "workerMultiplier": 1,
+            "chargeTriggers": [],
+            "construction": null,
+            "reading": {
+              "type": "Cycle",
+              "passive": false,
+              "classLabel": "Neutral",
+              "effects": [
+                {
+                  "timing": "Birth phase",
+                  "text": "Produce 1 Stock"
+                }
+              ],
+              "requirements": [
+                "Requires two stocked Practices with different Stock traits in the supply network."
+              ],
+              "trigger": null
+            },
+            "mechanics": [
+              {
+                "id": "stock",
+                "name": "Stock",
+                "type": "resource",
+                "icon": "stock",
+                "definition": "Resources held by a Practice. Each unit carries its host's Stock traits. Produce adds units up to capacity; Consume spends matching units."
+              }
+            ],
+            "keywordReading": null,
+            "structureBonuses": [],
+            "structureQualityBonus": 0,
+            "chargeGain": null,
+            "stock": 4,
+            "stockCapacity": 4,
+            "stockCapacityBreakdown": {
+              "base": 4,
+              "quality": 0,
+              "scholar": 0,
+              "multiplier": 1,
+              "sources": [],
+              "total": 4
+            },
+            "outputMultiplierBreakdown": {
+              "multiplier": 1,
+              "sources": []
+            },
+            "stockTraits": [
+              "Currency"
+            ],
+            "providers": [],
+            "missing": null,
+            "mode": "scheduled",
+            "charge": 0,
+            "chargeThreshold": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "blocked": false,
+            "blockedReason": null,
+            "viewedTime": 1314,
+            "activationAge": 5,
+            "nextTrigger": null,
+            "outputs": [],
+            "footprint": 1,
+            "lane": "scheduled",
+            "source": {
+              "icon": "birth",
+              "cadence": "birth"
+            },
+            "workerCapacity": 2,
+            "workerBonus": 1,
+            "workers": 0,
+            "fill": 0.8333333333333334,
+            "detailLines": [
+              "Resource Practice: Stock belongs to the regional holder; local automatic recipes may use it. Remote supply follows the holder.",
+              "Face yields are base amounts; worker bonuses and local modifiers apply at activation.",
+              "Produce 1 Stock.",
+              "Workers: 2 sockets; +100% Stock per effective worker.",
+              "Scheduled: birth.",
+              "Secondary hook uses current numeric training/candidate/preview/support grammar; authored choice, Legacy and specialized action variants remain deferred."
+            ]
+          },
+          "workers": {
+            "slotIndex": 3,
+            "practiceId": "barter",
+            "tokens": [],
+            "effectiveWorkers": 0
+          },
+          "evaluation": {
+            "practiceId": "barter",
+            "label": "Barter",
+            "workerCapacity": 2,
+            "activation": {
+              "type": "birth"
+            },
+            "rule": "Birth / Trade; +1; +1 more if connected to any external settlement, max +2; Require At least 2 stocked Practices with different Stock Traits; Creates local [Currency] Stock from economic diversity and external contact. Currency is ordinary hosted Stock, not a separate settlement number.",
+            "mode": "scheduled",
+            "charge": null,
+            "chargeThreshold": null,
+            "chargeGain": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "ready": false,
+            "blocked": false,
+            "blockedReason": null,
+            "conversionTargets": [],
+            "stock": 4,
+            "stockCapacity": 4,
+            "stockTraits": [
+              "Currency"
+            ],
+            "providers": [],
+            "missing": null,
+            "supplied": true,
+            "effects": [
+              {
+                "op": "generateStock",
+                "scaledValue": {
+                  "effectiveValue": 1,
+                  "baseValue": 1,
+                  "workerMultiplier": 1
+                }
+              }
+            ]
+          }
+        },
+        {
+          "label": null,
+          "tags": [],
+          "face": null,
+          "workers": {
+            "slotIndex": 4,
+            "practiceId": null,
+            "tokens": [],
+            "effectiveWorkers": 0
+          },
+          "evaluation": null
+        }
+      ],
+      "structures": [
+        {
+          "structureId": "mudHouses",
+          "placementId": "R04:housing",
+          "origin": 0,
+          "width": 1,
+          "face": {
+            "kind": "structure",
+            "definitionId": "mudHouses",
+            "label": "Mud House",
+            "tier": "bronze",
+            "tags": [
+              "Housing"
+            ],
+            "qualityLabel": "bronze",
+            "rule": "+30 Housing Capacity.",
+            "category": "resource",
+            "allegiance": null,
+            "politicalIcon": "support",
+            "politicalOutput": null,
+            "inputs": [],
+            "chaosCost": 0,
+            "monsterPressureCost": 0,
+            "production": [],
+            "baseStockProduction": [],
+            "workerMultiplier": 1,
+            "chargeTriggers": [],
+            "construction": null,
+            "reading": {
+              "type": "Structure",
+              "classLabel": "Neutral",
+              "passive": true,
+              "effects": [
+                {
+                  "timing": "",
+                  "text": "+30 Housing Capacity"
+                }
+              ],
+              "bonuses": [
+                {
+                  "kind": "housingCapacity",
+                  "amount": 30,
+                  "label": "Housing capacity",
+                  "traits": []
+                }
+              ],
+              "requirements": [],
+              "trigger": null,
+              "active": true,
+              "flavour": "A little earth between the hearth and the storm."
+            },
+            "mechanics": [],
+            "keywordReading": null,
+            "structureBonuses": [
+              {
+                "kind": "housingCapacity",
+                "amount": 30,
+                "label": "Housing capacity",
+                "traits": []
+              }
+            ],
+            "structureQualityBonus": 0,
+            "chargeGain": null,
+            "stock": 0,
+            "stockCapacity": 0,
+            "stockCapacityBreakdown": null,
+            "outputMultiplierBreakdown": null,
+            "stockTraits": [],
+            "providers": [],
+            "missing": null,
+            "mode": null,
+            "charge": 0,
+            "chargeThreshold": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "blocked": false,
+            "blockedReason": null,
+            "viewedTime": 1314,
+            "activationAge": null,
+            "nextTrigger": null,
+            "outputs": [],
+            "footprint": 1,
+            "lane": null,
+            "source": null,
+            "workerCapacity": 0,
+            "workerBonus": 1,
+            "workers": 0,
+            "fill": 0.8333333333333334,
+            "detailLines": [
+              "30 Housing. Numeric bonuses from duplicate structures add.",
+              "Construction footprint: 1 horizontal cells.",
+              "Secondary hook uses current numeric training/candidate/preview/support grammar; authored choice, Legacy and specialized action variants remain deferred.",
+              "Passive coefficients are provisional; see docs/civcontent-2.6-implementation.md for exact runtime modifiers and deviations."
+            ]
+          },
+          "label": "Mud House",
+          "tags": [
+            "Housing"
+          ]
+        },
+        {
+          "structureId": "granary",
+          "placementId": "R04:support",
+          "origin": 1,
+          "width": 1,
+          "face": {
+            "kind": "structure",
+            "definitionId": "granary",
+            "label": "Granary",
+            "tier": "bronze",
+            "tags": [
+              "Food"
+            ],
+            "qualityLabel": "bronze",
+            "rule": "Practices whose Stock has [Edible] have +1 Capacity Multiplier.",
+            "category": "resource",
+            "allegiance": null,
+            "politicalIcon": "support",
+            "politicalOutput": null,
+            "inputs": [],
+            "chaosCost": 0,
+            "monsterPressureCost": 0,
+            "production": [],
+            "baseStockProduction": [],
+            "workerMultiplier": 1,
+            "chargeTriggers": [],
+            "construction": null,
+            "reading": {
+              "type": "Structure",
+              "classLabel": "Neutral",
+              "passive": true,
+              "effects": [
+                {
+                  "timing": "",
+                  "text": "+1 Capacity Multiplier for Edible"
+                }
+              ],
+              "bonuses": [
+                {
+                  "kind": "stock",
+                  "amount": 1,
+                  "label": "Capacity Multiplier",
+                  "traits": [
+                    "Edible"
+                  ],
+                  "scope": "local Practices with Edible Stock"
+                }
+              ],
+              "requirements": [],
+              "trigger": null,
+              "active": true,
+              "flavour": "What summer leaves behind, winter will ask for."
+            },
+            "mechanics": [],
+            "keywordReading": null,
+            "structureBonuses": [
+              {
+                "kind": "stock",
+                "amount": 1,
+                "label": "Capacity Multiplier",
+                "traits": [
+                  "Edible"
+                ],
+                "scope": "local Practices with Edible Stock"
+              }
+            ],
+            "structureQualityBonus": 0,
+            "chargeGain": null,
+            "stock": 0,
+            "stockCapacity": 0,
+            "stockCapacityBreakdown": null,
+            "outputMultiplierBreakdown": null,
+            "stockTraits": [],
+            "providers": [],
+            "missing": null,
+            "mode": null,
+            "charge": 0,
+            "chargeThreshold": null,
+            "chargeTrigger": null,
+            "dischargeEffect": null,
+            "blocked": false,
+            "blockedReason": null,
+            "viewedTime": 1314,
+            "activationAge": null,
+            "nextTrigger": null,
+            "outputs": [],
+            "footprint": 1,
+            "lane": null,
+            "source": null,
+            "workerCapacity": 0,
+            "workerBonus": 1,
+            "workers": 0,
+            "fill": 0.8333333333333334,
+            "detailLines": [
+              "Construction footprint: 1 horizontal cells.",
+              "Secondary hook uses current numeric training/candidate/preview/support grammar; authored choice, Legacy and specialized action variants remain deferred.",
+              "Passive coefficients are provisional; see docs/civcontent-2.6-implementation.md for exact runtime modifiers and deviations."
+            ]
+          },
+          "label": "Granary",
+          "tags": [
+            "Food"
+          ]
+        },
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "structureCapacity": 8,
+      "usedStructureCapacity": 2,
+      "elderOrder": {
+        "regionId": "R04",
+        "workerPolicyId": "populationDecileVillagersFirst",
+        "ages": [
+          45,
+          46,
+          47,
+          58
+        ],
+        "count": 4,
+        "totalPrestige": 20,
+        "averagePrestige": 5,
+        "coordinationResistance": 6,
+        "resistance": 11
+      },
+      "lastMeal": {
+        "tSec": 1310,
+        "demand": 2,
+        "savedStock": 0,
+        "consumed": 2,
+        "ratio": 1,
+        "byClass": {
+          "villager": {
+            "demand": 37,
+            "consumed": 37,
+            "ratio": 1,
+            "migrants": 0,
+            "previousHappiness": "negative",
+            "targetHappiness": "negative"
+          },
+          "stranger": {
+            "demand": 0,
+            "consumed": 0,
+            "ratio": 1,
+            "migrants": 0
+          }
+        },
+        "migration": {
+          "tSec": 1313,
+          "intents": [],
+          "outbound": [],
+          "inbound": [],
+          "sourceLosses": []
+        }
+      },
+      "currentMoonResult": {
+        "regionId": "R04",
+        "birth": {
+          "tSec": 1309,
+          "year": 41,
+          "byClass": {
+            "villager": {
+              "births": 0,
+              "matured": 0,
+              "newElders": 0,
+              "ageAdvance": 0,
+              "birthRate": 0,
+              "childToAdultRate": 0.01,
+              "adultToElderRate": 0.005
+            },
+            "stranger": {
+              "births": 0,
+              "matured": 0,
+              "newElders": 0,
+              "ageAdvance": 0,
+              "birthRate": 0.02,
+              "childToAdultRate": 0.01,
+              "adultToElderRate": 0.005
+            }
+          }
+        },
+        "food": {
+          "tSec": 1310,
+          "demand": 2,
+          "savedStock": 0,
+          "consumed": 2,
+          "ratio": 1,
+          "byClass": {
+            "villager": {
+              "demand": 37,
+              "consumed": 37,
+              "ratio": 1,
+              "migrants": 0,
+              "previousHappiness": "negative",
+              "targetHappiness": "negative"
+            },
+            "stranger": {
+              "demand": 0,
+              "consumed": 0,
+              "ratio": 1,
+              "migrants": 0
+            }
+          },
+          "migration": {
+            "intents": [],
+            "outbound": [],
+            "inbound": [],
+            "sourceLosses": []
+          }
+        },
+        "housing": {
+          "tSec": 1311,
+          "population": 37,
+          "capacity": 30,
+          "overflow": 7,
+          "migrants": 7,
+          "happinessCap": "negative"
+        },
+        "faith": {
+          "tSec": 1312,
+          "byClass": {
+            "villager": {
+              "previousHappiness": "negative",
+              "happiness": "negative",
+              "previousFaith": "silver",
+              "faith": "silver",
+              "faithShifted": false,
+              "faithTrend": "negative",
+              "faithStreak": 1,
+              "collapseEntered": false,
+              "displaced": 0
+            }
+          }
+        },
+        "migration": {
+          "tSec": 1313,
+          "intents": [],
+          "outbound": [],
+          "inbound": [],
+          "sourceLosses": []
+        },
+        "death": {
+          "tSec": 1314,
+          "byClass": {
+            "villager": {
+              "naturalDeaths": 0
+            },
+            "stranger": {
+              "naturalDeaths": 0
+            }
+          },
+          "hardshipDeaths": 0,
+          "arrivalDeaths": 0,
+          "storedFoodRot": 0,
+          "looseFoodRot": 0
+        },
+        "currencySpent": 0
+      },
+      "lastMoonResult": {
+        "regionId": "R04",
+        "birth": {
+          "tSec": 1303,
+          "year": 41,
+          "byClass": {
+            "villager": {
+              "births": 0,
+              "matured": 0,
+              "newElders": 0,
+              "ageAdvance": 0,
+              "birthRate": 0.02,
+              "childToAdultRate": 0.01,
+              "adultToElderRate": 0.005
+            },
+            "stranger": {
+              "births": 0,
+              "matured": 0,
+              "newElders": 0,
+              "ageAdvance": 0,
+              "birthRate": 0.02,
+              "childToAdultRate": 0.01,
+              "adultToElderRate": 0.005
+            }
+          }
+        },
+        "food": {
+          "tSec": 1304,
+          "demand": 2,
+          "savedStock": 0,
+          "consumed": 2,
+          "ratio": 1,
+          "byClass": {
+            "villager": {
+              "demand": 37,
+              "consumed": 37,
+              "ratio": 1,
+              "migrants": 0,
+              "previousHappiness": "negative",
+              "targetHappiness": "negative"
+            },
+            "stranger": {
+              "demand": 0,
+              "consumed": 0,
+              "ratio": 1,
+              "migrants": 0
+            }
+          },
+          "migration": {
+            "intents": [],
+            "outbound": [],
+            "inbound": [],
+            "sourceLosses": []
+          }
+        },
+        "housing": {
+          "tSec": 1305,
+          "population": 37,
+          "capacity": 30,
+          "overflow": 7,
+          "migrants": 7,
+          "happinessCap": "negative"
+        },
+        "faith": {
+          "tSec": 1306,
+          "byClass": {
+            "villager": {
+              "previousHappiness": "negative",
+              "happiness": "negative",
+              "previousFaith": "gold",
+              "faith": "silver",
+              "faithShifted": true,
+              "faithTrend": "negative",
+              "faithStreak": 0,
+              "collapseEntered": false,
+              "displaced": 0
+            }
+          }
+        },
+        "migration": {
+          "tSec": 1307,
+          "intents": [],
+          "outbound": [],
+          "inbound": [],
+          "sourceLosses": []
+        },
+        "death": {
+          "tSec": 1308,
+          "byClass": {
+            "villager": {
+              "naturalDeaths": 0
+            },
+            "stranger": {
+              "naturalDeaths": 0
+            }
+          },
+          "hardshipDeaths": 0,
+          "arrivalDeaths": 0,
+          "storedFoodRot": 0,
+          "looseFoodRot": 0
+        },
+        "currencySpent": 0
+      },
+      "research": 0,
+      "localTags": [
+        "Civic",
+        "Food",
+        "Housing",
+        "Trade"
+      ],
+      "retiredVassals": [],
+      "activationTrace": [
+        {
+          "tSec": 1280,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "stockConsumed",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "traits": [
+            "Edible",
+            "Grain"
+          ],
+          "tags": [
+            "Civic",
+            "Food"
+          ],
+          "pool": "common",
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ],
+          "id": 40881,
+          "rootId": 40880,
+          "parentId": 40880
+        },
+        {
+          "tSec": 1280,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "discharge": false,
+          "id": 40882,
+          "rootId": 40880,
+          "parentId": 40880
+        },
+        {
+          "tSec": 1280,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "food",
+          "id": 40920,
+          "rootId": 40920,
+          "parentId": null
+        },
+        {
+          "tSec": 1281,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "housing",
+          "id": 40941,
+          "rootId": 40941,
+          "parentId": null
+        },
+        {
+          "tSec": 1282,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "faith",
+          "id": 40961,
+          "rootId": 40961,
+          "parentId": null
+        },
+        {
+          "tSec": 1283,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "migration",
+          "id": 40980,
+          "rootId": 40980,
+          "parentId": null
+        },
+        {
+          "tSec": 1284,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "death",
+          "id": 41006,
+          "rootId": 41006,
+          "parentId": null
+        },
+        {
+          "tSec": 1285,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "rootId": 41022,
+          "parentId": 41022,
+          "providers": []
+        },
+        {
+          "tSec": 1285,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "barter",
+          "slotIndex": 3,
+          "rootId": 41024,
+          "parentId": 41024,
+          "providers": []
+        },
+        {
+          "tSec": 1285,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "activationType": "birth",
+          "id": 41022,
+          "rootId": 41022,
+          "parentId": null
+        },
+        {
+          "tSec": 1285,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "discharge": false,
+          "id": 41023,
+          "rootId": 41022,
+          "parentId": 41022
+        },
+        {
+          "tSec": 1285,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "activationType": "birth",
+          "id": 41024,
+          "rootId": 41024,
+          "parentId": null
+        },
+        {
+          "tSec": 1285,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "externalTrade",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "id": 41025,
+          "rootId": 41024,
+          "parentId": 41024
+        },
+        {
+          "tSec": 1285,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "slotIndex": 3,
+          "discharge": false,
+          "id": 41026,
+          "rootId": 41024,
+          "parentId": 41024
+        },
+        {
+          "tSec": 1285,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "birth",
+          "id": 41032,
+          "rootId": 41032,
+          "parentId": null
+        },
+        {
+          "tSec": 1286,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_handQuern",
+          "slotIndex": 2,
+          "rootId": 41051,
+          "parentId": 41051,
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ]
+        },
+        {
+          "tSec": 1286,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "activationType": "food",
+          "id": 41051,
+          "rootId": 41051,
+          "parentId": null
+        },
+        {
+          "tSec": 1286,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "stockConsumed",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "traits": [
+            "Edible",
+            "Grain"
+          ],
+          "tags": [
+            "Civic",
+            "Food"
+          ],
+          "pool": "common",
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ],
+          "id": 41052,
+          "rootId": 41051,
+          "parentId": 41051
+        },
+        {
+          "tSec": 1286,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "discharge": false,
+          "id": 41053,
+          "rootId": 41051,
+          "parentId": 41051
+        },
+        {
+          "tSec": 1286,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "food",
+          "id": 41084,
+          "rootId": 41084,
+          "parentId": null
+        },
+        {
+          "tSec": 1287,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "housing",
+          "id": 41103,
+          "rootId": 41103,
+          "parentId": null
+        },
+        {
+          "tSec": 1288,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "faith",
+          "id": 41123,
+          "rootId": 41123,
+          "parentId": null
+        },
+        {
+          "tSec": 1289,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "dryFarming",
+          "slotIndex": 1,
+          "rootId": 41142,
+          "parentId": 41142,
+          "providers": []
+        },
+        {
+          "tSec": 1289,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:4",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "dryFarming",
+          "activationType": "season",
+          "id": 41142,
+          "rootId": 41142,
+          "parentId": null
+        },
+        {
+          "tSec": 1289,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:4",
+          "kind": "stockGenerated",
+          "regionId": "R04",
+          "practiceId": "dryFarming",
+          "slotIndex": 1,
+          "amount": 10,
+          "traits": [
+            "Edible",
+            "Grain"
+          ],
+          "tags": [
+            "Food"
+          ],
+          "pool": "common",
+          "scholarStaffed": false,
+          "id": 41143,
+          "rootId": 41142,
+          "parentId": 41142
+        },
+        {
+          "tSec": 1289,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:4",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "dryFarming",
+          "slotIndex": 1,
+          "discharge": false,
+          "id": 41144,
+          "rootId": 41142,
+          "parentId": 41142
+        },
+        {
+          "tSec": 1289,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "migration",
+          "id": 41168,
+          "rootId": 41168,
+          "parentId": null
+        },
+        {
+          "tSec": 1290,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "death",
+          "id": 41192,
+          "rootId": 41192,
+          "parentId": null
+        },
+        {
+          "tSec": 1291,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "rootId": 41210,
+          "parentId": 41210,
+          "providers": []
+        },
+        {
+          "tSec": 1291,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "barter",
+          "slotIndex": 3,
+          "rootId": 41212,
+          "parentId": 41212,
+          "providers": []
+        },
+        {
+          "tSec": 1291,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "activationType": "birth",
+          "id": 41210,
+          "rootId": 41210,
+          "parentId": null
+        },
+        {
+          "tSec": 1291,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "discharge": false,
+          "id": 41211,
+          "rootId": 41210,
+          "parentId": 41210
+        },
+        {
+          "tSec": 1291,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "activationType": "birth",
+          "id": 41212,
+          "rootId": 41212,
+          "parentId": null
+        },
+        {
+          "tSec": 1291,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "externalTrade",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "id": 41213,
+          "rootId": 41212,
+          "parentId": 41212
+        },
+        {
+          "tSec": 1291,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "slotIndex": 3,
+          "discharge": false,
+          "id": 41214,
+          "rootId": 41212,
+          "parentId": 41212
+        },
+        {
+          "tSec": 1291,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "birth",
+          "id": 41226,
+          "rootId": 41226,
+          "parentId": null
+        },
+        {
+          "tSec": 1292,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_handQuern",
+          "slotIndex": 2,
+          "rootId": 41245,
+          "parentId": 41245,
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ]
+        },
+        {
+          "tSec": 1292,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "activationType": "food",
+          "id": 41245,
+          "rootId": 41245,
+          "parentId": null
+        },
+        {
+          "tSec": 1292,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "stockConsumed",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "traits": [
+            "Edible",
+            "Grain"
+          ],
+          "tags": [
+            "Civic",
+            "Food"
+          ],
+          "pool": "common",
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ],
+          "id": 41246,
+          "rootId": 41245,
+          "parentId": 41245
+        },
+        {
+          "tSec": 1292,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "discharge": false,
+          "id": 41247,
+          "rootId": 41245,
+          "parentId": 41245
+        },
+        {
+          "tSec": 1292,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "food",
+          "id": 41290,
+          "rootId": 41290,
+          "parentId": null
+        },
+        {
+          "tSec": 1293,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "housing",
+          "id": 41309,
+          "rootId": 41309,
+          "parentId": null
+        },
+        {
+          "tSec": 1294,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "faith",
+          "id": 41329,
+          "rootId": 41329,
+          "parentId": null
+        },
+        {
+          "tSec": 1295,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "migration",
+          "id": 41348,
+          "rootId": 41348,
+          "parentId": null
+        },
+        {
+          "tSec": 1296,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "death",
+          "id": 41371,
+          "rootId": 41371,
+          "parentId": null
+        },
+        {
+          "tSec": 1297,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "dryFarming",
+          "slotIndex": 1,
+          "rootId": 41390,
+          "parentId": 41390,
+          "providers": []
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:4",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "dryFarming",
+          "activationType": "season",
+          "id": 41390,
+          "rootId": 41390,
+          "parentId": null
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:4",
+          "kind": "stockGenerated",
+          "regionId": "R04",
+          "practiceId": "dryFarming",
+          "slotIndex": 1,
+          "amount": 15,
+          "traits": [
+            "Edible",
+            "Grain"
+          ],
+          "tags": [
+            "Food"
+          ],
+          "pool": "common",
+          "scholarStaffed": false,
+          "id": 41391,
+          "rootId": 41390,
+          "parentId": 41390
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:4",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "dryFarming",
+          "slotIndex": 1,
+          "discharge": false,
+          "id": 41392,
+          "rootId": 41390,
+          "parentId": 41390
+        },
+        {
+          "tSec": 1297,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "rootId": 41415,
+          "parentId": 41415,
+          "providers": []
+        },
+        {
+          "tSec": 1297,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "barter",
+          "slotIndex": 3,
+          "rootId": 41417,
+          "parentId": 41417,
+          "providers": []
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "activationType": "birth",
+          "id": 41415,
+          "rootId": 41415,
+          "parentId": null
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "discharge": false,
+          "id": 41416,
+          "rootId": 41415,
+          "parentId": 41415
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "activationType": "birth",
+          "id": 41417,
+          "rootId": 41417,
+          "parentId": null
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "externalTrade",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "id": 41418,
+          "rootId": 41417,
+          "parentId": 41417
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "slotIndex": 3,
+          "discharge": false,
+          "id": 41419,
+          "rootId": 41417,
+          "parentId": 41417
+        },
+        {
+          "tSec": 1297,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "birth",
+          "id": 41431,
+          "rootId": 41431,
+          "parentId": null
+        },
+        {
+          "tSec": 1298,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_handQuern",
+          "slotIndex": 2,
+          "rootId": 41450,
+          "parentId": 41450,
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ]
+        },
+        {
+          "tSec": 1298,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "activationType": "food",
+          "id": 41450,
+          "rootId": 41450,
+          "parentId": null
+        },
+        {
+          "tSec": 1298,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "stockConsumed",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "traits": [
+            "Edible",
+            "Grain"
+          ],
+          "tags": [
+            "Civic",
+            "Food"
+          ],
+          "pool": "common",
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ],
+          "id": 41451,
+          "rootId": 41450,
+          "parentId": 41450
+        },
+        {
+          "tSec": 1298,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "discharge": false,
+          "id": 41452,
+          "rootId": 41450,
+          "parentId": 41450
+        },
+        {
+          "tSec": 1298,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "food",
+          "id": 41495,
+          "rootId": 41495,
+          "parentId": null
+        },
+        {
+          "tSec": 1299,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "housing",
+          "id": 41514,
+          "rootId": 41514,
+          "parentId": null
+        },
+        {
+          "tSec": 1300,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "faith",
+          "id": 41534,
+          "rootId": 41534,
+          "parentId": null
+        },
+        {
+          "tSec": 1301,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "migration",
+          "id": 41553,
+          "rootId": 41553,
+          "parentId": null
+        },
+        {
+          "tSec": 1302,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "death",
+          "id": 41575,
+          "rootId": 41575,
+          "parentId": null
+        },
+        {
+          "tSec": 1303,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "rootId": 41593,
+          "parentId": 41593,
+          "providers": []
+        },
+        {
+          "tSec": 1303,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "barter",
+          "slotIndex": 3,
+          "rootId": 41595,
+          "parentId": 41595,
+          "providers": []
+        },
+        {
+          "tSec": 1303,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "activationType": "birth",
+          "id": 41593,
+          "rootId": 41593,
+          "parentId": null
+        },
+        {
+          "tSec": 1303,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "discharge": false,
+          "id": 41594,
+          "rootId": 41593,
+          "parentId": 41593
+        },
+        {
+          "tSec": 1303,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "activationType": "birth",
+          "id": 41595,
+          "rootId": 41595,
+          "parentId": null
+        },
+        {
+          "tSec": 1303,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "externalTrade",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "id": 41596,
+          "rootId": 41595,
+          "parentId": 41595
+        },
+        {
+          "tSec": 1303,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "slotIndex": 3,
+          "discharge": false,
+          "id": 41597,
+          "rootId": 41595,
+          "parentId": 41595
+        },
+        {
+          "tSec": 1303,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "birth",
+          "id": 41609,
+          "rootId": 41609,
+          "parentId": null
+        },
+        {
+          "tSec": 1304,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_handQuern",
+          "slotIndex": 2,
+          "rootId": 41628,
+          "parentId": 41628,
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ]
+        },
+        {
+          "tSec": 1304,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "activationType": "food",
+          "id": 41628,
+          "rootId": 41628,
+          "parentId": null
+        },
+        {
+          "tSec": 1304,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "stockConsumed",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "traits": [
+            "Edible",
+            "Grain"
+          ],
+          "tags": [
+            "Civic",
+            "Food"
+          ],
+          "pool": "common",
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ],
+          "id": 41629,
+          "rootId": 41628,
+          "parentId": 41628
+        },
+        {
+          "tSec": 1304,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "discharge": false,
+          "id": 41630,
+          "rootId": 41628,
+          "parentId": 41628
+        },
+        {
+          "tSec": 1304,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "food",
+          "id": 41672,
+          "rootId": 41672,
+          "parentId": null
+        },
+        {
+          "tSec": 1305,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "housing",
+          "id": 41691,
+          "rootId": 41691,
+          "parentId": null
+        },
+        {
+          "tSec": 1306,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "faith",
+          "id": 41711,
+          "rootId": 41711,
+          "parentId": null
+        },
+        {
+          "tSec": 1307,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "migration",
+          "id": 41730,
+          "rootId": 41730,
+          "parentId": null
+        },
+        {
+          "tSec": 1308,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "death",
+          "id": 41755,
+          "rootId": 41755,
+          "parentId": null
+        },
+        {
+          "tSec": 1309,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "rootId": 41771,
+          "parentId": 41771,
+          "providers": []
+        },
+        {
+          "tSec": 1309,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "barter",
+          "slotIndex": 3,
+          "rootId": 41773,
+          "parentId": 41773,
+          "providers": []
+        },
+        {
+          "tSec": 1309,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "activationType": "birth",
+          "id": 41771,
+          "rootId": 41771,
+          "parentId": null
+        },
+        {
+          "tSec": 1309,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "vassal-1:life-milestone-milestone-1:r0:practice:0",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_woodlotRights",
+          "slotIndex": 0,
+          "discharge": false,
+          "id": 41772,
+          "rootId": 41771,
+          "parentId": 41771
+        },
+        {
+          "tSec": 1309,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "activationType": "birth",
+          "id": 41773,
+          "rootId": 41773,
+          "parentId": null
+        },
+        {
+          "tSec": 1309,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "externalTrade",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "id": 41774,
+          "rootId": 41773,
+          "parentId": 41773
+        },
+        {
+          "tSec": 1309,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:6",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "barter",
+          "slotIndex": 3,
+          "discharge": false,
+          "id": 41775,
+          "rootId": 41773,
+          "parentId": 41773
+        },
+        {
+          "tSec": 1309,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "birth",
+          "id": 41783,
+          "rootId": 41783,
+          "parentId": null
+        },
+        {
+          "tSec": 1310,
+          "kind": "activated",
+          "regionId": "R04",
+          "targetPracticeId": "fm_handQuern",
+          "slotIndex": 2,
+          "rootId": 41802,
+          "parentId": 41802,
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ]
+        },
+        {
+          "tSec": 1310,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "scheduledActivation",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "activationType": "food",
+          "id": 41802,
+          "rootId": 41802,
+          "parentId": null
+        },
+        {
+          "tSec": 1310,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "stockConsumed",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "traits": [
+            "Edible",
+            "Grain"
+          ],
+          "tags": [
+            "Civic",
+            "Food"
+          ],
+          "pool": "common",
+          "providers": [
+            {
+              "kind": "consume",
+              "regionId": "R04",
+              "slotIndex": 1,
+              "practiceId": "dryFarming",
+              "amount": 1,
+              "traits": [
+                "Grain"
+              ]
+            }
+          ],
+          "id": 41803,
+          "rootId": 41802,
+          "parentId": 41802
+        },
+        {
+          "tSec": 1310,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": "institution:5",
+          "kind": "practiceResolved",
+          "regionId": "R04",
+          "practiceId": "fm_handQuern",
+          "slotIndex": 2,
+          "discharge": false,
+          "id": 41804,
+          "rootId": 41802,
+          "parentId": 41802
+        },
+        {
+          "tSec": 1310,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "food",
+          "id": 41842,
+          "rootId": 41842,
+          "parentId": null
+        },
+        {
+          "tSec": 1311,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "housing",
+          "id": 41861,
+          "rootId": 41861,
+          "parentId": null
+        },
+        {
+          "tSec": 1312,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "faith",
+          "id": 41881,
+          "rootId": 41881,
+          "parentId": null
+        },
+        {
+          "tSec": 1313,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "migration",
+          "id": 41902,
+          "rootId": 41902,
+          "parentId": null
+        },
+        {
+          "tSec": 1314,
+          "faction": "player",
+          "controller": "player",
+          "instanceId": null,
+          "kind": "phaseResolved",
+          "regionId": "R04",
+          "phase": "death",
+          "id": 41925,
+          "rootId": 41925,
+          "parentId": null
+        }
+      ]
+    }
+  }
+}

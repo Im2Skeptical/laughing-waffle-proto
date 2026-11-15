@@ -1,0 +1,16 @@
+{
+  "ok": false,
+  "results": [],
+  "observations": 8,
+  "failures": 0,
+  "caseFailures": [
+    {
+      "case": "reference",
+      "error": "final artwork operation marker timeout after 5000ms",
+      "detailsFile": "reference-failure.json"
+    }
+  ],
+  "requestedCases": 1,
+  "completedCases": 0,
+  "scope": "construction controls and diagnostics only; independent audit and representative sampling still required"
+}

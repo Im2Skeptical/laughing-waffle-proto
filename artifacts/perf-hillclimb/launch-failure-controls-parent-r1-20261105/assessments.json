@@ -1,0 +1,56 @@
+﻿[
+    {
+        "name":  "first",
+        "id":  "launch-failure-controls-parent-r1-20261105-first",
+        "argv":  [
+                     "scripts/perf-hillclimb/run.mjs",
+                     "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+                     "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+                     "--seed=123",
+                     "--artwork=off",
+                     "--population=desktop",
+                     "--cache=cold",
+                     "--samples=1",
+                     "--control=pre-page-failure",
+                     "--control-job=entry",
+                     "--jobs=entry",
+                     "--id=launch-failure-controls-parent-r1-20261105-first"
+                 ],
+        "exitCode":  1,
+        "expectedNegativeControlPassed":  true,
+        "productCasePassed":  false,
+        "originalErrorPreserved":  true,
+        "currentLaunchPageUnavailable":  true,
+        "failedLaunchHasNoTiming":  true,
+        "priorObservations":  0,
+        "launches":  1,
+        "scope":  "setup-error identity control only; no product latency or whole-harness acceptance"
+    },
+    {
+        "name":  "previous-closed-page",
+        "id":  "launch-failure-controls-parent-r1-20261105-previous-closed-page",
+        "argv":  [
+                     "scripts/perf-hillclimb/run.mjs",
+                     "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+                     "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+                     "--seed=123",
+                     "--artwork=off",
+                     "--population=desktop",
+                     "--cache=cold",
+                     "--samples=1",
+                     "--control=pre-page-failure",
+                     "--control-job=performance-continue",
+                     "--jobs=entry,performance-continue",
+                     "--id=launch-failure-controls-parent-r1-20261105-previous-closed-page"
+                 ],
+        "exitCode":  1,
+        "expectedNegativeControlPassed":  true,
+        "productCasePassed":  false,
+        "originalErrorPreserved":  true,
+        "currentLaunchPageUnavailable":  true,
+        "failedLaunchHasNoTiming":  true,
+        "priorObservations":  4,
+        "launches":  2,
+        "scope":  "setup-error identity control only; no product latency or whole-harness acceptance"
+    }
+]

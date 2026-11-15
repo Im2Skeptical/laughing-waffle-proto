@@ -1,0 +1,128 @@
+[
+  {
+    "population": "desktop",
+    "job": "scrub",
+    "artwork": "off",
+    "id": "main-repair-r4-flow-20261105-0-desktop-scrub-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=scrub",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r4-flow-20261105-0-desktop-scrub-off"
+    ],
+    "started": "2026-11-04T15:29:13.709Z",
+    "finished": "2026-11-04T15:30:07.985Z",
+    "exitCode": 0
+  },
+  {
+    "population": "desktop",
+    "job": "save",
+    "artwork": "off",
+    "id": "main-repair-r4-flow-20261105-1-desktop-save-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=save",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r4-flow-20261105-1-desktop-save-off"
+    ],
+    "started": "2026-11-04T15:30:07.986Z",
+    "finished": "2026-11-04T15:30:40.860Z",
+    "exitCode": 0
+  },
+  {
+    "population": "desktop",
+    "job": "life",
+    "artwork": "off",
+    "id": "main-repair-r4-flow-20261105-2-desktop-life-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=life",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r4-flow-20261105-2-desktop-life-off"
+    ],
+    "started": "2026-11-04T15:30:40.861Z",
+    "finished": "2026-11-04T15:31:01.692Z",
+    "exitCode": 0
+  },
+  {
+    "population": "mobile4",
+    "job": "scrub",
+    "artwork": "off",
+    "id": "main-repair-r4-flow-20261105-3-mobile4-scrub-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=scrub",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r4-flow-20261105-3-mobile4-scrub-off"
+    ],
+    "started": "2026-11-04T15:31:01.693Z",
+    "finished": "2026-11-04T15:32:41.586Z",
+    "exitCode": 0
+  },
+  {
+    "population": "mobile4",
+    "job": "save",
+    "artwork": "off",
+    "id": "main-repair-r4-flow-20261105-4-mobile4-save-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=save",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r4-flow-20261105-4-mobile4-save-off"
+    ],
+    "started": "2026-11-04T15:32:41.587Z",
+    "finished": "2026-11-04T15:34:46.279Z",
+    "exitCode": 0
+  },
+  {
+    "population": "mobile4",
+    "job": "life",
+    "artwork": "off",
+    "id": "main-repair-r4-flow-20261105-5-mobile4-life-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=life",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r4-flow-20261105-5-mobile4-life-off"
+    ],
+    "started": "2026-11-04T15:34:46.280Z",
+    "finished": "2026-11-04T15:35:53.742Z",
+    "exitCode": 0
+  }
+]

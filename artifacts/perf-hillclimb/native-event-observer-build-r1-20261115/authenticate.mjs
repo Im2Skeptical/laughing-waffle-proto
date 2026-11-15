@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,existsSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+const root='artifacts/perf-hillclimb/native-event-observer-build-r1-20261115';
+const authorityFile='artifacts/perf-hillclimb/j8-paired-wait-progress-r1-20261115/plan.json';
+const hash=f=>createHash('sha256').update(readFileSync(f)).digest('hex');
+assert.ok(!existsSync(root+'/build-manifest.json'),'Never overwrite build proof');
+assert.equal(process.version,'v24.15.0');
+assert.equal(hash(authorityFile),'8c45bbf674f60ac7f6dc7214fb1abc76bc9617f02bb943c73bb7e318a2dc172e');
+const authority=JSON.parse(readFileSync(authorityFile,'utf8')),changes=[];
+for(const[f,h]of Object.entries(authority.sources))if(hash(f)!==h)changes.push(f);
+for(const[f,h]of Object.entries(authority.assets))if(hash('dist/'+f)!==h)changes.push('dist/'+f);
+const files={};for(const name of ['NativeCaptureAbi.cs','pure-abi.ps1','pure-abi.json','authenticate.mjs'])files[name]=hash(root+'/'+name);
+const result={at:new Date().toISOString(),node:process.version,phase:'PURE_ABI_DECODER_FOUNDATION_ONLY',authority:authorityFile,authoritySha256:hash(authorityFile),sourceCount:Object.keys(authority.sources).length,assetCount:Object.keys(authority.assets).length,sourceAssetChanges:changes,files,scope:'Builder source/compiled-asset authentication and pure foundation pinning only. No native API, launch/control target, observer loop, capture or whole-SOUND acceptance. Compilation is permitted; no target was launched by the prototype.'};
+writeFileSync(root+'/build-manifest.json',JSON.stringify(result,null,2));
+console.log(JSON.stringify({sourceCount:result.sourceCount,assetCount:result.assetCount,sourceAssetChanges:changes,manifestSha256:hash(root+'/build-manifest.json')}));
+assert.deepEqual(changes,[]);

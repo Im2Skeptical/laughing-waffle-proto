@@ -1,0 +1,8 @@
+{
+  "started": "2026-11-15T00:17:50.899Z",
+  "finished": "2026-11-15T00:17:52.704Z",
+  "command": "node scripts/perf-hillclimb/artwork-bundle-controls-test.mjs",
+  "exit": 0,
+  "changed": [],
+  "scope": "independent focused exact-bundle/VM/CLI controls only; no browser or application benchmark"
+}

@@ -1,0 +1,191 @@
+[
+  {
+    "population": "desktop",
+    "direction": 1,
+    "gesture": "click",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "desktop",
+    "direction": 1,
+    "gesture": "drag",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "desktop",
+    "direction": -1,
+    "gesture": "click",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "desktop",
+    "direction": -1,
+    "gesture": "drag",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "desktop",
+    "direction": 1,
+    "gesture": "playing-no-motion",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "desktop",
+    "direction": 0,
+    "gesture": "held-no-motion",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "censored",
+    "error": null
+  },
+  {
+    "population": "desktop",
+    "direction": 0,
+    "gesture": "coast",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "mobile1",
+    "direction": 1,
+    "gesture": "click",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "mobile1",
+    "direction": 1,
+    "gesture": "drag",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "mobile1",
+    "direction": -1,
+    "gesture": "click",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "mobile1",
+    "direction": -1,
+    "gesture": "drag",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "mobile1",
+    "direction": 1,
+    "gesture": "playing-no-motion",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "mobile1",
+    "direction": 0,
+    "gesture": "held-no-motion",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "censored",
+    "error": null
+  },
+  {
+    "population": "mobile1",
+    "direction": 0,
+    "gesture": "coast",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "mobile4",
+    "direction": 1,
+    "gesture": "click",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "mobile4",
+    "direction": 1,
+    "gesture": "drag",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "mobile4",
+    "direction": -1,
+    "gesture": "click",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "mobile4",
+    "direction": -1,
+    "gesture": "drag",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "mobile4",
+    "direction": 1,
+    "gesture": "playing-no-motion",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "mobile4",
+    "direction": 0,
+    "gesture": "held-no-motion",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  },
+  {
+    "population": "mobile4",
+    "direction": 0,
+    "gesture": "coast",
+    "pass": true,
+    "functionalPass": true,
+    "feedbackPhase": "completed",
+    "error": null
+  }
+]

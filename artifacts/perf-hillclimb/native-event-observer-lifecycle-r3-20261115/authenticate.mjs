@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,existsSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+const root='artifacts/perf-hillclimb/native-event-observer-lifecycle-r3-20261115';
+const authorityFile='artifacts/perf-hillclimb/j8-paired-wait-progress-r1-20261115/plan.json';
+const hash=f=>createHash('sha256').update(readFileSync(f)).digest('hex');
+assert.ok(!existsSync(root+'/build-manifest.json'),'Never overwrite r3 evidence');
+assert.equal(process.version,'v24.15.0');assert.equal(hash(authorityFile),'8c45bbf674f60ac7f6dc7214fb1abc76bc9617f02bb943c73bb7e318a2dc172e');
+const authority=JSON.parse(readFileSync(authorityFile,'utf8')),changes=[];
+for(const[f,h]of Object.entries(authority.sources))if(hash(f)!==h)changes.push(f);
+for(const[f,h]of Object.entries(authority.assets))if(hash('dist/'+f)!==h)changes.push('dist/'+f);
+const files={};for(const name of ['RepairContracts.cs','RepairedResources.cs','PureFixtures.cs','prepare-build.ps1','build-pure.ps1','prepare-pipe-build.ps1','build-pure-pipe-r2.ps1','NativeCaptureRepair-pipe-r2.dll','compile-pipe-r2.log','compile-exit-pipe-r2.txt','pure-result-pipe-r2.json','README.md','authenticate.mjs',...['RepairContracts.cs','RepairedResources.cs','PureFixtures.cs','build-pure.ps1','NativeCaptureRepair.dll','compile.log','compile-exit.txt','pure-result.json'].map(f=>'withheld-first-build/'+f)])files[name]=hash(root+'/'+name);
+const result={at:new Date().toISOString(),node:process.version,selectedRecipe:'build-pure-pipe-r2.ps1',selectedDll:'NativeCaptureRepair-pipe-r2.dll',selectedProof:'pure-result-pipe-r2.json',phase:'R3_MANAGED_REPAIR_SOURCE_ONLY',sourceCount:Object.keys(authority.sources).length,assetCount:Object.keys(authority.assets).length,sourceAssetChanges:changes,files,scope:'Builder193 managed mechanisms/policy checks; first187-check pre-EOF-correction source/proof retained. No native helper/API/target/capture; not independent acceptance or child admission.'};
+writeFileSync(root+'/build-manifest.json',JSON.stringify(result,null,2));console.log(JSON.stringify({sourceCount:result.sourceCount,assetCount:result.assetCount,sourceAssetChanges:changes,manifestSha256:hash(root+'/build-manifest.json')}));assert.deepEqual(changes,[]);

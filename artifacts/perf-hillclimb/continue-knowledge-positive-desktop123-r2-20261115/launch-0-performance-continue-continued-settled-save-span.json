@@ -1,0 +1,12 @@
+{
+  "policy": "frozen-terminal-observed-before-save-v1",
+  "artifact": "launch-0-performance-continue-continued-settled-save-preparation.json",
+  "window": {
+    "launchId": "continue-knowledge-positive-desktop123-r2-20261115:launch-0-performance-continue",
+    "startMs": 9039.90000000596,
+    "endMs": 21305.80000001192,
+    "reason": "declared settled-terminal pre-save setup; includes frozen derivation/full inspection and is not a product speedup"
+  },
+  "setupThroughPersistedMs": 18199.80000001192,
+  "scope": "full setup-plus-save span retained; setup is outside existing transaction latency, never free or a speedup"
+}

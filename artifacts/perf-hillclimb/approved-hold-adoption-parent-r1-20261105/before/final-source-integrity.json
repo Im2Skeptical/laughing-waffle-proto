@@ -1,0 +1,80 @@
+{
+  "verifiedAt": "2026-11-05T00:27:16.340Z",
+  "branch": "perf/hillclimb-20261104",
+  "node": "v24.15.0",
+  "execArgv": [
+    "--experimental-vm-modules"
+  ],
+  "sourceFileCount": 680,
+  "added": [],
+  "missing": [],
+  "changed": [],
+  "assets": {
+    "bundle": {
+      "matrixPath": "./assets/app-XQU3IQLE.js",
+      "actualPath": "./assets/app-XQU3IQLE.js",
+      "matrixSha256": "0c679390bf360cb727d8babee0c0a875abd4fb0d52c388b641a5a3c20bc11a53",
+      "actualSha256": "0c679390bf360cb727d8babee0c0a875abd4fb0d52c388b641a5a3c20bc11a53",
+      "equal": true
+    },
+    "worker": {
+      "matrixPath": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+      "actualPath": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+      "matrixSha256": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+      "actualSha256": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+      "equal": true
+    },
+    "saveLoadWorker": {
+      "matrixPath": "./assets/save-load-worker-7YJYILEJ.js",
+      "actualPath": "./assets/save-load-worker-7YJYILEJ.js",
+      "matrixSha256": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+      "actualSha256": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+      "equal": true
+    },
+    "stylesheet": {
+      "matrixPath": "./assets/styles-ec05c6a73a6e.css",
+      "actualPath": "./assets/styles-ec05c6a73a6e.css",
+      "matrixSha256": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0",
+      "actualSha256": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0",
+      "equal": true
+    },
+    "fixture": {
+      "actualSha256": "edbbb99ae9dfdf93a53cf469c010c4e654c1ca18a5c32ab2db6c848aa24eeee8",
+      "matrixSha256": "edbbb99ae9dfdf93a53cf469c010c4e654c1ca18a5c32ab2db6c848aa24eeee8",
+      "equal": true
+    }
+  },
+  "buildBefore": {
+    "performanceFixtureKey": "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+    "version": "1.1.52",
+    "build": "f06e6cb5eecc",
+    "revision": "a9df52cbd625",
+    "channel": "pages",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": null,
+    "entryPoint": "src/views/ui-root-pixi.js",
+    "bundle": "./assets/app-XQU3IQLE.js",
+    "worker": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+    "saveLoadWorker": "./assets/save-load-worker-7YJYILEJ.js",
+    "stylesheet": "./assets/styles-ec05c6a73a6e.css"
+  },
+  "buildAfter": {
+    "performanceFixtureKey": "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+    "version": "1.1.52",
+    "build": "0e4f3ab8d141",
+    "revision": "a9df52cbd625",
+    "channel": "pages",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": null,
+    "entryPoint": "src/views/ui-root-pixi.js",
+    "bundle": "./assets/app-XQU3IQLE.js",
+    "worker": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+    "saveLoadWorker": "./assets/save-load-worker-7YJYILEJ.js",
+    "stylesheet": "./assets/styles-ec05c6a73a6e.css"
+  },
+  "scope": "declared executable/source/contract and built asset stability; excludes root metadata and makes no whole-worktree or uncontended timing claim"
+}

@@ -1,0 +1,117 @@
+{
+  "seed": 424242,
+  "status": "PASS",
+  "checks": [
+    {
+      "label": "logical-prefix0",
+      "stateSha256": "0273a5c25107fa66ecfb059d724c16e4266715b58da1ff2ffd023cca8e721129",
+      "rngSha256": "9b4fd4d4e94cf5149c9f97338cdf883ee0c0116a0b104fc645d8824fa93b4d45",
+      "tSec": 0
+    },
+    {
+      "label": "logical-prefix1",
+      "stateSha256": "856d34e57b2f8a4c456f42f389a54b0c47abdf18c47d5d64dc54b673aec1cb92",
+      "rngSha256": "409757f76265e7b3e62ab1181028bbc9111f13a5c3d1c55eed4a5ada7e12683f",
+      "tSec": 0
+    },
+    {
+      "label": "logical-prefix2",
+      "stateSha256": "202f047ccdf9ff1d83d937bcb188cf825c7738fa9cffbc06418c2bd1d324e5d9",
+      "rngSha256": "53822d43a77d8ccde8e9332724805ab7a56384e3421ac0e8e4d09fb9c1a87d9f",
+      "tSec": 0
+    },
+    {
+      "label": "logical-prefix3",
+      "stateSha256": "d68766e45f7dd13c8433ad3dc4088ba52148c6b45cdb9a18af5dd6471f0bd0ae",
+      "rngSha256": "9e8c1a6204503e673f8060b3107b9490ee4842a7c168ef6813e4dba6535bae72",
+      "tSec": 0
+    },
+    {
+      "label": "logical-prefix4",
+      "stateSha256": "9c2582dacfe28a3f891462e073607bfae4fdb34d00634043a985d7421769f1fc",
+      "rngSha256": "9e8c1a6204503e673f8060b3107b9490ee4842a7c168ef6813e4dba6535bae72",
+      "tSec": 0
+    },
+    {
+      "label": "logical-prefix5",
+      "stateSha256": "cd201d376c793020d2aa86482092d1e2097e003964b78677e9b729e50e2f9805",
+      "rngSha256": "9e8c1a6204503e673f8060b3107b9490ee4842a7c168ef6813e4dba6535bae72",
+      "tSec": 0
+    },
+    {
+      "label": "enteredPaused",
+      "stateSha256": "d34ee70f0e558bd3cd13eff9ce85ecd9365b4f557ce2ce0946bfee7f2335c79e",
+      "rngSha256": "53822d43a77d8ccde8e9332724805ab7a56384e3421ac0e8e4d09fb9c1a87d9f",
+      "tSec": 0
+    },
+    {
+      "label": "staged",
+      "stateSha256": "2b237b467270a404910b4231d323ee49e86dd15b4953bdd8d3029303b986a46c",
+      "rngSha256": "9e8c1a6204503e673f8060b3107b9490ee4842a7c168ef6813e4dba6535bae72",
+      "tSec": 0
+    },
+    {
+      "label": "accepted",
+      "stateSha256": "07a0632f1532736ddfd29f3ba1fd08b3c07307e36a6fc67dec666c0d792d051d",
+      "rngSha256": "9e8c1a6204503e673f8060b3107b9490ee4842a7c168ef6813e4dba6535bae72",
+      "tSec": 0
+    },
+    {
+      "label": "adopted",
+      "stateSha256": "cd201d376c793020d2aa86482092d1e2097e003964b78677e9b729e50e2f9805",
+      "rngSha256": "9e8c1a6204503e673f8060b3107b9490ee4842a7c168ef6813e4dba6535bae72",
+      "tSec": 0
+    },
+    {
+      "label": "history",
+      "stateSha256": "227295b2dfe023a9a8c1be9d0a160e019bfe2f0e5967821b26533ba64510e6d2",
+      "rngSha256": "797c2669669b61fa136750e06b75e172de83520eb3ac9cf90fc03e6e830bb3bb",
+      "tSec": 54
+    },
+    {
+      "label": "committed",
+      "stateSha256": "a8b6a2df2c38a1d39f3b14b25a682d8e355d8bb2f557b174f3843555134c6375",
+      "rngSha256": "797c2669669b61fa136750e06b75e172de83520eb3ac9cf90fc03e6e830bb3bb",
+      "tSec": 54
+    },
+    {
+      "label": "official-54",
+      "stateSha256": "227295b2dfe023a9a8c1be9d0a160e019bfe2f0e5967821b26533ba64510e6d2",
+      "rngSha256": "797c2669669b61fa136750e06b75e172de83520eb3ac9cf90fc03e6e830bb3bb",
+      "tSec": 54
+    },
+    {
+      "label": "official-55",
+      "stateSha256": "87ae7c212cc779f844c694c265c2c6f47cd6a096621696fedaa780739c07f10c",
+      "rngSha256": "129a3c2c1e31780e534f553b64b5e4d8d1bb8ebc5ccab31eff0b6e15859ce0ce",
+      "tSec": 55
+    },
+    {
+      "label": "official-56",
+      "stateSha256": "1eff5115289cdce18b376281bcc8e31c15d5b71ee42f1ba7d2eae2856d1657dd",
+      "rngSha256": "129a3c2c1e31780e534f553b64b5e4d8d1bb8ebc5ccab31eff0b6e15859ce0ce",
+      "tSec": 56
+    },
+    {
+      "label": "official-57",
+      "stateSha256": "02b49ec506b50e4ba6177e03facbd23fc8107caa59ac6e9534ec04bf6c9d394a",
+      "rngSha256": "129a3c2c1e31780e534f553b64b5e4d8d1bb8ebc5ccab31eff0b6e15859ce0ce",
+      "tSec": 57
+    },
+    {
+      "label": "committed-history-16",
+      "stateSha256": "7c56d5a025e423c996da478588684424eabdaef5de02a5ab49701ae5d05e58bc",
+      "rngSha256": "526d28b4111869271e0f67d9fc61f7197236d10dca71ad11da8c3b084d8d3d21",
+      "tSec": 16
+    },
+    {
+      "label": "committed-history-17",
+      "stateSha256": "42883b624cef42b0286c42806d545a67cc23bcab10c10b115156983ff9c6e4a4",
+      "rngSha256": "526d28b4111869271e0f67d9fc61f7197236d10dca71ad11da8c3b084d8d3d21",
+      "tSec": 17
+    }
+  ],
+  "purity": "PASS input and returned-copy isolation",
+  "fullPresentation": "PASS staged/hover/drag; explicit args",
+  "officialSeconds": 57
+}

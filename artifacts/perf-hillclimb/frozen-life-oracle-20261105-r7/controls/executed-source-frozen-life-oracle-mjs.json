@@ -1,0 +1,6 @@
+{
+  "name": "executed-source-frozen-life-oracle-mjs",
+  "status": "PASS expected rejection",
+  "expected": "/file size: executed source|file hash: executed source/",
+  "error": "AssertionError [ERR_ASSERTION]: file size: executed source frozen-life-oracle.mjs\n\n18371 !== 18338\n\n    at match (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/executed-source-frozen-life-oracle-mjs/frozen-life-oracle.mjs:43:10)\n    at Module.loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/executed-source-frozen-life-oracle-mjs/frozen-life-oracle.mjs:184:27)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:155:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+}

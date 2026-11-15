@@ -1,0 +1,19 @@
+{
+  "verifiedAt": "2026-11-05T00:27:18.464Z",
+  "base": {
+    "manifestSha256": "9e477109c2c10d6c566bf287c4d896ae6eee9a3b475ec63bc7dd2eb20decc8a1",
+    "identity": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "sdk": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "sourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+    "files": 178,
+    "inventorySha256": "947e14ef19ab330cd1d4b6b2125014662486a04ddf5a4e3bc457df9e0e040f67"
+  },
+  "lifeIdentity": "6b7456c5594cf05393b81c16a3cfc3682bff8c92fbba8821bfe8af16e911d8b8",
+  "sdk": {
+    "bytes": 1115663,
+    "sha256": "f2d8da7555a253a14915720924b9bfdeaf0410f114b4b8d687df89d7eba1f540"
+  },
+  "browserRuntimeSha256": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+  "phaseA": "NOT SOUND",
+  "scope": "strict frozen authority/source authentication; no acceptance/scoring"
+}

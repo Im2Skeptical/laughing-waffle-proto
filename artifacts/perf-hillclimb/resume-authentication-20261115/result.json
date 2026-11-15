@@ -1,0 +1,10 @@
+{
+  "at": "2026-11-14T21:42:23.030Z",
+  "reference": "hold-adaptation-reference-r1-20261105",
+  "sourceCount": 683,
+  "assetCount": 5,
+  "sourceChanges": [],
+  "assetChanges": [],
+  "node": "v24.15.0",
+  "expectedNode": "v24.15.0"
+}

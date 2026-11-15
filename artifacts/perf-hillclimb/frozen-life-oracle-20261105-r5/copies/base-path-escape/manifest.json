@@ -1,0 +1,3775 @@
+{
+  "format": "hillclimb-frozen-corpus-v1",
+  "created": "2026-11-04T12:42:12.771Z",
+  "purpose": "immutable baseline workload and expected model SDK; construction conformance only, independent acceptance still required",
+  "source": {
+    "head": "a9df52cbd6255ed95c51c9e7d524cf9ab557472b",
+    "dirty": [
+      "M docs/performance/perf-hillclimb-20261104/HARNESS.md",
+      " M docs/performance/perf-hillclimb-20261104/PROOF_RUN.md",
+      " M package.json",
+      " M src/controllers/life-decision-controller.js",
+      " M src/model/timegraph/controller-core.js",
+      " M src/views/timegraphs-pixi.js",
+      " M src/views/ui-root-settlement-pixi.js",
+      " M src/views/ui-root/settlement-debug-api.js",
+      " M src/views/vassal-life-map-pixi.js",
+      " M src/views/vassal-node-decision-modal-pixi.js",
+      " M src/views/vassal-resolution-recap-pixi.js",
+      " M src/views/world-map-pixi.js",
+      "?? docs/performance/perf-hillclimb-20261104/ARTWORK_REVIEW_ROUND1.md",
+      "?? docs/performance/perf-hillclimb-20261104/OBSERVABILITY_IMPLEMENTATION.md",
+      "?? docs/performance/perf-hillclimb-20261104/OBSERVABILITY_REVIEW_ROUND1.md",
+      "?? docs/performance/perf-hillclimb-20261104/OBSERVABILITY_SEMANTIC_BRIEF.md",
+      "?? docs/performance/perf-hillclimb-20261104/TIMING_RUNTIME_REVIEW_ROUND2.md",
+      "?? docs/performance/perf-hillclimb-20261104/TIMING_RUNTIME_REVIEW_ROUND3.md",
+      "?? scripts/perf-hillclimb/artwork-controls.mjs",
+      "?? scripts/perf-hillclimb/artwork-oracles-browser-controls.mjs",
+      "?? scripts/perf-hillclimb/artwork-oracles-test.mjs",
+      "?? scripts/perf-hillclimb/artwork-oracles.mjs",
+      "?? scripts/perf-hillclimb/browser-runtime-test.mjs",
+      "?? scripts/perf-hillclimb/browser-runtime.mjs",
+      "?? scripts/perf-hillclimb/corpus.mjs",
+      "?? scripts/perf-hillclimb/deadline-test.mjs",
+      "?? scripts/perf-hillclimb/deadline.mjs",
+      "?? scripts/perf-hillclimb/fixtures.mjs",
+      "?? scripts/perf-hillclimb/fixtures/",
+      "?? scripts/perf-hillclimb/freeze-corpus-test.mjs",
+      "?? scripts/perf-hillclimb/freeze-corpus.mjs",
+      "?? scripts/perf-hillclimb/mechanism-controls.mjs",
+      "?? scripts/perf-hillclimb/offered-input.mjs",
+      "?? scripts/perf-hillclimb/oracle-entry.mjs",
+      "?? scripts/perf-hillclimb/repro-neutral-market.mjs",
+      "?? scripts/perf-hillclimb/run.mjs",
+      "?? scripts/timing-observability-browser-probe.mjs",
+      "?? scripts/timing-observability-test.mjs",
+      "?? src/views/ui-root/settlement-timing-snapshot.js"
+    ],
+    "diffSha256": "481bf46a397f2d26abd2ca2eb69d475a937682a81f0d6c37a0aed2f84c4140f9",
+    "sourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+    "inputs": {
+      "scripts/perf-hillclimb/fixtures.mjs": {
+        "bytes": 7538,
+        "sha256": "f1babbfc97d88f3026719ff76728510ab189ac3b4395e9a4694d9b4f0b801a1e"
+      },
+      "scripts/perf-hillclimb/oracle-entry.mjs": {
+        "bytes": 788,
+        "sha256": "2cbbc2b760238567cc2b7600dc0608470bf0c03820fcbeecb8bac8399bd2f97f"
+      },
+      "src/controllers/save-load-worker-service.js": {
+        "bytes": 2198,
+        "sha256": "6eaa2ec9a528386b81668411fc9d5e6bac8dd22b4ec90ecce0abc51844e42578"
+      },
+      "src/controllers/sim-runner/save-diagnostics.js": {
+        "bytes": 4172,
+        "sha256": "8e6e2c36551f1f501ca0f7b62ae64f06ff96ac6ce41218447e9e94ec373b8261"
+      },
+      "src/controllers/sim-runner/save-slots.js": {
+        "bytes": 10675,
+        "sha256": "2ef7d90d71729715ac709eb364e08596169772ca086951eb9623fffd718b6d91"
+      },
+      "src/controllers/sim-runner/save-storage.js": {
+        "bytes": 6325,
+        "sha256": "dea15a4ebe0bf0a497bb094e20f626f5d290477f54a98e143dcf8efc3e95ce36"
+      },
+      "src/defs/gamepieces/bronze-keyword-defs.js": {
+        "bytes": 3419,
+        "sha256": "6a9aab4a5006e5cddc84bc16ec61b23a1cae475b8d1120c4231a4a3b7de45e77"
+      },
+      "src/defs/gamepieces/detailed-settlement-defs.js": {
+        "bytes": 231403,
+        "sha256": "d779022c356fb5c3dbcb2d126d0838044a417bdb39c3009f07f3d5b123ad2c72"
+      },
+      "src/defs/gamepieces/env-events-defs.js": {
+        "bytes": 12965,
+        "sha256": "611719a6b4183addd453e9590ee42edff4fb7fde211124c0fccd4329c5574fa5"
+      },
+      "src/defs/gamepieces/env-tiles-defs.js": {
+        "bytes": 13693,
+        "sha256": "722e1f7513d923ecc183d9403c01132dac3af153a0adeb128795ad88756105db"
+      },
+      "src/defs/gamepieces/full-map-defs.js": {
+        "bytes": 82667,
+        "sha256": "004c26dbf22d7d0eb201ad3bd085eb73e6dc50fedc5fffe7281ed46c117151b9"
+      },
+      "src/defs/gamepieces/hub-structure-defs.js": {
+        "bytes": 6748,
+        "sha256": "516a7a7afbe90afa0152bae401cf93e48511130bd96f921a450060ffa479473a"
+      },
+      "src/defs/gamepieces/regional-practice-defs.js": {
+        "bytes": 1462,
+        "sha256": "d089dbaea79fa63b25a93a8754e33ba3699d047489d33ed519adaad0a9f182a0"
+      },
+      "src/defs/gamepieces/settlement-order-defs.js": {
+        "bytes": 3105,
+        "sha256": "a15b587e4e6a1d33a211852eb16b78f034376814bba24165f2777882d70aa01c"
+      },
+      "src/defs/gamepieces/settlement-practice-defs.js": {
+        "bytes": 18011,
+        "sha256": "bb753b6bb4956b1ae601ea6ca228f5c0a1615063972c0f53bd2c03507788d8a8"
+      },
+      "src/defs/gamepieces/vassal-heirloom-defs.js": {
+        "bytes": 5446,
+        "sha256": "14250d09bbbb55c93471d412432dff6204f96b18cb955f6e0b2529f920e6e758"
+      },
+      "src/defs/gamepieces/vassal-life-map-defs.js": {
+        "bytes": 13069,
+        "sha256": "7596f9265a01de2e8205a4f1c32340ec68fad165702d45dc130107b762906ccf"
+      },
+      "src/defs/gamesettings/gamerules-defs.js": {
+        "bytes": 3817,
+        "sha256": "09b3972b8498ec3e31c877789ce0a6e8863d70a9aeb1d29ba4fe55cac37620df"
+      },
+      "src/defs/gamesettings/moon-phase-defs.js": {
+        "bytes": 1286,
+        "sha256": "4d24a13aeec4ba83b61d2ad87a43c8ae21a1c708f8ba23296aa0e0dcb6fe10d7"
+      },
+      "src/defs/gamesettings/scenarios-defs.js": {
+        "bytes": 3190,
+        "sha256": "d0f9aae552fe89858e691cd5ebf4f80ba2cba6242f860503d7dcb9fc35314023"
+      },
+      "src/defs/gamesettings/variant-flags-defs.js": {
+        "bytes": 905,
+        "sha256": "3624d1379ae3582c8f08dbec07bef9b904e967bd7a77333ebf74e48a66379d15"
+      },
+      "src/defs/gamesystems/hub-system-defs.js": {
+        "bytes": 4773,
+        "sha256": "97a098b938ca22343dc49ab1c8cf7d103e2ca365277f95147285acc084f5eebb"
+      },
+      "src/defs/lifegraph-defaults.js": {
+        "bytes": 43723,
+        "sha256": "2a8ca5c23d0b509ee8aee8412a84f9d05173df32a55a8d1a3596e3c5702818e6"
+      },
+      "src/defs/mechanics.js": {
+        "bytes": 12680,
+        "sha256": "b2310a78655f9e8038ee627cd8d3919c986df38b4285a5d9151a246051884848"
+      },
+      "src/defs/tooltip-ui-utils.js": {
+        "bytes": 1249,
+        "sha256": "17271af047e22584e6f93b5133490e0d471608ff7b0a59507d749fcb961d4797"
+      },
+      "src/defs/vassal-class-rules.js": {
+        "bytes": 2582,
+        "sha256": "3680bcbb2303fd0bc3e86dd880963c2c16bb4fcd7f7241d17b61a6a460be1250"
+      },
+      "src/defs/vassal-stat-defs.js": {
+        "bytes": 986,
+        "sha256": "e03a758ea3f5b3920f6ce9b734d506d6cdb94faaf2039785e349ebc4303a41c0"
+      },
+      "src/defs/vassal-workshop-rules.js": {
+        "bytes": 557,
+        "sha256": "0f6fc13197f5ca2d584870654faa5889682ed4cc9fc7fdfbfdbf27fc4fd30179"
+      },
+      "src/defs/world/biome-multiplier-rules.js": {
+        "bytes": 420,
+        "sha256": "a0db068b38af11243ceb387a51e9690c66041e02baf35d81094ee9975d0a5739"
+      },
+      "src/defs/world/detailed-settlement-scenario.js": {
+        "bytes": 2012,
+        "sha256": "996987c281013d772a8911e0027d0dbee7aa475e3ab6bf4f4b3365c0008e0dcf"
+      },
+      "src/defs/world/world-map-defs.js": {
+        "bytes": 5604,
+        "sha256": "33484ae93039af8a93fb09ac12ceee390ef573e4db6d461507cc1fe0bcaa5cc1"
+      },
+      "src/model/actions.js": {
+        "bytes": 7937,
+        "sha256": "6405851c73197009500fb2988b7d13e7059293398bbb630c84e0e4e352c47c37"
+      },
+      "src/model/canonicalize.js": {
+        "bytes": 1071,
+        "sha256": "e187ac6488f4542d48f6b1fd13d56763d2ee5fb0c8fadfeb8d417719892ec0aa"
+      },
+      "src/model/chaos-values.js": {
+        "bytes": 484,
+        "sha256": "c06c5f9e7d81964128e1994f0f328fa02c6e7ad6aa6e2418e00d2c02df184938"
+      },
+      "src/model/commands/ap-helpers.js": {
+        "bytes": 1387,
+        "sha256": "e53700729454a1e6362c6dd982ac6c931f21d11d09987122349face22c87d1b2"
+      },
+      "src/model/commands/debug-commands.js": {
+        "bytes": 11131,
+        "sha256": "396900d3c9c7a22203feac4a95c4fd8c3286b2aeef79fe80ad51526d0b24d28d"
+      },
+      "src/model/commands/regional-practice-commands.js": {
+        "bytes": 1336,
+        "sha256": "aeb8a35cc07851f44257b31dcc6d9d58b0b6405756dbec7b9a703be8c3f0838c"
+      },
+      "src/model/commands/settlement-vassal-commands.js": {
+        "bytes": 2632,
+        "sha256": "81eca18dea2d3d5e2d435a135a2dc097c290882ec7f76633b502b1b3e82a44d1"
+      },
+      "src/model/commands/simulation-commands.js": {
+        "bytes": 3316,
+        "sha256": "d851603257d360a770031ba139adfb4d8a161dad236dcc34ced8eff80f024d6b"
+      },
+      "src/model/detailed-practice-tiers.js": {
+        "bytes": 1511,
+        "sha256": "a9f82a077fb9619cd153eba3e6e5af8783707d44d778fa64fd6d701371c136be"
+      },
+      "src/model/detailed-settlements.js": {
+        "bytes": 1799,
+        "sha256": "55ecf65a4735991973b3056032d3d1d27f87ad25a54993413a36c2237755ce6a"
+      },
+      "src/model/detailed-settlements/biome-multipliers.js": {
+        "bytes": 1961,
+        "sha256": "4954baf286b43b2909afc483ae318efb628727ed4664d7973b524fe4e70819cb"
+      },
+      "src/model/detailed-settlements/cohorts.js": {
+        "bytes": 3506,
+        "sha256": "9169025a1b2ae69dbe50898b51222c10e529d119b35f23d1490941a07ee0b3a0"
+      },
+      "src/model/detailed-settlements/construction.js": {
+        "bytes": 1755,
+        "sha256": "44d79208e529084ad4ccbb358396a44f1f42cf7123496f09935ea3ab87a49543"
+      },
+      "src/model/detailed-settlements/external-world.js": {
+        "bytes": 24293,
+        "sha256": "c36822045679ac0bd151537fc071923a813b22a471880ae8c1f907fab52eb9e1"
+      },
+      "src/model/detailed-settlements/helpers.js": {
+        "bytes": 9768,
+        "sha256": "a32ac617925082fa19d04402271f692cab7a9227a13c403a1387ecc4c5a57deb"
+      },
+      "src/model/detailed-settlements/neutral-market.js": {
+        "bytes": 6257,
+        "sha256": "acb2954ec1d29d643213ed22927f638b3c6574e2319d20334792a14e56817ca8"
+      },
+      "src/model/detailed-settlements/phases.js": {
+        "bytes": 4738,
+        "sha256": "c1e2ec987a2a8ee3b244cf1d4fe52b4233e64983f3749cb527977682eda714a0"
+      },
+      "src/model/detailed-settlements/phases/birth.js": {
+        "bytes": 4944,
+        "sha256": "eef6982764f4bb91e8c720345de6353c5807ecf8f1739b6e10e87f97ff754907"
+      },
+      "src/model/detailed-settlements/phases/chaos.js": {
+        "bytes": 5138,
+        "sha256": "3248152217161ecb7cdce4901dddc78649cee596c0491fb32062dd513ba171fe"
+      },
+      "src/model/detailed-settlements/phases/death.js": {
+        "bytes": 6814,
+        "sha256": "d545cb8fb80552a8a9e15f3b66b1d471f6d1a64fc4d33055e6947ee04725be6b"
+      },
+      "src/model/detailed-settlements/phases/faith.js": {
+        "bytes": 4613,
+        "sha256": "bffbb3c0e70d2e04e708f21b06a93004c570f6bc1cdc70ab93700d89833d2a7c"
+      },
+      "src/model/detailed-settlements/phases/food.js": {
+        "bytes": 6894,
+        "sha256": "e25deeb218bb183276e1916d9e715607b5fc53b34e5814f8c83525808ceaaab1"
+      },
+      "src/model/detailed-settlements/phases/housing.js": {
+        "bytes": 2700,
+        "sha256": "f7d9df910f1f98c3f041819e1ad5f86374abed8ad7b8b125a3732be318b763ac"
+      },
+      "src/model/detailed-settlements/phases/migration.js": {
+        "bytes": 22527,
+        "sha256": "95b2542b395b3c38ac8adaa6721067427f8b9df0cecda534b8f2f0110fc32197"
+      },
+      "src/model/detailed-settlements/phases/moon-turn.js": {
+        "bytes": 1653,
+        "sha256": "84b60ac3b92324a7b5b409e935541e3c6a8f3875428e2a6b6597c41e350cc33c"
+      },
+      "src/model/detailed-settlements/phases/shared.js": {
+        "bytes": 2106,
+        "sha256": "bf3b3f317d6f1883a45049a73d1ec5c0769c086c2a86b04c41bde0a4fa4a003f"
+      },
+      "src/model/detailed-settlements/political-recipes.js": {
+        "bytes": 6693,
+        "sha256": "dad82bac851aea133c6e044ef01865c89e64a65081f6698943d5a7262f260e74"
+      },
+      "src/model/detailed-settlements/population-ledger.js": {
+        "bytes": 4880,
+        "sha256": "d4aa045370b320deeabd49b85f93da1ec7b8e0972133c1bbe087742591021705"
+      },
+      "src/model/detailed-settlements/practice-events.js": {
+        "bytes": 3005,
+        "sha256": "f2fe30d0efc4ef0ef5986a02c6df3cb2efe6229eea4b54beef1c2027c00a2d93"
+      },
+      "src/model/detailed-settlements/practices.js": {
+        "bytes": 32742,
+        "sha256": "4f7ec7ddedf0ae3812bb6af9c1ca54758c05c672a2c8be5b037f3bb638e40faf"
+      },
+      "src/model/detailed-settlements/queries.js": {
+        "bytes": 7566,
+        "sha256": "6861cfcba7cbea824770e53eeefe5d6c43c611823272542d01b05394c0843ad6"
+      },
+      "src/model/detailed-settlements/scopes.js": {
+        "bytes": 8168,
+        "sha256": "93a91ce8f589a72e48ee9ee5ea0fb54626e8e634f92542ecf51873dfc5770178"
+      },
+      "src/model/detailed-settlements/stock.js": {
+        "bytes": 22671,
+        "sha256": "6efc1eef7ac57698beca8508af9559058152d0164beecbe30a96ca9671cbd2b1"
+      },
+      "src/model/detailed-settlements/synthesis.js": {
+        "bytes": 1568,
+        "sha256": "c7f7c77f92561808db02fdddb8cf34329244fcf22538b4dd5bb20a3585d14d24"
+      },
+      "src/model/detailed-settlements/territory.js": {
+        "bytes": 9422,
+        "sha256": "6c8128d8423cfb49601f1a92090f50db10fac9c07f8bd81e5683d445481922fd"
+      },
+      "src/model/detailed-settlements/vassals.js": {
+        "bytes": 34453,
+        "sha256": "18a60abd27f5c740e45f86a96fcea64877a8d126d01d78ed960e7bf89eb055bf"
+      },
+      "src/model/detailed-settlements/view-model.js": {
+        "bytes": 9398,
+        "sha256": "451dfdf1b9c22687ac1baec9b4012fe5c002cb74dea662c04129dd4c5bac4ba2"
+      },
+      "src/model/detailed-settlements/workers.js": {
+        "bytes": 4489,
+        "sha256": "52405cba7bd845a08bd630cb5836afcc20907b1327c79540b82080d9967aa3df"
+      },
+      "src/model/effects/core/tiers.js": {
+        "bytes": 335,
+        "sha256": "4020a14df7f746a18ed626f061e9b4cdac8ed732b273dbea8ac244ce8c94ea29"
+      },
+      "src/model/full-map-world.js": {
+        "bytes": 8300,
+        "sha256": "6625909ba1998e9007b927372a64d83c53836dc801c0ce59e66a811613dd57ea"
+      },
+      "src/model/game-config.js": {
+        "bytes": 28451,
+        "sha256": "6d8a2e20223d86a969f50d574238572258d88eacbe8376c45a9345eb5cc5cbac"
+      },
+      "src/model/game-model.js": {
+        "bytes": 2058,
+        "sha256": "19de7c110339d278f63346c97421f95b8c4b0fb68cd18cbb0c140383445477fd"
+      },
+      "src/model/gamepiece-presentation.js": {
+        "bytes": 16247,
+        "sha256": "8020264b2c9086aa38a5a54a9a4375c57797ad07b83c238f7ba75f226783888e"
+      },
+      "src/model/init.js": {
+        "bytes": 4005,
+        "sha256": "6adda5ad9c3068e9ca90894594bfa5e6d304a791bdd803a6b86404015bcfed9e"
+      },
+      "src/model/keywords-classes-prototype.js": {
+        "bytes": 8491,
+        "sha256": "610d48fb6ce3c976a7afde61f789a1070ca4dc3ce1a2b9b95231e6f6ed633a99"
+      },
+      "src/model/life-map-balance.js": {
+        "bytes": 9930,
+        "sha256": "19dbc6f6656c7c2cbd83198a9307d3f2b6b684bb4b811de664fabd34c24e219a"
+      },
+      "src/model/life-map-columns.js": {
+        "bytes": 6659,
+        "sha256": "fe955979856493cd345829b7a7957f6eb2ab7e213ec50dc1c4c453d9791e5db2"
+      },
+      "src/model/life-map-design.js": {
+        "bytes": 15477,
+        "sha256": "1e0ddbcabe146ef5429c2a7ae09654233bab47d35e614a57fb0bd4b60b80aa31"
+      },
+      "src/model/life-map-lab-draft.js": {
+        "bytes": 2948,
+        "sha256": "4242743e8e9c5ac45efc0adb6a05dbd79f3632b084ebc8d787c56a9019b632c3"
+      },
+      "src/model/live-second-stage-scheduler.js": {
+        "bytes": 815,
+        "sha256": "3d6d844c554fe8a9af01b63b7203125d72a0224eb99731fd14d003233cd496d7"
+      },
+      "src/model/map-lab-draft.js": {
+        "bytes": 20181,
+        "sha256": "76b30823b0fddbb736de3d77527ef2d1ae8dd704270d750efb811b3ca3df562b"
+      },
+      "src/model/mechanic-readings.js": {
+        "bytes": 4365,
+        "sha256": "1f08e5c22659a33f11c710667dfd0d44730560eb69bca4d3e89fa5ab7b4178e7"
+      },
+      "src/model/mechanic-validation.js": {
+        "bytes": 3494,
+        "sha256": "371863eae529f5ca87df86b09af2505ee645832c63e5e43c57816f1c1a76d970"
+      },
+      "src/model/moon-phases.js": {
+        "bytes": 1668,
+        "sha256": "ec3644d7e25df476cecef27a5ad5f9c608100d55f057f85d4b80705f4bfedec3"
+      },
+      "src/model/moon.js": {
+        "bytes": 1472,
+        "sha256": "181c5ace7b93f34547cb1bb20ec15892b65924bfb3d59cffb7facf78fc3026ca"
+      },
+      "src/model/new-game.js": {
+        "bytes": 2366,
+        "sha256": "e18142336f390db29cfc034bc82b4fca74212351f642c75bc8c250574a19ee55"
+      },
+      "src/model/perf.js": {
+        "bytes": 20765,
+        "sha256": "ac5956965a97075010a78476ce4153f31cd506eaac2216ef9b1e3d1d1b89e132"
+      },
+      "src/model/persistent-memory.js": {
+        "bytes": 8132,
+        "sha256": "17e5fa39d4fd65ce9dc06fb78eb5efa420149751cafe9fc6bfd796042109b985"
+      },
+      "src/model/practice-draft.js": {
+        "bytes": 3140,
+        "sha256": "09d076586d34fb69dd26aa36fd9cd37f0093a83148ccd7ccb08b83225d0b30e2"
+      },
+      "src/model/practice-keywords.js": {
+        "bytes": 5888,
+        "sha256": "ae3987ec280e130009850d9618b9e3d3f90ff42fd7026f29970804fdcbe85faf"
+      },
+      "src/model/practice-outputs.js": {
+        "bytes": 4069,
+        "sha256": "6a29fd6491d68f99e3ab3fa6ecb71758c4a9f86a6dbc1a2c8b41f17a32b2ed74"
+      },
+      "src/model/practice-reading.js": {
+        "bytes": 5244,
+        "sha256": "7345283e5c33cf8c8fa622e676f3e054258d0dd8358e3d755cbb7ee2fa52c56d"
+      },
+      "src/model/regional-map/biome-clustering.js": {
+        "bytes": 6597,
+        "sha256": "4dc2d592a4bd277626533111a0be461778f68eccf5cc5ee91eeb8381a794cd19"
+      },
+      "src/model/regional-map/boot-profile.js": {
+        "bytes": 683,
+        "sha256": "5f4e5f4005f0ecb0b5814f4143b55f2935c34a7122e0743726debc2772bd0d83"
+      },
+      "src/model/regional-map/definition.js": {
+        "bytes": 3369,
+        "sha256": "152c37f9bbc03358c6585e4da798eaee71bdcdfdc606214a4bda6e7b68503f4c"
+      },
+      "src/model/regional-map/generator.js": {
+        "bytes": 42168,
+        "sha256": "2d44d05096f6cd10be83e175c61563a97049b99ebb87db834ecf3fe4d747cb7d"
+      },
+      "src/model/regional-map/names.js": {
+        "bytes": 5751,
+        "sha256": "05a758f48a57bfab78d918ec821f44ab0af5d07fabc3ebfe003e618c146cb13b"
+      },
+      "src/model/regional-practices.js": {
+        "bytes": 8461,
+        "sha256": "93c1770e5681d7e879ad3415572658ac32524d69491d30a508b6c8a20e0a3ede"
+      },
+      "src/model/replay-second-runner.js": {
+        "bytes": 2666,
+        "sha256": "c47b7a757e45a6c7c3b48d2460c4f9ef8491e08123764a7ef93d9d7cb7c0ad19"
+      },
+      "src/model/research-progression.js": {
+        "bytes": 2244,
+        "sha256": "82940560337be81c59d36fff5b4dca8568ff8a0de4b0b6eebab3e5cf2c4b14ac"
+      },
+      "src/model/rng.js": {
+        "bytes": 3818,
+        "sha256": "682c501a2d942118a81027713baa166ff216704ef8e9f5a2bff36cf81df9d5f7"
+      },
+      "src/model/settlement-exec.js": {
+        "bytes": 43246,
+        "sha256": "0fd122d3432bec9df93ee47683fc3fab47f586399e2cafa923fe323f587231cf"
+      },
+      "src/model/settlement-leadership.js": {
+        "bytes": 12800,
+        "sha256": "06f31c30232e6c0b365ed175cf47b65bc09781414159838dacba5f2607b7036d"
+      },
+      "src/model/settlement-order-exec.js": {
+        "bytes": 32517,
+        "sha256": "14b36fce8d57717102738986be00771cef3e85b6a3ffab7eb5ae8d3e71fa561f"
+      },
+      "src/model/settlement-state.js": {
+        "bytes": 20149,
+        "sha256": "2d6000193593b1ae2738c8266fe56462598d23151aa0a3afada57f5dac69c106"
+      },
+      "src/model/settlement-state/hub-legacy.js": {
+        "bytes": 31348,
+        "sha256": "f817862ab4c62c940b4880bd83306ebce79cacd40281a536ddd836d04a40f64e"
+      },
+      "src/model/settlement-upgrades.js": {
+        "bytes": 7687,
+        "sha256": "5cd7564bd6098b4921be799cfb230b9289e1fa3a090bdfaef9f8f0fdc9d228e6"
+      },
+      "src/model/skills.js": {
+        "bytes": 10832,
+        "sha256": "ec7644e0721ce36111b053c5791fab2c1620f5fead22660808991a810b628f45"
+      },
+      "src/model/starter-boot-profile.js": {
+        "bytes": 3283,
+        "sha256": "b27b08cc63b4865e55dcf47d9f0da5da709f4f57c5b1879542795c783ad0bc72"
+      },
+      "src/model/state.js": {
+        "bytes": 34030,
+        "sha256": "e549208034c613872497f8fe05b7251cbba81689451d23637ecce4bcf99969af"
+      },
+      "src/model/state/board-legacy.js": {
+        "bytes": 18036,
+        "sha256": "652677e5332720b94f16a926a6cbb2ecdf6e81d3a3a26f42fb2c75e241d278d1"
+      },
+      "src/model/state/pawn-legacy.js": {
+        "bytes": 8547,
+        "sha256": "221ede0df5e7a7cc0cda81ffa74268c591989d98fb646ff664605f4398932348"
+      },
+      "src/model/structure-layout.js": {
+        "bytes": 6310,
+        "sha256": "cc8d988d1b96ec542d30fcc5d280b981176e8a95896e22bd8ab380b076ee99af"
+      },
+      "src/model/structure-reading.js": {
+        "bytes": 8791,
+        "sha256": "3ec743b86c0757ff43b6d923c892b4ca3bb1e36e71ba2fc36ca58520d5578381"
+      },
+      "src/model/timeline/action-index.js": {
+        "bytes": 4285,
+        "sha256": "fe3e5ae1f3e3044379ed606a37211a19c3f41be5a62534908f5a914d0c73a19c"
+      },
+      "src/model/timeline/index.js": {
+        "bytes": 36779,
+        "sha256": "38a4037e9a1ffe3d6a04040b391099cca8f3fe726914a7046cc6441ec2b68fc6"
+      },
+      "src/model/timeline/memo-cache.js": {
+        "bytes": 4168,
+        "sha256": "6a5d478183fe925d4804f5b7cb8a6f23d7847136546d90becad61a8298aadbf5"
+      },
+      "src/model/timeline/mutation-signature.js": {
+        "bytes": 811,
+        "sha256": "621e352dc40de316e20bc2c9936ccd8a9f1ff3abdbaba404085c89930632b8a1"
+      },
+      "src/model/vassal-life-map-generator.js": {
+        "bytes": 32565,
+        "sha256": "4360be2d27821e1ecaa16680542d8efac89560433af76a46345bb5caaadd0341"
+      },
+      "src/model/vassal-life-map.js": {
+        "bytes": 2101,
+        "sha256": "e29f068b1b56e73e64e2da05f69560db52c225bff0c7f48dac5af6bc7571097f"
+      },
+      "src/model/vassal-life-map/campaign.js": {
+        "bytes": 14443,
+        "sha256": "6aeb26ecb8052503e293963d646c5d8b30225dc57df1867316f145441c99d2fa"
+      },
+      "src/model/vassal-life-map/class-actions.js": {
+        "bytes": 12824,
+        "sha256": "abaa6027c139aacf58ae6bef212fe910437d3c87051ba99030736ee73a0797b2"
+      },
+      "src/model/vassal-life-map/class-rules.js": {
+        "bytes": 1663,
+        "sha256": "97be56b6367f23bbbbf1192fc09920e98736bc828e7d49b67cb32fa0d029c8ad"
+      },
+      "src/model/vassal-life-map/commissions.js": {
+        "bytes": 9510,
+        "sha256": "7a8246a7306647637666fd25d999c63b895b08b779fe600d106163682060978e"
+      },
+      "src/model/vassal-life-map/heirlooms.js": {
+        "bytes": 21734,
+        "sha256": "0743a4ac6c2b508d8fd31234078b5b129a740e06d47cbd19940469782d7abeaf"
+      },
+      "src/model/vassal-life-map/lifecycle.js": {
+        "bytes": 765,
+        "sha256": "696e3e00ae7512458b5cd0d5c62b43850db5520011a7c1880d8ce5c0e526d3d9"
+      },
+      "src/model/vassal-life-map/lifecycle/candidates.js": {
+        "bytes": 13814,
+        "sha256": "fbfc72e4a4ea0e03492e7c2cdec05b9f3d0fddaee51a95a841f0f9aff33da390"
+      },
+      "src/model/vassal-life-map/lifecycle/node-confirm.js": {
+        "bytes": 44924,
+        "sha256": "d3da267d97212740aef7c01f60cdd578d889a5c0deda52e151ba119dded4117b"
+      },
+      "src/model/vassal-life-map/lifecycle/step.js": {
+        "bytes": 12955,
+        "sha256": "39d2b3d99f533e58ab0e094c2638d81d5923e266c80ead10d3ca63c836483784"
+      },
+      "src/model/vassal-life-map/multiplier-preview.js": {
+        "bytes": 3258,
+        "sha256": "e18d9dd2142ea444189abe9b8c8577d388c2212b11cfe9afb066c6ffdf03899d"
+      },
+      "src/model/vassal-life-map/presentation.js": {
+        "bytes": 27254,
+        "sha256": "0353e89aa4ab39f6967d6bcd249020dd6f5aea14e8189637db1f3b1684fa37d7"
+      },
+      "src/model/vassal-life-map/relic-pools.js": {
+        "bytes": 2503,
+        "sha256": "2e1a078b5a81cc6a9c01e90f1870c91cd0630d014dc3339c46efa4586c058f8f"
+      },
+      "src/model/vassal-life-map/selectors.js": {
+        "bytes": 20863,
+        "sha256": "ca05adb1ee7f4738be4340f3a5d2208723e47d31394b16a32811361cdd513fd3"
+      },
+      "src/model/vassal-life-map/shop-specialties.js": {
+        "bytes": 4821,
+        "sha256": "2e80bca044664a68677863882f43f25cd24b27b6836ca996ca34f55014dea44e"
+      },
+      "src/model/vassal-life-map/shop.js": {
+        "bytes": 35507,
+        "sha256": "150a669e61eed679829f1990ff3754489cf66cf34760327719bd794eb6d3328e"
+      },
+      "src/model/vassal-life-map/stock-shops.js": {
+        "bytes": 2681,
+        "sha256": "f93786f25f5e3faab148bf2f1423bff65e9758c72968d85ddd1fc07c7e07e1c5"
+      },
+      "src/model/vassal-life-map/treasury.js": {
+        "bytes": 908,
+        "sha256": "0d77fb851a9fd8a932d390b4315c0898d415d6631d8da05a5dc84cd308d4a91f"
+      },
+      "src/model/vassal-life-map/world-choices.js": {
+        "bytes": 6537,
+        "sha256": "fe7513db49288e7d7f4fc813a66515cb4efe7282f0dc1c683632aecd1f8bfca9"
+      },
+      "src/model/world-definitions.js": {
+        "bytes": 250,
+        "sha256": "eab2c93cee2ff15dc675fd3bfc8892b2a120a0c0b1c88a671121b35eb8a21c29"
+      },
+      "src/model/world-state.js": {
+        "bytes": 27703,
+        "sha256": "4f0a4690e209f6bd4b1f49f1299e47bf8778af7f5e93112673f4b8bf22076f34"
+      }
+    }
+  },
+  "runtime": {
+    "node": "v24.15.0",
+    "versions": {
+      "node": "24.15.0",
+      "acorn": "8.16.0",
+      "ada": "3.4.4",
+      "amaro": "1.1.8",
+      "ares": "1.34.6",
+      "brotli": "1.2.0",
+      "cldr": "48.0",
+      "icu": "78.2",
+      "llhttp": "9.3.1",
+      "merve": "1.2.2",
+      "modules": "137",
+      "napi": "10",
+      "nbytes": "0.1.3",
+      "ncrypto": "0.0.1",
+      "nghttp2": "1.68.0",
+      "openssl": "3.5.5",
+      "simdjson": "4.5.0",
+      "simdutf": "6.4.0",
+      "sqlite": "3.51.3",
+      "tz": "2026a",
+      "undici": "7.24.4",
+      "unicode": "17.0",
+      "uv": "1.51.0",
+      "uvwasi": "0.0.23",
+      "v8": "13.6.233.17-node.48",
+      "zlib": "1.3.1-e00f703",
+      "zstd": "1.5.7"
+    },
+    "platform": "win32",
+    "arch": "x64",
+    "esbuild": "0.25.12"
+  },
+  "retained": {
+    "file": "retained-manifest.json",
+    "sha256": "b078d06f126ce3499ecdd3dd03d4d08502e18af67412628aafb5084d7bbc8f42",
+    "originalPath": "artifacts/perf-hillclimb/fixture-corpus-d05bab3/manifest.json"
+  },
+  "sdk": {
+    "file": "baseline-sdk-8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0.mjs",
+    "sha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "metafile": "sdk-metafile.json",
+    "externalBuiltins": [
+      "node:assert/strict",
+      "node:crypto"
+    ],
+    "dynamicImports": false,
+    "mutableRepositoryImports": false,
+    "rebuiltFromCapturedSourceBytes": true
+  },
+  "seeds": [
+    123,
+    424242,
+    99117
+  ],
+  "fixtureIds": [
+    "ordinary",
+    "selected",
+    "shop",
+    "history",
+    "later-history"
+  ],
+  "policy": "ordinary settings, fixed first-legal itinerary, no seed selection or danger suppression",
+  "fixtures": [
+    {
+      "id": "ordinary",
+      "seed": 123,
+      "meta": {
+        "schemaVersion": 32,
+        "setupId": "hillclimb:ordinary",
+        "savedAt": "2026-11-04T00:00:00.000Z",
+        "tSec": 0,
+        "seasonKey": "spring",
+        "year": 1,
+        "actionPoints": 0,
+        "actionPointCap": 0
+      },
+      "sha256": "fefa69e74b1a5376a7092430a7b2fc75062b97a7fc0a83c2ae8fa250c41e4322",
+      "stateSha256": "df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f",
+      "seconds": 0,
+      "actions": 0,
+      "checkpoints": 0,
+      "characters": 704499,
+      "trace": [],
+      "expected": {
+        "baseSeed": 123,
+        "second": 0,
+        "lineage": null,
+        "practiceSlots": [
+          {
+            "regionId": "R01",
+            "count": 5
+          },
+          {
+            "regionId": "R02",
+            "count": 5
+          },
+          {
+            "regionId": "R03",
+            "count": 5
+          },
+          {
+            "regionId": "R04",
+            "count": 5
+          },
+          {
+            "regionId": "R05",
+            "count": 5
+          },
+          {
+            "regionId": "R06",
+            "count": 5
+          },
+          {
+            "regionId": "R07",
+            "count": 5
+          },
+          {
+            "regionId": "R08",
+            "count": 5
+          },
+          {
+            "regionId": "R09",
+            "count": 5
+          },
+          {
+            "regionId": "R10",
+            "count": 5
+          },
+          {
+            "regionId": "R11",
+            "count": 5
+          },
+          {
+            "regionId": "R12",
+            "count": 5
+          },
+          {
+            "regionId": "R13",
+            "count": 5
+          },
+          {
+            "regionId": "R14",
+            "count": 5
+          },
+          {
+            "regionId": "R15",
+            "count": 5
+          },
+          {
+            "regionId": "R16",
+            "count": 5
+          },
+          {
+            "regionId": "R17",
+            "count": 5
+          },
+          {
+            "regionId": "R18",
+            "count": 5
+          },
+          {
+            "regionId": "R19",
+            "count": 5
+          },
+          {
+            "regionId": "R20",
+            "count": 5
+          }
+        ]
+      },
+      "file": "fixtures/123-ordinary.json",
+      "expectedStateFile": "expected/123-ordinary-state.json"
+    },
+    {
+      "id": "selected",
+      "seed": 123,
+      "meta": {
+        "schemaVersion": 32,
+        "setupId": "hillclimb:selected",
+        "savedAt": "2026-11-04T00:00:00.000Z",
+        "tSec": 0,
+        "seasonKey": "spring",
+        "year": 1,
+        "actionPoints": 0,
+        "actionPointCap": 0
+      },
+      "sha256": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+      "stateSha256": "651ba92d0e2cdfbdc440c0087c92374f5a0460aec8c5eff7f173795d91228065",
+      "seconds": 0,
+      "actions": 1,
+      "checkpoints": 0,
+      "characters": 725775,
+      "trace": [
+        {
+          "second": 0,
+          "kind": "settlementSelectVassal",
+          "payload": {
+            "candidateIndex": 0,
+            "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":13,\"locationRegionId\":\"R18\",\"originRegionId\":\"R18\",\"prestige\":22,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"rose\",\"hairStyle\":\"crop\",\"hairColor\":\"gold\",\"faceShape\":\"round\",\"clothingColor\":\"purple\",\"accessory\":\"none\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"legacyPlus\",\"groupId\":\"legacyPlus\",\"label\":\"Legacy+\",\"glyph\":\"L+\",\"color\":10657512,\"description\":\"Legacy choices are twice as powerful for their usual cost.\",\"variantId\":\"legacyPlus\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":12,\"locationRegionId\":\"R14\",\"originRegionId\":\"R14\",\"prestige\":18,\"stats\":{\"cunning\":2,\"wisdom\":0,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"ochre\",\"hairStyle\":\"shaved\",\"hairColor\":\"silver\",\"faceShape\":\"round\",\"clothingColor\":\"gold\",\"accessory\":\"pin\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"settlement\",\"groupId\":\"settlement\",\"label\":\"Found Settlement\",\"glyph\":\"FS\",\"color\":7842405,\"description\":\"Found a nearby settlement and move this Vassal there.\",\"variantId\":\"settlement\"}}]"
+          }
+        }
+      ],
+      "expected": {
+        "baseSeed": 123,
+        "second": 0,
+        "lineage": "vassal-1",
+        "practiceSlots": [
+          {
+            "regionId": "R01",
+            "count": 5
+          },
+          {
+            "regionId": "R02",
+            "count": 5
+          },
+          {
+            "regionId": "R03",
+            "count": 5
+          },
+          {
+            "regionId": "R04",
+            "count": 5
+          },
+          {
+            "regionId": "R05",
+            "count": 5
+          },
+          {
+            "regionId": "R06",
+            "count": 5
+          },
+          {
+            "regionId": "R07",
+            "count": 5
+          },
+          {
+            "regionId": "R08",
+            "count": 5
+          },
+          {
+            "regionId": "R09",
+            "count": 5
+          },
+          {
+            "regionId": "R10",
+            "count": 5
+          },
+          {
+            "regionId": "R11",
+            "count": 5
+          },
+          {
+            "regionId": "R12",
+            "count": 5
+          },
+          {
+            "regionId": "R13",
+            "count": 5
+          },
+          {
+            "regionId": "R14",
+            "count": 5
+          },
+          {
+            "regionId": "R15",
+            "count": 5
+          },
+          {
+            "regionId": "R16",
+            "count": 5
+          },
+          {
+            "regionId": "R17",
+            "count": 5
+          },
+          {
+            "regionId": "R18",
+            "count": 5
+          },
+          {
+            "regionId": "R19",
+            "count": 5
+          },
+          {
+            "regionId": "R20",
+            "count": 5
+          }
+        ]
+      },
+      "file": "fixtures/123-selected.json",
+      "expectedStateFile": "expected/123-selected-state.json"
+    },
+    {
+      "id": "shop",
+      "seed": 123,
+      "meta": {
+        "schemaVersion": 32,
+        "setupId": "hillclimb:shop",
+        "savedAt": "2026-11-04T00:00:00.000Z",
+        "tSec": 0,
+        "seasonKey": "spring",
+        "year": 1,
+        "actionPoints": 0,
+        "actionPointCap": 0
+      },
+      "sha256": "c30cb8cf50efa5dd12d9da10cb14a01f36e94e517c016e37842efa0cef46e28e",
+      "stateSha256": "5c4e40607ff3d97ed3205fa731df84861353d336cc3c719334038e32fdffe3d5",
+      "seconds": 0,
+      "actions": 3,
+      "checkpoints": 0,
+      "characters": 727971,
+      "trace": [
+        {
+          "second": 0,
+          "kind": "settlementSelectVassal",
+          "payload": {
+            "candidateIndex": 0,
+            "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":13,\"locationRegionId\":\"R18\",\"originRegionId\":\"R18\",\"prestige\":22,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"rose\",\"hairStyle\":\"crop\",\"hairColor\":\"gold\",\"faceShape\":\"round\",\"clothingColor\":\"purple\",\"accessory\":\"none\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"legacyPlus\",\"groupId\":\"legacyPlus\",\"label\":\"Legacy+\",\"glyph\":\"L+\",\"color\":10657512,\"description\":\"Legacy choices are twice as powerful for their usual cost.\",\"variantId\":\"legacyPlus\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":12,\"locationRegionId\":\"R14\",\"originRegionId\":\"R14\",\"prestige\":18,\"stats\":{\"cunning\":2,\"wisdom\":0,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"ochre\",\"hairStyle\":\"shaved\",\"hairColor\":\"silver\",\"faceShape\":\"round\",\"clothingColor\":\"gold\",\"accessory\":\"pin\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"settlement\",\"groupId\":\"settlement\",\"label\":\"Found Settlement\",\"glyph\":\"FS\",\"color\":7842405,\"description\":\"Found a nearby settlement and move this Vassal there.\",\"variantId\":\"settlement\"}}]"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1",
+            "optionId": "random"
+          }
+        }
+      ],
+      "expected": {
+        "baseSeed": 123,
+        "second": 0,
+        "lineage": "vassal-1",
+        "practiceSlots": [
+          {
+            "regionId": "R01",
+            "count": 5
+          },
+          {
+            "regionId": "R02",
+            "count": 5
+          },
+          {
+            "regionId": "R03",
+            "count": 5
+          },
+          {
+            "regionId": "R04",
+            "count": 5
+          },
+          {
+            "regionId": "R05",
+            "count": 5
+          },
+          {
+            "regionId": "R06",
+            "count": 5
+          },
+          {
+            "regionId": "R07",
+            "count": 5
+          },
+          {
+            "regionId": "R08",
+            "count": 5
+          },
+          {
+            "regionId": "R09",
+            "count": 5
+          },
+          {
+            "regionId": "R10",
+            "count": 5
+          },
+          {
+            "regionId": "R11",
+            "count": 5
+          },
+          {
+            "regionId": "R12",
+            "count": 5
+          },
+          {
+            "regionId": "R13",
+            "count": 5
+          },
+          {
+            "regionId": "R14",
+            "count": 5
+          },
+          {
+            "regionId": "R15",
+            "count": 5
+          },
+          {
+            "regionId": "R16",
+            "count": 5
+          },
+          {
+            "regionId": "R17",
+            "count": 5
+          },
+          {
+            "regionId": "R18",
+            "count": 5
+          },
+          {
+            "regionId": "R19",
+            "count": 5
+          },
+          {
+            "regionId": "R20",
+            "count": 5
+          }
+        ]
+      },
+      "file": "fixtures/123-shop.json",
+      "expectedStateFile": "expected/123-shop-state.json"
+    },
+    {
+      "id": "history",
+      "seed": 123,
+      "meta": {
+        "schemaVersion": 32,
+        "setupId": "hillclimb:history",
+        "savedAt": "2026-11-04T00:00:00.000Z",
+        "tSec": 54,
+        "seasonKey": "autumn",
+        "year": 2,
+        "actionPoints": 0,
+        "actionPointCap": 0
+      },
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "stateSha256": "96e4574b4cf24c185bd8742007d882feb984aa28f8425fa72b2fd7fc94dca2b3",
+      "seconds": 54,
+      "actions": 5,
+      "checkpoints": 27,
+      "characters": 18812080,
+      "trace": [
+        {
+          "second": 0,
+          "kind": "settlementSelectVassal",
+          "payload": {
+            "candidateIndex": 0,
+            "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":13,\"locationRegionId\":\"R18\",\"originRegionId\":\"R18\",\"prestige\":22,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"rose\",\"hairStyle\":\"crop\",\"hairColor\":\"gold\",\"faceShape\":\"round\",\"clothingColor\":\"purple\",\"accessory\":\"none\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"legacyPlus\",\"groupId\":\"legacyPlus\",\"label\":\"Legacy+\",\"glyph\":\"L+\",\"color\":10657512,\"description\":\"Legacy choices are twice as powerful for their usual cost.\",\"variantId\":\"legacyPlus\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":12,\"locationRegionId\":\"R14\",\"originRegionId\":\"R14\",\"prestige\":18,\"stats\":{\"cunning\":2,\"wisdom\":0,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"ochre\",\"hairStyle\":\"shaved\",\"hairColor\":\"silver\",\"faceShape\":\"round\",\"clothingColor\":\"gold\",\"accessory\":\"pin\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"settlement\",\"groupId\":\"settlement\",\"label\":\"Found Settlement\",\"glyph\":\"FS\",\"color\":7842405,\"description\":\"Found a nearby settlement and move this Vassal there.\",\"variantId\":\"settlement\"}}]"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1",
+            "optionId": "random"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalPurchaseShopOffer",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1",
+            "offerId": "life-milestone-milestone-1:r0:practice:0"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1"
+          }
+        }
+      ],
+      "expected": {
+        "baseSeed": 123,
+        "second": 54,
+        "lineage": "vassal-1",
+        "practiceSlots": [
+          {
+            "regionId": "R01",
+            "count": 5
+          },
+          {
+            "regionId": "R02",
+            "count": 5
+          },
+          {
+            "regionId": "R03",
+            "count": 5
+          },
+          {
+            "regionId": "R04",
+            "count": 5
+          },
+          {
+            "regionId": "R05",
+            "count": 5
+          },
+          {
+            "regionId": "R06",
+            "count": 5
+          },
+          {
+            "regionId": "R07",
+            "count": 5
+          },
+          {
+            "regionId": "R08",
+            "count": 5
+          },
+          {
+            "regionId": "R09",
+            "count": 5
+          },
+          {
+            "regionId": "R10",
+            "count": 5
+          },
+          {
+            "regionId": "R11",
+            "count": 5
+          },
+          {
+            "regionId": "R12",
+            "count": 5
+          },
+          {
+            "regionId": "R13",
+            "count": 5
+          },
+          {
+            "regionId": "R14",
+            "count": 5
+          },
+          {
+            "regionId": "R15",
+            "count": 5
+          },
+          {
+            "regionId": "R16",
+            "count": 5
+          },
+          {
+            "regionId": "R17",
+            "count": 5
+          },
+          {
+            "regionId": "R18",
+            "count": 5
+          },
+          {
+            "regionId": "R19",
+            "count": 5
+          },
+          {
+            "regionId": "R20",
+            "count": 5
+          }
+        ]
+      },
+      "file": "fixtures/123-history.json",
+      "expectedStateFile": "expected/123-history-state.json"
+    },
+    {
+      "id": "later-history",
+      "seed": 123,
+      "meta": {
+        "schemaVersion": 32,
+        "setupId": "hillclimb:later-history",
+        "savedAt": "2026-11-04T00:00:00.000Z",
+        "tSec": 439,
+        "seasonKey": "autumn",
+        "year": 14,
+        "actionPoints": 8,
+        "actionPointCap": 40
+      },
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "stateSha256": "bc098effb2e4c3e69b09b839081e73c9d15d34f94e2aea387731f470ad76f4b9",
+      "seconds": 439,
+      "actions": 21,
+      "checkpoints": 28,
+      "characters": 24746524,
+      "trace": [
+        {
+          "second": 0,
+          "kind": "settlementSelectVassal",
+          "payload": {
+            "candidateIndex": 0,
+            "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":13,\"locationRegionId\":\"R18\",\"originRegionId\":\"R18\",\"prestige\":22,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"rose\",\"hairStyle\":\"crop\",\"hairColor\":\"gold\",\"faceShape\":\"round\",\"clothingColor\":\"purple\",\"accessory\":\"none\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"legacyPlus\",\"groupId\":\"legacyPlus\",\"label\":\"Legacy+\",\"glyph\":\"L+\",\"color\":10657512,\"description\":\"Legacy choices are twice as powerful for their usual cost.\",\"variantId\":\"legacyPlus\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":12,\"locationRegionId\":\"R14\",\"originRegionId\":\"R14\",\"prestige\":18,\"stats\":{\"cunning\":2,\"wisdom\":0,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"ochre\",\"hairStyle\":\"shaved\",\"hairColor\":\"silver\",\"faceShape\":\"round\",\"clothingColor\":\"gold\",\"accessory\":\"pin\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"settlement\",\"groupId\":\"settlement\",\"label\":\"Found Settlement\",\"glyph\":\"FS\",\"color\":7842405,\"description\":\"Found a nearby settlement and move this Vassal there.\",\"variantId\":\"settlement\"}}]"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1",
+            "optionId": "random"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalPurchaseShopOffer",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1",
+            "offerId": "life-milestone-milestone-1:r0:practice:0"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1"
+          }
+        },
+        {
+          "second": 54,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-d02-r01"
+          }
+        },
+        {
+          "second": 54,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-d02-r01",
+            "optionId": "travel-R01"
+          }
+        },
+        {
+          "second": 54,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-d02-r01"
+          }
+        },
+        {
+          "second": 216,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-d03-r02"
+          }
+        },
+        {
+          "second": 216,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-d03-r02",
+            "optionId": "immediateFavor"
+          }
+        },
+        {
+          "second": 216,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-d03-r02"
+          }
+        },
+        {
+          "second": 297,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-d04-r01"
+          }
+        },
+        {
+          "second": 297,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-d04-r01"
+          }
+        },
+        {
+          "second": 432,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "vassal-1-founding"
+          }
+        },
+        {
+          "second": 432,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "vassal-1-founding",
+            "optionId": "train-estate"
+          }
+        },
+        {
+          "second": 432,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "vassal-1-founding"
+          }
+        },
+        {
+          "second": 438,
+          "kind": "vassalChooseDevelopmentStat",
+          "payload": {
+            "choiceId": "vassal-1:level:1",
+            "statId": "cunning"
+          }
+        },
+        {
+          "second": 438,
+          "kind": "vassalChooseCommission",
+          "payload": {
+            "offerId": "vassal-1:commission:1:practice"
+          }
+        },
+        {
+          "second": 438,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-d06-r02"
+          }
+        },
+        {
+          "second": 438,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-d06-r02",
+            "optionId": "observe-crisis"
+          }
+        },
+        {
+          "second": 438,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-d06-r02"
+          }
+        }
+      ],
+      "expected": {
+        "baseSeed": 123,
+        "second": 439,
+        "lineage": "vassal-1",
+        "practiceSlots": [
+          {
+            "regionId": "R01",
+            "count": 5
+          },
+          {
+            "regionId": "R02",
+            "count": 5
+          },
+          {
+            "regionId": "R03",
+            "count": 5
+          },
+          {
+            "regionId": "R04",
+            "count": 5
+          },
+          {
+            "regionId": "R05",
+            "count": 5
+          },
+          {
+            "regionId": "R06",
+            "count": 5
+          },
+          {
+            "regionId": "R07",
+            "count": 5
+          },
+          {
+            "regionId": "R08",
+            "count": 5
+          },
+          {
+            "regionId": "R09",
+            "count": 5
+          },
+          {
+            "regionId": "R10",
+            "count": 5
+          },
+          {
+            "regionId": "R11",
+            "count": 5
+          },
+          {
+            "regionId": "R12",
+            "count": 5
+          },
+          {
+            "regionId": "R13",
+            "count": 5
+          },
+          {
+            "regionId": "R14",
+            "count": 5
+          },
+          {
+            "regionId": "R15",
+            "count": 5
+          },
+          {
+            "regionId": "R16",
+            "count": 5
+          },
+          {
+            "regionId": "R17",
+            "count": 5
+          },
+          {
+            "regionId": "R18",
+            "count": 5
+          },
+          {
+            "regionId": "R19",
+            "count": 5
+          },
+          {
+            "regionId": "R20",
+            "count": 5
+          }
+        ]
+      },
+      "itineraryStop": "fixed six-node continuation completed",
+      "file": "fixtures/123-later-history.json",
+      "expectedStateFile": "expected/123-later-history-state.json"
+    },
+    {
+      "id": "ordinary",
+      "seed": 424242,
+      "meta": {
+        "schemaVersion": 32,
+        "setupId": "hillclimb:ordinary",
+        "savedAt": "2026-11-04T00:00:00.000Z",
+        "tSec": 0,
+        "seasonKey": "spring",
+        "year": 1,
+        "actionPoints": 0,
+        "actionPointCap": 0
+      },
+      "sha256": "554ddeda71240365cae436a67084ee7ca74bfc5e4cb23cdf7513fcb98a0d9170",
+      "stateSha256": "0273a5c25107fa66ecfb059d724c16e4266715b58da1ff2ffd023cca8e721129",
+      "seconds": 0,
+      "actions": 0,
+      "checkpoints": 0,
+      "characters": 704491,
+      "trace": [],
+      "expected": {
+        "baseSeed": 424242,
+        "second": 0,
+        "lineage": null,
+        "practiceSlots": [
+          {
+            "regionId": "R01",
+            "count": 5
+          },
+          {
+            "regionId": "R02",
+            "count": 5
+          },
+          {
+            "regionId": "R03",
+            "count": 5
+          },
+          {
+            "regionId": "R04",
+            "count": 5
+          },
+          {
+            "regionId": "R05",
+            "count": 5
+          },
+          {
+            "regionId": "R06",
+            "count": 5
+          },
+          {
+            "regionId": "R07",
+            "count": 5
+          },
+          {
+            "regionId": "R08",
+            "count": 5
+          },
+          {
+            "regionId": "R09",
+            "count": 5
+          },
+          {
+            "regionId": "R10",
+            "count": 5
+          },
+          {
+            "regionId": "R11",
+            "count": 5
+          },
+          {
+            "regionId": "R12",
+            "count": 5
+          },
+          {
+            "regionId": "R13",
+            "count": 5
+          },
+          {
+            "regionId": "R14",
+            "count": 5
+          },
+          {
+            "regionId": "R15",
+            "count": 5
+          },
+          {
+            "regionId": "R16",
+            "count": 5
+          },
+          {
+            "regionId": "R17",
+            "count": 5
+          },
+          {
+            "regionId": "R18",
+            "count": 5
+          },
+          {
+            "regionId": "R19",
+            "count": 5
+          },
+          {
+            "regionId": "R20",
+            "count": 5
+          }
+        ]
+      },
+      "file": "fixtures/424242-ordinary.json",
+      "expectedStateFile": "expected/424242-ordinary-state.json"
+    },
+    {
+      "id": "selected",
+      "seed": 424242,
+      "meta": {
+        "schemaVersion": 32,
+        "setupId": "hillclimb:selected",
+        "savedAt": "2026-11-04T00:00:00.000Z",
+        "tSec": 0,
+        "seasonKey": "spring",
+        "year": 1,
+        "actionPoints": 0,
+        "actionPointCap": 0
+      },
+      "sha256": "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+      "stateSha256": "856d34e57b2f8a4c456f42f389a54b0c47abdf18c47d5d64dc54b673aec1cb92",
+      "seconds": 0,
+      "actions": 1,
+      "checkpoints": 0,
+      "characters": 725397,
+      "trace": [
+        {
+          "second": 0,
+          "kind": "settlementSelectVassal",
+          "payload": {
+            "candidateIndex": 0,
+            "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":17,\"locationRegionId\":\"R17\",\"originRegionId\":\"R17\",\"prestige\":19,\"stats\":{\"cunning\":2,\"wisdom\":1,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"olive\",\"hairStyle\":\"long\",\"hairColor\":\"auburn\",\"faceShape\":\"round\",\"clothingColor\":\"green\",\"accessory\":\"beads\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"housingShop\",\"tag\":\"Housing\",\"label\":\"Housing Shop\",\"glyph\":\"HO\",\"color\":6466946,\"description\":\"A mixed shop containing only Housing-tagged gamepieces.\",\"groupId\":\"tagShop\",\"variantId\":\"housingShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":14,\"locationRegionId\":\"R18\",\"originRegionId\":\"R18\",\"prestige\":22,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":1,\"intelligence\":0},\"portrait\":{\"skinTone\":\"umber\",\"hairStyle\":\"coils\",\"hairColor\":\"silver\",\"faceShape\":\"round\",\"clothingColor\":\"charcoal\",\"accessory\":\"band\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"removePractice\",\"groupId\":\"removal\",\"removalKind\":\"practice\",\"label\":\"Remove Practice\",\"glyph\":\"−P\",\"color\":10776516,\"description\":\"Pay to remove Practices from the Vassal's current settlement.\",\"variantId\":\"removePractice\"}}]"
+          }
+        }
+      ],
+      "expected": {
+        "baseSeed": 424242,
+        "second": 0,
+        "lineage": "vassal-1",
+        "practiceSlots": [
+          {
+            "regionId": "R01",
+            "count": 5
+          },
+          {
+            "regionId": "R02",
+            "count": 5
+          },
+          {
+            "regionId": "R03",
+            "count": 5
+          },
+          {
+            "regionId": "R04",
+            "count": 5
+          },
+          {
+            "regionId": "R05",
+            "count": 5
+          },
+          {
+            "regionId": "R06",
+            "count": 5
+          },
+          {
+            "regionId": "R07",
+            "count": 5
+          },
+          {
+            "regionId": "R08",
+            "count": 5
+          },
+          {
+            "regionId": "R09",
+            "count": 5
+          },
+          {
+            "regionId": "R10",
+            "count": 5
+          },
+          {
+            "regionId": "R11",
+            "count": 5
+          },
+          {
+            "regionId": "R12",
+            "count": 5
+          },
+          {
+            "regionId": "R13",
+            "count": 5
+          },
+          {
+            "regionId": "R14",
+            "count": 5
+          },
+          {
+            "regionId": "R15",
+            "count": 5
+          },
+          {
+            "regionId": "R16",
+            "count": 5
+          },
+          {
+            "regionId": "R17",
+            "count": 5
+          },
+          {
+            "regionId": "R18",
+            "count": 5
+          },
+          {
+            "regionId": "R19",
+            "count": 5
+          },
+          {
+            "regionId": "R20",
+            "count": 5
+          }
+        ]
+      },
+      "file": "fixtures/424242-selected.json",
+      "expectedStateFile": "expected/424242-selected-state.json"
+    },
+    {
+      "id": "shop",
+      "seed": 424242,
+      "meta": {
+        "schemaVersion": 32,
+        "setupId": "hillclimb:shop",
+        "savedAt": "2026-11-04T00:00:00.000Z",
+        "tSec": 0,
+        "seasonKey": "spring",
+        "year": 1,
+        "actionPoints": 0,
+        "actionPointCap": 0
+      },
+      "sha256": "9925aba8686513954d40be89de1e17abb868bdb20dc6dfd4b2af6ef2fed5f12f",
+      "stateSha256": "d68766e45f7dd13c8433ad3dc4088ba52148c6b45cdb9a18af5dd6471f0bd0ae",
+      "seconds": 0,
+      "actions": 3,
+      "checkpoints": 0,
+      "characters": 727617,
+      "trace": [
+        {
+          "second": 0,
+          "kind": "settlementSelectVassal",
+          "payload": {
+            "candidateIndex": 0,
+            "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":17,\"locationRegionId\":\"R17\",\"originRegionId\":\"R17\",\"prestige\":19,\"stats\":{\"cunning\":2,\"wisdom\":1,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"olive\",\"hairStyle\":\"long\",\"hairColor\":\"auburn\",\"faceShape\":\"round\",\"clothingColor\":\"green\",\"accessory\":\"beads\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"housingShop\",\"tag\":\"Housing\",\"label\":\"Housing Shop\",\"glyph\":\"HO\",\"color\":6466946,\"description\":\"A mixed shop containing only Housing-tagged gamepieces.\",\"groupId\":\"tagShop\",\"variantId\":\"housingShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":14,\"locationRegionId\":\"R18\",\"originRegionId\":\"R18\",\"prestige\":22,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":1,\"intelligence\":0},\"portrait\":{\"skinTone\":\"umber\",\"hairStyle\":\"coils\",\"hairColor\":\"silver\",\"faceShape\":\"round\",\"clothingColor\":\"charcoal\",\"accessory\":\"band\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"removePractice\",\"groupId\":\"removal\",\"removalKind\":\"practice\",\"label\":\"Remove Practice\",\"glyph\":\"−P\",\"color\":10776516,\"description\":\"Pay to remove Practices from the Vassal's current settlement.\",\"variantId\":\"removePractice\"}}]"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1",
+            "optionId": "random"
+          }
+        }
+      ],
+      "expected": {
+        "baseSeed": 424242,
+        "second": 0,
+        "lineage": "vassal-1",
+        "practiceSlots": [
+          {
+            "regionId": "R01",
+            "count": 5
+          },
+          {
+            "regionId": "R02",
+            "count": 5
+          },
+          {
+            "regionId": "R03",
+            "count": 5
+          },
+          {
+            "regionId": "R04",
+            "count": 5
+          },
+          {
+            "regionId": "R05",
+            "count": 5
+          },
+          {
+            "regionId": "R06",
+            "count": 5
+          },
+          {
+            "regionId": "R07",
+            "count": 5
+          },
+          {
+            "regionId": "R08",
+            "count": 5
+          },
+          {
+            "regionId": "R09",
+            "count": 5
+          },
+          {
+            "regionId": "R10",
+            "count": 5
+          },
+          {
+            "regionId": "R11",
+            "count": 5
+          },
+          {
+            "regionId": "R12",
+            "count": 5
+          },
+          {
+            "regionId": "R13",
+            "count": 5
+          },
+          {
+            "regionId": "R14",
+            "count": 5
+          },
+          {
+            "regionId": "R15",
+            "count": 5
+          },
+          {
+            "regionId": "R16",
+            "count": 5
+          },
+          {
+            "regionId": "R17",
+            "count": 5
+          },
+          {
+            "regionId": "R18",
+            "count": 5
+          },
+          {
+            "regionId": "R19",
+            "count": 5
+          },
+          {
+            "regionId": "R20",
+            "count": 5
+          }
+        ]
+      },
+      "file": "fixtures/424242-shop.json",
+      "expectedStateFile": "expected/424242-shop-state.json"
+    },
+    {
+      "id": "history",
+      "seed": 424242,
+      "meta": {
+        "schemaVersion": 32,
+        "setupId": "hillclimb:history",
+        "savedAt": "2026-11-04T00:00:00.000Z",
+        "tSec": 54,
+        "seasonKey": "autumn",
+        "year": 2,
+        "actionPoints": 0,
+        "actionPointCap": 0
+      },
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "stateSha256": "227295b2dfe023a9a8c1be9d0a160e019bfe2f0e5967821b26533ba64510e6d2",
+      "seconds": 54,
+      "actions": 5,
+      "checkpoints": 27,
+      "characters": 18930749,
+      "trace": [
+        {
+          "second": 0,
+          "kind": "settlementSelectVassal",
+          "payload": {
+            "candidateIndex": 0,
+            "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":17,\"locationRegionId\":\"R17\",\"originRegionId\":\"R17\",\"prestige\":19,\"stats\":{\"cunning\":2,\"wisdom\":1,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"olive\",\"hairStyle\":\"long\",\"hairColor\":\"auburn\",\"faceShape\":\"round\",\"clothingColor\":\"green\",\"accessory\":\"beads\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"housingShop\",\"tag\":\"Housing\",\"label\":\"Housing Shop\",\"glyph\":\"HO\",\"color\":6466946,\"description\":\"A mixed shop containing only Housing-tagged gamepieces.\",\"groupId\":\"tagShop\",\"variantId\":\"housingShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":14,\"locationRegionId\":\"R18\",\"originRegionId\":\"R18\",\"prestige\":22,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":1,\"intelligence\":0},\"portrait\":{\"skinTone\":\"umber\",\"hairStyle\":\"coils\",\"hairColor\":\"silver\",\"faceShape\":\"round\",\"clothingColor\":\"charcoal\",\"accessory\":\"band\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"removePractice\",\"groupId\":\"removal\",\"removalKind\":\"practice\",\"label\":\"Remove Practice\",\"glyph\":\"−P\",\"color\":10776516,\"description\":\"Pay to remove Practices from the Vassal's current settlement.\",\"variantId\":\"removePractice\"}}]"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1",
+            "optionId": "random"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalPurchaseShopOffer",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1",
+            "offerId": "life-milestone-milestone-1:r0:practice:0"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1"
+          }
+        }
+      ],
+      "expected": {
+        "baseSeed": 424242,
+        "second": 54,
+        "lineage": "vassal-1",
+        "practiceSlots": [
+          {
+            "regionId": "R01",
+            "count": 5
+          },
+          {
+            "regionId": "R02",
+            "count": 5
+          },
+          {
+            "regionId": "R03",
+            "count": 5
+          },
+          {
+            "regionId": "R04",
+            "count": 5
+          },
+          {
+            "regionId": "R05",
+            "count": 5
+          },
+          {
+            "regionId": "R06",
+            "count": 5
+          },
+          {
+            "regionId": "R07",
+            "count": 5
+          },
+          {
+            "regionId": "R08",
+            "count": 5
+          },
+          {
+            "regionId": "R09",
+            "count": 5
+          },
+          {
+            "regionId": "R10",
+            "count": 5
+          },
+          {
+            "regionId": "R11",
+            "count": 5
+          },
+          {
+            "regionId": "R12",
+            "count": 5
+          },
+          {
+            "regionId": "R13",
+            "count": 5
+          },
+          {
+            "regionId": "R14",
+            "count": 5
+          },
+          {
+            "regionId": "R15",
+            "count": 5
+          },
+          {
+            "regionId": "R16",
+            "count": 5
+          },
+          {
+            "regionId": "R17",
+            "count": 5
+          },
+          {
+            "regionId": "R18",
+            "count": 5
+          },
+          {
+            "regionId": "R19",
+            "count": 5
+          },
+          {
+            "regionId": "R20",
+            "count": 5
+          }
+        ]
+      },
+      "file": "fixtures/424242-history.json",
+      "expectedStateFile": "expected/424242-history-state.json"
+    },
+    {
+      "id": "later-history",
+      "seed": 424242,
+      "meta": {
+        "schemaVersion": 32,
+        "setupId": "hillclimb:later-history",
+        "savedAt": "2026-11-04T00:00:00.000Z",
+        "tSec": 574,
+        "seasonKey": "winter",
+        "year": 18,
+        "actionPoints": 24,
+        "actionPointCap": 80
+      },
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "stateSha256": "35f8bde941fa3ac315074b526fe5d57c6306e6943edfaa02f9bb7c01f8ee063e",
+      "seconds": 574,
+      "actions": 21,
+      "checkpoints": 29,
+      "characters": 25684367,
+      "trace": [
+        {
+          "second": 0,
+          "kind": "settlementSelectVassal",
+          "payload": {
+            "candidateIndex": 0,
+            "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":17,\"locationRegionId\":\"R17\",\"originRegionId\":\"R17\",\"prestige\":19,\"stats\":{\"cunning\":2,\"wisdom\":1,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"olive\",\"hairStyle\":\"long\",\"hairColor\":\"auburn\",\"faceShape\":\"round\",\"clothingColor\":\"green\",\"accessory\":\"beads\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"housingShop\",\"tag\":\"Housing\",\"label\":\"Housing Shop\",\"glyph\":\"HO\",\"color\":6466946,\"description\":\"A mixed shop containing only Housing-tagged gamepieces.\",\"groupId\":\"tagShop\",\"variantId\":\"housingShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":14,\"locationRegionId\":\"R18\",\"originRegionId\":\"R18\",\"prestige\":22,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":1,\"intelligence\":0},\"portrait\":{\"skinTone\":\"umber\",\"hairStyle\":\"coils\",\"hairColor\":\"silver\",\"faceShape\":\"round\",\"clothingColor\":\"charcoal\",\"accessory\":\"band\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"removePractice\",\"groupId\":\"removal\",\"removalKind\":\"practice\",\"label\":\"Remove Practice\",\"glyph\":\"−P\",\"color\":10776516,\"description\":\"Pay to remove Practices from the Vassal's current settlement.\",\"variantId\":\"removePractice\"}}]"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1",
+            "optionId": "random"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalPurchaseShopOffer",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1",
+            "offerId": "life-milestone-milestone-1:r0:practice:0"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1"
+          }
+        },
+        {
+          "second": 54,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-d02-r01"
+          }
+        },
+        {
+          "second": 54,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-d02-r01",
+            "optionId": "relic:royalWarrant"
+          }
+        },
+        {
+          "second": 54,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-d02-r01",
+            "acquire": {
+              "destination": "decline"
+            }
+          }
+        },
+        {
+          "second": 189,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-d03-r02"
+          }
+        },
+        {
+          "second": 189,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-d03-r02"
+          }
+        },
+        {
+          "second": 324,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-d04-r01"
+          }
+        },
+        {
+          "second": 324,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-d04-r01",
+            "optionId": "immediateFavor"
+          }
+        },
+        {
+          "second": 324,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-d04-r01"
+          }
+        },
+        {
+          "second": 405,
+          "kind": "vassalChooseDevelopmentStat",
+          "payload": {
+            "choiceId": "vassal-1:level:1",
+            "statId": "wisdom"
+          }
+        },
+        {
+          "second": 405,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "vassal-1-founding"
+          }
+        },
+        {
+          "second": 405,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "vassal-1-founding",
+            "optionId": "train-estate"
+          }
+        },
+        {
+          "second": 405,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "vassal-1-founding"
+          }
+        },
+        {
+          "second": 411,
+          "kind": "vassalChooseCommission",
+          "payload": {
+            "offerId": "vassal-1:commission:1:stat"
+          }
+        },
+        {
+          "second": 411,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-d06-r01"
+          }
+        },
+        {
+          "second": 411,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-d06-r01",
+            "optionId": "travel-R01"
+          }
+        },
+        {
+          "second": 411,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-d06-r01"
+          }
+        }
+      ],
+      "expected": {
+        "baseSeed": 424242,
+        "second": 574,
+        "lineage": "vassal-1",
+        "practiceSlots": [
+          {
+            "regionId": "R01",
+            "count": 5
+          },
+          {
+            "regionId": "R02",
+            "count": 5
+          },
+          {
+            "regionId": "R03",
+            "count": 5
+          },
+          {
+            "regionId": "R04",
+            "count": 5
+          },
+          {
+            "regionId": "R05",
+            "count": 5
+          },
+          {
+            "regionId": "R06",
+            "count": 5
+          },
+          {
+            "regionId": "R07",
+            "count": 5
+          },
+          {
+            "regionId": "R08",
+            "count": 5
+          },
+          {
+            "regionId": "R09",
+            "count": 5
+          },
+          {
+            "regionId": "R10",
+            "count": 5
+          },
+          {
+            "regionId": "R11",
+            "count": 5
+          },
+          {
+            "regionId": "R12",
+            "count": 5
+          },
+          {
+            "regionId": "R13",
+            "count": 5
+          },
+          {
+            "regionId": "R14",
+            "count": 5
+          },
+          {
+            "regionId": "R15",
+            "count": 5
+          },
+          {
+            "regionId": "R16",
+            "count": 5
+          },
+          {
+            "regionId": "R17",
+            "count": 5
+          },
+          {
+            "regionId": "R18",
+            "count": 5
+          },
+          {
+            "regionId": "R19",
+            "count": 5
+          },
+          {
+            "regionId": "R20",
+            "count": 5
+          }
+        ]
+      },
+      "itineraryStop": "fixed six-node continuation completed",
+      "file": "fixtures/424242-later-history.json",
+      "expectedStateFile": "expected/424242-later-history-state.json"
+    },
+    {
+      "id": "ordinary",
+      "seed": 99117,
+      "meta": {
+        "schemaVersion": 32,
+        "setupId": "hillclimb:ordinary",
+        "savedAt": "2026-11-04T00:00:00.000Z",
+        "tSec": 0,
+        "seasonKey": "spring",
+        "year": 1,
+        "actionPoints": 0,
+        "actionPointCap": 0
+      },
+      "sha256": "2e9862aca44cc343cffcce3732c62ba60b73982d86582d5d8212a531e4155229",
+      "stateSha256": "0d58c42dbb26b65b78012296ad238797f8c249a22213f68875892b6a63725e51",
+      "seconds": 0,
+      "actions": 0,
+      "checkpoints": 0,
+      "characters": 704999,
+      "trace": [],
+      "expected": {
+        "baseSeed": 99117,
+        "second": 0,
+        "lineage": null,
+        "practiceSlots": [
+          {
+            "regionId": "R01",
+            "count": 5
+          },
+          {
+            "regionId": "R02",
+            "count": 5
+          },
+          {
+            "regionId": "R03",
+            "count": 5
+          },
+          {
+            "regionId": "R04",
+            "count": 5
+          },
+          {
+            "regionId": "R05",
+            "count": 5
+          },
+          {
+            "regionId": "R06",
+            "count": 5
+          },
+          {
+            "regionId": "R07",
+            "count": 5
+          },
+          {
+            "regionId": "R08",
+            "count": 5
+          },
+          {
+            "regionId": "R09",
+            "count": 5
+          },
+          {
+            "regionId": "R10",
+            "count": 5
+          },
+          {
+            "regionId": "R11",
+            "count": 5
+          },
+          {
+            "regionId": "R12",
+            "count": 5
+          },
+          {
+            "regionId": "R13",
+            "count": 5
+          },
+          {
+            "regionId": "R14",
+            "count": 5
+          },
+          {
+            "regionId": "R15",
+            "count": 5
+          },
+          {
+            "regionId": "R16",
+            "count": 5
+          },
+          {
+            "regionId": "R17",
+            "count": 5
+          },
+          {
+            "regionId": "R18",
+            "count": 5
+          },
+          {
+            "regionId": "R19",
+            "count": 5
+          },
+          {
+            "regionId": "R20",
+            "count": 5
+          }
+        ]
+      },
+      "file": "fixtures/99117-ordinary.json",
+      "expectedStateFile": "expected/99117-ordinary-state.json"
+    },
+    {
+      "id": "selected",
+      "seed": 99117,
+      "meta": {
+        "schemaVersion": 32,
+        "setupId": "hillclimb:selected",
+        "savedAt": "2026-11-04T00:00:00.000Z",
+        "tSec": 0,
+        "seasonKey": "spring",
+        "year": 1,
+        "actionPoints": 0,
+        "actionPointCap": 0
+      },
+      "sha256": "7b81f5b1957dd202e7a488ec02bec653cc699f688ee97a094a4a4e5ac1b8991c",
+      "stateSha256": "dfe8120b5479219541d783181d84622a44bb15e4ae5f78f8465dc300ff831213",
+      "seconds": 0,
+      "actions": 1,
+      "checkpoints": 0,
+      "characters": 726396,
+      "trace": [
+        {
+          "second": 0,
+          "kind": "settlementSelectVassal",
+          "payload": {
+            "candidateIndex": 0,
+            "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":20,\"locationRegionId\":\"R04\",\"originRegionId\":\"R04\",\"prestige\":21,\"stats\":{\"cunning\":2,\"wisdom\":1,\"effectiveness\":0,\"intelligence\":0},\"portrait\":{\"skinTone\":\"ivory\",\"hairStyle\":\"long\",\"hairColor\":\"gold\",\"faceShape\":\"angular\",\"clothingColor\":\"charcoal\",\"accessory\":\"none\",\"expression\":\"stern\"},\"signatureNode\":{\"id\":\"knowledgeShop\",\"groupId\":\"tagShop\",\"tag\":\"Knowledge\",\"label\":\"Knowledge Shop\",\"glyph\":\"KN\",\"color\":6200271,\"description\":\"A mixed shop containing only Knowledge-tagged gamepieces.\",\"variantId\":\"knowledgeShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":16,\"locationRegionId\":\"R04\",\"originRegionId\":\"R04\",\"prestige\":21,\"stats\":{\"cunning\":1,\"wisdom\":2,\"effectiveness\":0,\"intelligence\":2},\"portrait\":{\"skinTone\":\"umber\",\"hairStyle\":\"long\",\"hairColor\":\"black\",\"faceShape\":\"round\",\"clothingColor\":\"red\",\"accessory\":\"none\",\"expression\":\"calm\"},\"signatureNode\":{\"id\":\"settlement\",\"groupId\":\"settlement\",\"label\":\"Found Settlement\",\"glyph\":\"FS\",\"color\":7842405,\"description\":\"Found a nearby settlement and move this Vassal there.\",\"variantId\":\"settlement\"}}]"
+          }
+        }
+      ],
+      "expected": {
+        "baseSeed": 99117,
+        "second": 0,
+        "lineage": "vassal-1",
+        "practiceSlots": [
+          {
+            "regionId": "R01",
+            "count": 5
+          },
+          {
+            "regionId": "R02",
+            "count": 5
+          },
+          {
+            "regionId": "R03",
+            "count": 5
+          },
+          {
+            "regionId": "R04",
+            "count": 5
+          },
+          {
+            "regionId": "R05",
+            "count": 5
+          },
+          {
+            "regionId": "R06",
+            "count": 5
+          },
+          {
+            "regionId": "R07",
+            "count": 5
+          },
+          {
+            "regionId": "R08",
+            "count": 5
+          },
+          {
+            "regionId": "R09",
+            "count": 5
+          },
+          {
+            "regionId": "R10",
+            "count": 5
+          },
+          {
+            "regionId": "R11",
+            "count": 5
+          },
+          {
+            "regionId": "R12",
+            "count": 5
+          },
+          {
+            "regionId": "R13",
+            "count": 5
+          },
+          {
+            "regionId": "R14",
+            "count": 5
+          },
+          {
+            "regionId": "R15",
+            "count": 5
+          },
+          {
+            "regionId": "R16",
+            "count": 5
+          },
+          {
+            "regionId": "R17",
+            "count": 5
+          },
+          {
+            "regionId": "R18",
+            "count": 5
+          },
+          {
+            "regionId": "R19",
+            "count": 5
+          },
+          {
+            "regionId": "R20",
+            "count": 5
+          }
+        ]
+      },
+      "file": "fixtures/99117-selected.json",
+      "expectedStateFile": "expected/99117-selected-state.json"
+    },
+    {
+      "id": "shop",
+      "seed": 99117,
+      "meta": {
+        "schemaVersion": 32,
+        "setupId": "hillclimb:shop",
+        "savedAt": "2026-11-04T00:00:00.000Z",
+        "tSec": 0,
+        "seasonKey": "spring",
+        "year": 1,
+        "actionPoints": 0,
+        "actionPointCap": 0
+      },
+      "sha256": "b2d27a88198f68785a87ff84c6ff586c5246384baa27f7811deb83d9460d0fc0",
+      "stateSha256": "dbd605a4abdc8650920bcea7764774449969722e4b8185a0921336dbea685abd",
+      "seconds": 0,
+      "actions": 3,
+      "checkpoints": 0,
+      "characters": 728624,
+      "trace": [
+        {
+          "second": 0,
+          "kind": "settlementSelectVassal",
+          "payload": {
+            "candidateIndex": 0,
+            "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":20,\"locationRegionId\":\"R04\",\"originRegionId\":\"R04\",\"prestige\":21,\"stats\":{\"cunning\":2,\"wisdom\":1,\"effectiveness\":0,\"intelligence\":0},\"portrait\":{\"skinTone\":\"ivory\",\"hairStyle\":\"long\",\"hairColor\":\"gold\",\"faceShape\":\"angular\",\"clothingColor\":\"charcoal\",\"accessory\":\"none\",\"expression\":\"stern\"},\"signatureNode\":{\"id\":\"knowledgeShop\",\"groupId\":\"tagShop\",\"tag\":\"Knowledge\",\"label\":\"Knowledge Shop\",\"glyph\":\"KN\",\"color\":6200271,\"description\":\"A mixed shop containing only Knowledge-tagged gamepieces.\",\"variantId\":\"knowledgeShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":16,\"locationRegionId\":\"R04\",\"originRegionId\":\"R04\",\"prestige\":21,\"stats\":{\"cunning\":1,\"wisdom\":2,\"effectiveness\":0,\"intelligence\":2},\"portrait\":{\"skinTone\":\"umber\",\"hairStyle\":\"long\",\"hairColor\":\"black\",\"faceShape\":\"round\",\"clothingColor\":\"red\",\"accessory\":\"none\",\"expression\":\"calm\"},\"signatureNode\":{\"id\":\"settlement\",\"groupId\":\"settlement\",\"label\":\"Found Settlement\",\"glyph\":\"FS\",\"color\":7842405,\"description\":\"Found a nearby settlement and move this Vassal there.\",\"variantId\":\"settlement\"}}]"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1",
+            "optionId": "random"
+          }
+        }
+      ],
+      "expected": {
+        "baseSeed": 99117,
+        "second": 0,
+        "lineage": "vassal-1",
+        "practiceSlots": [
+          {
+            "regionId": "R01",
+            "count": 5
+          },
+          {
+            "regionId": "R02",
+            "count": 5
+          },
+          {
+            "regionId": "R03",
+            "count": 5
+          },
+          {
+            "regionId": "R04",
+            "count": 5
+          },
+          {
+            "regionId": "R05",
+            "count": 5
+          },
+          {
+            "regionId": "R06",
+            "count": 5
+          },
+          {
+            "regionId": "R07",
+            "count": 5
+          },
+          {
+            "regionId": "R08",
+            "count": 5
+          },
+          {
+            "regionId": "R09",
+            "count": 5
+          },
+          {
+            "regionId": "R10",
+            "count": 5
+          },
+          {
+            "regionId": "R11",
+            "count": 5
+          },
+          {
+            "regionId": "R12",
+            "count": 5
+          },
+          {
+            "regionId": "R13",
+            "count": 5
+          },
+          {
+            "regionId": "R14",
+            "count": 5
+          },
+          {
+            "regionId": "R15",
+            "count": 5
+          },
+          {
+            "regionId": "R16",
+            "count": 5
+          },
+          {
+            "regionId": "R17",
+            "count": 5
+          },
+          {
+            "regionId": "R18",
+            "count": 5
+          },
+          {
+            "regionId": "R19",
+            "count": 5
+          },
+          {
+            "regionId": "R20",
+            "count": 5
+          }
+        ]
+      },
+      "file": "fixtures/99117-shop.json",
+      "expectedStateFile": "expected/99117-shop-state.json"
+    },
+    {
+      "id": "history",
+      "seed": 99117,
+      "meta": {
+        "schemaVersion": 32,
+        "setupId": "hillclimb:history",
+        "savedAt": "2026-11-04T00:00:00.000Z",
+        "tSec": 64,
+        "seasonKey": "winter",
+        "year": 2,
+        "actionPoints": 24,
+        "actionPointCap": 80
+      },
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "stateSha256": "8ac967a9311636940f9a06dc2811dd4e9a3f5f5d6d31588fe55ccbf95047dc67",
+      "seconds": 64,
+      "actions": 5,
+      "checkpoints": 32,
+      "characters": 23014815,
+      "trace": [
+        {
+          "second": 0,
+          "kind": "settlementSelectVassal",
+          "payload": {
+            "candidateIndex": 0,
+            "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":20,\"locationRegionId\":\"R04\",\"originRegionId\":\"R04\",\"prestige\":21,\"stats\":{\"cunning\":2,\"wisdom\":1,\"effectiveness\":0,\"intelligence\":0},\"portrait\":{\"skinTone\":\"ivory\",\"hairStyle\":\"long\",\"hairColor\":\"gold\",\"faceShape\":\"angular\",\"clothingColor\":\"charcoal\",\"accessory\":\"none\",\"expression\":\"stern\"},\"signatureNode\":{\"id\":\"knowledgeShop\",\"groupId\":\"tagShop\",\"tag\":\"Knowledge\",\"label\":\"Knowledge Shop\",\"glyph\":\"KN\",\"color\":6200271,\"description\":\"A mixed shop containing only Knowledge-tagged gamepieces.\",\"variantId\":\"knowledgeShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":16,\"locationRegionId\":\"R04\",\"originRegionId\":\"R04\",\"prestige\":21,\"stats\":{\"cunning\":1,\"wisdom\":2,\"effectiveness\":0,\"intelligence\":2},\"portrait\":{\"skinTone\":\"umber\",\"hairStyle\":\"long\",\"hairColor\":\"black\",\"faceShape\":\"round\",\"clothingColor\":\"red\",\"accessory\":\"none\",\"expression\":\"calm\"},\"signatureNode\":{\"id\":\"settlement\",\"groupId\":\"settlement\",\"label\":\"Found Settlement\",\"glyph\":\"FS\",\"color\":7842405,\"description\":\"Found a nearby settlement and move this Vassal there.\",\"variantId\":\"settlement\"}}]"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1",
+            "optionId": "random"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalPurchaseShopOffer",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1",
+            "offerId": "life-milestone-milestone-1:r0:practice:0"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1"
+          }
+        }
+      ],
+      "expected": {
+        "baseSeed": 99117,
+        "second": 64,
+        "lineage": "vassal-1",
+        "practiceSlots": [
+          {
+            "regionId": "R01",
+            "count": 5
+          },
+          {
+            "regionId": "R02",
+            "count": 5
+          },
+          {
+            "regionId": "R03",
+            "count": 5
+          },
+          {
+            "regionId": "R04",
+            "count": 5
+          },
+          {
+            "regionId": "R05",
+            "count": 5
+          },
+          {
+            "regionId": "R06",
+            "count": 5
+          },
+          {
+            "regionId": "R07",
+            "count": 5
+          },
+          {
+            "regionId": "R08",
+            "count": 5
+          },
+          {
+            "regionId": "R09",
+            "count": 5
+          },
+          {
+            "regionId": "R10",
+            "count": 5
+          },
+          {
+            "regionId": "R11",
+            "count": 5
+          },
+          {
+            "regionId": "R12",
+            "count": 5
+          },
+          {
+            "regionId": "R13",
+            "count": 5
+          },
+          {
+            "regionId": "R14",
+            "count": 5
+          },
+          {
+            "regionId": "R15",
+            "count": 5
+          },
+          {
+            "regionId": "R16",
+            "count": 5
+          },
+          {
+            "regionId": "R17",
+            "count": 5
+          },
+          {
+            "regionId": "R18",
+            "count": 5
+          },
+          {
+            "regionId": "R19",
+            "count": 5
+          },
+          {
+            "regionId": "R20",
+            "count": 5
+          }
+        ]
+      },
+      "file": "fixtures/99117-history.json",
+      "expectedStateFile": "expected/99117-history-state.json"
+    },
+    {
+      "id": "later-history",
+      "seed": 99117,
+      "meta": {
+        "schemaVersion": 32,
+        "setupId": "hillclimb:later-history",
+        "savedAt": "2026-11-04T00:00:00.000Z",
+        "tSec": 822,
+        "seasonKey": "autumn",
+        "year": 26,
+        "actionPoints": 0,
+        "actionPointCap": 0
+      },
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+      "stateSha256": "15ce92805c026269291ba9d87f97a2324b88df6452a058e1a21bb19b1e27e371",
+      "seconds": 822,
+      "actions": 23,
+      "checkpoints": 29,
+      "characters": 26143811,
+      "trace": [
+        {
+          "second": 0,
+          "kind": "settlementSelectVassal",
+          "payload": {
+            "candidateIndex": 0,
+            "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":20,\"locationRegionId\":\"R04\",\"originRegionId\":\"R04\",\"prestige\":21,\"stats\":{\"cunning\":2,\"wisdom\":1,\"effectiveness\":0,\"intelligence\":0},\"portrait\":{\"skinTone\":\"ivory\",\"hairStyle\":\"long\",\"hairColor\":\"gold\",\"faceShape\":\"angular\",\"clothingColor\":\"charcoal\",\"accessory\":\"none\",\"expression\":\"stern\"},\"signatureNode\":{\"id\":\"knowledgeShop\",\"groupId\":\"tagShop\",\"tag\":\"Knowledge\",\"label\":\"Knowledge Shop\",\"glyph\":\"KN\",\"color\":6200271,\"description\":\"A mixed shop containing only Knowledge-tagged gamepieces.\",\"variantId\":\"knowledgeShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":16,\"locationRegionId\":\"R04\",\"originRegionId\":\"R04\",\"prestige\":21,\"stats\":{\"cunning\":1,\"wisdom\":2,\"effectiveness\":0,\"intelligence\":2},\"portrait\":{\"skinTone\":\"umber\",\"hairStyle\":\"long\",\"hairColor\":\"black\",\"faceShape\":\"round\",\"clothingColor\":\"red\",\"accessory\":\"none\",\"expression\":\"calm\"},\"signatureNode\":{\"id\":\"settlement\",\"groupId\":\"settlement\",\"label\":\"Found Settlement\",\"glyph\":\"FS\",\"color\":7842405,\"description\":\"Found a nearby settlement and move this Vassal there.\",\"variantId\":\"settlement\"}}]"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1",
+            "optionId": "random"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalPurchaseShopOffer",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1",
+            "offerId": "life-milestone-milestone-1:r0:practice:0"
+          }
+        },
+        {
+          "second": 0,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-milestone-milestone-1"
+          }
+        },
+        {
+          "second": 64,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-d02-r01"
+          }
+        },
+        {
+          "second": 64,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-d02-r01",
+            "optionId": "deepStudy"
+          }
+        },
+        {
+          "second": 64,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-d02-r01"
+          }
+        },
+        {
+          "second": 384,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-d03-r01"
+          }
+        },
+        {
+          "second": 384,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-d03-r01",
+            "optionId": "deepStudy"
+          }
+        },
+        {
+          "second": 384,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-d03-r01"
+          }
+        },
+        {
+          "second": 653,
+          "kind": "vassalChooseDevelopmentStat",
+          "payload": {
+            "choiceId": "vassal-1:level:1",
+            "statId": "wisdom"
+          }
+        },
+        {
+          "second": 653,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-d04-r02"
+          }
+        },
+        {
+          "second": 653,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-d04-r02",
+            "optionId": "travel-R01"
+          }
+        },
+        {
+          "second": 653,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-d04-r02"
+          }
+        },
+        {
+          "second": 734,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "vassal-1-founding"
+          }
+        },
+        {
+          "second": 734,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "vassal-1-founding",
+            "optionId": "train-estate"
+          }
+        },
+        {
+          "second": 734,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "vassal-1-founding"
+          }
+        },
+        {
+          "second": 740,
+          "kind": "vassalChooseDevelopmentStat",
+          "payload": {
+            "choiceId": "vassal-1:level:2",
+            "statId": "cunning"
+          }
+        },
+        {
+          "second": 740,
+          "kind": "vassalChooseCommission",
+          "payload": {
+            "offerId": "vassal-1:commission:1:structure"
+          }
+        },
+        {
+          "second": 740,
+          "kind": "vassalEnterLifeNode",
+          "payload": {
+            "nodeId": "life-d06-r02"
+          }
+        },
+        {
+          "second": 740,
+          "kind": "vassalSelectLifeOption",
+          "payload": {
+            "nodeId": "life-d06-r02",
+            "optionId": "travel-R02"
+          }
+        },
+        {
+          "second": 740,
+          "kind": "vassalConfirmLifeNode",
+          "payload": {
+            "nodeId": "life-d06-r02"
+          }
+        }
+      ],
+      "expected": {
+        "baseSeed": 99117,
+        "second": 822,
+        "lineage": "vassal-1",
+        "practiceSlots": [
+          {
+            "regionId": "R01",
+            "count": 5
+          },
+          {
+            "regionId": "R02",
+            "count": 5
+          },
+          {
+            "regionId": "R03",
+            "count": 5
+          },
+          {
+            "regionId": "R04",
+            "count": 5
+          },
+          {
+            "regionId": "R05",
+            "count": 5
+          },
+          {
+            "regionId": "R06",
+            "count": 5
+          },
+          {
+            "regionId": "R07",
+            "count": 5
+          },
+          {
+            "regionId": "R08",
+            "count": 5
+          },
+          {
+            "regionId": "R09",
+            "count": 5
+          },
+          {
+            "regionId": "R10",
+            "count": 5
+          },
+          {
+            "regionId": "R11",
+            "count": 5
+          },
+          {
+            "regionId": "R12",
+            "count": 5
+          },
+          {
+            "regionId": "R13",
+            "count": 5
+          },
+          {
+            "regionId": "R14",
+            "count": 5
+          },
+          {
+            "regionId": "R15",
+            "count": 5
+          },
+          {
+            "regionId": "R16",
+            "count": 5
+          },
+          {
+            "regionId": "R17",
+            "count": 5
+          },
+          {
+            "regionId": "R18",
+            "count": 5
+          },
+          {
+            "regionId": "R19",
+            "count": 5
+          },
+          {
+            "regionId": "R20",
+            "count": 5
+          }
+        ]
+      },
+      "itineraryStop": "fixed six-node continuation completed",
+      "file": "fixtures/99117-later-history.json",
+      "expectedStateFile": "expected/99117-later-history-state.json"
+    }
+  ],
+  "prepared": {
+    "logicalSeed": 123,
+    "expectedOrdinaryState": "df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f",
+    "baselinePacketFile": "prepared-baseline.json.gz",
+    "baselinePacketSha256": "cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6",
+    "baselineSourceKey": "db9c9cfa0b929b060892b105c668dfa45cc3fafa1e5665b641a265877ceabe79",
+    "baselineLossSec": 3918,
+    "baselineRetainedForecastStates": 245,
+    "rule": "actual candidate packet hash/source key recorded separately; logical seed123 and immutable expected state do not change"
+  },
+  "conformance": {
+    "status": "PASS",
+    "file": "conformance.json",
+    "fixtureCount": 15,
+    "independentAudit": "NOT ACCEPTED"
+  },
+  "files": {
+    "retained-manifest.json": {
+      "bytes": 70294,
+      "sha256": "b078d06f126ce3499ecdd3dd03d4d08502e18af67412628aafb5084d7bbc8f42"
+    },
+    "construction/freeze-corpus.mjs": {
+      "bytes": 15901,
+      "sha256": "8028e116a18e7d852658f2fcba805e8752f505a37bfdf9d16aef730c91b11090"
+    },
+    "construction/freeze-corpus-test.mjs": {
+      "bytes": 3506,
+      "sha256": "ea8becd03d2a22ee804931857c20f63ca8a36b19e362e454ee2856596fbc23b0"
+    },
+    "baseline-sdk-8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0.mjs": {
+      "bytes": 1329028,
+      "sha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0"
+    },
+    "sdk-metafile.json": {
+      "bytes": 134904,
+      "sha256": "f6cfb6441f046b7dda80ff86fcb57f712f2fb6e4f4b01521944af369d600f3f8"
+    },
+    "sources/scripts/perf-hillclimb/fixtures.mjs": {
+      "bytes": 7538,
+      "sha256": "f1babbfc97d88f3026719ff76728510ab189ac3b4395e9a4694d9b4f0b801a1e"
+    },
+    "sources/scripts/perf-hillclimb/oracle-entry.mjs": {
+      "bytes": 788,
+      "sha256": "2cbbc2b760238567cc2b7600dc0608470bf0c03820fcbeecb8bac8399bd2f97f"
+    },
+    "sources/src/controllers/save-load-worker-service.js": {
+      "bytes": 2198,
+      "sha256": "6eaa2ec9a528386b81668411fc9d5e6bac8dd22b4ec90ecce0abc51844e42578"
+    },
+    "sources/src/controllers/sim-runner/save-diagnostics.js": {
+      "bytes": 4172,
+      "sha256": "8e6e2c36551f1f501ca0f7b62ae64f06ff96ac6ce41218447e9e94ec373b8261"
+    },
+    "sources/src/controllers/sim-runner/save-slots.js": {
+      "bytes": 10675,
+      "sha256": "2ef7d90d71729715ac709eb364e08596169772ca086951eb9623fffd718b6d91"
+    },
+    "sources/src/controllers/sim-runner/save-storage.js": {
+      "bytes": 6325,
+      "sha256": "dea15a4ebe0bf0a497bb094e20f626f5d290477f54a98e143dcf8efc3e95ce36"
+    },
+    "sources/src/defs/gamepieces/bronze-keyword-defs.js": {
+      "bytes": 3419,
+      "sha256": "6a9aab4a5006e5cddc84bc16ec61b23a1cae475b8d1120c4231a4a3b7de45e77"
+    },
+    "sources/src/defs/gamepieces/detailed-settlement-defs.js": {
+      "bytes": 231403,
+      "sha256": "d779022c356fb5c3dbcb2d126d0838044a417bdb39c3009f07f3d5b123ad2c72"
+    },
+    "sources/src/defs/gamepieces/env-events-defs.js": {
+      "bytes": 12965,
+      "sha256": "611719a6b4183addd453e9590ee42edff4fb7fde211124c0fccd4329c5574fa5"
+    },
+    "sources/src/defs/gamepieces/env-tiles-defs.js": {
+      "bytes": 13693,
+      "sha256": "722e1f7513d923ecc183d9403c01132dac3af153a0adeb128795ad88756105db"
+    },
+    "sources/src/defs/gamepieces/full-map-defs.js": {
+      "bytes": 82667,
+      "sha256": "004c26dbf22d7d0eb201ad3bd085eb73e6dc50fedc5fffe7281ed46c117151b9"
+    },
+    "sources/src/defs/gamepieces/hub-structure-defs.js": {
+      "bytes": 6748,
+      "sha256": "516a7a7afbe90afa0152bae401cf93e48511130bd96f921a450060ffa479473a"
+    },
+    "sources/src/defs/gamepieces/regional-practice-defs.js": {
+      "bytes": 1462,
+      "sha256": "d089dbaea79fa63b25a93a8754e33ba3699d047489d33ed519adaad0a9f182a0"
+    },
+    "sources/src/defs/gamepieces/settlement-order-defs.js": {
+      "bytes": 3105,
+      "sha256": "a15b587e4e6a1d33a211852eb16b78f034376814bba24165f2777882d70aa01c"
+    },
+    "sources/src/defs/gamepieces/settlement-practice-defs.js": {
+      "bytes": 18011,
+      "sha256": "bb753b6bb4956b1ae601ea6ca228f5c0a1615063972c0f53bd2c03507788d8a8"
+    },
+    "sources/src/defs/gamepieces/vassal-heirloom-defs.js": {
+      "bytes": 5446,
+      "sha256": "14250d09bbbb55c93471d412432dff6204f96b18cb955f6e0b2529f920e6e758"
+    },
+    "sources/src/defs/gamepieces/vassal-life-map-defs.js": {
+      "bytes": 13069,
+      "sha256": "7596f9265a01de2e8205a4f1c32340ec68fad165702d45dc130107b762906ccf"
+    },
+    "sources/src/defs/gamesettings/gamerules-defs.js": {
+      "bytes": 3817,
+      "sha256": "09b3972b8498ec3e31c877789ce0a6e8863d70a9aeb1d29ba4fe55cac37620df"
+    },
+    "sources/src/defs/gamesettings/moon-phase-defs.js": {
+      "bytes": 1286,
+      "sha256": "4d24a13aeec4ba83b61d2ad87a43c8ae21a1c708f8ba23296aa0e0dcb6fe10d7"
+    },
+    "sources/src/defs/gamesettings/scenarios-defs.js": {
+      "bytes": 3190,
+      "sha256": "d0f9aae552fe89858e691cd5ebf4f80ba2cba6242f860503d7dcb9fc35314023"
+    },
+    "sources/src/defs/gamesettings/variant-flags-defs.js": {
+      "bytes": 905,
+      "sha256": "3624d1379ae3582c8f08dbec07bef9b904e967bd7a77333ebf74e48a66379d15"
+    },
+    "sources/src/defs/gamesystems/hub-system-defs.js": {
+      "bytes": 4773,
+      "sha256": "97a098b938ca22343dc49ab1c8cf7d103e2ca365277f95147285acc084f5eebb"
+    },
+    "sources/src/defs/lifegraph-defaults.js": {
+      "bytes": 43723,
+      "sha256": "2a8ca5c23d0b509ee8aee8412a84f9d05173df32a55a8d1a3596e3c5702818e6"
+    },
+    "sources/src/defs/mechanics.js": {
+      "bytes": 12680,
+      "sha256": "b2310a78655f9e8038ee627cd8d3919c986df38b4285a5d9151a246051884848"
+    },
+    "sources/src/defs/tooltip-ui-utils.js": {
+      "bytes": 1249,
+      "sha256": "17271af047e22584e6f93b5133490e0d471608ff7b0a59507d749fcb961d4797"
+    },
+    "sources/src/defs/vassal-class-rules.js": {
+      "bytes": 2582,
+      "sha256": "3680bcbb2303fd0bc3e86dd880963c2c16bb4fcd7f7241d17b61a6a460be1250"
+    },
+    "sources/src/defs/vassal-stat-defs.js": {
+      "bytes": 986,
+      "sha256": "e03a758ea3f5b3920f6ce9b734d506d6cdb94faaf2039785e349ebc4303a41c0"
+    },
+    "sources/src/defs/vassal-workshop-rules.js": {
+      "bytes": 557,
+      "sha256": "0f6fc13197f5ca2d584870654faa5889682ed4cc9fc7fdfbfdbf27fc4fd30179"
+    },
+    "sources/src/defs/world/biome-multiplier-rules.js": {
+      "bytes": 420,
+      "sha256": "a0db068b38af11243ceb387a51e9690c66041e02baf35d81094ee9975d0a5739"
+    },
+    "sources/src/defs/world/detailed-settlement-scenario.js": {
+      "bytes": 2012,
+      "sha256": "996987c281013d772a8911e0027d0dbee7aa475e3ab6bf4f4b3365c0008e0dcf"
+    },
+    "sources/src/defs/world/world-map-defs.js": {
+      "bytes": 5604,
+      "sha256": "33484ae93039af8a93fb09ac12ceee390ef573e4db6d461507cc1fe0bcaa5cc1"
+    },
+    "sources/src/model/actions.js": {
+      "bytes": 7937,
+      "sha256": "6405851c73197009500fb2988b7d13e7059293398bbb630c84e0e4e352c47c37"
+    },
+    "sources/src/model/canonicalize.js": {
+      "bytes": 1071,
+      "sha256": "e187ac6488f4542d48f6b1fd13d56763d2ee5fb0c8fadfeb8d417719892ec0aa"
+    },
+    "sources/src/model/chaos-values.js": {
+      "bytes": 484,
+      "sha256": "c06c5f9e7d81964128e1994f0f328fa02c6e7ad6aa6e2418e00d2c02df184938"
+    },
+    "sources/src/model/commands/ap-helpers.js": {
+      "bytes": 1387,
+      "sha256": "e53700729454a1e6362c6dd982ac6c931f21d11d09987122349face22c87d1b2"
+    },
+    "sources/src/model/commands/debug-commands.js": {
+      "bytes": 11131,
+      "sha256": "396900d3c9c7a22203feac4a95c4fd8c3286b2aeef79fe80ad51526d0b24d28d"
+    },
+    "sources/src/model/commands/regional-practice-commands.js": {
+      "bytes": 1336,
+      "sha256": "aeb8a35cc07851f44257b31dcc6d9d58b0b6405756dbec7b9a703be8c3f0838c"
+    },
+    "sources/src/model/commands/settlement-vassal-commands.js": {
+      "bytes": 2632,
+      "sha256": "81eca18dea2d3d5e2d435a135a2dc097c290882ec7f76633b502b1b3e82a44d1"
+    },
+    "sources/src/model/commands/simulation-commands.js": {
+      "bytes": 3316,
+      "sha256": "d851603257d360a770031ba139adfb4d8a161dad236dcc34ced8eff80f024d6b"
+    },
+    "sources/src/model/detailed-practice-tiers.js": {
+      "bytes": 1511,
+      "sha256": "a9f82a077fb9619cd153eba3e6e5af8783707d44d778fa64fd6d701371c136be"
+    },
+    "sources/src/model/detailed-settlements.js": {
+      "bytes": 1799,
+      "sha256": "55ecf65a4735991973b3056032d3d1d27f87ad25a54993413a36c2237755ce6a"
+    },
+    "sources/src/model/detailed-settlements/biome-multipliers.js": {
+      "bytes": 1961,
+      "sha256": "4954baf286b43b2909afc483ae318efb628727ed4664d7973b524fe4e70819cb"
+    },
+    "sources/src/model/detailed-settlements/cohorts.js": {
+      "bytes": 3506,
+      "sha256": "9169025a1b2ae69dbe50898b51222c10e529d119b35f23d1490941a07ee0b3a0"
+    },
+    "sources/src/model/detailed-settlements/construction.js": {
+      "bytes": 1755,
+      "sha256": "44d79208e529084ad4ccbb358396a44f1f42cf7123496f09935ea3ab87a49543"
+    },
+    "sources/src/model/detailed-settlements/external-world.js": {
+      "bytes": 24293,
+      "sha256": "c36822045679ac0bd151537fc071923a813b22a471880ae8c1f907fab52eb9e1"
+    },
+    "sources/src/model/detailed-settlements/helpers.js": {
+      "bytes": 9768,
+      "sha256": "a32ac617925082fa19d04402271f692cab7a9227a13c403a1387ecc4c5a57deb"
+    },
+    "sources/src/model/detailed-settlements/neutral-market.js": {
+      "bytes": 6257,
+      "sha256": "acb2954ec1d29d643213ed22927f638b3c6574e2319d20334792a14e56817ca8"
+    },
+    "sources/src/model/detailed-settlements/phases.js": {
+      "bytes": 4738,
+      "sha256": "c1e2ec987a2a8ee3b244cf1d4fe52b4233e64983f3749cb527977682eda714a0"
+    },
+    "sources/src/model/detailed-settlements/phases/birth.js": {
+      "bytes": 4944,
+      "sha256": "eef6982764f4bb91e8c720345de6353c5807ecf8f1739b6e10e87f97ff754907"
+    },
+    "sources/src/model/detailed-settlements/phases/chaos.js": {
+      "bytes": 5138,
+      "sha256": "3248152217161ecb7cdce4901dddc78649cee596c0491fb32062dd513ba171fe"
+    },
+    "sources/src/model/detailed-settlements/phases/death.js": {
+      "bytes": 6814,
+      "sha256": "d545cb8fb80552a8a9e15f3b66b1d471f6d1a64fc4d33055e6947ee04725be6b"
+    },
+    "sources/src/model/detailed-settlements/phases/faith.js": {
+      "bytes": 4613,
+      "sha256": "bffbb3c0e70d2e04e708f21b06a93004c570f6bc1cdc70ab93700d89833d2a7c"
+    },
+    "sources/src/model/detailed-settlements/phases/food.js": {
+      "bytes": 6894,
+      "sha256": "e25deeb218bb183276e1916d9e715607b5fc53b34e5814f8c83525808ceaaab1"
+    },
+    "sources/src/model/detailed-settlements/phases/housing.js": {
+      "bytes": 2700,
+      "sha256": "f7d9df910f1f98c3f041819e1ad5f86374abed8ad7b8b125a3732be318b763ac"
+    },
+    "sources/src/model/detailed-settlements/phases/migration.js": {
+      "bytes": 22527,
+      "sha256": "95b2542b395b3c38ac8adaa6721067427f8b9df0cecda534b8f2f0110fc32197"
+    },
+    "sources/src/model/detailed-settlements/phases/moon-turn.js": {
+      "bytes": 1653,
+      "sha256": "84b60ac3b92324a7b5b409e935541e3c6a8f3875428e2a6b6597c41e350cc33c"
+    },
+    "sources/src/model/detailed-settlements/phases/shared.js": {
+      "bytes": 2106,
+      "sha256": "bf3b3f317d6f1883a45049a73d1ec5c0769c086c2a86b04c41bde0a4fa4a003f"
+    },
+    "sources/src/model/detailed-settlements/political-recipes.js": {
+      "bytes": 6693,
+      "sha256": "dad82bac851aea133c6e044ef01865c89e64a65081f6698943d5a7262f260e74"
+    },
+    "sources/src/model/detailed-settlements/population-ledger.js": {
+      "bytes": 4880,
+      "sha256": "d4aa045370b320deeabd49b85f93da1ec7b8e0972133c1bbe087742591021705"
+    },
+    "sources/src/model/detailed-settlements/practice-events.js": {
+      "bytes": 3005,
+      "sha256": "f2fe30d0efc4ef0ef5986a02c6df3cb2efe6229eea4b54beef1c2027c00a2d93"
+    },
+    "sources/src/model/detailed-settlements/practices.js": {
+      "bytes": 32742,
+      "sha256": "4f7ec7ddedf0ae3812bb6af9c1ca54758c05c672a2c8be5b037f3bb638e40faf"
+    },
+    "sources/src/model/detailed-settlements/queries.js": {
+      "bytes": 7566,
+      "sha256": "6861cfcba7cbea824770e53eeefe5d6c43c611823272542d01b05394c0843ad6"
+    },
+    "sources/src/model/detailed-settlements/scopes.js": {
+      "bytes": 8168,
+      "sha256": "93a91ce8f589a72e48ee9ee5ea0fb54626e8e634f92542ecf51873dfc5770178"
+    },
+    "sources/src/model/detailed-settlements/stock.js": {
+      "bytes": 22671,
+      "sha256": "6efc1eef7ac57698beca8508af9559058152d0164beecbe30a96ca9671cbd2b1"
+    },
+    "sources/src/model/detailed-settlements/synthesis.js": {
+      "bytes": 1568,
+      "sha256": "c7f7c77f92561808db02fdddb8cf34329244fcf22538b4dd5bb20a3585d14d24"
+    },
+    "sources/src/model/detailed-settlements/territory.js": {
+      "bytes": 9422,
+      "sha256": "6c8128d8423cfb49601f1a92090f50db10fac9c07f8bd81e5683d445481922fd"
+    },
+    "sources/src/model/detailed-settlements/vassals.js": {
+      "bytes": 34453,
+      "sha256": "18a60abd27f5c740e45f86a96fcea64877a8d126d01d78ed960e7bf89eb055bf"
+    },
+    "sources/src/model/detailed-settlements/view-model.js": {
+      "bytes": 9398,
+      "sha256": "451dfdf1b9c22687ac1baec9b4012fe5c002cb74dea662c04129dd4c5bac4ba2"
+    },
+    "sources/src/model/detailed-settlements/workers.js": {
+      "bytes": 4489,
+      "sha256": "52405cba7bd845a08bd630cb5836afcc20907b1327c79540b82080d9967aa3df"
+    },
+    "sources/src/model/effects/core/tiers.js": {
+      "bytes": 335,
+      "sha256": "4020a14df7f746a18ed626f061e9b4cdac8ed732b273dbea8ac244ce8c94ea29"
+    },
+    "sources/src/model/full-map-world.js": {
+      "bytes": 8300,
+      "sha256": "6625909ba1998e9007b927372a64d83c53836dc801c0ce59e66a811613dd57ea"
+    },
+    "sources/src/model/game-config.js": {
+      "bytes": 28451,
+      "sha256": "6d8a2e20223d86a969f50d574238572258d88eacbe8376c45a9345eb5cc5cbac"
+    },
+    "sources/src/model/game-model.js": {
+      "bytes": 2058,
+      "sha256": "19de7c110339d278f63346c97421f95b8c4b0fb68cd18cbb0c140383445477fd"
+    },
+    "sources/src/model/gamepiece-presentation.js": {
+      "bytes": 16247,
+      "sha256": "8020264b2c9086aa38a5a54a9a4375c57797ad07b83c238f7ba75f226783888e"
+    },
+    "sources/src/model/init.js": {
+      "bytes": 4005,
+      "sha256": "6adda5ad9c3068e9ca90894594bfa5e6d304a791bdd803a6b86404015bcfed9e"
+    },
+    "sources/src/model/keywords-classes-prototype.js": {
+      "bytes": 8491,
+      "sha256": "610d48fb6ce3c976a7afde61f789a1070ca4dc3ce1a2b9b95231e6f6ed633a99"
+    },
+    "sources/src/model/life-map-balance.js": {
+      "bytes": 9930,
+      "sha256": "19dbc6f6656c7c2cbd83198a9307d3f2b6b684bb4b811de664fabd34c24e219a"
+    },
+    "sources/src/model/life-map-columns.js": {
+      "bytes": 6659,
+      "sha256": "fe955979856493cd345829b7a7957f6eb2ab7e213ec50dc1c4c453d9791e5db2"
+    },
+    "sources/src/model/life-map-design.js": {
+      "bytes": 15477,
+      "sha256": "1e0ddbcabe146ef5429c2a7ae09654233bab47d35e614a57fb0bd4b60b80aa31"
+    },
+    "sources/src/model/life-map-lab-draft.js": {
+      "bytes": 2948,
+      "sha256": "4242743e8e9c5ac45efc0adb6a05dbd79f3632b084ebc8d787c56a9019b632c3"
+    },
+    "sources/src/model/live-second-stage-scheduler.js": {
+      "bytes": 815,
+      "sha256": "3d6d844c554fe8a9af01b63b7203125d72a0224eb99731fd14d003233cd496d7"
+    },
+    "sources/src/model/map-lab-draft.js": {
+      "bytes": 20181,
+      "sha256": "76b30823b0fddbb736de3d77527ef2d1ae8dd704270d750efb811b3ca3df562b"
+    },
+    "sources/src/model/mechanic-readings.js": {
+      "bytes": 4365,
+      "sha256": "1f08e5c22659a33f11c710667dfd0d44730560eb69bca4d3e89fa5ab7b4178e7"
+    },
+    "sources/src/model/mechanic-validation.js": {
+      "bytes": 3494,
+      "sha256": "371863eae529f5ca87df86b09af2505ee645832c63e5e43c57816f1c1a76d970"
+    },
+    "sources/src/model/moon-phases.js": {
+      "bytes": 1668,
+      "sha256": "ec3644d7e25df476cecef27a5ad5f9c608100d55f057f85d4b80705f4bfedec3"
+    },
+    "sources/src/model/moon.js": {
+      "bytes": 1472,
+      "sha256": "181c5ace7b93f34547cb1bb20ec15892b65924bfb3d59cffb7facf78fc3026ca"
+    },
+    "sources/src/model/new-game.js": {
+      "bytes": 2366,
+      "sha256": "e18142336f390db29cfc034bc82b4fca74212351f642c75bc8c250574a19ee55"
+    },
+    "sources/src/model/perf.js": {
+      "bytes": 20765,
+      "sha256": "ac5956965a97075010a78476ce4153f31cd506eaac2216ef9b1e3d1d1b89e132"
+    },
+    "sources/src/model/persistent-memory.js": {
+      "bytes": 8132,
+      "sha256": "17e5fa39d4fd65ce9dc06fb78eb5efa420149751cafe9fc6bfd796042109b985"
+    },
+    "sources/src/model/practice-draft.js": {
+      "bytes": 3140,
+      "sha256": "09d076586d34fb69dd26aa36fd9cd37f0093a83148ccd7ccb08b83225d0b30e2"
+    },
+    "sources/src/model/practice-keywords.js": {
+      "bytes": 5888,
+      "sha256": "ae3987ec280e130009850d9618b9e3d3f90ff42fd7026f29970804fdcbe85faf"
+    },
+    "sources/src/model/practice-outputs.js": {
+      "bytes": 4069,
+      "sha256": "6a29fd6491d68f99e3ab3fa6ecb71758c4a9f86a6dbc1a2c8b41f17a32b2ed74"
+    },
+    "sources/src/model/practice-reading.js": {
+      "bytes": 5244,
+      "sha256": "7345283e5c33cf8c8fa622e676f3e054258d0dd8358e3d755cbb7ee2fa52c56d"
+    },
+    "sources/src/model/regional-map/biome-clustering.js": {
+      "bytes": 6597,
+      "sha256": "4dc2d592a4bd277626533111a0be461778f68eccf5cc5ee91eeb8381a794cd19"
+    },
+    "sources/src/model/regional-map/boot-profile.js": {
+      "bytes": 683,
+      "sha256": "5f4e5f4005f0ecb0b5814f4143b55f2935c34a7122e0743726debc2772bd0d83"
+    },
+    "sources/src/model/regional-map/definition.js": {
+      "bytes": 3369,
+      "sha256": "152c37f9bbc03358c6585e4da798eaee71bdcdfdc606214a4bda6e7b68503f4c"
+    },
+    "sources/src/model/regional-map/generator.js": {
+      "bytes": 42168,
+      "sha256": "2d44d05096f6cd10be83e175c61563a97049b99ebb87db834ecf3fe4d747cb7d"
+    },
+    "sources/src/model/regional-map/names.js": {
+      "bytes": 5751,
+      "sha256": "05a758f48a57bfab78d918ec821f44ab0af5d07fabc3ebfe003e618c146cb13b"
+    },
+    "sources/src/model/regional-practices.js": {
+      "bytes": 8461,
+      "sha256": "93c1770e5681d7e879ad3415572658ac32524d69491d30a508b6c8a20e0a3ede"
+    },
+    "sources/src/model/replay-second-runner.js": {
+      "bytes": 2666,
+      "sha256": "c47b7a757e45a6c7c3b48d2460c4f9ef8491e08123764a7ef93d9d7cb7c0ad19"
+    },
+    "sources/src/model/research-progression.js": {
+      "bytes": 2244,
+      "sha256": "82940560337be81c59d36fff5b4dca8568ff8a0de4b0b6eebab3e5cf2c4b14ac"
+    },
+    "sources/src/model/rng.js": {
+      "bytes": 3818,
+      "sha256": "682c501a2d942118a81027713baa166ff216704ef8e9f5a2bff36cf81df9d5f7"
+    },
+    "sources/src/model/settlement-exec.js": {
+      "bytes": 43246,
+      "sha256": "0fd122d3432bec9df93ee47683fc3fab47f586399e2cafa923fe323f587231cf"
+    },
+    "sources/src/model/settlement-leadership.js": {
+      "bytes": 12800,
+      "sha256": "06f31c30232e6c0b365ed175cf47b65bc09781414159838dacba5f2607b7036d"
+    },
+    "sources/src/model/settlement-order-exec.js": {
+      "bytes": 32517,
+      "sha256": "14b36fce8d57717102738986be00771cef3e85b6a3ffab7eb5ae8d3e71fa561f"
+    },
+    "sources/src/model/settlement-state.js": {
+      "bytes": 20149,
+      "sha256": "2d6000193593b1ae2738c8266fe56462598d23151aa0a3afada57f5dac69c106"
+    },
+    "sources/src/model/settlement-state/hub-legacy.js": {
+      "bytes": 31348,
+      "sha256": "f817862ab4c62c940b4880bd83306ebce79cacd40281a536ddd836d04a40f64e"
+    },
+    "sources/src/model/settlement-upgrades.js": {
+      "bytes": 7687,
+      "sha256": "5cd7564bd6098b4921be799cfb230b9289e1fa3a090bdfaef9f8f0fdc9d228e6"
+    },
+    "sources/src/model/skills.js": {
+      "bytes": 10832,
+      "sha256": "ec7644e0721ce36111b053c5791fab2c1620f5fead22660808991a810b628f45"
+    },
+    "sources/src/model/starter-boot-profile.js": {
+      "bytes": 3283,
+      "sha256": "b27b08cc63b4865e55dcf47d9f0da5da709f4f57c5b1879542795c783ad0bc72"
+    },
+    "sources/src/model/state.js": {
+      "bytes": 34030,
+      "sha256": "e549208034c613872497f8fe05b7251cbba81689451d23637ecce4bcf99969af"
+    },
+    "sources/src/model/state/board-legacy.js": {
+      "bytes": 18036,
+      "sha256": "652677e5332720b94f16a926a6cbb2ecdf6e81d3a3a26f42fb2c75e241d278d1"
+    },
+    "sources/src/model/state/pawn-legacy.js": {
+      "bytes": 8547,
+      "sha256": "221ede0df5e7a7cc0cda81ffa74268c591989d98fb646ff664605f4398932348"
+    },
+    "sources/src/model/structure-layout.js": {
+      "bytes": 6310,
+      "sha256": "cc8d988d1b96ec542d30fcc5d280b981176e8a95896e22bd8ab380b076ee99af"
+    },
+    "sources/src/model/structure-reading.js": {
+      "bytes": 8791,
+      "sha256": "3ec743b86c0757ff43b6d923c892b4ca3bb1e36e71ba2fc36ca58520d5578381"
+    },
+    "sources/src/model/timeline/action-index.js": {
+      "bytes": 4285,
+      "sha256": "fe3e5ae1f3e3044379ed606a37211a19c3f41be5a62534908f5a914d0c73a19c"
+    },
+    "sources/src/model/timeline/index.js": {
+      "bytes": 36779,
+      "sha256": "38a4037e9a1ffe3d6a04040b391099cca8f3fe726914a7046cc6441ec2b68fc6"
+    },
+    "sources/src/model/timeline/memo-cache.js": {
+      "bytes": 4168,
+      "sha256": "6a5d478183fe925d4804f5b7cb8a6f23d7847136546d90becad61a8298aadbf5"
+    },
+    "sources/src/model/timeline/mutation-signature.js": {
+      "bytes": 811,
+      "sha256": "621e352dc40de316e20bc2c9936ccd8a9f1ff3abdbaba404085c89930632b8a1"
+    },
+    "sources/src/model/vassal-life-map-generator.js": {
+      "bytes": 32565,
+      "sha256": "4360be2d27821e1ecaa16680542d8efac89560433af76a46345bb5caaadd0341"
+    },
+    "sources/src/model/vassal-life-map.js": {
+      "bytes": 2101,
+      "sha256": "e29f068b1b56e73e64e2da05f69560db52c225bff0c7f48dac5af6bc7571097f"
+    },
+    "sources/src/model/vassal-life-map/campaign.js": {
+      "bytes": 14443,
+      "sha256": "6aeb26ecb8052503e293963d646c5d8b30225dc57df1867316f145441c99d2fa"
+    },
+    "sources/src/model/vassal-life-map/class-actions.js": {
+      "bytes": 12824,
+      "sha256": "abaa6027c139aacf58ae6bef212fe910437d3c87051ba99030736ee73a0797b2"
+    },
+    "sources/src/model/vassal-life-map/class-rules.js": {
+      "bytes": 1663,
+      "sha256": "97be56b6367f23bbbbf1192fc09920e98736bc828e7d49b67cb32fa0d029c8ad"
+    },
+    "sources/src/model/vassal-life-map/commissions.js": {
+      "bytes": 9510,
+      "sha256": "7a8246a7306647637666fd25d999c63b895b08b779fe600d106163682060978e"
+    },
+    "sources/src/model/vassal-life-map/heirlooms.js": {
+      "bytes": 21734,
+      "sha256": "0743a4ac6c2b508d8fd31234078b5b129a740e06d47cbd19940469782d7abeaf"
+    },
+    "sources/src/model/vassal-life-map/lifecycle.js": {
+      "bytes": 765,
+      "sha256": "696e3e00ae7512458b5cd0d5c62b43850db5520011a7c1880d8ce5c0e526d3d9"
+    },
+    "sources/src/model/vassal-life-map/lifecycle/candidates.js": {
+      "bytes": 13814,
+      "sha256": "fbfc72e4a4ea0e03492e7c2cdec05b9f3d0fddaee51a95a841f0f9aff33da390"
+    },
+    "sources/src/model/vassal-life-map/lifecycle/node-confirm.js": {
+      "bytes": 44924,
+      "sha256": "d3da267d97212740aef7c01f60cdd578d889a5c0deda52e151ba119dded4117b"
+    },
+    "sources/src/model/vassal-life-map/lifecycle/step.js": {
+      "bytes": 12955,
+      "sha256": "39d2b3d99f533e58ab0e094c2638d81d5923e266c80ead10d3ca63c836483784"
+    },
+    "sources/src/model/vassal-life-map/multiplier-preview.js": {
+      "bytes": 3258,
+      "sha256": "e18d9dd2142ea444189abe9b8c8577d388c2212b11cfe9afb066c6ffdf03899d"
+    },
+    "sources/src/model/vassal-life-map/presentation.js": {
+      "bytes": 27254,
+      "sha256": "0353e89aa4ab39f6967d6bcd249020dd6f5aea14e8189637db1f3b1684fa37d7"
+    },
+    "sources/src/model/vassal-life-map/relic-pools.js": {
+      "bytes": 2503,
+      "sha256": "2e1a078b5a81cc6a9c01e90f1870c91cd0630d014dc3339c46efa4586c058f8f"
+    },
+    "sources/src/model/vassal-life-map/selectors.js": {
+      "bytes": 20863,
+      "sha256": "ca05adb1ee7f4738be4340f3a5d2208723e47d31394b16a32811361cdd513fd3"
+    },
+    "sources/src/model/vassal-life-map/shop-specialties.js": {
+      "bytes": 4821,
+      "sha256": "2e80bca044664a68677863882f43f25cd24b27b6836ca996ca34f55014dea44e"
+    },
+    "sources/src/model/vassal-life-map/shop.js": {
+      "bytes": 35507,
+      "sha256": "150a669e61eed679829f1990ff3754489cf66cf34760327719bd794eb6d3328e"
+    },
+    "sources/src/model/vassal-life-map/stock-shops.js": {
+      "bytes": 2681,
+      "sha256": "f93786f25f5e3faab148bf2f1423bff65e9758c72968d85ddd1fc07c7e07e1c5"
+    },
+    "sources/src/model/vassal-life-map/treasury.js": {
+      "bytes": 908,
+      "sha256": "0d77fb851a9fd8a932d390b4315c0898d415d6631d8da05a5dc84cd308d4a91f"
+    },
+    "sources/src/model/vassal-life-map/world-choices.js": {
+      "bytes": 6537,
+      "sha256": "fe7513db49288e7d7f4fc813a66515cb4efe7282f0dc1c683632aecd1f8bfca9"
+    },
+    "sources/src/model/world-definitions.js": {
+      "bytes": 250,
+      "sha256": "eab2c93cee2ff15dc675fd3bfc8892b2a120a0c0b1c88a671121b35eb8a21c29"
+    },
+    "sources/src/model/world-state.js": {
+      "bytes": 27703,
+      "sha256": "4f0a4690e209f6bd4b1f49f1299e47bf8778af7f5e93112673f4b8bf22076f34"
+    },
+    "fixtures/123-ordinary.json": {
+      "bytes": 704737,
+      "sha256": "fefa69e74b1a5376a7092430a7b2fc75062b97a7fc0a83c2ae8fa250c41e4322"
+    },
+    "expected/123-ordinary-state.json": {
+      "bytes": 352163,
+      "sha256": "df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f"
+    },
+    "fixtures/123-selected.json": {
+      "bytes": 726013,
+      "sha256": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb"
+    },
+    "expected/123-selected-state.json": {
+      "bytes": 371952,
+      "sha256": "651ba92d0e2cdfbdc440c0087c92374f5a0460aec8c5eff7f173795d91228065"
+    },
+    "fixtures/123-shop.json": {
+      "bytes": 728209,
+      "sha256": "c30cb8cf50efa5dd12d9da10cb14a01f36e94e517c016e37842efa0cef46e28e"
+    },
+    "expected/123-shop-state.json": {
+      "bytes": 373949,
+      "sha256": "5c4e40607ff3d97ed3205fa731df84861353d336cc3c719334038e32fdffe3d5"
+    },
+    "fixtures/123-history.json": {
+      "bytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f"
+    },
+    "expected/123-history-state.json": {
+      "bytes": 785873,
+      "sha256": "96e4574b4cf24c185bd8742007d882feb984aa28f8425fa72b2fd7fc94dca2b3"
+    },
+    "fixtures/123-later-history.json": {
+      "bytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002"
+    },
+    "expected/123-later-history-state.json": {
+      "bytes": 835815,
+      "sha256": "bc098effb2e4c3e69b09b839081e73c9d15d34f94e2aea387731f470ad76f4b9"
+    },
+    "fixtures/424242-ordinary.json": {
+      "bytes": 704733,
+      "sha256": "554ddeda71240365cae436a67084ee7ca74bfc5e4cb23cdf7513fcb98a0d9170"
+    },
+    "expected/424242-ordinary-state.json": {
+      "bytes": 352161,
+      "sha256": "0273a5c25107fa66ecfb059d724c16e4266715b58da1ff2ffd023cca8e721129"
+    },
+    "fixtures/424242-selected.json": {
+      "bytes": 725639,
+      "sha256": "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392"
+    },
+    "expected/424242-selected-state.json": {
+      "bytes": 371509,
+      "sha256": "856d34e57b2f8a4c456f42f389a54b0c47abdf18c47d5d64dc54b673aec1cb92"
+    },
+    "fixtures/424242-shop.json": {
+      "bytes": 727859,
+      "sha256": "9925aba8686513954d40be89de1e17abb868bdb20dc6dfd4b2af6ef2fed5f12f"
+    },
+    "expected/424242-shop-state.json": {
+      "bytes": 373530,
+      "sha256": "d68766e45f7dd13c8433ad3dc4088ba52148c6b45cdb9a18af5dd6471f0bd0ae"
+    },
+    "fixtures/424242-history.json": {
+      "bytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023"
+    },
+    "expected/424242-history-state.json": {
+      "bytes": 780856,
+      "sha256": "227295b2dfe023a9a8c1be9d0a160e019bfe2f0e5967821b26533ba64510e6d2"
+    },
+    "fixtures/424242-later-history.json": {
+      "bytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b"
+    },
+    "expected/424242-later-history-state.json": {
+      "bytes": 846716,
+      "sha256": "35f8bde941fa3ac315074b526fe5d57c6306e6943edfaa02f9bb7c01f8ee063e"
+    },
+    "fixtures/99117-ordinary.json": {
+      "bytes": 705237,
+      "sha256": "2e9862aca44cc343cffcce3732c62ba60b73982d86582d5d8212a531e4155229"
+    },
+    "expected/99117-ordinary-state.json": {
+      "bytes": 352413,
+      "sha256": "0d58c42dbb26b65b78012296ad238797f8c249a22213f68875892b6a63725e51"
+    },
+    "fixtures/99117-selected.json": {
+      "bytes": 726634,
+      "sha256": "7b81f5b1957dd202e7a488ec02bec653cc699f688ee97a094a4a4e5ac1b8991c"
+    },
+    "expected/99117-selected-state.json": {
+      "bytes": 372294,
+      "sha256": "dfe8120b5479219541d783181d84622a44bb15e4ae5f78f8465dc300ff831213"
+    },
+    "fixtures/99117-shop.json": {
+      "bytes": 728862,
+      "sha256": "b2d27a88198f68785a87ff84c6ff586c5246384baa27f7811deb83d9460d0fc0"
+    },
+    "expected/99117-shop-state.json": {
+      "bytes": 374323,
+      "sha256": "dbd605a4abdc8650920bcea7764774449969722e4b8185a0921336dbea685abd"
+    },
+    "fixtures/99117-history.json": {
+      "bytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869"
+    },
+    "expected/99117-history-state.json": {
+      "bytes": 805675,
+      "sha256": "8ac967a9311636940f9a06dc2811dd4e9a3f5f5d6d31588fe55ccbf95047dc67"
+    },
+    "fixtures/99117-later-history.json": {
+      "bytes": 26147500,
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2"
+    },
+    "expected/99117-later-history-state.json": {
+      "bytes": 859322,
+      "sha256": "15ce92805c026269291ba9d87f97a2324b88df6452a058e1a21bb19b1e27e371"
+    },
+    "conformance.json": {
+      "bytes": 39803,
+      "sha256": "21403dccb99ee7ea08931543dececddd852b77ca3193c1b13fc1edf7770febf0"
+    },
+    "prepared-baseline.json.gz": {
+      "bytes": 9636455,
+      "sha256": "cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6"
+    },
+    "../escape.js": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "identity": "f35d252b70a508aa54f6923b5bf81f44255457e699ff40f846df0047497eb553"
+}

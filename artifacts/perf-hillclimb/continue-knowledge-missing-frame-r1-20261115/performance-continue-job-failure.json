@@ -1,0 +1,16 @@
+{
+  "launchId": "continue-knowledge-missing-frame-r1-20261115:launch-0-performance-continue",
+  "job": "performance-continue",
+  "originalError": {
+    "name": "Error",
+    "message": "page.evaluate: Execution context was destroyed, most likely because of a navigation.",
+    "stack": "page.evaluate: Execution context was destroyed, most likely because of a navigation.\n    at prepareSettledSaveKnowledge (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:594:50)\n    at async persistedEntryOracle (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:622:36)\n    at async withDeadline (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\deadline.mjs:7:12)\n    at async record (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:182:31)\n    at async performanceContinue (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:750:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:1189:9"
+  },
+  "observationCount": 2,
+  "document": {
+    "available": false,
+    "reason": "current launch page is closed"
+  },
+  "passive": null,
+  "collectionErrors": []
+}

@@ -1,0 +1,55 @@
+{
+  "ok": true,
+  "chromium": "147.0.7727.15",
+  "launch": {
+    "headless": true,
+    "args": [
+      "--use-gl=angle",
+      "--use-angle=swiftshader"
+    ]
+  },
+  "oracleSha256": "4734399c176668d6e0da3bee14f961eaa9c9595869e3627a9908e3f7a12030d2",
+  "current": [
+    {
+      "file": "context-control.json",
+      "sheets": 1,
+      "textures": 1,
+      "baseTextures": 1,
+      "valid": true,
+      "uploaded": true,
+      "contextAvailable": true,
+      "contextLost": false,
+      "currentContextBases": 1,
+      "foreignOrMissingBases": 0
+    }
+  ],
+  "foreign": [
+    {
+      "file": "context-control.json",
+      "sheets": 1,
+      "textures": 1,
+      "baseTextures": 1,
+      "valid": true,
+      "uploaded": false,
+      "contextAvailable": true,
+      "contextLost": false,
+      "currentContextBases": 0,
+      "foreignOrMissingBases": 1
+    }
+  ],
+  "lost": [
+    {
+      "file": "context-control.json",
+      "sheets": 1,
+      "textures": 1,
+      "baseTextures": 1,
+      "valid": true,
+      "uploaded": false,
+      "contextAvailable": true,
+      "contextLost": true,
+      "currentContextBases": 0,
+      "foreignOrMissingBases": 1
+    }
+  ],
+  "scope": "mechanism contexts only; actual game atlas/control replay and independent audit remain required"
+}

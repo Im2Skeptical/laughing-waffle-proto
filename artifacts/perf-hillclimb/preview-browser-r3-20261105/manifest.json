@@ -1,0 +1,127 @@
+{
+  "id": "preview-browser-r3-20261105",
+  "created": "2026-11-04T16:54:38.148Z",
+  "phaseA": "NOT SOUND",
+  "comparisonEligible": false,
+  "purpose": "full-state functional diagnostics only; no latency/frame/memory results; every full-state read after input completion",
+  "machine": {
+    "hostname": "DESKTOP-R0AMF0N",
+    "release": "10.0.26200",
+    "cpu": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+    "node": "v24.15.0"
+  },
+  "head": "a9df52cbd6255ed95c51c9e7d524cf9ab557472b",
+  "branch": "perf/hillclimb-20261104",
+  "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+  "sdk": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+  "sources": {
+    "src/controllers/sim-runner.js": "a15dc72c7697406b1edb7ecc8b6e3c6ac0e87325cade0dcd3fbe65798b4be8db",
+    "src/views/ui-root/settlement-debug-api.js": "4c948784ab3998b2a77853f707b22726a9f621972db02030b99772b364cb1ddd",
+    "src/views/ui-root-settlement-pixi.js": "19ed00c3ce1a74015776af7caec1287c4f6a031172733550f6362c8ab63326d4",
+    "src/model/timegraph/state-restorer.js": "cc6c2ce2d9e5ac1295bbd5ea9c59b5a86357a83d85892330d7a408f5492df025",
+    "src/model/timegraph/controller-core.js": "611b4cb8fc49918dc88013e8e3f03478fc764c374c353e4ae7eaba0ad8dacd99",
+    "src/model/timegraph/projection-cache.js": "5293d1d30bd5caf194a9941d1a9af0746a73c5230b2aab4e90e672f91bcc97d4",
+    "src/views/timegraphs-pixi.js": "515acd487d4b42d53cd06ec09b78558a0b543488f5eee2e0184c6fababf124c5",
+    "scripts/preview-state-inspection-test.mjs": "69333c0dccce8e2c958006ab41cc4f95f794fdd637e641bcfefb1f535c4cfa88",
+    "scripts/perf-hillclimb/preview-state-browser.mjs": "84430668ff747de54e8b9c1c3d03b9c6da1894b638a093a8852d93ebc2a1a672",
+    "scripts/perf-hillclimb/preview-state-controls.mjs": "505d32f6f3a5e995bdc8bde8e95705bd8c46ed2a61ccb3924bdc50541e6aa1b9",
+    "scripts/perf-hillclimb/preview-state-oracle.mjs": "a746c43eaae6934d769c7b224287bdacf758a8a885edfc36ed739347fe18789a",
+    "scripts/perf-hillclimb/run.mjs": "61c7e2edcb2517b33efcc3f3bcf926c0e5af16eab301718fa88c5481fc6f3013",
+    "scripts/perf-hillclimb/browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+    "scripts/perf-hillclimb/main-job-oracles.mjs": "9e162823376c56cba35b2fe0b43fade1c9b18462a3251bcf21bbca7cdb276d24",
+    "scripts/perf-hillclimb/save-state-oracle.mjs": "6b8633f93324007f6a2592fb0de93b7d514d957875261187146c8df2962e0aff"
+  },
+  "assets": {
+    "bundle": {
+      "file": "./assets/app-XYOFGS5O.js",
+      "sha256": "b99357d9bd33c41a43ebabe54109687f394450163e060479321681ea4c0f752f"
+    },
+    "worker": {
+      "file": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+      "sha256": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a"
+    },
+    "saveLoadWorker": {
+      "file": "./assets/save-load-worker-7YJYILEJ.js",
+      "sha256": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5"
+    },
+    "stylesheet": {
+      "file": "./assets/styles-ec05c6a73a6e.css",
+      "sha256": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+    }
+  },
+  "build": {
+    "performanceFixtureKey": "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+    "version": "1.1.52",
+    "build": "985e049cc6ae",
+    "revision": "a9df52cbd625",
+    "channel": "pages",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": null,
+    "entryPoint": "src/views/ui-root-pixi.js",
+    "bundle": "./assets/app-XYOFGS5O.js",
+    "worker": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+    "saveLoadWorker": "./assets/save-load-worker-7YJYILEJ.js",
+    "stylesheet": "./assets/styles-ec05c6a73a6e.css"
+  },
+  "preparedPacket": "edbbb99ae9dfdf93a53cf469c010c4e654c1ca18a5c32ab2db6c848aa24eeee8",
+  "schedule": [
+    {
+      "seed": 123,
+      "population": "desktop",
+      "second": 16,
+      "entry": "performance-new",
+      "control": false
+    },
+    {
+      "seed": 123,
+      "population": "desktop",
+      "second": 16,
+      "entry": "regular-continue",
+      "control": true
+    },
+    {
+      "seed": 123,
+      "population": "desktop",
+      "second": 17,
+      "entry": "performance-new",
+      "control": false
+    },
+    {
+      "seed": 123,
+      "population": "desktop",
+      "second": 17,
+      "entry": "regular-continue",
+      "control": true
+    },
+    {
+      "seed": 123,
+      "population": "mobile4",
+      "second": 16,
+      "entry": "performance-new",
+      "control": false
+    },
+    {
+      "seed": 123,
+      "population": "mobile4",
+      "second": 16,
+      "entry": "regular-continue",
+      "control": true
+    },
+    {
+      "seed": 123,
+      "population": "mobile4",
+      "second": 17,
+      "entry": "performance-new",
+      "control": false
+    },
+    {
+      "seed": 123,
+      "population": "mobile4",
+      "second": 17,
+      "entry": "regular-continue",
+      "control": true
+    }
+  ]
+}

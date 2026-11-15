@@ -1,0 +1,256 @@
+{
+  "expected": {
+    "runId": "feedback-main-life-r1-20261105",
+    "buildId": "11c342fc0b0d0df58cfdd32692eb3d404b6cb04eab4c32d193446876c4486338",
+    "observationId": "feedback-main-life-r1-20261105:op-9",
+    "launchId": "feedback-main-life-r1-20261105:launch-0-life",
+    "job": "J4",
+    "step": "return-to-map",
+    "harnessId": "db96d0690fdfc0d08fafc9ab77b5bcf047652d940f6560a336b10ab4d2105bfc",
+    "measurementContractId": "c6f55acbf5ea8504b1e99f6f14757cf7e6b9499963a65c55c50d04539800d49c",
+    "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "comparisonEligible": true,
+    "population": {
+      "layout": "desktop",
+      "cpuRate": 1,
+      "cache": "cold",
+      "artwork": "off",
+      "instrumentation": true,
+      "workerDelayMs": 0,
+      "seed": 123,
+      "workloadMode": "frozen-baseline",
+      "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "control": null,
+      "inputType": "mouse",
+      "entryPath": "continue-fixture"
+    },
+    "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+    "input": "Map navigation"
+  },
+  "error": "persisted/source state differs: persistentKnowledge.maxObservedCivilizationSurvivalYear; launch-0-life-life-state-comparison.json",
+  "actual": {
+    "passive": {
+      "version": 2,
+      "mode": "map",
+      "selectedRegionId": "R14",
+      "regionSelectionActive": false,
+      "runner": {
+        "frontierSec": 54,
+        "cursorSec": 54,
+        "viewedSec": 54,
+        "previewActive": false,
+        "forecastPreview": false,
+        "revision": 4,
+        "actionCount": 5,
+        "checkpointCount": 2
+      },
+      "opening": {
+        "phase": "preparing",
+        "preparation": "preparing",
+        "coverageSec": 256,
+        "elapsedSec": 0,
+        "lossSec": null
+      },
+      "map": {
+        "visible": true,
+        "detailVisible": false,
+        "camera": {
+          "x": 0,
+          "y": 0,
+          "zoom": 1
+        },
+        "focusAnimating": false,
+        "panelPhase": "closed",
+        "panelAnimating": false,
+        "panelPose": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        },
+        "artReady": false,
+        "artPrepared": null
+      },
+      "graph": {
+        "visible": true,
+        "minSec": 0,
+        "maxSec": 130,
+        "scrubDrawSignature": "0|54|54|54|0:130||Civilization • All player settlements|-1",
+        "plotRect": {
+          "x": 573.855,
+          "y": 884.1,
+          "width": 1276.275,
+          "height": 145.86
+        },
+        "plotRectSpace": "stage-retained-transform",
+        "projection": {
+          "signatureVersion": 7,
+          "timelineToken": "sig:7",
+          "signatureMatches": true
+        },
+        "scrubSec": 54,
+        "isScrubbing": false,
+        "latchedForecastScrubSec": null,
+        "historyEndSec": 54,
+        "revealedSec": 54,
+        "browseCapSec": 54,
+        "targetSec": 54,
+        "computedSec": 130,
+        "requestedSec": 1334,
+        "pending": true,
+        "cacheVersion": 553,
+        "subjectKey": "civilization",
+        "asyncToken": "sig:7",
+        "asyncPollMs": 45350.59999999404,
+        "asyncHistoryEndSec": 54,
+        "asyncRequestedSec": 1334,
+        "asyncComputedSec": 130,
+        "revealHistoryEndSec": 54,
+        "animatedSec": 54,
+        "visibleEndSec": 54,
+        "startSecOverride": null,
+        "readinessCapSec": null,
+        "capEndSec": 54,
+        "paused": true,
+        "presentationSuspended": true,
+        "openingRevealSec": null
+      },
+      "life": {
+        "visible": false,
+        "selectedCandidateNodeId": null,
+        "displayedVassalId": "vassal-1",
+        "entryConfirmationOpen": false,
+        "entryOpen": false,
+        "entryVisible": false,
+        "entryPhase": "closed",
+        "decisionOpen": false,
+        "decisionNodeId": "life-milestone-milestone-1",
+        "decisionPhase": "closed",
+        "pendingInteractionCount": null,
+        "family": "practiceReform",
+        "selectedOptionId": null,
+        "resolving": false,
+        "shopTag": "random",
+        "offerIds": [
+          "life-milestone-milestone-1:r0:practice:1",
+          "life-milestone-milestone-1:r0:practice:2"
+        ],
+        "purchaseOrder": [
+          "life-milestone-milestone-1:r0:practice:0"
+        ],
+        "boardPracticeIds": [
+          "fieldStudy",
+          "logging",
+          "barter",
+          null,
+          null
+        ],
+        "observedDecisionNodeId": "life-milestone-milestone-1",
+        "boardRegionId": "R18",
+        "decisionArtReady": false,
+        "decisionArtPrepared": null,
+        "entryPoint": null,
+        "processingPhase": null,
+        "sourceRevision": 4,
+        "ready": null,
+        "processing": {
+          "sourceRevision": 4,
+          "sourceSec": 54,
+          "baseRevision": 4,
+          "baseSec": 54,
+          "timelineMatches": true,
+          "sourceMatches": true,
+          "requestId": 4,
+          "revision": 9,
+          "adopting": false,
+          "workerActive": false,
+          "draftActive": false,
+          "draftActionCount": 0,
+          "jobActive": false,
+          "phase": null,
+          "error": null,
+          "accepted": null,
+          "jobReady": null,
+          "ready": null,
+          "targetSec": null,
+          "computedSec": null,
+          "revealSec": null
+        },
+        "recapOpen": false,
+        "continueState": "idle",
+        "recapClock": {
+          "second": 54,
+          "progress": 1,
+          "locked": true
+        },
+        "recapClockStartedAt": 42278.09999999404
+      }
+    },
+    "frontier": 54,
+    "viewed": 54,
+    "mode": "map",
+    "camera": {
+      "zoom": 1,
+      "x": 0,
+      "y": 0
+    },
+    "processing": null,
+    "projection": {
+      "forecastBaseSec": 0,
+      "forecastEndSec": 0,
+      "forecastStepSec": 1,
+      "forecastDtStep": null,
+      "forecastAsyncBaseSec": 54,
+      "forecastAsyncEndSec": 250,
+      "forecastAsyncStepSec": 1,
+      "forecastAsyncToken": "sig:7"
+    },
+    "forecast": {
+      "historyEndSec": 54,
+      "computedCoverageEndSec": 250,
+      "revealedCoverageEndSec": 54,
+      "browseCapSec": 54,
+      "displayedLossSec": 182,
+      "displayedLossYear": 6,
+      "projectedLossSec": null,
+      "projectedLossYear": null,
+      "projectedLossResolved": false,
+      "currentVassalResolutionSec": null,
+      "currentVassalResolutionComputed": false,
+      "currentVassalResolutionRevealed": false,
+      "currentVassalResolutionResolved": false,
+      "pendingCommitTargetSec": null,
+      "nextVassalEnabled": false
+    },
+    "graph": {
+      "revealed": 54,
+      "target": 250,
+      "plot": {
+        "x": 302.7890037128713,
+        "y": 581.8514851485148,
+        "width": 673.4140779702971,
+        "height": 77.02178217821782
+      }
+    },
+    "decision": {
+      "open": false,
+      "family": "practiceReform",
+      "selected": null,
+      "shopTag": "random",
+      "offers": [
+        {
+          "id": "life-milestone-milestone-1:r0:practice:1",
+          "canStage": false
+        },
+        {
+          "id": "life-milestone-milestone-1:r0:practice:2",
+          "canStage": false
+        }
+      ],
+      "purchaseOrder": [
+        "life-milestone-milestone-1:r0:practice:0"
+      ],
+      "recap": false
+    }
+  }
+}

@@ -1,0 +1,210 @@
+[
+  {
+    "index": 0,
+    "id": "j8-optional-on-a-20261115-r1",
+    "instrumentation": "on",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--id=j8-optional-on-a-20261115-r1",
+      "--population=mobile4",
+      "--cases=reference",
+      "--cycles=5",
+      "--instrumentation=on",
+      "--timeout=240000",
+      "--gate-timeout=240000",
+      "--case-timeout=600000"
+    ],
+    "started": "2026-11-14T23:22:09.349Z",
+    "finished": "2026-11-14T23:27:24.214Z",
+    "exitCode": 1,
+    "signal": null,
+    "identityVerified": true,
+    "identityError": null,
+    "cleanupVerified": true,
+    "cleanup": {
+      "case": "reference",
+      "contextClosed": true,
+      "browserClosed": true,
+      "errors": [],
+      "browserConnected": false,
+      "lifetime": {
+        "label": "artwork reference",
+        "status": "cancelled",
+        "hostStartedMs": 8905.0219,
+        "hostDeadlineMs": 608905.0219,
+        "reason": "page.waitForFunction: Timeout 240000ms exceeded.",
+        "unconfirmedWork": [],
+        "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+      }
+    },
+    "manifestFailed": true,
+    "summaryOk": false,
+    "completedCases": 0,
+    "caseFailures": [
+      {
+        "case": "reference",
+        "error": "page.waitForFunction: Timeout 240000ms exceeded.",
+        "detailsFile": "reference-failure.json"
+      }
+    ],
+    "observations": 3,
+    "sourceAssetChanges": []
+  },
+  {
+    "index": 1,
+    "id": "j8-optional-off-b-20261115-r1",
+    "instrumentation": "off",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--id=j8-optional-off-b-20261115-r1",
+      "--population=mobile4",
+      "--cases=reference",
+      "--cycles=5",
+      "--instrumentation=off",
+      "--timeout=240000",
+      "--gate-timeout=240000",
+      "--case-timeout=600000"
+    ],
+    "started": "2026-11-14T23:34:45.747Z",
+    "finished": "2026-11-14T23:39:59.696Z",
+    "exitCode": 1,
+    "signal": null,
+    "identityVerified": true,
+    "identityError": null,
+    "cleanupVerified": true,
+    "cleanup": {
+      "case": "reference",
+      "contextClosed": true,
+      "browserClosed": true,
+      "errors": [],
+      "browserConnected": false,
+      "lifetime": {
+        "label": "artwork reference",
+        "status": "cancelled",
+        "hostStartedMs": 8814.4106,
+        "hostDeadlineMs": 608814.4106,
+        "reason": "page.waitForFunction: Timeout 240000ms exceeded.",
+        "unconfirmedWork": [],
+        "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+      }
+    },
+    "manifestFailed": true,
+    "summaryOk": false,
+    "completedCases": 0,
+    "caseFailures": [
+      {
+        "case": "reference",
+        "error": "page.waitForFunction: Timeout 240000ms exceeded.",
+        "detailsFile": "reference-failure.json"
+      }
+    ],
+    "observations": 3,
+    "sourceAssetChanges": []
+  },
+  {
+    "index": 2,
+    "id": "j8-optional-off-a-20261115-r1",
+    "instrumentation": "off",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--id=j8-optional-off-a-20261115-r1",
+      "--population=mobile4",
+      "--cases=reference",
+      "--cycles=5",
+      "--instrumentation=off",
+      "--timeout=240000",
+      "--gate-timeout=240000",
+      "--case-timeout=600000"
+    ],
+    "started": "2026-11-14T23:40:00.050Z",
+    "finished": "2026-11-14T23:45:13.490Z",
+    "exitCode": 1,
+    "signal": null,
+    "identityVerified": true,
+    "identityError": null,
+    "cleanupVerified": true,
+    "cleanup": {
+      "case": "reference",
+      "contextClosed": true,
+      "browserClosed": true,
+      "errors": [],
+      "browserConnected": false,
+      "lifetime": {
+        "label": "artwork reference",
+        "status": "cancelled",
+        "hostStartedMs": 9307.6167,
+        "hostDeadlineMs": 609307.6167,
+        "reason": "page.waitForFunction: Timeout 240000ms exceeded.",
+        "unconfirmedWork": [],
+        "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+      }
+    },
+    "manifestFailed": true,
+    "summaryOk": false,
+    "completedCases": 0,
+    "caseFailures": [
+      {
+        "case": "reference",
+        "error": "page.waitForFunction: Timeout 240000ms exceeded.",
+        "detailsFile": "reference-failure.json"
+      }
+    ],
+    "observations": 3,
+    "sourceAssetChanges": []
+  },
+  {
+    "index": 3,
+    "id": "j8-optional-on-b-20261115-r1",
+    "instrumentation": "on",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--id=j8-optional-on-b-20261115-r1",
+      "--population=mobile4",
+      "--cases=reference",
+      "--cycles=5",
+      "--instrumentation=on",
+      "--timeout=240000",
+      "--gate-timeout=240000",
+      "--case-timeout=600000"
+    ],
+    "started": "2026-11-14T23:45:13.861Z",
+    "finished": "2026-11-14T23:50:31.698Z",
+    "exitCode": 1,
+    "signal": null,
+    "identityVerified": true,
+    "identityError": null,
+    "cleanupVerified": true,
+    "cleanup": {
+      "case": "reference",
+      "contextClosed": true,
+      "browserClosed": true,
+      "errors": [],
+      "browserConnected": false,
+      "lifetime": {
+        "label": "artwork reference",
+        "status": "cancelled",
+        "hostStartedMs": 10842.3469,
+        "hostDeadlineMs": 610842.3469,
+        "reason": "page.waitForFunction: Timeout 240000ms exceeded.",
+        "unconfirmedWork": [],
+        "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+      }
+    },
+    "manifestFailed": true,
+    "summaryOk": false,
+    "completedCases": 0,
+    "caseFailures": [
+      {
+        "case": "reference",
+        "error": "page.waitForFunction: Timeout 240000ms exceeded.",
+        "detailsFile": "reference-failure.json"
+      }
+    ],
+    "observations": 3,
+    "sourceAssetChanges": []
+  }
+]

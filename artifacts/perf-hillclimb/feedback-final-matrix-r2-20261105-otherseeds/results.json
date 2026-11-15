@@ -1,0 +1,721 @@
+[
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "performance-continue",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-0-desktop-performance-continue-off-s424242-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=performance-continue",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-0-desktop-performance-continue-off-s424242-cold"
+    ],
+    "started": "2026-11-04T22:38:56.284Z",
+    "finished": "2026-11-04T22:39:20.373Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-0-desktop-performance-continue-off-s424242-cold:launch-0-performance-continue",
+      "job": "performance-continue"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "scrub-anchor",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-1-desktop-scrub-anchor-off-s424242-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=scrub-anchor",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-1-desktop-scrub-anchor-off-s424242-cold"
+    ],
+    "started": "2026-11-04T22:39:20.374Z",
+    "finished": "2026-11-04T22:40:01.013Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-1-desktop-scrub-anchor-off-s424242-cold:launch-0-scrub-anchor",
+      "job": "scrub-anchor"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "scrub-off-anchor",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-2-desktop-scrub-off-anchor-off-s424242-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=scrub-off-anchor",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-2-desktop-scrub-off-anchor-off-s424242-cold"
+    ],
+    "started": "2026-11-04T22:40:01.014Z",
+    "finished": "2026-11-04T22:40:41.121Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-2-desktop-scrub-off-anchor-off-s424242-cold:launch-0-scrub-off-anchor",
+      "job": "scrub-off-anchor"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "life",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-3-desktop-life-off-s424242-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=life",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-3-desktop-life-off-s424242-cold"
+    ],
+    "started": "2026-11-04T22:40:41.122Z",
+    "finished": "2026-11-04T22:41:50.140Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-3-desktop-life-off-s424242-cold:launch-0-life",
+      "job": "life"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "save-history",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-4-desktop-save-history-off-s424242-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=save-history",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-4-desktop-save-history-off-s424242-cold"
+    ],
+    "started": "2026-11-04T22:41:50.141Z",
+    "finished": "2026-11-04T22:42:18.251Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-4-desktop-save-history-off-s424242-cold:launch-0-save-history",
+      "job": "save-history"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "save-opening",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-5-desktop-save-opening-off-s424242-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=save-opening",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-5-desktop-save-opening-off-s424242-cold"
+    ],
+    "started": "2026-11-04T22:42:18.252Z",
+    "finished": "2026-11-04T22:42:34.059Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-5-desktop-save-opening-off-s424242-cold:launch-0-save-opening",
+      "job": "save-opening"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "performance-continue",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-6-mobile4-performance-continue-off-s424242-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=performance-continue",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-6-mobile4-performance-continue-off-s424242-cold"
+    ],
+    "started": "2026-11-04T22:42:34.060Z",
+    "finished": "2026-11-04T22:44:15.398Z",
+    "exitCode": 1,
+    "actualLaunchValidation": {
+      "ok": false,
+      "error": "successful cell must have a successful leaf manifest\n\ntrue !== false\n"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "scrub-anchor",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-7-mobile4-scrub-anchor-off-s424242-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=scrub-anchor",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-7-mobile4-scrub-anchor-off-s424242-cold"
+    ],
+    "started": "2026-11-04T22:44:15.399Z",
+    "finished": "2026-11-04T22:45:28.057Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-7-mobile4-scrub-anchor-off-s424242-cold:launch-0-scrub-anchor",
+      "job": "scrub-anchor"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "scrub-off-anchor",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-8-mobile4-scrub-off-anchor-off-s424242-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=scrub-off-anchor",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-8-mobile4-scrub-off-anchor-off-s424242-cold"
+    ],
+    "started": "2026-11-04T22:45:28.058Z",
+    "finished": "2026-11-04T22:46:42.783Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-8-mobile4-scrub-off-anchor-off-s424242-cold:launch-0-scrub-off-anchor",
+      "job": "scrub-off-anchor"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "life",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-9-mobile4-life-off-s424242-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=life",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-9-mobile4-life-off-s424242-cold"
+    ],
+    "started": "2026-11-04T22:46:42.784Z",
+    "finished": "2026-11-04T22:48:58.388Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-9-mobile4-life-off-s424242-cold:launch-0-life",
+      "job": "life"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "save-history",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-10-mobile4-save-history-off-s424242-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=save-history",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-10-mobile4-save-history-off-s424242-cold"
+    ],
+    "started": "2026-11-04T22:48:58.389Z",
+    "finished": "2026-11-04T22:49:59.146Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-10-mobile4-save-history-off-s424242-cold:launch-0-save-history",
+      "job": "save-history"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "save-opening",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-11-mobile4-save-opening-off-s424242-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=save-opening",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-11-mobile4-save-opening-off-s424242-cold"
+    ],
+    "started": "2026-11-04T22:49:59.147Z",
+    "finished": "2026-11-04T22:50:44.218Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-11-mobile4-save-opening-off-s424242-cold:launch-0-save-opening",
+      "job": "save-opening"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "performance-continue",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-12-desktop-performance-continue-off-s99117-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=performance-continue",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-12-desktop-performance-continue-off-s99117-cold"
+    ],
+    "started": "2026-11-04T22:50:44.218Z",
+    "finished": "2026-11-04T22:51:15.565Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-12-desktop-performance-continue-off-s99117-cold:launch-0-performance-continue",
+      "job": "performance-continue"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "scrub-anchor",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-13-desktop-scrub-anchor-off-s99117-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=scrub-anchor",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-13-desktop-scrub-anchor-off-s99117-cold"
+    ],
+    "started": "2026-11-04T22:51:15.566Z",
+    "finished": "2026-11-04T22:52:17.505Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-13-desktop-scrub-anchor-off-s99117-cold:launch-0-scrub-anchor",
+      "job": "scrub-anchor"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "scrub-off-anchor",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-14-desktop-scrub-off-anchor-off-s99117-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=scrub-off-anchor",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-14-desktop-scrub-off-anchor-off-s99117-cold"
+    ],
+    "started": "2026-11-04T22:52:17.506Z",
+    "finished": "2026-11-04T22:53:14.505Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-14-desktop-scrub-off-anchor-off-s99117-cold:launch-0-scrub-off-anchor",
+      "job": "scrub-off-anchor"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "life",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-15-desktop-life-off-s99117-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=life",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-15-desktop-life-off-s99117-cold"
+    ],
+    "started": "2026-11-04T22:53:14.506Z",
+    "finished": "2026-11-04T22:54:45.742Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-15-desktop-life-off-s99117-cold:launch-0-life",
+      "job": "life"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "save-history",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-16-desktop-save-history-off-s99117-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=save-history",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-16-desktop-save-history-off-s99117-cold"
+    ],
+    "started": "2026-11-04T22:54:45.744Z",
+    "finished": "2026-11-04T22:55:19.840Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-16-desktop-save-history-off-s99117-cold:launch-0-save-history",
+      "job": "save-history"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "save-opening",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-17-desktop-save-opening-off-s99117-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=save-opening",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-17-desktop-save-opening-off-s99117-cold"
+    ],
+    "started": "2026-11-04T22:55:19.841Z",
+    "finished": "2026-11-04T22:55:38.908Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-17-desktop-save-opening-off-s99117-cold:launch-0-save-opening",
+      "job": "save-opening"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "performance-continue",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-18-mobile4-performance-continue-off-s99117-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=performance-continue",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-18-mobile4-performance-continue-off-s99117-cold"
+    ],
+    "started": "2026-11-04T22:55:38.909Z",
+    "finished": "2026-11-04T22:57:20.162Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-18-mobile4-performance-continue-off-s99117-cold:launch-0-performance-continue",
+      "job": "performance-continue"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "scrub-anchor",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-19-mobile4-scrub-anchor-off-s99117-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=scrub-anchor",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-19-mobile4-scrub-anchor-off-s99117-cold"
+    ],
+    "started": "2026-11-04T22:57:20.163Z",
+    "finished": "2026-11-04T22:58:36.813Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-19-mobile4-scrub-anchor-off-s99117-cold:launch-0-scrub-anchor",
+      "job": "scrub-anchor"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "scrub-off-anchor",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-20-mobile4-scrub-off-anchor-off-s99117-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=scrub-off-anchor",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-20-mobile4-scrub-off-anchor-off-s99117-cold"
+    ],
+    "started": "2026-11-04T22:58:36.814Z",
+    "finished": "2026-11-04T22:59:55.955Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-20-mobile4-scrub-off-anchor-off-s99117-cold:launch-0-scrub-off-anchor",
+      "job": "scrub-off-anchor"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "life",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-21-mobile4-life-off-s99117-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=life",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-21-mobile4-life-off-s99117-cold"
+    ],
+    "started": "2026-11-04T22:59:55.955Z",
+    "finished": "2026-11-04T23:02:15.945Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-21-mobile4-life-off-s99117-cold:launch-0-life",
+      "job": "life"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "save-history",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-22-mobile4-save-history-off-s99117-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=save-history",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-22-mobile4-save-history-off-s99117-cold"
+    ],
+    "started": "2026-11-04T23:02:15.945Z",
+    "finished": "2026-11-04T23:03:39.261Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-22-mobile4-save-history-off-s99117-cold:launch-0-save-history",
+      "job": "save-history"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "save-opening",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-otherseeds-23-mobile4-save-opening-off-s99117-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=save-opening",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds-23-mobile4-save-opening-off-s99117-cold"
+    ],
+    "started": "2026-11-04T23:03:39.262Z",
+    "finished": "2026-11-04T23:04:41.564Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-otherseeds-23-mobile4-save-opening-off-s99117-cold:launch-0-save-opening",
+      "job": "save-opening"
+    }
+  }
+]

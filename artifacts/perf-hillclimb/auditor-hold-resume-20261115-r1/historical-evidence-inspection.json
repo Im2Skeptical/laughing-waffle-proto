@@ -1,0 +1,41 @@
+[
+  {
+    "id": "hold-adaptation-controls-r4-20261105",
+    "cells": 21,
+    "passes": 21,
+    "sourceDelta": [],
+    "assetDelta": [],
+    "provenance": {
+      "changed": []
+    },
+    "cleanup": {
+      "browserClosed": true,
+      "ownedServerClosed": true,
+      "at": "2026-11-05T01:20:42.915Z"
+    }
+  },
+  {
+    "id": "hold-adaptation-reference-r1-20261105",
+    "cells": 18,
+    "passes": 18,
+    "sourceDelta": [],
+    "assetDelta": [],
+    "provenance": {
+      "changed": []
+    },
+    "cleanup": {
+      "browserClosed": true,
+      "ownedServerClosed": true,
+      "at": "2026-11-05T01:48:18.330Z"
+    },
+    "observations": {
+      "total": 84,
+      "failed": 0,
+      "feedbackBound": 84,
+      "feedbackCompleted": 84,
+      "feedbackOther": [],
+      "scrubHoldWitness": 24,
+      "allHoldWitnessesPass": true
+    }
+  }
+]

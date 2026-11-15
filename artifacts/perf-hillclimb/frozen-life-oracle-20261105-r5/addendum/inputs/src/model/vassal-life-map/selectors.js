@@ -1,0 +1,496 @@
+import { populationBins } from '../detailed-settlements/population-ledger.js';
+import {
+  VASSAL_LIFE_TUNING,
+  VASSAL_STAT_IDS,
+} from "../../defs/gamepieces/vassal-life-map-defs.js";
+import { MOON_PHASE_COUNT } from "../../defs/gamesettings/moon-phase-defs.js";
+import { getGameSetting } from "../game-config.js";
+import { getMoonPhaseDurationSec } from "../moon-phases.js";
+import { getRegionState } from "../world-state.js";
+import { getEquippedHeirloomModifiers } from "./heirlooms.js";
+import { VASSAL_STAT_DEFS, VASSAL_CLASS_STAT_REPLACEMENTS } from '../../defs/vassal-stat-defs.js';
+import { VASSAL_CLASS_RULES } from '../../defs/vassal-class-rules.js';
+
+export const clone = (value) => JSON.parse(JSON.stringify(value));
+
+function getYearDurationSec(state) {
+  const seasons = Array.isArray(state?.seasons) && state.seasons.length > 0
+    ? state.seasons.length : 4;
+  const seasonDurationSec = Number.isFinite(state?.seasonDurationSec)
+    ? Math.max(1, Math.floor(state.seasonDurationSec)) : 8;
+  return seasons * seasonDurationSec;
+}
+
+export function shuffle(state, values) {
+  const result = [...values];
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const swapIndex = state.rngNextVassalInt(0, index);
+    [result[index], result[swapIndex]] = [result[swapIndex], result[index]];
+  }
+  return result;
+}
+
+export function getDetailedSite(state, regionId) {
+  return (state?.world?.sites ?? []).find((site) =>
+    site?.regionId === regionId && site?.simulationMode === "detailed" && site?.detailedState
+  ) ?? null;
+}
+
+export function getPlayerDetailedSites(state) {
+  return (state?.world?.sites ?? []).filter((site) =>
+    site?.simulationMode === "detailed" && site?.detailedState
+      && getRegionState(state, site.regionId)?.controller === "player"
+  );
+}
+
+export function getVassalLineage(state) {
+  return state?.civilization?.vassalLineage ?? null;
+}
+
+export function getCurrentLifeMapVassal(state) {
+  const lineage = getVassalLineage(state);
+  return lineage?.currentVassalId ? lineage?.vassalsById?.[lineage.currentVassalId] ?? null : null;
+}
+
+export function getSettlementCurrentVassal(state) {
+  const lineage = getVassalLineage(state);
+  if (lineage?.currentVassal) return lineage.currentVassal;
+  const currentVassalId =
+    typeof lineage?.currentVassalId === "string" && lineage.currentVassalId.length > 0
+      ? lineage.currentVassalId
+      : null;
+  if (currentVassalId && lineage?.vassalsById?.[currentVassalId]) {
+    return lineage.vassalsById[currentVassalId];
+  }
+  if (lineage?.vassalsById && typeof lineage.vassalsById === "object") return null;
+  const selectedIds = Array.isArray(lineage?.selectedVassalIds) ? lineage.selectedVassalIds : [];
+  for (let index = selectedIds.length - 1; index >= 0; index -= 1) {
+    const fallback = lineage?.vassalsById?.[selectedIds[index]] ?? null;
+    if (fallback) return fallback;
+  }
+  return null;
+}
+
+export function getVassalLifeMapGraph(vassal) {
+  return vassal?.lifeMap?.graph ?? null;
+}
+
+export function getVassalLifeMapNodes(vassal) {
+  return getVassalLifeMapGraph(vassal)?.nodes ?? [];
+}
+
+export function getVassalLifeMapNode(vassal, nodeId) {
+  return getVassalLifeMapNodes(vassal).find((node) => node.id === nodeId) ?? null;
+}
+
+export function getVassalLifeMapOutgoingNodeIds(vassal, nodeId) {
+  return (getVassalLifeMapGraph(vassal)?.edges ?? [])
+    .filter((edge) => edge.fromNodeId === nodeId)
+    .map((edge) => edge.toNodeId);
+}
+
+function getOutgoingMap(vassal) {
+  const outgoing = new Map();
+  for (const edge of getVassalLifeMapGraph(vassal)?.edges ?? []) {
+    if (!edge?.fromNodeId || !edge?.toNodeId) continue;
+    const list = outgoing.get(edge.fromNodeId) ?? [];
+    list.push(edge.toNodeId);
+    outgoing.set(edge.fromNodeId, list);
+  }
+  for (const list of outgoing.values()) list.sort();
+  return outgoing;
+}
+
+function collectReachable(outgoing, startIds) {
+  const seen = new Set();
+  const queue = [];
+  for (const id of startIds) {
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    queue.push(id);
+  }
+  while (queue.length) {
+    const current = queue.shift();
+    for (const next of outgoing.get(current) ?? []) {
+      if (seen.has(next)) continue;
+      seen.add(next);
+      queue.push(next);
+    }
+  }
+  return seen;
+}
+
+function shortestDirectedPath(outgoing, fromId, toId) {
+  if (fromId === toId) return [fromId];
+  const previous = new Map([[fromId, null]]);
+  const queue = [fromId];
+  while (queue.length) {
+    const current = queue.shift();
+    for (const next of outgoing.get(current) ?? []) {
+      if (previous.has(next)) continue;
+      previous.set(next, current);
+      if (next === toId) {
+        const path = [toId];
+        let cursor = current;
+        while (cursor != null) {
+          path.unshift(cursor);
+          cursor = previous.get(cursor);
+        }
+        return path;
+      }
+      queue.push(next);
+    }
+  }
+  return null;
+}
+
+function getRouteStartIds(vassal) {
+  const currentId = vassal?.lifeMap?.currentNodeId ?? null;
+  return currentId ? [currentId] : [...(vassal?.lifeMap?.availableNodeIds ?? [])];
+}
+
+export function getVassalLifeMapReachableNodeIds(vassal) {
+  return [...collectReachable(getOutgoingMap(vassal), getRouteStartIds(vassal))];
+}
+
+export function getVassalLifeMapPlannedRoute(vassal, pinnedNodeIds = []) {
+  const pins = [...new Set((pinnedNodeIds ?? []).filter(Boolean))];
+  if (!pins.length) return null;
+  const outgoing = getOutgoingMap(vassal);
+  const starts = getRouteStartIds(vassal);
+  const reachFromPin = new Map(
+    pins.map((id) => [id, collectReachable(outgoing, [id])])
+  );
+  const ordered = [...pins].sort((left, right) => {
+    if (left === right) return 0;
+    if (reachFromPin.get(left)?.has(right)) return -1;
+    if (reachFromPin.get(right)?.has(left)) return 1;
+    return left.localeCompare(right);
+  });
+  for (let index = 0; index < ordered.length; index += 1) {
+    for (let later = index + 1; later < ordered.length; later += 1) {
+      if (!reachFromPin.get(ordered[index])?.has(ordered[later])) return null;
+    }
+  }
+  const firstPin = ordered[0];
+  const origin = starts.find((id) => id === firstPin)
+    ?? starts.filter((id) => collectReachable(outgoing, [id]).has(firstPin)).sort()[0];
+  if (!origin) return null;
+  const nodeIds = [];
+  const edgeKeys = [];
+  const appendPath = (fromId, toId) => {
+    const path = shortestDirectedPath(outgoing, fromId, toId);
+    if (!path) return false;
+    for (let index = 0; index < path.length; index += 1) {
+      if (nodeIds[nodeIds.length - 1] !== path[index]) nodeIds.push(path[index]);
+      if (index > 0) edgeKeys.push(`${path[index - 1]}:${path[index]}`);
+    }
+    return true;
+  };
+  if (origin === firstPin) nodeIds.push(origin);
+  else if (!appendPath(origin, firstPin)) return null;
+  for (let index = 1; index < ordered.length; index += 1) {
+    if (!appendPath(ordered[index - 1], ordered[index])) return null;
+  }
+  return { nodeIds, edgeKeys, pinIds: ordered };
+}
+
+export function nextVassalLifeMapPins(vassal, pinnedNodeIds, nodeId) {
+  const current = [...new Set((pinnedNodeIds ?? []).filter(Boolean))];
+  if (!nodeId) return current;
+  if (current.includes(nodeId)) return current.filter((id) => id !== nodeId);
+  if (!getVassalLifeMapPlannedRoute(vassal, [nodeId])) return current;
+  const candidate = [...current, nodeId];
+  return getVassalLifeMapPlannedRoute(vassal, candidate) ? candidate : [nodeId];
+}
+
+export function getSelectedLifeMapVassals(state) {
+  const lineage = getVassalLineage(state);
+  return (lineage?.selectedVassalIds ?? [])
+    .map((id) => lineage?.vassalsById?.[id] ?? null)
+    .filter(Boolean);
+}
+
+export function getSettlementSelectedVassals(state) {
+  const lineage = getVassalLineage(state);
+  if (Array.isArray(lineage?.selectedVassals)) return lineage.selectedVassals;
+  const selectedIds = Array.isArray(lineage?.selectedVassalIds) ? lineage.selectedVassalIds : [];
+  const byId = lineage?.vassalsById ?? {};
+  return selectedIds.map((vassalId) => byId?.[vassalId] ?? null).filter(Boolean);
+}
+
+export function getSettlementFirstSelectedVassal(state) {
+  return getSettlementSelectedVassals(state)[0] ?? null;
+}
+
+export function getLifeMapVassalAtSecond(state, tSec = null) {
+  const safeTSec = Number.isFinite(tSec)
+    ? Math.max(0, Math.floor(tSec))
+    : Math.max(0, Math.floor(state?.tSec ?? 0));
+  let selected = null;
+  for (const vassal of getSelectedLifeMapVassals(state)) {
+    const selectedSec = Number.isFinite(vassal?.selectedSec)
+      ? Math.max(0, Math.floor(vassal.selectedSec))
+      : null;
+    if (selectedSec == null || selectedSec > safeTSec) continue;
+    if (
+      !selected ||
+      selectedSec >= Math.max(0, Math.floor(selected.selectedSec ?? 0))
+    ) {
+      selected = vassal;
+    }
+  }
+  return selected;
+}
+
+function getCommittedNodeSec(vassal, nodeId) {
+  const nodeState = vassal?.lifeMap?.nodeStates?.[nodeId] ?? null;
+  if (Number.isFinite(nodeState?.confirmedSec)) {
+    return Math.max(0, Math.floor(nodeState.confirmedSec));
+  }
+  if (
+    vassal?.lifeMap?.currentNodeId === nodeId &&
+    ["died", "retired"].includes(vassal?.endedReason) &&
+    Number.isFinite(vassal?.endSec)
+  ) {
+    return Math.max(0, Math.floor(vassal.endSec));
+  }
+  return null;
+}
+
+export function getCommittedVassalLifeMapNodeIds(vassal) {
+  const completedIds = Array.isArray(vassal?.lifeMap?.completedNodeIds)
+    ? vassal.lifeMap.completedNodeIds
+    : [];
+  const committedIds = [...completedIds];
+  for (const nodeId of Object.keys(vassal?.lifeMap?.nodeStates ?? {})) {
+    if (getCommittedNodeSec(vassal, nodeId) != null && !committedIds.includes(nodeId)) {
+      committedIds.push(nodeId);
+    }
+  }
+  return committedIds;
+}
+
+export function getVassalLifeMapPlayheadNodeId(vassal, tSec = null) {
+  const safeTSec = Number.isFinite(tSec) ? Math.max(0, Math.floor(tSec)) : null;
+  if (safeTSec == null) return null;
+  let latest = null;
+  let latestSec = -1;
+  for (const nodeId of getCommittedVassalLifeMapNodeIds(vassal)) {
+    const committedSec = getCommittedNodeSec(vassal, nodeId);
+    if (committedSec == null || committedSec > safeTSec || committedSec < latestSec) continue;
+    latest = nodeId;
+    latestSec = committedSec;
+  }
+  return latest;
+}
+
+export function getVassalAge(state, vassal = null, tSec = null) {
+  const current = vassal ?? getCurrentLifeMapVassal(state);
+  if (!current) return 0;
+  const atSec = Number.isFinite(tSec) ? Math.max(0, Math.floor(tSec))
+    : Math.max(0, Math.floor(state?.tSec ?? 0));
+  return Math.max(0, Math.floor(current.initialAge ?? 0))
+    + Math.max(0, Math.floor((atSec - Math.floor(current.selectedSec ?? 0)) / getYearDurationSec(state)));
+}
+
+export function getVassalEffectiveStats(vassal) {
+  const bonus = getEquippedHeirloomModifiers(vassal);
+  return Object.fromEntries(VASSAL_STAT_IDS.map((statId) => [
+    statId,
+    Math.max(0, Math.floor(vassal?.stats?.[statId] ?? 0))
+      + (statId === "cunning" ? bonus.bonusCunning : 0)
+      + (statId === "intelligence" ? bonus.bonusIntelligence : 0),
+  ]));
+}
+
+export function getVassalPrestigeIncome(vassal) {
+  return VASSAL_LIFE_TUNING.basePrestigeIncome
+    + (getVassalStatDefinition(vassal, 'cunning').id === 'ingenuity' ? 0 : Math.max(0, Math.floor(getVassalEffectiveStats(vassal).cunning ?? 0)));
+}
+
+export function getVassalDevelopmentIncome(vassal) {
+  const wisdom = Math.max(0, Math.floor(getVassalEffectiveStats(vassal).wisdom ?? 0));
+  const multiplier = Math.max(1, getEquippedHeirloomModifiers(vassal).wisdomDevelopmentMultiplier ?? 1);
+  return VASSAL_LIFE_TUNING.baseDevelopmentIncome + Math.floor(wisdom * multiplier);
+}
+
+// Provisional, not final balance: 20 residents earn 1 Prestige per completed node.
+export const TERRITORIAL_PRESTIGE_POPULATION_PER_POINT = 20;
+export function getRegionPrestigePerNode(state,regionId) {
+  if(!state?.rulesetId||getRegionState(state,regionId)?.controller!=='player')return null;
+  const settlement=getDetailedSite(state,regionId)?.detailedState;
+  const population=populationBins(settlement).reduce((total,bin)=>total+bin.count,0);
+  return population/TERRITORIAL_PRESTIGE_POPULATION_PER_POINT*(1-(settlement?.control?.unrest??0)/100);
+}
+export function getVassalNodeResolutionGains(state, vassal, nodeFamily = null) {
+  const modifiers = getEquippedHeirloomModifiers(vassal);
+  return {
+    prestige: Math.round(getVassalPrestigeIncome(vassal)
+      + (nodeFamily === "patronage" ? modifiers.patronageNodePrestige : 0)
+      + (state?.rulesetId ? getPlayerDetailedSites(state).reduce((total,site)=>total+getRegionPrestigePerNode(state,site.regionId),0) : 0)),
+    development: getVassalDevelopmentIncome(vassal)
+      + modifiers.nodeDevelopment
+      + (nodeFamily === "crossroads" ? modifiers.crossroadsNodeDevelopment : 0),
+  };
+}
+
+// Founders already have their promised attribute; Founding separately unlocks
+// the civilization's specialist population and class-only content.
+export function getVassalStatDefinition(vassal, statId) {
+  const classId = vassal?.classId ?? vassal?.founderClassId;
+  const id = VASSAL_CLASS_STAT_REPLACEMENTS[classId]?.[statId] ?? statId;
+  return VASSAL_STAT_DEFS[id];
+}
+
+export function getVassalStatPresentation(vassal, statId, valueOverride = null) {
+  const definition = getVassalStatDefinition(vassal, statId);
+  const effective = getVassalEffectiveStats(vassal);
+  const value = Number.isFinite(valueOverride)
+    ? Math.max(0, Math.floor(valueOverride))
+    : Math.max(0, Math.floor(effective[statId] ?? 0));
+  const cap = VASSAL_LIFE_TUNING.maximumDiscount;
+  const discount = Math.min(cap, value * VASSAL_LIFE_TUNING.discountPerStat);
+  const pointsToCap = Math.max(0, Math.ceil(
+    (cap - discount) / VASSAL_LIFE_TUNING.discountPerStat
+  ));
+  const baseValue = Math.max(0, Math.floor(vassal?.stats?.[statId] ?? 0));
+  const heirloomBonus = value - (Number.isFinite(valueOverride) ? value : baseValue);
+  const bonusNote = heirloomBonus > 0 ? ` · Heirloom +${heirloomBonus}` : "";
+  if (definition.id === 'ingenuity') return { ...definition, value, powerLabel: `${Math.round(value * VASSAL_CLASS_RULES.scholar.qualityChancePerPoint * 100)}% quality uplift`, formula: "Price-neutral shop uplift and Discovery Research", pointsToCap: null };
+  if (definition.id === 'prowess') return { ...definition, value, powerLabel: `+${value} Martial Force`, formula: `Global Martial Force; RISK success × (1 + ${Math.round(VASSAL_CLASS_RULES.warrior.riskSuccessPerPoint * 100)}% per point)`, pointsToCap: null };
+  if (statId === "cunning") {
+    const power = VASSAL_LIFE_TUNING.basePrestigeIncome + value;
+    return {
+      ...definition, value,
+      powerLabel: `+${power} Prestige per completed node`,
+      formula: `${VASSAL_LIFE_TUNING.basePrestigeIncome} base + ${value} Cunning${bonusNote}`,
+      pointsToCap: null,
+    };
+  }
+  if (statId === "wisdom") {
+    const modifiers = getEquippedHeirloomModifiers(vassal);
+    const power = getVassalDevelopmentIncome(vassal);
+    const codexNote = modifiers.wisdomDevelopmentMultiplier > 1
+      ? ` · Scholar's Codex ×${modifiers.wisdomDevelopmentMultiplier}` : "";
+    return {
+      ...definition, value,
+      powerLabel: `+${power} EXP per completed node`,
+      formula: `${VASSAL_LIFE_TUNING.baseDevelopmentIncome} base + Wisdom${codexNote}${bonusNote}`,
+      pointsToCap: null,
+    };
+  }
+  const percent = Math.round(discount * 100);
+  const noun = statId === "effectiveness" ? "Phase" : "Prestige";
+  return {
+    ...definition, value,
+    powerLabel: `${percent}% ${noun}-cost discount`,
+    formula: `${Math.round(VASSAL_LIFE_TUNING.discountPerStat * 100)}% per point · ${Math.round(cap * 100)}% cap · costs round up`,
+    pointsToCap,
+    multiplier: Math.round((1 - discount) * 100) / 100,
+  };
+}
+
+export function getVassalStatsPresentation(vassal) {
+  return VASSAL_STAT_IDS.map((statId) => getVassalStatPresentation(vassal, statId));
+}
+
+function adjustedCost(base, stat, { allowZero = true } = {}) {
+  const safeBase = Math.max(0, Number(base) || 0);
+  if (safeBase <= 0) return 0;
+  const discount = Math.min(
+    VASSAL_LIFE_TUNING.maximumDiscount,
+    Math.max(0, Math.floor(stat ?? 0)) * VASSAL_LIFE_TUNING.discountPerStat
+  );
+  const result = Math.ceil(safeBase * (1 - discount));
+  return allowZero ? Math.max(0, result) : Math.max(1, result);
+}
+
+export function getAdjustedVassalPrestigeCost(vassal, baseCost) {
+  return adjustedCost(baseCost, getVassalStatDefinition(vassal, 'intelligence').id === 'prowess' ? 0 : getVassalEffectiveStats(vassal).intelligence, { allowZero: true });
+}
+
+// Convert authored solar years to spendable phases before stat/Heirloom discounts.
+export function getVassalYearPhaseCost(state, years) {
+  const seasonCount = state?.seasons?.length || 4;
+  return Math.max(years > 0 ? 1 : 0, Math.round(
+    years * seasonCount * getGameSetting(state, "seasonDurationSec") / getMoonPhaseDurationSec(state)
+  ));
+}
+
+export function getAdjustedVassalPhaseCost(vassal, baseCost) {
+  return adjustedCost(baseCost, getVassalEffectiveStats(vassal).effectiveness, { allowZero: false });
+}
+
+export function getVassalActionPrestigeCost(vassal, baseCost, context = {}) {
+  let cost = getAdjustedVassalPrestigeCost(vassal, baseCost);
+  const discount = getEquippedHeirloomModifiers(vassal).firstInterventionDiscount ?? 0;
+  if (context.isFirstShopPurchase === true && discount > 0) {
+    cost = Math.max(0, Math.ceil(cost * (1 - discount)));
+  }
+  return cost;
+}
+
+export function getVassalActionPhaseCost(vassal, baseCost, context = {}) {
+  let cost = getAdjustedVassalPhaseCost(vassal, baseCost);
+  if (cost <= 0) return 0;
+  const modifiers = getEquippedHeirloomModifiers(vassal);
+  if (context.isTravel === true && modifiers.travelCostMultiplier < 1) {
+    cost = Math.max(1, Math.ceil(cost * modifiers.travelCostMultiplier));
+  }
+  const hourglassAvailable = modifiers.hourglassFirstActionMultiplier < 1
+    && context.nodeState?.heirloomTimeActionUsed !== true;
+  if (hourglassAvailable) {
+    cost = Math.max(1, Math.ceil(cost * modifiers.hourglassFirstActionMultiplier));
+  }
+  if (modifiers.allTimeCostMultiplier < 1) {
+    cost = Math.max(1, Math.ceil(cost * modifiers.allTimeCostMultiplier));
+  }
+  return cost;
+}
+
+export function markHeirloomTimeAction(nodeState, phaseCost) {
+  if (!nodeState || !(Math.max(0, Math.floor(phaseCost ?? 0)) > 0)) return;
+  nodeState.heirloomTimeActionUsed = true;
+}
+
+// Display units follow the run's two independent clocks. This never changes
+// the phase prices authored in definitions or the seconds paid on confirmation.
+export function getVassalPhaseDurationParts(phaseCost, state = null) {
+  let remaining = Math.max(0, Math.floor(phaseCost ?? 0));
+  const phasesPerYear = getGameSetting(state, "seasonDurationSec") * 4 / getMoonPhaseDurationSec(state);
+  // A fractional phase cannot be spent. Use lunar units for calendars whose
+  // solar year does not contain an integral number of phases.
+  const years = Number.isInteger(phasesPerYear) ? Math.floor(remaining / phasesPerYear) : 0;
+  remaining -= years * phasesPerYear;
+  const moons = Math.floor(remaining / MOON_PHASE_COUNT);
+  const phases = remaining % MOON_PHASE_COUNT;
+  return { years, moons, phases };
+}
+
+export function formatVassalPhaseDuration(phaseCost, state = null) {
+  const { years, moons, phases } = getVassalPhaseDurationParts(phaseCost, state);
+  const parts = [];
+  if (years) parts.push(`${years} ${years === 1 ? 'year' : 'years'}`);
+  if (moons) parts.push(`${moons} ${moons === 1 ? 'moon' : 'moons'}`);
+  if (phases || !parts.length) parts.push(`${phases} ${phases === 1 ? 'phase' : 'phases'}`);
+  return parts.join(", ");
+}
+
+export function candidatePoolHash(candidates) {
+  return JSON.stringify(candidates ?? []);
+}
+
+export function getVassalCandidatePool(state) {
+  const lineage = getVassalLineage(state);
+  const candidates = clone(lineage?.pendingCandidates ?? []).map((candidate, candidateIndex) => ({
+    ...candidate, candidateIndex,
+  }));
+  return {
+    poolId: `life-vassal-${Math.max(1, Math.floor(lineage?.nextVassalId ?? 1))}-reroll-${Math.max(0, Math.floor(lineage?.candidateRerollCount ?? 0))}`,
+    createdSec: Math.max(0, Math.floor(state?.tSec ?? 0)),
+    rerollIndex: Math.max(0, Math.floor(lineage?.candidateRerollCount ?? 0)),
+    candidates,
+    expectedPoolHash: candidatePoolHash(candidates.map(({ candidateIndex: _index, ...candidate }) => candidate)),
+  };
+}

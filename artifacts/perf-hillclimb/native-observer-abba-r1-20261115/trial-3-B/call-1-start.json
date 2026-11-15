@@ -1,0 +1,9 @@
+{
+  "index": 1,
+  "stage": "main",
+  "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-KYeb7O",
+  "started": "2026-11-15T03:40:40.590Z",
+  "timeoutMs": 40000,
+  "fixturePort": 63867,
+  "subjectNormalizedSha256": "f25a731186f3c360bfa89376c7baa2a5c8a8ba30c62d1e451affb54432119bfe"
+}

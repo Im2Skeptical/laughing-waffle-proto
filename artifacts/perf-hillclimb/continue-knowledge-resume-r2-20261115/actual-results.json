@@ -1,0 +1,593 @@
+[
+  {
+    "id": "continue-knowledge-missing-frame-r2-20261115",
+    "seed": 123,
+    "population": "desktop",
+    "job": "performance-continue",
+    "control": "settled-missing-frame",
+    "exit": 1,
+    "error": "settled pre-save full read timeout after 1500ms",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--jobs=performance-continue",
+      "--population=desktop",
+      "--seed=123",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--id=continue-knowledge-missing-frame-r2-20261115",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--control=settled-missing-frame"
+    ],
+    "started": "2026-11-14T21:59:20.396Z",
+    "finished": "2026-11-14T21:59:51.491Z",
+    "actualExit": 1,
+    "pass": true,
+    "failure": "Error: settled pre-save full read timeout after 1500ms\n    at Timeout.<anonymous> (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/deadline.mjs:8:35)\n    at listOnTimeout (node:internal/timers:605:17)\n    at process.processTimers (node:internal/timers:541:7)",
+    "cleanup": {
+      "context": [
+        {
+          "launchId": "continue-knowledge-missing-frame-r2-20261115:launch-0-performance-continue",
+          "closed": true,
+          "pageClosed": true,
+          "at": "2026-11-14T21:59:50.262Z"
+        }
+      ],
+      "browser": [
+        {
+          "launchId": "continue-knowledge-missing-frame-r2-20261115:launch-0-performance-continue",
+          "closed": true,
+          "at": "2026-11-14T21:59:51.445Z"
+        }
+      ],
+      "errors": []
+    },
+    "partial": {
+      "policy": "frozen-terminal-observed-before-save-v1",
+      "error": "Error: settled pre-save full read timeout after 1500ms\n    at Timeout.<anonymous> (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/deadline.mjs:8:35)\n    at listOnTimeout (node:internal/timers:605:17)\n    at process.processTimers (node:internal/timers:541:7)",
+      "window": {
+        "launchId": "continue-knowledge-missing-frame-r2-20261115:launch-0-performance-continue",
+        "startMs": 9074,
+        "endMs": null,
+        "reason": "declared settled-terminal pre-save setup; includes frozen derivation/full inspection and is not a product speedup"
+      },
+      "partial": {
+        "ready": {
+          "atMs": 20572.09999999404,
+          "snapshot": {
+            "version": 2,
+            "mode": "map",
+            "selectedRegionId": "R14",
+            "regionSelectionActive": false,
+            "runner": {
+              "frontierSec": 439,
+              "cursorSec": 439,
+              "viewedSec": 439,
+              "previewActive": false,
+              "forecastPreview": false,
+              "revision": 22,
+              "actionCount": 21,
+              "checkpointCount": 28
+            },
+            "opening": {
+              "phase": "idle",
+              "preparation": "idle",
+              "coverageSec": 16,
+              "elapsedSec": 0,
+              "lossSec": null
+            },
+            "map": {
+              "visible": true,
+              "detailVisible": false,
+              "camera": {
+                "x": 0,
+                "y": 0,
+                "zoom": 1
+              },
+              "focusAnimating": false,
+              "panelPhase": "closed",
+              "panelAnimating": false,
+              "panelPose": {
+                "x": 0,
+                "y": 0,
+                "scale": 1
+              },
+              "artReady": false,
+              "artPrepared": null
+            },
+            "graph": {
+              "visible": true,
+              "minSec": 0,
+              "maxSec": 4326,
+              "scrubDrawSignature": "0|439|439|439|0:4326||Civilization • All player settlements|-1",
+              "plotRect": {
+                "x": 573.855,
+                "y": 884.1,
+                "width": 1276.275,
+                "height": 145.86
+              },
+              "plotRectSpace": "stage-retained-transform",
+              "projection": {
+                "signatureVersion": 4,
+                "timelineToken": "sig:4",
+                "signatureMatches": true
+              },
+              "scrubSec": 439,
+              "isScrubbing": false,
+              "latchedForecastScrubSec": null,
+              "historyEndSec": 439,
+              "revealedSec": 4198,
+              "browseCapSec": 4198,
+              "targetSec": 4344,
+              "computedSec": 4344,
+              "requestedSec": 4471,
+              "pending": true,
+              "cacheVersion": 171,
+              "subjectKey": "civilization",
+              "asyncToken": "sig:4",
+              "asyncPollMs": 20559.90000000596,
+              "asyncHistoryEndSec": 439,
+              "asyncRequestedSec": 4471,
+              "asyncComputedSec": 4344,
+              "revealHistoryEndSec": 439,
+              "animatedSec": 4198.643112305184,
+              "visibleEndSec": 4198.643112305184,
+              "startSecOverride": null,
+              "readinessCapSec": null,
+              "capEndSec": null,
+              "paused": false,
+              "presentationSuspended": false,
+              "openingRevealSec": null
+            },
+            "life": {
+              "visible": false,
+              "selectedCandidateNodeId": null,
+              "displayedVassalId": "vassal-1",
+              "entryConfirmationOpen": false,
+              "entryOpen": false,
+              "entryVisible": false,
+              "entryPhase": "closed",
+              "decisionOpen": false,
+              "decisionNodeId": null,
+              "decisionPhase": "closed",
+              "pendingInteractionCount": null,
+              "family": null,
+              "selectedOptionId": null,
+              "resolving": null,
+              "shopTag": null,
+              "offerIds": null,
+              "purchaseOrder": null,
+              "boardPracticeIds": null,
+              "observedDecisionNodeId": null,
+              "boardRegionId": null,
+              "decisionArtReady": false,
+              "decisionArtPrepared": null,
+              "entryPoint": null,
+              "processingPhase": null,
+              "sourceRevision": 22,
+              "ready": null,
+              "processing": {
+                "sourceRevision": 22,
+                "sourceSec": 439,
+                "baseRevision": 22,
+                "baseSec": 439,
+                "timelineMatches": true,
+                "sourceMatches": true,
+                "requestId": 2,
+                "revision": 2,
+                "adopting": false,
+                "workerActive": false,
+                "draftActive": false,
+                "draftActionCount": 0,
+                "jobActive": false,
+                "phase": null,
+                "error": null,
+                "accepted": null,
+                "jobReady": null,
+                "ready": null,
+                "targetSec": null,
+                "computedSec": null,
+                "revealSec": null
+              },
+              "recapOpen": false,
+              "continueState": null,
+              "recapClock": null,
+              "recapClockStartedAt": null
+            }
+          }
+        },
+        "frames": [],
+        "phase": "frames"
+      },
+      "scope": "failed/censored setup; no save completion or zero-cost claim"
+    }
+  },
+  {
+    "id": "continue-knowledge-never-evaluation-r2-20261115",
+    "seed": 123,
+    "population": "desktop",
+    "job": "performance-continue",
+    "control": "settled-never-evaluation",
+    "exit": 1,
+    "error": "settled pre-save full read timeout after 1500ms",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--jobs=performance-continue",
+      "--population=desktop",
+      "--seed=123",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--id=continue-knowledge-never-evaluation-r2-20261115",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--control=settled-never-evaluation"
+    ],
+    "started": "2026-11-14T21:59:51.883Z",
+    "finished": "2026-11-14T22:00:23.177Z",
+    "actualExit": 1,
+    "pass": true,
+    "failure": "Error: settled pre-save full read timeout after 1500ms\n    at Timeout.<anonymous> (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/deadline.mjs:8:35)\n    at listOnTimeout (node:internal/timers:605:17)\n    at process.processTimers (node:internal/timers:541:7)",
+    "cleanup": {
+      "context": [
+        {
+          "launchId": "continue-knowledge-never-evaluation-r2-20261115:launch-0-performance-continue",
+          "closed": true,
+          "pageClosed": true,
+          "at": "2026-11-14T22:00:21.698Z"
+        }
+      ],
+      "browser": [
+        {
+          "launchId": "continue-knowledge-never-evaluation-r2-20261115:launch-0-performance-continue",
+          "closed": true,
+          "at": "2026-11-14T22:00:23.139Z"
+        }
+      ],
+      "errors": []
+    },
+    "partial": {
+      "policy": "frozen-terminal-observed-before-save-v1",
+      "error": "Error: settled pre-save full read timeout after 1500ms\n    at Timeout.<anonymous> (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/deadline.mjs:8:35)\n    at listOnTimeout (node:internal/timers:605:17)\n    at process.processTimers (node:internal/timers:541:7)",
+      "window": {
+        "launchId": "continue-knowledge-never-evaluation-r2-20261115:launch-0-performance-continue",
+        "startMs": 9004.300000011921,
+        "endMs": null,
+        "reason": "declared settled-terminal pre-save setup; includes frozen derivation/full inspection and is not a product speedup"
+      },
+      "partial": {
+        "ready": {
+          "atMs": 20404.40000000596,
+          "snapshot": {
+            "version": 2,
+            "mode": "map",
+            "selectedRegionId": "R14",
+            "regionSelectionActive": false,
+            "runner": {
+              "frontierSec": 439,
+              "cursorSec": 439,
+              "viewedSec": 439,
+              "previewActive": false,
+              "forecastPreview": false,
+              "revision": 22,
+              "actionCount": 21,
+              "checkpointCount": 28
+            },
+            "opening": {
+              "phase": "idle",
+              "preparation": "idle",
+              "coverageSec": 16,
+              "elapsedSec": 0,
+              "lossSec": null
+            },
+            "map": {
+              "visible": true,
+              "detailVisible": false,
+              "camera": {
+                "x": 0,
+                "y": 0,
+                "zoom": 1
+              },
+              "focusAnimating": false,
+              "panelPhase": "closed",
+              "panelAnimating": false,
+              "panelPose": {
+                "x": 0,
+                "y": 0,
+                "scale": 1
+              },
+              "artReady": false,
+              "artPrepared": null
+            },
+            "graph": {
+              "visible": true,
+              "minSec": 0,
+              "maxSec": 4330,
+              "scrubDrawSignature": "0|439|439|439|0:4330||Civilization • All player settlements|-1",
+              "plotRect": {
+                "x": 573.855,
+                "y": 884.1,
+                "width": 1276.275,
+                "height": 145.86
+              },
+              "plotRectSpace": "stage-retained-transform",
+              "projection": {
+                "signatureVersion": 4,
+                "timelineToken": "sig:4",
+                "signatureMatches": true
+              },
+              "scrubSec": 439,
+              "isScrubbing": false,
+              "latchedForecastScrubSec": null,
+              "historyEndSec": 439,
+              "revealedSec": 4202,
+              "browseCapSec": 4202,
+              "targetSec": 4344,
+              "computedSec": 4344,
+              "requestedSec": 4519,
+              "pending": true,
+              "cacheVersion": 172,
+              "subjectKey": "civilization",
+              "asyncToken": "sig:4",
+              "asyncPollMs": 20396.80000001192,
+              "asyncHistoryEndSec": 439,
+              "asyncRequestedSec": 4519,
+              "asyncComputedSec": 4344,
+              "revealHistoryEndSec": 439,
+              "animatedSec": 4202.731496929369,
+              "visibleEndSec": 4202.731496929369,
+              "startSecOverride": null,
+              "readinessCapSec": null,
+              "capEndSec": null,
+              "paused": false,
+              "presentationSuspended": false,
+              "openingRevealSec": null
+            },
+            "life": {
+              "visible": false,
+              "selectedCandidateNodeId": null,
+              "displayedVassalId": "vassal-1",
+              "entryConfirmationOpen": false,
+              "entryOpen": false,
+              "entryVisible": false,
+              "entryPhase": "closed",
+              "decisionOpen": false,
+              "decisionNodeId": null,
+              "decisionPhase": "closed",
+              "pendingInteractionCount": null,
+              "family": null,
+              "selectedOptionId": null,
+              "resolving": null,
+              "shopTag": null,
+              "offerIds": null,
+              "purchaseOrder": null,
+              "boardPracticeIds": null,
+              "observedDecisionNodeId": null,
+              "boardRegionId": null,
+              "decisionArtReady": false,
+              "decisionArtPrepared": null,
+              "entryPoint": null,
+              "processingPhase": null,
+              "sourceRevision": 22,
+              "ready": null,
+              "processing": {
+                "sourceRevision": 22,
+                "sourceSec": 439,
+                "baseRevision": 22,
+                "baseSec": 439,
+                "timelineMatches": true,
+                "sourceMatches": true,
+                "requestId": 2,
+                "revision": 2,
+                "adopting": false,
+                "workerActive": false,
+                "draftActive": false,
+                "draftActionCount": 0,
+                "jobActive": false,
+                "phase": null,
+                "error": null,
+                "accepted": null,
+                "jobReady": null,
+                "ready": null,
+                "targetSec": null,
+                "computedSec": null,
+                "revealSec": null
+              },
+              "recapOpen": false,
+              "continueState": null,
+              "recapClock": null,
+              "recapClockStartedAt": null
+            }
+          }
+        },
+        "frames": [],
+        "phase": "deliberate-never-evaluation"
+      },
+      "scope": "failed/censored setup; no save completion or zero-cost claim"
+    }
+  },
+  {
+    "id": "continue-knowledge-positive-desktop123-r2-20261115",
+    "seed": 123,
+    "population": "desktop",
+    "job": "performance-continue",
+    "exit": 0,
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--jobs=performance-continue",
+      "--population=desktop",
+      "--seed=123",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--id=continue-knowledge-positive-desktop123-r2-20261115",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000"
+    ],
+    "started": "2026-11-14T22:00:23.610Z",
+    "finished": "2026-11-14T22:00:58.700Z",
+    "actualExit": 0,
+    "pass": true,
+    "failure": null,
+    "cleanup": {
+      "context": [
+        {
+          "launchId": "continue-knowledge-positive-desktop123-r2-20261115:launch-0-performance-continue",
+          "closed": true,
+          "pageClosed": true,
+          "at": "2026-11-14T22:00:57.465Z"
+        }
+      ],
+      "browser": [
+        {
+          "launchId": "continue-knowledge-positive-desktop123-r2-20261115:launch-0-performance-continue",
+          "closed": true,
+          "at": "2026-11-14T22:00:58.649Z"
+        }
+      ],
+      "errors": []
+    },
+    "partial": null
+  },
+  {
+    "id": "continue-knowledge-positive-mobile424242-r2-20261115",
+    "seed": 424242,
+    "population": "mobile4",
+    "job": "performance-continue",
+    "exit": 0,
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--jobs=performance-continue",
+      "--population=mobile4",
+      "--seed=424242",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--id=continue-knowledge-positive-mobile424242-r2-20261115",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000"
+    ],
+    "started": "2026-11-14T22:00:59.094Z",
+    "finished": "2026-11-14T22:02:28.391Z",
+    "actualExit": 0,
+    "pass": true,
+    "failure": null,
+    "cleanup": {
+      "context": [
+        {
+          "launchId": "continue-knowledge-positive-mobile424242-r2-20261115:launch-0-performance-continue",
+          "closed": true,
+          "pageClosed": true,
+          "at": "2026-11-14T22:02:27.537Z"
+        }
+      ],
+      "browser": [
+        {
+          "launchId": "continue-knowledge-positive-mobile424242-r2-20261115:launch-0-performance-continue",
+          "closed": true,
+          "at": "2026-11-14T22:02:28.335Z"
+        }
+      ],
+      "errors": []
+    },
+    "partial": null
+  },
+  {
+    "id": "continue-knowledge-wrong-save-r2-20261115",
+    "seed": 123,
+    "population": "desktop",
+    "job": "save-history",
+    "control": "wrong-save",
+    "exit": 1,
+    "error": "persisted/source state differs",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--jobs=save-history",
+      "--population=desktop",
+      "--seed=123",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--id=continue-knowledge-wrong-save-r2-20261115",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--control=wrong-save"
+    ],
+    "started": "2026-11-14T22:02:28.792Z",
+    "finished": "2026-11-14T22:03:02.439Z",
+    "actualExit": 1,
+    "pass": true,
+    "failure": "AssertionError [ERR_ASSERTION]: persisted/source state differs: currentSeasonIndex, year, simStepIndex, tSec, seasonTimeRemaining, simTime, seasonClockSec, actionPoints, actionPointCap, world.regions.15.controller, world.regions.18.controller, world.sites.0.detailedState.populationByClass.villager.specialists.scholar.adults, world.sites.0.detailedState.populationByClass.villager.children, world.sites.0.detailedState.populationByClass.villager.adults, world.sites.0.detailedState.populationByClass.villager.eldersByAge.0, world.sites.0.detailedState.populationByClass.villager.eldersByAge.1, world.sites.0.detailedState.populationByClass.villager.happiness.fullFeedStreak, world.sites.0.detailedState.populationByClass.villager.joint.0.count, world.sites.0.detailedState.populationByClass.villager.joint.1.count, world.sites.0.detailedState.populationByClass.villager.joint.2.allegiance, world.sites.0.detailedState.populationByClass.villager.joint.2.kind, world.sites.0.detailedState.populationByClass.villager.joint.2.age, world.sites.0.detailedState.populationByClass.villager.joint.2.count, world.sites.0.detailedState.populationByClass.villager.joint.3.allegiance, world.sites.0.detailedState.populationByClass.villager.joint.3.kind, world.sites.0.detailedState.populationByClass.villager.joint.3.age, world.sites.0.detailedState.populationByClass.villager.joint.3.count, world.sites.0.detailedState.populationByClass.villager.joint.4, world.sites.0.detailedState.populationByClass.villager.joint.5, world.sites.0.detailedState.populationByClass.villager.joint.6, world.sites.0.detailedState.populationByClass.villager.joint.7, world.sites.0.detailedState.practiceSlots.0.stock, world.sites.0.detailedState.structureSlots.2, world.sites.0.detailedState.lastMeal, world.sites.0.detailedState.lastMoonResult, world.sites.0.detailedState.garrison.tSec, world.sites.0.detailedState.practiceActivationTrace, world.sites.0.detailedState.mealRelief, world.sites.0.detailedState.history, world.sites.1.detailedState.populationByClass.villager.children, world.sites.1.detailedState.populationByClass.villager.adults, world.sites.1.detailedState.populationByClass.villager.eldersByAge.0, world.sites.1.detailedState.populationByClass.villager.eldersByAge.1, world.sites.1.detailedState.populationByClass.villager.eldersByAge.2, world.sites.1.detailedState.populationByClass.villager.eldersByAge.3, world.sites.1.detailedState.populationByClass.villager.happiness.fullFeedStreak, world.sites.1.detailedState.populationByClass.villager.joint.0.count, world.sites.1.detailedState.populationByClass.villager.joint.1.count, world.sites.1.detailedState.populationByClass.villager.joint.2.allegiance, world.sites.1.detailedState.populationByClass.villager.joint.2.kind, world.sites.1.detailedState.populationByClass.villager.joint.2.age, world.sites.1.detailedState.populationByClass.villager.joint.2.count, world.sites.1.detailedState.populationByClass.villager.joint.3.allegiance, world.sites.1.detailedState.populationByClass.villager.joint.3.kind, world.sites.1.detailedState.populationByClass.villager.joint.3.age, world.sites.1.detailedState.populationByClass.villager.joint.3.count, world.sites.1.detailedState.populationByClass.villager.joint.4, world.sites.1.detailedState.populationByClass.villager.joint.5, world.sites.1.detailedState.populationByClass.villager.joint.6, world.sites.1.detailedState.populationByClass.villager.joint.7, world.sites.1.detailedState.populationByClass.villager.joint.8, world.sites.1.detailedState.practiceSlots.0.stock, world.sites.1.detailedState.lastMeal, world.sites.1.detailedState.lastMoonResult; launch-0-save-history-save-state-comparison.json\n    at fullSaveOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:530:10)\n    at async oracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:1097:18)\n    at async withDeadline (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/deadline.mjs:7:12)\n    at async record (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:182:31)\n    at async saveLoad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:1068:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:1193:9",
+    "cleanup": {
+      "context": [
+        {
+          "launchId": "continue-knowledge-wrong-save-r2-20261115:launch-0-save-history",
+          "closed": true,
+          "pageClosed": true,
+          "at": "2026-11-14T22:03:01.288Z"
+        }
+      ],
+      "browser": [
+        {
+          "launchId": "continue-knowledge-wrong-save-r2-20261115:launch-0-save-history",
+          "closed": true,
+          "at": "2026-11-14T22:03:02.399Z"
+        }
+      ],
+      "errors": []
+    },
+    "partial": null
+  },
+  {
+    "id": "continue-knowledge-deferred-save-r2-20261115",
+    "seed": 123,
+    "population": "desktop",
+    "job": "save-history",
+    "control": "deferred-save",
+    "exit": 0,
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--jobs=save-history",
+      "--population=desktop",
+      "--seed=123",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--id=continue-knowledge-deferred-save-r2-20261115",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--control=deferred-save"
+    ],
+    "started": "2026-11-14T22:03:02.828Z",
+    "finished": "2026-11-14T22:03:35.875Z",
+    "actualExit": 0,
+    "pass": true,
+    "failure": null,
+    "cleanup": {
+      "context": [
+        {
+          "launchId": "continue-knowledge-deferred-save-r2-20261115:launch-0-save-history",
+          "closed": true,
+          "pageClosed": true,
+          "at": "2026-11-14T22:03:35.072Z"
+        }
+      ],
+      "browser": [
+        {
+          "launchId": "continue-knowledge-deferred-save-r2-20261115:launch-0-save-history",
+          "closed": true,
+          "at": "2026-11-14T22:03:35.831Z"
+        }
+      ],
+      "errors": []
+    },
+    "partial": null
+  }
+]

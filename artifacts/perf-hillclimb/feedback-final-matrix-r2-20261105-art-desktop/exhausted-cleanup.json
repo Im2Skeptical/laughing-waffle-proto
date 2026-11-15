@@ -1,0 +1,16 @@
+{
+  "case": "exhausted",
+  "contextClosed": true,
+  "browserClosed": true,
+  "errors": [],
+  "browserConnected": false,
+  "lifetime": {
+    "label": "artwork exhausted",
+    "status": "completed",
+    "hostStartedMs": 289416.1087,
+    "hostDeadlineMs": 7009416.1087,
+    "reason": null,
+    "unconfirmedWork": [],
+    "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+  }
+}

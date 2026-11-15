@@ -1,0 +1,6 @@
+{
+  "name": "repinned-uncaptured-input",
+  "status": "PASS expected rejection",
+  "expected": "/uncaptured input/",
+  "error": "AssertionError [ERR_ASSERTION]: uncaptured input src/model/vassal-life-map/decision-preparation.js\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:187:80)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:93:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:106:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:156:3"
+}

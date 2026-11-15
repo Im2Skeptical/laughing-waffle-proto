@@ -1,0 +1,1014 @@
+{
+  "ok": true,
+  "identity": {
+    "date": "2026-11-04T13:36:35.450Z",
+    "files": {
+      "browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+      "mechanism-controls.mjs": "97a558ad9bdbf19f2356f50313cf63a2b019050c0d1d8818614e55c64bf9c34c"
+    },
+    "contractId": "dbcb7412dd610c8ccb5bc596cc32b877f7a7c30ff3da2d520c7a1876e56707f9",
+    "build": {
+      "performanceFixtureKey": "fa98ad39fda149130d181354421a0f6d4d833b7e26ada36d214c410f910f837c",
+      "version": "1.1.52",
+      "build": "a40864ef29f0",
+      "revision": "a9df52cbd625",
+      "channel": "pages",
+      "branch": "perf/hillclimb-20261104",
+      "dirty": true,
+      "preview": true,
+      "previewLabel": null,
+      "entryPoint": "src/views/ui-root-pixi.js",
+      "bundle": "./assets/app-CLB6GCI6.js",
+      "worker": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+      "saveLoadWorker": "./assets/save-load-worker-7YJYILEJ.js",
+      "stylesheet": "./assets/styles-ec05c6a73a6e.css"
+    },
+    "node": "v24.15.0",
+    "playwright": "1.59.1"
+  },
+  "chromium": "147.0.7727.15",
+  "launch": {
+    "headless": true,
+    "args": [
+      "--use-gl=angle",
+      "--use-angle=swiftshader"
+    ]
+  },
+  "results": [
+    {
+      "mechanism": "trusted-input/deferred-visible-completion",
+      "baseline": {
+        "id": 1,
+        "name": "control",
+        "armed": 19.5,
+        "started": 69.69999998807907,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 83.2999999821186,
+            "dt": 18
+          },
+          {
+            "time": 99.40000000596046,
+            "dt": 16.100000023841858
+          },
+          {
+            "time": 116.2999999821186,
+            "dt": 16.899999976158142
+          },
+          {
+            "time": 132.2999999821186,
+            "dt": 16
+          }
+        ],
+        "longTasks": [],
+        "probes": 5,
+        "probeCpuMs": 0,
+        "workerOffset": 0,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 83.2999999821186,
+          "reason": "terminal predicate became false"
+        },
+        "handlerStarted": 70.40000000596046,
+        "eventTimeStamp": 69.69999998807907,
+        "inputQueueMs": 0.7000000178813934,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0,
+        "hostFinishCalledAt": 134.69999998807907,
+        "semanticEnd": 99.40000000596046,
+        "finished": 132.2999999821186,
+        "completionClock": "browser predicate observation + double-rAF opportunity; not physical scanout or completion of all later app work",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 62.599999994039536,
+        "timeout": false,
+        "terminalReadinessMs": 29.700000017881393,
+        "firstFeedbackMs": null,
+        "feedbackScope": "first visible feedback unmeasured; terminal readiness must not be relabelled as feedback",
+        "semanticToFrameOpportunityMs": 32.89999997615814,
+        "finishCallRelativeToFrameOpportunityMs": 2.4000000059604645,
+        "postSemanticToFinishCallMs": 35.29999998211861,
+        "gapScope": "post-marker interval may contain app work, later stalls and driver delivery; no pure-overhead attribution",
+        "armToDispatchMs": 50.19999998807907,
+        "workerEvents": [],
+        "saveEvents": [],
+        "frameObservationEndMs": 134.7999999821186,
+        "frameScope": "per-operation observations may extend past latency marker; session window required for continuous-stall claims"
+      },
+      "delay": {
+        "id": 2,
+        "name": "control",
+        "armed": 137.09999999403954,
+        "started": 167.5,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 182.2999999821186,
+            "dt": 17
+          },
+          {
+            "time": 198.40000000596046,
+            "dt": 16.100000023841858
+          },
+          {
+            "time": 216.2999999821186,
+            "dt": 17.899999976158142
+          },
+          {
+            "time": 232.2999999821186,
+            "dt": 16
+          },
+          {
+            "time": 249.40000000596046,
+            "dt": 17.100000023841858
+          },
+          {
+            "time": 265.40000000596046,
+            "dt": 16
+          },
+          {
+            "time": 281.7999999821186,
+            "dt": 16.399999976158142
+          },
+          {
+            "time": 298.59999999403954,
+            "dt": 16.80000001192093
+          },
+          {
+            "time": 315.59999999403954,
+            "dt": 17
+          },
+          {
+            "time": 331.7999999821186,
+            "dt": 16.19999998807907
+          },
+          {
+            "time": 349.2999999821186,
+            "dt": 17.5
+          },
+          {
+            "time": 365.2999999821186,
+            "dt": 16
+          },
+          {
+            "time": 382.2999999821186,
+            "dt": 17
+          },
+          {
+            "time": 399.40000000596046,
+            "dt": 17.100000023841858
+          },
+          {
+            "time": 415.2999999821186,
+            "dt": 15.899999976158142
+          }
+        ],
+        "longTasks": [],
+        "probes": 16,
+        "probeCpuMs": 0.20000001788139343,
+        "workerOffset": 0,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 365.2999999821186,
+          "reason": "terminal predicate became false"
+        },
+        "handlerStarted": 167.7999999821186,
+        "eventTimeStamp": 167.5,
+        "inputQueueMs": 0.29999998211860657,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0,
+        "hostFinishCalledAt": 416.59999999403954,
+        "semanticEnd": 382.2999999821186,
+        "finished": 415.2999999821186,
+        "completionClock": "browser predicate observation + double-rAF opportunity; not physical scanout or completion of all later app work",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 247.7999999821186,
+        "timeout": false,
+        "terminalReadinessMs": 214.7999999821186,
+        "firstFeedbackMs": null,
+        "feedbackScope": "first visible feedback unmeasured; terminal readiness must not be relabelled as feedback",
+        "semanticToFrameOpportunityMs": 33,
+        "finishCallRelativeToFrameOpportunityMs": 1.300000011920929,
+        "postSemanticToFinishCallMs": 34.30000001192093,
+        "gapScope": "post-marker interval may contain app work, later stalls and driver delivery; no pure-overhead attribution",
+        "armToDispatchMs": 30.400000005960464,
+        "workerEvents": [],
+        "saveEvents": [],
+        "frameObservationEndMs": 416.59999999403954,
+        "frameScope": "per-operation observations may extend past latency marker; session window required for continuous-stall claims"
+      },
+      "intermediateDelayed": {
+        "id": 3,
+        "name": "control",
+        "armed": 418.7999999821186,
+        "started": 450.2999999821186,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 465.2999999821186,
+            "dt": 17
+          },
+          {
+            "time": 482.2999999821186,
+            "dt": 17
+          },
+          {
+            "time": 498.2999999821186,
+            "dt": 16
+          },
+          {
+            "time": 516,
+            "dt": 17.700000017881393
+          },
+          {
+            "time": 532.1999999880791,
+            "dt": 16.19999998807907
+          },
+          {
+            "time": 549.1999999880791,
+            "dt": 17
+          },
+          {
+            "time": 565,
+            "dt": 15.800000011920929
+          },
+          {
+            "time": 582.0999999940395,
+            "dt": 17.099999994039536
+          },
+          {
+            "time": 599.0999999940395,
+            "dt": 17
+          },
+          {
+            "time": 615.0999999940395,
+            "dt": 16
+          },
+          {
+            "time": 632.0999999940395,
+            "dt": 17
+          },
+          {
+            "time": 649.0999999940395,
+            "dt": 17
+          },
+          {
+            "time": 665.0999999940395,
+            "dt": 16
+          },
+          {
+            "time": 682.0999999940395,
+            "dt": 17
+          },
+          {
+            "time": 699.1999999880791,
+            "dt": 17.099999994039536
+          }
+        ],
+        "longTasks": [],
+        "probes": 17,
+        "probeCpuMs": 0.10000002384185791,
+        "workerOffset": 0,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 649.0999999940395,
+          "reason": "terminal predicate became false"
+        },
+        "handlerStarted": 450.59999999403954,
+        "eventTimeStamp": 450.2999999821186,
+        "inputQueueMs": 0.30000001192092896,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0,
+        "hostFinishCalledAt": 700.4000000059605,
+        "semanticEnd": 665.0999999940395,
+        "finished": 699.1999999880791,
+        "completionClock": "browser predicate observation + double-rAF opportunity; not physical scanout or completion of all later app work",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 248.90000000596046,
+        "timeout": false,
+        "terminalReadinessMs": 214.80000001192093,
+        "firstFeedbackMs": null,
+        "feedbackScope": "first visible feedback unmeasured; terminal readiness must not be relabelled as feedback",
+        "semanticToFrameOpportunityMs": 34.099999994039536,
+        "finishCallRelativeToFrameOpportunityMs": 1.2000000178813934,
+        "postSemanticToFinishCallMs": 35.30000001192093,
+        "gapScope": "post-marker interval may contain app work, later stalls and driver delivery; no pure-overhead attribution",
+        "armToDispatchMs": 31.5,
+        "workerEvents": [],
+        "saveEvents": [],
+        "frameObservationEndMs": 700.4000000059605,
+        "frameScope": "per-operation observations may extend past latency marker; session window required for continuous-stall claims"
+      },
+      "queued": {
+        "id": 4,
+        "name": "control",
+        "armed": 703,
+        "started": 735.0999999940395,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 935.5999999940395,
+            "dt": 202.5
+          },
+          {
+            "time": 935.9000000059605,
+            "dt": 0.30000001192092896
+          },
+          {
+            "time": 949,
+            "dt": 13.099999994039536
+          },
+          {
+            "time": 965.0999999940395,
+            "dt": 16.099999994039536
+          }
+        ],
+        "longTasks": [
+          {
+            "start": 735.1999999880791,
+            "duration": 200
+          }
+        ],
+        "probes": 3,
+        "probeCpuMs": 0,
+        "workerOffset": 0,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 937.6999999880791,
+          "reason": "predicate identity changed"
+        },
+        "handlerStarted": 935.4000000059605,
+        "eventTimeStamp": 735.0999999940395,
+        "inputQueueMs": 200.30000001192093,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0,
+        "hostFinishCalledAt": 966.0999999940395,
+        "semanticEnd": 937.6999999880791,
+        "finished": 965.0999999940395,
+        "completionClock": "browser predicate observation + double-rAF opportunity; not physical scanout or completion of all later app work",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 230,
+        "timeout": false,
+        "terminalReadinessMs": 202.59999999403954,
+        "firstFeedbackMs": null,
+        "feedbackScope": "first visible feedback unmeasured; terminal readiness must not be relabelled as feedback",
+        "semanticToFrameOpportunityMs": 27.400000005960464,
+        "finishCallRelativeToFrameOpportunityMs": 1,
+        "postSemanticToFinishCallMs": 28.400000005960464,
+        "gapScope": "post-marker interval may contain app work, later stalls and driver delivery; no pure-overhead attribution",
+        "armToDispatchMs": 32.099999994039536,
+        "workerEvents": [],
+        "saveEvents": [],
+        "frameObservationEndMs": 966.1999999880791,
+        "frameScope": "per-operation observations may extend past latency marker; session window required for continuous-stall claims"
+      },
+      "wrongFailed": true,
+      "lateFailed": true
+    },
+    {
+      "mechanism": "same-key transient terminal readiness across actual frames",
+      "firstTransientSemantic": 1835.5,
+      "operation": {
+        "id": 7,
+        "name": "control",
+        "armed": 1804.2999999821186,
+        "started": 1835.0999999940395,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 1848.9000000059605,
+            "dt": 15.900000005960464
+          },
+          {
+            "time": 1864.9000000059605,
+            "dt": 16
+          },
+          {
+            "time": 1882.9000000059605,
+            "dt": 18
+          },
+          {
+            "time": 1898.7999999821186,
+            "dt": 15.899999976158142
+          },
+          {
+            "time": 1914.7999999821186,
+            "dt": 16
+          },
+          {
+            "time": 1932.7999999821186,
+            "dt": 18
+          },
+          {
+            "time": 1949.9000000059605,
+            "dt": 17.100000023841858
+          },
+          {
+            "time": 1965.7999999821186,
+            "dt": 15.899999976158142
+          },
+          {
+            "time": 1982.7999999821186,
+            "dt": 17
+          },
+          {
+            "time": 1999.7999999821186,
+            "dt": 17
+          },
+          {
+            "time": 2015.199999988079,
+            "dt": 15.400000005960464
+          },
+          {
+            "time": 2032.199999988079,
+            "dt": 17
+          },
+          {
+            "time": 2048.5999999940395,
+            "dt": 16.400000005960464
+          },
+          {
+            "time": 2065.699999988079,
+            "dt": 17.099999994039536
+          },
+          {
+            "time": 2082.699999988079,
+            "dt": 17
+          },
+          {
+            "time": 2099.699999988079,
+            "dt": 17
+          }
+        ],
+        "longTasks": [],
+        "probes": 18,
+        "probeCpuMs": 0.10000002384185791,
+        "workerOffset": 0,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 2048.699999988079,
+          "reason": "terminal predicate became false"
+        },
+        "handlerStarted": 1835.4000000059605,
+        "eventTimeStamp": 1835.0999999940395,
+        "inputQueueMs": 0.30000001192092896,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 5,
+        "revalidationCpuMs": 0,
+        "hostFinishCalledAt": 2100.9000000059605,
+        "semanticEnd": 2065.699999988079,
+        "finished": 2099.699999988079,
+        "completionClock": "browser predicate observation + double-rAF opportunity; not physical scanout or completion of all later app work",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 264.59999999403954,
+        "timeout": false,
+        "terminalReadinessMs": 230.59999999403954,
+        "firstFeedbackMs": null,
+        "feedbackScope": "first visible feedback unmeasured; terminal readiness must not be relabelled as feedback",
+        "semanticToFrameOpportunityMs": 34,
+        "finishCallRelativeToFrameOpportunityMs": 1.2000000178813934,
+        "postSemanticToFinishCallMs": 35.20000001788139,
+        "gapScope": "post-marker interval may contain app work, later stalls and driver delivery; no pure-overhead attribution",
+        "armToDispatchMs": 30.80000001192093,
+        "workerEvents": [],
+        "saveEvents": [],
+        "frameObservationEndMs": 2100.9000000059605,
+        "frameScope": "per-operation observations may extend past latency marker; session window required for continuous-stall claims"
+      }
+    },
+    {
+      "mechanism": "continuous post-marker frame/long-task coverage without false host attribution",
+      "operation": {
+        "id": 8,
+        "name": "control",
+        "armed": 2103.7999999821186,
+        "started": 2133.699999988079,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 2149.699999988079,
+            "dt": 18
+          },
+          {
+            "time": 2165.5999999940395,
+            "dt": 15.900000005960464
+          },
+          {
+            "time": 2366,
+            "dt": 200.40000000596046
+          },
+          {
+            "time": 2366.5,
+            "dt": 0.5
+          }
+        ],
+        "longTasks": [
+          {
+            "start": 2165.5999999940395,
+            "duration": 200
+          }
+        ],
+        "probes": 4,
+        "probeCpuMs": 0,
+        "workerOffset": 0,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 2134,
+          "reason": "predicate identity changed"
+        },
+        "handlerStarted": 2133.9000000059605,
+        "eventTimeStamp": 2133.699999988079,
+        "inputQueueMs": 0.20000001788139343,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0,
+        "hostFinishCalledAt": 2367,
+        "semanticEnd": 2134,
+        "finished": 2165.5999999940395,
+        "completionClock": "browser predicate observation + double-rAF opportunity; not physical scanout or completion of all later app work",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 31.900000005960464,
+        "timeout": false,
+        "terminalReadinessMs": 0.30000001192092896,
+        "firstFeedbackMs": null,
+        "feedbackScope": "first visible feedback unmeasured; terminal readiness must not be relabelled as feedback",
+        "semanticToFrameOpportunityMs": 31.599999994039536,
+        "finishCallRelativeToFrameOpportunityMs": 201.40000000596046,
+        "postSemanticToFinishCallMs": 233,
+        "gapScope": "post-marker interval may contain app work, later stalls and driver delivery; no pure-overhead attribution",
+        "armToDispatchMs": 29.900000005960464,
+        "workerEvents": [],
+        "saveEvents": [],
+        "frameObservationEndMs": 2367.0999999940395,
+        "frameScope": "per-operation observations may extend past latency marker; session window required for continuous-stall claims"
+      },
+      "block": {
+        "start": 2165.699999988079,
+        "end": 2365.699999988079
+      },
+      "window": {
+        "available": true,
+        "longTasksAvailable": true,
+        "startMs": 2133.699999988079,
+        "endMs": 2399.199999988079,
+        "readAtMs": 2399.199999988079,
+        "frames": [
+          {
+            "time": 2149.699999988079,
+            "dt": 18
+          },
+          {
+            "time": 2165.5999999940395,
+            "dt": 15.900000005960464
+          },
+          {
+            "time": 2366,
+            "dt": 200.40000000596046
+          },
+          {
+            "time": 2366.5,
+            "dt": 0.5
+          },
+          {
+            "time": 2382.0999999940395,
+            "dt": 15.599999994039536
+          },
+          {
+            "time": 2399.0999999940395,
+            "dt": 17
+          }
+        ],
+        "longTasks": [
+          {
+            "start": 2165.5999999940395,
+            "duration": 200
+          }
+        ],
+        "trailingFrameRightCensored": true,
+        "trailingFrameLowerBoundMs": 0.09999999403953552,
+        "scope": "continuous main-thread rAF intervals/long tasks; keep a declared post-action observation window, not only transaction markers"
+      }
+    },
+    {
+      "mechanism": "actual-worker-delivery",
+      "workerBaseline": {
+        "id": 9,
+        "name": "control",
+        "armed": 2405.5999999940395,
+        "started": 2434.0999999940395,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 2449.0999999940395,
+            "dt": 17
+          },
+          {
+            "time": 2465.0999999940395,
+            "dt": 16
+          },
+          {
+            "time": 2482.199999988079,
+            "dt": 17.099999994039536
+          },
+          {
+            "time": 2498.4000000059605,
+            "dt": 16.200000017881393
+          }
+        ],
+        "longTasks": [],
+        "probes": 5,
+        "probeCpuMs": 0,
+        "workerOffset": 2,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 2449.0999999940395,
+          "reason": "terminal predicate became false"
+        },
+        "handlerStarted": 2434.2999999821186,
+        "eventTimeStamp": 2434.0999999940395,
+        "inputQueueMs": 0.19999998807907104,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0,
+        "hostFinishCalledAt": 2499.5,
+        "semanticEnd": 2465.199999988079,
+        "finished": 2498.4000000059605,
+        "completionClock": "browser predicate observation + double-rAF opportunity; not physical scanout or completion of all later app work",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 64.30000001192093,
+        "timeout": false,
+        "terminalReadinessMs": 31.099999994039536,
+        "firstFeedbackMs": null,
+        "feedbackScope": "first visible feedback unmeasured; terminal readiness must not be relabelled as feedback",
+        "semanticToFrameOpportunityMs": 33.20000001788139,
+        "finishCallRelativeToFrameOpportunityMs": 1.0999999940395355,
+        "postSemanticToFinishCallMs": 34.30000001192093,
+        "gapScope": "post-marker interval may contain app work, later stalls and driver delivery; no pure-overhead attribution",
+        "armToDispatchMs": 28.5,
+        "workerEvents": [
+          {
+            "kind": "request",
+            "url": "blob:http://127.0.0.1:18245/3ca93df2-f5c1-46e5-a223-b34ef5a628d9",
+            "time": 2434.4000000059605
+          },
+          {
+            "kind": "response",
+            "url": "blob:http://127.0.0.1:18245/3ca93df2-f5c1-46e5-a223-b34ef5a628d9",
+            "time": 2449.2999999821186
+          }
+        ],
+        "saveEvents": [],
+        "frameObservationEndMs": 2499.5,
+        "frameScope": "per-operation observations may extend past latency marker; session window required for continuous-stall claims"
+      },
+      "workerDelayed": {
+        "id": 10,
+        "name": "control",
+        "armed": 2502,
+        "started": 2533.7999999821186,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 2548,
+            "dt": 16.30000001192093
+          },
+          {
+            "time": 2566,
+            "dt": 18
+          },
+          {
+            "time": 2583.0999999940395,
+            "dt": 17.099999994039536
+          },
+          {
+            "time": 2598,
+            "dt": 14.900000005960464
+          },
+          {
+            "time": 2615,
+            "dt": 17
+          },
+          {
+            "time": 2633,
+            "dt": 18
+          },
+          {
+            "time": 2649,
+            "dt": 16
+          },
+          {
+            "time": 2666,
+            "dt": 17
+          },
+          {
+            "time": 2683,
+            "dt": 17
+          },
+          {
+            "time": 2697.9000000059605,
+            "dt": 14.900000005960464
+          },
+          {
+            "time": 2716,
+            "dt": 18.099999994039536
+          },
+          {
+            "time": 2733,
+            "dt": 17
+          },
+          {
+            "time": 2748,
+            "dt": 15
+          },
+          {
+            "time": 2766,
+            "dt": 18
+          },
+          {
+            "time": 2782,
+            "dt": 16
+          },
+          {
+            "time": 2798,
+            "dt": 16
+          }
+        ],
+        "longTasks": [],
+        "probes": 17,
+        "probeCpuMs": 0.09999999403953552,
+        "workerOffset": 4,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 2748,
+          "reason": "terminal predicate became false"
+        },
+        "handlerStarted": 2534,
+        "eventTimeStamp": 2533.7999999821186,
+        "inputQueueMs": 0.20000001788139343,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0,
+        "hostFinishCalledAt": 2799.0999999940395,
+        "semanticEnd": 2766,
+        "finished": 2798,
+        "completionClock": "browser predicate observation + double-rAF opportunity; not physical scanout or completion of all later app work",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 264.2000000178814,
+        "timeout": false,
+        "terminalReadinessMs": 232.2000000178814,
+        "firstFeedbackMs": null,
+        "feedbackScope": "first visible feedback unmeasured; terminal readiness must not be relabelled as feedback",
+        "semanticToFrameOpportunityMs": 32,
+        "finishCallRelativeToFrameOpportunityMs": 1.0999999940395355,
+        "postSemanticToFinishCallMs": 33.099999994039536,
+        "gapScope": "post-marker interval may contain app work, later stalls and driver delivery; no pure-overhead attribution",
+        "armToDispatchMs": 31.799999982118607,
+        "workerEvents": [
+          {
+            "kind": "request",
+            "url": "blob:http://127.0.0.1:18245/3ca93df2-f5c1-46e5-a223-b34ef5a628d9",
+            "time": 2534
+          },
+          {
+            "kind": "response",
+            "url": "blob:http://127.0.0.1:18245/3ca93df2-f5c1-46e5-a223-b34ef5a628d9",
+            "time": 2548.199999988079
+          }
+        ],
+        "saveEvents": [],
+        "frameObservationEndMs": 2799.0999999940395,
+        "frameScope": "per-operation observations may extend past latency marker; session window required for continuous-stall claims"
+      }
+    },
+    {
+      "mechanism": "IndexedDB committed transaction",
+      "correctSlot": true,
+      "wrongSlotRejected": true,
+      "replacementIdentity": true
+    },
+    {
+      "mechanism": "no-hook reference",
+      "nativeWorker": true,
+      "operation": {
+        "id": 1,
+        "name": "control",
+        "armed": 15.5,
+        "started": 54.29999998211861,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [],
+        "longTasks": [],
+        "probes": 5,
+        "probeCpuMs": 0,
+        "workerOffset": 0,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 69.59999999403954,
+          "reason": "terminal predicate became false"
+        },
+        "handlerStarted": 55,
+        "eventTimeStamp": 54.29999998211861,
+        "inputQueueMs": 0.7000000178813934,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0,
+        "hostFinishCalledAt": 120.7999999821186,
+        "semanticEnd": 85.59999999403954,
+        "finished": 119.2999999821186,
+        "completionClock": "browser predicate observation + double-rAF opportunity; not physical scanout or completion of all later app work",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 65,
+        "timeout": false,
+        "terminalReadinessMs": 31.30000001192093,
+        "firstFeedbackMs": null,
+        "feedbackScope": "first visible feedback unmeasured; terminal readiness must not be relabelled as feedback",
+        "semanticToFrameOpportunityMs": 33.69999998807907,
+        "finishCallRelativeToFrameOpportunityMs": 1.5,
+        "postSemanticToFinishCallMs": 35.19999998807907,
+        "gapScope": "post-marker interval may contain app work, later stalls and driver delivery; no pure-overhead attribution",
+        "armToDispatchMs": 38.79999998211861,
+        "workerEvents": [],
+        "saveEvents": [],
+        "frameObservationEndMs": 120.7999999821186,
+        "frameScope": "per-operation observations may extend past latency marker; session window required for continuous-stall claims"
+      }
+    },
+    {
+      "mechanism": "already-dispatched input during renderer main-thread block",
+      "hostDispatchDue": 3640.153,
+      "hostDispatchWall": 1793799398686,
+      "busyWindow": {
+        "start": 40.20000001788139,
+        "end": 340.2000000178814
+      },
+      "operation": {
+        "id": 1,
+        "name": "renderer-queue-control",
+        "armed": 38.599999994039536,
+        "started": 42.30000001192093,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 341.2000000178814,
+            "dt": 305.7000000178814
+          },
+          {
+            "time": 341.5,
+            "dt": 0.29999998211860657
+          },
+          {
+            "time": 350.80000001192093,
+            "dt": 9.300000011920929
+          },
+          {
+            "time": 366.7000000178814,
+            "dt": 15.900000005960464
+          }
+        ],
+        "longTasks": [],
+        "probes": 3,
+        "probeCpuMs": 0.20000001788139343,
+        "workerOffset": 0,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 342.5,
+          "reason": "predicate identity changed"
+        },
+        "handlerStarted": 340.90000000596046,
+        "eventTimeStamp": 42.30000001192093,
+        "inputQueueMs": 298.59999999403954,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "queued-terminal",
+        "terminalPredicateKey": "queued-terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0,
+        "hostFinishCalledAt": 368,
+        "semanticEnd": 342.59999999403954,
+        "finished": 366.80000001192093,
+        "completionClock": "browser predicate observation + double-rAF opportunity; not physical scanout or completion of all later app work",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 324.5,
+        "timeout": false,
+        "terminalReadinessMs": 300.2999999821186,
+        "firstFeedbackMs": null,
+        "feedbackScope": "first visible feedback unmeasured; terminal readiness must not be relabelled as feedback",
+        "semanticToFrameOpportunityMs": 24.200000017881393,
+        "finishCallRelativeToFrameOpportunityMs": 1.199999988079071,
+        "postSemanticToFinishCallMs": 25.400000005960464,
+        "gapScope": "post-marker interval may contain app work, later stalls and driver delivery; no pure-overhead attribution",
+        "armToDispatchMs": 3.7000000178813934,
+        "workerEvents": [],
+        "saveEvents": [],
+        "frameObservationEndMs": 368,
+        "frameScope": "per-operation observations may extend past latency marker; session window required for continuous-stall claims"
+      }
+    },
+    {
+      "mechanism": "missing frame opportunity is bounded",
+      "failure": "visible completion timeout: frame opportunity deadline exceeded",
+      "elapsed": 60.10000002384186
+    },
+    {
+      "mechanism": "deadline and positive-overlap window validation",
+      "deadlines": [
+        {
+          "input": "NaN",
+          "error": "positive finite operation deadline required"
+        },
+        {
+          "input": "Infinity",
+          "error": "positive finite operation deadline required"
+        },
+        {
+          "input": "0",
+          "error": "positive finite operation deadline required"
+        },
+        {
+          "input": "-1",
+          "error": "positive finite operation deadline required"
+        }
+      ],
+      "zeroError": "continuous window must be a positive observed document-clock interval",
+      "edge": {
+        "available": false,
+        "longTasksAvailable": false,
+        "startMs": 11.699999988079071,
+        "endMs": 12.699999988079071,
+        "readAtMs": 14.799999982118607,
+        "frames": [
+          {
+            "time": 12.699999988079071,
+            "dt": 1
+          }
+        ],
+        "longTasks": [],
+        "trailingFrameRightCensored": null,
+        "trailingFrameLowerBoundMs": null,
+        "scope": "continuous main-thread rAF intervals/long tasks; keep a declared post-action observation window, not only transaction markers"
+      },
+      "scope": "serialized runtime validation with explicit frame-schema fixture; not product frame samples"
+    }
+  ],
+  "scope": "mechanism fixtures only; product-path wrong generation/art/RNG/read-only controls remain required"
+}

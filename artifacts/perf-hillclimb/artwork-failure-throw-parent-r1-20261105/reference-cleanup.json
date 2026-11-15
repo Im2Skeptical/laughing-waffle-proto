@@ -1,0 +1,16 @@
+{
+  "case": "reference",
+  "contextClosed": true,
+  "browserClosed": true,
+  "errors": [],
+  "browserConnected": false,
+  "lifetime": {
+    "label": "artwork reference",
+    "status": "cancelled",
+    "hostStartedMs": 8738.371,
+    "hostDeadlineMs": 2888738.371,
+    "reason": "page.evaluate: Error: deliberate artwork diagnostic stall-and-throw control\n    at eval (eval at evaluate (:302:30), <anonymous>:4:13)\n    at UtilityScript.evaluate (<anonymous>:304:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+    "unconfirmedWork": [],
+    "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+  }
+}

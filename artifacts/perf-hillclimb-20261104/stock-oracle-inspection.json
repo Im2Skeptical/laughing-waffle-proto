@@ -1,0 +1,75 @@
+{
+  "tags": [
+    [
+      "Currency",
+      "green"
+    ],
+    [
+      "Metal",
+      "green"
+    ],
+    [
+      "Tool",
+      "red"
+    ]
+  ],
+  "recipes": [
+    {
+      "id": "forage",
+      "traits": [
+        "Edible"
+      ],
+      "consume": [],
+      "require": []
+    },
+    {
+      "id": "logging",
+      "traits": [
+        "Timber",
+        "Construction"
+      ],
+      "consume": [],
+      "require": []
+    },
+    {
+      "id": "smelting",
+      "traits": [
+        "Metal"
+      ],
+      "consume": [],
+      "require": []
+    },
+    {
+      "id": "housebuilding",
+      "traits": [],
+      "consume": [
+        {
+          "amount": 2,
+          "traits": [
+            "Construction"
+          ]
+        }
+      ],
+      "require": [
+        {
+          "amount": 1,
+          "traits": [
+            "Tool"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "barter",
+      "traits": [
+        "Currency"
+      ],
+      "consume": [],
+      "require": []
+    }
+  ],
+  "usedSources": [
+    "cedar-woods:1",
+    "cedar-woods:0"
+  ]
+}

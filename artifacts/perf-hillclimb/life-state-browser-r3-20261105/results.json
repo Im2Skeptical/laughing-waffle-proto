@@ -1,0 +1,46 @@
+[
+  {
+    "seed": 123,
+    "population": "desktop",
+    "mode": "positive",
+    "pass": false,
+    "error": "mouse.click: Target page, context or browser has been closed",
+    "costs": [
+      {
+        "tag": "initial",
+        "hostRpcMs": 818.2150000000038,
+        "readerCpuMs": 19.599999994039536,
+        "startMs": 17189.40000000596,
+        "endMs": 17209
+      },
+      {
+        "tag": "initial-present",
+        "hostRpcMs": 226.75269999999728,
+        "readerCpuMs": 6.200000017881393,
+        "startMs": 18401.09999999404,
+        "endMs": 18407.30000001192
+      },
+      {
+        "tag": "entered",
+        "hostRpcMs": 712.139900000002,
+        "readerCpuMs": 16,
+        "startMs": 20083.40000000596,
+        "endMs": 20099.40000000596
+      },
+      {
+        "tag": "category",
+        "hostRpcMs": 672.2371999999959,
+        "readerCpuMs": 18.69999998807907,
+        "startMs": 20891.20000001788,
+        "endMs": 20909.90000000596
+      },
+      {
+        "tag": "staged",
+        "hostRpcMs": 656.9281999999948,
+        "readerCpuMs": 16.200000017881393,
+        "startMs": 21723.5,
+        "endMs": 21739.70000001788
+      }
+    ]
+  }
+]

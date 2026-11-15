@@ -1,0 +1,380 @@
+{
+  "at": "2026-11-15T01:20:23.230Z",
+  "scope": "Independent original-file accounting; no parent accounting summary read",
+  "sourceAssetsIdentity": true,
+  "cleanupVerified": true,
+  "headers": [
+    {
+      "step": "performance-entry-full-opening",
+      "ok": true,
+      "started": 6866.600000023842,
+      "finished": 62079,
+      "elapsedMs": 55212.39999997616,
+      "timeout": false
+    },
+    {
+      "step": "opening-to-responsive-present",
+      "ok": true,
+      "started": 62493.90000003576,
+      "finished": 63516.60000002384,
+      "elapsedMs": 1022.6999999880791,
+      "timeout": false
+    },
+    {
+      "step": "remaining-background-wait-to-prepared",
+      "ok": false,
+      "started": 63737.80000001192,
+      "finished": 303766.5,
+      "elapsedMs": 240028.69999998808,
+      "timeout": true,
+      "error": "page.waitForFunction: Timeout 240000ms exceeded."
+    }
+  ],
+  "primary": {
+    "collectedAt": 304072.7000000477,
+    "cancelAt": 303766.5,
+    "collectionAfterCancelMs": 306.2000000476837,
+    "mainStarted": 87586,
+    "windowMs": 216486.70000004768,
+    "completedWaitMs": 161077.80000036955,
+    "completedWaitCount": 287,
+    "open": {
+      "kind": "idle",
+      "phase": "main",
+      "started": 303371.40000003576,
+      "ambiguous": false
+    },
+    "rightCensoredWaitMs": 701.3000000119209,
+    "totalWaitMs": 161779.10000038147,
+    "waitShare": 0.7472934826959154,
+    "residualOtherWorkOrWaitMs": 54707.599999666214,
+    "hypothesis": "wait share at least0.8 with matched progress",
+    "verdict": "FALSIFIED_IN_THIS_DIAGNOSTIC",
+    "jobs": [
+      {
+        "name": "bake",
+        "phase": "main",
+        "started": 92384,
+        "updatedAt": 146955.70000004768,
+        "status": "complete",
+        "steps": 135,
+        "yields": 95,
+        "longestStepMs": 2654.100000023842,
+        "longestStepScope": "existing shared stats, cumulative across jobs"
+      },
+      {
+        "name": "regional",
+        "phase": "main",
+        "started": 155342.30000001192,
+        "updatedAt": 303371.40000003576,
+        "status": "yield-enter",
+        "steps": 285,
+        "yields": 192,
+        "longestStepMs": 2654.100000023842,
+        "longestStepScope": "existing shared stats, cumulative across jobs"
+      }
+    ],
+    "droppedEvents": 1241,
+    "gates": {
+      "wait-current": {
+        "count": 317,
+        "denied": 0,
+        "last": true,
+        "lastAt": 303371.40000003576
+      },
+      "pre-idle-load": {
+        "count": 317,
+        "denied": 0,
+        "last": true,
+        "lastAt": 303371.40000003576
+      },
+      "post-idle-load": {
+        "count": 316,
+        "denied": 0,
+        "last": true,
+        "lastAt": 303361.3000000119
+      },
+      "atlas-ok": {
+        "count": 1,
+        "denied": 0,
+        "last": true,
+        "lastAt": 86584.70000004768
+      },
+      "loader-current": {
+        "count": 1,
+        "denied": 0,
+        "last": true,
+        "lastAt": 87585.60000002384
+      }
+    }
+  },
+  "laterSnapshot": {
+    "collectedAt": 304079.40000003576,
+    "cancelAt": 303766.5,
+    "collectionAfterCancelMs": 312.9000000357628,
+    "mainStarted": 87586,
+    "windowMs": 216493.40000003576,
+    "completedWaitMs": 161077.80000036955,
+    "completedWaitCount": 287,
+    "open": {
+      "kind": "idle",
+      "phase": "main",
+      "started": 303371.40000003576,
+      "ambiguous": false
+    },
+    "rightCensoredWaitMs": 708,
+    "totalWaitMs": 161785.80000036955,
+    "waitShare": 0.7473013034131425,
+    "residualOtherWorkOrWaitMs": 54707.599999666214,
+    "hypothesis": "wait share at least0.8 with matched progress",
+    "verdict": "FALSIFIED_IN_THIS_DIAGNOSTIC",
+    "jobs": [
+      {
+        "name": "bake",
+        "phase": "main",
+        "started": 92384,
+        "updatedAt": 146955.70000004768,
+        "status": "complete",
+        "steps": 135,
+        "yields": 95,
+        "longestStepMs": 2654.100000023842,
+        "longestStepScope": "existing shared stats, cumulative across jobs"
+      },
+      {
+        "name": "regional",
+        "phase": "main",
+        "started": 155342.30000001192,
+        "updatedAt": 303371.40000003576,
+        "status": "yield-enter",
+        "steps": 285,
+        "yields": 192,
+        "longestStepMs": 2654.100000023842,
+        "longestStepScope": "existing shared stats, cumulative across jobs"
+      }
+    ],
+    "droppedEvents": 1241,
+    "gates": {
+      "wait-current": {
+        "count": 317,
+        "denied": 0,
+        "last": true,
+        "lastAt": 303371.40000003576
+      },
+      "pre-idle-load": {
+        "count": 317,
+        "denied": 0,
+        "last": true,
+        "lastAt": 303371.40000003576
+      },
+      "post-idle-load": {
+        "count": 316,
+        "denied": 0,
+        "last": true,
+        "lastAt": 303361.3000000119
+      },
+      "atlas-ok": {
+        "count": 1,
+        "denied": 0,
+        "last": true,
+        "lastAt": 86584.70000004768
+      },
+      "loader-current": {
+        "count": 1,
+        "denied": 0,
+        "last": true,
+        "lastAt": 87585.60000002384
+      }
+    }
+  },
+  "passiveArtwork": {
+    "version": 1,
+    "revision": 2,
+    "minimalGraphics": true,
+    "groups": [
+      {
+        "id": "fullMap",
+        "prefix": "full-map-content-prototype/art/",
+        "loadRequested": true,
+        "failed": false,
+        "loaded": true,
+        "textureCount": 50,
+        "validTextureCount": 50,
+        "hidden": true,
+        "drawingAvailable": false,
+        "drawingAvailableCount": 0,
+        "sampleFile": "full-map-content-prototype/art/fm_abandonedShrine.png",
+        "sampleDrawingAvailable": false
+      },
+      {
+        "id": "fullMapEnemy",
+        "prefix": "full-map-chaos-prototype/art/",
+        "loadRequested": true,
+        "failed": false,
+        "loaded": true,
+        "textureCount": 22,
+        "validTextureCount": 22,
+        "hidden": true,
+        "drawingAvailable": false,
+        "drawingAvailableCount": 0,
+        "sampleFile": "full-map-chaos-prototype/art/chaos_cp_citadelOfStillness.png",
+        "sampleDrawingAvailable": false
+      },
+      {
+        "id": "heirlooms",
+        "prefix": "heirlooms-v1/",
+        "loadRequested": true,
+        "failed": false,
+        "loaded": true,
+        "textureCount": 15,
+        "validTextureCount": 15,
+        "hidden": true,
+        "drawingAvailable": false,
+        "drawingAvailableCount": 0,
+        "sampleFile": "heirlooms-v1/abacus.png",
+        "sampleDrawingAvailable": false
+      },
+      {
+        "id": "settlementPieces",
+        "prefix": "settlement-pieces-v4/",
+        "loadRequested": true,
+        "failed": false,
+        "loaded": true,
+        "textureCount": 224,
+        "validTextureCount": 224,
+        "hidden": true,
+        "drawingAvailable": false,
+        "drawingAvailableCount": 0,
+        "sampleFile": "settlement-pieces-v4/academy.webp",
+        "sampleDrawingAvailable": false
+      },
+      {
+        "id": "pieceFrames",
+        "prefix": "piece-frames-v1/",
+        "loadRequested": true,
+        "failed": false,
+        "loaded": true,
+        "textureCount": 9,
+        "validTextureCount": 9,
+        "hidden": true,
+        "drawingAvailable": false,
+        "drawingAvailableCount": 0,
+        "sampleFile": "piece-frames-v1/practice-charge.png",
+        "sampleDrawingAvailable": false
+      },
+      {
+        "id": "chronicleIllustrations",
+        "prefix": "chronicle-illustrations-v1/",
+        "loadRequested": true,
+        "failed": false,
+        "loaded": true,
+        "textureCount": 18,
+        "validTextureCount": 18,
+        "hidden": true,
+        "drawingAvailable": false,
+        "drawingAvailableCount": 0,
+        "sampleFile": "chronicle-illustrations-v1/crisis.png",
+        "sampleDrawingAvailable": false
+      },
+      {
+        "id": "regionLandmarks",
+        "prefix": "region-landmarks-v1/",
+        "loadRequested": true,
+        "failed": false,
+        "loaded": true,
+        "textureCount": 4,
+        "validTextureCount": 4,
+        "hidden": true,
+        "drawingAvailable": false,
+        "drawingAvailableCount": 0,
+        "sampleFile": "region-landmarks-v1/monster-ground.png",
+        "sampleDrawingAvailable": false
+      },
+      {
+        "id": "vassalPortraits",
+        "prefix": "vassal-portraits-v1/",
+        "loadRequested": true,
+        "failed": false,
+        "loaded": true,
+        "textureCount": 24,
+        "validTextureCount": 24,
+        "hidden": true,
+        "drawingAvailable": false,
+        "drawingAvailableCount": 0,
+        "sampleFile": "vassal-portraits-v1/legacy-01-elder.png",
+        "sampleDrawingAvailable": false
+      },
+      {
+        "id": "vassalClass",
+        "prefix": "vassal-class-v1/",
+        "loadRequested": true,
+        "failed": false,
+        "loaded": true,
+        "textureCount": 6,
+        "validTextureCount": 6,
+        "hidden": true,
+        "drawingAvailable": false,
+        "drawingAvailableCount": 0,
+        "sampleFile": "vassal-class-v1/crest.png",
+        "sampleDrawingAvailable": false
+      },
+      {
+        "id": "chronicleGate",
+        "prefix": "chronicle-gate-v1/",
+        "loadRequested": true,
+        "failed": false,
+        "loaded": true,
+        "textureCount": 1,
+        "validTextureCount": 1,
+        "hidden": true,
+        "drawingAvailable": false,
+        "drawingAvailableCount": 0,
+        "sampleFile": "chronicle-gate-v1/chronicle-gate.png",
+        "sampleDrawingAvailable": false
+      },
+      {
+        "id": "classPickerFrames",
+        "prefix": "class-picker-frames-v1/",
+        "loadRequested": true,
+        "failed": false,
+        "loaded": true,
+        "textureCount": 9,
+        "validTextureCount": 9,
+        "hidden": true,
+        "drawingAvailable": false,
+        "drawingAvailableCount": 0,
+        "sampleFile": "class-picker-frames-v1/socket.png",
+        "sampleDrawingAvailable": false
+      },
+      {
+        "id": "chronicleHudFrames",
+        "prefix": "chronicle-hud-frames-v1/",
+        "loadRequested": true,
+        "failed": false,
+        "loaded": true,
+        "textureCount": 19,
+        "validTextureCount": 19,
+        "hidden": true,
+        "drawingAvailable": false,
+        "drawingAvailableCount": 0,
+        "sampleFile": "chronicle-hud-frames-v1/exp-groove-empty.png",
+        "sampleDrawingAvailable": false
+      },
+      {
+        "id": "timegraphChronicle",
+        "prefix": "timegraph-chronicle-v1/",
+        "loadRequested": true,
+        "failed": false,
+        "loaded": true,
+        "textureCount": 1,
+        "validTextureCount": 1,
+        "hidden": true,
+        "drawingAvailable": false,
+        "drawingAvailableCount": 0,
+        "sampleFile": "timegraph-chronicle-v1/timegraph-chronicle-assembly.png",
+        "sampleDrawingAvailable": false
+      }
+    ]
+  },
+  "errors": [],
+  "limits": "Post-clock through collection; open wait right-censored. Residual is other work/waits, not CPU. Unequal step counts are not percent complete. No speed/neutrality/product-cause/whole-SOUND acceptance."
+}

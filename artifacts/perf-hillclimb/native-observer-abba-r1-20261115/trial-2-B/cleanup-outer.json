@@ -1,0 +1,19 @@
+{
+    "at":  "2026-11-15T03:40:29.6001714Z",
+    "fixtureRoot":  "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-wK02Dx",
+    "since":  "2026-11-15T03:40:15.619Z",
+    "before":  [
+
+               ],
+    "stopped":  [
+
+                ],
+    "remaining":  [
+
+                  ],
+    "errors":  [
+
+               ],
+    "fixturePreserved":  true,
+    "scope":  "Only exact registered fixture preview servers created during this attempt; no filesystem delete or other preview stopped"
+}

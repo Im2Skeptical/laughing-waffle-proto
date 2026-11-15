@@ -1,0 +1,6 @@
+{
+  "name": "repinned-runtime-binary",
+  "status": "PASS expected rejection",
+  "expected": "/oracle Node executable identity/",
+  "error": "AssertionError [ERR_ASSERTION]: oracle Node executable identity\n+ actual - expected\n\n  {\n    bytes: 91694408,\n+   sha256: '3331e1ffe19874215472217c5e94f5a0c6d8e18c4ac7111d3937aa0ad5e9b4a5'\n-   sha256: '0000000000000000000000000000000000000000000000000000000000000000'\n  }\n\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:183:85)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:93:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:106:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:171:3"
+}

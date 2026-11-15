@@ -1,0 +1,438 @@
+import { getRegionTerrainStyle } from './world-map/region-style.js';
+import { minimalGraphics } from './minimal-graphics.js';
+import { detailedSettlementPracticeDefs, settlementStructureDefs } from '../defs/gamepieces/detailed-settlement-defs.js';
+// Presentation assets only. Atlas choices never read or advance simulation RNG.
+const SPRITE_SHEET_ROOT = 'images/sprite-sheets/';
+const cells = new Map();
+const packedTextures = new Map();
+const packedLoads = new Map();
+const failedGroups = new Set();
+const hiddenGroups = new Set();
+const rendererPreparations = new WeakMap();
+const presentationIllustrations = new Map();
+const presentationGroups = new Map();
+let revision = 0;
+export const getArtRevision = () => revision;
+export const RESOURCE_ART_IDS = Object.freeze([
+  'year', 'moon', 'phase', 'prestige', 'money', 'food', 'birth', 'housing',
+  'faith', 'migration', 'death', 'solar-wheel', 'moon-wheel', 'lunar-bezel', 'cost-frame',
+  'stock',
+  ...['animal', 'arms', 'bone', 'civic', 'cloth', 'construction', 'currency',
+    'edible', 'fuel', 'glass', 'grain', 'instrument', 'knowledge', 'loot',
+    'medicine', 'metal', 'mineral', 'mobility', 'ore', 'paper', 'plant', 'power',
+    'preserved', 'protection', 'record', 'roadwork', 'salt', 'stone', 'storage',
+    'timber', 'tool', 'trade', 'vessel', 'water', 'wild', 'work'].map(id => `stock-${id}`),
+]);
+export const getResourceTexture = id => loadTexture(`resource-language-v1/${id}.png`);
+export const getStockTraitTexture = trait => getResourceTexture(`stock-${trait.toLowerCase()}`);
+export const SETTLEMENT_PIECE_ART_IDS = Object.freeze([
+  ...Object.keys(detailedSettlementPracticeDefs),
+  ...Object.keys(settlementStructureDefs),
+  'forage', 'cultivate', 'raiseHouses', 'administrate', 'exchange', 'import',
+  'mixedFarming', 'efficientKitchens', 'homesteading', 'lodgingHouses', 'study', 'mill',
+  'harvestFestival', 'marketFeast', 'symposium', 'vigil',
+  'mudHouses', 'granary', 'library', 'smokehouse', 'countingHouse', 'hostel', 'archive',
+  'hallOfSages', 'agrarianGuild', 'forum', 'academy', 'caravanserai', 'resettlementHall', 'university',
+  'longhouse', 'cottage', 'townhouse', 'silo',
+]);
+
+const PACKED_GROUPS = Object.freeze({
+  fullMap:{prefix:'full-map-content-prototype/art/',files:['full-map-content-prototype.json'],eager:true},
+  fullMapEnemy:{prefix:'full-map-chaos-prototype/art/',files:['full-map-chaos-dictator.json'],eager:true},
+  heirlooms: Object.freeze({
+    prefix: 'heirlooms-v1/',
+    files: Object.freeze(['heirlooms.json']),
+    eager: true,
+  }),
+  resources: Object.freeze({
+    prefix: 'resource-language-v1/',
+    files: Object.freeze(['resource-language.json']),
+    eager: true,
+  }),
+  settlementPieces: Object.freeze({
+    prefix: 'settlement-pieces-v4/',
+    files: Object.freeze(['settlement-pieces-0.json', 'settlement-pieces-1.json', 'settlement-pieces-2.json']),
+    eager: false,
+  }),
+  pieceFrames: Object.freeze({
+    prefix: 'piece-frames-v1/',
+    files: Object.freeze(['piece-frames.json']),
+    eager: true,
+  }),
+  chronicleIllustrations: Object.freeze({
+    prefix: 'chronicle-illustrations-v1/',
+    files: Object.freeze(['chronicle-illustrations.json']),
+    eager: true,
+  }),
+  regionLandmarks: Object.freeze({
+    prefix: 'region-landmarks-v1/',
+    files: Object.freeze(['region-landmarks.json']),
+    eager: true,
+  }),
+  vassalPortraits: Object.freeze({
+    prefix: 'vassal-portraits-v1/',
+    files: Object.freeze(['vassal-portraits.json']),
+    eager: true,
+  }),
+  vassalClass: Object.freeze({
+    prefix: 'vassal-class-v1/',
+    files: Object.freeze(['vassal-class.json']),
+    eager: true,
+  }),
+  chronicleGate: Object.freeze({
+    prefix: 'chronicle-gate-v1/',
+    files: Object.freeze(['chronicle-gate.json']),
+    eager: true,
+  }),
+  // The hand-illustrated picker shares the nearest-neighbour pixel-art treatment.
+  classPickerFrames: Object.freeze({
+    prefix: 'class-picker-frames-v1/',
+    files: Object.freeze(['class-picker-frames.json']),
+    eager: true,
+  }),
+  // Chronicle crest-bar HUD: lintel, medallion, pendant, plaques, EXP groove, tabs.
+  chronicleHudFrames: Object.freeze({
+    prefix: 'chronicle-hud-frames-v1/',
+    files: Object.freeze(['chronicle-hud-frames.json']),
+    eager: true,
+  }),
+  timegraphChronicle: Object.freeze({
+    prefix: 'timegraph-chronicle-v1/',
+    files: Object.freeze(['timegraph-chronicle.json']),
+    eager: true,
+  }),
+});
+
+function bumpRevision() {
+  revision += 1;
+}
+
+function configureTexture(texture) {
+  if (!texture?.baseTexture) return texture;
+  texture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+  texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF;
+  return texture;
+}
+
+function packedGroupFor(file) {
+  return [...Object.values(PACKED_GROUPS), ...presentationGroups.values()].find(({ prefix }) => file.startsWith(prefix)) ?? null;
+}
+
+// Isolated design workbenches may supply a separate atlas without adding live
+// gamepieces or warming that atlas during normal play. This is presentation only.
+export function registerPresentationIllustrations({prefix, files, ids}) {
+  if (!presentationGroups.has(prefix)) presentationGroups.set(prefix, {prefix, files, eager:false});
+  for (const id of ids) presentationIllustrations.set(id, {file:`${prefix}${id}.png`, whole:true});
+  return loadPackedGroup(presentationGroups.get(prefix), true);
+}
+
+function packedKeyFor(file, group) {
+  return `${group.prefix}${file.slice(group.prefix.length)}`;
+}
+
+function loadTexture(file) {
+  const group = packedGroupFor(file);
+  if (group) {
+    const key = packedKeyFor(file, group);
+    if (packedTextures.has(key) && !hiddenGroups.has(group)) return packedTextures.get(key);
+    if (minimalGraphics && group !== PACKED_GROUPS.resources) return null;
+    // Packed sources are 4× larger than the runtime atlas. Never fetch them
+    // while the sheet is in flight — that queue is what stalls desktop GPUs.
+    // A draw cannot retry an exhausted download on every frame. Entry/retry
+    // explicitly starts another bounded attempt through preloadChronicleArt.
+    void loadPackedGroup(group).catch(() => {});
+    return null;
+  }
+  console.error(`[art] unregistered asset requested: ${file}`);
+  return null;
+}
+
+export function getChronicleTexture(file) {
+  return loadTexture(file);
+}
+
+// Optional, untimed publication inventory. Read the very stores used by
+// loadTexture above: a retained packed texture is drawable iff its group is
+// not hidden, even in minimal mode. No resolver call, load, upload or revision.
+export function getChronicleArtworkPublicationSnapshot() {
+  const groups = [...Object.entries(PACKED_GROUPS),
+    ...[...presentationGroups].map(([prefix, group]) => [prefix, group])]
+    .filter(([, group]) => group !== PACKED_GROUPS.resources);
+  return {
+    version: 1, revision, minimalGraphics,
+    groups: groups.map(([id, group]) => {
+      let textureCount = 0, validTextureCount = 0, sampleFile = null;
+      for (const [file, texture] of packedTextures) {
+        if (packedGroupFor(file) !== group) continue;
+        textureCount++;
+        if (texture?.baseTexture?.valid === true && texture.valid !== false) validTextureCount++;
+        if (sampleFile == null) sampleFile = file;
+      }
+      const hidden = hiddenGroups.has(group);
+      return {
+        id, prefix: group.prefix, loadRequested: packedLoads.has(group), failed: failedGroups.has(group),
+        // loaded means at least one retained frame, not promise completion or GPU idle.
+        loaded: textureCount > 0, textureCount, validTextureCount, hidden,
+        drawingAvailable: textureCount > 0 && !hidden,
+        drawingAvailableCount: hidden ? 0 : textureCount,
+        sampleFile, sampleDrawingAvailable: sampleFile == null ? null : !hidden,
+      };
+    }),
+  };
+}
+
+function artworkError(message, cause) {
+  const error = new Error(message, { cause });
+  error.code = 'artworkLoadFailed';
+  return error;
+}
+
+async function loadPackedSheet(name) {
+  const url = `${SPRITE_SHEET_ROOT}${name}`;
+  let sheet;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try { sheet = await PIXI.Assets.load(url); break; }
+    catch (error) {
+      if (attempt === 2) throw artworkError(`Artwork could not be loaded: ${name}`, error);
+      await new Promise(resolve => setTimeout(resolve, [500, 1500][attempt]));
+    }
+  }
+  // Pixi loads and caches a multipack's related sheets with the first one.
+  // Return them together so callers never load (and re-cache) them again.
+  const sheets = [sheet, ...(sheet?.linkedSheets ?? [])];
+  for (const part of sheets) {
+    const textures = Object.values(part?.textures ?? {});
+    if (!textures.length || textures.some(texture => !texture?.baseTexture?.valid || texture.valid === false)
+      || Object.keys(part.data?.frames ?? {}).some(frame => !part.textures[frame])) {
+      throw artworkError(`Artwork has invalid or undecoded textures: ${name}`);
+    }
+  }
+  return { sheets, linked: (sheet.data?.meta?.related_multi_packs ?? []).filter(item => typeof item === 'string') };
+}
+
+async function loadPackedGroup(group, retryFailed = false, progressive = false) {
+  if (minimalGraphics && group !== PACKED_GROUPS.resources && !progressive) return;
+  if (retryFailed && failedGroups.delete(group)) packedLoads.delete(group);
+  if (packedLoads.has(group)) return packedLoads.get(group);
+  // Multipack sheets link to each other. Loading them concurrently can leave
+  // Pixi's asset promises waiting on the same linked sheet indefinitely.
+  const load = (async () => {
+    const loaded = new Set();
+    for (const name of group.files) {
+      if (loaded.has(name)) continue;
+      const { sheets, linked } = await loadPackedSheet(name);
+      loaded.add(name); linked.forEach(item => loaded.add(item));
+      for (const sheet of sheets) Object.entries(sheet.textures).forEach(([name, texture]) => {
+        const file = `${group.prefix}${name}`;
+        configureTexture(texture);
+        packedTextures.set(file, texture);
+      });
+    }
+    if (!hiddenGroups.has(group)) bumpRevision();
+  })().catch(error => {
+    failedGroups.add(group);
+    throw error;
+  });
+  packedLoads.set(group, load);
+  return load;
+}
+
+export function preloadChronicleArt({ includeSettlementPieces = false } = {}) {
+  try { PIXI.Assets.setPreferences?.({ preferWorkers: true }); } catch { /* Pixi 7.2 ignores unknown prefs. */ }
+  const eager = Object.values(PACKED_GROUPS)
+    .filter(group => group.eager && (!minimalGraphics || group === PACKED_GROUPS.resources))
+    .map(group => loadPackedGroup(group, true));
+  // Warm the settlement atlases after HUD/map art has claimed the first
+  // connections, so opening a settlement does not wait on their decode.
+  const ready = Promise.all(eager);
+  if (minimalGraphics) return ready;
+  const warm = ready.then(() => loadPackedGroup(PACKED_GROUPS.settlementPieces, true));
+  if (includeSettlementPieces) return warm;
+  void warm.catch(error => console.error('[art] background artwork preparation failed', error));
+  return ready;
+}
+
+// Decode and upload shared atlases while the opening forecast runs behind the
+// menu. Loading alone leaves their first GPU upload on the first visible frame.
+export function prepareChronicleArt(renderer) {
+  if (rendererPreparations.has(renderer)) return rendererPreparations.get(renderer);
+  const preparation = preloadChronicleArt({ includeSettlementPieces: true }).then(async () => {
+    const textures = new Map([...packedTextures.entries()].filter(([key]) => !hiddenGroups.has(packedGroupFor(key))).map(([,texture]) => [texture.baseTexture, texture]));
+    const gl = renderer.gl;
+    const maxSize = gl?.getParameter(gl.MAX_TEXTURE_SIZE);
+    if ([...textures.keys()].some(base => !base.valid || (maxSize && (base.realWidth > maxSize || base.realHeight > maxSize)))) {
+      throw artworkError('Artwork textures are invalid or exceed this device\'s texture size limit');
+    }
+    for (const texture of textures.values()) renderer.prepare.add(texture);
+    await renderer.prepare.upload();
+    if (gl && (gl.isContextLost() || [...textures.keys()].some(base => !base._glTextures?.[renderer.CONTEXT_UID]))) {
+      throw artworkError('Artwork could not be uploaded to this device');
+    }
+  }).catch(error => {
+    rendererPreparations.delete(renderer);
+    throw error.code === 'artworkLoadFailed' ? error : artworkError('Artwork upload failed', error);
+  });
+  rendererPreparations.set(renderer, preparation);
+  return preparation;
+}
+
+const ART = Object.freeze({
+  forage: 0, cultivate: 1, preserve: 2, administrate: 3,
+  granary: 4, mudHouses: 5, raiseHouses: 12, crossroads: 6, travel: 6,
+  patronage: 7, development: 8, crisis: 9, legacy: 10, relic: 10, settlement: 11,
+  exchange: 13, import: 14, caravanRoutes: 15, clearingHouse: 16,
+  mixedFarming: 17, efficientKitchens: 18, homesteading: 19, lodgingHouses: 20,
+  study: 21, mill: 22, harvestFestival: 23, marketFeast: 24, symposium: 25,
+  vigil: 26, exodus: 27, hostel: 28, library: 29, archive: 30, hallOfSages: 31,
+  agrarianGuild: 32, forum: 33, academy: 34, university: 35,
+  practiceReform: 0, publicWorks: 4, neutralMarket: 24, classMarket: 25,
+  foodShop: 0, housingShop: 5,
+  stockShop: 0,
+});
+
+const ILLUSTRATION_IDS = Object.freeze([
+  'forage', 'cultivate', 'preserve', 'administrate', 'granary', 'mudHouses',
+  'travel', 'patronage', 'development', 'crisis', 'legacy', 'settlement',
+  'raiseHouses', 'exchange', 'import', 'caravanRoutes', 'clearingHouse',
+  'mixedFarming', 'efficientKitchens', 'homesteading', 'lodgingHouses', 'study',
+  'mill', 'harvestFestival', 'marketFeast', 'symposium', 'vigil', 'exodus',
+  'hostel', 'library', 'archive', 'hallOfSages', 'agrarianGuild', 'forum',
+  'academy', 'university',
+]);
+export function resolveIllustrationId(piece = {}) {
+  if (typeof piece === 'string') return piece;
+  return piece.practiceId ?? piece.structureId ?? piece.defId ?? piece.id ?? 'legacy';
+}
+
+export function getIllustrationSpec(id) {
+  const pieceId = resolveIllustrationId(id);
+  if(pieceId.startsWith('fm_'))return {file:`full-map-content-prototype/art/${pieceId}.png`,whole:true};
+  if((pieceId.startsWith('fe_')||pieceId.startsWith('cp_'))&&(detailedSettlementPracticeDefs[pieceId]??settlementStructureDefs[pieceId])?.provenance==='dictator')return {file:`full-map-chaos-prototype/art/chaos_${pieceId}.png`,whole:true};
+  if (presentationIllustrations.has(pieceId)) return presentationIllustrations.get(pieceId);
+  if (SETTLEMENT_PIECE_ART_IDS.includes(pieceId)) return { file: `settlement-pieces-v4/${pieceId}.webp`, index: 0, whole: true };
+  const index=ART[resolveIllustrationId(id)];
+  if(index==null) {
+    const def=detailedSettlementPracticeDefs[pieceId]??settlementStructureDefs[pieceId];
+    if(!def)return null;
+    const illustration=def.housing?'mudHouses':def.pool==='warrior'?'vigil':def.pool==='scholar'?'study':def.stockTraits?.includes('Edible')?'forage':def.stockTraits?.includes('Currency')?'exchange':'raiseHouses';
+    return {file:`settlement-pieces-v4/${illustration}.webp`,index:0,whole:true};
+  }
+  return {file:`chronicle-illustrations-v1/${ILLUSTRATION_IDS[index]}.png`, whole:true};
+}
+
+export function addIllustration(parent, id, rect, { alpha = 1 } = {}) {
+  const {file}=getIllustrationSpec(id)??getIllustrationSpec('legacy');
+  const source = loadTexture(file);
+  if (!source?.baseTexture.valid) return null;
+  // Crop to cover; paintings must never stretch when a compact slot becomes a tall card.
+  const ratio=rect.width/rect.height,key=`cover:${file}:${ratio.toFixed(4)}`;
+  if(!cells.has(key)){
+    const width=Math.min(source.width,source.height*ratio),height=Math.min(source.height,source.width/ratio);
+    cells.set(key,new PIXI.Texture(source.baseTexture,new PIXI.Rectangle(
+      source.frame.x+(source.width-width)/2,source.frame.y+(source.height-height)/2,width,height)));
+  }
+  const texture=cells.get(key);
+  const sprite = new PIXI.Sprite(texture);
+  sprite.position.set(rect.x, rect.y);
+  sprite.width = rect.width;
+  sprite.height = rect.height;
+  sprite.alpha = alpha;
+  sprite.eventMode = 'none';
+  parent.addChild(sprite);
+  return sprite;
+}
+
+export function landmarkTexture(kind, frame) {
+  return loadTexture(`chronicle-illustrations-v1/${kind}-${frame}.png`);
+}
+
+export const getRegionLandmarkTexture = id => loadTexture(`region-landmarks-v1/${id}.png`);
+
+// Complete cutouts, including pennants and horns, retain their aspect ratio.
+export function addRegionLandmark(parent, id, rect) {
+  const texture = getRegionLandmarkTexture(id);
+  if (!texture?.baseTexture.valid) return null;
+  const sprite = new PIXI.Sprite(texture);
+  const scale = Math.min(rect.width / texture.width, rect.height / texture.height);
+  sprite.scale.set(scale);
+  sprite.position.set(rect.x + (rect.width - sprite.width) / 2, rect.y + (rect.height - sprite.height) / 2);
+  sprite.eventMode = 'none';
+  sprite.label = id;
+  parent.addChild(sprite);
+  return sprite;
+}
+
+export function addGateBackdrop(parent, rect, alpha = 0.18) {
+  const texture = loadTexture('chronicle-gate-v1/chronicle-gate.png');
+  if (!texture?.baseTexture.valid) return;
+  const sprite = new PIXI.Sprite(texture);
+  sprite.position.set(rect.x, rect.y);
+  sprite.width = rect.width; sprite.height = rect.height;
+  sprite.alpha = alpha; sprite.eventMode = 'none';
+  parent.addChild(sprite);
+}
+
+// Polygon data owns the geography. This layer works with any generated topology.
+export function addRegionTerrain(parent, points, colour, alpha = 1, biome) {
+  const style = getRegionTerrainStyle(biome, colour);
+  if (minimalGraphics) {
+    const ground = new PIXI.Graphics().beginFill(style.fill, alpha).drawPolygon(points).endFill();
+    ground.label = 'region-biome-fill';
+    ground.eventMode = 'none'; parent.addChild(ground); return;
+  }
+  const terrain = style.tile;
+  const texture = loadTexture(`chronicle-illustrations-v1/terrain-${terrain}.png`);
+  if (!texture) return;
+  const xs = points.filter((_, i) => i % 2 === 0);
+  const ys = points.filter((_, i) => i % 2 === 1);
+  const x = Math.min(...xs), y = Math.min(...ys);
+  const width = Math.max(...xs) - x, height = Math.max(...ys) - y;
+  const tile = new PIXI.TilingSprite(texture, width, height);
+  tile.position.set(x, y);
+  tile.tileScale.set(0.85);
+  tile.tilePosition.set(-x, -y);
+  tile.alpha = alpha;
+  tile.eventMode = 'none';
+  const mask = new PIXI.Graphics().beginFill(0xffffff).drawPolygon(points).endFill();
+  mask.eventMode = 'none';
+  parent.addChild(tile, mask);
+  tile.mask = mask;
+}
+
+// Previously loaded illustrations stay hidden until the performance reveal.
+export function hideChronicleArtwork(renderer) {
+  for (const group of Object.values(PACKED_GROUPS)) {
+    if (group !== PACKED_GROUPS.resources) hiddenGroups.add(group);
+  }
+  rendererPreparations.delete(renderer);
+  bumpRevision();
+}
+
+// Optional artwork is published only after upload. Draws cannot start extra loads.
+export async function loadProgressiveChronicleArt({renderer, wait, isCurrent = () => true, onError = () => {}}) {
+  const groups = [PACKED_GROUPS.fullMap, PACKED_GROUPS.fullMapEnemy, PACKED_GROUPS.settlementPieces,
+    ...Object.values(PACKED_GROUPS).filter(group => ![PACKED_GROUPS.resources,PACKED_GROUPS.fullMap,PACKED_GROUPS.fullMapEnemy,PACKED_GROUPS.settlementPieces].includes(group))];
+  let failed=false;
+  for (const group of groups) {
+    if (!hiddenGroups.has(group) && [...packedTextures.keys()].some(key=>key.startsWith(group.prefix))) continue;
+    await wait(); if (!isCurrent()) return {ok:false,reason:'cancelled'};
+    hiddenGroups.add(group);
+    try {
+      await loadPackedGroup(group, false, true);
+      const textures = new Map([...packedTextures.entries()].filter(([key]) => key.startsWith(group.prefix)).map(([,texture]) => [texture.baseTexture,texture]));
+      for (const texture of textures.values()) {
+        await wait(); if (!isCurrent()) return {ok:false,reason:'cancelled'};
+        const gl=renderer.gl, max=gl?.getParameter(gl.MAX_TEXTURE_SIZE), base=texture.baseTexture;
+        if (!base.valid || (max && (base.realWidth>max || base.realHeight>max))) throw Error('Artwork exceeds device texture limits');
+        renderer.prepare.add(texture); await renderer.prepare.upload();
+        if (gl?.isContextLost()) throw Error('Artwork context lost');
+      }
+    } catch(error) { failed=true; onError(error); }
+  }
+  if(failed)return {ok:false,reason:'artworkFailed'};
+  return {ok:true,reveal(){
+    if(!isCurrent())return false;
+    for(const group of groups)hiddenGroups.delete(group);
+    bumpRevision();return true;
+  }};
+}

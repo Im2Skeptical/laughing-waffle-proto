@@ -102,6 +102,10 @@ export function createTimeControlsView({
     init,
     refresh,
     update,
+    getRetainedFeedbackSnapshot: () => ({
+      visible: root.visible,
+      lever: timeLeverView.getRetainedFeedbackSnapshot(),
+    }),
     getTimeLeverScreenRect: () => {
       if (
         !root.visible ||

@@ -1,0 +1,25 @@
+﻿{
+    "ok":  true,
+    "cells":  8,
+    "observations":  16,
+    "seeds":  [
+                  424242,
+                  99117
+              ],
+    "caches":  [
+                   "cold",
+                   "warm"
+               ],
+    "populations":  [
+                        "desktop",
+                        "mobile4"
+                    ],
+    "plannedLaunchesMatch":  true,
+    "harnessId":  "5260d7cc890598168f68b83e0b5c61ac54c5778bbda52af6d0d5261f4de6b62a",
+    "buildId":  "6d710b467c7f2a761c9b35d4414d64ebddb3f0c3938ceaadb66edf454ee6e775",
+    "measurementContractId":  "a98cd87e6f8a56d518475272261c9cdd8c384fec35d81c34a4e427ac9241ba96",
+    "warmResetsExact":  4,
+    "freshWarmDocuments":  4,
+    "phaseA":  "NOT SOUND",
+    "scope":  "fixed-source representative functional discovery; not tail inference or independent acceptance"
+}

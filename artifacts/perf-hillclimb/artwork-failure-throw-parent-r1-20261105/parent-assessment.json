@@ -1,0 +1,10 @@
+﻿{
+    "expectedNegativeControlPassed":  true,
+    "productCasePassed":  false,
+    "rawFrames":  111,
+    "crossingStalls":  1,
+    "diagnosticEndUnknown":  true,
+    "contextClosed":  true,
+    "browserClosed":  true,
+    "unconfirmedWork":  0
+}

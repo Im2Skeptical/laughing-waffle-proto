@@ -1,0 +1,30 @@
+[
+  {
+    "index": 0,
+    "stage": "main",
+    "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-KYeb7O",
+    "finished": "2026-11-15T03:40:40.555Z",
+    "status": 0,
+    "signal": null,
+    "pid": null,
+    "stdoutBytes": 141,
+    "stderrBytes": null,
+    "stderrAvailable": false,
+    "native": false,
+    "exactPriorSignature": false
+  },
+  {
+    "index": 1,
+    "stage": "main",
+    "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-KYeb7O",
+    "finished": "2026-11-15T03:40:40.750Z",
+    "status": 3221226505,
+    "signal": null,
+    "pid": 35760,
+    "stdoutBytes": 0,
+    "stderrBytes": 0,
+    "stderrAvailable": true,
+    "native": true,
+    "exactPriorSignature": false
+  }
+]

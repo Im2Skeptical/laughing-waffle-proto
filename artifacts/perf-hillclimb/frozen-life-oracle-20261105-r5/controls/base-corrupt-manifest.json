@@ -1,0 +1,6 @@
+{
+  "name": "base-corrupt-manifest",
+  "status": "PASS expected rejection",
+  "expected": "/base manifest (pin|identity)/",
+  "error": "AssertionError [ERR_ASSERTION]: base manifest identity\n+ actual - expected\n\n+ 'ba1283181a87c7e6b31de27e93124fa2f6e34fa073ae8435fb9d937e5a1a0c0f'\n- '406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000'\n\n    at validateBase (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:80:76)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:128:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:156:3"
+}

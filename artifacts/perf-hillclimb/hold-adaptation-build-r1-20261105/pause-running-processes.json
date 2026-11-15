@@ -1,0 +1,23 @@
+[
+    {
+        "pid":  13320,
+        "parentPid":  30272,
+        "name":  "powershell.exe",
+        "commandLine":  "\"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe\" -Command \"try { [Console]::OutputEncoding=[System.Text.Encoding]::UTF8 } catch {}\nnpm run test:perf-hold *\u003e artifacts/perf-hillclimb/hold-adaptation-build-r1-20261105/focused-final.log; $taskFocusExit=$LASTEXITCODE; Write-Output \\\"focused_exit=$taskFocusExit\\\"; npm run verify *\u003e artifacts/perf-hillclimb/hold-adaptation-build-r1-20261105/verify-final-r2.log; $taskFinalVerifyExit=$LASTEXITCODE; Set-Content artifacts/perf-hillclimb/hold-adaptation-build-r1-20261105/verify-final-r2-exit.txt $taskFinalVerifyExit; Write-Output \\\"verify_exit=$taskFinalVerifyExit\\\"; if ($taskFocusExit -ne 0 -or $taskFinalVerifyExit -ne 0) { exit 1 }; node --experimental-vm-modules scripts/perf-hillclimb/hold-adoption-controls.mjs hold-adaptation-controls-r4-20261105 controls *\u003e artifacts/perf-hillclimb/hold-adaptation-build-r1-20261105/controls-r4.log; Set-Content artifacts/perf-hillclimb/hold-adaptation-build-r1-20261105/controls-r4-exit.txt $LASTEXITCODE; node --experimental-vm-modules scripts/perf-hillclimb/hold-adoption-controls.mjs hold-adaptation-reference-r1-20261105 reference *\u003e artifacts/perf-hillclimb/hold-adaptation-build-r1-20261105/reference-r1.log; Set-Content artifacts/perf-hillclimb/hold-adaptation-build-r1-20261105/reference-r1-exit.txt $LASTEXITCODE; node --experimental-vm-modules scripts/perf-hillclimb/hold-adoption-controls.mjs hold-adaptation-negative-r1-20261105 negative *\u003e artifacts/perf-hillclimb/hold-adaptation-build-r1-20261105/negative-r1.log; Set-Content artifacts/perf-hillclimb/hold-adaptation-build-r1-20261105/negative-r1-exit.txt $LASTEXITCODE; Write-Output \u0027Sequential proof batch finished\u0027\"",
+        "depth":  0
+    },
+    {
+        "pid":  7496,
+        "parentPid":  13320,
+        "name":  "conhost.exe",
+        "commandLine":  "\\??\\C:\\WINDOWS\\system32\\conhost.exe 0x4",
+        "depth":  1
+    },
+    {
+        "pid":  12312,
+        "parentPid":  13320,
+        "name":  "node.exe",
+        "commandLine":  "\"C:\\Program Files\\nodejs\\node.exe\" --experimental-vm-modules scripts/perf-hillclimb/hold-adoption-controls.mjs hold-adaptation-negative-r1-20261105 negative",
+        "depth":  1
+    }
+]

@@ -1,0 +1,10 @@
+{
+  "at": "2026-11-15T02:57:19.712Z",
+  "hashes": {
+    "driver.mjs": "00f2b293de496ae65659a47cc89bc206921950c18dafb80ca5de40c8b3c2dd62",
+    "probe.mjs": "da1d75076a3d6472eaeac9ead86d33093f4906cdef85b424144ce56be35b7f6e",
+    "cleanup-owned.ps1": "9c806cf49043d3ba29cdceedd4d1f8ac1484718679e627e3bf06e3ab60a7ee38",
+    "source-authentication.json": "4b2a784770a8f340cbad9fa39731d05c82b2257db5dee4b7f1d64ff4f048318f"
+  },
+  "scope": "Prepared diagnostic only; not executed or independently admitted"
+}

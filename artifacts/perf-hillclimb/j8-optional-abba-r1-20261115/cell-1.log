@@ -1,0 +1,2 @@
+[artwork-controls] FAIL page.waitForFunction: Timeout 240000ms exceeded.; details=C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\artifacts\perf-hillclimb\j8-optional-off-b-20261115-r1
+[artwork-controls] FAILED cases=0/1 observations=3 path=C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\artifacts\perf-hillclimb\j8-optional-off-b-20261115-r1

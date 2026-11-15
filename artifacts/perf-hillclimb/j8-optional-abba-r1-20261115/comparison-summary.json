@@ -1,0 +1,235 @@
+{
+  "created": "2026-11-14T23:53:47.863Z",
+  "phaseA": "NOT SOUND",
+  "scope": "Four fixed diagnostic cells only; not tail/score/product gain or neutral-overhead evidence. All four original failures retained.",
+  "cases": [
+    {
+      "index": 0,
+      "id": "j8-optional-on-a-20261115-r1",
+      "instrumentation": "on",
+      "started": "2026-11-14T23:22:09.349Z",
+      "finished": "2026-11-14T23:27:24.214Z",
+      "exitCode": 1,
+      "identityVerified": true,
+      "cleanupVerified": true,
+      "readinessGateMs": 240000,
+      "caseCapMs": 600000,
+      "failedStages": [
+        "remaining-background-wait-to-prepared"
+      ],
+      "operationHeaders": [
+        {
+          "step": "performance-entry-full-opening",
+          "ok": true,
+          "terminated": true,
+          "bytes": 33006
+        },
+        {
+          "step": "opening-to-responsive-present",
+          "ok": true,
+          "terminated": true,
+          "bytes": 18121
+        },
+        {
+          "step": "remaining-background-wait-to-prepared",
+          "ok": false,
+          "terminated": true,
+          "bytes": 634076
+        }
+      ],
+      "error": "page.waitForFunction: Timeout 240000ms exceeded.",
+      "mainPrepared": null,
+      "decisionPrepared": null,
+      "mainReady": false,
+      "decisionReady": false,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "requestFailures": 0,
+      "passiveKeys": [
+        "version",
+        "mode",
+        "selectedRegionId",
+        "regionSelectionActive",
+        "runner",
+        "opening",
+        "map",
+        "graph",
+        "artwork",
+        "life"
+      ],
+      "completedReadiness": false,
+      "censoring": "240s configured readiness timeout is not an observed completion time; actual ready latency unavailable"
+    },
+    {
+      "index": 1,
+      "id": "j8-optional-off-b-20261115-r1",
+      "instrumentation": "off",
+      "started": "2026-11-14T23:34:45.747Z",
+      "finished": "2026-11-14T23:39:59.696Z",
+      "exitCode": 1,
+      "identityVerified": true,
+      "cleanupVerified": true,
+      "readinessGateMs": 240000,
+      "caseCapMs": 600000,
+      "failedStages": [
+        "remaining-background-wait-to-prepared"
+      ],
+      "operationHeaders": [
+        {
+          "step": "performance-entry-full-opening",
+          "ok": true,
+          "terminated": true,
+          "bytes": 17639
+        },
+        {
+          "step": "opening-to-responsive-present",
+          "ok": true,
+          "terminated": true,
+          "bytes": 17712
+        },
+        {
+          "step": "remaining-background-wait-to-prepared",
+          "ok": false,
+          "terminated": true,
+          "bytes": 439241
+        }
+      ],
+      "error": "page.waitForFunction: Timeout 240000ms exceeded.",
+      "mainPrepared": null,
+      "decisionPrepared": null,
+      "mainReady": false,
+      "decisionReady": false,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "requestFailures": 0,
+      "passiveKeys": [
+        "version",
+        "mode",
+        "selectedRegionId",
+        "regionSelectionActive",
+        "runner",
+        "opening",
+        "map",
+        "graph",
+        "artwork",
+        "life"
+      ],
+      "completedReadiness": false,
+      "censoring": "240s configured readiness timeout is not an observed completion time; actual ready latency unavailable"
+    },
+    {
+      "index": 2,
+      "id": "j8-optional-off-a-20261115-r1",
+      "instrumentation": "off",
+      "started": "2026-11-14T23:40:00.050Z",
+      "finished": "2026-11-14T23:45:13.490Z",
+      "exitCode": 1,
+      "identityVerified": true,
+      "cleanupVerified": true,
+      "readinessGateMs": 240000,
+      "caseCapMs": 600000,
+      "failedStages": [
+        "remaining-background-wait-to-prepared"
+      ],
+      "operationHeaders": [
+        {
+          "step": "performance-entry-full-opening",
+          "ok": true,
+          "terminated": true,
+          "bytes": 17579
+        },
+        {
+          "step": "opening-to-responsive-present",
+          "ok": true,
+          "terminated": true,
+          "bytes": 17628
+        },
+        {
+          "step": "remaining-background-wait-to-prepared",
+          "ok": false,
+          "terminated": true,
+          "bytes": 437224
+        }
+      ],
+      "error": "page.waitForFunction: Timeout 240000ms exceeded.",
+      "mainPrepared": null,
+      "decisionPrepared": null,
+      "mainReady": false,
+      "decisionReady": false,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "requestFailures": 0,
+      "passiveKeys": [
+        "version",
+        "mode",
+        "selectedRegionId",
+        "regionSelectionActive",
+        "runner",
+        "opening",
+        "map",
+        "graph",
+        "artwork",
+        "life"
+      ],
+      "completedReadiness": false,
+      "censoring": "240s configured readiness timeout is not an observed completion time; actual ready latency unavailable"
+    },
+    {
+      "index": 3,
+      "id": "j8-optional-on-b-20261115-r1",
+      "instrumentation": "on",
+      "started": "2026-11-14T23:45:13.861Z",
+      "finished": "2026-11-14T23:50:31.698Z",
+      "exitCode": 1,
+      "identityVerified": true,
+      "cleanupVerified": true,
+      "readinessGateMs": 240000,
+      "caseCapMs": 600000,
+      "failedStages": [
+        "remaining-background-wait-to-prepared"
+      ],
+      "operationHeaders": [
+        {
+          "step": "performance-entry-full-opening",
+          "ok": true,
+          "terminated": true,
+          "bytes": 32967
+        },
+        {
+          "step": "opening-to-responsive-present",
+          "ok": true,
+          "terminated": true,
+          "bytes": 18257
+        },
+        {
+          "step": "remaining-background-wait-to-prepared",
+          "ok": false,
+          "terminated": true,
+          "bytes": 624243
+        }
+      ],
+      "error": "page.waitForFunction: Timeout 240000ms exceeded.",
+      "mainPrepared": null,
+      "decisionPrepared": null,
+      "mainReady": false,
+      "decisionReady": false,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "requestFailures": 0,
+      "passiveKeys": [
+        "version",
+        "mode",
+        "selectedRegionId",
+        "regionSelectionActive",
+        "runner",
+        "opening",
+        "map",
+        "graph",
+        "artwork",
+        "life"
+      ],
+      "completedReadiness": false,
+      "censoring": "240s configured readiness timeout is not an observed completion time; actual ready latency unavailable"
+    }
+  ]
+}

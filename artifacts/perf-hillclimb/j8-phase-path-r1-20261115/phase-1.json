@@ -1,0 +1,312 @@
+{
+  "caseId": "j8-phase-on-20261115-r1",
+  "scope": "Post-clock collection; compare site times to original operation finish/cancel before claiming deadline phase. Events may overflow.",
+  "snapshots": [
+    {
+      "file": "reference-failure-observation.json",
+      "phase": {
+        "collectedAt": 304707.5,
+        "version": 1,
+        "eventLimit": 32,
+        "loaderLimit": 8,
+        "countLimit": 2147483647,
+        "events": [
+          {
+            "id": 1,
+            "site": "loader-enter",
+            "time": 61917,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "atlas-enter",
+            "time": 61917.30000001192,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-enter",
+            "time": 61918.5,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-enter",
+            "time": 61919,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-return",
+            "time": 63374.90000000596,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-return",
+            "time": 63375.09999999404,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-enter",
+            "time": 63625.5,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-enter",
+            "time": 63625.70000001788,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-return",
+            "time": 63860.90000000596,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-return",
+            "time": 63861.09999999404,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-enter",
+            "time": 63931.80000001192,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-enter",
+            "time": 63932,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-return",
+            "time": 64958.80000001192,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-return",
+            "time": 64958.90000000596,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-enter",
+            "time": 65007.5,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-enter",
+            "time": 65007.59999999404,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-return",
+            "time": 66015.30000001192,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-return",
+            "time": 66015.30000001192,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-enter",
+            "time": 66088.5,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-enter",
+            "time": 66088.5,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-return",
+            "time": 66942.40000000596,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-return",
+            "time": 66942.59999999404,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-enter",
+            "time": 67444.09999999404,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-enter",
+            "time": 67444.09999999404,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-return",
+            "time": 68464.20000001788,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-return",
+            "time": 68464.40000000596,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-enter",
+            "time": 68714.30000001192,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-enter",
+            "time": 68714.5,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-return",
+            "time": 69459.80000001192,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-return",
+            "time": 69459.90000000596,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-enter",
+            "time": 69618.20000001788,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-enter",
+            "time": 69618.40000000596,
+            "value": null
+          }
+        ],
+        "droppedEvents": 1185,
+        "loaderCount": 1,
+        "droppedLoaders": 0,
+        "loaders": [
+          {
+            "id": 1,
+            "sites": {
+              "loader-enter": {
+                "count": 1,
+                "lastAt": 61917,
+                "last": null
+              },
+              "atlas-enter": {
+                "count": 1,
+                "lastAt": 61917.30000001192,
+                "last": null
+              },
+              "wait-enter": {
+                "count": 303,
+                "lastAt": 304688.40000000596,
+                "last": null
+              },
+              "idle-enter": {
+                "count": 303,
+                "lastAt": 304688.7000000179,
+                "last": null
+              },
+              "idle-return": {
+                "count": 302,
+                "lastAt": 304664.3000000119,
+                "last": null
+              },
+              "wait-return": {
+                "count": 302,
+                "lastAt": 304664.3000000119,
+                "last": null
+              },
+              "atlas-return": {
+                "count": 1,
+                "lastAt": 84426.59999999404,
+                "last": true
+              },
+              "pre-terrain-wait-enter": {
+                "count": 1,
+                "lastAt": 84426.59999999404,
+                "last": null
+              },
+              "pre-terrain-wait-return": {
+                "count": 1,
+                "lastAt": 85453.70000001788,
+                "last": null
+              },
+              "terrain-enter": {
+                "count": 1,
+                "lastAt": 85453.80000001192,
+                "last": null
+              },
+              "main-enter": {
+                "count": 1,
+                "lastAt": 85454.09999999404,
+                "last": null
+              }
+            },
+            "gates": {
+              "wait-current": {
+                "count": 303,
+                "denied": 0,
+                "last": true,
+                "lastAt": 304688.40000000596
+              },
+              "pre-idle-load": {
+                "count": 303,
+                "denied": 0,
+                "last": true,
+                "lastAt": 304688.7000000179
+              },
+              "post-idle-load": {
+                "count": 302,
+                "denied": 0,
+                "last": true,
+                "lastAt": 304664.3000000119
+              },
+              "atlas-ok": {
+                "count": 1,
+                "denied": 0,
+                "last": true,
+                "lastAt": 84426.59999999404
+              },
+              "loader-current": {
+                "count": 1,
+                "denied": 0,
+                "last": true,
+                "lastAt": 85453.80000001192
+              }
+            },
+            "lastPhase": "idle-enter",
+            "lastAt": 304688.7000000179
+          }
+        ],
+        "unlinkedSites": {},
+        "callingLoader": 1,
+        "linkage": "prepare/ready capture synchronous caller; error callbacks explicitly unlinked"
+      }
+    }
+  ]
+}

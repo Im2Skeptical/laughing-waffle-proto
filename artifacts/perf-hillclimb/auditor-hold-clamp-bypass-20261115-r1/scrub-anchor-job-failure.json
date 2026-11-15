@@ -1,0 +1,16 @@
+{
+  "launchId": "auditor-hold-clamp-bypass-20261115-r1:launch-0-scrub-anchor",
+  "job": "scrub-anchor",
+  "originalError": {
+    "name": "Error",
+    "message": "page.waitForFunction: Error: J5 observed unrevealed browse access\n    at scrubComplete (eval at <anonymous> (eval at __HC__.probe.key (eval at predicate (eval at evaluate (:302:30)))), <anonymous>:6:11)\n    at eval (eval at <anonymous> (eval at __HC__.probe.key (eval at predicate (eval at evaluate (:302:30)))), <anonymous>:13:3)\n    at eval (eval at __HC__.probe.key (eval at predicate (eval at evaluate (:302:30))), <anonymous>:6:65)\n    at eval (eval at __HC__.probe.key (eval at predicate (eval at evaluate (:302:30))), <anonymous>:7:3)\n    at __HC__.probe.key (eval at predicate (eval at evaluate (:302:30)), <anonymous>:1:91)\n    at synchronous (<anonymous>:12:18)\n    at runtime.probe (<anonymous>:198:29)\n    at eval (eval at predicate (eval at evaluate (:302:30)), <anonymous>:1:40)\n    at predicate (eval at evaluate (:302:30), <anonymous>:7:23)\n    at next (eval at evaluate (:302:30), <anonymous>:29:29)",
+    "stack": "page.waitForFunction: Error: J5 observed unrevealed browse access\n    at scrubComplete (eval at <anonymous> (eval at __HC__.probe.key (eval at predicate (eval at evaluate (:302:30)))), <anonymous>:6:11)\n    at eval (eval at <anonymous> (eval at __HC__.probe.key (eval at predicate (eval at evaluate (:302:30)))), <anonymous>:13:3)\n    at eval (eval at __HC__.probe.key (eval at predicate (eval at evaluate (:302:30))), <anonymous>:6:65)\n    at eval (eval at __HC__.probe.key (eval at predicate (eval at evaluate (:302:30))), <anonymous>:7:3)\n    at __HC__.probe.key (eval at predicate (eval at evaluate (:302:30)), <anonymous>:1:91)\n    at synchronous (<anonymous>:12:18)\n    at runtime.probe (<anonymous>:198:29)\n    at eval (eval at predicate (eval at evaluate (:302:30)), <anonymous>:1:40)\n    at predicate (eval at evaluate (:302:30), <anonymous>:7:23)\n    at next (eval at evaluate (:302:30), <anonymous>:29:29)\n    at wait (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:252:34)\n    at observe (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:257:75)\n    at record.captureInputTiming (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:840:27)\n    at async withDeadline (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\deadline.mjs:7:12)\n    at async record (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:158:19)\n    at async mapAndScrub (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:815:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:1131:9"
+  },
+  "observationCount": 1,
+  "document": {
+    "available": false,
+    "reason": "current launch page is closed"
+  },
+  "passive": null,
+  "collectionErrors": []
+}

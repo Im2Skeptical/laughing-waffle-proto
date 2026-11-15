@@ -1,0 +1,10 @@
+{
+  "status": "FAILED construction fixture; not proof",
+  "command": "node scripts/preview-state-inspection-test.mjs artifacts/perf-hillclimb/preview-focused-r1-20261105",
+  "assertion": "every retained authoritative frontier field and RNG",
+  "expectedDifference": {"paused": true, "phase": "planning"},
+  "actualDifference": {"paused": false, "phase": "simulation"},
+  "cause": "resetToState was supplied the ordinary unpaused frozen state; the test incorrectly expected a paused UI frontier",
+  "productSeamChangedByRepair": false,
+  "retentionLimit": "Initial uncaught Node assertion printed a large state. Its tool output was truncated; full raw failure/source-hash snapshot was not captured for r1. This note preserves the observed failure and does not claim to reconstruct missing bytes. r2/r3 retain full errors; final r6 retains exact source bytes/hashes."
+}

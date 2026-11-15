@@ -1,0 +1,745 @@
+// src/model/timegraph/projection-cache.js
+
+import {
+  buildProjectionStateStepWindowFromTimeline,
+  buildProjectionStateStepWindowFromStateData,
+  buildProjectionStateWindowFromTimeline,
+} from "../projection.js";
+import { buildProjectionSummaryFromState } from "../projection-summary.js";
+import {
+  perfEnabled,
+  perfNowMs,
+  recordSettlementForecastMerge,
+} from "../perf.js";
+import { deserializeGameState } from "../state.js";
+import {
+  absorbTimelinePersistentKnowledge,
+  getActionSecondsInRange,
+  getStateDataAtSecond,
+} from "../timeline/index.js";
+import {
+  DEFAULT_PROJECTION_CACHE_MAX_BYTES,
+  DEFAULT_STATE_DATA_ESTIMATE_BYTES,
+} from "./constants.js";
+import { clampSec } from "./utils.js";
+
+function computeTimelineSignature(tl) {
+  // Projection cache should only reset when replay-relevant data changes.
+  // We intentionally ignore checkpoint churn (revision bumps) here.
+  const actions = Array.isArray(tl?.actions) ? tl.actions : [];
+  const len = actions.length;
+  const last = len ? actions[len - 1] : null;
+  return {
+    baseRef: tl?.baseStateData ?? null,
+    actionsRef: actions,
+    actionsLen: len,
+    lastRef: last,
+    lastSec: last ? Math.floor(last.tSec ?? 0) : 0,
+    actionContentVersion: Number.isFinite(tl?._actionContentVersion)
+      ? Math.max(0, Math.floor(tl._actionContentVersion))
+      : 0,
+  };
+}
+
+function signatureEquals(a, b) {
+  if (!a || !b) return false;
+  return (
+    a.baseRef === b.baseRef &&
+    a.actionsRef === b.actionsRef &&
+    a.actionsLen === b.actionsLen &&
+    a.lastRef === b.lastRef &&
+    a.lastSec === b.lastSec &&
+    a.actionContentVersion === b.actionContentVersion
+  );
+}
+
+export function createProjectionCache({
+  maxBytes = DEFAULT_PROJECTION_CACHE_MAX_BYTES,
+  maxEntries = null,
+} = {}) {
+  let signature = null;
+  let signatureVersion = 0;
+  let forecastBaseSec = 0;
+  let forecastEndSec = 0;
+  let forecastStepSec = 1;
+  let forecastDtStep = null;
+  let forecastAsyncBaseSec = 0;
+  let forecastAsyncEndSec = 0;
+  let forecastAsyncStepSec = 1;
+  let forecastAsyncToken = null;
+  const stateDataBySecond = new Map();
+  const summaryBySecond = new Map();
+  const bytesBySecond = new Map();
+  let stateDataSizeSamples = 0;
+  let lastPurgedHistoryEndSec = -1;
+
+  const maxBytesBudget = Number.isFinite(maxBytes) && maxBytes > 0
+    ? Math.max(1024 * 1024, Math.floor(maxBytes))
+    : DEFAULT_PROJECTION_CACHE_MAX_BYTES;
+  const maxEntriesBudget = Number.isFinite(maxEntries) && maxEntries > 0
+    ? Math.max(256, Math.floor(maxEntries))
+    : Number.POSITIVE_INFINITY;
+
+  let approxBytesTotal = 0;
+  let avgStateDataBytes = DEFAULT_STATE_DATA_ESTIMATE_BYTES;
+
+  function reset(nextSignature) {
+    signature = nextSignature || null;
+    signatureVersion += 1;
+    forecastBaseSec = 0;
+    forecastEndSec = 0;
+    forecastStepSec = 1;
+    forecastDtStep = null;
+    forecastAsyncBaseSec = 0;
+    forecastAsyncEndSec = 0;
+    forecastAsyncStepSec = 1;
+    forecastAsyncToken = null;
+    stateDataBySecond.clear();
+    summaryBySecond.clear();
+    bytesBySecond.clear();
+    approxBytesTotal = 0;
+    stateDataSizeSamples = 0;
+    lastPurgedHistoryEndSec = -1;
+  }
+
+  function touch(sec) {
+    if (!stateDataBySecond.has(sec)) return null;
+    const data = stateDataBySecond.get(sec);
+    stateDataBySecond.delete(sec);
+    stateDataBySecond.set(sec, data);
+    return data;
+  }
+
+  function estimateBytes(stateData) {
+    const avg = Math.max(512, Math.floor(avgStateDataBytes));
+    const sampleCount = Math.floor(stateDataSizeSamples ?? 0);
+    const shouldSample = sampleCount < 8 || sampleCount % 8 === 0;
+    stateDataSizeSamples = sampleCount + 1;
+    if (!shouldSample) return avg;
+
+    let bytes = avg;
+    if (typeof stateData === "string") {
+      bytes = Math.max(512, stateData.length);
+    } else {
+      try {
+        // Projection snapshots reference one deep-frozen config per run
+        // generation; it is retained once, not per anchor. Counting it per
+        // anchor made config (~65% of a snapshot) evict most 16 s anchors.
+        const sharedConfig = stateData?.gameConfig && typeof stateData.gameConfig === "object"
+          && Object.isFrozen(stateData.gameConfig);
+        bytes = Math.max(512, JSON.stringify(
+          sharedConfig ? { ...stateData, gameConfig: null } : stateData).length);
+      } catch (_) {
+        bytes = avg;
+      }
+    }
+    avgStateDataBytes = Math.floor(avgStateDataBytes * 0.75 + bytes * 0.25);
+    return bytes;
+  }
+
+  function removeSec(sec, { removeSummary = true } = {}) {
+    if (!stateDataBySecond.has(sec)) return;
+    const removedBytes = bytesBySecond.get(sec) ?? 0;
+    stateDataBySecond.delete(sec);
+    if (removeSummary) summaryBySecond.delete(sec);
+    bytesBySecond.delete(sec);
+    approxBytesTotal = Math.max(0, approxBytesTotal - removedBytes);
+  }
+
+  function findEvictionCandidate(protectedSecs) {
+    // Keep browsing anchors spread across the whole forecast. FIFO/LRU leaves
+    // only its tail after a long opening, forcing early scrubs to replay from
+    // the frontier. Remove the most redundant interior anchor instead.
+    const secs = [...stateDataBySecond.keys()].sort((a, b) => a - b);
+    let candidate = null;
+    let smallestSpan = Infinity;
+    for (let index = 1; index < secs.length - 1; index++) {
+      const sec = secs[index];
+      if (protectedSecs.has(sec)) continue;
+      const span = secs[index + 1] - secs[index - 1];
+      if (span < smallestSpan) {
+        candidate = sec;
+        smallestSpan = span;
+      }
+    }
+    if (candidate != null) return candidate;
+    // A very small budget may hold only endpoints and protected tails. Keep
+    // the existing tail guarantees without adding an unbounded endpoint.
+    return secs.find(sec => !protectedSecs.has(sec)) ?? null;
+  }
+
+  function setSummary(sec, summary) {
+    const t = clampSec(sec);
+    if (!summary || typeof summary !== "object") {
+      summaryBySecond.delete(t);
+      return;
+    }
+    summaryBySecond.set(t, summary);
+  }
+
+  function buildAndSetSummaryFromStateData(sec, stateData) {
+    if (stateData == null) return null;
+    const state = deserializeGameState(stateData);
+    const summary = buildProjectionSummaryFromState(state);
+    setSummary(sec, summary);
+    return summary;
+  }
+
+  function set(sec, data) {
+    const t = clampSec(sec);
+    const prevBytes = bytesBySecond.get(t) ?? 0;
+    const nextBytes = estimateBytes(data);
+    stateDataBySecond.delete(t);
+    stateDataBySecond.set(t, data);
+    bytesBySecond.set(t, nextBytes);
+    approxBytesTotal += nextBytes - prevBytes;
+
+    while (
+      stateDataBySecond.size > maxEntriesBudget ||
+      approxBytesTotal > maxBytesBudget
+    ) {
+      // The graph only needs summaries for old forecast points, while worker
+      // continuation needs the current sync/async tail state. Evict heavy
+      // snapshots without erasing their summaries and never discard either
+      // active tail while a replacement point is being inserted.
+      const protectedSecs = new Set([
+        t,
+        clampSec(forecastEndSec),
+        clampSec(forecastAsyncEndSec),
+      ]);
+      const oldest = findEvictionCandidate(protectedSecs);
+      if (oldest == null) break;
+      removeSec(oldest, { removeSummary: false });
+    }
+  }
+
+  function purgePastForecast(historyEndSec) {
+    const cutoff = clampSec(historyEndSec);
+    const forecastSecs = new Set([
+      ...stateDataBySecond.keys(),
+      ...summaryBySecond.keys(),
+    ]);
+    for (const sec of forecastSecs) {
+      if (clampSec(sec) <= cutoff) {
+        removeSec(sec);
+        summaryBySecond.delete(sec);
+      }
+    }
+    lastPurgedHistoryEndSec = Math.max(lastPurgedHistoryEndSec, cutoff);
+  }
+
+  function purgePastForecastIfNeeded(historyEndSec) {
+    const cutoff = clampSec(historyEndSec);
+    if (cutoff <= lastPurgedHistoryEndSec) return;
+    purgePastForecast(cutoff);
+  }
+
+  function setForecastState(sec, historyEndSec, data) {
+    const t = clampSec(sec);
+    const historyEnd = clampSec(historyEndSec);
+    if (t <= historyEnd) return;
+    set(t, data);
+  }
+
+  function setForecastSummary(sec, historyEndSec, summary) {
+    const t = clampSec(sec);
+    const historyEnd = clampSec(historyEndSec);
+    if (t <= historyEnd) return;
+    setSummary(t, summary);
+  }
+
+  function ensureSignature(tl) {
+    const nextSig = computeTimelineSignature(tl);
+    const changed = !signatureEquals(nextSig, signature);
+    if (changed) reset(nextSig);
+    return { changed, signature, signatureVersion };
+  }
+
+  function invalidateFromSecond(tl, startSec) {
+    const cutoff = clampSec(startSec);
+    const nextSig = computeTimelineSignature(tl);
+    const forecastSecs = new Set([
+      ...stateDataBySecond.keys(),
+      ...summaryBySecond.keys(),
+    ]);
+    for (const secRaw of forecastSecs) {
+      const sec = clampSec(secRaw);
+      if (sec < cutoff) continue;
+      removeSec(sec);
+      summaryBySecond.delete(sec);
+    }
+
+    signature = nextSig;
+    signatureVersion += 1;
+    const historyEndSec = clampSec(tl?.historyEndSec ?? 0);
+    const retainedEndSec = Math.max(historyEndSec, cutoff - 1);
+    forecastEndSec = Math.min(clampSec(forecastEndSec), retainedEndSec);
+    forecastAsyncBaseSec = historyEndSec;
+    forecastAsyncEndSec = Math.min(clampSec(forecastAsyncEndSec), retainedEndSec);
+    forecastAsyncStepSec = 1;
+    forecastAsyncToken = null;
+    return {
+      ok: true,
+      invalidatedFromSec: cutoff,
+      signatureVersion,
+    };
+  }
+
+  function getTimelineToken(tl) {
+    ensureSignature(tl);
+    return `sig:${signatureVersion}`;
+  }
+
+  // Optional debug observation. Do not ensureSignature, touch the LRU, or
+  // enumerate anchors: a stale source must stay stale until normal orchestration.
+  function getTimingSnapshot({ timeline, anchorSec } = {}) {
+    const knownSignature = signature !== null && typeof signature === 'object';
+    return {
+      signatureVersion,
+      timelineToken: knownSignature ? `sig:${signatureVersion}` : null,
+      signatureMatches: timeline == null ? null
+        : knownSignature && signatureEquals(computeTimelineSignature(timeline), signature),
+      ...(Number.isInteger(anchorSec) && anchorSec >= 0 ? {
+        requestedAnchorSec: anchorSec,
+        hasRetainedAnchor: stateDataBySecond.has(anchorSec),
+        retainedAnchorScope: 'controller-projection-store',
+      } : {}),
+    };
+  }
+
+  function shouldAbsorbPersistentKnowledge(opts = {}) {
+    return opts?.absorbPersistentKnowledge !== false;
+  }
+
+  function ensureForecastWindow(tl, targetEndSec, dtStep, stepSec, opts = {}) {
+    if (!tl) return { ok: false, reason: "noTimeline" };
+    ensureSignature(tl);
+    const absorbKnowledge = shouldAbsorbPersistentKnowledge(opts);
+
+    const step =
+      typeof stepSec === "number" && stepSec > 0 ? Math.floor(stepSec) : 1;
+    const historyEndSec = clampSec(tl.historyEndSec ?? 0);
+    // Correctness: forecast must start at realized frontier.
+    // Aligning base backwards to a step boundary can skip actions between
+    // that boundary and historyEndSec (e.g. action at t=1, step=5).
+    const baseSec = historyEndSec;
+    const target = clampSec(targetEndSec);
+    const horizonSec = Math.max(0, target - baseSec);
+    const targetBoundaryEnd =
+      baseSec + Math.floor(horizonSec / step) * step;
+
+    purgePastForecast(historyEndSec);
+
+    if (
+      forecastStepSec !== step ||
+      (forecastDtStep != null && dtStep != null && forecastDtStep !== dtStep)
+    ) {
+      reset(signature);
+    }
+
+    if (targetBoundaryEnd <= historyEndSec) {
+      forecastBaseSec = baseSec;
+      forecastEndSec = historyEndSec;
+      forecastStepSec = step;
+      forecastDtStep = dtStep;
+      return { ok: true };
+    }
+
+    if (
+      forecastBaseSec === baseSec &&
+      forecastEndSec >= targetBoundaryEnd &&
+      forecastStepSec === step &&
+      stateDataBySecond.size > 0
+    ) {
+      const knownSec = Math.min(forecastEndSec, targetBoundaryEnd);
+      const knownData = stateDataBySecond.get(knownSec);
+      if (absorbKnowledge && knownData != null) {
+        absorbTimelinePersistentKnowledge(tl, knownData);
+      }
+      return { ok: true };
+    }
+
+    const baseStateData =
+      stateDataBySecond.get(baseSec) ??
+      (() => {
+        const baseRes = getStateDataAtSecond(tl, baseSec);
+        if (!baseRes.ok) return null;
+        return baseRes.stateData;
+      })();
+
+    if (baseStateData == null) {
+      return { ok: false, reason: "baseStateMissing" };
+    }
+
+    if (
+      forecastBaseSec === baseSec &&
+      forecastEndSec < targetBoundaryEnd &&
+      forecastStepSec === step
+    ) {
+      const tailData = stateDataBySecond.get(forecastEndSec);
+      if (tailData != null) {
+        const extend = buildProjectionStateStepWindowFromStateData(tailData, forecastEndSec, {
+          horizonSec: targetBoundaryEnd - forecastEndSec,
+          stepSec: step,
+          dtStep,
+        });
+        if (!extend.ok) return extend;
+        for (const [sec, sd] of extend.stateDataBySecond.entries()) {
+          setForecastState(sec, historyEndSec, sd);
+        }
+        for (const [sec, summary] of extend.summaryBySecond.entries()) {
+          setForecastSummary(sec, historyEndSec, summary);
+        }
+        forecastEndSec = extend.window.endSec;
+        forecastStepSec = step;
+        forecastDtStep = dtStep;
+        const knownSec = Math.min(forecastEndSec, targetBoundaryEnd);
+        const knownData = stateDataBySecond.get(knownSec);
+        if (absorbKnowledge && knownData != null) {
+          absorbTimelinePersistentKnowledge(tl, knownData);
+        }
+        return { ok: true };
+      }
+    }
+
+    if (
+      baseSec > forecastBaseSec &&
+      baseSec <= forecastEndSec &&
+      forecastStepSec === step &&
+      (baseSec - forecastBaseSec) % step === 0
+    ) {
+      // Shift the window forward: reuse existing points, extend only the tail.
+      forecastBaseSec = baseSec;
+      if (forecastEndSec < targetBoundaryEnd) {
+        const tailData = stateDataBySecond.get(forecastEndSec);
+        if (tailData != null) {
+          const extend = buildProjectionStateStepWindowFromStateData(tailData, forecastEndSec, {
+            horizonSec: targetBoundaryEnd - forecastEndSec,
+            stepSec: step,
+            dtStep,
+          });
+          if (!extend.ok) return extend;
+          for (const [sec, sd] of extend.stateDataBySecond.entries()) {
+            setForecastState(sec, historyEndSec, sd);
+          }
+          for (const [sec, summary] of extend.summaryBySecond.entries()) {
+            setForecastSummary(sec, historyEndSec, summary);
+          }
+          forecastEndSec = extend.window.endSec;
+        }
+      }
+      if (forecastEndSec < targetBoundaryEnd) {
+        // Tail missing; fall back to rebuild.
+        forecastBaseSec = baseSec;
+        forecastEndSec = baseSec;
+      } else {
+        forecastStepSec = step;
+        forecastDtStep = dtStep;
+        const knownSec = Math.min(forecastEndSec, targetBoundaryEnd);
+        const knownData = stateDataBySecond.get(knownSec);
+        if (absorbKnowledge && knownData != null) {
+          absorbTimelinePersistentKnowledge(tl, knownData);
+        }
+        return { ok: true };
+      }
+    }
+
+    const winRes = buildProjectionStateStepWindowFromTimeline(tl, baseSec, {
+      horizonSec: targetBoundaryEnd - baseSec,
+      stepSec: step,
+      dtStep,
+    });
+    if (!winRes.ok) return winRes;
+
+    for (const [sec, sd] of winRes.stateDataBySecond.entries()) {
+      setForecastState(sec, historyEndSec, sd);
+    }
+    for (const [sec, summary] of winRes.summaryBySecond.entries()) {
+      setForecastSummary(sec, historyEndSec, summary);
+    }
+
+    forecastBaseSec = baseSec;
+    forecastEndSec = winRes.window.endSec;
+    forecastStepSec = step;
+    forecastDtStep = dtStep;
+    const knownData = stateDataBySecond.get(forecastEndSec);
+    if (absorbKnowledge && knownData != null) {
+      absorbTimelinePersistentKnowledge(tl, knownData);
+    }
+
+    return { ok: true };
+  }
+
+  function ensureStateAtSecond(tl, sec, dtStep, stepSec, opts = {}) {
+    if (!tl) return { ok: false, reason: "noTimeline" };
+
+    ensureSignature(tl);
+    const absorbKnowledge = shouldAbsorbPersistentKnowledge(opts);
+
+    const t = clampSec(sec);
+    const historyEnd = clampSec(tl.historyEndSec ?? 0);
+    // Forecast cache entries are only valid strictly beyond history frontier.
+    // Once history advances, past forecast entries must never be served.
+    purgePastForecastIfNeeded(historyEnd);
+
+    if (t <= historyEnd) {
+      const sdRes = getStateDataAtSecond(tl, t);
+      if (!sdRes.ok) {
+        return { ok: false, reason: sdRes.reason || "rebuildFailed" };
+      }
+      return { ok: true, stateData: sdRes.stateData };
+    }
+
+    const scheduledActionSecs = getActionSecondsInRange(tl, historyEnd + 1, t, {
+      copy: false,
+    });
+    if (Array.isArray(scheduledActionSecs) && scheduledActionSecs.length > 0) {
+      const sdRes = getStateDataAtSecond(tl, t);
+      if (!sdRes.ok) {
+        return { ok: false, reason: sdRes.reason || "rebuildFailed" };
+      }
+      setForecastState(t, historyEnd, sdRes.stateData);
+      if (summaryBySecond.get(t) == null) {
+        buildAndSetSummaryFromStateData(t, sdRes.stateData);
+      }
+      if (absorbKnowledge) {
+        absorbTimelinePersistentKnowledge(tl, sdRes.stateData);
+      }
+      return { ok: true, stateData: sdRes.stateData };
+    }
+
+    const cached = touch(t);
+    if (cached != null) {
+      if (absorbKnowledge) {
+        absorbTimelinePersistentKnowledge(tl, cached);
+      }
+      return { ok: true, stateData: cached };
+    }
+
+    const step =
+      typeof stepSec === "number" && stepSec > 0 ? Math.floor(stepSec) : 1;
+
+    const forecastRes = ensureForecastWindow(tl, t, dtStep, step, opts);
+    if (!forecastRes.ok) return forecastRes;
+
+    const forecastData = touch(t);
+    if (forecastData != null) {
+      if (absorbKnowledge) {
+        absorbTimelinePersistentKnowledge(tl, forecastData);
+      }
+      return { ok: true, stateData: forecastData };
+    }
+
+    if (t >= forecastBaseSec && step > 0) {
+      const offset = t - forecastBaseSec;
+      let anchorSec =
+        forecastBaseSec + Math.floor(offset / step) * step;
+      let anchorData = stateDataBySecond.get(anchorSec);
+
+      if (anchorData == null && anchorSec > historyEnd) {
+        for (
+          let candidateSec = anchorSec - step;
+          candidateSec > historyEnd;
+          candidateSec -= step
+        ) {
+          const candidateData = stateDataBySecond.get(candidateSec);
+          if (candidateData == null) continue;
+          anchorSec = candidateSec;
+          anchorData = candidateData;
+          break;
+        }
+      }
+
+      if (anchorData == null && anchorSec <= historyEnd) {
+        const baseRes = getStateDataAtSecond(tl, anchorSec);
+        if (baseRes.ok) anchorData = baseRes.stateData;
+      }
+      if (anchorData == null && historyEnd !== anchorSec) {
+        anchorSec = historyEnd;
+        const baseRes = getStateDataAtSecond(tl, historyEnd);
+        if (baseRes.ok) anchorData = baseRes.stateData;
+      }
+
+      if (anchorData != null) {
+        const delta = t - anchorSec;
+        if (delta > 0) {
+          const win = buildProjectionStateWindowFromTimeline(tl, anchorSec, {
+            horizonSec: delta,
+            dtStep: forecastDtStep ?? dtStep,
+          });
+          if (win.ok) {
+            const sd = win.stateDataBySecond.get(t);
+            if (sd != null) {
+              setForecastState(t, historyEnd, sd);
+              const summary = win.summaryBySecond.get(t);
+              if (summary != null) {
+                setForecastSummary(t, historyEnd, summary);
+              }
+              if (absorbKnowledge) {
+                absorbTimelinePersistentKnowledge(tl, sd);
+              }
+              return { ok: true, stateData: sd };
+            }
+          }
+        } else if (delta === 0) {
+          setForecastState(t, historyEnd, anchorData);
+          if (summaryBySecond.get(t) == null) {
+            buildAndSetSummaryFromStateData(t, anchorData);
+          }
+          if (absorbKnowledge) {
+            absorbTimelinePersistentKnowledge(tl, anchorData);
+          }
+          return { ok: true, stateData: anchorData };
+        }
+      }
+    }
+
+    return { ok: false, reason: "forecastMissing" };
+  }
+
+  function mergeForecastChunk(tl, chunk = {}) {
+    const perfStartMs = perfEnabled() ? perfNowMs() : 0;
+    if (!tl) return { ok: false, reason: "noTimeline" };
+
+    const token = typeof chunk?.timelineToken === "string"
+      ? chunk.timelineToken
+      : null;
+    if (!token) return { ok: false, reason: "missingTimelineToken" };
+
+    const chunkHistoryEndSec = clampSec(chunk?.historyEndSec ?? tl.historyEndSec ?? 0);
+    const currentHistoryEndSec = clampSec(tl?.historyEndSec ?? chunkHistoryEndSec);
+    const baseSec = clampSec(chunk?.baseSec ?? chunkHistoryEndSec);
+    const endSec = clampSec(chunk?.endSec ?? baseSec);
+    const stepSec = Math.max(1, Math.floor(chunk?.stepSec ?? 1));
+    const currentToken = getTimelineToken(tl);
+    if (currentToken !== token) {
+      return { ok: false, reason: "staleTimelineToken" };
+    }
+    purgePastForecastIfNeeded(currentHistoryEndSec);
+
+    if (
+      forecastAsyncToken !== token ||
+      forecastAsyncStepSec !== stepSec
+    ) {
+      forecastAsyncToken = token;
+      forecastAsyncBaseSec = baseSec;
+      forecastAsyncEndSec = Math.max(baseSec, currentHistoryEndSec);
+      forecastAsyncStepSec = stepSec;
+    }
+    if (baseSec < forecastAsyncBaseSec || baseSec > forecastAsyncEndSec) {
+      return { ok: false, reason: "staleBaseSec" };
+    }
+
+    const entries = Array.isArray(chunk?.stateDataBySecond)
+      ? chunk.stateDataBySecond
+      : chunk?.stateDataBySecond instanceof Map
+        ? Array.from(chunk.stateDataBySecond.entries())
+        : [];
+    for (const entry of entries) {
+      const sec = Array.isArray(entry) ? entry[0] : entry?.sec;
+      const stateData = Array.isArray(entry) ? entry[1] : entry?.stateData;
+      if (stateData == null) continue;
+      setForecastState(sec, currentHistoryEndSec, stateData);
+    }
+
+    const summaryEntries = Array.isArray(chunk?.summaryBySecond)
+      ? chunk.summaryBySecond
+      : chunk?.summaryBySecond instanceof Map
+        ? Array.from(chunk.summaryBySecond.entries())
+        : [];
+    for (const entry of summaryEntries) {
+      const sec = Array.isArray(entry) ? entry[0] : entry?.sec;
+      const summary = Array.isArray(entry) ? entry[1] : entry?.summary;
+      if (summary == null) continue;
+      setForecastSummary(sec, currentHistoryEndSec, summary);
+    }
+
+    if (chunk?.lastStateData != null) {
+      setForecastState(endSec, currentHistoryEndSec, chunk.lastStateData);
+      if (summaryBySecond.get(endSec) == null) {
+        buildAndSetSummaryFromStateData(endSec, chunk.lastStateData);
+      }
+    }
+
+    forecastAsyncEndSec = Math.max(forecastAsyncEndSec, endSec);
+    if (perfEnabled()) {
+      recordSettlementForecastMerge(perfNowMs() - perfStartMs);
+    }
+    return {
+      ok: true,
+      forecastAsyncEndSec,
+    };
+  }
+
+  return {
+    ensureSignature,
+    invalidateFromSecond,
+    getTimelineToken,
+    getTimingSnapshot,
+    ensureStateAtSecond,
+    ensureForecastWindow,
+    mergeForecastChunk,
+    exportForecastChunk: (endSec = forecastAsyncEndSec) => ({
+      baseSec: forecastAsyncBaseSec, endSec, stepSec: forecastAsyncStepSec,
+      stateDataBySecond: [...stateDataBySecond].filter(([sec]) => sec <= endSec),
+      summaryBySecond: [...summaryBySecond].filter(([sec]) => sec <= endSec),
+      lastStateData: stateDataBySecond.get(endSec) ?? null,
+    }),
+    getForecastMeta: () => ({
+      forecastBaseSec,
+      forecastEndSec,
+      forecastStepSec,
+      forecastDtStep,
+      forecastAsyncBaseSec,
+      forecastAsyncEndSec,
+      forecastAsyncStepSec,
+      forecastAsyncToken,
+    }),
+    getForecastAsyncMeta: () => ({
+      forecastAsyncBaseSec,
+      forecastAsyncEndSec,
+      forecastAsyncStepSec,
+      forecastAsyncToken,
+    }),
+    getNearestStateData: (targetSec, minSec = 0) => {
+      let nearest = null;
+      for (const [sec, stateData] of stateDataBySecond) {
+        if (sec < minSec || sec > targetSec) continue;
+        if (!nearest || sec > nearest.sec) nearest = { sec, stateData };
+      }
+      return nearest;
+    },
+    getStateData: (sec) => touch(clampSec(sec)),
+    getSummary: (sec) => summaryBySecond.get(clampSec(sec)) ?? null,
+    setStateData: (sec, data) => {
+      const t = clampSec(sec);
+      set(t, data);
+      return { ok: true };
+    },
+    setSummary: (sec, summary) => {
+      setSummary(sec, summary);
+      return { ok: true };
+    },
+    getDebugSecondKeys: (limit = 32) => {
+      const cap = Math.max(1, Math.floor(limit ?? 32));
+      const keys = Array.from(stateDataBySecond.keys()).sort((a, b) => a - b);
+      return {
+        count: keys.length,
+        first: keys.slice(0, cap),
+        last: keys.slice(Math.max(0, keys.length - cap)),
+      };
+    },
+    clear: () => reset(-1),
+    getSize: () => stateDataBySecond.size,
+    getSummarySize: () => summaryBySecond.size,
+    getApproxBytes: () => approxBytesTotal,
+    maxBytes: maxBytesBudget,
+    maxEntries: Number.isFinite(maxEntriesBudget) ? maxEntriesBudget : null,
+  };
+}
+
+const sharedProjectionCache = createProjectionCache();
+
+export function getSharedProjectionCache() {
+  return sharedProjectionCache;
+}

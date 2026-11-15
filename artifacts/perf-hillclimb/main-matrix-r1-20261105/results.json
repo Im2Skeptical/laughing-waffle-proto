@@ -1,0 +1,233 @@
+[
+  {
+    "population": "desktop",
+    "job": "map",
+    "artwork": "off",
+    "id": "main-matrix-r1-20261105-0-desktop-map-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-matrix-r1-20261105-0-desktop-map-off"
+    ],
+    "started": "2026-11-04T14:30:55.628Z",
+    "finished": "2026-11-04T14:34:08.316Z",
+    "exitCode": 1
+  },
+  {
+    "population": "desktop",
+    "job": "save",
+    "artwork": "off",
+    "id": "main-matrix-r1-20261105-1-desktop-save-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=save",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-matrix-r1-20261105-1-desktop-save-off"
+    ],
+    "started": "2026-11-04T14:34:08.317Z",
+    "finished": "2026-11-04T14:34:40.448Z",
+    "exitCode": 0
+  },
+  {
+    "population": "desktop",
+    "job": "entry",
+    "artwork": "off",
+    "id": "main-matrix-r1-20261105-2-desktop-entry-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=entry",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-matrix-r1-20261105-2-desktop-entry-off"
+    ],
+    "started": "2026-11-04T14:34:40.449Z",
+    "finished": "2026-11-04T14:35:16.723Z",
+    "exitCode": 0
+  },
+  {
+    "population": "desktop",
+    "job": "performance",
+    "artwork": "off",
+    "id": "main-matrix-r1-20261105-3-desktop-performance-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=performance",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-matrix-r1-20261105-3-desktop-performance-off"
+    ],
+    "started": "2026-11-04T14:35:16.724Z",
+    "finished": "2026-11-04T14:35:49.508Z",
+    "exitCode": 0
+  },
+  {
+    "population": "desktop",
+    "job": "life",
+    "artwork": "off",
+    "id": "main-matrix-r1-20261105-4-desktop-life-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=life",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-matrix-r1-20261105-4-desktop-life-off"
+    ],
+    "started": "2026-11-04T14:35:49.509Z",
+    "finished": "2026-11-04T14:36:10.136Z",
+    "exitCode": 0
+  },
+  {
+    "population": "mobile4",
+    "job": "map",
+    "artwork": "off",
+    "id": "main-matrix-r1-20261105-5-mobile4-map-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-matrix-r1-20261105-5-mobile4-map-off"
+    ],
+    "started": "2026-11-04T14:36:10.137Z",
+    "finished": "2026-11-04T14:36:52.234Z",
+    "exitCode": 1
+  },
+  {
+    "population": "mobile4",
+    "job": "save",
+    "artwork": "off",
+    "id": "main-matrix-r1-20261105-6-mobile4-save-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=save",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-matrix-r1-20261105-6-mobile4-save-off"
+    ],
+    "started": "2026-11-04T14:36:52.235Z",
+    "finished": "2026-11-04T14:38:52.950Z",
+    "exitCode": 0
+  },
+  {
+    "population": "mobile4",
+    "job": "entry",
+    "artwork": "off",
+    "id": "main-matrix-r1-20261105-7-mobile4-entry-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=entry",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-matrix-r1-20261105-7-mobile4-entry-off"
+    ],
+    "started": "2026-11-04T14:38:52.951Z",
+    "finished": "2026-11-04T14:40:07.455Z",
+    "exitCode": 0
+  },
+  {
+    "population": "mobile4",
+    "job": "performance",
+    "artwork": "off",
+    "id": "main-matrix-r1-20261105-8-mobile4-performance-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=performance",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-matrix-r1-20261105-8-mobile4-performance-off"
+    ],
+    "started": "2026-11-04T14:40:07.456Z",
+    "finished": "2026-11-04T14:41:24.425Z",
+    "exitCode": 1
+  },
+  {
+    "population": "mobile4",
+    "job": "life",
+    "artwork": "off",
+    "id": "main-matrix-r1-20261105-9-mobile4-life-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=life",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-matrix-r1-20261105-9-mobile4-life-off"
+    ],
+    "started": "2026-11-04T14:41:24.426Z",
+    "finished": "2026-11-04T14:42:32.552Z",
+    "exitCode": 0
+  },
+  {
+    "population": "desktop",
+    "job": "entry",
+    "artwork": "illustrated",
+    "id": "main-matrix-r1-20261105-10-desktop-entry-illustrated",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=entry",
+      "--population=desktop",
+      "--artwork=illustrated",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-matrix-r1-20261105-10-desktop-entry-illustrated"
+    ],
+    "started": "2026-11-04T14:42:32.553Z",
+    "finished": "2026-11-04T14:43:51.520Z",
+    "exitCode": 1
+  }
+]

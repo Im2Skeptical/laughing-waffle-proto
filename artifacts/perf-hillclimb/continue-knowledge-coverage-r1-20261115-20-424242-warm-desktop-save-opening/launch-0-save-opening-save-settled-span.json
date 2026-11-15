@@ -1,0 +1,14 @@
+{
+  "policy": "frozen-terminal-observed-before-save-v1",
+  "artifact": "launch-0-save-opening-save-settled-save-preparation.json",
+  "window": {
+    "launchId": "continue-knowledge-coverage-r1-20261115-20-424242-warm-desktop-save-opening:launch-0-save-opening",
+    "startMs": 4476.700000017881,
+    "endMs": 17879.40000000596,
+    "reason": "declared settled-terminal pre-save setup; includes frozen derivation/full inspection and is not a product speedup"
+  },
+  "saveStartedMs": 18032.80000001192,
+  "saveFinishedMs": 18354.80000001192,
+  "setupThroughSaveMs": 13878.09999999404,
+  "scope": "full setup-plus-save span; settled setup excluded only from transaction latency, never claimed free"
+}

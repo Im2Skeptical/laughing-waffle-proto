@@ -1,0 +1,390 @@
+{
+  "caseId": "j8-paired-off-20261115-r1",
+  "scope": "Post-clock collection; compare site times to original operation finish/cancel before claiming deadline phase. Events may overflow.",
+  "snapshots": [
+    {
+      "file": "reference-failure-observation.json",
+      "phase": {
+        "collectedAt": 304079.40000003576,
+        "version": 1,
+        "eventLimit": 32,
+        "loaderLimit": 8,
+        "countLimit": 2147483647,
+        "events": [
+          {
+            "id": 1,
+            "site": "loader-enter",
+            "time": 61955.40000003576,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "atlas-enter",
+            "time": 61955.90000003576,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-enter",
+            "time": 61957,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-enter",
+            "time": 61957.60000002384,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-return",
+            "time": 63415.30000001192,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-return",
+            "time": 63415.60000002384,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-enter",
+            "time": 63702.90000003576,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-enter",
+            "time": 63703.10000002384,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-return",
+            "time": 64192.90000003576,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-return",
+            "time": 64193.10000002384,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-enter",
+            "time": 64315.30000001192,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-enter",
+            "time": 64315.40000003576,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-return",
+            "time": 65348.40000003576,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-return",
+            "time": 65348.5,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-enter",
+            "time": 65404.5,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-enter",
+            "time": 65404.700000047684,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-return",
+            "time": 66429.30000001192,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-return",
+            "time": 66429.5,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-enter",
+            "time": 66618.5,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-enter",
+            "time": 66618.5,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-return",
+            "time": 67610.5,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-return",
+            "time": 67610.70000004768,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-enter",
+            "time": 68066.40000003576,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-enter",
+            "time": 68066.40000003576,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-return",
+            "time": 68293.60000002384,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-return",
+            "time": 68293.60000002384,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-enter",
+            "time": 68585.40000003576,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-enter",
+            "time": 68585.40000003576,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-return",
+            "time": 69612.60000002384,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-return",
+            "time": 69612.80000001192,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "wait-enter",
+            "time": 69769.10000002384,
+            "value": null
+          },
+          {
+            "id": 1,
+            "site": "idle-enter",
+            "time": 69769.10000002384,
+            "value": null
+          }
+        ],
+        "droppedEvents": 1241,
+        "loaderCount": 1,
+        "droppedLoaders": 0,
+        "loaders": [
+          {
+            "id": 1,
+            "sites": {
+              "loader-enter": {
+                "count": 1,
+                "lastAt": 61955.40000003576,
+                "last": null
+              },
+              "atlas-enter": {
+                "count": 1,
+                "lastAt": 61955.90000003576,
+                "last": null
+              },
+              "wait-enter": {
+                "count": 317,
+                "lastAt": 303371.40000003576,
+                "last": null
+              },
+              "idle-enter": {
+                "count": 317,
+                "lastAt": 303371.40000003576,
+                "last": null
+              },
+              "idle-return": {
+                "count": 316,
+                "lastAt": 303361.10000002384,
+                "last": null
+              },
+              "wait-return": {
+                "count": 316,
+                "lastAt": 303361.3000000119,
+                "last": null
+              },
+              "atlas-return": {
+                "count": 1,
+                "lastAt": 86584.70000004768,
+                "last": true
+              },
+              "pre-terrain-wait-enter": {
+                "count": 1,
+                "lastAt": 86584.70000004768,
+                "last": null
+              },
+              "pre-terrain-wait-return": {
+                "count": 1,
+                "lastAt": 87585.60000002384,
+                "last": null
+              },
+              "terrain-enter": {
+                "count": 1,
+                "lastAt": 87585.60000002384,
+                "last": null
+              },
+              "main-enter": {
+                "count": 1,
+                "lastAt": 87586,
+                "last": null
+              }
+            },
+            "gates": {
+              "wait-current": {
+                "count": 317,
+                "denied": 0,
+                "last": true,
+                "lastAt": 303371.40000003576
+              },
+              "pre-idle-load": {
+                "count": 317,
+                "denied": 0,
+                "last": true,
+                "lastAt": 303371.40000003576
+              },
+              "post-idle-load": {
+                "count": 316,
+                "denied": 0,
+                "last": true,
+                "lastAt": 303361.3000000119
+              },
+              "atlas-ok": {
+                "count": 1,
+                "denied": 0,
+                "last": true,
+                "lastAt": 86584.70000004768
+              },
+              "loader-current": {
+                "count": 1,
+                "denied": 0,
+                "last": true,
+                "lastAt": 87585.60000002384
+              }
+            },
+            "lastPhase": "idle-enter",
+            "lastAt": 303371.40000003576
+          }
+        ],
+        "unlinkedSites": {},
+        "callingLoader": 1,
+        "linkage": "prepare/ready capture synchronous caller; error callbacks explicitly unlinked",
+        "cooperative": {
+          "collectedAt": 304079.40000003576,
+          "version": 1,
+          "loaderLimit": 8,
+          "jobLimit": 4,
+          "invalid": 0,
+          "unlinkedJobs": 0,
+          "loaders": [
+            {
+              "id": 1,
+              "phase": "main",
+              "phaseStarted": {
+                "loader": 61955.40000003576,
+                "atlas": 61955.90000003576,
+                "pre-terrain": 86584.70000004768,
+                "main": 87586
+              },
+              "waits": {
+                "atlas:idle": {
+                  "phase": "atlas",
+                  "kind": "idle",
+                  "count": 28,
+                  "totalMs": 21984.199999928474,
+                  "maxMs": 1457.699999988079,
+                  "lastReturned": 86525.5
+                },
+                "pre-terrain:idle": {
+                  "phase": "pre-terrain",
+                  "kind": "idle",
+                  "count": 1,
+                  "totalMs": 1000.5,
+                  "maxMs": 1000.5,
+                  "lastReturned": 87585.40000003576
+                },
+                "main:idle": {
+                  "phase": "main",
+                  "kind": "idle",
+                  "count": 287,
+                  "totalMs": 161077.80000036955,
+                  "maxMs": 1854.2000000476837,
+                  "lastReturned": 303361.10000002384
+                }
+              },
+              "open": {
+                "kind": "idle",
+                "phase": "main",
+                "started": 303371.40000003576,
+                "ambiguous": false
+              },
+              "jobs": [
+                {
+                  "name": "bake",
+                  "phase": "main",
+                  "started": 92384,
+                  "updatedAt": 146955.70000004768,
+                  "status": "complete",
+                  "steps": 135,
+                  "yields": 95,
+                  "longestStepMs": 2654.100000023842,
+                  "longestStepScope": "existing shared stats, cumulative across jobs"
+                },
+                {
+                  "name": "regional",
+                  "phase": "main",
+                  "started": 155342.30000001192,
+                  "updatedAt": 303371.40000003576,
+                  "status": "yield-enter",
+                  "steps": 285,
+                  "yields": 192,
+                  "longestStepMs": 2654.100000023842,
+                  "longestStepScope": "existing shared stats, cumulative across jobs"
+                }
+              ],
+              "invalid": 0
+            }
+          ],
+          "boundary": "post-clock collection; open waits right-censored; residual is other work/waits"
+        }
+      }
+    }
+  ]
+}

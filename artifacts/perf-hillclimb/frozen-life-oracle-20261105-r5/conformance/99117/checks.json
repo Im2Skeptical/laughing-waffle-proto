@@ -1,0 +1,117 @@
+{
+  "seed": 99117,
+  "status": "PASS",
+  "checks": [
+    {
+      "label": "logical-prefix0",
+      "stateSha256": "0d58c42dbb26b65b78012296ad238797f8c249a22213f68875892b6a63725e51",
+      "rngSha256": "638f72ab99ae78209e51ee012f008342bfe276f19fd6e27e1114d12ca0fd44a4",
+      "tSec": 0
+    },
+    {
+      "label": "logical-prefix1",
+      "stateSha256": "dfe8120b5479219541d783181d84622a44bb15e4ae5f78f8465dc300ff831213",
+      "rngSha256": "51fd058a6292b1c61587af8e54eea62b65413c4cfe2b122a406e3d2ae815b76f",
+      "tSec": 0
+    },
+    {
+      "label": "logical-prefix2",
+      "stateSha256": "9cddbfbefb59b9c2500bc70b3b7cac978d465bd96c314fa0bf68b08f11ff5bc6",
+      "rngSha256": "91c2b3ccdeb5e11d1c317c95b5a1dd6a471cd5d87ba87bc260ae293790d8706f",
+      "tSec": 0
+    },
+    {
+      "label": "logical-prefix3",
+      "stateSha256": "dbd605a4abdc8650920bcea7764774449969722e4b8185a0921336dbea685abd",
+      "rngSha256": "56ad3cee37070d31fba74e72708397ee44e51a1739e07ec3a2ac016c4a8879bf",
+      "tSec": 0
+    },
+    {
+      "label": "logical-prefix4",
+      "stateSha256": "c9130536cd4ee0e8f194ac1e9d39c80e19870d48fca31e888e0d4f95fcd8c3b2",
+      "rngSha256": "56ad3cee37070d31fba74e72708397ee44e51a1739e07ec3a2ac016c4a8879bf",
+      "tSec": 0
+    },
+    {
+      "label": "logical-prefix5",
+      "stateSha256": "30c2f9bab146b7f488aaa9b96164d444f80c733fa24f5a57c4a4e762e1ddfb82",
+      "rngSha256": "56ad3cee37070d31fba74e72708397ee44e51a1739e07ec3a2ac016c4a8879bf",
+      "tSec": 0
+    },
+    {
+      "label": "enteredPaused",
+      "stateSha256": "8e9e483aaf1055537cad3154e8249e6adda9e48ee288c6979d0ce414005906a0",
+      "rngSha256": "91c2b3ccdeb5e11d1c317c95b5a1dd6a471cd5d87ba87bc260ae293790d8706f",
+      "tSec": 0
+    },
+    {
+      "label": "staged",
+      "stateSha256": "07a5d3e07b3a93a6aa6bbdb4ef8689471290b299b1d81e5608440bbb554c0e01",
+      "rngSha256": "56ad3cee37070d31fba74e72708397ee44e51a1739e07ec3a2ac016c4a8879bf",
+      "tSec": 0
+    },
+    {
+      "label": "accepted",
+      "stateSha256": "8e68d9b49792f95e9542a776e1db5271f05778b48d6733170ec1487ab065396b",
+      "rngSha256": "56ad3cee37070d31fba74e72708397ee44e51a1739e07ec3a2ac016c4a8879bf",
+      "tSec": 0
+    },
+    {
+      "label": "adopted",
+      "stateSha256": "30c2f9bab146b7f488aaa9b96164d444f80c733fa24f5a57c4a4e762e1ddfb82",
+      "rngSha256": "56ad3cee37070d31fba74e72708397ee44e51a1739e07ec3a2ac016c4a8879bf",
+      "tSec": 0
+    },
+    {
+      "label": "history",
+      "stateSha256": "8ac967a9311636940f9a06dc2811dd4e9a3f5f5d6d31588fe55ccbf95047dc67",
+      "rngSha256": "9a35b8a080ee48e388cbf7a50c6841453890ced06996856a367e4c582cf0dbef",
+      "tSec": 64
+    },
+    {
+      "label": "committed",
+      "stateSha256": "5d268d0b059024c522e38ead3bd0d26a94f7417bbbbd9383c90f9d397eaacdff",
+      "rngSha256": "9a35b8a080ee48e388cbf7a50c6841453890ced06996856a367e4c582cf0dbef",
+      "tSec": 64
+    },
+    {
+      "label": "official-64",
+      "stateSha256": "8ac967a9311636940f9a06dc2811dd4e9a3f5f5d6d31588fe55ccbf95047dc67",
+      "rngSha256": "9a35b8a080ee48e388cbf7a50c6841453890ced06996856a367e4c582cf0dbef",
+      "tSec": 64
+    },
+    {
+      "label": "official-65",
+      "stateSha256": "e04d11579be8a7b95bcf2bdaca8661cec067f636172b7e50f49c53552caffc27",
+      "rngSha256": "9a35b8a080ee48e388cbf7a50c6841453890ced06996856a367e4c582cf0dbef",
+      "tSec": 65
+    },
+    {
+      "label": "official-66",
+      "stateSha256": "4105c605ba32266ecaef6a4f567b3a0347e1cfeb281df781783e0fd3121949a1",
+      "rngSha256": "fdc9132cf4cf40dfd2a575c52a519df025c2dcbdc5171e6c46f4115814f726be",
+      "tSec": 66
+    },
+    {
+      "label": "official-67",
+      "stateSha256": "fb2ef2c2d389427aaa2788915a55f683f2c79f10c74095c22d8e5aa092e7ba55",
+      "rngSha256": "fb84a577cc9a9767a5ce42142da0c4b3782c7637bb8b4f3541c2e8442476b725",
+      "tSec": 67
+    },
+    {
+      "label": "committed-history-16",
+      "stateSha256": "97eadda17da95d269d3d871cc3482cb09950f854b9f24fed9bcd2d7f7739d3eb",
+      "rngSha256": "3b31978c7c6a110be31dd72890693bbf7bb40a72bb164b172c0013a09f4bd6c0",
+      "tSec": 16
+    },
+    {
+      "label": "committed-history-17",
+      "stateSha256": "e1197b301d756e901ad64e77a4cfbac2b02dcb79b83a7b6f9568b60ab646f235",
+      "rngSha256": "3b31978c7c6a110be31dd72890693bbf7bb40a72bb164b172c0013a09f4bd6c0",
+      "tSec": 17
+    }
+  ],
+  "purity": "PASS input and returned-copy isolation",
+  "fullPresentation": "PASS staged/hover/drag; explicit args",
+  "officialSeconds": 67
+}

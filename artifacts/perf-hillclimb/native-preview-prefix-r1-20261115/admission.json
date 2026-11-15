@@ -1,0 +1,11 @@
+{
+    "verdict":  "ACCEPTED",
+    "files":  {
+                  "driver.mjs":  "655555128ddb7d18675dc227764c521d8000f30d5e131cf03c47aebebfc5edbb",
+                  "probe.mjs":  "da1d75076a3d6472eaeac9ead86d33093f4906cdef85b424144ce56be35b7f6e",
+                  "source-authentication.json":  "4b2a784770a8f340cbad9fa39731d05c82b2257db5dee4b7f1d64ff4f048318f",
+                  "cleanup-owned.ps1":  "9c806cf49043d3ba29cdceedd4d1f8ac1484718679e627e3bf06e3ab60a7ee38"
+              },
+    "at":  "2026-11-15T03:08:21.4271282Z",
+    "scope":  "Independent scoped source/guard admission for ONE bounded unchanged original preview-test prefix diagnostic; exact linked native signature, distinct other failure/no-reproduction/incomplete classifications and typed owned cleanup required. No actual startup by Auditor; no root cause/fix/full-test-pass/product-performance/neutrality/score/whole-SOUND acceptance. Hard deadline2026-11-16T02:40Z."
+}

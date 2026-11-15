@@ -1,0 +1,264 @@
+{
+  "sameBuiltAssetsAsParent": true,
+  "stages": [
+    {
+      "stage": "menu",
+      "reads": 1000,
+      "legacyCalls": 0,
+      "workerUnchanged": true,
+      "artUnchanged": true,
+      "resourcesUnchanged": true,
+      "projectionAnchor": true,
+      "signatureMatches": true,
+      "projectionToken": "sig:1",
+      "boundaryAnchor": false,
+      "boundaryScope": "graph-boundary-store",
+      "openingPhase": "preparing",
+      "terrainMain": [
+        false,
+        null
+      ],
+      "terrainDecision": [
+        false,
+        null
+      ],
+      "purchaseOrder": null
+    },
+    {
+      "stage": "opening-revealing",
+      "reads": 1000,
+      "legacyCalls": 0,
+      "workerUnchanged": true,
+      "artUnchanged": true,
+      "resourcesUnchanged": true,
+      "projectionAnchor": true,
+      "signatureMatches": true,
+      "projectionToken": "sig:4",
+      "boundaryAnchor": false,
+      "boundaryScope": "graph-boundary-store",
+      "openingPhase": "revealing",
+      "terrainMain": [
+        false,
+        null
+      ],
+      "terrainDecision": [
+        false,
+        null
+      ],
+      "purchaseOrder": null
+    },
+    {
+      "stage": "opening-completed",
+      "reads": 1000,
+      "legacyCalls": 0,
+      "workerUnchanged": true,
+      "artUnchanged": true,
+      "resourcesUnchanged": true,
+      "projectionAnchor": true,
+      "signatureMatches": true,
+      "projectionToken": "sig:4",
+      "boundaryAnchor": false,
+      "boundaryScope": "graph-boundary-store",
+      "openingPhase": "completed",
+      "terrainMain": [
+        false,
+        null
+      ],
+      "terrainDecision": [
+        false,
+        null
+      ],
+      "purchaseOrder": null
+    },
+    {
+      "stage": "present-map",
+      "reads": 1000,
+      "legacyCalls": 0,
+      "workerUnchanged": true,
+      "artUnchanged": true,
+      "resourcesUnchanged": true,
+      "projectionAnchor": true,
+      "signatureMatches": true,
+      "projectionToken": "sig:4",
+      "boundaryAnchor": false,
+      "boundaryScope": "graph-boundary-store",
+      "openingPhase": "completed",
+      "terrainMain": [
+        false,
+        null
+      ],
+      "terrainDecision": [
+        false,
+        null
+      ],
+      "purchaseOrder": null
+    },
+    {
+      "stage": "candidate",
+      "reads": 1000,
+      "legacyCalls": 0,
+      "workerUnchanged": true,
+      "artUnchanged": true,
+      "resourcesUnchanged": true,
+      "projectionAnchor": true,
+      "signatureMatches": true,
+      "projectionToken": "sig:5",
+      "boundaryAnchor": false,
+      "boundaryScope": "graph-boundary-store",
+      "openingPhase": "completed",
+      "terrainMain": [
+        false,
+        null
+      ],
+      "terrainDecision": [
+        false,
+        null
+      ],
+      "purchaseOrder": null
+    },
+    {
+      "stage": "entry-dialog",
+      "reads": 1000,
+      "legacyCalls": 0,
+      "workerUnchanged": true,
+      "artUnchanged": true,
+      "resourcesUnchanged": true,
+      "projectionAnchor": true,
+      "signatureMatches": true,
+      "projectionToken": "sig:5",
+      "boundaryAnchor": false,
+      "boundaryScope": "graph-boundary-store",
+      "openingPhase": "completed",
+      "terrainMain": [
+        false,
+        null
+      ],
+      "terrainDecision": [
+        false,
+        null
+      ],
+      "purchaseOrder": null
+    },
+    {
+      "stage": "decision",
+      "reads": 1000,
+      "legacyCalls": 0,
+      "workerUnchanged": true,
+      "artUnchanged": true,
+      "resourcesUnchanged": true,
+      "projectionAnchor": true,
+      "signatureMatches": true,
+      "projectionToken": "sig:6",
+      "boundaryAnchor": false,
+      "boundaryScope": "graph-boundary-store",
+      "openingPhase": "completed",
+      "terrainMain": [
+        false,
+        null
+      ],
+      "terrainDecision": [
+        false,
+        null
+      ],
+      "purchaseOrder": []
+    },
+    {
+      "stage": "shop-category",
+      "reads": 1000,
+      "legacyCalls": 0,
+      "workerUnchanged": true,
+      "artUnchanged": true,
+      "resourcesUnchanged": true,
+      "projectionAnchor": true,
+      "signatureMatches": true,
+      "projectionToken": "sig:6",
+      "boundaryAnchor": false,
+      "boundaryScope": "graph-boundary-store",
+      "openingPhase": "completed",
+      "terrainMain": [
+        false,
+        null
+      ],
+      "terrainDecision": [
+        false,
+        null
+      ],
+      "purchaseOrder": []
+    },
+    {
+      "stage": "shop-purchase",
+      "reads": 1000,
+      "legacyCalls": 0,
+      "workerUnchanged": true,
+      "artUnchanged": true,
+      "resourcesUnchanged": true,
+      "projectionAnchor": true,
+      "signatureMatches": true,
+      "projectionToken": "sig:6",
+      "boundaryAnchor": false,
+      "boundaryScope": "graph-boundary-store",
+      "openingPhase": "completed",
+      "terrainMain": [
+        false,
+        null
+      ],
+      "terrainDecision": [
+        false,
+        null
+      ],
+      "purchaseOrder": [
+        "life-milestone-milestone-1:r0:practice:0"
+      ]
+    },
+    {
+      "stage": "artwork-prepared-hidden",
+      "reads": 1000,
+      "legacyCalls": 0,
+      "workerUnchanged": true,
+      "artUnchanged": true,
+      "resourcesUnchanged": true,
+      "projectionAnchor": true,
+      "signatureMatches": true,
+      "projectionToken": "sig:6",
+      "boundaryAnchor": false,
+      "boundaryScope": "graph-boundary-store",
+      "openingPhase": "completed",
+      "terrainMain": [
+        false,
+        true
+      ],
+      "terrainDecision": [
+        false,
+        true
+      ],
+      "purchaseOrder": [
+        "life-milestone-milestone-1:r0:practice:0"
+      ]
+    },
+    {
+      "stage": "artwork-revealed",
+      "reads": 1000,
+      "legacyCalls": 0,
+      "workerUnchanged": true,
+      "artUnchanged": true,
+      "resourcesUnchanged": true,
+      "projectionAnchor": true,
+      "signatureMatches": true,
+      "projectionToken": "sig:6",
+      "boundaryAnchor": false,
+      "boundaryScope": "graph-boundary-store",
+      "openingPhase": "completed",
+      "terrainMain": [
+        true,
+        true
+      ],
+      "terrainDecision": [
+        true,
+        true
+      ],
+      "purchaseOrder": [
+        "life-milestone-milestone-1:r0:practice:0"
+      ]
+    }
+  ]
+}

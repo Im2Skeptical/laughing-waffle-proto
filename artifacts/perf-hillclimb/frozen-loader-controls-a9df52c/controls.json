@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "groups": 11,
+  "created": "2026-11-04T12:43:55.425Z",
+  "node": "v24.15.0",
+  "frozenManifest": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+  "frozenManifestIdentity": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+  "harnessFiles": {
+    "freeze-corpus-test.mjs": "16c9e81018af18dc74b93a2bb7d9b3139424b17ef07a83bcb9c056b5091fc57f",
+    "freeze-corpus.mjs": "183d90188538396078becfc9a87bab1675115de7bebcc13463f6d30448271f79",
+    "oracle-entry.mjs": "2cbbc2b760238567cc2b7600dc0608470bf0c03820fcbeecb8bac8399bd2f97f"
+  },
+  "checks": [
+    "builtin imports allowed",
+    "mutable external import rejected",
+    "split output rejected",
+    "dynamic import rejected",
+    "dynamic require rejected",
+    "unpinned loading rejected",
+    "all frozen corpus bytes loaded",
+    "wrong pin rejected",
+    "tampered frozen file rejected",
+    "altered manifest rejected",
+    "duplicate fixture pair rejected"
+  ],
+  "scope": "construction/loader mechanism controls only; no independent acceptance or browser timing claim"
+}

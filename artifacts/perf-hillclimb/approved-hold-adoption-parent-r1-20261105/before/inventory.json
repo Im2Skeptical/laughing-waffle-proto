@@ -1,0 +1,689 @@
+{
+  "at": "2026-11-05T00:27:15.624Z",
+  "head": "a9df52cbd6255ed95c51c9e7d524cf9ab557472b",
+  "branch": "perf/hillclimb-20261104",
+  "approved": "83c0049710882fd182c6542892d77fb30cd12ce6",
+  "entries": [
+    {
+      "file": "ARTWORK_REPAIR_NOTES.md",
+      "bytes": 5084,
+      "sha256": "b9db05c671975abc5f6b16045de2b5395fad4f4f9e2e58bf628ab85b61dc4386"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/APPROVED_HOLD_ADOPTION.md",
+      "bytes": 5561,
+      "sha256": "0f900d1dd4ef0b04ee2b44424698d6a8077276c5bbe9081caf2ab626eedcc046"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/ARTWORK_REPAIR_NOTES.md",
+      "bytes": 4270,
+      "sha256": "790b14b7b5c0a007dbcf1613737eded58d5806425ccea841a78707bd3fbc98c1"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/ARTWORK_REVIEW_ROUND1.md",
+      "bytes": 11173,
+      "sha256": "df7e402d6b30cf1ceb54ffee7848c2790216ed6f5715adc5731b2b542ae611e1"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/ATTEMPTS.md",
+      "bytes": 3047,
+      "sha256": "8ce3599b45c6d2b49bff3546956223c499fb14fe715414d8fb2c6b9df1682f44"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/BUILDER_NOTES.md",
+      "bytes": 18954,
+      "sha256": "5ec5cabbcf52366c01d3c7822f4d5e03f4b8f2fe9ad48b8ab85bef967e49cf6f"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/COVERAGE.md",
+      "bytes": 6002,
+      "sha256": "524552a59e26a2fad85419fa2fdfa80041b61b01d5437c8226a5a5ed7c12db6a"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/EXTERNAL_CONTENTION_20261105.md",
+      "bytes": 4503,
+      "sha256": "a5da115fa80528030d05ea8a4dbca117fc8296cb330f26afccfba3d5b9f594cf"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/FEEDBACK_BINDINGS_STATIC.md",
+      "bytes": 7624,
+      "sha256": "4eb729b2bf0400468a3e148319676c6d19c9e6e873647f8ede16b83c78c17796"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/FEEDBACK_CANVAS_BINDINGS_STATIC.md",
+      "bytes": 7550,
+      "sha256": "0edda09f39c03648106f9f011600c6126496d69273f435182bed2da80696d881"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/FEEDBACK_DRAFT_REVIEW_DISPOSITIONS.md",
+      "bytes": 4360,
+      "sha256": "a77317327a486fda8289581750c89b841fdfd9395a73e258bd90b9bd105dabfe"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/FEEDBACK_DRAFT_STATIC_REVIEW_ROUND1.md",
+      "bytes": 9715,
+      "sha256": "efc8f5b6434ec982b42ff533620bba02a80915ad72605ed2d938651b8a93afb7"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/FEEDBACK_IMPLEMENTATION.md",
+      "bytes": 3568,
+      "sha256": "a634356284664fdc38e073f7bb20214ab8c8bebcf40ca7808abaaf2d53e2df29"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/FEEDBACK_NATIVE_BINDING_BRIEF.md",
+      "bytes": 14254,
+      "sha256": "da3032712f2db48e1589c1c5cb5686ca9e56503a6ec8c344cb13484cc14a241c"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/FEEDBACK_NATIVE_IMPLEMENTATION.md",
+      "bytes": 33269,
+      "sha256": "bb0bbac28c139d6021d578693888deeb774949432741baa2e84888f84bee1764"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/FEEDBACK_PROOF_PLAN.md",
+      "bytes": 4654,
+      "sha256": "a14fd1a07885f8567c62f7501d0a642106ad0c4f2ac9bc4ea5e092a982a44688"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/FROZEN_LIFE_ORACLE_BRIEF.md",
+      "bytes": 6458,
+      "sha256": "6eae41f3dddc0659e080fef2e0aaeac4b16172fe0b541c2d2d3cf2ce46cb37ed"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/FROZEN_LIFE_ORACLE_IMPLEMENTATION.md",
+      "bytes": 14624,
+      "sha256": "2637101f96e335dabb554a67b4dc79669bff061f7f4f4187d49103bb5531dc71"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/FROZEN_LIFE_ORACLE_REVIEW_DISPOSITIONS.md",
+      "bytes": 3008,
+      "sha256": "010fdeb8ff11aa6d2bf4189425f9f918e00b65b8119bb6b691df78ccc942f003"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/FROZEN_LIFE_ORACLE_STATIC_REVIEW_ROUND1.md",
+      "bytes": 15752,
+      "sha256": "82813651a30b6393896a69c1cf261b584fc7dd014852ae5037461194ba7dd3cd"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/HARNESS.md",
+      "bytes": 36280,
+      "sha256": "009ca75ce3f25acc7a3acecfd949f7c27030882989e45016ca5f85d1b3e87e45"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/J6_PREVIEW_BINDING_ANALYSIS.md",
+      "bytes": 44415,
+      "sha256": "234c6bcf59d9aee517412bccaa89c8e1d55bcb3d6abae0a7d2740eb37619f218"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/LIFE_BINDING_PROOF.md",
+      "bytes": 4887,
+      "sha256": "9936fbdcc4616f705b57a584dc0bf111a4a23dba80b3434cbfba7c58b5fa4195"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/LIFE_STATE_BINDING_BRIEF.md",
+      "bytes": 9115,
+      "sha256": "88f99e25ce167771272c892b36b7df70c0377d8bedde794cca3c234e0ee5bcc5"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/LIFE_STATE_IMPLEMENTATION.md",
+      "bytes": 16897,
+      "sha256": "bb800f3bee27778e7be1275f3897cb1b3638f67ecd227620ba409f08e321241a"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/MAIN_BINDING_IMPLEMENTATION.md",
+      "bytes": 22631,
+      "sha256": "7d747e9d9124b20d6b5d47ec1b4288cdcfe119a12604e336f3fa20216c5f535d"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/MAIN_ORACLE_INTEGRATION.md",
+      "bytes": 4560,
+      "sha256": "68c9ddb0de35535344f5959a7e183735e83ee1295a596c57e29f08f14fb3a5d3"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/NATIVE_CORROBORATION_DISPOSITIONS.md",
+      "bytes": 5388,
+      "sha256": "2027c9df5a5c04b85f94f32a7ae3b3e3c2a73b7063686c60a7e07eb9f300606e"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/NATIVE_CORROBORATION_RESEARCH.md",
+      "bytes": 30290,
+      "sha256": "376ac1c760d7187563c921079cdd3a911446355ccdcc6f8d07cf2dfb235c38ed"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/OBSERVABILITY_IMPLEMENTATION.md",
+      "bytes": 9679,
+      "sha256": "fc519bb8e2eaee93c7f738ae1b7491be1ac627d7a7d3b7217cfb4fd42b343b01"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/OBSERVABILITY_REVIEW_ROUND1.md",
+      "bytes": 10748,
+      "sha256": "5911d2ab5530e2d74356b00571cfbce9d26ba0e3ab96d0e3b9b9a0158154f299"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/OBSERVABILITY_REVIEW_ROUND2.md",
+      "bytes": 11975,
+      "sha256": "d4d4211283fd74efe9cd743a9443f4bcb729c31cf9bd5b6e40f4ecb250f3d3d2"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/OBSERVABILITY_SEMANTIC_BRIEF.md",
+      "bytes": 6013,
+      "sha256": "e5c77e57afbc0f19e68508025d40a2f11ee374f304a56c50217e602ade7e0a45"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/OBSERVABILITY_SEMANTIC_IMPLEMENTATION.md",
+      "bytes": 14290,
+      "sha256": "b50a454686a5c9fdd513d31e55ffed20ff698266f043bc0e68330de82b939b2b"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/OBSERVER_ACCOUNTING_IMPLEMENTATION.md",
+      "bytes": 4611,
+      "sha256": "35586e2f8fec08fd4fd0b84fd91a5e8eaf5371d73a8a7613db72516b239df67b"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/OBSERVER_WARM_REVIEW_DISPOSITIONS.md",
+      "bytes": 6955,
+      "sha256": "09f74aacca7f8da91be3aeb3dd78329662ef1fea949c9dcb7fceef7e2d26a40a"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/OBSERVER_WARM_STATIC_REVIEW_ROUND1.md",
+      "bytes": 18140,
+      "sha256": "21e26ee0f760bf528a1789d5901de31d451257c8dc2b6124f795db88383c13b8"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/PREVIEW_STATE_BRIEF.md",
+      "bytes": 5731,
+      "sha256": "f4b4fa712047d99290fe6ce8d675552ebf1109648b02624f79c0c44e80778d69"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/PREVIEW_STATE_IMPLEMENTATION.md",
+      "bytes": 17138,
+      "sha256": "033f777961884246325f0bdb2b7e5204775e1834905891609789e19febf452f1"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/PROJECTION_OBSERVABILITY_ADDENDUM.md",
+      "bytes": 4215,
+      "sha256": "74ea28ed4c1511c67f72d814ca51f5476a742cf32af13275c1f31c19ecac7898"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/PROOF_RUN.md",
+      "bytes": 32020,
+      "sha256": "3a1d5e4d02bbdfd960ef500ff5ddf9602a7311214b2fe033f2b75a85730f70ca"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/STATE.md",
+      "bytes": 35002,
+      "sha256": "18ad4336c15203e483f914f0ff198fb8517f59d4285b8d2ef9a8da5cd0d944bf"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/TIMING_RUNTIME_REVIEW_ROUND2.md",
+      "bytes": 8396,
+      "sha256": "fd6bc8480c617feecbe4bc2ff841acf36c642e3efe6e39707a0e1cf2d197616e"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/TIMING_RUNTIME_REVIEW_ROUND3.md",
+      "bytes": 8914,
+      "sha256": "43e3e531711a20027d9f75229b5ded414e35af5a2bd379dc4515a3983e220659"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/WARM_RESET_IMPLEMENTATION.md",
+      "bytes": 5808,
+      "sha256": "2bae70eddbdeb75dbe0dd327a93c8322a5cd2e15581c0433bf9c3f01a6806a19"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/drafts/FEEDBACK_RUNTIME_DRAFT.md",
+      "bytes": 6289,
+      "sha256": "077740dcf08f1818943ca5feb21adab1297678970e3c084e665cfe3d2460d5b1"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/drafts/feedback-runtime-test.mjs.txt",
+      "bytes": 13585,
+      "sha256": "6505c8209c15321830203e22d99d6215e1ce0e2b4fb8bbe061afa74c62eb4000"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/drafts/feedback-runtime-v1.mjs.txt",
+      "bytes": 12281,
+      "sha256": "4fe506a16de979de85a3be35c4fbd4a605e34c78ed4f63117847d36eb0740b13"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/drafts/feedback-runtime-v2-test.mjs.txt",
+      "bytes": 21991,
+      "sha256": "fe0aa7d1805160e74cca5b102570fb85622b7a469344f954be41cfd08def80dc"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/drafts/feedback-runtime-v2.mjs.txt",
+      "bytes": 18255,
+      "sha256": "f7078e6f8c29cd2781b0c51358468e25e3be8345e6d4ef7c86b3823ef6897ac8"
+    },
+    {
+      "file": "package.json",
+      "bytes": 11044,
+      "sha256": "a9aa7dcf9743316513ab2c4eafd223018168f6d069f955a846af019e293f1955"
+    },
+    {
+      "file": "scripts/life-decision-test.mjs",
+      "bytes": 31218,
+      "sha256": "5664683c8fd40c491eb364204cd0ae9316bc720bcf7754451efe9026e0309c68"
+    },
+    {
+      "file": "scripts/perf-hillclimb/active-work-oracle-test.mjs",
+      "bytes": 4979,
+      "sha256": "9bcba931ddfae60428d8b14ff073931879dda7e32cded8f46a8a3041acd61d1d"
+    },
+    {
+      "file": "scripts/perf-hillclimb/active-work-oracle.mjs",
+      "bytes": 3689,
+      "sha256": "678596e562a19bde6a8fba7ce715b64974a2493903c56d4c1d2aaf3a2e749778"
+    },
+    {
+      "file": "scripts/perf-hillclimb/artwork-bundle-controls-test.mjs",
+      "bytes": 4396,
+      "sha256": "6820e97197eb20e87bba54fe9e173b43df5501d40cc52876a01c013cf4958c84"
+    },
+    {
+      "file": "scripts/perf-hillclimb/artwork-bundle-controls.mjs",
+      "bytes": 4716,
+      "sha256": "74da29d61ca2758498170efeca46e38e77148e26f91ff6e72a05c92a463d80ac"
+    },
+    {
+      "file": "scripts/perf-hillclimb/artwork-controls.mjs",
+      "bytes": 62752,
+      "sha256": "f2f2d32ba3ee5d0e22b25a598ee2c6604488da298dd7c20f8065127bd35bcf42"
+    },
+    {
+      "file": "scripts/perf-hillclimb/artwork-failure-controls.ps1",
+      "bytes": 4864,
+      "sha256": "096caf85e3f6f46eb9ed63dbad86c5c2f781aa338785780477df13d9ef396bcb"
+    },
+    {
+      "file": "scripts/perf-hillclimb/artwork-oracles-browser-controls.mjs",
+      "bytes": 2939,
+      "sha256": "9a9e22a949c63cf7f3d96f75268f35f2c52a92cffd4f859612d42f492efed5e0"
+    },
+    {
+      "file": "scripts/perf-hillclimb/artwork-oracles-test.mjs",
+      "bytes": 4205,
+      "sha256": "c0d256c1a084f240892d2367802ce29075a153583599b139ce8f84b1428ca0f9"
+    },
+    {
+      "file": "scripts/perf-hillclimb/artwork-oracles.mjs",
+      "bytes": 4924,
+      "sha256": "4734399c176668d6e0da3bee14f961eaa9c9595869e3627a9908e3f7a12030d2"
+    },
+    {
+      "file": "scripts/perf-hillclimb/browser-runtime-test.mjs",
+      "bytes": 7439,
+      "sha256": "d46195a4a3c65b70a9b244b72fc1309932e2affbd4cb1beeb65833514dd37bd7"
+    },
+    {
+      "file": "scripts/perf-hillclimb/browser-runtime.mjs",
+      "bytes": 14491,
+      "sha256": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1"
+    },
+    {
+      "file": "scripts/perf-hillclimb/case-lifetime-test.mjs",
+      "bytes": 2410,
+      "sha256": "42a8dd95d1c2cb72a4336a6933136d42efe7c6ffbc0bd2ed6fe4f6cdbfc7afd9"
+    },
+    {
+      "file": "scripts/perf-hillclimb/case-lifetime.mjs",
+      "bytes": 3221,
+      "sha256": "9d10e08e8e689686a5b10b0d96aca8b630bd4dd435504ac4973670a14002ce9b"
+    },
+    {
+      "file": "scripts/perf-hillclimb/corpus.mjs",
+      "bytes": 2405,
+      "sha256": "6eaa347af6fee33bf96e8a2173418ccdc69dee1b804f4f208b0cad136139c3d4"
+    },
+    {
+      "file": "scripts/perf-hillclimb/deadline-test.mjs",
+      "bytes": 632,
+      "sha256": "57b47ae59b4cd5d4fab35bbd789701a723e0ed06a8d044698d84e4a2a52be6d7"
+    },
+    {
+      "file": "scripts/perf-hillclimb/deadline.mjs",
+      "bytes": 562,
+      "sha256": "b38266f2e0e32344e1128150b7156868f95ad4f96a4c0d835ebcd1c44a747073"
+    },
+    {
+      "file": "scripts/perf-hillclimb/feedback-bindings-passive-test.mjs",
+      "bytes": 3964,
+      "sha256": "40e120fd8d252a5c8680b4982637d58b66521d9a226631eed9ac6a27770201cc"
+    },
+    {
+      "file": "scripts/perf-hillclimb/feedback-bindings.mjs",
+      "bytes": 7081,
+      "sha256": "54f265f5d7554c0be01e79823a22408496286a983d09b486cf4e663b4760cf59"
+    },
+    {
+      "file": "scripts/perf-hillclimb/feedback-collection.mjs",
+      "bytes": 1945,
+      "sha256": "c6ab8fcd90e53413886e057a7c9bd9fe6de29c2a6a7e5293ca14ac9fdca6dfa0"
+    },
+    {
+      "file": "scripts/perf-hillclimb/feedback-gesture-controls.mjs",
+      "bytes": 8524,
+      "sha256": "13b9820ee66c1113930a460e282e67deb2338b074b1db7de79df5f519e0479a6"
+    },
+    {
+      "file": "scripts/perf-hillclimb/feedback-native-controls.mjs",
+      "bytes": 10590,
+      "sha256": "cb09efaf95f8b47c3fa7d01d9896eac9014ad249a02182ad7dcdcdfe6cd9a999"
+    },
+    {
+      "file": "scripts/perf-hillclimb/feedback-proof-matrix.mjs",
+      "bytes": 4055,
+      "sha256": "309d43da58490049c9de2e5fda39156c10ad9b323b339d7a444bc9820fe61458"
+    },
+    {
+      "file": "scripts/perf-hillclimb/feedback-runtime-test.mjs",
+      "bytes": 26052,
+      "sha256": "7395d2c1d53a6ad5c803ee28e13e3bafae16557f1e0981e25c6165708b9a0a03"
+    },
+    {
+      "file": "scripts/perf-hillclimb/feedback-runtime.mjs",
+      "bytes": 19963,
+      "sha256": "a4d9859480109058b24261825e24a862c145fb9f462bae2c5e2a96b3bbf06329"
+    },
+    {
+      "file": "scripts/perf-hillclimb/fixtures.mjs",
+      "bytes": 7538,
+      "sha256": "f1babbfc97d88f3026719ff76728510ab189ac3b4395e9a4694d9b4f0b801a1e"
+    },
+    {
+      "file": "scripts/perf-hillclimb/fixtures/artwork-baseline.json",
+      "bytes": 2387,
+      "sha256": "1c78bf3d92e50118c491bc0a011298527c3eb5bdd46efa073a6d04eb3e7d10f9"
+    },
+    {
+      "file": "scripts/perf-hillclimb/fixtures/neutral-market-99117.json",
+      "bytes": 3209,
+      "sha256": "08e94cfc2ce08cefd5dbccdad000fdefdc3e444f89cdd3f0921a772deed86243"
+    },
+    {
+      "file": "scripts/perf-hillclimb/freeze-corpus-test.mjs",
+      "bytes": 4510,
+      "sha256": "16c9e81018af18dc74b93a2bb7d9b3139424b17ef07a83bcb9c056b5091fc57f"
+    },
+    {
+      "file": "scripts/perf-hillclimb/freeze-corpus.mjs",
+      "bytes": 16159,
+      "sha256": "183d90188538396078becfc9a87bab1675115de7bebcc13463f6d30448271f79"
+    },
+    {
+      "file": "scripts/perf-hillclimb/frozen-life-expectations.mjs",
+      "bytes": 8172,
+      "sha256": "fd2303e57d59a4852675bc30c311835f3fe82b7fa2ee6c4d6294197e1418be22"
+    },
+    {
+      "file": "scripts/perf-hillclimb/frozen-life-oracle-test.mjs",
+      "bytes": 19303,
+      "sha256": "b2880d9bed36f6f89541369d0775970d8aabc6cdec70196afcf42b34e3e2b3fb"
+    },
+    {
+      "file": "scripts/perf-hillclimb/frozen-life-oracle.mjs",
+      "bytes": 18338,
+      "sha256": "642492aef553296a5522cffaf3c4868f19b822e6c7c896645bd6b53fe5840e83"
+    },
+    {
+      "file": "scripts/perf-hillclimb/job-schedule-test.mjs",
+      "bytes": 1705,
+      "sha256": "a27be16db266d6cc3b9dab9c939ef1f3baaa8c18bf2b445ba51f3f2b3a8da3fd"
+    },
+    {
+      "file": "scripts/perf-hillclimb/job-schedule.mjs",
+      "bytes": 1907,
+      "sha256": "103d3ee03dcfb721ddc24a8da36d0034824cfb1aae18821cc70820a29d531c19"
+    },
+    {
+      "file": "scripts/perf-hillclimb/launch-failure-controls.ps1",
+      "bytes": 4046,
+      "sha256": "3c123f56359fb6ca52bd289aca836da149caecfe5256598a8c83f3aa49a37d6e"
+    },
+    {
+      "file": "scripts/perf-hillclimb/life-state-browser.mjs",
+      "bytes": 16621,
+      "sha256": "c12d402eb81d5e2a93b634082e649598cd6f309c3919c40de1273225234b304a"
+    },
+    {
+      "file": "scripts/perf-hillclimb/life-state-check.mjs",
+      "bytes": 7337,
+      "sha256": "8125de5aa44e27d66dc4b38ee9ef2104e7247bd8a67cca3900fc0578cf20da0a"
+    },
+    {
+      "file": "scripts/perf-hillclimb/life-state-controls.mjs",
+      "bytes": 8116,
+      "sha256": "dd0c02685a6d01bf6993d012dcbb6eb8b6ba81d0592555779631c9bc01b71ba0"
+    },
+    {
+      "file": "scripts/perf-hillclimb/life-state-inspection-test.mjs",
+      "bytes": 10510,
+      "sha256": "400f563f3e41dff3021b470c32cada0ddad498f00063be77da3ca8364d51ed89"
+    },
+    {
+      "file": "scripts/perf-hillclimb/life-state-modal-test.mjs",
+      "bytes": 1972,
+      "sha256": "3ac8d303dfbd95543b880947f6561d772b030d7a43942ebf0e144c4dfc36844d"
+    },
+    {
+      "file": "scripts/perf-hillclimb/life-state-presentation.mjs",
+      "bytes": 1957,
+      "sha256": "e193e697b5df553e40e16f96375ef1577d86bd09cf32482bc35497240e9426dc"
+    },
+    {
+      "file": "scripts/perf-hillclimb/main-controls.mjs",
+      "bytes": 3842,
+      "sha256": "f3010aec9b0a6806b26a7546f6de3091d8d5dab9be594f0920748cc370d6b714"
+    },
+    {
+      "file": "scripts/perf-hillclimb/main-discovery.mjs",
+      "bytes": 4311,
+      "sha256": "65fb9d3d1af2c421128e44ca3c82597d120a4bc9c727a38b20ea24ba656f0d54"
+    },
+    {
+      "file": "scripts/perf-hillclimb/main-job-oracles-test.mjs",
+      "bytes": 1491,
+      "sha256": "5055ae20f7110d5706486200d71f54865388fde567d6f21cee7f27dc520062f3"
+    },
+    {
+      "file": "scripts/perf-hillclimb/main-job-oracles.mjs",
+      "bytes": 3788,
+      "sha256": "9e162823376c56cba35b2fe0b43fade1c9b18462a3251bcf21bbca7cdb276d24"
+    },
+    {
+      "file": "scripts/perf-hillclimb/main-life-oracle.mjs",
+      "bytes": 5011,
+      "sha256": "09c5aa362696c6d55960657c19ec185128780605a2ca17f4f717db93caf1246a"
+    },
+    {
+      "file": "scripts/perf-hillclimb/main-stage-report.mjs",
+      "bytes": 2628,
+      "sha256": "e22fde3d53a4f43dc558c8aa1f4cc9f9e36f576a941fcb3cded7d17853583d23"
+    },
+    {
+      "file": "scripts/perf-hillclimb/mechanism-controls.mjs",
+      "bytes": 14097,
+      "sha256": "97a558ad9bdbf19f2356f50313cf63a2b019050c0d1d8818614e55c64bf9c34c"
+    },
+    {
+      "file": "scripts/perf-hillclimb/native-feedback.mjs",
+      "bytes": 7304,
+      "sha256": "7442a248260be4d02f61ddc69a88ae8649dec93d7cb89e3d7edc9c3272a26404"
+    },
+    {
+      "file": "scripts/perf-hillclimb/observation-windows-browser-controls.mjs",
+      "bytes": 6836,
+      "sha256": "fe6ccfc9036ebda31d0fbb07f24f4a8159ae7d7347fe8eef2665444699e8f6b6"
+    },
+    {
+      "file": "scripts/perf-hillclimb/observation-windows-test.mjs",
+      "bytes": 3483,
+      "sha256": "8d63a92786e56e87e480fdd514e00bb85b8fc61675288860646c47e3515c6b31"
+    },
+    {
+      "file": "scripts/perf-hillclimb/observation-windows.mjs",
+      "bytes": 3785,
+      "sha256": "bb2b64fe4c3e4444e44d4493d70441a388827c7774d2b6d361c99266ee33d395"
+    },
+    {
+      "file": "scripts/perf-hillclimb/offered-input-test.mjs",
+      "bytes": 5535,
+      "sha256": "ea794e396533e03c692f5c8bb0faac6200b146af05503b576b09fc9fe6c65b20"
+    },
+    {
+      "file": "scripts/perf-hillclimb/offered-input.mjs",
+      "bytes": 12136,
+      "sha256": "dd92f961f1a0ce3efc0aa2f64a5ea789f7aa69403fb5a9e7734d89ec7843dfc0"
+    },
+    {
+      "file": "scripts/perf-hillclimb/oracle-entry.mjs",
+      "bytes": 788,
+      "sha256": "2cbbc2b760238567cc2b7600dc0608470bf0c03820fcbeecb8bac8399bd2f97f"
+    },
+    {
+      "file": "scripts/perf-hillclimb/preview-state-browser.mjs",
+      "bytes": 15935,
+      "sha256": "84430668ff747de54e8b9c1c3d03b9c6da1894b638a093a8852d93ebc2a1a672"
+    },
+    {
+      "file": "scripts/perf-hillclimb/preview-state-controls.mjs",
+      "bytes": 2799,
+      "sha256": "505d32f6f3a5e995bdc8bde8e95705bd8c46ed2a61ccb3924bdc50541e6aa1b9"
+    },
+    {
+      "file": "scripts/perf-hillclimb/preview-state-oracle.mjs",
+      "bytes": 1731,
+      "sha256": "a746c43eaae6934d769c7b224287bdacf758a8a885edfc36ed739347fe18789a"
+    },
+    {
+      "file": "scripts/perf-hillclimb/repro-neutral-market.mjs",
+      "bytes": 3674,
+      "sha256": "e58d1ca222cd8ae3cd3a73aea4b8a7f6faf0f5c02cc7e8517f6885487fdde11b"
+    },
+    {
+      "file": "scripts/perf-hillclimb/run.mjs",
+      "bytes": 94920,
+      "sha256": "fff08768c0a7223a5c74368ca98f5b0f462c7f4f3b28cba14df83f7d7aacfd5b"
+    },
+    {
+      "file": "scripts/perf-hillclimb/save-state-oracle-test.mjs",
+      "bytes": 4247,
+      "sha256": "930160e6c05c69e08c02cbcd0a228baf93b2cf2a148f0deb5b04bd63e450fb0f"
+    },
+    {
+      "file": "scripts/perf-hillclimb/save-state-oracle.mjs",
+      "bytes": 2851,
+      "sha256": "6b8633f93324007f6a2592fb0de93b7d514d957875261187146c8df2962e0aff"
+    },
+    {
+      "file": "scripts/perf-hillclimb/scenario-storage-browser-controls.mjs",
+      "bytes": 8112,
+      "sha256": "02e5723b379e03686d587050a0a927977f00d6ac4745c6e7ec0dfc7020248f4b"
+    },
+    {
+      "file": "scripts/perf-hillclimb/scenario-storage.mjs",
+      "bytes": 5257,
+      "sha256": "4a9d89c9fceaa9e677b317e636ac65ef9acce27e945e0a3578b10b428f6339a0"
+    },
+    {
+      "file": "scripts/perf-hillclimb/statistics-test.mjs",
+      "bytes": 6316,
+      "sha256": "036e6579bfb39d6bd203c5df5e48c6581cde543ea274930586881c18330d44f5"
+    },
+    {
+      "file": "scripts/perf-hillclimb/statistics.mjs",
+      "bytes": 10920,
+      "sha256": "9443d67041037fe97b1f9198067be8cfb2e0a9c065b40ed02f6ef24521bd4153"
+    },
+    {
+      "file": "scripts/preview-state-inspection-test.mjs",
+      "bytes": 9368,
+      "sha256": "69333c0dccce8e2c958006ab41cc4f95f794fdd637e641bcfefb1f535c4cfa88"
+    },
+    {
+      "file": "scripts/projection-timing-observability-test.mjs",
+      "bytes": 2925,
+      "sha256": "9234668cb4a086a77961a336aef28c0d3f395ede3b9dd4c4294b885fde1de0b1"
+    },
+    {
+      "file": "scripts/timing-observability-browser-probe.mjs",
+      "bytes": 15020,
+      "sha256": "ae3b9a275906081f519533e510df8340cdaf9b509c1b135cac00bbdd4b20c113"
+    },
+    {
+      "file": "scripts/timing-observability-test.mjs",
+      "bytes": 21516,
+      "sha256": "fcdb818742ce091e9a9248795b9b000ac2ff7dc583b2c558f179f50d67d4e736"
+    },
+    {
+      "file": "src/controllers/life-decision-controller.js",
+      "bytes": 16055,
+      "sha256": "8408c4820980c9fa3a7fe7a59a13fad618aa74978e29db5c192caa75ef405ed8"
+    },
+    {
+      "file": "src/controllers/sim-runner.js",
+      "bytes": 60193,
+      "sha256": "a15dc72c7697406b1edb7ecc8b6e3c6ac0e87325cade0dcd3fbe65798b4be8db"
+    },
+    {
+      "file": "src/model/timegraph/controller-core.js",
+      "bytes": 60027,
+      "sha256": "611b4cb8fc49918dc88013e8e3f03478fc764c374c353e4ae7eaba0ad8dacd99"
+    },
+    {
+      "file": "src/model/timegraph/projection-cache.js",
+      "bytes": 26114,
+      "sha256": "5293d1d30bd5caf194a9941d1a9af0746a73c5230b2aab4e90e672f91bcc97d4"
+    },
+    {
+      "file": "src/views/chronicle-art.js",
+      "bytes": 20955,
+      "sha256": "c5e6f91f1424e2f2f20f1bdbca0999af2431dd1e0c32deb0766950d2f41b1b71"
+    },
+    {
+      "file": "src/views/timegraphs-pixi.js",
+      "bytes": 92198,
+      "sha256": "d81f68b8a9a8175cd5b5d6b50c8455027f041a044a698905362a9bad0428e294"
+    },
+    {
+      "file": "src/views/ui-root-settlement-pixi.js",
+      "bytes": 86937,
+      "sha256": "e1ee3b6d083a9618a7ddca8242aa5a4fe233f85fafa7bf0edaf761e85f97be30"
+    },
+    {
+      "file": "src/views/ui-root/settlement-debug-api.js",
+      "bytes": 14643,
+      "sha256": "7cb5b449793bcf7d2e713a051b62b0c82d62adb336c5afe4c5a5b096e22a6626"
+    },
+    {
+      "file": "src/views/ui-root/settlement-timing-snapshot.js",
+      "bytes": 3352,
+      "sha256": "cd993134623615d50660d38898914fcedad2c35a7359fda90212dee77cde43c1"
+    },
+    {
+      "file": "src/views/vassal-life-map-pixi.js",
+      "bytes": 26560,
+      "sha256": "cdb8021c4e46455f5741b15dd90535ff79d481b37f84e3f8b786e7474d7ea6ed"
+    },
+    {
+      "file": "src/views/vassal-node-decision-modal-pixi.js",
+      "bytes": 70999,
+      "sha256": "d95c32be276bb8c589bcdd43d1bfe95eed0259ddad381f075db2d6b5c5f9e609"
+    },
+    {
+      "file": "src/views/vassal-node-decision/world-screen.js",
+      "bytes": 23855,
+      "sha256": "1311988076eae98626801abeb3e5edd94d8ba71d7df94169feb43d1482f7fc78"
+    },
+    {
+      "file": "src/views/vassal-resolution-recap-pixi.js",
+      "bytes": 7971,
+      "sha256": "d39fa9dd7c1769b347094c2ed1d9dfd111f737d37a5049081bd9f0d382493e09"
+    },
+    {
+      "file": "src/views/world-map-pixi.js",
+      "bytes": 63304,
+      "sha256": "ce6354552e866f8f26185066be2f7edbd2af43620796ffffe39c8fc9d9033f72"
+    }
+  ],
+  "scope": "All modified/untracked nonignored task files copied byte for byte; ignored raw evidence remains in place and is authenticated separately. No performance or Phase A acceptance."
+}

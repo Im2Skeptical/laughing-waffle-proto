@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "frozenManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+  "recordedActualPrefix": "artifacts/perf-hillclimb/life-passive-frozen-parent-r2-20261105/launch-0-life-life-",
+  "sourceHashes": {
+    "scripts/perf-hillclimb/save-state-oracle.mjs": "8c7aab095c6c6e5d66ab7ced7bbcd55c6bb6f534c47edc7f764d1f3fa556a0a1",
+    "scripts/perf-hillclimb/save-state-oracle-test.mjs": "930160e6c05c69e08c02cbcd0a228baf93b2cf2a148f0deb5b04bd63e450fb0f"
+  },
+  "expectedControl": {
+    "paused": true,
+    "phase": "planning"
+  },
+  "sourceControl": {
+    "paused": false,
+    "phase": "simulation"
+  },
+  "scope": "independent expected UI pause and strict raw/rebuilt state separation; real fresh job and full harness audit still required"
+}

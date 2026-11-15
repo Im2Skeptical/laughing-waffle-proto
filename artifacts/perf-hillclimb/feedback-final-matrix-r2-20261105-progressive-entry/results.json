@@ -1,0 +1,121 @@
+[
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "performance-new",
+    "artwork": "progressive",
+    "id": "feedback-final-matrix-r2-20261105-progressive-entry-0-desktop-performance-new-progressive-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=performance-new",
+      "--population=desktop",
+      "--artwork=progressive",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-progressive-entry-0-desktop-performance-new-progressive-s123-cold"
+    ],
+    "started": "2026-11-04T23:16:05.785Z",
+    "finished": "2026-11-04T23:16:43.690Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-progressive-entry-0-desktop-performance-new-progressive-s123-cold:launch-0-performance-new",
+      "job": "performance-new"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "performance-continue",
+    "artwork": "progressive",
+    "id": "feedback-final-matrix-r2-20261105-progressive-entry-1-desktop-performance-continue-progressive-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=performance-continue",
+      "--population=desktop",
+      "--artwork=progressive",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-progressive-entry-1-desktop-performance-continue-progressive-s123-cold"
+    ],
+    "started": "2026-11-04T23:16:43.691Z",
+    "finished": "2026-11-04T23:17:13.161Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-progressive-entry-1-desktop-performance-continue-progressive-s123-cold:launch-0-performance-continue",
+      "job": "performance-continue"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "performance-new",
+    "artwork": "progressive",
+    "id": "feedback-final-matrix-r2-20261105-progressive-entry-2-mobile4-performance-new-progressive-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=performance-new",
+      "--population=mobile4",
+      "--artwork=progressive",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-progressive-entry-2-mobile4-performance-new-progressive-s123-cold"
+    ],
+    "started": "2026-11-04T23:17:13.162Z",
+    "finished": "2026-11-04T23:18:51.237Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-progressive-entry-2-mobile4-performance-new-progressive-s123-cold:launch-0-performance-new",
+      "job": "performance-new"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "performance-continue",
+    "artwork": "progressive",
+    "id": "feedback-final-matrix-r2-20261105-progressive-entry-3-mobile4-performance-continue-progressive-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=performance-continue",
+      "--population=mobile4",
+      "--artwork=progressive",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-progressive-entry-3-mobile4-performance-continue-progressive-s123-cold"
+    ],
+    "started": "2026-11-04T23:18:51.238Z",
+    "finished": "2026-11-04T23:20:21.428Z",
+    "exitCode": 1,
+    "actualLaunchValidation": {
+      "ok": false,
+      "error": "successful cell must have a successful leaf manifest\n\ntrue !== false\n"
+    }
+  }
+]

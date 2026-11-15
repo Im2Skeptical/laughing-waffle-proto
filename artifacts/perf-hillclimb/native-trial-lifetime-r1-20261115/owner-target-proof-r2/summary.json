@@ -1,0 +1,293 @@
+{
+  "scope": "VIRTUAL_OWNER_RAW_TARGET_COMPOSITION_ONLY_NO_RUNTIME_HOST_ACCEPTANCE",
+  "nativeCalls": 0,
+  "hashes": {
+    "check-owner-cleanup.mjs": "ecf571fbfb77bad54ec5f56f670a39e6573aa40b2187422961fb4344061f5b67",
+    "check-target-originals.mjs": "a3e4dfed278c721c3c3693500045e5f0edea21013c7e5f4ff400ff644842c58b",
+    "owner-fixture-r1.mjs": "e97d2bc21ba83b2ed7065c0eb0e5c3f5d36ac5731ce965c5996ae104b44d9f9e",
+    "owner-target-fixture-r1.mjs": "fb13f1ff8a5dbf4443887a83112ee7e970584bb39911ba830233f4a55fa42d1b",
+    "test-owner-target-r2.mjs": "9ad4bf194e95fdbe6be1b47678c5aeebff76c493edb582502dde7fb5510ca986"
+  },
+  "controls": [
+    {
+      "name": "coherent-reuse-original-bytes-owner-raw-composition",
+      "expected": true,
+      "accepted": true,
+      "error": null,
+      "scope": "ORIGINAL_TARGET_BYTES_AND_NATIVE_INTERVAL_ONLY",
+      "completeCellAcceptance": false
+    },
+    {
+      "name": "coherent-failure-after-first-original-bytes-owner-raw-composition",
+      "expected": true,
+      "accepted": true,
+      "error": null,
+      "scope": "ORIGINAL_TARGET_BYTES_AND_NATIVE_INTERVAL_ONLY",
+      "completeCellAcceptance": false
+    },
+    {
+      "name": "target-byte-linkage:identity-PID",
+      "expected": false,
+      "accepted": false,
+      "error": "original/native identity linkage"
+    },
+    {
+      "name": "target-byte-linkage:identity-generation",
+      "expected": false,
+      "accepted": false,
+      "error": "original/native identity linkage"
+    },
+    {
+      "name": "target-byte-linkage:identity-parent",
+      "expected": false,
+      "accepted": false,
+      "error": "target reported parent"
+    },
+    {
+      "name": "target-byte-linkage:identity-debugger",
+      "expected": false,
+      "accepted": false,
+      "error": "target boolean:DebuggerPresent"
+    },
+    {
+      "name": "target-byte-linkage:identity-role",
+      "expected": false,
+      "accepted": false,
+      "error": "unknown/duplicate native role"
+    },
+    {
+      "name": "target-byte-linkage:identity-image",
+      "expected": false,
+      "accepted": false,
+      "error": "original/native identity linkage"
+    },
+    {
+      "name": "target-byte-linkage:start-child",
+      "expected": false,
+      "accepted": false,
+      "error": "target Start/native child linkage"
+    },
+    {
+      "name": "target-byte-linkage:start-parent",
+      "expected": false,
+      "accepted": false,
+      "error": "target Start/native child linkage"
+    },
+    {
+      "name": "target-byte-linkage:start-generation",
+      "expected": false,
+      "accepted": false,
+      "error": "target Start/native child linkage"
+    },
+    {
+      "name": "target-byte-linkage:ready-daemon",
+      "expected": false,
+      "accepted": false,
+      "error": "daemon ready native generation"
+    },
+    {
+      "name": "target-byte-linkage:ready-generation",
+      "expected": false,
+      "accepted": false,
+      "error": "daemon ready native generation"
+    },
+    {
+      "name": "target-byte-linkage:first-helper-return",
+      "expected": false,
+      "accepted": false,
+      "error": "first helper return PID"
+    },
+    {
+      "name": "target-byte-linkage:first-daemon-not-alive",
+      "expected": false,
+      "accepted": false,
+      "error": "target boolean:DaemonAlive"
+    },
+    {
+      "name": "target-byte-linkage:between-helper-exit",
+      "expected": false,
+      "accepted": false,
+      "error": "between-helper return linkage"
+    },
+    {
+      "name": "target-byte-linkage:between-generation",
+      "expected": false,
+      "accepted": false,
+      "error": "SAME daemon generation differs"
+    },
+    {
+      "name": "target-byte-linkage:root-declared-code",
+      "expected": false,
+      "accepted": false,
+      "error": "root declared outcome"
+    },
+    {
+      "name": "target-byte-linkage:root-completed",
+      "expected": false,
+      "accepted": false,
+      "error": "target boolean:Completed"
+    },
+    {
+      "name": "target-byte-linkage:root-after-first",
+      "expected": false,
+      "accepted": false,
+      "error": "target boolean:AfterFirstReturn"
+    },
+    {
+      "name": "target-byte-linkage:root-second-helper",
+      "expected": false,
+      "accepted": false,
+      "error": "native second-helper interval"
+    },
+    {
+      "name": "target-byte-linkage:request-sequence",
+      "expected": false,
+      "accepted": false,
+      "error": "reuse request"
+    },
+    {
+      "name": "target-byte-linkage:request-source",
+      "expected": false,
+      "accepted": false,
+      "error": "reuse request"
+    },
+    {
+      "name": "target-byte-linkage:reply-daemon",
+      "expected": false,
+      "accepted": false,
+      "error": "SAME live daemon reply"
+    },
+    {
+      "name": "target-byte-linkage:reply-source",
+      "expected": false,
+      "accepted": false,
+      "error": "SAME live daemon reply"
+    },
+    {
+      "name": "target-byte-linkage:reply-generation",
+      "expected": false,
+      "accepted": false,
+      "error": "SAME live daemon reply"
+    },
+    {
+      "name": "target-byte-linkage:reply-sequence",
+      "expected": false,
+      "accepted": false,
+      "error": "SAME live daemon reply"
+    },
+    {
+      "name": "target-byte-linkage:second-return",
+      "expected": false,
+      "accepted": false,
+      "error": "second return"
+    },
+    {
+      "name": "target-byte-linkage:second-return-alive",
+      "expected": false,
+      "accepted": false,
+      "error": "target boolean:DaemonAlive"
+    },
+    {
+      "name": "target-byte-linkage:FILETIME-rounded-number",
+      "expected": false,
+      "accepted": false,
+      "error": "unsafe JSON integer: use explicit lossless string"
+    },
+    {
+      "name": "target-byte-linkage:FILETIME-overflow",
+      "expected": false,
+      "accepted": false,
+      "error": "positive lossless decimal FILETIME"
+    },
+    {
+      "name": "target-byte-linkage:FILETIME-leadingzero",
+      "expected": false,
+      "accepted": false,
+      "error": "positive lossless decimal FILETIME"
+    },
+    {
+      "name": "target-byte-linkage:extra-schema-key",
+      "expected": false,
+      "accepted": false,
+      "error": "target schema:identity-3.json"
+    },
+    {
+      "name": "metadata-Values-only-tamper",
+      "expected": false,
+      "accepted": false,
+      "error": "parsed Values differs from original bytes"
+    },
+    {
+      "name": "metadata-hash-only-tamper",
+      "expected": false,
+      "accepted": false,
+      "error": "original target hash/byte count"
+    },
+    {
+      "name": "metadata-byte-count-tamper",
+      "expected": false,
+      "accepted": false,
+      "error": "original target hash/byte count"
+    },
+    {
+      "name": "missing-original-byte-file",
+      "expected": false,
+      "accepted": false,
+      "error": "target original byte/metadata inventory mismatch"
+    },
+    {
+      "name": "missing-original-metadata",
+      "expected": false,
+      "accepted": false,
+      "error": "target original byte/metadata inventory mismatch"
+    },
+    {
+      "name": "duplicate-original-metadata",
+      "expected": false,
+      "accepted": false,
+      "error": "target original duplicate/name/error"
+    },
+    {
+      "name": "unexpected-target-error-original",
+      "expected": false,
+      "accepted": false,
+      "error": "invalid/error/temporary original target bytes"
+    },
+    {
+      "name": "original-duplicate-JSON-key-not-parsed-Values",
+      "expected": false,
+      "accepted": false,
+      "error": "duplicate/excess JSON key"
+    },
+    {
+      "name": "coherent-hashes-still-cannot-hide-early-daemon-EXIT",
+      "expected": false,
+      "accepted": false,
+      "error": "native daemon/helper interval"
+    },
+    {
+      "name": "builder-classification-does-not-override-original-failure",
+      "expected": false,
+      "accepted": false,
+      "error": "builder classification contradicts independently reconstructed originals"
+    },
+    {
+      "name": "failure-mode-cannot-invent-second-helper",
+      "expected": false,
+      "accepted": false,
+      "error": "target schema:prefix-outcome.json"
+    },
+    {
+      "name": "failure-mode-must-retain-root23",
+      "expected": false,
+      "accepted": false,
+      "error": "root declared outcome"
+    },
+    {
+      "name": "coherent-raw-second-chance-native-not-hidden-by-exit0",
+      "expected": false,
+      "accepted": false,
+      "error": "unexpected original second-chance native/noncontinuable record"
+    }
+  ]
+}

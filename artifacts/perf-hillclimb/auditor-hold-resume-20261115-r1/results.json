@@ -1,0 +1,96 @@
+[
+  {
+    "id": "focused-hold",
+    "args": [
+      "scripts/perf-hillclimb/hold-adoption-controls-test.mjs"
+    ],
+    "started": "2026-11-14T21:45:27.909Z",
+    "finished": "2026-11-14T21:45:28.325Z",
+    "exit": 0,
+    "expected": 0,
+    "pass": true,
+    "witness": null,
+    "changed": []
+  },
+  {
+    "id": "focused-feedback",
+    "args": [
+      "scripts/perf-hillclimb/feedback-runtime-test.mjs"
+    ],
+    "started": "2026-11-14T21:45:28.676Z",
+    "finished": "2026-11-14T21:45:29.129Z",
+    "exit": 0,
+    "expected": 0,
+    "pass": true,
+    "witness": null,
+    "changed": []
+  },
+  {
+    "id": "wrong-target",
+    "args": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--id=auditor-hold-wrong-target-20261115-r1",
+      "--seed=123",
+      "--population=desktop",
+      "--jobs=scrub-anchor",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--control=wrong-target"
+    ],
+    "started": "2026-11-14T21:45:29.469Z",
+    "finished": "2026-11-14T21:46:00.956Z",
+    "exit": 1,
+    "expected": 1,
+    "pass": true,
+    "witness": {
+      "correctError": true,
+      "forecastPreview": true,
+      "viewedSec": 17,
+      "cap": 3912,
+      "targetSec": 3918,
+      "revealedSecAtInput": 3818,
+      "rowCount": 1,
+      "rawOutcome": null,
+      "pass": true
+    },
+    "changed": []
+  },
+  {
+    "id": "clamp-bypass",
+    "args": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--id=auditor-hold-clamp-bypass-20261115-r1",
+      "--seed=123",
+      "--population=desktop",
+      "--jobs=scrub-anchor",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--control=clamp-bypass"
+    ],
+    "started": "2026-11-14T21:46:01.342Z",
+    "finished": "2026-11-14T21:46:30.588Z",
+    "exit": 1,
+    "expected": 1,
+    "pass": true,
+    "witness": {
+      "correctError": true,
+      "forecastPreview": true,
+      "viewedSec": 3918,
+      "cap": 3778,
+      "targetSec": 3918,
+      "revealedSecAtInput": 3778,
+      "rowCount": 1,
+      "rawOutcome": null,
+      "pass": true
+    },
+    "changed": []
+  }
+]

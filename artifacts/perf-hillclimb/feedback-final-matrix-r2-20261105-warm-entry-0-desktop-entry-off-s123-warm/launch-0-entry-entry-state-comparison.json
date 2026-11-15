@@ -1,0 +1,22 @@
+{
+  "sourceFixture": "fefa69e74b1a5376a7092430a7b2fc75062b97a7fc0a83c2ae8fa250c41e4322",
+  "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+  "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+  "sourceState": "df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f",
+  "knowledgeDerivation": null,
+  "expectedReplayState": "d3fa0160c8c34b2502bf96b5cf6477cd2076caca5ee689c1372d048468e1b247",
+  "expectedOpeningKnowledge": {
+    "lossSec": 3918,
+    "lossYear": 123,
+    "officialSeconds": 3918
+  },
+  "expectedRawSavedState": "bdba67b825cd495c3ea8246630130def4fd13a1982fda7141c36684f6ff7f950",
+  "rawSavedState": "bdba67b825cd495c3ea8246630130def4fd13a1982fda7141c36684f6ff7f950",
+  "decodedSavedState": "bdba67b825cd495c3ea8246630130def4fd13a1982fda7141c36684f6ff7f950",
+  "rebuiltSavedState": "d3fa0160c8c34b2502bf96b5cf6477cd2076caca5ee689c1372d048468e1b247",
+  "deltaPaths": [],
+  "rawDeltaPaths": [],
+  "decodedDeltaPaths": [],
+  "expectedControlTransition": "explicit Present/paid-time commit pauses into planning; independently derived with frozen SDK",
+  "transform": "actual raw/decoded/rebuilt output is not transformed; every field including controls, persistent knowledge and RNG is compared"
+}

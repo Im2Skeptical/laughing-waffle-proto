@@ -1,0 +1,31 @@
+{
+  "at": "2026-11-15T03:49:24Z",
+  "deadline": "2026-11-16T02:40:00Z",
+  "scope": "Observer/OS lookup chunk complete; whole hillclimb continues, NOT SOUND.",
+  "runtimeActive": false,
+  "agentsActive": false,
+  "closedSessions": [
+    70696,
+    66121,
+    39356
+  ],
+  "closedSynchronousSlot": "trial-3-B",
+  "planSha256": "b575a07fea8abbc51ca8d8c9945e6174705e749127241a8b01ecb8d039928715",
+  "builderSummarySha256": "b5db715c59cef591c40e7904095b2266bbfdd66c1ae3f6d46a6e52a765bd8850",
+  "next": "Read coordinator STATUS.md, then NATIVE_CAPTURE_INVENTORY_BRIEF.md; do not repeat completed trials or lookup.",
+  "schedule": {
+    "scheduledTaskId": "scheduled-task:9ec80581-e6bf-4df4-bdb7-1995e6e7be34",
+    "title": "Continue performance hillclimb until 13:40 Sydney Nov16",
+    "prompt": "Continue Cam's EXISTING authorized performance hillclimb. Cam explicitly EXTENDED the original deadline24 HOURS; new hard deadline2026-11-16T02:40:00Z (13:40 Sydney Monday November16). This supersedes the old Nov15 finalization-only plan. Read docs/performance-hillclimb-20261115/STATUS.md in coordinator checkout FIRST and check ownership/clock. Actual harness/product work remains C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104 (perf/hillclimb-20261104, frozen old v1.1.53 checkpoint), NOT newer coordinator main. Follow HillclimbPerformanceLoop/AGENTS; preserve all8jobs/inherited120-launch/3-suite contract, original frozen evidence and unrelated worktrees. Parent owns ONE test/browser/CPUslot; narrowly scoped independent Auditor/Judge agents only as skill permits; no competing benchmarks or duplicate active run. Current PhaseA NOT SOUND; no optimization/scoring before independent SOUND. Resume smallest documented unfinished proof from STATUS.md. At03:49Z checkpoint fixed observer A/B/B/A and one OS crash-record lookup are CLOSED and independently reviewed: three normal prefixes plus one DISTINCT intended-main-reuse native exit; no old linked signature, no attributable OS record. Next NATIVE_CAPTURE_INVENTORY_BRIEF.md: bounded READ-ONLY installed debugger/capture availability inventory (PATH+explicit files/path/version/PE arch/hash), NO executable launch/install/global settings/attach. Only later design separately admitted target-owned capture if available. Never repeat closed observer cells/OS lookup, no automatic batch or causal claim. Prefer~20min chunks and persist exact active session/PIDs/resume state/evidence in STATUS.md. Preserve all failed/native attempts and separate populations. Reserve final35min from2026-11-16T02:05Z for confirmation/verify/npmstart/coherentversionedPRifverified; no new10min case after2026-11-16T01:45Z. Never merge or deployPages. At/after NEW deadline stop new experiments, finalize honest evidence/previewhand-off and disable SAME task scheduledTaskId scheduled-task:9ec80581-e6bf-4df4-bdb7-1995e6e7be34. Do NOT finalize/disable at superseded Nov15 deadline. If actual success/hardblock reached, document/disable. Do not duplicate active workloads.",
+    "enabled": true,
+    "projectId": "cf68fa26-6219-4056-83dc-1cd9d3f8f13a",
+    "boundThreadId": "95f53b04-d994-4904-add1-4c4209fbdfde",
+    "freshSession": false,
+    "schedule": {
+      "type": "interval",
+      "everyMs": 300000
+    },
+    "nextRunAt": "2026-11-15T03:49:59.169Z",
+    "lastRunStatus": "succeeded"
+  }
+}

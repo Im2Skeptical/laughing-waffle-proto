@@ -1,0 +1,9 @@
+{
+  "rawRejected": true,
+  "normalizedAccepted": true,
+  "normalized": {
+    "nonfinite": null
+  },
+  "source": "scripts/timing-observability-test.mjs:42",
+  "impact": "The current primitive guard inspects JSON-normalized output, so it does not prove raw DTO types. Current production readers were separately source-reviewed; no corresponding production defect was found."
+}

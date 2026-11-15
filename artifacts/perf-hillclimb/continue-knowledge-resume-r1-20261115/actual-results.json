@@ -1,0 +1,207 @@
+[
+  {
+    "id": "continue-knowledge-missing-frame-r1-20261115",
+    "seed": 123,
+    "population": "desktop",
+    "job": "performance-continue",
+    "control": "settled-missing-frame",
+    "exit": 1,
+    "error": "settled pre-save full read timeout after 1500ms",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--jobs=performance-continue",
+      "--population=desktop",
+      "--seed=123",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--id=continue-knowledge-missing-frame-r1-20261115",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--control=settled-missing-frame"
+    ],
+    "started": "2026-11-14T21:57:45.091Z",
+    "finished": "2026-11-14T21:58:16.060Z",
+    "actualExit": 1,
+    "pass": false,
+    "failure": "page.evaluate: Execution context was destroyed, most likely because of a navigation.\n    at prepareSettledSaveKnowledge (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:594:50)\n    at async persistedEntryOracle (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:622:36)\n    at async withDeadline (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\deadline.mjs:7:12)\n    at async record (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:182:31)\n    at async performanceContinue (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:750:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:1189:9",
+    "cleanup": {
+      "context": [
+        {
+          "launchId": "continue-knowledge-missing-frame-r1-20261115:launch-0-performance-continue",
+          "closed": true,
+          "pageClosed": true,
+          "at": "2026-11-14T21:58:14.671Z"
+        }
+      ],
+      "browser": [
+        {
+          "launchId": "continue-knowledge-missing-frame-r1-20261115:launch-0-performance-continue",
+          "closed": true,
+          "at": "2026-11-14T21:58:16.011Z"
+        }
+      ],
+      "errors": []
+    },
+    "partial": {
+      "policy": "frozen-terminal-observed-before-save-v1",
+      "error": "page.evaluate: Execution context was destroyed, most likely because of a navigation.\n    at prepareSettledSaveKnowledge (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:594:50)\n    at async persistedEntryOracle (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:622:36)\n    at async withDeadline (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\deadline.mjs:7:12)\n    at async record (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:182:31)\n    at async performanceContinue (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:750:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:1189:9",
+      "window": {
+        "launchId": "continue-knowledge-missing-frame-r1-20261115:launch-0-performance-continue",
+        "startMs": 9901.699999988079,
+        "endMs": null,
+        "reason": "declared settled-terminal pre-save setup; includes frozen derivation/full inspection and is not a product speedup"
+      },
+      "partial": {
+        "ready": {
+          "atMs": 20500.90000000596,
+          "snapshot": {
+            "version": 2,
+            "mode": "map",
+            "selectedRegionId": "R14",
+            "regionSelectionActive": false,
+            "runner": {
+              "frontierSec": 439,
+              "cursorSec": 439,
+              "viewedSec": 439,
+              "previewActive": false,
+              "forecastPreview": false,
+              "revision": 22,
+              "actionCount": 21,
+              "checkpointCount": 28
+            },
+            "opening": {
+              "phase": "idle",
+              "preparation": "idle",
+              "coverageSec": 16,
+              "elapsedSec": 0,
+              "lossSec": null
+            },
+            "map": {
+              "visible": true,
+              "detailVisible": false,
+              "camera": {
+                "x": 0,
+                "y": 0,
+                "zoom": 1
+              },
+              "focusAnimating": false,
+              "panelPhase": "closed",
+              "panelAnimating": false,
+              "panelPose": {
+                "x": 0,
+                "y": 0,
+                "scale": 1
+              },
+              "artReady": false,
+              "artPrepared": null
+            },
+            "graph": {
+              "visible": true,
+              "minSec": 0,
+              "maxSec": 4316,
+              "scrubDrawSignature": "0|439|439|439|0:4316||Civilization • All player settlements|-1",
+              "plotRect": {
+                "x": 573.855,
+                "y": 884.1,
+                "width": 1276.275,
+                "height": 145.86
+              },
+              "plotRectSpace": "stage-retained-transform",
+              "projection": {
+                "signatureVersion": 4,
+                "timelineToken": "sig:4",
+                "signatureMatches": true
+              },
+              "scrubSec": 439,
+              "isScrubbing": false,
+              "latchedForecastScrubSec": null,
+              "historyEndSec": 439,
+              "revealedSec": 4188,
+              "browseCapSec": 4188,
+              "targetSec": 4344,
+              "computedSec": 4344,
+              "requestedSec": 4471,
+              "pending": true,
+              "cacheVersion": 165,
+              "subjectKey": "civilization",
+              "asyncToken": "sig:4",
+              "asyncPollMs": 20493.09999999404,
+              "asyncHistoryEndSec": 439,
+              "asyncRequestedSec": 4471,
+              "asyncComputedSec": 4344,
+              "revealHistoryEndSec": 439,
+              "animatedSec": 4188.493864557424,
+              "visibleEndSec": 4188.493864557424,
+              "startSecOverride": null,
+              "readinessCapSec": null,
+              "capEndSec": null,
+              "paused": false,
+              "presentationSuspended": false,
+              "openingRevealSec": null
+            },
+            "life": {
+              "visible": false,
+              "selectedCandidateNodeId": null,
+              "displayedVassalId": "vassal-1",
+              "entryConfirmationOpen": false,
+              "entryOpen": false,
+              "entryVisible": false,
+              "entryPhase": "closed",
+              "decisionOpen": false,
+              "decisionNodeId": null,
+              "decisionPhase": "closed",
+              "pendingInteractionCount": null,
+              "family": null,
+              "selectedOptionId": null,
+              "resolving": null,
+              "shopTag": null,
+              "offerIds": null,
+              "purchaseOrder": null,
+              "boardPracticeIds": null,
+              "observedDecisionNodeId": null,
+              "boardRegionId": null,
+              "decisionArtReady": false,
+              "decisionArtPrepared": null,
+              "entryPoint": null,
+              "processingPhase": null,
+              "sourceRevision": 22,
+              "ready": null,
+              "processing": {
+                "sourceRevision": 22,
+                "sourceSec": 439,
+                "baseRevision": 22,
+                "baseSec": 439,
+                "timelineMatches": true,
+                "sourceMatches": true,
+                "requestId": 2,
+                "revision": 2,
+                "adopting": false,
+                "workerActive": false,
+                "draftActive": false,
+                "draftActionCount": 0,
+                "jobActive": false,
+                "phase": null,
+                "error": null,
+                "accepted": null,
+                "jobReady": null,
+                "ready": null,
+                "targetSec": null,
+                "computedSec": null,
+                "revealSec": null
+              },
+              "recapOpen": false,
+              "continueState": null,
+              "recapClock": null,
+              "recapClockStartedAt": null
+            }
+          }
+        },
+        "frames": [],
+        "phase": "frames"
+      },
+      "scope": "failed/censored setup; no save completion or zero-cost claim"
+    }
+  }
+]

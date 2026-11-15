@@ -1,0 +1,30 @@
+{
+  "at": "2026-11-15T05:47:48Z",
+  "deadline": "2026-11-16T02:40:00Z",
+  "runtimeActive": false,
+  "agentsActive": false,
+  "verdict": "Complete connected r1 source review WITHHELD. Whole Phase A NOT SOUND; no native helper/API/target/capture.",
+  "candidateManifestSha256": "77a625b03ab1572dfce1dfad87c84d56e5d335c42cdb2617a2cee1fcb4e95fca",
+  "planSha256": "985a38a4a45faf7d06bced286dc2ef7769073f1a0317ef356f4e7b79db7814a5",
+  "independentReviewSha256": "f5422d9c8a49f2eba8ce07bed100ab9d7e322cd6a407b67783e291dc46d59843",
+  "checkerVmReceiptSha256": "2454ea6a09912dae429c0ab12f569bee412f7a7d6f6027607c0f3929d2e6c9b7",
+  "sourceAssetChanges": [],
+  "sourceCount": 683,
+  "assetCount": 5,
+  "next": "NATIVE_CAPTURE_CONTROLLER_PATCH_R2.md + full r1 review: fresh consolidated source patch; no actual six-slot execution until affected source admission.",
+  "schedule": {
+    "scheduledTaskId": "scheduled-task:9ec80581-e6bf-4df4-bdb7-1995e6e7be34",
+    "title": "Continue performance hillclimb until 13:40 Sydney Nov16",
+    "prompt": "Continue Cam's EXISTING authorized performance hillclimb. Cam explicitly EXTENDED the original deadline24 HOURS; new hard deadline2026-11-16T02:40:00Z (13:40 Sydney Monday November16). This supersedes the old Nov15 finalization-only plan. Read docs/performance-hillclimb-20261115/STATUS.md in coordinator checkout FIRST and check ownership/clock. Actual harness/product work remains C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104 (perf/hillclimb-20261104, frozen old v1.1.53 checkpoint), NOT newer coordinator main. Follow HillclimbPerformanceLoop/AGENTS; preserve all8jobs/inherited120-launch/3-suite contract, original frozen evidence and unrelated worktrees. Parent owns ONE test/browser/CPUslot; narrowly scoped independent Auditor/Judge agents only as skill permits; no competing benchmarks or duplicate active run. Current PhaseA NOT SOUND; no optimization/scoring before independent SOUND. Resume smallest documented unfinished proof from STATUS.md. At05:47Z checkpoint full connectedcontroller-r1 source review COMPLETE, all leases CLOSED, admission WITHHELD, no native/helper/API/Run/Main/target/capture executed and all6actualrootsUNATTEMPTED. Next NATIVE_CAPTURE_CONTROLLER_PATCH_R2.md + NATIVE_CAPTURE_CONTROLLER_REVIEW_R1.md: preserve frozenr1 and make FRESH complete source revision fixing typed actualpre-resume reader readiness, trace/CREATE/loader/EXIT/fatal/classification +originaldescendant/modehost oracle (reject8retained false accepts from20pureVMcases), observererror at exactverifiedPoll boundary, and constructor-surviving return-onlyclose/partialcreation rollback receipts. Bound transientwitnesspoll/fullsupervisorlifetime and don'tequatehoststopwithdescendantEOFproof. Build/pureonly beforeONE affectedcomplete-source admission; no isolatedhelperreviewseries. No nativeconstructor/API/target to test repairs, no repeats or globalsettings/install/attach. Realpreviewtrial-wide daemon lifetime remains separate. WholeNOTSOUND no optimization/scoring. Prefer~20min chunks and persist exact active session/PIDs/resume state/evidence in STATUS.md. Preserve all failed/native attempts and separate populations. Reserve final35min from2026-11-16T02:05Z for confirmation/verify/npmstart/coherentversionedPRifverified; no new10min case after2026-11-16T01:45Z. Never merge or deployPages. At/after NEW deadline stop new experiments, finalize honest evidence/previewhand-off and disable SAME task scheduledTaskId scheduled-task:9ec80581-e6bf-4df4-bdb7-1995e6e7be34. Do NOT finalize/disable at superseded Nov15 deadline. If actual success/hardblock reached, document/disable. Do not duplicate active workloads.",
+    "enabled": true,
+    "projectId": "cf68fa26-6219-4056-83dc-1cd9d3f8f13a",
+    "boundThreadId": "95f53b04-d994-4904-add1-4c4209fbdfde",
+    "freshSession": false,
+    "schedule": {
+      "type": "interval",
+      "everyMs": 300000
+    },
+    "nextRunAt": "2026-11-15T05:50:10.785Z",
+    "lastRunStatus": "succeeded"
+  }
+}

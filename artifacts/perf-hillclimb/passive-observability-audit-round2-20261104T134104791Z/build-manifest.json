@@ -1,0 +1,16 @@
+{
+  "performanceFixtureKey": "fa98ad39fda149130d181354421a0f6d4d833b7e26ada36d214c410f910f837c",
+  "version": "1.1.52",
+  "build": "a40864ef29f0",
+  "revision": "a9df52cbd625",
+  "channel": "pages",
+  "branch": "perf/hillclimb-20261104",
+  "dirty": true,
+  "preview": true,
+  "previewLabel": null,
+  "entryPoint": "src/views/ui-root-pixi.js",
+  "bundle": "./assets/app-CLB6GCI6.js",
+  "worker": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+  "saveLoadWorker": "./assets/save-load-worker-7YJYILEJ.js",
+  "stylesheet": "./assets/styles-ec05c6a73a6e.css"
+}

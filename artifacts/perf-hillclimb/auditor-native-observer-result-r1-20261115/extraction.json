@@ -1,0 +1,289 @@
+{
+  "at": "2026-11-15T03:44:05.761Z",
+  "planSha256": "b575a07fea8abbc51ca8d8c9945e6174705e749127241a8b01ecb8d039928715",
+  "summarySha256": "b5db715c59cef591c40e7904095b2266bbfdd66c1ae3f6d46a6e52a765bd8850",
+  "order": [
+    "A",
+    "B",
+    "B",
+    "A"
+  ],
+  "reports": [
+    {
+      "id": "trial-1-A",
+      "mode": "A",
+      "started": "2026-11-15T03:39:44.363Z",
+      "finished": "2026-11-15T03:39:58.735Z",
+      "code": 0,
+      "classification": "NO_REPRODUCTION_NOT_A_FIX",
+      "prefixCompleted": true,
+      "prefixClosed": "2026-11-15T03:39:56.846Z",
+      "fixture": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-QhH96i",
+      "calls": [
+        {
+          "index": 0,
+          "stage": "main",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-QhH96i",
+          "status": 0,
+          "signal": null,
+          "pid": null,
+          "url": "http://localhost:50251/",
+          "stdoutBytes": 141,
+          "stderrAvailability": "UNAVAILABLE_ON_SUCCESS",
+          "stderrBytes": null,
+          "exactPriorSignature": false
+        },
+        {
+          "index": 1,
+          "stage": "main",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-QhH96i",
+          "status": 0,
+          "signal": null,
+          "pid": null,
+          "url": "http://localhost:50251/",
+          "stdoutBytes": 141,
+          "stderrAvailability": "UNAVAILABLE_ON_SUCCESS",
+          "stderrBytes": null,
+          "exactPriorSignature": false
+        },
+        {
+          "index": 2,
+          "stage": "worktrees/task-a",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-QhH96i\\worktrees\\task-a",
+          "status": 0,
+          "signal": null,
+          "pid": null,
+          "url": "http://localhost:50252/",
+          "stdoutBytes": 141,
+          "stderrAvailability": "UNAVAILABLE_ON_SUCCESS",
+          "stderrBytes": null,
+          "exactPriorSignature": false
+        },
+        {
+          "index": 3,
+          "stage": "worktrees/task-b",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-QhH96i\\worktrees\\task-b",
+          "status": 0,
+          "signal": null,
+          "pid": null,
+          "url": "http://localhost:50253/",
+          "stdoutBytes": 141,
+          "stderrAvailability": "UNAVAILABLE_ON_SUCCESS",
+          "stderrBytes": null,
+          "exactPriorSignature": false
+        }
+      ],
+      "ownedStopped": [
+        18688,
+        18124,
+        11572
+      ],
+      "cleanupVerified": true
+    },
+    {
+      "id": "trial-2-B",
+      "mode": "B",
+      "started": "2026-11-15T03:40:15.572Z",
+      "finished": "2026-11-15T03:40:29.821Z",
+      "code": 0,
+      "classification": "NO_REPRODUCTION_NOT_A_FIX",
+      "prefixCompleted": true,
+      "prefixClosed": "2026-11-15T03:40:28.026Z",
+      "fixture": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-wK02Dx",
+      "calls": [
+        {
+          "index": 0,
+          "stage": "main",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-wK02Dx",
+          "status": 0,
+          "signal": null,
+          "pid": null,
+          "url": "http://localhost:63791/",
+          "stdoutBytes": 141,
+          "stderrAvailability": "UNAVAILABLE_ON_SUCCESS",
+          "stderrBytes": null,
+          "exactPriorSignature": false
+        },
+        {
+          "index": 1,
+          "stage": "main",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-wK02Dx",
+          "status": 0,
+          "signal": null,
+          "pid": null,
+          "url": "http://localhost:63791/",
+          "stdoutBytes": 141,
+          "stderrAvailability": "UNAVAILABLE_ON_SUCCESS",
+          "stderrBytes": null,
+          "exactPriorSignature": false
+        },
+        {
+          "index": 2,
+          "stage": "worktrees/task-a",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-wK02Dx\\worktrees\\task-a",
+          "status": 0,
+          "signal": null,
+          "pid": null,
+          "url": "http://localhost:63792/",
+          "stdoutBytes": 141,
+          "stderrAvailability": "UNAVAILABLE_ON_SUCCESS",
+          "stderrBytes": null,
+          "exactPriorSignature": false
+        },
+        {
+          "index": 3,
+          "stage": "worktrees/task-b",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-wK02Dx\\worktrees\\task-b",
+          "status": 0,
+          "signal": null,
+          "pid": null,
+          "url": "http://localhost:63793/",
+          "stdoutBytes": 141,
+          "stderrAvailability": "UNAVAILABLE_ON_SUCCESS",
+          "stderrBytes": null,
+          "exactPriorSignature": false
+        }
+      ],
+      "ownedStopped": [
+        35932,
+        24316,
+        34028
+      ],
+      "cleanupVerified": true
+    },
+    {
+      "id": "trial-3-B",
+      "mode": "B",
+      "started": "2026-11-15T03:40:39.915Z",
+      "finished": "2026-11-15T03:40:42.382Z",
+      "code": 1,
+      "classification": "OTHER_FAILURE_NOT_PRIOR_NATIVE_SIGNATURE",
+      "prefixCompleted": false,
+      "prefixClosed": "2026-11-15T03:40:40.751Z",
+      "fixture": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-KYeb7O",
+      "calls": [
+        {
+          "index": 0,
+          "stage": "main",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-KYeb7O",
+          "status": 0,
+          "signal": null,
+          "pid": null,
+          "url": "http://localhost:63867/",
+          "stdoutBytes": 141,
+          "stderrAvailability": "UNAVAILABLE_ON_SUCCESS",
+          "stderrBytes": null,
+          "exactPriorSignature": false
+        },
+        {
+          "index": 1,
+          "stage": "main",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-KYeb7O",
+          "status": 3221226505,
+          "signal": null,
+          "pid": 35760,
+          "url": null,
+          "stdoutBytes": 0,
+          "stderrAvailability": "AVAILABLE",
+          "stderrBytes": 0,
+          "exactPriorSignature": false
+        }
+      ],
+      "ownedStopped": [
+        40148
+      ],
+      "cleanupVerified": true
+    },
+    {
+      "id": "trial-4-A",
+      "mode": "A",
+      "started": "2026-11-15T03:41:05.049Z",
+      "finished": "2026-11-15T03:41:19.339Z",
+      "code": 0,
+      "classification": "NO_REPRODUCTION_NOT_A_FIX",
+      "prefixCompleted": true,
+      "prefixClosed": "2026-11-15T03:41:17.529Z",
+      "fixture": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-1HvSLQ",
+      "calls": [
+        {
+          "index": 0,
+          "stage": "main",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-1HvSLQ",
+          "status": 0,
+          "signal": null,
+          "pid": null,
+          "url": "http://localhost:63889/",
+          "stdoutBytes": 141,
+          "stderrAvailability": "UNAVAILABLE_ON_SUCCESS",
+          "stderrBytes": null,
+          "exactPriorSignature": false
+        },
+        {
+          "index": 1,
+          "stage": "main",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-1HvSLQ",
+          "status": 0,
+          "signal": null,
+          "pid": null,
+          "url": "http://localhost:63889/",
+          "stdoutBytes": 141,
+          "stderrAvailability": "UNAVAILABLE_ON_SUCCESS",
+          "stderrBytes": null,
+          "exactPriorSignature": false
+        },
+        {
+          "index": 2,
+          "stage": "worktrees/task-a",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-1HvSLQ\\worktrees\\task-a",
+          "status": 0,
+          "signal": null,
+          "pid": null,
+          "url": "http://localhost:63890/",
+          "stdoutBytes": 141,
+          "stderrAvailability": "UNAVAILABLE_ON_SUCCESS",
+          "stderrBytes": null,
+          "exactPriorSignature": false
+        },
+        {
+          "index": 3,
+          "stage": "worktrees/task-b",
+          "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-1HvSLQ\\worktrees\\task-b",
+          "status": 0,
+          "signal": null,
+          "pid": null,
+          "url": "http://localhost:63891/",
+          "stdoutBytes": 141,
+          "stderrAvailability": "UNAVAILABLE_ON_SUCCESS",
+          "stderrBytes": null,
+          "exactPriorSignature": false
+        }
+      ],
+      "ownedStopped": [
+        40152,
+        28060,
+        40352
+      ],
+      "cleanupVerified": true
+    }
+  ],
+  "nativeExitOccurrences": [
+    {
+      "trial": "trial-3-B",
+      "mode": "B",
+      "index": 1,
+      "stage": "main",
+      "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-KYeb7O",
+      "status": 3221226505,
+      "signal": null,
+      "pid": 35760,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "exactPriorSignature": false
+    }
+  ],
+  "priorLinkedNativeObserved": false,
+  "sourceCount": 683,
+  "assetCount": 5,
+  "sourceAssetChanges": [],
+  "scope": "Fixed closed actual A/B/B/A outcomes only. No observer-cause/fix/full-test/neutrality/performance/SOUND acceptance. Older summary wording and earlier native evidence remain separate."
+}

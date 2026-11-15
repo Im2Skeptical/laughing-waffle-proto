@@ -1,0 +1,175 @@
+{
+  "runtime": {
+    "node": "v24.15.0",
+    "execArgv": [],
+    "playwright": "1.59.1",
+    "launch": {
+      "headless": true,
+      "args": [
+        "--use-gl=angle",
+        "--use-angle=swiftshader"
+      ]
+    }
+  },
+  "schedule": [
+    {
+      "population": "desktop",
+      "control": "immediate-delayed-completion"
+    },
+    {
+      "population": "desktop",
+      "control": "queue"
+    },
+    {
+      "population": "desktop",
+      "control": "capture-cost"
+    },
+    {
+      "population": "desktop",
+      "control": "no-op"
+    },
+    {
+      "population": "desktop",
+      "control": "pre-input-drift"
+    },
+    {
+      "population": "desktop",
+      "control": "transient"
+    },
+    {
+      "population": "desktop",
+      "control": "render-delay"
+    },
+    {
+      "population": "desktop",
+      "control": "missing-frame"
+    },
+    {
+      "population": "desktop",
+      "control": "cancel-before-input"
+    },
+    {
+      "population": "desktop",
+      "control": "runtime-replacement"
+    },
+    {
+      "population": "desktop",
+      "control": "host-failure"
+    },
+    {
+      "population": "mobile",
+      "control": "immediate-delayed-completion"
+    },
+    {
+      "population": "mobile",
+      "control": "queue"
+    },
+    {
+      "population": "mobile",
+      "control": "capture-cost"
+    },
+    {
+      "population": "mobile",
+      "control": "no-op"
+    },
+    {
+      "population": "mobile",
+      "control": "pre-input-drift"
+    },
+    {
+      "population": "mobile",
+      "control": "transient"
+    },
+    {
+      "population": "mobile",
+      "control": "render-delay"
+    },
+    {
+      "population": "mobile",
+      "control": "missing-frame"
+    },
+    {
+      "population": "mobile",
+      "control": "cancel-before-input"
+    },
+    {
+      "population": "mobile",
+      "control": "runtime-replacement"
+    },
+    {
+      "population": "mobile",
+      "control": "host-failure"
+    },
+    {
+      "population": "mobile4",
+      "control": "immediate-delayed-completion"
+    },
+    {
+      "population": "mobile4",
+      "control": "queue"
+    },
+    {
+      "population": "mobile4",
+      "control": "capture-cost"
+    },
+    {
+      "population": "mobile4",
+      "control": "no-op"
+    },
+    {
+      "population": "mobile4",
+      "control": "pre-input-drift"
+    },
+    {
+      "population": "mobile4",
+      "control": "transient"
+    },
+    {
+      "population": "mobile4",
+      "control": "render-delay"
+    },
+    {
+      "population": "mobile4",
+      "control": "missing-frame"
+    },
+    {
+      "population": "mobile4",
+      "control": "cancel-before-input"
+    },
+    {
+      "population": "mobile4",
+      "control": "runtime-replacement"
+    },
+    {
+      "population": "mobile4",
+      "control": "host-failure"
+    }
+  ],
+  "sources": {
+    "feedback-native-controls": "399e55341a18f6da16c9bed60cc9b80ec8a2d3c861bf886a81d1dae60b53b9f6",
+    "native-feedback": "da30603680614c292848a57ca9e788bf84fa576162e50071de28ac66abd2fd55",
+    "feedback-bindings": "03356bc12fddcc4fa0880709e88f3bc0b2bab4abeefafca6abfad14b2628c3c6",
+    "feedback-runtime": "261a042f930349c758875853d76bbc7caf1050ade2d716b808e1f707653d2a45",
+    "browser-runtime": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1"
+  },
+  "build": {
+    "performanceFixtureKey": "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+    "version": "1.1.52",
+    "build": "286f9a494930",
+    "revision": "a9df52cbd625",
+    "channel": "pages",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": null,
+    "entryPoint": "src/views/ui-root-pixi.js",
+    "bundle": "./assets/app-O7OX26BM.js",
+    "worker": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+    "saveLoadWorker": "./assets/save-load-worker-7YJYILEJ.js",
+    "stylesheet": "./assets/styles-ec05c6a73a6e.css"
+  },
+  "contract": "06d725ce615c9eea6f17d3c6eee4a838c3907ae5b3a9845174aba01051df2f40",
+  "phaseA": "NOT SOUND",
+  "comparisonEligible": false,
+  "scope": "native diagnostic controls, no first physical pixel proof"
+}

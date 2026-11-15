@@ -1,0 +1,6 @@
+{
+  "name": "base-path-escape",
+  "status": "PASS expected rejection",
+  "expected": "/base manifest (pin|identity)/",
+  "error": "AssertionError [ERR_ASSERTION]: base manifest pin\n+ actual - expected\n\n+ 'f35d252b70a508aa54f6923b5bf81f44255457e699ff40f846df0047497eb553'\n- '406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000'\n\n    at validateBase (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:81:10)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:129:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:171:3"
+}

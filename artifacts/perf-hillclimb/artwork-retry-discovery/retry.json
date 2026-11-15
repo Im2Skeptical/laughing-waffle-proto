@@ -1,0 +1,529 @@
+{
+  "case": "retry",
+  "automaticHttpFailures": 3,
+  "automaticAttempts": {
+    "calls": [
+      {
+        "time": 310.90000000596046,
+        "paths": [
+          "images/sprite-sheets/resource-language.json"
+        ],
+        "operation": "setup"
+      },
+      {
+        "time": 2888.0999999940395,
+        "paths": [
+          "images/sprite-sheets/resource-language.json"
+        ],
+        "operation": "required-asset-failure-detected"
+      },
+      {
+        "time": 5200.699999988079,
+        "paths": [
+          "images/sprite-sheets/resource-language.json"
+        ],
+        "operation": "required-asset-failure-detected"
+      }
+    ],
+    "invocations": 1,
+    "backoffsMs": [
+      500,
+      1500
+    ]
+  },
+  "manualAttempt": {
+    "time": 7624.4000000059605,
+    "paths": [
+      "images/sprite-sheets/resource-language.json"
+    ],
+    "operation": "required-asset-manual-retry"
+  },
+  "uploaded": [
+    {
+      "file": "resource-language.json",
+      "textures": 52,
+      "valid": true,
+      "uploaded": true
+    }
+  ],
+  "manualRetry": true,
+  "witness": {
+    "samples": [
+      {
+        "time": 10698.59999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 10893,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 11095.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 11269.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 11521.199999988079,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 11984.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 12355.199999988079,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 12692,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 13013.699999988079,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 13449.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 13766.199999988079,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 14289.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 14892,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 15259.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 15761,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 16285.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 16721.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 17148.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 17466.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 17840.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 18217.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 18521.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 19094.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 19322.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 19598.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 19794,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 20017.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 20271.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 20515.29999998212,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      }
+    ],
+    "warnings": [],
+    "resourceEvents": [
+      {
+        "name": "http://127.0.0.1:18246/assets/styles-ec05c6a73a6e.css",
+        "start": 12.699999988079071,
+        "duration": 6.800000011920929,
+        "responseEnd": 19.5,
+        "transferSize": 14875,
+        "decodedBodySize": 78135
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dark-fantasy/card-chrome-prototype/display.css",
+        "start": 12.900000005960464,
+        "duration": 6.799999982118607,
+        "responseEnd": 19.69999998807907,
+        "transferSize": 876,
+        "decodedBodySize": 1262
+      },
+      {
+        "name": "https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js",
+        "start": 12.900000005960464,
+        "duration": 43.599999994039536,
+        "responseEnd": 56.5,
+        "transferSize": 134058,
+        "decodedBodySize": 452451
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/app-WMHCMZM3.js",
+        "start": 13,
+        "duration": 137.7999999821186,
+        "responseEnd": 150.7999999821186,
+        "transferSize": 867001,
+        "decodedBodySize": 3962789
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/fonts/libron/Libron-Bold.woff2",
+        "start": 212.90000000596046,
+        "duration": 4.0999999940395355,
+        "responseEnd": 217,
+        "transferSize": 85416,
+        "decodedBodySize": 85116
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/fonts/libron/Libron-Regular.woff2",
+        "start": 212.69999998807907,
+        "duration": 4.5999999940395355,
+        "responseEnd": 217.2999999821186,
+        "transferSize": 85072,
+        "decodedBodySize": 84772
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/timegraph-forecast-worker-YOB3XRD7.js",
+        "start": 803.5999999940395,
+        "duration": -299.90000000596046,
+        "responseEnd": 503.69999998807907,
+        "transferSize": 230987,
+        "decodedBodySize": 1243957
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/timegraph-forecast-worker-YOB3XRD7.js",
+        "start": 1183.5,
+        "duration": 7.4000000059604645,
+        "responseEnd": 1190.9000000059605,
+        "transferSize": 230987,
+        "decodedBodySize": 1243957
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 1238.0999999940395,
+        "duration": 4.300000011920929,
+        "responseEnd": 1242.4000000059605,
+        "transferSize": 1209,
+        "decodedBodySize": 10761
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dev-fixtures/performance-start.json.gz?key=6df597e9898a3f7632d6b0afe62f193d761050b708ade037e014776e30c0f268",
+        "start": 1417.4000000059605,
+        "duration": 256.2999999821186,
+        "responseEnd": 1673.699999988079,
+        "transferSize": 9636757,
+        "decodedBodySize": 9636457
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 2888.7999999821186,
+        "duration": 4.800000011920929,
+        "responseEnd": 2893.5999999940395,
+        "transferSize": 1209,
+        "decodedBodySize": 10761
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/timegraph-forecast-worker-YOB3XRD7.js",
+        "start": 3699.9000000059605,
+        "duration": -275.2000000178814,
+        "responseEnd": 3424.699999988079,
+        "transferSize": 230987,
+        "decodedBodySize": 1243957
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 5201.0999999940395,
+        "duration": 3.699999988079071,
+        "responseEnd": 5204.799999982119,
+        "transferSize": 1209,
+        "decodedBodySize": 10761
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dev-fixtures/performance-start.json.gz?key=6df597e9898a3f7632d6b0afe62f193d761050b708ade037e014776e30c0f268",
+        "start": 5503,
+        "duration": 279.90000000596046,
+        "responseEnd": 5782.9000000059605,
+        "transferSize": 9636757,
+        "decodedBodySize": 9636457
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 7625.4000000059605,
+        "duration": 4.399999976158142,
+        "responseEnd": 7629.799999982119,
+        "transferSize": 1209,
+        "decodedBodySize": 10761
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/timegraph-forecast-worker-YOB3XRD7.js",
+        "start": 7631.9000000059605,
+        "duration": -104.7000000178814,
+        "responseEnd": 7527.199999988079,
+        "transferSize": 230987,
+        "decodedBodySize": 1243957
+      }
+    ],
+    "assetLoadCalls": [
+      {
+        "time": 310.90000000596046,
+        "paths": [
+          "images/sprite-sheets/resource-language.json"
+        ],
+        "operation": "setup"
+      },
+      {
+        "time": 2888.0999999940395,
+        "paths": [
+          "images/sprite-sheets/resource-language.json"
+        ],
+        "operation": "required-asset-failure-detected"
+      },
+      {
+        "time": 5200.699999988079,
+        "paths": [
+          "images/sprite-sheets/resource-language.json"
+        ],
+        "operation": "required-asset-failure-detected"
+      },
+      {
+        "time": 7624.4000000059605,
+        "paths": [
+          "images/sprite-sheets/resource-language.json"
+        ],
+        "operation": "required-asset-manual-retry"
+      }
+    ],
+    "droppedSamples": 0,
+    "samplingCpuMs": 429.5999999344349,
+    "startInput": 1370,
+    "revealInput": null,
+    "firstReadyAt": null,
+    "assetWitnessInstalled": true,
+    "pixiVersion": "7.2.4",
+    "resources": [
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 1238.0999999940395,
+        "duration": 4.300000011920929,
+        "responseEnd": 1242.4000000059605,
+        "transferSize": 1209
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 2888.7999999821186,
+        "duration": 4.800000011920929,
+        "responseEnd": 2893.5999999940395,
+        "transferSize": 1209
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 5201.0999999940395,
+        "duration": 3.699999988079071,
+        "responseEnd": 5204.799999982119,
+        "transferSize": 1209
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 7625.4000000059605,
+        "duration": 4.399999976158142,
+        "responseEnd": 7629.799999982119,
+        "transferSize": 1209
+      }
+    ]
+  },
+  "errors": [],
+  "consoleErrors": [],
+  "requestFailures": [
+    {
+      "url": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.png",
+      "failure": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.png",
+      "failure": "net::ERR_FAILED"
+    },
+    {
+      "url": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.png",
+      "failure": "net::ERR_FAILED"
+    }
+  ]
+}

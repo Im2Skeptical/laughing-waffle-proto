@@ -1,0 +1,80 @@
+{
+  "ok": true,
+  "comparisonEligible": false,
+  "chromium": "147.0.7727.15",
+  "launch": {
+    "headless": true,
+    "args": [
+      "--use-gl=angle",
+      "--use-angle=swiftshader"
+    ]
+  },
+  "sourceSha256": "4a9d89c9fceaa9e677b317e636ac65ef9acce27e945e0a3578b10b428f6339a0",
+  "sourceFiles": {
+    "scripts/perf-hillclimb/scenario-storage.mjs": "4a9d89c9fceaa9e677b317e636ac65ef9acce27e945e0a3578b10b428f6339a0",
+    "scripts/perf-hillclimb/scenario-storage-browser-controls.mjs": "02e5723b379e03686d587050a0a927977f00d6ac4745c6e7ec0dfc7020248f4b",
+    "scripts/perf-hillclimb/browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+    "scripts/perf-hillclimb/deadline.mjs": "b38266f2e0e32344e1128150b7156868f95ad4f96a4c0d835ebcd1c44a747073",
+    "scripts/browser-probe-config.mjs": "e2155875cb28129438d0d110465ed85c8a6e1b3bcda67bb0ccbba076bcd36350",
+    "src/controllers/sim-runner/save-storage.js": "dea15a4ebe0bf0a497bb094e20f626f5d290477f54a98e143dcf8efc3e95ce36"
+  },
+  "fixtureSha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+  "baselineSha256": "0de0b04e866d93983e56e5546dc8835c9019cb0b3e2eac55dc14aa4644981864",
+  "machine": {
+    "host": "DESKTOP-R0AMF0N",
+    "os": "10.0.26200",
+    "platform": "win32",
+    "cpu": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+    "totalMemory": 34272436224
+  },
+  "node": "v24.15.0",
+  "changedSha256": "3960a3548febc145817bf5ec091025fccbddcc58105f9e4805142b895c096ba1",
+  "restoredSha256": "0de0b04e866d93983e56e5546dc8835c9019cb0b3e2eac55dc14aa4644981864",
+  "receipt": {
+    "committed": true,
+    "scope": "actual save stores and local/session preferences restored; HTTP caches retained"
+  },
+  "abort": {
+    "rejected": true,
+    "name": "DataCloneError"
+  },
+  "requests": [
+    {
+      "url": "/",
+      "time": 622.6457
+    },
+    {
+      "url": "/cached.js",
+      "time": 628.7723
+    },
+    {
+      "url": "/setup",
+      "time": 2364.9292
+    },
+    {
+      "url": "/",
+      "time": 7211.8096
+    }
+  ],
+  "resourceEvidence": {
+    "available": true,
+    "timeOrigin": 1793812374391.8,
+    "readAtMs": 9.899999976158142,
+    "entries": [
+      {
+        "name": "http://127.0.0.1:54513/cached.js",
+        "initiatorType": "script",
+        "startTime": 4.299999982118607,
+        "responseStart": 4.299999982118607,
+        "responseEnd": 4.299999982118607,
+        "duration": 0,
+        "transferSize": 0,
+        "encodedBodySize": 41,
+        "decodedBodySize": 41,
+        "nextHopProtocol": "http/1.1"
+      }
+    ],
+    "scope": "returned document ResourceTiming buffer only, not a complete network trace; retain raw bytes/times; zero transfer for positive same-origin body corroborates cache use; no latency subtraction"
+  },
+  "scope": "native isolated storage transaction/reset and HTTP-cache mechanism only; actual game warm-entry/reset proof and independent audit remain required"
+}

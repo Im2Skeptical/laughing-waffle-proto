@@ -1,0 +1,171 @@
+{
+    "created":  "2026-11-15T05:34:43.9033814Z",
+    "deadline":  "2026-11-16T02:40:00Z",
+    "observerDll":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\CaptureController-final.dll",
+    "targetExe":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\SyntheticCaptureTarget-final.exe",
+    "powerShell":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+    "ntdllSha256":  "a0f81bf5c610c0ff0a550adc020a58446f214790c748057bb575042e972e6a34",
+    "files":  {
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\next.mjs":  "b39f80a1481fe01e4ca832f42b4a7a85f5d7e00f963081483b7c829d0394cdb9",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\SyntheticCaptureTarget.cs":  "dcab449478a325c9591b4f13220b2b83ffa2e78698dcbb42b6d5240bd4082937",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\stop-owned-host.ps1":  "403b35bbe077d35c4c27f93f8a4da6a278be3b1d975254ec60f8f813e0d5fa25",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\NativeCaptureAbi.cs":  "8c7a7d5d70ba871e2341d40ce147cef5d80d664d475777b33366b670eefe4337",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\ControllerPolicy.cs":  "45d49d3815dd6c3b4fb152d88e7d10ca944c8ef5a9a28a347f44a0e965cb69da",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\ControllerNative.cs":  "a3d239b8c21279964dba433565cfb389963ea2c1aa41a8926166d625312e7fc4",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\RepairedResources.cs":  "3a490f846beb0c73c2466a9c2d8d4e1a943f5a4b7a0c56186e93749f271540d2",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\PureControllerChecks.cs":  "a563c9937515f08afcb468be83fff1fb88ece95cf940a34959e59c61efa25ba2",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\build-only.ps1":  "600e7c603e558ca239bab963d90b9a722c51b387513df3fb7c24aa60a1ec626f",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\NativeCaptureSupport.cs":  "fc3d4881e8e40089063eddfb3868db5570021d410b786b087e5912318e5d8442",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\CaptureController.cs":  "2bc0b09881b22087e4a5e6ab68a37d3c9eaecee092ede1353a70a965e0883baa",
+                  "C:\\WINDOWS\\System32\\ntdll.dll":  "a0f81bf5c610c0ff0a550adc020a58446f214790c748057bb575042e972e6a34",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\SyntheticCaptureTarget-final.exe":  "e7497e622c39b068a9ad0816382a31ae978d4e455d1127bf5ce85eedb1dc63d0",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\build-final-only.ps1":  "6d19b909ff845f673b9df8ae6b64619105d1508052a1179a835aacca3987c214",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\prepare-plan.ps1":  "01191ff663df80b862a8ddb762c0dabb3c39608f0757f28fdd4aaf0681b752d0",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\prepare-final-build.ps1":  "38d71d63c9c97b2ee3cf5e10d936ae12c7c1034388f79298575662efe8be192d",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\EventSession.cs":  "69a4ea022d9d5ff75e904d0390764402dd1124f1d3af184f17a2c9ae857a4bf7",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\CaptureController-final.dll":  "e13d0a0d140c0fbd665fb8690fad0006af519e5a927e5c90114f6bea8d772c02",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\check-control.mjs":  "b9f888e43095604d2ee40146ce13ac6de3281fc67283f8a1dc4951095737a17a",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\DescendantWitness.cs":  "436dd0f89aea85ed4631af75961c5ca167b1985b615ef755bd232034b85178ac",
+                  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe":  "d8f182560210d43baaf767d482ad1dc1207372522e91413b9d5e515a875e552d",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\RepairContracts.cs":  "0ed1d876c4030d2831a8af8d8e7d36df43c60561f035863f96d6e2e83d3ca470",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\invoke-control.ps1":  "e917b50b6284e09242cb2d628a66e31ad6c7c85f70cd5657474dc490a93144f3"
+              },
+    "slots":  [
+                  {
+                      "config":  {
+                                     "ArtifactRoot":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls",
+                                     "RunRoot":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-0-normal",
+                                     "Id":  "control-0-normal",
+                                     "Mode":  "normal",
+                                     "Executable":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\SyntheticCaptureTarget-final.exe",
+                                     "ExecutableSha256":  "e7497e622c39b068a9ad0816382a31ae978d4e455d1127bf5ce85eedb1dc63d0",
+                                     "Cwd":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-0-normal",
+                                     "Arguments":  [
+                                                       "normal",
+                                                       "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-0-normal"
+                                                   ],
+                                     "WorkLimitMs":  10000,
+                                     "RawByteLimit":  1048576,
+                                     "EventLimit":  2048,
+                                     "ExceptionLimit":  128,
+                                     "ReceiptByteLimit":  4194304
+                                 },
+                      "configSha256":  "a62cc07262e0ac0724d8798a8e3afa36ab8934c9ce835dfbcb6a88c255a26909",
+                      "index":  0
+                  },
+                  {
+                      "config":  {
+                                     "ArtifactRoot":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls",
+                                     "RunRoot":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-1-nonzero",
+                                     "Id":  "control-1-nonzero",
+                                     "Mode":  "nonzero",
+                                     "Executable":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\SyntheticCaptureTarget-final.exe",
+                                     "ExecutableSha256":  "e7497e622c39b068a9ad0816382a31ae978d4e455d1127bf5ce85eedb1dc63d0",
+                                     "Cwd":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-1-nonzero",
+                                     "Arguments":  [
+                                                       "nonzero",
+                                                       "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-1-nonzero"
+                                                   ],
+                                     "WorkLimitMs":  10000,
+                                     "RawByteLimit":  1048576,
+                                     "EventLimit":  2048,
+                                     "ExceptionLimit":  128,
+                                     "ReceiptByteLimit":  4194304
+                                 },
+                      "configSha256":  "4fcc1a23f20e0d680ae6ab74899f01ec6ebdce534b6de2d308dcecf94e3e73ba",
+                      "index":  1
+                  },
+                  {
+                      "config":  {
+                                     "ArtifactRoot":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls",
+                                     "RunRoot":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-2-synthetic-native",
+                                     "Id":  "control-2-synthetic-native",
+                                     "Mode":  "synthetic-native",
+                                     "Executable":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\SyntheticCaptureTarget-final.exe",
+                                     "ExecutableSha256":  "e7497e622c39b068a9ad0816382a31ae978d4e455d1127bf5ce85eedb1dc63d0",
+                                     "Cwd":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-2-synthetic-native",
+                                     "Arguments":  [
+                                                       "synthetic-native",
+                                                       "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-2-synthetic-native"
+                                                   ],
+                                     "WorkLimitMs":  10000,
+                                     "RawByteLimit":  1048576,
+                                     "EventLimit":  2048,
+                                     "ExceptionLimit":  128,
+                                     "ReceiptByteLimit":  4194304
+                                 },
+                      "configSha256":  "2229aabf368df0cd37c1792786f5635b4a40f88dcfa9f67bc7913c6ac78c46e2",
+                      "index":  2
+                  },
+                  {
+                      "config":  {
+                                     "ArtifactRoot":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls",
+                                     "RunRoot":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-3-timeout",
+                                     "Id":  "control-3-timeout",
+                                     "Mode":  "timeout",
+                                     "Executable":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\SyntheticCaptureTarget-final.exe",
+                                     "ExecutableSha256":  "e7497e622c39b068a9ad0816382a31ae978d4e455d1127bf5ce85eedb1dc63d0",
+                                     "Cwd":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-3-timeout",
+                                     "Arguments":  [
+                                                       "timeout",
+                                                       "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-3-timeout"
+                                                   ],
+                                     "WorkLimitMs":  1000,
+                                     "RawByteLimit":  1048576,
+                                     "EventLimit":  2048,
+                                     "ExceptionLimit":  128,
+                                     "ReceiptByteLimit":  4194304
+                                 },
+                      "configSha256":  "1b537143c19f375c53972333f96748cfa187834cb94847963718df4628553731",
+                      "index":  3
+                  },
+                  {
+                      "config":  {
+                                     "ArtifactRoot":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls",
+                                     "RunRoot":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-4-descendant",
+                                     "Id":  "control-4-descendant",
+                                     "Mode":  "descendant",
+                                     "Executable":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\SyntheticCaptureTarget-final.exe",
+                                     "ExecutableSha256":  "e7497e622c39b068a9ad0816382a31ae978d4e455d1127bf5ce85eedb1dc63d0",
+                                     "Cwd":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-4-descendant",
+                                     "Arguments":  [
+                                                       "descendant",
+                                                       "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-4-descendant"
+                                                   ],
+                                     "WorkLimitMs":  10000,
+                                     "RawByteLimit":  1048576,
+                                     "EventLimit":  2048,
+                                     "ExceptionLimit":  128,
+                                     "ReceiptByteLimit":  4194304
+                                 },
+                      "configSha256":  "d111bb38cf7c23507dbc499ee0f17820a7da1f01fa91491e1baa2451008cb9df",
+                      "index":  4
+                  },
+                  {
+                      "config":  {
+                                     "ArtifactRoot":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls",
+                                     "RunRoot":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-5-observer-failure",
+                                     "Id":  "control-5-observer-failure",
+                                     "Mode":  "observer-failure",
+                                     "Executable":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\SyntheticCaptureTarget-final.exe",
+                                     "ExecutableSha256":  "e7497e622c39b068a9ad0816382a31ae978d4e455d1127bf5ce85eedb1dc63d0",
+                                     "Cwd":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-5-observer-failure",
+                                     "Arguments":  [
+                                                       "observer-failure",
+                                                       "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r1-20261115\\controls\\control-5-observer-failure"
+                                                   ],
+                                     "WorkLimitMs":  10000,
+                                     "RawByteLimit":  1048576,
+                                     "EventLimit":  2048,
+                                     "ExceptionLimit":  128,
+                                     "ReceiptByteLimit":  4194304
+                                 },
+                      "configSha256":  "cdef0b34bc31fd485f7eac4e916653931a20d525dbf624052fb2714bfcb68217",
+                      "index":  5
+                  }
+              ],
+    "batchWallLimitMs":  90000,
+    "perHostLimitMs":  35000,
+    "retries":  0,
+    "scope":  "Predeclared six synthetic slots only; requires independent source admission. No target launched during preparation; distinct diagnostic population, not preview/product timing/SOUND."
+}

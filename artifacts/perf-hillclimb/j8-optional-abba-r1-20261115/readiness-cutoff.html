@@ -1,0 +1,25 @@
+<figure id="j8-readiness-cutoff" aria-label="Readiness by 240 seconds: both instrumentation-on launches and both instrumentation-off launches timed out. Four fixed diagnostic launches, not completed latency measurements.">
+  <figcaption>Readiness by 240 seconds</figcaption>
+  <div class="j8-unit-row">
+    <div>Optional bundle ON<br><span class="j8-secondary">0 of 2 ready</span></div>
+    <div class="j8-unit"><span class="j8-mark" aria-hidden="true">×</span><span>ON-a</span></div>
+    <div class="j8-unit"><span class="j8-mark" aria-hidden="true">×</span><span>ON-b</span></div>
+  </div>
+  <div class="j8-unit-row">
+    <div>Optional bundle OFF<br><span class="j8-secondary">0 of 2 ready</span></div>
+    <div class="j8-unit"><span class="j8-mark" aria-hidden="true">×</span><span>OFF-b</span></div>
+    <div class="j8-unit"><span class="j8-mark" aria-hidden="true">×</span><span>OFF-a</span></div>
+  </div>
+  <div class="j8-secondary">× Timed out · Each mark is one fixed launch</div>
+  <div class="j8-secondary">Sequence: ON / OFF / OFF / ON</div>
+  <div class="j8-secondary">240s is the cutoff, not a completion time. Shared hooks stayed active.</div>
+</figure>
+<style>
+  #j8-readiness-cutoff{margin:0;display:grid;gap:calc(var(--font-size-base,14px)*.75);font-family:var(--font-sans);color:var(--foreground)}
+  #j8-readiness-cutoff figcaption{font-weight:500}
+  #j8-readiness-cutoff .j8-unit-row{display:grid;grid-template-columns:minmax(110px,1.4fr) repeat(2,minmax(72px,1fr));gap:calc(var(--font-size-base,14px)*.75);align-items:center}
+  #j8-readiness-cutoff .j8-unit{display:flex;gap:8px;align-items:center}
+  #j8-readiness-cutoff .j8-mark{display:grid;place-items:center;width:28px;height:28px;flex:none;border-radius:50%;background:color-mix(in srgb,var(--warning) 25%,transparent);color:var(--foreground);font-weight:500}
+  #j8-readiness-cutoff .j8-secondary{color:var(--muted-foreground)}
+  @media(max-width:360px){#j8-readiness-cutoff .j8-unit-row{grid-template-columns:minmax(100px,1.2fr) repeat(2,minmax(65px,1fr));gap:6px}#j8-readiness-cutoff .j8-unit{gap:4px}}
+</style>

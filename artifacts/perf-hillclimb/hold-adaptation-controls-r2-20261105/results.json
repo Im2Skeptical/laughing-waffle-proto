@@ -1,0 +1,149 @@
+[
+  {
+    "population": "desktop",
+    "direction": 1,
+    "gesture": "click",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "desktop",
+    "direction": 1,
+    "gesture": "drag",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "desktop",
+    "direction": -1,
+    "gesture": "click",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "desktop",
+    "direction": -1,
+    "gesture": "drag",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "desktop",
+    "direction": 1,
+    "gesture": "playing-no-motion",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "desktop",
+    "direction": 0,
+    "gesture": "held-no-motion",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "desktop",
+    "direction": 0,
+    "gesture": "coast",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "mobile1",
+    "direction": 1,
+    "gesture": "click",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "mobile1",
+    "direction": 1,
+    "gesture": "drag",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "mobile1",
+    "direction": -1,
+    "gesture": "click",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "mobile1",
+    "direction": -1,
+    "gesture": "drag",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "mobile1",
+    "direction": 1,
+    "gesture": "playing-no-motion",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "mobile1",
+    "direction": 0,
+    "gesture": "held-no-motion",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "mobile1",
+    "direction": 0,
+    "gesture": "coast",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "mobile4",
+    "direction": 1,
+    "gesture": "click",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "mobile4",
+    "direction": 1,
+    "gesture": "drag",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "mobile4",
+    "direction": -1,
+    "gesture": "click",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "mobile4",
+    "direction": -1,
+    "gesture": "drag",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "mobile4",
+    "direction": 1,
+    "gesture": "playing-no-motion",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "mobile4",
+    "direction": 0,
+    "gesture": "held-no-motion",
+    "pass": true,
+    "error": null
+  },
+  {
+    "population": "mobile4",
+    "direction": 0,
+    "gesture": "coast",
+    "pass": false,
+    "error": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\nfalse !== true\n\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/hold-adoption-controls.mjs:145:40"
+  }
+]

@@ -1,0 +1,4 @@
+{
+  "error": "offered input clock calibration resolves requested interval\n\nfalse !== true\n",
+  "passive": null
+}

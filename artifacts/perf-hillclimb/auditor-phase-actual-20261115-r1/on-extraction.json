@@ -1,0 +1,306 @@
+{
+  "id": "j8-phase-on-20261115-r1",
+  "mode": "on",
+  "normalExit": true,
+  "identity": {
+    "sourceDifferences": [],
+    "servedDifferences": [],
+    "build": true,
+    "contract": true,
+    "variant": true,
+    "phaseObserved": {
+      "present": true,
+      "version": 1
+    }
+  },
+  "observations": [
+    {
+      "step": "performance-entry-full-opening",
+      "ok": true,
+      "started": 6689,
+      "finished": 62038.59999999404,
+      "elapsedMs": 55349.59999999404,
+      "timeout": false
+    },
+    {
+      "step": "opening-to-responsive-present",
+      "ok": true,
+      "started": 62440.09999999404,
+      "finished": 63468.40000000596,
+      "elapsedMs": 1028.300000011921,
+      "timeout": false
+    },
+    {
+      "step": "remaining-background-wait-to-prepared",
+      "ok": false,
+      "started": 63662,
+      "finished": 303672.59999999404,
+      "elapsedMs": 240010.59999999404,
+      "timeout": true,
+      "error": "page.waitForFunction: Timeout 240000ms exceeded."
+    }
+  ],
+  "failedOperation": {
+    "started": 63662,
+    "cancelAtMs": 303672.59999999404,
+    "elapsedMs": 240010.59999999404,
+    "error": "page.waitForFunction: Timeout 240000ms exceeded.",
+    "timeout": true,
+    "completionClock": null
+  },
+  "phase": {
+    "collectedAt": 304690,
+    "afterCancelMs": 1017.4000000059605,
+    "eventCount": 32,
+    "droppedEvents": 1185,
+    "loaderCount": 1,
+    "droppedLoaders": 0,
+    "unlinkedSites": {},
+    "stages": [
+      {
+        "id": 1,
+        "lastPhase": "idle-enter",
+        "atlasEnterMs": 61917.30000001192,
+        "atlasReturnMs": 84426.59999999404,
+        "atlasOk": true,
+        "mainEnterMs": 85454.09999999404,
+        "mainReturnMs": null,
+        "decisionEnterMs": null,
+        "readyEnterMs": null,
+        "observedMainPendingAtCancelMs": 218218.5,
+        "sites": {
+          "loader-enter": {
+            "count": 1,
+            "lastAt": 61917,
+            "last": null
+          },
+          "atlas-enter": {
+            "count": 1,
+            "lastAt": 61917.30000001192,
+            "last": null
+          },
+          "wait-enter": {
+            "count": 303,
+            "lastAt": 304688.40000000596,
+            "last": null
+          },
+          "idle-enter": {
+            "count": 303,
+            "lastAt": 304688.7000000179,
+            "last": null
+          },
+          "idle-return": {
+            "count": 302,
+            "lastAt": 304664.3000000119,
+            "last": null
+          },
+          "wait-return": {
+            "count": 302,
+            "lastAt": 304664.3000000119,
+            "last": null
+          },
+          "atlas-return": {
+            "count": 1,
+            "lastAt": 84426.59999999404,
+            "last": true
+          },
+          "pre-terrain-wait-enter": {
+            "count": 1,
+            "lastAt": 84426.59999999404,
+            "last": null
+          },
+          "pre-terrain-wait-return": {
+            "count": 1,
+            "lastAt": 85453.70000001788,
+            "last": null
+          },
+          "terrain-enter": {
+            "count": 1,
+            "lastAt": 85453.80000001192,
+            "last": null
+          },
+          "main-enter": {
+            "count": 1,
+            "lastAt": 85454.09999999404,
+            "last": null
+          }
+        },
+        "gates": {
+          "wait-current": {
+            "count": 303,
+            "denied": 0,
+            "last": true,
+            "lastAt": 304688.40000000596
+          },
+          "pre-idle-load": {
+            "count": 303,
+            "denied": 0,
+            "last": true,
+            "lastAt": 304688.7000000179
+          },
+          "post-idle-load": {
+            "count": 302,
+            "denied": 0,
+            "last": true,
+            "lastAt": 304664.3000000119
+          },
+          "atlas-ok": {
+            "count": 1,
+            "denied": 0,
+            "last": true,
+            "lastAt": 84426.59999999404
+          },
+          "loader-current": {
+            "count": 1,
+            "denied": 0,
+            "last": true,
+            "lastAt": 85453.80000001192
+          }
+        }
+      }
+    ]
+  },
+  "finalPhase": {
+    "collectedAt": 304707.5,
+    "afterCancelMs": 1034.9000000059605,
+    "eventCount": 32,
+    "droppedEvents": 1185,
+    "loaderCount": 1,
+    "droppedLoaders": 0,
+    "unlinkedSites": {},
+    "loaders": [
+      {
+        "id": 1,
+        "sites": {
+          "loader-enter": {
+            "count": 1,
+            "lastAt": 61917,
+            "last": null
+          },
+          "atlas-enter": {
+            "count": 1,
+            "lastAt": 61917.30000001192,
+            "last": null
+          },
+          "wait-enter": {
+            "count": 303,
+            "lastAt": 304688.40000000596,
+            "last": null
+          },
+          "idle-enter": {
+            "count": 303,
+            "lastAt": 304688.7000000179,
+            "last": null
+          },
+          "idle-return": {
+            "count": 302,
+            "lastAt": 304664.3000000119,
+            "last": null
+          },
+          "wait-return": {
+            "count": 302,
+            "lastAt": 304664.3000000119,
+            "last": null
+          },
+          "atlas-return": {
+            "count": 1,
+            "lastAt": 84426.59999999404,
+            "last": true
+          },
+          "pre-terrain-wait-enter": {
+            "count": 1,
+            "lastAt": 84426.59999999404,
+            "last": null
+          },
+          "pre-terrain-wait-return": {
+            "count": 1,
+            "lastAt": 85453.70000001788,
+            "last": null
+          },
+          "terrain-enter": {
+            "count": 1,
+            "lastAt": 85453.80000001192,
+            "last": null
+          },
+          "main-enter": {
+            "count": 1,
+            "lastAt": 85454.09999999404,
+            "last": null
+          }
+        },
+        "gates": {
+          "wait-current": {
+            "count": 303,
+            "denied": 0,
+            "last": true,
+            "lastAt": 304688.40000000596
+          },
+          "pre-idle-load": {
+            "count": 303,
+            "denied": 0,
+            "last": true,
+            "lastAt": 304688.7000000179
+          },
+          "post-idle-load": {
+            "count": 302,
+            "denied": 0,
+            "last": true,
+            "lastAt": 304664.3000000119
+          },
+          "atlas-ok": {
+            "count": 1,
+            "denied": 0,
+            "last": true,
+            "lastAt": 84426.59999999404
+          },
+          "loader-current": {
+            "count": 1,
+            "denied": 0,
+            "last": true,
+            "lastAt": 85453.80000001192
+          }
+        },
+        "lastPhase": "idle-enter",
+        "lastAt": 304688.7000000179
+      }
+    ]
+  },
+  "state": {
+    "mainPrepared": null,
+    "decisionPrepared": null,
+    "mainReady": false,
+    "decisionReady": false,
+    "groups": 13,
+    "loaded": 13,
+    "hidden": 13,
+    "valid": 13
+  },
+  "errors": {
+    "page": 0,
+    "console": 0,
+    "request": 0,
+    "collection": 0,
+    "warnings": 0
+  },
+  "cleanup": {
+    "case": "reference",
+    "contextClosed": true,
+    "browserClosed": true,
+    "errors": [],
+    "browserConnected": false,
+    "lifetime": {
+      "label": "artwork reference",
+      "status": "cancelled",
+      "hostStartedMs": 8638.7321,
+      "hostDeadlineMs": 608638.7321,
+      "reason": "page.waitForFunction: Timeout 240000ms exceeded.",
+      "unconfirmedWork": [],
+      "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+    }
+  },
+  "summary": {
+    "ok": false,
+    "completedCases": 0,
+    "requestedCases": 1
+  }
+}

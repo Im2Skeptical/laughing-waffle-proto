@@ -1,0 +1,16 @@
+{
+  "case": "deferred",
+  "contextClosed": true,
+  "browserClosed": true,
+  "errors": [],
+  "browserConnected": false,
+  "lifetime": {
+    "label": "artwork deferred",
+    "status": "completed",
+    "hostStartedMs": 135923.4817,
+    "hostDeadlineMs": 6855923.4817,
+    "reason": null,
+    "unconfirmedWork": [],
+    "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+  }
+}

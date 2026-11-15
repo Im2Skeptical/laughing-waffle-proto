@@ -1,0 +1,48 @@
+{
+    "reason":  "Known expected-envelope mismatch: real UI confirm includes independently unselected acquire:null; stop superseded matrix without repeating known failure. Completed results preserved; remaining cells interrupted/unexecuted, not passes.",
+    "at":  "2026-11-05T05:59:46.3403605+11:00",
+    "processes":  [
+                      {
+                          "ProcessId":  16256,
+                          "ParentProcessId":  4284,
+                          "Name":  "node.exe",
+                          "CommandLine":  "\"C:\\Program Files\\nodejs\\node.exe\" --experimental-vm-modules scripts/perf-hillclimb/life-state-browser.mjs --id=life-state-browser-r6-20261105"
+                      },
+                      {
+                          "ProcessId":  30048,
+                          "ParentProcessId":  16256,
+                          "Name":  "node.exe",
+                          "CommandLine":  "\"C:\\Program Files\\nodejs\\node.exe\" node_modules/serve/bin/serve.js -l 18246 --no-clipboard dist"
+                      },
+                      {
+                          "ProcessId":  37264,
+                          "ParentProcessId":  30048,
+                          "Name":  "conhost.exe",
+                          "CommandLine":  "\\??\\C:\\WINDOWS\\system32\\conhost.exe 0x4"
+                      },
+                      {
+                          "ProcessId":  8188,
+                          "ParentProcessId":  16256,
+                          "Name":  "chrome-headless-shell.exe",
+                          "CommandLine":  "C:\\Users\\User\\AppData\\Local\\ms-playwright\\chromium_headless_shell-1217\\chrome-headless-shell-win64\\chrome-headless-shell.exe --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --use-gl=angle --use-angle=swiftshader --user-data-dir=C:\\Users\\User\\AppData\\Local\\Temp\\playwright_chromiumdev_profile-kGcSTe --remote-debugging-pipe --no-startup-window"
+                      },
+                      {
+                          "ProcessId":  6668,
+                          "ParentProcessId":  8188,
+                          "Name":  "chrome-headless-shell.exe",
+                          "CommandLine":  "\"C:\\Users\\User\\AppData\\Local\\ms-playwright\\chromium_headless_shell-1217\\chrome-headless-shell-win64\\chrome-headless-shell.exe\" --type=gpu-process --no-sandbox --disable-breakpad --headless --use-angle=swiftshader --enable-unsafe-swiftshader --gpu-preferences=SAAAAAAAAADgAAAEAAAAAAAAAAAAAGAAAQAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAAAAAACAAAAAAAAAAIAAAAAAAAAA== --use-gl=angle --field-trial-handle=1484,i,10151455335748697447,18177438021205803355,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AutoDeElevate,AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,OptimizationHints,PaintHolding,RenderDocument,ThirdPartyStoragePartitioning,Translate --variations-seed-version --pseudonymization-salt-handle=1496,i,7878314318789216711,7341935411935227338,4 --trace-process-track-uuid=3190708988185955192 --enable-logging=handle --log-file=1540 --mojo-platform-channel-handle=1480 /prefetch:2"
+                      },
+                      {
+                          "ProcessId":  10020,
+                          "ParentProcessId":  8188,
+                          "Name":  "chrome-headless-shell.exe",
+                          "CommandLine":  "\"C:\\Users\\User\\AppData\\Local\\ms-playwright\\chromium_headless_shell-1217\\chrome-headless-shell-win64\\chrome-headless-shell.exe\" --type=utility --utility-sub-type=network.mojom.NetworkService --lang=en-GB --service-sandbox-type=none --no-sandbox --use-angle=swiftshader --use-gl=angle --mute-audio --headless=old --field-trial-handle=1484,i,10151455335748697447,18177438021205803355,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AutoDeElevate,AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,OptimizationHints,PaintHolding,RenderDocument,ThirdPartyStoragePartitioning,Translate --variations-seed-version --pseudonymization-salt-handle=1496,i,7878314318789216711,7341935411935227338,4 --trace-process-track-uuid=3190708989122997041 --enable-logging=handle --log-file=2036 --mojo-platform-channel-handle=1968 /prefetch:11"
+                      },
+                      {
+                          "ProcessId":  33944,
+                          "ParentProcessId":  8188,
+                          "Name":  "chrome-headless-shell.exe",
+                          "CommandLine":  "\"C:\\Users\\User\\AppData\\Local\\ms-playwright\\chromium_headless_shell-1217\\chrome-headless-shell-win64\\chrome-headless-shell.exe\" --type=renderer --headless=old --no-sandbox --disable-back-forward-cache --disable-background-timer-throttling --disable-breakpad --enable-automation --force-color-profile=srgb --remote-debugging-pipe --allow-pre-commit-input --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --video-capture-use-gpu-memory-buffer --lang=en-GB --device-scale-factor=1.25 --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=4 --time-ticks-at-unix-epoch=-1793597862239561 --launch-time-ticks=220871953170 --field-trial-handle=1484,i,10151455335748697447,18177438021205803355,262144 --enable-features=CDPScreenshotNewSurface --disable-features=AutoDeElevate,AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,OptimizationHints,PaintHolding,RenderDocument,ThirdPartyStoragePartitioning,Translate --variations-seed-version --pseudonymization-salt-handle=1496,i,7878314318789216711,7341935411935227338,4 --trace-process-track-uuid=3190708990060038890 --enable-logging=handle --log-file=2444 --mojo-platform-channel-handle=2436 /prefetch:1"
+                      }
+                  ]
+}

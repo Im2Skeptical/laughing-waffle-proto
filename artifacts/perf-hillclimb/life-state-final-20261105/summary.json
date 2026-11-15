@@ -1,0 +1,211 @@
+{
+  "phaseA": "NOT SOUND / NOT INDEPENDENTLY AUDITED",
+  "pass": [
+    {
+      "seed": 123,
+      "population": "desktop",
+      "mode": "guard-twin",
+      "pass": true
+    },
+    {
+      "seed": 123,
+      "population": "desktop",
+      "mode": "mutation",
+      "pass": true
+    },
+    {
+      "seed": 123,
+      "population": "desktop",
+      "mode": "positive",
+      "pass": true
+    },
+    {
+      "seed": 123,
+      "population": "mobile4",
+      "mode": "positive",
+      "pass": true
+    },
+    {
+      "seed": 424242,
+      "population": "desktop",
+      "mode": "positive",
+      "pass": true
+    },
+    {
+      "seed": 424242,
+      "population": "mobile4",
+      "mode": "positive",
+      "pass": true
+    },
+    {
+      "seed": 99117,
+      "population": "desktop",
+      "mode": "positive",
+      "pass": true
+    },
+    {
+      "seed": 99117,
+      "population": "mobile4",
+      "mode": "positive",
+      "pass": true
+    }
+  ],
+  "matrix": "artifacts/perf-hillclimb/life-state-browser-r8-20261105",
+  "build": {
+    "performanceFixtureKey": "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+    "version": "1.1.52",
+    "build": "29a9af9ecb95",
+    "revision": "a9df52cbd625",
+    "channel": "pages",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": null,
+    "entryPoint": "src/views/ui-root-pixi.js",
+    "bundle": "./assets/app-REMC44C6.js",
+    "worker": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+    "saveLoadWorker": "./assets/save-load-worker-7YJYILEJ.js",
+    "stylesheet": "./assets/styles-ec05c6a73a6e.css"
+  },
+  "assets": {
+    "bundle": {
+      "file": "./assets/app-REMC44C6.js",
+      "sha256": "cf88deb49ed248d558aafd6268a6ddc3da1dc00aa46dca686eef1c8a66a8a2a2"
+    },
+    "worker": {
+      "file": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+      "sha256": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a"
+    },
+    "saveLoadWorker": {
+      "file": "./assets/save-load-worker-7YJYILEJ.js",
+      "sha256": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5"
+    },
+    "stylesheet": {
+      "file": "./assets/styles-ec05c6a73a6e.css",
+      "sha256": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+    }
+  },
+  "sourceHashes": {
+    "src/controllers/life-decision-controller.js": "8408c4820980c9fa3a7fe7a59a13fad618aa74978e29db5c192caa75ef405ed8",
+    "src/views/vassal-node-decision-modal-pixi.js": "6bfeb9cf25e2864d1462045d79a6ee7b732a243bff5a1b2ba0af3abd10bf9d86",
+    "src/views/ui-root/settlement-debug-api.js": "5e2800bb9508583684c6829bef1edafacbbc7a2099c2c7eebeae423685240604",
+    "src/views/ui-root-settlement-pixi.js": "d0110b208f627a295599a4221fd47f1bf621f11f7c3a78c42330d73df09dab23",
+    "scripts/life-decision-test.mjs": "5664683c8fd40c491eb364204cd0ae9316bc720bcf7754451efe9026e0309c68",
+    "scripts/timing-observability-test.mjs": "be5a91f007b82b5c464d40925a538f4e62a544f9a048158f704cdb67a4f2e9c5",
+    "scripts/perf-hillclimb/life-state-browser.mjs": "c12d402eb81d5e2a93b634082e649598cd6f309c3919c40de1273225234b304a",
+    "scripts/perf-hillclimb/life-state-check.mjs": "8125de5aa44e27d66dc4b38ee9ef2104e7247bd8a67cca3900fc0578cf20da0a",
+    "scripts/perf-hillclimb/life-state-controls.mjs": "dd0c02685a6d01bf6993d012dcbb6eb8b6ba81d0592555779631c9bc01b71ba0",
+    "scripts/perf-hillclimb/life-state-inspection-test.mjs": "400f563f3e41dff3021b470c32cada0ddad498f00063be77da3ca8364d51ed89",
+    "scripts/perf-hillclimb/life-state-modal-test.mjs": "3ac8d303dfbd95543b880947f6561d772b030d7a43942ebf0e144c4dfc36844d",
+    "scripts/perf-hillclimb/life-state-presentation.mjs": "e193e697b5df553e40e16f96375ef1577d86bd09cf32482bc35497240e9426dc"
+  },
+  "evidenceHashes": {
+    "manifest.json": "8eff3c1a98fa81de87a24aac5119674478efe202d97c9d9006876ee35d781060",
+    "results.json": "80f088ffe9d0102ccc8388e6832c8faea4e58648a55ef2adcd15b91820b350c7",
+    "provenance-after.json": "3ce24a707c2135f41b70495cc805dbd504d999894a435081212250ce5cd70d6e",
+    "frozen-integrity-after.json": "e66a809fed68f1e4a766b592ab7dc3a16505edde26f6f84d9ff622767e7b207a",
+    "response-identity.json": "917dcef4967566bfe8d58dcb617e4a8d8bfdf0529430507e3220a9933c1eaefb",
+    "response-twin-identity.json": "f6a3676e33caae22f0964d2384a860d949d73ad9566023ef67ae6b84c0dd28b6",
+    "response.js": "c011e93b3879554d787e318c29e2656a01f24d361cdb2573d3c3460a0d06849e",
+    "response-twin.js": "08d034fb6feb0a53f976fa7d4f66cf4856741435f9e0c02a121b381376f3f655"
+  },
+  "preexistingChanged": [
+    "docs/performance/perf-hillclimb-20261104/STATE.md",
+    "docs/performance/perf-hillclimb-20261104/PROOF_RUN.md",
+    "docs/performance/perf-hillclimb-20261104/FEEDBACK_PROOF_PLAN.md",
+    "src/views/vassal-node-decision-modal-pixi.js",
+    "src/views/ui-root-settlement-pixi.js",
+    "src/views/ui-root/settlement-debug-api.js",
+    "scripts/life-decision-test.mjs",
+    "scripts/timing-observability-test.mjs",
+    "src/controllers/life-decision-controller.js"
+  ],
+  "allOtherInitialExecutableSourcesPreserved": true,
+  "outOfScopeDocumentChangesObserved": [
+    "docs/performance/perf-hillclimb-20261104/STATE.md",
+    "docs/performance/perf-hillclimb-20261104/PROOF_RUN.md",
+    "docs/performance/perf-hillclimb-20261104/FEEDBACK_PROOF_PLAN.md"
+  ],
+  "documentGateNote": "Original all-source/docs preservation assertion failed; retained in initial-integrity-deltas.json and create-summary-r1.mjs. Builder did not edit these documents; no author attribution is asserted. Matrix independently held all app/harness executable bytes; no whole-worktree docs stability claim.",
+  "commands": {
+    "focused": [
+      "node scripts/life-decision-test.mjs",
+      "node scripts/timing-observability-test.mjs"
+    ],
+    "matrix": "node --experimental-vm-modules scripts/perf-hillclimb/life-state-browser.mjs --id=life-state-browser-NEW"
+  },
+  "checks": {
+    "focused": "PASS; explicit simultaneous legal siblings strengthened and rerun",
+    "architecture": "PASS",
+    "reachability": "PASS",
+    "assets": "PASS",
+    "build": "PASS",
+    "buildPreview": "PASS",
+    "fullNpmTest": "PASS",
+    "aggregateNpmVerify": "FAIL:9 preexisting route suffix errors in read-only J6_PREVIEW_BINDING_ANALYSIS.md"
+  },
+  "comparisonEligible": false,
+  "physicalPixel6": false,
+  "rootIntegration": "not performed; run/runtime/HARNESS/STATE read only",
+  "preview": {
+    "at": "2026-11-04T19:25:21.685Z",
+    "status": {
+      "protocol": 2,
+      "workspaceId": "318fcd5d72880280",
+      "pid": 4484,
+      "desktop": "http://localhost:5184/",
+      "mobile": [
+        "http://100.105.63.49:5184/",
+        "http://192.168.1.103:5184/"
+      ]
+    },
+    "build": {
+      "performanceFixtureKey": "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+      "version": "1.1.52",
+      "build": "96ca1aa448c0",
+      "revision": "a9df52cbd625",
+      "channel": "local",
+      "branch": "perf/hillclimb-20261104",
+      "dirty": true,
+      "preview": true,
+      "previewLabel": "5184"
+    },
+    "servedSources": {
+      "src/controllers/life-decision-controller.js": "8408c4820980c9fa3a7fe7a59a13fad618aa74978e29db5c192caa75ef405ed8",
+      "src/views/vassal-node-decision-modal-pixi.js": "6bfeb9cf25e2864d1462045d79a6ee7b732a243bff5a1b2ba0af3abd10bf9d86",
+      "src/views/ui-root/settlement-debug-api.js": "5e2800bb9508583684c6829bef1edafacbbc7a2099c2c7eebeae423685240604",
+      "src/views/ui-root-settlement-pixi.js": "d0110b208f627a295599a4221fd47f1bf621f11f7c3a78c42330d73df09dab23"
+    },
+    "htmlSha256": "eab2bcac1e3cd1219ca50807e2d0b1774e8514c3ef87e190d651034833e1cec4",
+    "htmlContainsActualFingerprint": true,
+    "mobile": [
+      {
+        "url": "http://100.105.63.49:5184/",
+        "verified": true,
+        "fingerprint": "96ca1aa448c0"
+      },
+      {
+        "url": "http://192.168.1.103:5184/",
+        "verified": true,
+        "fingerprint": "96ca1aa448c0"
+      }
+    ],
+    "identityOnly": "actual LAN source preview; not device/browser latency proof",
+    "integration": "dirty isolated branch; not integrated into main",
+    "ownership": "reused inherited preview; no owned preview server started"
+  },
+  "slotReleased": true,
+  "handoffSha256": "bb800f3bee27778e7be1275f3897cb1b3638f67ecd227620ba409f08e321241a",
+  "failedAttemptsRetained": [
+    "life-state-browser-r1-20261105",
+    "life-state-browser-r2-20261105",
+    "life-state-browser-r3-20261105",
+    "life-state-browser-r4-20261105",
+    "life-state-browser-r5-20261105",
+    "life-state-browser-r6-20261105 (interrupted)",
+    "life-state-browser-r7-20261105 (interrupted)",
+    "initial npm verify docs failure",
+    "initial npm start native exit",
+    "broader all-source/docs preservation assertion"
+  ]
+}

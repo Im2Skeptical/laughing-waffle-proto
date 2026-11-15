@@ -1,0 +1,347 @@
+{
+  "created": "2026-11-04T17:03:54.872Z",
+  "phaseA": "NOT SOUND",
+  "comparisonEligible": false,
+  "status": "20 required functional coverage cells PASS across recorded different harness revisions; r3 process EXIT1 on root-owned non-executed run.mjs provenance drift; not a clean fixed-source suite",
+  "runs": [
+    {
+      "id": "preview-browser-r1-20261105",
+      "manifestBuild": "c17c103f4e7b",
+      "sourceManifest": "artifacts/perf-hillclimb/preview-browser-r1-20261105/manifest.json",
+      "completeManifest": true,
+      "pass": 4,
+      "fail": 0
+    },
+    {
+      "id": "preview-control-r1-20261105",
+      "manifestBuild": "985e049cc6ae",
+      "sourceManifest": "artifacts/perf-hillclimb/preview-control-r1-20261105/manifest.json",
+      "completeManifest": true,
+      "pass": 2,
+      "fail": 0
+    },
+    {
+      "id": "preview-browser-r2-20261105",
+      "manifestBuild": "985e049cc6ae",
+      "sourceManifest": "artifacts/perf-hillclimb/preview-browser-r2-20261105/manifest.json",
+      "completeManifest": false,
+      "pass": 13,
+      "fail": 1
+    },
+    {
+      "id": "preview-browser-r3-20261105",
+      "manifestBuild": "985e049cc6ae",
+      "sourceManifest": "artifacts/perf-hillclimb/preview-browser-r3-20261105/manifest.json",
+      "completeManifest": false,
+      "pass": 8,
+      "fail": 0
+    }
+  ],
+  "focused": "preview-focused-r6-20261105 PASS6 all3 seeds x16/17; source snapshots retained",
+  "fullVerify": {
+    "command": "npm run verify",
+    "exit": 0,
+    "log": "artifacts/perf-hillclimb/preview-verify-r1-20261105.log"
+  },
+  "finalGate": {
+    "exit": 1,
+    "mismatches": [
+      {
+        "file": "scripts/perf-hillclimb/run.mjs",
+        "expected": "61c7e2edcb2517b33efcc3f3bcf926c0e5af16eab301718fa88c5481fc6f3013",
+        "actual": "0b124b6156c5c0853bc112e0fe17955a220a0e02de751e25a92228b54a9667b2"
+      }
+    ],
+    "executableAppAndDiagnosticSourcesUnchanged": true,
+    "rootRunIsNotImportedOrExecutedByStandaloneDiagnostic": true,
+    "acceptance": "retained failure; no self-acceptance"
+  },
+  "coverage": [
+    {
+      "index": 0,
+      "seed": 123,
+      "population": "desktop",
+      "second": 16,
+      "entry": "regular-continue",
+      "control": false,
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb"
+    },
+    {
+      "index": 1,
+      "seed": 123,
+      "population": "desktop",
+      "second": 17,
+      "entry": "regular-continue",
+      "control": false,
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb"
+    },
+    {
+      "index": 2,
+      "seed": 123,
+      "population": "mobile4",
+      "second": 16,
+      "entry": "regular-continue",
+      "control": false,
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb"
+    },
+    {
+      "index": 3,
+      "seed": 123,
+      "population": "mobile4",
+      "second": 17,
+      "entry": "regular-continue",
+      "control": false,
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb"
+    },
+    {
+      "index": 4,
+      "seed": 424242,
+      "population": "desktop",
+      "second": 16,
+      "entry": "regular-continue",
+      "control": false,
+      "fixture": "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392"
+    },
+    {
+      "index": 5,
+      "seed": 424242,
+      "population": "desktop",
+      "second": 17,
+      "entry": "regular-continue",
+      "control": false,
+      "fixture": "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392"
+    },
+    {
+      "index": 6,
+      "seed": 424242,
+      "population": "mobile4",
+      "second": 16,
+      "entry": "regular-continue",
+      "control": false,
+      "fixture": "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392"
+    },
+    {
+      "index": 7,
+      "seed": 424242,
+      "population": "mobile4",
+      "second": 17,
+      "entry": "regular-continue",
+      "control": false,
+      "fixture": "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392"
+    },
+    {
+      "index": 8,
+      "seed": 99117,
+      "population": "desktop",
+      "second": 16,
+      "entry": "regular-continue",
+      "control": false,
+      "fixture": "7b81f5b1957dd202e7a488ec02bec653cc699f688ee97a094a4a4e5ac1b8991c"
+    },
+    {
+      "index": 9,
+      "seed": 99117,
+      "population": "desktop",
+      "second": 17,
+      "entry": "regular-continue",
+      "control": false,
+      "fixture": "7b81f5b1957dd202e7a488ec02bec653cc699f688ee97a094a4a4e5ac1b8991c"
+    },
+    {
+      "index": 10,
+      "seed": 99117,
+      "population": "mobile4",
+      "second": 16,
+      "entry": "regular-continue",
+      "control": false,
+      "fixture": "7b81f5b1957dd202e7a488ec02bec653cc699f688ee97a094a4a4e5ac1b8991c"
+    },
+    {
+      "index": 11,
+      "seed": 99117,
+      "population": "mobile4",
+      "second": 17,
+      "entry": "regular-continue",
+      "control": false,
+      "fixture": "7b81f5b1957dd202e7a488ec02bec653cc699f688ee97a094a4a4e5ac1b8991c"
+    },
+    {
+      "index": 0,
+      "seed": 123,
+      "population": "desktop",
+      "second": 16,
+      "entry": "performance-new",
+      "control": false,
+      "fixture": "fefa69e74b1a5376a7092430a7b2fc75062b97a7fc0a83c2ae8fa250c41e4322"
+    },
+    {
+      "index": 1,
+      "seed": 123,
+      "population": "desktop",
+      "second": 16,
+      "entry": "regular-continue",
+      "control": true,
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb"
+    },
+    {
+      "index": 2,
+      "seed": 123,
+      "population": "desktop",
+      "second": 17,
+      "entry": "performance-new",
+      "control": false,
+      "fixture": "fefa69e74b1a5376a7092430a7b2fc75062b97a7fc0a83c2ae8fa250c41e4322"
+    },
+    {
+      "index": 3,
+      "seed": 123,
+      "population": "desktop",
+      "second": 17,
+      "entry": "regular-continue",
+      "control": true,
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb"
+    },
+    {
+      "index": 4,
+      "seed": 123,
+      "population": "mobile4",
+      "second": 16,
+      "entry": "performance-new",
+      "control": false,
+      "fixture": "fefa69e74b1a5376a7092430a7b2fc75062b97a7fc0a83c2ae8fa250c41e4322"
+    },
+    {
+      "index": 5,
+      "seed": 123,
+      "population": "mobile4",
+      "second": 16,
+      "entry": "regular-continue",
+      "control": true,
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb"
+    },
+    {
+      "index": 6,
+      "seed": 123,
+      "population": "mobile4",
+      "second": 17,
+      "entry": "performance-new",
+      "control": false,
+      "fixture": "fefa69e74b1a5376a7092430a7b2fc75062b97a7fc0a83c2ae8fa250c41e4322"
+    },
+    {
+      "index": 7,
+      "seed": 123,
+      "population": "mobile4",
+      "second": 17,
+      "entry": "regular-continue",
+      "control": true,
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb"
+    }
+  ],
+  "costs": {
+    "original/actual-installed": {
+      "count": 16,
+      "readerCpuMs": {
+        "min": 11.800000011920929,
+        "max": 96.19999998807907
+      },
+      "readerAndMutationCpuMs": null,
+      "hostElapsedMs": {
+        "min": 586.561800000025,
+        "max": 1339.514199999976
+      }
+    },
+    "original/two-copy-isolation-reads": {
+      "count": 16,
+      "readerCpuMs": null,
+      "readerAndMutationCpuMs": {
+        "min": 27.900000005960464,
+        "max": 189.7999999821186
+      },
+      "hostElapsedMs": {
+        "min": 565.4829000000027,
+        "max": 1337.4277000000002
+      }
+    },
+    "control/actual-installed": {
+      "count": 4,
+      "readerCpuMs": {
+        "min": 28.80000001192093,
+        "max": 166.40000000596046
+      },
+      "readerAndMutationCpuMs": null,
+      "hostElapsedMs": {
+        "min": 620.866200000004,
+        "max": 1371.412500000035
+      }
+    },
+    "control/two-copy-isolation-reads": {
+      "count": 4,
+      "readerCpuMs": null,
+      "readerAndMutationCpuMs": {
+        "min": 54,
+        "max": 326.19999998807907
+      },
+      "hostElapsedMs": {
+        "min": 589.4740999999995,
+        "max": 1414.3093000000226
+      }
+    },
+    "control/real-installed-mutant": {
+      "count": 4,
+      "readerCpuMs": {
+        "min": 39.599999994039536,
+        "max": 200.09999999403954
+      },
+      "readerAndMutationCpuMs": null,
+      "hostElapsedMs": {
+        "min": 576.9861999999994,
+        "max": 1315.0436000000336
+      }
+    },
+    "control/other-independent-preview": {
+      "count": 4,
+      "readerCpuMs": {
+        "min": 33.60000002384186,
+        "max": 164.80000001192093
+      },
+      "readerAndMutationCpuMs": null,
+      "hostElapsedMs": {
+        "min": 581.4629999999888,
+        "max": 1390.1087999999872
+      }
+    },
+    "control/revisited-independent-preview": {
+      "count": 4,
+      "readerCpuMs": {
+        "min": 32.20000001788139,
+        "max": 165.90000000596046
+      },
+      "readerAndMutationCpuMs": null,
+      "hostElapsedMs": {
+        "min": 582.1587,
+        "max": 1320.2533999999869
+      }
+    }
+  },
+  "costPolicy": "diagnostic cost ranges only; not performance results. Exact per-read/group windows are retained in original results. All full-state reads occur after initial trusted input completion; no timing/frame/memory observations are published. Control-evidence export/file-write cost is not separately timed.",
+  "launch": {
+    "headless": true,
+    "args": [
+      "--use-gl=angle",
+      "--use-angle=swiftshader"
+    ]
+  },
+  "playwright": "1.59.1",
+  "preservedFailure": "r2 Performance New16 timed out because first drag occurred during natural five-second opening input lock. Raw actual3918 retained; repaired r3 waits for normal opening completion. No source app/policy/target/deadline changed.",
+  "knownGaps": [
+    "parent run.mjs integration",
+    "independent whole/seam audit",
+    "committed-history J6 and stale-commit fault",
+    "warm/illustrated/progressive populations",
+    "physical device",
+    "matched observer A/A/native/first-feedback",
+    "three complete consecutive eight-job suites and sufficient tails",
+    "first focused failure full raw/source identity missing; explicit failure-note retained"
+  ]
+}

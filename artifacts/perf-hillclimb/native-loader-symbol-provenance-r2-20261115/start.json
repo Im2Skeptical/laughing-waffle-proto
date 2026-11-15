@@ -1,0 +1,30 @@
+{
+  "at": "2026-11-15T06:39:42.940Z",
+  "pid": 18504,
+  "sourcePins": {
+    "pe-data.mjs": "4b8f4aeed8d5c6d763c9c53a7123028304c72a2f3fee1f10c12dd3671fe5e277",
+    "pdb-data.mjs": "d06a0f5c7ad31ad1e03631d53565314a6d8ead7dbc29cd5694a51c8f753c824a",
+    "resolve.mjs": "bce8c78b932206955c2817f1838dd2561bb007b476a674fbe4c5d30fd2cbf4c5",
+    "controls.mjs": "90f45b50fc643b95cc3092a26fea2ef7d83ec4816999e97a2430013420c195a3",
+    "inspect.mjs": "3868a165426098ef24e4f127cffb76208856c951a4d54c2045f7ee6d9f957147",
+    "README.md": "1df4e0b5be5eef04b293ed0d78e7ae627e98f574cad65783311010f5cff8d76d"
+  },
+  "originalPins": {
+    "pe-data.mjs": "4b8f4aeed8d5c6d763c9c53a7123028304c72a2f3fee1f10c12dd3671fe5e277",
+    "pdb-data.mjs": "8ad1943e1c8c97bf3abd397b47bc23c178d7e959afa9097a166386609d87942e",
+    "resolve.mjs": "bce8c78b932206955c2817f1838dd2561bb007b476a674fbe4c5d30fd2cbf4c5",
+    "controls.mjs": "82a2d0c9f2752e4eee566591c203920a248e22e9e0180f1dc7febca5c23dc372",
+    "collect.mjs": "fdadafe85a97d700bacc040a935c95e02dcbb4eaec970c67c80782a0398eda09",
+    "README.md": "0b7d9d041cc9ab857da4863cfc71b3bbb043557e00dfacc133c5f6b5cbb7b316",
+    "start.json": "4f144ee83f013f4a13fc3f8d60655ea84bf257d567dcbaa14c9b36009e42c7e6",
+    "controls.json": "e0065c2651a447516705274bb25e7171e92487584414fcdba3a576df6e4770b5",
+    "plan.json": "83ba0f640b3492c3253ae2fba69aa9595af1e3a85ce1ff130369e4adcc63bb9f",
+    "download.json": "180ddb5f1d0c6b8dd1ecbc07d1ff6c8f5e36fa538374d787b5a2d90ba586b7b2",
+    "unavailable.json": "667245f2a0323a7f61567de954300cfbb2b8a7a1f0f55198a9a2f65eb6efae8a",
+    "ntdll.pdb": "26d65ee88992ad9c3b258142f7dd3aac3b56f9e271587d9043d01dab3552163c"
+  },
+  "controlsSha256": "191a3ff322eca84c1eaa1b898d480949d1a39c8b69318852a52647abea91acc9",
+  "pointRva": 1200709,
+  "networkRequests": 0,
+  "scope": "Fresh offline data interpretation, no native/API/helper/target. Original acquisition/failure immutable."
+}

@@ -1,0 +1,31 @@
+[
+  {
+    "control": "wrong-target",
+    "job": "scrub-anchor",
+    "exit": 1,
+    "error": "Timeout 1500ms"
+  },
+  {
+    "control": "stale-generation",
+    "job": "map-pan",
+    "exit": 1,
+    "error": "matching current-generation"
+  },
+  {
+    "control": "clamp-bypass",
+    "job": "scrub-anchor",
+    "exit": 1,
+    "error": "J5 observed unrevealed browse access"
+  },
+  {
+    "control": "wrong-save",
+    "job": "save-opening",
+    "exit": 1,
+    "error": "persisted\\/source state differs"
+  },
+  {
+    "control": "deferred-save",
+    "job": "save-opening",
+    "exit": 0
+  }
+]

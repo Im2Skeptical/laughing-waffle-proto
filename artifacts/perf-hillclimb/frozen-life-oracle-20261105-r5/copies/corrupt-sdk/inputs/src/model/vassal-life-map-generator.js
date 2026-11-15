@@ -1,0 +1,629 @@
+import {
+  VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION,
+  VASSAL_NORMAL_NODE_FAMILY_IDS,
+  VASSAL_FOUNDING_OPTIONS,
+  VASSAL_SIGNATURE_NODE_VARIANTS,
+  VASSAL_LIFE_TUNING,
+  getVassalStockOutputIds,
+  getVassalLifeMapNodeType,
+} from "../defs/gamepieces/vassal-life-map-defs.js";
+import { detailedSettlementPracticeDefs } from "../defs/gamepieces/detailed-settlement-defs.js";
+import { canonicalizeLifeMapDesign, validateLifeMapDesign, populatePooledLifeMap } from './life-map-design.js';
+import { LIFEGRAPH_DEFAULT_GENERATOR } from '../defs/lifegraph-defaults.js';
+import { applyLifeMapColumns, resolveLifeMapColumns } from './life-map-columns.js';
+
+const clone = (value) => JSON.parse(JSON.stringify(value));
+const BANDS = Object.freeze(["early", "mid", "late"]);
+
+function isCanonicalSignatureDescriptor(descriptor) {
+  const variant = VASSAL_SIGNATURE_NODE_VARIANTS[descriptor?.variantId];
+  return !!variant
+    && descriptor.id === variant.id && descriptor.groupId === variant.groupId
+    && descriptor.label === variant.label && descriptor.glyph === variant.glyph
+    && descriptor.color === variant.color && descriptor.description === variant.description
+    && descriptor.removalKind === variant.removalKind && descriptor.tag === variant.tag;
+}
+export const VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION = 15;
+
+export function createAuthoredVassalLifeMapGeneratorConfig() {
+  return clone(LIFEGRAPH_DEFAULT_GENERATOR);
+}
+
+export function canonicalizeVassalLifeMapGeneratorConfig(value) {
+  const fallback = createAuthoredVassalLifeMapGeneratorConfig();
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  return {
+    schemaVersion: VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION,
+    laneCount: Number.isFinite(source.laneCount) ? Math.floor(source.laneCount) : fallback.laneCount,
+    normalDepthCount: Number.isFinite(source.normalDepthCount)
+      ? Math.floor(source.normalDepthCount) : fallback.normalDepthCount,
+    routeCount: Number.isFinite(source.routeCount) ? Math.floor(source.routeCount) : fallback.routeCount,
+    earlyDepthCount: Number.isFinite(source.earlyDepthCount)
+      ? Math.floor(source.earlyDepthCount) : fallback.earlyDepthCount,
+    midDepthCount: Number.isFinite(source.midDepthCount)
+      ? Math.floor(source.midDepthCount) : fallback.midDepthCount,
+    layoutSmoothing: Number.isFinite(source.layoutSmoothing)
+      ? Number(source.layoutSmoothing) : fallback.layoutSmoothing,
+    minimumNodeGap: Number.isFinite(source.minimumNodeGap)
+      ? Number(source.minimumNodeGap) : fallback.minimumNodeGap,
+    nonRepeatFamilyIds: [...new Set(Array.isArray(source.nonRepeatFamilyIds)
+      ? source.nonRepeatFamilyIds.filter((id) => VASSAL_NORMAL_NODE_FAMILY_IDS.includes(id))
+      : fallback.nonRepeatFamilyIds)],
+    design: canonicalizeLifeMapDesign(source.design),
+    weights: Object.fromEntries(BANDS.map((band) => [
+      band,
+      Object.fromEntries(VASSAL_NORMAL_NODE_FAMILY_IDS.map((familyId) => [
+        familyId,
+        Number.isFinite(source?.weights?.[band]?.[familyId])
+          ? Number(source.weights[band][familyId]) : fallback.weights[band][familyId],
+      ])),
+    ])),
+  };
+}
+
+export function validateVassalLifeMapGeneratorConfig(value) {
+  const errors = [];
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { ok: false, errors: ["draft: expected an object"] };
+  }
+  if (value.schemaVersion !== VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION) {
+    errors.push(`schemaVersion: expected ${VASSAL_LIFE_MAP_GENERATOR_SCHEMA_VERSION}`);
+  }
+  errors.push(...validateLifeMapDesign(value.design,value.normalDepthCount));
+  const integers = [
+    ["laneCount", 2, 12], ["normalDepthCount", 3, 20], ["routeCount", 2, 24],
+    ["earlyDepthCount", 1, 18], ["midDepthCount", 1, 18],
+  ];
+  for (const [key, min, max] of integers) {
+    if (!Number.isInteger(value[key]) || value[key] < min || value[key] > max) {
+      errors.push(`${key}: expected an integer from ${min} to ${max}`);
+    }
+  }
+  if (Number.isInteger(value.routeCount) && Number.isInteger(value.laneCount)
+      && value.routeCount > value.laneCount * 2) {
+    errors.push("routeCount: cannot exceed twice the lane count");
+  }
+  if (Number.isInteger(value.earlyDepthCount) && Number.isInteger(value.midDepthCount)
+      && Number.isInteger(value.normalDepthCount)
+      && value.earlyDepthCount + value.midDepthCount >= value.normalDepthCount) {
+    errors.push("depth bands: Early + Mid must leave at least one Late depth");
+  }
+  if (!Number.isFinite(value.layoutSmoothing)
+      || value.layoutSmoothing < 0 || value.layoutSmoothing > 1) {
+    errors.push("layoutSmoothing: expected 0 to 1");
+  }
+  if (!Number.isFinite(value.minimumNodeGap)
+      || value.minimumNodeGap < 0.02 || value.minimumNodeGap > 0.3) {
+    errors.push("minimumNodeGap: expected 0.02 to 0.3");
+  } else if (Number.isInteger(value.laneCount)
+      && (value.laneCount - 1) * value.minimumNodeGap > 0.84 + 1e-9) {
+    errors.push("minimumNodeGap: too large for the lane count");
+  }
+  if (!Array.isArray(value.nonRepeatFamilyIds)
+      || value.nonRepeatFamilyIds.some((id) => !VASSAL_NORMAL_NODE_FAMILY_IDS.includes(id))
+      || new Set(value.nonRepeatFamilyIds).size !== value.nonRepeatFamilyIds.length) {
+    errors.push("nonRepeatFamilyIds: expected unique normal family ids");
+  }
+  for (const band of BANDS) {
+    const weights = value?.weights?.[band];
+    if (!weights || typeof weights !== "object" || Array.isArray(weights)) {
+      errors.push(`weights.${band}: expected an object`);
+      continue;
+    }
+    const positive = [];
+    for (const familyId of Object.keys(weights)) {
+      if (!VASSAL_NORMAL_NODE_FAMILY_IDS.includes(familyId)) errors.push(`weights.${band}.${familyId}: unknown node family`);
+    }
+    for (const familyId of VASSAL_NORMAL_NODE_FAMILY_IDS) {
+      const weight = weights[familyId];
+      if (!Number.isFinite(weight) || weight < 0 || weight > 100) {
+        errors.push(`weights.${band}.${familyId}: expected 0 to 100`);
+      } else if (weight > 0) positive.push(familyId);
+    }
+    if (positive.length === 0) errors.push(`weights.${band}: at least one family must be positive`);
+    if (band === "early" && positive.length < 2) {
+      errors.push("weights.early: at least two families must be positive for the opening choice");
+    }
+    if (positive.length > 0 && positive.every((id) => value.nonRepeatFamilyIds?.includes(id))) {
+      errors.push(`weights.${band}: at least one positive family must allow repetition`);
+    }
+  }
+  return { ok: errors.length === 0, errors };
+}
+
+function edgeKey(depth, fromLane, toLane) {
+  return `${depth}:${fromLane}>${toLane}`;
+}
+
+function crossesExisting(existingEdges, depth, fromLane, toLane) {
+  for (const edge of existingEdges) {
+    if (edge.depth !== depth) continue;
+    if ((edge.fromLane < fromLane && edge.toLane > toLane)
+        || (edge.fromLane > fromLane && edge.toLane < toLane)) return true;
+  }
+  return false;
+}
+
+function shuffled(rng, values) {
+  const result = [...values];
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const swap = rng.nextInt(0, index);
+    [result[index], result[swap]] = [result[swap], result[index]];
+  }
+  return result;
+}
+
+function findPath(config, existingEdges, startLane, endLane, rng = null) {
+  const path = [startLane];
+  function visit(depth, lane) {
+    if (depth === config.normalDepthCount - 1) return lane === endLane;
+    const remaining = config.normalDepthCount - depth - 2;
+    let candidates = [lane - 1, lane, lane + 1].filter((nextLane) =>
+      nextLane >= 0 && nextLane < config.laneCount
+      && Math.abs(endLane - nextLane) <= remaining
+      && !crossesExisting(existingEdges, depth, lane, nextLane));
+    candidates = rng ? shuffled(rng, candidates) : candidates;
+    for (const nextLane of candidates) {
+      path.push(nextLane);
+      if (visit(depth + 1, nextLane)) return true;
+      path.pop();
+    }
+    return false;
+  }
+  return visit(0, startLane) ? path : null;
+}
+
+function randomRoute(config, existingEdges, routeIndex, firstStartLane, rng) {
+  const starts = Array.from({ length: config.laneCount }, (_, lane) => lane)
+    .filter((lane) => routeIndex !== 1 || lane !== firstStartLane);
+  const startLane = starts[rng.nextInt(0, starts.length - 1)];
+  const endLane = rng.nextInt(0, config.laneCount - 1);
+  return findPath(config, existingEdges, startLane, endLane, rng);
+}
+
+function fallbackRoute(config, existingEdges, routeIndex, firstStartLane, seen) {
+  for (let startLane = 0; startLane < config.laneCount; startLane += 1) {
+    if (routeIndex === 1 && startLane === firstStartLane) continue;
+    for (let endLane = 0; endLane < config.laneCount; endLane += 1) {
+      const path = findPath(config, existingEdges, startLane, endLane);
+      if (path && !seen.has(path.join(","))) return path;
+    }
+  }
+  return null;
+}
+
+function rollFamily(rng, weights, excluded = new Set()) {
+  const candidates = VASSAL_NORMAL_NODE_FAMILY_IDS.filter((id) =>
+    weights[id] > 0 && !excluded.has(id));
+  const total = candidates.reduce((sum, id) => sum + weights[id], 0);
+  let roll = rng.nextFloat() * total;
+  for (const id of candidates) {
+    roll -= weights[id];
+    if (roll < 0) return id;
+  }
+  return candidates.at(-1);
+}
+
+function bandForDepth(config, depth) {
+  if (depth < config.earlyDepthCount) return "early";
+  if (depth < config.earlyDepthCount + config.midDepthCount) return "mid";
+  return "late";
+}
+
+function dedupeEquivalentChoices(nodes, edges, entryNodeIds) {
+  let activeEdges = [...edges];
+  const signatures = new Map();
+  const maxDepth = Math.max(...nodes.map((node) => node.depth));
+  for (let depth = maxDepth; depth >= 0; depth -= 1) {
+    for (const node of nodes.filter((entry) => entry.depth === depth)) {
+      const seen = new Set();
+      activeEdges = activeEdges.filter((edge) => {
+        if (edge.fromNodeId !== node.id) return true;
+        const signature = signatures.get(edge.toNodeId) ?? edge.toNodeId;
+        if (seen.has(signature)) return false;
+        seen.add(signature);
+        return true;
+      });
+      const childSignatures = activeEdges.filter((edge) => edge.fromNodeId === node.id)
+        .map((edge) => signatures.get(edge.toNodeId) ?? edge.toNodeId).sort();
+      signatures.set(node.id, `${node.family}:${node.specialRelic===true}:${node.stockOutput??''}:${node.signatureNode?.variantId??''}:${node.generationRuleId?node.id:''}[${childSignatures.join("|")}]`);
+    }
+  }
+  const retainedEntries = [];
+  const entrySignatures = new Set();
+  for (const id of entryNodeIds) {
+    const signature = signatures.get(id) ?? id;
+    if (entrySignatures.has(signature)) continue;
+    entrySignatures.add(signature);
+    retainedEntries.push(id);
+  }
+  const reachable = new Set(retainedEntries);
+  const queue = [...retainedEntries];
+  while (queue.length) {
+    const id = queue.shift();
+    for (const edge of activeEdges.filter((entry) => entry.fromNodeId === id)) {
+      if (reachable.has(edge.toNodeId)) continue;
+      reachable.add(edge.toNodeId);
+      queue.push(edge.toNodeId);
+    }
+  }
+  return {
+    nodes: nodes.filter((node) => reachable.has(node.id)),
+    edges: activeEdges.filter((edge) => reachable.has(edge.fromNodeId) && reachable.has(edge.toNodeId)),
+    entryNodeIds: retainedEntries.filter((id) => reachable.has(id)),
+  };
+}
+
+function enforceDepthGap(nodes, depth, gap) {
+  const entries = nodes.filter((node) => node.depth === depth).sort((a, b) => a.lane - b.lane);
+  for (let index = 1; index < entries.length; index += 1) {
+    entries[index]._y = Math.max(entries[index]._y, entries[index - 1]._y + gap);
+  }
+  if (entries.at(-1)?._y > 0.92) {
+    const shift = entries.at(-1)._y - 0.92;
+    entries.forEach((node) => { node._y -= shift; });
+  }
+  for (let index = entries.length - 2; index >= 0; index -= 1) {
+    entries[index]._y = Math.min(entries[index]._y, entries[index + 1]._y - gap);
+  }
+  if (entries[0]?._y < 0.08) {
+    const shift = 0.08 - entries[0]._y;
+    entries.forEach((node) => { node._y += shift; });
+  }
+}
+
+function applyLayout(config, nodes, edges) {
+  const parents = new Map(nodes.map((node) => [node.id, []]));
+  const children = new Map(nodes.map((node) => [node.id, []]));
+  for (const edge of edges) {
+    parents.get(edge.toNodeId)?.push(edge.fromNodeId);
+    children.get(edge.fromNodeId)?.push(edge.toNodeId);
+  }
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  for (const node of nodes) {
+    node._baseY = node.bookend || node.milestoneId
+      ? 0.5 : 0.08 + 0.84 * node.lane / (config.laneCount - 1);
+    node._y = node._baseY;
+  }
+  const minDepth=Math.min(...nodes.map(node=>node.depth)),maxDepth=Math.max(...nodes.map(node=>node.depth));
+  for (let depth = minDepth+1; depth <= maxDepth; depth += 1) {
+    for (const node of nodes.filter((entry) => entry.depth === depth)) {
+      const linked = parents.get(node.id).map((id) => nodeById.get(id)?._y).filter(Number.isFinite);
+      if (linked.length) {
+        const mean = linked.reduce((sum, value) => sum + value, 0) / linked.length;
+        node._y = (1 - config.layoutSmoothing) * node._baseY + config.layoutSmoothing * mean;
+      }
+    }
+    enforceDepthGap(nodes, depth, config.minimumNodeGap);
+  }
+  for (let depth = maxDepth - 1; depth >= minDepth; depth -= 1) {
+    for (const node of nodes.filter((entry) => entry.depth === depth)) {
+      const linked = children.get(node.id).map((id) => nodeById.get(id)?._y).filter(Number.isFinite);
+      if (linked.length) {
+        const mean = linked.reduce((sum, value) => sum + value, 0) / linked.length;
+        node._y = (1 - config.layoutSmoothing) * node._y + config.layoutSmoothing * mean;
+      }
+    }
+    enforceDepthGap(nodes, depth, config.minimumNodeGap);
+  }
+  return nodes.map((node) => {
+    const { _baseY, _y, ...clean } = node;
+    return {
+      ...clean,
+      position: {
+        x: Math.round(((node.depth-minDepth) / (maxDepth-minDepth)) * 1000000) / 1000000,
+        y: node.milestoneId || node.bookend ? 0.5 : Math.round(_y * 1000000) / 1000000,
+      },
+    };
+  });
+}
+
+export function generateVassalLifeMap(rawConfig, rng, {
+  graphId = "generated-life-map", generationSeed = null, signatureNode = null,
+  stockOutputs = getVassalStockOutputIds(Object.values(detailedSettlementPracticeDefs).filter(def => def.pool === "common")),
+  unmetStockOutputs = [],
+  classId,
+  trainingOpening = true,
+  founderClassId = null,
+  foundingNodeId = 'life-founding',
+} = {}) {
+  const config = canonicalizeVassalLifeMapGeneratorConfig(rawConfig);
+  const validation = validateVassalLifeMapGeneratorConfig(config);
+  if (!validation.ok) return { ok: false, reason: "invalidConfiguration", errors: validation.errors };
+  if (!rng || typeof rng.nextInt !== "function" || typeof rng.nextFloat !== "function") {
+    return { ok: false, reason: "invalidRng", errors: ["rng: nextInt and nextFloat are required"] };
+  }
+  const routeTraces = [];
+  const seen = new Set();
+  const existingEdges = [];
+  const existingEdgeKeys = new Set();
+  let firstStartLane = null;
+  for (let routeIndex = 0; routeIndex < config.routeCount; routeIndex += 1) {
+    let path = null;
+    for (let attempt = 0; attempt < 96 && !path; attempt += 1) {
+      const candidate = randomRoute(config, existingEdges, routeIndex, firstStartLane, rng);
+      if (candidate && !seen.has(candidate.join(","))) path = candidate;
+    }
+    path ??= fallbackRoute(config, existingEdges, routeIndex, firstStartLane, seen);
+    if (!path) {
+      return { ok: false, reason: "routesImpossible", errors: [`routeCount: could not draw route ${routeIndex + 1}`] };
+    }
+    if (routeIndex === 0) firstStartLane = path[0];
+    seen.add(path.join(","));
+    routeTraces.push(path);
+    for (let depth = 0; depth < path.length - 1; depth += 1) {
+      const key = edgeKey(depth, path[depth], path[depth + 1]);
+      if (existingEdgeKeys.has(key)) continue;
+      existingEdgeKeys.add(key);
+      existingEdges.push({ depth, fromLane: path[depth], toLane: path[depth + 1] });
+    }
+  }
+
+  const occupied = new Set(routeTraces.flatMap((path) =>
+    path.map((lane, depth) => `${depth}:${lane}`)));
+  const nodeId = (depth, lane) => `life-d${String(depth + 1).padStart(2, "0")}-r${String(lane + 1).padStart(2, "0")}`;
+  let nodes = [...occupied].map((key) => {
+    const [depth, lane] = key.split(":").map(Number);
+    return { id: nodeId(depth, lane), depth, lane, band: bandForDepth(config, depth), family: null };
+  }).sort((a, b) => a.depth - b.depth || a.lane - b.lane);
+  let edges = existingEdges.map((edge) => ({
+    fromNodeId: nodeId(edge.depth, edge.fromLane),
+    toNodeId: nodeId(edge.depth + 1, edge.toLane),
+  }));
+  const incoming = new Map(nodes.map((node) => [node.id, []]));
+  for (const edge of edges) incoming.get(edge.toNodeId)?.push(edge.fromNodeId);
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const entryNodes = nodes.filter((node) => node.depth === 0);
+  for (const node of nodes) {
+    if(config.design.enabled)continue;
+    const excluded = new Set();
+    for (const parentId of incoming.get(node.id) ?? []) {
+      const family = getVassalLifeMapNodeType(nodeById.get(parentId));
+      if (config.nonRepeatFamilyIds.includes(family)) excluded.add(family);
+    }
+    if (node.depth === 0 && entryNodes.indexOf(node) === 1 && entryNodes[0]?.family) {
+      excluded.add(getVassalLifeMapNodeType(entryNodes[0]));
+    }
+    node.family = rollFamily(rng, config.weights[node.band], excluded);
+    if (node.family === 'relic' || node.family === 'specialRelic') {
+      node.specialRelic=node.family==='specialRelic';node.family='relic';
+    }
+  }
+  const columns=applyLifeMapColumns(config,nodes,edges,{classId,founderClassId,foundingNodeId});
+  nodes=columns.nodes;edges=columns.edges;
+  const bossNodeId=columns.bossNodeId;
+  if(config.design.enabled){
+    const populated=populatePooledLifeMap(config,nodes,edges,rng,{classId,founderClassId,signatureNode,stockOutputs,unmetStockOutputs});
+    if(!populated.ok)return populated;
+  }
+  const deduped = dedupeEquivalentChoices(
+    nodes,
+    edges,
+    nodes.filter((node) => node.depth === Math.min(...nodes.map(n=>n.depth))).map((node) => node.id)
+  );
+  nodes = deduped.nodes;
+  if (!config.design.enabled) {
+  if (signatureNode?.variantId === "legacyPlus") {
+    const boss = nodes.find((node) => node.id === bossNodeId);
+    if (boss) boss.signatureNode = clone(signatureNode);
+  } else if (signatureNode?.variantId && VASSAL_SIGNATURE_NODE_VARIANTS[signatureNode.variantId]) {
+    const eligible = nodes.filter((node) => node.band === "mid" && node.family !== "legacy");
+    if (eligible.length > 0) {
+      const target = eligible[rng.nextInt(0, eligible.length - 1)];
+      target.family = "signature";
+      target.signatureNode = clone(signatureNode);
+    }
+  }
+  // Insert after deduplication/signatures so the promised supply choices cannot
+  // disappear or overwrite the defining node. Distinct outputs stay distinct.
+  const outputPool = [...new Set(stockOutputs)].sort();
+  const chosenOutputs = [];
+  for (let index = 0; index < VASSAL_LIFE_TUNING.randomStockShopCount && outputPool.length; index += 1) {
+    chosenOutputs.push(outputPool.splice(rng.nextInt(0, outputPool.length - 1), 1)[0]);
+  }
+  const unmet = [...new Set(unmetStockOutputs)].sort();
+  if (unmet.length && !chosenOutputs.some(output => unmet.includes(output))) {
+    chosenOutputs.unshift(unmet[rng.nextInt(0, unmet.length - 1)]);
+  }
+  const supplyTargets = nodes.filter(node => node.depth > 0 && !node.signatureNode
+    && !["legacy", "signature", "foodShop", "housingShop"].includes(node.family));
+  // Small/custom maps may consist entirely of tagged shops. They still need room
+  // for the supply guarantee, while ordinary authored maps keep Food/Housing.
+  if (supplyTargets.length < chosenOutputs.length) {
+    supplyTargets.push(...nodes.filter(node => node.depth > 0 && !node.signatureNode
+      && ["foodShop", "housingShop"].includes(node.family)));
+  }
+  for (const stockOutput of chosenOutputs) {
+    if (!supplyTargets.length) break;
+    const target = supplyTargets.splice(rng.nextInt(0, supplyTargets.length - 1), 1)[0];
+    target.family = "stockShop";
+    target.stockOutput = stockOutput;
+  }
+  if(classId!==undefined)customizeAuthoredLifeMapClass(nodes,classId,trainingOpening);
+  }
+  for(const node of nodes)if(node.family!=='relic')delete node.specialRelic;
+  nodes = applyLayout(config, nodes, deduped.edges);
+  edges = deduped.edges.sort((a, b) =>
+    a.fromNodeId.localeCompare(b.fromNodeId) || a.toNodeId.localeCompare(b.toNodeId));
+  return {
+    ok: true,
+    graph: {
+      schemaVersion: VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION,
+      graphId,
+      generationSeed,
+      generatorConfig: clone(config),
+      generationContext: {classId:classId??null,founderClassId:founderClassId??null},
+      nodes,
+      edges,
+      entryNodeIds: deduped.entryNodeIds,
+      bossNodeId,
+      ...(columns.foundingNodeId?{foundingNodeId:columns.foundingNodeId}:{}),
+    },
+    routeTraces: clone(routeTraces),
+  };
+}
+
+// The baseline and its preview use exactly the same class substitutions.
+function customizeAuthoredLifeMapClass(nodes,classId,trainingOpening){
+  const ordinary=nodes.filter(n=>!n.signatureNode&&!n.bookend&&!['legacy','signature'].includes(n.family));
+  const classFamilies={training:null,discovery:'scholar',campaign:'warrior',challenge:'warrior'};
+  for(const node of ordinary){
+    if(node.family==='classMarket'&&!classId)node.family='neutralMarket';
+    if(Object.hasOwn(classFamilies,node.family)&&(!classId||classFamilies[node.family]&&classFamilies[node.family]!==classId))node.family='development';
+  }
+  if(classId&&trainingOpening&&ordinary[0])ordinary[0].family='training';
+  let index=0;
+  for(const node of ordinary.slice(1))if(classId&&index<(classId==='warrior'?1:2)&&['patronage','development'].includes(node.family)){
+    node.family=classId==='scholar'?'discovery':'campaign';index++;
+  }
+}
+
+export function validateVassalLifeMapGraph(graph) {
+  const errors = [];
+  if (!graph || typeof graph !== "object" || Array.isArray(graph)) {
+    return { ok: false, errors: ["graph: expected an object"] };
+  }
+  if (graph.schemaVersion !== VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION) {
+    errors.push(`schemaVersion: expected ${VASSAL_LIFE_MAP_GRAPH_SCHEMA_VERSION}`);
+  }
+  const context=graph.generationContext;
+  if(!context||![null,'scholar','warrior'].includes(context.classId)||![null,'scholar','warrior'].includes(context.founderClassId)
+    ||context.founderClassId&&context.founderClassId!==context.classId)errors.push('generationContext: expected the captured class and founder class');
+  if (typeof graph.graphId !== "string" || !graph.graphId) errors.push("graphId: expected a string");
+  if (!Number.isInteger(graph.generationSeed)) errors.push("generationSeed: expected an integer");
+  if (!Array.isArray(graph.nodes) || !Array.isArray(graph.edges)
+      || !Array.isArray(graph.entryNodeIds)) {
+    errors.push("graph: nodes, edges, and entryNodeIds must be arrays");
+    return { ok: false, errors };
+  }
+  const ids = new Set();
+  const nodeById = new Map();
+  for (const [index, node] of graph.nodes.entries()) {
+    if (typeof node?.id !== "string" || ids.has(node.id)) errors.push(`nodes[${index}].id: invalid or duplicate`);
+    ids.add(node?.id);
+    nodeById.set(node?.id, node);
+    if (!Number.isInteger(node?.depth) || !Number.isInteger(node?.lane)) errors.push(`nodes[${index}]: invalid grid position`);
+    if (![...VASSAL_NORMAL_NODE_FAMILY_IDS.filter(id=>id!=='specialRelic'), ...Object.keys(VASSAL_FOUNDING_OPTIONS), "legacy", "signature", "stockShop"].includes(node?.family)) errors.push(`nodes[${index}].family: invalid`);
+    if(node.specialRelic!=null&&typeof node.specialRelic!=='boolean')errors.push(`nodes[${index}].specialRelic: expected a boolean`);
+    if (node?.family === "stockShop" && (typeof node.stockOutput !== "string" || !node.stockOutput.trim())) {
+      errors.push(`nodes[${index}].stockOutput: expected a Stock output`);
+    }
+    if (node?.family !== "stockShop" && node?.stockOutput != null) errors.push(`nodes[${index}].stockOutput: only Stock Supply nodes may carry an output`);
+    if (node?.family === "signature") {
+      if (!isCanonicalSignatureDescriptor(node?.signatureNode)
+          || node.signatureNode.variantId === "legacyPlus") {
+        errors.push(`nodes[${index}].signatureNode: invalid signature variant`);
+      }
+    } else if (node?.signatureNode != null) {
+      if (node.id !== graph.bossNodeId || node.signatureNode?.variantId !== "legacyPlus"
+          || !isCanonicalSignatureDescriptor(node.signatureNode)) {
+        errors.push(`nodes[${index}].signatureNode: only Legacy may carry Legacy+`);
+      }
+    }
+    if (!Number.isFinite(node?.position?.x) || node.position.x < 0 || node.position.x > 1
+        || !Number.isFinite(node?.position?.y) || node.position.y < 0 || node.position.y > 1) {
+      errors.push(`nodes[${index}].position: invalid`);
+    }
+  }
+  const edgeKeys = new Set();
+  for (const [index, edge] of graph.edges.entries()) {
+    if (!ids.has(edge?.fromNodeId) || !ids.has(edge?.toNodeId)) errors.push(`edges[${index}]: unknown endpoint`);
+    const key = `${edge?.fromNodeId}>${edge?.toNodeId}`;
+    if (edgeKeys.has(key)) errors.push(`edges[${index}]: duplicate edge`);
+    edgeKeys.add(key);
+    const from = nodeById.get(edge?.fromNodeId);
+    const to = nodeById.get(edge?.toNodeId);
+    if (from && to && to.depth !== from.depth + 1) errors.push(`edges[${index}]: expected next-depth edge`);
+  }
+  const foundingNode = nodeById.get(graph.foundingNodeId);
+  const foundingNodes = graph.nodes.filter(node => VASSAL_FOUNDING_OPTIONS[node.family]);
+  if (graph.foundingNodeId != null || foundingNodes.length) {
+    const settings=graph.generatorConfig?.design?.enabled?graph.generatorConfig.design.bookends?.founding:{enabled:true,depth:0};
+    if (!foundingNode || !VASSAL_FOUNDING_OPTIONS[foundingNode.family]
+        || foundingNodes.length !== 1 || !settings?.enabled || foundingNode.depth !== settings.depth-1
+        || foundingNode.bookend!=='founding') {
+      errors.push("foundingNodeId: expected one Founding node at its configured depth");
+    }
+  }
+  if (!graph.entryNodeIds.length || graph.entryNodeIds.some(id=>!ids.has(id))) errors.push('entryNodeIds: expected at least one known node');
+  const configValidation = validateVassalLifeMapGeneratorConfig(graph.generatorConfig);
+  errors.push(...configValidation.errors.map((error) => `generatorConfig.${error}`));
+  const config = graph.generatorConfig;
+  const selectedColumns=configValidation.ok?resolveLifeMapColumns(config,context??{}):[];
+  const expectedFounding=selectedColumns.find(column=>column.kind==='founding');
+  if(!!foundingNode!==!!expectedFounding)errors.push('foundingNodeId: must match the winning Founding rule');
+  const legacyRule=config?.design?.enabled?config.design.bookends?.legacy:{enabled:true,depth:'end'};
+  const boss = nodeById.get(graph.bossNodeId);
+  if(legacyRule?.enabled){
+    const depth=legacyRule.depth==='end'?config.normalDepthCount:legacyRule.depth-1;
+    if(!boss||boss.family!=='legacy'||boss.bookend!=='legacy'||boss.depth!==depth)errors.push('bossNodeId: expected Legacy at its configured depth');
+  }else if(graph.bossNodeId!=null)errors.push('bossNodeId: Legacy is disabled');
+  for(const node of graph.nodes.filter(n=>n.milestoneId!=null)){
+    const column=selectedColumns.find(c=>c.id===node.milestoneId&&c.kind==='milestone');
+    if(!column||node.depth!==column.depth-1||node.generationRuleId!==`milestone:${column.id}`
+      ||graph.nodes.filter(n=>n.depth===node.depth).length!==1
+      ||column.targetType==='node'&&getVassalLifeMapNodeType(node)!==column.targetId
+      ||column.targetType==='pool'&&config.design.nodes[getVassalLifeMapNodeType(node)]?.poolId!==column.targetId){
+      errors.push(`${node.id}: invalid milestone column`);
+    }
+    for(const parent of graph.nodes.filter(n=>n.depth===node.depth-1))if(!edgeKeys.has(`${parent.id}>${node.id}`))errors.push(`${node.id}: milestone must join every incoming branch`);
+    for(const child of graph.nodes.filter(n=>n.depth===node.depth+1))if(!edgeKeys.has(`${node.id}>${child.id}`))errors.push(`${node.id}: milestone must reach every outgoing branch`);
+  }
+  for(const column of selectedColumns.filter(c=>c.kind==='milestone')){
+    if(graph.nodes.filter(node=>node.milestoneId===column.id).length!==1)errors.push(`milestone:${column.id}: expected exactly one node for the winning rule`);
+  }
+  if (graph.nodes.filter((node) => node.family === "legacy").length !== (legacyRule?.enabled?1:0)) {
+    errors.push("nodes: Legacy count must match its enabled state");
+  }
+  if (graph.nodes.filter((node) => node.family === "signature").length > 1) {
+    errors.push("nodes: expected at most one inserted signature node");
+  }
+  for (const entryId of graph.entryNodeIds) {
+    if (nodeById.get(entryId)?.depth !== Math.min(...graph.nodes.map(n=>n.depth))) errors.push("entryNodeIds: invalid entry depth");
+  }
+  for (const [index, edge] of graph.edges.entries()) {
+    const from = nodeById.get(edge.fromNodeId);
+    const to = nodeById.get(edge.toNodeId);
+    if (!from || !to) continue;
+    if (!from.bookend && !to.bookend && !from.milestoneId && !to.milestoneId && Math.abs(to.lane - from.lane) > 1) {
+      errors.push(`edges[${index}]: normal edges must use shared or adjacent lanes`);
+    }
+    if (config?.nonRepeatFamilyIds?.includes(getVassalLifeMapNodeType(from)) && getVassalLifeMapNodeType(from) === getVassalLifeMapNodeType(to)) {
+      errors.push(`edges[${index}]: prohibited sequential ${from.family}`);
+    }
+  }
+  for(const node of graph.nodes.filter(n=>n.bookend)){
+    if(!['founding','legacy'].includes(node.bookend)||node.bookend==='legacy'&&node.id!==graph.bossNodeId||node.bookend==='founding'&&node.id!==graph.foundingNodeId)errors.push(`${node.id}: invalid bookend`);
+    if(graph.nodes.filter(n=>n.depth===node.depth).length!==1)errors.push(`${node.id}: expected a single-node bookend column`);
+    for(const parent of graph.nodes.filter(n=>n.depth===node.depth-1))if(!edgeKeys.has(`${parent.id}>${node.id}`))errors.push(`${node.id}: bookend must join every incoming branch`);
+    for(const child of graph.nodes.filter(n=>n.depth===node.depth+1))if(!edgeKeys.has(`${node.id}>${child.id}`))errors.push(`${node.id}: bookend must reach every outgoing branch`);
+  }
+  const reachable = new Set(graph.entryNodeIds);
+  const queue = [...graph.entryNodeIds];
+  while (queue.length) {
+    const current = queue.shift();
+    for (const edge of graph.edges.filter((entry) => entry.fromNodeId === current)) {
+      if (!reachable.has(edge.toNodeId)) { reachable.add(edge.toNodeId); queue.push(edge.toNodeId); }
+    }
+  }
+  if (graph.nodes.some((node) => !reachable.has(node.id))) errors.push("nodes: every node must be entry-reachable");
+  const finalDepth=Math.max(...graph.nodes.map(n=>n.depth));
+  for(const node of graph.nodes)if(node.depth<finalDepth&&!graph.edges.some(e=>e.fromNodeId===node.id))errors.push(`${node.id}: only the final depth may be terminal`);
+  for (let depth = 0; depth < (config?.normalDepthCount ?? 0) - 1; depth += 1) {
+    const depthEdges = graph.edges.filter((edge) => nodeById.get(edge.fromNodeId)?.depth === depth);
+    for (let a = 0; a < depthEdges.length; a += 1) {
+      for (let b = a + 1; b < depthEdges.length; b += 1) {
+        const a0 = nodeById.get(depthEdges[a].fromNodeId)?.lane;
+        const a1 = nodeById.get(depthEdges[a].toNodeId)?.lane;
+        const b0 = nodeById.get(depthEdges[b].fromNodeId)?.lane;
+        const b1 = nodeById.get(depthEdges[b].toNodeId)?.lane;
+        if ((a0 < b0 && a1 > b1) || (a0 > b0 && a1 < b1)) {
+          errors.push(`edges: crossing edges at depth ${depth}`);
+          a = depthEdges.length;
+          break;
+        }
+      }
+    }
+  }
+  return { ok: errors.length === 0, errors };
+}

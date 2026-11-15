@@ -1,0 +1,126 @@
+{
+  "runId": "artwork-no-request-control-r1",
+  "started": "2026-11-04T11:46:16.591Z",
+  "config": {
+    "cases": [
+      "deferred"
+    ],
+    "population": "desktop",
+    "instrumentation": true,
+    "timeoutMs": 90000,
+    "navigationCycles": 1,
+    "gateTimeoutMs": 1000,
+    "controlNoRequest": true,
+    "port": 18246,
+    "dist": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\dist"
+  },
+  "build": {
+    "performanceFixtureKey": "db9c9cfa0b929b060892b105c668dfa45cc3fafa1e5665b641a265877ceabe79",
+    "version": "1.1.52",
+    "build": "b50bf80c7a54",
+    "revision": "a9df52cbd625",
+    "channel": "pages",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": null,
+    "entryPoint": "src/views/ui-root-pixi.js",
+    "bundle": "./assets/app-OF3QB4I7.js",
+    "worker": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+    "saveLoadWorker": "./assets/save-load-worker-7YJYILEJ.js",
+    "stylesheet": "./assets/styles-ec05c6a73a6e.css"
+  },
+  "buildId": "b947638e07d13cd40ea9efdca49a0dbc4a08aabadafef0d5a82bc3a27e2cde19",
+  "measurementContractId": "ae5accb6f8e88ba6f18c40a275734ef9f7e2b6df7c17ca2b7cabf15e980f12f8",
+  "productHead": "a9df52cbd6255ed95c51c9e7d524cf9ab557472b",
+  "machine": {
+    "host": "DESKTOP-R0AMF0N",
+    "os": "10.0.26200",
+    "platform": "win32",
+    "cpus": [
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz"
+    ],
+    "totalMemory": 34272436224
+  },
+  "runtime": {
+    "node": "v24.15.0",
+    "playwright": "1.59.1",
+    "chromium": "147.0.7727.15"
+  },
+  "launch": {
+    "headless": true,
+    "args": [
+      "--use-gl=angle",
+      "--use-angle=swiftshader"
+    ]
+  },
+  "sourceFiles": {
+    "scripts/perf-hillclimb/artwork-controls.mjs": "6c7670661a219dbdb0bc8fe1083bfc8d8304963a8281ac1bb8ca8b321ea3075f",
+    "scripts/perf-hillclimb/browser-runtime.mjs": "28dbc6efd95572a75ead37e97cb3c01d97066120e8e2687a6ef627b1cfc467f4",
+    "scripts/perf-hillclimb/deadline.mjs": "b38266f2e0e32344e1128150b7156868f95ad4f96a4c0d835ebcd1c44a747073",
+    "scripts/perf-hillclimb/artwork-oracles.mjs": "6a632375f3e4bd5f3f0223a8f2465722092173689cfc1cde395407014ea3d2c9",
+    "scripts/browser-probe-config.mjs": "e2155875cb28129438d0d110465ed85c8a6e1b3bcda67bb0ccbba076bcd36350",
+    "src/views/chronicle-art.js": "a71d038661ba218e5804ee33b8423c6dfbd63d206ca8765f91a20589c3e0a82c",
+    "src/views/progressive-artwork.js": "0fc1e68c5c1ecca87bb8819d42de5cbb7394149fd396b5460f1b49115ae2a2d4"
+  },
+  "atlasFiles": [
+    "full-map-content-prototype.json",
+    "full-map-chaos-dictator.json",
+    "heirlooms.json",
+    "resource-language.json",
+    "settlement-pieces-0.json",
+    "settlement-pieces-1.json",
+    "settlement-pieces-2.json",
+    "piece-frames.json",
+    "chronicle-illustrations.json",
+    "region-landmarks.json",
+    "vassal-portraits.json",
+    "vassal-class.json",
+    "chronicle-gate.json",
+    "class-picker-frames.json",
+    "chronicle-hud-frames.json",
+    "timegraph-chronicle.json"
+  ],
+  "retryPolicy": {
+    "attemptsPerSheetInvocation": 3,
+    "automaticBackoffsMs": [
+      500,
+      1500
+    ],
+    "requestCount": "diagnostic only; Pixi dependency fetching/cache can change HTTP counts",
+    "attemptWitness": "PIXI.Assets.load wrapper installed before unchanged app bundle is released; original Promise returned"
+  },
+  "fixture": "real performance New Game seed123; prepared current-build fixture; no game-settings override",
+  "proxy": "desktop Chromium/SwiftShader, optionally CPU-throttled; no physical Pixel6 evidence",
+  "memoryScope": "CDP JS heap only; native process/GPU memory unavailable; no forced GC",
+  "scope": "construction controls and diagnostics only; independent audit and representative sampling still required",
+  "harnessId": "721d98222a5839ee98da14ff3a4a9e1b79c1611975471f61021d5744e263565f",
+  "serializedRuntimeSha256": "8c093a1c6b19257b609e9a5963db806039fa26aafa140558211f6e323f19d621",
+  "servedAssets": {
+    "bundle": "f6a9a63bc7a7a299dce2579f875151b3a9ff85e3d9bbb4491f58b103fa1d9306",
+    "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+    "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+    "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+  },
+  "finished": "2026-11-04T11:46:35.000Z",
+  "failed": true
+}

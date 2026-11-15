@@ -1,0 +1,22 @@
+{
+  "cell": {
+    "index": 3,
+    "id": "j8-optional-on-b-20261115-r1",
+    "instrumentation": "on",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--id=j8-optional-on-b-20261115-r1",
+      "--population=mobile4",
+      "--cases=reference",
+      "--cycles=5",
+      "--instrumentation=on",
+      "--timeout=240000",
+      "--gate-timeout=240000",
+      "--case-timeout=600000"
+    ]
+  },
+  "started": "2026-11-14T23:45:13.861Z",
+  "parentPid": 40712,
+  "childPid": 7380
+}

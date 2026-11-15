@@ -1,0 +1,3157 @@
+{
+  "inputs": {
+    "captured:src/defs/mechanics.js": {
+      "bytes": 12680,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/mechanic-validation.js": {
+      "bytes": 3494,
+      "imports": [
+        {
+          "path": "captured:src/defs/mechanics.js",
+          "kind": "import-statement",
+          "original": "../defs/mechanics.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/population-ledger.js": {
+      "bytes": 4880,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/cohorts.js": {
+      "bytes": 3506,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/chaos-values.js": {
+      "bytes": 484,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/practice-events.js": {
+      "bytes": 3005,
+      "imports": [
+        {
+          "path": "captured:src/model/chaos-values.js",
+          "kind": "import-statement",
+          "original": "../chaos-values.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/structure-layout.js": {
+      "bytes": 6310,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/defs/gamepieces/full-map-defs.js": {
+      "bytes": 82667,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/defs/gamepieces/bronze-keyword-defs.js": {
+      "bytes": 3419,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/defs/gamepieces/detailed-settlement-defs.js": {
+      "bytes": 231403,
+      "imports": [
+        {
+          "path": "captured:src/defs/mechanics.js",
+          "kind": "import-statement",
+          "original": "../mechanics.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/full-map-defs.js",
+          "kind": "import-statement",
+          "original": "./full-map-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/bronze-keyword-defs.js",
+          "kind": "import-statement",
+          "original": "./bronze-keyword-defs.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/defs/world/detailed-settlement-scenario.js": {
+      "bytes": 2012,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/detailed-settlement-defs.js",
+          "kind": "import-statement",
+          "original": "../gamepieces/detailed-settlement-defs.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/defs/world/world-map-defs.js": {
+      "bytes": 5604,
+      "imports": [
+        {
+          "path": "captured:src/defs/world/detailed-settlement-scenario.js",
+          "kind": "import-statement",
+          "original": "./detailed-settlement-scenario.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/regional-map/names.js": {
+      "bytes": 5751,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/rng.js": {
+      "bytes": 3818,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/regional-map/biome-clustering.js": {
+      "bytes": 6597,
+      "imports": [
+        {
+          "path": "captured:src/model/rng.js",
+          "kind": "import-statement",
+          "original": "../rng.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/regional-map/generator.js": {
+      "bytes": 42168,
+      "imports": [
+        {
+          "path": "captured:src/model/regional-map/biome-clustering.js",
+          "kind": "import-statement",
+          "original": "./biome-clustering.js"
+        },
+        {
+          "path": "captured:src/model/rng.js",
+          "kind": "import-statement",
+          "original": "../rng.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/regional-map/definition.js": {
+      "bytes": 3369,
+      "imports": [
+        {
+          "path": "captured:src/model/regional-map/names.js",
+          "kind": "import-statement",
+          "original": "./names.js"
+        },
+        {
+          "path": "captured:src/model/regional-map/generator.js",
+          "kind": "import-statement",
+          "original": "./generator.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/world-definitions.js": {
+      "bytes": 250,
+      "imports": [
+        {
+          "path": "captured:src/defs/world/world-map-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/world/world-map-defs.js"
+        },
+        {
+          "path": "captured:src/model/regional-map/definition.js",
+          "kind": "import-statement",
+          "original": "./regional-map/definition.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-practice-tiers.js": {
+      "bytes": 1511,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/world-state.js": {
+      "bytes": 27703,
+      "imports": [
+        {
+          "path": "captured:src/model/detailed-settlements/population-ledger.js",
+          "kind": "import-statement",
+          "original": "./detailed-settlements/population-ledger.js"
+        },
+        {
+          "path": "captured:src/model/structure-layout.js",
+          "kind": "import-statement",
+          "original": "./structure-layout.js"
+        },
+        {
+          "path": "captured:src/model/world-definitions.js",
+          "kind": "import-statement",
+          "original": "./world-definitions.js"
+        },
+        {
+          "path": "captured:src/defs/world/detailed-settlement-scenario.js",
+          "kind": "import-statement",
+          "original": "../defs/world/detailed-settlement-scenario.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/detailed-settlement-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamepieces/detailed-settlement-defs.js"
+        },
+        {
+          "path": "captured:src/model/detailed-practice-tiers.js",
+          "kind": "import-statement",
+          "original": "./detailed-practice-tiers.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/cohorts.js",
+          "kind": "import-statement",
+          "original": "./detailed-settlements/cohorts.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/neutral-market.js",
+          "kind": "import-statement",
+          "original": "./detailed-settlements/neutral-market.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/defs/world/biome-multiplier-rules.js": {
+      "bytes": 420,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/biome-multipliers.js": {
+      "bytes": 1961,
+      "imports": [
+        {
+          "path": "captured:src/defs/world/biome-multiplier-rules.js",
+          "kind": "import-statement",
+          "original": "../../defs/world/biome-multiplier-rules.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/practice-keywords.js": {
+      "bytes": 5888,
+      "imports": [
+        {
+          "path": "captured:src/model/detailed-settlements/synthesis.js",
+          "kind": "import-statement",
+          "original": "./detailed-settlements/synthesis.js"
+        },
+        {
+          "path": "captured:src/defs/mechanics.js",
+          "kind": "import-statement",
+          "original": "../defs/mechanics.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/stock.js": {
+      "bytes": 22671,
+      "imports": [
+        {
+          "path": "captured:src/model/detailed-settlements/population-ledger.js",
+          "kind": "import-statement",
+          "original": "./population-ledger.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/cohorts.js",
+          "kind": "import-statement",
+          "original": "./cohorts.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/practice-events.js",
+          "kind": "import-statement",
+          "original": "./practice-events.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/biome-multipliers.js",
+          "kind": "import-statement",
+          "original": "./biome-multipliers.js"
+        },
+        {
+          "path": "captured:src/model/keywords-classes-prototype.js",
+          "kind": "import-statement",
+          "original": "../keywords-classes-prototype.js"
+        },
+        {
+          "path": "captured:src/model/practice-keywords.js",
+          "kind": "import-statement",
+          "original": "../practice-keywords.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/helpers.js": {
+      "bytes": 9768,
+      "imports": [
+        {
+          "path": "captured:src/model/detailed-settlements/population-ledger.js",
+          "kind": "import-statement",
+          "original": "./population-ledger.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/cohorts.js",
+          "kind": "import-statement",
+          "original": "./cohorts.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/detailed-settlement-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/detailed-settlement-defs.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/queries.js": {
+      "bytes": 7566,
+      "imports": [
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "./stock.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "./stock.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/detailed-settlement-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/detailed-settlement-defs.js"
+        },
+        {
+          "path": "captured:src/defs/world/detailed-settlement-scenario.js",
+          "kind": "import-statement",
+          "original": "../../defs/world/detailed-settlement-scenario.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/helpers.js",
+          "kind": "import-statement",
+          "original": "./helpers.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/workers.js": {
+      "bytes": 4489,
+      "imports": [
+        {
+          "path": "captured:src/model/detailed-settlements/population-ledger.js",
+          "kind": "import-statement",
+          "original": "./population-ledger.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/queries.js",
+          "kind": "import-statement",
+          "original": "./queries.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/cohorts.js",
+          "kind": "import-statement",
+          "original": "./cohorts.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/synthesis.js": {
+      "bytes": 1568,
+      "imports": [
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/queries.js",
+          "kind": "import-statement",
+          "original": "./queries.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/workers.js",
+          "kind": "import-statement",
+          "original": "./workers.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "./stock.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/keywords-classes-prototype.js": {
+      "bytes": 8491,
+      "imports": [
+        {
+          "path": "captured:src/model/detailed-settlements/synthesis.js",
+          "kind": "import-statement",
+          "original": "./detailed-settlements/synthesis.js"
+        },
+        {
+          "path": "captured:src/model/practice-keywords.js",
+          "kind": "import-statement",
+          "original": "./practice-keywords.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/defs/gamesettings/moon-phase-defs.js": {
+      "bytes": 1286,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/practice-outputs.js": {
+      "bytes": 4069,
+      "imports": [
+        {
+          "path": "captured:src/defs/mechanics.js",
+          "kind": "import-statement",
+          "original": "../defs/mechanics.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/defs/gamepieces/vassal-life-map-defs.js": {
+      "bytes": 13069,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/life-map-balance.js": {
+      "bytes": 9930,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/vassal-life-map-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamepieces/vassal-life-map-defs.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/defs/gamepieces/vassal-heirloom-defs.js": {
+      "bytes": 5446,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/relic-pools.js": {
+      "bytes": 2503,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/vassal-heirloom-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/vassal-heirloom-defs.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/defs/lifegraph-defaults.js": {
+      "bytes": 43723,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/life-map-columns.js": {
+      "bytes": 6659,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/vassal-life-map-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamepieces/vassal-life-map-defs.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/life-map-design.js": {
+      "bytes": 15477,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/vassal-life-map-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamepieces/vassal-life-map-defs.js"
+        },
+        {
+          "path": "captured:src/model/life-map-balance.js",
+          "kind": "import-statement",
+          "original": "./life-map-balance.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/relic-pools.js",
+          "kind": "import-statement",
+          "original": "./vassal-life-map/relic-pools.js"
+        },
+        {
+          "path": "captured:src/defs/lifegraph-defaults.js",
+          "kind": "import-statement",
+          "original": "../defs/lifegraph-defaults.js"
+        },
+        {
+          "path": "captured:src/model/life-map-columns.js",
+          "kind": "import-statement",
+          "original": "./life-map-columns.js"
+        },
+        {
+          "path": "captured:src/model/life-map-columns.js",
+          "kind": "import-statement",
+          "original": "./life-map-columns.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map-generator.js": {
+      "bytes": 32565,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/vassal-life-map-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamepieces/vassal-life-map-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/detailed-settlement-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamepieces/detailed-settlement-defs.js"
+        },
+        {
+          "path": "captured:src/model/life-map-design.js",
+          "kind": "import-statement",
+          "original": "./life-map-design.js"
+        },
+        {
+          "path": "captured:src/defs/lifegraph-defaults.js",
+          "kind": "import-statement",
+          "original": "../defs/lifegraph-defaults.js"
+        },
+        {
+          "path": "captured:src/model/life-map-columns.js",
+          "kind": "import-statement",
+          "original": "./life-map-columns.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/game-config.js": {
+      "bytes": 28451,
+      "imports": [
+        {
+          "path": "captured:src/model/mechanic-validation.js",
+          "kind": "import-statement",
+          "original": "./mechanic-validation.js"
+        },
+        {
+          "path": "captured:src/model/keywords-classes-prototype.js",
+          "kind": "import-statement",
+          "original": "./keywords-classes-prototype.js"
+        },
+        {
+          "path": "captured:src/defs/mechanics.js",
+          "kind": "import-statement",
+          "original": "../defs/mechanics.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/detailed-settlement-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamepieces/detailed-settlement-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamesettings/moon-phase-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamesettings/moon-phase-defs.js"
+        },
+        {
+          "path": "captured:src/model/practice-outputs.js",
+          "kind": "import-statement",
+          "original": "./practice-outputs.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map-generator.js",
+          "kind": "import-statement",
+          "original": "./vassal-life-map-generator.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/neutral-market.js": {
+      "bytes": 6257,
+      "imports": [
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "./stock.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/moon-phases.js": {
+      "bytes": 1668,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamesettings/moon-phase-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamesettings/moon-phase-defs.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "./game-config.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/heirlooms.js": {
+      "bytes": 21734,
+      "imports": [
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/relic-pools.js",
+          "kind": "import-statement",
+          "original": "./relic-pools.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/vassal-heirloom-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/vassal-heirloom-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/vassal-life-map-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/vassal-life-map-defs.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/defs/vassal-stat-defs.js": {
+      "bytes": 986,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/defs/vassal-class-rules.js": {
+      "bytes": 2582,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/selectors.js": {
+      "bytes": 20863,
+      "imports": [
+        {
+          "path": "captured:src/model/detailed-settlements/population-ledger.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/population-ledger.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/vassal-life-map-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/vassal-life-map-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamesettings/moon-phase-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamesettings/moon-phase-defs.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/moon-phases.js",
+          "kind": "import-statement",
+          "original": "../moon-phases.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/heirlooms.js",
+          "kind": "import-statement",
+          "original": "./heirlooms.js"
+        },
+        {
+          "path": "captured:src/defs/vassal-stat-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/vassal-stat-defs.js"
+        },
+        {
+          "path": "captured:src/defs/vassal-class-rules.js",
+          "kind": "import-statement",
+          "original": "../../defs/vassal-class-rules.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/territory.js": {
+      "bytes": 9422,
+      "imports": [
+        {
+          "path": "captured:src/model/detailed-settlements/neutral-market.js",
+          "kind": "import-statement",
+          "original": "./neutral-market.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/queries.js",
+          "kind": "import-statement",
+          "original": "./queries.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/population-ledger.js",
+          "kind": "import-statement",
+          "original": "./population-ledger.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "./stock.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/selectors.js",
+          "kind": "import-statement",
+          "original": "../vassal-life-map/selectors.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/practice-events.js",
+          "kind": "import-statement",
+          "original": "./practice-events.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/research-progression.js": {
+      "bytes": 2244,
+      "imports": [
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "./game-config.js"
+        },
+        {
+          "path": "captured:src/model/detailed-practice-tiers.js",
+          "kind": "import-statement",
+          "original": "./detailed-practice-tiers.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/commissions.js": {
+      "bytes": 9510,
+      "imports": [
+        {
+          "path": "captured:src/model/vassal-life-map/treasury.js",
+          "kind": "import-statement",
+          "original": "./treasury.js"
+        },
+        {
+          "path": "captured:src/defs/vassal-class-rules.js",
+          "kind": "import-statement",
+          "original": "../../defs/vassal-class-rules.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/vassal-life-map-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/vassal-life-map-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/detailed-settlement-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/detailed-settlement-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/vassal-heirloom-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/vassal-heirloom-defs.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/research-progression.js",
+          "kind": "import-statement",
+          "original": "../research-progression.js"
+        },
+        {
+          "path": "captured:src/model/detailed-practice-tiers.js",
+          "kind": "import-statement",
+          "original": "../detailed-practice-tiers.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/selectors.js",
+          "kind": "import-statement",
+          "original": "./selectors.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/treasury.js": {
+      "bytes": 908,
+      "imports": [
+        {
+          "path": "captured:src/model/vassal-life-map/commissions.js",
+          "kind": "import-statement",
+          "original": "./commissions.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/class-rules.js": {
+      "bytes": 1663,
+      "imports": [
+        {
+          "path": "captured:src/defs/vassal-class-rules.js",
+          "kind": "import-statement",
+          "original": "../../defs/vassal-class-rules.js"
+        },
+        {
+          "path": "captured:src/model/life-map-balance.js",
+          "kind": "import-statement",
+          "original": "../life-map-balance.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/selectors.js",
+          "kind": "import-statement",
+          "original": "./selectors.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/moon-phases.js",
+          "kind": "import-statement",
+          "original": "../moon-phases.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/practice-draft.js": {
+      "bytes": 3140,
+      "imports": [
+        {
+          "path": "captured:src/model/detailed-practice-tiers.js",
+          "kind": "import-statement",
+          "original": "./detailed-practice-tiers.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/defs/vassal-workshop-rules.js": {
+      "bytes": 557,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/shop-specialties.js": {
+      "bytes": 4821,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/full-map-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/full-map-defs.js"
+        },
+        {
+          "path": "captured:src/model/practice-draft.js",
+          "kind": "import-statement",
+          "original": "../practice-draft.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/treasury.js",
+          "kind": "import-statement",
+          "original": "./treasury.js"
+        },
+        {
+          "path": "captured:src/defs/vassal-workshop-rules.js",
+          "kind": "import-statement",
+          "original": "../../defs/vassal-workshop-rules.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/detailed-settlement-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/detailed-settlement-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/vassal-life-map-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/vassal-life-map-defs.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/detailed-practice-tiers.js",
+          "kind": "import-statement",
+          "original": "../detailed-practice-tiers.js"
+        },
+        {
+          "path": "captured:src/model/research-progression.js",
+          "kind": "import-statement",
+          "original": "../research-progression.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/selectors.js",
+          "kind": "import-statement",
+          "original": "./selectors.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/shop.js": {
+      "bytes": 35507,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/full-map-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/full-map-defs.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/treasury.js",
+          "kind": "import-statement",
+          "original": "./treasury.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/class-rules.js",
+          "kind": "import-statement",
+          "original": "./class-rules.js"
+        },
+        {
+          "path": "captured:src/model/life-map-balance.js",
+          "kind": "import-statement",
+          "original": "../life-map-balance.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/shop-specialties.js",
+          "kind": "import-statement",
+          "original": "./shop-specialties.js"
+        },
+        {
+          "path": "captured:src/defs/vassal-workshop-rules.js",
+          "kind": "import-statement",
+          "original": "../../defs/vassal-workshop-rules.js"
+        },
+        {
+          "path": "captured:src/model/moon-phases.js",
+          "kind": "import-statement",
+          "original": "../moon-phases.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/stock.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/queries.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/queries.js"
+        },
+        {
+          "path": "captured:src/model/structure-layout.js",
+          "kind": "import-statement",
+          "original": "../structure-layout.js"
+        },
+        {
+          "path": "captured:src/model/practice-draft.js",
+          "kind": "import-statement",
+          "original": "../practice-draft.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/vassal-life-map-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/vassal-life-map-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/detailed-settlement-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/detailed-settlement-defs.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/research-progression.js",
+          "kind": "import-statement",
+          "original": "../research-progression.js"
+        },
+        {
+          "path": "captured:src/model/detailed-practice-tiers.js",
+          "kind": "import-statement",
+          "original": "../detailed-practice-tiers.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/selectors.js",
+          "kind": "import-statement",
+          "original": "./selectors.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/heirlooms.js",
+          "kind": "import-statement",
+          "original": "./heirlooms.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/stock-shops.js": {
+      "bytes": 2681,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/detailed-settlement-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/detailed-settlement-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/vassal-life-map-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/vassal-life-map-defs.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/detailed-practice-tiers.js",
+          "kind": "import-statement",
+          "original": "../detailed-practice-tiers.js"
+        },
+        {
+          "path": "captured:src/model/research-progression.js",
+          "kind": "import-statement",
+          "original": "../research-progression.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/cohorts.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/cohorts.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/selectors.js",
+          "kind": "import-statement",
+          "original": "./selectors.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/lifecycle/candidates.js": {
+      "bytes": 13814,
+      "imports": [
+        {
+          "path": "captured:src/model/vassal-life-map/commissions.js",
+          "kind": "import-statement",
+          "original": "../commissions.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "../../detailed-settlements/stock.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/practice-events.js",
+          "kind": "import-statement",
+          "original": "../../detailed-settlements/practice-events.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/vassal-life-map-defs.js",
+          "kind": "import-statement",
+          "original": "../../../defs/gamepieces/vassal-life-map-defs.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../../game-config.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map-generator.js",
+          "kind": "import-statement",
+          "original": "../../vassal-life-map-generator.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../../world-state.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/selectors.js",
+          "kind": "import-statement",
+          "original": "../selectors.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/heirlooms.js",
+          "kind": "import-statement",
+          "original": "../heirlooms.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/stock-shops.js",
+          "kind": "import-statement",
+          "original": "../stock-shops.js"
+        },
+        {
+          "path": "captured:src/model/life-map-design.js",
+          "kind": "import-statement",
+          "original": "../../life-map-design.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/defs/gamesettings/gamerules-defs.js": {
+      "bytes": 3817,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/effects/core/tiers.js": {
+      "bytes": 335,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/defs/tooltip-ui-utils.js": {
+      "bytes": 1249,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/defs/gamepieces/env-tiles-defs.js": {
+      "bytes": 13693,
+      "imports": [
+        {
+          "path": "captured:src/defs/tooltip-ui-utils.js",
+          "kind": "import-statement",
+          "original": "../tooltip-ui-utils.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/settlement-state/hub-legacy.js": {
+      "bytes": 31348,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamesettings/gamerules-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamesettings/gamerules-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/env-tiles-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/env-tiles-defs.js"
+        },
+        {
+          "path": "captured:src/model/effects/core/tiers.js",
+          "kind": "import-statement",
+          "original": "../effects/core/tiers.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/settlement-state.js": {
+      "bytes": 20149,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamesettings/gamerules-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamesettings/gamerules-defs.js"
+        },
+        {
+          "path": "captured:src/model/effects/core/tiers.js",
+          "kind": "import-statement",
+          "original": "./effects/core/tiers.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "./world-state.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/selectors.js",
+          "kind": "import-statement",
+          "original": "./vassal-life-map/selectors.js"
+        },
+        {
+          "path": "captured:src/model/settlement-state/hub-legacy.js",
+          "kind": "import-statement",
+          "original": "./settlement-state/hub-legacy.js"
+        },
+        {
+          "path": "captured:src/model/settlement-state/hub-legacy.js",
+          "kind": "import-statement",
+          "original": "./settlement-state/hub-legacy.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/world-choices.js": {
+      "bytes": 6537,
+      "imports": [
+        {
+          "path": "captured:src/model/vassal-life-map/treasury.js",
+          "kind": "import-statement",
+          "original": "./treasury.js"
+        },
+        {
+          "path": "captured:src/defs/vassal-workshop-rules.js",
+          "kind": "import-statement",
+          "original": "../../defs/vassal-workshop-rules.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/vassal-life-map-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/vassal-life-map-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/vassal-heirloom-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/vassal-heirloom-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamesettings/moon-phase-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamesettings/moon-phase-defs.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/selectors.js",
+          "kind": "import-statement",
+          "original": "./selectors.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/heirlooms.js",
+          "kind": "import-statement",
+          "original": "./heirlooms.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/phases/chaos.js": {
+      "bytes": 5138,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/detailed-settlement-defs.js",
+          "kind": "import-statement",
+          "original": "../../../defs/gamepieces/detailed-settlement-defs.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../../game-config.js"
+        },
+        {
+          "path": "captured:src/model/chaos-values.js",
+          "kind": "import-statement",
+          "original": "../../chaos-values.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/helpers.js",
+          "kind": "import-statement",
+          "original": "../helpers.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/queries.js",
+          "kind": "import-statement",
+          "original": "../queries.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/phases/moon-turn.js": {
+      "bytes": 1653,
+      "imports": [
+        {
+          "path": "captured:src/model/moon-phases.js",
+          "kind": "import-statement",
+          "original": "../../moon-phases.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/helpers.js",
+          "kind": "import-statement",
+          "original": "../helpers.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/queries.js",
+          "kind": "import-statement",
+          "original": "../queries.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/phases/shared.js": {
+      "bytes": 2106,
+      "imports": [
+        {
+          "path": "captured:src/model/detailed-settlements/cohorts.js",
+          "kind": "import-statement",
+          "original": "../cohorts.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../../game-config.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/helpers.js",
+          "kind": "import-statement",
+          "original": "../helpers.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/phases/migration.js": {
+      "bytes": 22527,
+      "imports": [
+        {
+          "path": "captured:src/model/detailed-settlements/population-ledger.js",
+          "kind": "import-statement",
+          "original": "../population-ledger.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/cohorts.js",
+          "kind": "import-statement",
+          "original": "../cohorts.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "../stock.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/detailed-settlement-defs.js",
+          "kind": "import-statement",
+          "original": "../../../defs/gamepieces/detailed-settlement-defs.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../../game-config.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../../world-state.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/helpers.js",
+          "kind": "import-statement",
+          "original": "../helpers.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/queries.js",
+          "kind": "import-statement",
+          "original": "../queries.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/phases/chaos.js",
+          "kind": "import-statement",
+          "original": "./chaos.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/phases/moon-turn.js",
+          "kind": "import-statement",
+          "original": "./moon-turn.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/phases/shared.js",
+          "kind": "import-statement",
+          "original": "./shared.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/external-world.js": {
+      "bytes": 24293,
+      "imports": [
+        {
+          "path": "captured:src/model/detailed-settlements/territory.js",
+          "kind": "import-statement",
+          "original": "./territory.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/treasury.js",
+          "kind": "import-statement",
+          "original": "../vassal-life-map/treasury.js"
+        },
+        {
+          "path": "captured:src/model/regional-map/definition.js",
+          "kind": "import-statement",
+          "original": "../regional-map/definition.js"
+        },
+        {
+          "path": "captured:src/model/regional-map/names.js",
+          "kind": "import-statement",
+          "original": "../regional-map/names.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/selectors.js",
+          "kind": "import-statement",
+          "original": "../vassal-life-map/selectors.js"
+        },
+        {
+          "path": "captured:src/defs/vassal-class-rules.js",
+          "kind": "import-statement",
+          "original": "../../defs/vassal-class-rules.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/cohorts.js",
+          "kind": "import-statement",
+          "original": "./cohorts.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/neutral-market.js",
+          "kind": "import-statement",
+          "original": "./neutral-market.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/phases/chaos.js",
+          "kind": "import-statement",
+          "original": "./phases/chaos.js"
+        },
+        {
+          "path": "captured:src/defs/world/detailed-settlement-scenario.js",
+          "kind": "import-statement",
+          "original": "../../defs/world/detailed-settlement-scenario.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/detailed-settlement-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/detailed-settlement-defs.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "./stock.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/practice-events.js",
+          "kind": "import-statement",
+          "original": "./practice-events.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/helpers.js",
+          "kind": "import-statement",
+          "original": "./helpers.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/phases/migration.js",
+          "kind": "import-statement",
+          "original": "./phases/migration.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/queries.js",
+          "kind": "import-statement",
+          "original": "./queries.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/campaign.js": {
+      "bytes": 14443,
+      "imports": [
+        {
+          "path": "captured:src/model/detailed-settlements/territory.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/territory.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/population-ledger.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/population-ledger.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/treasury.js",
+          "kind": "import-statement",
+          "original": "./treasury.js"
+        },
+        {
+          "path": "captured:src/defs/vassal-workshop-rules.js",
+          "kind": "import-statement",
+          "original": "../../defs/vassal-workshop-rules.js"
+        },
+        {
+          "path": "captured:src/model/life-map-balance.js",
+          "kind": "import-statement",
+          "original": "../life-map-balance.js"
+        },
+        {
+          "path": "captured:src/defs/vassal-class-rules.js",
+          "kind": "import-statement",
+          "original": "../../defs/vassal-class-rules.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/stock.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/external-world.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/external-world.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/practice-events.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/practice-events.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/selectors.js",
+          "kind": "import-statement",
+          "original": "./selectors.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/heirlooms.js",
+          "kind": "import-statement",
+          "original": "./heirlooms.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/world-choices.js",
+          "kind": "import-statement",
+          "original": "./world-choices.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/mechanic-readings.js": {
+      "bytes": 4365,
+      "imports": [
+        {
+          "path": "captured:src/defs/mechanics.js",
+          "kind": "import-statement",
+          "original": "../defs/mechanics.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/political-recipes.js": {
+      "bytes": 6693,
+      "imports": [
+        {
+          "path": "captured:src/model/detailed-settlements/population-ledger.js",
+          "kind": "import-statement",
+          "original": "./population-ledger.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/queries.js",
+          "kind": "import-statement",
+          "original": "./queries.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "./stock.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/practice-events.js",
+          "kind": "import-statement",
+          "original": "./practice-events.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/phases/chaos.js",
+          "kind": "import-statement",
+          "original": "./phases/chaos.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/moon.js": {
+      "bytes": 1472,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamesettings/gamerules-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamesettings/gamerules-defs.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/skills.js": {
+      "bytes": 10832,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/defs/gamesettings/variant-flags-defs.js": {
+      "bytes": 905,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/persistent-memory.js": {
+      "bytes": 8132,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/defs/gamepieces/hub-structure-defs.js": {
+      "bytes": 6748,
+      "imports": [
+        {
+          "path": "captured:src/defs/tooltip-ui-utils.js",
+          "kind": "import-statement",
+          "original": "../tooltip-ui-utils.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/defs/gamesystems/hub-system-defs.js": {
+      "bytes": 4773,
+      "imports": [
+        {
+          "path": "captured:src/defs/tooltip-ui-utils.js",
+          "kind": "import-statement",
+          "original": "../tooltip-ui-utils.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/defs/gamepieces/env-events-defs.js": {
+      "bytes": 12965,
+      "imports": [
+        {
+          "path": "captured:src/defs/tooltip-ui-utils.js",
+          "kind": "import-statement",
+          "original": "../tooltip-ui-utils.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/settlement-upgrades.js": {
+      "bytes": 7687,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/hub-structure-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamepieces/hub-structure-defs.js"
+        },
+        {
+          "path": "captured:src/model/effects/core/tiers.js",
+          "kind": "import-statement",
+          "original": "./effects/core/tiers.js"
+        },
+        {
+          "path": "captured:src/model/settlement-state.js",
+          "kind": "import-statement",
+          "original": "./settlement-state.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/state/board-legacy.js": {
+      "bytes": 18036,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/hub-structure-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/hub-structure-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamesystems/hub-system-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamesystems/hub-system-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/env-events-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/env-events-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/env-tiles-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/env-tiles-defs.js"
+        },
+        {
+          "path": "captured:src/model/settlement-state.js",
+          "kind": "import-statement",
+          "original": "../settlement-state.js"
+        },
+        {
+          "path": "captured:src/model/settlement-upgrades.js",
+          "kind": "import-statement",
+          "original": "../settlement-upgrades.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        },
+        {
+          "path": "captured:src/model/state.js",
+          "kind": "import-statement",
+          "original": "../state.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/state/pawn-legacy.js": {
+      "bytes": 8547,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamesettings/gamerules-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamesettings/gamerules-defs.js"
+        },
+        {
+          "path": "captured:src/model/state/board-legacy.js",
+          "kind": "import-statement",
+          "original": "./board-legacy.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/state.js": {
+      "bytes": 34030,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamesettings/gamerules-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamesettings/gamerules-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/env-tiles-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamepieces/env-tiles-defs.js"
+        },
+        {
+          "path": "captured:src/model/rng.js",
+          "kind": "import-statement",
+          "original": "./rng.js"
+        },
+        {
+          "path": "captured:src/model/moon.js",
+          "kind": "import-statement",
+          "original": "./moon.js"
+        },
+        {
+          "path": "captured:src/model/skills.js",
+          "kind": "import-statement",
+          "original": "./skills.js"
+        },
+        {
+          "path": "captured:src/defs/gamesettings/variant-flags-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamesettings/variant-flags-defs.js"
+        },
+        {
+          "path": "captured:src/model/persistent-memory.js",
+          "kind": "import-statement",
+          "original": "./persistent-memory.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "./world-state.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "./game-config.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map.js",
+          "kind": "import-statement",
+          "original": "./vassal-life-map.js"
+        },
+        {
+          "path": "captured:src/model/state/board-legacy.js",
+          "kind": "import-statement",
+          "original": "./state/board-legacy.js"
+        },
+        {
+          "path": "captured:src/model/state/pawn-legacy.js",
+          "kind": "import-statement",
+          "original": "./state/pawn-legacy.js"
+        },
+        {
+          "path": "captured:src/model/state/board-legacy.js",
+          "kind": "import-statement",
+          "original": "./state/board-legacy.js"
+        },
+        {
+          "path": "captured:src/model/state/pawn-legacy.js",
+          "kind": "import-statement",
+          "original": "./state/pawn-legacy.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/detailed-settlements/practices.js": {
+      "bytes": 32742,
+      "imports": [
+        {
+          "path": "captured:src/defs/mechanics.js",
+          "kind": "import-statement",
+          "original": "../../defs/mechanics.js"
+        },
+        {
+          "path": "captured:src/model/mechanic-validation.js",
+          "kind": "import-statement",
+          "original": "../mechanic-validation.js"
+        },
+        {
+          "path": "captured:src/model/mechanic-readings.js",
+          "kind": "import-statement",
+          "original": "../mechanic-readings.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/political-recipes.js",
+          "kind": "import-statement",
+          "original": "./political-recipes.js"
+        },
+        {
+          "path": "captured:src/model/keywords-classes-prototype.js",
+          "kind": "import-statement",
+          "original": "../keywords-classes-prototype.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/workers.js",
+          "kind": "import-statement",
+          "original": "./workers.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/detailed-settlement-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/detailed-settlement-defs.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/state.js",
+          "kind": "import-statement",
+          "original": "../state.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/queries.js",
+          "kind": "import-statement",
+          "original": "./queries.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "./stock.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/external-world.js",
+          "kind": "import-statement",
+          "original": "./external-world.js"
+        },
+        {
+          "path": "captured:src/model/structure-layout.js",
+          "kind": "import-statement",
+          "original": "../structure-layout.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/practice-events.js",
+          "kind": "import-statement",
+          "original": "./practice-events.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "./stock.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/workers.js",
+          "kind": "import-statement",
+          "original": "./workers.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/class-actions.js": {
+      "bytes": 12824,
+      "imports": [
+        {
+          "path": "captured:src/model/vassal-life-map/commissions.js",
+          "kind": "import-statement",
+          "original": "./commissions.js"
+        },
+        {
+          "path": "captured:src/defs/vassal-class-rules.js",
+          "kind": "import-statement",
+          "original": "../../defs/vassal-class-rules.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/selectors.js",
+          "kind": "import-statement",
+          "original": "./selectors.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/queries.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/queries.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/stock.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/external-world.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/external-world.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/stock.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/practices.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/practices.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/vassal-life-map-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/vassal-life-map-defs.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/practice-events.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/practice-events.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/practices.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/practices.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/lifecycle/node-confirm.js": {
+      "bytes": 44924,
+      "imports": [
+        {
+          "path": "captured:src/model/vassal-life-map/treasury.js",
+          "kind": "import-statement",
+          "original": "../treasury.js"
+        },
+        {
+          "path": "captured:src/model/settlement-state.js",
+          "kind": "import-statement",
+          "original": "../../settlement-state.js"
+        },
+        {
+          "path": "captured:src/model/life-map-balance.js",
+          "kind": "import-statement",
+          "original": "../../life-map-balance.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/class-rules.js",
+          "kind": "import-statement",
+          "original": "../class-rules.js"
+        },
+        {
+          "path": "captured:src/defs/vassal-class-rules.js",
+          "kind": "import-statement",
+          "original": "../../../defs/vassal-class-rules.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/commissions.js",
+          "kind": "import-statement",
+          "original": "../commissions.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/shop-specialties.js",
+          "kind": "import-statement",
+          "original": "../shop-specialties.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/world-choices.js",
+          "kind": "import-statement",
+          "original": "../world-choices.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/campaign.js",
+          "kind": "import-statement",
+          "original": "../campaign.js"
+        },
+        {
+          "path": "captured:src/defs/vassal-workshop-rules.js",
+          "kind": "import-statement",
+          "original": "../../../defs/vassal-workshop-rules.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../../game-config.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/external-world.js",
+          "kind": "import-statement",
+          "original": "../../detailed-settlements/external-world.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/practice-events.js",
+          "kind": "import-statement",
+          "original": "../../detailed-settlements/practice-events.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/class-actions.js",
+          "kind": "import-statement",
+          "original": "../class-actions.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "../../detailed-settlements/stock.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/helpers.js",
+          "kind": "import-statement",
+          "original": "../../detailed-settlements/helpers.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/phases/migration.js",
+          "kind": "import-statement",
+          "original": "../../detailed-settlements/phases/migration.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/practice-events.js",
+          "kind": "import-statement",
+          "original": "../../detailed-settlements/practice-events.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/practices.js",
+          "kind": "import-statement",
+          "original": "../../detailed-settlements/practices.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/vassal-life-map-defs.js",
+          "kind": "import-statement",
+          "original": "../../../defs/gamepieces/vassal-life-map-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/detailed-settlement-defs.js",
+          "kind": "import-statement",
+          "original": "../../../defs/gamepieces/detailed-settlement-defs.js"
+        },
+        {
+          "path": "captured:src/defs/world/detailed-settlement-scenario.js",
+          "kind": "import-statement",
+          "original": "../../../defs/world/detailed-settlement-scenario.js"
+        },
+        {
+          "path": "captured:src/model/detailed-practice-tiers.js",
+          "kind": "import-statement",
+          "original": "../../detailed-practice-tiers.js"
+        },
+        {
+          "path": "captured:src/model/moon-phases.js",
+          "kind": "import-statement",
+          "original": "../../moon-phases.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../../world-state.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/selectors.js",
+          "kind": "import-statement",
+          "original": "../selectors.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/heirlooms.js",
+          "kind": "import-statement",
+          "original": "../heirlooms.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/shop.js",
+          "kind": "import-statement",
+          "original": "../shop.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/lifecycle/candidates.js",
+          "kind": "import-statement",
+          "original": "./candidates.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/lifecycle/step.js": {
+      "bytes": 12955,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/vassal-life-map-defs.js",
+          "kind": "import-statement",
+          "original": "../../../defs/gamepieces/vassal-life-map-defs.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../../game-config.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map-generator.js",
+          "kind": "import-statement",
+          "original": "../../vassal-life-map-generator.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/selectors.js",
+          "kind": "import-statement",
+          "original": "../selectors.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/shop.js",
+          "kind": "import-statement",
+          "original": "../shop.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/lifecycle/candidates.js",
+          "kind": "import-statement",
+          "original": "./candidates.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/commissions.js",
+          "kind": "import-statement",
+          "original": "../commissions.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/lifecycle/node-confirm.js",
+          "kind": "import-statement",
+          "original": "./node-confirm.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/heirlooms.js",
+          "kind": "import-statement",
+          "original": "../heirlooms.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/lifecycle.js": {
+      "bytes": 765,
+      "imports": [
+        {
+          "path": "captured:src/model/vassal-life-map/lifecycle/candidates.js",
+          "kind": "import-statement",
+          "original": "./lifecycle/candidates.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/heirlooms.js",
+          "kind": "import-statement",
+          "original": "./heirlooms.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/lifecycle/node-confirm.js",
+          "kind": "import-statement",
+          "original": "./lifecycle/node-confirm.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/lifecycle/step.js",
+          "kind": "import-statement",
+          "original": "./lifecycle/step.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/practice-reading.js": {
+      "bytes": 5244,
+      "imports": [
+        {
+          "path": "captured:src/model/mechanic-readings.js",
+          "kind": "import-statement",
+          "original": "./mechanic-readings.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/multiplier-preview.js": {
+      "bytes": 3258,
+      "imports": [
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/stock.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/workers.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/workers.js"
+        },
+        {
+          "path": "captured:src/model/practice-reading.js",
+          "kind": "import-statement",
+          "original": "../practice-reading.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/structure-reading.js": {
+      "bytes": 8791,
+      "imports": [
+        {
+          "path": "captured:src/defs/mechanics.js",
+          "kind": "import-statement",
+          "original": "../defs/mechanics.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "./detailed-settlements/stock.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/gamepiece-presentation.js": {
+      "bytes": 16247,
+      "imports": [
+        {
+          "path": "captured:src/defs/mechanics.js",
+          "kind": "import-statement",
+          "original": "../defs/mechanics.js"
+        },
+        {
+          "path": "captured:src/model/mechanic-readings.js",
+          "kind": "import-statement",
+          "original": "./mechanic-readings.js"
+        },
+        {
+          "path": "captured:src/model/keywords-classes-prototype.js",
+          "kind": "import-statement",
+          "original": "./keywords-classes-prototype.js"
+        },
+        {
+          "path": "captured:src/model/practice-keywords.js",
+          "kind": "import-statement",
+          "original": "./practice-keywords.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/practice-events.js",
+          "kind": "import-statement",
+          "original": "./detailed-settlements/practice-events.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "./game-config.js"
+        },
+        {
+          "path": "captured:src/model/detailed-practice-tiers.js",
+          "kind": "import-statement",
+          "original": "./detailed-practice-tiers.js"
+        },
+        {
+          "path": "captured:src/model/moon-phases.js",
+          "kind": "import-statement",
+          "original": "./moon-phases.js"
+        },
+        {
+          "path": "captured:src/defs/gamesettings/moon-phase-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamesettings/moon-phase-defs.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "./world-state.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "./detailed-settlements/stock.js"
+        },
+        {
+          "path": "captured:src/model/practice-reading.js",
+          "kind": "import-statement",
+          "original": "./practice-reading.js"
+        },
+        {
+          "path": "captured:src/model/structure-reading.js",
+          "kind": "import-statement",
+          "original": "./structure-reading.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map/presentation.js": {
+      "bytes": 27254,
+      "imports": [
+        {
+          "path": "captured:src/model/vassal-life-map/treasury.js",
+          "kind": "import-statement",
+          "original": "./treasury.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/class-rules.js",
+          "kind": "import-statement",
+          "original": "./class-rules.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/multiplier-preview.js",
+          "kind": "import-statement",
+          "original": "./multiplier-preview.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/practice-events.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/practice-events.js"
+        },
+        {
+          "path": "captured:src/model/life-map-balance.js",
+          "kind": "import-statement",
+          "original": "../life-map-balance.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/shop-specialties.js",
+          "kind": "import-statement",
+          "original": "./shop-specialties.js"
+        },
+        {
+          "path": "captured:src/defs/vassal-class-rules.js",
+          "kind": "import-statement",
+          "original": "../../defs/vassal-class-rules.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/campaign.js",
+          "kind": "import-statement",
+          "original": "./campaign.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/world-choices.js",
+          "kind": "import-statement",
+          "original": "./world-choices.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/stock.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/stock.js"
+        },
+        {
+          "path": "captured:src/model/detailed-settlements/practices.js",
+          "kind": "import-statement",
+          "original": "../detailed-settlements/practices.js"
+        },
+        {
+          "path": "captured:src/model/gamepiece-presentation.js",
+          "kind": "import-statement",
+          "original": "../gamepiece-presentation.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/vassal-life-map-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/vassal-life-map-defs.js"
+        },
+        {
+          "path": "captured:src/model/game-config.js",
+          "kind": "import-statement",
+          "original": "../game-config.js"
+        },
+        {
+          "path": "captured:src/model/moon-phases.js",
+          "kind": "import-statement",
+          "original": "../moon-phases.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/selectors.js",
+          "kind": "import-statement",
+          "original": "./selectors.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/heirlooms.js",
+          "kind": "import-statement",
+          "original": "./heirlooms.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/shop.js",
+          "kind": "import-statement",
+          "original": "./shop.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/lifecycle.js",
+          "kind": "import-statement",
+          "original": "./lifecycle.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/vassal-life-map.js": {
+      "bytes": 2101,
+      "imports": [
+        {
+          "path": "captured:src/model/vassal-life-map/selectors.js",
+          "kind": "import-statement",
+          "original": "./vassal-life-map/selectors.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/shop.js",
+          "kind": "import-statement",
+          "original": "./vassal-life-map/shop.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/commissions.js",
+          "kind": "import-statement",
+          "original": "./vassal-life-map/commissions.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/lifecycle.js",
+          "kind": "import-statement",
+          "original": "./vassal-life-map/lifecycle.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/presentation.js",
+          "kind": "import-statement",
+          "original": "./vassal-life-map/presentation.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/heirlooms.js",
+          "kind": "import-statement",
+          "original": "./vassal-life-map/heirlooms.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/commands/settlement-vassal-commands.js": {
+      "bytes": 2632,
+      "imports": [
+        {
+          "path": "captured:src/model/vassal-life-map.js",
+          "kind": "import-statement",
+          "original": "../vassal-life-map.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/defs/gamepieces/settlement-practice-defs.js": {
+      "bytes": 18011,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamesettings/gamerules-defs.js",
+          "kind": "import-statement",
+          "original": "../gamesettings/gamerules-defs.js"
+        },
+        {
+          "path": "captured:src/defs/tooltip-ui-utils.js",
+          "kind": "import-statement",
+          "original": "../tooltip-ui-utils.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/commands/ap-helpers.js": {
+      "bytes": 1387,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamesettings/gamerules-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamesettings/gamerules-defs.js"
+        },
+        {
+          "path": "captured:src/model/moon.js",
+          "kind": "import-statement",
+          "original": "../moon.js"
+        },
+        {
+          "path": "captured:src/model/skills.js",
+          "kind": "import-statement",
+          "original": "../skills.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/settlement-exec.js": {
+      "bytes": 43246,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/hub-structure-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamepieces/hub-structure-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/settlement-practice-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamepieces/settlement-practice-defs.js"
+        },
+        {
+          "path": "captured:src/model/state.js",
+          "kind": "import-statement",
+          "original": "./state.js"
+        },
+        {
+          "path": "captured:src/model/effects/core/tiers.js",
+          "kind": "import-statement",
+          "original": "./effects/core/tiers.js"
+        },
+        {
+          "path": "captured:src/model/settlement-state.js",
+          "kind": "import-statement",
+          "original": "./settlement-state.js"
+        },
+        {
+          "path": "captured:src/model/settlement-upgrades.js",
+          "kind": "import-statement",
+          "original": "./settlement-upgrades.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/defs/gamepieces/settlement-order-defs.js": {
+      "bytes": 3105,
+      "imports": [
+        {
+          "path": "captured:src/defs/tooltip-ui-utils.js",
+          "kind": "import-statement",
+          "original": "../tooltip-ui-utils.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/settlement-leadership.js": {
+      "bytes": 12800,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/settlement-practice-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamepieces/settlement-practice-defs.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/settlement-order-exec.js": {
+      "bytes": 32517,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/settlement-order-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamepieces/settlement-order-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/settlement-practice-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamepieces/settlement-practice-defs.js"
+        },
+        {
+          "path": "captured:src/model/settlement-state.js",
+          "kind": "import-statement",
+          "original": "./settlement-state.js"
+        },
+        {
+          "path": "captured:src/model/settlement-leadership.js",
+          "kind": "import-statement",
+          "original": "./settlement-leadership.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/commands/debug-commands.js": {
+      "bytes": 11131,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/env-events-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/env-events-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/hub-structure-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/hub-structure-defs.js"
+        },
+        {
+          "path": "captured:src/defs/gamepieces/settlement-practice-defs.js",
+          "kind": "import-statement",
+          "original": "../../defs/gamepieces/settlement-practice-defs.js"
+        },
+        {
+          "path": "captured:src/model/state.js",
+          "kind": "import-statement",
+          "original": "../state.js"
+        },
+        {
+          "path": "captured:src/model/commands/ap-helpers.js",
+          "kind": "import-statement",
+          "original": "./ap-helpers.js"
+        },
+        {
+          "path": "captured:src/model/settlement-state.js",
+          "kind": "import-statement",
+          "original": "../settlement-state.js"
+        },
+        {
+          "path": "captured:src/model/settlement-exec.js",
+          "kind": "import-statement",
+          "original": "../settlement-exec.js"
+        },
+        {
+          "path": "captured:src/model/settlement-order-exec.js",
+          "kind": "import-statement",
+          "original": "../settlement-order-exec.js"
+        },
+        {
+          "path": "captured:src/model/effects/core/tiers.js",
+          "kind": "import-statement",
+          "original": "../effects/core/tiers.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/defs/gamepieces/regional-practice-defs.js": {
+      "bytes": 1462,
+      "imports": [],
+      "format": "esm"
+    },
+    "captured:src/model/regional-practices.js": {
+      "bytes": 8461,
+      "imports": [
+        {
+          "path": "captured:src/defs/gamepieces/regional-practice-defs.js",
+          "kind": "import-statement",
+          "original": "../defs/gamepieces/regional-practice-defs.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "./world-state.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/commands/regional-practice-commands.js": {
+      "bytes": 1336,
+      "imports": [
+        {
+          "path": "captured:src/model/regional-practices.js",
+          "kind": "import-statement",
+          "original": "../regional-practices.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "../world-state.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/actions.js": {
+      "bytes": 7937,
+      "imports": [
+        {
+          "path": "captured:src/model/detailed-settlements/territory.js",
+          "kind": "import-statement",
+          "original": "./detailed-settlements/territory.js"
+        },
+        {
+          "path": "captured:src/model/commands/settlement-vassal-commands.js",
+          "kind": "import-statement",
+          "original": "./commands/settlement-vassal-commands.js"
+        },
+        {
+          "path": "captured:src/model/commands/debug-commands.js",
+          "kind": "import-statement",
+          "original": "./commands/debug-commands.js"
+        },
+        {
+          "path": "captured:src/model/commands/regional-practice-commands.js",
+          "kind": "import-statement",
+          "original": "./commands/regional-practice-commands.js"
+        },
+        {
+          "path": "captured:src/model/commands/ap-helpers.js",
+          "kind": "import-statement",
+          "original": "./commands/ap-helpers.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:src/model/canonicalize.js": {
+      "bytes": 1071,
+      "imports": [
+        {
+          "path": "captured:src/model/state.js",
+          "kind": "import-statement",
+          "original": "./state.js"
+        },
+        {
+          "path": "captured:src/model/world-state.js",
+          "kind": "import-statement",
+          "original": "./world-state.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "captured:life-entry.mjs": {
+      "bytes": 225,
+      "imports": [
+        {
+          "path": "captured:src/model/actions.js",
+          "kind": "import-statement",
+          "original": "./src/model/actions.js"
+        },
+        {
+          "path": "captured:src/model/vassal-life-map/presentation.js",
+          "kind": "import-statement",
+          "original": "./src/model/vassal-life-map/presentation.js"
+        },
+        {
+          "path": "captured:src/model/canonicalize.js",
+          "kind": "import-statement",
+          "original": "./src/model/canonicalize.js"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "life-sdk.mjs": {
+      "imports": [],
+      "exports": [
+        "ActionKinds",
+        "applyAction",
+        "canonicalizeSnapshot",
+        "getVassalNodeDecisionPresentation"
+      ],
+      "entryPoint": "captured:life-entry.mjs",
+      "inputs": {
+        "captured:src/defs/mechanics.js": {
+          "bytesInOutput": 12835
+        },
+        "captured:src/model/detailed-settlements/population-ledger.js": {
+          "bytesInOutput": 5164
+        },
+        "captured:src/model/detailed-settlements/cohorts.js": {
+          "bytesInOutput": 2943
+        },
+        "captured:src/model/chaos-values.js": {
+          "bytesInOutput": 99
+        },
+        "captured:src/model/detailed-settlements/practice-events.js": {
+          "bytesInOutput": 2787
+        },
+        "captured:src/model/structure-layout.js": {
+          "bytesInOutput": 5701
+        },
+        "captured:src/defs/gamepieces/full-map-defs.js": {
+          "bytesInOutput": 78783
+        },
+        "captured:src/defs/gamepieces/bronze-keyword-defs.js": {
+          "bytesInOutput": 3936
+        },
+        "captured:src/defs/gamepieces/detailed-settlement-defs.js": {
+          "bytesInOutput": 247289
+        },
+        "captured:src/defs/world/detailed-settlement-scenario.js": {
+          "bytesInOutput": 1826
+        },
+        "captured:src/defs/world/world-map-defs.js": {
+          "bytesInOutput": 5415
+        },
+        "captured:src/model/regional-map/names.js": {
+          "bytesInOutput": 5494
+        },
+        "captured:src/model/rng.js": {
+          "bytesInOutput": 2822
+        },
+        "captured:src/model/regional-map/biome-clustering.js": {
+          "bytesInOutput": 7225
+        },
+        "captured:src/model/regional-map/generator.js": {
+          "bytesInOutput": 38882
+        },
+        "captured:src/model/regional-map/definition.js": {
+          "bytesInOutput": 2707
+        },
+        "captured:src/model/world-definitions.js": {
+          "bytesInOutput": 109
+        },
+        "captured:src/model/detailed-practice-tiers.js": {
+          "bytesInOutput": 1056
+        },
+        "captured:src/model/world-state.js": {
+          "bytesInOutput": 25268
+        },
+        "captured:src/defs/world/biome-multiplier-rules.js": {
+          "bytesInOutput": 364
+        },
+        "captured:src/model/detailed-settlements/biome-multipliers.js": {
+          "bytesInOutput": 1805
+        },
+        "captured:src/model/practice-keywords.js": {
+          "bytesInOutput": 5269
+        },
+        "captured:src/model/detailed-settlements/stock.js": {
+          "bytesInOutput": 19902
+        },
+        "captured:src/model/detailed-settlements/helpers.js": {
+          "bytesInOutput": 6608
+        },
+        "captured:src/model/detailed-settlements/queries.js": {
+          "bytesInOutput": 2820
+        },
+        "captured:src/model/detailed-settlements/workers.js": {
+          "bytesInOutput": 4229
+        },
+        "captured:src/model/detailed-settlements/synthesis.js": {
+          "bytesInOutput": 1119
+        },
+        "captured:src/model/keywords-classes-prototype.js": {
+          "bytesInOutput": 7619
+        },
+        "captured:src/defs/gamesettings/moon-phase-defs.js": {
+          "bytesInOutput": 1208
+        },
+        "captured:src/model/practice-outputs.js": {
+          "bytesInOutput": 170
+        },
+        "captured:src/defs/gamepieces/vassal-life-map-defs.js": {
+          "bytesInOutput": 12304
+        },
+        "captured:src/model/life-map-balance.js": {
+          "bytesInOutput": 9911
+        },
+        "captured:src/defs/gamepieces/vassal-heirloom-defs.js": {
+          "bytesInOutput": 5319
+        },
+        "captured:src/model/vassal-life-map/relic-pools.js": {
+          "bytesInOutput": 2282
+        },
+        "captured:src/defs/lifegraph-defaults.js": {
+          "bytesInOutput": 21147
+        },
+        "captured:src/model/life-map-columns.js": {
+          "bytesInOutput": 6696
+        },
+        "captured:src/model/life-map-design.js": {
+          "bytesInOutput": 15443
+        },
+        "captured:src/model/vassal-life-map-generator.js": {
+          "bytesInOutput": 20615
+        },
+        "captured:src/model/game-config.js": {
+          "bytesInOutput": 10408
+        },
+        "captured:src/model/detailed-settlements/neutral-market.js": {
+          "bytesInOutput": 5344
+        },
+        "captured:src/model/moon-phases.js": {
+          "bytesInOutput": 244
+        },
+        "captured:src/model/vassal-life-map/heirlooms.js": {
+          "bytesInOutput": 17421
+        },
+        "captured:src/defs/vassal-stat-defs.js": {
+          "bytesInOutput": 879
+        },
+        "captured:src/defs/vassal-class-rules.js": {
+          "bytesInOutput": 2478
+        },
+        "captured:src/model/vassal-life-map/selectors.js": {
+          "bytesInOutput": 12415
+        },
+        "captured:src/model/detailed-settlements/territory.js": {
+          "bytesInOutput": 7114
+        },
+        "captured:src/model/vassal-life-map.js": {
+          "bytesInOutput": 0
+        },
+        "captured:src/model/research-progression.js": {
+          "bytesInOutput": 778
+        },
+        "captured:src/model/vassal-life-map/commissions.js": {
+          "bytesInOutput": 5780
+        },
+        "captured:src/model/vassal-life-map/treasury.js": {
+          "bytesInOutput": 703
+        },
+        "captured:src/model/vassal-life-map/class-rules.js": {
+          "bytesInOutput": 1251
+        },
+        "captured:src/model/practice-draft.js": {
+          "bytesInOutput": 2673
+        },
+        "captured:src/defs/vassal-workshop-rules.js": {
+          "bytesInOutput": 478
+        },
+        "captured:src/model/vassal-life-map/shop-specialties.js": {
+          "bytesInOutput": 3936
+        },
+        "captured:src/model/vassal-life-map/shop.js": {
+          "bytesInOutput": 32666
+        },
+        "captured:src/model/vassal-life-map/stock-shops.js": {
+          "bytesInOutput": 1780
+        },
+        "captured:src/model/vassal-life-map/lifecycle/candidates.js": {
+          "bytesInOutput": 11302
+        },
+        "captured:src/model/vassal-life-map/lifecycle.js": {
+          "bytesInOutput": 0
+        },
+        "captured:src/defs/gamesettings/gamerules-defs.js": {
+          "bytesInOutput": 600
+        },
+        "captured:src/model/effects/core/tiers.js": {
+          "bytesInOutput": 56
+        },
+        "captured:src/defs/tooltip-ui-utils.js": {
+          "bytesInOutput": 1080
+        },
+        "captured:src/defs/gamepieces/env-tiles-defs.js": {
+          "bytesInOutput": 13104
+        },
+        "captured:src/model/settlement-state/hub-legacy.js": {
+          "bytesInOutput": 25495
+        },
+        "captured:src/model/settlement-state.js": {
+          "bytesInOutput": 6647
+        },
+        "captured:src/model/vassal-life-map/world-choices.js": {
+          "bytesInOutput": 6045
+        },
+        "captured:src/model/detailed-settlements/phases/chaos.js": {
+          "bytesInOutput": 567
+        },
+        "captured:src/model/detailed-settlements/phases/shared.js": {
+          "bytesInOutput": 482
+        },
+        "captured:src/model/detailed-settlements/phases/migration.js": {
+          "bytesInOutput": 2292
+        },
+        "captured:src/model/detailed-settlements/external-world.js": {
+          "bytesInOutput": 18328
+        },
+        "captured:src/model/vassal-life-map/campaign.js": {
+          "bytesInOutput": 13989
+        },
+        "captured:src/model/mechanic-readings.js": {
+          "bytesInOutput": 4109
+        },
+        "captured:src/model/detailed-settlements/political-recipes.js": {
+          "bytesInOutput": 6718
+        },
+        "captured:src/model/moon.js": {
+          "bytesInOutput": 1029
+        },
+        "captured:src/model/skills.js": {
+          "bytesInOutput": 2730
+        },
+        "captured:src/defs/gamesettings/variant-flags-defs.js": {
+          "bytesInOutput": 782
+        },
+        "captured:src/model/persistent-memory.js": {
+          "bytesInOutput": 3033
+        },
+        "captured:src/defs/gamepieces/hub-structure-defs.js": {
+          "bytesInOutput": 6140
+        },
+        "captured:src/defs/gamesystems/hub-system-defs.js": {
+          "bytesInOutput": 4425
+        },
+        "captured:src/defs/gamepieces/env-events-defs.js": {
+          "bytesInOutput": 12261
+        },
+        "captured:src/model/settlement-upgrades.js": {
+          "bytesInOutput": 4900
+        },
+        "captured:src/model/state/board-legacy.js": {
+          "bytesInOutput": 9856
+        },
+        "captured:src/model/state/pawn-legacy.js": {
+          "bytesInOutput": 1209
+        },
+        "captured:src/model/state.js": {
+          "bytesInOutput": 8785
+        },
+        "captured:src/model/detailed-settlements/practices.js": {
+          "bytesInOutput": 25434
+        },
+        "captured:src/model/vassal-life-map/class-actions.js": {
+          "bytesInOutput": 12293
+        },
+        "captured:src/model/vassal-life-map/lifecycle/node-confirm.js": {
+          "bytesInOutput": 40753
+        },
+        "captured:src/model/practice-reading.js": {
+          "bytesInOutput": 4812
+        },
+        "captured:src/model/vassal-life-map/multiplier-preview.js": {
+          "bytesInOutput": 2691
+        },
+        "captured:src/model/structure-reading.js": {
+          "bytesInOutput": 8437
+        },
+        "captured:src/model/gamepiece-presentation.js": {
+          "bytesInOutput": 15036
+        },
+        "captured:src/model/vassal-life-map/presentation.js": {
+          "bytesInOutput": 24921
+        },
+        "captured:src/model/commands/settlement-vassal-commands.js": {
+          "bytesInOutput": 2020
+        },
+        "captured:src/defs/gamepieces/settlement-practice-defs.js": {
+          "bytesInOutput": 16706
+        },
+        "captured:src/model/commands/ap-helpers.js": {
+          "bytesInOutput": 632
+        },
+        "captured:src/model/settlement-exec.js": {
+          "bytesInOutput": 40076
+        },
+        "captured:src/defs/gamepieces/settlement-order-defs.js": {
+          "bytesInOutput": 2889
+        },
+        "captured:src/model/settlement-leadership.js": {
+          "bytesInOutput": 1575
+        },
+        "captured:src/model/settlement-order-exec.js": {
+          "bytesInOutput": 21281
+        },
+        "captured:src/model/commands/debug-commands.js": {
+          "bytesInOutput": 7746
+        },
+        "captured:src/defs/gamepieces/regional-practice-defs.js": {
+          "bytesInOutput": 1382
+        },
+        "captured:src/model/regional-practices.js": {
+          "bytesInOutput": 6157
+        },
+        "captured:src/model/commands/regional-practice-commands.js": {
+          "bytesInOutput": 1066
+        },
+        "captured:src/model/actions.js": {
+          "bytesInOutput": 6609
+        },
+        "captured:life-entry.mjs": {
+          "bytesInOutput": 0
+        },
+        "captured:src/model/canonicalize.js": {
+          "bytesInOutput": 419
+        }
+      },
+      "bytes": 1115663
+    }
+  }
+}

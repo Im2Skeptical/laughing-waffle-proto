@@ -1,0 +1,721 @@
+[
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "entry",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-0-desktop-entry-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=entry",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-0-desktop-entry-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:20:13.979Z",
+    "finished": "2026-11-04T22:20:57.284Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-0-desktop-entry-off-s123-cold:launch-0-entry",
+      "job": "entry"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "performance-new",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-1-desktop-performance-new-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=performance-new",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-1-desktop-performance-new-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:20:57.285Z",
+    "finished": "2026-11-04T22:21:26.433Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-1-desktop-performance-new-off-s123-cold:launch-0-performance-new",
+      "job": "performance-new"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "performance-continue",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-2-desktop-performance-continue-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=performance-continue",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-2-desktop-performance-continue-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:21:26.434Z",
+    "finished": "2026-11-04T22:21:50.248Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-2-desktop-performance-continue-off-s123-cold:launch-0-performance-continue",
+      "job": "performance-continue"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "map-pan",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-3-desktop-map-pan-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-pan",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-3-desktop-map-pan-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:21:50.248Z",
+    "finished": "2026-11-04T22:22:02.733Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-3-desktop-map-pan-off-s123-cold:launch-0-map-pan",
+      "job": "map-pan"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "map-zoom",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-4-desktop-map-zoom-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-zoom",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-4-desktop-map-zoom-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:22:02.734Z",
+    "finished": "2026-11-04T22:22:15.249Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-4-desktop-map-zoom-off-s123-cold:launch-0-map-zoom",
+      "job": "map-zoom"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "map-open",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-5-desktop-map-open-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-open",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-5-desktop-map-open-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:22:15.249Z",
+    "finished": "2026-11-04T22:22:26.542Z",
+    "exitCode": 1,
+    "actualLaunchValidation": {
+      "ok": false,
+      "error": "successful cell must have a successful leaf manifest\n\ntrue !== false\n"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "map-close",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-6-desktop-map-close-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-close",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-6-desktop-map-close-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:22:26.543Z",
+    "finished": "2026-11-04T22:22:38.641Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-6-desktop-map-close-off-s123-cold:launch-0-map-close",
+      "job": "map-close"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "scrub-anchor",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-7-desktop-scrub-anchor-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=scrub-anchor",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-7-desktop-scrub-anchor-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:22:38.641Z",
+    "finished": "2026-11-04T22:23:16.452Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-7-desktop-scrub-anchor-off-s123-cold:launch-0-scrub-anchor",
+      "job": "scrub-anchor"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "scrub-off-anchor",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-8-desktop-scrub-off-anchor-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=scrub-off-anchor",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-8-desktop-scrub-off-anchor-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:23:16.453Z",
+    "finished": "2026-11-04T22:23:54.259Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-8-desktop-scrub-off-anchor-off-s123-cold:launch-0-scrub-off-anchor",
+      "job": "scrub-off-anchor"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "life",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-9-desktop-life-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=life",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-9-desktop-life-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:23:54.259Z",
+    "finished": "2026-11-04T22:25:00.700Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-9-desktop-life-off-s123-cold:launch-0-life",
+      "job": "life"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "save-history",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-10-desktop-save-history-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=save-history",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-10-desktop-save-history-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:25:00.700Z",
+    "finished": "2026-11-04T22:25:24.363Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-10-desktop-save-history-off-s123-cold:launch-0-save-history",
+      "job": "save-history"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "save-opening",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-11-desktop-save-opening-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=save-opening",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-11-desktop-save-opening-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:25:24.364Z",
+    "finished": "2026-11-04T22:25:38.975Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-11-desktop-save-opening-off-s123-cold:launch-0-save-opening",
+      "job": "save-opening"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "entry",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-12-mobile4-entry-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=entry",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-12-mobile4-entry-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:25:38.976Z",
+    "finished": "2026-11-04T22:27:02.458Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-12-mobile4-entry-off-s123-cold:launch-0-entry",
+      "job": "entry"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "performance-new",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-13-mobile4-performance-new-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=performance-new",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-13-mobile4-performance-new-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:27:02.458Z",
+    "finished": "2026-11-04T22:28:32.248Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-13-mobile4-performance-new-off-s123-cold:launch-0-performance-new",
+      "job": "performance-new"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "performance-continue",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-14-mobile4-performance-continue-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=performance-continue",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-14-mobile4-performance-continue-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:28:32.249Z",
+    "finished": "2026-11-04T22:30:07.826Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-14-mobile4-performance-continue-off-s123-cold:launch-0-performance-continue",
+      "job": "performance-continue"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "map-pan",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-15-mobile4-map-pan-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-pan",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-15-mobile4-map-pan-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:30:07.827Z",
+    "finished": "2026-11-04T22:30:43.038Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-15-mobile4-map-pan-off-s123-cold:launch-0-map-pan",
+      "job": "map-pan"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "map-zoom",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-16-mobile4-map-zoom-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-zoom",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-16-mobile4-map-zoom-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:30:43.039Z",
+    "finished": "2026-11-04T22:31:16.114Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-16-mobile4-map-zoom-off-s123-cold:launch-0-map-zoom",
+      "job": "map-zoom"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "map-open",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-17-mobile4-map-open-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-open",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-17-mobile4-map-open-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:31:16.115Z",
+    "finished": "2026-11-04T22:31:55.226Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-17-mobile4-map-open-off-s123-cold:launch-0-map-open",
+      "job": "map-open"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "map-close",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-18-mobile4-map-close-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-close",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-18-mobile4-map-close-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:31:55.226Z",
+    "finished": "2026-11-04T22:32:39.262Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-18-mobile4-map-close-off-s123-cold:launch-0-map-close",
+      "job": "map-close"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "scrub-anchor",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-19-mobile4-scrub-anchor-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=scrub-anchor",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-19-mobile4-scrub-anchor-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:32:39.263Z",
+    "finished": "2026-11-04T22:33:51.145Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-19-mobile4-scrub-anchor-off-s123-cold:launch-0-scrub-anchor",
+      "job": "scrub-anchor"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "scrub-off-anchor",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-20-mobile4-scrub-off-anchor-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=scrub-off-anchor",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-20-mobile4-scrub-off-anchor-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:33:51.146Z",
+    "finished": "2026-11-04T22:34:55.242Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-20-mobile4-scrub-off-anchor-off-s123-cold:launch-0-scrub-off-anchor",
+      "job": "scrub-off-anchor"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "life",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-21-mobile4-life-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=life",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-21-mobile4-life-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:34:55.243Z",
+    "finished": "2026-11-04T22:36:55.791Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-21-mobile4-life-off-s123-cold:launch-0-life",
+      "job": "life"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "save-history",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-22-mobile4-save-history-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=save-history",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-22-mobile4-save-history-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:36:55.792Z",
+    "finished": "2026-11-04T22:38:07.050Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-22-mobile4-save-history-off-s123-cold:launch-0-save-history",
+      "job": "save-history"
+    }
+  },
+  {
+    "seed": 123,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "save-opening",
+    "artwork": "off",
+    "id": "feedback-final-matrix-r2-20261105-minimal-all-23-mobile4-save-opening-off-s123-cold",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=save-opening",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--visual-evidence=0",
+      "--samples=1",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all-23-mobile4-save-opening-off-s123-cold"
+    ],
+    "started": "2026-11-04T22:38:07.051Z",
+    "finished": "2026-11-04T22:38:56.021Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "feedback-final-matrix-r2-20261105-minimal-all-23-mobile4-save-opening-off-s123-cold:launch-0-save-opening",
+      "job": "save-opening"
+    }
+  }
+]

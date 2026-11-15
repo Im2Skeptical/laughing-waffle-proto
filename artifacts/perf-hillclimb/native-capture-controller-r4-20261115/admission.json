@@ -1,0 +1,22 @@
+{
+    "verdict":  "ACCEPTED_SYNTHETIC_SOURCE_ONLY",
+    "at":  "2026-11-15T07:34:43.4632883Z",
+    "gateOwner":  "/root/harness_auditor",
+    "planSha256":  "b214566772d421c89df8bd4156cbf2560e843dd30b9359ced70d04c7f49167bb",
+    "manifestSha256":  "4d53fe562628598ea6ef15c91040f076f3e7e2362d9144b1ae6693909712bc66",
+    "independentReviewReceiptSha256":  "a124a85c0b7068149878b00dc1c145b1165b12e681d0e5a9b4f33e2b1267aaec",
+    "independentManagedSha256":  "150e7a128b766722763a7121a4e0f4b9f4fdf9f93db815165e6b9709982e1daf",
+    "independentProvenanceSha256":  "98868fab8e629b2116cb867d73356f604ba7349981f168bfa47435a3f51c8967",
+    "independentCheckerSha256":  "3679de7e1912ca760a3d109f1b576862783f2ef09053734502c3ec898e971bbb",
+    "maxSyntheticControls":  6,
+    "fixedOrder":  [
+                       "normal",
+                       "nonzero",
+                       "synthetic-native",
+                       "timeout",
+                       "descendant",
+                       "observer-failure"
+                   ],
+    "retries":  0,
+    "scope":  "Technical complete affected SOURCE acceptance only for exact frozen r4 six synthetic slots after lease release. Preserve order/caps/roots/expected outcomes; fail or unconfirmed stops later slots, no retry/replacement/r3continuation. Changed inputs invalidate. Actual Windows/closure/loader/OS behavior pending result review. No preview/cause/fix/neutrality/product performance/verifierPASS/wholeSOUND acceptance."
+}

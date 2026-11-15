@@ -1,6 +1,77 @@
 ﻿# Continuous performance run
 
-Updated2026-11-05. Operator Cam; stop only on his explicit stop. Success is a checkpoint. No finite iteration/time/token/cost/audit-round ceiling. Objective01a1a5fb-32cf-7ff0-86a6-68448a1aa3e9 is unchanged; native goal status was BLOCKED while awaiting asynchronous handoffs and exposes no agent resume status. The Life completion has now resolved that dependency and root is working under the original authorization. Continue through T3 completion wakeups as needed; never mark the objective complete from an intermediate phase. Codex gpt-6.1-sol / xhigh throughout.
+Updated2026-11-05. **PAUSED again by Cam's explicit operator request at2026-11-05T02:04Z**, superseding the brief resume poke in this session. The only intervening work was a read-only integrity comparison: all683 source/package/HARNESS files, built assets,15 dirty files and1904 evidence files matched the original pause snapshot exactly. No test, negative cell, worker, implementation, audit, matrix, optimization or integration batch started. The existing native goal01a1a5fb-32cf-7ff0-86a6-68448a1aa3e9 is PAUSED, not complete; no replacement goal was created. All further hillclimb work requires Cam's explicit later resume. Late completion/wake messages may record paused metadata only. Do not settle the thread. Codex gpt-6.1-sol / xhigh remains the preserved configuration.
+
+Latest pause receipts are in artifacts/perf-hillclimb/operator-pause-20261105-r2;
+the intervening integrity result is
+artifacts/perf-hillclimb/operator-resume-20261105-r1/authentication.json. Original
+pause snapshot/runs remain immutable. No task-owned schedules exist; no new
+delegated work was launched. Existing child terminal state, process inventory and
+requested Dispatcher/PM-Notes wake outcomes are recorded in the latest receipt.
+OPERATOR_PAUSE.md and PAUSED_HANDOFF.md retain completed/unfinished checks and
+the exact next action on a later explicit resume. Ordinal9's usage-limit failure
+was infrastructure during handoff, never a product or timing failure.
+
+## Resumed 15 November 2026 — supersedes earlier pause
+
+Cam requested five more hours of performance hillclimb work: 2026-11-14T21:40Z
+through 2026-11-15T02:40Z (13:40 Sydney). The earlier pause is historical;
+this later request resumes work. Phase A remains **NOT SOUND**, with all eight
+jobs and inherited contract intact. Coordinator status:
+`C:/Users/User/.t3/worktrees/laughing-waffle-proto/t3-b6a8e362-4c1c21b30f50461f/docs/performance-hillclimb-20261115/STATUS.md`.
+
+All 683 source/package/HARNESS files and five assets matched the saved reference.
+The three unfinished negatives now pass as `resume-hold-negative-r1-20261115`;
+zero source/asset deltas and cleanup passed. Original evidence stays unchanged.
+See HOLD_ADAPTATION_IMPLEMENTATION.md for evidence/costs. Independent affected
+Hold review accepted the scoped seam/rejection mechanisms and released its slot.
+The Continue/J7 repair completed its six-case proof; independent Auditor accepted
+the scoped knowledge/source/clone mechanism after actual424242 mobile4 Continue,
+missing-frame and four focused rejection reproductions. K1 liveness finding is
+closed. Exact final sources and review live in the coordinator's
+CONTINUE_KNOWLEDGE_REVIEW.md. All owned Builder/Auditor processes are released;
+parent's full npm run verify r2 passed exit0, including all registered tests.
+The source-frozen resumable36-cell driver passed its first cold desktop123
+Continue cell with exact launch/source and owned cleanup checks; next index1.
+Preview refresh follows before the first scheduled handoff. Whole Phase A is
+NOT SOUND. No scores, gains, modern-main adoption or publication.
+
+## Operator pause checkpoint — historical after the November 15 resume
+
+Phase A **NOT SOUND**. No full independent Harness Auditor acceptance, scorecard,
+scored candidate or performance win. Approved main83c00497/v1.1.53 is already
+integrated locally as bebc4ead. The last committed HEAD is
+0e47aa72bb8da272006a4dba2c70f4ba92775276 on perf/hillclimb-20261104. Preserve
+the subsequent uncommitted Hold harness/passive getter work and all old evidence.
+Source adoption is complete; overall adoption completion/current comparable
+baseline and independent proof remain pending.
+
+Before pausing, the Hold Builder recorded final full verification exit0,
+21/21 scoped control outcomes and18/18 strict J5/J6 reference cells. These are
+not independent acceptance or tail/scoring evidence. Its affected3-case negative
+batch was interrupted in pre-cell setup and has zero measured cells. Fresh
+preview/cost handoff and moving-coast feedback applicability remain unfinished;
+see PAUSED_HANDOFF.md. Root starts no new batch to close these gaps while paused.
+
+Root promptly steered the sole active Hold Builder to pause. It acknowledged
+PAUSED and wrote PAUSED_HANDOFF.md plus its cleanup receipt:
+artifacts/perf-hillclimb/hold-adaptation-build-r1-20261105/paused-release.json.
+The owned batch shell13320 and driver12312 were stopped; receipt reports no
+remaining owned process IDs. Root's process inventory found only inherited idle
+preview5184/PID4484 in the performance worktree. No task-owned schedules exist
+(list_scheduled_tasks returned tasks=[]). Root then used task_cancel to stop any
+remaining child/queued continuation after its pause handoff was written. Final
+receipt, dirty inventory, exact hashes and resume steps are recorded in
+OPERATOR_PAUSE.md and artifacts/perf-hillclimb/operator-pause-20261105-r1.
+Primary checkout, other worktrees and old accepted/rejected/contended identities
+remain untouched. No new development or verification batch was started to pause.
+
+On explicit resume, read OPERATOR_PAUSE.md and the child's PAUSED_HANDOFF.md first;
+authenticate preserved source/build/contract/fixture identities and distinguish
+completed results from the interrupted negative batch before choosing the next
+small proof step. Never auto-start a phase merely because an old completion wakes
+this thread. No commit, push, merge, deployment or external bot wake is authorized
+as part of pausing.
 
 ## Ownership and gate
 

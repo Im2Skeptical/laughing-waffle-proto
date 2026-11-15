@@ -1,0 +1,6 @@
+{
+  "name": "corrupt-metadata",
+  "status": "PASS expected rejection",
+  "expected": "/manifest identity/",
+  "error": "AssertionError [ERR_ASSERTION]: addendum manifest identity\n+ actual - expected\n\n+ '6745da4a87e6946a336cff7f80847984775506889f4f46f0d01a0cf8501a9b82'\n- '6b7456c5594cf05393b81c16a3cfc3682bff8c92fbba8821bfe8af16e911d8b8'\n\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:176:67)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:102:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+}

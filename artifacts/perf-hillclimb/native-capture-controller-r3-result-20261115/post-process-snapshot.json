@@ -1,0 +1,13 @@
+{
+    "at":  "2026-11-15T06:22:56.7123734Z",
+    "exactRecordedPids":  [
+                              14256,
+                              29136,
+                              23312,
+                              36416
+                          ],
+    "liveRecordedPids":  [
+
+                         ],
+    "scope":  "Read-only post-run process snapshot, no termination or global absence claim"
+}

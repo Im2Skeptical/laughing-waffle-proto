@@ -1,0 +1,23 @@
+{
+  "rawSha256": "bdba67b825cd495c3ea8246630130def4fd13a1982fda7141c36684f6ff7f950",
+  "expectedRawSha256": "bdba67b825cd495c3ea8246630130def4fd13a1982fda7141c36684f6ff7f950",
+  "rebuiltSha256": "d3fa0160c8c34b2502bf96b5cf6477cd2076caca5ee689c1372d048468e1b247",
+  "logicalStateSha256": "d3fa0160c8c34b2502bf96b5cf6477cd2076caca5ee689c1372d048468e1b247",
+  "immutableSourceSha256": "df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f",
+  "expectedOpeningKnowledge": {
+    "lossSec": 3918,
+    "lossYear": 123,
+    "officialSeconds": 3918
+  },
+  "observedTrigger": {
+    "phase": "completed",
+    "lossSec": 3918,
+    "computedSec": 3918,
+    "sourceMatches": true,
+    "token": "sig:4"
+  },
+  "rawMatches": true,
+  "rebuiltMatches": true,
+  "rawDeltaPaths": [],
+  "rebuiltDeltaPaths": []
+}

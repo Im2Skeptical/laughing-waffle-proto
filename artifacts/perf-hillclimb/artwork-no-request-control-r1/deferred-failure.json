@@ -1,0 +1,6 @@
+{
+  "error": "Error: deferred atlas request observation timeout after 1000ms\n    at Timeout.<anonymous> (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/deadline.mjs:8:35)\n    at listOnTimeout (node:internal/timers:605:17)\n    at process.processTimers (node:internal/timers:541:7)",
+  "errors": [],
+  "consoleErrors": [],
+  "requestFailures": []
+}

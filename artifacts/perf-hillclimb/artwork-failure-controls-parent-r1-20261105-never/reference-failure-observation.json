@@ -1,0 +1,1442 @@
+{
+  "file": "reference-failure-observation.json",
+  "phase": "failure",
+  "hostCollectedAt": "2026-11-04T17:20:47.145Z",
+  "continuous": {
+    "session": {
+      "available": true,
+      "longTasksAvailable": true,
+      "startMs": 1282.5999999940395,
+      "endMs": 14418.5,
+      "readAtMs": 14418.59999999404,
+      "frames": [
+        {
+          "time": 1319.7999999821186,
+          "dt": 41
+        },
+        {
+          "time": 1321.9000000059605,
+          "dt": 2.100000023841858
+        },
+        {
+          "time": 1331.0999999940395,
+          "dt": 9.199999988079071
+        },
+        {
+          "time": 1369.4000000059605,
+          "dt": 38.30000001192093
+        },
+        {
+          "time": 1370.9000000059605,
+          "dt": 1.5
+        },
+        {
+          "time": 1539.5999999940395,
+          "dt": 168.69999998807907
+        },
+        {
+          "time": 1782.699999988079,
+          "dt": 243.09999999403954
+        },
+        {
+          "time": 2777.0999999940395,
+          "dt": 994.4000000059605
+        },
+        {
+          "time": 2980.7999999821186,
+          "dt": 203.69999998807907
+        },
+        {
+          "time": 3116.7999999821186,
+          "dt": 136
+        },
+        {
+          "time": 3435.0999999940395,
+          "dt": 318.30000001192093
+        },
+        {
+          "time": 3470.0999999940395,
+          "dt": 35
+        },
+        {
+          "time": 3551.199999988079,
+          "dt": 81.09999999403954
+        },
+        {
+          "time": 3583.7999999821186,
+          "dt": 32.599999994039536
+        },
+        {
+          "time": 3617,
+          "dt": 33.20000001788139
+        },
+        {
+          "time": 3623.0999999940395,
+          "dt": 6.0999999940395355
+        },
+        {
+          "time": 3642.0999999940395,
+          "dt": 19
+        },
+        {
+          "time": 3648.2999999821186,
+          "dt": 6.199999988079071
+        },
+        {
+          "time": 3662.4000000059605,
+          "dt": 14.100000023841858
+        },
+        {
+          "time": 3678.5999999940395,
+          "dt": 16.19999998807907
+        },
+        {
+          "time": 3696.4000000059605,
+          "dt": 17.80000001192093
+        },
+        {
+          "time": 3711.4000000059605,
+          "dt": 15
+        },
+        {
+          "time": 3736,
+          "dt": 24.599999994039536
+        },
+        {
+          "time": 3745.4000000059605,
+          "dt": 9.400000005960464
+        },
+        {
+          "time": 3762.4000000059605,
+          "dt": 17
+        },
+        {
+          "time": 3778.4000000059605,
+          "dt": 16
+        },
+        {
+          "time": 3795.4000000059605,
+          "dt": 17
+        },
+        {
+          "time": 3818.0999999940395,
+          "dt": 22.69999998807907
+        },
+        {
+          "time": 3834.5,
+          "dt": 16.400000005960464
+        },
+        {
+          "time": 3845.4000000059605,
+          "dt": 10.900000005960464
+        },
+        {
+          "time": 3861.4000000059605,
+          "dt": 16
+        },
+        {
+          "time": 3878.4000000059605,
+          "dt": 17
+        },
+        {
+          "time": 3912.199999988079,
+          "dt": 33.79999998211861
+        },
+        {
+          "time": 3914,
+          "dt": 1.800000011920929
+        },
+        {
+          "time": 3928.4000000059605,
+          "dt": 14.400000005960464
+        },
+        {
+          "time": 3981,
+          "dt": 52.599999994039536
+        },
+        {
+          "time": 3997.9000000059605,
+          "dt": 16.900000005960464
+        },
+        {
+          "time": 4062.7999999821186,
+          "dt": 64.89999997615814
+        },
+        {
+          "time": 4158,
+          "dt": 95.2000000178814
+        },
+        {
+          "time": 4169.299999982119,
+          "dt": 11.299999982118607
+        },
+        {
+          "time": 4252.299999982119,
+          "dt": 83
+        },
+        {
+          "time": 4326.299999982119,
+          "dt": 74
+        },
+        {
+          "time": 4328.4000000059605,
+          "dt": 2.100000023841858
+        },
+        {
+          "time": 4396.199999988079,
+          "dt": 67.7999999821186
+        },
+        {
+          "time": 4473.9000000059605,
+          "dt": 77.7000000178814
+        },
+        {
+          "time": 4480.299999982119,
+          "dt": 6.399999976158142
+        },
+        {
+          "time": 4552.5999999940395,
+          "dt": 72.30000001192093
+        },
+        {
+          "time": 4562,
+          "dt": 9.400000005960464
+        },
+        {
+          "time": 4630,
+          "dt": 68
+        },
+        {
+          "time": 4742.5,
+          "dt": 112.5
+        },
+        {
+          "time": 5041,
+          "dt": 298.5
+        },
+        {
+          "time": 5171.9000000059605,
+          "dt": 130.90000000596046
+        },
+        {
+          "time": 5420,
+          "dt": 248.09999999403954
+        },
+        {
+          "time": 5586.0999999940395,
+          "dt": 166.09999999403954
+        },
+        {
+          "time": 5726.199999988079,
+          "dt": 140.09999999403954
+        },
+        {
+          "time": 5876.199999988079,
+          "dt": 150
+        },
+        {
+          "time": 6016.199999988079,
+          "dt": 140
+        },
+        {
+          "time": 6123.299999982119,
+          "dt": 107.09999999403954
+        },
+        {
+          "time": 6260.799999982119,
+          "dt": 137.5
+        },
+        {
+          "time": 6389.799999982119,
+          "dt": 129
+        },
+        {
+          "time": 6615.0999999940395,
+          "dt": 225.30000001192093
+        },
+        {
+          "time": 6795.699999988079,
+          "dt": 180.59999999403954
+        },
+        {
+          "time": 6956.199999988079,
+          "dt": 160.5
+        },
+        {
+          "time": 7121,
+          "dt": 164.80000001192093
+        },
+        {
+          "time": 7267.0999999940395,
+          "dt": 146.09999999403954
+        },
+        {
+          "time": 7394.9000000059605,
+          "dt": 127.80000001192093
+        },
+        {
+          "time": 7526.9000000059605,
+          "dt": 132
+        },
+        {
+          "time": 7662.5,
+          "dt": 135.59999999403954
+        },
+        {
+          "time": 7771.5,
+          "dt": 109
+        },
+        {
+          "time": 7875.9000000059605,
+          "dt": 104.40000000596046
+        },
+        {
+          "time": 8009.199999988079,
+          "dt": 133.2999999821186
+        },
+        {
+          "time": 8160.9000000059605,
+          "dt": 151.7000000178814
+        },
+        {
+          "time": 8312.799999982119,
+          "dt": 151.89999997615814
+        },
+        {
+          "time": 8456,
+          "dt": 143.2000000178814
+        },
+        {
+          "time": 8591.5,
+          "dt": 135.5
+        },
+        {
+          "time": 8842.299999982119,
+          "dt": 250.7999999821186
+        },
+        {
+          "time": 8997,
+          "dt": 154.7000000178814
+        },
+        {
+          "time": 9351.299999982119,
+          "dt": 354.2999999821186
+        },
+        {
+          "time": 9470.40000000596,
+          "dt": 119.10000002384186
+        },
+        {
+          "time": 9624,
+          "dt": 153.59999999403954
+        },
+        {
+          "time": 9765.09999999404,
+          "dt": 141.09999999403954
+        },
+        {
+          "time": 9909.40000000596,
+          "dt": 144.30000001192093
+        },
+        {
+          "time": 10241.5,
+          "dt": 332.09999999403954
+        },
+        {
+          "time": 10368.5,
+          "dt": 127
+        },
+        {
+          "time": 10495.5,
+          "dt": 127
+        },
+        {
+          "time": 10661.5,
+          "dt": 166
+        },
+        {
+          "time": 10784,
+          "dt": 122.5
+        },
+        {
+          "time": 10901.59999999404,
+          "dt": 117.59999999403954
+        },
+        {
+          "time": 11054.699999988079,
+          "dt": 153.09999999403954
+        },
+        {
+          "time": 11232.40000000596,
+          "dt": 177.7000000178814
+        },
+        {
+          "time": 11364.5,
+          "dt": 132.09999999403954
+        },
+        {
+          "time": 11496,
+          "dt": 131.5
+        },
+        {
+          "time": 11691.699999988079,
+          "dt": 195.69999998807907
+        },
+        {
+          "time": 11861.59999999404,
+          "dt": 169.90000000596046
+        },
+        {
+          "time": 12061.699999988079,
+          "dt": 200.09999999403954
+        },
+        {
+          "time": 12231.5,
+          "dt": 169.80000001192093
+        },
+        {
+          "time": 12353.40000000596,
+          "dt": 121.90000000596046
+        },
+        {
+          "time": 12511.40000000596,
+          "dt": 158
+        },
+        {
+          "time": 12687.199999988079,
+          "dt": 175.7999999821186
+        },
+        {
+          "time": 12849.799999982119,
+          "dt": 162.59999999403954
+        },
+        {
+          "time": 13049.09999999404,
+          "dt": 199.30000001192093
+        },
+        {
+          "time": 13061.299999982119,
+          "dt": 12.199999988079071
+        },
+        {
+          "time": 13078.199999988079,
+          "dt": 16.900000005960464
+        },
+        {
+          "time": 13097,
+          "dt": 18.80000001192093
+        },
+        {
+          "time": 13112.199999988079,
+          "dt": 15.199999988079071
+        },
+        {
+          "time": 13128.90000000596,
+          "dt": 16.700000017881393
+        },
+        {
+          "time": 13145.299999982119,
+          "dt": 16.399999976158142
+        },
+        {
+          "time": 13188.799999982119,
+          "dt": 43.5
+        },
+        {
+          "time": 13323.799999982119,
+          "dt": 135
+        },
+        {
+          "time": 13327.90000000596,
+          "dt": 4.100000023841858
+        },
+        {
+          "time": 13344.90000000596,
+          "dt": 17
+        },
+        {
+          "time": 13361.799999982119,
+          "dt": 16.899999976158142
+        },
+        {
+          "time": 13377.90000000596,
+          "dt": 16.100000023841858
+        },
+        {
+          "time": 13394.90000000596,
+          "dt": 17
+        },
+        {
+          "time": 13413.59999999404,
+          "dt": 18.69999998807907
+        },
+        {
+          "time": 13428.40000000596,
+          "dt": 14.800000011920929
+        },
+        {
+          "time": 13445.09999999404,
+          "dt": 16.69999998807907
+        },
+        {
+          "time": 13462.799999982119,
+          "dt": 17.69999998807907
+        },
+        {
+          "time": 13478.09999999404,
+          "dt": 15.300000011920929
+        },
+        {
+          "time": 13497.09999999404,
+          "dt": 19
+        },
+        {
+          "time": 13511.90000000596,
+          "dt": 14.800000011920929
+        },
+        {
+          "time": 13529,
+          "dt": 17.099999994039536
+        },
+        {
+          "time": 13546,
+          "dt": 17
+        },
+        {
+          "time": 13634.699999988079,
+          "dt": 88.69999998807907
+        },
+        {
+          "time": 13749.40000000596,
+          "dt": 114.7000000178814
+        },
+        {
+          "time": 13868.199999988079,
+          "dt": 118.7999999821186
+        },
+        {
+          "time": 13979.09999999404,
+          "dt": 110.90000000596046
+        },
+        {
+          "time": 14135.90000000596,
+          "dt": 156.80000001192093
+        },
+        {
+          "time": 14413.90000000596,
+          "dt": 278
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 2982.199999988079,
+          "duration": 134
+        },
+        {
+          "start": 3129.5999999940395,
+          "duration": 303
+        },
+        {
+          "start": 3472.5,
+          "duration": 77
+        },
+        {
+          "start": 4656.799999982119,
+          "duration": 52
+        },
+        {
+          "start": 4742.199999988079,
+          "duration": 296
+        },
+        {
+          "start": 5041,
+          "duration": 130
+        },
+        {
+          "start": 5171.5,
+          "duration": 175
+        },
+        {
+          "start": 5346.799999982119,
+          "duration": 60
+        },
+        {
+          "start": 5407.799999982119,
+          "duration": 177
+        },
+        {
+          "start": 5586,
+          "duration": 140
+        },
+        {
+          "start": 5726.199999988079,
+          "duration": 149
+        },
+        {
+          "start": 5876.0999999940395,
+          "duration": 139
+        },
+        {
+          "start": 6016.199999988079,
+          "duration": 106
+        },
+        {
+          "start": 6123.299999982119,
+          "duration": 137
+        },
+        {
+          "start": 6260.799999982119,
+          "duration": 128
+        },
+        {
+          "start": 6389.699999988079,
+          "duration": 223
+        },
+        {
+          "start": 6615.0999999940395,
+          "duration": 174
+        },
+        {
+          "start": 6795.699999988079,
+          "duration": 159
+        },
+        {
+          "start": 6956.199999988079,
+          "duration": 160
+        },
+        {
+          "start": 7121,
+          "duration": 145
+        },
+        {
+          "start": 7267.0999999940395,
+          "duration": 127
+        },
+        {
+          "start": 7394.9000000059605,
+          "duration": 131
+        },
+        {
+          "start": 7526.9000000059605,
+          "duration": 134
+        },
+        {
+          "start": 7662.5,
+          "duration": 108
+        },
+        {
+          "start": 7771.5,
+          "duration": 103
+        },
+        {
+          "start": 7875.9000000059605,
+          "duration": 133
+        },
+        {
+          "start": 8009.199999988079,
+          "duration": 151
+        },
+        {
+          "start": 8160.9000000059605,
+          "duration": 151
+        },
+        {
+          "start": 8312.699999988079,
+          "duration": 143
+        },
+        {
+          "start": 8455.90000000596,
+          "duration": 135
+        },
+        {
+          "start": 8591.40000000596,
+          "duration": 250
+        },
+        {
+          "start": 8842.299999982119,
+          "duration": 154
+        },
+        {
+          "start": 8996.90000000596,
+          "duration": 352
+        },
+        {
+          "start": 9351.299999982119,
+          "duration": 112
+        },
+        {
+          "start": 9470.299999982119,
+          "duration": 153
+        },
+        {
+          "start": 9624,
+          "duration": 134
+        },
+        {
+          "start": 9765.09999999404,
+          "duration": 144
+        },
+        {
+          "start": 9909.40000000596,
+          "duration": 330
+        },
+        {
+          "start": 10241.5,
+          "duration": 126
+        },
+        {
+          "start": 10368.40000000596,
+          "duration": 126
+        },
+        {
+          "start": 10495.40000000596,
+          "duration": 165
+        },
+        {
+          "start": 10661.5,
+          "duration": 121
+        },
+        {
+          "start": 10784,
+          "duration": 104
+        },
+        {
+          "start": 10900.799999982119,
+          "duration": 153
+        },
+        {
+          "start": 11054.59999999404,
+          "duration": 176
+        },
+        {
+          "start": 11232.40000000596,
+          "duration": 131
+        },
+        {
+          "start": 11364,
+          "duration": 131
+        },
+        {
+          "start": 11496,
+          "duration": 195
+        },
+        {
+          "start": 11691.699999988079,
+          "duration": 166
+        },
+        {
+          "start": 11861.199999988079,
+          "duration": 194
+        },
+        {
+          "start": 12061.59999999404,
+          "duration": 169
+        },
+        {
+          "start": 12231.5,
+          "duration": 116
+        },
+        {
+          "start": 12353.299999982119,
+          "duration": 157
+        },
+        {
+          "start": 12511.40000000596,
+          "duration": 175
+        },
+        {
+          "start": 12687.09999999404,
+          "duration": 162
+        },
+        {
+          "start": 12849.699999988079,
+          "duration": 198
+        },
+        {
+          "start": 13188.799999982119,
+          "duration": 133
+        },
+        {
+          "start": 14140.199999988079,
+          "duration": 273
+        }
+      ],
+      "trailingFrameRightCensored": true,
+      "trailingFrameLowerBoundMs": 4.5999999940395355,
+      "scope": "continuous main-thread rAF intervals/long tasks; keep a declared post-action observation window, not only transaction markers"
+    },
+    "sessionStartScope": "trusted entry input",
+    "postAction": {
+      "available": true,
+      "longTasksAvailable": true,
+      "startMs": 13330.59999999404,
+      "endMs": 14418.5,
+      "readAtMs": 14418.799999982119,
+      "frames": [
+        {
+          "time": 13344.90000000596,
+          "dt": 17
+        },
+        {
+          "time": 13361.799999982119,
+          "dt": 16.899999976158142
+        },
+        {
+          "time": 13377.90000000596,
+          "dt": 16.100000023841858
+        },
+        {
+          "time": 13394.90000000596,
+          "dt": 17
+        },
+        {
+          "time": 13413.59999999404,
+          "dt": 18.69999998807907
+        },
+        {
+          "time": 13428.40000000596,
+          "dt": 14.800000011920929
+        },
+        {
+          "time": 13445.09999999404,
+          "dt": 16.69999998807907
+        },
+        {
+          "time": 13462.799999982119,
+          "dt": 17.69999998807907
+        },
+        {
+          "time": 13478.09999999404,
+          "dt": 15.300000011920929
+        },
+        {
+          "time": 13497.09999999404,
+          "dt": 19
+        },
+        {
+          "time": 13511.90000000596,
+          "dt": 14.800000011920929
+        },
+        {
+          "time": 13529,
+          "dt": 17.099999994039536
+        },
+        {
+          "time": 13546,
+          "dt": 17
+        },
+        {
+          "time": 13634.699999988079,
+          "dt": 88.69999998807907
+        },
+        {
+          "time": 13749.40000000596,
+          "dt": 114.7000000178814
+        },
+        {
+          "time": 13868.199999988079,
+          "dt": 118.7999999821186
+        },
+        {
+          "time": 13979.09999999404,
+          "dt": 110.90000000596046
+        },
+        {
+          "time": 14135.90000000596,
+          "dt": 156.80000001192093
+        },
+        {
+          "time": 14413.90000000596,
+          "dt": 278
+        }
+      ],
+      "longTasks": [
+        {
+          "start": 14140.199999988079,
+          "duration": 273
+        }
+      ],
+      "trailingFrameRightCensored": true,
+      "trailingFrameLowerBoundMs": 4.5999999940395355,
+      "scope": "continuous main-thread rAF intervals/long tasks; keep a declared post-action observation window, not only transaction markers"
+    },
+    "postAnchor": 13330.59999999404,
+    "desiredPostEnd": 15830.59999999404,
+    "fullPostWindowReached": false,
+    "partialByFailure": true
+  },
+  "witness": {
+    "samples": [
+      {
+        "time": 5584.9000000059605,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 6015.5,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 6612.9000000059605,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 6955.699999988079,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 7266.5,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 7661.799999982119,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 7875.0999999940395,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 8312,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 8841.699999988079,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 9464.299999982119,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 9764.199999988079,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 10367.699999988079,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 10783.199999988079,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 11231.59999999404,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 11495.299999982119,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 11858.5,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 12230.90000000596,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 12510.59999999404,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 13048.09999999404,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 13326.90000000596,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 13524,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 13762.09999999404,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 14017.199999988079,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 14421.5,
+        "version": 2,
+        "mainReady": false,
+        "mainPrepared": null,
+        "decisionReady": false,
+        "decisionPrepared": null,
+        "publishedGroups": [],
+        "sealReady": false,
+        "revealInput": null
+      }
+    ],
+    "warnings": [],
+    "resourceEvents": [
+      {
+        "name": "http://127.0.0.1:18246/assets/styles-ec05c6a73a6e.css",
+        "start": 9.5,
+        "duration": 7.699999988079071,
+        "responseEnd": 17.19999998807907,
+        "transferSize": 14875,
+        "decodedBodySize": 78135
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dark-fantasy/card-chrome-prototype/display.css",
+        "start": 9.699999988079071,
+        "duration": 7.200000017881393,
+        "responseEnd": 16.900000005960464,
+        "transferSize": 876,
+        "decodedBodySize": 1262
+      },
+      {
+        "name": "https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js",
+        "start": 9.799999982118607,
+        "duration": 32.20000001788139,
+        "responseEnd": 42,
+        "transferSize": 134058,
+        "decodedBodySize": 452451
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/app-XYOFGS5O.js",
+        "start": 9.799999982118607,
+        "duration": 98.60000002384186,
+        "responseEnd": 108.40000000596046,
+        "transferSize": 3979774,
+        "decodedBodySize": 3979474
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/fonts/libron/Libron-Bold.woff2",
+        "start": 200.09999999403954,
+        "duration": 4.199999988079071,
+        "responseEnd": 204.2999999821186,
+        "transferSize": 85416,
+        "decodedBodySize": 85116
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/fonts/libron/Libron-Regular.woff2",
+        "start": 199.90000000596046,
+        "duration": 5,
+        "responseEnd": 204.90000000596046,
+        "transferSize": 85072,
+        "decodedBodySize": 84772
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/timegraph-forecast-worker-YOB3XRD7.js",
+        "start": 779.6999999880791,
+        "duration": -297.40000000596046,
+        "responseEnd": 482.2999999821186,
+        "transferSize": 230987,
+        "decodedBodySize": 1243957
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/timegraph-forecast-worker-YOB3XRD7.js",
+        "start": 1116.7999999821186,
+        "duration": 5,
+        "responseEnd": 1121.7999999821186,
+        "transferSize": 230987,
+        "decodedBodySize": 1243957
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 1150.9000000059605,
+        "duration": 3.5999999940395355,
+        "responseEnd": 1154.5,
+        "transferSize": 1209,
+        "decodedBodySize": 10761
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dev-fixtures/performance-start.json.gz?key=1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+        "start": 1324.5,
+        "duration": 221.59999999403954,
+        "responseEnd": 1546.0999999940395,
+        "transferSize": 9636754,
+        "decodedBodySize": 9636454
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/timegraph-forecast-worker-YOB3XRD7.js",
+        "start": 3474.7999999821186,
+        "duration": -229.5,
+        "responseEnd": 3245.2999999821186,
+        "transferSize": 230987,
+        "decodedBodySize": 1243957
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-content-prototype.json",
+        "start": 13067.09999999404,
+        "duration": 6.800000011920929,
+        "responseEnd": 13073.90000000596,
+        "transferSize": 1486,
+        "decodedBodySize": 10646
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-chaos-dictator.json",
+        "start": 13366.199999988079,
+        "duration": 5.200000017881393,
+        "responseEnd": 13371.40000000596,
+        "transferSize": 1104,
+        "decodedBodySize": 5002
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-0.json",
+        "start": 13532.40000000596,
+        "duration": 4,
+        "responseEnd": 13536.40000000596,
+        "transferSize": 2162,
+        "decodedBodySize": 21567
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-1.json",
+        "start": 13702.299999982119,
+        "duration": 5.100000023841858,
+        "responseEnd": 13707.40000000596,
+        "transferSize": 2040,
+        "decodedBodySize": 22254
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-2.json",
+        "start": 13702.5,
+        "duration": 5.5,
+        "responseEnd": 13708,
+        "transferSize": 836,
+        "decodedBodySize": 2839
+      }
+    ],
+    "assetLoadCalls": [
+      {
+        "time": 293.09999999403954,
+        "paths": [
+          "images/sprite-sheets/resource-language.json"
+        ],
+        "operation": "setup"
+      },
+      {
+        "time": 13065.299999982119,
+        "paths": [
+          "images/sprite-sheets/full-map-content-prototype.json"
+        ],
+        "operation": "performance-entry-full-opening"
+      },
+      {
+        "time": 13365.699999988079,
+        "paths": [
+          "images/sprite-sheets/full-map-chaos-dictator.json"
+        ],
+        "operation": "setup"
+      },
+      {
+        "time": 13532.09999999404,
+        "paths": [
+          "images/sprite-sheets/settlement-pieces-0.json"
+        ],
+        "operation": "setup"
+      }
+    ],
+    "droppedSamples": 0,
+    "samplingCpuMs": 20.299999982118607,
+    "publicationEvents": [
+      {
+        "kind": "hide",
+        "time": 1285.0999999940395,
+        "prefix": "full-map-content-prototype/art/"
+      },
+      {
+        "kind": "hide",
+        "time": 1285.0999999940395,
+        "prefix": "full-map-chaos-prototype/art/"
+      },
+      {
+        "kind": "hide",
+        "time": 1285.0999999940395,
+        "prefix": "heirlooms-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1285.0999999940395,
+        "prefix": "settlement-pieces-v4/"
+      },
+      {
+        "kind": "hide",
+        "time": 1285.0999999940395,
+        "prefix": "piece-frames-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1285.0999999940395,
+        "prefix": "chronicle-illustrations-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1285.0999999940395,
+        "prefix": "region-landmarks-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1285.199999988079,
+        "prefix": "vassal-portraits-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1285.199999988079,
+        "prefix": "vassal-class-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1285.199999988079,
+        "prefix": "chronicle-gate-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1285.199999988079,
+        "prefix": "class-picker-frames-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1285.199999988079,
+        "prefix": "chronicle-hud-frames-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 1285.199999988079,
+        "prefix": "timegraph-chronicle-v1/"
+      }
+    ],
+    "terrainEvents": [],
+    "terrainProbeCount": 131,
+    "terrainProbeCpuMs": 6.799999922513962,
+    "startInput": 1282.5999999940395,
+    "revealInput": null,
+    "firstReadyAt": null,
+    "firstReadyFrameAt": null,
+    "assetWitnessInstalled": true,
+    "pixiVersion": "7.2.4",
+    "resources": [
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 1150.9000000059605,
+        "duration": 3.5999999940395355,
+        "responseEnd": 1154.5,
+        "transferSize": 1209
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-content-prototype.json",
+        "start": 13067.09999999404,
+        "duration": 6.800000011920929,
+        "responseEnd": 13073.90000000596,
+        "transferSize": 1486
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-chaos-dictator.json",
+        "start": 13366.199999988079,
+        "duration": 5.200000017881393,
+        "responseEnd": 13371.40000000596,
+        "transferSize": 1104
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-0.json",
+        "start": 13532.40000000596,
+        "duration": 4,
+        "responseEnd": 13536.40000000596,
+        "transferSize": 2162
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-1.json",
+        "start": 13702.299999982119,
+        "duration": 5.100000023841858,
+        "responseEnd": 13707.40000000596,
+        "transferSize": 2040
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-2.json",
+        "start": 13702.5,
+        "duration": 5.5,
+        "responseEnd": 13708,
+        "transferSize": 836
+      }
+    ]
+  },
+  "diagnosticWindows": [
+    {
+      "id": "artwork-failure-controls-parent-r1-20261105-never:reference:browser:diagnostic:1",
+      "label": "legacy getTimeActionClickPoint geometry calibration",
+      "startMs": 13123.799999982119,
+      "endMs": 13143.40000000596,
+      "status": "completed"
+    },
+    {
+      "id": "artwork-failure-controls-parent-r1-20261105-never:reference:browser:diagnostic:2",
+      "label": "deliberate never diagnostic control",
+      "startMs": 13343.90000000596,
+      "endMs": null,
+      "status": "failed",
+      "error": "deliberate never diagnostic control timeout after 1000ms"
+    }
+  ],
+  "collectionErrors": [],
+  "availability": {
+    "continuous": true,
+    "witness": true,
+    "completePostWindow": false
+  }
+}

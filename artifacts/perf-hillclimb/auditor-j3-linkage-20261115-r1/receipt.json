@@ -1,0 +1,8 @@
+{
+  "at": "2026-11-15T01:33:47.039Z",
+  "inputSha256": "e39c1e6d674004595cc768b532f9bbd8d5fc739edc0c2d9d5746ece4c0a94357",
+  "extractionSha256": "a617669224417c2d8ba18bab7e0d84fa4e65ea222540c443b77caac010eccc22",
+  "positiveCount": 8,
+  "negativeCount": 2,
+  "mechanismSourceEqual": true
+}

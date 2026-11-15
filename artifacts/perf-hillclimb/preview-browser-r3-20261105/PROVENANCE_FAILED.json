@@ -1,0 +1,13 @@
+{
+  "exit": 1,
+  "mismatches": [
+    {
+      "file": "scripts/perf-hillclimb/run.mjs",
+      "expected": "61c7e2edcb2517b33efcc3f3bcf926c0e5af16eab301718fa88c5481fc6f3013",
+      "actual": "0b124b6156c5c0853bc112e0fe17955a220a0e02de751e25a92228b54a9667b2"
+    }
+  ],
+  "executableAppAndDiagnosticSourcesUnchanged": true,
+  "rootRunIsNotImportedOrExecutedByStandaloneDiagnostic": true,
+  "acceptance": "retained failure; no self-acceptance"
+}

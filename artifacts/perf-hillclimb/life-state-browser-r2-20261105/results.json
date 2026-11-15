@@ -1,0 +1,18 @@
+[
+  {
+    "seed": 123,
+    "population": "desktop",
+    "mode": "positive",
+    "pass": false,
+    "error": "page.waitForFunction: Timeout 180000ms exceeded.",
+    "costs": [
+      {
+        "tag": "initial",
+        "hostRpcMs": 851.6674999999959,
+        "readerCpuMs": 21.5,
+        "startMs": 18067.90000000596,
+        "endMs": 18089.40000000596
+      }
+    ]
+  }
+]

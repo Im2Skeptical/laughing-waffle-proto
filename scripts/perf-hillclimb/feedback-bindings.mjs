@@ -69,7 +69,15 @@ export function installFeedbackBindings() {
       // Signature is retained only after drawScrub issued marker commands.
       // Ignore autonomously changing graph bounds/forecast preview in quiescence.
       const fields=graph.scrubDrawSignature?.split('|')??[];
-      return cue(binding,surface&&graph.visible,binding==='scrub'?fields.slice(0,2):[fields[2],fields[7]!=='-1'],baseValid&&fields.length===8);
+      // Existing lever text/pose are assigned by the normal update/draw path.
+      // Transport assignments alone never count as visible press feedback.
+      const controls=s.timeControls,lever=controls?.lever;
+      const drawnLever=controls?.visible&&lever?.visible&&lever?.labelVisible
+        ?[lever.label,lever.handleY]:null;
+      const leverValid=typeof controls?.visible==='boolean'&&typeof lever?.visible==='boolean'
+        &&typeof lever?.labelVisible==='boolean'&&typeof lever?.label==='string'
+        &&typeof lever?.handleY==='number'&&Number.isFinite(lever.handleY);
+      return cue(binding,surface&&graph.visible,binding==='scrub'?[fields.slice(0,2),drawnLever]:[fields[2],fields[7]!=='-1'],baseValid&&fields.length===8&&(binding!=='scrub'||leverValid));
     }
     if(binding==='life')return cue(binding,surface,[life.visible,life.displayedVassalId],baseValid);
     if(binding==='node')return cue(binding,surface&&life.visible,life.selectedCandidateNodeId,baseValid);

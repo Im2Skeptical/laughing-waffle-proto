@@ -1,0 +1,21 @@
+{
+    "verdict":  "ACCEPTED_SYNTHETIC_SOURCE_ONLY",
+    "at":  "2026-11-15T06:19:05.4242175Z",
+    "gateOwner":  "/root/harness_auditor",
+    "planSha256":  "d9a3d4dff9226d9615bf7f4f23249fbfb8b825e4d2119994dac213531225dcb5",
+    "manifestSha256":  "a2ab60e4f2450330df6120e663ca0646d0ffcd22a32f5764c98ae7b53c5a8410",
+    "inheritedBuildSha256":  "227fa2cae5f30880a192f16aa6f305892d95411a1b94dc3344bff207fb2f9c4e",
+    "independentReviewReceiptSha256":  "93f3070b9f55999fc559569d837f3129d827c3047987fce27e40dddb0d6e3d2f",
+    "independentCheckerReceiptSha256":  "b91e762180d54babf0153e76622f35e41a79d839451f40d40fb30ebf4097bbea",
+    "maxSyntheticControls":  6,
+    "fixedOrder":  [
+                       "normal",
+                       "nonzero",
+                       "synthetic-native",
+                       "timeout",
+                       "descendant",
+                       "observer-failure"
+                   ],
+    "retries":  0,
+    "scope":  "Technical source acceptance ONLY for exact frozen six synthetic slots after independent lease release. Preserve fixed inputs/roots/order/caps and all outcomes; failed or unconfirmed checks stop later slots. Changes invalidate admission. No actual native/Windows/closure proof, preview capture, cause/fix, neutrality, product performance or whole SOUND acceptance."
+}

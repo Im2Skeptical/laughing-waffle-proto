@@ -1,0 +1,14 @@
+{
+  "src/controllers/life-decision-controller.js": "8408c4820980c9fa3a7fe7a59a13fad618aa74978e29db5c192caa75ef405ed8",
+  "src/views/vassal-node-decision-modal-pixi.js": "6bfeb9cf25e2864d1462045d79a6ee7b732a243bff5a1b2ba0af3abd10bf9d86",
+  "src/views/ui-root/settlement-debug-api.js": "5e2800bb9508583684c6829bef1edafacbbc7a2099c2c7eebeae423685240604",
+  "src/views/ui-root-settlement-pixi.js": "d0110b208f627a295599a4221fd47f1bf621f11f7c3a78c42330d73df09dab23",
+  "scripts/life-decision-test.mjs": "5664683c8fd40c491eb364204cd0ae9316bc720bcf7754451efe9026e0309c68",
+  "scripts/timing-observability-test.mjs": "be5a91f007b82b5c464d40925a538f4e62a544f9a048158f704cdb67a4f2e9c5",
+  "scripts/perf-hillclimb/life-state-browser.mjs": "c12d402eb81d5e2a93b634082e649598cd6f309c3919c40de1273225234b304a",
+  "scripts/perf-hillclimb/life-state-check.mjs": "8125de5aa44e27d66dc4b38ee9ef2104e7247bd8a67cca3900fc0578cf20da0a",
+  "scripts/perf-hillclimb/life-state-controls.mjs": "dd0c02685a6d01bf6993d012dcbb6eb8b6ba81d0592555779631c9bc01b71ba0",
+  "scripts/perf-hillclimb/life-state-inspection-test.mjs": "400f563f3e41dff3021b470c32cada0ddad498f00063be77da3ca8364d51ed89",
+  "scripts/perf-hillclimb/life-state-modal-test.mjs": "3ac8d303dfbd95543b880947f6561d772b030d7a43942ebf0e144c4dfc36844d",
+  "scripts/perf-hillclimb/life-state-presentation.mjs": "e193e697b5df553e40e16f96375ef1577d86bd09cf32482bc35497240e9426dc"
+}

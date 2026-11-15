@@ -1,0 +1,413 @@
+{
+  "scope": "VIRTUAL_OWNER_RAW_CLEANUP_ONLY_NOT_COMPLETE_CELL",
+  "nativeCalls": 0,
+  "hashes": {
+    "check-owner-cleanup.mjs": "24aff5a3c1b109eba6144f8f4d1a0ceb3f487adfe3b723fe689b3810c031b489",
+    "owner-fixture-r1.mjs": "e97d2bc21ba83b2ed7065c0eb0e5c3f5d36ac5731ce965c5996ae104b44d9f9e",
+    "test-owner-cleanup-r1.mjs": "eeb52346cb15dc284efc2a36007f50eb5965d671cddcdb5d3040e360ca863f8a"
+  },
+  "controls": [
+    {
+      "name": "coherent-virtual-owner-raw-cleanup-only",
+      "expected": true,
+      "accepted": true,
+      "error": null,
+      "scope": "OWNER_RAW_TREE_CLEANUP_ONLY",
+      "completeCellAcceptance": false
+    },
+    {
+      "name": "stale-successful-close-errors-invalid",
+      "expected": true,
+      "accepted": true,
+      "error": null,
+      "scope": "OWNER_RAW_TREE_CLEANUP_ONLY",
+      "completeCellAcceptance": false
+    },
+    {
+      "name": "closed-creation-original-number-reused-as-system-source",
+      "expected": true,
+      "accepted": true,
+      "error": null,
+      "scope": "OWNER_RAW_TREE_CLEANUP_ONLY",
+      "completeCellAcceptance": false
+    },
+    {
+      "name": "fake-owner-unaccepted",
+      "expected": false,
+      "accepted": false,
+      "error": "concrete owner receipts required, fake owner forbidden"
+    },
+    {
+      "name": "missing-owner-receipts",
+      "expected": false,
+      "accepted": false,
+      "error": "root native handles identity"
+    },
+    {
+      "name": "wrong-owner-creating-thread",
+      "expected": false,
+      "accepted": false,
+      "error": "owner creating OS thread"
+    },
+    {
+      "name": "wrong-startup-primary-thread",
+      "expected": false,
+      "accepted": false,
+      "error": "owner/startup mismatch"
+    },
+    {
+      "name": "reader-not-ready-before-resume",
+      "expected": false,
+      "accepted": false,
+      "error": "owner/startup mismatch"
+    },
+    {
+      "name": "startup-reader-error",
+      "expected": false,
+      "accepted": false,
+      "error": "owner/startup mismatch"
+    },
+    {
+      "name": "root-generation-coherently-changed-owner-metadata",
+      "expected": false,
+      "accepted": false,
+      "error": "root native handles identity"
+    },
+    {
+      "name": "original-close-order-unconfirmed",
+      "expected": false,
+      "accepted": false,
+      "error": "root ownership/lifetime flags"
+    },
+    {
+      "name": "coherent-creation-duplicate-alias-original",
+      "expected": false,
+      "accepted": false,
+      "error": "creation duplicate aliases original/live duplicate"
+    },
+    {
+      "name": "root-duplicate-call-failed-hidden-by-later-closes",
+      "expected": false,
+      "accepted": false,
+      "error": "raw root duplication origin/options/result"
+    },
+    {
+      "name": "wrong-root-duplicate-source",
+      "expected": false,
+      "accepted": false,
+      "error": "raw root duplication origin/options/result"
+    },
+    {
+      "name": "root-duplicate-inherited",
+      "expected": false,
+      "accepted": false,
+      "error": "raw root duplication origin/options/result"
+    },
+    {
+      "name": "root-close-failed",
+      "expected": false,
+      "accepted": false,
+      "error": "owned close:CreateProcess.returned.process"
+    },
+    {
+      "name": "root-close-raw-call-missing",
+      "expected": false,
+      "accepted": false,
+      "error": "owned close:CreateProcess.returned.process"
+    },
+    {
+      "name": "root-close-success-error-contradiction",
+      "expected": false,
+      "accepted": false,
+      "error": "owned close:CreateProcess.returned.thread"
+    },
+    {
+      "name": "root-close-ambiguous-alias",
+      "expected": false,
+      "accepted": false,
+      "error": "owned close:creation.process.independent-duplicate"
+    },
+    {
+      "name": "root-close-origin-inventory-missing",
+      "expected": false,
+      "accepted": false,
+      "error": "root close outcome inventory"
+    },
+    {
+      "name": "missing-root-release-native-evidence",
+      "expected": false,
+      "accepted": false,
+      "error": "root release evidence"
+    },
+    {
+      "name": "stdin-close-failed",
+      "expected": false,
+      "accepted": false,
+      "error": "owned close:stdin.NUL"
+    },
+    {
+      "name": "job-termination-failed",
+      "expected": false,
+      "accepted": false,
+      "error": "TerminateJobObject"
+    },
+    {
+      "name": "job-termination-unheld-owner",
+      "expected": false,
+      "accepted": false,
+      "error": "owned trial termination raw state"
+    },
+    {
+      "name": "job-termination-changed-control-code",
+      "expected": false,
+      "accepted": false,
+      "error": "owned trial termination raw state"
+    },
+    {
+      "name": "job-termination-reset-budget",
+      "expected": false,
+      "accepted": false,
+      "error": "receipt outside actual shared budget step"
+    },
+    {
+      "name": "owner-job-handle-differs-from-process-membership",
+      "expected": false,
+      "accepted": false,
+      "error": "retained trial job membership"
+    },
+    {
+      "name": "missing-additional-root-wait",
+      "expected": false,
+      "accepted": false,
+      "error": "owned wait raw signal/status"
+    },
+    {
+      "name": "additional-root-wait-source-generation",
+      "expected": false,
+      "accepted": false,
+      "error": "owned wait origin/identity/generation/handle"
+    },
+    {
+      "name": "additional-root-wait-timeout",
+      "expected": false,
+      "accepted": false,
+      "error": "owned wait raw signal/status"
+    },
+    {
+      "name": "additional-root-wait-WAIT_FAILED",
+      "expected": false,
+      "accepted": false,
+      "error": "owned wait raw signal/status"
+    },
+    {
+      "name": "additional-root-wait-reset-budget",
+      "expected": false,
+      "accepted": false,
+      "error": "receipt outside actual shared budget step"
+    },
+    {
+      "name": "additional-root-wait-different-native-record",
+      "expected": false,
+      "accepted": false,
+      "error": "additional root wait receipt crosslink"
+    },
+    {
+      "name": "child-wait-generation",
+      "expected": false,
+      "accepted": false,
+      "error": "owned wait origin/identity/generation/handle"
+    },
+    {
+      "name": "child-wait-aliases-system-source",
+      "expected": false,
+      "accepted": false,
+      "error": "owned wait origin/identity/generation/handle"
+    },
+    {
+      "name": "child-wait-timeout",
+      "expected": false,
+      "accepted": false,
+      "error": "owned wait raw signal/status"
+    },
+    {
+      "name": "missing-child-wait",
+      "expected": false,
+      "accepted": false,
+      "error": "one independent process wait"
+    },
+    {
+      "name": "child-wait-expired",
+      "expected": false,
+      "accepted": false,
+      "error": "owned wait raw signal/status"
+    },
+    {
+      "name": "child-wait-reset-budget",
+      "expected": false,
+      "accepted": false,
+      "error": "receipt outside actual shared budget step"
+    },
+    {
+      "name": "binding-release-failed",
+      "expected": false,
+      "accepted": false,
+      "error": "binding independent native close"
+    },
+    {
+      "name": "binding-release-wrong-handle",
+      "expected": false,
+      "accepted": false,
+      "error": "binding independent native close"
+    },
+    {
+      "name": "binding-release-unobserved-native-close",
+      "expected": false,
+      "accepted": false,
+      "error": "binding independent native close"
+    },
+    {
+      "name": "EOF-missing",
+      "expected": false,
+      "accepted": false,
+      "error": "raw EOF/reader ownership"
+    },
+    {
+      "name": "reader-still-running",
+      "expected": false,
+      "accepted": false,
+      "error": "raw EOF/reader ownership"
+    },
+    {
+      "name": "raw-stream-unavailable",
+      "expected": false,
+      "accepted": false,
+      "error": "original raw stream bytes unavailable"
+    },
+    {
+      "name": "raw-stream-hash-mismatch",
+      "expected": false,
+      "accepted": false,
+      "error": "raw stream hash/count"
+    },
+    {
+      "name": "raw-stream-observed-count-mismatch",
+      "expected": false,
+      "accepted": false,
+      "error": "raw stream hash/count"
+    },
+    {
+      "name": "raw-overflow-not-cleared-by-EOF",
+      "expected": false,
+      "accepted": false,
+      "error": "raw EOF/reader ownership"
+    },
+    {
+      "name": "raw-reader-close-record-missing",
+      "expected": false,
+      "accepted": false,
+      "error": "pipe native close inventory"
+    },
+    {
+      "name": "raw-reader-close-failed",
+      "expected": false,
+      "accepted": false,
+      "error": "owned close:native-handle"
+    },
+    {
+      "name": "owner-job-query-failed",
+      "expected": false,
+      "accepted": false,
+      "error": "native job query ownership/result"
+    },
+    {
+      "name": "owner-job-query-reset-budget",
+      "expected": false,
+      "accepted": false,
+      "error": "receipt outside actual shared budget step"
+    },
+    {
+      "name": "owner-job-query-unheld-handle",
+      "expected": false,
+      "accepted": false,
+      "error": "native job query ownership/result"
+    },
+    {
+      "name": "owner-final-job-count-nonzero",
+      "expected": false,
+      "accepted": false,
+      "error": "final raw active-process count zero"
+    },
+    {
+      "name": "owner-final-query-after-deadline",
+      "expected": false,
+      "accepted": false,
+      "error": "native job query ownership/result"
+    },
+    {
+      "name": "shared-budget-reset-step",
+      "expected": false,
+      "accepted": false,
+      "error": "monotonic one cleanup deadline"
+    },
+    {
+      "name": "cleanup-invented-extra-step",
+      "expected": false,
+      "accepted": false,
+      "error": "monotonic one cleanup deadline"
+    },
+    {
+      "name": "cleanup-extra-root-wait-after-EOF",
+      "expected": false,
+      "accepted": false,
+      "error": "monotonic one cleanup deadline"
+    },
+    {
+      "name": "EOF-before-last-continued-debug-event",
+      "expected": false,
+      "accepted": false,
+      "error": "monotonic wait/event cursor"
+    },
+    {
+      "name": "termination-before-original-root-EXIT",
+      "expected": false,
+      "accepted": false,
+      "error": "termination must follow root EXIT and precede cleanup events"
+    },
+    {
+      "name": "job-close-success-raw-failure",
+      "expected": false,
+      "accepted": false,
+      "error": "owned close:job"
+    },
+    {
+      "name": "job-close-owner-evidence-mismatch",
+      "expected": false,
+      "accepted": false,
+      "error": "job close owner receipt mismatch"
+    },
+    {
+      "name": "owner-abort-flag",
+      "expected": false,
+      "accepted": false,
+      "error": "owner incomplete/abort/buffer"
+    },
+    {
+      "name": "owner-host-exit-required",
+      "expected": false,
+      "accepted": false,
+      "error": "owner incomplete/abort/buffer"
+    },
+    {
+      "name": "controller-errors-not-waived",
+      "expected": false,
+      "accepted": false,
+      "error": "controller errors"
+    },
+    {
+      "name": "tree-dropped-errors",
+      "expected": false,
+      "accepted": false,
+      "error": "tree loss/unsafe/pending"
+    }
+  ]
+}

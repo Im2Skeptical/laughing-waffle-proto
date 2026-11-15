@@ -1,0 +1,16 @@
+{
+  "at": "2026-11-15T07:56:29.047Z",
+  "phase": "R4_SIX_SYNTHETIC_OUTCOMES_SCOPED_ACCEPTED_NOT_WHOLE_SOUND",
+  "sourceCount": 683,
+  "assetCount": 5,
+  "sourceAssetChanges": [],
+  "planPinsUnchanged": 45,
+  "originalCellFilesUnchanged": 76,
+  "actualSlotsConsumed": 6,
+  "actualSession": 94787,
+  "sessionState": "CLOSED0",
+  "allLeases": "CLOSED",
+  "nextBrief": "NATIVE_PREVIEW_TRIAL_LIFETIME_BRIEF_R1.md",
+  "checkpointCorrection": "Initial read used nonexistent review.json; corrected to actual review-receipt.json after literal directory/hash inspection. No checkpoint or source/evidence mutation occurred in failed read.",
+  "scope": "All6nativeexpectedsyntheticoutcomes accepted independently; timeout/observer targetoutcomes INCOMPLETE. No newnative until separately admitted trial-wide lifetime source+synthetic controls. No preview/cause/fix/neutrality/verifyPASS/perfgain/SOUND."
+}

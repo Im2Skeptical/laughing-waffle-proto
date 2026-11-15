@@ -1,0 +1,314 @@
+{
+  "scope": "RAW_TREE_ONLY_NOT_COMPLETE_CELL_NOT_SOURCE_ADMISSION",
+  "nativeCalls": 0,
+  "sourceInput": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-trial-lifetime-r1-20261115\\managed-report-io-r4\\result.json",
+  "inputSha256": "b88485ea60ab73064bd4adee3fe0cf6bb945dd28431664de3c3c8f96c4dc55e3",
+  "checkerSha256": "401070e8771b1455d50ec65ca5cb681c414adc8e90518f93a55268d90c0d1727",
+  "contract": {
+    "boundary": "CALLER_MUST_VERIFY_OWNER_RUNTIME_AND_FILES",
+    "rootPid": 1,
+    "rootDir": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\pure-owned-trial",
+    "imagePath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+    "imageSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "imageBytes": 4096,
+    "loaderPath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\pure-ntdll.dll",
+    "loaderSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "trapRva": "0x0000000000000035",
+    "jobHandle": "0x000000000007a120",
+    "rootCreationOwned": [
+      "0x00000000000f4240",
+      "0x00000000000f4244"
+    ],
+    "rootEventWait": "0x00000000000f4248"
+  },
+  "controls": [
+    {
+      "name": "coherent-managed-raw-tree-scope-only",
+      "expected": true,
+      "accepted": true,
+      "error": null,
+      "scope": "RAW_TREE_ONLY",
+      "completeCellAcceptance": false
+    },
+    {
+      "name": "successful-stale-errors-remain-invalid",
+      "expected": true,
+      "accepted": true,
+      "error": null,
+      "scope": "RAW_TREE_ONLY",
+      "completeCellAcceptance": false
+    },
+    {
+      "name": "caller-boundary-remains-explicit-not-whole-cell",
+      "expected": false,
+      "accepted": false,
+      "error": "explicit unverified boundary required"
+    },
+    {
+      "name": "all-builder-summary-claims-ignored-by-raw-layer",
+      "expected": true,
+      "accepted": true,
+      "error": null,
+      "scope": "RAW_TREE_ONLY",
+      "completeCellAcceptance": false
+    },
+    {
+      "name": "lossless-FILETIME-above-2pow53",
+      "expected": true,
+      "accepted": true,
+      "error": null,
+      "scope": "RAW_TREE_ONLY",
+      "completeCellAcceptance": false
+    },
+    {
+      "name": "closed-CREATE-image-handle-reused-for-later-wait-duplicate",
+      "expected": true,
+      "accepted": true,
+      "error": null,
+      "scope": "RAW_TREE_ONLY",
+      "completeCellAcceptance": false
+    },
+    {
+      "name": "timeout-poll-has-no-event",
+      "expected": true,
+      "accepted": true,
+      "error": null,
+      "scope": "RAW_TREE_ONLY",
+      "completeCellAcceptance": false
+    },
+    {
+      "name": "raw-byte-count",
+      "expected": false,
+      "accepted": false,
+      "error": "exact176 raw bytes"
+    },
+    {
+      "name": "decoded-PID-disagrees-with-original",
+      "expected": false,
+      "accepted": false,
+      "error": "raw payload mismatch:pid"
+    },
+    {
+      "name": "raw-PID-changed-without-metadata",
+      "expected": false,
+      "accepted": false,
+      "error": "raw payload mismatch:pid"
+    },
+    {
+      "name": "false-native-continue-result",
+      "expected": false,
+      "accepted": false,
+      "error": "ContinueDebugEvent: successful raw BOOL"
+    },
+    {
+      "name": "continue-error-contradiction",
+      "expected": false,
+      "accepted": false,
+      "error": "ContinueDebugEvent: successful raw BOOL"
+    },
+    {
+      "name": "continued-flag-contradicts-native-event",
+      "expected": false,
+      "accepted": false,
+      "error": "continuation policy/raw lifecycle mismatch"
+    },
+    {
+      "name": "missing-successful-debug-wait",
+      "expected": false,
+      "accepted": false,
+      "error": "successful waits/events one-to-one"
+    },
+    {
+      "name": "duplicate-successful-debug-wait",
+      "expected": false,
+      "accepted": false,
+      "error": "successful waits/events one-to-one"
+    },
+    {
+      "name": "failed-wait-not-timeout",
+      "expected": false,
+      "accepted": false,
+      "error": "failed poll is not declared timeout"
+    },
+    {
+      "name": "poll-unbounded",
+      "expected": false,
+      "accepted": false,
+      "error": "bounded native poll"
+    },
+    {
+      "name": "process-generation-duplicate-probe",
+      "expected": false,
+      "accepted": false,
+      "error": "native probe PID/thread/generation"
+    },
+    {
+      "name": "unsupported-WOW64-target",
+      "expected": false,
+      "accepted": false,
+      "error": "native probe unsupported architecture"
+    },
+    {
+      "name": "wrong-thread-owner-PID",
+      "expected": false,
+      "accepted": false,
+      "error": "native probe PID/thread/generation"
+    },
+    {
+      "name": "wrong-image-hash",
+      "expected": false,
+      "accepted": false,
+      "error": "native probe image/hash/bytes"
+    },
+    {
+      "name": "wrong-image-byte-size",
+      "expected": false,
+      "accepted": false,
+      "error": "native probe image/hash/bytes"
+    },
+    {
+      "name": "wrong-job-membership",
+      "expected": false,
+      "accepted": false,
+      "error": "retained trial job membership"
+    },
+    {
+      "name": "unheld-job-owner",
+      "expected": false,
+      "accepted": false,
+      "error": "retained trial job membership"
+    },
+    {
+      "name": "different-job-owner",
+      "expected": false,
+      "accepted": false,
+      "error": "retained trial job membership"
+    },
+    {
+      "name": "failed-native-identity-call",
+      "expected": false,
+      "accepted": false,
+      "error": "native probe Times: successful raw BOOL"
+    },
+    {
+      "name": "wait-duplicate-aliases-system-source",
+      "expected": false,
+      "accepted": false,
+      "error": "owned event wait duplicate: live alias"
+    },
+    {
+      "name": "wait-duplicate-aliases-other-live-root-owner",
+      "expected": false,
+      "accepted": false,
+      "error": "owned event wait duplicate: live alias"
+    },
+    {
+      "name": "root-extra-wait-aliases-binding-wait",
+      "expected": false,
+      "accepted": false,
+      "error": "owned event wait duplicate: live alias"
+    },
+    {
+      "name": "image-CloseHandle-failure",
+      "expected": false,
+      "accepted": false,
+      "error": "image CloseHandle: successful raw BOOL"
+    },
+    {
+      "name": "CREATE-hFile-aliases-current-system-process",
+      "expected": false,
+      "accepted": false,
+      "error": "CREATE image hFile aliases current process/thread"
+    },
+    {
+      "name": "loader-image-hash-changed",
+      "expected": false,
+      "accepted": false,
+      "error": "NTDLL image hash"
+    },
+    {
+      "name": "coherent-wrong-first-trap-address",
+      "expected": false,
+      "accepted": false,
+      "error": "continuation policy/raw lifecycle mismatch"
+    },
+    {
+      "name": "coherent-wrong-first-trap-thread",
+      "expected": false,
+      "accepted": false,
+      "error": "continuation policy/raw lifecycle mismatch"
+    },
+    {
+      "name": "coherent-second-chance-trap",
+      "expected": false,
+      "accepted": false,
+      "error": "continuation policy/raw lifecycle mismatch"
+    },
+    {
+      "name": "marker-present-is-not-absent-phase",
+      "expected": false,
+      "accepted": false,
+      "error": "continuation policy/raw lifecycle mismatch"
+    },
+    {
+      "name": "marker-wrong-PID",
+      "expected": false,
+      "accepted": false,
+      "error": "startup phase does not match reconstructed native history"
+    },
+    {
+      "name": "marker-path-outside-run-root",
+      "expected": false,
+      "accepted": false,
+      "error": "startup phase does not match reconstructed native history"
+    },
+    {
+      "name": "marker-path-not-found-is-not-file-not-found",
+      "expected": false,
+      "accepted": false,
+      "error": "continuation policy/raw lifecycle mismatch"
+    },
+    {
+      "name": "phase-first-exception-contradiction",
+      "expected": false,
+      "accepted": false,
+      "error": "startup phase does not match reconstructed native history"
+    },
+    {
+      "name": "missing-loader-module-does-not-consume-breakpoint",
+      "expected": false,
+      "accepted": false,
+      "error": "continuation policy/raw lifecycle mismatch"
+    },
+    {
+      "name": "extra-process-row-without-original-CREATE",
+      "expected": false,
+      "accepted": false,
+      "error": "extra native identity without original CREATE"
+    },
+    {
+      "name": "missing-process-row",
+      "expected": false,
+      "accepted": false,
+      "error": "event PID absent from validated process table"
+    },
+    {
+      "name": "missing-original-EXIT",
+      "expected": false,
+      "accepted": false,
+      "error": "missing continued EXIT/verified initial loader trap"
+    },
+    {
+      "name": "event-after-continued-EXIT",
+      "expected": false,
+      "accepted": false,
+      "error": "event outside native CREATE/EXIT lifetime"
+    },
+    {
+      "name": "raw-pointer-rounded-number",
+      "expected": false,
+      "accepted": false,
+      "error": "raw payload mismatch:processHandle"
+    }
+  ]
+}

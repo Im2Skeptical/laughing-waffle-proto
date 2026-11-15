@@ -1,0 +1,23 @@
+{
+  "status": {
+    "protocol": 2,
+    "workspaceId": "318fcd5d72880280",
+    "pid": 4484,
+    "desktop": "http://localhost:5184/",
+    "mobile": [
+      "http://100.105.63.49:5184/",
+      "http://192.168.1.103:5184/"
+    ]
+  },
+  "build": {
+    "performanceFixtureKey": "eb1e4fc0688b345625e29ed8d5b01c27416cbfd6913621715457d8890989ecd7",
+    "version": "1.1.52",
+    "build": "43d0ca031f00",
+    "revision": "a9df52cbd625",
+    "channel": "local",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": "5184"
+  }
+}

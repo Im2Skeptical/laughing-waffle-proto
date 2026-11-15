@@ -1,0 +1,16 @@
+{
+  "case": "reference",
+  "contextClosed": true,
+  "browserClosed": true,
+  "errors": [],
+  "browserConnected": false,
+  "lifetime": {
+    "label": "artwork reference",
+    "status": "cancelled",
+    "hostStartedMs": 8883.5228,
+    "hostDeadlineMs": 2888883.5228,
+    "reason": "deliberate post-collection artwork assertion control",
+    "unconfirmedWork": [],
+    "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+  }
+}

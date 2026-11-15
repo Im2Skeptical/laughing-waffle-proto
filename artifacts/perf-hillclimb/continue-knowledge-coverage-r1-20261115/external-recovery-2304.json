@@ -1,0 +1,13 @@
+{
+    "matchingProcesses":  [
+
+                          ],
+    "scope":  "Fresh external inventory before mapped continuation; not reconstruction of original lifecycle or replacement of missing cleanup",
+    "atUtc":  "2026-11-14T23:03:19.5240151Z",
+    "retainedPreviewPid":  40528,
+    "originalFailedCleanupStillUnresolved":  true,
+    "commandFilter":  "Node/chrome;18244, scripts/perf-hillclimb, coverage resume or ms-playwright",
+    "probe18244Listeners":  [
+
+                            ]
+}

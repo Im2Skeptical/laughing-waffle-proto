@@ -1,0 +1,4 @@
+{
+  "error": "Expected values to be strictly equal:\n\nfalse !== true\n",
+  "passive": null
+}

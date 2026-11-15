@@ -1,0 +1,50 @@
+﻿[
+    {
+        "path":  "scripts/perf-hillclimb/observation-windows.mjs",
+        "sha256":  "bb2b64fe4c3e4444e44d4493d70441a388827c7774d2b6d361c99266ee33d395"
+    },
+    {
+        "path":  "scripts/perf-hillclimb/observation-windows-test.mjs",
+        "sha256":  "8d63a92786e56e87e480fdd514e00bb85b8fc61675288860646c47e3515c6b31"
+    },
+    {
+        "path":  "scripts/perf-hillclimb/artwork-controls.mjs",
+        "sha256":  "738c6455eaccc6d5d3fb041c910197fc582ee5eccbf48d7b7180e862f66649eb"
+    },
+    {
+        "path":  "scripts/perf-hillclimb/scenario-storage.mjs",
+        "sha256":  "4a9d89c9fceaa9e677b317e636ac65ef9acce27e945e0a3578b10b428f6339a0"
+    },
+    {
+        "path":  "scripts/perf-hillclimb/scenario-storage-browser-controls.mjs",
+        "sha256":  "02e5723b379e03686d587050a0a927977f00d6ac4745c6e7ec0dfc7020248f4b"
+    },
+    {
+        "path":  "scripts/perf-hillclimb/run.mjs",
+        "sha256":  "61c7e2edcb2517b33efcc3f3bcf926c0e5af16eab301718fa88c5481fc6f3013"
+    },
+    {
+        "path":  "scripts/perf-hillclimb/main-discovery.mjs",
+        "sha256":  "a1bb2606865bf83114538c37cb5295a4f906c140154be295fa48e31f533f46db"
+    },
+    {
+        "path":  "scripts/perf-hillclimb/browser-runtime.mjs",
+        "sha256":  "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1"
+    },
+    {
+        "path":  "scripts/perf-hillclimb/deadline.mjs",
+        "sha256":  "b38266f2e0e32344e1128150b7156868f95ad4f96a4c0d835ebcd1c44a747073"
+    },
+    {
+        "path":  "docs/performance/perf-hillclimb-20261104/OBSERVER_ACCOUNTING_IMPLEMENTATION.md",
+        "sha256":  "a7fb9931773265b1bfc896a107813deeec81d14a5e6ecf8d09a3bc3ef9d373c9"
+    },
+    {
+        "path":  "docs/performance/perf-hillclimb-20261104/WARM_RESET_IMPLEMENTATION.md",
+        "sha256":  "2bae70eddbdeb75dbe0dd327a93c8322a5cd2e15581c0433bf9c3f01a6806a19"
+    },
+    {
+        "path":  "docs/performance/perf-hillclimb-20261104/HARNESS.md",
+        "sha256":  "a98cd87e6f8a56d518475272261c9cdd8c384fec35d81c34a4e427ac9241ba96"
+    }
+]

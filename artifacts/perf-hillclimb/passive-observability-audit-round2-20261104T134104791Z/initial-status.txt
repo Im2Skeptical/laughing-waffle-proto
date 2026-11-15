@@ -1,0 +1,53 @@
+ M docs/performance/perf-hillclimb-20261104/BUILDER_NOTES.md
+ M docs/performance/perf-hillclimb-20261104/COVERAGE.md
+ M docs/performance/perf-hillclimb-20261104/HARNESS.md
+ M docs/performance/perf-hillclimb-20261104/PROOF_RUN.md
+ M docs/performance/perf-hillclimb-20261104/STATE.md
+ M package.json
+ M scripts/perf-hillclimb/statistics-test.mjs
+ M scripts/perf-hillclimb/statistics.mjs
+ M src/controllers/life-decision-controller.js
+ M src/model/timegraph/controller-core.js
+ M src/model/timegraph/projection-cache.js
+ M src/views/chronicle-art.js
+ M src/views/timegraphs-pixi.js
+ M src/views/ui-root-settlement-pixi.js
+ M src/views/ui-root/settlement-debug-api.js
+ M src/views/vassal-life-map-pixi.js
+ M src/views/vassal-node-decision-modal-pixi.js
+ M src/views/vassal-node-decision/world-screen.js
+ M src/views/vassal-resolution-recap-pixi.js
+ M src/views/world-map-pixi.js
+?? docs/performance/perf-hillclimb-20261104/ARTWORK_REVIEW_ROUND1.md
+?? docs/performance/perf-hillclimb-20261104/OBSERVABILITY_IMPLEMENTATION.md
+?? docs/performance/perf-hillclimb-20261104/OBSERVABILITY_REVIEW_ROUND1.md
+?? docs/performance/perf-hillclimb-20261104/OBSERVABILITY_SEMANTIC_BRIEF.md
+?? docs/performance/perf-hillclimb-20261104/OBSERVABILITY_SEMANTIC_IMPLEMENTATION.md
+?? docs/performance/perf-hillclimb-20261104/PROJECTION_OBSERVABILITY_ADDENDUM.md
+?? docs/performance/perf-hillclimb-20261104/TIMING_RUNTIME_REVIEW_ROUND2.md
+?? docs/performance/perf-hillclimb-20261104/TIMING_RUNTIME_REVIEW_ROUND3.md
+?? scripts/perf-hillclimb/active-work-oracle-test.mjs
+?? scripts/perf-hillclimb/active-work-oracle.mjs
+?? scripts/perf-hillclimb/artwork-controls.mjs
+?? scripts/perf-hillclimb/artwork-oracles-browser-controls.mjs
+?? scripts/perf-hillclimb/artwork-oracles-test.mjs
+?? scripts/perf-hillclimb/artwork-oracles.mjs
+?? scripts/perf-hillclimb/browser-runtime-test.mjs
+?? scripts/perf-hillclimb/browser-runtime.mjs
+?? scripts/perf-hillclimb/corpus.mjs
+?? scripts/perf-hillclimb/deadline-test.mjs
+?? scripts/perf-hillclimb/deadline.mjs
+?? scripts/perf-hillclimb/fixtures.mjs
+?? scripts/perf-hillclimb/fixtures/
+?? scripts/perf-hillclimb/freeze-corpus-test.mjs
+?? scripts/perf-hillclimb/freeze-corpus.mjs
+?? scripts/perf-hillclimb/mechanism-controls.mjs
+?? scripts/perf-hillclimb/offered-input-test.mjs
+?? scripts/perf-hillclimb/offered-input.mjs
+?? scripts/perf-hillclimb/oracle-entry.mjs
+?? scripts/perf-hillclimb/repro-neutral-market.mjs
+?? scripts/perf-hillclimb/run.mjs
+?? scripts/projection-timing-observability-test.mjs
+?? scripts/timing-observability-browser-probe.mjs
+?? scripts/timing-observability-test.mjs
+?? src/views/ui-root/settlement-timing-snapshot.js

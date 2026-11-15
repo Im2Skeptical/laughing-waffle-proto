@@ -1,0 +1,8 @@
+Error: Command failed: C:\Program Files\nodejs\node.exe scripts/local-preview.mjs
+    at genericNodeError (node:internal/errors:985:15)
+    at wrappedFn (node:internal/errors:539:14)
+    at checkExecSyncError (node:child_process:925:11)
+    at execFileSync (node:child_process:961:15)
+    at start (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-3-B/probe.mjs:77:19)
+    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-3-B/probe.mjs:88:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)

@@ -1,0 +1,5761 @@
+{
+  "case": "deferred",
+  "prepared": {
+    "time": 103192.30000001192,
+    "frontier": 0,
+    "viewed": 0,
+    "actions": 0,
+    "mode": "map",
+    "main": {
+      "ready": false,
+      "bakes": 1,
+      "frames": 1,
+      "flattenedProps": 145,
+      "updateMs": 575.8999999761581,
+      "variantBuilds": 1,
+      "variantBuildMs": 29845.59999999404,
+      "cooperation": {
+        "steps": 504,
+        "longestStepMs": 745.8000000119209,
+        "yields": 178,
+        "slowSteps": [
+          [
+            2,
+            314
+          ],
+          [
+            3,
+            308
+          ],
+          [
+            4,
+            252
+          ],
+          [
+            6,
+            746
+          ],
+          [
+            7,
+            305
+          ],
+          [
+            10,
+            140
+          ],
+          [
+            13,
+            151
+          ],
+          [
+            14,
+            337
+          ],
+          [
+            115,
+            118
+          ],
+          [
+            118,
+            110
+          ],
+          [
+            122,
+            103
+          ],
+          [
+            128,
+            216
+          ],
+          [
+            129,
+            549
+          ],
+          [
+            130,
+            141
+          ],
+          [
+            132,
+            395
+          ],
+          [
+            134,
+            179
+          ],
+          [
+            237,
+            136
+          ],
+          [
+            240,
+            122
+          ],
+          [
+            244,
+            115
+          ],
+          [
+            251,
+            467
+          ],
+          [
+            252,
+            119
+          ],
+          [
+            254,
+            689
+          ],
+          [
+            356,
+            131
+          ],
+          [
+            359,
+            108
+          ],
+          [
+            363,
+            122
+          ],
+          [
+            370,
+            307
+          ],
+          [
+            371,
+            120
+          ],
+          [
+            372,
+            145
+          ],
+          [
+            373,
+            319
+          ],
+          [
+            374,
+            125
+          ],
+          [
+            500,
+            461
+          ],
+          [
+            503,
+            428
+          ]
+        ]
+      },
+      "bakeMs": 39799.69999998808,
+      "terrainBakeMs": 6967,
+      "bounds": {
+        "minX": -0.47715736040609136,
+        "minY": -0.8682170542635659,
+        "maxX": 1.4314720812182742,
+        "maxY": 1.9534883720930232
+      },
+      "textureMiB": 4.2,
+      "width": 1504,
+      "height": 728,
+      "presentationBuilds": 1,
+      "presentationMs": 276.5,
+      "presentationTotalMs": 276.5,
+      "biomes": [
+        {
+          "id": "R01",
+          "underlying": "islands",
+          "biome": "islands"
+        },
+        {
+          "id": "R02",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R03",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R04",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R05",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R06",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R07",
+          "underlying": "islands",
+          "biome": "islands"
+        },
+        {
+          "id": "R08",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R09",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R10",
+          "underlying": "plains",
+          "biome": "monster"
+        },
+        {
+          "id": "R11",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R12",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R13",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R14",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R15",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R16",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R17",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R18",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R19",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R20",
+          "underlying": "mountains",
+          "biome": "mountains"
+        }
+      ],
+      "sites": [
+        {
+          "regionId": "R01",
+          "biome": "islands",
+          "buildings": 19,
+          "point": {
+            "x": 0.7569796954314721,
+            "y": 0.013565891472868241
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R02",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.956218274111675,
+            "y": -0.02131782945736438
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R03",
+          "biome": "mountains",
+          "buildings": 17,
+          "point": {
+            "x": -0.14276649746192893,
+            "y": 0.34302325581395343
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R04",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.04758883248730961,
+            "y": 0.35077519379844957
+          },
+          "kind": "crownCapital"
+        },
+        {
+          "regionId": "R05",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.18718274111675126,
+            "y": 0.3701550387596899
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R06",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.37373096446700504,
+            "y": 0.3236434108527131
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R07",
+          "biome": "islands",
+          "buildings": 19,
+          "point": {
+            "x": 0.5843908629441624,
+            "y": 0.35077519379844957
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R08",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.7468274111675127,
+            "y": 0.2848837209302326
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R09",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.958756345177665,
+            "y": 0.32751937984496116
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R11",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.04378172588832485,
+            "y": 0.7151162790697674
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R12",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.2607868020304569,
+            "y": 0.7073643410852712
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R13",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.43464467005076146,
+            "y": 0.7112403100775193
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R14",
+          "biome": "swamp",
+          "buildings": 19,
+          "point": {
+            "x": 0.5691624365482234,
+            "y": 0.7926356589147288
+          },
+          "kind": "player"
+        },
+        {
+          "regionId": "R15",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.8039340101522844,
+            "y": 0.5910852713178294
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R16",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.9435279187817259,
+            "y": 0.7383720930232558
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R17",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.2074873096446701,
+            "y": 0.9748062015503876
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R18",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.4498730964467005,
+            "y": 1.0910852713178294
+          },
+          "kind": "player"
+        },
+        {
+          "regionId": "R19",
+          "biome": "mountains",
+          "buildings": 18,
+          "point": {
+            "x": 0.5615482233502539,
+            "y": 1.0872093023255813
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R20",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.7569796954314721,
+            "y": 1.0368217054263567
+          },
+          "kind": "crown"
+        }
+      ],
+      "roads": 9,
+      "connections": 9,
+      "monsterPieces": 6,
+      "presentationCache": 1,
+      "cameraUpdates": 1,
+      "viewedSec": 0,
+      "animationPasses": 4,
+      "animationPixels": 583680,
+      "waterWindows": [
+        {
+          "x": 256,
+          "y": 128,
+          "width": 1056,
+          "height": 448,
+          "levels": 1,
+          "backdrop": false
+        }
+      ],
+      "atmosphereWindow": {
+        "x": 64,
+        "y": 32,
+        "width": 288,
+        "height": 128
+      },
+      "backdropAnimating": false,
+      "prepared": true
+    },
+    "decision": {
+      "ready": false,
+      "bakes": 1,
+      "frames": 1,
+      "flattenedProps": 145,
+      "updateMs": 5.5999999940395355,
+      "variantBuilds": 1,
+      "variantBuildMs": 24340.899999976158,
+      "cooperation": {
+        "steps": 504,
+        "longestStepMs": 878.8000000119209,
+        "yields": 184,
+        "slowSteps": [
+          [
+            2,
+            316
+          ],
+          [
+            3,
+            879
+          ],
+          [
+            6,
+            635
+          ],
+          [
+            7,
+            270
+          ],
+          [
+            10,
+            144
+          ],
+          [
+            13,
+            101
+          ],
+          [
+            14,
+            251
+          ],
+          [
+            115,
+            163
+          ],
+          [
+            118,
+            149
+          ],
+          [
+            122,
+            145
+          ],
+          [
+            128,
+            223
+          ],
+          [
+            129,
+            612
+          ],
+          [
+            130,
+            108
+          ],
+          [
+            132,
+            227
+          ],
+          [
+            134,
+            175
+          ],
+          [
+            237,
+            159
+          ],
+          [
+            240,
+            142
+          ],
+          [
+            244,
+            139
+          ],
+          [
+            251,
+            448
+          ],
+          [
+            252,
+            118
+          ],
+          [
+            254,
+            508
+          ],
+          [
+            256,
+            116
+          ],
+          [
+            356,
+            157
+          ],
+          [
+            359,
+            122
+          ],
+          [
+            363,
+            142
+          ],
+          [
+            370,
+            324
+          ],
+          [
+            372,
+            123
+          ],
+          [
+            373,
+            311
+          ],
+          [
+            374,
+            133
+          ],
+          [
+            500,
+            467
+          ],
+          [
+            501,
+            105
+          ],
+          [
+            503,
+            549
+          ]
+        ]
+      },
+      "bakeMs": 36468.19999998808,
+      "terrainBakeMs": 10215,
+      "bounds": {
+        "minX": -0.47715736040609136,
+        "minY": -0.8682170542635659,
+        "maxX": 1.4314720812182742,
+        "maxY": 1.9534883720930232
+      },
+      "textureMiB": 4.2,
+      "width": 1504,
+      "height": 728,
+      "presentationBuilds": 1,
+      "presentationMs": 223,
+      "presentationTotalMs": 223,
+      "biomes": [
+        {
+          "id": "R01",
+          "underlying": "islands",
+          "biome": "islands"
+        },
+        {
+          "id": "R02",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R03",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R04",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R05",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R06",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R07",
+          "underlying": "islands",
+          "biome": "islands"
+        },
+        {
+          "id": "R08",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R09",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R10",
+          "underlying": "plains",
+          "biome": "monster"
+        },
+        {
+          "id": "R11",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R12",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R13",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R14",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R15",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R16",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R17",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R18",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R19",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R20",
+          "underlying": "mountains",
+          "biome": "mountains"
+        }
+      ],
+      "sites": [
+        {
+          "regionId": "R01",
+          "biome": "islands",
+          "buildings": 19,
+          "point": {
+            "x": 0.7569796954314721,
+            "y": 0.013565891472868241
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R02",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.956218274111675,
+            "y": -0.02131782945736438
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R03",
+          "biome": "mountains",
+          "buildings": 17,
+          "point": {
+            "x": -0.14276649746192893,
+            "y": 0.34302325581395343
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R04",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.04758883248730961,
+            "y": 0.35077519379844957
+          },
+          "kind": "crownCapital"
+        },
+        {
+          "regionId": "R05",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.18718274111675126,
+            "y": 0.3701550387596899
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R06",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.37373096446700504,
+            "y": 0.3236434108527131
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R07",
+          "biome": "islands",
+          "buildings": 19,
+          "point": {
+            "x": 0.5843908629441624,
+            "y": 0.35077519379844957
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R08",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.7468274111675127,
+            "y": 0.2848837209302326
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R09",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.958756345177665,
+            "y": 0.32751937984496116
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R11",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.04378172588832485,
+            "y": 0.7151162790697674
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R12",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.2607868020304569,
+            "y": 0.7073643410852712
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R13",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.43464467005076146,
+            "y": 0.7112403100775193
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R14",
+          "biome": "swamp",
+          "buildings": 19,
+          "point": {
+            "x": 0.5691624365482234,
+            "y": 0.7926356589147288
+          },
+          "kind": "player"
+        },
+        {
+          "regionId": "R15",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.8039340101522844,
+            "y": 0.5910852713178294
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R16",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.9435279187817259,
+            "y": 0.7383720930232558
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R17",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.2074873096446701,
+            "y": 0.9748062015503876
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R18",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.4498730964467005,
+            "y": 1.0910852713178294
+          },
+          "kind": "player"
+        },
+        {
+          "regionId": "R19",
+          "biome": "mountains",
+          "buildings": 18,
+          "point": {
+            "x": 0.5615482233502539,
+            "y": 1.0872093023255813
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R20",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.7569796954314721,
+            "y": 1.0368217054263567
+          },
+          "kind": "crown"
+        }
+      ],
+      "roads": 9,
+      "connections": 9,
+      "monsterPieces": 6,
+      "presentationCache": 1,
+      "cameraUpdates": 1,
+      "viewedSec": 0,
+      "animationPasses": 4,
+      "animationPixels": 583680,
+      "waterWindows": [
+        {
+          "x": 256,
+          "y": 128,
+          "width": 1056,
+          "height": 448,
+          "levels": 1,
+          "backdrop": false
+        }
+      ],
+      "atmosphereWindow": {
+        "x": 64,
+        "y": 32,
+        "width": 288,
+        "height": 128
+      },
+      "backdropAnimating": false,
+      "prepared": true
+    },
+    "sealReady": true
+  },
+  "revealed": {
+    "time": 113144.40000000596,
+    "frontier": 0,
+    "viewed": 0,
+    "actions": 0,
+    "mode": "map",
+    "main": {
+      "ready": true,
+      "bakes": 1,
+      "frames": 7,
+      "flattenedProps": 145,
+      "updateMs": 1.9000000059604645,
+      "variantBuilds": 1,
+      "variantBuildMs": 29845.59999999404,
+      "cooperation": {
+        "steps": 504,
+        "longestStepMs": 745.8000000119209,
+        "yields": 178,
+        "slowSteps": [
+          [
+            2,
+            314
+          ],
+          [
+            3,
+            308
+          ],
+          [
+            4,
+            252
+          ],
+          [
+            6,
+            746
+          ],
+          [
+            7,
+            305
+          ],
+          [
+            10,
+            140
+          ],
+          [
+            13,
+            151
+          ],
+          [
+            14,
+            337
+          ],
+          [
+            115,
+            118
+          ],
+          [
+            118,
+            110
+          ],
+          [
+            122,
+            103
+          ],
+          [
+            128,
+            216
+          ],
+          [
+            129,
+            549
+          ],
+          [
+            130,
+            141
+          ],
+          [
+            132,
+            395
+          ],
+          [
+            134,
+            179
+          ],
+          [
+            237,
+            136
+          ],
+          [
+            240,
+            122
+          ],
+          [
+            244,
+            115
+          ],
+          [
+            251,
+            467
+          ],
+          [
+            252,
+            119
+          ],
+          [
+            254,
+            689
+          ],
+          [
+            356,
+            131
+          ],
+          [
+            359,
+            108
+          ],
+          [
+            363,
+            122
+          ],
+          [
+            370,
+            307
+          ],
+          [
+            371,
+            120
+          ],
+          [
+            372,
+            145
+          ],
+          [
+            373,
+            319
+          ],
+          [
+            374,
+            125
+          ],
+          [
+            500,
+            461
+          ],
+          [
+            503,
+            428
+          ]
+        ]
+      },
+      "bakeMs": 39799.69999998808,
+      "terrainBakeMs": 6967,
+      "bounds": {
+        "minX": -0.47715736040609136,
+        "minY": -0.8682170542635659,
+        "maxX": 1.4314720812182742,
+        "maxY": 1.9534883720930232
+      },
+      "textureMiB": 4.2,
+      "width": 1504,
+      "height": 728,
+      "presentationBuilds": 1,
+      "presentationMs": 276.5,
+      "presentationTotalMs": 276.5,
+      "biomes": [
+        {
+          "id": "R01",
+          "underlying": "islands",
+          "biome": "islands"
+        },
+        {
+          "id": "R02",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R03",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R04",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R05",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R06",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R07",
+          "underlying": "islands",
+          "biome": "islands"
+        },
+        {
+          "id": "R08",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R09",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R10",
+          "underlying": "plains",
+          "biome": "monster"
+        },
+        {
+          "id": "R11",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R12",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R13",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R14",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R15",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R16",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R17",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R18",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R19",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R20",
+          "underlying": "mountains",
+          "biome": "mountains"
+        }
+      ],
+      "sites": [
+        {
+          "regionId": "R01",
+          "biome": "islands",
+          "buildings": 19,
+          "point": {
+            "x": 0.7569796954314721,
+            "y": 0.013565891472868241
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R02",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.956218274111675,
+            "y": -0.02131782945736438
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R03",
+          "biome": "mountains",
+          "buildings": 17,
+          "point": {
+            "x": -0.14276649746192893,
+            "y": 0.34302325581395343
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R04",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.04758883248730961,
+            "y": 0.35077519379844957
+          },
+          "kind": "crownCapital"
+        },
+        {
+          "regionId": "R05",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.18718274111675126,
+            "y": 0.3701550387596899
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R06",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.37373096446700504,
+            "y": 0.3236434108527131
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R07",
+          "biome": "islands",
+          "buildings": 19,
+          "point": {
+            "x": 0.5843908629441624,
+            "y": 0.35077519379844957
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R08",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.7468274111675127,
+            "y": 0.2848837209302326
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R09",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.958756345177665,
+            "y": 0.32751937984496116
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R11",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.04378172588832485,
+            "y": 0.7151162790697674
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R12",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.2607868020304569,
+            "y": 0.7073643410852712
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R13",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.43464467005076146,
+            "y": 0.7112403100775193
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R14",
+          "biome": "swamp",
+          "buildings": 19,
+          "point": {
+            "x": 0.5691624365482234,
+            "y": 0.7926356589147288
+          },
+          "kind": "player"
+        },
+        {
+          "regionId": "R15",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.8039340101522844,
+            "y": 0.5910852713178294
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R16",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.9435279187817259,
+            "y": 0.7383720930232558
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R17",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.2074873096446701,
+            "y": 0.9748062015503876
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R18",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.4498730964467005,
+            "y": 1.0910852713178294
+          },
+          "kind": "player"
+        },
+        {
+          "regionId": "R19",
+          "biome": "mountains",
+          "buildings": 18,
+          "point": {
+            "x": 0.5615482233502539,
+            "y": 1.0872093023255813
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R20",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.7569796954314721,
+            "y": 1.0368217054263567
+          },
+          "kind": "crown"
+        }
+      ],
+      "roads": 9,
+      "connections": 9,
+      "monsterPieces": 6,
+      "presentationCache": 1,
+      "cameraUpdates": 20,
+      "viewedSec": 0,
+      "animationPasses": 4,
+      "animationPixels": 583680,
+      "waterWindows": [
+        {
+          "x": 288,
+          "y": 128,
+          "width": 1056,
+          "height": 448,
+          "levels": 1,
+          "backdrop": false
+        }
+      ],
+      "atmosphereWindow": {
+        "x": 64,
+        "y": 32,
+        "width": 288,
+        "height": 128
+      },
+      "backdropAnimating": false,
+      "prepared": true
+    },
+    "decision": {
+      "ready": true,
+      "bakes": 1,
+      "frames": 1,
+      "flattenedProps": 145,
+      "updateMs": 5.5999999940395355,
+      "variantBuilds": 1,
+      "variantBuildMs": 24340.899999976158,
+      "cooperation": {
+        "steps": 504,
+        "longestStepMs": 878.8000000119209,
+        "yields": 184,
+        "slowSteps": [
+          [
+            2,
+            316
+          ],
+          [
+            3,
+            879
+          ],
+          [
+            6,
+            635
+          ],
+          [
+            7,
+            270
+          ],
+          [
+            10,
+            144
+          ],
+          [
+            13,
+            101
+          ],
+          [
+            14,
+            251
+          ],
+          [
+            115,
+            163
+          ],
+          [
+            118,
+            149
+          ],
+          [
+            122,
+            145
+          ],
+          [
+            128,
+            223
+          ],
+          [
+            129,
+            612
+          ],
+          [
+            130,
+            108
+          ],
+          [
+            132,
+            227
+          ],
+          [
+            134,
+            175
+          ],
+          [
+            237,
+            159
+          ],
+          [
+            240,
+            142
+          ],
+          [
+            244,
+            139
+          ],
+          [
+            251,
+            448
+          ],
+          [
+            252,
+            118
+          ],
+          [
+            254,
+            508
+          ],
+          [
+            256,
+            116
+          ],
+          [
+            356,
+            157
+          ],
+          [
+            359,
+            122
+          ],
+          [
+            363,
+            142
+          ],
+          [
+            370,
+            324
+          ],
+          [
+            372,
+            123
+          ],
+          [
+            373,
+            311
+          ],
+          [
+            374,
+            133
+          ],
+          [
+            500,
+            467
+          ],
+          [
+            501,
+            105
+          ],
+          [
+            503,
+            549
+          ]
+        ]
+      },
+      "bakeMs": 36468.19999998808,
+      "terrainBakeMs": 10215,
+      "bounds": {
+        "minX": -0.47715736040609136,
+        "minY": -0.8682170542635659,
+        "maxX": 1.4314720812182742,
+        "maxY": 1.9534883720930232
+      },
+      "textureMiB": 4.2,
+      "width": 1504,
+      "height": 728,
+      "presentationBuilds": 1,
+      "presentationMs": 223,
+      "presentationTotalMs": 223,
+      "biomes": [
+        {
+          "id": "R01",
+          "underlying": "islands",
+          "biome": "islands"
+        },
+        {
+          "id": "R02",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R03",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R04",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R05",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R06",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R07",
+          "underlying": "islands",
+          "biome": "islands"
+        },
+        {
+          "id": "R08",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R09",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R10",
+          "underlying": "plains",
+          "biome": "monster"
+        },
+        {
+          "id": "R11",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R12",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R13",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R14",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R15",
+          "underlying": "plains",
+          "biome": "plains"
+        },
+        {
+          "id": "R16",
+          "underlying": "forest",
+          "biome": "forest"
+        },
+        {
+          "id": "R17",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R18",
+          "underlying": "swamp",
+          "biome": "swamp"
+        },
+        {
+          "id": "R19",
+          "underlying": "mountains",
+          "biome": "mountains"
+        },
+        {
+          "id": "R20",
+          "underlying": "mountains",
+          "biome": "mountains"
+        }
+      ],
+      "sites": [
+        {
+          "regionId": "R01",
+          "biome": "islands",
+          "buildings": 19,
+          "point": {
+            "x": 0.7569796954314721,
+            "y": 0.013565891472868241
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R02",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.956218274111675,
+            "y": -0.02131782945736438
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R03",
+          "biome": "mountains",
+          "buildings": 17,
+          "point": {
+            "x": -0.14276649746192893,
+            "y": 0.34302325581395343
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R04",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.04758883248730961,
+            "y": 0.35077519379844957
+          },
+          "kind": "crownCapital"
+        },
+        {
+          "regionId": "R05",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.18718274111675126,
+            "y": 0.3701550387596899
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R06",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.37373096446700504,
+            "y": 0.3236434108527131
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R07",
+          "biome": "islands",
+          "buildings": 19,
+          "point": {
+            "x": 0.5843908629441624,
+            "y": 0.35077519379844957
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R08",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.7468274111675127,
+            "y": 0.2848837209302326
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R09",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.958756345177665,
+            "y": 0.32751937984496116
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R11",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.04378172588832485,
+            "y": 0.7151162790697674
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R12",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.2607868020304569,
+            "y": 0.7073643410852712
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R13",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.43464467005076146,
+            "y": 0.7112403100775193
+          },
+          "kind": "neutral"
+        },
+        {
+          "regionId": "R14",
+          "biome": "swamp",
+          "buildings": 19,
+          "point": {
+            "x": 0.5691624365482234,
+            "y": 0.7926356589147288
+          },
+          "kind": "player"
+        },
+        {
+          "regionId": "R15",
+          "biome": "plains",
+          "buildings": 18,
+          "point": {
+            "x": 0.8039340101522844,
+            "y": 0.5910852713178294
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R16",
+          "biome": "forest",
+          "buildings": 19,
+          "point": {
+            "x": 0.9435279187817259,
+            "y": 0.7383720930232558
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R17",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.2074873096446701,
+            "y": 0.9748062015503876
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R18",
+          "biome": "swamp",
+          "buildings": 18,
+          "point": {
+            "x": 0.4498730964467005,
+            "y": 1.0910852713178294
+          },
+          "kind": "player"
+        },
+        {
+          "regionId": "R19",
+          "biome": "mountains",
+          "buildings": 18,
+          "point": {
+            "x": 0.5615482233502539,
+            "y": 1.0872093023255813
+          },
+          "kind": "crown"
+        },
+        {
+          "regionId": "R20",
+          "biome": "mountains",
+          "buildings": 19,
+          "point": {
+            "x": 0.7569796954314721,
+            "y": 1.0368217054263567
+          },
+          "kind": "crown"
+        }
+      ],
+      "roads": 9,
+      "connections": 9,
+      "monsterPieces": 6,
+      "presentationCache": 1,
+      "cameraUpdates": 1,
+      "viewedSec": 0,
+      "animationPasses": 4,
+      "animationPixels": 583680,
+      "waterWindows": [
+        {
+          "x": 256,
+          "y": 128,
+          "width": 1056,
+          "height": 448,
+          "levels": 1,
+          "backdrop": false
+        }
+      ],
+      "atmosphereWindow": {
+        "x": 64,
+        "y": 32,
+        "width": 288,
+        "height": 128
+      },
+      "backdropAnimating": false,
+      "prepared": true
+    },
+    "sealReady": false
+  },
+  "uploaded": [
+    {
+      "file": "full-map-content-prototype.json",
+      "textures": 50,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "full-map-chaos-dictator.json",
+      "textures": 22,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "heirlooms.json",
+      "textures": 15,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "resource-language.json",
+      "textures": 52,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "settlement-pieces-0.json",
+      "textures": 104,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "settlement-pieces-1.json",
+      "textures": 108,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "settlement-pieces-2.json",
+      "textures": 12,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "piece-frames.json",
+      "textures": 9,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "chronicle-illustrations.json",
+      "textures": 18,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "region-landmarks.json",
+      "textures": 4,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "vassal-portraits.json",
+      "textures": 24,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "vassal-class.json",
+      "textures": 6,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "chronicle-gate.json",
+      "textures": 1,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "class-picker-frames.json",
+      "textures": 9,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "chronicle-hud-frames.json",
+      "textures": 19,
+      "valid": true,
+      "uploaded": true
+    },
+    {
+      "file": "timegraph-chronicle.json",
+      "textures": 1,
+      "valid": true,
+      "uploaded": true
+    }
+  ],
+  "memory": [
+    {
+      "stage": "entry",
+      "usedSize": 345610392,
+      "totalSize": 466833408,
+      "embedderHeapUsedSize": 25309728,
+      "backingStorageSize": 21621616
+    },
+    {
+      "stage": "prepared-hidden",
+      "usedSize": 291278092,
+      "totalSize": 342368256,
+      "embedderHeapUsedSize": 27443856,
+      "backingStorageSize": 108156386
+    },
+    {
+      "stage": "revealed",
+      "usedSize": 279850908,
+      "totalSize": 351985664,
+      "embedderHeapUsedSize": 29456488,
+      "backingStorageSize": 109634449
+    },
+    {
+      "stage": "navigation-block-1",
+      "operations": 2,
+      "usedSize": 290065084,
+      "totalSize": 368926720,
+      "embedderHeapUsedSize": 11530080,
+      "backingStorageSize": 95462851
+    },
+    {
+      "stage": "navigation-block-2",
+      "operations": 2,
+      "usedSize": 307587768,
+      "totalSize": 370679808,
+      "embedderHeapUsedSize": 15902016,
+      "backingStorageSize": 98698865
+    }
+  ],
+  "memoryPolicy": "raw JS heap, same settled map endpoint, no forced GC; one run cannot establish retained-memory growth or tails",
+  "samplingPolicy": "250ms compact state snapshots when instrumentation on; endpoint checks retained off; transient unsampled publication cannot be ruled out from sampling alone",
+  "witness": {
+    "samples": [
+      {
+        "time": 6160.4000000059605,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 6510.4000000059605,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 6932.300000011921,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 7355,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 7738.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 8107,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 8434.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 8729.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 9015,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 9537.199999988079,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 10136.300000011921,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 10598.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 10957.59999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 11447,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 11763.300000011921,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 12279.699999988079,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 12824.800000011921,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 13370.199999988079,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 13788.300000011921,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 14289.59999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 14694.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 14906.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 15015.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 15341.199999988079,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 15618.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 15775.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 16028.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 16267.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 16519.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 17035.80000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 17265.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 17515.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 17765.30000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 18024.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 18349.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 18594.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 18768.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 19019.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 19269,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 19530,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 19766.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 20098,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 20267,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 20527,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 20778.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 21022.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 21270.80000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 21522.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 21774.80000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 22027.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 22265.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 24152.59999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 25343.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 25721.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 26222.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 26557,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 26885.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 27162.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 27268.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 28033.80000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 28359.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 28538,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 29074.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 29266.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 29518.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 29768.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 30022.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 30274.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 30524.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 30824.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 31019.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 31268.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 31730,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 32301.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 32877.30000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 33083.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 35684.30000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 35777.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 36015.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 36270.80000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 36525,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 36809.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 37030.59999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 37267.59999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 37520.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 37775.59999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 38029.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 38267.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 38520.30000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 38773.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 39026.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 39279.59999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 39518.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 39771.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 40025.30000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 40278.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 40516.30000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 40767.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 41023.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 41277.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 41517.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 41771.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 42026.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 42279.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 42516.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 42770.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 43023.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 43277.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 43530.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 43767.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 44021.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 44274.80000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 44527.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 44765.30000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 45019.80000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 45271.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 45523.30000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 45776,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 46028.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 46266.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 46518.30000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 46769.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 47021.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 47279.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 47516.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 47773.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 48023.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 48314.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 48828.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 49686.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 49784.59999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 50034.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 50273,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 50525.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 50774.30000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 51016.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 51269.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 51521.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 51777,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 52030.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 52268.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 52521,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 52775.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 53029.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 53267.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 53522.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 53774.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 54029,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 54266.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 54578.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 54772,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 55026.59999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 55278.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 55772.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 56123.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 56465.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 56612.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 56789.30000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 57021,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 57272.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 57523.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 57779.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 58015.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 58268.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 58519.59999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 58770.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 59027.30000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 59279.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 59519.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 59769.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 60023.90000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 60276.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 60528.80000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 60766.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 61020.59999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 61271.30000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 61523,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 61777.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 62030.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 62268.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 62523.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 62775.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 63029.5,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 63280.19999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 63516.40000000596,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 63768,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 64020.09999999404,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 64274.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 64858.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 65410.80000001192,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 65530.69999998808,
+        "mainReady": false,
+        "mainPrepared": false,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 66959.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 67297.69999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 68204.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 68316.09999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 68565.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 69239.69999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 69529.69999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 69775.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 70028.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 70265.59999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 70523.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 70770.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 71229.90000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 71279.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 71518.59999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 71770.80000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 72024.90000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 72278.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 72522.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 72767.59999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 73015.90000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 73266.19999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 73530.09999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 73768.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 74020.80000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 74419,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 74517.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 74846,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 75017.19999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 75271.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 75524.59999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 75850.40000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 76496.59999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 76515.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 76879.80000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 77080.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 78520,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 78766.90000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 79019.09999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 79272.09999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 79524.80000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 79776.90000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 80016.90000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 80270.19999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 80523.19999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 80774.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 81031.09999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 81269,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 81521.19999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 81774.69999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 82027.40000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 82266.80000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 82520.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 82771.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 83018.59999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 83265.40000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 83525,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 83839.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 84022.90000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 84312,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 84648.59999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 85146.90000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 85287,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 85822.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 86065.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 86266.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 86519.90000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 86773.59999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 87027.69999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 87281.19999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 87517.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 87770.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 88024.09999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 88277.19999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 88531.09999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 88768.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 89021.09999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 89274.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 89529.19999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 89766.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 90019.69999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 90273,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 90527.40000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 90765.40000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 91153.69999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 91269.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 91535.80000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 91772.90000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 92027.09999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 92502.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 92519.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 92842,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 93198.09999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 93269.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 93526.80000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 93778.90000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 94016.80000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 94269.69999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 94522.69999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 94777.69999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 95030.69999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 95268.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 95521.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 95775.59999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 96030.69999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 96266.69999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 96519.09999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 96771.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 97026.19999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 97278.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 97521,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 97769.19999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 98022.09999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 98276.19999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 98531.19999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 98767.90000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 99063.90000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 99275.80000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 99528.59999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 99767.69999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 100018.09999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 100271.19999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 100523.80000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 100778,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 101016.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 101270,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 101526.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 102147,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 102273,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 102850.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": false,
+        "sealReady": false,
+        "revealInput": null
+      },
+      {
+        "time": 103112,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 103270.5,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 103524.09999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 103779.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 104016.90000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 104270.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 104523.90000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 104776.80000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 105016.40000000596,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 105269.59999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 105520.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 105772.30000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 106023.80000001192,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 106278,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 106516,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 106768,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 107022,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 107275.09999999404,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 107525.69999998808,
+        "mainReady": false,
+        "mainPrepared": true,
+        "decisionReady": false,
+        "decisionPrepared": true,
+        "sealReady": true,
+        "revealInput": null
+      },
+      {
+        "time": 107892.19999998808,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 108016.69999998808,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 108269.90000000596,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 108523.40000000596,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 108775.5,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 109029.5,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 109265.69999998808,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 109518.09999999404,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 109765.30000001192,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 110052.90000000596,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 110277.19999998808,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 110529.19999998808,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 110765.80000001192,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 111019.30000001192,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 111272.80000001192,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 111525.59999999404,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 111794.30000001192,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 112029.40000000596,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 112267.90000000596,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 112521.80000001192,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 112789.80000001192,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      },
+      {
+        "time": 113028.59999999404,
+        "mainReady": true,
+        "mainPrepared": true,
+        "decisionReady": true,
+        "decisionPrepared": true,
+        "sealReady": false,
+        "revealInput": 107628.80000001192
+      }
+    ],
+    "warnings": [],
+    "resourceEvents": [
+      {
+        "name": "http://127.0.0.1:18246/assets/styles-ec05c6a73a6e.css",
+        "start": 12.400000005960464,
+        "duration": 7.9000000059604645,
+        "responseEnd": 20.30000001192093,
+        "transferSize": 14875,
+        "decodedBodySize": 78135
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dark-fantasy/card-chrome-prototype/display.css",
+        "start": 12.900000005960464,
+        "duration": 8,
+        "responseEnd": 20.900000005960464,
+        "transferSize": 876,
+        "decodedBodySize": 1262
+      },
+      {
+        "name": "https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js",
+        "start": 12.900000005960464,
+        "duration": 48.19999998807907,
+        "responseEnd": 61.099999994039536,
+        "transferSize": 134058,
+        "decodedBodySize": 452451
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/app-WMHCMZM3.js",
+        "start": 12.900000005960464,
+        "duration": 80,
+        "responseEnd": 92.90000000596046,
+        "transferSize": 867001,
+        "decodedBodySize": 3962789
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/fonts/libron/Libron-Bold.woff2",
+        "start": 156.5,
+        "duration": 4.5,
+        "responseEnd": 161,
+        "transferSize": 85416,
+        "decodedBodySize": 85116
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/fonts/libron/Libron-Regular.woff2",
+        "start": 156.30000001192093,
+        "duration": 4.799999982118607,
+        "responseEnd": 161.09999999403954,
+        "transferSize": 85072,
+        "decodedBodySize": 84772
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/timegraph-forecast-worker-YOB3XRD7.js",
+        "start": 775,
+        "duration": -321.90000000596046,
+        "responseEnd": 453.09999999403954,
+        "transferSize": 230987,
+        "decodedBodySize": 1243957
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/timegraph-forecast-worker-YOB3XRD7.js",
+        "start": 1208,
+        "duration": 9.599999994039536,
+        "responseEnd": 1217.5999999940395,
+        "transferSize": 230987,
+        "decodedBodySize": 1243957
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 1244.0999999940395,
+        "duration": 4.5,
+        "responseEnd": 1248.5999999940395,
+        "transferSize": 1209,
+        "decodedBodySize": 10761
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dev-fixtures/performance-start.json.gz?key=6df597e9898a3f7632d6b0afe62f193d761050b708ade037e014776e30c0f268",
+        "start": 1459.0999999940395,
+        "duration": 275.30000001192093,
+        "responseEnd": 1734.4000000059605,
+        "transferSize": 9636757,
+        "decodedBodySize": 9636457
+      },
+      {
+        "name": "http://127.0.0.1:18246/assets/timegraph-forecast-worker-YOB3XRD7.js",
+        "start": 3720.4000000059605,
+        "duration": -243,
+        "responseEnd": 3477.4000000059605,
+        "transferSize": 230987,
+        "decodedBodySize": 1243957
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-content-prototype.json",
+        "start": 14712.40000000596,
+        "duration": 1577.0999999940395,
+        "responseEnd": 16289.5,
+        "transferSize": 1486,
+        "decodedBodySize": 10646
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-chaos-dictator.json",
+        "start": 17051,
+        "duration": 4.5999999940395355,
+        "responseEnd": 17055.59999999404,
+        "transferSize": 1104,
+        "decodedBodySize": 5002
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-0.json",
+        "start": 17547.69999998808,
+        "duration": 5.200000017881393,
+        "responseEnd": 17552.90000000596,
+        "transferSize": 2162,
+        "decodedBodySize": 21567
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-1.json",
+        "start": 17724.5,
+        "duration": 6,
+        "responseEnd": 17730.5,
+        "transferSize": 2040,
+        "decodedBodySize": 22254
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-2.json",
+        "start": 17724.69999998808,
+        "duration": 5.5,
+        "responseEnd": 17730.19999998808,
+        "transferSize": 836,
+        "decodedBodySize": 2839
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/heirlooms.json",
+        "start": 18753.09999999404,
+        "duration": 6.800000011920929,
+        "responseEnd": 18759.90000000596,
+        "transferSize": 858,
+        "decodedBodySize": 3344
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/piece-frames.json",
+        "start": 19341.30000001192,
+        "duration": 4.0999999940395355,
+        "responseEnd": 19345.40000000596,
+        "transferSize": 829,
+        "decodedBodySize": 2152
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/chronicle-illustrations.json",
+        "start": 19662.90000000596,
+        "duration": 4,
+        "responseEnd": 19666.90000000596,
+        "transferSize": 915,
+        "decodedBodySize": 3927
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/region-landmarks.json",
+        "start": 20253.30000001192,
+        "duration": 5.5999999940395355,
+        "responseEnd": 20258.90000000596,
+        "transferSize": 724,
+        "decodedBodySize": 1174
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/vassal-portraits.json",
+        "start": 20599.90000000596,
+        "duration": 6.4000000059604645,
+        "responseEnd": 20606.30000001192,
+        "transferSize": 875,
+        "decodedBodySize": 5207
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/vassal-class.json",
+        "start": 21098.5,
+        "duration": 5.300000011920929,
+        "responseEnd": 21103.80000001192,
+        "transferSize": 780,
+        "decodedBodySize": 1537
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/chronicle-gate.json",
+        "start": 21415.30000001192,
+        "duration": 4.199999988079071,
+        "responseEnd": 21419.5,
+        "transferSize": 862,
+        "decodedBodySize": 562
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/class-picker-frames.json",
+        "start": 21611.90000000596,
+        "duration": 4.299999982118607,
+        "responseEnd": 21616.19999998808,
+        "transferSize": 794,
+        "decodedBodySize": 2146
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/chronicle-hud-frames.json",
+        "start": 21866.69999998808,
+        "duration": 4.300000011920929,
+        "responseEnd": 21871,
+        "transferSize": 1003,
+        "decodedBodySize": 5967
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/timegraph-chronicle.json",
+        "start": 22116,
+        "duration": 5.4000000059604645,
+        "responseEnd": 22121.40000000596,
+        "transferSize": 877,
+        "decodedBodySize": 577
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/relief-v1.json",
+        "start": 22419.90000000596,
+        "duration": 11.199999988079071,
+        "responseEnd": 22431.09999999404,
+        "transferSize": 2832,
+        "decodedBodySize": 21802
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/landmarks-v1.json",
+        "start": 22421,
+        "duration": 11.699999988079071,
+        "responseEnd": 22432.69999998808,
+        "transferSize": 759,
+        "decodedBodySize": 459
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/terrain-kit-v1.json",
+        "start": 22420.09999999404,
+        "duration": 13.599999994039536,
+        "responseEnd": 22433.69999998808,
+        "transferSize": 6682,
+        "decodedBodySize": 70845
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/engraving-v1.webp",
+        "start": 22421.19999998808,
+        "duration": 18.700000017881393,
+        "responseEnd": 22439.90000000596,
+        "transferSize": 442774,
+        "decodedBodySize": 442474
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/relief-v1.webp",
+        "start": 22432.59999999404,
+        "duration": 28.5,
+        "responseEnd": 22461.09999999404,
+        "transferSize": 875042,
+        "decodedBodySize": 874742
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/landmarks-v1.webp",
+        "start": 22434,
+        "duration": 8.800000011920929,
+        "responseEnd": 22442.80000001192,
+        "transferSize": 19468,
+        "decodedBodySize": 19168
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/terrain-kit-v1.webp",
+        "start": 22435.5,
+        "duration": 27,
+        "responseEnd": 22462.5,
+        "transferSize": 819498,
+        "decodedBodySize": 819198
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/bank-profiles-v1.webp",
+        "start": 22435.59999999404,
+        "duration": 16.200000017881393,
+        "responseEnd": 22451.80000001192,
+        "transferSize": 152102,
+        "decodedBodySize": 151802
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/settlement-buildings-v1.json",
+        "start": 24275.5,
+        "duration": 6,
+        "responseEnd": 24281.5,
+        "transferSize": 672,
+        "decodedBodySize": 2100
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/monster-ground-v1.json",
+        "start": 25340.69999998808,
+        "duration": 4.100000023841858,
+        "responseEnd": 25344.80000001192,
+        "transferSize": 548,
+        "decodedBodySize": 1555
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/monster-ground-v1.webp",
+        "start": 25365.40000000596,
+        "duration": 12.099999994039536,
+        "responseEnd": 25377.5,
+        "transferSize": 22610,
+        "decodedBodySize": 22310
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/crown-buildings-v1.json",
+        "start": 25721.30000001192,
+        "duration": 4.199999988079071,
+        "responseEnd": 25725.5,
+        "transferSize": 507,
+        "decodedBodySize": 207
+      }
+    ],
+    "droppedSamples": 0,
+    "samplingCpuMs": 4990.699999809265,
+    "startInput": 1411.5,
+    "revealInput": 107628.80000001192,
+    "firstReadyAt": 103112,
+    "resources": [
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 1244.0999999940395,
+        "duration": 4.5,
+        "responseEnd": 1248.5999999940395,
+        "transferSize": 1209
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-content-prototype.json",
+        "start": 14712.40000000596,
+        "duration": 1577.0999999940395,
+        "responseEnd": 16289.5,
+        "transferSize": 1486
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-chaos-dictator.json",
+        "start": 17051,
+        "duration": 4.5999999940395355,
+        "responseEnd": 17055.59999999404,
+        "transferSize": 1104
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-0.json",
+        "start": 17547.69999998808,
+        "duration": 5.200000017881393,
+        "responseEnd": 17552.90000000596,
+        "transferSize": 2162
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-1.json",
+        "start": 17724.5,
+        "duration": 6,
+        "responseEnd": 17730.5,
+        "transferSize": 2040
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-2.json",
+        "start": 17724.69999998808,
+        "duration": 5.5,
+        "responseEnd": 17730.19999998808,
+        "transferSize": 836
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/heirlooms.json",
+        "start": 18753.09999999404,
+        "duration": 6.800000011920929,
+        "responseEnd": 18759.90000000596,
+        "transferSize": 858
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/piece-frames.json",
+        "start": 19341.30000001192,
+        "duration": 4.0999999940395355,
+        "responseEnd": 19345.40000000596,
+        "transferSize": 829
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/chronicle-illustrations.json",
+        "start": 19662.90000000596,
+        "duration": 4,
+        "responseEnd": 19666.90000000596,
+        "transferSize": 915
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/region-landmarks.json",
+        "start": 20253.30000001192,
+        "duration": 5.5999999940395355,
+        "responseEnd": 20258.90000000596,
+        "transferSize": 724
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/vassal-portraits.json",
+        "start": 20599.90000000596,
+        "duration": 6.4000000059604645,
+        "responseEnd": 20606.30000001192,
+        "transferSize": 875
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/vassal-class.json",
+        "start": 21098.5,
+        "duration": 5.300000011920929,
+        "responseEnd": 21103.80000001192,
+        "transferSize": 780
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/chronicle-gate.json",
+        "start": 21415.30000001192,
+        "duration": 4.199999988079071,
+        "responseEnd": 21419.5,
+        "transferSize": 862
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/class-picker-frames.json",
+        "start": 21611.90000000596,
+        "duration": 4.299999982118607,
+        "responseEnd": 21616.19999998808,
+        "transferSize": 794
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/chronicle-hud-frames.json",
+        "start": 21866.69999998808,
+        "duration": 4.300000011920929,
+        "responseEnd": 21871,
+        "transferSize": 1003
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/timegraph-chronicle.json",
+        "start": 22116,
+        "duration": 5.4000000059604645,
+        "responseEnd": 22121.40000000596,
+        "transferSize": 877
+      }
+    ]
+  },
+  "errors": [],
+  "consoleErrors": [],
+  "requestFailures": []
+}

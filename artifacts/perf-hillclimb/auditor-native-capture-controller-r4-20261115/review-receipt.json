@@ -1,0 +1,19 @@
+{
+  "at": "2026-11-15T07:32:38.681Z",
+  "manifestSha256": "4d53fe562628598ea6ef15c91040f076f3e7e2362d9144b1ae6693909712bc66",
+  "planSha256": "b214566772d421c89df8bd4156cbf2560e843dd30b9359ced70d04c7f49167bb",
+  "authenticationSha256": "f8f3698d8af97376a45b83bf7190adb08cf86a44e9c1c715c62690b0e8087cbb",
+  "provenanceSha256": "98868fab8e629b2116cb867d73356f604ba7349981f168bfa47435a3f51c8967",
+  "managedSha256": "150e7a128b766722763a7121a4e0f4b9f4fdf9f93db815165e6b9709982e1daf",
+  "checkerSha256": "7f14cb4c05ab6a6b3fdd7d992b3546674705b0e4fbf8f0c76766bc5a78ca1bc1",
+  "adapterSha256": "7f41b2feb325b4ba8df2866eb58bde285b03dcc0cfc33bf95615937bf3d33460",
+  "checkerReceiptSha256": "3679de7e1912ca760a3d109f1b576862783f2ef09053734502c3ec898e971bbb",
+  "cases": 67,
+  "accepted": 12,
+  "rejected": 55,
+  "causalReasons": 33,
+  "prior30DefinitionsMatch": true,
+  "allPlanPinsUnchanged": true,
+  "allSixUnattempted": true,
+  "scope": "Independent complete affected source/pure evidence. No native helper/API/control/target/Run/Main/stop/capture. Scoped admission decision separate."
+}

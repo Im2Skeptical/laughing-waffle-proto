@@ -1,0 +1,19 @@
+{
+    "info":  {
+                 "performanceFixtureKey":  "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+                 "version":  "1.1.52",
+                 "build":  "3e932b24d3a1",
+                 "revision":  "a9df52cbd625",
+                 "channel":  "local",
+                 "branch":  "perf/hillclimb-20261104",
+                 "dirty":  true,
+                 "preview":  true,
+                 "previewLabel":  "5184"
+             },
+    "htmlMatchesBuild":  true,
+    "htmlMatchesVersion":  true,
+    "htmlMatchesBranch":  true,
+    "mobileUrl":  "http://192.168.1.103:5184/",
+    "integration":  "local dirty unintegrated",
+    "verifiedAt":  "2026-11-04T18:22:01.8352536Z"
+}

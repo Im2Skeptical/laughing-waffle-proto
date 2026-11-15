@@ -1,0 +1,296 @@
+[
+  {
+    "population": "desktop",
+    "job": "scrub",
+    "artwork": "off",
+    "id": "main-repair-r3-20261105-0-desktop-scrub-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=scrub",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r3-20261105-0-desktop-scrub-off"
+    ],
+    "started": "2026-11-04T15:11:34.099Z",
+    "finished": "2026-11-04T15:12:31.396Z",
+    "exitCode": 0
+  },
+  {
+    "population": "desktop",
+    "job": "map-pan",
+    "artwork": "off",
+    "id": "main-repair-r3-20261105-1-desktop-map-pan-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-pan",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r3-20261105-1-desktop-map-pan-off"
+    ],
+    "started": "2026-11-04T15:12:31.397Z",
+    "finished": "2026-11-04T15:12:45.160Z",
+    "exitCode": 0
+  },
+  {
+    "population": "desktop",
+    "job": "map-zoom",
+    "artwork": "off",
+    "id": "main-repair-r3-20261105-2-desktop-map-zoom-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-zoom",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r3-20261105-2-desktop-map-zoom-off"
+    ],
+    "started": "2026-11-04T15:12:45.161Z",
+    "finished": "2026-11-04T15:12:57.684Z",
+    "exitCode": 0
+  },
+  {
+    "population": "desktop",
+    "job": "map-open",
+    "artwork": "off",
+    "id": "main-repair-r3-20261105-3-desktop-map-open-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-open",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r3-20261105-3-desktop-map-open-off"
+    ],
+    "started": "2026-11-04T15:12:57.685Z",
+    "finished": "2026-11-04T15:13:09.725Z",
+    "exitCode": 0
+  },
+  {
+    "population": "desktop",
+    "job": "map-close",
+    "artwork": "off",
+    "id": "main-repair-r3-20261105-4-desktop-map-close-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-close",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r3-20261105-4-desktop-map-close-off"
+    ],
+    "started": "2026-11-04T15:13:09.725Z",
+    "finished": "2026-11-04T15:13:21.684Z",
+    "exitCode": 1
+  },
+  {
+    "population": "desktop",
+    "job": "entry",
+    "artwork": "off",
+    "id": "main-repair-r3-20261105-5-desktop-entry-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=entry",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r3-20261105-5-desktop-entry-off"
+    ],
+    "started": "2026-11-04T15:13:21.685Z",
+    "finished": "2026-11-04T15:14:07.309Z",
+    "exitCode": 0
+  },
+  {
+    "population": "desktop",
+    "job": "performance",
+    "artwork": "off",
+    "id": "main-repair-r3-20261105-6-desktop-performance-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=performance",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r3-20261105-6-desktop-performance-off"
+    ],
+    "started": "2026-11-04T15:14:07.310Z",
+    "finished": "2026-11-04T15:14:54.037Z",
+    "exitCode": 0
+  },
+  {
+    "population": "mobile4",
+    "job": "scrub",
+    "artwork": "off",
+    "id": "main-repair-r3-20261105-7-mobile4-scrub-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=scrub",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r3-20261105-7-mobile4-scrub-off"
+    ],
+    "started": "2026-11-04T15:14:54.038Z",
+    "finished": "2026-11-04T15:16:37.813Z",
+    "exitCode": 0
+  },
+  {
+    "population": "mobile4",
+    "job": "map-pan",
+    "artwork": "off",
+    "id": "main-repair-r3-20261105-8-mobile4-map-pan-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-pan",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r3-20261105-8-mobile4-map-pan-off"
+    ],
+    "started": "2026-11-04T15:16:37.814Z",
+    "finished": "2026-11-04T15:17:12.879Z",
+    "exitCode": 0
+  },
+  {
+    "population": "mobile4",
+    "job": "map-zoom",
+    "artwork": "off",
+    "id": "main-repair-r3-20261105-9-mobile4-map-zoom-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-zoom",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r3-20261105-9-mobile4-map-zoom-off"
+    ],
+    "started": "2026-11-04T15:17:12.880Z",
+    "finished": "2026-11-04T15:17:53.513Z",
+    "exitCode": 0
+  },
+  {
+    "population": "mobile4",
+    "job": "map-open",
+    "artwork": "off",
+    "id": "main-repair-r3-20261105-10-mobile4-map-open-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-open",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r3-20261105-10-mobile4-map-open-off"
+    ],
+    "started": "2026-11-04T15:17:53.514Z",
+    "finished": "2026-11-04T15:18:35.603Z",
+    "exitCode": 0
+  },
+  {
+    "population": "mobile4",
+    "job": "map-close",
+    "artwork": "off",
+    "id": "main-repair-r3-20261105-11-mobile4-map-close-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-close",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r3-20261105-11-mobile4-map-close-off"
+    ],
+    "started": "2026-11-04T15:18:35.603Z",
+    "finished": "2026-11-04T15:19:17.731Z",
+    "exitCode": 1
+  },
+  {
+    "population": "mobile4",
+    "job": "entry",
+    "artwork": "off",
+    "id": "main-repair-r3-20261105-12-mobile4-entry-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=entry",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r3-20261105-12-mobile4-entry-off"
+    ],
+    "started": "2026-11-04T15:19:17.732Z",
+    "finished": "2026-11-04T15:20:39.564Z",
+    "exitCode": 0
+  },
+  {
+    "population": "mobile4",
+    "job": "performance",
+    "artwork": "off",
+    "id": "main-repair-r3-20261105-13-mobile4-performance-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=performance",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r3-20261105-13-mobile4-performance-off"
+    ],
+    "started": "2026-11-04T15:20:39.565Z",
+    "finished": "2026-11-04T15:23:17.255Z",
+    "exitCode": 0
+  }
+]

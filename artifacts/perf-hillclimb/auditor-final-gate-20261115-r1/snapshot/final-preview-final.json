@@ -1,0 +1,35 @@
+{
+  "at": "2026-11-15T02:13:36.564Z",
+  "build": {
+    "performanceFixtureKey": "d8e62f7018a37c9148e6215a4360de14978ada6a3d4085b144251b386bc70dde",
+    "version": "1.1.53",
+    "build": "b502cc73de89",
+    "revision": "0e47aa72bb8d",
+    "channel": "local",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": "5202"
+  },
+  "status": {
+    "protocol": 2,
+    "workspaceId": "318fcd5d72880280",
+    "pid": 40528,
+    "desktop": "http://localhost:5202/",
+    "mobile": [
+      "http://100.105.63.49:5202/",
+      "http://192.168.1.103:5202/"
+    ]
+  },
+  "loaded": {
+    "text": "v1.1.53 · Preview 5202",
+    "title": "Game v1.1.53 | Build b502cc73de89 | Revision 0e47aa72bb8d | local | Branch perf/hillclimb-20261104 (modified) | Preview checkout",
+    "dataset": {
+      "testid": "game-build-badge",
+      "version": "1.1.53",
+      "build": "b502cc73de89"
+    }
+  },
+  "lan": "http://192.168.1.103:5202/",
+  "lanEmbeddedIdentity": true
+}

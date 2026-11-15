@@ -1,0 +1,72 @@
+{
+  "at": "2026-11-15T03:16:37.977Z",
+  "classification": "NO_REPRODUCTION_NOT_A_FIX",
+  "originalPrefixOnly": true,
+  "fixturePreserved": true,
+  "subjects": [
+    {
+      "index": 0,
+      "stage": "main",
+      "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-9TrRR6",
+      "started": "2026-11-15T03:09:29.951Z",
+      "finished": "2026-11-15T03:09:30.329Z",
+      "status": 0,
+      "signal": null,
+      "url": "http://localhost:63886/",
+      "stdoutBytes": 141,
+      "stderr": "UNAVAILABLE_ON_SUCCESS",
+      "subjectNormalizedSha256": "cac8ce36f81d6dd66a482f92c06526964bd11b5d88fd4364655e97a0d502d940"
+    },
+    {
+      "index": 1,
+      "stage": "main",
+      "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-9TrRR6",
+      "started": "2026-11-15T03:09:30.365Z",
+      "finished": "2026-11-15T03:09:30.466Z",
+      "status": 0,
+      "signal": null,
+      "url": "http://localhost:63886/",
+      "stdoutBytes": 141,
+      "stderr": "UNAVAILABLE_ON_SUCCESS",
+      "subjectNormalizedSha256": "cac8ce36f81d6dd66a482f92c06526964bd11b5d88fd4364655e97a0d502d940"
+    },
+    {
+      "index": 2,
+      "stage": "worktrees/task-a",
+      "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-9TrRR6\\worktrees\\task-a",
+      "started": "2026-11-15T03:09:41.067Z",
+      "finished": "2026-11-15T03:09:41.477Z",
+      "status": 0,
+      "signal": null,
+      "url": "http://localhost:63887/",
+      "stdoutBytes": 141,
+      "stderr": "UNAVAILABLE_ON_SUCCESS",
+      "subjectNormalizedSha256": "cac8ce36f81d6dd66a482f92c06526964bd11b5d88fd4364655e97a0d502d940"
+    },
+    {
+      "index": 3,
+      "stage": "worktrees/task-b",
+      "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-9TrRR6\\worktrees\\task-b",
+      "started": "2026-11-15T03:09:41.672Z",
+      "finished": "2026-11-15T03:09:42.045Z",
+      "status": 0,
+      "signal": null,
+      "url": "http://localhost:63888/",
+      "stdoutBytes": 141,
+      "stderr": "UNAVAILABLE_ON_SUCCESS",
+      "subjectNormalizedSha256": "cac8ce36f81d6dd66a482f92c06526964bd11b5d88fd4364655e97a0d502d940"
+    }
+  ],
+  "sourceCount": 683,
+  "assetCount": 5,
+  "sourceAssetChanges": [],
+  "ownedStoppedPids": [
+    40636,
+    14488,
+    31452
+  ],
+  "outerRemaining": [],
+  "cleanupVerified": true,
+  "priorNativeFailuresRetained": "Registered final verifier and one unchanged isolated full preview test remain failed; no new cause/fix/full-test acceptance",
+  "limits": "Successful stderr was not captured and is unavailable, not empty. Four-helper prefix completion is not full original test PASS. No reproduction in this one trial does not distinguish logging/guard perturbation from failure frequency."
+}

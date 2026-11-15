@@ -1,0 +1,118 @@
+[
+    {
+        "config":  {
+                       "Schema":  1,
+                       "ArtifactRoot":  "C:\\virtual\\trial",
+                       "RunRoot":  "C:\\virtual\\trial\\controls\\lifetime-0-reuse",
+                       "Id":  "lifetime-0-reuse",
+                       "Mode":  "reuse",
+                       "Executable":  "C:\\virtual\\trial\\target.exe",
+                       "ExecutableSha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                       "ObserverLibrary":  "C:\\virtual\\trial\\observer.dll",
+                       "ObserverSha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                       "HostExecutable":  "C:\\virtual\\powershell.exe",
+                       "HostSha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                       "HostScript":  "C:\\virtual\\trial\\host.ps1",
+                       "HostScriptSha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                       "LoaderContractFile":  "C:\\virtual\\trial\\loader.json",
+                       "LoaderContractSha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                       "NtdllSha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                       "ExecutableBytes":  4096,
+                       "Inputs":  [
+                                      {
+                                          "Path":  "C:\\virtual\\powershell.exe",
+                                          "Sha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                                          "Bytes":  1024
+                                      },
+                                      {
+                                          "Path":  "C:\\virtual\\trial\\host.ps1",
+                                          "Sha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                                          "Bytes":  1024
+                                      },
+                                      {
+                                          "Path":  "C:\\virtual\\trial\\loader.json",
+                                          "Sha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                                          "Bytes":  1024
+                                      },
+                                      {
+                                          "Path":  "C:\\virtual\\trial\\observer.dll",
+                                          "Sha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                                          "Bytes":  1024
+                                      },
+                                      {
+                                          "Path":  "C:\\virtual\\trial\\target.exe",
+                                          "Sha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                                          "Bytes":  4096
+                                      }
+                                  ],
+                       "StartupMs":  10000,
+                       "WorkMs":  10000,
+                       "CleanupMs":  10000,
+                       "HostWorkMs":  45000,
+                       "HostStopMs":  5000,
+                       "BatchMs":  110000,
+                       "RawBytes":  1048576,
+                       "ReportBytes":  16777216
+                   },
+        "fingerprint":  "2b507bb3434c2dd4b8d3274f46a0b318098148c8ade3390427cacb1f14689e65",
+        "mode":  "reuse"
+    },
+    {
+        "config":  {
+                       "Schema":  1,
+                       "ArtifactRoot":  "C:\\virtual\\trial",
+                       "RunRoot":  "C:\\virtual\\trial\\controls\\lifetime-1-fail-after-first",
+                       "Id":  "lifetime-1-fail-after-first",
+                       "Mode":  "fail-after-first",
+                       "Executable":  "C:\\virtual\\trial\\target.exe",
+                       "ExecutableSha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                       "ObserverLibrary":  "C:\\virtual\\trial\\observer.dll",
+                       "ObserverSha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                       "HostExecutable":  "C:\\virtual\\powershell.exe",
+                       "HostSha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                       "HostScript":  "C:\\virtual\\trial\\host.ps1",
+                       "HostScriptSha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                       "LoaderContractFile":  "C:\\virtual\\trial\\loader.json",
+                       "LoaderContractSha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                       "NtdllSha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                       "ExecutableBytes":  4096,
+                       "Inputs":  [
+                                      {
+                                          "Path":  "C:\\virtual\\powershell.exe",
+                                          "Sha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                                          "Bytes":  1024
+                                      },
+                                      {
+                                          "Path":  "C:\\virtual\\trial\\host.ps1",
+                                          "Sha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                                          "Bytes":  1024
+                                      },
+                                      {
+                                          "Path":  "C:\\virtual\\trial\\loader.json",
+                                          "Sha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                                          "Bytes":  1024
+                                      },
+                                      {
+                                          "Path":  "C:\\virtual\\trial\\observer.dll",
+                                          "Sha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                                          "Bytes":  1024
+                                      },
+                                      {
+                                          "Path":  "C:\\virtual\\trial\\target.exe",
+                                          "Sha256":  "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                                          "Bytes":  4096
+                                      }
+                                  ],
+                       "StartupMs":  10000,
+                       "WorkMs":  10000,
+                       "CleanupMs":  10000,
+                       "HostWorkMs":  45000,
+                       "HostStopMs":  5000,
+                       "BatchMs":  110000,
+                       "RawBytes":  1048576,
+                       "ReportBytes":  16777216
+                   },
+        "fingerprint":  "a510a87a20029101d627409a2b1c629be995fde9b5619368661f11c95d64fda8",
+        "mode":  "fail-after-first"
+    }
+]

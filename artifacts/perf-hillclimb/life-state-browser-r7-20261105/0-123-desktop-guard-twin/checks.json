@@ -1,0 +1,9 @@
+{
+  "pass": true,
+  "fullStates": true,
+  "fullDecision": true,
+  "oldMessages": true,
+  "staleCommit": true,
+  "mutation": false,
+  "guardSensitivity": true
+}

@@ -1,0 +1,127 @@
+{
+  "at": "2026-11-05T02:06:53.759Z",
+  "status": "PAUSED",
+  "phaseA": "NOT SOUND",
+  "nativeGoal": "paused",
+  "goalId": "01a1a5fb-32cf-7ff0-86a6-68448a1aa3e9",
+  "head": "0e47aa72bb8da272006a4dba2c70f4ba92775276",
+  "branch": "perf/hillclimb-20261104",
+  "dirty": [
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/HARNESS.md",
+      "bytes": 41315,
+      "sha256": "cb6cd004ed85c53dde460b9abcff8c3818c34a99f20fe1f7945a0a310492867f"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/OPERATOR_PAUSE.md",
+      "bytes": 7048,
+      "sha256": "eccfba1ef879b76e7b53cc0eabf0690c594ad0223415e051c44e29712b6230cd"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/PAUSED_HANDOFF.md",
+      "bytes": 5474,
+      "sha256": "7d5695ac947c55f8f85f037c67655dfdee2accb68bfdda858d02a88863b136f7"
+    },
+    {
+      "file": "docs/performance/perf-hillclimb-20261104/STATE.md",
+      "bytes": 41289,
+      "sha256": "bc9e80daeeaefacbd20ee7e6a8cf976a119e538eafbe93e8b60e23b7b95851a3"
+    },
+    {
+      "file": "package.json",
+      "bytes": 11327,
+      "sha256": "54082c8b0dbc3148e52e2dc1c5b8767a4168ea4ced26b6743566c4adc70a7630"
+    },
+    {
+      "file": "scripts/perf-hillclimb/feedback-bindings-passive-test.mjs",
+      "bytes": 5280,
+      "sha256": "cd12a37826e2a5c253f1da2196c3fb047f32a632a460184fe0252672fa87cb25"
+    },
+    {
+      "file": "scripts/perf-hillclimb/feedback-bindings.mjs",
+      "bytes": 7722,
+      "sha256": "a17bb0c3c003e9eb1efcbdc50ac9fc788bc4b25e98d08984a6f9b835eb726072"
+    },
+    {
+      "file": "scripts/perf-hillclimb/hold-adoption-controls-test.mjs",
+      "bytes": 4390,
+      "sha256": "a391bda98ccc7bfa36bc4687ece878bcbc8e6cdb03aeeeee8cbfb404a98fa939"
+    },
+    {
+      "file": "scripts/perf-hillclimb/hold-adoption-controls.mjs",
+      "bytes": 17423,
+      "sha256": "68ef1bc2df0725c6da42569ad6fc479c5aacc519345d4aa2f515e3c0af8f5257"
+    },
+    {
+      "file": "scripts/perf-hillclimb/run.mjs",
+      "bytes": 95759,
+      "sha256": "282477e03794247c49bda74b5fa5f4722590a009619867553044c9649018b61a"
+    },
+    {
+      "file": "src/views/sunandmoon-disks-pixi.js",
+      "bytes": 40523,
+      "sha256": "02b04fe3fb9ece5b34251b0721070b85f33a09fb46c4c8fdd598a37f1ee76bd9"
+    },
+    {
+      "file": "src/views/time-controls-pixi.js",
+      "bytes": 3709,
+      "sha256": "6ad1abcecaee950e46ae7d19b7995580361c51b6d1b6345691eee686664afe80"
+    },
+    {
+      "file": "src/views/time-lever-pixi.js",
+      "bytes": 8676,
+      "sha256": "ba73069c396637dce766107ef5eab5e39f08c9c23d1d77fa3d812fd1692969be"
+    },
+    {
+      "file": "src/views/ui-root-settlement-pixi.js",
+      "bytes": 87186,
+      "sha256": "32e55c11d55094d8a893a5d9f3f0e0226e7edd8bedb5b79456f5c1af8bd8e3d9"
+    },
+    {
+      "file": "src/views/ui-root/settlement-playback.js",
+      "bytes": 14335,
+      "sha256": "e8a3a668a53685d9f37b806e4968385310ce0e32dd21063f4cd3d7da2be3ba75"
+    }
+  ],
+  "child": {
+    "status": "completed",
+    "latestTerminalStatus": "completed",
+    "hasPendingChildRuns": false,
+    "workState": "result_available",
+    "taskId": "node:delegated-task:command%3Amcp%3A511023d3-b5a3-4982-ac62-178f5cb60278%3Adelegate-task%3Aperf-hillclimb-hold-adaptation-20261105-1",
+    "scope": "Read once after operator reported the child finished; no active delegation or new task."
+  },
+  "integrity": {
+    "file": "artifacts/perf-hillclimb/operator-resume-20261105-r1/authentication.json",
+    "sha256": "7afeaaba0ede6495d4d5f8ebd9f147a49ba940ec42d86b8a664876ea6a345bdc",
+    "sourceCount": 683,
+    "sourceChanges": [],
+    "added": [],
+    "missing": [],
+    "buildChanges": [],
+    "evidenceCount": 1904,
+    "evidenceChanges": []
+  },
+  "processes": "No owned test/browser/build workload. Sole matched process is inherited idle preview5184/PID4484; see processes.json. Metadata helper exits after this receipt.",
+  "schedules": [],
+  "newWorkSinceResume": "Read-only integrity inventory and operator pause metadata only; no test/negative cell/worker/new phase started.",
+  "hold": "Approved main83c00497 integrated as bebc4ead; later dirty harness proof/adoption completion still unfinished.",
+  "nextOnExplicitResume": "Read pause handoffs and authenticate identities, then three affected negative cells under a fresh ID. No automatic continuation from late messages.",
+  "sourceEvidencePolicy": "Original pause snapshot and all accepted/rejected/contended/incomplete identities preserved. This receipt copies dirty bytes including newly updated pause metadata. No commit/push/merge/deploy; thread is not settled.",
+  "notifications": [
+    {
+      "to": "dispatcher",
+      "sent": true,
+      "httpCode": 200,
+      "curlExit": 0,
+      "errorCode": null
+    },
+    {
+      "to": "pm-notes",
+      "sent": true,
+      "httpCode": 200,
+      "curlExit": 0,
+      "errorCode": null
+    }
+  ]
+}

@@ -1,0 +1,263 @@
+[
+  {
+    "key": [
+      "bcdecca74b77bc5bbdc2e91eb48f36270cdf1890320aecffb2effde1439852f3",
+      "ecd0497691d40b8f2134b0f8dffe2d6604fb97445867cf21697471176a1ded7c",
+      "ae5accb6f8e88ba6f18c40a275734ef9f7e2b6df7c17ca2b7cabf15e980f12f8",
+      "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+      "J4",
+      "life-map-open",
+      {
+        "artwork": "off",
+        "cache": "cold",
+        "cpuRate": 1,
+        "entryPath": "continue-fixture",
+        "instrumentation": true,
+        "layout": "desktop",
+        "seed": 123,
+        "workerDelayMs": 0
+      }
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "invalid": 0,
+    "timeouts": 0,
+    "independentLaunches": 1,
+    "p50": 282.5,
+    "p95": 282.5,
+    "min": 282.5,
+    "max": 282.5,
+    "successOnly": {
+      "count": 1,
+      "p50": 282.5,
+      "p95": 282.5,
+      "min": 282.5,
+      "max": 282.5,
+      "population": "conditional on valid successful completion"
+    },
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.99,
+      "estimate": 282.5,
+      "low": null,
+      "high": null,
+      "lowerRank": 0,
+      "upperRank": 2,
+      "bounded": false,
+      "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+    },
+    "p95BootstrapDiagnostic": null,
+    "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+    "latencyBounds": {
+      "p50": {
+        "low": 282.5,
+        "high": 282.5
+      },
+      "p95": {
+        "low": 282.5,
+        "high": 282.5
+      },
+      "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+    },
+    "correctnessGate": true,
+    "tailSampleQuotaMet": false,
+    "eligibleForTailInference": false,
+    "censored": [],
+    "inference": "iid interval only if manifest proves separate independent launches"
+  },
+  {
+    "key": [
+      "bcdecca74b77bc5bbdc2e91eb48f36270cdf1890320aecffb2effde1439852f3",
+      "ecd0497691d40b8f2134b0f8dffe2d6604fb97445867cf21697471176a1ded7c",
+      "ae5accb6f8e88ba6f18c40a275734ef9f7e2b6df7c17ca2b7cabf15e980f12f8",
+      "ordinary:seed=123",
+      "J4",
+      "node-select",
+      {
+        "artwork": "off",
+        "cache": "cold",
+        "cpuRate": 1,
+        "entryPath": "continue-fixture",
+        "instrumentation": true,
+        "layout": "desktop",
+        "seed": 123,
+        "workerDelayMs": 0
+      }
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "invalid": 0,
+    "timeouts": 0,
+    "independentLaunches": 1,
+    "p50": 179.5,
+    "p95": 179.5,
+    "min": 179.5,
+    "max": 179.5,
+    "successOnly": {
+      "count": 1,
+      "p50": 179.5,
+      "p95": 179.5,
+      "min": 179.5,
+      "max": 179.5,
+      "population": "conditional on valid successful completion"
+    },
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.99,
+      "estimate": 179.5,
+      "low": null,
+      "high": null,
+      "lowerRank": 0,
+      "upperRank": 2,
+      "bounded": false,
+      "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+    },
+    "p95BootstrapDiagnostic": null,
+    "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+    "latencyBounds": {
+      "p50": {
+        "low": 179.5,
+        "high": 179.5
+      },
+      "p95": {
+        "low": 179.5,
+        "high": 179.5
+      },
+      "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+    },
+    "correctnessGate": true,
+    "tailSampleQuotaMet": false,
+    "eligibleForTailInference": false,
+    "censored": [],
+    "inference": "iid interval only if manifest proves separate independent launches"
+  },
+  {
+    "key": [
+      "bcdecca74b77bc5bbdc2e91eb48f36270cdf1890320aecffb2effde1439852f3",
+      "ecd0497691d40b8f2134b0f8dffe2d6604fb97445867cf21697471176a1ded7c",
+      "ae5accb6f8e88ba6f18c40a275734ef9f7e2b6df7c17ca2b7cabf15e980f12f8",
+      "ordinary:seed=123",
+      "J4",
+      "node-entry-confirm",
+      {
+        "artwork": "off",
+        "cache": "cold",
+        "cpuRate": 1,
+        "entryPath": "continue-fixture",
+        "instrumentation": true,
+        "layout": "desktop",
+        "seed": 123,
+        "workerDelayMs": 0
+      }
+    ],
+    "attempted": 1,
+    "passed": 1,
+    "failed": 0,
+    "invalid": 0,
+    "timeouts": 0,
+    "independentLaunches": 1,
+    "p50": 1156.9000000059605,
+    "p95": 1156.9000000059605,
+    "min": 1156.9000000059605,
+    "max": 1156.9000000059605,
+    "successOnly": {
+      "count": 1,
+      "p50": 1156.9000000059605,
+      "p95": 1156.9000000059605,
+      "min": 1156.9000000059605,
+      "max": 1156.9000000059605,
+      "population": "conditional on valid successful completion"
+    },
+    "p95Interval": {
+      "n": 1,
+      "p": 0.95,
+      "confidence": 0.99,
+      "estimate": 1156.9000000059605,
+      "low": null,
+      "high": null,
+      "lowerRank": 0,
+      "upperRank": 2,
+      "bounded": false,
+      "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+    },
+    "p95BootstrapDiagnostic": null,
+    "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+    "latencyBounds": {
+      "p50": {
+        "low": 1156.9000000059605,
+        "high": 1156.9000000059605
+      },
+      "p95": {
+        "low": 1156.9000000059605,
+        "high": 1156.9000000059605
+      },
+      "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+    },
+    "correctnessGate": true,
+    "tailSampleQuotaMet": false,
+    "eligibleForTailInference": false,
+    "censored": [],
+    "inference": "iid interval only if manifest proves separate independent launches"
+  },
+  {
+    "key": [
+      "bcdecca74b77bc5bbdc2e91eb48f36270cdf1890320aecffb2effde1439852f3",
+      "ecd0497691d40b8f2134b0f8dffe2d6604fb97445867cf21697471176a1ded7c",
+      "ae5accb6f8e88ba6f18c40a275734ef9f7e2b6df7c17ca2b7cabf15e980f12f8",
+      "ordinary:seed=123",
+      "J4",
+      "shop-category-selection",
+      {
+        "artwork": "off",
+        "cache": "cold",
+        "cpuRate": 1,
+        "entryPath": "continue-fixture",
+        "instrumentation": true,
+        "layout": "desktop",
+        "seed": 123,
+        "workerDelayMs": 0
+      }
+    ],
+    "attempted": 1,
+    "passed": 0,
+    "failed": 1,
+    "invalid": 0,
+    "timeouts": 1,
+    "independentLaunches": 1,
+    "p50": null,
+    "p95": null,
+    "min": null,
+    "max": null,
+    "successOnly": null,
+    "p95Interval": null,
+    "p95BootstrapDiagnostic": null,
+    "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+    "latencyBounds": {
+      "p50": {
+        "low": 90026.09999999404,
+        "high": null
+      },
+      "p95": {
+        "low": 90026.09999999404,
+        "high": null
+      },
+      "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+    },
+    "correctnessGate": false,
+    "tailSampleQuotaMet": false,
+    "eligibleForTailInference": false,
+    "censored": [
+      {
+        "lowerBoundMs": 90026.09999999404,
+        "launchId": "builder-discovery-life:launch-0-life",
+        "timeout": true,
+        "invalidTiming": false
+      }
+    ],
+    "inference": "failed correctness gate; unconditional latency unresolved, successful-only values diagnostic"
+  }
+]

@@ -1,0 +1,114 @@
+{
+    "at":  "2026-11-15T04:00:38.0931791Z",
+    "sourceSha256":  "8c7a7d5d70ba871e2341d40ce147cef5d80d664d475777b33366b670eefe4337",
+    "host64Bit":  true,
+    "layout":  {
+                   "startupInfoBytes":  104,
+                   "processInformationBytes":  24,
+                   "exceptionRecordBytes":  152,
+                   "exceptionDebugInfoBytes":  160,
+                   "debugEventBytes":  176,
+                   "unionOffset":  16,
+                   "exceptionParameterOffset":  32,
+                   "firstChanceOffset":  152
+               },
+    "checks":  [
+                   {
+                       "pass":  true,
+                       "name":  "startupInfoBytes"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "processInformationBytes"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "exceptionRecordBytes"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "exceptionDebugInfoBytes"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "debugEventBytes"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "unionOffset"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "exceptionParameterOffset"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "firstChanceOffset"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "native-code-is-unsigned"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "native-first-chance-is-zero"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "native-address"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "native-parameter-count"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "native-parameter0"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "native-parameter1"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wrong-owner"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "missing-owner"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "truncated-buffer"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "oversized-buffer"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "excess-parameters"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "invalid-first-chance"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "missing-thread"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "unknown-event"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "ordinary-nonzero-exit"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "exit-not-fabricated-exception"
+                   }
+               ],
+    "scope":  "Builder pure managed compilation/layout/synthetic-byte decoder only. No debug API import/invocation, child launch, preview, exception capture or complete observer. Not independent acceptance or OS ABI/capture proof."
+}

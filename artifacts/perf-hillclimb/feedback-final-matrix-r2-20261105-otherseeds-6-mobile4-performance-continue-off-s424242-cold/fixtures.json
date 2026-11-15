@@ -1,0 +1,784 @@
+{
+  "ordinary": {
+    "id": "ordinary",
+    "seed": 424242,
+    "meta": {
+      "schemaVersion": 32,
+      "setupId": "hillclimb:ordinary",
+      "savedAt": "2026-11-04T00:00:00.000Z",
+      "tSec": 0,
+      "seasonKey": "spring",
+      "year": 1,
+      "actionPoints": 0,
+      "actionPointCap": 0
+    },
+    "sha256": "554ddeda71240365cae436a67084ee7ca74bfc5e4cb23cdf7513fcb98a0d9170",
+    "stateSha256": "0273a5c25107fa66ecfb059d724c16e4266715b58da1ff2ffd023cca8e721129",
+    "seconds": 0,
+    "actions": 0,
+    "checkpoints": 0,
+    "characters": 704491,
+    "trace": [],
+    "expected": {
+      "baseSeed": 424242,
+      "second": 0,
+      "lineage": null,
+      "practiceSlots": [
+        {
+          "regionId": "R01",
+          "count": 5
+        },
+        {
+          "regionId": "R02",
+          "count": 5
+        },
+        {
+          "regionId": "R03",
+          "count": 5
+        },
+        {
+          "regionId": "R04",
+          "count": 5
+        },
+        {
+          "regionId": "R05",
+          "count": 5
+        },
+        {
+          "regionId": "R06",
+          "count": 5
+        },
+        {
+          "regionId": "R07",
+          "count": 5
+        },
+        {
+          "regionId": "R08",
+          "count": 5
+        },
+        {
+          "regionId": "R09",
+          "count": 5
+        },
+        {
+          "regionId": "R10",
+          "count": 5
+        },
+        {
+          "regionId": "R11",
+          "count": 5
+        },
+        {
+          "regionId": "R12",
+          "count": 5
+        },
+        {
+          "regionId": "R13",
+          "count": 5
+        },
+        {
+          "regionId": "R14",
+          "count": 5
+        },
+        {
+          "regionId": "R15",
+          "count": 5
+        },
+        {
+          "regionId": "R16",
+          "count": 5
+        },
+        {
+          "regionId": "R17",
+          "count": 5
+        },
+        {
+          "regionId": "R18",
+          "count": 5
+        },
+        {
+          "regionId": "R19",
+          "count": 5
+        },
+        {
+          "regionId": "R20",
+          "count": 5
+        }
+      ]
+    },
+    "file": "fixtures/424242-ordinary.json",
+    "expectedStateFile": "expected/424242-ordinary-state.json"
+  },
+  "selected": {
+    "id": "selected",
+    "seed": 424242,
+    "meta": {
+      "schemaVersion": 32,
+      "setupId": "hillclimb:selected",
+      "savedAt": "2026-11-04T00:00:00.000Z",
+      "tSec": 0,
+      "seasonKey": "spring",
+      "year": 1,
+      "actionPoints": 0,
+      "actionPointCap": 0
+    },
+    "sha256": "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+    "stateSha256": "856d34e57b2f8a4c456f42f389a54b0c47abdf18c47d5d64dc54b673aec1cb92",
+    "seconds": 0,
+    "actions": 1,
+    "checkpoints": 0,
+    "characters": 725397,
+    "trace": [
+      {
+        "second": 0,
+        "kind": "settlementSelectVassal",
+        "payload": {
+          "candidateIndex": 0,
+          "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":17,\"locationRegionId\":\"R17\",\"originRegionId\":\"R17\",\"prestige\":19,\"stats\":{\"cunning\":2,\"wisdom\":1,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"olive\",\"hairStyle\":\"long\",\"hairColor\":\"auburn\",\"faceShape\":\"round\",\"clothingColor\":\"green\",\"accessory\":\"beads\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"housingShop\",\"tag\":\"Housing\",\"label\":\"Housing Shop\",\"glyph\":\"HO\",\"color\":6466946,\"description\":\"A mixed shop containing only Housing-tagged gamepieces.\",\"groupId\":\"tagShop\",\"variantId\":\"housingShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":14,\"locationRegionId\":\"R18\",\"originRegionId\":\"R18\",\"prestige\":22,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":1,\"intelligence\":0},\"portrait\":{\"skinTone\":\"umber\",\"hairStyle\":\"coils\",\"hairColor\":\"silver\",\"faceShape\":\"round\",\"clothingColor\":\"charcoal\",\"accessory\":\"band\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"removePractice\",\"groupId\":\"removal\",\"removalKind\":\"practice\",\"label\":\"Remove Practice\",\"glyph\":\"−P\",\"color\":10776516,\"description\":\"Pay to remove Practices from the Vassal's current settlement.\",\"variantId\":\"removePractice\"}}]"
+        }
+      }
+    ],
+    "expected": {
+      "baseSeed": 424242,
+      "second": 0,
+      "lineage": "vassal-1",
+      "practiceSlots": [
+        {
+          "regionId": "R01",
+          "count": 5
+        },
+        {
+          "regionId": "R02",
+          "count": 5
+        },
+        {
+          "regionId": "R03",
+          "count": 5
+        },
+        {
+          "regionId": "R04",
+          "count": 5
+        },
+        {
+          "regionId": "R05",
+          "count": 5
+        },
+        {
+          "regionId": "R06",
+          "count": 5
+        },
+        {
+          "regionId": "R07",
+          "count": 5
+        },
+        {
+          "regionId": "R08",
+          "count": 5
+        },
+        {
+          "regionId": "R09",
+          "count": 5
+        },
+        {
+          "regionId": "R10",
+          "count": 5
+        },
+        {
+          "regionId": "R11",
+          "count": 5
+        },
+        {
+          "regionId": "R12",
+          "count": 5
+        },
+        {
+          "regionId": "R13",
+          "count": 5
+        },
+        {
+          "regionId": "R14",
+          "count": 5
+        },
+        {
+          "regionId": "R15",
+          "count": 5
+        },
+        {
+          "regionId": "R16",
+          "count": 5
+        },
+        {
+          "regionId": "R17",
+          "count": 5
+        },
+        {
+          "regionId": "R18",
+          "count": 5
+        },
+        {
+          "regionId": "R19",
+          "count": 5
+        },
+        {
+          "regionId": "R20",
+          "count": 5
+        }
+      ]
+    },
+    "file": "fixtures/424242-selected.json",
+    "expectedStateFile": "expected/424242-selected-state.json"
+  },
+  "shop": {
+    "id": "shop",
+    "seed": 424242,
+    "meta": {
+      "schemaVersion": 32,
+      "setupId": "hillclimb:shop",
+      "savedAt": "2026-11-04T00:00:00.000Z",
+      "tSec": 0,
+      "seasonKey": "spring",
+      "year": 1,
+      "actionPoints": 0,
+      "actionPointCap": 0
+    },
+    "sha256": "9925aba8686513954d40be89de1e17abb868bdb20dc6dfd4b2af6ef2fed5f12f",
+    "stateSha256": "d68766e45f7dd13c8433ad3dc4088ba52148c6b45cdb9a18af5dd6471f0bd0ae",
+    "seconds": 0,
+    "actions": 3,
+    "checkpoints": 0,
+    "characters": 727617,
+    "trace": [
+      {
+        "second": 0,
+        "kind": "settlementSelectVassal",
+        "payload": {
+          "candidateIndex": 0,
+          "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":17,\"locationRegionId\":\"R17\",\"originRegionId\":\"R17\",\"prestige\":19,\"stats\":{\"cunning\":2,\"wisdom\":1,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"olive\",\"hairStyle\":\"long\",\"hairColor\":\"auburn\",\"faceShape\":\"round\",\"clothingColor\":\"green\",\"accessory\":\"beads\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"housingShop\",\"tag\":\"Housing\",\"label\":\"Housing Shop\",\"glyph\":\"HO\",\"color\":6466946,\"description\":\"A mixed shop containing only Housing-tagged gamepieces.\",\"groupId\":\"tagShop\",\"variantId\":\"housingShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":14,\"locationRegionId\":\"R18\",\"originRegionId\":\"R18\",\"prestige\":22,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":1,\"intelligence\":0},\"portrait\":{\"skinTone\":\"umber\",\"hairStyle\":\"coils\",\"hairColor\":\"silver\",\"faceShape\":\"round\",\"clothingColor\":\"charcoal\",\"accessory\":\"band\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"removePractice\",\"groupId\":\"removal\",\"removalKind\":\"practice\",\"label\":\"Remove Practice\",\"glyph\":\"−P\",\"color\":10776516,\"description\":\"Pay to remove Practices from the Vassal's current settlement.\",\"variantId\":\"removePractice\"}}]"
+        }
+      },
+      {
+        "second": 0,
+        "kind": "vassalEnterLifeNode",
+        "payload": {
+          "nodeId": "life-milestone-milestone-1"
+        }
+      },
+      {
+        "second": 0,
+        "kind": "vassalSelectLifeOption",
+        "payload": {
+          "nodeId": "life-milestone-milestone-1",
+          "optionId": "random"
+        }
+      }
+    ],
+    "expected": {
+      "baseSeed": 424242,
+      "second": 0,
+      "lineage": "vassal-1",
+      "practiceSlots": [
+        {
+          "regionId": "R01",
+          "count": 5
+        },
+        {
+          "regionId": "R02",
+          "count": 5
+        },
+        {
+          "regionId": "R03",
+          "count": 5
+        },
+        {
+          "regionId": "R04",
+          "count": 5
+        },
+        {
+          "regionId": "R05",
+          "count": 5
+        },
+        {
+          "regionId": "R06",
+          "count": 5
+        },
+        {
+          "regionId": "R07",
+          "count": 5
+        },
+        {
+          "regionId": "R08",
+          "count": 5
+        },
+        {
+          "regionId": "R09",
+          "count": 5
+        },
+        {
+          "regionId": "R10",
+          "count": 5
+        },
+        {
+          "regionId": "R11",
+          "count": 5
+        },
+        {
+          "regionId": "R12",
+          "count": 5
+        },
+        {
+          "regionId": "R13",
+          "count": 5
+        },
+        {
+          "regionId": "R14",
+          "count": 5
+        },
+        {
+          "regionId": "R15",
+          "count": 5
+        },
+        {
+          "regionId": "R16",
+          "count": 5
+        },
+        {
+          "regionId": "R17",
+          "count": 5
+        },
+        {
+          "regionId": "R18",
+          "count": 5
+        },
+        {
+          "regionId": "R19",
+          "count": 5
+        },
+        {
+          "regionId": "R20",
+          "count": 5
+        }
+      ]
+    },
+    "file": "fixtures/424242-shop.json",
+    "expectedStateFile": "expected/424242-shop-state.json"
+  },
+  "history": {
+    "id": "history",
+    "seed": 424242,
+    "meta": {
+      "schemaVersion": 32,
+      "setupId": "hillclimb:history",
+      "savedAt": "2026-11-04T00:00:00.000Z",
+      "tSec": 54,
+      "seasonKey": "autumn",
+      "year": 2,
+      "actionPoints": 0,
+      "actionPointCap": 0
+    },
+    "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+    "stateSha256": "227295b2dfe023a9a8c1be9d0a160e019bfe2f0e5967821b26533ba64510e6d2",
+    "seconds": 54,
+    "actions": 5,
+    "checkpoints": 27,
+    "characters": 18930749,
+    "trace": [
+      {
+        "second": 0,
+        "kind": "settlementSelectVassal",
+        "payload": {
+          "candidateIndex": 0,
+          "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":17,\"locationRegionId\":\"R17\",\"originRegionId\":\"R17\",\"prestige\":19,\"stats\":{\"cunning\":2,\"wisdom\":1,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"olive\",\"hairStyle\":\"long\",\"hairColor\":\"auburn\",\"faceShape\":\"round\",\"clothingColor\":\"green\",\"accessory\":\"beads\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"housingShop\",\"tag\":\"Housing\",\"label\":\"Housing Shop\",\"glyph\":\"HO\",\"color\":6466946,\"description\":\"A mixed shop containing only Housing-tagged gamepieces.\",\"groupId\":\"tagShop\",\"variantId\":\"housingShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":14,\"locationRegionId\":\"R18\",\"originRegionId\":\"R18\",\"prestige\":22,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":1,\"intelligence\":0},\"portrait\":{\"skinTone\":\"umber\",\"hairStyle\":\"coils\",\"hairColor\":\"silver\",\"faceShape\":\"round\",\"clothingColor\":\"charcoal\",\"accessory\":\"band\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"removePractice\",\"groupId\":\"removal\",\"removalKind\":\"practice\",\"label\":\"Remove Practice\",\"glyph\":\"−P\",\"color\":10776516,\"description\":\"Pay to remove Practices from the Vassal's current settlement.\",\"variantId\":\"removePractice\"}}]"
+        }
+      },
+      {
+        "second": 0,
+        "kind": "vassalEnterLifeNode",
+        "payload": {
+          "nodeId": "life-milestone-milestone-1"
+        }
+      },
+      {
+        "second": 0,
+        "kind": "vassalSelectLifeOption",
+        "payload": {
+          "nodeId": "life-milestone-milestone-1",
+          "optionId": "random"
+        }
+      },
+      {
+        "second": 0,
+        "kind": "vassalPurchaseShopOffer",
+        "payload": {
+          "nodeId": "life-milestone-milestone-1",
+          "offerId": "life-milestone-milestone-1:r0:practice:0"
+        }
+      },
+      {
+        "second": 0,
+        "kind": "vassalConfirmLifeNode",
+        "payload": {
+          "nodeId": "life-milestone-milestone-1"
+        }
+      }
+    ],
+    "expected": {
+      "baseSeed": 424242,
+      "second": 54,
+      "lineage": "vassal-1",
+      "practiceSlots": [
+        {
+          "regionId": "R01",
+          "count": 5
+        },
+        {
+          "regionId": "R02",
+          "count": 5
+        },
+        {
+          "regionId": "R03",
+          "count": 5
+        },
+        {
+          "regionId": "R04",
+          "count": 5
+        },
+        {
+          "regionId": "R05",
+          "count": 5
+        },
+        {
+          "regionId": "R06",
+          "count": 5
+        },
+        {
+          "regionId": "R07",
+          "count": 5
+        },
+        {
+          "regionId": "R08",
+          "count": 5
+        },
+        {
+          "regionId": "R09",
+          "count": 5
+        },
+        {
+          "regionId": "R10",
+          "count": 5
+        },
+        {
+          "regionId": "R11",
+          "count": 5
+        },
+        {
+          "regionId": "R12",
+          "count": 5
+        },
+        {
+          "regionId": "R13",
+          "count": 5
+        },
+        {
+          "regionId": "R14",
+          "count": 5
+        },
+        {
+          "regionId": "R15",
+          "count": 5
+        },
+        {
+          "regionId": "R16",
+          "count": 5
+        },
+        {
+          "regionId": "R17",
+          "count": 5
+        },
+        {
+          "regionId": "R18",
+          "count": 5
+        },
+        {
+          "regionId": "R19",
+          "count": 5
+        },
+        {
+          "regionId": "R20",
+          "count": 5
+        }
+      ]
+    },
+    "file": "fixtures/424242-history.json",
+    "expectedStateFile": "expected/424242-history-state.json"
+  },
+  "later-history": {
+    "id": "later-history",
+    "seed": 424242,
+    "meta": {
+      "schemaVersion": 32,
+      "setupId": "hillclimb:later-history",
+      "savedAt": "2026-11-04T00:00:00.000Z",
+      "tSec": 574,
+      "seasonKey": "winter",
+      "year": 18,
+      "actionPoints": 24,
+      "actionPointCap": 80
+    },
+    "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+    "stateSha256": "35f8bde941fa3ac315074b526fe5d57c6306e6943edfaa02f9bb7c01f8ee063e",
+    "seconds": 574,
+    "actions": 21,
+    "checkpoints": 29,
+    "characters": 25684367,
+    "trace": [
+      {
+        "second": 0,
+        "kind": "settlementSelectVassal",
+        "payload": {
+          "candidateIndex": 0,
+          "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":17,\"locationRegionId\":\"R17\",\"originRegionId\":\"R17\",\"prestige\":19,\"stats\":{\"cunning\":2,\"wisdom\":1,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"olive\",\"hairStyle\":\"long\",\"hairColor\":\"auburn\",\"faceShape\":\"round\",\"clothingColor\":\"green\",\"accessory\":\"beads\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"housingShop\",\"tag\":\"Housing\",\"label\":\"Housing Shop\",\"glyph\":\"HO\",\"color\":6466946,\"description\":\"A mixed shop containing only Housing-tagged gamepieces.\",\"groupId\":\"tagShop\",\"variantId\":\"housingShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":14,\"locationRegionId\":\"R18\",\"originRegionId\":\"R18\",\"prestige\":22,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":1,\"intelligence\":0},\"portrait\":{\"skinTone\":\"umber\",\"hairStyle\":\"coils\",\"hairColor\":\"silver\",\"faceShape\":\"round\",\"clothingColor\":\"charcoal\",\"accessory\":\"band\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"removePractice\",\"groupId\":\"removal\",\"removalKind\":\"practice\",\"label\":\"Remove Practice\",\"glyph\":\"−P\",\"color\":10776516,\"description\":\"Pay to remove Practices from the Vassal's current settlement.\",\"variantId\":\"removePractice\"}}]"
+        }
+      },
+      {
+        "second": 0,
+        "kind": "vassalEnterLifeNode",
+        "payload": {
+          "nodeId": "life-milestone-milestone-1"
+        }
+      },
+      {
+        "second": 0,
+        "kind": "vassalSelectLifeOption",
+        "payload": {
+          "nodeId": "life-milestone-milestone-1",
+          "optionId": "random"
+        }
+      },
+      {
+        "second": 0,
+        "kind": "vassalPurchaseShopOffer",
+        "payload": {
+          "nodeId": "life-milestone-milestone-1",
+          "offerId": "life-milestone-milestone-1:r0:practice:0"
+        }
+      },
+      {
+        "second": 0,
+        "kind": "vassalConfirmLifeNode",
+        "payload": {
+          "nodeId": "life-milestone-milestone-1"
+        }
+      },
+      {
+        "second": 54,
+        "kind": "vassalEnterLifeNode",
+        "payload": {
+          "nodeId": "life-d02-r01"
+        }
+      },
+      {
+        "second": 54,
+        "kind": "vassalSelectLifeOption",
+        "payload": {
+          "nodeId": "life-d02-r01",
+          "optionId": "relic:royalWarrant"
+        }
+      },
+      {
+        "second": 54,
+        "kind": "vassalConfirmLifeNode",
+        "payload": {
+          "nodeId": "life-d02-r01",
+          "acquire": {
+            "destination": "decline"
+          }
+        }
+      },
+      {
+        "second": 189,
+        "kind": "vassalEnterLifeNode",
+        "payload": {
+          "nodeId": "life-d03-r02"
+        }
+      },
+      {
+        "second": 189,
+        "kind": "vassalConfirmLifeNode",
+        "payload": {
+          "nodeId": "life-d03-r02"
+        }
+      },
+      {
+        "second": 324,
+        "kind": "vassalEnterLifeNode",
+        "payload": {
+          "nodeId": "life-d04-r01"
+        }
+      },
+      {
+        "second": 324,
+        "kind": "vassalSelectLifeOption",
+        "payload": {
+          "nodeId": "life-d04-r01",
+          "optionId": "immediateFavor"
+        }
+      },
+      {
+        "second": 324,
+        "kind": "vassalConfirmLifeNode",
+        "payload": {
+          "nodeId": "life-d04-r01"
+        }
+      },
+      {
+        "second": 405,
+        "kind": "vassalChooseDevelopmentStat",
+        "payload": {
+          "choiceId": "vassal-1:level:1",
+          "statId": "wisdom"
+        }
+      },
+      {
+        "second": 405,
+        "kind": "vassalEnterLifeNode",
+        "payload": {
+          "nodeId": "vassal-1-founding"
+        }
+      },
+      {
+        "second": 405,
+        "kind": "vassalSelectLifeOption",
+        "payload": {
+          "nodeId": "vassal-1-founding",
+          "optionId": "train-estate"
+        }
+      },
+      {
+        "second": 405,
+        "kind": "vassalConfirmLifeNode",
+        "payload": {
+          "nodeId": "vassal-1-founding"
+        }
+      },
+      {
+        "second": 411,
+        "kind": "vassalChooseCommission",
+        "payload": {
+          "offerId": "vassal-1:commission:1:stat"
+        }
+      },
+      {
+        "second": 411,
+        "kind": "vassalEnterLifeNode",
+        "payload": {
+          "nodeId": "life-d06-r01"
+        }
+      },
+      {
+        "second": 411,
+        "kind": "vassalSelectLifeOption",
+        "payload": {
+          "nodeId": "life-d06-r01",
+          "optionId": "travel-R01"
+        }
+      },
+      {
+        "second": 411,
+        "kind": "vassalConfirmLifeNode",
+        "payload": {
+          "nodeId": "life-d06-r01"
+        }
+      }
+    ],
+    "expected": {
+      "baseSeed": 424242,
+      "second": 574,
+      "lineage": "vassal-1",
+      "practiceSlots": [
+        {
+          "regionId": "R01",
+          "count": 5
+        },
+        {
+          "regionId": "R02",
+          "count": 5
+        },
+        {
+          "regionId": "R03",
+          "count": 5
+        },
+        {
+          "regionId": "R04",
+          "count": 5
+        },
+        {
+          "regionId": "R05",
+          "count": 5
+        },
+        {
+          "regionId": "R06",
+          "count": 5
+        },
+        {
+          "regionId": "R07",
+          "count": 5
+        },
+        {
+          "regionId": "R08",
+          "count": 5
+        },
+        {
+          "regionId": "R09",
+          "count": 5
+        },
+        {
+          "regionId": "R10",
+          "count": 5
+        },
+        {
+          "regionId": "R11",
+          "count": 5
+        },
+        {
+          "regionId": "R12",
+          "count": 5
+        },
+        {
+          "regionId": "R13",
+          "count": 5
+        },
+        {
+          "regionId": "R14",
+          "count": 5
+        },
+        {
+          "regionId": "R15",
+          "count": 5
+        },
+        {
+          "regionId": "R16",
+          "count": 5
+        },
+        {
+          "regionId": "R17",
+          "count": 5
+        },
+        {
+          "regionId": "R18",
+          "count": 5
+        },
+        {
+          "regionId": "R19",
+          "count": 5
+        },
+        {
+          "regionId": "R20",
+          "count": 5
+        }
+      ]
+    },
+    "itineraryStop": "fixed six-node continuation completed",
+    "file": "fixtures/424242-later-history.json",
+    "expectedStateFile": "expected/424242-later-history-state.json"
+  }
+}

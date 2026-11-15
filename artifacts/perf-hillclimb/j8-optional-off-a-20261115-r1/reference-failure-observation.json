@@ -1,0 +1,390 @@
+{
+  "file": "reference-failure-observation.json",
+  "phase": "failure",
+  "hostCollectedAt": "2026-11-14T23:45:10.907Z",
+  "continuous": {
+    "session": {
+      "available": false,
+      "longTasksAvailable": false,
+      "startMs": 6094.4000000059605,
+      "endMs": 301323.90000000596,
+      "readAtMs": 301324.3000000119,
+      "frames": [],
+      "longTasks": [],
+      "trailingFrameRightCensored": null,
+      "trailingFrameLowerBoundMs": null,
+      "scope": "continuous main-thread rAF intervals/long tasks; keep a declared post-action observation window, not only transaction markers"
+    },
+    "sessionStartScope": "trusted entry input",
+    "postAction": {
+      "available": false,
+      "longTasksAvailable": false,
+      "startMs": 301321.10000002384,
+      "endMs": 301323.90000000596,
+      "readAtMs": 301324.5,
+      "frames": [],
+      "longTasks": [],
+      "trailingFrameRightCensored": null,
+      "trailingFrameLowerBoundMs": null,
+      "scope": "continuous main-thread rAF intervals/long tasks; keep a declared post-action observation window, not only transaction markers"
+    },
+    "postAnchor": 301321.10000002384,
+    "desiredPostEnd": 303821.10000002384,
+    "fullPostWindowReached": false,
+    "partialByFailure": true
+  },
+  "witness": {
+    "samples": [],
+    "warnings": [],
+    "resourceEvents": [],
+    "assetLoadCalls": [
+      {
+        "time": 777.1000000238419,
+        "paths": [
+          "images/sprite-sheets/resource-language.json"
+        ],
+        "operation": "setup"
+      },
+      {
+        "time": 61094.10000002384,
+        "paths": [
+          "images/sprite-sheets/full-map-content-prototype.json"
+        ],
+        "operation": "opening-to-responsive-present"
+      },
+      {
+        "time": 63372,
+        "paths": [
+          "images/sprite-sheets/full-map-chaos-dictator.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 65706.60000002384,
+        "paths": [
+          "images/sprite-sheets/settlement-pieces-0.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 67848.80000001192,
+        "paths": [
+          "images/sprite-sheets/heirlooms.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 69307.80000001192,
+        "paths": [
+          "images/sprite-sheets/piece-frames.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 70622.80000001192,
+        "paths": [
+          "images/sprite-sheets/chronicle-illustrations.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 71658.20000001788,
+        "paths": [
+          "images/sprite-sheets/region-landmarks.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 73540.40000000596,
+        "paths": [
+          "images/sprite-sheets/vassal-portraits.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 74390.60000002384,
+        "paths": [
+          "images/sprite-sheets/vassal-class.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 75624.60000002384,
+        "paths": [
+          "images/sprite-sheets/chronicle-gate.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 77139.10000002384,
+        "paths": [
+          "images/sprite-sheets/class-picker-frames.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 79198.80000001192,
+        "paths": [
+          "images/sprite-sheets/chronicle-hud-frames.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 81331.30000001192,
+        "paths": [
+          "images/sprite-sheets/timegraph-chronicle.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 82472.20000001788,
+        "paths": [
+          "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/cloud-banks-v2.png"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 82473.30000001192,
+        "paths": [
+          "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/cloud-banks-v3.png"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 82473.80000001192,
+        "paths": [
+          "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/cloud-cumulus-v1.png"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 86833.90000000596,
+        "paths": [
+          "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/settlement-buildings-v1.webp"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 87071.70000001788,
+        "paths": [
+          "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/crown-buildings-v1.webp"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      }
+    ],
+    "droppedSamples": 0,
+    "samplingCpuMs": 0,
+    "publicationEvents": [
+      {
+        "kind": "hide",
+        "time": 6207.5,
+        "prefix": "full-map-content-prototype/art/"
+      },
+      {
+        "kind": "hide",
+        "time": 6207.5,
+        "prefix": "full-map-chaos-prototype/art/"
+      },
+      {
+        "kind": "hide",
+        "time": 6207.5,
+        "prefix": "heirlooms-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 6207.5,
+        "prefix": "settlement-pieces-v4/"
+      },
+      {
+        "kind": "hide",
+        "time": 6207.5,
+        "prefix": "piece-frames-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 6207.700000017881,
+        "prefix": "chronicle-illustrations-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 6207.700000017881,
+        "prefix": "region-landmarks-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 6207.700000017881,
+        "prefix": "vassal-portraits-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 6207.700000017881,
+        "prefix": "vassal-class-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 6207.800000011921,
+        "prefix": "chronicle-gate-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 6208,
+        "prefix": "class-picker-frames-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 6208,
+        "prefix": "chronicle-hud-frames-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 6208,
+        "prefix": "timegraph-chronicle-v1/"
+      }
+    ],
+    "terrainEvents": [],
+    "terrainProbeCount": 0,
+    "terrainProbeCpuMs": 0,
+    "startInput": 6094.4000000059605,
+    "revealInput": null,
+    "firstReadyAt": null,
+    "firstReadyFrameAt": null,
+    "assetWitnessInstalled": true,
+    "pixiVersion": "7.2.4",
+    "resources": [
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 5657.4000000059605,
+        "duration": 5.0999999940395355,
+        "responseEnd": 5662.5,
+        "transferSize": 1209
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-content-prototype.json",
+        "start": 61104.30000001192,
+        "duration": 5.5,
+        "responseEnd": 61109.80000001192,
+        "transferSize": 1486
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-chaos-dictator.json",
+        "start": 63374.20000001788,
+        "duration": 4.5999999940395355,
+        "responseEnd": 63378.80000001192,
+        "transferSize": 1104
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-0.json",
+        "start": 65708.70000001788,
+        "duration": 4.5,
+        "responseEnd": 65713.20000001788,
+        "transferSize": 2162
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-1.json",
+        "start": 65921.5,
+        "duration": 13,
+        "responseEnd": 65934.5,
+        "transferSize": 2040
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-2.json",
+        "start": 65923.90000000596,
+        "duration": 12.900000005960464,
+        "responseEnd": 65936.80000001192,
+        "transferSize": 836
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/heirlooms.json",
+        "start": 67850.70000001788,
+        "duration": 5.4000000059604645,
+        "responseEnd": 67856.10000002384,
+        "transferSize": 858
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/piece-frames.json",
+        "start": 69309.80000001192,
+        "duration": 4.5,
+        "responseEnd": 69314.30000001192,
+        "transferSize": 829
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/chronicle-illustrations.json",
+        "start": 70624.60000002384,
+        "duration": 4.399999976158142,
+        "responseEnd": 70629,
+        "transferSize": 915
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/region-landmarks.json",
+        "start": 71660,
+        "duration": 8.400000005960464,
+        "responseEnd": 71668.40000000596,
+        "transferSize": 724
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/vassal-portraits.json",
+        "start": 73541.60000002384,
+        "duration": 5,
+        "responseEnd": 73546.60000002384,
+        "transferSize": 875
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/vassal-class.json",
+        "start": 74392.40000000596,
+        "duration": 4.4000000059604645,
+        "responseEnd": 74396.80000001192,
+        "transferSize": 780
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/chronicle-gate.json",
+        "start": 75626.5,
+        "duration": 4.4000000059604645,
+        "responseEnd": 75630.90000000596,
+        "transferSize": 862
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/class-picker-frames.json",
+        "start": 77140.80000001192,
+        "duration": 5,
+        "responseEnd": 77145.80000001192,
+        "transferSize": 794
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/chronicle-hud-frames.json",
+        "start": 79200.5,
+        "duration": 4.200000017881393,
+        "responseEnd": 79204.70000001788,
+        "transferSize": 1003
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/timegraph-chronicle.json",
+        "start": 81333.10000002384,
+        "duration": 4.699999988079071,
+        "responseEnd": 81337.80000001192,
+        "transferSize": 877
+      }
+    ]
+  },
+  "diagnosticWindows": [
+    {
+      "id": "j8-optional-off-a-20261115-r1:reference:browser:diagnostic:1",
+      "label": "legacy getTimeActionClickPoint geometry calibration",
+      "startMs": 59960.20000001788,
+      "endMs": 60141.40000000596,
+      "status": "completed"
+    },
+    {
+      "id": "j8-optional-off-a-20261115-r1:reference:browser:diagnostic:2",
+      "label": "CDP heap inspection entry",
+      "startMs": 61226.90000000596,
+      "endMs": 61281.40000000596,
+      "status": "completed"
+    }
+  ],
+  "collectionErrors": [],
+  "availability": {
+    "continuous": true,
+    "witness": true,
+    "completePostWindow": false
+  }
+}

@@ -1,0 +1,9 @@
+﻿{
+    "shellPid":  4844,
+    "scope":  "Unreached checks only; overall npm run verify remains FAILED at preview test",
+    "commands":  [
+                     "node scripts/build-badge-test.mjs",
+                     "npm test"
+                 ],
+    "at":  "2026-11-15T02:04:21.3453513Z"
+}

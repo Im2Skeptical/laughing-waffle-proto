@@ -1,0 +1,5 @@
+{
+  "policy": "frozen-terminal-observed-before-save-v1",
+  "controls": 67,
+  "scope": "three-seed helper rejection controls and retained full-state parity only; actual path proof remains separate"
+}

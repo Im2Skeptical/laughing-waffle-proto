@@ -1,0 +1,2 @@
+[hillclimb] FAIL J2/performance-continue-present: page.evaluate: Execution context was destroyed, most likely because of a navigation.; C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\artifacts\perf-hillclimb\continue-knowledge-missing-frame-r1-20261115
+[hillclimb] FAILED observations=2 path=C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\artifacts\perf-hillclimb\continue-knowledge-missing-frame-r1-20261115

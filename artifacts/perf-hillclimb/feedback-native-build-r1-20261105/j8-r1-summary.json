@@ -1,0 +1,1077 @@
+{
+  "plannedCases": 8,
+  "attemptedCases": 8,
+  "passedCases": 6,
+  "failedCases": 2,
+  "rowCount": 78,
+  "receiptCount": 72,
+  "receiptValidationErrors": 0,
+  "missingReceipts": 0,
+  "phases": {
+    "completed": 68,
+    "null": 6,
+    "censored": 4
+  },
+  "hostRpcMs": {
+    "count": 72,
+    "min": 3.468699999997625,
+    "max": 1164.2186999999976,
+    "sum": 5341.89469999991
+  },
+  "exportCpuMs": {
+    "count": 72,
+    "min": 0,
+    "max": 4.199999988079071,
+    "sum": 17.299999952316284
+  },
+  "readCpuMs": {
+    "count": 72,
+    "min": 0.09999999403953552,
+    "max": 2002.9000001847744,
+    "sum": 4282.599998623133
+  },
+  "rows": [
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-1",
+      "case": "reference",
+      "population": "desktop",
+      "step": "performance-entry-full-opening",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 8.099999999998545,
+      "exportCpuMs": 0.20000001788139343,
+      "readCpuMs": 1.199999988079071
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-2",
+      "case": "reference",
+      "population": "desktop",
+      "step": "opening-to-responsive-present",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 3.5551999999988766,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.699999988079071
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-3",
+      "case": "reference",
+      "population": "desktop",
+      "step": "remaining-background-wait-to-prepared",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 131.0850999999966,
+      "exportCpuMs": 0.800000011920929,
+      "readCpuMs": 49.10000032186508
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-4",
+      "case": "reference",
+      "population": "desktop",
+      "step": "explicit-reveal",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 5.712899999998626,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.699999988079071
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-5",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-0-0-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 3.468699999997625,
+      "exportCpuMs": 0.09999999403953552,
+      "readCpuMs": 0.19999998807907104
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-6",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-0-0-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 12.964799999987008,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.5
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-7",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-0-1-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 12.618699999991804,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.5999999940395355
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-8",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-0-1-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 9.450700000001234,
+      "exportCpuMs": 0.10000002384185791,
+      "readCpuMs": 0.5999999642372131
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-9",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-0-2-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 7.774699999994482,
+      "exportCpuMs": 0,
+      "readCpuMs": 1.0999999940395355
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-10",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-0-2-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 5.5613999999914085,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.6999999582767487
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-11",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-0-3-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 4.932499999995343,
+      "exportCpuMs": 0.09999999403953552,
+      "readCpuMs": 1.199999988079071
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-12",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-0-3-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 6.155600000012782,
+      "exportCpuMs": 0.09999999403953552,
+      "readCpuMs": 0.3999999761581421
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-13",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-0-4-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 6.412800000005518,
+      "exportCpuMs": 0.09999999403953552,
+      "readCpuMs": 0.7999999821186066
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-14",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-0-4-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 4.890099999989616,
+      "exportCpuMs": 0.09999999403953552,
+      "readCpuMs": 0.6000000536441803
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-15",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-1-0-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 82.06909999999334,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.699999988079071
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-16",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-1-0-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 6.682300000000396,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.6000000238418579
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-17",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-1-1-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 4.2774999999965075,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.5999999940395355
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-18",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-1-1-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 81.40690000000177,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.6000000238418579
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-19",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-1-2-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 7.6296000000002095,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.5000000298023224
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-20",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-1-2-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 4.668100000009872,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.5
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-21",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-1-3-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 5.3717000000033295,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.699999988079071
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-22",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-1-3-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 5.068299999998999,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.4999999701976776
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-23",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-1-4-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 43.36490000000049,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.19999998807907104
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-24",
+      "case": "reference",
+      "population": "desktop",
+      "step": "revealed-1-4-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 5.93399999999383,
+      "exportCpuMs": 0.09999999403953552,
+      "readCpuMs": 0.5999999642372131
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-1",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "performance-entry-full-opening",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 7.682400000001508,
+      "exportCpuMs": 0.09999999403953552,
+      "readCpuMs": 1.0000000298023224
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-2",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "opening-to-responsive-present",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 6.48660000000018,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.9999999701976776
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-3",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "deferred-atlas-request-observed",
+      "ok": true,
+      "phase": null,
+      "hostRpcMs": null,
+      "exportCpuMs": null,
+      "readCpuMs": null
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-4",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "while-art-deferred-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 6.7995000000009895,
+      "exportCpuMs": 0.10000002384185791,
+      "readCpuMs": 0.9999999701976776
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-5",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "while-art-deferred-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 5.500800000001618,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.7999999821186066
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-6",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "deferred-atlas-to-prepared",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 137.0859999999957,
+      "exportCpuMs": 0.9000000059604645,
+      "readCpuMs": 69.99999979138374
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-7",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "explicit-reveal",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 6.361799999998766,
+      "exportCpuMs": 0.09999999403953552,
+      "readCpuMs": 0.4000000059604645
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-8",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-0-0-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 63.75340000000142,
+      "exportCpuMs": 0.09999999403953552,
+      "readCpuMs": 0.30000004172325134
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-9",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-0-0-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 4.413000000000466,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.5
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-10",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-0-1-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 15.496099999989383,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.29999998211860657
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-11",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-0-1-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 5.1159999999945285,
+      "exportCpuMs": 0.09999999403953552,
+      "readCpuMs": 0.20000001788139343
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-12",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-0-2-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 5.412099999986822,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.699999988079071
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-13",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-0-2-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 5.270199999999022,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.3999999761581421
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-14",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-0-3-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 62.801800000001094,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.6000000238418579
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-15",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-0-3-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 5.340800000005402,
+      "exportCpuMs": 0.09999999403953552,
+      "readCpuMs": 0.7000000178813934
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-16",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-0-4-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 92.63779999999679,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.09999999403953552
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-17",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-0-4-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 6.044999999998254,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.4999999701976776
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-18",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-1-0-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 63.15119999999297,
+      "exportCpuMs": 0.09999999403953552,
+      "readCpuMs": 0.5999999940395355
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-19",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-1-0-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 101.53729999999632,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.5
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-20",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-1-1-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 4.898700000019744,
+      "exportCpuMs": 0.10000002384185791,
+      "readCpuMs": 0.5000000596046448
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-21",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-1-1-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 4.621599999984028,
+      "exportCpuMs": 0.09999999403953552,
+      "readCpuMs": 1.800000011920929
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-22",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-1-2-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 4.792500000010477,
+      "exportCpuMs": 0.09999999403953552,
+      "readCpuMs": 0.5000000298023224
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-23",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-1-2-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 63.45829999999842,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.7000000178813934
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-24",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-1-3-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 4.644900000013877,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.5000000298023224
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-25",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-1-3-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 5.219000000011874,
+      "exportCpuMs": 0.19999998807907104,
+      "readCpuMs": 0.4000000059604645
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-26",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-1-4-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 93.64849999998114,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.5
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-27",
+      "case": "deferred",
+      "population": "desktop",
+      "step": "revealed-1-4-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 67.51110000000335,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.5999999642372131
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-retry:art-1",
+      "case": "retry",
+      "population": "desktop",
+      "step": "required-asset-failure-detected",
+      "ok": true,
+      "phase": null,
+      "hostRpcMs": null,
+      "exportCpuMs": null,
+      "readCpuMs": null
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-retry:art-2",
+      "case": "retry",
+      "population": "desktop",
+      "step": "required-asset-manual-retry",
+      "ok": true,
+      "phase": "censored",
+      "hostRpcMs": 1035.850599999998,
+      "exportCpuMs": 0.19999998807907104,
+      "readCpuMs": 19.69999998807907
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-retry:art-3",
+      "case": "retry",
+      "population": "desktop",
+      "step": "opening-to-responsive-present",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 8.539899999999761,
+      "exportCpuMs": 0.09999999403953552,
+      "readCpuMs": 0.6000000536441803
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-retry:art-4",
+      "case": "retry",
+      "population": "desktop",
+      "step": "after-required-art-retry-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 4.57050000000163,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.6000000238418579
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-retry:art-5",
+      "case": "retry",
+      "population": "desktop",
+      "step": "after-required-art-retry-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 114.59890000000087,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.6999999582767487
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-exhausted:art-1",
+      "case": "exhausted",
+      "population": "desktop",
+      "step": "progressive-failure-observed",
+      "ok": true,
+      "phase": null,
+      "hostRpcMs": null,
+      "exportCpuMs": null,
+      "readCpuMs": null
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-exhausted:art-2",
+      "case": "exhausted",
+      "population": "desktop",
+      "step": "opening-to-responsive-present",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 8.402900000000955,
+      "exportCpuMs": 0,
+      "readCpuMs": 1.1999999582767487
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-exhausted:art-3",
+      "case": "exhausted",
+      "population": "desktop",
+      "step": "after-progressive-art-failure-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 6.828400000002148,
+      "exportCpuMs": 0,
+      "readCpuMs": 0.7999999821186066
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-exhausted:art-4",
+      "case": "exhausted",
+      "population": "desktop",
+      "step": "after-progressive-art-failure-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 115.0659999999989,
+      "exportCpuMs": 0.10000002384185791,
+      "readCpuMs": 0.7999999821186066
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-reference:art-1",
+      "case": "reference",
+      "population": "mobile4",
+      "step": "performance-entry-full-opening",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 40.45190000000002,
+      "exportCpuMs": 0.5,
+      "readCpuMs": 8.399999976158142
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-reference:art-2",
+      "case": "reference",
+      "population": "mobile4",
+      "step": "opening-to-responsive-present",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 47.610799999994924,
+      "exportCpuMs": 0.29999998211860657,
+      "readCpuMs": 2.700000047683716
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-reference:art-3",
+      "case": "reference",
+      "population": "mobile4",
+      "step": "remaining-background-wait-to-prepared",
+      "ok": false,
+      "phase": "censored",
+      "hostRpcMs": 515.517200000002,
+      "exportCpuMs": 3.5999999940395355,
+      "readCpuMs": 1841.1999985575676
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-deferred:art-1",
+      "case": "deferred",
+      "population": "mobile4",
+      "step": "performance-entry-full-opening",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 37.03009999999631,
+      "exportCpuMs": 0.4000000059604645,
+      "readCpuMs": 5.9000000059604645
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-deferred:art-2",
+      "case": "deferred",
+      "population": "mobile4",
+      "step": "opening-to-responsive-present",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 34.30710000000545,
+      "exportCpuMs": 0.19999998807907104,
+      "readCpuMs": 5.300000071525574
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-deferred:art-3",
+      "case": "deferred",
+      "population": "mobile4",
+      "step": "deferred-atlas-request-observed",
+      "ok": true,
+      "phase": null,
+      "hostRpcMs": null,
+      "exportCpuMs": null,
+      "readCpuMs": null
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-deferred:art-4",
+      "case": "deferred",
+      "population": "mobile4",
+      "step": "while-art-deferred-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 10.132999999994354,
+      "exportCpuMs": 0,
+      "readCpuMs": 3.9999999701976776
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-deferred:art-5",
+      "case": "deferred",
+      "population": "mobile4",
+      "step": "while-art-deferred-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 25.697699999996985,
+      "exportCpuMs": 0.09999999403953552,
+      "readCpuMs": 2.899999976158142
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-deferred:art-6",
+      "case": "deferred",
+      "population": "mobile4",
+      "step": "deferred-atlas-to-prepared",
+      "ok": false,
+      "phase": "censored",
+      "hostRpcMs": 593.5166999999783,
+      "exportCpuMs": 4.199999988079071,
+      "readCpuMs": 2002.9000001847744
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-retry:art-1",
+      "case": "retry",
+      "population": "mobile4",
+      "step": "required-asset-failure-detected",
+      "ok": true,
+      "phase": null,
+      "hostRpcMs": null,
+      "exportCpuMs": null,
+      "readCpuMs": null
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-retry:art-2",
+      "case": "retry",
+      "population": "mobile4",
+      "step": "required-asset-manual-retry",
+      "ok": true,
+      "phase": "censored",
+      "hostRpcMs": 1164.2186999999976,
+      "exportCpuMs": 1.9000000059604645,
+      "readCpuMs": 200.49999982118607
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-retry:art-3",
+      "case": "retry",
+      "population": "mobile4",
+      "step": "opening-to-responsive-present",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 52.609599999996135,
+      "exportCpuMs": 0.5,
+      "readCpuMs": 4.5
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-retry:art-4",
+      "case": "retry",
+      "population": "mobile4",
+      "step": "after-required-art-retry-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 41.30659999999625,
+      "exportCpuMs": 0.19999998807907104,
+      "readCpuMs": 4.700000047683716
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-retry:art-5",
+      "case": "retry",
+      "population": "mobile4",
+      "step": "after-required-art-retry-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 36.49240000000282,
+      "exportCpuMs": 0.30000001192092896,
+      "readCpuMs": 3.6999999582767487
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-exhausted:art-1",
+      "case": "exhausted",
+      "population": "mobile4",
+      "step": "progressive-failure-observed",
+      "ok": true,
+      "phase": null,
+      "hostRpcMs": null,
+      "exportCpuMs": null,
+      "readCpuMs": null
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-exhausted:art-2",
+      "case": "exhausted",
+      "population": "mobile4",
+      "step": "opening-to-responsive-present",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 32.2612999999983,
+      "exportCpuMs": 0.4000000059604645,
+      "readCpuMs": 10.300000011920929
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-exhausted:art-3",
+      "case": "exhausted",
+      "population": "mobile4",
+      "step": "after-progressive-art-failure-settlement-open",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 63.822199999995064,
+      "exportCpuMs": 0.19999998807907104,
+      "readCpuMs": 4.199999988079071
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-exhausted:art-4",
+      "case": "exhausted",
+      "population": "mobile4",
+      "step": "after-progressive-art-failure-map-return",
+      "ok": true,
+      "phase": "completed",
+      "hostRpcMs": 34.220200000010664,
+      "exportCpuMs": 0.29999998211860657,
+      "readCpuMs": 8.000000029802322
+    }
+  ],
+  "cleanup": [
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference",
+      "caseCleanup": {
+        "reference": {
+          "case": "reference",
+          "contextClosed": true,
+          "browserClosed": true,
+          "errors": [],
+          "browserConnected": false,
+          "lifetime": {
+            "label": "artwork reference",
+            "status": "completed",
+            "hostStartedMs": 9574.3469,
+            "hostDeadlineMs": 6729574.3469,
+            "reason": null,
+            "unconfirmedWork": [],
+            "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+          }
+        }
+      },
+      "finalCleanupError": null
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred",
+      "caseCleanup": {
+        "deferred": {
+          "case": "deferred",
+          "contextClosed": true,
+          "browserClosed": true,
+          "errors": [],
+          "browserConnected": false,
+          "lifetime": {
+            "label": "artwork deferred",
+            "status": "completed",
+            "hostStartedMs": 10124.8073,
+            "hostDeadlineMs": 6730124.8073,
+            "reason": null,
+            "unconfirmedWork": [],
+            "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+          }
+        }
+      },
+      "finalCleanupError": null
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-retry",
+      "caseCleanup": {
+        "retry": {
+          "case": "retry",
+          "contextClosed": true,
+          "browserClosed": true,
+          "errors": [],
+          "browserConnected": false,
+          "lifetime": {
+            "label": "artwork retry",
+            "status": "completed",
+            "hostStartedMs": 9948.9198,
+            "hostDeadlineMs": 6729948.9198,
+            "reason": null,
+            "unconfirmedWork": [],
+            "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+          }
+        }
+      },
+      "finalCleanupError": null
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-exhausted",
+      "caseCleanup": {
+        "exhausted": {
+          "case": "exhausted",
+          "contextClosed": true,
+          "browserClosed": true,
+          "errors": [],
+          "browserConnected": false,
+          "lifetime": {
+            "label": "artwork exhausted",
+            "status": "completed",
+            "hostStartedMs": 9502.2104,
+            "hostDeadlineMs": 6729502.2104,
+            "reason": null,
+            "unconfirmedWork": [],
+            "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+          }
+        }
+      },
+      "finalCleanupError": null
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-reference",
+      "caseCleanup": {
+        "reference": {
+          "case": "reference",
+          "contextClosed": true,
+          "browserClosed": true,
+          "errors": [],
+          "browserConnected": false,
+          "lifetime": {
+            "label": "artwork reference",
+            "status": "cancelled",
+            "hostStartedMs": 9258.0389,
+            "hostDeadlineMs": 6729258.0389,
+            "reason": "page.waitForFunction: Timeout 240000ms exceeded.",
+            "unconfirmedWork": [],
+            "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+          }
+        }
+      },
+      "finalCleanupError": null
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-deferred",
+      "caseCleanup": {
+        "deferred": {
+          "case": "deferred",
+          "contextClosed": true,
+          "browserClosed": true,
+          "errors": [],
+          "browserConnected": false,
+          "lifetime": {
+            "label": "artwork deferred",
+            "status": "cancelled",
+            "hostStartedMs": 8207.0595,
+            "hostDeadlineMs": 6728207.0595,
+            "reason": "page.waitForFunction: Timeout 240000ms exceeded.",
+            "unconfirmedWork": [],
+            "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+          }
+        }
+      },
+      "finalCleanupError": null
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-retry",
+      "caseCleanup": {
+        "retry": {
+          "case": "retry",
+          "contextClosed": true,
+          "browserClosed": true,
+          "errors": [],
+          "browserConnected": false,
+          "lifetime": {
+            "label": "artwork retry",
+            "status": "completed",
+            "hostStartedMs": 9338.8435,
+            "hostDeadlineMs": 6729338.8435,
+            "reason": null,
+            "unconfirmedWork": [],
+            "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+          }
+        }
+      },
+      "finalCleanupError": null
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-exhausted",
+      "caseCleanup": {
+        "exhausted": {
+          "case": "exhausted",
+          "contextClosed": true,
+          "browserClosed": true,
+          "errors": [],
+          "browserConnected": false,
+          "lifetime": {
+            "label": "artwork exhausted",
+            "status": "completed",
+            "hostStartedMs": 9560.2209,
+            "hostDeadlineMs": 6729560.2209,
+            "reason": null,
+            "unconfirmedWork": [],
+            "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+          }
+        }
+      },
+      "finalCleanupError": null
+    }
+  ],
+  "phaseA": "NOT SOUND",
+  "comparisonEligible": false,
+  "contention": "POSSIBLY CONTENDED diagnostic only",
+  "sourceAfter": {
+    "changed": []
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "sourceFixture": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+  "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+  "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+  "sourceState": "96e4574b4cf24c185bd8742007d882feb984aa28f8425fa72b2fd7fc94dca2b3",
+  "rawSavedState": "b544048f0f5cc4c92721712d00a4f4f0960fb3d733a7e062406fc8ec08cbd779",
+  "decodedSavedState": "b544048f0f5cc4c92721712d00a4f4f0960fb3d733a7e062406fc8ec08cbd779",
+  "rebuiltSavedState": "96e4574b4cf24c185bd8742007d882feb984aa28f8425fa72b2fd7fc94dca2b3",
+  "deltaPaths": [],
+  "rawDeltaPaths": [
+    "phase",
+    "paused"
+  ],
+  "decodedDeltaPaths": [
+    "phase",
+    "paused"
+  ],
+  "transform": "none; every serialized field including persistent knowledge and RNG is compared"
+}

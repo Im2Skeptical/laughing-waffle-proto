@@ -1,0 +1,406 @@
+{
+  "runId": "builder-discovery-life",
+  "started": "2026-11-04T10:23:14.482Z",
+  "config": {
+    "jobs": [
+      "life"
+    ],
+    "samples": 1,
+    "population": "desktop",
+    "cache": "cold",
+    "artwork": "off",
+    "instrumentation": true,
+    "workerDelayMs": 0,
+    "timeoutMs": 90000,
+    "port": 18244,
+    "dist": "dist",
+    "seed": 123
+  },
+  "productHead": "7f7a1fe0f0ee0586de0cb468c94033c2bb387d72",
+  "branch": "perf/hillclimb-20261104",
+  "dirty": [
+    "?? docs/performance/",
+    "?? scripts/perf-hillclimb/"
+  ],
+  "machine": {
+    "host": "DESKTOP-R0AMF0N",
+    "platform": "win32",
+    "release": "10.0.26200",
+    "arch": "x64",
+    "cpus": [
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 4429953,
+          "nice": 0,
+          "sys": 4706890,
+          "idle": 180795234,
+          "irq": 834656
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 5458437,
+          "nice": 0,
+          "sys": 3003984,
+          "idle": 181469562,
+          "irq": 273343
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 9145375,
+          "nice": 0,
+          "sys": 4763687,
+          "idle": 176022921,
+          "irq": 298906
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 5117296,
+          "nice": 0,
+          "sys": 2843406,
+          "idle": 181971281,
+          "irq": 186218
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 4802468,
+          "nice": 0,
+          "sys": 2464156,
+          "idle": 182665359,
+          "irq": 149140
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 4939359,
+          "nice": 0,
+          "sys": 2367656,
+          "idle": 182624968,
+          "irq": 153828
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 5891312,
+          "nice": 0,
+          "sys": 2694390,
+          "idle": 181346281,
+          "irq": 191093
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 4837531,
+          "nice": 0,
+          "sys": 2528187,
+          "idle": 182566265,
+          "irq": 189937
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 15494062,
+          "nice": 0,
+          "sys": 14228484,
+          "idle": 160209437,
+          "irq": 674125
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 5792671,
+          "nice": 0,
+          "sys": 3077515,
+          "idle": 181061796,
+          "irq": 244078
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 17590953,
+          "nice": 0,
+          "sys": 15302906,
+          "idle": 157038125,
+          "irq": 695937
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 4654578,
+          "nice": 0,
+          "sys": 2517437,
+          "idle": 182759968,
+          "irq": 165937
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 4842000,
+          "nice": 0,
+          "sys": 2592812,
+          "idle": 182497171,
+          "irq": 187218
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 4531062,
+          "nice": 0,
+          "sys": 2267812,
+          "idle": 183133109,
+          "irq": 184640
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 4979531,
+          "nice": 0,
+          "sys": 2676375,
+          "idle": 182276078,
+          "irq": 176359
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 5357625,
+          "nice": 0,
+          "sys": 3259468,
+          "idle": 181314890,
+          "irq": 306781
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 10137500,
+          "nice": 0,
+          "sys": 4006078,
+          "idle": 175788406,
+          "irq": 101265
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 10395437,
+          "nice": 0,
+          "sys": 3832234,
+          "idle": 175704312,
+          "irq": 95750
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 14543875,
+          "nice": 0,
+          "sys": 4857187,
+          "idle": 170530921,
+          "irq": 113046
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 11910187,
+          "nice": 0,
+          "sys": 3945062,
+          "idle": 174076734,
+          "irq": 96531
+        }
+      }
+    ],
+    "totalMemory": 34272436224
+  },
+  "runtime": {
+    "node": "v24.15.0",
+    "playwright": "1.59.1",
+    "chromium": "147.0.7727.15"
+  },
+  "launch": {
+    "headless": true,
+    "args": [
+      "--use-gl=angle",
+      "--use-angle=swiftshader"
+    ]
+  },
+  "proxy": "desktop OS/CPU/GPU; no physical Pixel 6 evidence",
+  "timings": "Browser performance.now input capture through semantic completion plus double-rAF frame opportunity; not physical scanout",
+  "loadModel": "closed-loop transaction latency; no claim of open-loop input saturation coverage",
+  "externalLoad": "operator load not instrumented; no known competing task-owned workload",
+  "build-info.json": {
+    "performanceFixtureKey": "ec57d782e482b613d90779144d7d9aeb43cf4a01d3e1a6089fdf05954298a549",
+    "version": "1.1.52",
+    "build": "4d909f7684fa",
+    "revision": "ec49648ed1ef",
+    "channel": "pages",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": null
+  },
+  "build-manifest.json": {
+    "performanceFixtureKey": "ec57d782e482b613d90779144d7d9aeb43cf4a01d3e1a6089fdf05954298a549",
+    "version": "1.1.52",
+    "build": "4d909f7684fa",
+    "revision": "ec49648ed1ef",
+    "channel": "pages",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": null,
+    "entryPoint": "src/views/ui-root-pixi.js",
+    "bundle": "./assets/app-C6TKJBCM.js",
+    "worker": "./assets/timegraph-forecast-worker-GNODQUJ6.js",
+    "saveLoadWorker": "./assets/save-load-worker-4KPORSBS.js",
+    "stylesheet": "./assets/styles-ec05c6a73a6e.css"
+  },
+  "buildId": "bcdecca74b77bc5bbdc2e91eb48f36270cdf1890320aecffb2effde1439852f3",
+  "harnessFiles": {
+    "browser-runtime.mjs": "f05926441ee9a6d54b3694f3e0762e9f356820d517cc226090df844a8bb2d84e",
+    "corpus.mjs": "a063a81345e0e17b50bb6c8e7b1041655bdf9f6de7f71a58b85788a437a7aae1",
+    "fixtures.mjs": "f1babbfc97d88f3026719ff76728510ab189ac3b4395e9a4694d9b4f0b801a1e",
+    "mechanism-controls.mjs": "0defedb2e414d1d9cf2a706ace236e9da4eddce839c743d21a5b03da98daa3da",
+    "repro-neutral-market.mjs": "bb02d58b833d24b168b2d80aef3c02889e0b443fb0166fd67ed80f63f1cd836c",
+    "run.mjs": "5ad74ea7fb6a77395c6284a85887f651e0af340f052cd35e3a23908a7fd9d1c7",
+    "statistics-test.mjs": "dda12cb6a922564783159217ac3a55b3dae09d8dc5c945dae660c3f64dcc4149",
+    "statistics.mjs": "4a95a54c2e93b12f3928d34d42b35031fb27927b422457cce7ca3ae933ecaf0f"
+  },
+  "harnessId": "ecd0497691d40b8f2134b0f8dffe2d6604fb97445867cf21697471176a1ded7c",
+  "measurementContractId": "ae5accb6f8e88ba6f18c40a275734ef9f7e2b6df7c17ca2b7cabf15e980f12f8",
+  "servedAssets": {
+    "bundle": "bcc27dcbabf79844b78848805a26942565771cafe179ec4f350c34da17588457",
+    "worker": "3b14a66cb3537e928859fa153ebb401431062d84e67210a3d520c39e5f2f3b7f",
+    "saveLoadWorker": "b9f7a6a1817afbc5a8d14e8b2e8a965505c232f2fe33c23a560bb601a67ab02b",
+    "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+  },
+  "gpu": {
+    "devices": [
+      {
+        "vendorId": 65535,
+        "deviceId": 65535,
+        "subSysId": 0,
+        "revision": 0,
+        "vendorString": "Google Inc. (Google)",
+        "deviceString": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver-5.0.0)",
+        "driverVendor": "SwANGLE",
+        "driverVersion": "5.0.0"
+      }
+    ],
+    "auxAttributes": {
+      "amdSwitchable": false,
+      "bgra8OverlaySupport": "NONE",
+      "canSupportThreadedTextureMailbox": false,
+      "directComposition": false,
+      "directMLFeatureLevel": "Not supported",
+      "directRenderingVersion": "",
+      "displayType": "ANGLE_SWIFTSHADER",
+      "dx12FeatureLevel": "Not supported",
+      "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_clip_cull_distance GL_ANGLE_compressed_texture_etc GL_ANGLE_copy_texture_3d GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_image GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_memory_object_flags GL_ANGLE_memory_size GL_ANGLE_multi_draw GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_read_only_depth_stencil_feedback_loops GL_ANGLE_relaxed_vertex_attribute_type GL_ANGLE_renderability_validation GL_ANGLE_request_extension GL_ANGLE_rgbx_internal_format GL_ANGLE_robust_client_memory GL_ANGLE_robust_fragment_shader_output GL_ANGLE_robust_resource_initialization GL_ANGLE_shader_pixel_local_storage GL_ANGLE_shader_pixel_local_storage_coherent GL_ANGLE_stencil_texturing GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_texture_multisample GL_ANGLE_texture_usage GL_ANGLE_translated_shader_source GL_ANGLE_vulkan_image GL_ANGLE_yuv_internal_format GL_APPLE_clip_distance GL_ARM_rgba8 GL_ARM_shader_framebuffer_fetch GL_ARM_shader_framebuffer_fetch_depth_stencil GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_copy_compressed_texture GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_EGL_image_array GL_EXT_EGL_image_external_wrap_modes GL_EXT_EGL_image_storage GL_EXT_base_instance GL_EXT_blend_minmax GL_EXT_buffer_storage GL_EXT_clear_texture GL_EXT_clip_control GL_EXT_clip_cull_distance GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_compressed_ETC1_RGB8_sub_texture GL_EXT_conservative_depth GL_EXT_copy_image GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_memory_object GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_read_format_bgra GL_EXT_robustness GL_EXT_sRGB GL_EXT_sRGB_write_control GL_EXT_semaphore GL_EXT_separate_shader_objects GL_EXT_shader_framebuffer_fetch GL_EXT_shader_framebuffer_fetch_non_coherent GL_EXT_shader_non_constant_global_initializers GL_EXT_shader_texture_lod GL_EXT_shadow_samplers GL_EXT_texture_border_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_cube_map_array GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_rg GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_RG8 GL_EXT_texture_sRGB_decode GL_EXT_texture_shadow_lod GL_EXT_texture_storage GL_EXT_texture_type_2_10_10_10_REV GL_EXT_unpack_subimage GL_KHR_blend_equation_advanced GL_KHR_debug GL_KHR_robust_buffer_access_behavior GL_KHR_robustness GL_KHR_texture_compression_astc_ldr GL_NV_depth_buffer_float2 GL_NV_fence GL_NV_framebuffer_blit GL_NV_pack_subimage GL_NV_pixel_buffer_object GL_NV_polygon_mode GL_NV_read_depth GL_NV_read_depth_stencil GL_NV_read_stencil GL_NV_shader_noperspective_interpolation GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_EGL_sync GL_OES_compressed_EAC_R11_signed_texture GL_OES_compressed_EAC_R11_unsigned_texture GL_OES_compressed_EAC_RG11_signed_texture GL_OES_compressed_EAC_RG11_unsigned_texture GL_OES_compressed_ETC1_RGB8_texture GL_OES_compressed_ETC2_RGB8_texture GL_OES_compressed_ETC2_RGBA8_texture GL_OES_compressed_ETC2_punchthroughA_RGBA8_texture GL_OES_compressed_ETC2_punchthroughA_sRGB8_alpha_texture GL_OES_compressed_ETC2_sRGB8_alpha8_texture GL_OES_compressed_ETC2_sRGB8_texture GL_OES_compressed_paletted_texture GL_OES_copy_image GL_OES_depth24 GL_OES_depth32 GL_OES_depth_texture GL_OES_depth_texture_cube_map GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_sample_shading GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_3D GL_OES_texture_border_clamp GL_OES_texture_cube_map_array GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_vertex_array_object GL_OES_vertex_half_float GL_OES_vertex_type_10_10_10_2 GL_OVR_multiview GL_OVR_multiview2 ",
+      "glImplementationParts": "(gl=egl-angle,angle=swiftshader)",
+      "glRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver-5.0.0)",
+      "glResetNotificationStrategy": 33362,
+      "glVendor": "Google Inc. (Google)",
+      "glVersion": "OpenGL ES 3.0 (ANGLE 2.1.27278 git hash: 0d61b30acc76)",
+      "glWsExtensions": "EGL_EXT_create_context_robustness EGL_ANGLE_surface_orientation EGL_KHR_create_context EGL_KHR_image EGL_KHR_image_base EGL_EXT_image_gl_colorspace EGL_KHR_gl_colorspace EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_gl_renderbuffer_image EGL_KHR_get_all_proc_addresses EGL_KHR_fence_sync EGL_KHR_wait_sync EGL_ANGLE_create_context_webgl_compatibility EGL_CHROMIUM_create_context_bind_generates_resource EGL_KHR_swap_buffers_with_damage EGL_EXT_pixel_format_float EGL_KHR_surfaceless_context EGL_ANGLE_display_texture_share_group EGL_ANGLE_display_semaphore_share_group EGL_ANGLE_create_context_client_arrays EGL_ANGLE_program_cache_control EGL_ANGLE_robust_resource_initialization EGL_ANGLE_create_context_extensions_enabled EGL_ANDROID_blob_cache EGL_ANDROID_recordable EGL_ANGLE_create_context_backwards_compatible EGL_KHR_no_config_context EGL_IMG_context_priority EGL_KHR_create_context_no_error EGL_KHR_reusable_sync EGL_EXT_buffer_age EGL_ANGLE_create_surface_swap_interval EGL_ANGLE_vulkan_image EGL_KHR_partial_update EGL_ANGLE_global_fence_sync EGL_ANGLE_memory_usage_report ",
+      "glWsVendor": "Google Inc. (Google)",
+      "glWsVersion": "1.5 (ANGLE 2.1.27278 git hash: 0d61b30acc76)",
+      "inProcessGpu": false,
+      "initializationTime": 0.085032,
+      "isAsan": false,
+      "isClangCoverage": false,
+      "jpegDecodeAcceleratorSupported": false,
+      "maxMsaaSamples": "4",
+      "nv12OverlaySupport": "NONE",
+      "optimus": false,
+      "p010OverlaySupport": "NONE",
+      "passthroughCmdDecoder": true,
+      "pixelShaderVersion": "3.00",
+      "processCrashCount": 0,
+      "rgb10a2OverlaySupport": "NONE",
+      "sandboxed": false,
+      "skiaBackendType": "GaneshGL",
+      "subpixelFontRendering": true,
+      "supportsD3dSharedImages": false,
+      "supportsDirectML": false,
+      "supportsDx12": false,
+      "supportsOverlays": false,
+      "supportsVulkan": false,
+      "targetCpuBits": 64,
+      "vertexShaderVersion": "3.00",
+      "visibilityCallbackCallCount": 0,
+      "vulkanVersion": "Not supported",
+      "yuy2OverlaySupport": "NONE"
+    },
+    "featureStatus": {
+      "2d_canvas": "enabled",
+      "direct_rendering_display_compositor": "disabled_off_ok",
+      "gpu_compositing": "enabled",
+      "multiple_raster_threads": "enabled_on",
+      "opengl": "enabled_on",
+      "rasterization": "enabled",
+      "raw_draw": "disabled_off_ok",
+      "skia_graphite": "disabled_off",
+      "trees_in_viz": "disabled_off",
+      "video_decode": "enabled",
+      "video_encode": "enabled",
+      "webgl": "enabled",
+      "webgpu": "unavailable_software",
+      "webnn": "enabled_on"
+    },
+    "driverBugWorkarounds": [
+      "disable_d3d11_vp9_ksvc_decoding",
+      "disable_video_overlay_if_moving",
+      "disable_vp_auto_hdr",
+      "disable_vp_scaling",
+      "disable_vp_super_resolution",
+      "enable_webgl_timer_query_extensions",
+      "exit_on_context_lost",
+      "disabled_extension_GL_KHR_blend_equation_advanced",
+      "disabled_extension_GL_KHR_blend_equation_advanced_coherent"
+    ],
+    "videoDecoding": [],
+    "videoEncoding": []
+  },
+  "finished": "2026-11-04T10:24:55.809Z",
+  "failed": true
+}

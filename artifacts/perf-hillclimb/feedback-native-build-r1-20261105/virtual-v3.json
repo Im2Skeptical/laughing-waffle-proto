@@ -1,0 +1,100 @@
+{
+  "ok": false,
+  "plannedControls": 30,
+  "completedControls": 21,
+  "results": [
+    {
+      "name": "idle observer schedules no callbacks",
+      "ok": true
+    },
+    {
+      "name": "first detection in a frame needs two sampled frames, without an extra third callback",
+      "ok": true
+    },
+    {
+      "name": "explicit background clock preserves original start without trusted input claim",
+      "ok": true
+    },
+    {
+      "name": "background binding cannot silently attach to an input-armed clock",
+      "ok": true
+    },
+    {
+      "name": "raw changed frame survives rejected transient persistence without claiming pixels",
+      "ok": true
+    },
+    {
+      "name": "known HC capture read does not replace original queue delay",
+      "ok": true
+    },
+    {
+      "name": "input-time cue read cost is separately recorded",
+      "ok": true
+    },
+    {
+      "name": "arm-to-input same-source autonomous drift plus no-op cannot become feedback",
+      "ok": true
+    },
+    {
+      "name": "post-dispatch cue detection survives microtask checkpoints between native-style listeners",
+      "ok": true
+    },
+    {
+      "name": "actual down/move/up model permits early feedback before final release",
+      "ok": true
+    },
+    {
+      "name": "two-contact start plus later motion does not postpone feedback until release",
+      "ok": true
+    },
+    {
+      "name": "repeated armed wheel events do not reset an early feedback candidate",
+      "ok": true
+    },
+    {
+      "name": "transient cue disappearing before validated frames is not feedback",
+      "ok": true
+    },
+    {
+      "name": "source unavailable cannot manufacture feedback or visual-absence bound",
+      "ok": true
+    },
+    {
+      "name": "host cancellation before input is preserved at collection without any frame",
+      "ok": true
+    },
+    {
+      "name": "host cancellation cause survives a feedback deadline with frames suppressed",
+      "ok": true
+    },
+    {
+      "name": "paired cancellation before input is immediate and permits the next arm",
+      "ok": true
+    },
+    {
+      "name": "runtime replacement before input is not relabelled no-feedback timeout",
+      "ok": true
+    },
+    {
+      "name": "missing frames reach deadline with original host timeout retained",
+      "ok": true
+    },
+    {
+      "name": "no input preserves null start and host timeout cause",
+      "ok": true
+    },
+    {
+      "name": "late final-read validation retains absolute marker after earlier real HC completion",
+      "ok": false,
+      "error": {
+        "name": "AssertionError",
+        "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'completed'\n- 'censored'\n",
+        "stack": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n+ actual - expected\n\n+ 'completed'\n- 'censored'\n\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/feedback-runtime-test.mjs:325:10\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/feedback-runtime-test.mjs:439:8",
+        "actual": "completed",
+        "expected": "censored",
+        "operator": "strictEqual"
+      }
+    }
+  ],
+  "scope": "actual HC runtime in virtual event loop only; no native trust/paint/device latency claim"
+}

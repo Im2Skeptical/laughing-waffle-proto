@@ -1,0 +1,18 @@
+{
+    "at":  "2026-11-15T04:05:31.2533833Z",
+    "verdict":  "REVISED_PROTOCOL_FEASIBLE_SOURCE_PURE_ABI_ONLY",
+    "reviewedProtocolSha256":  "10753ef3ee5146cb35a1121456f8fa88ff32cfa2261dee0f428d83bb8c1b3d80",
+    "materialPlanningGapsAddressed":  [
+                                          "pre-resume job ownership of non-debugged descendants",
+                                          "whitelisted std handles and bounded independent drain/EOF"
+                                      ],
+    "controlSlots":  6,
+    "implementationStillUnproved":  [
+                                        "valid-handle termination/query-zero/close order",
+                                        "descendant presence before failure-control claim",
+                                        "actual continuation/handle/ABI/raw-stream behavior"
+                                    ],
+    "abiFoundation24ChecksReviewed":  false,
+    "childAdmission":  false,
+    "scope":  "Updated planning/source-only review. No compiler/target/debug API/capture/prototype executed."
+}

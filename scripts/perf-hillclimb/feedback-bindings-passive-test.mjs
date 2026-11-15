@@ -17,7 +17,10 @@ const expression=rootSource.slice(begin,end).trim().replace(/^getRetainedFeedbac
 const cheap=()=>({getTimingSnapshot:()=>({visible:true})});
 const read=vm.runInNewContext(`(${expression})`,{prototypeView:{getSemanticSnapshot:prototypeReader},
   worldMapView:cheap(),settlementGraphView:cheap(),vassalLifeMapView:cheap(),vassalNodeDecisionModalView:cheap(),
-  lifeProcessingView:{isVisible:()=>false},vassalResolutionRecapView:cheap(),getState:poison,render:poison});
+  lifeProcessingView:{isVisible:()=>false},vassalResolutionRecapView:cheap(),getState:poison,render:poison,
+  settlementPlayback:{getRetainedPlaybackSnapshot:()=>({target:0,current:0,visualSec:17})},
+  timeControlsView:{getRetainedFeedbackSnapshot:()=>({visible:true,lever:{visible:true,labelVisible:true,label:'HOLD',handleY:84}})},
+  sunMoonDisksView:{getRetainedMomentumSnapshot:()=>({active:false,coasting:false,velocity:0})}});
 const untouched=JSON.stringify({rawRoot,semanticSnapshot});
 for(let i=0;i<500;i++){
   const dto=read();assert.deepEqual(Object.keys(dto.settlement).sort(),['activeTab','regionId','visible']);
@@ -43,4 +46,16 @@ const panel=key('panel');frame.map.visible=false;frame.settlement.visible=true;
 assert.notEqual(key('panel'),panel,'canonical retained Settlement surface, not unused panel phase');
 const purchase=key('purchase');frame.decision.boardPracticeIds=['hover-only'];assert.equal(key('purchase'),purchase);
 frame.decision.purchaseOrder=['recorded-offer'];assert.notEqual(key('purchase'),purchase);
+frame.timeControls={visible:true,lever:{visible:true,labelVisible:true,label:'x1.0',handleY:54}};
+const moving=key('scrub');frame.transport={target:0,current:0};
+assert.equal(key('scrub'),moving,'internal Hold assignment is not drawn feedback');
+frame.timeControls.lever.label='HOLD';frame.timeControls.lever.handleY=84;
+assert.notEqual(key('scrub'),moving,'actual drawn Hold can respond before scrub ink');
+const held=key('scrub');assert.equal(key('scrub'),held,'already-Hold no-motion stays a no-op');
+frame.timeControls.visible=false;const hidden=key('scrub');frame.timeControls.lever.label='x1.0';
+assert.equal(key('scrub'),hidden,'hidden lever changes cannot supply feedback');
+frame.timeControls.lever.handleY='84';
+assert.equal(vm.runInContext("__HC_READ_FEEDBACK__('scrub').sourceValid",context),false,'raw numeric pose is required');
+delete frame.timeControls;
+assert.equal(vm.runInContext("__HC_READ_FEEDBACK__('scrub').sourceValid",context),false,'missing Hold seam fails closed');
 console.log('[feedback-bindings] PASS: actual retained accessor/root wiring500 pure isolated reads; Present drift, Settlement surface and hover controls');

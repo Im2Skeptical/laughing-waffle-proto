@@ -1,0 +1,18 @@
+{
+  "at": "2026-11-15T00:03:36.025Z",
+  "files": {
+    "scripts/perf-hillclimb/artwork-bundle-controls.mjs": "74da29d61ca2758498170efeca46e38e77148e26f91ff6e72a05c92a463d80ac",
+    "scripts/perf-hillclimb/artwork-bundle-controls-test.mjs": "6820e97197eb20e87bba54fe9e173b43df5501d40cc52876a01c013cf4958c84",
+    "scripts/perf-hillclimb/artwork-controls.mjs": "f2f2d32ba3ee5d0e22b25a598ee2c6604488da298dd7c20f8065127bd35bcf42",
+    "docs/performance/perf-hillclimb-20261104/HARNESS.md": "eca7b0ab570f8ca9259244dcae39f2f77a70bd93a16ee04aa336b9a5815496ac"
+  },
+  "assets": {
+    "./assets/app-6H5PP5LS.js": "2650f059863769f98da13622798df92cf8a338c082f5fd5a695094aee2a48ea8",
+    "./assets/timegraph-forecast-worker-YOB3XRD7.js": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+    "./assets/save-load-worker-7YJYILEJ.js": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+    "./assets/styles-ec05c6a73a6e.css": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0",
+    "images/dev-fixtures/performance-start.json.gz": "7d07599499c43871cea5bb261bd91fb372cb7f6437c4d2dd0238a9190751ee1d"
+  },
+  "sourceAuthority": "j8-optional-abba-r1-20261115/plan.json",
+  "scope": "Before parent contract addendum and three-file Builder lease; all previous evidence immutable."
+}

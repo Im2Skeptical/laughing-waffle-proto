@@ -1,0 +1,76 @@
+{
+    "at":  "2026-11-15T03:45:59.2939008Z",
+    "targetPid":  35760,
+    "targetExe":  "C:/Program Files/nodejs/node.exe",
+    "rangeStart":  "2026-11-15T03:39:30.0000000+00:00",
+    "rangeEnd":  "2026-11-15T03:41:30.0000000+00:00",
+    "application":  {
+                        "state":  "NO_MATCHING_EVENTS",
+                        "errors":  [
+                                       {
+                                           "id":  "NoMatchingEventsFound,Microsoft.PowerShell.Commands.GetWinEventCommand",
+                                           "message":  "No events were found that match the specified selection criteria."
+                                       }
+                                   ],
+                        "events":  [
+
+                                   ]
+                    },
+    "wer":  [
+                {
+                    "root":  "C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportArchive",
+                    "state":  "QUERY_COMPLETED",
+                    "errors":  [
+
+                               ],
+                    "candidates":  [
+
+                                   ],
+                    "cap":  20
+                },
+                {
+                    "root":  "C:\\ProgramData\\Microsoft\\Windows\\WER\\ReportQueue",
+                    "state":  "QUERY_COMPLETED",
+                    "errors":  [
+
+                               ],
+                    "candidates":  [
+
+                                   ],
+                    "cap":  20
+                },
+                {
+                    "root":  "C:\\Users\\User\\AppData\\Local\\Microsoft\\Windows\\WER\\ReportArchive",
+                    "state":  "ROOT_UNAVAILABLE",
+                    "errors":  [
+
+                               ],
+                    "candidates":  [
+
+                                   ],
+                    "cap":  20
+                },
+                {
+                    "root":  "C:\\Users\\User\\AppData\\Local\\Microsoft\\Windows\\WER\\ReportQueue",
+                    "state":  "ROOT_UNAVAILABLE",
+                    "errors":  [
+
+                               ],
+                    "candidates":  [
+
+                                   ],
+                    "cap":  20
+                }
+            ],
+    "dumpMetadata":  {
+                         "root":  "C:\\Users\\User\\AppData\\Local\\CrashDumps",
+                         "state":  "QUERY_COMPLETED",
+                         "files":  [
+
+                                   ],
+                         "errors":  [
+
+                                    ]
+                     },
+    "scope":  "Single bounded read-only OS record lookup after fixed batch. No rerun, settings change, dump creation or cleanup. Candidate metadata requires exact PID/time/exe linkage; missing records do not prove absence of a crash or a cause."
+}

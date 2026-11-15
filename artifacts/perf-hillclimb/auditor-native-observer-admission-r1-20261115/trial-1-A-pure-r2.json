@@ -1,0 +1,193 @@
+{
+  "at": "2026-11-15T03:37:13.963Z",
+  "driverSha256": "fadf7ddca92439d38cc3b4dcbaa2d88b3ab279271c8cf4e4bb5c54330bd2c1da",
+  "scope": "Virtual pure driver-classification repair checks only; no fixture or startup process created",
+  "cases": [
+    {
+      "name": "wrong arm",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "arm identity or post-closure flush invalid"
+      ],
+      "pass": true
+    },
+    {
+      "name": "missing closure",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "arm identity or post-closure flush invalid"
+      ],
+      "pass": true
+    },
+    {
+      "name": "flush failure",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "arm identity or post-closure flush invalid"
+      ],
+      "pass": true
+    },
+    {
+      "name": "valid no-reproduction",
+      "expected": "NO_REPRODUCTION_NOT_A_FIX",
+      "actual": "NO_REPRODUCTION_NOT_A_FIX",
+      "error": null,
+      "problems": [],
+      "pass": true
+    },
+    {
+      "name": "valid linked native red",
+      "expected": "RED_PRIOR_NATIVE_SIGNATURE_REPRODUCED",
+      "actual": "RED_PRIOR_NATIVE_SIGNATURE_REPRODUCED",
+      "error": null,
+      "problems": [],
+      "pass": true
+    },
+    {
+      "name": "wrong cwd",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "wrong/missing registered cwd at2",
+        "prior-signature metadata mismatch at2"
+      ],
+      "pass": true
+    },
+    {
+      "name": "missing cwd",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "wrong/missing registered cwd at2",
+        "prior-signature metadata mismatch at2"
+      ],
+      "pass": true
+    },
+    {
+      "name": "nonarray cleanup",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [],
+      "pass": true
+    },
+    {
+      "name": "unconfirmed cleanup",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [],
+      "pass": true
+    },
+    {
+      "name": "missing calls",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "helperCalls must be an array",
+        "missing or excess original helper calls",
+        "complete prefix requires four successful original calls and normal exit"
+      ],
+      "pass": true
+    },
+    {
+      "name": "null call object",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "missing/invalid helper-call object at0",
+        "wrong original call order/stage at0",
+        "wrong/missing registered cwd at0",
+        "missing/invalid exit status at0",
+        "missing signal evidence at0",
+        "stderr availability mismatch at0",
+        "invalid stdout byte count at0",
+        "invalid stderr byte count at0",
+        "prior-signature metadata mismatch at0",
+        "original prefix continued after failed helper",
+        "complete prefix requires four successful original calls and normal exit"
+      ],
+      "pass": true
+    },
+    {
+      "name": "native followed by null call",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "original prefix continued after failed helper",
+        "missing/invalid helper-call object at3",
+        "wrong original call order/stage at3",
+        "wrong/missing registered cwd at3",
+        "missing/invalid exit status at3",
+        "missing signal evidence at3",
+        "stderr availability mismatch at3",
+        "invalid stdout byte count at3",
+        "invalid stderr byte count at3",
+        "missing start/subject evidence at3:missing virtual input",
+        "prior-signature metadata mismatch at3",
+        "native signature missing original propagated error"
+      ],
+      "pass": true
+    },
+    {
+      "name": "missing stdout file",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "missing raw stdout at2:ENOENT",
+        "prior-signature metadata mismatch at2"
+      ],
+      "pass": true
+    },
+    {
+      "name": "wrong propagated PID",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "native signature missing original propagated error"
+      ],
+      "pass": true
+    },
+    {
+      "name": "wrong stage",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "wrong original call order/stage at2",
+        "prior-signature metadata mismatch at2"
+      ],
+      "pass": true
+    },
+    {
+      "name": "outer cleanup signal",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [],
+      "pass": true
+    },
+    {
+      "name": "outer cleanup error",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [],
+      "pass": true
+    }
+  ],
+  "pass": true
+}

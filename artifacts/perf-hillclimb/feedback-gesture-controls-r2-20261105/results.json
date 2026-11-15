@@ -1,0 +1,30 @@
+[
+  {
+    "population": "desktop",
+    "kind": "pan",
+    "pass": false,
+    "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'censored'\n- 'completed'\n"
+  },
+  {
+    "population": "desktop",
+    "kind": "wheel",
+    "pass": false,
+    "error": "first response precedes final offered event"
+  },
+  {
+    "population": "mobile4",
+    "kind": "pan",
+    "pass": false,
+    "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'censored'\n- 'completed'\n"
+  },
+  {
+    "population": "mobile4",
+    "kind": "pinch",
+    "pass": true
+  },
+  {
+    "population": "mobile4",
+    "kind": "wheel",
+    "pass": true
+  }
+]

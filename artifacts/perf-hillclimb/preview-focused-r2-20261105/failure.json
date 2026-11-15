@@ -1,0 +1,6 @@
+{
+  "message": "The expression evaluated to a falsy value:\n\n  assert.ok(fromController)\n",
+  "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(fromController)\n\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/preview-state-inspection-test.mjs:76:63",
+  "actual": null,
+  "expected": true
+}

@@ -1,0 +1,183 @@
+{
+  "at": "2026-11-14T22:04:24.930Z",
+  "phaseA": "NOT SOUND",
+  "cases": [
+    {
+      "id": "continue-knowledge-missing-frame-r2-20261115",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "pass": true,
+      "cleanup": {
+        "context": [
+          {
+            "launchId": "continue-knowledge-missing-frame-r2-20261115:launch-0-performance-continue",
+            "closed": true,
+            "pageClosed": true,
+            "at": "2026-11-14T21:59:50.262Z"
+          }
+        ],
+        "browser": [
+          {
+            "launchId": "continue-knowledge-missing-frame-r2-20261115:launch-0-performance-continue",
+            "closed": true,
+            "at": "2026-11-14T21:59:51.445Z"
+          }
+        ],
+        "errors": []
+      }
+    },
+    {
+      "id": "continue-knowledge-never-evaluation-r2-20261115",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "pass": true,
+      "cleanup": {
+        "context": [
+          {
+            "launchId": "continue-knowledge-never-evaluation-r2-20261115:launch-0-performance-continue",
+            "closed": true,
+            "pageClosed": true,
+            "at": "2026-11-14T22:00:21.698Z"
+          }
+        ],
+        "browser": [
+          {
+            "launchId": "continue-knowledge-never-evaluation-r2-20261115:launch-0-performance-continue",
+            "closed": true,
+            "at": "2026-11-14T22:00:23.139Z"
+          }
+        ],
+        "errors": []
+      }
+    },
+    {
+      "id": "continue-knowledge-positive-desktop123-r2-20261115",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true,
+      "cleanup": {
+        "context": [
+          {
+            "launchId": "continue-knowledge-positive-desktop123-r2-20261115:launch-0-performance-continue",
+            "closed": true,
+            "pageClosed": true,
+            "at": "2026-11-14T22:00:57.465Z"
+          }
+        ],
+        "browser": [
+          {
+            "launchId": "continue-knowledge-positive-desktop123-r2-20261115:launch-0-performance-continue",
+            "closed": true,
+            "at": "2026-11-14T22:00:58.649Z"
+          }
+        ],
+        "errors": []
+      }
+    },
+    {
+      "id": "continue-knowledge-positive-mobile424242-r2-20261115",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true,
+      "cleanup": {
+        "context": [
+          {
+            "launchId": "continue-knowledge-positive-mobile424242-r2-20261115:launch-0-performance-continue",
+            "closed": true,
+            "pageClosed": true,
+            "at": "2026-11-14T22:02:27.537Z"
+          }
+        ],
+        "browser": [
+          {
+            "launchId": "continue-knowledge-positive-mobile424242-r2-20261115:launch-0-performance-continue",
+            "closed": true,
+            "at": "2026-11-14T22:02:28.335Z"
+          }
+        ],
+        "errors": []
+      }
+    },
+    {
+      "id": "continue-knowledge-wrong-save-r2-20261115",
+      "expectedExit": 1,
+      "actualExit": 1,
+      "pass": true,
+      "cleanup": {
+        "context": [
+          {
+            "launchId": "continue-knowledge-wrong-save-r2-20261115:launch-0-save-history",
+            "closed": true,
+            "pageClosed": true,
+            "at": "2026-11-14T22:03:01.288Z"
+          }
+        ],
+        "browser": [
+          {
+            "launchId": "continue-knowledge-wrong-save-r2-20261115:launch-0-save-history",
+            "closed": true,
+            "at": "2026-11-14T22:03:02.399Z"
+          }
+        ],
+        "errors": []
+      }
+    },
+    {
+      "id": "continue-knowledge-deferred-save-r2-20261115",
+      "expectedExit": 0,
+      "actualExit": 0,
+      "pass": true,
+      "cleanup": {
+        "context": [
+          {
+            "launchId": "continue-knowledge-deferred-save-r2-20261115:launch-0-save-history",
+            "closed": true,
+            "pageClosed": true,
+            "at": "2026-11-14T22:03:35.072Z"
+          }
+        ],
+        "browser": [
+          {
+            "launchId": "continue-knowledge-deferred-save-r2-20261115:launch-0-save-history",
+            "closed": true,
+            "at": "2026-11-14T22:03:35.831Z"
+          }
+        ],
+        "errors": []
+      }
+    }
+  ],
+  "sourceChanges": [],
+  "sources": {
+    "scripts/perf-hillclimb/run.mjs": "d1a81bf6d99be2e35ddc167e8688b11ae2907c0f35acb0526e8d0f3e53b6a714",
+    "scripts/perf-hillclimb/save-state-oracle.mjs": "dbc4f373e5b47c66e889711ad48f012563d63dc71bc4bb8aa5664e94616fdd51",
+    "scripts/perf-hillclimb/save-state-oracle-test.mjs": "d4948f5ee2179c553c4c5a2f9027ffb575f24167ec28f93d73a5ced79de66517"
+  },
+  "contract": "eca7b0ab570f8ca9259244dcae39f2f77a70bd93a16ee04aa336b9a5815496ac",
+  "assetsIdenticalToHoldReference": true,
+  "helperControls": 67,
+  "helperReceipt": "artifacts/perf-hillclimb/save-state-controls-2026-11-14T21-53-53-410Z/settled-controls.json",
+  "setupAndSaveSpans": [
+    {
+      "run": "continue-knowledge-wrong-save-r2-20261115",
+      "ok": false,
+      "setupStartMs": 11966,
+      "setupEndMs": 21046.80000001192,
+      "saveStartedMs": 21233.30000001192,
+      "saveFinishedMs": 21731.100000023842,
+      "setupThroughSaveMs": 9765.100000023842,
+      "scope": "derived only from retained raw setup-window and original operation timestamps; failed wrong-save outcome remains failed"
+    },
+    {
+      "run": "continue-knowledge-deferred-save-r2-20261115",
+      "ok": true,
+      "setupStartMs": 10641,
+      "setupEndMs": 21245.59999999404,
+      "saveStartedMs": 21356.40000000596,
+      "saveFinishedMs": 22021.59999999404,
+      "setupThroughSaveMs": 11380.59999999404,
+      "scope": "derived only from retained raw setup-window and original operation timestamps; failed wrong-save outcome remains failed"
+    }
+  ],
+  "scope": "six heterogeneous construction cells, not independent tail samples/full suites/performance win"
+}

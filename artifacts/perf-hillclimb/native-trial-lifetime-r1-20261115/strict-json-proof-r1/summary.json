@@ -1,0 +1,178 @@
+{
+  "scope": "STRICT_CHECKER_JSON_ONLY_NOT_COMPLETE_CELL",
+  "nativeCalls": 0,
+  "controls": [
+    {
+      "name": "original-managed-report-r4",
+      "expected": true,
+      "accepted": true,
+      "error": null
+    },
+    {
+      "name": "safe-negative-HRESULT",
+      "expected": true,
+      "accepted": true,
+      "error": null
+    },
+    {
+      "name": "lossless-decimal-and-hex-strings",
+      "expected": true,
+      "accepted": true,
+      "error": null
+    },
+    {
+      "name": "valid-surrogate-pair",
+      "expected": true,
+      "accepted": true,
+      "error": null
+    },
+    {
+      "name": "nested-valid-empty-scalars",
+      "expected": true,
+      "accepted": true,
+      "error": null
+    },
+    {
+      "name": "duplicate",
+      "expected": false,
+      "accepted": false,
+      "error": "duplicate/excess JSON key"
+    },
+    {
+      "name": "escaped-duplicate",
+      "expected": false,
+      "accepted": false,
+      "error": "duplicate/excess JSON key"
+    },
+    {
+      "name": "unsafe-integer",
+      "expected": false,
+      "accepted": false,
+      "error": "unsafe JSON integer: use explicit lossless string"
+    },
+    {
+      "name": "unsafe-rounded-boundary",
+      "expected": false,
+      "accepted": false,
+      "error": "unsafe JSON integer: use explicit lossless string"
+    },
+    {
+      "name": "fraction",
+      "expected": false,
+      "accepted": false,
+      "error": "JSON object separator"
+    },
+    {
+      "name": "exponent",
+      "expected": false,
+      "accepted": false,
+      "error": "JSON object separator"
+    },
+    {
+      "name": "negative-zero",
+      "expected": false,
+      "accepted": false,
+      "error": "integer JSON scalar required"
+    },
+    {
+      "name": "leading-zero",
+      "expected": false,
+      "accepted": false,
+      "error": "JSON object separator"
+    },
+    {
+      "name": "high-surrogate",
+      "expected": false,
+      "accepted": false,
+      "error": "unpaired Unicode high surrogate"
+    },
+    {
+      "name": "low-surrogate",
+      "expected": false,
+      "accepted": false,
+      "error": "unpaired Unicode low surrogate"
+    },
+    {
+      "name": "invalid-escape",
+      "expected": false,
+      "accepted": false,
+      "error": "invalid JSON escape"
+    },
+    {
+      "name": "invalid-unicode",
+      "expected": false,
+      "accepted": false,
+      "error": "invalid Unicode escape"
+    },
+    {
+      "name": "trailing",
+      "expected": false,
+      "accepted": false,
+      "error": "trailing JSON data"
+    },
+    {
+      "name": "trailing-comma",
+      "expected": false,
+      "accepted": false,
+      "error": "JSON string expected"
+    },
+    {
+      "name": "array-trailing-comma",
+      "expected": false,
+      "accepted": false,
+      "error": "integer JSON scalar required"
+    },
+    {
+      "name": "unquoted-key",
+      "expected": false,
+      "accepted": false,
+      "error": "JSON string expected"
+    },
+    {
+      "name": "invalid-UTF8",
+      "expected": false,
+      "accepted": false,
+      "error": "The encoded data was not valid for encoding utf-8"
+    },
+    {
+      "name": "BOM",
+      "expected": false,
+      "accepted": false,
+      "error": "unexpected JSON BOM"
+    },
+    {
+      "name": "byte-cap",
+      "expected": false,
+      "accepted": false,
+      "error": "JSON byte cap"
+    },
+    {
+      "name": "depth-cap",
+      "expected": false,
+      "accepted": false,
+      "error": "JSON depth/node cap"
+    },
+    {
+      "name": "node-cap",
+      "expected": false,
+      "accepted": false,
+      "error": "JSON depth/node cap"
+    },
+    {
+      "name": "array-cap",
+      "expected": false,
+      "accepted": false,
+      "error": "JSON array cap"
+    },
+    {
+      "name": "key-cap",
+      "expected": false,
+      "accepted": false,
+      "error": "duplicate/excess JSON key"
+    }
+  ],
+  "hashes": {
+    "strict-evidence-json.mjs": "98827b4b58adb2ccc1a1b16fdf6320bb0c4715a112bce228d561f2cac0c7699e",
+    "test-strict-json-r1.mjs": "1e3afee860a74ef6cd2962361191f36f0356ccbd8eeb2f05d30c1455a01835fb"
+  }
+}

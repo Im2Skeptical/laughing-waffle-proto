@@ -1,0 +1,17 @@
+{
+  "requestedJobs": [
+    "entry",
+    "life",
+    "save",
+    "map-open",
+    "scrub-anchor"
+  ],
+  "executableJobs": [
+    "entry",
+    "life",
+    "save-history",
+    "save-opening",
+    "map-open",
+    "scrub-anchor"
+  ]
+}

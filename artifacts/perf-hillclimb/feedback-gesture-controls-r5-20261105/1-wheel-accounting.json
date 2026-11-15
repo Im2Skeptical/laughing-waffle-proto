@@ -1,0 +1,7 @@
+{
+  "offeredCommands": 18,
+  "receivedNativeEvents": 18,
+  "hcInputCount": 18,
+  "unresolvedMissingOrCoalesced": 0,
+  "scope": "all protocol commands retained; exact HC/native receipt parity; unresolved protocol-to-DOM coalescing/loss is NOT zero or offered-load conformance"
+}

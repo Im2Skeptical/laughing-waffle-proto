@@ -1,0 +1,125 @@
+[
+  {
+    "stage": "minimal-all",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/main-discovery.mjs",
+      "--jobs=entry,performance,map,scrub,life,save",
+      "--populations=desktop,mobile4",
+      "--seeds=123",
+      "--caches=cold",
+      "--id=feedback-final-matrix-r2-20261105-minimal-all"
+    ],
+    "started": "2026-11-04T22:20:13.936Z",
+    "finished": "2026-11-04T22:38:56.029Z",
+    "exit": 1
+  },
+  {
+    "stage": "otherseeds",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/main-discovery.mjs",
+      "--jobs=performance-continue,scrub,life,save",
+      "--populations=desktop,mobile4",
+      "--seeds=424242,99117",
+      "--caches=cold",
+      "--id=feedback-final-matrix-r2-20261105-otherseeds"
+    ],
+    "started": "2026-11-04T22:38:56.241Z",
+    "finished": "2026-11-04T23:04:41.572Z",
+    "exit": 1
+  },
+  {
+    "stage": "warm-entry",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/main-discovery.mjs",
+      "--jobs=entry,performance",
+      "--populations=desktop,mobile4",
+      "--seeds=123",
+      "--caches=warm",
+      "--id=feedback-final-matrix-r2-20261105-warm-entry"
+    ],
+    "started": "2026-11-04T23:04:41.756Z",
+    "finished": "2026-11-04T23:16:05.456Z",
+    "exit": 0
+  },
+  {
+    "stage": "progressive-entry",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/main-discovery.mjs",
+      "--jobs=performance",
+      "--populations=desktop,mobile4",
+      "--seeds=123",
+      "--caches=cold",
+      "--artwork=progressive",
+      "--id=feedback-final-matrix-r2-20261105-progressive-entry"
+    ],
+    "started": "2026-11-04T23:16:05.717Z",
+    "finished": "2026-11-04T23:20:21.436Z",
+    "exit": 1
+  },
+  {
+    "stage": "visual-sentinels",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/main-discovery.mjs",
+      "--jobs=entry,life,save,map-open,scrub-anchor",
+      "--populations=desktop,mobile4",
+      "--seeds=123",
+      "--caches=cold",
+      "--visual-evidence=1",
+      "--id=feedback-final-matrix-r2-20261105-visual-sentinels"
+    ],
+    "started": "2026-11-04T23:20:21.606Z",
+    "finished": "2026-11-04T23:32:52.582Z",
+    "exit": 1
+  },
+  {
+    "stage": "illustrated",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--jobs=entry",
+      "--population=desktop",
+      "--seed=123",
+      "--cache=cold",
+      "--artwork=illustrated",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--id=feedback-final-matrix-r2-20261105-illustrated"
+    ],
+    "started": "2026-11-04T23:32:52.749Z",
+    "finished": "2026-11-04T23:34:13.687Z",
+    "exit": 0
+  },
+  {
+    "stage": "art-desktop",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--population=desktop",
+      "--cases=reference,deferred,retry,exhausted",
+      "--cycles=5",
+      "--id=feedback-final-matrix-r2-20261105-art-desktop"
+    ],
+    "started": "2026-11-04T23:34:13.870Z",
+    "finished": "2026-11-04T23:40:05.543Z",
+    "exit": 0
+  },
+  {
+    "stage": "art-mobile4",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--population=mobile4",
+      "--cases=reference,deferred,retry,exhausted",
+      "--cycles=5",
+      "--id=feedback-final-matrix-r2-20261105-art-mobile4"
+    ],
+    "started": "2026-11-04T23:40:05.763Z",
+    "finished": "2026-11-04T23:45:16.110Z",
+    "exit": 1
+  }
+]

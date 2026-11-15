@@ -1,0 +1,20 @@
+{
+  "at": "2026-11-15T02:50:33.690Z",
+  "authority": "artifacts/perf-hillclimb/j8-paired-wait-progress-r1-20261115/plan.json",
+  "authoritySha256": "8c45bbf674f60ac7f6dc7214fb1abc76bc9617f02bb943c73bb7e318a2dc172e",
+  "sourceCount": 683,
+  "assetCount": 5,
+  "changes": [],
+  "files": {
+    "scripts/build-preview-test.mjs": "3cb9132b0f020aec42287508c45c126adec8953d40a6b53e59fb4585f0c11245",
+    "scripts/local-preview.mjs": "8be1687574345187ec1bc2dc9077b383b81cc3fbe92363b1d81c3faa4d0a4881",
+    "scripts/build-info.mjs": "701eb32bd37c0bf18b781d4ca724baaac6d893ed4da8c3a2b819f440fec29627",
+    "scripts/version-game.mjs": "335315338e376474c57af90a492ef644c42eeea18de720d3b8a076c8c5d19fb9",
+    "scripts/performance-fixture.mjs": "6c61b911f75f4daa0b8500495d89c569b241447d61d05a0abef3e4aad55e5103",
+    "scripts/performance-fixture-recipe.mjs": "e88b3763d2545edf8aa8f2ac21e0f7231fd4a5d8d45221c1e15bdc27a0a4d73e",
+    "src/views/ui-root/settlement-timegraph-window.js": "6ded2ca994abd457ff4506445463e84cc5178a10c75c2da9f76fc15e20838522"
+  },
+  "node": "v24.15.0",
+  "deadline": "2026-11-16T02:40:00Z",
+  "phaseA": "NOT SOUND"
+}

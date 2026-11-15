@@ -1,0 +1,135 @@
+{
+  "at": "2026-11-15T02:23:30.448Z",
+  "state": "Final confirmation complete; deadline stop/disabled receipt pending02:40Z",
+  "proof": "NOT SOUND",
+  "successBarMet": false,
+  "sourceCheckout": "C:/Users/User/.t3/worktrees/laughing-waffle-proto/t3-b6a8e362-4c1c21b30f50461f",
+  "targetCheckout": "C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104",
+  "deadline": "2026-11-15T02:40:00Z",
+  "schedule": {
+    "scheduledTaskId": "scheduled-task:9ec80581-e6bf-4df4-bdb7-1995e6e7be34",
+    "enabled": true,
+    "type": "once",
+    "nextRunAt": "2026-11-15T02:40:00.000Z"
+  },
+  "totalBytes": 271043,
+  "files": {
+    "CONTINUE_KNOWLEDGE_REVIEW.md": {
+      "bytes": 16639,
+      "sha256": "8ce0889ccd4ed6fc1806369d56552924547660e80fb69dc178d51e5119d75717"
+    },
+    "COVERAGE_NATIVE_FAILURE_REVIEW.md": {
+      "bytes": 14347,
+      "sha256": "b562b6d1ef1c9e8fc9faa3e024c4cbd20c935aecdb472c8ba8e70587019132e6"
+    },
+    "FINAL_CONFIRMATION_BRIEF.md": {
+      "bytes": 4315,
+      "sha256": "eeb6936a8c9fd6868d75d59a6774b894ca4a0278e06fcfdbed489d3c7d75a8f2"
+    },
+    "HARNESS_REVIEW_FINAL.md": {
+      "bytes": 10183,
+      "sha256": "4a3665397d0d118bb176674486bfe450fd5200ef97ffd62d937ac3a7534de01f"
+    },
+    "HOLD_RESUME_REVIEW.md": {
+      "bytes": 10201,
+      "sha256": "e9742739647e8922e4cbc01ac3a23f3a637ec8ff8aef4175c4afb92c6c9774c1"
+    },
+    "J3_CURRENT_ADMISSION.md": {
+      "bytes": 4435,
+      "sha256": "4e4cac22acbdbf4b8ace0363b7d6fd4cefd737d0568f54cc7b093497930515fe"
+    },
+    "J3_CURRENT_CASE_BRIEF.md": {
+      "bytes": 2011,
+      "sha256": "5616ac3e4f0de5ca75d1807954affe0b1132b21f7a3eda21074779b398944337"
+    },
+    "J3_CURRENT_REVIEW.md": {
+      "bytes": 5832,
+      "sha256": "ddc25bf8bb218207e807d0f72902f07f980911a047fb1e22c949c9ef04cc9a0e"
+    },
+    "J3_LINKAGE_BRIEF.md": {
+      "bytes": 2887,
+      "sha256": "bfa4aeaa496b4124369838f79f6bebf970f2f1f46823cb1bd2dc5ef2a60eef9c"
+    },
+    "J3_LINKAGE_REVIEW.md": {
+      "bytes": 9085,
+      "sha256": "16e0db99f9feaa0346f36bcf9de175a728cfb630a0f1d572f0a213c6e0505ea5"
+    },
+    "J8_ABBA_REVIEW.md": {
+      "bytes": 11711,
+      "sha256": "16449ea4e6eb5de0add647432fac2e6931f372682644099ba91c4aae820f7a9f"
+    },
+    "J8_ATTRIBUTION_BRIEF.md": {
+      "bytes": 12454,
+      "sha256": "07fc992b2c6814af4cdb12e25823b1093b43ac291e6212cfca7c2ab090d3aa0e"
+    },
+    "J8_BATCH_ADMISSION_REVIEW.md": {
+      "bytes": 9819,
+      "sha256": "be2cdc19a5312bbda193753bbe78348f01b38dc80eae189266eecdba06311dff"
+    },
+    "PAIRED_ACTUAL_REVIEW.md": {
+      "bytes": 6171,
+      "sha256": "b270386367834d628dbbdadea59800f929cc66df1b6324b97153abeaa92fe0e3"
+    },
+    "PAIRED_CASE_ADMISSION.md": {
+      "bytes": 3454,
+      "sha256": "70c41563cdbc5e559490bd3e74f693a4f409967d2ccd1f6f89609ca63c92a95e"
+    },
+    "PAIRED_COUNTER_BRIEF.md": {
+      "bytes": 4314,
+      "sha256": "771de3cd9297297fd786491c0506639351c72fb5872034b3db2a03a1b231b7d5"
+    },
+    "PAIRED_COUNTER_REVIEW.md": {
+      "bytes": 6514,
+      "sha256": "9cd077b57c901a89e5a1ce76dac60afc15ca7e5e3537064eefeee75909458299"
+    },
+    "PHASE_ACTUAL_REVIEW.md": {
+      "bytes": 10483,
+      "sha256": "83d609203bc69c0d7ccacdbe354c1ce98e6a49a5cd32964ed46f09295578cdbf"
+    },
+    "PHASE_BATCH_ADMISSION_REVIEW.md": {
+      "bytes": 8188,
+      "sha256": "3c597dae58a133668c77b65ba85e72dece0bec1606c5f21956de8666e54656dd"
+    },
+    "PHASE_WITNESS_BRIEF.md": {
+      "bytes": 5976,
+      "sha256": "3131f5142d9f6f9e65ccb4bde768c11ed30929a99dafec4711552314b80444d7"
+    },
+    "PHASE_WITNESS_REVIEW.md": {
+      "bytes": 12864,
+      "sha256": "ea598267d8aa0f344253155e1e2614162ad88cd7004cd08f03c32777a45565fb"
+    },
+    "RESUME_AUDIT.md": {
+      "bytes": 9444,
+      "sha256": "925d4617718875e4c21a7d3c71a7bf8232892260c43b1fe98e4ea8c0e97e7cc2"
+    },
+    "RUN_PACK.md": {
+      "bytes": 10743,
+      "sha256": "33e2e39f063ac2713bdd4b8d4176b8f036277836e80895ca3a5b0416e1604a32"
+    },
+    "STATUS.md": {
+      "bytes": 7957,
+      "sha256": "058712f7e039029f30844a5deee4e4969ff6a85167719e23a9ddeab37d0b0671"
+    },
+    "STATUS_HISTORY_confirmation.md": {
+      "bytes": 19380,
+      "sha256": "2dbf89f5756b449fd91d8e60bac4615bc04011a0a0baac065fb9b95fcff7ccc5"
+    },
+    "STATUS_HISTORY_coverage_and_j8_admission.md": {
+      "bytes": 14356,
+      "sha256": "244b1f3cef420f699c15eed5ae9da9bd51b0697366ad6ccb4d9343ec9f68b757"
+    },
+    "STATUS_HISTORY_initial_continuation.md": {
+      "bytes": 19497,
+      "sha256": "7aa180c48b88e61f4a223fb2b1cee6be794d90c51a325732f614524b6ff76566"
+    },
+    "STATUS_HISTORY_phase_witness_build.md": {
+      "bytes": 14089,
+      "sha256": "4f3e4a6cef57bcb02afb699dcf3383eac607e8a42f56f91c0bb6aa4e9f2f3ac0"
+    },
+    "VERIFICATION_FAILURE.md": {
+      "bytes": 3694,
+      "sha256": "4fac8cace4418300903c185392ac884364f2815e14b30270508752786e3c3ffd"
+    }
+  },
+  "scope": "Byte-exact copy of coordinator reports including historical states. Current STATUS.md is authoritative. No source/body/old evidence file modified. Final stop snapshot will be a separate handoff-pack-final after actual schedule disable."
+}

@@ -1,0 +1,52 @@
+{
+  "at": "2026-11-15T00:17:21.798Z",
+  "entries": [
+    [
+      "scripts/perf-hillclimb/artwork-bundle-controls.mjs",
+      "409e33c6c9a02bcfa7d1c8bd571739aaaec7b6d58b179baaff6ef9e7debd63a3"
+    ],
+    [
+      "scripts/perf-hillclimb/artwork-bundle-controls-test.mjs",
+      "9ab832985a96738797ff4a220979a739dd8614fb4b1656b4d4fe452324a08315"
+    ],
+    [
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "57aa43e3efff91ef48e3066f7b6d446a3e9e872c27c652530c025a8384ff68b3"
+    ],
+    [
+      "docs/performance/perf-hillclimb-20261104/PHASE_WITNESS_IMPLEMENTATION_20261115.md",
+      "6197945919d248b7cf81ee58ecf3c23b3a57370f22ba40ec2143f9372a57aa38"
+    ],
+    [
+      "docs/performance/perf-hillclimb-20261104/HARNESS.md",
+      "ebc9da83422b58a195415dac178bba2fd80453979050219f05daaece66afce7b"
+    ],
+    [
+      "dist/./assets/app-6H5PP5LS.js",
+      null
+    ],
+    [
+      "dist/./assets/timegraph-forecast-worker-YOB3XRD7.js",
+      null
+    ],
+    [
+      "dist/./assets/save-load-worker-7YJYILEJ.js",
+      null
+    ],
+    [
+      "dist/./assets/styles-ec05c6a73a6e.css",
+      null
+    ],
+    [
+      "dist/images/dev-fixtures/performance-start.json.gz",
+      null
+    ]
+  ],
+  "changed": [
+    "dist/./assets/app-6H5PP5LS.js",
+    "dist/./assets/timegraph-forecast-worker-YOB3XRD7.js",
+    "dist/./assets/save-load-worker-7YJYILEJ.js",
+    "dist/./assets/styles-ec05c6a73a6e.css",
+    "dist/images/dev-fixtures/performance-start.json.gz"
+  ]
+}

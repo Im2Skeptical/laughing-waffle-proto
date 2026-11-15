@@ -1,0 +1,7 @@
+{
+    "verdict":  "ACCEPTED",
+    "driverSha256":  "34e0ac368a252ecad45321522da25f0dd5f9a4bb287e37a32aa5c1c86a8555cf",
+    "proofSha256":  "510560d5710c1b779c7ec4e0e2569b724720d290eec3b46e47f9105869f6eff1",
+    "at":  "2026-11-15T01:11:55.3709722Z",
+    "scope":  "Source-only admission for exactly ONE fixed optional-OFF phase+cooperative-v1 reference/mobile4/cold-seed123 diagnostic, unchanged240s/600s/13groups/16atlases/cycles5/common oracles; post-closure accounting only. No runtime, product, neutrality, score or whole-Phase-A acceptance. Full registered verification reserved for final35min."
+}

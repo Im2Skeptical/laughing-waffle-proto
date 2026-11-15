@@ -1,0 +1,55 @@
+{
+  "invalidDeadlines": [
+    {
+      "input": "NaN",
+      "accepted": true,
+      "elapsedMs": 32,
+      "timeout": false
+    },
+    {
+      "input": "Infinity",
+      "accepted": true,
+      "elapsedMs": 32,
+      "timeout": false
+    },
+    {
+      "input": "-1",
+      "accepted": false,
+      "error": "operation timeout after 32.0ms (deadline -1ms)"
+    },
+    {
+      "input": "0",
+      "accepted": false,
+      "error": "operation timeout after 32.0ms (deadline 0ms)"
+    }
+  ],
+  "zeroDurationWindow": {
+    "startMs": 16,
+    "endMs": 16,
+    "frames": [
+      {
+        "time": 16,
+        "dt": 16
+      },
+      {
+        "time": 216,
+        "dt": 200
+      }
+    ]
+  },
+  "endBoundaryWindow": {
+    "startMs": 0,
+    "endMs": 16,
+    "frames": [
+      {
+        "time": 16,
+        "dt": 16
+      },
+      {
+        "time": 216,
+        "dt": 200
+      }
+    ]
+  },
+  "scope": "virtual semantic edge checks; no browser latency claim"
+}

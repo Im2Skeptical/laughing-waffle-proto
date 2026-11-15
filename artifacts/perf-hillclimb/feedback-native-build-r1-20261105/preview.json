@@ -1,0 +1,61 @@
+{
+  "verifiedAt": "2026-11-05T00:20:06.047Z",
+  "status": {
+    "protocol": 2,
+    "workspaceId": "318fcd5d72880280",
+    "pid": 4484,
+    "desktop": "http://localhost:5184/",
+    "mobile": [
+      "http://100.105.63.49:5184/",
+      "http://192.168.1.103:5184/"
+    ]
+  },
+  "metadata": {
+    "performanceFixtureKey": "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+    "version": "1.1.52",
+    "build": "a173c7ac3187",
+    "revision": "a9df52cbd625",
+    "channel": "local",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": "5184"
+  },
+  "url": "http://192.168.1.103:5184/",
+  "htmlSha256": "bb860eec881b4fc0ad1b438aff8e856ac2546daa79f85d9833db2fb61e10cc41",
+  "sources": {
+    "src/views/world-map-pixi.js": {
+      "servedSha256": "ce6354552e866f8f26185066be2f7edbd2af43620796ffffe39c8fc9d9033f72",
+      "localSha256": "ce6354552e866f8f26185066be2f7edbd2af43620796ffffe39c8fc9d9033f72",
+      "bytes": 63304
+    },
+    "src/views/timegraphs-pixi.js": {
+      "servedSha256": "d81f68b8a9a8175cd5b5d6b50c8455027f041a044a698905362a9bad0428e294",
+      "localSha256": "d81f68b8a9a8175cd5b5d6b50c8455027f041a044a698905362a9bad0428e294",
+      "bytes": 92198
+    },
+    "src/views/vassal-node-decision-modal-pixi.js": {
+      "servedSha256": "d95c32be276bb8c589bcdd43d1bfe95eed0259ddad381f075db2d6b5c5f9e609",
+      "localSha256": "d95c32be276bb8c589bcdd43d1bfe95eed0259ddad381f075db2d6b5c5f9e609",
+      "bytes": 70999
+    },
+    "src/views/ui-root/settlement-debug-api.js": {
+      "servedSha256": "7cb5b449793bcf7d2e713a051b62b0c82d62adb336c5afe4c5a5b096e22a6626",
+      "localSha256": "7cb5b449793bcf7d2e713a051b62b0c82d62adb336c5afe4c5a5b096e22a6626",
+      "bytes": 14643
+    },
+    "src/views/ui-root-settlement-pixi.js": {
+      "servedSha256": "e1ee3b6d083a9618a7ddca8242aa5a4fe233f85fafa7bf0edaf761e85f97be30",
+      "localSha256": "e1ee3b6d083a9618a7ddca8242aa5a4fe233f85fafa7bf0edaf761e85f97be30",
+      "bytes": 86937
+    }
+  },
+  "badge": {
+    "text": "v1.1.52 · Preview 5184",
+    "title": "Game v1.1.52 | Build a173c7ac3187 | Revision a9df52cbd625 | local | Branch perf/hillclimb-20261104 (modified) | Preview checkout"
+  },
+  "debugApi": "function",
+  "browserClosed": true,
+  "integration": "dirty/local/unintegrated; no commit/push/PR/merge/Pages",
+  "scope": "actual LAN HTTP source/HTML identity and loaded badge; no physical mobile evidence"
+}

@@ -1,0 +1,792 @@
+{
+  "ok": true,
+  "identity": {
+    "date": "2026-11-04T11:52:24.354Z",
+    "files": {
+      "browser-runtime.mjs": "28dbc6efd95572a75ead37e97cb3c01d97066120e8e2687a6ef627b1cfc467f4",
+      "mechanism-controls.mjs": "2c91391c429856bd77890d216dca2b69fb68627db32dc4ea028a7f5c61430ae0"
+    },
+    "contractId": "ae5accb6f8e88ba6f18c40a275734ef9f7e2b6df7c17ca2b7cabf15e980f12f8",
+    "build": {
+      "performanceFixtureKey": "db9c9cfa0b929b060892b105c668dfa45cc3fafa1e5665b641a265877ceabe79",
+      "version": "1.1.52",
+      "build": "b50bf80c7a54",
+      "revision": "a9df52cbd625",
+      "channel": "pages",
+      "branch": "perf/hillclimb-20261104",
+      "dirty": true,
+      "preview": true,
+      "previewLabel": null,
+      "entryPoint": "src/views/ui-root-pixi.js",
+      "bundle": "./assets/app-OF3QB4I7.js",
+      "worker": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+      "saveLoadWorker": "./assets/save-load-worker-7YJYILEJ.js",
+      "stylesheet": "./assets/styles-ec05c6a73a6e.css"
+    },
+    "node": "v24.15.0",
+    "playwright": "1.59.1"
+  },
+  "chromium": "147.0.7727.15",
+  "launch": {
+    "headless": true,
+    "args": [
+      "--use-gl=angle",
+      "--use-angle=swiftshader"
+    ]
+  },
+  "results": [
+    {
+      "mechanism": "trusted-input/deferred-visible-completion",
+      "baseline": {
+        "id": 1,
+        "name": "control",
+        "armed": 19.099999994039536,
+        "started": 67.7000000178814,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 80.40000000596046,
+            "dt": 16.80000001192093
+          },
+          {
+            "time": 96.7000000178814,
+            "dt": 16.30000001192093
+          },
+          {
+            "time": 113.09999999403954,
+            "dt": 16.399999976158142
+          },
+          {
+            "time": 129.2000000178814,
+            "dt": 16.100000023841858
+          }
+        ],
+        "longTasks": [],
+        "probes": 5,
+        "probeCpuMs": 0,
+        "workerOffset": 0,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 80.40000000596046,
+          "reason": "terminal predicate became false"
+        },
+        "handlerStarted": 68.30000001192093,
+        "eventTimeStamp": 67.7000000178814,
+        "inputQueueMs": 0.5999999940395355,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0,
+        "hostFinishCalledAt": 130.7000000178814,
+        "semanticEnd": 96.80000001192093,
+        "finished": 129.2000000178814,
+        "hostCompletionGapMs": 33.900000005960464,
+        "completionClock": "browser predicate observation + double-rAF (host delivery excluded)",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 61.5,
+        "timeout": false,
+        "feedbackMs": 29.099999994039536,
+        "armToDispatchMs": 48.60000002384186,
+        "workerEvents": [],
+        "saveEvents": []
+      },
+      "delay": {
+        "id": 2,
+        "name": "control",
+        "armed": 133.2000000178814,
+        "started": 164.7000000178814,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 179.90000000596046,
+            "dt": 17.30000001192093
+          },
+          {
+            "time": 196.40000000596046,
+            "dt": 16.5
+          },
+          {
+            "time": 213.2000000178814,
+            "dt": 16.80000001192093
+          },
+          {
+            "time": 229.90000000596046,
+            "dt": 16.69999998807907
+          },
+          {
+            "time": 245.90000000596046,
+            "dt": 16
+          },
+          {
+            "time": 263.40000000596046,
+            "dt": 17.5
+          },
+          {
+            "time": 280.09999999403954,
+            "dt": 16.69999998807907
+          },
+          {
+            "time": 296.2000000178814,
+            "dt": 16.100000023841858
+          },
+          {
+            "time": 314.2000000178814,
+            "dt": 18
+          },
+          {
+            "time": 329.5,
+            "dt": 15.299999982118607
+          },
+          {
+            "time": 347.09999999403954,
+            "dt": 17.599999994039536
+          },
+          {
+            "time": 363.2000000178814,
+            "dt": 16.100000023841858
+          },
+          {
+            "time": 379.59999999403954,
+            "dt": 16.399999976158142
+          },
+          {
+            "time": 395.90000000596046,
+            "dt": 16.30000001192093
+          },
+          {
+            "time": 413.7000000178814,
+            "dt": 17.80000001192093
+          }
+        ],
+        "longTasks": [],
+        "probes": 16,
+        "probeCpuMs": 0.19999998807907104,
+        "workerOffset": 0,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 363.2000000178814,
+          "reason": "terminal predicate became false"
+        },
+        "handlerStarted": 164.90000000596046,
+        "eventTimeStamp": 164.7000000178814,
+        "inputQueueMs": 0.19999998807907104,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0,
+        "hostFinishCalledAt": 414.90000000596046,
+        "semanticEnd": 379.7000000178814,
+        "finished": 413.7000000178814,
+        "hostCompletionGapMs": 35.19999998807907,
+        "completionClock": "browser predicate observation + double-rAF (host delivery excluded)",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 249,
+        "timeout": false,
+        "feedbackMs": 215,
+        "armToDispatchMs": 31.5,
+        "workerEvents": [],
+        "saveEvents": []
+      },
+      "intermediateDelayed": {
+        "id": 3,
+        "name": "control",
+        "armed": 417,
+        "started": 448.30000001192093,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 462.7000000178814,
+            "dt": 16.400000005960464
+          },
+          {
+            "time": 480,
+            "dt": 17.299999982118607
+          },
+          {
+            "time": 496.09999999403954,
+            "dt": 16.099999994039536
+          },
+          {
+            "time": 513.8000000119209,
+            "dt": 17.700000017881393
+          },
+          {
+            "time": 530.0999999940395,
+            "dt": 16.299999982118607
+          },
+          {
+            "time": 546.3000000119209,
+            "dt": 16.200000017881393
+          },
+          {
+            "time": 563.5,
+            "dt": 17.19999998807907
+          },
+          {
+            "time": 580.0999999940395,
+            "dt": 16.599999994039536
+          },
+          {
+            "time": 596.2000000178814,
+            "dt": 16.100000023841858
+          },
+          {
+            "time": 613.5,
+            "dt": 17.299999982118607
+          },
+          {
+            "time": 629.9000000059605,
+            "dt": 16.400000005960464
+          },
+          {
+            "time": 646.3000000119209,
+            "dt": 16.400000005960464
+          },
+          {
+            "time": 663.7000000178814,
+            "dt": 17.400000005960464
+          },
+          {
+            "time": 679.5,
+            "dt": 15.799999982118607
+          },
+          {
+            "time": 696.5999999940395,
+            "dt": 17.099999994039536
+          }
+        ],
+        "longTasks": [],
+        "probes": 17,
+        "probeCpuMs": 0.19999998807907104,
+        "workerOffset": 0,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 646.3000000119209,
+          "reason": "terminal predicate became false"
+        },
+        "handlerStarted": 448.59999999403954,
+        "eventTimeStamp": 448.30000001192093,
+        "inputQueueMs": 0.29999998211860657,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0.09999999403953552,
+        "hostFinishCalledAt": 697.5,
+        "semanticEnd": 663.7000000178814,
+        "finished": 696.5999999940395,
+        "hostCompletionGapMs": 33.79999998211861,
+        "completionClock": "browser predicate observation + double-rAF (host delivery excluded)",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 248.2999999821186,
+        "timeout": false,
+        "feedbackMs": 215.40000000596046,
+        "armToDispatchMs": 31.30000001192093,
+        "workerEvents": [],
+        "saveEvents": []
+      },
+      "queued": {
+        "id": 4,
+        "name": "control",
+        "armed": 700.2000000178814,
+        "started": 731.9000000059605,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 932.2000000178814,
+            "dt": 202.30000001192093
+          },
+          {
+            "time": 932.7000000178814,
+            "dt": 0.5
+          },
+          {
+            "time": 946,
+            "dt": 13.299999982118607
+          },
+          {
+            "time": 963.0999999940395,
+            "dt": 17.099999994039536
+          }
+        ],
+        "longTasks": [
+          {
+            "start": 731.9000000059605,
+            "duration": 200
+          }
+        ],
+        "probes": 3,
+        "probeCpuMs": 0.09999999403953552,
+        "workerOffset": 0,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 934.8000000119209,
+          "reason": "predicate identity changed"
+        },
+        "handlerStarted": 932,
+        "eventTimeStamp": 731.9000000059605,
+        "inputQueueMs": 200.09999999403954,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0,
+        "hostFinishCalledAt": 964.2000000178814,
+        "semanticEnd": 934.8000000119209,
+        "finished": 963.0999999940395,
+        "hostCompletionGapMs": 29.400000005960464,
+        "completionClock": "browser predicate observation + double-rAF (host delivery excluded)",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 231.19999998807907,
+        "timeout": false,
+        "feedbackMs": 202.90000000596046,
+        "armToDispatchMs": 31.69999998807907,
+        "workerEvents": [],
+        "saveEvents": []
+      },
+      "wrongFailed": true,
+      "lateFailed": true
+    },
+    {
+      "mechanism": "same-key transient terminal readiness across actual frames",
+      "firstTransientSemantic": 1816.5,
+      "operation": {
+        "id": 7,
+        "name": "control",
+        "armed": 1784.7000000178814,
+        "started": 1816,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 1829.300000011921,
+            "dt": 15.099999994039536
+          },
+          {
+            "time": 1846.800000011921,
+            "dt": 17.5
+          },
+          {
+            "time": 1862.9000000059605,
+            "dt": 16.099999994039536
+          },
+          {
+            "time": 1880.5,
+            "dt": 17.599999994039536
+          },
+          {
+            "time": 1896.7000000178814,
+            "dt": 16.200000017881393
+          },
+          {
+            "time": 1913.5999999940395,
+            "dt": 16.899999976158142
+          },
+          {
+            "time": 1929.7000000178814,
+            "dt": 16.100000023841858
+          },
+          {
+            "time": 1946,
+            "dt": 16.299999982118607
+          },
+          {
+            "time": 1963.300000011921,
+            "dt": 17.30000001192093
+          },
+          {
+            "time": 1979.9000000059605,
+            "dt": 16.599999994039536
+          },
+          {
+            "time": 1996,
+            "dt": 16.099999994039536
+          },
+          {
+            "time": 2014,
+            "dt": 18
+          },
+          {
+            "time": 2029.5999999940395,
+            "dt": 15.599999994039536
+          },
+          {
+            "time": 2047.2000000178814,
+            "dt": 17.600000023841858
+          },
+          {
+            "time": 2064.0999999940395,
+            "dt": 16.899999976158142
+          },
+          {
+            "time": 2079.300000011921,
+            "dt": 15.200000017881393
+          }
+        ],
+        "longTasks": [],
+        "probes": 18,
+        "probeCpuMs": 0.09999999403953552,
+        "workerOffset": 0,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 2029.5999999940395,
+          "reason": "terminal predicate became false"
+        },
+        "handlerStarted": 1816.300000011921,
+        "eventTimeStamp": 1816,
+        "inputQueueMs": 0.30000001192092896,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 5,
+        "revalidationCpuMs": 0,
+        "hostFinishCalledAt": 2080.5,
+        "semanticEnd": 2047.2000000178814,
+        "finished": 2079.300000011921,
+        "hostCompletionGapMs": 33.29999998211861,
+        "completionClock": "browser predicate observation + double-rAF (host delivery excluded)",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 263.30000001192093,
+        "timeout": false,
+        "feedbackMs": 231.2000000178814,
+        "armToDispatchMs": 31.299999982118607,
+        "workerEvents": [],
+        "saveEvents": []
+      }
+    },
+    {
+      "mechanism": "actual-worker-delivery",
+      "workerBaseline": {
+        "id": 8,
+        "name": "control",
+        "armed": 2088,
+        "started": 2115,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 2130.2000000178814,
+            "dt": 17.100000023841858
+          },
+          {
+            "time": 2146.300000011921,
+            "dt": 16.099999994039536
+          },
+          {
+            "time": 2162.5999999940395,
+            "dt": 16.299999982118607
+          },
+          {
+            "time": 2179.800000011921,
+            "dt": 17.200000017881393
+          }
+        ],
+        "longTasks": [],
+        "probes": 5,
+        "probeCpuMs": 0,
+        "workerOffset": 2,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 2130.2000000178814,
+          "reason": "terminal predicate became false"
+        },
+        "handlerStarted": 2115.2000000178814,
+        "eventTimeStamp": 2115,
+        "inputQueueMs": 0.20000001788139343,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0,
+        "hostFinishCalledAt": 2180.800000011921,
+        "semanticEnd": 2146.300000011921,
+        "finished": 2179.800000011921,
+        "hostCompletionGapMs": 34.5,
+        "completionClock": "browser predicate observation + double-rAF (host delivery excluded)",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 64.80000001192093,
+        "timeout": false,
+        "feedbackMs": 31.30000001192093,
+        "armToDispatchMs": 27,
+        "workerEvents": [
+          {
+            "kind": "request",
+            "url": "blob:http://127.0.0.1:18245/4498aa5e-f0af-49d1-a462-b931e7886019",
+            "time": 2115.2000000178814
+          },
+          {
+            "kind": "response",
+            "url": "blob:http://127.0.0.1:18245/4498aa5e-f0af-49d1-a462-b931e7886019",
+            "time": 2130.4000000059605
+          }
+        ],
+        "saveEvents": []
+      },
+      "workerDelayed": {
+        "id": 9,
+        "name": "control",
+        "armed": 2183.5,
+        "started": 2214.800000011921,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 2229.800000011921,
+            "dt": 17.200000017881393
+          },
+          {
+            "time": 2245.9000000059605,
+            "dt": 16.099999994039536
+          },
+          {
+            "time": 2263.300000011921,
+            "dt": 17.400000005960464
+          },
+          {
+            "time": 2280,
+            "dt": 16.69999998807907
+          },
+          {
+            "time": 2296.800000011921,
+            "dt": 16.80000001192093
+          },
+          {
+            "time": 2313,
+            "dt": 16.19999998807907
+          },
+          {
+            "time": 2330,
+            "dt": 17
+          },
+          {
+            "time": 2346.0999999940395,
+            "dt": 16.099999994039536
+          },
+          {
+            "time": 2363.5,
+            "dt": 17.400000005960464
+          },
+          {
+            "time": 2380.4000000059605,
+            "dt": 16.900000005960464
+          },
+          {
+            "time": 2396.5999999940395,
+            "dt": 16.19999998807907
+          },
+          {
+            "time": 2413,
+            "dt": 16.400000005960464
+          },
+          {
+            "time": 2429.300000011921,
+            "dt": 16.30000001192093
+          },
+          {
+            "time": 2446.9000000059605,
+            "dt": 17.599999994039536
+          },
+          {
+            "time": 2463.2000000178814,
+            "dt": 16.30000001192093
+          },
+          {
+            "time": 2479.5,
+            "dt": 16.299999982118607
+          }
+        ],
+        "longTasks": [],
+        "probes": 17,
+        "probeCpuMs": 0.09999999403953552,
+        "workerOffset": 4,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 2429.300000011921,
+          "reason": "terminal predicate became false"
+        },
+        "handlerStarted": 2215,
+        "eventTimeStamp": 2214.800000011921,
+        "inputQueueMs": 0.19999998807907104,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0,
+        "hostFinishCalledAt": 2480.5999999940395,
+        "semanticEnd": 2446.9000000059605,
+        "finished": 2479.5,
+        "hostCompletionGapMs": 33.69999998807907,
+        "completionClock": "browser predicate observation + double-rAF (host delivery excluded)",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 264.69999998807907,
+        "timeout": false,
+        "feedbackMs": 232.09999999403954,
+        "armToDispatchMs": 31.30000001192093,
+        "workerEvents": [
+          {
+            "kind": "request",
+            "url": "blob:http://127.0.0.1:18245/4498aa5e-f0af-49d1-a462-b931e7886019",
+            "time": 2215.2000000178814
+          },
+          {
+            "kind": "response",
+            "url": "blob:http://127.0.0.1:18245/4498aa5e-f0af-49d1-a462-b931e7886019",
+            "time": 2230
+          }
+        ],
+        "saveEvents": []
+      }
+    },
+    {
+      "mechanism": "IndexedDB committed transaction",
+      "correctSlot": true,
+      "wrongSlotRejected": true,
+      "replacementIdentity": true
+    },
+    {
+      "mechanism": "no-hook reference",
+      "nativeWorker": true,
+      "operation": {
+        "id": 1,
+        "name": "control",
+        "armed": 15.599999994039536,
+        "started": 59,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [],
+        "longTasks": [],
+        "probes": 5,
+        "probeCpuMs": 0.30000001192092896,
+        "workerOffset": 0,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 72.5,
+          "reason": "terminal predicate became false"
+        },
+        "handlerStarted": 59.599999994039536,
+        "eventTimeStamp": 59,
+        "inputQueueMs": 0.5999999940395355,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "terminal",
+        "terminalPredicateKey": "terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0.10000002384185791,
+        "hostFinishCalledAt": 123.7000000178814,
+        "semanticEnd": 89.2000000178814,
+        "finished": 122.7000000178814,
+        "hostCompletionGapMs": 34.5,
+        "completionClock": "browser predicate observation + double-rAF (host delivery excluded)",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 63.70000001788139,
+        "timeout": false,
+        "feedbackMs": 30.200000017881393,
+        "armToDispatchMs": 43.400000005960464,
+        "workerEvents": [],
+        "saveEvents": []
+      }
+    },
+    {
+      "mechanism": "already-dispatched input during renderer main-thread block",
+      "hostDispatchDue": 3301.8176,
+      "hostDispatchWall": 1793793147257,
+      "busyWindow": {
+        "start": 36.099999994039536,
+        "end": 336.09999999403954
+      },
+      "operation": {
+        "id": 1,
+        "name": "renderer-queue-control",
+        "armed": 34.80000001192093,
+        "started": 38,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 337,
+            "dt": 311
+          },
+          {
+            "time": 337.19999998807907,
+            "dt": 0.19999998807907104
+          },
+          {
+            "time": 340.90000000596046,
+            "dt": 3.7000000178813934
+          },
+          {
+            "time": 358.09999999403954,
+            "dt": 17.19999998807907
+          }
+        ],
+        "longTasks": [],
+        "probes": 3,
+        "probeCpuMs": 0.29999998211860657,
+        "workerOffset": 0,
+        "inputCount": 1,
+        "lastTerminalInvalidation": {
+          "time": 338.30000001192093,
+          "reason": "predicate identity changed"
+        },
+        "handlerStarted": 336.59999999403954,
+        "eventTimeStamp": 38,
+        "inputQueueMs": 298.59999999403954,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "probeKey": "queued-terminal",
+        "terminalPredicateKey": "queued-terminal",
+        "terminalRevalidations": 4,
+        "revalidationCpuMs": 0.19999998807907104,
+        "hostFinishCalledAt": 359.19999998807907,
+        "semanticEnd": 338.40000000596046,
+        "finished": 358.19999998807907,
+        "hostCompletionGapMs": 20.799999982118607,
+        "completionClock": "browser predicate observation + double-rAF (host delivery excluded)",
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 320.19999998807907,
+        "timeout": false,
+        "feedbackMs": 300.40000000596046,
+        "armToDispatchMs": 3.199999988079071,
+        "workerEvents": [],
+        "saveEvents": []
+      }
+    },
+    {
+      "mechanism": "missing frame opportunity is bounded",
+      "failure": "visible completion timeout: frame opportunity deadline exceeded",
+      "elapsed": 59.599999994039536
+    }
+  ],
+  "scope": "mechanism fixtures only; product-path wrong generation/art/RNG/read-only controls remain required"
+}

@@ -1,0 +1,321 @@
+{
+  "runId": "j8-phase-on-20261115-r1",
+  "started": "2026-11-15T00:42:04.659Z",
+  "config": {
+    "cases": [
+      "reference"
+    ],
+    "population": "mobile4",
+    "instrumentation": true,
+    "timeoutMs": 240000,
+    "navigationCycles": 5,
+    "gateTimeoutMs": 240000,
+    "controlNoRequest": false,
+    "tracePublication": true,
+    "phaseWitness": true,
+    "controlDiagnostic": "none",
+    "controlFinalRead": "none",
+    "controlCaseHang": false,
+    "port": 18246,
+    "dist": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\dist",
+    "caseTimeoutMs": 600000
+  },
+  "build": {
+    "performanceFixtureKey": "d8e62f7018a37c9148e6215a4360de14978ada6a3d4085b144251b386bc70dde",
+    "version": "1.1.53",
+    "build": "aae60879b798",
+    "revision": "0e47aa72bb8d",
+    "channel": "pages",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": null,
+    "entryPoint": "src/views/ui-root-pixi.js",
+    "bundle": "./assets/app-6H5PP5LS.js",
+    "worker": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+    "saveLoadWorker": "./assets/save-load-worker-7YJYILEJ.js",
+    "stylesheet": "./assets/styles-ec05c6a73a6e.css"
+  },
+  "buildId": "d8ebe14aa389fe89a4665bb3cfad4f8d2e8ec052b667821e22c69f0b0c9ae26b",
+  "measurementContractId": "ebc9da83422b58a195415dac178bba2fd80453979050219f05daaece66afce7b",
+  "productHead": "0e47aa72bb8da272006a4dba2c70f4ba92775276",
+  "machine": {
+    "host": "DESKTOP-R0AMF0N",
+    "os": "10.0.26200",
+    "platform": "win32",
+    "cpus": [
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz"
+    ],
+    "totalMemory": 34272436224
+  },
+  "runtime": {
+    "node": "v24.15.0",
+    "playwright": "1.59.1",
+    "chromium": "147.0.7727.15"
+  },
+  "launch": {
+    "headless": true,
+    "args": [
+      "--use-gl=angle",
+      "--use-angle=swiftshader"
+    ]
+  },
+  "sourceFiles": {
+    "scripts/perf-hillclimb/artwork-controls.mjs": "57aa43e3efff91ef48e3066f7b6d446a3e9e872c27c652530c025a8384ff68b3",
+    "scripts/perf-hillclimb/browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+    "scripts/perf-hillclimb/feedback-runtime.mjs": "a4d9859480109058b24261825e24a862c145fb9f462bae2c5e2a96b3bbf06329",
+    "scripts/perf-hillclimb/feedback-bindings.mjs": "a17bb0c3c003e9eb1efcbdc50ac9fc788bc4b25e98d08984a6f9b835eb726072",
+    "scripts/perf-hillclimb/feedback-collection.mjs": "c6ab8fcd90e53413886e057a7c9bd9fe6de29c2a6a7e5293ca14ac9fdca6dfa0",
+    "scripts/perf-hillclimb/deadline.mjs": "b38266f2e0e32344e1128150b7156868f95ad4f96a4c0d835ebcd1c44a747073",
+    "scripts/perf-hillclimb/artwork-oracles.mjs": "4734399c176668d6e0da3bee14f961eaa9c9595869e3627a9908e3f7a12030d2",
+    "scripts/perf-hillclimb/artwork-bundle-controls.mjs": "409e33c6c9a02bcfa7d1c8bd571739aaaec7b6d58b179baaff6ef9e7debd63a3",
+    "scripts/perf-hillclimb/observation-windows.mjs": "bb2b64fe4c3e4444e44d4493d70441a388827c7774d2b6d361c99266ee33d395",
+    "scripts/perf-hillclimb/case-lifetime.mjs": "9d10e08e8e689686a5b10b0d96aca8b630bd4dd435504ac4973670a14002ce9b",
+    "scripts/perf-hillclimb/fixtures/artwork-baseline.json": "1c78bf3d92e50118c491bc0a011298527c3eb5bdd46efa073a6d04eb3e7d10f9",
+    "scripts/perf-hillclimb/freeze-corpus.mjs": "183d90188538396078becfc9a87bab1675115de7bebcc13463f6d30448271f79",
+    "scripts/perf-hillclimb/save-state-oracle.mjs": "dbc4f373e5b47c66e889711ad48f012563d63dc71bc4bb8aa5664e94616fdd51",
+    "scripts/browser-probe-config.mjs": "e2155875cb28129438d0d110465ed85c8a6e1b3bcda67bb0ccbba076bcd36350",
+    "src/views/chronicle-art.js": "c5e6f91f1424e2f2f20f1bdbca0999af2431dd1e0c32deb0766950d2f41b1b71",
+    "src/views/progressive-artwork.js": "0fc1e68c5c1ecca87bb8819d42de5cbb7394149fd396b5460f1b49115ae2a2d4"
+  },
+  "atlasFiles": [
+    "full-map-content-prototype.json",
+    "full-map-chaos-dictator.json",
+    "heirlooms.json",
+    "resource-language.json",
+    "settlement-pieces-0.json",
+    "settlement-pieces-1.json",
+    "settlement-pieces-2.json",
+    "piece-frames.json",
+    "chronicle-illustrations.json",
+    "region-landmarks.json",
+    "vassal-portraits.json",
+    "vassal-class.json",
+    "chronicle-gate.json",
+    "class-picker-frames.json",
+    "chronicle-hud-frames.json",
+    "timegraph-chronicle.json"
+  ],
+  "artworkBaseline": {
+    "format": 1,
+    "purpose": "Immutable logical artwork inventory frozen before any scored optimization; packing-byte changes are recorded separately.",
+    "baselineHead": "a9df52cbd6255ed95c51c9e7d524cf9ab557472b",
+    "evidence": "artifacts/perf-hillclimb/passive-observability-v2-parent-projection-20261105/browser.json: artwork-prepared-hidden",
+    "seed": 123,
+    "initialStateSha256": "df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f",
+    "resourceFiles": [
+      "resource-language.json"
+    ],
+    "groups": [
+      {
+        "id": "fullMap",
+        "prefix": "full-map-content-prototype/art/",
+        "textureCount": 50,
+        "files": [
+          "full-map-content-prototype.json"
+        ]
+      },
+      {
+        "id": "fullMapEnemy",
+        "prefix": "full-map-chaos-prototype/art/",
+        "textureCount": 22,
+        "files": [
+          "full-map-chaos-dictator.json"
+        ]
+      },
+      {
+        "id": "heirlooms",
+        "prefix": "heirlooms-v1/",
+        "textureCount": 15,
+        "files": [
+          "heirlooms.json"
+        ]
+      },
+      {
+        "id": "settlementPieces",
+        "prefix": "settlement-pieces-v4/",
+        "textureCount": 224,
+        "files": [
+          "settlement-pieces-0.json",
+          "settlement-pieces-1.json",
+          "settlement-pieces-2.json"
+        ]
+      },
+      {
+        "id": "pieceFrames",
+        "prefix": "piece-frames-v1/",
+        "textureCount": 9,
+        "files": [
+          "piece-frames.json"
+        ]
+      },
+      {
+        "id": "chronicleIllustrations",
+        "prefix": "chronicle-illustrations-v1/",
+        "textureCount": 18,
+        "files": [
+          "chronicle-illustrations.json"
+        ]
+      },
+      {
+        "id": "regionLandmarks",
+        "prefix": "region-landmarks-v1/",
+        "textureCount": 4,
+        "files": [
+          "region-landmarks.json"
+        ]
+      },
+      {
+        "id": "vassalPortraits",
+        "prefix": "vassal-portraits-v1/",
+        "textureCount": 24,
+        "files": [
+          "vassal-portraits.json"
+        ]
+      },
+      {
+        "id": "vassalClass",
+        "prefix": "vassal-class-v1/",
+        "textureCount": 6,
+        "files": [
+          "vassal-class.json"
+        ]
+      },
+      {
+        "id": "chronicleGate",
+        "prefix": "chronicle-gate-v1/",
+        "textureCount": 1,
+        "files": [
+          "chronicle-gate.json"
+        ]
+      },
+      {
+        "id": "classPickerFrames",
+        "prefix": "class-picker-frames-v1/",
+        "textureCount": 9,
+        "files": [
+          "class-picker-frames.json"
+        ]
+      },
+      {
+        "id": "chronicleHudFrames",
+        "prefix": "chronicle-hud-frames-v1/",
+        "textureCount": 19,
+        "files": [
+          "chronicle-hud-frames.json"
+        ]
+      },
+      {
+        "id": "timegraphChronicle",
+        "prefix": "timegraph-chronicle-v1/",
+        "textureCount": 1,
+        "files": [
+          "timegraph-chronicle.json"
+        ]
+      }
+    ],
+    "limitations": [
+      "Counts and resolver-group coverage do not prove every frame's pixel content.",
+      "Current built-in registry is frozen; a content/registry change requires an explicit contract revision and comparable re-baseline.",
+      "Construction inventory remains subject to independent harness review."
+    ]
+  },
+  "artworkBaselineId": "00e2f85ed25f0dba069950f307ad31b23864d6ac3724c72b05010540cbc4e375",
+  "requiredPassiveTimingApiVersion": 2,
+  "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+  "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+  "preparedFixture": {
+    "key": "d8e62f7018a37c9148e6215a4360de14978ada6a3d4085b144251b386bc70dde",
+    "gzipSha256": "7d07599499c43871cea5bb261bd91fb372cb7f6437c4d2dd0238a9190751ee1d",
+    "gzipBytes": 9636456,
+    "stateSha256": "df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f",
+    "seed": 123,
+    "lossSec": 3918
+  },
+  "retryPolicy": {
+    "attemptsPerSheetInvocation": 3,
+    "automaticBackoffsMs": [
+      500,
+      1500
+    ],
+    "requestCount": "diagnostic only; Pixi dependency fetching/cache can change HTTP counts",
+    "attemptWitness": "PIXI.Assets.load wrapper installed before unchanged app bundle is released; original Promise returned"
+  },
+  "fixture": "real performance New Game seed123; prepared current-build fixture; no game-settings override",
+  "proxy": "desktop Chromium/SwiftShader, optionally CPU-throttled; no physical Pixel6 evidence",
+  "memoryScope": "CDP JS heap only; native process/GPU memory unavailable; no forced GC",
+  "scope": "construction controls and diagnostics only; independent audit and representative sampling still required",
+  "publicationWitness": {
+    "mode": "specific private visibility Set and packed-Map mutations plus passive samples",
+    "cachePolicy": "new browser/context per case; interception is explicit and this script makes browser-cold claims only",
+    "overhead": "private-Set and common asset hooks require matched A/A/on-off proof before timing acceptance"
+  },
+  "phaseWitness": {
+    "enabled": true,
+    "requiredVersion": 1,
+    "scope": "bounded routed-response diagnostic; post-clock reads only; no observer neutrality or timing acceptance"
+  },
+  "harnessId": "e0a462701b2271f41db3917c8e717c177c2196113d8d99442035fb43fdb11b68",
+  "serializedRuntimeSha256": "43e854e562a89673d73a8c7a5a7afd7a54837b436cb9fc2e24e60cc26ac787db",
+  "servedAssets": {
+    "bundle": "2650f059863769f98da13622798df92cf8a338c082f5fd5a695094aee2a48ea8",
+    "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+    "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+    "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0",
+    "preparedFixture": "7d07599499c43871cea5bb261bd91fb372cb7f6437c4d2dd0238a9190751ee1d"
+  },
+  "caseVariants": {
+    "reference": {
+      "originalSha256": "2650f059863769f98da13622798df92cf8a338c082f5fd5a695094aee2a48ea8",
+      "servedSha256": "17f47be07781132627ffca0cad656800c1f77b9871b58c241492ad16c467ead6",
+      "tracePublication": true,
+      "localFaultApi": false,
+      "phaseWitness": true,
+      "phaseWitnessVersion": 1,
+      "scope": "specific private Set/packed-Map writes and optional actual non-terrain visibility fault; no production/dist edits or global prototype hooks; opt-in bounded preparation phase markers v1; diagnostic response overhead explicitly uncalibrated",
+      "phaseWitnessObserved": {
+        "present": true,
+        "version": 1
+      }
+    }
+  },
+  "caseCleanup": {
+    "reference": {
+      "case": "reference",
+      "contextClosed": true,
+      "browserClosed": true,
+      "errors": [],
+      "browserConnected": false,
+      "lifetime": {
+        "label": "artwork reference",
+        "status": "cancelled",
+        "hostStartedMs": 8638.7321,
+        "hostDeadlineMs": 608638.7321,
+        "reason": "page.waitForFunction: Timeout 240000ms exceeded.",
+        "unconfirmedWork": [],
+        "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+      }
+    }
+  },
+  "finished": "2026-11-15T00:47:11.311Z",
+  "failed": true
+}

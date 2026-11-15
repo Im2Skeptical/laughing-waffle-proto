@@ -1,0 +1,82 @@
+[
+  {
+    "seed": 123,
+    "population": "desktop",
+    "second": 16,
+    "entry": "regular-continue",
+    "control": false,
+    "index": 0,
+    "pass": true,
+    "fixture": "fefa69e74b1a5376a7092430a7b2fc75062b97a7fc0a83c2ae8fa250c41e4322",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 573.1718000000001,
+        "startMs": 17596.19999998808,
+        "endMs": 17613.09999999404,
+        "readerCpuMs": 16.900000005960464,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      }
+    ]
+  },
+  {
+    "seed": 123,
+    "population": "desktop",
+    "second": 17,
+    "entry": "regular-continue",
+    "control": false,
+    "index": 1,
+    "pass": true,
+    "fixture": "fefa69e74b1a5376a7092430a7b2fc75062b97a7fc0a83c2ae8fa250c41e4322",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 635.5223999999944,
+        "startMs": 17728.19999998808,
+        "endMs": 17744.59999999404,
+        "readerCpuMs": 16.400000005960464,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      }
+    ]
+  },
+  {
+    "seed": 123,
+    "population": "mobile4",
+    "second": 16,
+    "entry": "regular-continue",
+    "control": false,
+    "index": 2,
+    "pass": true,
+    "fixture": "fefa69e74b1a5376a7092430a7b2fc75062b97a7fc0a83c2ae8fa250c41e4322",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 1049.1552000000083,
+        "startMs": 72060,
+        "endMs": 72147.40000000596,
+        "readerCpuMs": 87.40000000596046,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      }
+    ]
+  },
+  {
+    "seed": 123,
+    "population": "mobile4",
+    "second": 17,
+    "entry": "regular-continue",
+    "control": false,
+    "index": 3,
+    "pass": true,
+    "fixture": "fefa69e74b1a5376a7092430a7b2fc75062b97a7fc0a83c2ae8fa250c41e4322",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 1245.044600000023,
+        "startMs": 70897.19999998808,
+        "endMs": 70982.29999998212,
+        "readerCpuMs": 85.09999999403954,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      }
+    ]
+  }
+]

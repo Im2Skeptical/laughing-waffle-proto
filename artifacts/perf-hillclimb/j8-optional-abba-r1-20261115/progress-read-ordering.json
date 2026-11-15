@@ -1,0 +1,9 @@
+{
+    "caseStarted":  "2026-11-14T23:22:09.349Z",
+    "interpretation":  "No overlapping progress-reader load on measured or post-clock case work; no inference about all host activity or observer neutrality.",
+    "atUtc":  "2026-11-14T23:30:57.4134636Z",
+    "caseFinished":  "2026-11-14T23:27:24.214Z",
+    "ordering":  "Case finished23:27:24.214Z before read invocation approximately23:28:05Z; full child lifecycle/cleanup predates metadata read. Initial potential-overlap concern resolved by outer timestamps, not by deleting either record.",
+    "progressReadToolWallSeconds":  10.2,
+    "progressReadToolClockAfterTenSecondInitialWait":  "2026-11-14T23:28:15Z"
+}

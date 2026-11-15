@@ -1,0 +1,14 @@
+{
+  "phaseA": "NOT SOUND",
+  "head": "0e47aa72bb8d",
+  "constructionCheckpoint": "d7cb84a81637d7bb2671308d43486aa24951761d",
+  "approvedMerge": "bebc4ead38230ed25a84979d954f03360d8710fe",
+  "approvedMain": "83c0049710882fd182c6542892d77fb30cd12ce6",
+  "verify": "PASS exit0; verify-merge.log and verify-merge-exit.txt",
+  "publicHoldProbe": "6/6 PASS; hold-public-result.json",
+  "preview": "v1.1.53 / Preview5184 /6ebd1c71ebf6 / perf/hillclimb-20261104 / clean local unintegrated",
+  "mobileUrl": "http://192.168.1.103:5184/",
+  "ownedProcesses": "npm-start setup, full verification, public probe and final npm start all completed. Incoming probe browser closed. Owned shared-browser badge-check tab closed. Inherited preview5184 retained.",
+  "nextLease": "perf-hillclimb-hold-adaptation-20261105-1; exclusive CPU/Node/test/build/browser after successful delegation; root metadata-only, no source/HARNESS/build edits or delegate polling.",
+  "pending": "Expanded Hold feedback/ordering/momentum/resume/current-reference proof and independent audit. All broader Phase A failures/populations/overhead/tails remain. No score, performance gain, push/PR/Pages or overall adoption-complete claim."
+}

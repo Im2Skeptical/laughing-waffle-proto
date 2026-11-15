@@ -1,0 +1,16 @@
+{
+  "ok": false,
+  "results": [],
+  "observations": 2,
+  "failures": 0,
+  "caseFailures": [
+    {
+      "case": "reference",
+      "error": "deliberate never diagnostic control timeout after 1000ms",
+      "detailsFile": "reference-failure.json"
+    }
+  ],
+  "requestedCases": 1,
+  "completedCases": 0,
+  "scope": "construction controls and diagnostics only; independent audit and representative sampling still required"
+}

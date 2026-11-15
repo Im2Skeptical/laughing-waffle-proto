@@ -1,0 +1,13 @@
+{
+  "status": "FAILED",
+  "phaseA": "NOT SOUND",
+  "kind": "Node expected-data functional proof only",
+  "conformance": [],
+  "controls": [],
+  "failures": [
+    {
+      "error": "AssertionError [ERR_ASSERTION]: bundle imports must match metafile\n+ actual - expected\n\n  [\n+   ': ',\n    'node:assert/strict',\n    'node:crypto'\n  ]\n\n    at assertClosedBundle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:51:10)\n    at validateBase (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:76:3)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:19:18)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:155:3"
+    }
+  ],
+  "files": {}
+}

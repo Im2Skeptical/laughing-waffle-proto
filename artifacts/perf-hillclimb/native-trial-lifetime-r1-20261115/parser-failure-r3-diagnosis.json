@@ -1,0 +1,11 @@
+{
+  "at": "2026-11-15T09:41:39Z",
+  "source": "TrialReport-r3.dll / build-report-r3.json, unchanged failed source",
+  "check": "strict-unpaired-surrogate-rejection",
+  "expected": "REJECT lone escaped high or low surrogate",
+  "actual": "ACCEPT each, decoded U+FFFD (65533)",
+  "inputs": ["{\"a\":\"\\ud800\"}", "{\"a\":\"\\udc00\"}"],
+  "causeScope": "Observed managed string-decoder normalization; not native crash cause or a product behavior finding.",
+  "repair": "Validate raw escaped surrogate pairing before delegating string unescape; preserve valid pair positive control.",
+  "nativeCalls": 0
+}

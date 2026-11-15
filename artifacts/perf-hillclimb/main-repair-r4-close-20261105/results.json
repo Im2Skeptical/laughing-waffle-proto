@@ -1,0 +1,44 @@
+[
+  {
+    "population": "desktop",
+    "job": "map-close",
+    "artwork": "off",
+    "id": "main-repair-r4-close-20261105-0-desktop-map-close-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-close",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r4-close-20261105-0-desktop-map-close-off"
+    ],
+    "started": "2026-11-04T15:27:56.600Z",
+    "finished": "2026-11-04T15:28:09.539Z",
+    "exitCode": 0
+  },
+  {
+    "population": "mobile4",
+    "job": "map-close",
+    "artwork": "off",
+    "id": "main-repair-r4-close-20261105-1-mobile4-map-close-off",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=123",
+      "--jobs=map-close",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-repair-r4-close-20261105-1-mobile4-map-close-off"
+    ],
+    "started": "2026-11-04T15:28:09.540Z",
+    "finished": "2026-11-04T15:28:51.176Z",
+    "exitCode": 0
+  }
+]

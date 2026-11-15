@@ -1,0 +1,37 @@
+{
+  "verdict": "focused checks passed; Phase A NOT SOUND",
+  "head": "a9df52cbd6255ed95c51c9e7d524cf9ab557472b",
+  "branch": "perf/hillclimb-20261104",
+  "node": "v24.15.0",
+  "sourceHashes": {
+    "src/views/world-map-pixi.js": "dab0eb94d73c4d8091cf196228a0d5a615b6f611b104078c6ae77388129ce3c5",
+    "src/views/vassal-life-map-pixi.js": "cdb8021c4e46455f5741b15dd90535ff79d481b37f84e3f8b786e7474d7ea6ed",
+    "src/views/vassal-node-decision-modal-pixi.js": "abe59eee5de1845c3ae6ddcc654235b6544945f84b408803455f00f43b3520a3",
+    "src/views/vassal-resolution-recap-pixi.js": "d39fa9dd7c1769b347094c2ed1d9dfd111f737d37a5049081bd9f0d382493e09",
+    "src/views/timegraphs-pixi.js": "24f06480ceaca1d8641188b506e703694c4f75dda7c0d003a3440dff8276501d",
+    "src/model/timegraph/controller-core.js": "900ac4d8fac37613acd4394ecf3dcb3b25fff83db15d1ed58d4d618be82577fd",
+    "src/controllers/life-decision-controller.js": "b394ee2176e8b461aefceb1a724ac154d7c2b197d64817b8de2f35bf3c03572e",
+    "src/views/ui-root/settlement-timing-snapshot.js": "cd993134623615d50660d38898914fcedad2c35a7359fda90212dee77cde43c1",
+    "src/views/ui-root/settlement-debug-api.js": "b43915ef64f37a4dc63db9eeb3b762fe7e7caf93a7c6516bd3e770795551ce9f",
+    "src/views/ui-root-settlement-pixi.js": "7bf1efd13d27cffec055ac94c44ca9968c673174f31e213662c1a181d3a82ed8",
+    "src/views/chronicle-art.js": "c5e6f91f1424e2f2f20f1bdbca0999af2431dd1e0c32deb0766950d2f41b1b71",
+    "src/views/vassal-node-decision/world-screen.js": "1311988076eae98626801abeb3e5edd94d8ba71d7df94169feb43d1482f7fc78",
+    "scripts/timing-observability-browser-probe.mjs": "967d69eee04d74079516b7fd4ec778122e689a4571d4e0178f890cdf888af369",
+    "scripts/timing-observability-test.mjs": "2286859b3aed692d97f97c2a105b91124cb8e60ee807a25784a5a81a49f00d24"
+  },
+  "forbiddenCalls": [],
+  "readsPerCase": 500,
+  "checks": [
+    "raw view seams",
+    "actual graph controller",
+    "actual Life active/stale job",
+    "state/RNG/timeline invariance",
+    "DTO mutation isolation",
+    "published facade",
+    "untimed graph parity"
+  ],
+  "limitations": [
+    "Node view getters use closure fixtures; browser covers actual constructors",
+    "no matched overhead or tail acceptance"
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "expected": {
+    "runId": "life-passive-frozen-parent-r1-20261105",
+    "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+    "observationId": "life-passive-frozen-parent-r1-20261105:op-5",
+    "launchId": "life-passive-frozen-parent-r1-20261105:launch-0-life",
+    "job": "J4",
+    "step": "shop-category-selection",
+    "harnessId": "f4b092963fd5e87514eedee3a8c9c88f70721a18d313d15f91acec07af370d80",
+    "measurementContractId": "dbcb7412dd610c8ccb5bc596cc32b877f7a7c30ff3da2d520c7a1876e56707f9",
+    "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "comparisonEligible": true,
+    "population": {
+      "layout": "desktop",
+      "cpuRate": 1,
+      "cache": "cold",
+      "artwork": "off",
+      "instrumentation": true,
+      "workerDelayMs": 0,
+      "seed": 123,
+      "workloadMode": "frozen-baseline",
+      "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "inputType": "mouse",
+      "entryPath": "continue-fixture"
+    },
+    "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+    "input": {
+      "node": "life-milestone-milestone-1",
+      "shopTag": "random",
+      "expectedOffers": [
+        "life-milestone-milestone-1:r0:practice:0",
+        "life-milestone-milestone-1:r0:practice:1",
+        "life-milestone-milestone-1:r0:practice:2"
+      ]
+    }
+  },
+  "error": "page.waitForFunction: Timeout 180000ms exceeded.",
+  "actual": {
+    "frontier": 0,
+    "viewed": 0,
+    "mode": "vassalLife",
+    "camera": {
+      "zoom": 1,
+      "x": 0,
+      "y": 0
+    },
+    "processing": null,
+    "projection": {
+      "forecastBaseSec": 0,
+      "forecastEndSec": 0,
+      "forecastStepSec": 1,
+      "forecastDtStep": null,
+      "forecastAsyncBaseSec": 0,
+      "forecastAsyncEndSec": 1280,
+      "forecastAsyncStepSec": 1,
+      "forecastAsyncToken": "sig:5"
+    },
+    "forecast": {
+      "historyEndSec": 0,
+      "computedCoverageEndSec": 1280,
+      "revealedCoverageEndSec": 0,
+      "browseCapSec": 0,
+      "displayedLossSec": 128,
+      "displayedLossYear": 5,
+      "projectedLossSec": null,
+      "projectedLossYear": null,
+      "projectedLossResolved": false,
+      "currentVassalResolutionSec": null,
+      "currentVassalResolutionComputed": false,
+      "currentVassalResolutionRevealed": false,
+      "currentVassalResolutionResolved": false,
+      "pendingCommitTargetSec": null,
+      "nextVassalEnabled": false
+    },
+    "graph": {
+      "revealed": 0,
+      "target": 1244,
+      "plot": {
+        "x": 302.7890037128713,
+        "y": 581.8514851485148,
+        "width": 673.4140779702971,
+        "height": 77.02178217821782
+      }
+    },
+    "decision": {
+      "open": true,
+      "family": "practiceReform",
+      "selected": null,
+      "shopTag": "random",
+      "offers": [
+        {
+          "id": "life-milestone-milestone-1:r0:practice:0",
+          "canStage": true
+        },
+        {
+          "id": "life-milestone-milestone-1:r0:practice:1",
+          "canStage": true
+        },
+        {
+          "id": "life-milestone-milestone-1:r0:practice:2",
+          "canStage": true
+        }
+      ],
+      "purchaseOrder": [],
+      "recap": false
+    }
+  }
+}

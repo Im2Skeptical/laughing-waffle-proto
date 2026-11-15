@@ -1,0 +1,17 @@
+{
+  "at": "2026-11-15T06:36:06.519Z",
+  "status": "UNAVAILABLE",
+  "phase": "resolve",
+  "downloadAttempted": true,
+  "received": 1921024,
+  "error": "PDB/PE age mismatch\n\n4 !== 1\n",
+  "sourcePins": {
+    "pe-data.mjs": "4b8f4aeed8d5c6d763c9c53a7123028304c72a2f3fee1f10c12dd3671fe5e277",
+    "pdb-data.mjs": "8ad1943e1c8c97bf3abd397b47bc23c178d7e959afa9097a166386609d87942e",
+    "resolve.mjs": "bce8c78b932206955c2817f1838dd2561bb007b476a674fbe4c5d30fd2cbf4c5",
+    "controls.mjs": "82a2d0c9f2752e4eee566591c203920a248e22e9e0180f1dc7febca5c23dc372",
+    "collect.mjs": "fdadafe85a97d700bacc040a935c95e02dcbb4eaec970c67c80782a0398eda09",
+    "README.md": "0b7d9d041cc9ab857da4863cfc71b3bbb043557e00dfacc133c5f6b5cbb7b316"
+  },
+  "scope": "Retain failure; no retry, no provenance or continuation acceptance inferred."
+}

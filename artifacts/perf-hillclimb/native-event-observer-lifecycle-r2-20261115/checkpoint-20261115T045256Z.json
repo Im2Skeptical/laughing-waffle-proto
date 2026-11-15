@@ -1,0 +1,28 @@
+{
+  "at": "2026-11-15T04:52:56Z",
+  "deadline": "2026-11-16T02:40:00Z",
+  "runtimeActive": false,
+  "agentsActive": false,
+  "verdict": "Whole Phase A NOT SOUND. R2 managed checks pass; source lifecycle gaps remain. No native API/helper construction/target launch.",
+  "manifestSha256": "1f746c70a5dc78958f2fbe2b247d0750f7afe96d57c36d2fbedf756878fe7da3",
+  "independentReceiptSha256": "2cc9548d31b50d1d0f0ab54cac50b62dd3483639d2de5c1c638b612992d60761",
+  "sourceAssetChanges": [],
+  "sourceCount": 683,
+  "assetCount": 5,
+  "next": "NATIVE_OBSERVER_CONTINUATION_R3.md: fresh source repair of start/close, pending physical-release retry, error-latched bounded drain and rejected-header retention; pure/source review only.",
+  "schedule": {
+    "scheduledTaskId": "scheduled-task:9ec80581-e6bf-4df4-bdb7-1995e6e7be34",
+    "title": "Continue performance hillclimb until 13:40 Sydney Nov16",
+    "prompt": "Continue Cam's EXISTING authorized performance hillclimb. Cam explicitly EXTENDED the original deadline24 HOURS; new hard deadline2026-11-16T02:40:00Z (13:40 Sydney Monday November16). This supersedes the old Nov15 finalization-only plan. Read docs/performance-hillclimb-20261115/STATUS.md in coordinator checkout FIRST and check ownership/clock. Actual harness/product work remains C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104 (perf/hillclimb-20261104, frozen old v1.1.53 checkpoint), NOT newer coordinator main. Follow HillclimbPerformanceLoop/AGENTS; preserve all8jobs/inherited120-launch/3-suite contract, original frozen evidence and unrelated worktrees. Parent owns ONE test/browser/CPUslot; narrowly scoped independent Auditor/Judge agents only as skill permits; no competing benchmarks or duplicate active run. Current PhaseA NOT SOUND; no optimization/scoring before independent SOUND. Resume smallest documented unfinished proof from STATUS.md. At04:53Z checkpoint all source/compiler/control/review leases CLOSED. Fresh lifecycle-r2 compiled and128Builder+81independent managed checks passed, but material source gaps remain; NO Native/helper constructor/API/debug/control/preview target launched. Next NATIVE_OBSERVER_CONTINUATION_R3.md: preserve r2/r1 evidence, make FRESH revision fixing reader start-vs-close (unstarted is not joined), retryable pending physical SafeHandle close after lease release, and typed error-latched bounded drain/cleanup with retained rejected headers. Build/pure managed checks and source review only; no Native calls to test repairs. Complete controller/creation/normal-event/whole receipt integration still absent; six synthetic controls UNATTEMPTED require independent affected SOURCE admission. Staged synthetic target source is UNCOMPILED/UNREVIEWED, not permission to run. Actual preview trial-wide daemon lifetime remains separate gate. No repeat oldABBA/OSlookup/inventory, no globalsettings/install/attach or capture/neutrality/cause/fix/SOUND claim. Prefer~20min chunks and persist exact active session/PIDs/resume state/evidence in STATUS.md. Preserve all failed/native attempts and separate populations. Reserve final35min from2026-11-16T02:05Z for confirmation/verify/npmstart/coherentversionedPRifverified; no new10min case after2026-11-16T01:45Z. Never merge or deployPages. At/after NEW deadline stop new experiments, finalize honest evidence/previewhand-off and disable SAME task scheduledTaskId scheduled-task:9ec80581-e6bf-4df4-bdb7-1995e6e7be34. Do NOT finalize/disable at superseded Nov15 deadline. If actual success/hardblock reached, document/disable. Do not duplicate active workloads.",
+    "enabled": true,
+    "projectId": "cf68fa26-6219-4056-83dc-1cd9d3f8f13a",
+    "boundThreadId": "95f53b04-d994-4904-add1-4c4209fbdfde",
+    "freshSession": false,
+    "schedule": {
+      "type": "interval",
+      "everyMs": 300000
+    },
+    "nextRunAt": "2026-11-15T04:55:05.523Z",
+    "lastRunStatus": "succeeded"
+  }
+}

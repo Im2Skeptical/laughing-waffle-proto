@@ -1,0 +1,45 @@
+{
+    "at":  "2026-11-15T04:25:58.9557835Z",
+    "checks":  [
+                   {
+                       "pass":  true,
+                       "name":  "actual-decoder-address-hex"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "actual-decoder-nested-hex"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "actual-decoder-parameter-above-js-safe"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "actual-decoder-parameter-max"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "actual-decoder-first-chance"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "actual-decoder-code-unsigned"
+                   }
+               ],
+    "wire":  {
+                 "eventCode":  1,
+                 "pid":  1234,
+                 "tid":  5678,
+                 "exceptionCode":  3221226505,
+                 "exceptionFlags":  1,
+                 "nestedRecord":  "0x0000000100000001",
+                 "exceptionAddress":  "0xffffffffffffffff",
+                 "parameterCount":  2,
+                 "parameters":  [
+                                    "0x0020000000000001",
+                                    "0xffffffffffffffff"
+                                ],
+                 "firstChance":  1
+             },
+    "scope":  "Actual managed Abi.Decode dictionary through Wire.Lossless and PowerShell JSON only; synthetic bytes, no OS debug event or Native invocation."
+}

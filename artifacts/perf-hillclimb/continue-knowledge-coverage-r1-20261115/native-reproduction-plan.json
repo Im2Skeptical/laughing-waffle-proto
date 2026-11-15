@@ -1,0 +1,11 @@
+{
+  "at": "2026-11-14T22:58:00.903Z",
+  "attempts": 1,
+  "original": "continue-knowledge-coverage-r1-20261115-23-424242-warm-mobile4-save-opening",
+  "originalExit": 3221226505,
+  "policy": "One identical configuration standalone diagnostic under fresh ID. Not replacement, retry-until-pass, timing acceptance or proof of root cause. Original failed attempt and missing cleanup remain unchanged.",
+  "command": "node --experimental-vm-modules scripts/perf-hillclimb/run.mjs --id=native-setup-repro-r1-20261115 --jobs=save-opening --seed=424242 --population=mobile4 --cache=warm --artwork=off --samples=1 --fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json --fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+  "sourceAssetChanges": [],
+  "windowsCrashEvents": "No matching recent Node Application1000/1001 events found; not proof none occurred.",
+  "processRecovery": "No relevant Node/chrome perf process and no probe18244 listener found after runner exit."
+}

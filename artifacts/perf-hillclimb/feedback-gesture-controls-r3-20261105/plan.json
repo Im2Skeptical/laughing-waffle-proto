@@ -1,0 +1,61 @@
+{
+  "runtime": {
+    "node": "v24.15.0",
+    "execArgv": [],
+    "playwright": "1.59.1",
+    "launch": {
+      "headless": true,
+      "args": [
+        "--use-gl=angle",
+        "--use-angle=swiftshader"
+      ]
+    }
+  },
+  "plan": [
+    {
+      "population": "desktop",
+      "kind": "pan"
+    },
+    {
+      "population": "desktop",
+      "kind": "wheel"
+    },
+    {
+      "population": "mobile4",
+      "kind": "pan"
+    },
+    {
+      "population": "mobile4",
+      "kind": "pinch"
+    },
+    {
+      "population": "mobile4",
+      "kind": "wheel"
+    }
+  ],
+  "sources": {
+    "feedback-gesture-controls": "2236c4c6b2de18f170d33ae2a28ce1f201c0d59e8957e22047745d22a9648d93",
+    "feedback-runtime": "a4d9859480109058b24261825e24a862c145fb9f462bae2c5e2a96b3bbf06329",
+    "feedback-bindings": "5bc8e5b84bc47f0cd458c3be203e6c883e8abebae35dd431a61f386edab38bf8",
+    "browser-runtime": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+    "native-feedback": "7442a248260be4d02f61ddc69a88ae8649dec93d7cb89e3d7edc9c3272a26404",
+    "offered-input": "dd92f961f1a0ce3efc0aa2f64a5ea789f7aa69403fb5a9e7734d89ec7843dfc0"
+  },
+  "build": {
+    "performanceFixtureKey": "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+    "version": "1.1.52",
+    "build": "286f9a494930",
+    "revision": "a9df52cbd625",
+    "channel": "pages",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": null,
+    "entryPoint": "src/views/ui-root-pixi.js",
+    "bundle": "./assets/app-O7OX26BM.js",
+    "worker": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+    "saveLoadWorker": "./assets/save-load-worker-7YJYILEJ.js",
+    "stylesheet": "./assets/styles-ec05c6a73a6e.css"
+  },
+  "scope": "comparison-ineligible native mechanism controls; real prepared game; active-work positive J3 remains separate; delayed completion250ms"
+}

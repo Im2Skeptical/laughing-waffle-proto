@@ -1,0 +1,1572 @@
+{
+  "schema": 1,
+  "purpose": "Final preservation only; Phase A owned by Code Health; no acceptance or performance claim",
+  "worktree": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104",
+  "createdUtc": "2026-11-15T12:13:00Z",
+  "rawThresholdBytes": 5000000,
+  "evidenceRoots": [
+    "artifacts/perf-hillclimb",
+    "artifacts/perf-hillclimb-20261104"
+  ],
+  "rawFileCount": 32726,
+  "rawBytes": 10393059100,
+  "linksStoredWithoutFollowing": 0,
+  "excludedRawFiles": [
+    {
+      "path": "artifacts/perf-hillclimb/auditor-continue-mobile424242-20261115-r1/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 25688175,
+      "sha256": "bcb9e7dae84870378a4bf1a58d49fc334ccb87d4e5f0b00066c26169ad4a5270",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-0-123-cold-desktop-performance-continue/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750089,
+      "sha256": "1663d7ab6426d9ebb2024884a5a8b4bb6fe0acd8f9b7b655ff895df0739a9266",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-1-123-cold-desktop-save-history/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 24750089,
+      "sha256": "afa65c72e293ad13a5325197fd0155eb158451b91482fd30d6ee39753b502322",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-10-123-warm-mobile4-save-history/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 24750089,
+      "sha256": "ae1cc1ff633348f50b60648d6844eff3db13146b16d0176bd4faae34803ab61a",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-10-123-warm-mobile4-save-history/launch-0-save-history-warm-storage-before.json",
+      "sizeBytes": 28295059,
+      "sha256": "1f529a030347b800e78df6bc9de03b2afd5aa0272779049dfd9917c79af6368a",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-10-123-warm-mobile4-save-history/launch-0-save-history-warm-storage-restored.json",
+      "sizeBytes": 28295059,
+      "sha256": "1f529a030347b800e78df6bc9de03b2afd5aa0272779049dfd9917c79af6368a",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-12-424242-cold-desktop-performance-continue/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 25688175,
+      "sha256": "e2add322e1351251fe39acfc6ea27665e5f10dc6848c57e8f7f7d34dc9e4a905",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-13-424242-cold-desktop-save-history/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 25688175,
+      "sha256": "643da08c77b0e821225fc17be3c5407d96e8c8ae718528893af94863e9a542f1",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-15-424242-cold-mobile4-performance-continue/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 25688175,
+      "sha256": "4750401205adf5304130696aea9ab29684198d848ae65cc3754a052091c20059",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-16-424242-cold-mobile4-save-history/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 25688175,
+      "sha256": "840b13f7fab214e58643bc4ea47ca4645184a4478c95b5e7bd12a1f31263632e",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-18-424242-warm-desktop-performance-continue/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 25688175,
+      "sha256": "2d769544a6fa50a2e6a5ac57bc4c3e89e076aaeb71a97a5b716ab26ffd5fa7ab",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-18-424242-warm-desktop-performance-continue/launch-0-performance-continue-warm-storage-before.json",
+      "sizeBytes": 29375815,
+      "sha256": "785de0a41699fca4079e20dc7eaf2f60a98cb83af4d71a2ef36d7ad88f23ed44",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-18-424242-warm-desktop-performance-continue/launch-0-performance-continue-warm-storage-restored.json",
+      "sizeBytes": 29375815,
+      "sha256": "785de0a41699fca4079e20dc7eaf2f60a98cb83af4d71a2ef36d7ad88f23ed44",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-19-424242-warm-desktop-save-history/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 25688175,
+      "sha256": "4ac9219d9dd8da9195ca26f1bac5e34bbe988fc1c16c753881bd0c67eb2262c6",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-19-424242-warm-desktop-save-history/launch-0-save-history-warm-storage-before.json",
+      "sizeBytes": 29375751,
+      "sha256": "6dc0ff8fd5bfb9fd5a6ea18ebee9f89963ac79c9d08672bdaa5ee6eb017eac0b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-19-424242-warm-desktop-save-history/launch-0-save-history-warm-storage-restored.json",
+      "sizeBytes": 29375751,
+      "sha256": "6dc0ff8fd5bfb9fd5a6ea18ebee9f89963ac79c9d08672bdaa5ee6eb017eac0b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-21-424242-warm-mobile4-performance-continue/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 25688175,
+      "sha256": "8e56a54fc9dcd2ba61ea391ae6b6cc23cee2c83e3463cec37660614b1ffae132",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-21-424242-warm-mobile4-performance-continue/launch-0-performance-continue-warm-storage-before.json",
+      "sizeBytes": 29375815,
+      "sha256": "785de0a41699fca4079e20dc7eaf2f60a98cb83af4d71a2ef36d7ad88f23ed44",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-21-424242-warm-mobile4-performance-continue/launch-0-performance-continue-warm-storage-restored.json",
+      "sizeBytes": 29375815,
+      "sha256": "785de0a41699fca4079e20dc7eaf2f60a98cb83af4d71a2ef36d7ad88f23ed44",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-22-424242-warm-mobile4-save-history/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 25688175,
+      "sha256": "4663831b052f90e0059bc305fba05de558c1e46689fe4255586cbcaee726c653",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-22-424242-warm-mobile4-save-history/launch-0-save-history-warm-storage-before.json",
+      "sizeBytes": 29375751,
+      "sha256": "6dc0ff8fd5bfb9fd5a6ea18ebee9f89963ac79c9d08672bdaa5ee6eb017eac0b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-22-424242-warm-mobile4-save-history/launch-0-save-history-warm-storage-restored.json",
+      "sizeBytes": 29375751,
+      "sha256": "6dc0ff8fd5bfb9fd5a6ea18ebee9f89963ac79c9d08672bdaa5ee6eb017eac0b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-3-123-cold-mobile4-performance-continue/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750089,
+      "sha256": "c9041fe56d19f758fdf982091e649f0084fd653866b45005628488b3ed611e3b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-4-123-cold-mobile4-save-history/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 24750089,
+      "sha256": "1bfc71d0222286db90d29b74f10d40d9af5e349e958ca72cc324c153ebb004b4",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-6-123-warm-desktop-performance-continue/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750089,
+      "sha256": "0aadbc242227772a32f834e65661c58d222acac2366ce6ff40470258491c9ba3",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-6-123-warm-desktop-performance-continue/launch-0-performance-continue-warm-storage-before.json",
+      "sizeBytes": 28295123,
+      "sha256": "88ecb67346af4db7ea5892117e5892f129273ac57b79fe996b9e777a41f1ce62",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-6-123-warm-desktop-performance-continue/launch-0-performance-continue-warm-storage-restored.json",
+      "sizeBytes": 28295123,
+      "sha256": "88ecb67346af4db7ea5892117e5892f129273ac57b79fe996b9e777a41f1ce62",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-7-123-warm-desktop-save-history/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 24750089,
+      "sha256": "4370d76b3acd428e16e0bf79d609143f547c8ef670385e20d16b8ff5e22ef693",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-7-123-warm-desktop-save-history/launch-0-save-history-warm-storage-before.json",
+      "sizeBytes": 28295059,
+      "sha256": "1f529a030347b800e78df6bc9de03b2afd5aa0272779049dfd9917c79af6368a",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-7-123-warm-desktop-save-history/launch-0-save-history-warm-storage-restored.json",
+      "sizeBytes": 28295059,
+      "sha256": "1f529a030347b800e78df6bc9de03b2afd5aa0272779049dfd9917c79af6368a",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-9-123-warm-mobile4-performance-continue/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750089,
+      "sha256": "f384d1a41ca391bdbd9e49b2a3c4574a4e372b0bee16c3d2646419d791019618",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-9-123-warm-mobile4-performance-continue/launch-0-performance-continue-warm-storage-before.json",
+      "sizeBytes": 28295123,
+      "sha256": "88ecb67346af4db7ea5892117e5892f129273ac57b79fe996b9e777a41f1ce62",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-coverage-r1-20261115-9-123-warm-mobile4-performance-continue/launch-0-performance-continue-warm-storage-restored.json",
+      "sizeBytes": 28295123,
+      "sha256": "88ecb67346af4db7ea5892117e5892f129273ac57b79fe996b9e777a41f1ce62",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-deferred-save-r2-20261115/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 24750089,
+      "sha256": "5abb571298b9449ed2f58938ca067ad14caee4d2784ac472a85d92076969829e",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-positive-desktop123-r2-20261115/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750089,
+      "sha256": "5d9416600c1acd39ed82f2f9a47f75a444dccc21ad6cb9557171a2964bb1fb8e",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-positive-mobile424242-r2-20261115/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 25688175,
+      "sha256": "ac5a33b872587de8afdde7ae450c10ab0acc740acfc0c77f3132aded9e81a65b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-remainder-r1-20261115-24-99117-cold-desktop-performance-continue/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 26147495,
+      "sha256": "5c69de5521cde1a41b68057c54c1fc74f5f8c8f206c53518d3c4e1ace3691257",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-remainder-r1-20261115-25-99117-cold-desktop-save-history/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 26147495,
+      "sha256": "31ec13c2b1b9113b302debe43dc95d8f577f6a74c13688edeab4cc516c30910c",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-remainder-r1-20261115-27-99117-cold-mobile4-performance-continue/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 26147495,
+      "sha256": "abf7a1af0df15a58578bc84e4af4e939f5d0bbd1d088812d8315f8332ae932ef",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-remainder-r1-20261115-28-99117-cold-mobile4-save-history/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 26147495,
+      "sha256": "7fe93e5b7b26a6e5032664f6c9adf888026a0e8d83e55c215d36fcfd4e85ce92",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-remainder-r1-20261115-30-99117-warm-desktop-performance-continue/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 26147495,
+      "sha256": "e8701f2da4830ce3c5b6967ec1cbfeedea10c4c790ce1965a90e38219be497d7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-remainder-r1-20261115-30-99117-warm-desktop-performance-continue/launch-0-performance-continue-warm-storage-before.json",
+      "sizeBytes": 29894412,
+      "sha256": "30c8a079217fb131111e8ed788979942ba1af580f561f30b9ce5ba282ffa7886",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-remainder-r1-20261115-30-99117-warm-desktop-performance-continue/launch-0-performance-continue-warm-storage-restored.json",
+      "sizeBytes": 29894412,
+      "sha256": "30c8a079217fb131111e8ed788979942ba1af580f561f30b9ce5ba282ffa7886",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-remainder-r1-20261115-31-99117-warm-desktop-save-history/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 26147495,
+      "sha256": "3b84b0cc25ea4c201b4cb10a9b881c4edf180dba9a0d32e642398a67f9b43aaa",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-remainder-r1-20261115-31-99117-warm-desktop-save-history/launch-0-save-history-warm-storage-before.json",
+      "sizeBytes": 29894348,
+      "sha256": "7a1c66fe0d313e5010d748c033ad2c7ea053809c2b8c1534ddb9599348fd58f9",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-remainder-r1-20261115-31-99117-warm-desktop-save-history/launch-0-save-history-warm-storage-restored.json",
+      "sizeBytes": 29894348,
+      "sha256": "7a1c66fe0d313e5010d748c033ad2c7ea053809c2b8c1534ddb9599348fd58f9",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-remainder-r1-20261115-33-99117-warm-mobile4-performance-continue/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 26147495,
+      "sha256": "f8f9228f1872fa5c585fed162fc27a8857ba5b61d48e83e29af1891ec3f1d7b3",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-remainder-r1-20261115-33-99117-warm-mobile4-performance-continue/launch-0-performance-continue-warm-storage-before.json",
+      "sizeBytes": 29894412,
+      "sha256": "30c8a079217fb131111e8ed788979942ba1af580f561f30b9ce5ba282ffa7886",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-remainder-r1-20261115-33-99117-warm-mobile4-performance-continue/launch-0-performance-continue-warm-storage-restored.json",
+      "sizeBytes": 29894412,
+      "sha256": "30c8a079217fb131111e8ed788979942ba1af580f561f30b9ce5ba282ffa7886",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-remainder-r1-20261115-34-99117-warm-mobile4-save-history/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 26147495,
+      "sha256": "9fa9df9442e3c8bb001b7957d851b0aa27ee5bb3c19a7fcd4147d412d6d9ae63",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-remainder-r1-20261115-34-99117-warm-mobile4-save-history/launch-0-save-history-warm-storage-before.json",
+      "sizeBytes": 29894348,
+      "sha256": "7a1c66fe0d313e5010d748c033ad2c7ea053809c2b8c1534ddb9599348fd58f9",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/continue-knowledge-remainder-r1-20261115-34-99117-warm-mobile4-save-history/launch-0-save-history-warm-storage-restored.json",
+      "sizeBytes": 29894348,
+      "sha256": "7a1c66fe0d313e5010d748c033ad2c7ea053809c2b8c1534ddb9599348fd58f9",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-bindings-public-r1-20261105/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "d2971072a21ed443ee530a5c8eb913212f592c0fb387be9985ec244b235b233a",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-bindings-public-r2-20261105/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "d83707fe07468ce58b853c5aacecc80bbf6ded20cbe5729466b16a6a2c6062cb",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r1-20261105-minimal-all-10-desktop-save-history-off-s123-cold/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "e4c5d1bd8788485f4cd22f484c02962f5ac99d4661e4f66f7926872f54bb1cf4",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r1-20261105-minimal-all-2-desktop-performance-continue-off-s123-cold/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "9966e4561af37122decef6a150bfef14158fdff2c9a75b709c2d77b44c8c193a",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-minimal-all-10-desktop-save-history-off-s123-cold/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "0c78b5c9a234aff46a8e62b9120442fb6291f7c5a17db09697006c774835b00b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-minimal-all-14-mobile4-performance-continue-off-s123-cold/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "50a74292468c89c5bed17094e68296c30157f5bfcff880106998addb645542c4",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-minimal-all-2-desktop-performance-continue-off-s123-cold/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "3a38413390e934755d73e5803ae497182cd2880405368c97c7a0abad22197a16",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-minimal-all-22-mobile4-save-history-off-s123-cold/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "5c5f2e89ec86291f2af1c50da5afc1e645c70aa4f80255ea37c9bfe18b1b1734",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-otherseeds-0-desktop-performance-continue-off-s424242-cold/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 25688177,
+      "sha256": "810579bb1e2477b0c944db666d1273052aa9632ff5876bac92a991958da1a7d3",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-otherseeds-10-mobile4-save-history-off-s424242-cold/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 25688177,
+      "sha256": "f93b1c60b30a6ad73afbec81d363c40245a8301be45ee4a7718736c4689bda2f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-otherseeds-12-desktop-performance-continue-off-s99117-cold/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 26147497,
+      "sha256": "a8da9a218cf443e2a045274381bf0555907d4b5a573d5bb00b1bca065e94f38d",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-otherseeds-16-desktop-save-history-off-s99117-cold/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 26147497,
+      "sha256": "69df03079d8109c6b8b5ab8174b21c767c93a1d133ddf390ae723fd92439a0c1",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-otherseeds-18-mobile4-performance-continue-off-s99117-cold/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 26147497,
+      "sha256": "90ffb8f267eebcf095f1c26b6e02e3feff5984c063be6a3ec38c6bbc3d0046aa",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-otherseeds-22-mobile4-save-history-off-s99117-cold/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 26147497,
+      "sha256": "04ab6b846952c0a1e8b27f60cd38c766ee0a277a7602374dcc5f1872fb3dfe9b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-otherseeds-4-desktop-save-history-off-s424242-cold/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 25688177,
+      "sha256": "29540ed65a5ff44e71bb7b3963a5670ed6bf66c764202f93c63e1b93d8600892",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-otherseeds-6-mobile4-performance-continue-off-s424242-cold/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 25688175,
+      "sha256": "6b0e56904435560789e1fe34e0f41c35760d2fecf3b5015195e72e5c6083940a",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-progressive-entry-1-desktop-performance-continue-progressive-s123-cold/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "38d45d98220a2a000a1c39ee79e3795f2799a31d7916e4e0ae4f0280b50fcc0f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-progressive-entry-3-mobile4-performance-continue-progressive-s123-cold/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750089,
+      "sha256": "c9471c34f4ddcf83409911d7eb7789c4505a9786e00fa0b08aca104334e5af73",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-visual-sentinels-2-desktop-save-history-off-s123-cold/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "b5e30e1e888e76721bb1b3ee1851ffc82afd7dc1534b7ec54bcbbd6b60d30273",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-visual-sentinels-8-mobile4-save-history-off-s123-cold/launch-0-save-history-save-raw-save.json",
+      "sizeBytes": 24750089,
+      "sha256": "bbb48632920e60b15f5c7bfc592f7462fd8568efe0da0ac92b7f7e6464dbb89f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-warm-entry-2-desktop-performance-continue-off-s123-warm/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "e4eee0392c5ee949c2c3911a402a812cb74ef8030c3c918862ab4c8e4f3fe864",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-warm-entry-2-desktop-performance-continue-off-s123-warm/launch-0-performance-continue-warm-storage-before.json",
+      "sizeBytes": 28295123,
+      "sha256": "88ecb67346af4db7ea5892117e5892f129273ac57b79fe996b9e777a41f1ce62",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-warm-entry-2-desktop-performance-continue-off-s123-warm/launch-0-performance-continue-warm-storage-restored.json",
+      "sizeBytes": 28295123,
+      "sha256": "88ecb67346af4db7ea5892117e5892f129273ac57b79fe996b9e777a41f1ce62",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-warm-entry-5-mobile4-performance-continue-off-s123-warm/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "43e466b2240a7601e20177faa6fe3b9be645fcf59cd0049782d9e4ad7d8c62d7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-warm-entry-5-mobile4-performance-continue-off-s123-warm/launch-0-performance-continue-warm-storage-before.json",
+      "sizeBytes": 28295123,
+      "sha256": "88ecb67346af4db7ea5892117e5892f129273ac57b79fe996b9e777a41f1ce62",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-warm-entry-5-mobile4-performance-continue-off-s123-warm/launch-0-performance-continue-warm-storage-restored.json",
+      "sizeBytes": 28295123,
+      "sha256": "88ecb67346af4db7ea5892117e5892f129273ac57b79fe996b9e777a41f1ce62",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-main-controls-r1-20261105-wrong-save/launch-0-save-opening-save-raw-save.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/feedback-main-controls-r2-20261105-wrong-save/launch-0-save-opening-save-raw-save.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/fixture-corpus/123-history.json",
+      "sizeBytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/fixture-corpus/123-later-history.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/fixture-corpus/424242-history.json",
+      "sizeBytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/fixture-corpus/424242-later-history.json",
+      "sizeBytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/fixture-corpus/99117-history.json",
+      "sizeBytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/fixture-corpus-d05bab3/123-history.json",
+      "sizeBytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/fixture-corpus-d05bab3/123-later-history.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/fixture-corpus-d05bab3/424242-history.json",
+      "sizeBytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/fixture-corpus-d05bab3/424242-later-history.json",
+      "sizeBytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/fixture-corpus-d05bab3/99117-history.json",
+      "sizeBytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/fixture-corpus-d05bab3/99117-later-history.json",
+      "sizeBytes": 26147500,
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-baseline-a9df52c-20261104/prepared-baseline.json.gz",
+      "sizeBytes": 9636455,
+      "sha256": "cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-baseline-a9df52c-20261104/fixtures/123-history.json",
+      "sizeBytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-baseline-a9df52c-20261104/fixtures/123-later-history.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-baseline-a9df52c-20261104/fixtures/424242-history.json",
+      "sizeBytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-baseline-a9df52c-20261104/fixtures/424242-later-history.json",
+      "sizeBytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-baseline-a9df52c-20261104/fixtures/99117-history.json",
+      "sizeBytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-baseline-a9df52c-20261104/fixtures/99117-later-history.json",
+      "sizeBytes": 26147500,
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/prepared-baseline.json.gz",
+      "sizeBytes": 9636455,
+      "sha256": "cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/fixtures/123-history.json",
+      "sizeBytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/fixtures/123-later-history.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/fixtures/424242-history.json",
+      "sizeBytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/fixtures/424242-later-history.json",
+      "sizeBytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/fixtures/99117-history.json",
+      "sizeBytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/fixtures/99117-later-history.json",
+      "sizeBytes": 26147500,
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-manifest/prepared-baseline.json.gz",
+      "sizeBytes": 9636455,
+      "sha256": "cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-manifest/fixtures/123-history.json",
+      "sizeBytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-manifest/fixtures/123-later-history.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-manifest/fixtures/424242-history.json",
+      "sizeBytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-manifest/fixtures/424242-later-history.json",
+      "sizeBytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-manifest/fixtures/99117-history.json",
+      "sizeBytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-manifest/fixtures/99117-later-history.json",
+      "sizeBytes": 26147500,
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-sdk/prepared-baseline.json.gz",
+      "sizeBytes": 9636455,
+      "sha256": "cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-sdk/fixtures/123-history.json",
+      "sizeBytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-sdk/fixtures/123-later-history.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-sdk/fixtures/424242-history.json",
+      "sizeBytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-sdk/fixtures/424242-later-history.json",
+      "sizeBytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-sdk/fixtures/99117-history.json",
+      "sizeBytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-sdk/fixtures/99117-later-history.json",
+      "sizeBytes": 26147500,
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-source/prepared-baseline.json.gz",
+      "sizeBytes": 9636455,
+      "sha256": "cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-source/fixtures/123-history.json",
+      "sizeBytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-source/fixtures/123-later-history.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-source/fixtures/424242-history.json",
+      "sizeBytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-source/fixtures/424242-later-history.json",
+      "sizeBytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-source/fixtures/99117-history.json",
+      "sizeBytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-corrupt-source/fixtures/99117-later-history.json",
+      "sizeBytes": 26147500,
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-path-escape/prepared-baseline.json.gz",
+      "sizeBytes": 9636455,
+      "sha256": "cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-path-escape/fixtures/123-history.json",
+      "sizeBytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-path-escape/fixtures/123-later-history.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-path-escape/fixtures/424242-history.json",
+      "sizeBytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-path-escape/fixtures/424242-later-history.json",
+      "sizeBytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-path-escape/fixtures/99117-history.json",
+      "sizeBytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r5/copies/base-path-escape/fixtures/99117-later-history.json",
+      "sizeBytes": 26147500,
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-manifest/prepared-baseline.json.gz",
+      "sizeBytes": 9636455,
+      "sha256": "cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-manifest/fixtures/123-history.json",
+      "sizeBytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-manifest/fixtures/123-later-history.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-manifest/fixtures/424242-history.json",
+      "sizeBytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-manifest/fixtures/424242-later-history.json",
+      "sizeBytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-manifest/fixtures/99117-history.json",
+      "sizeBytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-manifest/fixtures/99117-later-history.json",
+      "sizeBytes": 26147500,
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-sdk/prepared-baseline.json.gz",
+      "sizeBytes": 9636455,
+      "sha256": "cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-sdk/fixtures/123-history.json",
+      "sizeBytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-sdk/fixtures/123-later-history.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-sdk/fixtures/424242-history.json",
+      "sizeBytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-sdk/fixtures/424242-later-history.json",
+      "sizeBytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-sdk/fixtures/99117-history.json",
+      "sizeBytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-sdk/fixtures/99117-later-history.json",
+      "sizeBytes": 26147500,
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-source/prepared-baseline.json.gz",
+      "sizeBytes": 9636455,
+      "sha256": "cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-source/fixtures/123-history.json",
+      "sizeBytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-source/fixtures/123-later-history.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-source/fixtures/424242-history.json",
+      "sizeBytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-source/fixtures/424242-later-history.json",
+      "sizeBytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-source/fixtures/99117-history.json",
+      "sizeBytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-corrupt-source/fixtures/99117-later-history.json",
+      "sizeBytes": 26147500,
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-path-escape/prepared-baseline.json.gz",
+      "sizeBytes": 9636455,
+      "sha256": "cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-path-escape/fixtures/123-history.json",
+      "sizeBytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-path-escape/fixtures/123-later-history.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-path-escape/fixtures/424242-history.json",
+      "sizeBytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-path-escape/fixtures/424242-later-history.json",
+      "sizeBytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-path-escape/fixtures/99117-history.json",
+      "sizeBytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r6/copies/base-path-escape/fixtures/99117-later-history.json",
+      "sizeBytes": 26147500,
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-manifest/prepared-baseline.json.gz",
+      "sizeBytes": 9636455,
+      "sha256": "cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-manifest/fixtures/123-history.json",
+      "sizeBytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-manifest/fixtures/123-later-history.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-manifest/fixtures/424242-history.json",
+      "sizeBytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-manifest/fixtures/424242-later-history.json",
+      "sizeBytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-manifest/fixtures/99117-history.json",
+      "sizeBytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-manifest/fixtures/99117-later-history.json",
+      "sizeBytes": 26147500,
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-sdk/prepared-baseline.json.gz",
+      "sizeBytes": 9636455,
+      "sha256": "cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-sdk/fixtures/123-history.json",
+      "sizeBytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-sdk/fixtures/123-later-history.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-sdk/fixtures/424242-history.json",
+      "sizeBytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-sdk/fixtures/424242-later-history.json",
+      "sizeBytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-sdk/fixtures/99117-history.json",
+      "sizeBytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-sdk/fixtures/99117-later-history.json",
+      "sizeBytes": 26147500,
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-source/prepared-baseline.json.gz",
+      "sizeBytes": 9636455,
+      "sha256": "cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-source/fixtures/123-history.json",
+      "sizeBytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-source/fixtures/123-later-history.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-source/fixtures/424242-history.json",
+      "sizeBytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-source/fixtures/424242-later-history.json",
+      "sizeBytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-source/fixtures/99117-history.json",
+      "sizeBytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-corrupt-source/fixtures/99117-later-history.json",
+      "sizeBytes": 26147500,
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-path-escape/prepared-baseline.json.gz",
+      "sizeBytes": 9636455,
+      "sha256": "cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-path-escape/fixtures/123-history.json",
+      "sizeBytes": 18815531,
+      "sha256": "4a4179b276b84b29fb4454c7e1afc0bc271f65ca14f149ac7f9640dbbfbc7c7f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-path-escape/fixtures/123-later-history.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-path-escape/fixtures/424242-history.json",
+      "sizeBytes": 18934204,
+      "sha256": "5c40f54394c70c4d6febcbe6d42123ca8773bb38be83eac6b5142108bdf76023",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-path-escape/fixtures/424242-later-history.json",
+      "sizeBytes": 25688180,
+      "sha256": "4895187c9fcbb4fb718c9f1888c61d22536a46eacf072e3f50e34d1e9151a05b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-path-escape/fixtures/99117-history.json",
+      "sizeBytes": 23018861,
+      "sha256": "153cd9dc350af868aed86f746d7a8d6946c1e392655d73e628ec34b226a17869",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/base-path-escape/fixtures/99117-later-history.json",
+      "sizeBytes": 26147500,
+      "sha256": "f2e738a562937b5ddf0668e29bec8167eddc5ffacb4eb6264b8caa07704302a2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r2-20261105/0-123-desktop-positive/boundary-evidence.json",
+      "sizeBytes": 8899614,
+      "sha256": "b231c9fdd8c671e6d7fd34da512ca294739b44da533ee809312579e0e44ff9f2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r2-20261105/0-123-desktop-positive/frozen-expected.json",
+      "sizeBytes": 8901325,
+      "sha256": "f38da84b698bdb31802871a55a7ed037db7a7fb2de347f3f578ab133aaf629e7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r3-20261105/0-123-desktop-positive/frozen-expected.json",
+      "sizeBytes": 8901325,
+      "sha256": "f38da84b698bdb31802871a55a7ed037db7a7fb2de347f3f578ab133aaf629e7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r4-20261105/0-123-desktop-positive/boundary-evidence.json",
+      "sizeBytes": 96350381,
+      "sha256": "11dc949c6dbfcac5f4e761d296caf3abf7f15e7a0b7f4128caddbc1168e6d532",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r4-20261105/0-123-desktop-positive/frozen-expected.json",
+      "sizeBytes": 8901325,
+      "sha256": "f38da84b698bdb31802871a55a7ed037db7a7fb2de347f3f578ab133aaf629e7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r5-20261105/0-123-desktop-positive/boundary-evidence.json",
+      "sizeBytes": 99117698,
+      "sha256": "2aeb48ce6de3e4ff4f09908e6f6f47334a35ddc514d9115d64dd757e331392f4",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r5-20261105/0-123-desktop-positive/frozen-expected.json",
+      "sizeBytes": 8901325,
+      "sha256": "f38da84b698bdb31802871a55a7ed037db7a7fb2de347f3f578ab133aaf629e7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r5-20261105/1-123-desktop-mutation/boundary-evidence.json",
+      "sizeBytes": 110946254,
+      "sha256": "845d9765e58536042c48e70030ff2a279623821db25a7e0613b89259b95bc684",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r5-20261105/1-123-desktop-mutation/frozen-expected.json",
+      "sizeBytes": 8901325,
+      "sha256": "f38da84b698bdb31802871a55a7ed037db7a7fb2de347f3f578ab133aaf629e7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r5-20261105/2-123-desktop-guard-twin/boundary-evidence.json",
+      "sizeBytes": 99139765,
+      "sha256": "703a9068d938eda05fbd5353bbea416c7e494f9487720e2d747199f6c8ab68c3",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r5-20261105/2-123-desktop-guard-twin/frozen-expected.json",
+      "sizeBytes": 8901325,
+      "sha256": "f38da84b698bdb31802871a55a7ed037db7a7fb2de347f3f578ab133aaf629e7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r6-20261105/0-123-desktop-guard-twin/boundary-evidence.json",
+      "sizeBytes": 99167420,
+      "sha256": "f699c0f52a9e427c00b71ff0925838792f9e42445ab01f09b18337811c4d943b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r6-20261105/0-123-desktop-guard-twin/frozen-expected.json",
+      "sizeBytes": 8901325,
+      "sha256": "f38da84b698bdb31802871a55a7ed037db7a7fb2de347f3f578ab133aaf629e7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r6-20261105/1-123-desktop-mutation/boundary-evidence.json",
+      "sizeBytes": 110891588,
+      "sha256": "4154450cf4bb60375c538301125a7c12d762c277b2325b68d1eddb48e974aaa7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r6-20261105/1-123-desktop-mutation/frozen-expected.json",
+      "sizeBytes": 8901325,
+      "sha256": "f38da84b698bdb31802871a55a7ed037db7a7fb2de347f3f578ab133aaf629e7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r7-20261105/0-123-desktop-guard-twin/boundary-evidence.json",
+      "sizeBytes": 99179736,
+      "sha256": "cb44ffb6ad9e9ab659b138662385bad215ca0a3078cf3dfad20fe5236096f348",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r7-20261105/0-123-desktop-guard-twin/frozen-expected.json",
+      "sizeBytes": 8901325,
+      "sha256": "f38da84b698bdb31802871a55a7ed037db7a7fb2de347f3f578ab133aaf629e7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r7-20261105/1-123-desktop-mutation/boundary-evidence.json",
+      "sizeBytes": 110935375,
+      "sha256": "ade192b0794d70158772644b78db5b46a38ac051d496b7e575885084537f4674",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r7-20261105/1-123-desktop-mutation/frozen-expected.json",
+      "sizeBytes": 8901325,
+      "sha256": "f38da84b698bdb31802871a55a7ed037db7a7fb2de347f3f578ab133aaf629e7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r7-20261105/2-123-desktop-positive/boundary-evidence.json",
+      "sizeBytes": 99150144,
+      "sha256": "a0bdee057728636512a8bd7a6fb532a36f193350cfee88a75e4fb0f8d4946339",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r7-20261105/2-123-desktop-positive/frozen-expected.json",
+      "sizeBytes": 8901325,
+      "sha256": "f38da84b698bdb31802871a55a7ed037db7a7fb2de347f3f578ab133aaf629e7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r8-20261105/0-123-desktop-guard-twin/boundary-evidence.json",
+      "sizeBytes": 99152152,
+      "sha256": "b233275fc2a07fb666ed704633399511b9ac66e09e0d27f7ec78a47e57d3206b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r8-20261105/0-123-desktop-guard-twin/frozen-expected.json",
+      "sizeBytes": 8901325,
+      "sha256": "f38da84b698bdb31802871a55a7ed037db7a7fb2de347f3f578ab133aaf629e7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r8-20261105/1-123-desktop-mutation/boundary-evidence.json",
+      "sizeBytes": 110898771,
+      "sha256": "034f35a818347d8dd1c058debbec39e86f46388e3be8f11933fcc105dfa7a113",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r8-20261105/1-123-desktop-mutation/frozen-expected.json",
+      "sizeBytes": 8901325,
+      "sha256": "f38da84b698bdb31802871a55a7ed037db7a7fb2de347f3f578ab133aaf629e7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r8-20261105/2-123-desktop-positive/boundary-evidence.json",
+      "sizeBytes": 99150284,
+      "sha256": "0c2e7a8984d18765a6aa47a4f9dff050f291acf54f842ef7a53458f5f8c7ff6a",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r8-20261105/2-123-desktop-positive/frozen-expected.json",
+      "sizeBytes": 8901325,
+      "sha256": "f38da84b698bdb31802871a55a7ed037db7a7fb2de347f3f578ab133aaf629e7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r8-20261105/3-123-mobile4-positive/boundary-evidence.json",
+      "sizeBytes": 99185969,
+      "sha256": "b8120c7fa295aeed876a320d900414fab33277318f221fea0a9a2f3db83e3de2",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r8-20261105/3-123-mobile4-positive/frozen-expected.json",
+      "sizeBytes": 8901325,
+      "sha256": "f38da84b698bdb31802871a55a7ed037db7a7fb2de347f3f578ab133aaf629e7",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r8-20261105/4-424242-desktop-positive/boundary-evidence.json",
+      "sizeBytes": 100102196,
+      "sha256": "f929f5fccdec1d9f4e1a706c637cbc23b35fa370d76a723ffcbc5f7054c2a3ce",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r8-20261105/4-424242-desktop-positive/frozen-expected.json",
+      "sizeBytes": 8870663,
+      "sha256": "8c97119224b5d7cd2ab949d6682b0f8b859a5ba6a3d364d55b67fe7a6b529bf9",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r8-20261105/5-424242-mobile4-positive/boundary-evidence.json",
+      "sizeBytes": 100143501,
+      "sha256": "b84464c03cf1389fb4dab8162f66a135282d6d531ec4eda2b744665c253bbc5b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r8-20261105/5-424242-mobile4-positive/frozen-expected.json",
+      "sizeBytes": 8870663,
+      "sha256": "8c97119224b5d7cd2ab949d6682b0f8b859a5ba6a3d364d55b67fe7a6b529bf9",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r8-20261105/6-99117-desktop-positive/boundary-evidence.json",
+      "sizeBytes": 100379787,
+      "sha256": "3b15bd0a6f24214bae8536c6fdcb3cb6312fe40e42c927acc9a2883e46945284",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r8-20261105/6-99117-desktop-positive/frozen-expected.json",
+      "sizeBytes": 8995000,
+      "sha256": "8be67dcb3a027417e6f9040c1ae070a1f667edd3c40f4cf93add8ccf3eaa7856",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r8-20261105/7-99117-mobile4-positive/boundary-evidence.json",
+      "sizeBytes": 100367743,
+      "sha256": "1bcb81cd8d484df936b0d6b33cbbe8db3979bf4f9b5978c3747354ed81f7c26f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/life-state-browser-r8-20261105/7-99117-mobile4-positive/frozen-expected.json",
+      "sizeBytes": 8995000,
+      "sha256": "8be67dcb3a027417e6f9040c1ae070a1f667edd3c40f4cf93add8ccf3eaa7856",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-controls-r1-20261105-wrong-save/launch-0-save-opening-save-raw-save.json",
+      "sizeBytes": 24750094,
+      "sha256": "4267b2bef61b7ecc74d6052c6547790096c7caa6e2b40d14aab21e9421e6b002",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-matrix-r1-20261105-1-desktop-save-off/launch-0-save-save-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "a9045bdd70783a648f42e63a34701e2136ba8135d7ee36889feb3f4cc3159309",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-matrix-r1-20261105-6-mobile4-save-off/launch-0-save-save-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "ab90265615f698e953ad2b60efff1d40046aaf614da2f5668db00791b1a9c88a",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-matrix-r2-20261105-13-mobile4-performance-off/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "ac0c00217df2de9a091b7bddeee52f6005f5739de13134b15d27364215fe5168",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-matrix-r2-20261105-6-desktop-performance-off/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "e690ef4fa3a5cbc61fc41ea611ceebb87ba030a377ee539344136e4e2bbf0f88",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-otherseed-continue-parent-r1-20261105-0-desktop-performance-continue-off-s424242-cold/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 25688177,
+      "sha256": "51d1f202de0a6ae5524f48fccff7bb8ac0db28771b3c1dc280e85c2bef8582fe",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-otherseed-continue-parent-r1-20261105-1-mobile4-performance-continue-off-s424242-cold/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 25688177,
+      "sha256": "6982924d5ea3860982ae7bce886b2c8522759bcc349fa1c9af49857fda1443e5",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-otherseed-continue-parent-r1-20261105-2-desktop-performance-continue-off-s424242-warm/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 25688177,
+      "sha256": "4489e148f0f0b185780030c48c0b9d05b79c1418c7e4008a118f8bd5d0cc72a6",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-otherseed-continue-parent-r1-20261105-2-desktop-performance-continue-off-s424242-warm/launch-0-performance-continue-warm-storage-before.json",
+      "sizeBytes": 29375815,
+      "sha256": "785de0a41699fca4079e20dc7eaf2f60a98cb83af4d71a2ef36d7ad88f23ed44",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-otherseed-continue-parent-r1-20261105-2-desktop-performance-continue-off-s424242-warm/launch-0-performance-continue-warm-storage-restored.json",
+      "sizeBytes": 29375815,
+      "sha256": "785de0a41699fca4079e20dc7eaf2f60a98cb83af4d71a2ef36d7ad88f23ed44",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-otherseed-continue-parent-r1-20261105-3-mobile4-performance-continue-off-s424242-warm/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 25688177,
+      "sha256": "18be670d15548ed097c4819b649153f46bc62d249effcb0459533415f653370c",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-otherseed-continue-parent-r1-20261105-3-mobile4-performance-continue-off-s424242-warm/launch-0-performance-continue-warm-storage-before.json",
+      "sizeBytes": 29375815,
+      "sha256": "785de0a41699fca4079e20dc7eaf2f60a98cb83af4d71a2ef36d7ad88f23ed44",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-otherseed-continue-parent-r1-20261105-3-mobile4-performance-continue-off-s424242-warm/launch-0-performance-continue-warm-storage-restored.json",
+      "sizeBytes": 29375815,
+      "sha256": "785de0a41699fca4079e20dc7eaf2f60a98cb83af4d71a2ef36d7ad88f23ed44",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-otherseed-continue-parent-r1-20261105-4-desktop-performance-continue-off-s99117-cold/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 26147497,
+      "sha256": "be86060e8ce136b0f5a2ac896d8125b9b38710ebd8e7b52abea6a36c79d5c2d8",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-otherseed-continue-parent-r1-20261105-5-mobile4-performance-continue-off-s99117-cold/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 26147497,
+      "sha256": "cf781baec4268cd52993554e281767c8172700dc4f9da71f76e0e3a3aa87c268",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-otherseed-continue-parent-r1-20261105-6-desktop-performance-continue-off-s99117-warm/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 26147497,
+      "sha256": "2599de12d53fab680eb743ca07f11463ae8f27c7fa6e88acce3a7498cb558148",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-otherseed-continue-parent-r1-20261105-6-desktop-performance-continue-off-s99117-warm/launch-0-performance-continue-warm-storage-before.json",
+      "sizeBytes": 29894412,
+      "sha256": "30c8a079217fb131111e8ed788979942ba1af580f561f30b9ce5ba282ffa7886",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-otherseed-continue-parent-r1-20261105-6-desktop-performance-continue-off-s99117-warm/launch-0-performance-continue-warm-storage-restored.json",
+      "sizeBytes": 29894412,
+      "sha256": "30c8a079217fb131111e8ed788979942ba1af580f561f30b9ce5ba282ffa7886",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-otherseed-continue-parent-r1-20261105-7-mobile4-performance-continue-off-s99117-warm/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 26147497,
+      "sha256": "b2b64ced2a2532ed1b0558c9af12d1c2816d89c57156c930cbae843fbe3eb83f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-otherseed-continue-parent-r1-20261105-7-mobile4-performance-continue-off-s99117-warm/launch-0-performance-continue-warm-storage-before.json",
+      "sizeBytes": 29894412,
+      "sha256": "30c8a079217fb131111e8ed788979942ba1af580f561f30b9ce5ba282ffa7886",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-otherseed-continue-parent-r1-20261105-7-mobile4-performance-continue-off-s99117-warm/launch-0-performance-continue-warm-storage-restored.json",
+      "sizeBytes": 29894412,
+      "sha256": "30c8a079217fb131111e8ed788979942ba1af580f561f30b9ce5ba282ffa7886",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-repair-r3-20261105-13-mobile4-performance-off/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "400089f7afbceae6f7806c585d1d4d1d653277327775198bbff8204b2eff07ce",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-repair-r3-20261105-6-desktop-performance-off/launch-0-performance-continue-continued-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "8da3675b53a51c325168cd9692f0f6e2f45bb1359a11b5948446e064041ae726",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-repair-r4-flow-20261105-1-desktop-save-off/launch-0-save-save-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "3c419c18b216159c6485f9e8e0593958523c4cf1a5b5bd7a2530a9413337d1bf",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/main-repair-r4-flow-20261105-4-mobile4-save-off/launch-0-save-save-raw-save.json",
+      "sizeBytes": 24750091,
+      "sha256": "652fd2c9365e2e51542e589ea5bf4fe60fb434ff67e331956de7641d72eb576b",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/preview-browser-r2-20261105/13-123-desktop-regular-continue-16-control/control-evidence.json",
+      "sizeBytes": 38750612,
+      "sha256": "c627d15a600f58798df783c3b2f2aa8a4ab24832e7f1844a4632dd6331ef1bbc",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/preview-browser-r3-20261105/1-123-desktop-regular-continue-16-control/control-evidence.json",
+      "sizeBytes": 38097303,
+      "sha256": "7914aa4a18e1f9960a5cd69f6dd6e689f8c9a10cf046057c289fc646137bda8e",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/preview-browser-r3-20261105/3-123-desktop-regular-continue-17-control/control-evidence.json",
+      "sizeBytes": 40858639,
+      "sha256": "be67357eaf7221c8f3283a0e8874ba4b70bba67f88d38902fe80fa52957fad9f",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/preview-browser-r3-20261105/5-123-mobile4-regular-continue-16-control/control-evidence.json",
+      "sizeBytes": 28297668,
+      "sha256": "e88ea3886e9245d5811a962ace183d2e515c749c8914d8d677091fa018f670f1",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/preview-browser-r3-20261105/7-123-mobile4-regular-continue-17-control/control-evidence.json",
+      "sizeBytes": 29099077,
+      "sha256": "cecd0d1e81bcf9d6e204ad31fa2b104133357b6f5a55cc30d0f98f860666f116",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/preview-control-r1-20261105/0-123-desktop-regular-continue-16-control/control-evidence.json",
+      "sizeBytes": 38750612,
+      "sha256": "c627d15a600f58798df783c3b2f2aa8a4ab24832e7f1844a4632dd6331ef1bbc",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    },
+    {
+      "path": "artifacts/perf-hillclimb/preview-control-r1-20261105/1-123-desktop-regular-continue-17-control/control-evidence.json",
+      "sizeBytes": 39552021,
+      "sha256": "ab38c465c78584cce6bf9e80e5c0a23cb12048590b0c341d096dd780d2a87a31",
+      "reason": "raw evidence exceeds 5 MB; full bytes in ZIP"
+    }
+  ],
+  "gitMetadataStoredOnlyInZip": [],
+  "zip": {
+    "path": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104-performance-evidence-20261115.zip",
+    "sizeBytes": 1804183210,
+    "sha256": "4d05ab05003fa5e4f0a015b2ed2481203ee53daf5e5e6d2e4ff3a8a96f8d1105",
+    "fileCount": 32726,
+    "complete": true
+  }
+}

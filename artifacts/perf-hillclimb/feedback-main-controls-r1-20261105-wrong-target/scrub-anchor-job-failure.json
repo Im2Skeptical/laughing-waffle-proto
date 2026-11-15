@@ -1,0 +1,16 @@
+{
+  "launchId": "feedback-main-controls-r1-20261105-wrong-target:launch-0-scrub-anchor",
+  "job": "scrub-anchor",
+  "originalError": {
+    "name": "TimeoutError",
+    "message": "page.waitForFunction: Timeout 1500ms exceeded.",
+    "stack": "page.waitForFunction: Timeout 1500ms exceeded.\n    at wait (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:238:34)\n    at observe (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:243:75)\n    at record.captureInputTiming (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:821:27)\n    at async withDeadline (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\deadline.mjs:7:12)\n    at async record (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:157:19)\n    at async mapAndScrub (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\run.mjs:796:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:1112:9"
+  },
+  "observationCount": 1,
+  "document": {
+    "available": false,
+    "reason": "current launch page is closed"
+  },
+  "passive": null,
+  "collectionErrors": []
+}

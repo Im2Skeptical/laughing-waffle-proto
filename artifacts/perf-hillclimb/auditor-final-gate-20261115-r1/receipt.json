@@ -1,0 +1,139 @@
+{
+  "at": "2026-11-15T02:12:43.769Z",
+  "gateOwner": "/root/harness_auditor — independent Harness Auditor",
+  "proof": "NOT SOUND",
+  "scope": "Final acceptance gate of existing scoped evidence only; no broad code audit/runtime/test/build/corpus rehash",
+  "sourceAuthoritySha256": "8c45bbf674f60ac7f6dc7214fb1abc76bc9617f02bb943c73bb7e318a2dc172e",
+  "acceptedSourcePins": {
+    "scripts/perf-hillclimb/run.mjs": "d1a81bf6d99be2e35ddc167e8688b11ae2907c0f35acb0526e8d0f3e53b6a714",
+    "scripts/perf-hillclimb/artwork-bundle-controls.mjs": "b9c3f1a756c699c9031505bd0ad7c94cdeaa08e94e88760053807a81d395e2bb",
+    "scripts/perf-hillclimb/artwork-bundle-controls-test.mjs": "1985b02d3f3e85bb885b10fa34e13750588e0b8d0b8dce903cddaded64d3f1eb",
+    "scripts/perf-hillclimb/artwork-controls.mjs": "6854bccb0fcef5ff3627f26c808d88ac5fcd53b4608eb3540734bb60410d3239",
+    "docs/performance/perf-hillclimb-20261104/HARNESS.md": "a2c16fae584d77f0ab45478a0604b54eaae92227ae2cde2f99852c45d5682017"
+  },
+  "beforeAuthentication": {
+    "at": "2026-11-15T01:29:35.533Z",
+    "sourceCount": 683,
+    "sourceMismatches": [],
+    "assetCount": 5,
+    "assetMismatches": [],
+    "frozenEvidenceCount": 1904,
+    "frozenBytes": 252991851,
+    "frozenMismatches": []
+  },
+  "closedExits": {
+    "verify-final-r1-exit.txt": "1",
+    "isolated-build-preview-r1-exit.txt": "1",
+    "build-badge-final-r1-exit.txt": "0"
+  },
+  "pending": [
+    "Parent confirmation of separate npm-test closure/result",
+    "Post-final source/assets/all-old-evidence authentication",
+    "Fresh final loaded preview/HTTP/LAN receipt"
+  ],
+  "notReached": [
+    "comparable baseline",
+    "rubric",
+    "scorecard",
+    "scored candidate"
+  ],
+  "successBarMet": false,
+  "inputs": {
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\t3-b6a8e362-4c1c21b30f50461f\\docs\\performance-hillclimb-20261115\\STATUS.md": {
+      "sha256": "2dbf89f5756b449fd91d8e60bac4615bc04011a0a0baac065fb9b95fcff7ccc5",
+      "bytes": 19380
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\t3-b6a8e362-4c1c21b30f50461f\\docs\\performance-hillclimb-20261115\\RUN_PACK.md": {
+      "sha256": "4c556b11f37fa80c8d340a1e8cd27bd622538debdf295dffd65b7162c58f0be5",
+      "bytes": 9465
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\t3-b6a8e362-4c1c21b30f50461f\\docs\\performance-hillclimb-20261115\\VERIFICATION_FAILURE.md": {
+      "sha256": "4fac8cace4418300903c185392ac884364f2815e14b30270508752786e3c3ffd",
+      "bytes": 3694
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\t3-b6a8e362-4c1c21b30f50461f\\docs\\performance-hillclimb-20261115\\FINAL_CONFIRMATION_BRIEF.md": {
+      "sha256": "eeb6936a8c9fd6868d75d59a6774b894ca4a0278e06fcfdbed489d3c7d75a8f2",
+      "bytes": 4315
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\t3-b6a8e362-4c1c21b30f50461f\\docs\\performance-hillclimb-20261115\\HOLD_RESUME_REVIEW.md": {
+      "sha256": "e9742739647e8922e4cbc01ac3a23f3a637ec8ff8aef4175c4afb92c6c9774c1",
+      "bytes": 10201
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\t3-b6a8e362-4c1c21b30f50461f\\docs\\performance-hillclimb-20261115\\CONTINUE_KNOWLEDGE_REVIEW.md": {
+      "sha256": "8ce0889ccd4ed6fc1806369d56552924547660e80fb69dc178d51e5119d75717",
+      "bytes": 16639
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\t3-b6a8e362-4c1c21b30f50461f\\docs\\performance-hillclimb-20261115\\COVERAGE_NATIVE_FAILURE_REVIEW.md": {
+      "sha256": "b562b6d1ef1c9e8fc9faa3e024c4cbd20c935aecdb472c8ba8e70587019132e6",
+      "bytes": 14347
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\t3-b6a8e362-4c1c21b30f50461f\\docs\\performance-hillclimb-20261115\\J8_ABBA_REVIEW.md": {
+      "sha256": "16449ea4e6eb5de0add647432fac2e6931f372682644099ba91c4aae820f7a9f",
+      "bytes": 11711
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\t3-b6a8e362-4c1c21b30f50461f\\docs\\performance-hillclimb-20261115\\PHASE_WITNESS_REVIEW.md": {
+      "sha256": "ea598267d8aa0f344253155e1e2614162ad88cd7004cd08f03c32777a45565fb",
+      "bytes": 12864
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\t3-b6a8e362-4c1c21b30f50461f\\docs\\performance-hillclimb-20261115\\PHASE_ACTUAL_REVIEW.md": {
+      "sha256": "83d609203bc69c0d7ccacdbe354c1ce98e6a49a5cd32964ed46f09295578cdbf",
+      "bytes": 10483
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\t3-b6a8e362-4c1c21b30f50461f\\docs\\performance-hillclimb-20261115\\PAIRED_COUNTER_REVIEW.md": {
+      "sha256": "9cd077b57c901a89e5a1ce76dac60afc15ca7e5e3537064eefeee75909458299",
+      "bytes": 6514
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\t3-b6a8e362-4c1c21b30f50461f\\docs\\performance-hillclimb-20261115\\PAIRED_ACTUAL_REVIEW.md": {
+      "sha256": "b270386367834d628dbbdadea59800f929cc66df1b6324b97153abeaa92fe0e3",
+      "bytes": 6171
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\t3-b6a8e362-4c1c21b30f50461f\\docs\\performance-hillclimb-20261115\\J3_LINKAGE_REVIEW.md": {
+      "sha256": "16e0db99f9feaa0346f36bcf9de175a728cfb630a0f1d572f0a213c6e0505ea5",
+      "bytes": 9085
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\t3-b6a8e362-4c1c21b30f50461f\\docs\\performance-hillclimb-20261115\\J3_CURRENT_REVIEW.md": {
+      "sha256": "ddc25bf8bb218207e807d0f72902f07f980911a047fb1e22c949c9ef04cc9a0e",
+      "bytes": 5832
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\docs\\performance\\perf-hillclimb-20261104\\HARNESS.md": {
+      "sha256": "a2c16fae584d77f0ab45478a0604b54eaae92227ae2cde2f99852c45d5682017",
+      "bytes": 47951
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\final-proof-20261115\\before-final-verify.json": {
+      "sha256": "39436eae592a3b5a2eedcca85a97e2f572c74fa3bade87d3871184da33fb2578",
+      "bytes": 3905
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\j8-paired-wait-progress-r1-20261115\\plan.json": {
+      "sha256": "8c45bbf674f60ac7f6dc7214fb1abc76bc9617f02bb943c73bb7e318a2dc172e",
+      "bytes": 82989
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\final-proof-20261115\\verify-final-r1-exit.txt": {
+      "sha256": "f1b2f662800122bed0ff255693df89c4487fbdcf453d3524a42d4ec20c3d9c04",
+      "bytes": 3
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\final-proof-20261115\\isolated-build-preview-r1-exit.txt": {
+      "sha256": "f1b2f662800122bed0ff255693df89c4487fbdcf453d3524a42d4ec20c3d9c04",
+      "bytes": 3
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\final-proof-20261115\\build-badge-final-r1-exit.txt": {
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "bytes": 3
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\final-proof-20261115\\verify-final-r1-launch.json": {
+      "sha256": "0a72d8e261215b8ab97fb24616c430690111b4f702a48110ea37fb36cb17fd16",
+      "bytes": 217
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\final-proof-20261115\\isolated-preview-owned-cleanup.json": {
+      "sha256": "281744f5ee331412b6e9b61c118d78c3b65c3945a12f2e1cd09e09f1d33b471b",
+      "bytes": 637
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\final-proof-20261115\\isolated-preview-copied-log-receipt.json": {
+      "sha256": "f144d1b7f9ca3d119201be5b4def43d837b763aff2fd14f39b1b1e6ca2102411",
+      "bytes": 191
+    },
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\final-proof-20261115\\isolated-preview-released.json": {
+      "sha256": "39cc5f63a5d62533edf3537359a7749def85e11e313cc2ed9f817c903039b343",
+      "bytes": 354
+    }
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "expected": {
+    "runId": "builder-discovery-life-d05bab3-r2",
+    "buildId": "8a107aa47c6e5c68b07b2208ff4a41da6b7402aaa80cca861e6b6691df9a30d5",
+    "observationId": "builder-discovery-life-d05bab3-r2:op-3",
+    "launchId": "builder-discovery-life-d05bab3-r2:launch-0-life",
+    "job": "J4",
+    "step": "node-entry-confirm",
+    "harnessId": "4c5973e45eef9505cb3a93896c01757d1cbad03ff83eba57f110ee599b47cea6",
+    "measurementContractId": "ae5accb6f8e88ba6f18c40a275734ef9f7e2b6df7c17ca2b7cabf15e980f12f8",
+    "population": {
+      "layout": "desktop",
+      "cpuRate": 1,
+      "cache": "cold",
+      "artwork": "off",
+      "instrumentation": true,
+      "workerDelayMs": 0,
+      "seed": 123,
+      "entryPath": "continue-fixture"
+    },
+    "fixture": "ordinary:seed=123",
+    "input": {
+      "confirmEntry": "life-milestone-milestone-1"
+    }
+  },
+  "error": "page.waitForFunction: Timeout 90000ms exceeded.",
+  "actual": {
+    "frontier": 0,
+    "viewed": 0,
+    "mode": "vassalLife",
+    "camera": {
+      "zoom": 1,
+      "x": 0,
+      "y": 0
+    },
+    "processing": null,
+    "projection": {
+      "forecastBaseSec": 0,
+      "forecastEndSec": 0,
+      "forecastStepSec": 1,
+      "forecastDtStep": null,
+      "forecastAsyncBaseSec": 0,
+      "forecastAsyncEndSec": 1280,
+      "forecastAsyncStepSec": 1,
+      "forecastAsyncToken": "sig:4"
+    },
+    "forecast": {
+      "historyEndSec": 0,
+      "computedCoverageEndSec": 1280,
+      "revealedCoverageEndSec": 162,
+      "browseCapSec": 162,
+      "displayedLossSec": 290,
+      "displayedLossYear": 10,
+      "projectedLossSec": null,
+      "projectedLossYear": null,
+      "projectedLossResolved": false,
+      "currentVassalResolutionSec": null,
+      "currentVassalResolutionComputed": false,
+      "currentVassalResolutionRevealed": false,
+      "currentVassalResolutionResolved": false,
+      "pendingCommitTargetSec": null,
+      "nextVassalEnabled": false
+    },
+    "graph": {
+      "revealed": 162,
+      "target": 1244,
+      "plot": {
+        "x": 302.7890037128713,
+        "y": 581.8514851485148,
+        "width": 673.4140779702971,
+        "height": 77.02178217821782
+      }
+    },
+    "decision": {
+      "open": false,
+      "family": null,
+      "selected": null,
+      "shopTag": null,
+      "offers": [],
+      "purchaseOrder": [],
+      "recap": false
+    }
+  }
+}

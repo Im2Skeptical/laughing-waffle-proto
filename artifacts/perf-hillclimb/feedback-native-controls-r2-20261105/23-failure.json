@@ -1,0 +1,4 @@
+{
+  "message": "page.evaluate: Error: operation timeout after 1209.3ms (deadline 1200ms)\n    at runtime.finish (<anonymous>:171:57)\n    at eval (eval at evaluate (:302:30), <anonymous>:8:22)\n    at async <anonymous>:328:30",
+  "stack": "page.evaluate: Error: operation timeout after 1209.3ms (deadline 1200ms)\n    at runtime.finish (<anonymous>:171:57)\n    at eval (eval at evaluate (:302:30), <anonymous>:8:22)\n    at async <anonymous>:328:30\n    at C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\feedback-native-controls.mjs:79:28"
+}

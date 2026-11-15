@@ -1,0 +1,26 @@
+{
+  "frozenIdentity": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+  "expectedTerminal": {
+    "second": 4410,
+    "year": 138
+  },
+  "positiveReceiptPass": true,
+  "controls": [
+    {
+      "name": "wrong actual cursor knowledge",
+      "rejected": true
+    },
+    {
+      "name": "stale projection source",
+      "rejected": true
+    },
+    {
+      "name": "late terminal coverage",
+      "rejected": true
+    },
+    {
+      "name": "save before knowledge receipt",
+      "rejected": true
+    }
+  ]
+}

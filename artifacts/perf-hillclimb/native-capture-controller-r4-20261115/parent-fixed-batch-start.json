@@ -1,0 +1,10 @@
+{
+    "at":  "2026-11-15T07:36:13.2725513Z",
+    "pid":  15860,
+    "planSha256":  "b214566772d421c89df8bd4156cbf2560e843dd30b9359ced70d04c7f49167bb",
+    "admissionSha256":  "3c55e9b605ffa9e45a68436d16a764c5827e87be974b94202117e5dd94b30a6c",
+    "maxCalls":  6,
+    "retries":  0,
+    "entry":  "next.mjs",
+    "stopOnNonzero":  true
+}

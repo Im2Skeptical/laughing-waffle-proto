@@ -1,0 +1,15 @@
+{
+  "verdict": "ACCEPTED",
+  "planSha256": "b575a07fea8abbc51ca8d8c9945e6174705e749127241a8b01ecb8d039928715",
+  "index": 2,
+  "id": "trial-3-B",
+  "mode": "B",
+  "files": {
+    "driver.mjs": "80e43eee5e5ba9e825f9b92a331cd26715d04181723fcbb726624db941ae41b7",
+    "probe.mjs": "67eae316f15612a87db81856b0ec1148bc6ad9e0779ed707deb85a523d0bc5ff",
+    "cleanup-owned.ps1": "9c806cf49043d3ba29cdceedd4d1f8ac1484718679e627e3bf06e3ab60a7ee38",
+    "source-authentication.json": "4b2a784770a8f340cbad9fa39731d05c82b2257db5dee4b7f1d64ff4f048318f"
+  },
+  "at": "2026-11-15T03:39:12.865Z",
+  "scope": "Independent affected source/pure-control admission only for four fixed A/B/B/A observer-prefix trials via next.mjs, no retries/replacement. Same original child/prefix/prechecks/waits/port/40s and owned cleanup; A deferred per-call I/O, B per-call bundle. No native cause/fix/full-test-pass/performance/neutrality/whole-SOUND acceptance. Actual evidence review separate."
+}

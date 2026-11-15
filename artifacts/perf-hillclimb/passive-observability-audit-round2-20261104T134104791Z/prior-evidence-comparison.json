@@ -1,0 +1,25 @@
+[
+  {
+    "directory": "passive-observability-v2-20261105-semantic-01",
+    "file": "unit.json",
+    "sha256": "85bf778236b1fd616f73e49faa16a46e42691e800ba4454c1a112bdbadddc143",
+    "same": [
+      "src/views/world-map-pixi.js",
+      "src/views/vassal-life-map-pixi.js",
+      "src/views/vassal-node-decision-modal-pixi.js",
+      "src/views/vassal-resolution-recap-pixi.js",
+      "src/controllers/life-decision-controller.js",
+      "src/views/ui-root/settlement-timing-snapshot.js",
+      "src/views/ui-root/settlement-debug-api.js",
+      "src/views/ui-root-settlement-pixi.js",
+      "src/views/chronicle-art.js",
+      "src/views/vassal-node-decision/world-screen.js"
+    ],
+    "changed": [
+      "src/views/timegraphs-pixi.js",
+      "src/model/timegraph/controller-core.js",
+      "scripts/timing-observability-browser-probe.mjs",
+      "scripts/timing-observability-test.mjs"
+    ]
+  }
+]

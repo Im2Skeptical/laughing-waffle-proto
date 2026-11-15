@@ -1,0 +1,24 @@
+{
+  "requestedJobs": [
+    "entry",
+    "performance",
+    "map",
+    "scrub",
+    "life",
+    "save"
+  ],
+  "executableJobs": [
+    "entry",
+    "performance-new",
+    "performance-continue",
+    "map-pan",
+    "map-zoom",
+    "map-open",
+    "map-close",
+    "scrub-anchor",
+    "scrub-off-anchor",
+    "life",
+    "save-history",
+    "save-opening"
+  ]
+}

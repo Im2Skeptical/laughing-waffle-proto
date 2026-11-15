@@ -1,0 +1,16 @@
+{
+  "ok": false,
+  "results": [],
+  "observations": 2,
+  "failures": 0,
+  "caseFailures": [
+    {
+      "case": "reference",
+      "error": "page.evaluate: Error: deliberate artwork diagnostic stall-and-throw control\n    at eval (eval at evaluate (:302:30), <anonymous>:4:13)\n    at UtilityScript.evaluate (<anonymous>:304:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+      "detailsFile": "reference-failure.json"
+    }
+  ],
+  "requestedCases": 1,
+  "completedCases": 0,
+  "scope": "construction controls and diagnostics only; independent audit and representative sampling still required"
+}

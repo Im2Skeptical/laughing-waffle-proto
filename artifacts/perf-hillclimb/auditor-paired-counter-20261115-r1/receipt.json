@@ -1,0 +1,13 @@
+{
+  "at": "2026-11-15T01:08:46.576Z",
+  "command": "node scripts/perf-hillclimb/artwork-bundle-controls-test.mjs",
+  "exitCode": 0,
+  "signal": null,
+  "error": null,
+  "sourceUnchanged": true,
+  "assetsUnchanged": true,
+  "authoritySha256": "510560d5710c1b779c7ec4e0e2569b724720d290eec3b46e47f9105869f6eff1",
+  "logSha256": "4373a4982b606e8bf431bc8dea41cdd2ccfbe5417025b36b23aae11766dece38",
+  "beforeSha256": "c4335db7f565cc4a5d40df41e97c779b567da868e97b6a8ff2146abc86fbfa9a",
+  "afterSha256": "f8ff21200d99112fc5779308a00fb10659731ef30469ca0e4ca0b3eb060778fd"
+}

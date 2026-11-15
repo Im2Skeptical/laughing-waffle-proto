@@ -1,0 +1,141 @@
+{
+  "source": "recorded case cleanup, not process/load polling",
+  "cases": [
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-reference",
+      "case": "reference",
+      "contextClosed": true,
+      "browserClosed": true,
+      "browserConnected": false,
+      "errors": [],
+      "lifetime": {
+        "label": "artwork reference",
+        "status": "completed",
+        "hostStartedMs": 9574.3469,
+        "hostDeadlineMs": 6729574.3469,
+        "reason": null,
+        "unconfirmedWork": [],
+        "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+      }
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-deferred",
+      "case": "deferred",
+      "contextClosed": true,
+      "browserClosed": true,
+      "browserConnected": false,
+      "errors": [],
+      "lifetime": {
+        "label": "artwork deferred",
+        "status": "completed",
+        "hostStartedMs": 10124.8073,
+        "hostDeadlineMs": 6730124.8073,
+        "reason": null,
+        "unconfirmedWork": [],
+        "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+      }
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-retry",
+      "case": "retry",
+      "contextClosed": true,
+      "browserClosed": true,
+      "browserConnected": false,
+      "errors": [],
+      "lifetime": {
+        "label": "artwork retry",
+        "status": "completed",
+        "hostStartedMs": 9948.9198,
+        "hostDeadlineMs": 6729948.9198,
+        "reason": null,
+        "unconfirmedWork": [],
+        "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+      }
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-desktop-exhausted",
+      "case": "exhausted",
+      "contextClosed": true,
+      "browserClosed": true,
+      "browserConnected": false,
+      "errors": [],
+      "lifetime": {
+        "label": "artwork exhausted",
+        "status": "completed",
+        "hostStartedMs": 9502.2104,
+        "hostDeadlineMs": 6729502.2104,
+        "reason": null,
+        "unconfirmedWork": [],
+        "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+      }
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-reference",
+      "case": "reference",
+      "contextClosed": true,
+      "browserClosed": true,
+      "browserConnected": false,
+      "errors": [],
+      "lifetime": {
+        "label": "artwork reference",
+        "status": "cancelled",
+        "hostStartedMs": 9258.0389,
+        "hostDeadlineMs": 6729258.0389,
+        "reason": "page.waitForFunction: Timeout 240000ms exceeded.",
+        "unconfirmedWork": [],
+        "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+      }
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-deferred",
+      "case": "deferred",
+      "contextClosed": true,
+      "browserClosed": true,
+      "browserConnected": false,
+      "errors": [],
+      "lifetime": {
+        "label": "artwork deferred",
+        "status": "cancelled",
+        "hostStartedMs": 8207.0595,
+        "hostDeadlineMs": 6728207.0595,
+        "reason": "page.waitForFunction: Timeout 240000ms exceeded.",
+        "unconfirmedWork": [],
+        "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+      }
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-retry",
+      "case": "retry",
+      "contextClosed": true,
+      "browserClosed": true,
+      "browserConnected": false,
+      "errors": [],
+      "lifetime": {
+        "label": "artwork retry",
+        "status": "completed",
+        "hostStartedMs": 9338.8435,
+        "hostDeadlineMs": 6729338.8435,
+        "reason": null,
+        "unconfirmedWork": [],
+        "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+      }
+    },
+    {
+      "id": "feedback-final-j8-receipts-r1-20261105-mobile4-exhausted",
+      "case": "exhausted",
+      "contextClosed": true,
+      "browserClosed": true,
+      "browserConnected": false,
+      "errors": [],
+      "lifetime": {
+        "label": "artwork exhausted",
+        "status": "completed",
+        "hostStartedMs": 9560.2209,
+        "hostDeadlineMs": 6729560.2209,
+        "reason": null,
+        "unconfirmedWork": [],
+        "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+      }
+    }
+  ]
+}

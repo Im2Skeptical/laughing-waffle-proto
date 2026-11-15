@@ -1,0 +1,11 @@
+{
+  "performanceFixtureKey": "fa98ad39fda149130d181354421a0f6d4d833b7e26ada36d214c410f910f837c",
+  "version": "1.1.52",
+  "build": "3ff538603f9d",
+  "revision": "a9df52cbd625",
+  "channel": "local",
+  "branch": "perf/hillclimb-20261104",
+  "dirty": true,
+  "preview": true,
+  "previewLabel": "5184"
+}

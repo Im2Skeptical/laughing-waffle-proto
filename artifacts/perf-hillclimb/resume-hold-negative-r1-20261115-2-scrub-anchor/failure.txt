@@ -1,0 +1,18 @@
+page.waitForFunction: Error: J5 observed unrevealed browse access
+    at scrubComplete (eval at <anonymous> (eval at __HC__.probe.key (eval at predicate (eval at evaluate (:302:30)))), <anonymous>:6:11)
+    at eval (eval at <anonymous> (eval at __HC__.probe.key (eval at predicate (eval at evaluate (:302:30)))), <anonymous>:13:3)
+    at eval (eval at __HC__.probe.key (eval at predicate (eval at evaluate (:302:30))), <anonymous>:6:65)
+    at eval (eval at __HC__.probe.key (eval at predicate (eval at evaluate (:302:30))), <anonymous>:7:3)
+    at __HC__.probe.key (eval at predicate (eval at evaluate (:302:30)), <anonymous>:1:91)
+    at synchronous (<anonymous>:12:18)
+    at runtime.probe (<anonymous>:198:29)
+    at eval (eval at predicate (eval at evaluate (:302:30)), <anonymous>:1:40)
+    at predicate (eval at evaluate (:302:30), <anonymous>:7:23)
+    at next (eval at evaluate (:302:30), <anonymous>:29:29)
+    at wait (C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\scripts\perf-hillclimb\run.mjs:252:34)
+    at observe (C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\scripts\perf-hillclimb\run.mjs:257:75)
+    at record.captureInputTiming (C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\scripts\perf-hillclimb\run.mjs:840:27)
+    at async withDeadline (C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\scripts\perf-hillclimb\deadline.mjs:7:12)
+    at async record (C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\scripts\perf-hillclimb\run.mjs:158:19)
+    at async mapAndScrub (C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\scripts\perf-hillclimb\run.mjs:815:7)
+    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:1131:9

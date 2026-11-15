@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "created": "2026-11-15T03:31:47.541Z",
+  "deadline": "2026-11-16T02:40:00Z",
+  "order": [
+    "A",
+    "B",
+    "B",
+    "A"
+  ],
+  "trials": [
+    {
+      "index": 0,
+      "id": "trial-1-A",
+      "mode": "A",
+      "root": "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-1-A",
+      "files": {
+        "prepare.mjs": "ed125ace5edfaa12584c333e1c5670d96d3f72d307c1bc74ba9f485fe373e767",
+        "probe.mjs": "61f75038e2b8b72abf5bc96baf63648e30fa559d6dbcec3a9a934ea523e14a00",
+        "driver.mjs": "fadf7ddca92439d38cc3b4dcbaa2d88b3ab279271c8cf4e4bb5c54330bd2c1da",
+        "cleanup-owned.ps1": "9c806cf49043d3ba29cdceedd4d1f8ac1484718679e627e3bf06e3ab60a7ee38",
+        "source-authentication.json": "4b2a784770a8f340cbad9fa39731d05c82b2257db5dee4b7f1d64ff4f048318f"
+      }
+    },
+    {
+      "index": 1,
+      "id": "trial-2-B",
+      "mode": "B",
+      "root": "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-2-B",
+      "files": {
+        "prepare.mjs": "1826f7be00c288fcd5aac75c2f414bcb60ccc6a1ae9f1f08005f85fbae088624",
+        "probe.mjs": "6a59d9bd4ef4ad96e2f9e710c8c6dc3d554599ad29db024d3a1ed98425ec1023",
+        "driver.mjs": "0373169c28eb4c376daa93a0bdc91ada8b82ac637f2c608be3d5c09bf14cc01d",
+        "cleanup-owned.ps1": "9c806cf49043d3ba29cdceedd4d1f8ac1484718679e627e3bf06e3ab60a7ee38",
+        "source-authentication.json": "4b2a784770a8f340cbad9fa39731d05c82b2257db5dee4b7f1d64ff4f048318f"
+      }
+    },
+    {
+      "index": 2,
+      "id": "trial-3-B",
+      "mode": "B",
+      "root": "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-3-B",
+      "files": {
+        "prepare.mjs": "39c93d1745d50c467e48d5fe65679a394b2b56d7f5979c6619394922490d76df",
+        "probe.mjs": "7db56448dd8f10808d23550af009009e24158c624b6e79c65d3638caff830c3b",
+        "driver.mjs": "80e43eee5e5ba9e825f9b92a331cd26715d04181723fcbb726624db941ae41b7",
+        "cleanup-owned.ps1": "9c806cf49043d3ba29cdceedd4d1f8ac1484718679e627e3bf06e3ab60a7ee38",
+        "source-authentication.json": "4b2a784770a8f340cbad9fa39731d05c82b2257db5dee4b7f1d64ff4f048318f"
+      }
+    },
+    {
+      "index": 3,
+      "id": "trial-4-A",
+      "mode": "A",
+      "root": "artifacts/perf-hillclimb/native-observer-abba-r1-20261115/trial-4-A",
+      "files": {
+        "prepare.mjs": "1f28210d5b15a1ffb7c30295d828fd75c982adb3e701a19413fedcc92ba5f744",
+        "probe.mjs": "292559a9e554bd50b71a34550efd0ed3e60deeddda05f79ef0127c68836bbfa5",
+        "driver.mjs": "e9eb4f0cb6e7e8c53a0b8ba18332c6566ea1abf04af7ec817456b32de738870a",
+        "cleanup-owned.ps1": "9c806cf49043d3ba29cdceedd4d1f8ac1484718679e627e3bf06e3ab60a7ee38",
+        "source-authentication.json": "4b2a784770a8f340cbad9fa39731d05c82b2257db5dee4b7f1d64ff4f048318f"
+      }
+    }
+  ],
+  "files": {
+    "prepare.mjs": "5e87b9ab4bdbbe06758055514aee72e01c554fba24d1dee2148469ccd07cd41a",
+    "next.mjs": "c53c4f0cb04f8cb8d0b7ce4ab16e0020a956482605ff204a379839baba4e98da"
+  },
+  "node": "v24.15.0",
+  "helperTimeoutMs": 40000,
+  "workLimitMs": 300000,
+  "retries": 0,
+  "scope": "One fixed observer discriminator. Prior evidence separate; not a native fix, complete preview-test pass, neutrality, product measurement or SOUND."
+}

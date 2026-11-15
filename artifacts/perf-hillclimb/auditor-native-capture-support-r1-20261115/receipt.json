@@ -1,0 +1,316 @@
+{
+    "at":  "2026-11-15T04:23:59.4274272Z",
+    "verdict":  "ACCEPT_PARTIAL_PURE_SUPPORT_ONLY",
+    "compileExit":  0,
+    "checks":  [
+                   {
+                       "pass":  true,
+                       "name":  "layout-StartupInfoEx64"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-SecurityAttributes"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-FileTimePair"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-JobBasicLimits"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-IoCounters"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-JobExtendedLimits"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-JobAccounting"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "attributes-offset"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "job-active-offset"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-argc"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-executable"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-roundtrip-0"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-roundtrip-1"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-roundtrip-2"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-roundtrip-3"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-roundtrip-4"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-roundtrip-5"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-roundtrip-6"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-roundtrip-7"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-roundtrip-8"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-roundtrip-9"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-roundtrip-10"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-empty-exact"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-backslash-before-close-exact"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-nul",
+                       "reason":  "Null/NUL command argument"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "commandline-cap",
+                       "reason":  "Native command line exceeded"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wire-maximum"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wire-zero"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wire-above-js-safe"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wire-uint32-not-pointer"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wire-json-lossless"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "unsupported-int64-passes-through-not-generalized"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "unsupported-intptr-passes-through"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "exact-cap-not-overflow"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "buffer-does-not-alias-input"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "snapshot-is-copy"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "buffer-prefix-kept"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "buffer-total"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "buffer-overflow-visible"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "buffer-zero-cap",
+                       "reason":  "Invalid retention bound"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "buffer-overlarge-cap",
+                       "reason":  "Invalid retention bound"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "buffer-null-chunk",
+                       "reason":  "Invalid read chunk"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "buffer-negative-count",
+                       "reason":  "Invalid read chunk"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "buffer-excess-count",
+                       "reason":  "Invalid read chunk"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "relative-path",
+                       "reason":  "Fully qualified path required"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "drive-relative-path",
+                       "reason":  "Fully qualified path required"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "volume-root",
+                       "reason":  "Volume/share root unsupported"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "sibling-is-not-owned-child"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "parent-escape-is-not-owned-child"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "valid-guard-file-only-no-launch"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wrong-config-pin",
+                       "reason":  "Config differs from admitted manifest"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "no-allowlist",
+                       "reason":  "Frozen executable allowlist missing"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wrong-allowlist",
+                       "reason":  "Executable not allowlisted"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wrong-control-order",
+                       "reason":  "Control id/mode/order mismatch"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wrong-cap",
+                       "reason":  "Unadmitted control limits"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wrong-cwd",
+                       "reason":  "Synthetic cwd must equal owned run root"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wrong-image-hash",
+                       "reason":  "Executable identity changed"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "length-prefix-separates-argv"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "too-many-args",
+                       "reason":  "Missing/excess arguments"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "nul-arg-config",
+                       "reason":  "Null/NUL argument"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "args-length-cap",
+                       "reason":  "Bounded command line exceeded"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "reservation-repeat",
+                       "reason":  "The file \u0027C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\auditor-native-capture-support-r1-20261115\\managed-fixture\\control-0-normal\\launch.json\u0027 already exists."
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "validate-attempted-output",
+                       "reason":  "Never repeat an attempted control"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "reservation-traversal",
+                       "reason":  "Marker must be a basename"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "support-source-still-frozen"
+                   }
+               ],
+    "checkCount":  65,
+    "inputFiles":  {
+                       "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-event-observer-build-r1-20261115\\NativeCaptureAbi.cs":  "8c7a7d5d70ba871e2341d40ce147cef5d80d664d475777b33366b670eefe4337",
+                       "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\auditor-native-capture-support-r1-20261115\\check.ps1":  "4a396654542821895501bcdf41ebbade171e0dfbb3b1606cc97fc3a6c68dc4e7",
+                       "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\auditor-native-capture-support-r1-20261115\\IndependentSupport.dll":  "72f794bb697d49c2666c7430d3194e1294fa9c63e01bc18cfa136dcb21fc5403",
+                       "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\auditor-native-capture-support-r1-20261115\\Reference.cs":  "0f3fedb8f1691699049f6ab7dbf836485f6b23582500c42071315cb300dc25e4",
+                       "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-event-observer-support-r1-20261115\\NativeCaptureSupport.cs":  "fc3d4881e8e40089063eddfb3868db5570021d410b786b087e5912318e5d8442",
+                       "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe":  "46809206887326d2d24db1eff1f3064de972c3451abe766b49111450a5e08e00"
+                   },
+    "manifestSha256":  "7f59346d71e6160be8e663981c167be150e6a2aa80436e1d0ecb2f4a58b691c1",
+    "supportedWire":  {
+                          "address":  "0xffffffffffffffff",
+                          "pid":  4294967295,
+                          "parameters":  [
+                                             "0x0000000000000000",
+                                             "0x0020000000000001",
+                                             "0xffffffffffffffff"
+                                         ]
+                      },
+    "limits":  [
+                   {
+                       "name":  "wire-type-scope",
+                       "finding":  "Int64/IntPtr/arbitrary objects are not converted/rejected by this U64 projector; future receipt schema must constrain supported types."
+                   }
+               ],
+    "scope":  "Compiler OS process and managed checks/file fixtures only; no Native extern called, target/processcontrol/browser/preview/observer loop/capture launched. No native ABI/generalized serializer/source-child/whole-SOUND admission."
+}

@@ -290,6 +290,81 @@ No physical-pixel timing follows from either rAF bound; that proof gate remains
 open. Earlier failures are not relabelled, input is not paced by acknowledgements,
 and the original HC settled completion/input-count gates remain unchanged.
 
+## Approved Hold adaptation protocol, 2026-11-05
+
+Integrated approved main v1.1.53 through bebc4ead, checkpoint0e47aa72. This is
+interaction-contract adoption and harness construction, never optimization or
+self-acceptance. Phase A remains NOT SOUND. Earlier v1.1.52/mixed-condition rows
+keep their identities and contention labels. Frozen base/Life authorities and
+all HC/native clock/terminal gates remain unchanged.
+
+Scrub feedback now keys both issued scrub ink and the existing visible lever's
+retained label/handle position. Target/current assignment is not visible ink.
+Pure lexical transport/momentum getters and existing display fields add no
+per-frame bookkeeping, model reads or render writes. Post-clock J5/J6 release
+witnesses require actual zero target/current, stopped momentum and drawn HOLD.
+No benchmark pause follows graph press. Callback order is tested from exact
+installed graph/root source in an authenticated isolated dependency twin;
+removing Hold or moving it after scrub start must fail. Pure getters are read500
+times with active methods poisoned, raw primitive types and mutation isolation.
+
+Predeclared controls: desktop mouse and mobile1/mobile4 genuine touch, each
+forward/reverse click/tap and six-move drag, playing/no-motion versus already-Hold
+no-motion, and a genuine rotational sun/moon wheel flick. Nonzero coasting must
+be witnessed at trusted graph input, not inferred from an earlier flick or idle
+wheel. Selected time persists through release and350ms settle, followed by a
+real lever resume and advancing visual time. These controls include diagnostics
+and are comparison-ineligible. Actual drawn HOLD and semantic/internal clocks
+stay separate. Native receipts retain missing/excluded Event Timing; no zero
+values or physical-pixel claims are invented.
+
+Control construction r1 retains19/21 passes and two failed mobile coast setup
+preconditions. Its acknowledged touch stream can leave >80ms between the last
+applied move and release, exceeding the product's existing coast activation
+window. R2 queues final touch move/release in protocol order without awaiting
+the move acknowledgement, retaining genuine receipts and the exact nonzero
+coast-at-input gate. No product threshold or velocity is changed. Old failures
+stay failed and this diagnostic runner repair does not alter reference input.
+R2 retains20/21 passes: mobile4 has real initial moon coast0.5379 but it naturally
+ends before graph input, so the strict at-input gate fails. R3 uses the real
+outer season wheel at85% radius, whose ordinary rotation produces a stronger
+coast; all velocity/at-input gates remain unchanged and no transport is injected.
+R3 retains19/21 overall passes; both mobile coasts are nonzero at input but
+feedback correctly rejects arm-to-input autonomous ink drift. No rebaseline or
+drift waiver follows. R4 records transport/release/resume functional outcome
+before asserting feedback outcome, so a feedback rejection no longer suppresses
+the real resume control. Feedback failures remain failures with unavailable bounds.
+Bindings require the new raw typed lever seam; absent/malformed fields fail closed.
+No-motion here means a press/release with no pointer moves; the already-Hold
+lever cue stays unchanged, while issued scrub press ink can still be observed.
+
+Predeclared scoped reference:18 independent cold/minimal existing-protocol
+launches, all3 immutable seeds123/424242/99117 x desktop/mobile4 x J5 anchor16,
+off-anchor17, strict Life/J6 including legal16/17/Present. Samples1 per cell.
+Retain every row/failure, feedback/useful bounds, raw frames and costs. No
+diagnostic callback instrumentation in those reference cells. This is a small
+current-build reference, not a tail baseline, three complete8-job suites, or
+negligible observer overhead proof. Any Continue/J7 knowledge, J3 active-work or
+J8 readiness encounters stay separate and unmodified.
+
+Each driver freezes app/scripts/package/contract/build/fixture and strict frozen
+authority identities before execution, checks stability between cells and after,
+and writes a fresh immutable plan/results folder. Exclusive owned execution;
+PM reports earlier load finished/no new full-suite load. Preserve5184/5185 and
+do not claim whole-host invisibility or retroactively promote old timing rows.
+
+```powershell
+npm run test:perf-hold
+node --experimental-vm-modules scripts/perf-hillclimb/hold-adoption-controls.mjs NEW_HOLD_ID controls
+node --experimental-vm-modules scripts/perf-hillclimb/hold-adoption-controls.mjs NEW_REFERENCE_ID reference
+node --experimental-vm-modules scripts/perf-hillclimb/hold-adoption-controls.mjs NEW_NEGATIVE_ID negative
+```
+
+The final implementation handoff records exact outcomes, failures, gaps and
+costs in HOLD_ADAPTATION_IMPLEMENTATION.md. Independent audit and root's adoption
+decision remain outstanding. Full npm run verify precedes sequential npm start
+and actual served/loaded badge metadata verification; no publication.
+
 
 J8 receipt retention repair after fixed-source matrix r2: existing operation JSONL
 rows now retain the complete collector receipt (record, drained records/session
@@ -305,3 +380,103 @@ later required cases scheduled after an earlier failure. This is labelled
 possibly-contended diagnostic construction, not acceptance or an overhead claim.
 J1?J7 executable dependencies and all app/build/fixture bytes remain unchanged;
 exact old/new source and contract identities are retained for staged review.
+
+## November 15 Continue/J7 setup revision — predeclared construction
+
+This resumes the existing eight-job contract. No job, required population,
+timing boundary, independent tail quota, correctness gate or resource gate is
+removed. Phase A remains NOT SOUND. Earlier failing/racing Continue/J7 samples
+remain under their original identities and are not pooled with this revision.
+
+The next Builder repairs the missing independently derived survival-knowledge
+expectation using a declared **settled-current-terminal** pre-save setup:
+
+1. Frozen SDK and immutable fixture derive exact terminal second/year, without
+   reading candidate knowledge into expected data.
+2. Outside latency clocks, require matching fixture frontier/actions, projection
+   signature/token/history, full frozen terminal coverage and stable revision.
+   Observe two actual frame opportunities with that same source.
+3. Capture passive source before and after an untimed full retained-state read.
+   Strictly compare cursor and timeline knowledge with independent expected
+   planning pause plus frozen terminal knowledge; no preview/cursor ambiguity.
+   Missing/wrong knowledge, stale source or insufficient coverage must fail.
+4. Capture this receipt before the actual synchronous save-clone boundary.
+   Preserve the original native persistence/completion timing and exact raw,
+   decoded, replayed, RNG and three-official-second continuation comparisons.
+   Verify source stability after persistence; later terminal observation alone
+   cannot justify an earlier cloned value.
+
+For Continue this is part of the existing post-clock correctness oracle; for
+J7 it is a separate explicit pre-save setup window. Retain setup start/end/cost
+and continuous raw frames, tag the changed knowledge/setup policy and keep the
+whole setup-plus-save span available separately. It must never be described as
+free runtime work or used to claim a speedup over the earlier setup. All scored
+comparisons would require the same newly accepted setup on both builds.
+
+First bounded proof: retained-artifact red reproduction; helper rejection and
+immutability controls; fresh seed123 desktop and original failing424242 mobile4;
+wrong-save and deferred-save controls. Follow-up fixed schedule, not yet run:
+all three seeds x desktop/mobile4 x cold/warm x Continue/history-save/opening-save
+(36 cells), plus progressive Continue seed123 mobile4 sentinel. Preserve every
+failure. Independent review is required before adopting the mechanism. Product
+simulation, RNG, schemas, replay, view pacing and frozen authorities are unchanged.
+
+## November15 response-only phase witness — predeclared construction
+
+Completed fixed J8 ON/OFF/OFF/ON diagnostics all failed the unchanged240000ms
+preparation gate, with verified identities and drained resources. Optional
+instrumentation removal was insufficient; it does not assign product versus
+common-hook cause. Completed data/contract/served variants stay immutable.
+Whole Phase A remains NOT SOUND, all eight jobs and tail quotas unchanged.
+
+The next separate Harness Builder may change only artwork-bundle-controls.mjs,
+its existing focused test, and narrow artwork-controls.mjs flag/receipt plumbing.
+Parent owns this addendum and later new plan. No app source, asset, package,
+GameState/RNG/schema/replay/pacing or readiness-predicate change is permitted.
+Before bytes/hashes and all five assets are retained in
+`artifacts/perf-hillclimb/phase-witness-build-r1-20261115/`.
+
+New opt-in response phase markers observe existing loader/atlas/wait/idle/main
+terrain/decision terrain/ready/error/cancellation boundaries and actual existing
+canLoad/isCurrent evaluations, bounded transitions/counters only. Keep original
+awaits, Promise identities, return/error propagation, gate call counts/order and
+short-circuit semantics. No extra gate calls, frames, poller, state reads, model
+writes or altered cooperative budgets. Missing/ambiguous source bindings reject.
+Default OFF must produce byte-identical prior real bundled response. Phase flag,
+served variant and actual witness presence/version are guarded in manifests;
+read/export witness only after original completion/failure, never as readiness.
+
+First lease is implementation/focused controls only, no browser/fullverify.
+Controls cover actual unique/missing/duplicate bindings, limits/overflow, original
+counts/order/return/Promise/rejection behavior, delayed/held/rejected awaits,
+denied/stale gates and no state writes. Preserve all failed controls and exact
+source/diff/hash identities. Independent review precedes actual new cases.
+
+After final stable source/full verification, parent freezes exactly two fresh
+phase-enabled reference/mobile4/cold-seed123 cells, optional OFF followed by ON,
+original240000ms readiness,600000ms enclosing case limit,13groups/16atlases,
+cycles5 and existing private/feedback/asset hooks. No conditional extra samples;
+new mechanism population is separate and ineligible for speed comparisons. If
+markers change outcomes, retain observer perturbation, not a claimed fix. A
+localized pending await/gate does not alone establish product or harness cause.
+
+
+## Paired wait/progress diagnostic predeclaration ? 2026-11-15
+
+Following independently reviewed phase cases, opt-in response-only cooperative
+witness v1 pairs existing idle/denied-delay await spans by loader/phase with
+existing main terrain-bake/regional-variant runCooperative progress. No product
+source, workload, gate, sliceMs:8, timer policy, await/Promise identity or oracle
+change. Default and phase-v1 responses remain unchanged when this seam is off.
+Private bounded data retains completed count/total/max, open/right-censored wait,
+phase timestamps and per-job steps/yields/longestStepMs snapshots. Overlap, mixed
+IDs, unmatched spans, bounds and ambiguous attribution invalidate wall fractions.
+Hypothesis: existing cooperative waits account for at least80% of the observed
+pending-main window while its matched job advances. Boundary is explicit
+post-clock collection, separately retained from original cancel/finish; residual
+is other work/waits, not measured pure CPU. Controls and independent affected
+acceptance precede ONE fresh optional-OFF phase-enabled reference/mobile4/cold
+seed123 case, unchanged240000ms/600000ms/13groups/16atlases/cycles5/common hooks.
+No retries, scoring, optimization, overhead-neutrality or causal product claim.
+Admission before01:45Z, final35minutes from02:05Z, hard stop02:40Z. Whole Phase A
+NOT SOUND. Exact protocol/ownership: coordinator PAIRED_COUNTER_BRIEF.md.

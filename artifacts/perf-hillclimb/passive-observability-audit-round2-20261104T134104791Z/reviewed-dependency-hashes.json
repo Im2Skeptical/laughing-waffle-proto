@@ -1,0 +1,11 @@
+{
+  "src/controllers/sim-runner.js": "bdc568b26b845c6c02a70819160b7dcceec89f4f49128b891c4b282067263720",
+  "src/controllers/new-game-opening-controller.js": "00699cbcf1133dd83abac9ace955798a1bb808216ff0caa4c2f4d3781ee3f454",
+  "src/views/life-map-entry-confirm-pixi.js": "9ad30604a1212af490157f1f3eb2de826c8413e76d65cf8b9ca6726c1590022c",
+  "src/views/consequential-time-pixi.js": "39d2a323e2409c97fe7ea17a7da98a64bc4b85ce8944fa580010822fa96ce476",
+  "src/views/world-map/camera.js": "dc99613c14bd039aa9217a74a1edc43ea895ddb0804c3a8a78caa348e505940c",
+  "src/views/world-map/transitions.js": "418818aaa7c8abd60525effd0a81c9c6ea847b86e63c20f47dd03148ce1cc40e",
+  "src/views/world-map/illustrated-terrain.js": "503ba3a78a0237fd74743d16366a9491b7e9b26ecb4dde17b0bccde4a63aca66",
+  "src/views/timegraphs/forecast-reveal-state.js": "35879335a7544a15da0147929ccd22e919c08ab8adef5e86c893a2ed2dbb9f49",
+  "src/views/vassal-node-decision/world-screen.js": "1311988076eae98626801abeb3e5edd94d8ba71d7df94169feb43d1482f7fc78"
+}

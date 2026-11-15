@@ -1,0 +1,2 @@
+import assert from'node:assert/strict';import {peData}from'./pe-data.mjs';import {pdbData}from'./pdb-data.mjs';
+export function resolveData(image,symbols,point){const pe=peData(image),range=pe.functionAt(point);assert.equal(range.pointByte,0xcc,'observed point is not an INT3 byte');const pdb=pdbData(symbols,pe.rsds,pe,range);return {rsds:pe.rsds,pointRva:point,range,pdb,scope:'Static matching identity/symbol/runtime-range/byte evidence only. An INT3 byte and symbol containment do not establish instruction boundaries, a startup role or safe continuation policy.'};}

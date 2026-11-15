@@ -1,0 +1,12 @@
+{
+  "bundle": true,
+  "platform": "node",
+  "format": "esm",
+  "target": "node24",
+  "write": false,
+  "metafile": true,
+  "treeShaking": true,
+  "minify": false,
+  "logLevel": "silent",
+  "outfile": "life-sdk.mjs"
+}

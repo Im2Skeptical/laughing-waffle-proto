@@ -1,0 +1,70 @@
+{
+  "trace": [
+    {
+      "second": 0,
+      "kind": "settlementSelectVassal",
+      "payload": {
+        "candidateIndex": 0,
+        "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":17,\"locationRegionId\":\"R17\",\"originRegionId\":\"R17\",\"prestige\":19,\"stats\":{\"cunning\":2,\"wisdom\":1,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"olive\",\"hairStyle\":\"long\",\"hairColor\":\"auburn\",\"faceShape\":\"round\",\"clothingColor\":\"green\",\"accessory\":\"beads\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"housingShop\",\"tag\":\"Housing\",\"label\":\"Housing Shop\",\"glyph\":\"HO\",\"color\":6466946,\"description\":\"A mixed shop containing only Housing-tagged gamepieces.\",\"groupId\":\"tagShop\",\"variantId\":\"housingShop\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":14,\"locationRegionId\":\"R18\",\"originRegionId\":\"R18\",\"prestige\":22,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":1,\"intelligence\":0},\"portrait\":{\"skinTone\":\"umber\",\"hairStyle\":\"coils\",\"hairColor\":\"silver\",\"faceShape\":\"round\",\"clothingColor\":\"charcoal\",\"accessory\":\"band\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"removePractice\",\"groupId\":\"removal\",\"removalKind\":\"practice\",\"label\":\"Remove Practice\",\"glyph\":\"−P\",\"color\":10776516,\"description\":\"Pay to remove Practices from the Vassal's current settlement.\",\"variantId\":\"removePractice\"}}]"
+      }
+    },
+    {
+      "second": 0,
+      "kind": "vassalEnterLifeNode",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1"
+      }
+    },
+    {
+      "second": 0,
+      "kind": "vassalSelectLifeOption",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1",
+        "optionId": "random"
+      }
+    },
+    {
+      "second": 0,
+      "kind": "vassalPurchaseShopOffer",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1",
+        "offerId": "life-milestone-milestone-1:r0:practice:0"
+      }
+    },
+    {
+      "second": 0,
+      "kind": "vassalConfirmLifeNode",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1"
+      }
+    }
+  ],
+  "nodeId": "life-milestone-milestone-1",
+  "offerId": "life-milestone-milestone-1:r0:practice:0",
+  "offerIndex": 0,
+  "offer": {
+    "offerId": "life-milestone-milestone-1:r0:practice:0",
+    "label": "Learn Bronze Pastoralism",
+    "basePrestigeCost": 10,
+    "basePhaseCost": 64,
+    "intervention": {
+      "kind": "practice",
+      "targetRegionId": "R17",
+      "practiceId": "pastoralism",
+      "mode": "learn",
+      "tier": "bronze",
+      "resultingTier": "bronze"
+    },
+    "baseCurrencyCost": 0,
+    "priceQuality": "bronze",
+    "inventoryIndex": 0
+  },
+  "targetSec": 54,
+  "presentationArgs": {
+    "nodeId": "life-milestone-milestone-1",
+    "preview": {
+      "previewOptionId": null,
+      "previewOfferId": null
+    }
+  }
+}

@@ -1,0 +1,187 @@
+{
+  "runtime": {
+    "node": "v24.15.0",
+    "execArgv": [],
+    "playwright": "1.59.1",
+    "launch": {
+      "headless": true,
+      "args": [
+        "--use-gl=angle",
+        "--use-angle=swiftshader"
+      ]
+    }
+  },
+  "schedule": [
+    {
+      "population": "desktop",
+      "control": "immediate-delayed-completion"
+    },
+    {
+      "population": "desktop",
+      "control": "queue"
+    },
+    {
+      "population": "desktop",
+      "control": "capture-cost"
+    },
+    {
+      "population": "desktop",
+      "control": "no-op"
+    },
+    {
+      "population": "desktop",
+      "control": "clipped-cue"
+    },
+    {
+      "population": "desktop",
+      "control": "pre-input-drift"
+    },
+    {
+      "population": "desktop",
+      "control": "transient"
+    },
+    {
+      "population": "desktop",
+      "control": "render-delay"
+    },
+    {
+      "population": "desktop",
+      "control": "missing-frame"
+    },
+    {
+      "population": "desktop",
+      "control": "cancel-before-input"
+    },
+    {
+      "population": "desktop",
+      "control": "runtime-replacement"
+    },
+    {
+      "population": "desktop",
+      "control": "host-failure"
+    },
+    {
+      "population": "mobile",
+      "control": "immediate-delayed-completion"
+    },
+    {
+      "population": "mobile",
+      "control": "queue"
+    },
+    {
+      "population": "mobile",
+      "control": "capture-cost"
+    },
+    {
+      "population": "mobile",
+      "control": "no-op"
+    },
+    {
+      "population": "mobile",
+      "control": "clipped-cue"
+    },
+    {
+      "population": "mobile",
+      "control": "pre-input-drift"
+    },
+    {
+      "population": "mobile",
+      "control": "transient"
+    },
+    {
+      "population": "mobile",
+      "control": "render-delay"
+    },
+    {
+      "population": "mobile",
+      "control": "missing-frame"
+    },
+    {
+      "population": "mobile",
+      "control": "cancel-before-input"
+    },
+    {
+      "population": "mobile",
+      "control": "runtime-replacement"
+    },
+    {
+      "population": "mobile",
+      "control": "host-failure"
+    },
+    {
+      "population": "mobile4",
+      "control": "immediate-delayed-completion"
+    },
+    {
+      "population": "mobile4",
+      "control": "queue"
+    },
+    {
+      "population": "mobile4",
+      "control": "capture-cost"
+    },
+    {
+      "population": "mobile4",
+      "control": "no-op"
+    },
+    {
+      "population": "mobile4",
+      "control": "clipped-cue"
+    },
+    {
+      "population": "mobile4",
+      "control": "pre-input-drift"
+    },
+    {
+      "population": "mobile4",
+      "control": "transient"
+    },
+    {
+      "population": "mobile4",
+      "control": "render-delay"
+    },
+    {
+      "population": "mobile4",
+      "control": "missing-frame"
+    },
+    {
+      "population": "mobile4",
+      "control": "cancel-before-input"
+    },
+    {
+      "population": "mobile4",
+      "control": "runtime-replacement"
+    },
+    {
+      "population": "mobile4",
+      "control": "host-failure"
+    }
+  ],
+  "sources": {
+    "feedback-native-controls": "8e3224f10a6da47378499f9d6c7f86a9e4b5b9bf8f15f33067ea90abf53d13d3",
+    "native-feedback": "7442a248260be4d02f61ddc69a88ae8649dec93d7cb89e3d7edc9c3272a26404",
+    "feedback-bindings": "5bc8e5b84bc47f0cd458c3be203e6c883e8abebae35dd431a61f386edab38bf8",
+    "feedback-runtime": "261a042f930349c758875853d76bbc7caf1050ade2d716b808e1f707653d2a45",
+    "browser-runtime": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1"
+  },
+  "build": {
+    "performanceFixtureKey": "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+    "version": "1.1.52",
+    "build": "286f9a494930",
+    "revision": "a9df52cbd625",
+    "channel": "pages",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": null,
+    "entryPoint": "src/views/ui-root-pixi.js",
+    "bundle": "./assets/app-O7OX26BM.js",
+    "worker": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+    "saveLoadWorker": "./assets/save-load-worker-7YJYILEJ.js",
+    "stylesheet": "./assets/styles-ec05c6a73a6e.css"
+  },
+  "contract": "06027e83fbcff7921f049147c222f318018abc371cb6b952fc7b5db92b148773",
+  "phaseA": "NOT SOUND",
+  "comparisonEligible": false,
+  "scope": "native diagnostic controls, no first physical pixel proof"
+}

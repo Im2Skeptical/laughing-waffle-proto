@@ -1,0 +1,9 @@
+{
+  "status": "PARTIAL; deliberately interrupted after confirmed Performance New binding failure",
+  "reason": "The Performance New initial readiness allowed input during the five-second opening animation input lock. The first exact target check correctly rejected actual viewed3918 instead of16 after180000ms. No product policy or timeout was changed. Stop repeated known-invalid Performance New cells rather than reclassify them.",
+  "retained": "manifest.json, original20-cell schedule, exact source snapshots/hashes, rows in results.json, failure/pass artifacts and log remain unchanged",
+  "completed": "first12 selected-fixture regular Continue seed/population/target cells PASS; Performance New16 FAIL; desktop16 real installed-preview control PASS",
+  "unfinished": "Performance New17 was running at cancellation; remaining scheduled cells are unexecuted, not passes",
+  "cleanup": "taskkill /PID9672 /T /F closed only this owned diagnostic Node process, its static server and browser descendants",
+  "next": "Separate repaired revision/r3 checks Performance New only after natural opening completion and retains active-reveal requirements for regular Continue/control cells. Earlier rows keep their original source/build identities. Whole Phase A remains NOT SOUND."
+}

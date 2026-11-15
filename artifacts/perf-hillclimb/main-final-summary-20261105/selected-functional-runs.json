@@ -1,0 +1,2242 @@
+{
+  "scope": "representative discovery across recorded harness revisions; not a consecutive suite or accepted timing proof",
+  "selected": [
+    {
+      "runId": "main-repair-r3-20261105-5-desktop-entry-off",
+      "finished": "2026-11-04T15:14:07.264Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "entry"
+        ],
+        "samples": 1,
+        "population": "desktop",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "9c38efaf79e1687ea67ebac7ed84a2d2e210678321b96d8762e94767aa086761",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J1",
+          "step": "new-game-to-slot-picker",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-5-desktop-entry-off:launch-0-entry",
+          "observationId": "main-repair-r3-20261105-5-desktop-entry-off:op-1",
+          "elapsedMs": 62.5,
+          "probeCpuMs": 0.09999999403953552,
+          "probes": 3,
+          "frameCount": 4,
+          "longTaskCount": 0,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "game-new",
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J1",
+          "step": "ordinary-new-through-opening",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-5-desktop-entry-off:launch-0-entry",
+          "observationId": "main-repair-r3-20261105-5-desktop-entry-off:op-2",
+          "elapsedMs": 27431.899999976158,
+          "probeCpuMs": 26,
+          "probes": 383,
+          "frameCount": 385,
+          "longTaskCount": 95,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "game-slot-1",
+          "untimedOracleWindow": {
+            "startMs": 28701.100000023842,
+            "endMs": 28755.100000023842
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J1",
+          "step": "navigation-to-useful",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-5-desktop-entry-off:launch-0-entry",
+          "observationId": "main-repair-r3-20261105-5-desktop-entry-off:op-3",
+          "elapsedMs": 28633,
+          "probeCpuMs": 26,
+          "probes": 383,
+          "frameCount": null,
+          "longTaskCount": 95,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "game-slot-1",
+          "untimedOracleWindow": {
+            "startMs": 28701.100000023842,
+            "endMs": 28755.100000023842
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J1",
+          "step": "opening-to-responsive-present",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-5-desktop-entry-off:launch-0-entry",
+          "observationId": "main-repair-r3-20261105-5-desktop-entry-off:op-4",
+          "elapsedMs": 197.30000001192093,
+          "probeCpuMs": 0.4999999701976776,
+          "probes": 3,
+          "frameCount": 3,
+          "longTaskCount": 1,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Present",
+          "untimedOracleWindow": {
+            "startMs": 28993.20000001788,
+            "endMs": 38870.90000000596
+          },
+          "activeWork": null,
+          "offered": null
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r3-20261105-12-mobile4-entry-off",
+      "finished": "2026-11-04T15:20:39.526Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "entry"
+        ],
+        "samples": 1,
+        "population": "mobile4",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "bf83defcb9f4f99e0351b92cbb8325ab8c2ba801c1ddbc03e4c3c6c1936eedb1",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J1",
+          "step": "new-game-to-slot-picker",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-12-mobile4-entry-off:launch-0-entry",
+          "observationId": "main-repair-r3-20261105-12-mobile4-entry-off:op-1",
+          "elapsedMs": 671.5999999940395,
+          "probeCpuMs": 0.699999988079071,
+          "probes": 3,
+          "frameCount": 13,
+          "longTaskCount": 9,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "game-new",
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J1",
+          "step": "ordinary-new-through-opening",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-12-mobile4-entry-off:launch-0-entry",
+          "observationId": "main-repair-r3-20261105-12-mobile4-entry-off:op-2",
+          "elapsedMs": 58106,
+          "probeCpuMs": 170.3999993801117,
+          "probes": 554,
+          "frameCount": 564,
+          "longTaskCount": 190,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "game-slot-1",
+          "untimedOracleWindow": {
+            "startMs": 63786,
+            "endMs": 63969.30000001192
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J1",
+          "step": "navigation-to-useful",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-12-mobile4-entry-off:launch-0-entry",
+          "observationId": "main-repair-r3-20261105-12-mobile4-entry-off:op-3",
+          "elapsedMs": 63633.80000001192,
+          "probeCpuMs": 170.3999993801117,
+          "probes": 554,
+          "frameCount": null,
+          "longTaskCount": 190,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "game-slot-1",
+          "untimedOracleWindow": {
+            "startMs": 63786,
+            "endMs": 63969.30000001192
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J1",
+          "step": "opening-to-responsive-present",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-12-mobile4-entry-off:launch-0-entry",
+          "observationId": "main-repair-r3-20261105-12-mobile4-entry-off:op-4",
+          "elapsedMs": 960.2999999821186,
+          "probeCpuMs": 1.699999988079071,
+          "probes": 3,
+          "frameCount": 6,
+          "longTaskCount": 2,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Present",
+          "untimedOracleWindow": {
+            "startMs": 65216.10000002384,
+            "endMs": 76823.20000001788
+          },
+          "activeWork": null,
+          "offered": null
+        }
+      ]
+    },
+    {
+      "runId": "main-matrix-r2-20261105-14-desktop-entry-illustrated",
+      "finished": "2026-11-04T15:10:54.225Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "entry"
+        ],
+        "samples": 1,
+        "population": "desktop",
+        "cache": "cold",
+        "artwork": "illustrated",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "6b2d46c493fd2d965201f904db23ba1ee36dbcc92cfe43ebe7816aa317626739",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J1",
+          "step": "new-game-to-slot-picker",
+          "ok": true,
+          "launchId": "main-matrix-r2-20261105-14-desktop-entry-illustrated:launch-0-entry",
+          "observationId": "main-matrix-r2-20261105-14-desktop-entry-illustrated:op-1",
+          "elapsedMs": 78.5,
+          "probeCpuMs": 0.09999999403953552,
+          "probes": 3,
+          "frameCount": 5,
+          "longTaskCount": 0,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "game-new",
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J1",
+          "step": "ordinary-new-through-opening",
+          "ok": true,
+          "launchId": "main-matrix-r2-20261105-14-desktop-entry-illustrated:launch-0-entry",
+          "observationId": "main-matrix-r2-20261105-14-desktop-entry-illustrated:op-2",
+          "elapsedMs": 61616,
+          "probeCpuMs": 21.200000047683716,
+          "probes": 331,
+          "frameCount": 331,
+          "longTaskCount": 117,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "game-slot-1",
+          "untimedOracleWindow": {
+            "startMs": 62968.90000000596,
+            "endMs": 63027.40000000596
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J1",
+          "step": "navigation-to-useful",
+          "ok": true,
+          "launchId": "main-matrix-r2-20261105-14-desktop-entry-illustrated:launch-0-entry",
+          "observationId": "main-matrix-r2-20261105-14-desktop-entry-illustrated:op-3",
+          "elapsedMs": 62912.80000001192,
+          "probeCpuMs": 21.200000047683716,
+          "probes": 331,
+          "frameCount": null,
+          "longTaskCount": 117,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "game-slot-1",
+          "untimedOracleWindow": {
+            "startMs": 62968.90000000596,
+            "endMs": 63027.40000000596
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J1",
+          "step": "opening-to-responsive-present",
+          "ok": true,
+          "launchId": "main-matrix-r2-20261105-14-desktop-entry-illustrated:launch-0-entry",
+          "observationId": "main-matrix-r2-20261105-14-desktop-entry-illustrated:op-4",
+          "elapsedMs": 1084.9000000059605,
+          "probeCpuMs": 0.29999998211860657,
+          "probes": 3,
+          "frameCount": 2,
+          "longTaskCount": 1,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Present",
+          "untimedOracleWindow": {
+            "startMs": 64220.09999999404,
+            "endMs": 73540.40000000596
+          },
+          "activeWork": null,
+          "offered": null
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r3-20261105-6-desktop-performance-off",
+      "finished": "2026-11-04T15:14:53.987Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "performance",
+          "performance-continue"
+        ],
+        "samples": 1,
+        "population": "desktop",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "9c38efaf79e1687ea67ebac7ed84a2d2e210678321b96d8762e94767aa086761",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J2",
+          "step": "performance-new",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-6-desktop-performance-off:launch-0-performance",
+          "observationId": "main-repair-r3-20261105-6-desktop-performance-off:op-1",
+          "elapsedMs": 12050.199999988079,
+          "probeCpuMs": 7.799999922513962,
+          "probes": 98,
+          "frameCount": 98,
+          "longTaskCount": 56,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "game-new-performance",
+          "untimedOracleWindow": {
+            "startMs": 13282.5,
+            "endMs": 13333.90000000596
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J2",
+          "step": "performance-present",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-6-desktop-performance-off:launch-0-performance",
+          "observationId": "main-repair-r3-20261105-6-desktop-performance-off:op-2",
+          "elapsedMs": 180.40000000596046,
+          "probeCpuMs": 0.3999999761581421,
+          "probes": 3,
+          "frameCount": 3,
+          "longTaskCount": 1,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Present",
+          "untimedOracleWindow": {
+            "startMs": 13563.5,
+            "endMs": 23418.70000001788
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J2",
+          "step": "performance-continue",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-6-desktop-performance-off:launch-0-performance-continue",
+          "observationId": "main-repair-r3-20261105-6-desktop-performance-off:op-3",
+          "elapsedMs": 4819,
+          "probeCpuMs": 6.10000005364418,
+          "probes": 87,
+          "frameCount": 90,
+          "longTaskCount": 8,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "game-continue-performance",
+          "untimedOracleWindow": {
+            "startMs": 6006.300000011921,
+            "endMs": 6126.700000017881
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J2",
+          "step": "performance-continue-present",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-6-desktop-performance-off:launch-0-performance-continue",
+          "observationId": "main-repair-r3-20261105-6-desktop-performance-off:op-4",
+          "elapsedMs": 596.7999999821186,
+          "probeCpuMs": 0.29999998211860657,
+          "probes": 3,
+          "frameCount": 4,
+          "longTaskCount": 3,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Present",
+          "untimedOracleWindow": {
+            "startMs": 7046.300000011921,
+            "endMs": 12986.700000017881
+          },
+          "activeWork": null,
+          "offered": null
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r3-20261105-13-mobile4-performance-off",
+      "finished": "2026-11-04T15:23:17.196Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "performance",
+          "performance-continue"
+        ],
+        "samples": 1,
+        "population": "mobile4",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "bf83defcb9f4f99e0351b92cbb8325ab8c2ba801c1ddbc03e4c3c6c1936eedb1",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J2",
+          "step": "performance-new",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-13-mobile4-performance-off:launch-0-performance",
+          "observationId": "main-repair-r3-20261105-13-mobile4-performance-off:op-1",
+          "elapsedMs": 53079.90000000596,
+          "probeCpuMs": 67.40000009536743,
+          "probes": 176,
+          "frameCount": 185,
+          "longTaskCount": 87,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "game-new-performance",
+          "untimedOracleWindow": {
+            "startMs": 60960.09999999404,
+            "endMs": 61204.79999998212
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J2",
+          "step": "performance-present",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-13-mobile4-performance-off:launch-0-performance",
+          "observationId": "main-repair-r3-20261105-13-mobile4-performance-off:op-2",
+          "elapsedMs": 828.1000000238419,
+          "probeCpuMs": 2.100000023841858,
+          "probes": 3,
+          "frameCount": 6,
+          "longTaskCount": 2,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Present",
+          "untimedOracleWindow": {
+            "startMs": 62337.40000000596,
+            "endMs": 79240.5
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J2",
+          "step": "performance-continue",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-13-mobile4-performance-off:launch-0-performance-continue",
+          "observationId": "main-repair-r3-20261105-13-mobile4-performance-off:op-3",
+          "elapsedMs": 13833.09999999404,
+          "probeCpuMs": 82.40000033378601,
+          "probes": 207,
+          "frameCount": 216,
+          "longTaskCount": 44,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "game-continue-performance",
+          "untimedOracleWindow": {
+            "startMs": 25453.90000000596,
+            "endMs": 30806.5
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J2",
+          "step": "performance-continue-present",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-13-mobile4-performance-off:launch-0-performance-continue",
+          "observationId": "main-repair-r3-20261105-13-mobile4-performance-off:op-4",
+          "elapsedMs": 3523.899999976158,
+          "probeCpuMs": 3.5000000298023224,
+          "probes": 3,
+          "frameCount": 9,
+          "longTaskCount": 18,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Present",
+          "untimedOracleWindow": {
+            "startMs": 48915.09999999404,
+            "endMs": 67656.40000000596
+          },
+          "activeWork": null,
+          "offered": null
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r3-20261105-1-desktop-map-pan-off",
+      "finished": "2026-11-04T15:12:45.135Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "map-pan"
+        ],
+        "samples": 1,
+        "population": "desktop",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "9c38efaf79e1687ea67ebac7ed84a2d2e210678321b96d8762e94767aa086761",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J3",
+          "step": "map-pan",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-1-desktop-map-pan-off:launch-0-map-pan",
+          "observationId": "main-repair-r3-20261105-1-desktop-map-pan-off:op-1",
+          "elapsedMs": 1210.0999999940395,
+          "probeCpuMs": 0.4000000059604645,
+          "probes": 3,
+          "frameCount": 6,
+          "longTaskCount": 0,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "gesture": "fixed-offered pan",
+            "from": {
+              "x": 1169.5885148514851,
+              "y": 412.77222222222224
+            },
+            "to": {
+              "x": 992.8923432343234,
+              "y": 412.77222222222224
+            },
+            "steps": 12,
+            "intervalMs": 16.666666666666668
+          },
+          "untimedOracleWindow": {
+            "startMs": 4635.4000000059605,
+            "endMs": 4637
+          },
+          "activeWork": {
+            "graphActive": true,
+            "graphProgress": true,
+            "graphReplies": 13,
+            "lifeActive": false,
+            "lifeProgress": false,
+            "lifeReplies": 0
+          },
+          "offered": {
+            "model": "fixed offered rate; acknowledgements do not pace dispatch",
+            "input": "mouse",
+            "offered": 14,
+            "matched": 14,
+            "dropped": 0,
+            "offeredContacts": 14,
+            "matchedContacts": 14,
+            "droppedContacts": 0,
+            "cancelled": 0,
+            "missingFrames": 0,
+            "invalidTimestamps": 0,
+            "coalesced": 12,
+            "unmatchedObserved": 0,
+            "protocolErrors": 0,
+            "maxHostDispatchLatenessMs": 14.054166666664969,
+            "frameWitness": "double-rAF opportunity with passive raw camera DTO, not physical scanout",
+            "intervalMs": 16.666666666666668,
+            "steps": 12,
+            "generatorSaturated": false,
+            "calibrationResolved": true
+          }
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r3-20261105-2-desktop-map-zoom-off",
+      "finished": "2026-11-04T15:12:57.657Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "map-zoom"
+        ],
+        "samples": 1,
+        "population": "desktop",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "9c38efaf79e1687ea67ebac7ed84a2d2e210678321b96d8762e94767aa086761",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J3",
+          "step": "map-zoom",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-2-desktop-map-zoom-off:launch-0-map-zoom",
+          "observationId": "main-repair-r3-20261105-2-desktop-map-zoom-off:op-1",
+          "elapsedMs": 359.2999999821186,
+          "probeCpuMs": 0.4999999701976776,
+          "probes": 4,
+          "frameCount": 6,
+          "longTaskCount": 1,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "wheel": -180,
+            "point": {
+              "x": 1043.3769636963696,
+              "y": 400.9288888888889
+            }
+          },
+          "untimedOracleWindow": {
+            "startMs": 3482.300000011921,
+            "endMs": 3483.600000023842
+          },
+          "activeWork": {
+            "graphActive": true,
+            "graphProgress": true,
+            "graphReplies": 3,
+            "lifeActive": false,
+            "lifeProgress": false,
+            "lifeReplies": 0
+          },
+          "offered": null
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r3-20261105-3-desktop-map-open-off",
+      "finished": "2026-11-04T15:13:09.698Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "map-open"
+        ],
+        "samples": 1,
+        "population": "desktop",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "9c38efaf79e1687ea67ebac7ed84a2d2e210678321b96d8762e94767aa086761",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J3",
+          "step": "settlement-open",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-3-desktop-map-open-off:launch-0-map-open",
+          "observationId": "main-repair-r3-20261105-3-desktop-map-open-off:op-1",
+          "elapsedMs": 140.40000000596046,
+          "probeCpuMs": 0.30000001192092896,
+          "probes": 3,
+          "frameCount": 2,
+          "longTaskCount": 0,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "navigation": "Settlement",
+            "region": "R18"
+          },
+          "untimedOracleWindow": {
+            "startMs": 3469.5,
+            "endMs": 3470.9000000059605
+          },
+          "activeWork": {
+            "graphActive": true,
+            "graphProgress": true,
+            "graphReplies": 2,
+            "lifeActive": false,
+            "lifeProgress": false,
+            "lifeReplies": 0
+          },
+          "offered": null
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r3-20261105-8-mobile4-map-pan-off",
+      "finished": "2026-11-04T15:17:12.858Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "map-pan"
+        ],
+        "samples": 1,
+        "population": "mobile4",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "bf83defcb9f4f99e0351b92cbb8325ab8c2ba801c1ddbc03e4c3c6c1936eedb1",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J3",
+          "step": "map-pan",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-8-mobile4-map-pan-off:launch-0-map-pan",
+          "observationId": "main-repair-r3-20261105-8-mobile4-map-pan-off:op-1",
+          "elapsedMs": 883.5999999940395,
+          "probeCpuMs": 1.6999999284744263,
+          "probes": 3,
+          "frameCount": 12,
+          "longTaskCount": 15,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "gesture": "fixed-offered pan",
+            "from": {
+              "x": 771.8003960396039,
+              "y": 203.4251851851852
+            },
+            "to": {
+              "x": 655.2002640264026,
+              "y": 203.4251851851852
+            },
+            "steps": 12,
+            "intervalMs": 16.666666666666668
+          },
+          "untimedOracleWindow": {
+            "startMs": 27729.5,
+            "endMs": 27755.59999999404
+          },
+          "activeWork": {
+            "graphActive": true,
+            "graphProgress": true,
+            "graphReplies": 9,
+            "lifeActive": false,
+            "lifeProgress": false,
+            "lifeReplies": 0
+          },
+          "offered": {
+            "model": "fixed offered rate; acknowledgements do not pace dispatch",
+            "input": "touch",
+            "offered": 14,
+            "matched": 14,
+            "dropped": 0,
+            "offeredContacts": 14,
+            "matchedContacts": 14,
+            "droppedContacts": 0,
+            "cancelled": 0,
+            "missingFrames": 0,
+            "invalidTimestamps": 0,
+            "coalesced": 12,
+            "unmatchedObserved": 0,
+            "protocolErrors": 0,
+            "maxHostDispatchLatenessMs": 14.173433333333378,
+            "frameWitness": "double-rAF opportunity with passive raw camera DTO, not physical scanout",
+            "intervalMs": 16.666666666666668,
+            "steps": 12,
+            "generatorSaturated": false,
+            "calibrationResolved": true
+          }
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r3-20261105-9-mobile4-map-zoom-off",
+      "finished": "2026-11-04T15:17:53.491Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "map-zoom"
+        ],
+        "samples": 1,
+        "population": "mobile4",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "bf83defcb9f4f99e0351b92cbb8325ab8c2ba801c1ddbc03e4c3c6c1936eedb1",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J3",
+          "step": "map-pinch-zoom",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-9-mobile4-map-zoom-off:launch-0-map-zoom",
+          "observationId": "main-repair-r3-20261105-9-mobile4-map-zoom-off:op-1",
+          "elapsedMs": 771.7000000178814,
+          "probeCpuMs": 1.800000011920929,
+          "probes": 3,
+          "frameCount": 11,
+          "longTaskCount": 12,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "gesture": "fixed-offered two-touch pinch",
+            "center": {
+              "x": 688.5145874587458,
+              "y": 195.61274074074075
+            },
+            "startSpan": 83.28580858085809,
+            "endSpan": 112.43584158415842,
+            "steps": 12,
+            "intervalMs": 16.666666666666668
+          },
+          "untimedOracleWindow": {
+            "startMs": 32882.09999999404,
+            "endMs": 33036
+          },
+          "activeWork": {
+            "graphActive": true,
+            "graphProgress": true,
+            "graphReplies": 7,
+            "lifeActive": false,
+            "lifeProgress": false,
+            "lifeReplies": 0
+          },
+          "offered": {
+            "model": "fixed offered rate; acknowledgements do not pace dispatch",
+            "input": "touch",
+            "offered": 14,
+            "matched": 14,
+            "dropped": 0,
+            "offeredContacts": 28,
+            "matchedContacts": 28,
+            "droppedContacts": 0,
+            "cancelled": 0,
+            "missingFrames": 0,
+            "invalidTimestamps": 0,
+            "coalesced": 24,
+            "unmatchedObserved": 0,
+            "protocolErrors": 0,
+            "maxHostDispatchLatenessMs": 15.17246666666324,
+            "frameWitness": "double-rAF opportunity with passive raw camera DTO, not physical scanout",
+            "intervalMs": 16.666666666666668,
+            "steps": 12,
+            "generatorSaturated": false,
+            "calibrationResolved": true
+          }
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r3-20261105-10-mobile4-map-open-off",
+      "finished": "2026-11-04T15:18:35.580Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "map-open"
+        ],
+        "samples": 1,
+        "population": "mobile4",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "bf83defcb9f4f99e0351b92cbb8325ab8c2ba801c1ddbc03e4c3c6c1936eedb1",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J3",
+          "step": "settlement-open",
+          "ok": true,
+          "launchId": "main-repair-r3-20261105-10-mobile4-map-open-off:launch-0-map-open",
+          "observationId": "main-repair-r3-20261105-10-mobile4-map-open-off:op-1",
+          "elapsedMs": 618.0999999940395,
+          "probeCpuMs": 1.699999988079071,
+          "probes": 3,
+          "frameCount": 6,
+          "longTaskCount": 8,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "navigation": "Settlement",
+            "region": "R18"
+          },
+          "untimedOracleWindow": {
+            "startMs": 34415.09999999404,
+            "endMs": 34448
+          },
+          "activeWork": {
+            "graphActive": true,
+            "graphProgress": true,
+            "graphReplies": 5,
+            "lifeActive": false,
+            "lifeProgress": false,
+            "lifeReplies": 0
+          },
+          "offered": null
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r4-close-20261105-0-desktop-map-close-off",
+      "finished": "2026-11-04T15:28:09.517Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "map-close"
+        ],
+        "samples": 1,
+        "population": "desktop",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "c6d6d8132f756ddf26b51bb4c42a44d709461c6a0914f89c375d3fc540fbb67e",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J3",
+          "step": "settlement-close",
+          "ok": true,
+          "launchId": "main-repair-r4-close-20261105-0-desktop-map-close-off:launch-0-map-close",
+          "observationId": "main-repair-r4-close-20261105-0-desktop-map-close-off:op-1",
+          "elapsedMs": 485.19999998807907,
+          "probeCpuMs": 0.29999998211860657,
+          "probes": 3,
+          "frameCount": 2,
+          "longTaskCount": 1,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Map navigation",
+          "untimedOracleWindow": {
+            "startMs": 4342.5,
+            "endMs": 4343.700000017881
+          },
+          "activeWork": {
+            "graphActive": true,
+            "graphProgress": true,
+            "graphReplies": 6,
+            "lifeActive": false,
+            "lifeProgress": false,
+            "lifeReplies": 0
+          },
+          "offered": null
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r4-close-20261105-1-mobile4-map-close-off",
+      "finished": "2026-11-04T15:28:51.156Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "map-close"
+        ],
+        "samples": 1,
+        "population": "mobile4",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "c6d6d8132f756ddf26b51bb4c42a44d709461c6a0914f89c375d3fc540fbb67e",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J3",
+          "step": "settlement-close",
+          "ok": true,
+          "launchId": "main-repair-r4-close-20261105-1-mobile4-map-close-off:launch-0-map-close",
+          "observationId": "main-repair-r4-close-20261105-1-mobile4-map-close-off:op-1",
+          "elapsedMs": 978.6999999880791,
+          "probeCpuMs": 2.2000000178813934,
+          "probes": 3,
+          "frameCount": 9,
+          "longTaskCount": 9,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Map navigation",
+          "untimedOracleWindow": {
+            "startMs": 33636.59999999404,
+            "endMs": 33656.5
+          },
+          "activeWork": {
+            "graphActive": true,
+            "graphProgress": true,
+            "graphReplies": 5,
+            "lifeActive": false,
+            "lifeProgress": false,
+            "lifeReplies": 0
+          },
+          "offered": null
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r6-frontier-20261105-0-desktop-scrub-off",
+      "finished": "2026-11-04T15:41:07.717Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "scrub-anchor",
+          "scrub-off-anchor"
+        ],
+        "samples": 1,
+        "population": "desktop",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "384fe599d9965fabec095fbf6c40b1f7235bc1a3491b25019d5efbab7d70f27a",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J5",
+          "step": "scrub-anchor",
+          "ok": true,
+          "launchId": "main-repair-r6-frontier-20261105-0-desktop-scrub-off:launch-0-scrub-anchor",
+          "observationId": "main-repair-r6-frontier-20261105-0-desktop-scrub-off:op-1",
+          "elapsedMs": 646.7000000178814,
+          "probeCpuMs": 8.60000005364418,
+          "probes": 146,
+          "frameCount": 9,
+          "longTaskCount": 2,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "sec": 16,
+            "anchor": true,
+            "calibrationCap": 95,
+            "graphRetained": false,
+            "projectionRetained": true
+          },
+          "untimedOracleWindow": {
+            "startMs": 16766,
+            "endMs": 25676.80000001192
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J5",
+          "step": "scrub-off-anchor",
+          "ok": true,
+          "launchId": "main-repair-r6-frontier-20261105-0-desktop-scrub-off:launch-0-scrub-off-anchor",
+          "observationId": "main-repair-r6-frontier-20261105-0-desktop-scrub-off:op-2",
+          "elapsedMs": 667.0999999940395,
+          "probeCpuMs": 8.699999988079071,
+          "probes": 148,
+          "frameCount": 8,
+          "longTaskCount": 2,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "sec": 17,
+            "anchor": false,
+            "calibrationCap": 132,
+            "graphRetained": false,
+            "projectionRetained": false
+          },
+          "untimedOracleWindow": {
+            "startMs": 16694.90000000596,
+            "endMs": 24920.40000000596
+          },
+          "activeWork": null,
+          "offered": null
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r6-frontier-20261105-1-mobile4-scrub-off",
+      "finished": "2026-11-04T15:43:04.350Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "scrub-anchor",
+          "scrub-off-anchor"
+        ],
+        "samples": 1,
+        "population": "mobile4",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "384fe599d9965fabec095fbf6c40b1f7235bc1a3491b25019d5efbab7d70f27a",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J5",
+          "step": "scrub-anchor",
+          "ok": true,
+          "launchId": "main-repair-r6-frontier-20261105-1-mobile4-scrub-off:launch-0-scrub-anchor",
+          "observationId": "main-repair-r6-frontier-20261105-1-mobile4-scrub-off:op-1",
+          "elapsedMs": 918.6999999880791,
+          "probeCpuMs": 52.20000025629997,
+          "probes": 156,
+          "frameCount": 14,
+          "longTaskCount": 79,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "sec": 16,
+            "anchor": true,
+            "calibrationCap": 1452,
+            "graphRetained": false,
+            "projectionRetained": true
+          },
+          "untimedOracleWindow": {
+            "startMs": 39404.70000001788,
+            "endMs": 51109.90000000596
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J5",
+          "step": "scrub-off-anchor",
+          "ok": true,
+          "launchId": "main-repair-r6-frontier-20261105-1-mobile4-scrub-off:launch-0-scrub-off-anchor",
+          "observationId": "main-repair-r6-frontier-20261105-1-mobile4-scrub-off:op-2",
+          "elapsedMs": 870.1999999880791,
+          "probeCpuMs": 46.400000005960464,
+          "probes": 163,
+          "frameCount": 15,
+          "longTaskCount": 84,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "sec": 17,
+            "anchor": false,
+            "calibrationCap": 1465,
+            "graphRetained": false,
+            "projectionRetained": false
+          },
+          "untimedOracleWindow": {
+            "startMs": 39951.40000000596,
+            "endMs": 50931.60000002384
+          },
+          "activeWork": null,
+          "offered": null
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r4-flow-20261105-1-desktop-save-off",
+      "finished": "2026-11-04T15:30:40.811Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "save",
+          "save-opening"
+        ],
+        "samples": 1,
+        "population": "desktop",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "c6d6d8132f756ddf26b51bb4c42a44d709461c6a0914f89c375d3fc540fbb67e",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J7",
+          "step": "nontrivial-load",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-1-desktop-save-off:launch-0-save",
+          "observationId": "main-repair-r4-flow-20261105-1-desktop-save-off:op-1",
+          "elapsedMs": 5836.4000000059605,
+          "probeCpuMs": 7.499999910593033,
+          "probes": 99,
+          "frameCount": 104,
+          "longTaskCount": 8,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Continue",
+          "untimedOracleWindow": {
+            "startMs": 7431.200000017881,
+            "endMs": 9988.5
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J7",
+          "step": "save-to-persisted",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-1-desktop-save-off:launch-0-save",
+          "observationId": "main-repair-r4-flow-20261105-1-desktop-save-off:op-2",
+          "elapsedMs": 464.5,
+          "probeCpuMs": 0.09999999403953552,
+          "probes": 3,
+          "frameCount": 7,
+          "longTaskCount": 3,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Menu (save)",
+          "untimedOracleWindow": {
+            "startMs": 12519.700000017881,
+            "endMs": 16371.90000000596
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J7",
+          "step": "opening-load",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-1-desktop-save-off:launch-0-save-opening",
+          "observationId": "main-repair-r4-flow-20261105-1-desktop-save-off:op-3",
+          "elapsedMs": 1659.300000011921,
+          "probeCpuMs": 4.10000005364418,
+          "probes": 44,
+          "frameCount": 47,
+          "longTaskCount": 4,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Continue",
+          "untimedOracleWindow": {
+            "startMs": 2728.4000000059605,
+            "endMs": 3275.600000023842
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J7",
+          "step": "save-to-persisted",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-1-desktop-save-off:launch-0-save-opening",
+          "observationId": "main-repair-r4-flow-20261105-1-desktop-save-off:op-4",
+          "elapsedMs": 317.5,
+          "probeCpuMs": 0.20000004768371582,
+          "probes": 6,
+          "frameCount": 5,
+          "longTaskCount": 2,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Menu (save)",
+          "untimedOracleWindow": {
+            "startMs": 5399.600000023842,
+            "endMs": 6353.300000011921
+          },
+          "activeWork": null,
+          "offered": null
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r4-flow-20261105-2-desktop-life-off",
+      "finished": "2026-11-04T15:31:01.645Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "life"
+        ],
+        "samples": 1,
+        "population": "desktop",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "c6d6d8132f756ddf26b51bb4c42a44d709461c6a0914f89c375d3fc540fbb67e",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J4",
+          "step": "life-map-open",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-2-desktop-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-2-desktop-life-off:op-1",
+          "elapsedMs": 151.39999997615814,
+          "probeCpuMs": 0.29999998211860657,
+          "probes": 3,
+          "frameCount": 2,
+          "longTaskCount": 0,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Life Map",
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J4",
+          "step": "node-select",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-2-desktop-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-2-desktop-life-off:op-2",
+          "elapsedMs": 128.19999998807907,
+          "probeCpuMs": 0.3999999761581421,
+          "probes": 3,
+          "frameCount": 2,
+          "longTaskCount": 0,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "node": "life-milestone-milestone-1"
+          },
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J4",
+          "step": "entry-dialog-open",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-2-desktop-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-2-desktop-life-off:op-3",
+          "elapsedMs": 720.5999999940395,
+          "probeCpuMs": 0.7000000476837158,
+          "probes": 4,
+          "frameCount": 3,
+          "longTaskCount": 0,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "enterNode": "life-milestone-milestone-1"
+          },
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J4",
+          "step": "node-entry-confirm",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-2-desktop-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-2-desktop-life-off:op-4",
+          "elapsedMs": 990.9000000059605,
+          "probeCpuMs": 1.2999999523162842,
+          "probes": 13,
+          "frameCount": 12,
+          "longTaskCount": 2,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "confirmEntry": "life-milestone-milestone-1"
+          },
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J4",
+          "step": "shop-category-selection",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-2-desktop-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-2-desktop-life-off:op-5",
+          "elapsedMs": 172.59999999403954,
+          "probeCpuMs": 0.5000000298023224,
+          "probes": 3,
+          "frameCount": 3,
+          "longTaskCount": 1,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "node": "life-milestone-milestone-1",
+            "shopTag": "random",
+            "expectedOffers": [
+              "life-milestone-milestone-1:r0:practice:0",
+              "life-milestone-milestone-1:r0:practice:1",
+              "life-milestone-milestone-1:r0:practice:2"
+            ],
+            "expectedDrafts": 1
+          },
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J6",
+          "step": "purchase-to-staged-preview",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-2-desktop-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-2-desktop-life-off:op-6",
+          "elapsedMs": 203.40000000596046,
+          "probeCpuMs": 0.30000001192092896,
+          "probes": 3,
+          "frameCount": 2,
+          "longTaskCount": 0,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "node": "life-milestone-milestone-1",
+            "offerIndex": 0,
+            "offerId": "life-milestone-milestone-1:r0:practice:0"
+          },
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J6",
+          "step": "confirm-to-recomputed-preview",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-2-desktop-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-2-desktop-life-off:op-7",
+          "elapsedMs": 2462.0999999940395,
+          "probeCpuMs": 1.9000000953674316,
+          "probes": 35,
+          "frameCount": 34,
+          "longTaskCount": 8,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Confirm purchased node",
+          "untimedOracleWindow": {
+            "startMs": 9091.199999988079,
+            "endMs": 9965.300000011921
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J4",
+          "step": "recap-return",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-2-desktop-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-2-desktop-life-off:op-8",
+          "elapsedMs": 116.09999999403954,
+          "probeCpuMs": 0.19999998807907104,
+          "probes": 3,
+          "frameCount": 2,
+          "longTaskCount": 0,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "recap Continue",
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J4",
+          "step": "return-to-map",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-2-desktop-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-2-desktop-life-off:op-9",
+          "elapsedMs": 490.39999997615814,
+          "probeCpuMs": 0.3999999761581421,
+          "probes": 3,
+          "frameCount": 4,
+          "longTaskCount": 1,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Map navigation",
+          "untimedOracleWindow": {
+            "startMs": 12102.40000000596,
+            "endMs": 13904.90000000596
+          },
+          "activeWork": null,
+          "offered": null
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r4-flow-20261105-4-mobile4-save-off",
+      "finished": "2026-11-04T15:34:46.241Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "save",
+          "save-opening"
+        ],
+        "samples": 1,
+        "population": "mobile4",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "c6d6d8132f756ddf26b51bb4c42a44d709461c6a0914f89c375d3fc540fbb67e",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J7",
+          "step": "nontrivial-load",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-4-mobile4-save-off:launch-0-save",
+          "observationId": "main-repair-r4-flow-20261105-4-mobile4-save-off:op-1",
+          "elapsedMs": 14816.200000017881,
+          "probeCpuMs": 72.40000006556511,
+          "probes": 177,
+          "frameCount": 194,
+          "longTaskCount": 81,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Continue",
+          "untimedOracleWindow": {
+            "startMs": 31788.69999998808,
+            "endMs": 38473.19999998808
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J7",
+          "step": "save-to-persisted",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-4-mobile4-save-off:launch-0-save",
+          "observationId": "main-repair-r4-flow-20261105-4-mobile4-save-off:op-2",
+          "elapsedMs": 2588.4000000059605,
+          "probeCpuMs": 0.5999999940395355,
+          "probes": 3,
+          "frameCount": 15,
+          "longTaskCount": 22,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Menu (save)",
+          "untimedOracleWindow": {
+            "startMs": 62898.19999998808,
+            "endMs": 69231.40000000596
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J7",
+          "step": "opening-load",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-4-mobile4-save-off:launch-0-save-opening",
+          "observationId": "main-repair-r4-flow-20261105-4-mobile4-save-off:op-3",
+          "elapsedMs": 9886.09999999404,
+          "probeCpuMs": 54.900000005960464,
+          "probes": 108,
+          "frameCount": 123,
+          "longTaskCount": 44,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Continue",
+          "untimedOracleWindow": {
+            "startMs": 18840.399999976158,
+            "endMs": 24656.79999998212
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J7",
+          "step": "save-to-persisted",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-4-mobile4-save-off:launch-0-save-opening",
+          "observationId": "main-repair-r4-flow-20261105-4-mobile4-save-off:op-4",
+          "elapsedMs": 1530,
+          "probeCpuMs": 0.6000000238418579,
+          "probes": 3,
+          "frameCount": 13,
+          "longTaskCount": 14,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Menu (save)",
+          "untimedOracleWindow": {
+            "startMs": 41281.79999998212,
+            "endMs": 42496.89999997616
+          },
+          "activeWork": null,
+          "offered": null
+        }
+      ]
+    },
+    {
+      "runId": "main-repair-r4-flow-20261105-5-mobile4-life-off",
+      "finished": "2026-11-04T15:35:53.705Z",
+      "failed": false,
+      "config": {
+        "jobs": [
+          "life"
+        ],
+        "samples": 1,
+        "population": "mobile4",
+        "cache": "cold",
+        "artwork": "off",
+        "instrumentation": true,
+        "workerDelayMs": 0,
+        "timeoutMs": 180000,
+        "port": 18244,
+        "dist": "dist",
+        "seed": 123,
+        "control": null
+      },
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "controlAsset": null,
+      "harnessId": "c6d6d8132f756ddf26b51bb4c42a44d709461c6a0914f89c375d3fc540fbb67e",
+      "workload": {
+        "mode": "frozen-baseline",
+        "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+        "comparisonEligible": true,
+        "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+        "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+        "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+        "policy": "immutable corpus and SDK reused; current product only produces actual results"
+      },
+      "observations": [
+        {
+          "job": "J4",
+          "step": "life-map-open",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-5-mobile4-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-5-mobile4-life-off:op-1",
+          "elapsedMs": 402.10000002384186,
+          "probeCpuMs": 1.7999999821186066,
+          "probes": 3,
+          "frameCount": 7,
+          "longTaskCount": 4,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Life Map",
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J4",
+          "step": "node-select",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-5-mobile4-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-5-mobile4-life-off:op-2",
+          "elapsedMs": 258.19999998807907,
+          "probeCpuMs": 1.399999976158142,
+          "probes": 3,
+          "frameCount": 6,
+          "longTaskCount": 2,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "node": "life-milestone-milestone-1"
+          },
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J4",
+          "step": "entry-dialog-open",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-5-mobile4-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-5-mobile4-life-off:op-3",
+          "elapsedMs": 358.2000000178814,
+          "probeCpuMs": 5.4000000059604645,
+          "probes": 12,
+          "frameCount": 15,
+          "longTaskCount": 2,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "enterNode": "life-milestone-milestone-1"
+          },
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J4",
+          "step": "node-entry-confirm",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-5-mobile4-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-5-mobile4-life-off:op-4",
+          "elapsedMs": 4902.699999988079,
+          "probeCpuMs": 13.900000035762787,
+          "probes": 46,
+          "frameCount": 51,
+          "longTaskCount": 33,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "confirmEntry": "life-milestone-milestone-1"
+          },
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J4",
+          "step": "shop-category-selection",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-5-mobile4-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-5-mobile4-life-off:op-5",
+          "elapsedMs": 1001.0999999940395,
+          "probeCpuMs": 2.7000000178813934,
+          "probes": 3,
+          "frameCount": 8,
+          "longTaskCount": 7,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "node": "life-milestone-milestone-1",
+            "shopTag": "random",
+            "expectedOffers": [
+              "life-milestone-milestone-1:r0:practice:0",
+              "life-milestone-milestone-1:r0:practice:1",
+              "life-milestone-milestone-1:r0:practice:2"
+            ],
+            "expectedDrafts": 1
+          },
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J6",
+          "step": "purchase-to-staged-preview",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-5-mobile4-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-5-mobile4-life-off:op-6",
+          "elapsedMs": 810.0999999940395,
+          "probeCpuMs": 1.9000000357627869,
+          "probes": 3,
+          "frameCount": 8,
+          "longTaskCount": 8,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": {
+            "node": "life-milestone-milestone-1",
+            "offerIndex": 0,
+            "offerId": "life-milestone-milestone-1:r0:practice:0"
+          },
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J6",
+          "step": "confirm-to-recomputed-preview",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-5-mobile4-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-5-mobile4-life-off:op-7",
+          "elapsedMs": 11240.5,
+          "probeCpuMs": 35.10000005364418,
+          "probes": 118,
+          "frameCount": 121,
+          "longTaskCount": 68,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Confirm purchased node",
+          "untimedOracleWindow": {
+            "startMs": 52574.5,
+            "endMs": 53643.60000002384
+          },
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J4",
+          "step": "recap-return",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-5-mobile4-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-5-mobile4-life-off:op-8",
+          "elapsedMs": 127.90000000596046,
+          "probeCpuMs": 1.5000000298023224,
+          "probes": 3,
+          "frameCount": 5,
+          "longTaskCount": 1,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "recap Continue",
+          "untimedOracleWindow": null,
+          "activeWork": null,
+          "offered": null
+        },
+        {
+          "job": "J4",
+          "step": "return-to-map",
+          "ok": true,
+          "launchId": "main-repair-r4-flow-20261105-5-mobile4-life-off:launch-0-life",
+          "observationId": "main-repair-r4-flow-20261105-5-mobile4-life-off:op-9",
+          "elapsedMs": 2176.9000000059605,
+          "probeCpuMs": 2.100000023841858,
+          "probes": 3,
+          "frameCount": 10,
+          "longTaskCount": 7,
+          "firstFeedbackMs": null,
+          "timeout": false,
+          "error": null,
+          "input": "Map navigation",
+          "untimedOracleWindow": {
+            "startMs": 57790.30000001192,
+            "endMs": 61575.70000001788
+          },
+          "activeWork": null,
+          "offered": null
+        }
+      ]
+    }
+  ]
+}

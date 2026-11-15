@@ -1,0 +1,38 @@
+{
+    "at":  "2026-11-15T04:26:37.5389303Z",
+    "compileExit":  0,
+    "files":  {
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-event-observer-build-r1-20261115\\NativeCaptureAbi.cs":  "8c7a7d5d70ba871e2341d40ce147cef5d80d664d475777b33366b670eefe4337",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-event-observer-lifecycle-r1-20261115\\NativeCaptureLifecycle.dll":  "e5da662b0fb3e65aa56e0f5e7e393a7917e45fd36e453fe53dbdf39390a51f18",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-event-observer-lifecycle-r1-20261115\\NativeCaptureLifecycle.cs":  "40d19903acf950ca1a7b7a27fc4740a2f1e1c4ab258374dcd9dcf1e92078c40c",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-event-observer-support-r1-20261115\\NativeCaptureSupport.cs":  "fc3d4881e8e40089063eddfb3868db5570021d410b786b087e5912318e5d8442",
+                  "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe":  "46809206887326d2d24db1eff1f3064de972c3451abe766b49111450a5e08e00",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-event-observer-lifecycle-r1-20261115\\build-only.ps1":  "2ec78f3fa0bc0ad12a5d1c34865d3d7eb09ab06ebd4a36dc881aa0171f2522e9"
+              },
+    "exportedTypes":  [
+                          "NativeCapturePrototype.StartupInfo64",
+                          "NativeCapturePrototype.ProcessInformation64",
+                          "NativeCapturePrototype.ExceptionRecord64",
+                          "NativeCapturePrototype.ExceptionDebugInfo64",
+                          "NativeCapturePrototype.DebugEventLayout64",
+                          "NativeCapturePrototype.Abi",
+                          "NativeCapturePrototype.CaptureConfig",
+                          "NativeCapturePrototype.Guard",
+                          "NativeCapturePrototype.Wire",
+                          "NativeCapturePrototype.BoundedBytes",
+                          "NativeCapturePrototype.StartupInfoEx64",
+                          "NativeCapturePrototype.SecurityAttributes",
+                          "NativeCapturePrototype.FileTimePair",
+                          "NativeCapturePrototype.JobBasicLimits",
+                          "NativeCapturePrototype.IoCounters",
+                          "NativeCapturePrototype.JobExtendedLimits",
+                          "NativeCapturePrototype.JobAccounting",
+                          "NativeCapturePrototype.Native",
+                          "NativeCapturePrototype.NativeCallFailure",
+                          "NativeCapturePrototype.JobClosure",
+                          "NativeCapturePrototype.OwnedJob",
+                          "NativeCapturePrototype.PipeCollection",
+                          "NativeCapturePrototype.BoundedPipe"
+                      ],
+    "scope":  "Compilation plus reflection metadata only. Compiler process ran. No OwnedJob/BoundedPipe construction, Native/LifecycleNative method, debug/control/preview target or event loop called. Partial source NOT admitted or native/cleanup/capture proved."
+}

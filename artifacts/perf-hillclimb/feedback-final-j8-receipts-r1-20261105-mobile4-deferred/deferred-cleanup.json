@@ -1,0 +1,16 @@
+{
+  "case": "deferred",
+  "contextClosed": true,
+  "browserClosed": true,
+  "errors": [],
+  "browserConnected": false,
+  "lifetime": {
+    "label": "artwork deferred",
+    "status": "cancelled",
+    "hostStartedMs": 8207.0595,
+    "hostDeadlineMs": 6728207.0595,
+    "reason": "page.waitForFunction: Timeout 240000ms exceeded.",
+    "unconfirmedWork": [],
+    "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+  }
+}

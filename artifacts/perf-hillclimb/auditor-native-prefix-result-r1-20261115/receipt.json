@@ -1,0 +1,14 @@
+{
+  "at": "2026-11-15T03:16:37.977Z",
+  "classification": "NO_REPRODUCTION_NOT_A_FIX",
+  "inputSha256": "2157da48a85a8cf569e401c39350edd7474d9a707d4d7e48629d09632a48fe8e",
+  "extractionSha256": "15aa26c79ca0b0be6a1a297fc51870164ee38e65d0f424ee579f3d1c3437d6be",
+  "sourceCount": 683,
+  "assetCount": 5,
+  "ownedStoppedPids": [
+    40636,
+    14488,
+    31452
+  ],
+  "cleanupVerified": true
+}

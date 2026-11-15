@@ -1,0 +1,86 @@
+[
+  {
+    "type": "pointerdown",
+    "x": 301.38006591796875,
+    "y": 340.188232421875,
+    "pointerType": "touch",
+    "timeStamp": 120564.59999999404,
+    "handlerAt": 120602,
+    "minSec": 0,
+    "maxSec": 70,
+    "plotRect": {
+      "x": 573.855,
+      "y": 884.1,
+      "width": 1276.275,
+      "height": 145.86
+    },
+    "revealedSec": 54,
+    "browseCapSec": 54,
+    "targetSec": 54,
+    "viewedSec": 54,
+    "readCpuMs": 0.699999988079071
+  },
+  {
+    "type": "pointermove",
+    "x": 241.63156127929688,
+    "y": 340.188232421875,
+    "pointerType": "touch",
+    "timeStamp": 121720.09999999404,
+    "handlerAt": 121922.80000001192,
+    "minSec": 0,
+    "maxSec": 182,
+    "plotRect": {
+      "x": 573.855,
+      "y": 884.1,
+      "width": 1276.275,
+      "height": 145.86
+    },
+    "revealedSec": 54,
+    "browseCapSec": 54,
+    "targetSec": 54,
+    "viewedSec": 16,
+    "readCpuMs": 0.29999998211860657
+  },
+  {
+    "type": "pointermove",
+    "x": 238.87393188476562,
+    "y": 340.188232421875,
+    "pointerType": "touch",
+    "timeStamp": 122564.59999999404,
+    "handlerAt": 122894.40000000596,
+    "minSec": 0,
+    "maxSec": 182,
+    "plotRect": {
+      "x": 573.855,
+      "y": 884.1,
+      "width": 1276.275,
+      "height": 145.86
+    },
+    "revealedSec": 54,
+    "browseCapSec": 54,
+    "targetSec": 54,
+    "viewedSec": 17,
+    "readCpuMs": 0.4000000059604645
+  },
+  {
+    "type": "pointerup",
+    "x": 238.87393188476562,
+    "y": 340.188232421875,
+    "pointerType": "touch",
+    "timeStamp": 124054.5,
+    "handlerAt": 124154.30000001192,
+    "minSec": 0,
+    "maxSec": 182,
+    "plotRect": {
+      "x": 573.855,
+      "y": 884.1,
+      "width": 1276.275,
+      "height": 145.86
+    },
+    "revealedSec": 54,
+    "browseCapSec": 54,
+    "targetSec": 54,
+    "viewedSec": 16,
+    "readCpuMs": 0.19999998807907104
+  }
+]

@@ -1,0 +1,325 @@
+diff --git a/docs/performance/perf-hillclimb-20261104/HARNESS.md b/docs/performance/perf-hillclimb-20261104/HARNESS.md
+index 21d894e1..c81736e1 100644
+--- a/docs/performance/perf-hillclimb-20261104/HARNESS.md
++++ b/docs/performance/perf-hillclimb-20261104/HARNESS.md
+@@ -290,6 +290,81 @@ No physical-pixel timing follows from either rAF bound; that proof gate remains
+ open. Earlier failures are not relabelled, input is not paced by acknowledgements,
+ and the original HC settled completion/input-count gates remain unchanged.
+ 
++## Approved Hold adaptation protocol, 2026-11-05
++
++Integrated approved main v1.1.53 through bebc4ead, checkpoint0e47aa72. This is
++interaction-contract adoption and harness construction, never optimization or
++self-acceptance. Phase A remains NOT SOUND. Earlier v1.1.52/mixed-condition rows
++keep their identities and contention labels. Frozen base/Life authorities and
++all HC/native clock/terminal gates remain unchanged.
++
++Scrub feedback now keys both issued scrub ink and the existing visible lever's
++retained label/handle position. Target/current assignment is not visible ink.
++Pure lexical transport/momentum getters and existing display fields add no
++per-frame bookkeeping, model reads or render writes. Post-clock J5/J6 release
++witnesses require actual zero target/current, stopped momentum and drawn HOLD.
++No benchmark pause follows graph press. Callback order is tested from exact
++installed graph/root source in an authenticated isolated dependency twin;
++removing Hold or moving it after scrub start must fail. Pure getters are read500
++times with active methods poisoned, raw primitive types and mutation isolation.
++
++Predeclared controls: desktop mouse and mobile1/mobile4 genuine touch, each
++forward/reverse click/tap and six-move drag, playing/no-motion versus already-Hold
++no-motion, and a genuine rotational sun/moon wheel flick. Nonzero coasting must
++be witnessed at trusted graph input, not inferred from an earlier flick or idle
++wheel. Selected time persists through release and350ms settle, followed by a
++real lever resume and advancing visual time. These controls include diagnostics
++and are comparison-ineligible. Actual drawn HOLD and semantic/internal clocks
++stay separate. Native receipts retain missing/excluded Event Timing; no zero
++values or physical-pixel claims are invented.
++
++Control construction r1 retains19/21 passes and two failed mobile coast setup
++preconditions. Its acknowledged touch stream can leave >80ms between the last
++applied move and release, exceeding the product's existing coast activation
++window. R2 queues final touch move/release in protocol order without awaiting
++the move acknowledgement, retaining genuine receipts and the exact nonzero
++coast-at-input gate. No product threshold or velocity is changed. Old failures
++stay failed and this diagnostic runner repair does not alter reference input.
++R2 retains20/21 passes: mobile4 has real initial moon coast0.5379 but it naturally
++ends before graph input, so the strict at-input gate fails. R3 uses the real
++outer season wheel at85% radius, whose ordinary rotation produces a stronger
++coast; all velocity/at-input gates remain unchanged and no transport is injected.
++R3 retains19/21 overall passes; both mobile coasts are nonzero at input but
++feedback correctly rejects arm-to-input autonomous ink drift. No rebaseline or
++drift waiver follows. R4 records transport/release/resume functional outcome
++before asserting feedback outcome, so a feedback rejection no longer suppresses
++the real resume control. Feedback failures remain failures with unavailable bounds.
++Bindings require the new raw typed lever seam; absent/malformed fields fail closed.
++No-motion here means a press/release with no pointer moves; the already-Hold
++lever cue stays unchanged, while issued scrub press ink can still be observed.
++
++Predeclared scoped reference:18 independent cold/minimal existing-protocol
++launches, all3 immutable seeds123/424242/99117 x desktop/mobile4 x J5 anchor16,
++off-anchor17, strict Life/J6 including legal16/17/Present. Samples1 per cell.
++Retain every row/failure, feedback/useful bounds, raw frames and costs. No
++diagnostic callback instrumentation in those reference cells. This is a small
++current-build reference, not a tail baseline, three complete8-job suites, or
++negligible observer overhead proof. Any Continue/J7 knowledge, J3 active-work or
++J8 readiness encounters stay separate and unmodified.
++
++Each driver freezes app/scripts/package/contract/build/fixture and strict frozen
++authority identities before execution, checks stability between cells and after,
++and writes a fresh immutable plan/results folder. Exclusive owned execution;
++PM reports earlier load finished/no new full-suite load. Preserve5184/5185 and
++do not claim whole-host invisibility or retroactively promote old timing rows.
++
++```powershell
++npm run test:perf-hold
++node --experimental-vm-modules scripts/perf-hillclimb/hold-adoption-controls.mjs NEW_HOLD_ID controls
++node --experimental-vm-modules scripts/perf-hillclimb/hold-adoption-controls.mjs NEW_REFERENCE_ID reference
++node --experimental-vm-modules scripts/perf-hillclimb/hold-adoption-controls.mjs NEW_NEGATIVE_ID negative
++```
++
++The final implementation handoff records exact outcomes, failures, gaps and
++costs in HOLD_ADAPTATION_IMPLEMENTATION.md. Independent audit and root's adoption
++decision remain outstanding. Full npm run verify precedes sequential npm start
++and actual served/loaded badge metadata verification; no publication.
++
+ 
+ J8 receipt retention repair after fixed-source matrix r2: existing operation JSONL
+ rows now retain the complete collector receipt (record, drained records/session
+diff --git a/docs/performance/perf-hillclimb-20261104/STATE.md b/docs/performance/perf-hillclimb-20261104/STATE.md
+index 1f19b8af..2d5d3499 100644
+--- a/docs/performance/perf-hillclimb-20261104/STATE.md
++++ b/docs/performance/perf-hillclimb-20261104/STATE.md
+@@ -1,6 +1,53 @@
+ ﻿# Continuous performance run
+ 
+-Updated2026-11-05. Operator Cam; stop only on his explicit stop. Success is a checkpoint. No finite iteration/time/token/cost/audit-round ceiling. Objective01a1a5fb-32cf-7ff0-86a6-68448a1aa3e9 is unchanged; native goal status was BLOCKED while awaiting asynchronous handoffs and exposes no agent resume status. The Life completion has now resolved that dependency and root is working under the original authorization. Continue through T3 completion wakeups as needed; never mark the objective complete from an intermediate phase. Codex gpt-6.1-sol / xhigh throughout.
++Updated2026-11-05. **PAUSED again by Cam's explicit operator request at2026-11-05T02:04Z**, superseding the brief resume poke in this session. The only intervening work was a read-only integrity comparison: all683 source/package/HARNESS files, built assets,15 dirty files and1904 evidence files matched the original pause snapshot exactly. No test, negative cell, worker, implementation, audit, matrix, optimization or integration batch started. The existing native goal01a1a5fb-32cf-7ff0-86a6-68448a1aa3e9 is PAUSED, not complete; no replacement goal was created. All further hillclimb work requires Cam's explicit later resume. Late completion/wake messages may record paused metadata only. Do not settle the thread. Codex gpt-6.1-sol / xhigh remains the preserved configuration.
++
++Latest pause receipts are in artifacts/perf-hillclimb/operator-pause-20261105-r2;
++the intervening integrity result is
++artifacts/perf-hillclimb/operator-resume-20261105-r1/authentication.json. Original
++pause snapshot/runs remain immutable. No task-owned schedules exist; no new
++delegated work was launched. Existing child terminal state, process inventory and
++requested Dispatcher/PM-Notes wake outcomes are recorded in the latest receipt.
++OPERATOR_PAUSE.md and PAUSED_HANDOFF.md retain completed/unfinished checks and
++the exact next action on a later explicit resume. Ordinal9's usage-limit failure
++was infrastructure during handoff, never a product or timing failure.
++
++## Operator pause checkpoint — authoritative over historical entries
++
++Phase A **NOT SOUND**. No full independent Harness Auditor acceptance, scorecard,
++scored candidate or performance win. Approved main83c00497/v1.1.53 is already
++integrated locally as bebc4ead. The last committed HEAD is
++0e47aa72bb8da272006a4dba2c70f4ba92775276 on perf/hillclimb-20261104. Preserve
++the subsequent uncommitted Hold harness/passive getter work and all old evidence.
++Source adoption is complete; overall adoption completion/current comparable
++baseline and independent proof remain pending.
++
++Before pausing, the Hold Builder recorded final full verification exit0,
++21/21 scoped control outcomes and18/18 strict J5/J6 reference cells. These are
++not independent acceptance or tail/scoring evidence. Its affected3-case negative
++batch was interrupted in pre-cell setup and has zero measured cells. Fresh
++preview/cost handoff and moving-coast feedback applicability remain unfinished;
++see PAUSED_HANDOFF.md. Root starts no new batch to close these gaps while paused.
++
++Root promptly steered the sole active Hold Builder to pause. It acknowledged
++PAUSED and wrote PAUSED_HANDOFF.md plus its cleanup receipt:
++artifacts/perf-hillclimb/hold-adaptation-build-r1-20261105/paused-release.json.
++The owned batch shell13320 and driver12312 were stopped; receipt reports no
++remaining owned process IDs. Root's process inventory found only inherited idle
++preview5184/PID4484 in the performance worktree. No task-owned schedules exist
++(list_scheduled_tasks returned tasks=[]). Root then used task_cancel to stop any
++remaining child/queued continuation after its pause handoff was written. Final
++receipt, dirty inventory, exact hashes and resume steps are recorded in
++OPERATOR_PAUSE.md and artifacts/perf-hillclimb/operator-pause-20261105-r1.
++Primary checkout, other worktrees and old accepted/rejected/contended identities
++remain untouched. No new development or verification batch was started to pause.
++
++On explicit resume, read OPERATOR_PAUSE.md and the child's PAUSED_HANDOFF.md first;
++authenticate preserved source/build/contract/fixture identities and distinguish
++completed results from the interrupted negative batch before choosing the next
++small proof step. Never auto-start a phase merely because an old completion wakes
++this thread. No commit, push, merge, deployment or external bot wake is authorized
++as part of pausing.
+ 
+ ## Ownership and gate
+ 
+diff --git a/package.json b/package.json
+index 467a8c83..d66fc182 100644
+--- a/package.json
++++ b/package.json
+@@ -32,7 +32,7 @@
+     "test:keywords": "node scripts/practice-keywords-test.mjs && node scripts/keywords-classes-prototype-test.mjs && node scripts/bronze-keyword-cards-test.mjs",
+     "test:card-review": "node scripts/card-review-test.mjs && node scripts/catalogue-summary-test.mjs && node scripts/locked-stock-context-test.mjs",
+     "test:save-recovery": "node scripts/save-recovery-test.mjs && node scripts/save-indexeddb-test.mjs && node scripts/save-load-worker-test.mjs && node scripts/save-import-boundaries-test.mjs",
+-    "test:presentation": "node scripts/chronicle-art-test.mjs && node scripts/minimal-graphics-test.mjs && node scripts/progressive-art-test.mjs && node scripts/performance-start-test.mjs && node scripts/region-map-camera-test.mjs && node scripts/territory-boundary-cache-test.mjs && node scripts/presentation-time-test.mjs && node scripts/time-controls-test.mjs && node scripts/timegraph-focus-test.mjs && node scripts/edge-transfer-scrub-gate-test.mjs && node scripts/trade-corridors-test.mjs && node scripts/forecast-worker-service-test.mjs && node scripts/node-resolution-diagnostics-test.mjs && node scripts/new-game-opening-test.mjs && node scripts/prepared-forecast-handoff-test.mjs && node scripts/game-display-mode-test.mjs && node scripts/creep-terminology-test.mjs && node scripts/mechanics-catalogue-test.mjs && node scripts/life-map-interaction-test.mjs && node scripts/life-decision-test.mjs && node scripts/timing-observability-test.mjs && node scripts/opening-graph-editor-test.mjs && npm run test:perf-feedback",
++    "test:presentation": "node scripts/chronicle-art-test.mjs && node scripts/minimal-graphics-test.mjs && node scripts/progressive-art-test.mjs && node scripts/performance-start-test.mjs && node scripts/region-map-camera-test.mjs && node scripts/territory-boundary-cache-test.mjs && node scripts/presentation-time-test.mjs && node scripts/time-controls-test.mjs && node scripts/timegraph-focus-test.mjs && node scripts/edge-transfer-scrub-gate-test.mjs && node scripts/trade-corridors-test.mjs && node scripts/forecast-worker-service-test.mjs && node scripts/node-resolution-diagnostics-test.mjs && node scripts/new-game-opening-test.mjs && node scripts/prepared-forecast-handoff-test.mjs && node scripts/game-display-mode-test.mjs && node scripts/creep-terminology-test.mjs && node scripts/mechanics-catalogue-test.mjs && node scripts/life-map-interaction-test.mjs && node scripts/life-decision-test.mjs && node scripts/timing-observability-test.mjs && node scripts/opening-graph-editor-test.mjs && npm run test:perf-feedback && npm run test:perf-hold",
+     "test:perf-feedback": "node scripts/perf-hillclimb/feedback-runtime-test.mjs",
+     "probe:civilization": "node scripts/civilization-browser-probe.mjs",
+     "probe:development-lab": "node scripts/development-lab-browser-probe.mjs",
+@@ -77,7 +77,8 @@
+     "probe:game-menu": "node scripts/game-menu-browser-probe.mjs",
+     "probe:map-lab": "node scripts/map-lab-browser-probe.mjs",
+     "test:differential": "node scripts/differential-regression.mjs",
+-    "probe:timegraph-hold": "node scripts/timegraph-hold-browser-probe.mjs"
++    "probe:timegraph-hold": "node scripts/timegraph-hold-browser-probe.mjs",
++    "test:perf-hold": "node scripts/perf-hillclimb/hold-adoption-controls-test.mjs"
+   },
+   "keywords": [
+     "html",
+diff --git a/scripts/perf-hillclimb/feedback-bindings-passive-test.mjs b/scripts/perf-hillclimb/feedback-bindings-passive-test.mjs
+index cbaf508c..45adc562 100644
+--- a/scripts/perf-hillclimb/feedback-bindings-passive-test.mjs
++++ b/scripts/perf-hillclimb/feedback-bindings-passive-test.mjs
+@@ -17,7 +17,10 @@ const expression=rootSource.slice(begin,end).trim().replace(/^getRetainedFeedbac
+ const cheap=()=>({getTimingSnapshot:()=>({visible:true})});
+ const read=vm.runInNewContext(`(${expression})`,{prototypeView:{getSemanticSnapshot:prototypeReader},
+   worldMapView:cheap(),settlementGraphView:cheap(),vassalLifeMapView:cheap(),vassalNodeDecisionModalView:cheap(),
+-  lifeProcessingView:{isVisible:()=>false},vassalResolutionRecapView:cheap(),getState:poison,render:poison});
++  lifeProcessingView:{isVisible:()=>false},vassalResolutionRecapView:cheap(),getState:poison,render:poison,
++  settlementPlayback:{getRetainedPlaybackSnapshot:()=>({target:0,current:0,visualSec:17})},
++  timeControlsView:{getRetainedFeedbackSnapshot:()=>({visible:true,lever:{visible:true,labelVisible:true,label:'HOLD',handleY:84}})},
++  sunMoonDisksView:{getRetainedMomentumSnapshot:()=>({active:false,coasting:false,velocity:0})}});
+ const untouched=JSON.stringify({rawRoot,semanticSnapshot});
+ for(let i=0;i<500;i++){
+   const dto=read();assert.deepEqual(Object.keys(dto.settlement).sort(),['activeTab','regionId','visible']);
+@@ -43,4 +46,16 @@ const panel=key('panel');frame.map.visible=false;frame.settlement.visible=true;
+ assert.notEqual(key('panel'),panel,'canonical retained Settlement surface, not unused panel phase');
+ const purchase=key('purchase');frame.decision.boardPracticeIds=['hover-only'];assert.equal(key('purchase'),purchase);
+ frame.decision.purchaseOrder=['recorded-offer'];assert.notEqual(key('purchase'),purchase);
++frame.timeControls={visible:true,lever:{visible:true,labelVisible:true,label:'x1.0',handleY:54}};
++const moving=key('scrub');frame.transport={target:0,current:0};
++assert.equal(key('scrub'),moving,'internal Hold assignment is not drawn feedback');
++frame.timeControls.lever.label='HOLD';frame.timeControls.lever.handleY=84;
++assert.notEqual(key('scrub'),moving,'actual drawn Hold can respond before scrub ink');
++const held=key('scrub');assert.equal(key('scrub'),held,'already-Hold no-motion stays a no-op');
++frame.timeControls.visible=false;const hidden=key('scrub');frame.timeControls.lever.label='x1.0';
++assert.equal(key('scrub'),hidden,'hidden lever changes cannot supply feedback');
++frame.timeControls.lever.handleY='84';
++assert.equal(vm.runInContext("__HC_READ_FEEDBACK__('scrub').sourceValid",context),false,'raw numeric pose is required');
++delete frame.timeControls;
++assert.equal(vm.runInContext("__HC_READ_FEEDBACK__('scrub').sourceValid",context),false,'missing Hold seam fails closed');
+ console.log('[feedback-bindings] PASS: actual retained accessor/root wiring500 pure isolated reads; Present drift, Settlement surface and hover controls');
+diff --git a/scripts/perf-hillclimb/feedback-bindings.mjs b/scripts/perf-hillclimb/feedback-bindings.mjs
+index 58d17ff2..25de8fb8 100644
+--- a/scripts/perf-hillclimb/feedback-bindings.mjs
++++ b/scripts/perf-hillclimb/feedback-bindings.mjs
+@@ -69,7 +69,15 @@ export function installFeedbackBindings() {
+       // Signature is retained only after drawScrub issued marker commands.
+       // Ignore autonomously changing graph bounds/forecast preview in quiescence.
+       const fields=graph.scrubDrawSignature?.split('|')??[];
+-      return cue(binding,surface&&graph.visible,binding==='scrub'?fields.slice(0,2):[fields[2],fields[7]!=='-1'],baseValid&&fields.length===8);
++      // Existing lever text/pose are assigned by the normal update/draw path.
++      // Transport assignments alone never count as visible press feedback.
++      const controls=s.timeControls,lever=controls?.lever;
++      const drawnLever=controls?.visible&&lever?.visible&&lever?.labelVisible
++        ?[lever.label,lever.handleY]:null;
++      const leverValid=typeof controls?.visible==='boolean'&&typeof lever?.visible==='boolean'
++        &&typeof lever?.labelVisible==='boolean'&&typeof lever?.label==='string'
++        &&typeof lever?.handleY==='number'&&Number.isFinite(lever.handleY);
++      return cue(binding,surface&&graph.visible,binding==='scrub'?[fields.slice(0,2),drawnLever]:[fields[2],fields[7]!=='-1'],baseValid&&fields.length===8&&(binding!=='scrub'||leverValid));
+     }
+     if(binding==='life')return cue(binding,surface,[life.visible,life.displayedVassalId],baseValid);
+     if(binding==='node')return cue(binding,surface&&life.visible,life.selectedCandidateNodeId,baseValid);
+diff --git a/scripts/perf-hillclimb/run.mjs b/scripts/perf-hillclimb/run.mjs
+index e81c2e1a..ca4fdeff 100644
+--- a/scripts/perf-hillclimb/run.mjs
++++ b/scripts/perf-hillclimb/run.mjs
+@@ -166,6 +166,18 @@ async function record(job,step,body,{input,fixture=null,event='pointerdown',star
+     }
+     assert.ok(timing.elapsedMs>=0,'finite nonnegative browser elapsed');
+     assert.ok(startNow||timing.trustedInput,'real trusted input required');
++    if(binding==='scrub'){
++      // Post-clock witness, with raw retained values. The press itself owns Hold;
++      // the harness never inserts a pause or rewrites the observed transport.
++      timing.holdRelease=await page.evaluate(()=>{
++        const s=__SETTLEMENT_DEBUG__.getRetainedFeedbackSnapshot();
++        return {atMs:performance.now(),transport:s.transport,momentum:s.momentum,timeControls:s.timeControls};
++      });
++      assert.equal(timing.holdRelease.transport.target,0,'released graph remains held');
++      assert.equal(timing.holdRelease.transport.current,0,'released graph current remains zero');
++      assert.equal(timing.holdRelease.momentum.active,false,'released graph has no wheel momentum');
++      assert.equal(timing.holdRelease.timeControls.lever.label,'HOLD','existing lever has drawn HOLD');
++    }
+     oracleStart=oracle?await page.evaluate(()=>performance.now()):null;
+     const oracleResult=oracle?await withDeadline(oracle(witness,timing),config.timeoutMs,`${job}/${step} untimed correctness oracle`):null;
+     if(config.visual){const window={launchId,startMs:await page.evaluate(()=>performance.now()),endMs:null,reason:'separate comparison-ineligible visual diagnostic'};setupDiagnosticWindows.push(window);await page.screenshot({path:path.join(output,`${header.observationId.split(':').at(-1)}-after.png`)});window.endMs=await page.evaluate(()=>performance.now());}
+diff --git a/src/views/sunandmoon-disks-pixi.js b/src/views/sunandmoon-disks-pixi.js
+index 140a4e27..58962f29 100644
+--- a/src/views/sunandmoon-disks-pixi.js
++++ b/src/views/sunandmoon-disks-pixi.js
+@@ -1112,6 +1112,13 @@ let feedbackText = null;
+     destroy,
+     getRoot: () => root,
+     isDragging: () => !!dragSession,
++    getRetainedMomentumSnapshot: () => ({
++      active: dragSession !== null,
++      coasting: dragSession?.coasting ?? false,
++      velocity: dragSession?.velocity ?? 0,
++      diskId: dragSession?.diskId ?? null,
++      visualTargetSec: dragSession?.visualTargetSec ?? null,
++    }),
+     stopMomentum: () => { if (dragSession?.coasting) endDrag(); },
+     getPhaseReferenceSnapshot: () => phaseReference?.getSnapshot() ?? null,
+     getPhaseReferenceClickPoint: id => phaseReference?.getClickPoint(id) ?? null,
+diff --git a/src/views/time-controls-pixi.js b/src/views/time-controls-pixi.js
+index 34b9954a..8d0aa41d 100644
+--- a/src/views/time-controls-pixi.js
++++ b/src/views/time-controls-pixi.js
+@@ -102,6 +102,10 @@ export function createTimeControlsView({
+     init,
+     refresh,
+     update,
++    getRetainedFeedbackSnapshot: () => ({
++      visible: root.visible,
++      lever: timeLeverView.getRetainedFeedbackSnapshot(),
++    }),
+     getTimeLeverScreenRect: () => {
+       if (
+         !root.visible ||
+diff --git a/src/views/time-lever-pixi.js b/src/views/time-lever-pixi.js
+index d09e7db7..7785358f 100644
+--- a/src/views/time-lever-pixi.js
++++ b/src/views/time-lever-pixi.js
+@@ -257,6 +257,12 @@ export function createTimeLeverView({
+     width,
+     trackHeight: height,
+     height: fullHeight,
++    getRetainedFeedbackSnapshot: () => ({
++      visible: timeLever.visible,
++      labelVisible: leverLabel.visible,
++      label: leverLabel.text,
++      handleY: leverHandle.y,
++    }),
+     getTrackBounds: () => leverHit.getBounds(),
+     update: updateTimeLever,
+   };
+diff --git a/src/views/ui-root-settlement-pixi.js b/src/views/ui-root-settlement-pixi.js
+index 5a8c84c3..cd7126f6 100644
+--- a/src/views/ui-root-settlement-pixi.js
++++ b/src/views/ui-root-settlement-pixi.js
+@@ -1554,6 +1554,9 @@ function publishSettlementDebugApi() {
+           regionId: settlement?.regionId ?? null, activeTab: settlement?.activeTab ?? null },
+         map: worldMapView?.getTimingSnapshot?.() ?? null,
+         graph: settlementGraphView?.getTimingSnapshot?.() ?? null,
++        transport: settlementPlayback.getRetainedPlaybackSnapshot(),
++        timeControls: timeControlsView.getRetainedFeedbackSnapshot(),
++        momentum: sunMoonDisksView.getRetainedMomentumSnapshot(),
+         life: vassalLifeMapView?.getTimingSnapshot?.() ?? null,
+         decision: vassalNodeDecisionModalView?.getTimingSnapshot?.() ?? null,
+         processingVisible: lifeProcessingView?.isVisible() === true,
+diff --git a/src/views/ui-root/settlement-playback.js b/src/views/ui-root/settlement-playback.js
+index 6799fb4d..da702355 100644
+--- a/src/views/ui-root/settlement-playback.js
++++ b/src/views/ui-root/settlement-playback.js
+@@ -361,6 +361,11 @@ export function createSettlementPlayback({
+     promoteSettlementPreviewToLive,
+     setSettlementPlaybackTarget,
+     getSettlementPlaybackState,
++    getRetainedPlaybackSnapshot: () => ({
++      target: settlementPlaybackSpeedTarget,
++      current: settlementPlaybackSpeedCurrent,
++      visualSec: settlementPlaybackViewSecFloat,
++    }),
+     getSettlementAuthoritativeState,
+     getSettlementViewedState,
+     getSettlementFrontierSec,

@@ -1,0 +1,25 @@
+{
+  "checkedAt": "2026-11-04T10:16:04.729Z",
+  "info": {
+    "performanceFixtureKey": "ec57d782e482b613d90779144d7d9aeb43cf4a01d3e1a6089fdf05954298a549",
+    "version": "1.1.52",
+    "build": "c0fbd4dc9045",
+    "revision": "ec49648ed1ef",
+    "channel": "local",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": "5184"
+  },
+  "status": {
+    "protocol": 2,
+    "workspaceId": "318fcd5d72880280",
+    "pid": 4484,
+    "desktop": "http://localhost:5184/",
+    "mobile": [
+      "http://100.105.63.49:5184/",
+      "http://192.168.1.103:5184/"
+    ]
+  },
+  "embeddedMatch": true
+}

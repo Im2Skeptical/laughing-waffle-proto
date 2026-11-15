@@ -1,0 +1,151 @@
+{
+  "started": "2026-11-15T03:39:44.363Z",
+  "finished": "2026-11-15T03:39:58.735Z",
+  "code": 0,
+  "signal": null,
+  "expired": false,
+  "spawnError": null,
+  "kill": null,
+  "classification": "NO_REPRODUCTION_NOT_A_FIX",
+  "cleanupVerified": true,
+  "outerCleanup": {
+    "status": 0,
+    "signal": null,
+    "error": null,
+    "receipt": {
+      "at": "2026-11-15T03:39:58.5019121Z",
+      "fixtureRoot": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-QhH96i",
+      "since": "2026-11-15T03:39:44.408Z",
+      "before": [],
+      "stopped": [],
+      "remaining": [],
+      "errors": [],
+      "fixturePreserved": true,
+      "scope": "Only exact registered fixture preview servers created during this attempt; no filesystem delete or other preview stopped"
+    }
+  },
+  "evidenceProblems": [],
+  "sourceAssetChanges": [],
+  "probe": {
+    "mode": "A",
+    "version": 1,
+    "started": "2026-11-15T03:39:44.408Z",
+    "fixture": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-QhH96i",
+    "helperCalls": [
+      {
+        "index": 0,
+        "stage": "main",
+        "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-QhH96i",
+        "finished": "2026-11-15T03:39:45.009Z",
+        "status": 0,
+        "signal": null,
+        "pid": null,
+        "stdoutBytes": 141,
+        "stderrBytes": null,
+        "stderrAvailable": false,
+        "native": false,
+        "exactPriorSignature": false
+      },
+      {
+        "index": 1,
+        "stage": "main",
+        "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-QhH96i",
+        "finished": "2026-11-15T03:39:45.144Z",
+        "status": 0,
+        "signal": null,
+        "pid": null,
+        "stdoutBytes": 141,
+        "stderrBytes": null,
+        "stderrAvailable": false,
+        "native": false,
+        "exactPriorSignature": false
+      },
+      {
+        "index": 2,
+        "stage": "worktrees/task-a",
+        "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-QhH96i\\worktrees\\task-a",
+        "finished": "2026-11-15T03:39:56.168Z",
+        "status": 0,
+        "signal": null,
+        "pid": null,
+        "stdoutBytes": 141,
+        "stderrBytes": null,
+        "stderrAvailable": false,
+        "native": false,
+        "exactPriorSignature": false
+      },
+      {
+        "index": 3,
+        "stage": "worktrees/task-b",
+        "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-QhH96i\\worktrees\\task-b",
+        "finished": "2026-11-15T03:39:56.748Z",
+        "status": 0,
+        "signal": null,
+        "pid": null,
+        "stdoutBytes": 141,
+        "stderrBytes": null,
+        "stderrAvailable": false,
+        "native": false,
+        "exactPriorSignature": false
+      }
+    ],
+    "prefixCompleted": true,
+    "originalError": null,
+    "cleanup": {
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "receipt": {
+        "at": "2026-11-15T03:39:57.7682235Z",
+        "fixtureRoot": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-QhH96i",
+        "since": "2026-11-15T03:39:44.408Z",
+        "before": [
+          {
+            "pid": 18688,
+            "parentPid": 4816,
+            "createdUtc": "2026-11-15T03:39:44.7250140Z",
+            "commandLine": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-QhH96i\\scripts\\local-preview.mjs --serve 50251"
+          },
+          {
+            "pid": 18124,
+            "parentPid": 1368,
+            "createdUtc": "2026-11-15T03:39:55.8574120Z",
+            "commandLine": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-QhH96i\\worktrees\\task-a\\scripts\\local-preview.mjs --serve 50252"
+          },
+          {
+            "pid": 11572,
+            "parentPid": 14908,
+            "createdUtc": "2026-11-15T03:39:56.4673190Z",
+            "commandLine": "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-QhH96i\\worktrees\\task-b\\scripts\\local-preview.mjs --serve 50253"
+          }
+        ],
+        "stopped": [
+          18688,
+          18124,
+          11572
+        ],
+        "remaining": [],
+        "errors": [],
+        "fixturePreserved": true,
+        "scope": "Only exact registered fixture preview servers created during this attempt; no filesystem delete or other preview stopped"
+      }
+    },
+    "prefixClosed": "2026-11-15T03:39:56.846Z",
+    "logCopies": [
+      {
+        "label": "main",
+        "available": true
+      },
+      {
+        "label": "task-a",
+        "available": true
+      },
+      {
+        "label": "task-b",
+        "available": true
+      }
+    ],
+    "finished": "2026-11-15T03:39:57.828Z"
+  },
+  "scope": "One bounded original-prefix diagnostic. No product latency, full test pass, native cause/fix, neutrality, scoring or retry implied."
+}

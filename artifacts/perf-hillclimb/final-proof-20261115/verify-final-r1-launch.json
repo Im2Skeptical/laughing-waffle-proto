@@ -1,0 +1,6 @@
+﻿{
+    "shellPid":  3552,
+    "started":  "2026-11-15T01:48:59.5617852Z",
+    "checkout":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104",
+    "command":  "npm run verify"
+}

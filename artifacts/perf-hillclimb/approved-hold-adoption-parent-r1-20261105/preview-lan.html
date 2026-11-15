@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Civilization Survivor</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="images/dark-fantasy/card-chrome-prototype/display.css" />
+    <!-- Keep illustrated preloads out of the minimal-graphics request path. -->
+    <script>
+      if (new URLSearchParams(location.search).get('dev') !== '1') {
+        for (const [href, as] of [
+          ['resource-language.json','fetch'], ['resource-language.png','fetch'],
+          ['chronicle-illustrations.json','fetch'], ['chronicle-illustrations.png','fetch'],
+          ['vassal-portraits.json','fetch'], ['chronicle-gate.png','image'],
+        ]) {
+          const link = document.createElement('link');
+          link.rel = 'preload'; link.as = as; link.href = 'images/sprite-sheets/' + href;
+          if (as === 'fetch') link.crossOrigin = '';
+          document.head.appendChild(link);
+        }
+      }
+    </script>
+  </head>
+  <body class="game-menu-open">
+    <div id="app"></div>
+    <script id="game-build-info" type="application/json">{"performanceFixtureKey":"d8e62f7018a37c9148e6215a4360de14978ada6a3d4085b144251b386bc70dde","version":"1.1.53","build":"6ebd1c71ebf6","revision":"0e47aa72bb8d","channel":"local","branch":"perf/hillclimb-20261104","dirty":false,"preview":true,"previewLabel":"5184"}</script>
+
+
+    <!-- Pixi 7 CDN (global PIXI) -->
+    <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js"></script>
+
+    <!-- Your ES module entrypoint -->
+    <script type="module" src="./src/views/ui-root-pixi.js"></script>
+  </body>
+</html>

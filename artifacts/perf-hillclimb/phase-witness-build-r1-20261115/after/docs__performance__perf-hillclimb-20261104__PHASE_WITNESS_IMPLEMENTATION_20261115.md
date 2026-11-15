@@ -1,0 +1,102 @@
+# Response-only preparation phase witness v1
+
+Builder `/root/phase_witness_builder`, 2026-11-15. This is a bounded harness
+diagnostic, not an optimization or acceptance. Whole Phase A remains NOT SOUND.
+Independent Auditor review, full verification and actual cases remain parent-owned.
+
+## Scope and impact
+
+Only `artwork-bundle-controls.mjs`, its existing focused Node test, and narrow
+flag/manifest/receipt plumbing in `artwork-controls.mjs` changed. This note is
+the fourth owned file. No app source, assets, package, simulation state, RNG,
+JSON schemas, authoritative ticks/replay, view pacing or readiness predicate
+changed. The opt-in served JavaScript response adds synchronous diagnostic
+overhead; there is no observer-neutrality or speed claim. The original awaits,
+callee arguments, Promise objects, error references, return values, callbacks,
+gate evaluation counts/order and short-circuiting are retained.
+
+Use `--phase-witness=1` explicitly. Default omission or `=0` is OFF. Bare or
+other-valued options fail before an output folder/server/browser is created.
+When OFF, the real response bytes match the preserved pre-change implementation
+and frozen ABBA served hash:
+`371417c244819e7497d937a0e8b8d81b9446322aa7fed781fdc33f98693eaa80`.
+
+The mechanism binds exact inspected esbuild blocks for the progressive loader
+and root preparation/onReady/onError callbacks. Missing, changed, duplicate or
+colliding bindings fail closed. It is deliberately specific to this frozen old
+bundle; a future bundle requires inspection, not guessed rebinding. Only the
+explicit ON response normalizes CRLF to LF for exact block matching. Dist files
+are never written. Existing private publication tracing/fault behavior remains.
+
+## Retained evidence
+
+`globalThis.__HC_ART_PHASE__` has `version:1`, at most32 transitions, eight retained
+loader summaries, and saturating signed-32-bit counters. `droppedEvents` and
+`droppedLoaders` disclose overflow. Every retained loader has a distinct ID,
+per-site count/last timestamp/scalar and per-gate count/denial/last result/time.
+Site keys are fixed literals in the injected source, not per-frame/state keys.
+The event list can fill during atlas work; later per-site summaries remain
+available. Inspect entered/returned site pairs, not merely `lastPhase`, because
+the atlas await can call cooperative waits internally.
+
+The witness marks loader/atlas/wait/denied-delay/idle/pre-terrain/terrain/main/
+decision/ready/pending-reveal paths and existing stale/error paths. Atlas `ok`
+and gates are tapped at their original evaluation, once. All recorded values
+are booleans/null or the root's already-captured epoch scalar. No poller, getter,
+render call, timer, frame, Promise wrapper, `.then` chain, extra await or model
+write is added. Timestamps use the existing realm's `performance.now()`.
+
+The root preparation callback captures the synchronous caller ID before its
+original first await, preserving attribution across interleaved invocations.
+The synchronous ready handoff captures its caller similarly. Root onError and
+outer rejection callbacks carry `id:null` and their existing epoch, explicitly
+unlinked; they are never attributed to whichever loader happened to run last.
+Calls beyond eight retained loaders are explicitly unretained/unlinked. Counts
+and overflow remain bounded. A zero loader count is retained as absence of
+loader entry, not invented preparation progress.
+
+Manifests pin requested flag, required version, original/served response hashes,
+actual variant metadata and observed presence/version. Setup requires exact
+presence/version (and absence when OFF). Each operation captures a bounded copy
+only after the original finish/cancel clock and original feedback collection,
+on success and failure. The reader rejects an active original operation clock,
+missing/wrong version and excessive bounds. Failure to read becomes an explicit
+collection error in an already-failing row. Final success/failure raw evidence
+also retains a post-clock phase copy after existing continuous/artwork reads.
+No phase field supplies a readiness/feedback/oracle expected value.
+
+## Focused controls and reproduction
+
+Run from the old performance checkout:
+
+```powershell
+node scripts/perf-hillclimb/artwork-bundle-controls-test.mjs
+```
+
+This focused diagnostic test intentionally requires this run's preserved before
+module and frozen ABBA plan under ignored artifacts, plus the actual frozen dist
+bundle. It is not added to the general package verification scripts. It tests
+real source bindings and actual default-byte invariance, alongside semantic
+fixtures using those same exact blocks. Controls cover missing/duplicate sites,
+collision/type rejection, module syntax, original gate order/count/short circuit,
+original thenable/native Promise identity and subscription count, callback/return/
+error identity, one `.ok` getter read, state/RNG nonmutation, held atlas/idle/main/
+decision awaits,321ms atlas delay,200ms denial and32ms idle delay, rejected atlas/
+terrain/main and thrown gates, stale queue/reveal, event/loader/counter overflow,
+and two interleaved captured loader IDs. Actual runner-reader controls reject
+active-clock/missing/wrong-version/overflow snapshots. Invalid CLI controls exit
+before runtime launch.
+
+Raw evidence directory:
+`artifacts/perf-hillclimb/phase-witness-build-r1-20261115/`.
+`before.json` and `before/` were parent-preserved before the lease. `focused-r1.log`
+retains the initial failed check: `vm.Script` cannot parse actual ESM
+`import.meta`. It was corrected to `node --check --input-type=module` without
+editing the served response. Subsequent focused receipts and final exact
+sources/hashes/diffs are retained there; see the final receipt for asset identity.
+
+No browser, benchmark, fullverify, build, actual phase case, optimization, PR,
+merge or deployment was run in this lease. Parent must independently review
+and reproduce before declaring the new two-cell OFF/ON phase diagnostic plan.
+These diagnostics remain separate from completed ABBA and ineligible for speed
+comparisons. Adding markers may perturb outcomes; retain that limitation.

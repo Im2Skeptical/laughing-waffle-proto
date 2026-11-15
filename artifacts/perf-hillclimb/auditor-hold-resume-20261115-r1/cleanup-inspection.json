@@ -1,0 +1,21 @@
+{
+  "at": "2026-11-14T21:47:50.872Z",
+  "driversExited": true,
+  "staticPort18244": "no listener observed",
+  "children": [
+    {
+      "control": "wrong-target",
+      "failed": true,
+      "finished": "2026-11-14T21:46:00.549Z",
+      "cleanupErrors": [],
+      "failureCollectionErrors": []
+    },
+    {
+      "control": "clamp-bypass",
+      "failed": true,
+      "finished": "2026-11-14T21:46:30.174Z",
+      "cleanupErrors": [],
+      "failureCollectionErrors": []
+    }
+  ]
+}

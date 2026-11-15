@@ -1,0 +1,1745 @@
+{
+  "created": "2026-11-14T21:45:20.754Z",
+  "scope": "Historical construction rows only. Ranges over heterogeneous steps/seeds; no tail or overhead-neutrality inference. No new timings. Original raw rows preserved.",
+  "sourceRun": "hold-adaptation-reference-r1-20261105",
+  "launches": 18,
+  "observations": 84,
+  "groups": [
+    {
+      "population": "desktop",
+      "job": "scrub-anchor",
+      "step": "scrub-anchor",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 841.7999999821186,
+          "max": 887.5
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 202,
+          "max": 207.69999998807907
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 1.5,
+          "max": 3.0999999940395355
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 0.7999999821186066,
+          "max": 1.5
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.10000002384185791,
+          "max": 0.20000001788139343
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 6.993300000001909,
+          "max": 9.979800000000978
+        },
+        "directTimingReadCpuMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.40000003576278687
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 17.999999821186066,
+          "max": 20.9000001847744
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.09999999403953552
+        }
+      }
+    },
+    {
+      "population": "desktop",
+      "job": "scrub-off-anchor",
+      "step": "scrub-off-anchor",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 786.5999999940395,
+          "max": 878.5999999940395
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 208.19999998807907,
+          "max": 224.59999999403954
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 1.300000011920929,
+          "max": 2.9000000059604645
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 0.4000000059604645,
+          "max": 2
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.10000002384185791,
+          "max": 0.3999999761581421
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 7.919300000001385,
+          "max": 8.0141999999978
+        },
+        "directTimingReadCpuMs": {
+          "available": 3,
+          "min": 0.20000001788139343,
+          "max": 0.30000001192092896
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 15.10000005364418,
+          "max": 17.09999978542328
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.19999998807907104
+        }
+      }
+    },
+    {
+      "population": "desktop",
+      "job": "life",
+      "step": "life-map-open",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 98.5,
+          "max": 175.40000000596046
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 98.80000001192093,
+          "max": 175.69999998807907
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 1.3999999463558197,
+          "max": 2.699999988079071
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 0.699999988079071,
+          "max": 1.7999999821186066
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.10000002384185791,
+          "max": 0.19999998807907104
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 6.113099999995029,
+          "max": 7.5046000000002095
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 0.4000000059604645,
+          "max": 0.5
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "population": "desktop",
+      "job": "life",
+      "step": "node-select",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 166.2000000178814,
+          "max": 178.59999999403954
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 175.69999998807907,
+          "max": 262.40000000596046
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 0.7999999821186066,
+          "max": 0.8999999761581421
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 0.20000001788139343,
+          "max": 0.30000001192092896
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.19999998807907104,
+          "max": 0.20000001788139343
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 6.154799999996612,
+          "max": 87.96860000000015
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 0.4000000059604645,
+          "max": 0.5000000298023224
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 79.09999999403954
+        }
+      }
+    },
+    {
+      "population": "desktop",
+      "job": "life",
+      "step": "entry-dialog-open",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 444.80000001192093,
+          "max": 452.7999999821186
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 177,
+          "max": 181.19999998807907
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 0.20000004768371582,
+          "max": 0.7999999821186066
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 0.10000002384185791,
+          "max": 0.20000001788139343
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.20000001788139343
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 5.2312999999994645,
+          "max": 5.931499999998778
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 0.6999999582767487,
+          "max": 0.9000000059604645
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.10000002384185791
+        }
+      }
+    },
+    {
+      "population": "desktop",
+      "job": "life",
+      "step": "node-entry-confirm",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 1199.300000011921,
+          "max": 1301
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 184.90000000596046,
+          "max": 198.2000000178814
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 0.6000000536441803,
+          "max": 0.9999999403953552
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 0.19999998807907104,
+          "max": 0.29999998211860657
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.19999998807907104
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 5.939399999995658,
+          "max": 16.471700000001874
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 1.5,
+          "max": 1.9999999403953552
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.09999999403953552
+        }
+      }
+    },
+    {
+      "population": "desktop",
+      "job": "life",
+      "step": "shop-category-selection",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 196.5,
+          "max": 216.7999999821186
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 196.40000000596046,
+          "max": 212.09999999403954
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 0.6999999582767487,
+          "max": 1.0000000298023224
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 0.19999998807907104,
+          "max": 0.30000001192092896
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.19999998807907104,
+          "max": 0.30000001192092896
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 5.642600000006496,
+          "max": 22.7445000000007
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 0.29999998211860657,
+          "max": 0.5999999940395355
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "population": "desktop",
+      "job": "life",
+      "step": "purchase-to-staged-preview",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 208.80000001192093,
+          "max": 274.69999998807907
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 265.89999997615814,
+          "max": 282.40000000596046
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 0.5000000596046448,
+          "max": 0.7000000178813934
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 0.10000002384185791,
+          "max": 0.20000001788139343
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.10000002384185791,
+          "max": 0.20000001788139343
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 5.930200000002515,
+          "max": 67.74960000000283
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 0.4999999701976776,
+          "max": 0.8999999761581421
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 62.39999997615814
+        }
+      }
+    },
+    {
+      "population": "desktop",
+      "job": "life",
+      "step": "confirm-to-recomputed-preview",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 2917.4000000059605,
+          "max": 2938.5999999940395
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 117.69999998807907,
+          "max": 119.59999999403954
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 0.5999999940395355,
+          "max": 0.8999999463558197
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 0.19999998807907104,
+          "max": 0.29999998211860657
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.19999998807907104,
+          "max": 0.20000001788139343
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 7.504500000010012,
+          "max": 13.40209999999206
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 3.800000011920929,
+          "max": 5.000000029802322
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.09999999403953552
+        }
+      }
+    },
+    {
+      "population": "desktop",
+      "job": "life",
+      "step": "recap-return",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 136.80000001192093,
+          "max": 206.19999998807907
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 137.09999999403954,
+          "max": 206.5
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 0.4000000059604645,
+          "max": 0.9999999701976776
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 0.10000002384185791,
+          "max": 0.30000001192092896
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.09999999403953552,
+          "max": 0.20000001788139343
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 5.007900000011432,
+          "max": 5.750500000009197
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 0.3999999761581421,
+          "max": 0.5
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "population": "desktop",
+      "job": "life",
+      "step": "return-to-map",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 395,
+          "max": 483.19999998807907
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 394.90000000596046,
+          "max": 483.09999999403954
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 0.5,
+          "max": 0.7999999821186066
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 0.19999998807907104,
+          "max": 0.20000001788139343
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.09999999403953552,
+          "max": 0.09999999403953552
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 5.723099999988335,
+          "max": 7.918900000004214
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 0.29999998211860657,
+          "max": 0.9000000059604645
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.20000001788139343
+        }
+      }
+    },
+    {
+      "population": "desktop",
+      "job": "life",
+      "step": "life-history-16",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 2297.7999999821186,
+          "max": 2957.5999999940395
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 652.5,
+          "max": 854
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 0.7000000178813934,
+          "max": 0.800000011920929
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 0.20000001788139343,
+          "max": 0.20000001788139343
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.10000002384185791,
+          "max": 0.19999998807907104
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 5.717999999993481,
+          "max": 12.585899999990943
+        },
+        "directTimingReadCpuMs": {
+          "available": 3,
+          "min": 0.30000004172325134,
+          "max": 0.5999999940395355
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 0.5000000298023224,
+          "max": 0.7000000476837158
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.09999999403953552
+        }
+      }
+    },
+    {
+      "population": "desktop",
+      "job": "life",
+      "step": "life-history-17",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 1708.5,
+          "max": 1884.699999988079
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 465.59999999403954,
+          "max": 562.3000000119209
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 0.6000000536441803,
+          "max": 1
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 0.20000001788139343,
+          "max": 0.30000001192092896
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.09999999403953552,
+          "max": 0.30000001192092896
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 5.26589999999851,
+          "max": 8.806799999991199
+        },
+        "directTimingReadCpuMs": {
+          "available": 3,
+          "min": 0.4000000059604645,
+          "max": 0.6000000238418579
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 0.3999999761581421,
+          "max": 1.0000000298023224
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.10000002384185791
+        }
+      }
+    },
+    {
+      "population": "desktop",
+      "job": "life",
+      "step": "life-present",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 226.59999999403954,
+          "max": 300.30000001192093
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 234.30000001192093,
+          "max": 314.40000000596046
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 0.6000000238418579,
+          "max": 0.7000000178813934
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 0.19999998807907104,
+          "max": 0.20000001788139343
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.09999999403953552,
+          "max": 0.20000001788139343
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 4.704400000002352,
+          "max": 5.79330000000482
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 0.30000001192092896,
+          "max": 0.5
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0
+        }
+      }
+    },
+    {
+      "population": "mobile4",
+      "job": "scrub-anchor",
+      "step": "scrub-anchor",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 1252.7999999821186,
+          "max": 1519.300000011921
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 552.0999999940395,
+          "max": 640
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 11.299999982118607,
+          "max": 16.399999976158142
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 4.799999982118607,
+          "max": 10.5
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 1,
+          "max": 3.7000000178813934
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 32.64039999998931,
+          "max": 64.34940000000643
+        },
+        "directTimingReadCpuMs": {
+          "available": 3,
+          "min": 1.600000023841858,
+          "max": 4.5999999940395355
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 47.19999995827675,
+          "max": 83.1999998986721
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0.10000002384185791,
+          "max": 0.699999988079071
+        }
+      }
+    },
+    {
+      "population": "mobile4",
+      "job": "scrub-off-anchor",
+      "step": "scrub-off-anchor",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 1007.5999999940395,
+          "max": 1264.9000000059605
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 481.09999999403954,
+          "max": 641.6000000238419
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 4.300000041723251,
+          "max": 14.700000017881393
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 1.7000000178813934,
+          "max": 7.299999982118607
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.30000001192092896,
+          "max": 4.699999988079071
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 52.597099999999045,
+          "max": 61.62300000000687
+        },
+        "directTimingReadCpuMs": {
+          "available": 3,
+          "min": 1.2000000774860382,
+          "max": 1.699999988079071
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 42.599999845027924,
+          "max": 80.89999997615814
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0.09999999403953552,
+          "max": 0.29999998211860657
+        }
+      }
+    },
+    {
+      "population": "mobile4",
+      "job": "life",
+      "step": "life-map-open",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 285.5,
+          "max": 310.19999998807907
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 283.5,
+          "max": 356.69999998807907
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 13.400000005960464,
+          "max": 22.80000001192093
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 7.299999982118607,
+          "max": 19.80000001192093
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 2.699999988079071,
+          "max": 4.9000000059604645
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 39.12829999999667,
+          "max": 77.19150000000081
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 3.0999999940395355,
+          "max": 4.600000023841858
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0.30000001192092896,
+          "max": 13
+        }
+      }
+    },
+    {
+      "population": "mobile4",
+      "job": "life",
+      "step": "node-select",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 365.5,
+          "max": 521.1000000238419
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 364.5,
+          "max": 517.8000000119209
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 4.5,
+          "max": 6.499999970197678
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 1.5999999940395355,
+          "max": 2.9000000059604645
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.800000011920929,
+          "max": 1.4000000059604645
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 12.702000000004773,
+          "max": 60.518900000010035
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 2.099999964237213,
+          "max": 9.099999994039536
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.09999999403953552
+        }
+      }
+    },
+    {
+      "population": "mobile4",
+      "job": "life",
+      "step": "entry-dialog-open",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 429.5,
+          "max": 547.6999999880791
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 332,
+          "max": 457.5
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 4.399999976158142,
+          "max": 5.499999970197678
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 1.5999999940395355,
+          "max": 2
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.29999998211860657,
+          "max": 0.9000000059604645
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 10.08179999999993,
+          "max": 53.34350000000268
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 2.0000000298023224,
+          "max": 5.300000011920929
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.20000001788139343
+        }
+      }
+    },
+    {
+      "population": "mobile4",
+      "job": "life",
+      "step": "node-entry-confirm",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 6599,
+          "max": 7455.4000000059605
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 352.5,
+          "max": 459.7000000178814
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 5.200000017881393,
+          "max": 9.699999958276749
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 2.300000011920929,
+          "max": 5.299999982118607
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.5999999940395355,
+          "max": 0.7999999821186066
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 48.92960000000312,
+          "max": 141.19109999999637
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 25.500000059604645,
+          "max": 41.199999898672104
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0.19999998807907104,
+          "max": 0.30000001192092896
+        }
+      }
+    },
+    {
+      "population": "mobile4",
+      "job": "life",
+      "step": "shop-category-selection",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 1488.9000000059605,
+          "max": 1558.800000011921
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 1014.2999999821186,
+          "max": 1343.0999999940395
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 3.9000000059604645,
+          "max": 22.200000017881393
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 1,
+          "max": 16.200000017881393
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.20000001788139343,
+          "max": 1.300000011920929
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 62.7555999999895,
+          "max": 135.48259999998845
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 2.4000000059604645,
+          "max": 3.600000023841858
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.20000001788139343
+        }
+      }
+    },
+    {
+      "population": "mobile4",
+      "job": "life",
+      "step": "purchase-to-staged-preview",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 1001.3000000119209,
+          "max": 1278.7000000178814
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 875.1000000238419,
+          "max": 1278.0999999940395
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 4.099999964237213,
+          "max": 8.499999970197678
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 1.0999999940395355,
+          "max": 5.399999976158142
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.5999999940395355,
+          "max": 0.8999999761581421
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 152.58649999999034,
+          "max": 216.61590000000433
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 1.800000011920929,
+          "max": 7
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0.09999999403953552,
+          "max": 0.20000001788139343
+        }
+      }
+    },
+    {
+      "population": "mobile4",
+      "job": "life",
+      "step": "confirm-to-recomputed-preview",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 12854.5,
+          "max": 15692.300000011921
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 441.19999998807907,
+          "max": 924.9000000059605
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 3.9000000059604645,
+          "max": 5
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 1.0999999940395355,
+          "max": 2.5
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.9000000059604645,
+          "max": 1.699999988079071
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 25.229200000001583,
+          "max": 40.148199999995995
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 37.50000014901161,
+          "max": 53.49999979138374
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0.09999999403953552,
+          "max": 0.20000001788139343
+        }
+      }
+    },
+    {
+      "population": "mobile4",
+      "job": "life",
+      "step": "recap-return",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 263.2000000178814,
+          "max": 501.2000000178814
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 310.60000002384186,
+          "max": 500.5
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 2.600000023841858,
+          "max": 4.299999952316284
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 1,
+          "max": 1.5
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.09999999403953552,
+          "max": 0.5
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 9.256400000012945,
+          "max": 38.95660000000498
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 2.399999976158142,
+          "max": 15.400000035762787
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.09999999403953552
+        }
+      }
+    },
+    {
+      "population": "mobile4",
+      "job": "life",
+      "step": "return-to-map",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 2335.4000000059605,
+          "max": 3064.5
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 1945.199999988079,
+          "max": 2660
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 3.100000023841858,
+          "max": 5.5
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 0.7999999821186066,
+          "max": 2
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.20000001788139343,
+          "max": 1.4000000059604645
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 14.018500000005588,
+          "max": 120.9492999999784
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 1.0999999940395355,
+          "max": 7.5999999940395355
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.09999999403953552
+        }
+      }
+    },
+    {
+      "population": "mobile4",
+      "job": "life",
+      "step": "life-history-16",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 3553.2000000178814,
+          "max": 4406.5
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 1295,
+          "max": 1447.199999988079
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 3.2999999821186066,
+          "max": 4
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 0.800000011920929,
+          "max": 1.7000000178813934
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.7999999821186066,
+          "max": 1
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 54.81049999999232,
+          "max": 144.05280000000494
+        },
+        "directTimingReadCpuMs": {
+          "available": 3,
+          "min": 3.099999964237213,
+          "max": 11
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 1.8000000417232513,
+          "max": 5.200000017881393
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0.19999998807907104,
+          "max": 0.5999999940395355
+        }
+      }
+    },
+    {
+      "population": "mobile4",
+      "job": "life",
+      "step": "life-history-17",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 1784.699999988079,
+          "max": 2111.5
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 661.7999999821186,
+          "max": 872.6999999880791
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 4.999999970197678,
+          "max": 7.200000017881393
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 1.9000000059604645,
+          "max": 4.5
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.09999999403953552,
+          "max": 1.699999988079071
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 19.665199999988545,
+          "max": 65.5743000000075
+        },
+        "directTimingReadCpuMs": {
+          "available": 3,
+          "min": 1.2999999821186066,
+          "max": 13.400000035762787
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 2.2999999821186066,
+          "max": 5.5
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.19999998807907104
+        }
+      }
+    },
+    {
+      "population": "mobile4",
+      "job": "life",
+      "step": "life-present",
+      "n": 3,
+      "passes": 3,
+      "feedbackPhases": {
+        "completed": 3
+      },
+      "values": {
+        "terminalElapsedMs": {
+          "available": 3,
+          "min": 1327.2999999821186,
+          "max": 1603.6000000238419
+        },
+        "firstFeedbackMs": {
+          "available": 3,
+          "min": 1326.2999999821186,
+          "max": 1603
+        },
+        "feedbackReadCpuMs": {
+          "available": 3,
+          "min": 4.299999982118607,
+          "max": 12.600000023841858
+        },
+        "feedbackMaxReadCpuMs": {
+          "available": 3,
+          "min": 1.9000000059604645,
+          "max": 9.400000005960464
+        },
+        "feedbackCollectionCpuMs": {
+          "available": 3,
+          "min": 0.5999999940395355,
+          "max": 3.4000000059604645
+        },
+        "feedbackExportCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "feedbackHostRpcMs": {
+          "available": 3,
+          "min": 41.071300000010524,
+          "max": 48.79509999998845
+        },
+        "directTimingReadCpuMs": {
+          "available": 0,
+          "min": null,
+          "max": null
+        },
+        "terminalProbeCpuMs": {
+          "available": 3,
+          "min": 2.2999999821186066,
+          "max": 4.599999964237213
+        },
+        "collectionWindowElapsedMs": {
+          "available": 3,
+          "min": 0,
+          "max": 0.09999999403953552
+        }
+      }
+    }
+  ]
+}

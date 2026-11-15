@@ -1,0 +1,16 @@
+{
+  "case": "reference",
+  "contextClosed": true,
+  "browserClosed": true,
+  "errors": [],
+  "browserConnected": false,
+  "lifetime": {
+    "label": "artwork reference",
+    "status": "cancelled",
+    "hostStartedMs": 8718.4388,
+    "hostDeadlineMs": 2888718.4388,
+    "reason": "page.evaluate: Execution context was destroyed, most likely because of a navigation.",
+    "unconfirmedWork": [],
+    "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+  }
+}

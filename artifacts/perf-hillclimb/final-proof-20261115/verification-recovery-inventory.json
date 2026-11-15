@@ -1,0 +1,23 @@
+﻿[
+    {
+        "commandLine":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-DgiD5s\\scripts\\local-preview.mjs --serve 56097",
+        "pid":  14852,
+        "parentPid":  38216,
+        "createdUtc":  "2026-11-13T00:48:26.9770790Z",
+        "createdDuringFinalVerify":  false
+    },
+    {
+        "commandLine":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-DgiD5s\\worktrees\\task-a\\scripts\\local-preview.mjs --serve 56098",
+        "pid":  35516,
+        "parentPid":  16196,
+        "createdUtc":  "2026-11-13T00:48:40.4713350Z",
+        "createdDuringFinalVerify":  false
+    },
+    {
+        "commandLine":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-DgiD5s\\worktrees\\task-b\\scripts\\local-preview.mjs --serve 56099",
+        "pid":  39104,
+        "parentPid":  40632,
+        "createdUtc":  "2026-11-13T00:48:41.9880240Z",
+        "createdDuringFinalVerify":  false
+    }
+]

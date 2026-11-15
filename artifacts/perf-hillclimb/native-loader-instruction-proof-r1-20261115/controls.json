@@ -1,0 +1,133 @@
+{
+  "at": "2026-11-15T06:43:37.114Z",
+  "cases": [
+    {
+      "name": "reachable INT3 excludes post-return padding",
+      "hex": "ccc3cc",
+      "expected": [
+        0
+      ],
+      "errorPart": null,
+      "error": null,
+      "asExpected": true
+    },
+    {
+      "name": "CC immediate is not an instruction",
+      "hex": "b8cc000000ccc3",
+      "expected": [
+        5
+      ],
+      "errorPart": null,
+      "error": null,
+      "asExpected": true
+    },
+    {
+      "name": "SIB displacement and immediate boundaries",
+      "hex": "c6442400ccccc3",
+      "expected": [
+        5
+      ],
+      "errorPart": null,
+      "error": null,
+      "asExpected": true
+    },
+    {
+      "name": "conditional skip preserves both reachable paths",
+      "hex": "7501ccc3",
+      "expected": [
+        2
+      ],
+      "errorPart": null,
+      "error": null,
+      "asExpected": true
+    },
+    {
+      "name": "direct jump skips padding trap",
+      "hex": "eb01ccc3",
+      "expected": [],
+      "errorPart": null,
+      "error": null,
+      "asExpected": true
+    },
+    {
+      "name": "CALL rel32 falls through in local graph",
+      "hex": "e800000000ccc3",
+      "expected": [
+        5
+      ],
+      "errorPart": null,
+      "error": null,
+      "asExpected": true
+    },
+    {
+      "name": "branch into operand rejected",
+      "hex": "ebffccc3",
+      "expected": null,
+      "errorPart": "control target outside instruction boundary",
+      "error": "control target outside instruction boundary",
+      "asExpected": true
+    },
+    {
+      "name": "truncated CALL rejected",
+      "hex": "e8ffff",
+      "expected": null,
+      "errorPart": "truncated instruction",
+      "error": "truncated instruction",
+      "asExpected": true
+    },
+    {
+      "name": "truncated immediate rejected",
+      "hex": "4883ec",
+      "expected": null,
+      "errorPart": "truncated instruction",
+      "error": "truncated instruction",
+      "asExpected": true
+    },
+    {
+      "name": "unsupported legacy prefix rejected",
+      "hex": "66ccc3",
+      "expected": null,
+      "errorPart": "unsupported opcode",
+      "error": "unsupported opcode:66",
+      "asExpected": true
+    },
+    {
+      "name": "invalid LEA register encoding rejected",
+      "hex": "488dcc",
+      "expected": null,
+      "errorPart": "LEA register form invalid",
+      "error": "LEA register form invalid",
+      "asExpected": true
+    },
+    {
+      "name": "invalid MOV group rejected",
+      "hex": "c7c801000000ccc3",
+      "expected": null,
+      "errorPart": "unsupported MOV group",
+      "error": "unsupported MOV group\n\n1 !== 0\n",
+      "asExpected": true
+    },
+    {
+      "name": "fallthrough outside function rejected",
+      "hex": "cc",
+      "expected": null,
+      "errorPart": "control target outside instruction boundary",
+      "error": "control target outside instruction boundary",
+      "asExpected": true
+    },
+    {
+      "name": "local cycle rejected",
+      "hex": "ebfec3",
+      "expected": null,
+      "errorPart": "control cycle unsupported",
+      "error": "control cycle unsupported",
+      "asExpected": true
+    }
+  ],
+  "allExpected": true,
+  "sourcePins": {
+    "decode.mjs": "aaab992e244ef6006dba45de175453eb6e81a8d1b3116653f2ebb0bcaddb6e19",
+    "controls.mjs": "c2d1ffb3ab5299105406d7968469b6a65936c6c2dc46d9e15c315fdd67446cb9"
+  },
+  "scope": "Builder pure subset controls, no real function input or native/API/helper/target. Not independent proof of decoder or continuation policy."
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "population": "desktop",
+    "job": "scrub",
+    "artwork": "off"
+  },
+  {
+    "population": "desktop",
+    "job": "save",
+    "artwork": "off"
+  },
+  {
+    "population": "desktop",
+    "job": "life",
+    "artwork": "off"
+  },
+  {
+    "population": "mobile4",
+    "job": "scrub",
+    "artwork": "off"
+  },
+  {
+    "population": "mobile4",
+    "job": "save",
+    "artwork": "off"
+  },
+  {
+    "population": "mobile4",
+    "job": "life",
+    "artwork": "off"
+  }
+]

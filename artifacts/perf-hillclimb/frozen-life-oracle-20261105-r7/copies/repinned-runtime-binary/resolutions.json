@@ -1,0 +1,2576 @@
+[
+  {
+    "importer": "",
+    "path": "life-entry.mjs",
+    "resolved": "life-entry.mjs",
+    "kind": "entry-point"
+  },
+  {
+    "importer": "life-entry.mjs",
+    "path": "./src/model/actions.js",
+    "resolved": "src/model/actions.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "life-entry.mjs",
+    "path": "./src/model/vassal-life-map/presentation.js",
+    "resolved": "src/model/vassal-life-map/presentation.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "life-entry.mjs",
+    "path": "./src/model/canonicalize.js",
+    "resolved": "src/model/canonicalize.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/canonicalize.js",
+    "path": "./state.js",
+    "resolved": "src/model/state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/actions.js",
+    "path": "./detailed-settlements/territory.js",
+    "resolved": "src/model/detailed-settlements/territory.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/canonicalize.js",
+    "path": "./world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/actions.js",
+    "path": "./commands/settlement-vassal-commands.js",
+    "resolved": "src/model/commands/settlement-vassal-commands.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/actions.js",
+    "path": "./commands/debug-commands.js",
+    "resolved": "src/model/commands/debug-commands.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/actions.js",
+    "path": "./commands/regional-practice-commands.js",
+    "resolved": "src/model/commands/regional-practice-commands.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/actions.js",
+    "path": "./commands/ap-helpers.js",
+    "resolved": "src/model/commands/ap-helpers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "./treasury.js",
+    "resolved": "src/model/vassal-life-map/treasury.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "./class-rules.js",
+    "resolved": "src/model/vassal-life-map/class-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "./multiplier-preview.js",
+    "resolved": "src/model/vassal-life-map/multiplier-preview.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/commands/settlement-vassal-commands.js",
+    "path": "../vassal-life-map.js",
+    "resolved": "src/model/vassal-life-map.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/commands/ap-helpers.js",
+    "path": "../../defs/gamesettings/gamerules-defs.js",
+    "resolved": "src/defs/gamesettings/gamerules-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/commands/regional-practice-commands.js",
+    "path": "../regional-practices.js",
+    "resolved": "src/model/regional-practices.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "../detailed-settlements/practice-events.js",
+    "resolved": "src/model/detailed-settlements/practice-events.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/commands/ap-helpers.js",
+    "path": "../moon.js",
+    "resolved": "src/model/moon.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/commands/regional-practice-commands.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/commands/ap-helpers.js",
+    "path": "../skills.js",
+    "resolved": "src/model/skills.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "../life-map-balance.js",
+    "resolved": "src/model/life-map-balance.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map.js",
+    "path": "./vassal-life-map/selectors.js",
+    "resolved": "src/model/vassal-life-map/selectors.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/commands/debug-commands.js",
+    "path": "../../defs/gamepieces/env-events-defs.js",
+    "resolved": "src/defs/gamepieces/env-events-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/territory.js",
+    "path": "./neutral-market.js",
+    "resolved": "src/model/detailed-settlements/neutral-market.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/world-state.js",
+    "path": "./detailed-settlements/population-ledger.js",
+    "resolved": "src/model/detailed-settlements/population-ledger.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state.js",
+    "path": "../defs/gamesettings/gamerules-defs.js",
+    "resolved": "src/defs/gamesettings/gamerules-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "./shop-specialties.js",
+    "resolved": "src/model/vassal-life-map/shop-specialties.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map.js",
+    "path": "./vassal-life-map/shop.js",
+    "resolved": "src/model/vassal-life-map/shop.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/commands/debug-commands.js",
+    "path": "../../defs/gamepieces/hub-structure-defs.js",
+    "resolved": "src/defs/gamepieces/hub-structure-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/territory.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state.js",
+    "path": "../defs/gamepieces/env-tiles-defs.js",
+    "resolved": "src/defs/gamepieces/env-tiles-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "../../defs/vassal-class-rules.js",
+    "resolved": "src/defs/vassal-class-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/world-state.js",
+    "path": "./structure-layout.js",
+    "resolved": "src/model/structure-layout.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/commands/debug-commands.js",
+    "path": "../../defs/gamepieces/settlement-practice-defs.js",
+    "resolved": "src/defs/gamepieces/settlement-practice-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map.js",
+    "path": "./vassal-life-map/commissions.js",
+    "resolved": "src/model/vassal-life-map/commissions.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/moon.js",
+    "path": "../defs/gamesettings/gamerules-defs.js",
+    "resolved": "src/defs/gamesettings/gamerules-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/territory.js",
+    "path": "./queries.js",
+    "resolved": "src/model/detailed-settlements/queries.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state.js",
+    "path": "./rng.js",
+    "resolved": "src/model/rng.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/world-state.js",
+    "path": "./world-definitions.js",
+    "resolved": "src/model/world-definitions.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "./campaign.js",
+    "resolved": "src/model/vassal-life-map/campaign.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/commands/debug-commands.js",
+    "path": "../state.js",
+    "resolved": "src/model/state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map.js",
+    "path": "./vassal-life-map/lifecycle.js",
+    "resolved": "src/model/vassal-life-map/lifecycle.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/world-state.js",
+    "path": "../defs/world/detailed-settlement-scenario.js",
+    "resolved": "src/defs/world/detailed-settlement-scenario.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/territory.js",
+    "path": "./population-ledger.js",
+    "resolved": "src/model/detailed-settlements/population-ledger.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state.js",
+    "path": "./moon.js",
+    "resolved": "src/model/moon.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "./world-choices.js",
+    "resolved": "src/model/vassal-life-map/world-choices.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/regional-practices.js",
+    "path": "../defs/gamepieces/regional-practice-defs.js",
+    "resolved": "src/defs/gamepieces/regional-practice-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/commands/debug-commands.js",
+    "path": "./ap-helpers.js",
+    "resolved": "src/model/commands/ap-helpers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/world-state.js",
+    "path": "../defs/gamepieces/detailed-settlement-defs.js",
+    "resolved": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map.js",
+    "path": "./vassal-life-map/presentation.js",
+    "resolved": "src/model/vassal-life-map/presentation.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state.js",
+    "path": "./skills.js",
+    "resolved": "src/model/skills.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/territory.js",
+    "path": "./stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "../detailed-settlements/stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/regional-practices.js",
+    "path": "./world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/commands/debug-commands.js",
+    "path": "../settlement-state.js",
+    "resolved": "src/model/settlement-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map.js",
+    "path": "./vassal-life-map/heirlooms.js",
+    "resolved": "src/model/vassal-life-map/heirlooms.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/world-state.js",
+    "path": "./detailed-practice-tiers.js",
+    "resolved": "src/model/detailed-practice-tiers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state.js",
+    "path": "../defs/gamesettings/variant-flags-defs.js",
+    "resolved": "src/defs/gamesettings/variant-flags-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/territory.js",
+    "path": "../vassal-life-map/selectors.js",
+    "resolved": "src/model/vassal-life-map/selectors.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "../detailed-settlements/practices.js",
+    "resolved": "src/model/detailed-settlements/practices.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/commands/debug-commands.js",
+    "path": "../settlement-exec.js",
+    "resolved": "src/model/settlement-exec.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/world-state.js",
+    "path": "./detailed-settlements/cohorts.js",
+    "resolved": "src/model/detailed-settlements/cohorts.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state.js",
+    "path": "./persistent-memory.js",
+    "resolved": "src/model/persistent-memory.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/territory.js",
+    "path": "./practice-events.js",
+    "resolved": "src/model/detailed-settlements/practice-events.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "../gamepiece-presentation.js",
+    "resolved": "src/model/gamepiece-presentation.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/commands/debug-commands.js",
+    "path": "../settlement-order-exec.js",
+    "resolved": "src/model/settlement-order-exec.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/world-state.js",
+    "path": "./detailed-settlements/neutral-market.js",
+    "resolved": "src/model/detailed-settlements/neutral-market.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state.js",
+    "path": "./world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "../../defs/gamepieces/vassal-life-map-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-life-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/commands/debug-commands.js",
+    "path": "../effects/core/tiers.js",
+    "resolved": "src/model/effects/core/tiers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle.js",
+    "path": "./lifecycle/candidates.js",
+    "resolved": "src/model/vassal-life-map/lifecycle/candidates.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state.js",
+    "path": "./game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/commands/debug-commands.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle.js",
+    "path": "./heirlooms.js",
+    "resolved": "src/model/vassal-life-map/heirlooms.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state.js",
+    "path": "./vassal-life-map.js",
+    "resolved": "src/model/vassal-life-map.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/practice-events.js",
+    "path": "../chaos-values.js",
+    "resolved": "src/model/chaos-values.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/neutral-market.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/commissions.js",
+    "path": "./treasury.js",
+    "resolved": "src/model/vassal-life-map/treasury.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/queries.js",
+    "path": "./stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "../moon-phases.js",
+    "resolved": "src/model/moon-phases.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle.js",
+    "path": "./lifecycle/node-confirm.js",
+    "resolved": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/neutral-market.js",
+    "path": "./stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/queries.js",
+    "path": "../../defs/gamepieces/detailed-settlement-defs.js",
+    "resolved": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/commissions.js",
+    "path": "../../defs/vassal-class-rules.js",
+    "resolved": "src/defs/vassal-class-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state.js",
+    "path": "./state/board-legacy.js",
+    "resolved": "src/model/state/board-legacy.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/defs/world/detailed-settlement-scenario.js",
+    "path": "../gamepieces/detailed-settlement-defs.js",
+    "resolved": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle.js",
+    "path": "./lifecycle/step.js",
+    "resolved": "src/model/vassal-life-map/lifecycle/step.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/world-definitions.js",
+    "path": "../defs/world/world-map-defs.js",
+    "resolved": "src/defs/world/world-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/heirlooms.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/commissions.js",
+    "path": "../../defs/gamepieces/vassal-life-map-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-life-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state.js",
+    "path": "./state/pawn-legacy.js",
+    "resolved": "src/model/state/pawn-legacy.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/queries.js",
+    "path": "../../defs/world/detailed-settlement-scenario.js",
+    "resolved": "src/defs/world/detailed-settlement-scenario.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "./selectors.js",
+    "resolved": "src/model/vassal-life-map/selectors.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/selectors.js",
+    "path": "../detailed-settlements/population-ledger.js",
+    "resolved": "src/model/detailed-settlements/population-ledger.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/world-definitions.js",
+    "path": "./regional-map/definition.js",
+    "resolved": "src/model/regional-map/definition.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/heirlooms.js",
+    "path": "./relic-pools.js",
+    "resolved": "src/model/vassal-life-map/relic-pools.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/stock.js",
+    "path": "./population-ledger.js",
+    "resolved": "src/model/detailed-settlements/population-ledger.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/defs/gamepieces/env-events-defs.js",
+    "path": "../tooltip-ui-utils.js",
+    "resolved": "src/defs/tooltip-ui-utils.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/queries.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/commissions.js",
+    "path": "../../defs/gamepieces/detailed-settlement-defs.js",
+    "resolved": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/selectors.js",
+    "path": "../../defs/gamepieces/vassal-life-map-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-life-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/heirlooms.js",
+    "path": "../../defs/gamepieces/vassal-heirloom-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-heirloom-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "./heirlooms.js",
+    "resolved": "src/model/vassal-life-map/heirlooms.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/stock.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/defs/gamepieces/hub-structure-defs.js",
+    "path": "../tooltip-ui-utils.js",
+    "resolved": "src/defs/tooltip-ui-utils.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/defs/gamepieces/settlement-practice-defs.js",
+    "path": "../gamesettings/gamerules-defs.js",
+    "resolved": "src/defs/gamesettings/gamerules-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/queries.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/selectors.js",
+    "path": "../../defs/gamesettings/moon-phase-defs.js",
+    "resolved": "src/defs/gamesettings/moon-phase-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/commissions.js",
+    "path": "../../defs/gamepieces/vassal-heirloom-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-heirloom-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/heirlooms.js",
+    "path": "../../defs/gamepieces/vassal-life-map-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-life-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "./shop.js",
+    "resolved": "src/model/vassal-life-map/shop.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/queries.js",
+    "path": "./helpers.js",
+    "resolved": "src/model/detailed-settlements/helpers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/selectors.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/stock.js",
+    "path": "./cohorts.js",
+    "resolved": "src/model/detailed-settlements/cohorts.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/defs/gamepieces/settlement-practice-defs.js",
+    "path": "../tooltip-ui-utils.js",
+    "resolved": "src/defs/tooltip-ui-utils.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "../../defs/gamepieces/full-map-defs.js",
+    "resolved": "src/defs/gamepieces/full-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/presentation.js",
+    "path": "./lifecycle.js",
+    "resolved": "src/model/vassal-life-map/lifecycle.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/commissions.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/selectors.js",
+    "path": "../moon-phases.js",
+    "resolved": "src/model/moon-phases.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/stock.js",
+    "path": "./practice-events.js",
+    "resolved": "src/model/detailed-settlements/practice-events.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-state.js",
+    "path": "../defs/gamesettings/gamerules-defs.js",
+    "resolved": "src/defs/gamesettings/gamerules-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state/pawn-legacy.js",
+    "path": "../../defs/gamesettings/gamerules-defs.js",
+    "resolved": "src/defs/gamesettings/gamerules-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/defs/world/world-map-defs.js",
+    "path": "./detailed-settlement-scenario.js",
+    "resolved": "src/defs/world/detailed-settlement-scenario.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/regional-map/definition.js",
+    "path": "./names.js",
+    "resolved": "src/model/regional-map/names.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/step.js",
+    "path": "../../../defs/gamepieces/vassal-life-map-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-life-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/defs/gamepieces/env-tiles-defs.js",
+    "path": "../tooltip-ui-utils.js",
+    "resolved": "src/defs/tooltip-ui-utils.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "./treasury.js",
+    "resolved": "src/model/vassal-life-map/treasury.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/commissions.js",
+    "path": "../research-progression.js",
+    "resolved": "src/model/research-progression.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/selectors.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/stock.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-order-exec.js",
+    "path": "../defs/gamepieces/settlement-order-defs.js",
+    "resolved": "src/defs/gamepieces/settlement-order-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/candidates.js",
+    "path": "../commissions.js",
+    "resolved": "src/model/vassal-life-map/commissions.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state/pawn-legacy.js",
+    "path": "./board-legacy.js",
+    "resolved": "src/model/state/board-legacy.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/regional-map/definition.js",
+    "path": "./generator.js",
+    "resolved": "src/model/regional-map/generator.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/step.js",
+    "path": "../../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/relic-pools.js",
+    "path": "../../defs/gamepieces/vassal-heirloom-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-heirloom-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-state.js",
+    "path": "./effects/core/tiers.js",
+    "resolved": "src/model/effects/core/tiers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state/board-legacy.js",
+    "path": "../../defs/gamepieces/hub-structure-defs.js",
+    "resolved": "src/defs/gamepieces/hub-structure-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/commissions.js",
+    "path": "../detailed-practice-tiers.js",
+    "resolved": "src/model/detailed-practice-tiers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "./class-rules.js",
+    "resolved": "src/model/vassal-life-map/class-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/selectors.js",
+    "path": "./heirlooms.js",
+    "resolved": "src/model/vassal-life-map/heirlooms.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-order-exec.js",
+    "path": "../defs/gamepieces/settlement-practice-defs.js",
+    "resolved": "src/defs/gamepieces/settlement-practice-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/stock.js",
+    "path": "./biome-multipliers.js",
+    "resolved": "src/model/detailed-settlements/biome-multipliers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/candidates.js",
+    "path": "../../detailed-settlements/stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/game-config.js",
+    "path": "./mechanic-validation.js",
+    "resolved": "src/model/mechanic-validation.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/helpers.js",
+    "path": "./population-ledger.js",
+    "resolved": "src/model/detailed-settlements/population-ledger.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/step.js",
+    "path": "../../vassal-life-map-generator.js",
+    "resolved": "src/model/vassal-life-map-generator.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/moon-phases.js",
+    "path": "../defs/gamesettings/moon-phase-defs.js",
+    "resolved": "src/defs/gamesettings/moon-phase-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-state.js",
+    "path": "./world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state/board-legacy.js",
+    "path": "../../defs/gamesystems/hub-system-defs.js",
+    "resolved": "src/defs/gamesystems/hub-system-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/commissions.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/treasury.js",
+    "path": "./commissions.js",
+    "resolved": "src/model/vassal-life-map/commissions.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/class-rules.js",
+    "path": "../../defs/vassal-class-rules.js",
+    "resolved": "src/defs/vassal-class-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "../life-map-balance.js",
+    "resolved": "src/model/life-map-balance.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/multiplier-preview.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/selectors.js",
+    "path": "../../defs/vassal-stat-defs.js",
+    "resolved": "src/defs/vassal-stat-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-order-exec.js",
+    "path": "./settlement-state.js",
+    "resolved": "src/model/settlement-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/stock.js",
+    "path": "../keywords-classes-prototype.js",
+    "resolved": "src/model/keywords-classes-prototype.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/candidates.js",
+    "path": "../../detailed-settlements/practice-events.js",
+    "resolved": "src/model/detailed-settlements/practice-events.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/game-config.js",
+    "path": "./keywords-classes-prototype.js",
+    "resolved": "src/model/keywords-classes-prototype.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop-specialties.js",
+    "path": "../../defs/gamepieces/full-map-defs.js",
+    "resolved": "src/defs/gamepieces/full-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/helpers.js",
+    "path": "./cohorts.js",
+    "resolved": "src/model/detailed-settlements/cohorts.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/step.js",
+    "path": "../selectors.js",
+    "resolved": "src/model/vassal-life-map/selectors.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/world-choices.js",
+    "path": "./treasury.js",
+    "resolved": "src/model/vassal-life-map/treasury.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-exec.js",
+    "path": "../defs/gamepieces/hub-structure-defs.js",
+    "resolved": "src/defs/gamepieces/hub-structure-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-state.js",
+    "path": "./vassal-life-map/selectors.js",
+    "resolved": "src/model/vassal-life-map/selectors.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state/board-legacy.js",
+    "path": "../../defs/gamepieces/env-events-defs.js",
+    "resolved": "src/defs/gamepieces/env-events-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/commissions.js",
+    "path": "./selectors.js",
+    "resolved": "src/model/vassal-life-map/selectors.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/moon-phases.js",
+    "path": "./game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/class-rules.js",
+    "path": "../life-map-balance.js",
+    "resolved": "src/model/life-map-balance.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "./shop-specialties.js",
+    "resolved": "src/model/vassal-life-map/shop-specialties.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/multiplier-preview.js",
+    "path": "../detailed-settlements/stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../treasury.js",
+    "resolved": "src/model/vassal-life-map/treasury.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/selectors.js",
+    "path": "../../defs/vassal-class-rules.js",
+    "resolved": "src/defs/vassal-class-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-order-exec.js",
+    "path": "./settlement-leadership.js",
+    "resolved": "src/model/settlement-leadership.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/candidates.js",
+    "path": "../../../defs/gamepieces/vassal-life-map-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-life-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/stock.js",
+    "path": "../practice-keywords.js",
+    "resolved": "src/model/practice-keywords.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/game-config.js",
+    "path": "../defs/mechanics.js",
+    "resolved": "src/defs/mechanics.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop-specialties.js",
+    "path": "../practice-draft.js",
+    "resolved": "src/model/practice-draft.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/life-map-balance.js",
+    "path": "../defs/gamepieces/vassal-life-map-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-life-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/helpers.js",
+    "path": "../../defs/gamepieces/detailed-settlement-defs.js",
+    "resolved": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-state.js",
+    "path": "./settlement-state/hub-legacy.js",
+    "resolved": "src/model/settlement-state/hub-legacy.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/world-choices.js",
+    "path": "../../defs/vassal-workshop-rules.js",
+    "resolved": "src/defs/vassal-workshop-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/step.js",
+    "path": "../shop.js",
+    "resolved": "src/model/vassal-life-map/shop.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/class-rules.js",
+    "path": "./selectors.js",
+    "resolved": "src/model/vassal-life-map/selectors.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state/board-legacy.js",
+    "path": "../../defs/gamepieces/env-tiles-defs.js",
+    "resolved": "src/defs/gamepieces/env-tiles-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-exec.js",
+    "path": "../defs/gamepieces/settlement-practice-defs.js",
+    "resolved": "src/defs/gamepieces/settlement-practice-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "../../defs/vassal-workshop-rules.js",
+    "resolved": "src/defs/vassal-workshop-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/multiplier-preview.js",
+    "path": "../detailed-settlements/workers.js",
+    "resolved": "src/model/detailed-settlements/workers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../settlement-state.js",
+    "resolved": "src/model/settlement-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/candidates.js",
+    "path": "../../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/world-choices.js",
+    "path": "../../defs/gamepieces/vassal-life-map-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-life-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop-specialties.js",
+    "path": "./treasury.js",
+    "resolved": "src/model/vassal-life-map/treasury.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/game-config.js",
+    "path": "../defs/gamepieces/detailed-settlement-defs.js",
+    "resolved": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/class-rules.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/step.js",
+    "path": "./candidates.js",
+    "resolved": "src/model/vassal-life-map/lifecycle/candidates.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/gamepiece-presentation.js",
+    "path": "../defs/mechanics.js",
+    "resolved": "src/defs/mechanics.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state/board-legacy.js",
+    "path": "../settlement-state.js",
+    "resolved": "src/model/settlement-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/campaign.js",
+    "path": "../detailed-settlements/territory.js",
+    "resolved": "src/model/detailed-settlements/territory.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-exec.js",
+    "path": "./state.js",
+    "resolved": "src/model/state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "../moon-phases.js",
+    "resolved": "src/model/moon-phases.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/multiplier-preview.js",
+    "path": "../practice-reading.js",
+    "resolved": "src/model/practice-reading.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../life-map-balance.js",
+    "resolved": "src/model/life-map-balance.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/candidates.js",
+    "path": "../../vassal-life-map-generator.js",
+    "resolved": "src/model/vassal-life-map-generator.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/research-progression.js",
+    "path": "./game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/world-choices.js",
+    "path": "../../defs/gamepieces/vassal-heirloom-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-heirloom-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop-specialties.js",
+    "path": "../../defs/vassal-workshop-rules.js",
+    "resolved": "src/defs/vassal-workshop-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/game-config.js",
+    "path": "../defs/gamesettings/moon-phase-defs.js",
+    "resolved": "src/defs/gamesettings/moon-phase-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/class-rules.js",
+    "path": "../moon-phases.js",
+    "resolved": "src/model/moon-phases.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/step.js",
+    "path": "../commissions.js",
+    "resolved": "src/model/vassal-life-map/commissions.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/gamepiece-presentation.js",
+    "path": "./mechanic-readings.js",
+    "resolved": "src/model/mechanic-readings.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/practices.js",
+    "path": "../../defs/mechanics.js",
+    "resolved": "src/defs/mechanics.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/campaign.js",
+    "path": "../detailed-settlements/population-ledger.js",
+    "resolved": "src/model/detailed-settlements/population-ledger.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-exec.js",
+    "path": "./effects/core/tiers.js",
+    "resolved": "src/model/effects/core/tiers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state/board-legacy.js",
+    "path": "../settlement-upgrades.js",
+    "resolved": "src/model/settlement-upgrades.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "../detailed-settlements/stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/biome-multipliers.js",
+    "path": "../../defs/world/biome-multiplier-rules.js",
+    "resolved": "src/defs/world/biome-multiplier-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/defs/gamepieces/settlement-order-defs.js",
+    "path": "../tooltip-ui-utils.js",
+    "resolved": "src/defs/tooltip-ui-utils.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../class-rules.js",
+    "resolved": "src/model/vassal-life-map/class-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/candidates.js",
+    "path": "../../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/research-progression.js",
+    "path": "./detailed-practice-tiers.js",
+    "resolved": "src/model/detailed-practice-tiers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/practice-keywords.js",
+    "path": "./detailed-settlements/synthesis.js",
+    "resolved": "src/model/detailed-settlements/synthesis.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/keywords-classes-prototype.js",
+    "path": "./detailed-settlements/synthesis.js",
+    "resolved": "src/model/detailed-settlements/synthesis.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-leadership.js",
+    "path": "../defs/gamepieces/settlement-practice-defs.js",
+    "resolved": "src/defs/gamepieces/settlement-practice-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/world-choices.js",
+    "path": "../../defs/gamesettings/moon-phase-defs.js",
+    "resolved": "src/defs/gamesettings/moon-phase-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/game-config.js",
+    "path": "./practice-outputs.js",
+    "resolved": "src/model/practice-outputs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/step.js",
+    "path": "./node-confirm.js",
+    "resolved": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop-specialties.js",
+    "path": "../../defs/gamepieces/detailed-settlement-defs.js",
+    "resolved": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-exec.js",
+    "path": "./settlement-state.js",
+    "resolved": "src/model/settlement-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/campaign.js",
+    "path": "./treasury.js",
+    "resolved": "src/model/vassal-life-map/treasury.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/gamepiece-presentation.js",
+    "path": "./keywords-classes-prototype.js",
+    "resolved": "src/model/keywords-classes-prototype.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state/board-legacy.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/practices.js",
+    "path": "../mechanic-validation.js",
+    "resolved": "src/model/mechanic-validation.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/biome-multipliers.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "../detailed-settlements/queries.js",
+    "resolved": "src/model/detailed-settlements/queries.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../../defs/vassal-class-rules.js",
+    "resolved": "src/defs/vassal-class-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/candidates.js",
+    "path": "../selectors.js",
+    "resolved": "src/model/vassal-life-map/selectors.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/practice-keywords.js",
+    "path": "../defs/mechanics.js",
+    "resolved": "src/defs/mechanics.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/keywords-classes-prototype.js",
+    "path": "./practice-keywords.js",
+    "resolved": "src/model/practice-keywords.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/world-choices.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/regional-map/generator.js",
+    "path": "./biome-clustering.js",
+    "resolved": "src/model/regional-map/biome-clustering.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop-specialties.js",
+    "path": "../../defs/gamepieces/vassal-life-map-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-life-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-state/hub-legacy.js",
+    "path": "../../defs/gamesettings/gamerules-defs.js",
+    "resolved": "src/defs/gamesettings/gamerules-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/game-config.js",
+    "path": "./vassal-life-map-generator.js",
+    "resolved": "src/model/vassal-life-map-generator.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/gamepiece-presentation.js",
+    "path": "./practice-keywords.js",
+    "resolved": "src/model/practice-keywords.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/practices.js",
+    "path": "../mechanic-readings.js",
+    "resolved": "src/model/mechanic-readings.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-exec.js",
+    "path": "./settlement-upgrades.js",
+    "resolved": "src/model/settlement-upgrades.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/step.js",
+    "path": "../heirlooms.js",
+    "resolved": "src/model/vassal-life-map/heirlooms.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/campaign.js",
+    "path": "../../defs/vassal-workshop-rules.js",
+    "resolved": "src/defs/vassal-workshop-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/state/board-legacy.js",
+    "path": "../state.js",
+    "resolved": "src/model/state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "../structure-layout.js",
+    "resolved": "src/model/structure-layout.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/practice-reading.js",
+    "path": "./mechanic-readings.js",
+    "resolved": "src/model/mechanic-readings.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/workers.js",
+    "path": "./population-ledger.js",
+    "resolved": "src/model/detailed-settlements/population-ledger.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../commissions.js",
+    "resolved": "src/model/vassal-life-map/commissions.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/world-choices.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/candidates.js",
+    "path": "../heirlooms.js",
+    "resolved": "src/model/vassal-life-map/heirlooms.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/regional-map/generator.js",
+    "path": "../rng.js",
+    "resolved": "src/model/rng.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop-specialties.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/practices.js",
+    "path": "./political-recipes.js",
+    "resolved": "src/model/detailed-settlements/political-recipes.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-state/hub-legacy.js",
+    "path": "../../defs/gamepieces/env-tiles-defs.js",
+    "resolved": "src/defs/gamepieces/env-tiles-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/campaign.js",
+    "path": "../life-map-balance.js",
+    "resolved": "src/model/life-map-balance.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "../practice-draft.js",
+    "resolved": "src/model/practice-draft.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/gamepiece-presentation.js",
+    "path": "./detailed-settlements/practice-events.js",
+    "resolved": "src/model/detailed-settlements/practice-events.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/workers.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/world-choices.js",
+    "path": "./selectors.js",
+    "resolved": "src/model/vassal-life-map/selectors.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../shop-specialties.js",
+    "resolved": "src/model/vassal-life-map/shop-specialties.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/candidates.js",
+    "path": "../stock-shops.js",
+    "resolved": "src/model/vassal-life-map/stock-shops.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/synthesis.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-state/hub-legacy.js",
+    "path": "../effects/core/tiers.js",
+    "resolved": "src/model/effects/core/tiers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/campaign.js",
+    "path": "../../defs/vassal-class-rules.js",
+    "resolved": "src/defs/vassal-class-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop-specialties.js",
+    "path": "../detailed-practice-tiers.js",
+    "resolved": "src/model/detailed-practice-tiers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/practices.js",
+    "path": "../keywords-classes-prototype.js",
+    "resolved": "src/model/keywords-classes-prototype.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "../../defs/gamepieces/vassal-life-map-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-life-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/gamepiece-presentation.js",
+    "path": "./game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/workers.js",
+    "path": "./queries.js",
+    "resolved": "src/model/detailed-settlements/queries.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/world-choices.js",
+    "path": "./heirlooms.js",
+    "resolved": "src/model/vassal-life-map/heirlooms.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/candidates.js",
+    "path": "../../life-map-design.js",
+    "resolved": "src/model/life-map-design.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/mechanic-readings.js",
+    "path": "../defs/mechanics.js",
+    "resolved": "src/defs/mechanics.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/synthesis.js",
+    "path": "./queries.js",
+    "resolved": "src/model/detailed-settlements/queries.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../world-choices.js",
+    "resolved": "src/model/vassal-life-map/world-choices.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/mechanic-validation.js",
+    "path": "../defs/mechanics.js",
+    "resolved": "src/defs/mechanics.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/defs/gamesystems/hub-system-defs.js",
+    "path": "../tooltip-ui-utils.js",
+    "resolved": "src/defs/tooltip-ui-utils.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/practice-outputs.js",
+    "path": "../defs/mechanics.js",
+    "resolved": "src/defs/mechanics.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-upgrades.js",
+    "path": "../defs/gamepieces/hub-structure-defs.js",
+    "resolved": "src/defs/gamepieces/hub-structure-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "path": "../mechanics.js",
+    "resolved": "src/defs/mechanics.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop-specialties.js",
+    "path": "../research-progression.js",
+    "resolved": "src/model/research-progression.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "../../defs/gamepieces/detailed-settlement-defs.js",
+    "resolved": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-state/hub-legacy.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/practices.js",
+    "path": "./workers.js",
+    "resolved": "src/model/detailed-settlements/workers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/campaign.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/gamepiece-presentation.js",
+    "path": "./detailed-practice-tiers.js",
+    "resolved": "src/model/detailed-practice-tiers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/workers.js",
+    "path": "./cohorts.js",
+    "resolved": "src/model/detailed-settlements/cohorts.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/regional-map/biome-clustering.js",
+    "path": "../rng.js",
+    "resolved": "src/model/rng.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/synthesis.js",
+    "path": "./workers.js",
+    "resolved": "src/model/detailed-settlements/workers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-upgrades.js",
+    "path": "./effects/core/tiers.js",
+    "resolved": "src/model/effects/core/tiers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../campaign.js",
+    "resolved": "src/model/vassal-life-map/campaign.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "path": "./full-map-defs.js",
+    "resolved": "src/defs/gamepieces/full-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop-specialties.js",
+    "path": "./selectors.js",
+    "resolved": "src/model/vassal-life-map/selectors.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/gamepiece-presentation.js",
+    "path": "./moon-phases.js",
+    "resolved": "src/model/moon-phases.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/campaign.js",
+    "path": "../detailed-settlements/stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/practices.js",
+    "path": "../../defs/gamepieces/detailed-settlement-defs.js",
+    "resolved": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/settlement-upgrades.js",
+    "path": "./settlement-state.js",
+    "resolved": "src/model/settlement-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/synthesis.js",
+    "path": "./stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../../defs/vassal-workshop-rules.js",
+    "resolved": "src/defs/vassal-workshop-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "path": "./bronze-keyword-defs.js",
+    "resolved": "src/defs/gamepieces/bronze-keyword-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "../research-progression.js",
+    "resolved": "src/model/research-progression.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/gamepiece-presentation.js",
+    "path": "../defs/gamesettings/moon-phase-defs.js",
+    "resolved": "src/defs/gamesettings/moon-phase-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/campaign.js",
+    "path": "../detailed-settlements/external-world.js",
+    "resolved": "src/model/detailed-settlements/external-world.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/practices.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/stock-shops.js",
+    "path": "../../defs/gamepieces/detailed-settlement-defs.js",
+    "resolved": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/gamepiece-presentation.js",
+    "path": "./world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "../detailed-practice-tiers.js",
+    "resolved": "src/model/detailed-practice-tiers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/practices.js",
+    "path": "../state.js",
+    "resolved": "src/model/state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/campaign.js",
+    "path": "../detailed-settlements/practice-events.js",
+    "resolved": "src/model/detailed-settlements/practice-events.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map-generator.js",
+    "path": "../defs/gamepieces/vassal-life-map-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-life-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/stock-shops.js",
+    "path": "../../defs/gamepieces/vassal-life-map-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-life-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../detailed-settlements/external-world.js",
+    "resolved": "src/model/detailed-settlements/external-world.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/gamepiece-presentation.js",
+    "path": "./detailed-settlements/stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/campaign.js",
+    "path": "./selectors.js",
+    "resolved": "src/model/vassal-life-map/selectors.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map-generator.js",
+    "path": "../defs/gamepieces/detailed-settlement-defs.js",
+    "resolved": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/practices.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/practice-draft.js",
+    "path": "./detailed-practice-tiers.js",
+    "resolved": "src/model/detailed-practice-tiers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/gamepiece-presentation.js",
+    "path": "./practice-reading.js",
+    "resolved": "src/model/practice-reading.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "./selectors.js",
+    "resolved": "src/model/vassal-life-map/selectors.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/campaign.js",
+    "path": "./heirlooms.js",
+    "resolved": "src/model/vassal-life-map/heirlooms.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map-generator.js",
+    "path": "./life-map-design.js",
+    "resolved": "src/model/life-map-design.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../detailed-settlements/practice-events.js",
+    "resolved": "src/model/detailed-settlements/practice-events.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/life-map-design.js",
+    "path": "../defs/gamepieces/vassal-life-map-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-life-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/stock-shops.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/shop.js",
+    "path": "./heirlooms.js",
+    "resolved": "src/model/vassal-life-map/heirlooms.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/practices.js",
+    "path": "./queries.js",
+    "resolved": "src/model/detailed-settlements/queries.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/gamepiece-presentation.js",
+    "path": "./structure-reading.js",
+    "resolved": "src/model/structure-reading.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map-generator.js",
+    "path": "../defs/lifegraph-defaults.js",
+    "resolved": "src/defs/lifegraph-defaults.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/campaign.js",
+    "path": "./world-choices.js",
+    "resolved": "src/model/vassal-life-map/world-choices.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/life-map-design.js",
+    "path": "./life-map-balance.js",
+    "resolved": "src/model/life-map-balance.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../class-actions.js",
+    "resolved": "src/model/vassal-life-map/class-actions.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/stock-shops.js",
+    "path": "../detailed-practice-tiers.js",
+    "resolved": "src/model/detailed-practice-tiers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/practices.js",
+    "path": "./stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map-generator.js",
+    "path": "./life-map-columns.js",
+    "resolved": "src/model/life-map-columns.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/life-map-design.js",
+    "path": "./vassal-life-map/relic-pools.js",
+    "resolved": "src/model/vassal-life-map/relic-pools.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/stock-shops.js",
+    "path": "../research-progression.js",
+    "resolved": "src/model/research-progression.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../detailed-settlements/stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/practices.js",
+    "path": "./external-world.js",
+    "resolved": "src/model/detailed-settlements/external-world.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/life-map-design.js",
+    "path": "../defs/lifegraph-defaults.js",
+    "resolved": "src/defs/lifegraph-defaults.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../detailed-settlements/helpers.js",
+    "resolved": "src/model/detailed-settlements/helpers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/practices.js",
+    "path": "../structure-layout.js",
+    "resolved": "src/model/structure-layout.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/stock-shops.js",
+    "path": "../detailed-settlements/cohorts.js",
+    "resolved": "src/model/detailed-settlements/cohorts.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/life-map-design.js",
+    "path": "./life-map-columns.js",
+    "resolved": "src/model/life-map-columns.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/structure-reading.js",
+    "path": "../defs/mechanics.js",
+    "resolved": "src/defs/mechanics.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../detailed-settlements/phases/migration.js",
+    "resolved": "src/model/detailed-settlements/phases/migration.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/practices.js",
+    "path": "./practice-events.js",
+    "resolved": "src/model/detailed-settlements/practice-events.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/stock-shops.js",
+    "path": "./selectors.js",
+    "resolved": "src/model/vassal-life-map/selectors.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/structure-reading.js",
+    "path": "./detailed-settlements/stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../detailed-settlements/practices.js",
+    "resolved": "src/model/detailed-settlements/practices.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/life-map-columns.js",
+    "path": "../defs/gamepieces/vassal-life-map-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-life-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../../defs/gamepieces/vassal-life-map-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-life-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../../defs/gamepieces/detailed-settlement-defs.js",
+    "resolved": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../../defs/world/detailed-settlement-scenario.js",
+    "resolved": "src/defs/world/detailed-settlement-scenario.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../detailed-practice-tiers.js",
+    "resolved": "src/model/detailed-practice-tiers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/political-recipes.js",
+    "path": "./population-ledger.js",
+    "resolved": "src/model/detailed-settlements/population-ledger.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../moon-phases.js",
+    "resolved": "src/model/moon-phases.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/political-recipes.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "./territory.js",
+    "resolved": "src/model/detailed-settlements/territory.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/political-recipes.js",
+    "path": "./queries.js",
+    "resolved": "src/model/detailed-settlements/queries.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "../vassal-life-map/treasury.js",
+    "resolved": "src/model/vassal-life-map/treasury.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../selectors.js",
+    "resolved": "src/model/vassal-life-map/selectors.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/political-recipes.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "../regional-map/definition.js",
+    "resolved": "src/model/regional-map/definition.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../heirlooms.js",
+    "resolved": "src/model/vassal-life-map/heirlooms.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/political-recipes.js",
+    "path": "./stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "../regional-map/names.js",
+    "resolved": "src/model/regional-map/names.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "../shop.js",
+    "resolved": "src/model/vassal-life-map/shop.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/political-recipes.js",
+    "path": "./practice-events.js",
+    "resolved": "src/model/detailed-settlements/practice-events.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "../vassal-life-map/selectors.js",
+    "resolved": "src/model/vassal-life-map/selectors.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/political-recipes.js",
+    "path": "./phases/chaos.js",
+    "resolved": "src/model/detailed-settlements/phases/chaos.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/lifecycle/node-confirm.js",
+    "path": "./candidates.js",
+    "resolved": "src/model/vassal-life-map/lifecycle/candidates.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "../../defs/vassal-class-rules.js",
+    "resolved": "src/defs/vassal-class-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "./cohorts.js",
+    "resolved": "src/model/detailed-settlements/cohorts.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "./neutral-market.js",
+    "resolved": "src/model/detailed-settlements/neutral-market.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/chaos.js",
+    "path": "../../../defs/gamepieces/detailed-settlement-defs.js",
+    "resolved": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "./phases/chaos.js",
+    "resolved": "src/model/detailed-settlements/phases/chaos.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/chaos.js",
+    "path": "../../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "../../defs/world/detailed-settlement-scenario.js",
+    "resolved": "src/defs/world/detailed-settlement-scenario.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/chaos.js",
+    "path": "../../chaos-values.js",
+    "resolved": "src/model/chaos-values.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "../../defs/gamepieces/detailed-settlement-defs.js",
+    "resolved": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/chaos.js",
+    "path": "../helpers.js",
+    "resolved": "src/model/detailed-settlements/helpers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/class-actions.js",
+    "path": "./commissions.js",
+    "resolved": "src/model/vassal-life-map/commissions.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/chaos.js",
+    "path": "../queries.js",
+    "resolved": "src/model/detailed-settlements/queries.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/class-actions.js",
+    "path": "../../defs/vassal-class-rules.js",
+    "resolved": "src/defs/vassal-class-rules.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "./stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/class-actions.js",
+    "path": "./selectors.js",
+    "resolved": "src/model/vassal-life-map/selectors.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "./practice-events.js",
+    "resolved": "src/model/detailed-settlements/practice-events.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/migration.js",
+    "path": "../population-ledger.js",
+    "resolved": "src/model/detailed-settlements/population-ledger.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/class-actions.js",
+    "path": "../detailed-settlements/queries.js",
+    "resolved": "src/model/detailed-settlements/queries.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "./helpers.js",
+    "resolved": "src/model/detailed-settlements/helpers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/migration.js",
+    "path": "../cohorts.js",
+    "resolved": "src/model/detailed-settlements/cohorts.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/class-actions.js",
+    "path": "../detailed-settlements/stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "./phases/migration.js",
+    "resolved": "src/model/detailed-settlements/phases/migration.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/migration.js",
+    "path": "../stock.js",
+    "resolved": "src/model/detailed-settlements/stock.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/class-actions.js",
+    "path": "../detailed-settlements/external-world.js",
+    "resolved": "src/model/detailed-settlements/external-world.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/external-world.js",
+    "path": "./queries.js",
+    "resolved": "src/model/detailed-settlements/queries.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/migration.js",
+    "path": "../../../defs/gamepieces/detailed-settlement-defs.js",
+    "resolved": "src/defs/gamepieces/detailed-settlement-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/class-actions.js",
+    "path": "../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/migration.js",
+    "path": "../../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/class-actions.js",
+    "path": "../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/migration.js",
+    "path": "../../world-state.js",
+    "resolved": "src/model/world-state.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/class-actions.js",
+    "path": "../detailed-settlements/practices.js",
+    "resolved": "src/model/detailed-settlements/practices.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/migration.js",
+    "path": "../helpers.js",
+    "resolved": "src/model/detailed-settlements/helpers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/class-actions.js",
+    "path": "../../defs/gamepieces/vassal-life-map-defs.js",
+    "resolved": "src/defs/gamepieces/vassal-life-map-defs.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/migration.js",
+    "path": "../queries.js",
+    "resolved": "src/model/detailed-settlements/queries.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/vassal-life-map/class-actions.js",
+    "path": "../detailed-settlements/practice-events.js",
+    "resolved": "src/model/detailed-settlements/practice-events.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/migration.js",
+    "path": "./chaos.js",
+    "resolved": "src/model/detailed-settlements/phases/chaos.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/migration.js",
+    "path": "./moon-turn.js",
+    "resolved": "src/model/detailed-settlements/phases/moon-turn.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/migration.js",
+    "path": "./shared.js",
+    "resolved": "src/model/detailed-settlements/phases/shared.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/moon-turn.js",
+    "path": "../../moon-phases.js",
+    "resolved": "src/model/moon-phases.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/shared.js",
+    "path": "../cohorts.js",
+    "resolved": "src/model/detailed-settlements/cohorts.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/moon-turn.js",
+    "path": "../helpers.js",
+    "resolved": "src/model/detailed-settlements/helpers.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/shared.js",
+    "path": "../../game-config.js",
+    "resolved": "src/model/game-config.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/moon-turn.js",
+    "path": "../queries.js",
+    "resolved": "src/model/detailed-settlements/queries.js",
+    "kind": "import-statement"
+  },
+  {
+    "importer": "src/model/detailed-settlements/phases/shared.js",
+    "path": "../helpers.js",
+    "resolved": "src/model/detailed-settlements/helpers.js",
+    "kind": "import-statement"
+  }
+]

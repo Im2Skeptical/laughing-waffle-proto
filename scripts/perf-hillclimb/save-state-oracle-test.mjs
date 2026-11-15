@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {loadFrozenCorpus} from './freeze-corpus.mjs';
-import {expectedPlanningPause,expectedOpeningKnowledge} from './save-state-oracle.mjs';
+import {expectedPlanningPause,expectedOpeningKnowledge,settledSaveKnowledge,assertSettledSaveAfter} from './save-state-oracle.mjs';
 
 const manifest='artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json';
 const pin='406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000';
@@ -45,3 +45,54 @@ await writeFile(`${output}/controls.json`,JSON.stringify({ok:true,frozenManifest
   expectedControl:{paused:expected.paused,phase:expected.phase},sourceControl:{paused:source.paused,phase:source.phase},
   scope:'independent expected UI pause and strict raw/rebuilt state separation; real fresh job and full harness audit still required'},null,2));
 console.log(`[save-state-oracle] PASS recorded UI/frozen replay parity; wrong phase/pause/RNG/second rejection; ${output}/controls.json`);
+
+let settledControls=0;
+for(const seed of [123,424242,99117]){
+  const loaded=await loadFrozenCorpus(manifest,{expectedIdentity:pin,seed}),fixture=loaded.fixtures['later-history'];
+  const immutableBefore=JSON.stringify(fixture.expectedState),terminal=expectedOpeningKnowledge(loaded.oracle,fixture.expectedState);
+  const source={runner:{frontierSec:fixture.seconds,actionCount:fixture.actions,revision:4},
+    graph:{computedSec:terminal.lossSec,asyncHistoryEndSec:fixture.seconds,asyncToken:'source-4',subjectKey:'fixture',
+      projection:{signatureMatches:true,timelineToken:'source-4'}}};
+  const expected=expectedPlanningPause(loaded.oracle,terminal.expectedState);
+  const receipt={ready:{atMs:10,snapshot:structuredClone(source)},
+    frames:[{atMs:20,snapshot:structuredClone(source)},{atMs:30,snapshot:structuredClone(source)}],
+    read:{startMs:31,endMs:35,before:structuredClone(source),after:structuredClone(source),
+      actual:{cursorIsFrontier:true,preview:null,cursor:{stateData:structuredClone(expected)},timelineKnowledge:structuredClone(expected.persistentKnowledge)}}};
+  const knowledge={...settledSaveKnowledge(loaded.oracle,fixture,terminal,receipt),terminal};settledControls++;
+  assertSettledSaveAfter(knowledge,fixture,source,40);settledControls++;
+  for(const [name,mutate]of [
+    ['wrong fixture frontier',r=>r.ready.snapshot.runner.frontierSec++],
+    ['wrong actions',r=>r.ready.snapshot.runner.actionCount++],
+    ['foreign projection',r=>r.ready.snapshot.graph.projection.timelineToken='foreign'],
+    ['stale signature',r=>r.ready.snapshot.graph.projection.signatureMatches=false],
+    ['wrong history',r=>r.ready.snapshot.graph.asyncHistoryEndSec++],
+    ['insufficient early coverage',r=>r.ready.snapshot.graph.computedSec=terminal.lossSec-1],
+    ['late-only terminal',r=>r.frames[0].snapshot.graph.computedSec=terminal.lossSec-1],
+    ['source changed across frames',r=>r.frames[1].snapshot.runner.revision++],
+    ['source changed across read',r=>r.read.after.runner.revision++],
+    ['missing frame',r=>r.frames.pop()],
+    ['wrong frame order',r=>r.frames[1].atMs=5],
+    ['read before settled frames',r=>r.read.startMs=20],
+    ['wrong knowledge',r=>r.read.actual.cursor.stateData.persistentKnowledge.maxObservedCivilizationSurvivalYear++],
+    ['missing knowledge',r=>r.read.actual.cursor.stateData.persistentKnowledge.maxObservedCivilizationSurvivalYear=null],
+    ['wrong timeline knowledge',r=>r.read.actual.timelineKnowledge.maxObservedCivilizationSurvivalYear++],
+    ['wrong RNG',r=>r.read.actual.cursor.stateData.rng.baseSeed++],
+    ['unexpected preview',r=>r.read.actual.preview={stateData:expected}],
+    ['not frontier',r=>r.read.actual.cursorIsFrontier=false],
+  ]){
+    const wrong=structuredClone(receipt);mutate(wrong);
+    assert.throws(()=>settledSaveKnowledge(loaded.oracle,fixture,terminal,wrong),name);settledControls++;
+  }
+  assert.throws(()=>assertSettledSaveAfter(knowledge,fixture,source,34),'late-only observation after save clone');settledControls++;
+  const changed=structuredClone(source);changed.runner.revision++;
+  assert.throws(()=>assertSettledSaveAfter(knowledge,fixture,changed,40),'source changed after clone');settledControls++;
+  if(seed===424242){
+    const retained='artifacts/perf-hillclimb/feedback-final-matrix-r2-20261105-otherseeds-6-mobile4-performance-continue-off-s424242-cold/launch-0-performance-continue-continued-raw-save.json';
+    const actual=JSON.parse(await readFile(retained)).state;
+    assert.deepEqual(actual,expected,'retained failing Continue state equals fully independent frozen terminal expectation');settledControls++;
+  }
+  assert.equal(JSON.stringify(fixture.expectedState),immutableBefore,'settled controls leave frozen fixture unchanged');
+}
+await writeFile(`${output}/settled-controls.json`,JSON.stringify({policy:'frozen-terminal-observed-before-save-v1',controls:settledControls,
+  scope:'three-seed helper rejection controls and retained full-state parity only; actual path proof remains separate'},null,2));
+console.log(`[save-state-oracle] PASS ${settledControls} settled source/knowledge/frame/clone controls; ${output}/settled-controls.json`);

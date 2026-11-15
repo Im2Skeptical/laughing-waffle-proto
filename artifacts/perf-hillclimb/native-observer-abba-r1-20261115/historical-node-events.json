@@ -1,0 +1,10 @@
+{
+    "at":  "2026-11-15T03:32:46.8617366Z",
+    "rangeStart":  "2026-11-15T01:45:00Z",
+    "rangeEnd":  "2026-11-15T02:05:00Z",
+    "count":  0,
+    "events":  [
+
+               ],
+    "scope":  "Read-only historical Windows crash records; linkage must be checked by timestamp/PID/module before claiming prior native identity."
+}

@@ -361,6 +361,11 @@ export function createSettlementPlayback({
     promoteSettlementPreviewToLive,
     setSettlementPlaybackTarget,
     getSettlementPlaybackState,
+    getRetainedPlaybackSnapshot: () => ({
+      target: settlementPlaybackSpeedTarget,
+      current: settlementPlaybackSpeedCurrent,
+      visualSec: settlementPlaybackViewSecFloat,
+    }),
     getSettlementAuthoritativeState,
     getSettlementViewedState,
     getSettlementFrontierSec,

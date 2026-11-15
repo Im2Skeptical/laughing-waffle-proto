@@ -1,0 +1,191 @@
+[
+  {
+    "type": "pointermove",
+    "x": 362.4142150878906,
+    "y": 620.0991821289062,
+    "pointerType": "mouse",
+    "timeStamp": 34528.40000000596,
+    "handlerAt": 34609.20000001788,
+    "minSec": 0,
+    "maxSec": 192,
+    "plotRect": {
+      "x": 573.855,
+      "y": 884.1,
+      "width": 1276.275,
+      "height": 145.86
+    },
+    "revealedSec": 64,
+    "browseCapSec": 64,
+    "targetSec": 64,
+    "viewedSec": 16,
+    "readCpuMs": 0.09999999403953552
+  },
+  {
+    "type": "pointerdown",
+    "x": 362.4142150878906,
+    "y": 620.0991821289062,
+    "pointerType": "mouse",
+    "timeStamp": 34610.10000002384,
+    "handlerAt": 34612.5,
+    "minSec": 0,
+    "maxSec": 192,
+    "plotRect": {
+      "x": 573.855,
+      "y": 884.1,
+      "width": 1276.275,
+      "height": 145.86
+    },
+    "revealedSec": 64,
+    "browseCapSec": 64,
+    "targetSec": 64,
+    "viewedSec": 16,
+    "readCpuMs": 0.10000002384185791
+  },
+  {
+    "type": "pointermove",
+    "x": 362.4142150878906,
+    "y": 620.0991821289062,
+    "pointerType": "mouse",
+    "timeStamp": 34678.10000002384,
+    "handlerAt": 34728,
+    "minSec": 0,
+    "maxSec": 192,
+    "plotRect": {
+      "x": 573.855,
+      "y": 884.1,
+      "width": 1276.275,
+      "height": 145.86
+    },
+    "revealedSec": 64,
+    "browseCapSec": 64,
+    "targetSec": 64,
+    "viewedSec": 17,
+    "readCpuMs": 0
+  },
+  {
+    "type": "pointermove",
+    "x": 362.4142150878906,
+    "y": 620.0991821289062,
+    "pointerType": "mouse",
+    "timeStamp": 34811.70000001788,
+    "handlerAt": 34891.20000001788,
+    "minSec": 0,
+    "maxSec": 192,
+    "plotRect": {
+      "x": 573.855,
+      "y": 884.1,
+      "width": 1276.275,
+      "height": 145.86
+    },
+    "revealedSec": 64,
+    "browseCapSec": 64,
+    "targetSec": 64,
+    "viewedSec": 17,
+    "readCpuMs": 0.09999999403953552
+  },
+  {
+    "type": "pointermove",
+    "x": 362.4142150878906,
+    "y": 620.0991821289062,
+    "pointerType": "mouse",
+    "timeStamp": 34961,
+    "handlerAt": 35059.90000000596,
+    "minSec": 0,
+    "maxSec": 192,
+    "plotRect": {
+      "x": 573.855,
+      "y": 884.1,
+      "width": 1276.275,
+      "height": 145.86
+    },
+    "revealedSec": 64,
+    "browseCapSec": 64,
+    "targetSec": 64,
+    "viewedSec": 17,
+    "readCpuMs": 0
+  },
+  {
+    "type": "pointermove",
+    "x": 362.4142150878906,
+    "y": 620.0991821289062,
+    "pointerType": "mouse",
+    "timeStamp": 35133.70000001788,
+    "handlerAt": 35235.80000001192,
+    "minSec": 0,
+    "maxSec": 192,
+    "plotRect": {
+      "x": 573.855,
+      "y": 884.1,
+      "width": 1276.275,
+      "height": 145.86
+    },
+    "revealedSec": 64,
+    "browseCapSec": 64,
+    "targetSec": 64,
+    "viewedSec": 17,
+    "readCpuMs": 0.09999999403953552
+  },
+  {
+    "type": "pointermove",
+    "x": 362.4142150878906,
+    "y": 620.0991821289062,
+    "pointerType": "mouse",
+    "timeStamp": 35322.70000001788,
+    "handlerAt": 35401.80000001192,
+    "minSec": 0,
+    "maxSec": 192,
+    "plotRect": {
+      "x": 573.855,
+      "y": 884.1,
+      "width": 1276.275,
+      "height": 145.86
+    },
+    "revealedSec": 64,
+    "browseCapSec": 64,
+    "targetSec": 64,
+    "viewedSec": 17,
+    "readCpuMs": 0
+  },
+  {
+    "type": "pointermove",
+    "x": 362.4142150878906,
+    "y": 620.0991821289062,
+    "pointerType": "mouse",
+    "timeStamp": 35485,
+    "handlerAt": 35564.10000002384,
+    "minSec": 0,
+    "maxSec": 192,
+    "plotRect": {
+      "x": 573.855,
+      "y": 884.1,
+      "width": 1276.275,
+      "height": 145.86
+    },
+    "revealedSec": 64,
+    "browseCapSec": 64,
+    "targetSec": 64,
+    "viewedSec": 17,
+    "readCpuMs": 0
+  },
+  {
+    "type": "pointerup",
+    "x": 362.4142150878906,
+    "y": 620.0991821289062,
+    "pointerType": "mouse",
+    "timeStamp": 35641.70000001788,
+    "handlerAt": 35754.90000000596,
+    "minSec": 0,
+    "maxSec": 192,
+    "plotRect": {
+      "x": 573.855,
+      "y": 884.1,
+      "width": 1276.275,
+      "height": 145.86
+    },
+    "revealedSec": 64,
+    "browseCapSec": 64,
+    "targetSec": 64,
+    "viewedSec": 17,
+    "readCpuMs": 0.09999999403953552
+  }
+]

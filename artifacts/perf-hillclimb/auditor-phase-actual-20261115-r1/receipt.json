@@ -1,0 +1,10 @@
+{
+  "at": "2026-11-15T00:49:24.465Z",
+  "scope": "Independent bounded post-closure extraction from original manifests/JSONL/raw phase files, not parent summaries; no runtime/product edits",
+  "cases": [
+    "j8-phase-off-20261115-r1",
+    "j8-phase-on-20261115-r1"
+  ],
+  "maxInputBytes": 2097152,
+  "allInputsHashed": true
+}

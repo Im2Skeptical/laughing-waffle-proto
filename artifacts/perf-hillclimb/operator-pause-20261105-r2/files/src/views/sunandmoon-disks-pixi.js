@@ -1,0 +1,1136 @@
+// src/views/sunandmoon-disks-pixi.js
+// Two rotating HUD disks: Moon cycle + Season cycle.
+// Pure view module: reads state and dispatches scrub/commit intents only.
+
+
+import { MOON_PHASE_DEFS } from "../defs/gamesettings/moon-phase-defs.js";
+import { getGameSetting } from "../model/game-config.js";
+import {
+  getMoonCycleDurationSec,
+  getMoonPhaseAtSecond,
+} from "../model/moon-phases.js";
+import { VIEW_LAYOUT } from "./layout-pixi.js";
+import { getResourceTexture } from './chronicle-art.js';
+import { addResourceIcon } from './resource-cost-pixi.js';
+import { buildPhaseTooltipSpec, createMoonPhaseReferenceView } from './moon-phase-reference-pixi.js';
+
+export const SUN_AND_MOON_DISKS_LAYOUT = {
+  ...VIEW_LAYOUT.sunMoonDisks,
+  moon: { ...VIEW_LAYOUT.sunMoonDisks.moon },
+  season: { ...VIEW_LAYOUT.sunMoonDisks.season },
+};
+
+const TWO_PI = Math.PI * 2;
+const DISK_ID_MOON = "moon";
+const DISK_ID_SEASON = "season";
+const ROTATION_CLOCKWISE = "clockwise";
+const ROTATION_ANTICLOCKWISE = "anticlockwise";
+
+export function sampleDiskMomentum(velocity, dt) {
+  const decay = Math.log(2) / .18;
+  const remaining = Math.exp(-decay * Math.max(0, dt));
+  return { deltaSec: velocity * (1 - remaining) / decay, velocity: velocity * remaining };
+}
+
+// Recaps retain only clock presentation values, never a mutable simulation state.
+export function getClockTimePassage(beforeState, afterState) {
+  const fromSec = getTSecInt(beforeState);
+  return {
+    fromSec, toSec: Math.max(fromSec, getTSecInt(afterState)),
+    moonPhase: getMoonOrbitPhase01AtTime(beforeState, fromSec),
+    seasonPhase: getSeasonWheelPhase01(beforeState, fromSec, 4),
+    moonCycleSec: getMoonCycleDurationSec(beforeState),
+    seasonCycleSec: Math.max(1, getGameSetting(beforeState, 'seasonDurationSec')) * 4,
+  };
+}
+
+export function sampleClockTimePassage(clock, progress, rotationMode = 'cyclical') {
+  const duration = Math.max(0, clock.toSec - clock.fromSec);
+  const p = clamp01(progress);
+  const elapsed = duration * p;
+  const second = clock.fromSec + elapsed;
+  // Moon phase zero covers both the opening second and second one.
+  const moonElapsed = Math.max(0, second - 1) - Math.max(0, clock.fromSec - 1);
+  // Extinction compresses a whole future into a few visible turns. Commits
+  // instead retain every revolution, including intervals shorter than a cycle.
+  const visibleTurns = (turns, minimum, maximum) => turns <= 0 ? 0
+    : Math.max(minimum, Math.min(maximum, Math.floor(turns))) + turns % 1;
+  const compressed = rotationMode === 'compressed';
+  const fullMoonElapsed = Math.max(0, clock.toSec - 1) - Math.max(0, clock.fromSec - 1);
+  return {
+    second,
+    moonRotation: (clock.moonPhase + (compressed
+      ? visibleTurns(fullMoonElapsed / clock.moonCycleSec, 1, 2) * p
+      : moonElapsed / clock.moonCycleSec)) * TWO_PI,
+    seasonRotation: (clock.seasonPhase + (compressed
+      ? visibleTurns(duration / clock.seasonCycleSec, 1, 1) * p
+      : elapsed / clock.seasonCycleSec)) * TWO_PI,
+  };
+}
+
+export function createTimePassageDisksView(parent, clock, {x, y, radius = 155, rotationMode = 'cyclical'}) {
+  const root = new PIXI.Container();
+  root.eventMode = 'none';
+  root.position.set(x, y);
+  parent.addChild(root);
+  const season = new PIXI.Container();
+  const solarArt = addResourceIcon(season, 'solar-wheel', 0, 0, radius * 2);
+  solarArt.scale.x *= -1;
+  const moon = new PIXI.Container();
+  const moonRadius = radius * 2 / 3;
+  addResourceIcon(moon, 'moon-wheel', 0, 0, moonRadius * 2);
+  MOON_PHASE_DEFS.forEach((phase, index) => {
+    const angle = -Math.PI / 2 - index / MOON_PHASE_DEFS.length * TWO_PI;
+    const icon = addResourceIcon(moon, phase.id,
+      Math.cos(angle) * moonRadius * .705, Math.sin(angle) * moonRadius * .705, moonRadius * .355);
+    icon.rotation = -index / MOON_PHASE_DEFS.length * TWO_PI;
+  });
+  root.addChild(season, moon);
+  const bezel = new PIXI.Container();
+  bezel.addChild(new PIXI.Graphics().beginFill(0x16272a).drawCircle(0, 0, moonRadius * .214).endFill());
+  addResourceIcon(bezel, 'lunar-bezel', 0, 0, moonRadius * .455);
+  const centres = MOON_PHASE_DEFS.map(phase => addResourceIcon(bezel, phase.id, 0, 0, moonRadius * .264));
+  root.addChild(bezel);
+  const pointers = new PIXI.Graphics();
+  for (const diskRadius of [radius, moonRadius]) drawInwardPlayheadTriangle(pointers, 0, 0, -Math.PI / 2, {
+    tipRadius:diskRadius - 8, baseRadius:diskRadius + 5, halfWidth:7,
+    fillColor:0xe8cf94, strokeColor:0x151b1b, strokeWidth:1,
+  });
+  root.addChild(pointers);
+  let sample = null;
+  return {
+    update(progress, recoil = 0) {
+      sample = sampleClockTimePassage(clock, progress, rotationMode);
+      sample.moonRotation += recoil;
+      sample.seasonRotation -= recoil * .65;
+      moon.rotation = sample.moonRotation;
+      season.rotation = sample.seasonRotation;
+      const phaseCount = MOON_PHASE_DEFS.length;
+      const phaseIndex = ((Math.floor(sample.moonRotation / TWO_PI * phaseCount) % phaseCount)
+        + phaseCount) % phaseCount;
+      centres.forEach((icon, index) => { icon.visible = index === phaseIndex; });
+    },
+    getSnapshot: () => sample,
+  };
+}
+
+
+function clamp01(v) {
+  if (!Number.isFinite(v)) return 0;
+  return Math.max(0, Math.min(1, v));
+}
+
+function clampInt(v, fallback) {
+  const n = Math.floor(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function clampNonNegativeSec(v, fallback = 0) {
+  if (!Number.isFinite(v)) return Math.max(0, Math.floor(fallback));
+  return Math.max(0, Math.floor(v));
+}
+
+function wrap01(v) {
+  if (!Number.isFinite(v)) return 0;
+  const wrapped = v - Math.floor(v);
+  return clamp01(wrapped);
+}
+
+function normalizeSignedAngleDeltaRad(deltaRad) {
+  if (!Number.isFinite(deltaRad)) return 0;
+  let d = deltaRad;
+  while (d > Math.PI) d -= TWO_PI;
+  while (d < -Math.PI) d += TWO_PI;
+  return d;
+}
+
+function getTSecInt(state) {
+  const t = Math.floor(state?.tSec ?? 0);
+  return Number.isFinite(t) ? Math.max(0, t) : 0;
+}
+
+// Scrub correctness: prefer tSec (graph boundary time).
+// Live smoothness: if simStepIndex is consistent with tSec, use it for fractional seconds.
+function getTimeSecForRotation(state) {
+  const tSec = getTSecInt(state);
+  const steps = state?.simStepIndex;
+  if (Number.isFinite(steps)) {
+    const tf = Math.max(0, steps / 60);
+    if (Math.floor(tf) === tSec) return tf;
+  }
+  return tSec;
+}
+
+function getDiskLayout(diskId, layout) {
+  return diskId === DISK_ID_SEASON ? layout?.season : layout?.moon;
+}
+
+function getDiskSecondsPerRevolution(diskId, layout, state = null) {
+  if (diskId === DISK_ID_SEASON) {
+    const quadrants = Math.max(1, clampInt(layout?.season?.quadrants, 4));
+    return Math.max(1, getGameSetting(state, "seasonDurationSec")) * quadrants;
+  }
+  return getMoonCycleDurationSec(state);
+}
+
+function phase01ToRotationRad(phase01, diskLayout) {
+  const p = clamp01(phase01);
+  const dir = diskLayout?.clockwise ? 1 : -1;
+  return (diskLayout?.rotationOffsetRad || 0) + dir * p * TWO_PI;
+}
+
+function getMoonOrbitPhase01AtTime(state, timeSec) {
+  const cycleSec = getMoonCycleDurationSec(state);
+  const t = Math.max(0, Number.isFinite(timeSec) ? timeSec : 0);
+  const phaseSec = Math.max(0, t - 1) % cycleSec;
+  return clamp01(phaseSec / cycleSec);
+}
+
+function getSeasonProgress01(state, timeSec) {
+  const seasonLen = Math.max(1, getGameSetting(state, "seasonDurationSec"));
+  const fraction = Number.isFinite(timeSec) ? timeSec - getTimeSecForRotation(state) : 0;
+
+  const clock = state?.seasonClockSec;
+  if (Number.isFinite(clock)) return (clock + fraction) / seasonLen;
+
+  const remaining = state?.seasonTimeRemaining;
+  if (Number.isFinite(remaining)) {
+    return 1 - remaining / seasonLen + fraction / seasonLen;
+  }
+
+  const t = Math.max(0, Number.isFinite(timeSec) ? timeSec : 0);
+  return clamp01(((t % seasonLen) / seasonLen) || 0);
+}
+
+export function getSeasonWheelPhase01(state, timeSec, quadrants) {
+  const q = Math.max(1, clampInt(quadrants, 4));
+  const idxRaw = state?.currentSeasonIndex;
+  const idx = Number.isFinite(idxRaw) ? Math.floor(idxRaw) : 0;
+  const wrappedIdx = ((idx % q) + q) % q;
+  const progress = getSeasonProgress01(state, timeSec);
+  // A replay snapshot can sit a few floating-point ulps before the season
+  // transition. Fractional presentation must carry across that boundary,
+  // rather than clamping to its last angle until the next snapshot arrives.
+  return wrap01((wrappedIdx + progress) / q);
+}
+
+function getDiskPhase01AtTime(diskId, state, timeSec, layout) {
+  if (diskId === DISK_ID_SEASON) {
+    const quadrants = Math.max(1, clampInt(layout?.season?.quadrants, 4));
+    return getSeasonWheelPhase01(state, timeSec, quadrants);
+  }
+  return getMoonOrbitPhase01AtTime(state, timeSec);
+}
+
+function getDiskPlayheadOffsetRad(diskId, layout) {
+  const diskLayout = getDiskLayout(diskId, layout) || {};
+  return Number.isFinite(diskLayout.playheadOffsetRad)
+    ? diskLayout.playheadOffsetRad
+    : 0;
+}
+
+function getDiskPlayheadAngleRad(diskId, layout) {
+  const diskLayout = getDiskLayout(diskId, layout) || {};
+  const phaseZeroAngle = phase01ToRotationRad(0, diskLayout);
+  return phaseZeroAngle + getDiskPlayheadOffsetRad(diskId, layout);
+}
+
+function getDiskRingAngleAtSecond({
+  diskId,
+  state,
+  fromTimeSec,
+  targetSec,
+  layout,
+}) {
+  if (!state) return getDiskPlayheadAngleRad(diskId, layout);
+
+  const fromSec = Number.isFinite(fromTimeSec) ? fromTimeSec : 0;
+  const toSec = Number.isFinite(targetSec) ? targetSec : fromSec;
+  const secPerRev = getDiskSecondsPerRevolution(diskId, layout, state);
+  const basePhase = getDiskPhase01AtTime(diskId, state, fromSec, layout);
+  const deltaPhase = (toSec - fromSec) / Math.max(1, secPerRev);
+  const phase = wrap01(basePhase + deltaPhase);
+  const diskRotation = phase01ToRotationRad(phase, getDiskLayout(diskId, layout));
+  return diskRotation + getDiskPlayheadOffsetRad(diskId, layout);
+}
+
+function getDragRingAngleFromAnchorRad(
+  diskId,
+  layout,
+  state,
+  dragStartSec,
+  targetSec,
+  anchorAngleRad
+) {
+  const startSec = Number.isFinite(dragStartSec) ? dragStartSec : 0;
+  const endSec = Number.isFinite(targetSec) ? targetSec : startSec;
+  const secPerRev = getDiskSecondsPerRevolution(diskId, layout, state);
+  const diskLayout = getDiskLayout(diskId, layout) || {};
+  const dir = diskLayout.clockwise ? 1 : -1;
+  const deltaPhase = (endSec - startSec) / Math.max(1, secPerRev);
+  const anchor = Number.isFinite(anchorAngleRad)
+    ? anchorAngleRad
+    : getDiskPlayheadAngleRad(diskId, layout);
+  return anchor + dir * deltaPhase * TWO_PI;
+}
+
+function getFrontierSec({ getTimeline, getState }) {
+  const timeline = typeof getTimeline === "function" ? getTimeline() : null;
+  const timelineSec = Math.floor(timeline?.historyEndSec ?? -1);
+  if (Number.isFinite(timelineSec) && timelineSec >= 0) {
+    return timelineSec;
+  }
+  const state = typeof getState === "function" ? getState() : null;
+  return getTSecInt(state);
+}
+
+export function clampDiskHistoryBrowseTargetSec(dragSec, frontierSec) {
+  const frontier = clampNonNegativeSec(frontierSec, 0);
+  const target = clampNonNegativeSec(dragSec, frontier);
+  return Math.max(0, Math.min(frontier, target));
+}
+
+export function clampDiskForecastPreviewTargetSec(
+  dragSec,
+  frontierSec,
+  revealCapSec
+) {
+  const frontier = clampNonNegativeSec(frontierSec, 0);
+  const target = clampNonNegativeSec(dragSec, frontier);
+  const revealCap = clampNonNegativeSec(revealCapSec, frontier);
+  return Math.max(frontier, Math.min(target, Math.max(frontier, revealCap)));
+}
+
+function getSpritePointerAngleRad(sprite, globalPoint) {
+  if (!sprite || !globalPoint) return null;
+  const center = sprite.getGlobalPosition();
+  const dx = globalPoint.x - center.x;
+  const dy = globalPoint.y - center.y;
+  if (!Number.isFinite(dx) || !Number.isFinite(dy)) return null;
+  if (dx === 0 && dy === 0) return null;
+  return Math.atan2(dy, dx);
+}
+
+function drawInwardPlayheadTriangle(
+  gfx,
+  cx,
+  cy,
+  angleRad,
+  {
+    tipRadius,
+    baseRadius,
+    halfWidth,
+    fillColor = 0xffffff,
+    fillAlpha = 0.96,
+    strokeColor = 0x0f1220,
+    strokeAlpha = 0.95,
+    strokeWidth = 2,
+  } = {}
+) {
+  const tipX = cx + Math.cos(angleRad) * tipRadius;
+  const tipY = cy + Math.sin(angleRad) * tipRadius;
+
+  const baseCx = cx + Math.cos(angleRad) * baseRadius;
+  const baseCy = cy + Math.sin(angleRad) * baseRadius;
+
+  const px = Math.cos(angleRad + Math.PI * 0.5) * halfWidth;
+  const py = Math.sin(angleRad + Math.PI * 0.5) * halfWidth;
+
+  const b1x = baseCx + px;
+  const b1y = baseCy + py;
+  const b2x = baseCx - px;
+  const b2y = baseCy - py;
+
+  gfx.lineStyle(strokeWidth, strokeColor, strokeAlpha);
+  gfx.beginFill(fillColor, fillAlpha);
+  gfx.drawPolygon([tipX, tipY, b1x, b1y, b2x, b2y]);
+  gfx.endFill();
+}
+
+export function createSunAndMoonDisksView({
+  app,
+  layer,
+  getState,
+  getVisualTime,
+  setVisualTime,
+  getDiskVisibility,
+  getTimeline,
+  getEditableHistoryBounds,
+  getForecastPreviewCapSec,
+  browseCursorSecond,
+  commitCursorSecond,
+  previewCursorSecond,
+  clearPreviewState,
+  commitPreviewToLive,
+  requestPauseBeforeDrag,
+  tooltipView,
+  referenceLayer = layer,
+  layout = SUN_AND_MOON_DISKS_LAYOUT,
+} = {}) {
+let root = null;
+let moonSprite = null;
+let seasonSprite = null;
+let phaseIconEntries = [];
+let phaseCentre = null;
+let centreIcon = null;
+let centreBezel = null;
+let seasonArt = null;
+let moonArt = null;
+let phaseReference = null;
+let centrePress = null;
+let suppressCentreTap = false;
+let hoveredCentre = false;
+let lastTooltipSecond = null;
+let feedbackGraphics = null;
+let feedbackText = null;
+  let lastEnabled = null;
+
+  let dragSession = null;
+  const ringMarkerAngleByDisk = {
+    [DISK_ID_MOON]: null,
+    [DISK_ID_SEASON]: null,
+  };
+
+  let browseRafId = 0;
+  let pendingBrowseSec = null;
+  let commitRafId = 0;
+  let pendingCommitSec = null;
+  let previewRafId = 0;
+  let pendingPreviewSec = null;
+
+  let stageMoveHandler = null;
+  let stageDownHandler = null;
+  let stageUpHandler = null;
+  let stageListenersBound = false;
+  let lastStageMovePointerId = null;
+  let lastStageMoveX = null;
+  let lastStageMoveY = null;
+
+  function getSpriteByDiskId(diskId) {
+    return diskId === DISK_ID_SEASON ? seasonSprite : moonSprite;
+  }
+
+  function resolveDiskVisibility(state) {
+    const raw =
+      typeof getDiskVisibility === "function" ? getDiskVisibility(state) : null;
+    if (!raw || typeof raw !== "object") {
+      return { moon: true, season: true };
+    }
+    return {
+      moon: raw.moon !== false,
+      season: raw.season !== false,
+    };
+  }
+
+  function isDiskVisible(diskId, visibility) {
+    if (!visibility || typeof visibility !== "object") return true;
+    return diskId === DISK_ID_SEASON ? visibility.season !== false : visibility.moon !== false;
+  }
+
+  function getFeedbackDiskId(visibility) {
+    if (dragSession && isDiskVisible(dragSession.diskId, visibility)) {
+      return dragSession.diskId;
+    }
+    if (isDiskVisible(DISK_ID_SEASON, visibility)) return DISK_ID_SEASON;
+    if (isDiskVisible(DISK_ID_MOON, visibility)) return DISK_ID_MOON;
+    return null;
+  }
+
+  function showPhaseTooltip() {
+    const state = getState?.();
+    if (!state || !phaseCentre || !tooltipView) return;
+    const phase = getMoonPhaseAtSecond(state);
+    tooltipView.show({
+      ...buildPhaseTooltipSpec(state, phase),
+      subtitle: 'Tap the centre to explore all six phases',
+    }, phaseCentre.getBounds());
+    lastTooltipSecond = getTSecInt(state);
+  }
+
+  function flushBrowseRequest() {
+    browseRafId = 0;
+    const sec = pendingBrowseSec;
+    pendingBrowseSec = null;
+    if (!Number.isFinite(sec)) return;
+    browseCursorSecond?.(Math.max(0, Math.floor(sec)));
+  }
+
+  function clearBrowseRequest() {
+    if (browseRafId && typeof cancelAnimationFrame === "function") {
+      cancelAnimationFrame(browseRafId);
+    }
+    browseRafId = 0;
+    pendingBrowseSec = null;
+  }
+
+  function queueBrowseSecond(sec) {
+    clearCommitRequest();
+    clearPreviewRequest();
+    pendingBrowseSec = Math.max(0, Math.floor(sec));
+    if (browseRafId) return;
+    if (typeof requestAnimationFrame === "function") {
+      browseRafId = requestAnimationFrame(flushBrowseRequest);
+      return;
+    }
+    flushBrowseRequest();
+  }
+
+  function flushCommitRequest() {
+    commitRafId = 0;
+    const sec = pendingCommitSec;
+    pendingCommitSec = null;
+    if (!Number.isFinite(sec)) return;
+    commitCursorSecond?.(Math.max(0, Math.floor(sec)));
+  }
+
+  function clearCommitRequest() {
+    if (commitRafId && typeof cancelAnimationFrame === "function") {
+      cancelAnimationFrame(commitRafId);
+    }
+    commitRafId = 0;
+    pendingCommitSec = null;
+  }
+
+  function queueCommitSecond(sec) {
+    clearBrowseRequest();
+    clearPreviewRequest();
+    pendingCommitSec = Math.max(0, Math.floor(sec));
+    if (commitRafId) return;
+    if (typeof requestAnimationFrame === "function") {
+      commitRafId = requestAnimationFrame(flushCommitRequest);
+      return;
+    }
+    flushCommitRequest();
+  }
+
+  function flushPreviewRequest() {
+    previewRafId = 0;
+    const sec = pendingPreviewSec;
+    pendingPreviewSec = null;
+    if (!Number.isFinite(sec)) return;
+    previewCursorSecond?.(Math.max(0, Math.floor(sec)));
+  }
+
+  function clearPreviewRequest() {
+    if (previewRafId && typeof cancelAnimationFrame === "function") {
+      cancelAnimationFrame(previewRafId);
+    }
+    previewRafId = 0;
+    pendingPreviewSec = null;
+  }
+
+  function queuePreviewSecond(sec) {
+    clearBrowseRequest();
+    clearCommitRequest();
+    pendingPreviewSec = Math.max(0, Math.floor(sec));
+    if (previewRafId) return;
+    if (typeof requestAnimationFrame === "function") {
+      previewRafId = requestAnimationFrame(flushPreviewRequest);
+      return;
+    }
+    flushPreviewRequest();
+  }
+
+  function startDrag(diskId, event) {
+    if (!event || (Number.isFinite(event.button) && event.button !== 0)) return;
+    if (layout?.enabled === false) return;
+    tooltipView?.hide?.();
+
+    const state = typeof getState === "function" ? getState() : null;
+    const visibility = resolveDiskVisibility(state);
+    if (!isDiskVisible(diskId, visibility)) return;
+
+    const sprite = getSpriteByDiskId(diskId);
+    if (!sprite || sprite.visible === false) return;
+
+    const pointerAngleRad = getSpritePointerAngleRad(sprite, event.global);
+    if (!Number.isFinite(pointerAngleRad)) return;
+
+    requestPauseBeforeDrag?.();
+    endDrag();
+
+    const dragStartSec = getVisualTime?.() ?? getTimeSecForRotation(state);
+    const markerAnchorRad = Number.isFinite(ringMarkerAngleByDisk[diskId])
+      ? ringMarkerAngleByDisk[diskId]
+      : getDiskPlayheadAngleRad(diskId, layout);
+
+    dragSession = {
+      diskId,
+      pointerId: Number.isFinite(event.pointerId) ? event.pointerId : null,
+      lastPointerAngleRad: pointerAngleRad,
+      dragStartSec,
+      dragAnchorRingAngleRad: markerAnchorRad,
+      accumSec: 0,
+      visualTargetSec: dragStartSec,
+      lastRotationDirection: ROTATION_CLOCKWISE,
+      lastMoveMs: performance.now(),
+      velocity: 0,
+      coasting: false,
+    };
+
+    if (moonSprite) moonSprite.cursor = "grabbing";
+    if (seasonSprite) seasonSprite.cursor = "grabbing";
+    event.stopPropagation?.();
+  }
+
+  function endDrag() {
+    if (!dragSession) return;
+    const activeDrag = dragSession;
+    const frontierSec = getFrontierSec({ getTimeline, getState });
+    const targetSec = Math.max(
+      0,
+      Math.floor(activeDrag.visualTargetSec ?? activeDrag.dragStartSec ?? frontierSec)
+    );
+    const isFutureTarget = targetSec > frontierSec;
+
+    if (isFutureTarget && typeof previewCursorSecond === "function") {
+      flushPreviewRequest();
+      const commitRes = commitPreviewToLive?.();
+      if (!commitRes?.ok) {
+        commitCursorSecond?.(targetSec);
+      }
+    } else if (Number.isFinite(pendingCommitSec)) {
+      flushCommitRequest();
+    } else if (Number.isFinite(pendingBrowseSec)) {
+      clearPreviewState?.();
+      flushBrowseRequest();
+    } else {
+      clearPreviewRequest();
+      clearPreviewState?.();
+    }
+
+    dragSession = null;
+    if (moonSprite) moonSprite.cursor = "grab";
+    if (seasonSprite) seasonSprite.cursor = "grab";
+  }
+
+  function updateDragFromPointerEvent(event) {
+    if (!dragSession || dragSession.coasting || !event) return;
+
+    if (
+      dragSession.pointerId != null &&
+      Number.isFinite(event.pointerId) &&
+      event.pointerId !== dragSession.pointerId
+    ) {
+      return;
+    }
+
+    const state = typeof getState === "function" ? getState() : null;
+    const visibility = resolveDiskVisibility(state);
+    if (!isDiskVisible(dragSession.diskId, visibility)) {
+      endDrag();
+      return;
+    }
+
+    const sprite = getSpriteByDiskId(dragSession.diskId);
+    if (!sprite || sprite.visible === false) return;
+
+    const nextPointerAngleRad = getSpritePointerAngleRad(sprite, event.global);
+    if (!Number.isFinite(nextPointerAngleRad)) return;
+
+    const angleDeltaRad = normalizeSignedAngleDeltaRad(
+      nextPointerAngleRad - dragSession.lastPointerAngleRad
+    );
+    dragSession.lastPointerAngleRad = nextPointerAngleRad;
+
+    if (Math.abs(angleDeltaRad) > 1e-9) {
+      dragSession.lastRotationDirection =
+        angleDeltaRad < 0 ? ROTATION_ANTICLOCKWISE : ROTATION_CLOCKWISE;
+    }
+
+    const secPerRev = getDiskSecondsPerRevolution(dragSession.diskId, layout, state);
+    const diskLayout = getDiskLayout(dragSession.diskId, layout) || {};
+    const direction = diskLayout.clockwise ? 1 : -1;
+    const deltaPhase = (angleDeltaRad / TWO_PI) * direction;
+    const deltaSec = deltaPhase * secPerRev;
+    const now = performance.now();
+    const elapsed = (now - dragSession.lastMoveMs) / 1000;
+    if (elapsed > 0) {
+      const measured = Math.max(-secPerRev * .75, Math.min(secPerRev * .75, deltaSec / elapsed));
+      const weight = 1 - Math.exp(-elapsed / .04);
+      dragSession.velocity += (measured - dragSession.velocity) * weight;
+    }
+    dragSession.lastMoveMs = now;
+    moveDragBySeconds(deltaSec);
+  }
+
+  function moveDragBySeconds(deltaSec) {
+    dragSession.accumSec += deltaSec;
+
+    const frontierSec = getFrontierSec({ getTimeline, getState });
+    const dragSec = dragSession.dragStartSec + dragSession.accumSec;
+    const cap = getForecastPreviewCapSec?.() ?? frontierSec;
+    dragSession.visualTargetSec = Math.max(0, Math.min(cap, dragSec));
+    setVisualTime?.(dragSession.visualTargetSec);
+    if (dragSec < 0 || dragSec > cap) dragSession.velocity = 0;
+    if (dragSec <= frontierSec) {
+      // Browsing recorded history must not be limited by editability rules.
+      // Edit-window gates apply to mutations, not to read-only time travel.
+      const clampedSec = clampDiskHistoryBrowseTargetSec(dragSec, frontierSec);
+      clearPreviewState?.();
+      queueBrowseSecond(clampedSec);
+      return;
+    }
+
+    const forecastPreviewCapSec =
+      typeof getForecastPreviewCapSec === "function"
+        ? getForecastPreviewCapSec()
+        : frontierSec;
+    const clampedFutureSec = clampDiskForecastPreviewTargetSec(
+      dragSec,
+      frontierSec,
+      forecastPreviewCapSec
+    );
+    if (clampedFutureSec <= frontierSec) {
+      clearPreviewState?.();
+      queueBrowseSecond(frontierSec);
+      return;
+    }
+    if (typeof previewCursorSecond === "function") {
+      queuePreviewSecond(clampedFutureSec);
+      return;
+    }
+    queueCommitSecond(clampedFutureSec);
+  }
+
+  function bindStageInput() {
+    if (stageListenersBound) return;
+    if (!app?.stage) return;
+
+    // Finish queued wheel input before another control handles its new press.
+    stageDownHandler = () => { if (dragSession?.coasting) endDrag(); };
+    app.stage.on('pointerdowncapture', stageDownHandler);
+
+    stageMoveHandler = (event) => {
+      if (centrePress && !dragSession && event.pointerId === centrePress.pointerId) {
+        const distance = Math.hypot(event.global.x - centrePress.x, event.global.y - centrePress.y);
+        if (distance < 16) return;
+        suppressCentreTap = true;
+        startDrag(DISK_ID_MOON, event);
+      }
+      if (!dragSession) return;
+      const global = event?.global;
+      const pointerId = Number.isFinite(event?.pointerId) ? event.pointerId : null;
+      if (
+        Number.isFinite(global?.x) &&
+        Number.isFinite(global?.y) &&
+        pointerId === lastStageMovePointerId &&
+        global.x === lastStageMoveX &&
+        global.y === lastStageMoveY
+      ) {
+        return;
+      }
+      lastStageMovePointerId = pointerId;
+      lastStageMoveX = Number.isFinite(global?.x) ? global.x : null;
+      lastStageMoveY = Number.isFinite(global?.y) ? global.y : null;
+      updateDragFromPointerEvent(event);
+      event.stopPropagation?.();
+    };
+
+    stageUpHandler = (event) => {
+      if (dragSession?.pointerId != null && Number.isFinite(event?.pointerId)
+        && event.pointerId !== dragSession.pointerId) return;
+      centrePress = null;
+      lastStageMovePointerId = null;
+      lastStageMoveX = null;
+      lastStageMoveY = null;
+      if (dragSession && event?.type !== 'pointercancel'
+        && performance.now() - dragSession.lastMoveMs < 80
+        && Math.abs(dragSession.velocity) > .1) {
+        dragSession.coasting = true;
+        if (moonSprite) moonSprite.cursor = 'grab';
+        if (seasonSprite) seasonSprite.cursor = 'grab';
+      } else endDrag();
+    };
+
+    // Keep disk scrubbing responsive even when the pointer leaves the disk sprite
+    // during a turn. Some layouts make the old hit-tested pointermove path feel dead.
+    app.stage.on("globalpointermove", stageMoveHandler);
+    app.stage.on("pointermove", stageMoveHandler);
+    app.stage.on("pointerup", stageUpHandler);
+    app.stage.on("pointerupoutside", stageUpHandler);
+    app.stage.on("pointercancel", stageUpHandler);
+    stageListenersBound = true;
+  }
+
+  function unbindStageInput() {
+    if (!stageListenersBound || !app?.stage) return;
+    if (stageDownHandler) app.stage.off('pointerdowncapture', stageDownHandler);
+    if (stageMoveHandler) app.stage.off("globalpointermove", stageMoveHandler);
+    if (stageMoveHandler) app.stage.off("pointermove", stageMoveHandler);
+    if (stageUpHandler) {
+      app.stage.off("pointerup", stageUpHandler);
+      app.stage.off("pointerupoutside", stageUpHandler);
+      app.stage.off("pointercancel", stageUpHandler);
+    }
+    stageMoveHandler = null;
+    stageDownHandler = null;
+    stageUpHandler = null;
+    lastStageMovePointerId = null;
+    lastStageMoveX = null;
+    lastStageMoveY = null;
+    clearBrowseRequest();
+    clearCommitRequest();
+    clearPreviewRequest();
+    stageListenersBound = false;
+  }
+
+  function resolveRingMarkerAngleRad({
+    diskId,
+    state,
+    baseTimeSec,
+    committedSec,
+  }) {
+    const committedMarkerAngleRad = getDiskRingAngleAtSecond({
+      diskId,
+      state,
+      fromTimeSec: baseTimeSec,
+      targetSec: committedSec,
+      layout,
+    });
+
+    if (
+      dragSession &&
+      dragSession.diskId === diskId &&
+      Number.isFinite(dragSession.visualTargetSec)
+    ) {
+      const dragMarkerAngleRad = getDragRingAngleFromAnchorRad(
+        diskId,
+        layout,
+        state,
+        dragSession.dragStartSec,
+        dragSession.visualTargetSec,
+        dragSession.dragAnchorRingAngleRad
+      );
+      ringMarkerAngleByDisk[diskId] = dragMarkerAngleRad;
+      return dragMarkerAngleRad;
+    }
+
+    ringMarkerAngleByDisk[diskId] = committedMarkerAngleRad;
+    return committedMarkerAngleRad;
+  }
+
+  function drawRingFeedback({ state, baseTimeSec, visibility }) {
+    if (!feedbackGraphics) return;
+
+    feedbackGraphics.clear();
+    if (feedbackText) {
+      feedbackText.visible = false;
+      feedbackText.text = "";
+    }
+
+    const diskId = getFeedbackDiskId(visibility);
+    if (!diskId) return;
+    const sprite = getSpriteByDiskId(diskId);
+    if (!sprite || sprite.visible === false || !state) return;
+
+    const cx = sprite.x;
+    const cy = sprite.y;
+    const baseRadius = Math.max(sprite.width, sprite.height) * 0.5;
+    const ringRadius = Number.isFinite(baseRadius) && baseRadius > 0 ? baseRadius + 10 : 36;
+    const committedSec = getTSecInt(state);
+
+    const playheadAngleRad = getDiskPlayheadAngleRad(diskId, layout);
+    drawInwardPlayheadTriangle(feedbackGraphics, cx, cy, playheadAngleRad, {
+      tipRadius: baseRadius - 8, baseRadius: baseRadius + 5, halfWidth: 7,
+      fillColor: 0xe8cf94, strokeColor: 0x151b1b, strokeWidth: 1,
+    });
+    resolveRingMarkerAngleRad({ diskId, state, baseTimeSec, committedSec });
+
+    if (!dragSession || dragSession.diskId !== diskId) return;
+    if (!Number.isFinite(dragSession.visualTargetSec)) return;
+
+    const targetSec = clampNonNegativeSec(dragSession.visualTargetSec, committedSec);
+    const targetAngleRad = getDragRingAngleFromAnchorRad(
+      diskId,
+      layout,
+      state,
+      dragSession.dragStartSec,
+      targetSec,
+      dragSession.dragAnchorRingAngleRad
+    );
+
+    const markerColor =
+      dragSession.lastRotationDirection === ROTATION_ANTICLOCKWISE
+        ? 0xff5c5c
+        : 0x87c7ff;
+
+    const markerX = cx + Math.cos(targetAngleRad) * ringRadius;
+    const markerY = cy + Math.sin(targetAngleRad) * ringRadius;
+
+    feedbackGraphics.lineStyle(2, markerColor, 0.8);
+    feedbackGraphics.drawCircle(cx, cy, ringRadius);
+    feedbackGraphics.beginFill(markerColor, 0.95);
+    feedbackGraphics.drawCircle(markerX, markerY, 5);
+    feedbackGraphics.endFill();
+
+    if (feedbackText) {
+      const startSec = clampNonNegativeSec(dragSession.dragStartSec, 0);
+      const dragDeltaSec = Math.floor(targetSec - startSec);
+      const sign = dragDeltaSec >= 0 ? "+" : "-";
+      feedbackText.text = `${sign}${Math.abs(dragDeltaSec)} seconds`;
+      feedbackText.x = Math.round(cx - feedbackText.width * 0.5);
+      feedbackText.y = Math.round(cy - ringRadius - feedbackText.height - 6);
+      feedbackText.visible = true;
+    }
+  }
+
+  function ensureCreated() {
+    if (!layer) return { ok: false, reason: "noLayer" };
+    if (root) return { ok: true };
+
+    root = new PIXI.Container();
+    root.zIndex = layout?.zIndex ?? 0;
+
+    seasonSprite = new PIXI.Container();
+    seasonArt = addResourceIcon(seasonSprite, 'solar-wheel', 0, 0, 440);
+    seasonArt.scale.x *= -1; // Spring → Summer → Autumn → Winter under the top pointer.
+    seasonSprite.hitArea = new PIXI.Circle(0, 0, 220);
+    seasonSprite.eventMode = 'static'; seasonSprite.cursor = 'grab';
+    seasonSprite.on('pointerdown', event => startDrag(DISK_ID_SEASON, event));
+    root.addChild(seasonSprite);
+
+    moonSprite = new PIXI.Container();
+    moonArt = addResourceIcon(moonSprite, 'moon-wheel', 0, 0, 440);
+    moonSprite.hitArea = new PIXI.Circle(0, 0, 220);
+    moonSprite.eventMode = 'static'; moonSprite.cursor = 'grab';
+    moonSprite.on('pointerdown', event => startDrag(DISK_ID_MOON, event));
+    phaseIconEntries = MOON_PHASE_DEFS.map((phase, index) => {
+      const angle = -Math.PI / 2 - index / MOON_PHASE_DEFS.length * TWO_PI;
+      const icon = addResourceIcon(moonSprite, phase.id, Math.cos(angle) * 155, Math.sin(angle) * 155, 78);
+      icon.rotation = -index / MOON_PHASE_DEFS.length * TWO_PI;
+      return { phase, icon };
+    });
+    root.addChild(moonSprite);
+
+    phaseCentre = new PIXI.Container();
+    const centreGround = new PIXI.Graphics().beginFill(0x16272a).drawCircle(0, 0, 47).endFill();
+    phaseCentre.addChild(centreGround);
+    centreBezel = addResourceIcon(phaseCentre, 'lunar-bezel', 0, 0, 100);
+    centreIcon = addResourceIcon(phaseCentre, 'birth', 0, 0, 58);
+    phaseCentre.hitArea = new PIXI.Circle(0, 0, 50);
+    phaseCentre.eventMode = 'static'; phaseCentre.cursor = 'pointer';
+    phaseCentre.accessible = true; phaseCentre.accessibleType = 'button';
+    phaseCentre.on('pointerover', event => {
+      if (event.pointerType !== 'touch' && !dragSession) { hoveredCentre = true; showPhaseTooltip(); }
+    });
+    phaseCentre.on('pointerout', () => { hoveredCentre = false; tooltipView?.hide?.(); });
+    phaseCentre.on('pointerdown', event => {
+      if (dragSession?.coasting) endDrag();
+      event.stopPropagation();
+      suppressCentreTap = false;
+      centrePress = { pointerId: event.pointerId, x: event.global.x, y: event.global.y };
+    });
+    phaseCentre.on('pointertap', event => {
+      event.stopPropagation();
+      if (!suppressCentreTap) { tooltipView?.hide?.(); phaseReference.open(); }
+      suppressCentreTap = false;
+    });
+    root.addChild(phaseCentre);
+    phaseReference = createMoonPhaseReferenceView({ app, layer: referenceLayer, getState });
+
+    feedbackGraphics = new PIXI.Graphics();
+    feedbackGraphics.eventMode = "none";
+    root.addChild(feedbackGraphics);
+
+    feedbackText = new PIXI.Text("", {
+      fill: 0xfff0b8,
+      fontSize: 12,
+      fontFamily: "Arial",
+      fontWeight: "bold",
+      align: "center",
+      stroke: 0x111111,
+      strokeThickness: 3,
+    });
+    feedbackText.eventMode = "none";
+    feedbackText.visible = false;
+    root.addChild(feedbackText);
+
+    layer.addChild(root);
+    bindStageInput();
+    return { ok: true };
+  }
+
+  function applyLayout() {
+    if (!root) return;
+
+    const enabled = layout?.enabled !== false;
+    root.visible = enabled;
+
+    if (moonSprite) {
+      moonSprite.x = layout.moon.x;
+      moonSprite.y = layout.moon.y;
+      moonSprite.scale.set(layout.moon.scale);
+      moonSprite.alpha = layout.moon.alpha;
+    }
+
+    if (seasonSprite) {
+      seasonSprite.x = layout.season.x;
+      seasonSprite.y = layout.season.y;
+      seasonSprite.scale.set(layout.season.scale);
+      seasonSprite.alpha = layout.season.alpha;
+    }
+    if (phaseCentre) {
+      phaseCentre.position.set(layout.moon.x, layout.moon.y);
+      // Scale the medallion with the wheel, keeping its invisible touch target
+      // at least 44 CSS pixels at the supported 844-wide phone size.
+      phaseCentre.scale.set(440 * layout.season.scale * .34 / 100);
+      phaseCentre.hitArea.radius = Math.max(50, 64 / phaseCentre.scale.x);
+    }
+  }
+
+  function init() {
+    const res = ensureCreated();
+    if (!res.ok) return res;
+    applyLayout();
+    lastEnabled = layout?.enabled !== false;
+    return { ok: true };
+  }
+
+  function update(_frameDt) {
+    if (!root || !getState) return;
+
+    if (dragSession?.coasting) {
+      const dt = Number.isFinite(_frameDt) ? Math.max(0, _frameDt) : 0;
+      if (dt > .5) endDrag();
+      else {
+        const coast = sampleDiskMomentum(dragSession.velocity, dt);
+        dragSession.velocity = coast.velocity;
+        moveDragBySeconds(coast.deltaSec);
+        if (Math.abs(dragSession.velocity) < .1) endDrag();
+      }
+    }
+    const state = getState();
+    if (!state) return;
+
+    const visibility = resolveDiskVisibility(state);
+    const moonVisible = isDiskVisible(DISK_ID_MOON, visibility);
+    const seasonVisible = isDiskVisible(DISK_ID_SEASON, visibility);
+
+    const enabled = layout?.enabled !== false;
+    if (enabled !== lastEnabled) {
+      applyLayout();
+      lastEnabled = enabled;
+    }
+
+    if (dragSession && !isDiskVisible(dragSession.diskId, visibility)) {
+      endDrag();
+    }
+
+    if (moonSprite) moonSprite.visible = moonVisible;
+    if (seasonSprite) seasonSprite.visible = seasonVisible;
+    if (phaseCentre) phaseCentre.visible = moonVisible;
+    root.visible = enabled && (moonVisible || seasonVisible);
+
+    if (!root.visible) {
+      if (dragSession) endDrag();
+      if (feedbackGraphics) feedbackGraphics.clear();
+      if (feedbackText) feedbackText.visible = false;
+      return;
+    }
+
+    const baseTimeSec = dragSession?.visualTargetSec ?? getVisualTime?.() ?? getTimeSecForRotation(state);
+
+    if (moonSprite && moonSprite.visible !== false) {
+      const orbit01 = getMoonOrbitPhase01AtTime(state, baseTimeSec);
+      moonSprite.rotation = phase01ToRotationRad(orbit01, layout.moon);
+    }
+
+    const activePhase = getMoonPhaseAtSecond(state, getTSecInt(state));
+    // Packed HUD textures arrive after the discs are built. Keep binding until
+    // the atlas is valid instead of waiting for a one-shot revision bump.
+    for (const [sprite, id] of [[seasonArt, 'solar-wheel'], [moonArt, 'moon-wheel'],
+      [centreBezel, 'lunar-bezel'], ...phaseIconEntries.map(entry => [entry.icon, entry.phase.id])]) {
+      const texture = getResourceTexture(id);
+      if (texture?.baseTexture.valid && sprite && sprite.texture !== texture) sprite.texture = texture;
+    }
+    const activeTexture = getResourceTexture(activePhase.id);
+    if (activeTexture?.baseTexture.valid && centreIcon.texture !== activeTexture) {
+      centreIcon.texture = activeTexture;
+    }
+    phaseCentre.accessibleTitle = activePhase.label + ' phase — open all six phases';
+    if (hoveredCentre && !dragSession && lastTooltipSecond !== getTSecInt(state)) showPhaseTooltip();
+    phaseReference?.update();
+
+    if (seasonSprite && seasonSprite.visible !== false) {
+      const q =
+        Number.isFinite(layout.season?.quadrants) && layout.season.quadrants > 0
+          ? layout.season.quadrants
+          : 4;
+      const wheel01 = getSeasonWheelPhase01(state, baseTimeSec, q);
+      seasonSprite.rotation = phase01ToRotationRad(wheel01, layout.season);
+    }
+
+    drawRingFeedback({
+      state,
+      baseTimeSec,
+      visibility,
+    });
+  }
+
+  function destroy() {
+    endDrag();
+
+    if (browseRafId && typeof cancelAnimationFrame === "function") {
+      cancelAnimationFrame(browseRafId);
+    }
+    browseRafId = 0;
+    pendingBrowseSec = null;
+
+    if (commitRafId && typeof cancelAnimationFrame === "function") {
+      cancelAnimationFrame(commitRafId);
+    }
+    commitRafId = 0;
+    pendingCommitSec = null;
+
+    unbindStageInput();
+
+    if (!root) return;
+
+    if (moonSprite) moonSprite.off("pointerdown");
+    if (seasonSprite) seasonSprite.off("pointerdown");
+    phaseReference?.destroy();
+    tooltipView?.hide?.();
+
+    root.removeFromParent();
+    root.destroy({ children: true });
+    root = null;
+    moonSprite = null;
+    seasonSprite = null;
+    phaseIconEntries = [];
+    phaseCentre = null;
+    phaseReference = null;
+    centrePress = null;
+    feedbackGraphics = null;
+    feedbackText = null;
+  }
+
+  return {
+    init,
+    update,
+    applyLayout,
+    destroy,
+    getRoot: () => root,
+    isDragging: () => !!dragSession,
+    getRetainedMomentumSnapshot: () => ({
+      active: dragSession !== null,
+      coasting: dragSession?.coasting ?? false,
+      velocity: dragSession?.velocity ?? 0,
+      diskId: dragSession?.diskId ?? null,
+      visualTargetSec: dragSession?.visualTargetSec ?? null,
+    }),
+    stopMomentum: () => { if (dragSession?.coasting) endDrag(); },
+    getPhaseReferenceSnapshot: () => phaseReference?.getSnapshot() ?? null,
+    getPhaseReferenceClickPoint: id => phaseReference?.getClickPoint(id) ?? null,
+    getSemanticSnapshot: () => ({
+      activePhaseId: getMoonPhaseAtSecond(getState?.()).id,
+      centre: phaseCentre ? { x: phaseCentre.x, y: phaseCentre.y, diameter: 2 * phaseCentre.hitArea.radius * phaseCentre.scale.x } : null,
+      moon: moonSprite ? { x: moonSprite.x, y: moonSprite.y, radius: 220 * layout.moon.scale, rotation: moonSprite.rotation } : null,
+      season: seasonSprite ? { x: seasonSprite.x, y: seasonSprite.y, radius: 220 * layout.season.scale, rotation: seasonSprite.rotation } : null,
+    }),
+    getScreenRect: () =>
+      !root || !root.visible || typeof root.getBounds !== "function"
+        ? null
+        : root.getBounds(),
+  };
+}

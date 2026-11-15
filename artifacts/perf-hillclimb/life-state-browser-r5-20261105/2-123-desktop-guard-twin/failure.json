@@ -1,0 +1,226 @@
+{
+  "message": "expected data: strict full result differs; actual=e47fe0652609adf6ce36de983b3ea5aa8073b8b895d61435651e951aa89e31ba expected=7de3696ef28ee6e030f1c1f4481360d2f3a24bd489581b4eb50754b7b6bcf5d2",
+  "stack": "AssertionError [ERR_ASSERTION]: expected data: strict full result differs; actual=e47fe0652609adf6ce36de983b3ea5aa8073b8b895d61435651e951aa89e31ba expected=7de3696ef28ee6e030f1c1f4481360d2f3a24bd489581b4eb50754b7b6bcf5d2\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at checkLifeState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/life-state-check.mjs:27:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/life-state-browser.mjs:93:4",
+  "actual": false,
+  "expected": true,
+  "errors": [],
+  "passive": {
+    "version": 2,
+    "mode": "map",
+    "selectedRegionId": "R14",
+    "regionSelectionActive": false,
+    "runner": {
+      "frontierSec": 54,
+      "cursorSec": 54,
+      "viewedSec": 54,
+      "previewActive": false,
+      "forecastPreview": false,
+      "revision": 4,
+      "actionCount": 5,
+      "checkpointCount": 2
+    },
+    "opening": {
+      "phase": "idle",
+      "preparation": "idle",
+      "coverageSec": 96,
+      "elapsedSec": 0,
+      "lossSec": null
+    },
+    "map": {
+      "visible": true,
+      "detailVisible": false,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "zoom": 1
+      },
+      "focusAnimating": false,
+      "panelPhase": "closed",
+      "panelAnimating": false,
+      "artReady": false,
+      "artPrepared": null
+    },
+    "graph": {
+      "visible": true,
+      "minSec": 0,
+      "maxSec": 182,
+      "plotRect": {
+        "x": 573.855,
+        "y": 884.1,
+        "width": 1276.275,
+        "height": 145.86
+      },
+      "plotRectSpace": "stage-retained-transform",
+      "projection": {
+        "signatureVersion": 7,
+        "timelineToken": "sig:7",
+        "signatureMatches": true
+      },
+      "scrubSec": 54,
+      "isScrubbing": false,
+      "latchedForecastScrubSec": null,
+      "historyEndSec": 54,
+      "revealedSec": 54,
+      "browseCapSec": 54,
+      "targetSec": 54,
+      "computedSec": 1334,
+      "requestedSec": 1334,
+      "pending": false,
+      "cacheVersion": 266,
+      "subjectKey": "civilization",
+      "asyncToken": "sig:7",
+      "asyncPollMs": 39328.19999998808,
+      "asyncHistoryEndSec": 54,
+      "asyncRequestedSec": 1334,
+      "asyncComputedSec": 1310,
+      "revealHistoryEndSec": 54,
+      "animatedSec": 54,
+      "visibleEndSec": 54,
+      "startSecOverride": null,
+      "readinessCapSec": null,
+      "capEndSec": 54,
+      "paused": true,
+      "presentationSuspended": false,
+      "openingRevealSec": null
+    },
+    "life": {
+      "visible": false,
+      "selectedCandidateNodeId": null,
+      "displayedVassalId": "vassal-1",
+      "entryConfirmationOpen": false,
+      "entryOpen": false,
+      "entryVisible": false,
+      "entryPhase": "closed",
+      "decisionOpen": false,
+      "decisionNodeId": "life-milestone-milestone-1",
+      "decisionPhase": "closed",
+      "pendingInteractionCount": null,
+      "family": "practiceReform",
+      "selectedOptionId": null,
+      "resolving": false,
+      "shopTag": "random",
+      "offerIds": [
+        "life-milestone-milestone-1:r0:practice:1",
+        "life-milestone-milestone-1:r0:practice:2"
+      ],
+      "purchaseOrder": [
+        "life-milestone-milestone-1:r0:practice:0"
+      ],
+      "boardPracticeIds": [
+        "fieldStudy",
+        "logging",
+        "barter",
+        null,
+        null
+      ],
+      "observedDecisionNodeId": "life-milestone-milestone-1",
+      "boardRegionId": "R18",
+      "decisionArtReady": false,
+      "decisionArtPrepared": null,
+      "entryPoint": null,
+      "processingPhase": null,
+      "sourceRevision": 4,
+      "ready": null,
+      "processing": {
+        "sourceRevision": 4,
+        "sourceSec": 54,
+        "baseRevision": 4,
+        "baseSec": 54,
+        "timelineMatches": true,
+        "sourceMatches": true,
+        "requestId": 4,
+        "revision": 10,
+        "adopting": false,
+        "workerActive": false,
+        "draftActive": false,
+        "draftActionCount": 0,
+        "jobActive": false,
+        "phase": null,
+        "error": null,
+        "accepted": null,
+        "jobReady": null,
+        "ready": null,
+        "targetSec": null,
+        "computedSec": null,
+        "revealSec": null
+      },
+      "recapOpen": false,
+      "continueState": "idle",
+      "recapClock": {
+        "second": 54,
+        "progress": 1,
+        "locked": true
+      },
+      "recapClockStartedAt": 25888.5
+    }
+  },
+  "costs": [
+    {
+      "tag": "initial",
+      "hostRpcMs": 663.9755000000005,
+      "readerCpuMs": 18.400000005960464,
+      "startMs": 17812.19999998808,
+      "endMs": 17830.59999999404
+    },
+    {
+      "tag": "initial-present",
+      "hostRpcMs": 194.641100000008,
+      "readerCpuMs": 5.299999982118607,
+      "startMs": 18777.80000001192,
+      "endMs": 18783.09999999404
+    },
+    {
+      "tag": "entered",
+      "hostRpcMs": 649.9422999999952,
+      "readerCpuMs": 10.899999976158142,
+      "startMs": 20388.80000001192,
+      "endMs": 20399.69999998808
+    },
+    {
+      "tag": "category",
+      "hostRpcMs": 644.8678000000073,
+      "readerCpuMs": 12.099999994039536,
+      "startMs": 21177.09999999404,
+      "endMs": 21189.19999998808
+    },
+    {
+      "tag": "staged",
+      "hostRpcMs": 631.7977000000246,
+      "readerCpuMs": 15.599999994039536,
+      "startMs": 21953.5,
+      "endMs": 21969.09999999404
+    },
+    {
+      "tag": "committed",
+      "hostRpcMs": 484.73520000002463,
+      "readerCpuMs": 9.900000005960464,
+      "startMs": 25895.19999998808,
+      "endMs": 25905.09999999404
+    },
+    {
+      "tag": "history-16",
+      "hostRpcMs": 389.5556000000215,
+      "readerCpuMs": 10.400000005960464,
+      "startMs": 29968.90000000596,
+      "endMs": 29979.30000001192
+    },
+    {
+      "tag": "history-17",
+      "hostRpcMs": 375.1671999999962,
+      "readerCpuMs": 9.700000017881393,
+      "startMs": 31735.19999998808,
+      "endMs": 31744.90000000596
+    },
+    {
+      "tag": "present",
+      "hostRpcMs": 509.2584999999963,
+      "readerCpuMs": 13.599999994039536,
+      "startMs": 32173.90000000596,
+      "endMs": 32187.5
+    },
+    {
+      "tag": "boundary-evidence-export",
+      "hostRpcMs": 15062.8848
+    }
+  ]
+}

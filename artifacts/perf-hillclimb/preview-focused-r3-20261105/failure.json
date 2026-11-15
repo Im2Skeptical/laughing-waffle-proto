@@ -1,0 +1,4 @@
+{
+  "message": "Cannot assign to read only property '_actionSecondsVersion' of object '#<Object>'",
+  "stack": "TypeError: Cannot assign to read only property '_actionSecondsVersion' of object '#<Object>'\n    at ensureActionSecondsVersion (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/src/model/timeline/action-index.js:42:28)\n    at ensureActionSecondsRangeCache (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/src/model/timeline/action-index.js:121:32)\n    at getActionSecondsInRange (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/src/model/timeline/index.js:935:17)\n    at Object.getStateAt (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/src/model/timegraph/controller-core.js:1708:26)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/preview-state-inspection-test.mjs:78:37"
+}

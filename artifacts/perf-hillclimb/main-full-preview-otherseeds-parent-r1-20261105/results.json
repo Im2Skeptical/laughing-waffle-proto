@@ -1,0 +1,226 @@
+[
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "scrub-anchor",
+    "artwork": "off",
+    "id": "main-full-preview-otherseeds-parent-r1-20261105-0-desktop-scrub-anchor-off-s424242-cold",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=scrub-anchor",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-full-preview-otherseeds-parent-r1-20261105-0-desktop-scrub-anchor-off-s424242-cold"
+    ],
+    "started": "2026-11-04T18:13:17.089Z",
+    "finished": "2026-11-04T18:13:55.956Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "main-full-preview-otherseeds-parent-r1-20261105-0-desktop-scrub-anchor-off-s424242-cold:launch-0-scrub-anchor",
+      "job": "scrub-anchor"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "scrub-off-anchor",
+    "artwork": "off",
+    "id": "main-full-preview-otherseeds-parent-r1-20261105-1-desktop-scrub-off-anchor-off-s424242-cold",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=scrub-off-anchor",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-full-preview-otherseeds-parent-r1-20261105-1-desktop-scrub-off-anchor-off-s424242-cold"
+    ],
+    "started": "2026-11-04T18:13:55.957Z",
+    "finished": "2026-11-04T18:14:34.635Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "main-full-preview-otherseeds-parent-r1-20261105-1-desktop-scrub-off-anchor-off-s424242-cold:launch-0-scrub-off-anchor",
+      "job": "scrub-off-anchor"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "scrub-anchor",
+    "artwork": "off",
+    "id": "main-full-preview-otherseeds-parent-r1-20261105-2-mobile4-scrub-anchor-off-s424242-cold",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=scrub-anchor",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-full-preview-otherseeds-parent-r1-20261105-2-mobile4-scrub-anchor-off-s424242-cold"
+    ],
+    "started": "2026-11-04T18:14:34.636Z",
+    "finished": "2026-11-04T18:15:40.788Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "main-full-preview-otherseeds-parent-r1-20261105-2-mobile4-scrub-anchor-off-s424242-cold:launch-0-scrub-anchor",
+      "job": "scrub-anchor"
+    }
+  },
+  {
+    "seed": 424242,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "scrub-off-anchor",
+    "artwork": "off",
+    "id": "main-full-preview-otherseeds-parent-r1-20261105-3-mobile4-scrub-off-anchor-off-s424242-cold",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=424242",
+      "--jobs=scrub-off-anchor",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-full-preview-otherseeds-parent-r1-20261105-3-mobile4-scrub-off-anchor-off-s424242-cold"
+    ],
+    "started": "2026-11-04T18:15:40.789Z",
+    "finished": "2026-11-04T18:16:46.374Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "main-full-preview-otherseeds-parent-r1-20261105-3-mobile4-scrub-off-anchor-off-s424242-cold:launch-0-scrub-off-anchor",
+      "job": "scrub-off-anchor"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "scrub-anchor",
+    "artwork": "off",
+    "id": "main-full-preview-otherseeds-parent-r1-20261105-4-desktop-scrub-anchor-off-s99117-cold",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=scrub-anchor",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-full-preview-otherseeds-parent-r1-20261105-4-desktop-scrub-anchor-off-s99117-cold"
+    ],
+    "started": "2026-11-04T18:16:46.375Z",
+    "finished": "2026-11-04T18:17:29.871Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "main-full-preview-otherseeds-parent-r1-20261105-4-desktop-scrub-anchor-off-s99117-cold:launch-0-scrub-anchor",
+      "job": "scrub-anchor"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "scrub-off-anchor",
+    "artwork": "off",
+    "id": "main-full-preview-otherseeds-parent-r1-20261105-5-desktop-scrub-off-anchor-off-s99117-cold",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=scrub-off-anchor",
+      "--population=desktop",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-full-preview-otherseeds-parent-r1-20261105-5-desktop-scrub-off-anchor-off-s99117-cold"
+    ],
+    "started": "2026-11-04T18:17:29.872Z",
+    "finished": "2026-11-04T18:18:13.467Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "main-full-preview-otherseeds-parent-r1-20261105-5-desktop-scrub-off-anchor-off-s99117-cold:launch-0-scrub-off-anchor",
+      "job": "scrub-off-anchor"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "scrub-anchor",
+    "artwork": "off",
+    "id": "main-full-preview-otherseeds-parent-r1-20261105-6-mobile4-scrub-anchor-off-s99117-cold",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=scrub-anchor",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-full-preview-otherseeds-parent-r1-20261105-6-mobile4-scrub-anchor-off-s99117-cold"
+    ],
+    "started": "2026-11-04T18:18:13.468Z",
+    "finished": "2026-11-04T18:19:23.460Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "main-full-preview-otherseeds-parent-r1-20261105-6-mobile4-scrub-anchor-off-s99117-cold:launch-0-scrub-anchor",
+      "job": "scrub-anchor"
+    }
+  },
+  {
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "scrub-off-anchor",
+    "artwork": "off",
+    "id": "main-full-preview-otherseeds-parent-r1-20261105-7-mobile4-scrub-off-anchor-off-s99117-cold",
+    "argv": [
+      "scripts/perf-hillclimb/run.mjs",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "--seed=99117",
+      "--jobs=scrub-off-anchor",
+      "--population=mobile4",
+      "--artwork=off",
+      "--cache=cold",
+      "--samples=1",
+      "--id=main-full-preview-otherseeds-parent-r1-20261105-7-mobile4-scrub-off-anchor-off-s99117-cold"
+    ],
+    "started": "2026-11-04T18:19:23.461Z",
+    "finished": "2026-11-04T18:20:34.180Z",
+    "exitCode": 0,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "main-full-preview-otherseeds-parent-r1-20261105-7-mobile4-scrub-off-anchor-off-s99117-cold:launch-0-scrub-off-anchor",
+      "job": "scrub-off-anchor"
+    }
+  }
+]

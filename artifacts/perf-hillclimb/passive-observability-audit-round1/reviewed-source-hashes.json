@@ -1,0 +1,21 @@
+{
+    "src/model/timegraph/controller-core.js":  "08a02197159aa99c9454dab66dbeef3ac4b457d46a85d25eee05539e76bd928a",
+    "src/controllers/life-decision-controller.js":  "b394ee2176e8b461aefceb1a724ac154d7c2b197d64817b8de2f35bf3c03572e",
+    "src/views/timegraphs-pixi.js":  "5c1e7a0968461c6ea249a9ddbc661e49edfe40324ba1afddcff93f07cb5f0649",
+    "src/views/world-map-pixi.js":  "547fda5a03f869dd556d81e38bf495d579daf252669a05c5076553a8406e6b58",
+    "src/views/vassal-life-map-pixi.js":  "f8a5a1e47f5dca77bd67467572eaf506a3d8bee277187a9c05434b60cad99f1b",
+    "src/views/vassal-node-decision-modal-pixi.js":  "fbdbdf73f0435fc7537a653d7cebf36da9596209a13434697159e16acd881797",
+    "src/views/vassal-resolution-recap-pixi.js":  "d39fa9dd7c1769b347094c2ed1d9dfd111f737d37a5049081bd9f0d382493e09",
+    "src/views/ui-root-settlement-pixi.js":  "0db9fa61479cfacb5811da8158bbfa65b58abdefac1f3aaed60753489bf57978",
+    "src/views/ui-root/settlement-debug-api.js":  "b43915ef64f37a4dc63db9eeb3b762fe7e7caf93a7c6516bd3e770795551ce9f",
+    "src/views/ui-root/settlement-timing-snapshot.js":  "fd3ee6b7fc89f899be2a7d47f25d0b70d315bfe1a6717ba2f454c4b495453b5a",
+    "scripts/timing-observability-test.mjs":  "af55f25ca41b9ef9f79e2762cfff223d9471c9828e15021dee88d143796de9f2",
+    "scripts/timing-observability-browser-probe.mjs":  "967d69eee04d74079516b7fd4ec778122e689a4571d4e0178f890cdf888af369",
+    "package.json":  "bb2e3e49d8672b683557e747437d873332b1b8b9618bd4ebde38da18a5d66b30",
+    "src/views/world-map/camera.js":  "dc99613c14bd039aa9217a74a1edc43ea895ddb0804c3a8a78caa348e505940c",
+    "src/views/world-map/transitions.js":  "418818aaa7c8abd60525effd0a81c9c6ea847b86e63c20f47dd03148ce1cc40e",
+    "src/views/life-map-entry-confirm-pixi.js":  "9ad30604a1212af490157f1f3eb2de826c8413e76d65cf8b9ca6726c1590022c",
+    "src/views/consequential-time-pixi.js":  "39d2a323e2409c97fe7ea17a7da98a64bc4b85ce8944fa580010822fa96ce476",
+    "src/controllers/sim-runner.js":  "bdc568b26b845c6c02a70819160b7dcceec89f4f49128b891c4b282067263720",
+    "src/views/timegraphs/forecast-reveal-state.js":  "35879335a7544a15da0147929ccd22e919c08ab8adef5e86c893a2ed2dbb9f49"
+}

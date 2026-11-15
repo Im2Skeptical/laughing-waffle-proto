@@ -1,0 +1,70 @@
+{
+  "trace": [
+    {
+      "second": 0,
+      "kind": "settlementSelectVassal",
+      "payload": {
+        "candidateIndex": 0,
+        "expectedPoolHash": "[{\"classId\":null,\"founderClassId\":\"scholar\",\"archetype\":\"Philosopher\",\"candidateId\":\"candidate-1-1\",\"age\":13,\"locationRegionId\":\"R18\",\"originRegionId\":\"R18\",\"prestige\":22,\"stats\":{\"cunning\":0,\"wisdom\":0,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"rose\",\"hairStyle\":\"crop\",\"hairColor\":\"gold\",\"faceShape\":\"round\",\"clothingColor\":\"purple\",\"accessory\":\"none\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"legacyPlus\",\"groupId\":\"legacyPlus\",\"label\":\"Legacy+\",\"glyph\":\"L+\",\"color\":10657512,\"description\":\"Legacy choices are twice as powerful for their usual cost.\",\"variantId\":\"legacyPlus\"}},{\"classId\":null,\"founderClassId\":\"warrior\",\"archetype\":\"Warlord\",\"candidateId\":\"candidate-1-2\",\"age\":12,\"locationRegionId\":\"R14\",\"originRegionId\":\"R14\",\"prestige\":18,\"stats\":{\"cunning\":2,\"wisdom\":0,\"effectiveness\":2,\"intelligence\":1},\"portrait\":{\"skinTone\":\"ochre\",\"hairStyle\":\"shaved\",\"hairColor\":\"silver\",\"faceShape\":\"round\",\"clothingColor\":\"gold\",\"accessory\":\"pin\",\"expression\":\"bright\"},\"signatureNode\":{\"id\":\"settlement\",\"groupId\":\"settlement\",\"label\":\"Found Settlement\",\"glyph\":\"FS\",\"color\":7842405,\"description\":\"Found a nearby settlement and move this Vassal there.\",\"variantId\":\"settlement\"}}]"
+      }
+    },
+    {
+      "second": 0,
+      "kind": "vassalEnterLifeNode",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1"
+      }
+    },
+    {
+      "second": 0,
+      "kind": "vassalSelectLifeOption",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1",
+        "optionId": "random"
+      }
+    },
+    {
+      "second": 0,
+      "kind": "vassalPurchaseShopOffer",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1",
+        "offerId": "life-milestone-milestone-1:r0:practice:0"
+      }
+    },
+    {
+      "second": 0,
+      "kind": "vassalConfirmLifeNode",
+      "payload": {
+        "nodeId": "life-milestone-milestone-1"
+      }
+    }
+  ],
+  "nodeId": "life-milestone-milestone-1",
+  "offerId": "life-milestone-milestone-1:r0:practice:0",
+  "offerIndex": 0,
+  "offer": {
+    "offerId": "life-milestone-milestone-1:r0:practice:0",
+    "label": "Learn Bronze Field Study",
+    "basePrestigeCost": 10,
+    "basePhaseCost": 64,
+    "intervention": {
+      "kind": "practice",
+      "targetRegionId": "R18",
+      "practiceId": "fieldStudy",
+      "mode": "learn",
+      "tier": "bronze",
+      "resultingTier": "bronze"
+    },
+    "baseCurrencyCost": 0,
+    "priceQuality": "bronze",
+    "inventoryIndex": 0
+  },
+  "targetSec": 54,
+  "presentationArgs": {
+    "nodeId": "life-milestone-milestone-1",
+    "preview": {
+      "previewOptionId": null,
+      "previewOfferId": null
+    }
+  }
+}

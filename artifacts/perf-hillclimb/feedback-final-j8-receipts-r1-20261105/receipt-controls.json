@@ -1,0 +1,506 @@
+[
+  {
+    "population": "desktop",
+    "rowCount": 24,
+    "boundRows": 24,
+    "receiptCount": 24,
+    "missingReceipts": [],
+    "validations": [
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-1",
+        "step": "performance-entry-full-opening",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-2",
+        "step": "opening-to-responsive-present",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-3",
+        "step": "remaining-background-wait-to-prepared",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-4",
+        "step": "explicit-reveal",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-5",
+        "step": "revealed-0-0-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-6",
+        "step": "revealed-0-0-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-7",
+        "step": "revealed-0-1-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-8",
+        "step": "revealed-0-1-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-9",
+        "step": "revealed-0-2-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-10",
+        "step": "revealed-0-2-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-11",
+        "step": "revealed-0-3-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-12",
+        "step": "revealed-0-3-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-13",
+        "step": "revealed-0-4-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-14",
+        "step": "revealed-0-4-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-15",
+        "step": "revealed-1-0-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-16",
+        "step": "revealed-1-0-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-17",
+        "step": "revealed-1-1-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-18",
+        "step": "revealed-1-1-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-19",
+        "step": "revealed-1-2-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-20",
+        "step": "revealed-1-2-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-21",
+        "step": "revealed-1-3-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-22",
+        "step": "revealed-1-3-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-23",
+        "step": "revealed-1-4-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-reference:art-24",
+        "step": "revealed-1-4-map-return",
+        "phase": "completed",
+        "error": null
+      }
+    ]
+  },
+  {
+    "population": "desktop",
+    "rowCount": 27,
+    "boundRows": 26,
+    "receiptCount": 26,
+    "missingReceipts": [],
+    "validations": [
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-1",
+        "step": "performance-entry-full-opening",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-2",
+        "step": "opening-to-responsive-present",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-4",
+        "step": "while-art-deferred-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-5",
+        "step": "while-art-deferred-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-6",
+        "step": "deferred-atlas-to-prepared",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-7",
+        "step": "explicit-reveal",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-8",
+        "step": "revealed-0-0-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-9",
+        "step": "revealed-0-0-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-10",
+        "step": "revealed-0-1-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-11",
+        "step": "revealed-0-1-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-12",
+        "step": "revealed-0-2-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-13",
+        "step": "revealed-0-2-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-14",
+        "step": "revealed-0-3-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-15",
+        "step": "revealed-0-3-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-16",
+        "step": "revealed-0-4-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-17",
+        "step": "revealed-0-4-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-18",
+        "step": "revealed-1-0-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-19",
+        "step": "revealed-1-0-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-20",
+        "step": "revealed-1-1-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-21",
+        "step": "revealed-1-1-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-22",
+        "step": "revealed-1-2-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-23",
+        "step": "revealed-1-2-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-24",
+        "step": "revealed-1-3-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-25",
+        "step": "revealed-1-3-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-26",
+        "step": "revealed-1-4-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-deferred:art-27",
+        "step": "revealed-1-4-map-return",
+        "phase": "completed",
+        "error": null
+      }
+    ]
+  },
+  {
+    "population": "desktop",
+    "rowCount": 5,
+    "boundRows": 4,
+    "receiptCount": 4,
+    "missingReceipts": [],
+    "validations": [
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-retry:art-2",
+        "step": "required-asset-manual-retry",
+        "phase": "censored",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-retry:art-3",
+        "step": "opening-to-responsive-present",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-retry:art-4",
+        "step": "after-required-art-retry-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-retry:art-5",
+        "step": "after-required-art-retry-map-return",
+        "phase": "completed",
+        "error": null
+      }
+    ]
+  },
+  {
+    "population": "desktop",
+    "rowCount": 4,
+    "boundRows": 3,
+    "receiptCount": 3,
+    "missingReceipts": [],
+    "validations": [
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-exhausted:art-2",
+        "step": "opening-to-responsive-present",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-exhausted:art-3",
+        "step": "after-progressive-art-failure-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-desktop-exhausted:art-4",
+        "step": "after-progressive-art-failure-map-return",
+        "phase": "completed",
+        "error": null
+      }
+    ]
+  },
+  {
+    "population": "mobile4",
+    "rowCount": 3,
+    "boundRows": 3,
+    "receiptCount": 3,
+    "missingReceipts": [],
+    "validations": [
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-mobile4-reference:art-1",
+        "step": "performance-entry-full-opening",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-mobile4-reference:art-2",
+        "step": "opening-to-responsive-present",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-mobile4-reference:art-3",
+        "step": "remaining-background-wait-to-prepared",
+        "phase": "censored",
+        "error": null
+      }
+    ]
+  },
+  {
+    "population": "mobile4",
+    "rowCount": 6,
+    "boundRows": 5,
+    "receiptCount": 5,
+    "missingReceipts": [],
+    "validations": [
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-mobile4-deferred:art-1",
+        "step": "performance-entry-full-opening",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-mobile4-deferred:art-2",
+        "step": "opening-to-responsive-present",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-mobile4-deferred:art-4",
+        "step": "while-art-deferred-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-mobile4-deferred:art-5",
+        "step": "while-art-deferred-map-return",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-mobile4-deferred:art-6",
+        "step": "deferred-atlas-to-prepared",
+        "phase": "censored",
+        "error": null
+      }
+    ]
+  },
+  {
+    "population": "mobile4",
+    "rowCount": 5,
+    "boundRows": 4,
+    "receiptCount": 4,
+    "missingReceipts": [],
+    "validations": [
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-mobile4-retry:art-2",
+        "step": "required-asset-manual-retry",
+        "phase": "censored",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-mobile4-retry:art-3",
+        "step": "opening-to-responsive-present",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-mobile4-retry:art-4",
+        "step": "after-required-art-retry-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-mobile4-retry:art-5",
+        "step": "after-required-art-retry-map-return",
+        "phase": "completed",
+        "error": null
+      }
+    ]
+  },
+  {
+    "population": "mobile4",
+    "rowCount": 4,
+    "boundRows": 3,
+    "receiptCount": 3,
+    "missingReceipts": [],
+    "validations": [
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-mobile4-exhausted:art-2",
+        "step": "opening-to-responsive-present",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-mobile4-exhausted:art-3",
+        "step": "after-progressive-art-failure-settlement-open",
+        "phase": "completed",
+        "error": null
+      },
+      {
+        "observationId": "feedback-final-j8-receipts-r1-20261105-mobile4-exhausted:art-4",
+        "step": "after-progressive-art-failure-map-return",
+        "phase": "completed",
+        "error": null
+      }
+    ]
+  }
+]

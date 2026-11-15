@@ -1,0 +1,17 @@
+{
+  "verdict": "PASS: supplemental independent signature/passivity controls; Phase A NOT SOUND",
+  "checks": [
+    "base identity: stale token/storage retained",
+    "actions identity: stale token/storage retained",
+    "action count: stale token/storage retained",
+    "last action identity: stale token/storage retained",
+    "last action second: stale token/storage retained",
+    "official content version: stale token/storage retained",
+    "intentional checkpoint/revision/frontier churn does not change existing signature",
+    "signature is explicitly not an arbitrary in-place-content/state hash",
+    "invalid anchors are omitted",
+    "actual controller default/anchor-only calls no timeline; explicit query one raw read; cold graph != projection presence",
+    "unsupported optional projection reader remains null without timeline access",
+    "missing timeline correspondence is unknown"
+  ]
+}

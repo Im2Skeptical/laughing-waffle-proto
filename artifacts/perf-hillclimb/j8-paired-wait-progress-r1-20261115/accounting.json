@@ -1,0 +1,69 @@
+{
+  "at": "2026-11-15T01:18:18.256Z",
+  "phaseA": "NOT SOUND",
+  "inputFile": "artifacts/perf-hillclimb/j8-paired-off-20261115-r1/observations.jsonl",
+  "inputSha256": "f7ec1a52a96ac076cf0852fda9b8b59c872c3fdfddbe28db554e692d1ed90e41",
+  "analysisSha256": "0211283812dfd5bc3e3ed18ba1bcf622d70048d9e4784a231daf92b80d8a0f74",
+  "caseId": "j8-paired-off-20261115-r1",
+  "operation": {
+    "step": "remaining-background-wait-to-prepared",
+    "ok": false,
+    "started": 63737.80000001192,
+    "cancel": 303766.5,
+    "elapsedMs": 240028.69999998808,
+    "error": "page.waitForFunction: Timeout 240000ms exceeded."
+  },
+  "boundary": {
+    "mainEntered": 87586,
+    "collectedAt": 304072.7000000477,
+    "postCancelMs": 306.2000000476837,
+    "scope": "Through explicit post-clock collection. No exact gate state or exact wait total at original deadline inferred."
+  },
+  "accounting": {
+    "windowMs": 216486.70000004768,
+    "completedWaitMs": 161077.80000036955,
+    "completedWaitCount": 287,
+    "openObservedMs": 701.3000000119209,
+    "openRightCensored": true,
+    "open": {
+      "kind": "idle",
+      "phase": "main",
+      "started": 303371.40000003576,
+      "ambiguous": false
+    },
+    "accountedWaitMs": 161779.10000038147,
+    "otherWorkOrWaitMs": 54707.599999666214,
+    "accountedWaitFraction": 0.7472934826959154
+  },
+  "jobs": [
+    {
+      "name": "bake",
+      "phase": "main",
+      "started": 92384,
+      "updatedAt": 146955.70000004768,
+      "status": "complete",
+      "steps": 135,
+      "yields": 95,
+      "longestStepMs": 2654.100000023842,
+      "longestStepScope": "existing shared stats, cumulative across jobs"
+    },
+    {
+      "name": "regional",
+      "phase": "main",
+      "started": 155342.30000001192,
+      "updatedAt": 303371.40000003576,
+      "status": "yield-enter",
+      "steps": 285,
+      "yields": 192,
+      "longestStepMs": 2654.100000023842,
+      "longestStepScope": "existing shared stats, cumulative across jobs"
+    }
+  ],
+  "invalid": 0,
+  "unlinkedJobs": 0,
+  "droppedEvents": 1241,
+  "problems": [],
+  "hypothesis": "Existing cooperative waits account for at least80% of observed pending-main wall window while matched job advances.",
+  "verdict": "FALSIFIED for this diagnostic population",
+  "limits": "One new intrusive diagnostic population; longestStepMs is shared cumulative stats. Residual is other work/waits, not pure CPU. No neutrality/product cause/fix/speed/P95/scoring acceptance. No extra case/retry."
+}

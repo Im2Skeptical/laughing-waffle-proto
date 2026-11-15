@@ -1,0 +1,47 @@
+[
+  {
+    "file": "docs/performance/perf-hillclimb-20261104\\STATE.md",
+    "before": "1b776d2bd354739f458078babb434fb0d9ea705d00ec149965288d2b2c89352c",
+    "after": "9f1a8e24dab9029804cc9d05552ab7f481c3ca73cd89d45786e69a41c997a2a0"
+  },
+  {
+    "file": "docs/performance/perf-hillclimb-20261104\\PROOF_RUN.md",
+    "before": "9ed4948ba0fe696e036db2c292d12bb61ec413e02fdb5f97d6a6997d89833626",
+    "after": "f4d0495351892e71837c05c811b2229077bf2792b016b40f998e838afea78bd9"
+  },
+  {
+    "file": "docs/performance/perf-hillclimb-20261104\\FEEDBACK_PROOF_PLAN.md",
+    "before": "d63b6dea6d87180b95bef8ee6655daa7403e897378bb80047f605a92c6df4b3a",
+    "after": "a14fd1a07885f8567c62f7501d0a642106ad0c4f2ac9bc4ea5e092a982a44688"
+  },
+  {
+    "file": "src\\views\\vassal-node-decision-modal-pixi.js",
+    "before": "abe59eee5de1845c3ae6ddcc654235b6544945f84b408803455f00f43b3520a3",
+    "after": "6bfeb9cf25e2864d1462045d79a6ee7b732a243bff5a1b2ba0af3abd10bf9d86"
+  },
+  {
+    "file": "src\\views\\ui-root-settlement-pixi.js",
+    "before": "19ed00c3ce1a74015776af7caec1287c4f6a031172733550f6362c8ab63326d4",
+    "after": "d0110b208f627a295599a4221fd47f1bf621f11f7c3a78c42330d73df09dab23"
+  },
+  {
+    "file": "src\\views\\ui-root\\settlement-debug-api.js",
+    "before": "4c948784ab3998b2a77853f707b22726a9f621972db02030b99772b364cb1ddd",
+    "after": "5e2800bb9508583684c6829bef1edafacbbc7a2099c2c7eebeae423685240604"
+  },
+  {
+    "file": "scripts\\life-decision-test.mjs",
+    "before": "09c9aeabc7f2f0c059671f80a6d763a1f578eb0ac2ff579f536325b47282b528",
+    "after": "5664683c8fd40c491eb364204cd0ae9316bc720bcf7754451efe9026e0309c68"
+  },
+  {
+    "file": "scripts\\timing-observability-test.mjs",
+    "before": "06e98d68a37b4027caa78c50dc50c73ec7579f72d2b8617585bfa2318d89c888",
+    "after": "be5a91f007b82b5c464d40925a538f4e62a544f9a048158f704cdb67a4f2e9c5"
+  },
+  {
+    "file": "src\\controllers\\life-decision-controller.js",
+    "before": "b394ee2176e8b461aefceb1a724ac154d7c2b197d64817b8de2f35bf3c03572e",
+    "after": "8408c4820980c9fa3a7fe7a59a13fad618aa74978e29db5c192caa75ef405ed8"
+  }
+]

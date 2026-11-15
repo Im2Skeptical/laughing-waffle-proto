@@ -1,0 +1,27 @@
+{
+    "at":  "2026-11-15T04:31:11.5365981Z",
+    "gateOwner":  "/root/harness_auditor",
+    "verdict":  "SOURCE_CRITIQUE_ONLY_NOT_ADMITTED",
+    "sourceSha256":  "40d19903acf950ca1a7b7a27fc4740a2f1e1c4ab258374dcd9dcf1e92078c40c",
+    "manifestSha256":  "42cb6898cd4d2f0a2a3564821d0695dcd0b02d10c9ab19fdbe439511d1319718",
+    "files":  {
+                  "NativeCaptureLifecycle.cs":  "40d19903acf950ca1a7b7a27fc4740a2f1e1c4ab258374dcd9dcf1e92078c40c",
+                  "build-only.ps1":  "2ec78f3fa0bc0ad12a5d1c34865d3d7eb09ab06ebd4a36dc881aa0171f2522e9",
+                  "NativeCaptureLifecycle.dll":  "e5da662b0fb3e65aa56e0f5e7e393a7917e45fd36e453fe53dbdf39390a51f18",
+                  "compile.log":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                  "compile-exit.txt":  "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+                  "compile-build.json":  "3eee60cc369bdbee07ae717c085933fe4047f890dccff7097b4dbb91ff8d5b94",
+                  "README.md":  "3c65a360e12acaf25d38ca82657b67cb5597ae8f104a69d13036f099d22f9b45",
+                  "authenticate.mjs":  "4d3eeeb602c6557243a2aa6638a4f223ee5aba11b4d7819dd5a74eec7597ddc0"
+              },
+    "findings":  [
+                     "Unleased DangerousGetHandle/raw writer lifetime needs safe-handle call lease or enforced synchronization",
+                     "Opaque callback cannot be intrinsically time-bounded; finish adds500ms and all cleanup needs one deadline",
+                     "Live-reader Dispose cannot later finalize; startup/finally errors and partial ownership need terminal state machine"
+                 ],
+    "sourceOnly":  true,
+    "compiledByAuditor":  false,
+    "nativeMethodsOrConstructorsInvoked":  false,
+    "targetLaunched":  false,
+    "scope":  "Read/hash source/metadata and primary docs only. Builder compile/reflection is not actual lifecycle evidence; no complete admission."
+}

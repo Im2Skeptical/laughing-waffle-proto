@@ -1,0 +1,17 @@
+{
+    "at":  "2026-11-15T06:27:02.8535530Z",
+    "sources":  [
+                    "https://learn.microsoft.com/en-us/windows/win32/debug/debugging-events",
+                    "https://learn.microsoft.com/en-us/windows/win32/api/debugapi/nf-debugapi-continuedebugevent",
+                    "https://learn.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-waitforsingleobject",
+                    "https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess",
+                    "https://learn.microsoft.com/en-us/windows/win32/api/debugapi/nf-debugapi-debugactiveprocessstop"
+                ],
+    "parentSummarySha256":  "cbe8f507ecf2a60c4cad9b40d6c090195d0c94340b3af94fb4f2c94a929f0407",
+    "snapshotSha256":  "40371dc9c12d6394c9b7b52c367442cdc9aaa4886e8d5724574dc2dd4a9909e7",
+    "limits":  [
+                   "No native/API/compiler/test run; bounded original artifact extraction and primary-document reading only",
+                   "Zero recorded PIDs live at later snapshot does not reconstruct original cleanup timing or global absence",
+                   "Original immediate process wait status/error/owned CreateProcess handle values not recorded, so race versus invalid/auto-closed handle cannot be distinguished"
+               ]
+}

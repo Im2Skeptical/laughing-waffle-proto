@@ -1,0 +1,1358 @@
+{
+  "status": "PASS",
+  "phaseA": "NOT SOUND",
+  "kind": "Node expected-data functional proof only",
+  "conformance": [
+    {
+      "seed": 123,
+      "status": "PASS",
+      "checks": [
+        {
+          "label": "logical-prefix0",
+          "stateSha256": "df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f",
+          "rngSha256": "dc2674242afe5eb9fc466b02c40fb5003e9a72fc4b532770a56c2686c36dc413",
+          "tSec": 0
+        },
+        {
+          "label": "logical-prefix1",
+          "stateSha256": "651ba92d0e2cdfbdc440c0087c92374f5a0460aec8c5eff7f173795d91228065",
+          "rngSha256": "50984157dbf77f12e9d79eb28a05f0635d8263fad286346474a9f500d41edd95",
+          "tSec": 0
+        },
+        {
+          "label": "logical-prefix2",
+          "stateSha256": "b62bad53a9df83e2a9b3063bae42ddb8caa4973187347e78055d3cc659ec69e5",
+          "rngSha256": "74080d405d0eb8ad6c66fcbccd8cdbe54282bf6c210a75fffe8933cea7a69c48",
+          "tSec": 0
+        },
+        {
+          "label": "logical-prefix3",
+          "stateSha256": "5c4e40607ff3d97ed3205fa731df84861353d336cc3c719334038e32fdffe3d5",
+          "rngSha256": "46ea2bc0ce5785a0a8ebf591c75429d8142c022414d15218555e861182f07715",
+          "tSec": 0
+        },
+        {
+          "label": "logical-prefix4",
+          "stateSha256": "5667bf6d0b17a7386ec5b7f950940ac4b310bfd70974ca5a1450371d8e25efa8",
+          "rngSha256": "46ea2bc0ce5785a0a8ebf591c75429d8142c022414d15218555e861182f07715",
+          "tSec": 0
+        },
+        {
+          "label": "logical-prefix5",
+          "stateSha256": "8fd419dd2ec787848bf40c218a654e32f2ff6477c706728772520b21e1db048c",
+          "rngSha256": "46ea2bc0ce5785a0a8ebf591c75429d8142c022414d15218555e861182f07715",
+          "tSec": 0
+        },
+        {
+          "label": "enteredPaused",
+          "stateSha256": "7802e5b73bac4f98d2a77e372e643750a3dbc7a397ff4d057a9c3c901c17178f",
+          "rngSha256": "74080d405d0eb8ad6c66fcbccd8cdbe54282bf6c210a75fffe8933cea7a69c48",
+          "tSec": 0
+        },
+        {
+          "label": "staged",
+          "stateSha256": "1bb400bdb24ca75d8861f4d9078dfe51f22965a3db3b489afafe1eb77c1e4c5b",
+          "rngSha256": "46ea2bc0ce5785a0a8ebf591c75429d8142c022414d15218555e861182f07715",
+          "tSec": 0
+        },
+        {
+          "label": "accepted",
+          "stateSha256": "5ec7fb97890882678ae872000565a344b3cb9d62e56475ccd4d3aee1a885e5b2",
+          "rngSha256": "46ea2bc0ce5785a0a8ebf591c75429d8142c022414d15218555e861182f07715",
+          "tSec": 0
+        },
+        {
+          "label": "adopted",
+          "stateSha256": "8fd419dd2ec787848bf40c218a654e32f2ff6477c706728772520b21e1db048c",
+          "rngSha256": "46ea2bc0ce5785a0a8ebf591c75429d8142c022414d15218555e861182f07715",
+          "tSec": 0
+        },
+        {
+          "label": "history",
+          "stateSha256": "96e4574b4cf24c185bd8742007d882feb984aa28f8425fa72b2fd7fc94dca2b3",
+          "rngSha256": "97c4f5a45cbac2d895fa49365b7ba4bc3e2d7a5c34733380518aaadef99536d6",
+          "tSec": 54
+        },
+        {
+          "label": "committed",
+          "stateSha256": "b544048f0f5cc4c92721712d00a4f4f0960fb3d733a7e062406fc8ec08cbd779",
+          "rngSha256": "97c4f5a45cbac2d895fa49365b7ba4bc3e2d7a5c34733380518aaadef99536d6",
+          "tSec": 54
+        },
+        {
+          "label": "official-54",
+          "stateSha256": "96e4574b4cf24c185bd8742007d882feb984aa28f8425fa72b2fd7fc94dca2b3",
+          "rngSha256": "97c4f5a45cbac2d895fa49365b7ba4bc3e2d7a5c34733380518aaadef99536d6",
+          "tSec": 54
+        },
+        {
+          "label": "official-55",
+          "stateSha256": "80b8f11d50dca630cc23cb49b6876c67efa306288f30131dcb462b4021f9cf9c",
+          "rngSha256": "aed8c12bdaf435a76e62a5084f47193a622d36fae6f6f71b17c0bcff8317d764",
+          "tSec": 55
+        },
+        {
+          "label": "official-56",
+          "stateSha256": "2624df42f24bb9b3b4a404edd662e30508569b45552224b36fc19e7d3f3c5e1d",
+          "rngSha256": "aed8c12bdaf435a76e62a5084f47193a622d36fae6f6f71b17c0bcff8317d764",
+          "tSec": 56
+        },
+        {
+          "label": "official-57",
+          "stateSha256": "3d1c4defe30ae0740265b820eaf8d0a8eacfcd22b6ea9eb3c1f2424f1d4af4c9",
+          "rngSha256": "aed8c12bdaf435a76e62a5084f47193a622d36fae6f6f71b17c0bcff8317d764",
+          "tSec": 57
+        },
+        {
+          "label": "committed-history-16",
+          "stateSha256": "a87ea801b1d2075578c4a493bf80d9a38f939bfd4da9638c3d9d7fc2df962b48",
+          "rngSha256": "1c84b7afe81a1fe13f8151087fe818d75220c40125164d9e318364ec7e8bfd4e",
+          "tSec": 16
+        },
+        {
+          "label": "committed-history-17",
+          "stateSha256": "ac0dabb849a860ce6ef96e68233720077c92c7134259515ce7f6a50b16a5894f",
+          "rngSha256": "1c84b7afe81a1fe13f8151087fe818d75220c40125164d9e318364ec7e8bfd4e",
+          "tSec": 17
+        }
+      ],
+      "purity": "PASS input and returned-copy isolation",
+      "fullPresentation": "PASS staged/hover/drag; explicit args",
+      "officialSeconds": 57
+    },
+    {
+      "seed": 424242,
+      "status": "PASS",
+      "checks": [
+        {
+          "label": "logical-prefix0",
+          "stateSha256": "0273a5c25107fa66ecfb059d724c16e4266715b58da1ff2ffd023cca8e721129",
+          "rngSha256": "9b4fd4d4e94cf5149c9f97338cdf883ee0c0116a0b104fc645d8824fa93b4d45",
+          "tSec": 0
+        },
+        {
+          "label": "logical-prefix1",
+          "stateSha256": "856d34e57b2f8a4c456f42f389a54b0c47abdf18c47d5d64dc54b673aec1cb92",
+          "rngSha256": "409757f76265e7b3e62ab1181028bbc9111f13a5c3d1c55eed4a5ada7e12683f",
+          "tSec": 0
+        },
+        {
+          "label": "logical-prefix2",
+          "stateSha256": "202f047ccdf9ff1d83d937bcb188cf825c7738fa9cffbc06418c2bd1d324e5d9",
+          "rngSha256": "53822d43a77d8ccde8e9332724805ab7a56384e3421ac0e8e4d09fb9c1a87d9f",
+          "tSec": 0
+        },
+        {
+          "label": "logical-prefix3",
+          "stateSha256": "d68766e45f7dd13c8433ad3dc4088ba52148c6b45cdb9a18af5dd6471f0bd0ae",
+          "rngSha256": "9e8c1a6204503e673f8060b3107b9490ee4842a7c168ef6813e4dba6535bae72",
+          "tSec": 0
+        },
+        {
+          "label": "logical-prefix4",
+          "stateSha256": "9c2582dacfe28a3f891462e073607bfae4fdb34d00634043a985d7421769f1fc",
+          "rngSha256": "9e8c1a6204503e673f8060b3107b9490ee4842a7c168ef6813e4dba6535bae72",
+          "tSec": 0
+        },
+        {
+          "label": "logical-prefix5",
+          "stateSha256": "cd201d376c793020d2aa86482092d1e2097e003964b78677e9b729e50e2f9805",
+          "rngSha256": "9e8c1a6204503e673f8060b3107b9490ee4842a7c168ef6813e4dba6535bae72",
+          "tSec": 0
+        },
+        {
+          "label": "enteredPaused",
+          "stateSha256": "d34ee70f0e558bd3cd13eff9ce85ecd9365b4f557ce2ce0946bfee7f2335c79e",
+          "rngSha256": "53822d43a77d8ccde8e9332724805ab7a56384e3421ac0e8e4d09fb9c1a87d9f",
+          "tSec": 0
+        },
+        {
+          "label": "staged",
+          "stateSha256": "2b237b467270a404910b4231d323ee49e86dd15b4953bdd8d3029303b986a46c",
+          "rngSha256": "9e8c1a6204503e673f8060b3107b9490ee4842a7c168ef6813e4dba6535bae72",
+          "tSec": 0
+        },
+        {
+          "label": "accepted",
+          "stateSha256": "07a0632f1532736ddfd29f3ba1fd08b3c07307e36a6fc67dec666c0d792d051d",
+          "rngSha256": "9e8c1a6204503e673f8060b3107b9490ee4842a7c168ef6813e4dba6535bae72",
+          "tSec": 0
+        },
+        {
+          "label": "adopted",
+          "stateSha256": "cd201d376c793020d2aa86482092d1e2097e003964b78677e9b729e50e2f9805",
+          "rngSha256": "9e8c1a6204503e673f8060b3107b9490ee4842a7c168ef6813e4dba6535bae72",
+          "tSec": 0
+        },
+        {
+          "label": "history",
+          "stateSha256": "227295b2dfe023a9a8c1be9d0a160e019bfe2f0e5967821b26533ba64510e6d2",
+          "rngSha256": "797c2669669b61fa136750e06b75e172de83520eb3ac9cf90fc03e6e830bb3bb",
+          "tSec": 54
+        },
+        {
+          "label": "committed",
+          "stateSha256": "a8b6a2df2c38a1d39f3b14b25a682d8e355d8bb2f557b174f3843555134c6375",
+          "rngSha256": "797c2669669b61fa136750e06b75e172de83520eb3ac9cf90fc03e6e830bb3bb",
+          "tSec": 54
+        },
+        {
+          "label": "official-54",
+          "stateSha256": "227295b2dfe023a9a8c1be9d0a160e019bfe2f0e5967821b26533ba64510e6d2",
+          "rngSha256": "797c2669669b61fa136750e06b75e172de83520eb3ac9cf90fc03e6e830bb3bb",
+          "tSec": 54
+        },
+        {
+          "label": "official-55",
+          "stateSha256": "87ae7c212cc779f844c694c265c2c6f47cd6a096621696fedaa780739c07f10c",
+          "rngSha256": "129a3c2c1e31780e534f553b64b5e4d8d1bb8ebc5ccab31eff0b6e15859ce0ce",
+          "tSec": 55
+        },
+        {
+          "label": "official-56",
+          "stateSha256": "1eff5115289cdce18b376281bcc8e31c15d5b71ee42f1ba7d2eae2856d1657dd",
+          "rngSha256": "129a3c2c1e31780e534f553b64b5e4d8d1bb8ebc5ccab31eff0b6e15859ce0ce",
+          "tSec": 56
+        },
+        {
+          "label": "official-57",
+          "stateSha256": "02b49ec506b50e4ba6177e03facbd23fc8107caa59ac6e9534ec04bf6c9d394a",
+          "rngSha256": "129a3c2c1e31780e534f553b64b5e4d8d1bb8ebc5ccab31eff0b6e15859ce0ce",
+          "tSec": 57
+        },
+        {
+          "label": "committed-history-16",
+          "stateSha256": "7c56d5a025e423c996da478588684424eabdaef5de02a5ab49701ae5d05e58bc",
+          "rngSha256": "526d28b4111869271e0f67d9fc61f7197236d10dca71ad11da8c3b084d8d3d21",
+          "tSec": 16
+        },
+        {
+          "label": "committed-history-17",
+          "stateSha256": "42883b624cef42b0286c42806d545a67cc23bcab10c10b115156983ff9c6e4a4",
+          "rngSha256": "526d28b4111869271e0f67d9fc61f7197236d10dca71ad11da8c3b084d8d3d21",
+          "tSec": 17
+        }
+      ],
+      "purity": "PASS input and returned-copy isolation",
+      "fullPresentation": "PASS staged/hover/drag; explicit args",
+      "officialSeconds": 57
+    },
+    {
+      "seed": 99117,
+      "status": "PASS",
+      "checks": [
+        {
+          "label": "logical-prefix0",
+          "stateSha256": "0d58c42dbb26b65b78012296ad238797f8c249a22213f68875892b6a63725e51",
+          "rngSha256": "638f72ab99ae78209e51ee012f008342bfe276f19fd6e27e1114d12ca0fd44a4",
+          "tSec": 0
+        },
+        {
+          "label": "logical-prefix1",
+          "stateSha256": "dfe8120b5479219541d783181d84622a44bb15e4ae5f78f8465dc300ff831213",
+          "rngSha256": "51fd058a6292b1c61587af8e54eea62b65413c4cfe2b122a406e3d2ae815b76f",
+          "tSec": 0
+        },
+        {
+          "label": "logical-prefix2",
+          "stateSha256": "9cddbfbefb59b9c2500bc70b3b7cac978d465bd96c314fa0bf68b08f11ff5bc6",
+          "rngSha256": "91c2b3ccdeb5e11d1c317c95b5a1dd6a471cd5d87ba87bc260ae293790d8706f",
+          "tSec": 0
+        },
+        {
+          "label": "logical-prefix3",
+          "stateSha256": "dbd605a4abdc8650920bcea7764774449969722e4b8185a0921336dbea685abd",
+          "rngSha256": "56ad3cee37070d31fba74e72708397ee44e51a1739e07ec3a2ac016c4a8879bf",
+          "tSec": 0
+        },
+        {
+          "label": "logical-prefix4",
+          "stateSha256": "c9130536cd4ee0e8f194ac1e9d39c80e19870d48fca31e888e0d4f95fcd8c3b2",
+          "rngSha256": "56ad3cee37070d31fba74e72708397ee44e51a1739e07ec3a2ac016c4a8879bf",
+          "tSec": 0
+        },
+        {
+          "label": "logical-prefix5",
+          "stateSha256": "30c2f9bab146b7f488aaa9b96164d444f80c733fa24f5a57c4a4e762e1ddfb82",
+          "rngSha256": "56ad3cee37070d31fba74e72708397ee44e51a1739e07ec3a2ac016c4a8879bf",
+          "tSec": 0
+        },
+        {
+          "label": "enteredPaused",
+          "stateSha256": "8e9e483aaf1055537cad3154e8249e6adda9e48ee288c6979d0ce414005906a0",
+          "rngSha256": "91c2b3ccdeb5e11d1c317c95b5a1dd6a471cd5d87ba87bc260ae293790d8706f",
+          "tSec": 0
+        },
+        {
+          "label": "staged",
+          "stateSha256": "07a5d3e07b3a93a6aa6bbdb4ef8689471290b299b1d81e5608440bbb554c0e01",
+          "rngSha256": "56ad3cee37070d31fba74e72708397ee44e51a1739e07ec3a2ac016c4a8879bf",
+          "tSec": 0
+        },
+        {
+          "label": "accepted",
+          "stateSha256": "8e68d9b49792f95e9542a776e1db5271f05778b48d6733170ec1487ab065396b",
+          "rngSha256": "56ad3cee37070d31fba74e72708397ee44e51a1739e07ec3a2ac016c4a8879bf",
+          "tSec": 0
+        },
+        {
+          "label": "adopted",
+          "stateSha256": "30c2f9bab146b7f488aaa9b96164d444f80c733fa24f5a57c4a4e762e1ddfb82",
+          "rngSha256": "56ad3cee37070d31fba74e72708397ee44e51a1739e07ec3a2ac016c4a8879bf",
+          "tSec": 0
+        },
+        {
+          "label": "history",
+          "stateSha256": "8ac967a9311636940f9a06dc2811dd4e9a3f5f5d6d31588fe55ccbf95047dc67",
+          "rngSha256": "9a35b8a080ee48e388cbf7a50c6841453890ced06996856a367e4c582cf0dbef",
+          "tSec": 64
+        },
+        {
+          "label": "committed",
+          "stateSha256": "5d268d0b059024c522e38ead3bd0d26a94f7417bbbbd9383c90f9d397eaacdff",
+          "rngSha256": "9a35b8a080ee48e388cbf7a50c6841453890ced06996856a367e4c582cf0dbef",
+          "tSec": 64
+        },
+        {
+          "label": "official-64",
+          "stateSha256": "8ac967a9311636940f9a06dc2811dd4e9a3f5f5d6d31588fe55ccbf95047dc67",
+          "rngSha256": "9a35b8a080ee48e388cbf7a50c6841453890ced06996856a367e4c582cf0dbef",
+          "tSec": 64
+        },
+        {
+          "label": "official-65",
+          "stateSha256": "e04d11579be8a7b95bcf2bdaca8661cec067f636172b7e50f49c53552caffc27",
+          "rngSha256": "9a35b8a080ee48e388cbf7a50c6841453890ced06996856a367e4c582cf0dbef",
+          "tSec": 65
+        },
+        {
+          "label": "official-66",
+          "stateSha256": "4105c605ba32266ecaef6a4f567b3a0347e1cfeb281df781783e0fd3121949a1",
+          "rngSha256": "fdc9132cf4cf40dfd2a575c52a519df025c2dcbdc5171e6c46f4115814f726be",
+          "tSec": 66
+        },
+        {
+          "label": "official-67",
+          "stateSha256": "fb2ef2c2d389427aaa2788915a55f683f2c79f10c74095c22d8e5aa092e7ba55",
+          "rngSha256": "fb84a577cc9a9767a5ce42142da0c4b3782c7637bb8b4f3541c2e8442476b725",
+          "tSec": 67
+        },
+        {
+          "label": "committed-history-16",
+          "stateSha256": "97eadda17da95d269d3d871cc3482cb09950f854b9f24fed9bcd2d7f7739d3eb",
+          "rngSha256": "3b31978c7c6a110be31dd72890693bbf7bb40a72bb164b172c0013a09f4bd6c0",
+          "tSec": 16
+        },
+        {
+          "label": "committed-history-17",
+          "stateSha256": "e1197b301d756e901ad64e77a4cfbac2b02dcb79b83a7b6f9568b60ab646f235",
+          "rngSha256": "3b31978c7c6a110be31dd72890693bbf7bb40a72bb164b172c0013a09f4bd6c0",
+          "tSec": 17
+        }
+      ],
+      "purity": "PASS input and returned-copy isolation",
+      "fullPresentation": "PASS staged/hover/drag; explicit args",
+      "officialSeconds": 67
+    }
+  ],
+  "controls": [
+    {
+      "name": "123-wrong-target",
+      "status": "PASS expected rejection",
+      "expected": "/wrong actual target/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: wrong actual target\n\n1 !== 0\n\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:11:10)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:61:49\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:61:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "123-wrong-RNG",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: strict full result differs; actual=36c8e11b746b2b41b82402df621f912e974f22e214e7850f88e1b14bd46964d6 expected=1bb400bdb24ca75d8861f4d9078dfe51f22965a3db3b489afafe1eb77c1e4c5b\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:12:3)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:62:46\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:62:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "123-wrong-known-field",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: strict full result differs; actual=c2cfe26c29e6f7744654f83bab65f7b3961c8f515553927e3886163ba1ca60f6 expected=1bb400bdb24ca75d8861f4d9078dfe51f22965a3db3b489afafe1eb77c1e4c5b\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:12:3)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:63:54\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:63:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "123-extra-field",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: strict full result differs; actual=7a6037d1cf3988affb0d2544e719d4aca1f37dfe2ecda004952b09de115bd871 expected=1bb400bdb24ca75d8861f4d9078dfe51f22965a3db3b489afafe1eb77c1e4c5b\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:12:3)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:64:48\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:64:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "123-wrong-purchase",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: strict full result differs; actual=5839010c4f3b06feecf7d5f7999c662371f5618842b1d457e244741c608821bf expected=1bb400bdb24ca75d8861f4d9078dfe51f22965a3db3b489afafe1eb77c1e4c5b\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:12:3)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:65:51\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:65:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "123-wrong-slot",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: strict full result differs; actual=2a173913f0730808119fd5bc090ce1c4f55669d9ab16b3662bf3fff442876dca expected=1bb400bdb24ca75d8861f4d9078dfe51f22965a3db3b489afafe1eb77c1e4c5b\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:12:3)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:66:47\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:66:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "123-wrong-tableau",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: full tableau: strict full result differs; actual=f711be6dd0b537c22f17fa40882f909cbc673e586c6f26167f3775baf4dd427a expected=12e8c9a3e85302bceb1ffbcd3ec94d9b0c686c507c51fc66c9583cb0e99c3c54\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:67:142\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:67:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "123-extra-DTO-field",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: expected data: strict full result differs; actual=2b627b095ba57fbc33af1c9537513b3b14d215ee85e975ec9278fb54e1a5ff54 expected=12e8c9a3e85302bceb1ffbcd3ec94d9b0c686c507c51fc66c9583cb0e99c3c54\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:68:52\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:68:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "123-fractional-target",
+      "status": "PASS expected rejection",
+      "expected": "/exact integer replay target/",
+      "error": "AssertionError [ERR_ASSERTION]: exact integer replay target required\n    at Object.replayPrefix (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:39:117)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:69:56\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:69:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "123-implicit-presentation-arguments",
+      "status": "PASS expected rejection",
+      "expected": "/explicit hover\\/drag/",
+      "error": "AssertionError [ERR_ASSERTION]: explicit hover/drag arguments required\n    at Object.presentation (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:73:89)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:70:70\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:70:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "424242-wrong-target",
+      "status": "PASS expected rejection",
+      "expected": "/wrong actual target/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: wrong actual target\n\n1 !== 0\n\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:11:10)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:61:49\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:61:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "424242-wrong-RNG",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: strict full result differs; actual=73169042ca5619de32370d44ce7594d9d232e0d489ce4b8d6e7dd1729de7c692 expected=2b237b467270a404910b4231d323ee49e86dd15b4953bdd8d3029303b986a46c\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:12:3)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:62:46\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:62:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "424242-wrong-known-field",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: strict full result differs; actual=47d4837392a75aba4595f4f41a5d33f71cb4836b8882dd5ad0f7e918c30550a1 expected=2b237b467270a404910b4231d323ee49e86dd15b4953bdd8d3029303b986a46c\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:12:3)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:63:54\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:63:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "424242-extra-field",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: strict full result differs; actual=0d9aa124d68e72acb0d33f4706c204fc9e1a5f7098c3e4eb054505c7412a64dc expected=2b237b467270a404910b4231d323ee49e86dd15b4953bdd8d3029303b986a46c\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:12:3)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:64:48\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:64:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "424242-wrong-purchase",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: strict full result differs; actual=f0b60dc9636e181313f0ec40a05cf1896552afc09758327d511c14b30e81c064 expected=2b237b467270a404910b4231d323ee49e86dd15b4953bdd8d3029303b986a46c\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:12:3)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:65:51\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:65:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "424242-wrong-slot",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: strict full result differs; actual=0ff364b2222c01413d4a45f64bdd4d5f0c53451ce55b09ff1e13b2efe52ad02e expected=2b237b467270a404910b4231d323ee49e86dd15b4953bdd8d3029303b986a46c\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:12:3)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:66:47\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:66:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "424242-wrong-tableau",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: full tableau: strict full result differs; actual=e22ef624c715d1b8225feeb3de15392c4d54bf2da919abcf3140cb06a752f929 expected=ea2fce74dffaceabc8d2f7b2fc67920bd1fbc5998823a6d95adb7223c00150fd\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:67:142\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:67:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "424242-extra-DTO-field",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: expected data: strict full result differs; actual=79e911cd77941ce2f461e81f5e57b2e96153ae5794cf71c0c98b8615c58610a0 expected=ea2fce74dffaceabc8d2f7b2fc67920bd1fbc5998823a6d95adb7223c00150fd\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:68:52\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:68:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "424242-fractional-target",
+      "status": "PASS expected rejection",
+      "expected": "/exact integer replay target/",
+      "error": "AssertionError [ERR_ASSERTION]: exact integer replay target required\n    at Object.replayPrefix (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:39:117)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:69:56\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:69:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "424242-implicit-presentation-arguments",
+      "status": "PASS expected rejection",
+      "expected": "/explicit hover\\/drag/",
+      "error": "AssertionError [ERR_ASSERTION]: explicit hover/drag arguments required\n    at Object.presentation (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:73:89)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:70:70\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:70:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "99117-wrong-target",
+      "status": "PASS expected rejection",
+      "expected": "/wrong actual target/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: wrong actual target\n\n1 !== 0\n\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:11:10)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:61:49\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:61:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "99117-wrong-RNG",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: strict full result differs; actual=369b89ba92ef2748d96704173e0e84d9f3147bbdb8906998c902dd07bdcc615a expected=07a5d3e07b3a93a6aa6bbdb4ef8689471290b299b1d81e5608440bbb554c0e01\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:12:3)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:62:46\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:62:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "99117-wrong-known-field",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: strict full result differs; actual=37ac263d2440efe377543c5763bfd99bb279fe321ee7e86e22a4a3e23201c408 expected=07a5d3e07b3a93a6aa6bbdb4ef8689471290b299b1d81e5608440bbb554c0e01\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:12:3)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:63:54\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:63:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "99117-extra-field",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: strict full result differs; actual=8906440692f80e7a292de1d4f465eb56a278ce0c3de0f2f2c7a8e2e920f31e26 expected=07a5d3e07b3a93a6aa6bbdb4ef8689471290b299b1d81e5608440bbb554c0e01\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:12:3)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:64:48\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:64:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "99117-wrong-purchase",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: strict full result differs; actual=91181e2ad252135d87076946ba343f0a800446b727c362d1acb51ff5463689e1 expected=07a5d3e07b3a93a6aa6bbdb4ef8689471290b299b1d81e5608440bbb554c0e01\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:12:3)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:65:51\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:65:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "99117-wrong-slot",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: Life state: strict full result differs; actual=b3353ed179c52fae3edf52c12146d013a698b64b1a84e14f1be5114ff0840824 expected=07a5d3e07b3a93a6aa6bbdb4ef8689471290b299b1d81e5608440bbb554c0e01\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at assertExactState (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:12:3)\n    at stateBad (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:60:68)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:66:47\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:66:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "99117-wrong-tableau",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: full tableau: strict full result differs; actual=1841e23fa4f5cadea84d19911980648feb2f985500e8763edaef70d33efedc1d expected=d536f6d78fc5fd4c2bb9261edb06e39ea4970d42ef6758e1115a32f65248c81f\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:67:142\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:67:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "99117-extra-DTO-field",
+      "status": "PASS expected rejection",
+      "expected": "/strict full result differs/",
+      "error": "AssertionError [ERR_ASSERTION]: expected data: strict full result differs; actual=18a1dcac60b77d26a449b584c6893e532f89d6fb28d3400604dcc60d544a6633 expected=d536f6d78fc5fd4c2bb9261edb06e39ea4970d42ef6758e1115a32f65248c81f\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:68:52\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:68:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "99117-fractional-target",
+      "status": "PASS expected rejection",
+      "expected": "/exact integer replay target/",
+      "error": "AssertionError [ERR_ASSERTION]: exact integer replay target required\n    at Object.replayPrefix (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:39:117)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:69:56\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:69:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "99117-implicit-presentation-arguments",
+      "status": "PASS expected rejection",
+      "expected": "/explicit hover\\/drag/",
+      "error": "AssertionError [ERR_ASSERTION]: explicit hover/drag arguments required\n    at Object.presentation (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:73:89)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:70:70\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:70:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "wrong-base-pin",
+      "status": "PASS expected rejection",
+      "expected": "/base pin/",
+      "error": "AssertionError [ERR_ASSERTION]: addendum/base pin binding\n+ actual - expected\n\n+ '406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:177:67)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:83:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "wrong-addendum-pin",
+      "status": "PASS expected rejection",
+      "expected": "/addendum pin/",
+      "error": "AssertionError [ERR_ASSERTION]: addendum pin\n+ actual - expected\n\n+ '6b7456c5594cf05393b81c16a3cfc3682bff8c92fbba8821bfe8af16e911d8b8'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:176:10)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:84:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "missing-addendum-pin",
+      "status": "PASS expected rejection",
+      "expected": "/explicit SHA256 pin/",
+      "error": "AssertionError [ERR_ASSERTION]: addendum requires an explicit SHA256 pin\n    at pin (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:28:34)\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:171:3)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:85:47\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:85:11)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "original-fixture-CLI-auto-run",
+      "status": "PASS expected rejection",
+      "expected": "/fixture CLI auto-run prohibited/",
+      "error": "AssertionError [ERR_ASSERTION]: original fixture CLI auto-run prohibited\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:174:10)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:88:58\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:88:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "reused-output",
+      "status": "PASS expected rejection",
+      "expected": "/EEXIST/",
+      "error": "Error: EEXIST: file already exists, mkdir 'C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-life-oracle-20261105-r7\\addendum'\n    at async mkdir (node:internal/fs/promises:859:10)\n    at async buildFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:141:99)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:90:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "corrupt-entry",
+      "status": "PASS expected rejection",
+      "expected": "/file size|file hash/",
+      "error": "AssertionError [ERR_ASSERTION]: file size: life-entry.mjs\n\n11 !== 225\n\n    at match (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:43:10)\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:180:117)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:100:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "corrupt-sdk",
+      "status": "PASS expected rejection",
+      "expected": "/file size|file hash/",
+      "error": "AssertionError [ERR_ASSERTION]: file size: life-sdk.mjs\n\n41 !== 1115663\n\n    at match (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:43:10)\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:180:117)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:101:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "corrupt-metadata",
+      "status": "PASS expected rejection",
+      "expected": "/manifest identity/",
+      "error": "AssertionError [ERR_ASSERTION]: addendum manifest identity\n+ actual - expected\n\n+ '6745da4a87e6946a336cff7f80847984775506889f4f46f0d01a0cf8501a9b82'\n- '6b7456c5594cf05393b81c16a3cfc3682bff8c92fbba8821bfe8af16e911d8b8'\n\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:176:67)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:102:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "repinned-wrong-entry",
+      "status": "PASS expected rejection",
+      "expected": "/exact extension entry/",
+      "error": "AssertionError [ERR_ASSERTION]: exact extension entry\n+ actual - expected\n\n+ '// unapproved entry\\n'\n- \"export {applyAction,ActionKinds} from './src/model/actions.js';\\n\" +\n-   \"export {getVassalNodeDecisionPresentation} from './src/model/vassal-life-map/presentation.js';\\n\" +\n-   \"export {canonicalizeSnapshot} from './src/model/canonicalize.js';\\n\"\n\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:182:10)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:103:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "repinned-wrong-options",
+      "status": "PASS expected rejection",
+      "expected": "/exact build options/",
+      "error": "AssertionError [ERR_ASSERTION]: exact build options\n+ actual - expected\n... Skipped lines\n\n  {\n    bundle: true,\n    format: 'esm',\n    logLevel: 'silent',\n    metafile: true,\n...\n    target: 'node24',\n+   treeShaking: false,\n-   treeShaking: true,\n    write: false\n  }\n\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:182:84)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:104:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "repinned-corrupt-captured-source",
+      "status": "PASS expected rejection",
+      "expected": "/baseline source correspondence/",
+      "error": "AssertionError [ERR_ASSERTION]: baseline source correspondence src/model/actions.js\n+ actual - expected\n\n+ '6b3f08dc88b8c75ec0316ee7efd276f533bcadfc207657f62ba4e39661379d66'\n- '6405851c73197009500fb2988b7d13e7059293398bbb630c84e0e4e352c47c37'\n\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:192:141)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:106:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "repinned-path-escape",
+      "status": "PASS expected rejection",
+      "expected": "/path escape/",
+      "error": "AssertionError [ERR_ASSERTION]: artifact path escape/noncanonical path: ../escape.mjs\n    at safeName (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:31:10)\n    at readInside (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:35:3)\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:180:90)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:107:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "repinned-absolute-path",
+      "status": "PASS expected rejection",
+      "expected": "/path escape/",
+      "error": "AssertionError [ERR_ASSERTION]: artifact path escape/noncanonical path: C:/escape.mjs\n    at safeName (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:31:10)\n    at readInside (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:35:3)\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:180:90)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:108:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "repinned-tool-metadata",
+      "status": "PASS expected rejection",
+      "expected": "/recorded build tool identity/",
+      "error": "AssertionError [ERR_ASSERTION]: recorded build tool identity\n+ actual - expected\n\n  {\n    'node_modules/@esbuild/win32-x64/esbuild.exe': 'cae1bbc86f4df800b01d99e28aea0a154b02243de6797e98f48a9b88a64a7be0',\n    'node_modules/@esbuild/win32-x64/package.json': '5b41ac77d55bf2ae0de680d83a9095904e89523c6ef42460cffd0df5ef5a6947',\n+   'node_modules/esbuild/lib/main.js': '0000000000000000000000000000000000000000000000000000000000000000',\n-   'node_modules/esbuild/lib/main.js': '0d1241812c443111d39475dfc66836003e9ef8b87e54d990dd67df29d20010e1',\n    'node_modules/esbuild/package.json': 'cb7d5b1fe478f8cbaae566a86031b6fdf5f7d444354f35d1cb3cba9adf6d2935'\n  }\n\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:185:49)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:109:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "repinned-runtime-binary",
+      "status": "PASS expected rejection",
+      "expected": "/oracle Node executable identity/",
+      "error": "AssertionError [ERR_ASSERTION]: oracle Node executable identity\n+ actual - expected\n\n  {\n    bytes: 91694408,\n+   sha256: '3331e1ffe19874215472217c5e94f5a0c6d8e18c4ac7111d3937aa0ad5e9b4a5'\n-   sha256: '0000000000000000000000000000000000000000000000000000000000000000'\n  }\n\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:186:85)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:110:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "repinned-uncaptured-input",
+      "status": "PASS expected rejection",
+      "expected": "/uncaptured input/",
+      "error": "AssertionError [ERR_ASSERTION]: uncaptured input src/model/vassal-life-map/decision-preparation.js\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:192:80)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:111:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "repinned-dynamic-import",
+      "status": "PASS expected rejection",
+      "expected": "/dynamic import/",
+      "error": "AssertionError [ERR_ASSERTION]: prohibited dynamic import\n    at assertClosedBundle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:48:10)\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:187:48)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:121:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "repinned-dynamic-require",
+      "status": "PASS expected rejection",
+      "expected": "/prohibited require/",
+      "error": "AssertionError [ERR_ASSERTION]: prohibited require\n    at assertClosedBundle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:49:10)\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:187:48)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:121:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "repinned-mutable-package-import",
+      "status": "PASS expected rejection",
+      "expected": "/prohibited external/",
+      "error": "AssertionError [ERR_ASSERTION]: prohibited external import: esbuild\n    at assertClosedBundle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:55:35)\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:187:48)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:121:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "repinned-unnecessary-builtin",
+      "status": "PASS expected rejection",
+      "expected": "/prohibited external/",
+      "error": "AssertionError [ERR_ASSERTION]: prohibited external import: node:fs\n    at assertClosedBundle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:55:35)\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:187:48)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async mutant (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:97:7)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:121:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "base-corrupt-source",
+      "status": "PASS expected rejection",
+      "expected": "/file size|file hash/",
+      "error": "AssertionError [ERR_ASSERTION]: file size: sources/src/model/actions.js\n\n27 !== 7937\n\n    at match (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:43:10)\n    at validateBase (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:87:102)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:133:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "base-corrupt-sdk",
+      "status": "PASS expected rejection",
+      "expected": "/file size|file hash/",
+      "error": "AssertionError [ERR_ASSERTION]: file size: baseline-sdk-8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0.mjs\n\n52 !== 1329028\n\n    at match (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:43:10)\n    at validateBase (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:87:102)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:133:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "base-corrupt-manifest",
+      "status": "PASS expected rejection",
+      "expected": "/base manifest (pin|identity)/",
+      "error": "AssertionError [ERR_ASSERTION]: base manifest identity\n+ actual - expected\n\n+ 'ba1283181a87c7e6b31de27e93124fa2f6e34fa073ae8435fb9d937e5a1a0c0f'\n- '406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000'\n\n    at validateBase (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:81:76)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:133:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "base-path-escape",
+      "status": "PASS expected rejection",
+      "expected": "/base manifest (pin|identity)/",
+      "error": "AssertionError [ERR_ASSERTION]: base manifest pin\n+ actual - expected\n\n+ 'f35d252b70a508aa54f6923b5bf81f44255457e699ff40f846df0047497eb553'\n- '406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000'\n\n    at validateBase (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:81:10)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:133:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "resolver-decision-preparation",
+      "status": "PASS expected rejection",
+      "expected": "/uncaptured import/",
+      "error": "Error: Build failed with 1 error:\nnode_modules/esbuild/lib/main.js:1217:27: ERROR: [plugin: captured-only] uncaptured import: src/model/vassal-life-map/decision-preparation.js\n    at failureErrorWithLog (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:1467:15)\n    at C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:926:25\n    at runOnEndCallbacks (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:1307:45)\n    at buildResponseToResult (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:924:7)\n    at C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:951:16\n    at responseCallbacks.<computed> (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:603:9)\n    at handleIncomingPacket (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:658:12)\n    at Socket.readFromStdout (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:581:7)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12)"
+    },
+    {
+      "name": "resolver-projection-chunk",
+      "status": "PASS expected rejection",
+      "expected": "/uncaptured import/",
+      "error": "Error: Build failed with 1 error:\nnode_modules/esbuild/lib/main.js:1217:27: ERROR: [plugin: captured-only] uncaptured import: src/model/projection-chunk.js\n    at failureErrorWithLog (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:1467:15)\n    at C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:926:25\n    at runOnEndCallbacks (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:1307:45)\n    at buildResponseToResult (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:924:7)\n    at C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:951:16\n    at responseCallbacks.<computed> (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:603:9)\n    at handleIncomingPacket (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:658:12)\n    at Socket.readFromStdout (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:581:7)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12)"
+    },
+    {
+      "name": "resolver-current-absolute",
+      "status": "PASS expected rejection",
+      "expected": "/uncaptured\\/nonrelative/",
+      "error": "Error: Build failed with 1 error:\nnode_modules/esbuild/lib/main.js:1217:27: ERROR: [plugin: captured-only] uncaptured/nonrelative import: C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/src/model/actions.js\n    at failureErrorWithLog (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:1467:15)\n    at C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:926:25\n    at runOnEndCallbacks (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:1307:45)\n    at buildResponseToResult (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:924:7)\n    at C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:951:16\n    at responseCallbacks.<computed> (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:603:9)\n    at handleIncomingPacket (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:658:12)\n    at Socket.readFromStdout (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:581:7)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12)"
+    },
+    {
+      "name": "resolver-package",
+      "status": "PASS expected rejection",
+      "expected": "/uncaptured\\/nonrelative/",
+      "error": "Error: Build failed with 1 error:\nnode_modules/esbuild/lib/main.js:1217:27: ERROR: [plugin: captured-only] uncaptured/nonrelative import: esbuild\n    at failureErrorWithLog (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:1467:15)\n    at C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:926:25\n    at runOnEndCallbacks (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:1307:45)\n    at buildResponseToResult (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:924:7)\n    at C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:951:16\n    at responseCallbacks.<computed> (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:603:9)\n    at handleIncomingPacket (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:658:12)\n    at Socket.readFromStdout (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:581:7)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12)"
+    },
+    {
+      "name": "resolver-path-escape",
+      "status": "PASS expected rejection",
+      "expected": "/path escape/",
+      "error": "Error: Build failed with 1 error:\nnode_modules/esbuild/lib/main.js:1217:27: ERROR: [plugin: captured-only] artifact path escape/noncanonical path: ../src/model/actions.js\n    at failureErrorWithLog (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:1467:15)\n    at C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:926:25\n    at runOnEndCallbacks (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:1307:45)\n    at buildResponseToResult (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:924:7)\n    at C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:951:16\n    at responseCallbacks.<computed> (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:603:9)\n    at handleIncomingPacket (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:658:12)\n    at Socket.readFromStdout (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\node_modules\\esbuild\\lib\\main.js:581:7)\n    at Socket.emit (node:events:509:28)\n    at addChunk (node:internal/streams/readable:563:12)"
+    },
+    {
+      "name": "executed-source-frozen-life-oracle-mjs",
+      "status": "PASS expected rejection",
+      "expected": "/file size: executed source|file hash: executed source/",
+      "error": "AssertionError [ERR_ASSERTION]: file size: executed source frozen-life-oracle.mjs\n\n18371 !== 18338\n\n    at match (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/executed-source-frozen-life-oracle-mjs/frozen-life-oracle.mjs:43:10)\n    at Module.loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/executed-source-frozen-life-oracle-mjs/frozen-life-oracle.mjs:184:27)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:155:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "executed-source-frozen-life-expectations-mjs",
+      "status": "PASS expected rejection",
+      "expected": "/file size: executed source|file hash: executed source/",
+      "error": "AssertionError [ERR_ASSERTION]: file size: executed source frozen-life-expectations.mjs\n\n8205 !== 8172\n\n    at match (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/executed-source-frozen-life-expectations-mjs/frozen-life-oracle.mjs:43:10)\n    at Module.loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/executed-source-frozen-life-expectations-mjs/frozen-life-oracle.mjs:184:27)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:155:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "executed-source-frozen-life-oracle-test-mjs",
+      "status": "PASS expected rejection",
+      "expected": "/file size: executed source|file hash: executed source/",
+      "error": "AssertionError [ERR_ASSERTION]: file size: executed source frozen-life-oracle-test.mjs\n\n19336 !== 19303\n\n    at match (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/executed-source-frozen-life-oracle-test-mjs/frozen-life-oracle.mjs:43:10)\n    at Module.loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/artifacts/perf-hillclimb/frozen-life-oracle-20261105-r7/copies/executed-source-frozen-life-oracle-test-mjs/frozen-life-oracle.mjs:184:27)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:155:7)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "path-backslash",
+      "status": "PASS expected rejection",
+      "expected": "/path escape\\/noncanonical/",
+      "error": "AssertionError [ERR_ASSERTION]: artifact path escape/noncanonical path: a\\..\\escape.js\n    at safeName (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:31:10)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:158:39\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:158:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "path-dotdot",
+      "status": "PASS expected rejection",
+      "expected": "/path escape\\/noncanonical/",
+      "error": "AssertionError [ERR_ASSERTION]: artifact path escape/noncanonical path: a/../../escape.js\n    at safeName (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:31:10)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:158:39\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:158:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "path-UNC",
+      "status": "PASS expected rejection",
+      "expected": "/path escape\\/noncanonical/",
+      "error": "AssertionError [ERR_ASSERTION]: artifact path escape/noncanonical path: //server/share/file.js\n    at safeName (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:31:10)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:158:39\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:158:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "path-ADS",
+      "status": "PASS expected rejection",
+      "expected": "/path escape\\/noncanonical/",
+      "error": "AssertionError [ERR_ASSERTION]: artifact path escape/noncanonical path: a.js:stream\n    at safeName (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:31:10)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:158:39\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:158:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "path-empty",
+      "status": "PASS expected rejection",
+      "expected": "/path escape\\/noncanonical/",
+      "error": "AssertionError [ERR_ASSERTION]: artifact path escape/noncanonical path: \n    at safeName (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:31:10)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:158:39\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:158:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    },
+    {
+      "name": "bundle-hidden-static-import",
+      "status": "PASS expected rejection",
+      "expected": "/imports must match metafile/",
+      "error": "AssertionError [ERR_ASSERTION]: bundle imports must match metafile\n+ actual - expected\n\n+ [\n+   'node:fs'\n+ ]\n- []\n\n    at assertClosedBundle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:56:10)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:159:54\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:159:11)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:175:3"
+    }
+  ],
+  "failures": [],
+  "manifest": "addendum/manifest.json",
+  "pin": "6b7456c5594cf05393b81c16a3cfc3682bff8c92fbba8821bfe8af16e911d8b8",
+  "sdk": {
+    "bytes": 1115663,
+    "sha256": "f2d8da7555a253a14915720924b9bfdeaf0410f114b4b8d687df89d7eba1f540"
+  },
+  "base": {
+    "manifestSha256": "9e477109c2c10d6c566bf287c4d896ae6eee9a3b475ec63bc7dd2eb20decc8a1",
+    "identity": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "sdk": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "sourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+    "files": 178,
+    "inventorySha256": "947e14ef19ab330cd1d4b6b2125014662486a04ddf5a4e3bc457df9e0e040f67"
+  },
+  "executedSources": {
+    "frozen-life-oracle.mjs": "642492aef553296a5522cffaf3c4868f19b822e6c7c896645bd6b53fe5840e83",
+    "frozen-life-expectations.mjs": "fd2303e57d59a4852675bc30c311835f3fe82b7fa2ee6c4d6294197e1418be22",
+    "frozen-life-oracle-test.mjs": "b2880d9bed36f6f89541369d0775970d8aabc6cdec70196afcf42b34e3e2b3fb"
+  },
+  "integrity": "PASS",
+  "limitations": [
+    "Independent audit pending; Phase A NOT SOUND",
+    "No candidate or browser/private Life inspector exercised",
+    "No device latency or performance claim",
+    "Knowledge overlay requires independent facts and caller-proven trigger; helper does not infer or copy knowledge from actual output",
+    "Original failed provenance gates remain unchanged"
+  ],
+  "files": {
+    "original-integrity-before.json": {
+      "bytes": 437,
+      "sha256": "34ec2abeca0c2f3b42cf0f9dc0373117d831cdf6a9529a9b23274f44c2c2f486"
+    },
+    "conformance/123/logical-prefix0.json": {
+      "bytes": 642388,
+      "sha256": "2dacb898d62d2bda0d0a4f99045d8ddad8508d33f279c3d2c2219752e1e987bd"
+    },
+    "conformance/123/logical-prefix1.json": {
+      "bytes": 696964,
+      "sha256": "594b293630b0c533265531812ad51057035014146f27de05614a0aa28c581439"
+    },
+    "conformance/123/logical-prefix2.json": {
+      "bytes": 698963,
+      "sha256": "26554991dbcb157039ace6ca032de11e0aa94f88d5a866540803606e625f511d"
+    },
+    "conformance/123/logical-prefix3.json": {
+      "bytes": 701143,
+      "sha256": "87d8931b5475a7d4837e838ddd2b7f1090b1f40381930c6483141825f195a0fc"
+    },
+    "conformance/123/logical-prefix4.json": {
+      "bytes": 702126,
+      "sha256": "d5847731abacda98cddaa1832473988c55fe912a9bed77df0ab4ded1f011fd3e"
+    },
+    "conformance/123/logical-prefix5.json": {
+      "bytes": 706780,
+      "sha256": "f308429ebf560baf4ebd1a5bde677b749bc07d1fe5fc5950153bc9ef3945f6d4"
+    },
+    "conformance/123/enteredPaused.json": {
+      "bytes": 698960,
+      "sha256": "b0a0828ee2b0fa5d3352f48a7cc2815e7065c921384b628467724de74c71a23d"
+    },
+    "conformance/123/staged.json": {
+      "bytes": 702123,
+      "sha256": "e13455cba2a246d6faab36116272761e85315f8760c144f173e7236df8d357cc"
+    },
+    "conformance/123/accepted.json": {
+      "bytes": 706777,
+      "sha256": "40490910777219af23cd3c054212c60521f04c4ee9596e4734935e1f2d2fdafa"
+    },
+    "conformance/123/adopted.json": {
+      "bytes": 706780,
+      "sha256": "f308429ebf560baf4ebd1a5bde677b749bc07d1fe5fc5950153bc9ef3945f6d4"
+    },
+    "conformance/123/history.json": {
+      "bytes": 1561821,
+      "sha256": "9fbf49aa19a98a5b42f0eca4f448000bf8b211fad11eace4a7c56a0ae581da7a"
+    },
+    "conformance/123/committed.json": {
+      "bytes": 1561818,
+      "sha256": "f10176753bbd47d0b443faa0131797a763b69efdf6b5a42b9ef279da3ca71b58"
+    },
+    "conformance/123/itinerary.json": {
+      "bytes": 2989,
+      "sha256": "84159c0446ecb1d695be7edf2073e4af33fa36e7a48591aad8d1a8ed9027f9e2"
+    },
+    "conformance/123/staged-decision.json": {
+      "bytes": 47773,
+      "sha256": "d24eff33082c6e7fea803552598b54e13652b566a89a8aa29be09002ed2faea5"
+    },
+    "conformance/123/hover-decision.json": {
+      "bytes": 45139,
+      "sha256": "2110871d4cfd4e50ceac5be9bfdd3735f918a756db7a6d2ee3d0499eb77de075"
+    },
+    "conformance/123/drag-decision.json": {
+      "bytes": 51413,
+      "sha256": "6a0d102fa3f20dd0d9bf8bc4c2c08a863063904e64ad4d67a3c324ca7ff1ef01"
+    },
+    "conformance/123/official-54.json": {
+      "bytes": 1561821,
+      "sha256": "9fbf49aa19a98a5b42f0eca4f448000bf8b211fad11eace4a7c56a0ae581da7a"
+    },
+    "conformance/123/official-55.json": {
+      "bytes": 1544650,
+      "sha256": "846fcd2e067d60031c8c49309eb6aae266e431ebabcef0944b4447e2ae948101"
+    },
+    "conformance/123/official-56.json": {
+      "bytes": 1566955,
+      "sha256": "07775a958d42d796d9cbc4277df2cae73a19d6a3a52e1dc912cde880554d29ed"
+    },
+    "conformance/123/official-57.json": {
+      "bytes": 1568244,
+      "sha256": "0e8a4e22ba0a642a9880369da3e3b2d41176596043884a35e1dca360bfd806f1"
+    },
+    "conformance/123/committed-history-16.json": {
+      "bytes": 1137340,
+      "sha256": "f484df7f139f14da1c1a60487e565322e51f2246efa617c874d466942d487333"
+    },
+    "conformance/123/committed-history-17.json": {
+      "bytes": 1164385,
+      "sha256": "98ccca929c5f13f36c4e18ae66a77750a05609500e1bc28f66c19244a2df1219"
+    },
+    "controls/123-wrong-target.json": {
+      "bytes": 1138,
+      "sha256": "8f7804c08468a357588de05f9eff1f5fc8ae50956c87d1f9fea8df971d714054"
+    },
+    "controls/123-wrong-RNG.json": {
+      "bytes": 1443,
+      "sha256": "65b90c4e94dd5dbcf72b80b6835a1a7d55c99377132399f085232d7fd2546f66"
+    },
+    "controls/123-wrong-known-field.json": {
+      "bytes": 1451,
+      "sha256": "8579e83766c84aa140ef5308cf5150e02b60462e661473ff19b6d8430fab62d2"
+    },
+    "controls/123-extra-field.json": {
+      "bytes": 1445,
+      "sha256": "b361c8f8296db7e87f252e2f12470071e70693dc208b109297ba525ad05cc373"
+    },
+    "controls/123-wrong-purchase.json": {
+      "bytes": 1448,
+      "sha256": "83d0179e56aac93aa788d96ce3348aba0b826fbd4a8884abf2d41c88a678433a"
+    },
+    "controls/123-wrong-slot.json": {
+      "bytes": 1444,
+      "sha256": "186704283ffeab0fe764a780a698321966a88932fb8ca77337e2bc6956a13cd7"
+    },
+    "controls/123-wrong-tableau.json": {
+      "bytes": 1126,
+      "sha256": "074a6b1d0acb4fc26f7dec0f6eff1bb22caeefc914e1247cf48a818f2d0369dc"
+    },
+    "controls/123-extra-DTO-field.json": {
+      "bytes": 1128,
+      "sha256": "878b1caf6683ab2936742a4b97b9cf7ce388e2d7b74e1b18fa1d2ebba91c6615"
+    },
+    "controls/123-fractional-target.json": {
+      "bytes": 989,
+      "sha256": "3e7131042f759988bb557e24a57dec005c607eae15cd89e70a999967eaa37bb6"
+    },
+    "controls/123-implicit-presentation-arguments.json": {
+      "bytes": 998,
+      "sha256": "ab7797ba36dfc63b1c574bce1d68972332dda13b4be0ec860825ec96fdc083f8"
+    },
+    "conformance/123/checks.json": {
+      "bytes": 4462,
+      "sha256": "7e12f1e431f4b24ca6ab89f00663154785fbebdc03cc7c1bd77f5c2a1d728cd9"
+    },
+    "conformance/424242/logical-prefix0.json": {
+      "bytes": 642230,
+      "sha256": "0830c2b8958f75fc4e5f641c2e4a76f41c0e4db7a32b36e0ff62b852c412f457"
+    },
+    "conformance/424242/logical-prefix1.json": {
+      "bytes": 695649,
+      "sha256": "0cd29da991e8a7160f9e64456a824eb6fa792b959c3593f3c87926fe85d1eb71"
+    },
+    "conformance/424242/logical-prefix2.json": {
+      "bytes": 697677,
+      "sha256": "5b399216739f08ccfa9668e41159172c568881011a62f1a937848b07fe710b87"
+    },
+    "conformance/424242/logical-prefix3.json": {
+      "bytes": 699852,
+      "sha256": "34c8eafec22a3049389cfc9b8a495120e06259d8089a17c5986d5a3bdeb86e2a"
+    },
+    "conformance/424242/logical-prefix4.json": {
+      "bytes": 700850,
+      "sha256": "698a41dc2d3c67cd159a8deeebbac72129ea46cdcde9140fb0498c6c4ef420ea"
+    },
+    "conformance/424242/logical-prefix5.json": {
+      "bytes": 703462,
+      "sha256": "4927e82ef4cf2200274d533d5029abfdcd49743bebb364a5facc1dcfa76c7ebf"
+    },
+    "conformance/424242/enteredPaused.json": {
+      "bytes": 697674,
+      "sha256": "fd5f1ef59e8af6c7e5250f18ea9610197fdabcca81afd2d3ae23f5fe7436dca1"
+    },
+    "conformance/424242/staged.json": {
+      "bytes": 700847,
+      "sha256": "4888ab593f1d63b74f5fff5ea5a91fba9fce713725736d6e5438c34f8e3ad192"
+    },
+    "conformance/424242/accepted.json": {
+      "bytes": 703459,
+      "sha256": "c03b6e385ae308120166b18e8960cdfc672a8368dcd611cfc46922c58dff7d46"
+    },
+    "conformance/424242/adopted.json": {
+      "bytes": 703462,
+      "sha256": "4927e82ef4cf2200274d533d5029abfdcd49743bebb364a5facc1dcfa76c7ebf"
+    },
+    "conformance/424242/history.json": {
+      "bytes": 1552363,
+      "sha256": "7e15b01ea880d0022e17dc67c2aff5fe725b44abc4e847c567c3097669d4e15e"
+    },
+    "conformance/424242/committed.json": {
+      "bytes": 1552360,
+      "sha256": "4f3e74420b8697b0c4a14ca4a103c71569200ed8cbaf6d3e54727c685ec05913"
+    },
+    "conformance/424242/itinerary.json": {
+      "bytes": 3061,
+      "sha256": "5ee5c2dad5d83f637be04f624bbd7a924f2a0513070cbadb2e3e0ea928482e19"
+    },
+    "conformance/424242/staged-decision.json": {
+      "bytes": 53719,
+      "sha256": "1eac30e2ee79b86479aa3e7f06c76b3da2086d5463b701d9a5fb8d83fb8c89cd"
+    },
+    "conformance/424242/hover-decision.json": {
+      "bytes": 50209,
+      "sha256": "20d1ee101ec9bae4f56277ce2a73ec40e6a95c119240244b9985b10ba93d21c8"
+    },
+    "conformance/424242/drag-decision.json": {
+      "bytes": 57777,
+      "sha256": "d6e3f744ec80122c8c58765ab26c30021ff44aa40709bd8a5d255641c1b0c1d8"
+    },
+    "conformance/424242/official-54.json": {
+      "bytes": 1552363,
+      "sha256": "7e15b01ea880d0022e17dc67c2aff5fe725b44abc4e847c567c3097669d4e15e"
+    },
+    "conformance/424242/official-55.json": {
+      "bytes": 1536889,
+      "sha256": "dbbbdbd734a22b25880a21d75e2bfe97e21a904fcc5963bcc66153d843807d2c"
+    },
+    "conformance/424242/official-56.json": {
+      "bytes": 1557317,
+      "sha256": "9eb9bc52ac47f08decfe53a4a154ebb3c118d56fdc7b41c09b135c814a47bd41"
+    },
+    "conformance/424242/official-57.json": {
+      "bytes": 1559091,
+      "sha256": "1fd80a3041fbecc3970943bde3af9d52835686b20f4817cdd606081ca9c3c6d5"
+    },
+    "conformance/424242/committed-history-16.json": {
+      "bytes": 1153520,
+      "sha256": "9045e87534d38073f5de07accfffe9030e992f44f5b823ee883d47267a326c02"
+    },
+    "conformance/424242/committed-history-17.json": {
+      "bytes": 1193517,
+      "sha256": "6a6d02585e80146369ac7b007ea7de93f37c8f02b09bf3155e9ff7b3a77094ff"
+    },
+    "controls/424242-wrong-target.json": {
+      "bytes": 1141,
+      "sha256": "b0d803f6f7f925ba093f733dd750fb2ff5b8a17fcee97d47e974323e98f8d25d"
+    },
+    "controls/424242-wrong-RNG.json": {
+      "bytes": 1446,
+      "sha256": "a3b90df2eb88b9e8bb2cfd8225a5f0db8aa96116712384a0d8f3ce937f452bf4"
+    },
+    "controls/424242-wrong-known-field.json": {
+      "bytes": 1454,
+      "sha256": "c5d04a31949c3f0a59079423dce626a24d894ee7898fb7d0ccc6808c5d5453cd"
+    },
+    "controls/424242-extra-field.json": {
+      "bytes": 1448,
+      "sha256": "bc179dcebf6b149549d241a22cac0c4c08a811ea6509b4ac5a45ba3e4aa823f5"
+    },
+    "controls/424242-wrong-purchase.json": {
+      "bytes": 1451,
+      "sha256": "aefba94c5546777aa60922ec33c62989071562f31838eb57e7642d496db0e4c6"
+    },
+    "controls/424242-wrong-slot.json": {
+      "bytes": 1447,
+      "sha256": "1cc8ac85c6a8ed913a1db2d617f8488adcd98c89f311e3bdda25f06513bcca5e"
+    },
+    "controls/424242-wrong-tableau.json": {
+      "bytes": 1129,
+      "sha256": "c4840aa75a6d4c99bd870e7b932813ee16c2cbff94846000864211f221c0e406"
+    },
+    "controls/424242-extra-DTO-field.json": {
+      "bytes": 1131,
+      "sha256": "966452b35a6e1afcc981f6719733c995deb1883d92b5fa8fef849a1b283baa33"
+    },
+    "controls/424242-fractional-target.json": {
+      "bytes": 992,
+      "sha256": "151c226be4bb0c6446850d223576cc9ecdee9ea32b469a6880aff8a029232980"
+    },
+    "controls/424242-implicit-presentation-arguments.json": {
+      "bytes": 1001,
+      "sha256": "7573e58d57d4f131a25b2456f19f831c2c3ea50c09ea3ac96e0b0ddd6b03c0ab"
+    },
+    "conformance/424242/checks.json": {
+      "bytes": 4465,
+      "sha256": "431b1bd2b214a2838414eb8cebcabe34cd5708acc10a9c05583e1fd4d041ab61"
+    },
+    "conformance/99117/logical-prefix0.json": {
+      "bytes": 642982,
+      "sha256": "51fad717b0007536f5e1a65aec12718728f348ab2f6cf529f211b2c9d4973e49"
+    },
+    "conformance/99117/logical-prefix1.json": {
+      "bytes": 697795,
+      "sha256": "b96e1963029a05478746ba573a47597bba6efaad4e9734a8e07a86a631c24539"
+    },
+    "conformance/99117/logical-prefix2.json": {
+      "bytes": 699827,
+      "sha256": "a689b9812fcc77bccd04fb216192033864b730a82a1f64722d13dee5a791170c"
+    },
+    "conformance/99117/logical-prefix3.json": {
+      "bytes": 702006,
+      "sha256": "c366cda81058dcb474f28eb572f2626f0b6c04ff35215418664d3dee1c59b6db"
+    },
+    "conformance/99117/logical-prefix4.json": {
+      "bytes": 703009,
+      "sha256": "bf3d5187b6c42cb44fd2c1f157810286c2e4aec0b3dbb7b117ea0241c580fae0"
+    },
+    "conformance/99117/logical-prefix5.json": {
+      "bytes": 705641,
+      "sha256": "0d84100732829d4abaa16aeb74dda7c8c94ac6bb95b2f5b22ff488555f2d1b85"
+    },
+    "conformance/99117/enteredPaused.json": {
+      "bytes": 699824,
+      "sha256": "c9eff30247ea532346f960174bb2e3576939ffadeeea590fe23e3ebaac7c1150"
+    },
+    "conformance/99117/staged.json": {
+      "bytes": 703006,
+      "sha256": "802580efcb1675230d40e289406f7984a5bc01db743f195233b03e171d91afb0"
+    },
+    "conformance/99117/accepted.json": {
+      "bytes": 705638,
+      "sha256": "376c32e2bd17610c61fd9986113a42fed3a94350b6296d5b3d1432c35c874382"
+    },
+    "conformance/99117/adopted.json": {
+      "bytes": 705641,
+      "sha256": "0d84100732829d4abaa16aeb74dda7c8c94ac6bb95b2f5b22ff488555f2d1b85"
+    },
+    "conformance/99117/history.json": {
+      "bytes": 1602926,
+      "sha256": "59446478b01c635eaf9e19b8c543bfbe84a5e9cca08dd91507e854f511069f4c"
+    },
+    "conformance/99117/committed.json": {
+      "bytes": 1602923,
+      "sha256": "88c6a3c7e2aaab22e01a4e200ef81240c7751ec4c13ddc693ce8fc47bab37682"
+    },
+    "conformance/99117/itinerary.json": {
+      "bytes": 3027,
+      "sha256": "fc359835f9f11b6d89e8c6b2b0d80da7760bc67e7be40d1d91c2ec0284f15401"
+    },
+    "conformance/99117/staged-decision.json": {
+      "bytes": 53370,
+      "sha256": "183be9791f982a852a248cced268254da676891f36199e7436ddd89d1653ea7c"
+    },
+    "conformance/99117/hover-decision.json": {
+      "bytes": 50833,
+      "sha256": "528f35d36ab50e77b254f297565461e23378b9f4c359ceee9784be98ca35e1e2"
+    },
+    "conformance/99117/drag-decision.json": {
+      "bytes": 57478,
+      "sha256": "6f0764f6d035db7208b49d24c3feec81853a62335eb1abc38bc1ef155d9d85ef"
+    },
+    "conformance/99117/official-64.json": {
+      "bytes": 1602926,
+      "sha256": "59446478b01c635eaf9e19b8c543bfbe84a5e9cca08dd91507e854f511069f4c"
+    },
+    "conformance/99117/official-65.json": {
+      "bytes": 1602983,
+      "sha256": "87892928b57ad714d3a4f88a7c3fa113d76afff30c842e70813339b353436921"
+    },
+    "conformance/99117/official-66.json": {
+      "bytes": 1607499,
+      "sha256": "70da9ce3adba1732b5902ebe6dab0ea03a0d07abda076e5de896c0b57f329dd1"
+    },
+    "conformance/99117/official-67.json": {
+      "bytes": 1587295,
+      "sha256": "5b3a54876bba81b0a6b0146eaa48c4ca6106490de1b2bb22dfe4508e57dbc2a7"
+    },
+    "conformance/99117/committed-history-16.json": {
+      "bytes": 1142627,
+      "sha256": "8e24e2106200d4328c5542645b26931c4aeb6b9d9e9fdc4a2fabfc2c849214cb"
+    },
+    "conformance/99117/committed-history-17.json": {
+      "bytes": 1163814,
+      "sha256": "02a07ef50c021d545ec33bec441e1f4df949f7769bcfd9053676f42423027f4a"
+    },
+    "controls/99117-wrong-target.json": {
+      "bytes": 1140,
+      "sha256": "d68a7800c67f0bd55a920635d46b6aef630ab74181a80de66bf0bc536749dcf1"
+    },
+    "controls/99117-wrong-RNG.json": {
+      "bytes": 1445,
+      "sha256": "ee4b78017fa563c8acd842a865eed8260a378b1654d4765569063e3a3c6de1d7"
+    },
+    "controls/99117-wrong-known-field.json": {
+      "bytes": 1453,
+      "sha256": "2a61c958fdccc3745164207d61d48f85fba56292d8161c5cf754f9afff1cc3c1"
+    },
+    "controls/99117-extra-field.json": {
+      "bytes": 1447,
+      "sha256": "58a192877892857e0a746b5acfd2247723f9fd5f64c9b9e1ec0d002e76bd12c7"
+    },
+    "controls/99117-wrong-purchase.json": {
+      "bytes": 1450,
+      "sha256": "1a41722b7c1133ee48a247e01c25e304dbc4c7827d8c1dfd217728c669ae349a"
+    },
+    "controls/99117-wrong-slot.json": {
+      "bytes": 1446,
+      "sha256": "99d8d0736d78b1f416b48f7e1ba8db10b87d693025af9d0ec15e99ee7de4aa4c"
+    },
+    "controls/99117-wrong-tableau.json": {
+      "bytes": 1128,
+      "sha256": "c65c331c91ba0cae72aa44d554f183eead974c294927e7fd7f528fd5b1838f20"
+    },
+    "controls/99117-extra-DTO-field.json": {
+      "bytes": 1130,
+      "sha256": "ee84c907889e5bed57078f019cff0216dde3a7d32e246935e7396443c2effa18"
+    },
+    "controls/99117-fractional-target.json": {
+      "bytes": 991,
+      "sha256": "7f13aea8310504dd3233fa0bc784bb0ec4fffde4cdab1693c54a53808d58b01f"
+    },
+    "controls/99117-implicit-presentation-arguments.json": {
+      "bytes": 1000,
+      "sha256": "f51a59c6a467579f05e5ea9f92bcab033c8a0830fe1c8b2b255700b36f0751b5"
+    },
+    "conformance/99117/checks.json": {
+      "bytes": 4464,
+      "sha256": "57169886c82ae713d62453e915d1459a9a49fb0d64293152cf9f1911641af0c0"
+    },
+    "controls/wrong-base-pin.json": {
+      "bytes": 976,
+      "sha256": "b791cc049ae3baa799c06b8384dca017602fe765dd335022a4e4b26f67cc9e4c"
+    },
+    "controls/wrong-addendum-pin.json": {
+      "bytes": 971,
+      "sha256": "12a588ceba89761a73fca1eb192a2dc9f9427c662b3a50a8be1d4a233ee85ce2"
+    },
+    "controls/missing-addendum-pin.json": {
+      "bytes": 1126,
+      "sha256": "8f9830681addaeeed0be10ccf5a375ef591e8e90cbb91c846fffa239842de8f4"
+    },
+    "controls/original-fixture-CLI-auto-run.json": {
+      "bytes": 1000,
+      "sha256": "802c8388558e7fdfbe22a6114a954ee8b18c74e1b7ba9963355c8dbd3e4756fd"
+    },
+    "controls/reused-output.json": {
+      "bytes": 1005,
+      "sha256": "007867113888877bebef1d2f149906554098cfd4785f0db5a83d78fe55c6d502"
+    },
+    "controls/corrupt-entry.json": {
+      "bytes": 1150,
+      "sha256": "f356ac2eb347cd96627607edf3ff6860d62cc70a2ffbc190e7c42d55eec652b5"
+    },
+    "controls/corrupt-sdk.json": {
+      "bytes": 1150,
+      "sha256": "9ceddc8df204bd6094854b267462fe03f0d2e53a5f0fcee4afb16e801619a9c9"
+    },
+    "controls/corrupt-metadata.json": {
+      "bytes": 1150,
+      "sha256": "3792a59b8af88675eb46e13f2c19176eb7e025cde1c5e369bcdc744f6286538e"
+    },
+    "controls/repinned-wrong-entry.json": {
+      "bytes": 1304,
+      "sha256": "19fc94394f3de5a48ac8bcbaaa6cb9a231ea7533847af3e006fcbf2389ba10d7"
+    },
+    "controls/repinned-wrong-options.json": {
+      "bytes": 1220,
+      "sha256": "98c47537bd671051fe50ae0709b11f5a8426d0f7a93c52dcf051417da60198b2"
+    },
+    "controls/repinned-corrupt-captured-source.json": {
+      "bytes": 1205,
+      "sha256": "1b87a3d59be5e3dfa1bb5c5e42d5910b7065e831012b78a948274e3bc9be85b2"
+    },
+    "controls/repinned-path-escape.json": {
+      "bytes": 1317,
+      "sha256": "39cbc6cb9b49178cced25b776bb37350950cc950e3ecda820906480c363d48f1"
+    },
+    "controls/repinned-absolute-path.json": {
+      "bytes": 1319,
+      "sha256": "2cf02337151840a7d21623a0be882fec32c4c0ad2eaf500b129fb769240ead38"
+    },
+    "controls/repinned-tool-metadata.json": {
+      "bytes": 1607,
+      "sha256": "6b342b21e6956082161fa1b1e04c37316a7d4fdba802d3850c593e272ed26f3c"
+    },
+    "controls/repinned-runtime-binary.json": {
+      "bytes": 1228,
+      "sha256": "ebdd7f8ec69f2279f8258cf183285bf0d7efdcdc33863ae10033538fa775b1f4"
+    },
+    "controls/repinned-uncaptured-input.json": {
+      "bytes": 1033,
+      "sha256": "7d7a89efbee30a600a84bbd335c1c6c0fe0aa1e03884de62d3bc8c5e8cc0d07f"
+    },
+    "controls/repinned-dynamic-import.json": {
+      "bytes": 1151,
+      "sha256": "62b6290d0f3578c77115fad697969b43ed3861daa121e0b11ba251db102d13e5"
+    },
+    "controls/repinned-dynamic-require.json": {
+      "bytes": 1149,
+      "sha256": "1ea692b2921e475dcf0034c58d88d580e7c43fc85b6528f4afec02d3fbdabec6"
+    },
+    "controls/repinned-mutable-package-import.json": {
+      "bytes": 1174,
+      "sha256": "ed844c92851b82433c89aa4b5750f8e15d1cfe90a61a0391e196bf6fefb769a0"
+    },
+    "controls/repinned-unnecessary-builtin.json": {
+      "bytes": 1171,
+      "sha256": "5c7ea241c267ba9a2257d9cc429500689c9e952a63809781b89675fc279988ff"
+    },
+    "controls/base-corrupt-source.json": {
+      "bytes": 1001,
+      "sha256": "6d7c67f2d6aa2fb70600ce5b6ca3ba6adb32b0671182612c28169331ab9d063a"
+    },
+    "controls/base-corrupt-sdk.json": {
+      "bytes": 1054,
+      "sha256": "014b4b7928cd7baada7c61d8a26302a9700b52501f5d46989f349c04dc590b91"
+    },
+    "controls/base-corrupt-manifest.json": {
+      "bytes": 992,
+      "sha256": "e36c1a7d822eb13be9563feafbd218649489025836ae9c8f2600a14e11570a6d"
+    },
+    "controls/base-path-escape.json": {
+      "bytes": 982,
+      "sha256": "291ae48bad7dc2efcd47555b43bef7008f58b2640c414a3d880343bae9bc5091"
+    },
+    "reproduction.json": {
+      "bytes": 17313,
+      "sha256": "e548be251b0b051384abc922449b4ac9a4138f52b0d0a02bd2190f13b97c73bc"
+    },
+    "controls/resolver-decision-preparation.json": {
+      "bytes": 1610,
+      "sha256": "45a16ce8a6d04d2fcdc620b37090b1b7702cc9c4237e7bb8394a01dedd9615b7"
+    },
+    "controls/resolver-projection-chunk.json": {
+      "bytes": 1586,
+      "sha256": "a11fa6b87604a2d474f21c41052ed241511d9f375d046519485acfa67a9605ab"
+    },
+    "controls/resolver-current-absolute.json": {
+      "bytes": 1670,
+      "sha256": "3670161696152004e9cd4855d01fa48af5d4b22b16d9d0a12080cb0479f9c5f0"
+    },
+    "controls/resolver-package.json": {
+      "bytes": 1574,
+      "sha256": "970e78cf8840de18fca69af56575e6fce15134d7a151f08d13c00a6978008cfe"
+    },
+    "controls/resolver-path-escape.json": {
+      "bytes": 1590,
+      "sha256": "0f292ceca1e9dfb01938950ba65199f9ebf12e64dfa7f53b5025c20d136386d6"
+    },
+    "controls/executed-source-frozen-life-oracle-mjs.json": {
+      "bytes": 1241,
+      "sha256": "d6d6b06fed571399bcbd6e31c9106a4d36d85d7e182effd06e6baa26c80f2cc0"
+    },
+    "controls/executed-source-frozen-life-expectations-mjs.json": {
+      "bytes": 1263,
+      "sha256": "e2a8cdca84fa264f8507d20cc60f7591f3e09516e6afac911af7994a9f98b22e"
+    },
+    "controls/executed-source-frozen-life-oracle-test-mjs.json": {
+      "bytes": 1261,
+      "sha256": "b743c3ef8dae297af98f0ba1bfaa81ae6ecb3a64a3be417dd65e4ed447b15339"
+    },
+    "controls/path-backslash.json": {
+      "bytes": 985,
+      "sha256": "ab24ed6fa1409be6792c43baa3ec506e4759763d95ff496b06ac3515798ceb44"
+    },
+    "controls/path-dotdot.json": {
+      "bytes": 983,
+      "sha256": "eb5590e6d290edbad7356fe6b0be4e6da7eef2c74f3562e14ece1e8153eec331"
+    },
+    "controls/path-UNC.json": {
+      "bytes": 985,
+      "sha256": "4c8761d97824b5f44664214ea32895b7a55764d58b3b4a8174ed9b7db68a39c0"
+    },
+    "controls/path-ADS.json": {
+      "bytes": 974,
+      "sha256": "bb59e5830548aa2803ff5e03109dc0a15646006bcff86a257a443ebda72cc901"
+    },
+    "controls/path-empty.json": {
+      "bytes": 965,
+      "sha256": "8aee05364eb36cb6f6803a40c7641b09afb76c353b63c7eb0bb3d133701aaf8f"
+    },
+    "controls/bundle-hidden-static-import.json": {
+      "bytes": 1043,
+      "sha256": "4f1e56e030653e8be671f1ea9e453d219790513509f0a6efaed99baed02c35e0"
+    },
+    "original-integrity-after.json": {
+      "bytes": 950,
+      "sha256": "c0a339850ed78dd76ca0fdfd4a62af47a1d6f44427610d6550fd400f7682e9db"
+    }
+  }
+}

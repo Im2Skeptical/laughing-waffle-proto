@@ -1,0 +1,24 @@
+{
+    "at":  "2026-11-15T03:40:41.4756912Z",
+    "fixtureRoot":  "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-KYeb7O",
+    "since":  "2026-11-15T03:40:39.960Z",
+    "before":  [
+                   {
+                       "pid":  40148,
+                       "parentPid":  15368,
+                       "createdUtc":  "2026-11-15T03:40:40.2680650Z",
+                       "commandLine":  "\"C:\\Program Files\\nodejs\\node.exe\" C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-KYeb7O\\scripts\\local-preview.mjs --serve 63867"
+                   }
+               ],
+    "stopped":  [
+                    40148
+                ],
+    "remaining":  [
+
+                  ],
+    "errors":  [
+
+               ],
+    "fixturePreserved":  true,
+    "scope":  "Only exact registered fixture preview servers created during this attempt; no filesystem delete or other preview stopped"
+}

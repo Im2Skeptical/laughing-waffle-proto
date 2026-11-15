@@ -1,0 +1,198 @@
+{
+  "at": "2026-11-15T06:44:37.360Z",
+  "status": "BUILDER_STATIC_INSTRUCTION_PROOF_ONLY",
+  "sourcePins": {
+    "decode.mjs": "aaab992e244ef6006dba45de175453eb6e81a8d1b3116653f2ebb0bcaddb6e19",
+    "controls.mjs": "c2d1ffb3ab5299105406d7968469b6a65936c6c2dc46d9e15c315fdd67446cb9",
+    "prove.mjs": "3f0570e230e11320e5774d1504e538445b30593efd69a93e63a791e114623dc9",
+    "README.md": "43f312c237f2b182f5f2e2c9a4e88b855b1a6fceaee0719c7526115b5f9c7a89"
+  },
+  "provenanceSha256": "1eed7f6d54e7ee6cdaf793f2787c80f6db34bf2256576d81e71b7045911281c3",
+  "imageSha256": "a0f81bf5c610c0ff0a550adc020a58446f214790c748057bb575042e972e6a34",
+  "pdbSha256": "26d65ee88992ad9c3b258142f7dd3aac3b56f9e271587d9043d01dab3552163c",
+  "symbol": "LdrpDoDebuggerBreak",
+  "functionBegin": 1200656,
+  "functionEnd": 1200718,
+  "bodySha256": "b0d15223c10f0d345e73b469946eaf4e224ee1ab6cb3a4b1bb31ef0846bd1a32",
+  "queryExport": {
+    "name": "NtQueryInformationThread",
+    "rva": 1468528
+  },
+  "derivedBreakpointRva": 1200709,
+  "originalObservedRva": 1200709,
+  "decoded": {
+    "nodes": [
+      {
+        "offset": 0,
+        "size": 4,
+        "hex": "4883ec38",
+        "kind": "fall",
+        "relative": null,
+        "target": null
+      },
+      {
+        "offset": 4,
+        "size": 5,
+        "hex": "c644244000",
+        "kind": "fall",
+        "relative": null,
+        "target": null
+      },
+      {
+        "offset": 9,
+        "size": 6,
+        "hex": "488364242000",
+        "kind": "fall",
+        "relative": null,
+        "target": null
+      },
+      {
+        "offset": 15,
+        "size": 6,
+        "hex": "41b901000000",
+        "kind": "fall",
+        "relative": null,
+        "target": null
+      },
+      {
+        "offset": 21,
+        "size": 5,
+        "hex": "4c8d442440",
+        "kind": "fall",
+        "relative": null,
+        "target": null
+      },
+      {
+        "offset": 26,
+        "size": 4,
+        "hex": "418d5110",
+        "kind": "fall",
+        "relative": null,
+        "target": null
+      },
+      {
+        "offset": 30,
+        "size": 7,
+        "hex": "48c7c1feffffff",
+        "kind": "fall",
+        "relative": null,
+        "target": null
+      },
+      {
+        "offset": 37,
+        "size": 5,
+        "hex": "e836160400",
+        "kind": "call",
+        "relative": 267830,
+        "target": 267872
+      },
+      {
+        "offset": 42,
+        "size": 2,
+        "hex": "85c0",
+        "kind": "fall",
+        "relative": null,
+        "target": null
+      },
+      {
+        "offset": 44,
+        "size": 2,
+        "hex": "780a",
+        "kind": "conditional",
+        "relative": 10,
+        "target": 56
+      },
+      {
+        "offset": 46,
+        "size": 5,
+        "hex": "807c244000",
+        "kind": "fall",
+        "relative": null,
+        "target": null
+      },
+      {
+        "offset": 51,
+        "size": 2,
+        "hex": "7503",
+        "kind": "conditional",
+        "relative": 3,
+        "target": 56
+      },
+      {
+        "offset": 53,
+        "size": 1,
+        "hex": "cc",
+        "kind": "int3",
+        "relative": null,
+        "target": null
+      },
+      {
+        "offset": 54,
+        "size": 2,
+        "hex": "eb00",
+        "kind": "jump",
+        "relative": 0,
+        "target": 56
+      },
+      {
+        "offset": 56,
+        "size": 4,
+        "hex": "4883c438",
+        "kind": "fall",
+        "relative": null,
+        "target": null
+      },
+      {
+        "offset": 60,
+        "size": 1,
+        "hex": "c3",
+        "kind": "return",
+        "relative": null,
+        "target": null
+      },
+      {
+        "offset": 61,
+        "size": 1,
+        "hex": "cc",
+        "kind": "int3",
+        "relative": null,
+        "target": null
+      }
+    ],
+    "reachableOffsets": [
+      0,
+      4,
+      9,
+      15,
+      21,
+      26,
+      30,
+      37,
+      42,
+      44,
+      46,
+      51,
+      53,
+      54,
+      56,
+      60
+    ],
+    "reachableInt3Offsets": [
+      53
+    ],
+    "unreachableInt3Offsets": [
+      61
+    ],
+    "returnOffsets": [
+      60
+    ],
+    "calls": [
+      {
+        "offset": 37,
+        "target": 267872
+      }
+    ],
+    "scope": "Subset instruction boundaries and direct intrafunction flow only. Calls assumed to return for this graph; no execution or general x64/OS behavior proof."
+  },
+  "scope": "Not independently accepted. Conservative subset/assumed-return call graph and matching original address do not prove startup role, safe continuation, native timing/closure, neutrality or SOUND. No new native experiment."
+}

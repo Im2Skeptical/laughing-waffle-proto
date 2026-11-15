@@ -1,0 +1,21 @@
+{
+  "at": "2026-11-15T04:40:43.341Z",
+  "node": "v24.15.0",
+  "phase": "REPAIRED_SOURCE_AND_PURE_MANAGED_ONLY",
+  "sourceCount": 683,
+  "assetCount": 5,
+  "sourceAssetChanges": [],
+  "files": {
+    "RepairContracts.cs": "9a9cc9a5c5c8daeed67207d39f151eccc080becb00a5fedd168f2e6a2ed0a2cd",
+    "RepairedResources.cs": "fae8a4f85883ffc402993a87eeba64a1be7886793d14bb536d999bf0296b6967",
+    "PureFixtures.cs": "2d083d1071546f113edfd8a111f8df09b6db59d9b960c1a45f6e7b5e6fcf597c",
+    "build-pure.ps1": "126a5f89c9e03ad09e196a26cfc8752f282e13c9c1483ca850bc811981be94c8",
+    "NativeCaptureRepair.dll": "0704aa28b7f92c7bda0f791354e460f66a701f6224671b981b1b6530babf0136",
+    "compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compile-exit.txt": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+    "pure-result.json": "308bcbccd18edf58952e66a89b5f9c91685bd3e284e13f1a5950f2bc9f8ffd7d",
+    "README.md": "0358df7f997a0a87104c6e85b8521cb594baf445ced66b469bc156a623eabf37",
+    "authenticate.mjs": "aad8e1a6214b0022e87cfc486245d04dfae6afcb31efd3dc2ece714d2ed29d15"
+  },
+  "scope": "Builder128 managed lease/concurrency/clock/state/policy checks. No native helper construction, Native/ExtraNative API, control/preview target or actual capture. Not independent acceptance or source/child admission."
+}

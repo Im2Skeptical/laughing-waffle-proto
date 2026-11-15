@@ -1,0 +1,16 @@
+{
+  "path": "artifacts\\perf-hillclimb-20261104\\verify-passive-v2-projection.log",
+  "sha256": "267d51aab22a7d89f9b45cea63c89f34cf7ca1fdb17a2cda72dfb3943718e91e",
+  "tail": [
+    "[locked-stock-context] OK: locked installed Foraging still covers Edible; locked candidates stay out of stockOutputs",
+    "> laughing-waffle-proto@1.1.52 test:replay-stress",
+    "> node scripts/replay-stress-test.mjs && node scripts/replay-draft-boundaries-test.mjs && node scripts/replay-lineage-boundaries-test.mjs && node scripts/replay-terminal-save-test.mjs && node scripts/construction-save-continuation-test.mjs && node scripts/terminal-snapshot-consumers-test.mjs && node scripts/regional-branch-replay-test.mjs",
+    "replay-stress pass seeds=2 horizon=36 comparisons=48 json=4 scrubs=2 actions=19 kinds=settlementRerollVassals:2,settlementSelectVassal:2,vassalEnterLifeNode:4,vassalSelectLifeOption:4,vassalConfirmLifeNode:4,vassalPurchaseShopOffer:2,vassalChooseCommission:1 families=warlordFounding:1,practiceReform:2,philosopherFounding:1 extended=2 terminals=0 saveSlot=ok comparator=true failures=0 ms=3398",
+    "[replay-draft-boundaries] 3 seeds, practice+structure, 78 full-state comparisons OK",
+    "lineage-boundaries ok seeds=3 dev=3 loadout=3 comparisons=48 failures=0",
+    "[replay-terminal-save] OK death=3 terminal=3 comparisons=99",
+    "[construction-save-continuation] OK runs=3 comparisons=93; completed=mudHouses+granary; blocked=stoneHouse (0 cycles, no Construction or Tool spent)",
+    "terminal-snapshot-consumers runs=2/2 comparisons=86 failures=0",
+    "[regional-branch-replay] 3 seeds: exact cutoff, alternate candidate, raw replay/JSON continuation OK"
+  ]
+}

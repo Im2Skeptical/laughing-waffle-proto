@@ -1,0 +1,16 @@
+{
+  "ok": false,
+  "results": [],
+  "observations": 3,
+  "failures": 0,
+  "caseFailures": [
+    {
+      "case": "early-publication",
+      "error": "page.evaluate: TypeError: Cannot read properties of undefined (reading 'revision')\n    at ensureRevision (http://127.0.0.1:18246/assets/app-CLB6GCI6.js:29830:27)\n    at bumpRevision (http://127.0.0.1:18246/assets/app-CLB6GCI6.js:29835:13)\n    at Object.publish (http://127.0.0.1:18246/assets/app-CLB6GCI6.js:84255:38)\n    at eval (eval at evaluate (:302:30), <anonymous>:1:23)\n    at UtilityScript.evaluate (<anonymous>:304:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)",
+      "detailsFile": "early-publication-failure.json"
+    }
+  ],
+  "requestedCases": 1,
+  "completedCases": 0,
+  "scope": "construction controls and diagnostics only; independent audit and representative sampling still required"
+}

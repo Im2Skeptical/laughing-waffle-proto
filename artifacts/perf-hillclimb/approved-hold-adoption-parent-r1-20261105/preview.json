@@ -1,0 +1,21 @@
+{
+  "verifiedAt": "2026-11-05T00:41:45.764Z",
+  "url": "http://192.168.1.103:5184/",
+  "info": {
+    "performanceFixtureKey": "d8e62f7018a37c9148e6215a4360de14978ada6a3d4085b144251b386bc70dde",
+    "version": "1.1.53",
+    "build": "6ebd1c71ebf6",
+    "revision": "0e47aa72bb8d",
+    "channel": "local",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": false,
+    "preview": true,
+    "previewLabel": "5184"
+  },
+  "sources": {
+    "src/views/timegraphs-pixi.js": "20de1fb91316d45e7eddb72f119664cd984504f4fbebf6a8d09501bf60a40ab3",
+    "src/views/ui-root-settlement-pixi.js": "c53d795ae2caeca7ab707d05d6838502c99503029b923c61f8690644d1ec710b"
+  },
+  "htmlHasVersion": true,
+  "scope": "source-preview metadata/HTML and exact served approved-hook/root bytes; browser Hold regression recorded separately; no timing or complete adoption/Phase A acceptance"
+}

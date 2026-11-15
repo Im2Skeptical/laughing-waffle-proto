@@ -1,0 +1,21 @@
+{
+    "kind":  "virtual mechanism controls",
+    "nodeVersion":  "v24.15.0",
+    "os":  "Microsoft Windows NT 10.0.26200.0",
+    "startedUtc":  "2026-11-04T19:43:18.8363329Z",
+    "browserUsed":  false,
+    "sourceHashes":  [
+                         {
+                             "file":  "scripts/perf-hillclimb/feedback-runtime.mjs",
+                             "sha256":  "5d8b6a6a2ca9de07cb25e8b81dde9d27c866c5d837e1363be66a15854ed24b0d"
+                         },
+                         {
+                             "file":  "scripts/perf-hillclimb/feedback-runtime-test.mjs",
+                             "sha256":  "872b31f8c97be328096368cb94f01894ebc77b45485506d32b5d3752d1ad3e88"
+                         },
+                         {
+                             "file":  "scripts/perf-hillclimb/browser-runtime.mjs",
+                             "sha256":  "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1"
+                         }
+                     ]
+}

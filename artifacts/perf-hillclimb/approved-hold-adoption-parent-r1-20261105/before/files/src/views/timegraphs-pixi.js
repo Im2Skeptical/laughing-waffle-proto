@@ -1,0 +1,2621 @@
+// src/views/timegraphs-pixi.js
+// Render-only view for metric graphs.
+// STAGE 3: tSec aware.
+
+import { GRAPH_METRICS } from "../model/graph-metrics.js";
+import { getArtRevision } from "./chronicle-art.js";
+import { createTimegraphScroll, getTimegraphInk, getTimegraphLayout, TIMEGRAPH_CHROME } from './timegraph-scroll-pixi.js';
+import { perfEnabled, perfNowMs, recordGraphRender } from "../model/perf.js";
+import { computeHistoryZoneSegments } from "../model/timegraph/edit-policy.js";
+import {
+  GAMEPIECE_HOVER_SCALE,
+} from "./layout-pixi.js";
+import { createWindowHeader } from "./ui-helpers/window-header.js";
+import { installSolidUiHitArea } from "./ui-helpers/solid-ui-hit-area.js";
+import { getDisplayObjectWorldScale } from "./ui-helpers/display-object-scale.js";
+import {
+  blendColor,
+  clampForecastScrubTargetSec,
+  getSeriesValue,
+  normalizeEventMarkers,
+  normalizeHistoryZoneSegments,
+  normalizeItemUnavailableZones,
+  resolveDefaultGraphScrubSec,
+} from "./timegraphs-helpers.js";
+import {
+  ACTION_SNAP_THRESHOLD_SEC,
+  FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC,
+  FORECAST_REVEAL_PLOT_THROTTLE_MS,
+  FORECAST_REVEAL_TARGET_DURATION_SEC,
+  MAX_ACTION_MARKERS_DENSITY,
+  MAX_PLOT_POINTS,
+  PLOT_REFRESH_OVERSCAN_POINTS,
+  PLOT_SNAPSHOT_BOUNDS_QUANTUM_SEC,
+  PLOT_THROTTLE_MS,
+  RESTORE_THROTTLE_MS,
+  TIMEGRAPH_THEME,
+} from "./timegraphs/constants.js";
+import {
+  beginBootFadeTransition as applyBeginBootFadeTransition,
+  clearBootFadeTransition as applyClearBootFadeTransition,
+  createBootFadeState,
+  getBootFadeRenderState as readBootFadeRenderState,
+} from "./timegraphs/boot-fade-state.js";
+import {
+  clearAnimatedTimeBounds as applyClearAnimatedTimeBounds,
+  createTimeBoundsState,
+  setTimeBounds as applySetTimeBounds,
+} from "./timegraphs/time-bounds-state.js";
+import {
+  activateProjectionReplacementTransition as applyActivateProjectionReplacement,
+  buildProjectionReplacementRenderState as readProjectionReplacementRenderState,
+  clearProjectionReplacementTransition as applyClearProjectionReplacement,
+  clearStagedProjectionReplacement,
+  createProjectionReplacementState,
+  getProjectionReplacementDebugState,
+  getProjectionReplacementMaxFloorSec as readProjectionReplacementMaxFloorSec,
+  getProjectionReplacementRenderKey as readProjectionReplacementRenderKey,
+  getProjectionReplacementScaleRanges as readProjectionReplacementScaleRanges,
+  stageProjectionReplacementTransition as applyStageProjectionReplacement,
+  syncProjectionReplacementContext,
+} from "./timegraphs/projection-replacement-state.js";
+import {
+  getSeriesLegendTitle,
+  makeLegendSignature,
+  paintKeyCabinetStyles,
+  resolveKeyCabinetPage,
+  sliceKeyCabinetPage,
+} from "./timegraphs/key-cabinet.js";
+import {
+  applyActionSnap as snapTimeToActions,
+  getMarkerSeconds as sampleMarkerSeconds,
+  timeToX as mapTimeToX,
+} from "./timegraphs/plot-math.js";
+import {
+  drawActionMarkers,
+  drawBootFadeOverlay,
+  drawEventMarkers,
+  drawForecastRevealMarker,
+  drawEmphasizedSeriesEndpoint,
+  drawPlotGrid,
+  drawScrubMarkers,
+  drawSeriesLinesForRange as paintSeriesLinesForRange,
+  drawZone,
+  fillHistoryZones,
+  getSeriesScaleMaxFlashRenderKey as computeSeriesScaleMaxFlashRenderKey,
+  getSeriesScaleMaxFlashStrength as computeSeriesScaleMaxFlashStrength,
+} from "./timegraphs/plot-draw.js";
+import {
+  applyStickyScaleRangeSources,
+  computeSeriesScaleRangesForReveal as computeSeriesScaleRangesForRevealRange,
+  computeVisibleSeriesMaxValues,
+} from "./timegraphs/scale.js";
+import {
+  applyRunScaleHighWaterRanges as mergeRunScaleHighWaterRanges,
+  createScaleHighWaterState,
+  syncScaleHighWaterTimeline as applySyncScaleHighWaterTimeline,
+} from "./timegraphs/scale-high-water.js";
+import {
+  createActionSecondsCache,
+  getActionSecs as readActionSecs,
+  getMarkerActionSecs as readMarkerActionSecs,
+} from "./timegraphs/action-seconds-cache.js";
+import {
+  clearSeriesScaleMaxFlash,
+  createSeriesScaleMaxFlashState,
+  triggerSeriesScaleMaxFlash as applyTriggerSeriesScaleMaxFlash,
+} from "./timegraphs/scale-max-flash-state.js";
+import {
+  buildPlotSnapshotKey,
+  createPlotSnapshotCache,
+  invalidatePlotSnapshot as clearPlotSnapshotCache,
+  isPlotSnapshotCacheHit,
+  isPreviousPlotSnapshotCompatible,
+  quantizePlotSnapshotMaxSec,
+  quantizePlotSnapshotMinSec,
+  resolvePlotSnapshotStablePrefixEndSec,
+  resolvePlotSnapshotTargetMaxSec as resolvePlotSnapshotCacheTargetMaxSec,
+  storePlotSnapshot,
+} from "./timegraphs/plot-snapshot-cache.js";
+import {
+  clearForecastRevealStartOverride,
+  createForecastRevealState,
+  getAnimatedForecastCoverageEndSec as readAnimatedForecastCoverageEndSec,
+  getDisplayHistoryEndSec as readDisplayHistoryEndSec,
+  getForecastRevealFollowTargetEndSec as readForecastRevealFollowTargetEndSec,
+  getRenderedHistoryEndSec as readRenderedHistoryEndSec,
+  getVisibleForecastCoverageEndSec as readVisibleForecastCoverageEndSec,
+  isFollowingForecastReveal as readIsFollowingForecastReveal,
+  markForecastRevealPreview,
+  pauseForecastReveal as applyPauseForecastReveal,
+  resetForecastReveal as resetForecastRevealState,
+  resetForecastRevealDataContext,
+  resolveForecastRevealPlayheadFollowSec,
+  resolveForecastRevealPreviewTarget,
+  restartForecastRevealFrom as restartForecastRevealState,
+  setForecastRevealConfig as applyForecastRevealConfig,
+  suspendForecastRevealPlayheadFollow as applySuspendForecastRevealPlayheadFollow,
+  syncForecastRevealTarget as applySyncForecastRevealTarget,
+} from "./timegraphs/forecast-reveal-state.js";
+import {
+  beginScrubSession,
+  clearLatchedForecastScrub,
+  createScrubSession,
+  pointerLocalXToSec,
+  releaseScrubSession,
+  resetForecastPreviewState as resetScrubForecastPreviewState,
+  setLatchedForecastScrub,
+  syncLatchedForecastPreview,
+} from "./timegraphs/scrub-session.js";
+
+export {
+  clampForecastScrubTargetSec,
+  computeGraphSeriesScaleRanges,
+  reconcileLatchedForecastPreview,
+  resolveDefaultGraphScrubSec,
+  resolveForecastRevealPlayheadSec,
+} from "./timegraphs-helpers.js";
+
+export function createMetricGraphView({
+  app,
+  layer,
+  controller,
+  interaction = null,
+  tooltipView = null,
+  metric = GRAPH_METRICS.gold,
+  getMetricDef,
+  getTimeline,
+  getCursorState,
+  getPreviewStatus,
+  canAutoPreviewForecastReveal = null,
+  getSeriesValueOverride,
+  getEventMarkers,
+  getEditableHistoryBounds,
+  setPreviewState,
+  clearPreviewState,
+  commitSecond,
+  openPosition,
+  historyWindowSec = null,
+  getWindowSpec = null,
+  getFocusWindows = null,
+  canCommitScrubSecond = null,
+  onToggleSystemTargetMode = null,
+  getActiveSeriesGroups = null,
+  onToggleSeriesGroup = null,
+  windowWidth = 1200,
+  windowHeight = 176,
+  displayScale = 1,
+  headerHeight = 38,
+  showPin = false,
+  showClose = true,
+  draggable = true,
+  treatRevealedForecastAsHistory = false,
+  getRenderedHistoryEndSec: renderedHistoryEndResolver = null,
+  forecastRevealTargetDurationSec = FORECAST_REVEAL_TARGET_DURATION_SEC,
+  forecastRevealMinRateSecPerSec = FORECAST_REVEAL_MIN_RATE_SEC_PER_SEC,
+  forecastRevealMaxRateSecPerSec = Number.POSITIVE_INFINITY,
+  forecastRevealStartDelayMs = 0,
+  forecastRevealFollowGapSec = 0,
+  forecastRevealFollowResponseSec = 0.9,
+  forecastRevealAccelerationSecPerSec2 = 220,
+  forecastRevealDecelerationSecPerSec2 = 320,
+  plotSnapshotBoundsQuantumSec = PLOT_SNAPSHOT_BOUNDS_QUANTUM_SEC,
+  plotSnapshotCoverForecast = false,
+  plotSnapshotLeadSec = 0,
+  freezeRevealedPlotPrefix = false,
+  freezeScaleMaxDuringReveal = false,
+  commitForecastOnScrubRelease = false,
+  commitHistoryOnScrubRelease = true,
+  forecastPreviewStatusNote: forecastPreviewStatusNoteOverride = null,
+  bootFadeDurationMs = 0,
+  bootFadeColor = 0x000000,
+  bootRevealDelayMs = 0,
+}) {
+  const reveal = createForecastRevealState({
+    targetDurationSec: forecastRevealTargetDurationSec,
+    minRateSecPerSec: forecastRevealMinRateSecPerSec,
+    maxRateSecPerSec: forecastRevealMaxRateSecPerSec,
+    startDelayMs: forecastRevealStartDelayMs,
+    followGapSec: forecastRevealFollowGapSec,
+    followResponseSec: forecastRevealFollowResponseSec,
+    accelerationSecPerSec2: forecastRevealAccelerationSecPerSec2,
+    decelerationSecPerSec2: forecastRevealDecelerationSecPerSec2,
+  });
+  const plotSnapshotBoundsQuantumSecCur = Math.max(
+    1,
+    Math.floor(plotSnapshotBoundsQuantumSec ?? PLOT_SNAPSHOT_BOUNDS_QUANTUM_SEC)
+  );
+  const plotSnapshotCoverForecastCur = plotSnapshotCoverForecast === true;
+  const plotSnapshotLeadSecCur = Math.max(
+    0,
+    Math.floor(plotSnapshotLeadSec ?? 0)
+  );
+  const freezeRevealedPlotPrefixCur = freezeRevealedPlotPrefix === true;
+  const freezeScaleMaxDuringRevealCur = freezeScaleMaxDuringReveal === true;
+  const bootFadeDurationMsCur = Math.max(0, Number(bootFadeDurationMs ?? 0));
+  const bootFadeColorCur = Number.isFinite(bootFadeColor)
+    ? Math.max(0, Math.floor(bootFadeColor))
+    : 0x000000;
+  const bootRevealDelayMsCur = Math.max(
+    0,
+    Number(bootRevealDelayMs ?? bootFadeDurationMsCur)
+  );
+  const bootFade = createBootFadeState({
+    durationMs: bootFadeDurationMsCur,
+    color: bootFadeColorCur,
+  });
+  let metricDef = GRAPH_METRICS.gold;
+  let series = GRAPH_METRICS.gold.series;
+  // View-only comparison ceilings: rendering must not affect simulation,
+  // serialization, or authoritative replay.
+  const scaleHighWater = createScaleHighWaterState();
+  let windowSpecResolver =
+    typeof getWindowSpec === "function" ? getWindowSpec : null;
+  let commitPolicyResolver =
+    typeof canCommitScrubSecond === "function" ? canCommitScrubSecond : null;
+  let historyZoneResolver = null;
+  let seriesValueOverrideResolver =
+    typeof getSeriesValueOverride === "function" ? getSeriesValueOverride : null;
+  let eventMarkerResolver =
+    typeof getEventMarkers === "function" ? getEventMarkers : null;
+
+  function resolveMetric() {
+    const next =
+      typeof getMetricDef === "function" ? getMetricDef() : metric;
+    const resolved =
+      typeof next === "string" ? GRAPH_METRICS[next] : next;
+    metricDef =
+      resolved && typeof resolved === "object"
+        ? resolved
+        : GRAPH_METRICS.gold;
+    series = Array.isArray(metricDef.series)
+      ? metricDef.series
+      : GRAPH_METRICS.gold.series;
+  }
+
+  function getActiveSeries() {
+    const data = controller?.getData?.() ?? null;
+    if (Array.isArray(data?.series)) {
+      return data.series;
+    }
+    resolveMetric();
+    return series;
+  }
+
+  function getMetricLabel() {
+    const data = controller?.getData?.() ?? null;
+    return data?.label ?? metricDef?.label ?? "Metric";
+  }
+
+  resolveMetric();
+
+  function syncScaleHighWaterTimeline(timeline) {
+    applySyncScaleHighWaterTimeline(scaleHighWater, timeline);
+  }
+
+  function applyRunScaleHighWaterRanges(
+    nextRanges,
+    seriesList = [],
+    subjectKey = null
+  ) {
+    return mergeRunScaleHighWaterRanges(
+      scaleHighWater,
+      nextRanges,
+      seriesList,
+      subjectKey
+    );
+  }
+
+  function getProjectionReplacementScaleRanges() {
+    syncProjectionReplacementDataContext();
+    return readProjectionReplacementScaleRanges(projectionReplacement);
+  }
+
+  function computeSeriesScaleRangesForReveal(
+    seriesList,
+    points,
+    seriesValues,
+    visibleEndSec
+  ) {
+    return computeSeriesScaleRangesForRevealRange(
+      seriesList,
+      points,
+      seriesValues,
+      visibleEndSec,
+      freezeScaleMaxDuringRevealCur
+    );
+  }
+
+  function triggerSeriesScaleMaxFlash(args) {
+    const triggered = applyTriggerSeriesScaleMaxFlash(seriesScaleMaxFlash, args);
+    if (triggered) {
+      lastPlotVersion = -1;
+      lastPlotBoundsKey = "";
+    }
+    return triggered;
+  }
+
+  function getSeriesScaleMaxFlashStrength(seriesId, nowMs = performance.now()) {
+    return computeSeriesScaleMaxFlashStrength(
+      seriesScaleMaxFlash.bySeriesId,
+      seriesId,
+      nowMs
+    );
+  }
+
+  function getSeriesScaleMaxFlashRenderKey(nowMs = performance.now()) {
+    return computeSeriesScaleMaxFlashRenderKey(
+      seriesScaleMaxFlash.bySeriesId,
+      nowMs
+    );
+  }
+
+  const root = new PIXI.Container();
+  root.visible = false;
+  layer.addChild(root);
+  const solidHitArea = installSolidUiHitArea(root, () => {
+    const bounds = root.getLocalBounds?.() ?? null;
+    return {
+      x: 0,
+      y: 0,
+      width: bounds?.width ?? 0,
+      height: bounds?.height ?? 0,
+    };
+  });
+
+  const WIN_W = Number.isFinite(windowWidth) ? Math.max(320, Math.floor(windowWidth)) : 1200;
+  const WIN_H = Number.isFinite(windowHeight) ? Math.max(120, Math.floor(windowHeight)) : 176;
+  // Artwork, ink, labels and hit targets share the atlas's design coordinates.
+  // Resize the complete assembly; resizing only its illustration separates them.
+  root.scale.set(
+    displayScale * WIN_W / TIMEGRAPH_CHROME.width,
+    displayScale * WIN_H / TIMEGRAPH_CHROME.height
+  );
+  const HEADER_H = Number.isFinite(headerHeight)
+    ? Math.max(24, Math.min(WIN_H - 24, Math.floor(headerHeight)))
+    : 38;
+
+  const plotG = new PIXI.Graphics();
+  const monsterEndpointLabel = new PIXI.Text("", { fontFamily: "Georgia", fontSize: 24,
+    fontWeight: "bold", fill: 0x672b22, stroke: 0xf9e4a8, strokeThickness: 3 });
+  monsterEndpointLabel.eventMode = "none";
+  monsterEndpointLabel.anchor.set(1, 0);
+  monsterEndpointLabel.visible = false;
+  const scrubG = new PIXI.Graphics();
+  const legendContainer = new PIXI.Container();
+
+  root.addChild(legendContainer, plotG, scrubG);
+  root.addChild(monsterEndpointLabel);
+
+  const LEGEND_ICON_SIZE = TIMEGRAPH_CHROME.iconSize;
+
+  const graphLayout = getTimegraphLayout();
+  const plot = { ...graphLayout.plot };
+  legendContainer.eventMode = "static";
+  legendContainer.hitArea = new PIXI.Rectangle(
+    graphLayout.key.x, graphLayout.key.y, graphLayout.key.width, graphLayout.key.height
+  );
+
+  const plotHit = new PIXI.Graphics();
+  plotHit.alpha = 0;
+  plotHit.eventMode = "static";
+  plotHit.cursor = "pointer";
+  root.addChild(plotHit);
+
+  const headerUi = createWindowHeader({
+    stage: app?.stage,
+    parent: root,
+    width: TIMEGRAPH_CHROME.width,
+    height: HEADER_H,
+    radius: 14,
+    background: TIMEGRAPH_THEME.panelHeaderBg,
+    showPin: showPin === true,
+    showClose: showClose !== false,
+    closeOffsetX: 20,
+    dragTarget: draggable !== false ? root : null,
+    onClose: () => close(),
+  });
+
+  headerUi.bg.visible = false;
+  const scroll = createTimegraphScroll({ root,
+    getActiveGroups: getActiveSeriesGroups, onToggleGroup: onToggleSeriesGroup, onKeyPage: setLegendPage });
+
+  const focusRect = graphLayout.controls.focus;
+  const seriesRect = graphLayout.controls.series;
+  const hasTargetModeButton = typeof onToggleSystemTargetMode === "function";
+  const zoomBtn = new PIXI.Container();
+  const zoomBg = new PIXI.Graphics();
+  const zoomText = new PIXI.Text("", {
+    fontFamily: "Georgia",
+    fontSize: 20,
+    fill: 0xe0d4b4,
+  });
+  zoomBtn.addChild(zoomBg, zoomText);
+  zoomBtn.eventMode = "static";
+  zoomBtn.cursor = "pointer";
+  root.addChild(zoomBtn);
+  const focusNavigation = [
+    { id: "previousVassal", label: "?", step: -1 },
+    { id: "nextVassal", label: "?", step: 1 },
+    { id: "max", label: "Max", step: 0 },
+  ].map(spec => {
+    const button = new PIXI.Container();
+    const bg = new PIXI.Graphics();
+    const text = new PIXI.Text(spec.label, { fontFamily: "Georgia", fontSize: 20, fill: 0xe0d4b4 });
+    const rect = graphLayout.controls[spec.id];
+    text.position.set((rect.width - text.width) / 2, (rect.height - text.height) / 2 - 1);
+    button.addChild(bg, text);
+    button.position.set(rect.x, rect.y);
+    button.hitArea = new PIXI.Rectangle(-3, -5, rect.width + 6, rect.height + 10);
+    button.on("pointerdown", e => e.stopPropagation());
+    button.on("pointerover", () => scroll.paintButtonState(bg, spec.id, false, true));
+    button.on("pointerout", () => scroll.paintButtonState(bg, spec.id, false));
+    button.on("pointertap", e => {
+      e.stopPropagation();
+      const windows = focusWindows();
+      if (spec.step) {
+        const next = windows[focusIndex(windows) + spec.step];
+        if (!next || windows.length < 2) return;
+        focusedVassalId = next.id;
+        zoomed = true;
+      } else { zoomed = false; focusedVassalId = null; }
+      invalidatePlotSnapshot();
+      render();
+    });
+    root.addChild(button);
+    return { ...spec, button };
+  });
+  const targetBtn = new PIXI.Container();
+  const targetBg = new PIXI.Graphics();
+  const targetText = new PIXI.Text("", {
+    fontFamily: "Arial",
+    fontSize: 21,
+    fill: 0xe0d4b4,
+  });
+  targetBtn.addChild(targetBg, targetText);
+  targetBtn.eventMode = hasTargetModeButton ? "static" : "none";
+  targetBtn.cursor = hasTargetModeButton ? "pointer" : "default";
+  targetBtn.visible = hasTargetModeButton;
+  root.addChild(targetBtn);
+
+  const forecastPreviewStatusNote = commitForecastOnScrubRelease
+    ? "Release to jump"
+    : typeof forecastPreviewStatusNoteOverride === "string" &&
+        forecastPreviewStatusNoteOverride.length > 0
+      ? forecastPreviewStatusNoteOverride
+      : "Preview only - click Commit to jump";
+  const scrub = createScrubSession({ forecastPreviewStatusNote });
+  const timeBounds = createTimeBoundsState();
+  let minSec = 0;
+  let maxSec = 0;
+  let zoomed = false;
+  let focusedVassalId = null;
+  function focusWindows() { return getFocusWindows?.() ?? []; }
+  function focusIndex(windows) {
+    const index = windows.findIndex(window => window.id === focusedVassalId);
+    return index >= 0 ? index : windows.length - 1;
+  }
+  let lastPlotMs = 0;
+  let lastPlotVersion = -1;
+  let lastPlotBoundsKey = "";
+
+  let lastRestoreMs = 0;
+  let lastScrubSignature = "";
+  const actionSecondsCache = createActionSecondsCache();
+
+  let legendSignature = "";
+  let legendSelectionSignature = "";
+  let legendPage = 0;
+  let hoveredLegendSeriesId = null;
+  const legendEntriesBySeriesId = new Map();
+  const seriesScaleMaxFlash = createSeriesScaleMaxFlashState();
+  let presentationSuspended = false;
+  let openingRevealSec = null;
+  let monsterEmphasis = false;
+  let monsterTerminal = null;
+  const reducedMotion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)");
+  const plotSnapshotCache = createPlotSnapshotCache();
+  const projectionReplacement = createProjectionReplacementState();
+  let hoveredEventMarkerKey = null;
+
+  function syncProjectionReplacementDataContext() {
+    syncProjectionReplacementContext(
+      projectionReplacement,
+      getTimeline?.() ?? null,
+      controller?.getData?.()?.subjectKey ?? null
+    );
+  }
+
+  function invalidatePlotSnapshot() {
+    clearPlotSnapshotCache(plotSnapshotCache);
+  }
+
+  function clearProjectionReplacementTransition() {
+    applyClearProjectionReplacement(projectionReplacement);
+    lastPlotVersion = -1;
+    lastPlotBoundsKey = "";
+  }
+
+  function getActiveForecastPreviewSec() {
+    const preview =
+      typeof getPreviewStatus === "function" ? getPreviewStatus() : null;
+    return preview?.active === true &&
+      preview?.isForecastPreview === true &&
+      Number.isFinite(preview?.previewSec)
+      ? Math.max(0, Math.floor(preview.previewSec))
+      : null;
+  }
+
+  function resetDataContext() {
+    resetForecastRevealDataContext(reveal, getActiveForecastPreviewSec());
+    invalidatePlotSnapshot();
+    clearSeriesScaleMaxFlash(seriesScaleMaxFlash);
+    hoveredLegendSeriesId = null;
+    lastPlotVersion = -1;
+    lastPlotBoundsKey = "";
+    hoveredEventMarkerKey = null;
+    tooltipView?.hide?.();
+  }
+
+  function beginBootFadeTransition(nowMs = performance.now()) {
+    applyBeginBootFadeTransition(bootFade, nowMs);
+  }
+
+  function clearBootFadeTransition() {
+    applyClearBootFadeTransition(bootFade);
+  }
+
+  function getBootFadeRenderState(nowMs) {
+    return readBootFadeRenderState(bootFade, nowMs);
+  }
+
+  function getProjectionReplacementMaxFloorSec() {
+    syncProjectionReplacementDataContext();
+    return readProjectionReplacementMaxFloorSec(projectionReplacement);
+  }
+
+  function buildProjectionReplacementRenderState(nowMs, lineDrawEndSec) {
+    syncProjectionReplacementDataContext();
+    return readProjectionReplacementRenderState(
+      projectionReplacement,
+      nowMs,
+      lineDrawEndSec
+    );
+  }
+
+  function getProjectionReplacementRenderKey(nowMs) {
+    syncProjectionReplacementDataContext();
+    return readProjectionReplacementRenderKey(projectionReplacement, nowMs);
+  }
+
+  function stageProjectionReplacementTransition({
+    truncationStartSec,
+    maxSecFloor,
+    transitionDurationMs = 0,
+    flashDurationMs = 0,
+    fadeStrength = 1,
+  } = {}) {
+    syncProjectionReplacementDataContext();
+    const snapshot = plotSnapshotCache.snapshot ?? getPlotSnapshot();
+    return applyStageProjectionReplacement(projectionReplacement, {
+      snapshot,
+      truncationStartSec,
+      maxSecFloor,
+      fallbackMaxSec: maxSec,
+      transitionDurationMs,
+      flashDurationMs,
+      fadeStrength,
+    });
+  }
+
+  function resolvePlotSnapshotTargetMaxSec(rawTargetMaxSec, snapshotMinSec) {
+    return resolvePlotSnapshotCacheTargetMaxSec(
+      plotSnapshotCache,
+      rawTargetMaxSec,
+      snapshotMinSec,
+      plotSnapshotLeadSecCur
+    );
+  }
+
+  function getDisplayHistoryEndSec(actualHistoryEndSec) {
+    return readDisplayHistoryEndSec(reveal, actualHistoryEndSec);
+  }
+
+  function getVisibleForecastCoverageEndSec(
+    actualForecastCoverageEndSec,
+    displayHistoryEndSec
+  ) {
+    return readVisibleForecastCoverageEndSec(
+      reveal,
+      actualForecastCoverageEndSec,
+      displayHistoryEndSec
+    );
+  }
+
+  function getForecastRevealFollowTargetEndSec(
+    targetEndSec,
+    historyEndSec,
+    currentEndSec = historyEndSec
+  ) {
+    return readForecastRevealFollowTargetEndSec(
+      reveal,
+      targetEndSec,
+      historyEndSec,
+      currentEndSec
+    );
+  }
+
+  function getRenderedHistoryEndSec(
+    displayHistoryEndSec,
+    actualForecastCoverageEndSec,
+    extra = null
+  ) {
+    return readRenderedHistoryEndSec(
+      reveal,
+      displayHistoryEndSec,
+      actualForecastCoverageEndSec,
+      extra,
+      {
+        treatRevealedForecastAsHistory,
+        renderedHistoryEndResolver,
+      }
+    );
+  }
+
+  function setTimeBounds(nextMinSec, nextMaxSec, opts = {}) {
+    const nextMin = Math.max(0, Math.floor(nextMinSec ?? 0));
+    const projectionReplacementMaxFloorSec = getProjectionReplacementMaxFloorSec();
+    const nextMax = Math.max(
+      nextMin + 1,
+      Math.floor(nextMaxSec ?? nextMin + 1),
+      Number.isFinite(projectionReplacementMaxFloorSec)
+        ? projectionReplacementMaxFloorSec
+        : nextMin + 1
+    );
+    const forceImmediate = opts.immediate === true;
+    const shouldAnimate =
+      forceImmediate !== true &&
+      root.visible === true &&
+      scrub.isScrubbing !== true &&
+      zoomed !== true;
+    applySetTimeBounds(timeBounds, nextMin, nextMax, {
+      animate: shouldAnimate,
+      nowMs: performance.now(),
+    });
+    minSec = timeBounds.minSec;
+    maxSec = timeBounds.maxSec;
+  }
+
+  function clearAnimatedTimeBounds() {
+    applyClearAnimatedTimeBounds(timeBounds);
+  }
+
+  function resetForecastPreviewState() {
+    resetScrubForecastPreviewState(scrub, reveal);
+  }
+
+  function syncLatchedForecastPreviewStatus() {
+    const previewStatus =
+      typeof getPreviewStatus === "function" ? getPreviewStatus() : null;
+    syncLatchedForecastPreview(
+      scrub,
+      reveal,
+      previewStatus,
+      clampScrubSecToRevealCap
+    );
+  }
+
+  function suspendForecastRevealPlayheadFollow() {
+    applySuspendForecastRevealPlayheadFollow(reveal);
+  }
+
+  function pauseForecastReveal() {
+    applyPauseForecastReveal(reveal);
+  }
+
+  function syncForecastRevealPlayhead(visibleForecastCoverageEndSec) {
+    const preview =
+      typeof getPreviewStatus === "function" ? getPreviewStatus() : null;
+    const followSec = resolveForecastRevealPlayheadFollowSec(reveal, {
+      isScrubbing: scrub.isScrubbing,
+      latchedForecastScrubSec: scrub.latchedForecastScrubSec,
+      previewStatus: preview,
+      visibleForecastCoverageEndSec,
+      minSec,
+      maxSec,
+    });
+    if (Number.isFinite(followSec)) {
+      scrub.scrubSec = clampScrubSecToRevealCap(followSec);
+    }
+  }
+
+  function syncForecastRevealPreview(
+    visibleForecastCoverageEndSec,
+    nowMs
+  ) {
+    const canAutoPreview =
+      typeof canAutoPreviewForecastReveal !== "function" ||
+      canAutoPreviewForecastReveal() === true;
+    const targetSec = resolveForecastRevealPreviewTarget(
+      reveal,
+      visibleForecastCoverageEndSec,
+      nowMs,
+      {
+        presentationSuspended,
+        canAutoPreview,
+        isScrubbing: scrub.isScrubbing,
+        latchedForecastScrubSec: scrub.latchedForecastScrubSec,
+        historyEndSec: getTimeline?.()?.historyEndSec ?? 0,
+      }
+    );
+    if (!Number.isFinite(targetSec)) return;
+    const restored = controller.getStateAt?.(targetSec);
+    if (!restored) return;
+    markForecastRevealPreview(reveal, targetSec, nowMs);
+    setPreviewState?.(restored);
+  }
+
+  function getVisibleForecastScrubCapSec() {
+    const tl = getTimeline?.();
+    const data = controller.getData?.() ?? {};
+    const historyEndSec = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
+    const displayHistoryEndSec = getDisplayHistoryEndSec(historyEndSec);
+    const actualForecastCoverageEndSec = Math.max(
+      historyEndSec,
+      Math.floor(data?.forecastCoverageEndSec ?? historyEndSec)
+    );
+    const visibleForecastCoverageEndSec = getVisibleForecastCoverageEndSec(
+      actualForecastCoverageEndSec,
+      displayHistoryEndSec
+    );
+    return Math.max(
+      displayHistoryEndSec,
+      visibleForecastCoverageEndSec
+    );
+  }
+
+  function clampScrubSecToRevealCap(targetSec) {
+    const tl = getTimeline?.();
+    const historyEndSec = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
+    return clampForecastScrubTargetSec(
+      targetSec,
+      historyEndSec,
+      getVisibleForecastScrubCapSec(),
+      { minSec, maxSec }
+    );
+  }
+
+  // Key only. The restored state stays with the caller so a later mutate cannot be replayed from here.
+  let latchedForecastRestoreMemo = null;
+
+  function tryRestoreLatchedForecastPreview() {
+    if (!Number.isFinite(scrub.latchedForecastScrubSec)) {
+      latchedForecastRestoreMemo = null;
+      return;
+    }
+    if (scrub.isScrubbing) {
+      latchedForecastRestoreMemo = null;
+      return;
+    }
+    const tl = getTimeline?.();
+    const historyEnd = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
+    const revision = Number.isFinite(tl?.revision) ? Math.floor(tl.revision) : 0;
+    const latchedSecond = scrub.latchedForecastScrubSec;
+    if (latchedSecond <= historyEnd) {
+      clearLatchedForecastScrub(scrub);
+      latchedForecastRestoreMemo = null;
+      return;
+    }
+    const memo = latchedForecastRestoreMemo;
+    const sameLatch =
+      memo != null &&
+      memo.latchedSecond === latchedSecond &&
+      memo.revision === revision &&
+      memo.historyEndSec === historyEnd;
+    if (!sameLatch) latchedForecastRestoreMemo = null;
+    if (latchedSecond > getVisibleForecastScrubCapSec()) return;
+    // Loading/revealing means the preview was discarded; do not skip the restorer.
+    if (sameLatch && scrub.statusNote === scrub.forecastPreviewStatusNote) {
+      scrub.scrubSec = clampScrubSecToRevealCap(latchedSecond);
+      scrub.statusNote = scrub.forecastPreviewStatusNote;
+      return;
+    }
+    const restored = controller.getStateAt?.(latchedSecond);
+    if (!restored) return;
+    setPreviewState?.(restored);
+    latchedForecastRestoreMemo = {
+      latchedSecond,
+      revision,
+      historyEndSec: historyEnd,
+    };
+    scrub.scrubSec = clampScrubSecToRevealCap(latchedSecond);
+    scrub.statusNote = scrub.forecastPreviewStatusNote;
+  }
+
+  function resetForecastReveal(animatedEndSec, targetEndSec, historyEndSec, nowMs) {
+    resetForecastRevealState(
+      reveal,
+      animatedEndSec,
+      targetEndSec,
+      historyEndSec,
+      nowMs
+    );
+    invalidatePlotSnapshot();
+  }
+
+  function restartForecastRevealFrom(startSec, opts = {}) {
+    const tl = getTimeline?.();
+    const data = controller.getData?.() ?? {};
+    const actualHistoryEndSec = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
+    const actualForecastCoverageEndSec = Math.max(
+      actualHistoryEndSec,
+      Math.floor(data?.forecastCoverageEndSec ?? actualHistoryEndSec)
+    );
+    const nowMs = performance.now();
+    syncProjectionReplacementDataContext();
+    applyActivateProjectionReplacement(projectionReplacement, nowMs, opts);
+    restartForecastRevealState(reveal, startSec, opts, {
+      actualHistoryEndSec,
+      actualForecastCoverageEndSec,
+      nowMs,
+      activeForecastPreviewSec: getActiveForecastPreviewSec(),
+    });
+    lastPlotVersion = -1;
+    lastPlotBoundsKey = "";
+    invalidatePlotSnapshot();
+  }
+
+  function clearForecastRevealRestart() {
+    clearStagedProjectionReplacement(projectionReplacement);
+    if (!clearForecastRevealStartOverride(reveal)) return;
+    invalidatePlotSnapshot();
+    lastPlotVersion = -1;
+    lastPlotBoundsKey = "";
+  }
+
+  function getAnimatedForecastCoverageEndSec(nowMs, historyEndSec) {
+    if (openingRevealSec !== null) return openingRevealSec;
+    return readAnimatedForecastCoverageEndSec(
+      reveal,
+      nowMs,
+      historyEndSec,
+      presentationSuspended
+    );
+  }
+
+  function syncForecastRevealTarget(actualCoverageEndSec, historyEndSec, nowMs) {
+    return applySyncForecastRevealTarget(
+      reveal,
+      actualCoverageEndSec,
+      historyEndSec,
+      nowMs,
+      invalidatePlotSnapshot
+    );
+  }
+
+  function timeToX(t) {
+    return mapTimeToX(t, minSec, maxSec, plot);
+  }
+
+  function updateEventMarkerTooltip(globalPoint) {
+    if (!tooltipView || scrub.isScrubbing) return;
+    if (interaction && interaction?.canShowHoverUI?.() === false) return;
+    const local = globalPoint && typeof root.toLocal === "function"
+      ? root.toLocal(globalPoint)
+      : null;
+    if (!local) return;
+    const markers = getPlotSnapshot()?.eventMarkers ?? [];
+    let nearest = null;
+    let nearestDistance = Infinity;
+    for (const marker of markers) {
+      if (!marker?.tooltip) continue;
+      const distance = Math.abs(timeToX(marker.tSec) - Number(local.x ?? 0));
+      if (distance <= (marker.nodeIcon ? 16 : 9) && distance < nearestDistance) {
+        nearest = marker;
+        nearestDistance = distance;
+      }
+    }
+    if (!nearest) {
+      if (hoveredEventMarkerKey) tooltipView.hide?.();
+      hoveredEventMarkerKey = null;
+      return;
+    }
+    const key = `${nearest.tSec}:${nearest.tooltip.title}:${nearest.tooltip.lines.join("|")}`;
+    if (key === hoveredEventMarkerKey) return;
+    hoveredEventMarkerKey = key;
+    const anchor = typeof root.toGlobal === "function"
+      ? root.toGlobal(new PIXI.Point(timeToX(nearest.tSec), plot.y + (nearest.nodeIcon ? 17 : 7)))
+      : { x: timeToX(nearest.tSec), y: plot.y + (nearest.nodeIcon ? 17 : 7) };
+    tooltipView.show({
+      ...nearest.tooltip,
+      scale: Math.max(
+        Number.isFinite(GAMEPIECE_HOVER_SCALE) ? GAMEPIECE_HOVER_SCALE : 1,
+        tooltipView?.getRelativeDisplayScale?.(root, 1) ??
+          getDisplayObjectWorldScale(root, 1)
+      ),
+    }, {
+      x: anchor.x,
+      y: anchor.y,
+      width: 2,
+      height: 12,
+      side: "right",
+      alignY: "top",
+      coordinateSpace: "screen",
+    });
+  }
+
+  function updateScrubFromPointer(globalPoint) {
+    const local =
+      globalPoint && typeof root.toLocal === "function"
+        ? root.toLocal(globalPoint)
+        : { x: Number(globalPoint?.x ?? globalPoint) || 0, y: 0 };
+    const t = pointerLocalXToSec(Number(local?.x) || 0, plot, minSec, maxSec);
+    scrub.scrubSec = clampScrubSecToRevealCap(Math.round(applyActionSnap(t)));
+  }
+
+  function applyActionSnap(t) {
+    return snapTimeToActions(
+      t,
+      getActionSecs(minSec, maxSec),
+      ACTION_SNAP_THRESHOLD_SEC
+    );
+  }
+
+  function getActionSecs(startSec, endSec) {
+    return readActionSecs(actionSecondsCache, getTimeline?.(), startSec, endSec);
+  }
+
+  function getMarkerActionSecs(startSec, endSec, markerCap) {
+    return readMarkerActionSecs(
+      actionSecondsCache,
+      getTimeline?.(),
+      startSec,
+      endSec,
+      markerCap
+    );
+  }
+
+  function getMarkerSeconds(actionSecs) {
+    return sampleMarkerSeconds(
+      actionSecs,
+      plot.w,
+      MAX_ACTION_MARKERS_DENSITY
+    );
+  }
+
+  function legendTooltipSubject() {
+    const subjectKey = controller?.getData?.()?.subjectKey ?? null;
+    return typeof subjectKey === "string" && subjectKey.length > 0 && subjectKey !== "civilization"
+      ? subjectKey
+      : null;
+  }
+
+  function buildLegendTooltipSpec(seriesDef) {
+    const cursorState = getCursorState?.() ?? null;
+    const baseTitle = getSeriesLegendTitle(seriesDef);
+    if (typeof seriesDef?.getLegendTooltipSpec === "function") {
+      const spec = seriesDef.getLegendTooltipSpec(cursorState, legendTooltipSubject());
+      if (spec && typeof spec === "object") {
+        return {
+          title:
+            typeof spec.title === "string" && spec.title.trim()
+              ? spec.title
+              : baseTitle,
+          lines: Array.isArray(spec.lines)
+            ? spec.lines.filter((line) => typeof line === "string" && line)
+            : [],
+          maxWidth: spec.maxWidth,
+        };
+      }
+    }
+    return { title: baseTitle, lines: [] };
+  }
+
+  function refreshLegendStyles() {
+    paintKeyCabinetStyles(legendEntriesBySeriesId, hoveredLegendSeriesId);
+  }
+
+  function setLegendHoverSeries(seriesId) {
+    const next =
+      typeof seriesId === "string" && seriesId.length ? seriesId : null;
+    if (next === hoveredLegendSeriesId) return;
+    hoveredLegendSeriesId = next;
+    refreshLegendStyles();
+    if (!root.visible) return;
+    drawPlot();
+    drawScrub();
+  }
+
+  function clearLegendHoverSeries() {
+    if (!hoveredLegendSeriesId) return;
+    hoveredLegendSeriesId = null;
+    refreshLegendStyles();
+    if (!root.visible) return;
+    drawPlot();
+    drawScrub();
+  }
+
+  function getLegendDetailSpec(seriesDef, container) {
+    const spec = {
+      ...buildLegendTooltipSpec(seriesDef),
+      scale: Math.max(
+        Number.isFinite(GAMEPIECE_HOVER_SCALE) ? GAMEPIECE_HOVER_SCALE : 1,
+        tooltipView?.getRelativeDisplayScale?.(container, 1) ??
+          getDisplayObjectWorldScale(container, 1)
+      ),
+    };
+    const range = getPlotSnapshot()?.seriesScaleRanges?.get(seriesDef.id);
+    if (range) spec.lines = [...spec.lines, `Graph scale: ${range.minValue}–${range.maxValue}${seriesDef.scaleMode === "fixed" ? " (fixed)" : ""}`];
+    return spec;
+  }
+
+  function updateLegendTooltip(globalPoint) {
+    const local = globalPoint && typeof root.toLocal === "function"
+      ? root.toLocal(globalPoint)
+      : null;
+    const entry = local
+      ? Array.from(legendEntriesBySeriesId.values()).find((candidate) => {
+          const x = Number(candidate?.container?.x ?? 0);
+          const y = Number(candidate?.container?.y ?? 0);
+          return local.x >= x && local.x <= x + LEGEND_ICON_SIZE &&
+            local.y >= y && local.y <= y + LEGEND_ICON_SIZE;
+        })
+      : null;
+    const seriesId = entry?.seriesId ?? null;
+    if (seriesId === hoveredLegendSeriesId) return;
+    if (!seriesId) {
+      clearLegendHoverSeries();
+      tooltipView?.hide?.();
+      return;
+    }
+    setLegendHoverSeries(seriesId);
+    if (!tooltipView || (interaction && interaction?.canShowHoverUI?.() === false)) return;
+    tooltipView.show(getLegendDetailSpec(entry.seriesDef, entry.container), getLegendTooltipAnchor(entry.container));
+  }
+
+  function getLegendTooltipAnchor(container) {
+    return { ...container.getBounds(), aboveRect: root.getBounds() };
+  }
+
+  function clearLegendEntries() {
+    legendContainer.removeChildren().forEach(child => child.destroy({ children: true }));
+    legendEntriesBySeriesId.clear();
+    legendSignature = "";
+    legendSelectionSignature = "";
+    legendPage = 0;
+    scroll.layoutKey(0, 0);
+    clearLegendHoverSeries();
+  }
+
+  function drawLegend(seriesList) {
+    const list = Array.isArray(seriesList) ? seriesList : [];
+    const selectionSignature = makeLegendSignature(list);
+    if (selectionSignature !== legendSelectionSignature) {
+      legendSelectionSignature = selectionSignature;
+      legendPage = 0;
+    }
+    const layout = scroll.layoutKey(list.length, legendPage);
+    legendPage = layout.page;
+    const visibleList = sliceKeyCabinetPage(list, layout);
+    const nextSignature = selectionSignature + ":page:" + legendPage;
+    if (nextSignature !== legendSignature) {
+      legendContainer.removeChildren().forEach(child => child.destroy({ children: true }));
+      legendEntriesBySeriesId.clear();
+      legendSignature = nextSignature;
+      if (
+        hoveredLegendSeriesId &&
+        !visibleList.some((s) => String(s?.id ?? "") === hoveredLegendSeriesId)
+      ) {
+        hoveredLegendSeriesId = null;
+      }
+
+      for (const s of visibleList) {
+        const seriesId = String(s?.id ?? "");
+        if (!seriesId) continue;
+        const lineColor = getTimegraphInk(s);
+
+        const entryContainer = new PIXI.Container();
+        entryContainer.eventMode = "static";
+        entryContainer.cursor = "pointer";
+        entryContainer.hitArea = new PIXI.Rectangle(
+          0,
+          0,
+          LEGEND_ICON_SIZE,
+          LEGEND_ICON_SIZE
+        );
+        entryContainer.on("pointerdown", (event) => {
+          event?.stopPropagation?.();
+          setLegendHoverSeries(seriesId);
+          tooltipView?.pin?.(getLegendDetailSpec(s, entryContainer), getLegendTooltipAnchor(entryContainer), "timegraph-series:" + seriesId);
+        });
+        entryContainer.on("pointertap", (event) => {
+          event?.stopPropagation?.();
+        });
+        const bg = new PIXI.Graphics();
+        entryContainer.addChild(bg);
+        legendContainer.addChild(entryContainer);
+
+        legendEntriesBySeriesId.set(seriesId, {
+          seriesId,
+          seriesDef: s,
+          container: entryContainer,
+          bg,
+          lineColor,
+        });
+      }
+    }
+
+    const entries = Array.from(legendEntriesBySeriesId.values());
+    entries.forEach((entry, index) => entry.container.position.set(layout.points[index].x, layout.points[index].y));
+    refreshLegendStyles();
+  }
+
+  legendContainer.on("pointermove", (event) => updateLegendTooltip(event.global));
+  legendContainer.on("pointerleave", () => {
+    clearLegendHoverSeries();
+    tooltipView?.hide?.();
+  });
+
+  function setLegendPage(requestedPage) {
+    const next = resolveKeyCabinetPage(getActiveSeries().length, requestedPage).page;
+    if (next === legendPage) return;
+    legendPage = next;
+    hoveredLegendSeriesId = null;
+    tooltipView?.hide?.({ force: true });
+    drawPlot();
+    drawScrub();
+  }
+  legendContainer.on("wheel", event => {
+    event.stopPropagation();
+    event.preventDefault?.();
+    if (event.deltaY) setLegendPage(legendPage + Math.sign(event.deltaY));
+  });
+
+  zoomBtn.hitArea = new PIXI.Rectangle(-5, -5, focusRect.width + 10, focusRect.height + 10);
+  targetBtn.hitArea = new PIXI.Rectangle(-5, -5, seriesRect.width + 10, seriesRect.height + 10);
+  zoomBtn.on("pointerover", () => scroll.paintButtonState(zoomBg, "focus", zoomed, true));
+  zoomBtn.on("pointerout", () => scroll.paintButtonState(zoomBg, "focus", zoomed));
+  targetBtn.on("pointerover", () => scroll.paintButtonState(targetBg, "series", false, true));
+  targetBtn.on("pointerout", () => scroll.paintButtonState(targetBg, "series", false));
+  function updateHeaderButtons() {
+    scroll.update();
+    scroll.paintButtonState(zoomBg, "focus", zoomed);
+    const windows = focusWindows();
+    const enabled = typeof getFocusWindows !== "function" || windows.length > 1;
+    if (!enabled) zoomed = false;
+    zoomBtn.eventMode = enabled ? "static" : "none";
+    zoomBtn.alpha = enabled ? 1 : .35;
+    for (const control of focusNavigation) {
+      const available = control.step ? enabled && !!windows[focusIndex(windows) + control.step] : zoomed;
+      control.button.visible = typeof getFocusWindows === "function";
+      control.button.eventMode = available ? "static" : "none";
+      control.button.cursor = available ? "pointer" : "default";
+      control.button.alpha = available ? 1 : .35;
+    }
+    zoomText.text = typeof getFocusWindows !== "function" && zoomed ? "Full" : "Focus";
+    zoomText.x = (focusRect.width - zoomText.width) / 2;
+    zoomText.y = (focusRect.height - zoomText.height) / 2 - 1;
+    zoomBtn.position.set(focusRect.x, focusRect.y);
+    if (hasTargetModeButton) {
+      scroll.paintButtonState(targetBg, "series", false);
+      targetText.text = "☷";
+      targetText.x = (seriesRect.width - targetText.width) / 2;
+      targetText.y = (seriesRect.height - targetText.height) / 2 - 1;
+      targetBtn.position.set(seriesRect.x, seriesRect.y);
+    }
+  }
+
+  function drawWindow() {
+    headerUi.setWidth(TIMEGRAPH_CHROME.width);
+
+    plotHit.clear();
+    plotHit.beginFill(0xffffff);
+    plotHit.drawRect(plot.x, plot.y, plot.w, plot.h);
+    plotHit.endFill();
+
+    updateHeaderButtons();
+  }
+
+  function updateTimeBounds() {
+    const tl = getTimeline?.();
+    const cs = getCursorState?.();
+    const preview =
+      typeof getPreviewStatus === "function" ? getPreviewStatus() : null;
+    const d = controller.getData?.() ?? {};
+
+    const horizonSec = Math.max(0, Math.floor(d.horizonSec ?? 1200));
+
+    const historyEnd = tl?.historyEndSec ?? 0;
+    const currentT = Math.floor(cs?.tSec ?? 0);
+    const forecastPreviewSec =
+      preview?.isForecastPreview && Number.isFinite(preview?.previewSec)
+        ? Math.max(0, Math.floor(preview.previewSec))
+        : null;
+    const rollingWindow =
+      Number.isFinite(historyWindowSec) && historyWindowSec > 0
+        ? Math.floor(historyWindowSec)
+        : null;
+    let customWindowSpec =
+      typeof windowSpecResolver === "function"
+        ? windowSpecResolver({
+            timeline: tl,
+            cursorState: cs,
+            data: d,
+            zoomed,
+            historyWindowSec: rollingWindow,
+          })
+        : null;
+
+    if (zoomed && typeof getFocusWindows === "function") {
+      const windows = focusWindows();
+      const focused = windows[focusIndex(windows)];
+      if (windows.length > 1 && focused) customWindowSpec = { ...customWindowSpec,
+        minSec: focused.minSec, maxSec: focused.maxSec };
+      else zoomed = false;
+    }
+
+    if (
+      customWindowSpec &&
+      Number.isFinite(customWindowSpec.minSec) &&
+      Number.isFinite(customWindowSpec.maxSec)
+    ) {
+      const nextMinSec = Math.max(0, Math.floor(customWindowSpec.minSec));
+      const nextMaxSec = Math.max(nextMinSec + 1, Math.floor(customWindowSpec.maxSec));
+      setTimeBounds(nextMinSec, nextMaxSec, { immediate: true });
+      const allowPreviewScrub =
+        customWindowSpec.forceScrubToCursor !== true &&
+        Number.isFinite(forecastPreviewSec);
+      const preferredScrub = allowPreviewScrub
+        ? forecastPreviewSec
+        : Number.isFinite(customWindowSpec.scrubSec)
+          ? Math.floor(customWindowSpec.scrubSec)
+          : resolveDefaultGraphScrubSec({
+              currentSec: currentT,
+              forecastPreviewSec,
+              latchedForecastScrubSec: scrub.latchedForecastScrubSec,
+            });
+      if (!scrub.isScrubbing || customWindowSpec.forceScrubToCursor === true) {
+        scrub.scrubSec = clampScrubSecToRevealCap(preferredScrub);
+      } else {
+        scrub.scrubSec = clampScrubSecToRevealCap(scrub.scrubSec);
+      }
+      return;
+    }
+
+    if (zoomed) {
+      const halfSpan = Math.max(1, Math.floor(horizonSec / 4));
+      const span = halfSpan * 2;
+      let min = currentT - halfSpan;
+      let max = currentT + halfSpan;
+
+      if (min < 0) {
+        max += -min;
+        min = 0;
+      }
+
+      setTimeBounds(min, Math.max(min + span, max), { immediate: true });
+    } else {
+      const liveMax = Math.max(historyEnd, currentT);
+      setTimeBounds(
+        rollingWindow != null ? Math.max(0, liveMax - rollingWindow) : 0,
+        liveMax + horizonSec,
+        { immediate: true }
+      );
+    }
+
+    if (!scrub.isScrubbing) {
+      const defaultScrubSec = resolveDefaultGraphScrubSec({
+        currentSec: currentT,
+        forecastPreviewSec,
+        latchedForecastScrubSec: scrub.latchedForecastScrubSec,
+      });
+      scrub.scrubSec = clampScrubSecToRevealCap(defaultScrubSec);
+    }
+  }
+
+  function getPlotSnapshot() {
+    const data = controller.getData?.() ?? {};
+    const seriesList = getActiveSeries();
+    const cs = getCursorState?.();
+    const cursorSec = Math.floor(cs?.tSec ?? 0);
+    const sampleCursorSec = zoomed ? cursorSec : null;
+    const cacheVersion =
+      Number.isFinite(data.cacheVersion) ? data.cacheVersion : -1;
+    const tl = getTimeline?.();
+    syncScaleHighWaterTimeline(tl);
+    const historyEndSec = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
+    const displayHistoryEndSec = getDisplayHistoryEndSec(historyEndSec);
+    const actualForecastCoverageEndSec = Math.max(
+      historyEndSec,
+      Math.floor(data?.forecastCoverageEndSec ?? historyEndSec)
+    );
+    const renderedHistoryEndSec = getRenderedHistoryEndSec(
+      displayHistoryEndSec,
+      actualForecastCoverageEndSec,
+      {
+        timeline: tl,
+        cursorState: cs,
+        graphData: data,
+      }
+    );
+    const snapshotBoundsQuantumSec = Math.max(
+      1,
+      plotSnapshotBoundsQuantumSecCur
+    );
+    const snapshotTargetMaxSecRaw = plotSnapshotCoverForecastCur
+      ? Math.max(maxSec, actualForecastCoverageEndSec)
+      : maxSec;
+    const snapshotMinSec = quantizePlotSnapshotMinSec(
+      minSec,
+      snapshotBoundsQuantumSec
+    );
+    const snapshotTargetMaxSec = resolvePlotSnapshotTargetMaxSec(
+      snapshotTargetMaxSecRaw,
+      snapshotMinSec
+    );
+    const snapshotMaxSec = quantizePlotSnapshotMaxSec(
+      snapshotMinSec,
+      snapshotTargetMaxSec,
+      snapshotBoundsQuantumSec
+    );
+    const snapshotKey = buildPlotSnapshotKey({
+      cacheVersion,
+      snapshotMinSec,
+      snapshotMaxSec,
+      displayHistoryEndSec,
+      zoomed,
+      sampleCursorSec,
+    });
+    const editableBounds = getEditableHistoryBounds?.();
+    const visibleForecastCoverageEndSec = getVisibleForecastCoverageEndSec(
+      actualForecastCoverageEndSec,
+      displayHistoryEndSec
+    );
+
+    function buildDynamicSnapshotParts(baseSnapshot) {
+      const customHistoryZones =
+        typeof historyZoneResolver === "function"
+          ? historyZoneResolver({
+              minSec,
+              maxSec,
+              historyEndSec: renderedHistoryEndSec,
+              actualHistoryEndSec: historyEndSec,
+              displayHistoryEndSec,
+              actualForecastCoverageEndSec,
+              visibleForecastCoverageEndSec,
+              editableBounds,
+              timeline: tl,
+              cursorState: cs,
+              graphData: data,
+              zoomed,
+            })
+          : null;
+      const historyZones = normalizeHistoryZoneSegments(
+        Array.isArray(customHistoryZones) && customHistoryZones.length
+          ? customHistoryZones
+          : computeHistoryZoneSegments({
+              minSec,
+              maxSec,
+              historyEndSec: renderedHistoryEndSec,
+              baseMinEditableSec: Number.isFinite(editableBounds?.minEditableSec)
+                ? Math.max(0, Math.floor(editableBounds.minEditableSec))
+                : 0,
+              extraEditableRanges: [],
+            }),
+        { minSec, maxSec, historyEndSec: renderedHistoryEndSec }
+      );
+      const itemUnavailableZones = normalizeItemUnavailableZones(
+        customHistoryZones,
+        { minSec, maxSec }
+      );
+      const rawEventMarkers =
+        typeof eventMarkerResolver === "function"
+          ? eventMarkerResolver({
+              minSec,
+              maxSec,
+              historyEndSec: renderedHistoryEndSec,
+              actualHistoryEndSec: historyEndSec,
+              displayHistoryEndSec,
+              actualForecastCoverageEndSec,
+              visibleForecastCoverageEndSec,
+              timeline: tl,
+              cursorState: cs,
+              graphData: data,
+            })
+          : null;
+      return {
+        ...baseSnapshot,
+        renderedHistoryEndSec,
+        historyZones,
+        itemUnavailableZones,
+        eventMarkers: normalizeEventMarkers(rawEventMarkers, { minSec, maxSec }),
+      };
+    }
+
+    function refreshPlotSnapshotForecastState(
+      baseSnapshot,
+      { stablePrefixEndSec = null } = {}
+    ) {
+      const basePoints = Array.isArray(baseSnapshot?.pointsForDraw)
+        ? baseSnapshot.pointsForDraw
+        : [];
+      if (!basePoints.length || !seriesList.length) {
+        return {
+          pointsForDraw: basePoints,
+          seriesValues: new Map(),
+          seriesScaleRanges: new Map(),
+        };
+      }
+
+      const pointSecs = basePoints.map((point) =>
+        Math.max(0, Math.floor(point?.tSec ?? 0))
+      );
+      let requestedPointSecs = pointSecs.filter((sec) => sec <= maxSec);
+      if (PLOT_REFRESH_OVERSCAN_POINTS > 0) {
+        const overscanSecs = pointSecs.filter((sec) => sec > maxSec);
+        if (overscanSecs.length) {
+          requestedPointSecs = requestedPointSecs.concat(
+            overscanSecs.slice(0, PLOT_REFRESH_OVERSCAN_POINTS)
+          );
+        }
+      }
+      const valuesBySec =
+        controller.getSeriesValuesForSeconds?.(requestedPointSecs, {
+          focus: zoomed,
+          allowSyncForecast: false,
+        }) ?? new Map();
+      const refreshedPoints = new Array(basePoints.length);
+      const refreshedSeriesValues = new Map();
+      for (const s of seriesList) {
+        refreshedSeriesValues.set(s.id, new Array(basePoints.length));
+      }
+      const clampedStablePrefixEndSec = Number.isFinite(stablePrefixEndSec)
+        ? Math.max(0, Math.floor(stablePrefixEndSec))
+        : null;
+
+      for (let i = 0; i < basePoints.length; i++) {
+        const point = basePoints[i];
+        const t = pointSecs[i];
+        const preserveStablePoint =
+          clampedStablePrefixEndSec != null && t <= clampedStablePrefixEndSec;
+        if (preserveStablePoint) {
+          refreshedPoints[i] = point;
+          for (const seriesDef of seriesList) {
+            const arr = refreshedSeriesValues.get(seriesDef.id);
+            if (!arr) continue;
+            const prevValues = baseSnapshot?.seriesValues?.get?.(seriesDef.id);
+            arr[i] = Array.isArray(prevValues)
+              ? prevValues[i] ?? null
+              : null;
+          }
+          continue;
+        }
+        const resolvedValues = valuesBySec.get(t) ?? null;
+        const pending = t > historyEndSec && resolvedValues == null;
+        const refreshedPoint =
+          point?.pending === pending && point?.values === resolvedValues
+            ? point
+            : {
+                ...point,
+                pending,
+                values: resolvedValues,
+              };
+        refreshedPoints[i] = refreshedPoint;
+
+        for (const seriesDef of seriesList) {
+          let value = null;
+          if (
+            pending !== true &&
+            !(t > historyEndSec && t > actualForecastCoverageEndSec)
+          ) {
+            const override = seriesValueOverrideResolver?.(
+              t,
+              seriesDef.id,
+              refreshedPoint,
+              sampleCursorSec
+            );
+            value = Number.isFinite(override)
+              ? override
+              : getSeriesValue(refreshedPoint, seriesDef.id);
+          }
+          const arr = refreshedSeriesValues.get(seriesDef.id);
+          if (arr) arr[i] = value;
+        }
+      }
+
+      let refreshedScaleRanges = computeSeriesScaleRangesForReveal(
+        seriesList,
+        refreshedPoints,
+        refreshedSeriesValues,
+        visibleForecastCoverageEndSec
+      );
+      const refreshedVisibleMaxValues = computeVisibleSeriesMaxValues(
+        refreshedPoints,
+        refreshedSeriesValues,
+        seriesList,
+        visibleForecastCoverageEndSec
+      );
+      if (freezeScaleMaxDuringRevealCur) {
+        refreshedScaleRanges = applyStickyScaleRangeSources(
+          refreshedScaleRanges,
+          seriesList,
+          [
+            baseSnapshot?.seriesScaleRanges,
+            getProjectionReplacementScaleRanges(),
+          ]
+        );
+        triggerSeriesScaleMaxFlash({
+          previousRanges: baseSnapshot?.seriesScaleRanges,
+          nextRanges: refreshedScaleRanges,
+          visibleMaxValues: refreshedVisibleMaxValues,
+        });
+      }
+      refreshedScaleRanges = applyRunScaleHighWaterRanges(
+        refreshedScaleRanges,
+        seriesList,
+        data?.subjectKey
+      );
+
+      return {
+        pointsForDraw: refreshedPoints,
+        seriesValues: refreshedSeriesValues,
+        seriesScaleRanges: refreshedScaleRanges,
+      };
+    }
+
+    if (isPlotSnapshotCacheHit(plotSnapshotCache, snapshotKey)) {
+      const stablePrefixEndSec = freezeRevealedPlotPrefixCur
+        ? resolvePlotSnapshotStablePrefixEndSec(
+            plotSnapshotCache.snapshot,
+            maxSec,
+            displayHistoryEndSec
+          )
+        : null;
+      const refreshedForecastState = refreshPlotSnapshotForecastState(
+        plotSnapshotCache.snapshot,
+        { stablePrefixEndSec }
+      );
+      plotSnapshotCache.snapshot = {
+        ...plotSnapshotCache.snapshot,
+        data,
+        tl,
+        cs,
+        cursorSec,
+        historyEndSec,
+        displayHistoryEndSec,
+        actualForecastCoverageEndSec,
+        visibleForecastCoverageEndSec,
+        pointsForDraw: refreshedForecastState.pointsForDraw,
+        seriesValues: refreshedForecastState.seriesValues,
+        seriesScaleRanges: refreshedForecastState.seriesScaleRanges,
+      };
+      return buildDynamicSnapshotParts(plotSnapshotCache.snapshot);
+    }
+
+    const sampleRes = controller.getSamplesForWindow?.({
+      startSec: snapshotMinSec,
+      endSec: snapshotMaxSec,
+      focus: zoomed,
+      cursorSec: sampleCursorSec,
+    });
+    const sampledPoints = Array.isArray(sampleRes?.points)
+      ? sampleRes.points
+      : [];
+
+    let pointsForDraw = sampledPoints;
+    const maxPlotPoints = Math.min(
+      MAX_PLOT_POINTS,
+      Math.max(200, Math.floor(plot.w) * 2)
+    );
+    if (sampledPoints.length > maxPlotPoints) {
+      const step = Math.ceil(sampledPoints.length / maxPlotPoints);
+      const decimated = [];
+      for (let i = 0; i < sampledPoints.length; i += step) {
+        decimated.push(sampledPoints[i]);
+      }
+      const last = sampledPoints[sampledPoints.length - 1];
+      if (last && decimated[decimated.length - 1] !== last) {
+        decimated.push(last);
+      }
+      pointsForDraw = decimated;
+    }
+
+    const minEditableSec = Number.isFinite(editableBounds?.minEditableSec)
+      ? Math.max(0, Math.floor(editableBounds.minEditableSec))
+      : 0;
+
+    const seriesValues = new Map();
+    for (const s of seriesList) {
+      seriesValues.set(s.id, new Array(pointsForDraw.length));
+    }
+
+    for (let i = 0; i < pointsForDraw.length; i++) {
+      const point = pointsForDraw[i];
+      const t = Math.max(0, Math.floor(point?.tSec ?? 0));
+      for (const seriesDef of seriesList) {
+        let value = null;
+        if (point?.pending !== true && !(t > historyEndSec && t > actualForecastCoverageEndSec)) {
+          const override = seriesValueOverrideResolver?.(
+            t,
+            seriesDef.id,
+            point,
+            sampleCursorSec
+          );
+          value = Number.isFinite(override)
+            ? override
+            : getSeriesValue(point, seriesDef.id);
+        }
+        const arr = seriesValues.get(seriesDef.id);
+        if (arr) arr[i] = value;
+      }
+    }
+    const previousSnapshotCompatible = isPreviousPlotSnapshotCompatible(
+      plotSnapshotCache.snapshot,
+      {
+        freezeRevealedPlotPrefix: freezeRevealedPlotPrefixCur,
+        cacheVersion,
+        snapshotMinSec,
+        displayHistoryEndSec,
+        zoomed,
+        sampleCursorSec,
+      }
+    );
+    const previousStablePrefixEndSec = previousSnapshotCompatible
+      ? resolvePlotSnapshotStablePrefixEndSec(
+          plotSnapshotCache.snapshot,
+          maxSec,
+          displayHistoryEndSec
+        )
+      : null;
+    if (
+      previousStablePrefixEndSec != null &&
+      Array.isArray(plotSnapshotCache.snapshot?.pointsForDraw) &&
+      plotSnapshotCache.snapshot.pointsForDraw.length
+    ) {
+      const mergedPoints = [];
+      const mergedSeriesValues = new Map();
+      for (const s of seriesList) {
+        mergedSeriesValues.set(s.id, []);
+      }
+      const appendPoint = (point, seriesValueSource, index) => {
+        mergedPoints.push(point);
+        for (const s of seriesList) {
+          const arr = mergedSeriesValues.get(s.id);
+          const sourceArr = seriesValueSource?.get?.(s.id);
+          arr.push(Array.isArray(sourceArr) ? sourceArr[index] ?? null : null);
+        }
+      };
+      const previousPoints = Array.isArray(plotSnapshotCache.snapshot?.pointsForDraw)
+        ? plotSnapshotCache.snapshot.pointsForDraw
+        : [];
+      for (let i = 0; i < previousPoints.length; i++) {
+        const point = previousPoints[i];
+        const t = Math.max(0, Math.floor(point?.tSec ?? 0));
+        if (t > previousStablePrefixEndSec) break;
+        appendPoint(point, plotSnapshotCache.snapshot?.seriesValues, i);
+      }
+      for (let i = 0; i < pointsForDraw.length; i++) {
+        const point = pointsForDraw[i];
+        const t = Math.max(0, Math.floor(point?.tSec ?? 0));
+        if (t <= previousStablePrefixEndSec) continue;
+        appendPoint(point, seriesValues, i);
+      }
+      pointsForDraw = mergedPoints;
+      for (const s of seriesList) {
+        seriesValues.set(s.id, mergedSeriesValues.get(s.id) ?? []);
+      }
+    }
+    let seriesScaleRanges = computeSeriesScaleRangesForReveal(
+      seriesList,
+      pointsForDraw,
+      seriesValues,
+      visibleForecastCoverageEndSec
+    );
+    const visibleMaxValues = computeVisibleSeriesMaxValues(
+      pointsForDraw,
+      seriesValues,
+      seriesList,
+      visibleForecastCoverageEndSec
+    );
+    if (freezeScaleMaxDuringRevealCur && previousSnapshotCompatible) {
+      seriesScaleRanges = applyStickyScaleRangeSources(
+        seriesScaleRanges,
+        seriesList,
+        [
+          plotSnapshotCache.snapshot?.seriesScaleRanges,
+          getProjectionReplacementScaleRanges(),
+        ]
+      );
+      triggerSeriesScaleMaxFlash({
+        previousRanges: plotSnapshotCache.snapshot?.seriesScaleRanges,
+        nextRanges: seriesScaleRanges,
+        visibleMaxValues,
+      });
+    } else if (freezeScaleMaxDuringRevealCur) {
+      seriesScaleRanges = applyStickyScaleRangeSources(
+        seriesScaleRanges,
+        seriesList,
+        [getProjectionReplacementScaleRanges()]
+      );
+    }
+    seriesScaleRanges = applyRunScaleHighWaterRanges(
+      seriesScaleRanges,
+      seriesList,
+      data?.subjectKey
+    );
+
+    const markerActionSecs = getMarkerActionSecs(
+      minSec,
+      maxSec,
+      Math.floor(plot.w * MAX_ACTION_MARKERS_DENSITY)
+    );
+    const markerSecs = getMarkerSeconds(markerActionSecs);
+
+    storePlotSnapshot(plotSnapshotCache, snapshotKey, {
+      data,
+      tl,
+      cs,
+      cursorSec,
+      seriesList,
+      pointsForDraw,
+      seriesValues,
+      seriesScaleRanges,
+      historyEndSec,
+      displayHistoryEndSec,
+      actualForecastCoverageEndSec,
+      visibleForecastCoverageEndSec,
+      snapshotMinSec,
+      snapshotMaxSec,
+      sampleCursorSec,
+      zoomed,
+      markerSecs,
+    });
+    return buildDynamicSnapshotParts(plotSnapshotCache.snapshot);
+  }
+
+  function drawPlot() {
+    resolveMetric();
+    const perfStart = perfEnabled() ? perfNowMs() : 0;
+    const plotNowMs = performance.now();
+    plotG.clear();
+    monsterEndpointLabel.visible = false;
+    const snapshot = getPlotSnapshot();
+    const data = snapshot?.data ?? {};
+    const seriesList = Array.isArray(snapshot?.seriesList)
+      ? snapshot.seriesList
+      : [];
+    drawLegend(seriesList);
+    const pointsForDraw = Array.isArray(snapshot?.pointsForDraw)
+      ? snapshot.pointsForDraw
+      : [];
+    if (!pointsForDraw.length || !seriesList.length) return;
+
+    const tl = snapshot?.tl ?? getTimeline?.();
+    const cs = snapshot?.cs ?? getCursorState?.();
+    const cursorSec = Math.floor(snapshot?.cursorSec ?? cs?.tSec ?? 0);
+    const historyEndSec = Math.max(
+      0,
+      Math.floor(snapshot?.historyEndSec ?? tl?.historyEndSec ?? 0)
+    );
+    const displayHistoryEndSec = Math.max(
+      0,
+      Math.floor(snapshot?.displayHistoryEndSec ?? historyEndSec)
+    );
+    const renderedHistoryEndSec = Math.max(
+      displayHistoryEndSec,
+      Math.floor(snapshot?.renderedHistoryEndSec ?? displayHistoryEndSec)
+    );
+    const actualForecastCoverageEndSec = Math.max(
+      historyEndSec,
+      Math.floor(
+        snapshot?.actualForecastCoverageEndSec ?? data?.forecastCoverageEndSec ?? historyEndSec
+      )
+    );
+    const visibleForecastCoverageEndSec = Math.max(
+      displayHistoryEndSec,
+      Math.min(
+        actualForecastCoverageEndSec,
+        reveal.historyEndSec === displayHistoryEndSec
+          ? Number(reveal.visibleEndSec ?? displayHistoryEndSec)
+          : displayHistoryEndSec
+      )
+    );
+    const lineDrawEndSec = Math.max(
+      displayHistoryEndSec,
+      Math.min(maxSec, visibleForecastCoverageEndSec)
+    );
+    const seriesValues = snapshot?.seriesValues ?? new Map();
+    const seriesScaleRanges =
+      snapshot?.seriesScaleRanges instanceof Map
+        ? snapshot.seriesScaleRanges
+        : new Map();
+
+    const historyZones = Array.isArray(snapshot?.historyZones)
+      ? snapshot.historyZones
+      : [];
+    const itemUnavailableZones = Array.isArray(snapshot?.itemUnavailableZones)
+      ? snapshot.itemUnavailableZones
+      : [];
+    fillHistoryZones(plotG, {
+      historyZones,
+      itemUnavailableZones,
+      renderedHistoryEndSec,
+      lineDrawEndSec,
+      minSec,
+      maxSec,
+      plot,
+    });
+
+    drawPlotGrid(plotG, minSec, maxSec, plot);
+
+    const seriesInkArgs = {
+      minSec,
+      maxSec,
+      plot,
+      seriesScaleRanges,
+      hoveredLegendSeriesId,
+      getFlashStrength: (seriesId) =>
+        monsterEmphasis && seriesId === "monsterCount"
+          ? (reducedMotion?.matches ? 0.65 : 0.45 + 0.3 * Math.sin(plotNowMs * Math.PI / 1000))
+          : getSeriesScaleMaxFlashStrength(seriesId, plotNowMs),
+    };
+    function drawSeriesLinesForRange(opts) {
+      paintSeriesLinesForRange(plotG, { ...seriesInkArgs, ...opts });
+    }
+
+    const projectionReplacementState = buildProjectionReplacementRenderState(
+      performance.now(),
+      lineDrawEndSec
+    );
+    if (projectionReplacementState) {
+      if (
+        projectionReplacementState.unchangedEndSec >
+        projectionReplacementState.unchangedStartSec
+      ) {
+        drawSeriesLinesForRange({
+          sourceSeriesList: seriesList,
+          sourcePoints: projectionReplacementState.snapshot?.pointsForDraw,
+          sourceSeriesValues:
+            projectionReplacementState.snapshot?.seriesValues ?? new Map(),
+          drawStartSec: projectionReplacementState.unchangedStartSec,
+          drawEndSec: projectionReplacementState.unchangedEndSec,
+        });
+      }
+      drawZone(
+        plotG,
+        projectionReplacementState.drawStartSec,
+        projectionReplacementState.drawEndSec,
+        projectionReplacementState.zoneColor,
+        projectionReplacementState.zoneAlpha,
+        minSec,
+        maxSec,
+        plot
+      );
+      drawSeriesLinesForRange({
+        sourceSeriesList: seriesList,
+        sourcePoints: projectionReplacementState.snapshot?.pointsForDraw,
+        sourceSeriesValues:
+          projectionReplacementState.snapshot?.seriesValues ?? new Map(),
+        drawStartSec: projectionReplacementState.drawStartSec,
+        drawEndSec: projectionReplacementState.drawEndSec,
+        colorResolver: (baseColor) =>
+          blendColor(
+            baseColor,
+            projectionReplacementState.tintColor,
+            projectionReplacementState.tintStrength
+          ),
+        alphaMultiplier: projectionReplacementState.lineAlpha,
+      });
+    }
+
+    drawSeriesLinesForRange({
+      sourceSeriesList: seriesList,
+      sourcePoints: pointsForDraw,
+      sourceSeriesValues: seriesValues,
+      drawStartSec: minSec,
+      drawEndSec: lineDrawEndSec,
+      enableScaleMaxFlash: true,
+    });
+
+    drawForecastRevealMarker(plotG, lineDrawEndSec, maxSec, minSec, plot);
+    if (monsterEmphasis && monsterTerminal && lineDrawEndSec >= monsterTerminal.tSec) {
+      const endpoint = drawEmphasizedSeriesEndpoint(plotG, { ...monsterTerminal, seriesId: "monsterCount",
+        minSec, maxSec, plot, seriesScaleRanges, strength: seriesInkArgs.getFlashStrength("monsterCount") });
+      if (endpoint) {
+        monsterEndpointLabel.text = String(Math.round(endpoint.value));
+        monsterEndpointLabel.position.set(endpoint.x - 10, Math.min(plot.y + plot.h - 30, endpoint.y + 8));
+        monsterEndpointLabel.visible = true;
+      }
+    }
+
+    const markerSecs = Array.isArray(snapshot?.markerSecs)
+      ? snapshot.markerSecs
+      : [];
+    drawActionMarkers(plotG, markerSecs, minSec, maxSec, plot);
+
+    const eventMarkers = Array.isArray(snapshot?.eventMarkers)
+      ? snapshot.eventMarkers
+      : [];
+    drawEventMarkers(plotG, eventMarkers, minSec, maxSec, plot);
+
+    drawBootFadeOverlay(plotG, getBootFadeRenderState(performance.now()), plot);
+
+    if (perfEnabled()) {
+      recordGraphRender({
+        ms: perfNowMs() - perfStart,
+        points: pointsForDraw.length,
+        metric: data.metric?.id ?? metricDef?.id ?? metricDef?.label ?? null,
+      });
+    }
+  }
+
+  function drawScrub() {
+    resolveMetric();
+    const cs = getCursorState?.();
+    const tl = getTimeline?.();
+    const preview =
+      typeof getPreviewStatus === "function" ? getPreviewStatus() : null;
+
+    if (!cs) return;
+
+    const curT = Math.floor(cs.tSec ?? 0);
+    const historyEnd = tl?.historyEndSec ?? 0;
+    const forecastPreviewSec =
+      preview?.isForecastPreview && Number.isFinite(preview?.previewSec)
+        ? Math.max(0, Math.floor(preview.previewSec))
+        : null;
+    const hasForecastPreview = Number.isFinite(forecastPreviewSec);
+    const metricLabel = getMetricLabel();
+    const signature =
+      `${scrub.isScrubbing ? 1 : 0}|${scrub.scrubSec}|${curT}|${historyEnd}|` +
+      `${minSec}:${maxSec}|${scrub.statusNote}|${metricLabel}|${hasForecastPreview ? forecastPreviewSec : -1}`;
+    if (signature === lastScrubSignature) return;
+    lastScrubSignature = signature;
+
+    scrubG.clear();
+    drawScrubMarkers(scrubG, {
+      scrubSec: scrub.scrubSec,
+      curT,
+      isScrubbing: scrub.isScrubbing,
+      hasForecastPreview,
+      minSec,
+      maxSec,
+      plot,
+    });
+
+    scroll.setScope(metricLabel);
+  }
+
+  function applyPreviewThrottled(force) {
+    const now = performance.now();
+    if (!force && now - lastRestoreMs < RESTORE_THROTTLE_MS) {
+      drawScrub();
+      return;
+    }
+    lastRestoreMs = now;
+    const tl = getTimeline?.();
+    const historyEnd = Math.floor(tl?.historyEndSec ?? 0);
+    const visibleForecastCapSec = getVisibleForecastScrubCapSec();
+
+    if (scrub.scrubSec > historyEnd && scrub.scrubSec > visibleForecastCapSec) {
+      scrub.statusNote = "Forecast revealing";
+      clearPreviewState?.();
+      drawScrub();
+      return;
+    }
+
+    const restored = controller.getStateAt(scrub.scrubSec);
+    if (restored) {
+      if (
+        scrub.statusNote === "Forecast loading" ||
+        scrub.statusNote === "Forecast revealing"
+      ) {
+        scrub.statusNote = "";
+      }
+      if (scrub.scrubSec > historyEnd) {
+        setLatchedForecastScrub(scrub, scrub.scrubSec);
+      } else {
+        clearLatchedForecastScrub(scrub);
+      }
+      setPreviewState?.(restored);
+    } else {
+      if (scrub.scrubSec > historyEnd) {
+        scrub.statusNote = "Forecast loading";
+        setLatchedForecastScrub(scrub, scrub.scrubSec);
+        clearPreviewState?.();
+      }
+    }
+    drawScrub();
+  }
+
+  function endScrub(commit) {
+    if (!releaseScrubSession(scrub)) return;
+    const tl = getTimeline?.();
+    const historyEnd = Math.floor(tl?.historyEndSec ?? 0);
+    const visibleForecastCapSec = getVisibleForecastScrubCapSec();
+    const isForecast = scrub.scrubSec > historyEnd;
+
+    if (commit && !isForecast) {
+      clearLatchedForecastScrub(scrub);
+      if (commitHistoryOnScrubRelease && typeof commitPolicyResolver === "function") {
+        const decision = commitPolicyResolver({
+          scrubSec: scrub.scrubSec,
+          historyEndSec: historyEnd,
+          editableBounds: getEditableHistoryBounds?.(),
+        });
+        const blocked =
+          decision === false ||
+          (decision && typeof decision === "object" && decision.allow === false);
+        if (blocked) {
+          scrub.statusNote =
+            (decision && typeof decision === "object" && decision.reason) ||
+            "Read-only";
+          drawScrub();
+          return;
+        }
+      }
+      clearPreviewState?.();
+      const stateData = controller?.getStateDataAt?.(scrub.scrubSec);
+      const res = commitSecond?.(scrub.scrubSec, stateData);
+      if (res && res.ok === false) {
+        scrub.statusNote = `Jump failed: ${res.reason}`;
+        drawScrub();
+        return;
+      }
+      return;
+    }
+
+    if (isForecast) {
+      if (scrub.scrubSec > visibleForecastCapSec) {
+        scrub.statusNote = "Forecast revealing";
+        clearPreviewState?.();
+        drawScrub();
+        return;
+      }
+      setLatchedForecastScrub(scrub, scrub.scrubSec);
+      if (commit && commitForecastOnScrubRelease) {
+        const stateData = controller?.getStateDataAt?.(scrub.scrubSec);
+        if (stateData == null) {
+          scrub.statusNote = "Forecast loading";
+          clearPreviewState?.();
+          drawScrub();
+          return;
+        }
+        clearPreviewState?.();
+        const res = commitSecond?.(scrub.scrubSec, stateData);
+        if (res && res.ok === false) {
+          scrub.statusNote = `Jump failed: ${res.reason}`;
+          drawScrub();
+          return;
+        }
+        clearLatchedForecastScrub(scrub);
+        scrub.statusNote = "";
+        drawScrub();
+        return;
+      }
+      scrub.statusNote = scrub.forecastPreviewStatusNote;
+      // Dragging already installed an isolated read-only preview. Checking its
+      // serialized snapshot here can rebuild the entire forecast on cache miss,
+      // blocking the next input even though no commit was requested.
+      const preview = getPreviewStatus?.();
+      if (preview?.active && preview.isForecastPreview
+        && Math.floor(preview.previewSec ?? -1) === scrub.scrubSec) {
+        drawScrub();
+        return;
+      }
+      applyPreviewThrottled(true);
+      return;
+    }
+
+    clearLatchedForecastScrub(scrub);
+    clearPreviewState?.();
+    drawScrub();
+  }
+
+  plotHit.on("pointerdown", (e) => {
+    beginScrubSession(scrub);
+    suspendForecastRevealPlayheadFollow();
+    updateScrubFromPointer(e.global);
+    applyPreviewThrottled(true);
+  });
+
+  plotHit.on("pointermove", (e) => {
+    if (!scrub.isScrubbing) {
+      updateEventMarkerTooltip(e.global);
+      return;
+    }
+    updateScrubFromPointer(e.global);
+    applyPreviewThrottled(false);
+  });
+
+  plotHit.on("pointerup", () => endScrub(true));
+  plotHit.on("pointerupoutside", () => endScrub(true));
+  plotHit.on("pointerleave", () => {
+    if (!scrub.isScrubbing && hoveredEventMarkerKey) {
+      hoveredEventMarkerKey = null;
+      tooltipView?.hide?.();
+    }
+  });
+
+  zoomBtn.on("pointerdown", (e) => {
+    e.stopPropagation();
+  });
+  zoomBtn.on("pointertap", (e) => {
+    e.stopPropagation();
+    const windows = focusWindows();
+    if (typeof getFocusWindows === "function" && windows.length < 2) return;
+    zoomed = typeof getFocusWindows === "function" ? true : !zoomed;
+    focusedVassalId = windows[focusIndex(windows)]?.id ?? null;
+    invalidatePlotSnapshot();
+    scrub.statusNote = "";
+    render();
+  });
+
+  targetBtn.on("pointerdown", (e) => {
+    e.stopPropagation();
+  });
+  targetBtn.on("pointertap", (e) => {
+    e.stopPropagation();
+    if (!hasTargetModeButton) return;
+    onToggleSystemTargetMode?.();
+    scrub.statusNote = "";
+    render();
+  });
+
+  function open() {
+    if (root.visible) return;
+    root.visible = true;
+    const defaultX = 20;
+    const defaultY = app.screen.height - WIN_H - 800;
+    root.x = openPosition?.x ?? defaultX;
+    root.y = openPosition?.y ?? defaultY;
+    const nowMs = performance.now();
+    reveal.paused = false;
+    reveal.playheadFollowEnabled = true;
+    reveal.previewSec = null;
+    reveal.previewLastRefreshMs = 0;
+    reveal.capEndSec = null;
+    invalidatePlotSnapshot();
+    clearSeriesScaleMaxFlash(seriesScaleMaxFlash);
+    beginBootFadeTransition(nowMs);
+    resetForecastReveal(0, 0, 0, nowMs);
+    if (bootRevealDelayMsCur > 0) {
+      reveal.delayUntilMs = Math.max(
+        reveal.delayUntilMs,
+        nowMs + bootRevealDelayMsCur
+      );
+    }
+    clearAnimatedTimeBounds();
+    solidHitArea.refresh();
+    controller?.setActive?.(true);
+    controller.handleInvalidate?.("open");
+    controller.ensureCache();
+    render();
+  }
+
+  function close() {
+    if (!root.visible) return;
+    root.visible = false;
+    resetForecastPreviewState();
+    invalidatePlotSnapshot();
+    clearSeriesScaleMaxFlash(seriesScaleMaxFlash);
+    reveal.capEndSec = null;
+    clearBootFadeTransition();
+    resetForecastReveal(0, 0, 0, performance.now());
+    clearAnimatedTimeBounds();
+    clearLegendEntries();
+    tooltipView?.hide?.();
+    clearPreviewState?.();
+    controller?.setActive?.(false);
+  }
+
+  function isOpen() {
+    return !!root.visible;
+  }
+
+  function getScreenRect() {
+    if (!root.visible || typeof root.getBounds !== "function") return null;
+    return root.getBounds();
+  }
+
+  function getPlotScreenRect() {
+    if (
+      !root.visible ||
+      typeof root.toGlobal !== "function" ||
+      typeof app?.view?.getBoundingClientRect !== "function"
+    ) {
+      return null;
+    }
+    const topLeft = root.toGlobal(new PIXI.Point(plot.x, plot.y));
+    const bottomRight = root.toGlobal(
+      new PIXI.Point(plot.x + plot.w, plot.y + plot.h)
+    );
+    const canvasRect = app.view.getBoundingClientRect();
+    const scaleX = canvasRect.width / Math.max(1, Number(app.screen?.width ?? 1));
+    const scaleY = canvasRect.height / Math.max(1, Number(app.screen?.height ?? 1));
+    return {
+      x: canvasRect.left + Number(topLeft?.x ?? 0) * scaleX,
+      y: canvasRect.top + Number(topLeft?.y ?? 0) * scaleY,
+      width:
+        Math.max(0, Number(bottomRight?.x ?? 0) - Number(topLeft?.x ?? 0)) *
+        scaleX,
+      height:
+        Math.max(0, Number(bottomRight?.y ?? 0) - Number(topLeft?.y ?? 0)) *
+        scaleY,
+    };
+  }
+
+  function getPlotStageRect() {
+    if (!root.visible) return null;
+    const topLeft = root.toGlobal(new PIXI.Point(plot.x, plot.y));
+    const bottomRight = root.toGlobal(new PIXI.Point(plot.x + plot.w, plot.y + plot.h));
+    return { x: topLeft.x, y: topLeft.y, width: bottomRight.x - topLeft.x, height: bottomRight.y - topLeft.y };
+  }
+
+  // Read raw reveal/scrub state. The normal cap accessor synchronizes getData;
+  // its equivalent arithmetic here deliberately leaves stale overrides alone.
+  function getTimingSnapshot(options = {}) {
+    const data = controller.getTimingSnapshot?.(options) ?? null;
+    // Copy the renderer's retained transform, without updating transforms/bounds.
+    // Coordinates can lag layout until the ordinary renderer runs.
+    const matrix = root.transform?.worldTransform;
+    const plotRect = matrix && matrix.b === 0 && matrix.c === 0 ? {
+      x: matrix.a * plot.x + matrix.tx, y: matrix.d * plot.y + matrix.ty,
+      width: matrix.a * plot.w, height: matrix.d * plot.h,
+    } : null;
+    const historyEndSec = Math.max(0, Math.floor(getTimeline?.()?.historyEndSec ?? 0));
+    const computedSec = data?.computedSec == null ? null
+      : Math.max(historyEndSec, Math.floor(data.computedSec));
+    const revealedSec = computedSec == null ? null : Math.max(historyEndSec, Math.min(
+      computedSec, reveal.historyEndSec === historyEndSec
+        ? Math.floor(reveal.visibleEndSec ?? historyEndSec) : historyEndSec));
+    return {
+      visible: root.visible === true, minSec, maxSec,
+      scrubDrawSignature: lastScrubSignature,
+      plotRect, plotRectSpace: 'stage-retained-transform',
+      ...(data && Object.hasOwn(data, 'projection') ? { projection: data.projection } : {}),
+      ...(data?.requestedAnchorSec == null ? {} : {
+        requestedAnchorSec: data.requestedAnchorSec, hasRetainedAnchor: data.hasRetainedAnchor,
+        retainedAnchorSource: data.retainedAnchorSource, retainedAnchorScope: data.retainedAnchorScope,
+      }),
+      scrubSec: scrub.scrubSec, isScrubbing: scrub.isScrubbing === true,
+      latchedForecastScrubSec: scrub.latchedForecastScrubSec,
+      historyEndSec, revealedSec, browseCapSec: revealedSec,
+      targetSec: reveal.targetEndSec,
+      computedSec, requestedSec: data?.requestedSec ?? null, pending: data?.pending ?? null,
+      cacheVersion: data?.cacheVersion ?? null, subjectKey: data?.subjectKey ?? null,
+      asyncToken: data?.asyncToken ?? null, asyncPollMs: data?.asyncPollMs ?? null,
+      asyncHistoryEndSec: data?.asyncHistoryEndSec ?? null,
+      asyncRequestedSec: data?.asyncRequestedSec ?? null, asyncComputedSec: data?.asyncComputedSec ?? null,
+      revealHistoryEndSec: reveal.historyEndSec,
+      animatedSec: reveal.animatedEndSec, visibleEndSec: reveal.visibleEndSec,
+      startSecOverride: reveal.startSecOverride,
+      readinessCapSec: reveal.readinessCapSec ?? null,
+      capEndSec: reveal.capEndSec, paused: reveal.paused,
+      presentationSuspended, openingRevealSec,
+    };
+  }
+
+  function getDebugState() {
+    syncProjectionReplacementDataContext();
+    const tl = getTimeline?.();
+    const data = controller.getData?.() ?? {};
+    const snapshot = getPlotSnapshot();
+    const pointsForDraw = Array.isArray(snapshot?.pointsForDraw)
+      ? snapshot.pointsForDraw
+      : [];
+    const historyEndSec = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
+    const displayHistoryEndSec = getDisplayHistoryEndSec(historyEndSec);
+    const actualForecastCoverageEndSec = Math.max(
+      historyEndSec,
+      Math.floor(data?.forecastCoverageEndSec ?? historyEndSec)
+    );
+    const followTargetEndSec = getForecastRevealFollowTargetEndSec(
+      actualForecastCoverageEndSec,
+      displayHistoryEndSec
+    );
+    const visibleForecastCoverageEndSec = Math.max(
+      displayHistoryEndSec,
+      Math.min(
+        actualForecastCoverageEndSec,
+        reveal.historyEndSec === displayHistoryEndSec
+          ? Math.floor(reveal.visibleEndSec ?? displayHistoryEndSec)
+          : displayHistoryEndSec
+      )
+    );
+    const renderedSeriesSamples = Array.isArray(snapshot?.seriesList)
+      ? snapshot.seriesList.map((series) => {
+          const values = snapshot?.seriesValues?.get?.(series?.id);
+          let first = null;
+          let last = null;
+          if (Array.isArray(values)) {
+            for (let index = 0; index < values.length; index += 1) {
+              const value = values[index];
+              if (!Number.isFinite(value)) continue;
+              const sample = {
+                tSec: Math.max(
+                  0,
+                  Math.floor(pointsForDraw[index]?.tSec ?? 0)
+                ),
+                value,
+              };
+              if (!first) first = sample;
+              last = sample;
+            }
+          }
+          return {
+            seriesId: series?.id ?? null,
+            first,
+            last,
+          };
+        })
+      : [];
+    return {
+      groupButtons: scroll.getButtons(),
+      scopeLabel: scroll.getScopeLabel(),
+      key: scroll.getKeyDebugState(),
+      legendButtons: Array.from(legendEntriesBySeriesId, ([id, entry]) => {
+        const point = entry.container.toGlobal(new PIXI.Point(LEGEND_ICON_SIZE / 2, LEGEND_ICON_SIZE / 2));
+        return { id, x: point.x, y: point.y };
+      }),
+      activeGroups: getActiveSeriesGroups?.() ?? [],
+      seriesMenuButton: targetBtn.toGlobal(new PIXI.Point(seriesRect.width / 2, seriesRect.height / 2)),
+      focusNavigation: focusNavigation.map(({ id, button }) => ({ id,
+        enabled: button.eventMode === "static", visible: button.visible,
+        center: button.toGlobal(new PIXI.Point(graphLayout.controls[id].width / 2, graphLayout.controls[id].height / 2)),
+      })),
+      focusEnabled: zoomBtn.eventMode === "static",
+      focusedVassalId,
+      focusButton: zoomBtn.toGlobal(new PIXI.Point(focusRect.width / 2, focusRect.height / 2)),
+      minSec,
+      maxSec,
+      scrubSec: scrub.scrubSec,
+      statusNote: scrub.statusNote,
+      isScrubbing: scrub.isScrubbing,
+      zoomed,
+      historyEndSec,
+      displayHistoryEndSec,
+      actualForecastCoverageEndSec,
+      visibleForecastCoverageEndSec,
+      computedCoverageEndSec: actualForecastCoverageEndSec,
+      revealedCoverageEndSec: visibleForecastCoverageEndSec,
+      browseCapSec: visibleForecastCoverageEndSec,
+      forecastRevealFollowTargetEndSec: Math.max(
+        displayHistoryEndSec,
+        Math.floor(followTargetEndSec ?? displayHistoryEndSec)
+      ),
+      forecastRevealVelocitySecPerSec: Math.max(
+        0,
+        Number(reveal.velocitySecPerSec ?? 0)
+      ),
+      forecastRevealHistoryEndSec: Math.max(
+        0,
+        Math.floor(reveal.historyEndSec ?? 0)
+      ),
+      forecastRevealTargetEndSec: Math.max(
+        0,
+        Math.floor(reveal.targetEndSec ?? 0)
+      ),
+      forecastRevealPlayheadFollowEnabled: reveal.playheadFollowEnabled,
+      forecastRevealPaused: reveal.paused,
+      monsterEmphasis,
+      monsterEndpoint: monsterEndpointLabel.visible ? monsterEndpointLabel.text : null,
+      forecastRevealPreviewSec: Number.isFinite(reveal.previewSec)
+        ? Math.max(0, Math.floor(reveal.previewSec))
+        : null,
+      projectionReplacement: getProjectionReplacementDebugState(
+        projectionReplacement
+      ),
+      historyZones: Array.isArray(snapshot?.historyZones)
+        ? snapshot.historyZones.map((zone) => ({
+            kind: zone.kind,
+            startSec: Math.max(0, Math.floor(zone.startSec ?? 0)),
+            endSec: Math.max(0, Math.floor(zone.endSec ?? 0)),
+          }))
+        : [],
+      samplePointCount: pointsForDraw.length,
+      samplePointSecs: {
+        first: pointsForDraw
+          .slice(0, 96)
+          .map((point) => Math.max(0, Math.floor(point?.tSec ?? 0))),
+        last: pointsForDraw
+          .slice(Math.max(0, pointsForDraw.length - 32))
+          .map((point) => Math.max(0, Math.floor(point?.tSec ?? 0))),
+      },
+      samplePointPending: {
+        first: pointsForDraw
+          .slice(0, 96)
+          .map((point) => point?.pending === true),
+      },
+      renderedSeriesSamples,
+      eventMarkers: Array.isArray(snapshot?.eventMarkers)
+        ? snapshot.eventMarkers.map((marker) => ({
+            tSec: marker.tSec,
+            severity: marker.severity,
+            color: marker.color,
+            tooltipTitle: marker.tooltip?.title ?? null,
+          }))
+        : [],
+      seriesScaleRanges:
+        snapshot?.seriesScaleRanges instanceof Map
+          ? Array.from(snapshot.seriesScaleRanges.entries()).map(([seriesId, range]) => ({
+              seriesId,
+              minValue: Number.isFinite(range?.minValue) ? range.minValue : null,
+              maxValue: Number.isFinite(range?.maxValue) ? range.maxValue : null,
+            }))
+          : [],
+      plotScreenRect: getPlotScreenRect(),
+      windowScreenRect: getScreenRect(),
+    };
+  }
+
+  function render() {
+    if (!root.visible) return;
+    resolveMetric();
+    const now = performance.now();
+    const data = controller.getData?.() ?? {};
+    const tl = getTimeline?.();
+    const historyEndSec = Math.max(0, Math.floor(tl?.historyEndSec ?? 0));
+    const displayHistoryEndSec = getDisplayHistoryEndSec(historyEndSec);
+    const actualForecastCoverageEndSec = Math.max(
+      historyEndSec,
+      Math.floor(data?.forecastCoverageEndSec ?? historyEndSec)
+    );
+    syncForecastRevealTarget(actualForecastCoverageEndSec, displayHistoryEndSec, now);
+    const visibleForecastCoverageEndSec = getAnimatedForecastCoverageEndSec(
+      now,
+      displayHistoryEndSec
+    );
+    reveal.visibleEndSec = visibleForecastCoverageEndSec;
+    updateTimeBounds();
+    syncLatchedForecastPreviewStatus();
+    tryRestoreLatchedForecastPreview();
+    if (openingRevealSec === null) {
+      syncForecastRevealPlayhead(visibleForecastCoverageEndSec);
+      syncForecastRevealPreview(visibleForecastCoverageEndSec, now);
+    } else {
+      scrub.scrubSec = openingRevealSec;
+      reveal.animatedEndSec = openingRevealSec;
+    }
+    updateHeaderButtons();
+    drawLegend(getActiveSeries());
+    const projectionReplacementKey = getProjectionReplacementRenderKey(now);
+    const seriesScaleMaxFlashKey = getSeriesScaleMaxFlashRenderKey(now) +
+      (monsterEmphasis ? `:monster:${reducedMotion?.matches ? 0 : Math.floor(now / 50)}` : "");
+    const bootFadeState = getBootFadeRenderState(now);
+    const boundsKey = `${minSec}:${maxSec}:${displayHistoryEndSec}:${Math.floor(
+      visibleForecastCoverageEndSec * 10
+    )}:${projectionReplacementKey}:${seriesScaleMaxFlashKey}:${bootFadeState?.key ?? ""}:${getArtRevision()}`;
+    const cacheVersion =
+      Number.isFinite(data.cacheVersion) ? data.cacheVersion : -1;
+    const versionChanged =
+      cacheVersion !== lastPlotVersion || boundsKey !== lastPlotBoundsKey;
+    const boundsChanged = boundsKey !== lastPlotBoundsKey;
+    const revealAnimating =
+      Math.max(
+        displayHistoryEndSec,
+        Math.floor(reveal.targetEndSec ?? displayHistoryEndSec)
+      ) -
+        visibleForecastCoverageEndSec >
+      0.001 ||
+      !!projectionReplacementKey ||
+      !!seriesScaleMaxFlashKey ||
+      !!bootFadeState;
+    const shouldPlot =
+      revealAnimating
+        ? boundsChanged || now - lastPlotMs >= FORECAST_REVEAL_PLOT_THROTTLE_MS
+        : scrub.isScrubbing || zoomed
+          ? now - lastPlotMs >= PLOT_THROTTLE_MS
+          : versionChanged && now - lastPlotMs >= PLOT_THROTTLE_MS;
+    if (shouldPlot) {
+      drawPlot();
+      lastPlotMs = now;
+      lastPlotVersion = revealAnimating ? -1 : cacheVersion;
+      lastPlotBoundsKey = boundsKey;
+    }
+    drawScrub();
+    solidHitArea.refresh();
+  }
+
+  drawWindow();
+
+  function setWindowSpecResolver(nextResolver) {
+    windowSpecResolver =
+      typeof nextResolver === "function" ? nextResolver : null;
+    invalidatePlotSnapshot();
+    scrub.statusNote = "";
+  }
+
+  function setCommitPolicyResolver(nextResolver) {
+    commitPolicyResolver =
+      typeof nextResolver === "function" ? nextResolver : null;
+    scrub.statusNote = "";
+  }
+
+  function setSeriesValueOverrideResolver(nextResolver) {
+    seriesValueOverrideResolver =
+      typeof nextResolver === "function" ? nextResolver : null;
+    invalidatePlotSnapshot();
+    scrub.statusNote = "";
+  }
+
+  function setHistoryZoneResolver(nextResolver) {
+    historyZoneResolver =
+      typeof nextResolver === "function" ? nextResolver : null;
+    invalidatePlotSnapshot();
+    scrub.statusNote = "";
+  }
+
+  function setEventMarkerResolver(nextResolver) {
+    eventMarkerResolver =
+      typeof nextResolver === "function" ? nextResolver : null;
+    invalidatePlotSnapshot();
+    lastPlotVersion = -1;
+    lastPlotBoundsKey = "";
+    scrub.statusNote = "";
+  }
+
+  function setForecastRevealConfig(next = {}) {
+    applyForecastRevealConfig(reveal, next);
+  }
+
+  function destroy() {
+    close();
+    clearProjectionReplacementTransition();
+    eventMarkerResolver = null;
+    plotHit.removeAllListeners?.();
+    zoomBtn.removeAllListeners?.();
+    targetBtn.removeAllListeners?.();
+    root.removeAllListeners?.();
+    root.parent?.removeChild?.(root);
+    root.destroy?.({ children: true });
+  }
+
+  return {
+    open,
+    close,
+    destroy,
+    isOpen,
+    getScreenRect,
+    getPlotScreenRect,
+    getPlotStageRect,
+    getDebugState,
+    getTimingSnapshot,
+    isScrubbing: () => scrub.isScrubbing === true,
+    getVisibleTimeSpanSec: () => Math.max(1, maxSec - minSec),
+    getForecastScrubCapSec: () => getVisibleForecastScrubCapSec(),
+    getForecastRevealTargetEndSec: () => Math.max(0, Math.floor(reveal.targetEndSec ?? 0)),
+    render,
+    setOpeningRevealSecond: (second) => { openingRevealSec = second; },
+    setMonsterEmphasis: (active, terminal = null) => {
+      if (monsterEmphasis !== active) lastPlotVersion = -1;
+      monsterEmphasis = active;
+      monsterTerminal = terminal;
+    },
+    setWindowSpecResolver,
+    setCommitPolicyResolver,
+    setSeriesValueOverrideResolver,
+    setHistoryZoneResolver,
+    setEventMarkerResolver,
+    setForecastRevealConfig,
+    pauseForecastReveal,
+    setPresentationSuspended: (suspended) => {
+      presentationSuspended = suspended === true;
+      reveal.lastTickMs = performance.now();
+    },
+    isFollowingForecastReveal: () =>
+      readIsFollowingForecastReveal(reveal, presentationSuspended),
+    suspendForecastRevealPlayheadFollow,
+    resetForecastPreviewState,
+    resetDataContext,
+    stageProjectionReplacementTransition,
+    clearProjectionReplacementTransition,
+    setInteractionReadinessCap(sec) { reveal.readinessCapSec = sec; },
+    restartForecastRevealFrom,
+    clearForecastRevealRestart,
+  };
+}
+
+export function createGoldGraphView(opts) {
+  return createMetricGraphView({ ...opts, metric: GRAPH_METRICS.gold });
+}

@@ -1,0 +1,449 @@
+{
+    "at":  "2026-11-15T03:51:24.0342285Z",
+    "runtimeVersion":  "5.1.26100.9818",
+    "pathQueries":  [
+                        {
+                            "name":  "procdump.exe",
+                            "state":  "NOT_FOUND",
+                            "paths":  [
+
+                                      ],
+                            "error":  {
+                                          "id":  "CommandNotFoundException,Microsoft.PowerShell.Commands.GetCommandCommand",
+                                          "message":  "The term \u0027procdump.exe\u0027 is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again."
+                                      }
+                        },
+                        {
+                            "name":  "procdump64.exe",
+                            "state":  "NOT_FOUND",
+                            "paths":  [
+
+                                      ],
+                            "error":  {
+                                          "id":  "CommandNotFoundException,Microsoft.PowerShell.Commands.GetCommandCommand",
+                                          "message":  "The term \u0027procdump64.exe\u0027 is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again."
+                                      }
+                        },
+                        {
+                            "name":  "procdump64a.exe",
+                            "state":  "NOT_FOUND",
+                            "paths":  [
+
+                                      ],
+                            "error":  {
+                                          "id":  "CommandNotFoundException,Microsoft.PowerShell.Commands.GetCommandCommand",
+                                          "message":  "The term \u0027procdump64a.exe\u0027 is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again."
+                                      }
+                        },
+                        {
+                            "name":  "cdb.exe",
+                            "state":  "NOT_FOUND",
+                            "paths":  [
+
+                                      ],
+                            "error":  {
+                                          "id":  "CommandNotFoundException,Microsoft.PowerShell.Commands.GetCommandCommand",
+                                          "message":  "The term \u0027cdb.exe\u0027 is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again."
+                                      }
+                        },
+                        {
+                            "name":  "ntsd.exe",
+                            "state":  "NOT_FOUND",
+                            "paths":  [
+
+                                      ],
+                            "error":  {
+                                          "id":  "CommandNotFoundException,Microsoft.PowerShell.Commands.GetCommandCommand",
+                                          "message":  "The term \u0027ntsd.exe\u0027 is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again."
+                                      }
+                        },
+                        {
+                            "name":  "windbg.exe",
+                            "state":  "NOT_FOUND",
+                            "paths":  [
+
+                                      ],
+                            "error":  {
+                                          "id":  "CommandNotFoundException,Microsoft.PowerShell.Commands.GetCommandCommand",
+                                          "message":  "The term \u0027windbg.exe\u0027 is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again."
+                                      }
+                        },
+                        {
+                            "name":  "windbgx.exe",
+                            "state":  "NOT_FOUND",
+                            "paths":  [
+
+                                      ],
+                            "error":  {
+                                          "id":  "CommandNotFoundException,Microsoft.PowerShell.Commands.GetCommandCommand",
+                                          "message":  "The term \u0027windbgx.exe\u0027 is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again."
+                                      }
+                        }
+                    ],
+    "candidateCap":  64,
+    "candidatesBeforeCap":  30,
+    "overflow":  false,
+    "candidates":  [
+                       {
+                           "path":  "C:\\Program Files\\Windows Kits\\10\\Debuggers\\x64\\cdb.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files\\Windows Kits\\10\\Debuggers\\x64\\ntsd.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files\\Windows Kits\\10\\Debuggers\\x64\\windbg.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files\\Windows Kits\\10\\Debuggers\\x86\\cdb.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files\\Windows Kits\\10\\Debuggers\\x86\\ntsd.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files\\Windows Kits\\10\\Debuggers\\x86\\windbg.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files\\Windows Kits\\10\\Debuggers\\arm64\\cdb.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files\\Windows Kits\\10\\Debuggers\\arm64\\ntsd.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files\\Windows Kits\\10\\Debuggers\\arm64\\windbg.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\cdb.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\ntsd.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\windbg.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x86\\cdb.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x86\\ntsd.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x86\\windbg.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\arm64\\cdb.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\arm64\\ntsd.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\arm64\\windbg.exe",
+                           "origin":  "EXPLICIT_SDK",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files\\Sysinternals\\procdump.exe",
+                           "origin":  "EXPLICIT_SYSINTERNALS",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files\\Sysinternals\\procdump64.exe",
+                           "origin":  "EXPLICIT_SYSINTERNALS",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files\\Sysinternals\\procdump64a.exe",
+                           "origin":  "EXPLICIT_SYSINTERNALS",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files (x86)\\Sysinternals\\procdump.exe",
+                           "origin":  "EXPLICIT_SYSINTERNALS",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files (x86)\\Sysinternals\\procdump64.exe",
+                           "origin":  "EXPLICIT_SYSINTERNALS",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Program Files (x86)\\Sysinternals\\procdump64a.exe",
+                           "origin":  "EXPLICIT_SYSINTERNALS",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Tools\\Sysinternals\\procdump.exe",
+                           "origin":  "EXPLICIT_SYSINTERNALS",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Tools\\Sysinternals\\procdump64.exe",
+                           "origin":  "EXPLICIT_SYSINTERNALS",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Tools\\Sysinternals\\procdump64a.exe",
+                           "origin":  "EXPLICIT_SYSINTERNALS",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Sysinternals\\procdump.exe",
+                           "origin":  "EXPLICIT_SYSINTERNALS",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Sysinternals\\procdump64.exe",
+                           "origin":  "EXPLICIT_SYSINTERNALS",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       },
+                       {
+                           "path":  "C:\\Sysinternals\\procdump64a.exe",
+                           "origin":  "EXPLICIT_SYSINTERNALS",
+                           "state":  "MISSING",
+                           "bytes":  null,
+                           "version":  null,
+                           "architecture":  null,
+                           "machine":  null,
+                           "sha256":  null,
+                           "attributes":  null,
+                           "error":  null
+                       }
+                   ],
+    "scope":  "Read-only PATH and explicit SDK/Sysinternals file metadata only. No executable invocation, install, EULA acceptance, attachment, global setting, registry modification, Node startup or recursive search. Presence/metadata does not establish capture capability. Unqueried locations remain outside coverage."
+}

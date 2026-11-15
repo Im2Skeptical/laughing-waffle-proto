@@ -1,0 +1,46 @@
+{
+  "at": "2026-11-15T01:07:37.802Z",
+  "phaseA": "NOT SOUND",
+  "files": {
+    "scripts/perf-hillclimb/artwork-bundle-controls.mjs": "b9c3f1a756c699c9031505bd0ad7c94cdeaa08e94e88760053807a81d395e2bb",
+    "scripts/perf-hillclimb/artwork-bundle-controls-test.mjs": "1985b02d3f3e85bb885b10fa34e13750588e0b8d0b8dce903cddaded64d3f1eb",
+    "scripts/perf-hillclimb/artwork-controls.mjs": "6854bccb0fcef5ff3627f26c808d88ac5fcd53b4608eb3540734bb60410d3239",
+    "docs/performance/perf-hillclimb-20261104/HARNESS.md": "a2c16fae584d77f0ab45478a0604b54eaae92227ae2cde2f99852c45d5682017"
+  },
+  "assets": {
+    "./assets/app-6H5PP5LS.js": {
+      "expected": "2650f059863769f98da13622798df92cf8a338c082f5fd5a695094aee2a48ea8",
+      "actual": "2650f059863769f98da13622798df92cf8a338c082f5fd5a695094aee2a48ea8",
+      "unchanged": true
+    },
+    "./assets/timegraph-forecast-worker-YOB3XRD7.js": {
+      "expected": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+      "actual": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+      "unchanged": true
+    },
+    "./assets/save-load-worker-7YJYILEJ.js": {
+      "expected": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+      "actual": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+      "unchanged": true
+    },
+    "./assets/styles-ec05c6a73a6e.css": {
+      "expected": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0",
+      "actual": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0",
+      "unchanged": true
+    },
+    "images/dev-fixtures/performance-start.json.gz": {
+      "expected": "7d07599499c43871cea5bb261bd91fb372cb7f6437c4d2dd0238a9190751ee1d",
+      "actual": "7d07599499c43871cea5bb261bd91fb372cb7f6437c4d2dd0238a9190751ee1d",
+      "unchanged": true
+    }
+  },
+  "variants": {
+    "default": "371417c244819e7497d937a0e8b8d81b9446322aa7fed781fdc33f98693eaa80",
+    "phase": "17f47be07781132627ffca0cad656800c1f77b9871b58c241492ad16c467ead6",
+    "cooperative": "24ce33e3c20ce5b6253c2bfdfffc20822c853e9eb47fc1789b4f854de99b9761"
+  },
+  "focusedLogSha256": "e09c93c0679497cc6622d769a99de03674ba27e418ca04ab9bd4de193636f28f",
+  "focusedExitSha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+  "scope": "Only three harness scripts and predeclared contract; no app/asset/policy/workload/schema/RNG/replay change. New cooperativeWitness boolean requires phaseWitness; default/phase response bytes unchanged. Full registered verify refreshed in final35min. Actual case NOT RUN; independent affected acceptance pending.",
+  "controlFailure": "focused-r1 was a fixture error: isCancelled passed isCurrent instead of its negation, so asserted cancellation was completion on both native and instrumented paths. Original failed receipt retained. Corrected fixture r2 passes."
+}

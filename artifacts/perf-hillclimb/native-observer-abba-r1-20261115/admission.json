@@ -1,0 +1,52 @@
+{
+  "verdict": "ACCEPTED",
+  "planSha256": "b575a07fea8abbc51ca8d8c9945e6174705e749127241a8b01ecb8d039928715",
+  "at": "2026-11-15T03:39:12.865Z",
+  "scope": "Independent affected source/pure-control admission only for four fixed A/B/B/A observer-prefix trials via next.mjs, no retries/replacement. Same original child/prefix/prechecks/waits/port/40s and owned cleanup; A deferred per-call I/O, B per-call bundle. No native cause/fix/full-test-pass/performance/neutrality/whole-SOUND acceptance. Actual evidence review separate.",
+  "trials": [
+    {
+      "index": 0,
+      "id": "trial-1-A",
+      "mode": "A",
+      "files": {
+        "driver.mjs": "fadf7ddca92439d38cc3b4dcbaa2d88b3ab279271c8cf4e4bb5c54330bd2c1da",
+        "probe.mjs": "37145088b0f43229df255f38ae6e18906ad864a1ead9e0872952eb9c029ac2c3",
+        "cleanup-owned.ps1": "9c806cf49043d3ba29cdceedd4d1f8ac1484718679e627e3bf06e3ab60a7ee38",
+        "source-authentication.json": "4b2a784770a8f340cbad9fa39731d05c82b2257db5dee4b7f1d64ff4f048318f"
+      }
+    },
+    {
+      "index": 1,
+      "id": "trial-2-B",
+      "mode": "B",
+      "files": {
+        "driver.mjs": "0373169c28eb4c376daa93a0bdc91ada8b82ac637f2c608be3d5c09bf14cc01d",
+        "probe.mjs": "2317009e2943aefb607ada75eefb008297b26cc3e25fe1ce73c412e4f320d4fe",
+        "cleanup-owned.ps1": "9c806cf49043d3ba29cdceedd4d1f8ac1484718679e627e3bf06e3ab60a7ee38",
+        "source-authentication.json": "4b2a784770a8f340cbad9fa39731d05c82b2257db5dee4b7f1d64ff4f048318f"
+      }
+    },
+    {
+      "index": 2,
+      "id": "trial-3-B",
+      "mode": "B",
+      "files": {
+        "driver.mjs": "80e43eee5e5ba9e825f9b92a331cd26715d04181723fcbb726624db941ae41b7",
+        "probe.mjs": "67eae316f15612a87db81856b0ec1148bc6ad9e0779ed707deb85a523d0bc5ff",
+        "cleanup-owned.ps1": "9c806cf49043d3ba29cdceedd4d1f8ac1484718679e627e3bf06e3ab60a7ee38",
+        "source-authentication.json": "4b2a784770a8f340cbad9fa39731d05c82b2257db5dee4b7f1d64ff4f048318f"
+      }
+    },
+    {
+      "index": 3,
+      "id": "trial-4-A",
+      "mode": "A",
+      "files": {
+        "driver.mjs": "e9eb4f0cb6e7e8c53a0b8ba18332c6566ea1abf04af7ec817456b32de738870a",
+        "probe.mjs": "14ed36f90cef04d9b3a6b27f04baaf7b0095c7e0c38cd676b4bc3a1ceda65866",
+        "cleanup-owned.ps1": "9c806cf49043d3ba29cdceedd4d1f8ac1484718679e627e3bf06e3ab60a7ee38",
+        "source-authentication.json": "4b2a784770a8f340cbad9fa39731d05c82b2257db5dee4b7f1d64ff4f048318f"
+      }
+    }
+  ]
+}

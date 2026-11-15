@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';import fs from'node:fs';import {createHash}from'node:crypto';
+const root='artifacts/perf-hillclimb/native-capture-controller-r3-20261115',hash=f=>createHash('sha256').update(fs.readFileSync(f)).digest('hex');
+assert.ok(!fs.existsSync(root+'/candidate-manifest.json'));assert.equal(process.version,'v24.15.0');
+const authorityFile='artifacts/perf-hillclimb/j8-paired-wait-progress-r1-20261115/plan.json';assert.equal(hash(authorityFile),'8c45bbf674f60ac7f6dc7214fb1abc76bc9617f02bb943c73bb7e318a2dc172e');
+const authority=JSON.parse(fs.readFileSync(authorityFile,'utf8')),changes=[];
+for(const[f,h]of Object.entries(authority.sources))if(hash(f)!==h)changes.push(f);for(const[f,h]of Object.entries(authority.assets))if(hash('dist/'+f)!==h)changes.push('dist/'+f);assert.deepEqual(changes,[]);
+const plan=JSON.parse(fs.readFileSync(root+'/plan.json','utf8'));for(const[f,h]of Object.entries(plan.files))assert.equal(hash(f),h,'plan drift:'+f);
+assert.equal(plan.slots.length,6);assert.ok(!fs.existsSync(root+'/admission.json'));
+for(const slot of plan.slots)for(const name of ['attempt.marker','launch.json','host-launch.json','supervisor-launch.json','result.json','control-check.json'])assert.ok(!fs.existsSync(slot.config.RunRoot+'/'+name),'Native slot attempted:'+name);
+const inherited=JSON.parse(fs.readFileSync(root+'/inherited-build.json','utf8'));for(const[name,h]of Object.entries(inherited.files))assert.equal(hash(root+'/'+name),h);
+const pure=JSON.parse(fs.readFileSync(root+'/pure-checker.json','utf8'));assert.equal(pure.caseCount,30);assert.ok(pure.allExpected&&pure.cases.every(c=>c.asExpected));assert.equal(pure.cases.filter(c=>c.expected==='PASS').length,8);
+const selected={};for(const name of ['README.md','plan.json','inherited-build.json','pure-checker.json','authenticate.mjs'])selected[name]=hash(root+'/'+name);
+const result={at:new Date().toISOString(),phase:'CHECKER_ONLY_REPAIR_SOURCE_CANDIDATE_NOT_ADMITTED',planSha256:hash(root+'/plan.json'),sourceCount:Object.keys(authority.sources).length,assetCount:Object.keys(authority.assets).length,sourceAssetChanges:changes,selected,pinnedSourceAndBinaryFiles:plan.files,checkerCases:30,expectedAccept:8,expectedReject:22,inheritedBuildSha256:hash(root+'/inherited-build.json'),scope:'Fresh r3 checker-only repair; reviewed r2 C# and binaries byte-identical.30Builder actual-checker VM cases, including retained24 plus6 affected schema cases. No native helper/API/Run/Main/target/control/capture; six roots unattempted; independent affected recheck required.'};
+fs.writeFileSync(root+'/candidate-manifest.json',JSON.stringify(result,null,2),{flag:'wx'});console.log(JSON.stringify({candidateSha256:hash(root+'/candidate-manifest.json'),planSha256:result.planSha256,sourceCount:result.sourceCount,assetCount:result.assetCount,sourceAssetChanges:changes}));

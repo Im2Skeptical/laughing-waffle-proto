@@ -1,0 +1,48 @@
+[
+  {
+    "population": "desktop",
+    "kind": "pan",
+    "pass": false,
+    "error": "first response precedes final offered event"
+  },
+  {
+    "population": "desktop",
+    "kind": "wheel",
+    "pass": true,
+    "wheelAccounting": {
+      "offeredCommands": 18,
+      "receivedNativeEvents": 18,
+      "hcInputCount": 18,
+      "unresolvedMissingOrCoalesced": 0,
+      "scope": "all protocol commands retained; exact HC/native receipt parity; unresolved protocol-to-DOM coalescing/loss is NOT zero or offered-load conformance"
+    },
+    "passScope": "native feedback lifetime / HC-to-receipt parity only; unresolved protocol-to-DOM delivery remains a gap"
+  },
+  {
+    "population": "mobile4",
+    "kind": "pan",
+    "pass": true,
+    "wheelAccounting": null,
+    "passScope": "native feedback lifetime / HC-to-receipt parity only; unresolved protocol-to-DOM delivery remains a gap"
+  },
+  {
+    "population": "mobile4",
+    "kind": "pinch",
+    "pass": true,
+    "wheelAccounting": null,
+    "passScope": "native feedback lifetime / HC-to-receipt parity only; unresolved protocol-to-DOM delivery remains a gap"
+  },
+  {
+    "population": "mobile4",
+    "kind": "wheel",
+    "pass": true,
+    "wheelAccounting": {
+      "offeredCommands": 18,
+      "receivedNativeEvents": 18,
+      "hcInputCount": 18,
+      "unresolvedMissingOrCoalesced": 0,
+      "scope": "all protocol commands retained; exact HC/native receipt parity; unresolved protocol-to-DOM coalescing/loss is NOT zero or offered-load conformance"
+    },
+    "passScope": "native feedback lifetime / HC-to-receipt parity only; unresolved protocol-to-DOM delivery remains a gap"
+  }
+]

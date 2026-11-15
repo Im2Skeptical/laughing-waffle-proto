@@ -1,0 +1,211 @@
+{
+  "scope": "one sequential on/off matched diagnostic pair, not accepted overhead inference or product improvement",
+  "matching": {
+    "buildId": true,
+    "harnessId": true,
+    "measurementContractId": true,
+    "serializedRuntimeSha256": true
+  },
+  "irreducible": "both retain semantic polling, terminal/frame witnesses, Assets.load attempt/error witness and setup module gate; off disables full Worker/IDB and heavy sampling",
+  "runs": [
+    {
+      "id": "artwork-sampling-reference",
+      "started": "2026-11-04T10:58:48.879Z",
+      "finished": "2026-11-04T11:00:45.931Z",
+      "productHead": "d05bab34417ff2af4fd280225e03bab316602105",
+      "buildId": "8a107aa47c6e5c68b07b2208ff4a41da6b7402aaa80cca861e6b6691df9a30d5",
+      "harnessId": "dfb3af89b1c38e75cd9ad103e4aa1da3ad6fb500acc75c37938745c745bd7e34",
+      "measurementContractId": "ae5accb6f8e88ba6f18c40a275734ef9f7e2b6df7c17ca2b7cabf15e980f12f8",
+      "script": "9c3254ee7082c4e50700a9d6e6e0f01df8f0d1e45e4795d753abf8ac741f7f28",
+      "runtime": "daa6fcbde5acb0e43defa792cee5f6d32b612bc0d7e5f1aadc555a08de41dea7",
+      "instrumentation": true,
+      "samplingCpuMs": 5059.300000488758,
+      "samples": 368,
+      "pageErrors": 0,
+      "atlasesValidUploaded": true,
+      "steps": [
+        {
+          "step": "performance-entry-useful",
+          "elapsedMs": 13310.40000000596,
+          "probeCpuMs": 750.9000001847744,
+          "probes": 100,
+          "frames": 108
+        },
+        {
+          "step": "background-to-prepared",
+          "elapsedMs": 89764.09999999404,
+          "probeCpuMs": 11.999999940395355,
+          "probes": 695,
+          "frames": 696
+        },
+        {
+          "step": "explicit-reveal",
+          "elapsedMs": 341.60000002384186,
+          "probeCpuMs": 12.800000011920929,
+          "probes": 1,
+          "frames": 5
+        },
+        {
+          "step": "revealed-0-0-settlement-open",
+          "elapsedMs": 1790.1000000238419,
+          "probeCpuMs": 12.299999982118607,
+          "probes": 1,
+          "frames": 5
+        },
+        {
+          "step": "revealed-0-0-map-return",
+          "elapsedMs": 402.5,
+          "probeCpuMs": 198.7000000178814,
+          "probes": 17,
+          "frames": 21
+        },
+        {
+          "step": "revealed-1-0-settlement-open",
+          "elapsedMs": 435.30000001192093,
+          "probeCpuMs": 12.400000005960464,
+          "probes": 1,
+          "frames": 4
+        },
+        {
+          "step": "revealed-1-0-map-return",
+          "elapsedMs": 531.0999999940395,
+          "probeCpuMs": 41.099999994039536,
+          "probes": 4,
+          "frames": 5
+        }
+      ],
+      "memory": [
+        {
+          "stage": "entry",
+          "usedSize": 344018040,
+          "totalSize": 454123520,
+          "backingStorageSize": 21637859
+        },
+        {
+          "stage": "prepared-hidden",
+          "usedSize": 268049996,
+          "totalSize": 342974464,
+          "backingStorageSize": 95530797
+        },
+        {
+          "stage": "revealed",
+          "usedSize": 283624652,
+          "totalSize": 356265984,
+          "backingStorageSize": 97140127
+        },
+        {
+          "stage": "navigation-block-1",
+          "usedSize": 326338172,
+          "totalSize": 380661760,
+          "backingStorageSize": 101127771
+        },
+        {
+          "stage": "navigation-block-2",
+          "usedSize": 343661752,
+          "totalSize": 396308480,
+          "backingStorageSize": 104287035
+        }
+      ]
+    },
+    {
+      "id": "artwork-native-reference",
+      "started": "2026-11-04T11:01:22.450Z",
+      "finished": "2026-11-04T11:03:09.022Z",
+      "productHead": "d05bab34417ff2af4fd280225e03bab316602105",
+      "buildId": "8a107aa47c6e5c68b07b2208ff4a41da6b7402aaa80cca861e6b6691df9a30d5",
+      "harnessId": "dfb3af89b1c38e75cd9ad103e4aa1da3ad6fb500acc75c37938745c745bd7e34",
+      "measurementContractId": "ae5accb6f8e88ba6f18c40a275734ef9f7e2b6df7c17ca2b7cabf15e980f12f8",
+      "script": "9c3254ee7082c4e50700a9d6e6e0f01df8f0d1e45e4795d753abf8ac741f7f28",
+      "runtime": "daa6fcbde5acb0e43defa792cee5f6d32b612bc0d7e5f1aadc555a08de41dea7",
+      "instrumentation": false,
+      "samplingCpuMs": 0,
+      "samples": 0,
+      "pageErrors": 0,
+      "atlasesValidUploaded": true,
+      "steps": [
+        {
+          "step": "performance-entry-useful",
+          "elapsedMs": 12348.90000000596,
+          "probeCpuMs": 624.8999998569489,
+          "probes": 101,
+          "frames": 0
+        },
+        {
+          "step": "background-to-prepared",
+          "elapsedMs": 81101.69999998808,
+          "probeCpuMs": 9.299999922513962,
+          "probes": 608,
+          "frames": 0
+        },
+        {
+          "step": "explicit-reveal",
+          "elapsedMs": 259.69999998807907,
+          "probeCpuMs": 17,
+          "probes": 1,
+          "frames": 0
+        },
+        {
+          "step": "revealed-0-0-settlement-open",
+          "elapsedMs": 1603.9000000059605,
+          "probeCpuMs": 15.900000005960464,
+          "probes": 1,
+          "frames": 0
+        },
+        {
+          "step": "revealed-0-0-map-return",
+          "elapsedMs": 375.89999997615814,
+          "probeCpuMs": 206.70000010728836,
+          "probes": 14,
+          "frames": 0
+        },
+        {
+          "step": "revealed-1-0-settlement-open",
+          "elapsedMs": 460,
+          "probeCpuMs": 17.30000001192093,
+          "probes": 1,
+          "frames": 0
+        },
+        {
+          "step": "revealed-1-0-map-return",
+          "elapsedMs": 541,
+          "probeCpuMs": 58.89999997615814,
+          "probes": 4,
+          "frames": 0
+        }
+      ],
+      "memory": [
+        {
+          "stage": "entry",
+          "usedSize": 344576340,
+          "totalSize": 470466560,
+          "backingStorageSize": 21691140
+        },
+        {
+          "stage": "prepared-hidden",
+          "usedSize": 264467940,
+          "totalSize": 342188032,
+          "backingStorageSize": 121204810
+        },
+        {
+          "stage": "revealed",
+          "usedSize": 280158508,
+          "totalSize": 353382400,
+          "backingStorageSize": 97074334
+        },
+        {
+          "stage": "navigation-block-1",
+          "usedSize": 316304232,
+          "totalSize": 376729600,
+          "backingStorageSize": 100966616
+        },
+        {
+          "stage": "navigation-block-2",
+          "usedSize": 336293392,
+          "totalSize": 386166784,
+          "backingStorageSize": 104204344
+        }
+      ]
+    }
+  ],
+  "verdict": "INCONCLUSIVE: one pair, fixed on?off order, unknown external/thermal drift, irreducible polling not quantified; need repeated interleaved pairs before acceptance"
+}

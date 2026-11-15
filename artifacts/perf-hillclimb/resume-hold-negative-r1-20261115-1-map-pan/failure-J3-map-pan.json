@@ -1,0 +1,243 @@
+{
+  "expected": {
+    "runId": "resume-hold-negative-r1-20261115-1-map-pan",
+    "buildId": "cb9b16916f926f41438027164cdc4c48ea4e868aa776e9c0ce6ebf646afa9a1e",
+    "observationId": "resume-hold-negative-r1-20261115-1-map-pan:op-1",
+    "launchId": "resume-hold-negative-r1-20261115-1-map-pan:launch-0-map-pan",
+    "job": "J3",
+    "step": "map-pan",
+    "harnessId": "148ce1d43b2c6b53583394b7cbde6d1343d4bfb35a5daa8960afbe9b28879b8a",
+    "measurementContractId": "cb6cd004ed85c53dde460b9abcff8c3818c34a99f20fe1f7945a0a310492867f",
+    "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "comparisonEligible": false,
+    "feedbackEligibleForComparison": false,
+    "population": {
+      "layout": "desktop",
+      "cpuRate": 1,
+      "cache": "cold",
+      "artwork": "off",
+      "instrumentation": true,
+      "workerDelayMs": 0,
+      "seed": 123,
+      "workloadMode": "frozen-baseline",
+      "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "control": "stale-generation",
+      "inputType": "mouse",
+      "entryPath": "continue-fixture"
+    },
+    "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+    "input": {
+      "gesture": "fixed-offered pan",
+      "from": {
+        "x": 1169.5885148514851,
+        "y": 412.77222222222224
+      },
+      "to": {
+        "x": 992.8923432343234,
+        "y": 412.77222222222224
+      },
+      "steps": 12,
+      "intervalMs": 16.666666666666668
+    }
+  },
+  "error": "J3 requires matching current-generation work/progress within the measured operation",
+  "actual": {
+    "passive": {
+      "version": 2,
+      "mode": "map",
+      "selectedRegionId": "R14",
+      "regionSelectionActive": false,
+      "runner": {
+        "frontierSec": 0,
+        "cursorSec": 0,
+        "viewedSec": 0,
+        "previewActive": false,
+        "forecastPreview": false,
+        "revision": 2,
+        "actionCount": 1,
+        "checkpointCount": 0
+      },
+      "opening": {
+        "phase": "idle",
+        "preparation": "idle",
+        "coverageSec": 136,
+        "elapsedSec": 0,
+        "lossSec": null
+      },
+      "map": {
+        "visible": true,
+        "detailVisible": false,
+        "camera": {
+          "x": -334.8799912346069,
+          "y": 0,
+          "zoom": 1
+        },
+        "focusAnimating": false,
+        "panelPhase": "closed",
+        "panelAnimating": false,
+        "panelPose": {
+          "x": 0,
+          "y": 0,
+          "scale": 1
+        },
+        "artReady": false,
+        "artPrepared": null
+      },
+      "graph": {
+        "visible": true,
+        "minSec": 0,
+        "maxSec": 196,
+        "scrubDrawSignature": "0|0|0|0|0:196||Civilization • All player settlements|-1",
+        "plotRect": {
+          "x": 573.855,
+          "y": 884.1,
+          "width": 1276.275,
+          "height": 145.86
+        },
+        "plotRectSpace": "stage-retained-transform",
+        "projection": {
+          "signatureVersion": 4,
+          "timelineToken": "sig:4",
+          "signatureMatches": true
+        },
+        "scrubSec": 0,
+        "isScrubbing": false,
+        "latchedForecastScrubSec": null,
+        "historyEndSec": 0,
+        "revealedSec": 181,
+        "browseCapSec": 181,
+        "targetSec": 196,
+        "computedSec": 196,
+        "requestedSec": 1280,
+        "pending": true,
+        "cacheVersion": 10,
+        "subjectKey": "civilization",
+        "asyncToken": "sig:4",
+        "asyncPollMs": 4650,
+        "asyncHistoryEndSec": 0,
+        "asyncRequestedSec": 1280,
+        "asyncComputedSec": 196,
+        "revealHistoryEndSec": 0,
+        "animatedSec": 181.58311548892272,
+        "visibleEndSec": 181.58311548892272,
+        "startSecOverride": 0,
+        "readinessCapSec": null,
+        "capEndSec": null,
+        "paused": false,
+        "presentationSuspended": false,
+        "openingRevealSec": null
+      },
+      "life": {
+        "visible": false,
+        "selectedCandidateNodeId": null,
+        "displayedVassalId": "vassal-1",
+        "entryConfirmationOpen": false,
+        "entryOpen": false,
+        "entryVisible": false,
+        "entryPhase": "closed",
+        "decisionOpen": false,
+        "decisionNodeId": null,
+        "decisionPhase": "closed",
+        "pendingInteractionCount": null,
+        "family": null,
+        "selectedOptionId": null,
+        "resolving": null,
+        "shopTag": null,
+        "offerIds": null,
+        "purchaseOrder": null,
+        "boardPracticeIds": null,
+        "observedDecisionNodeId": null,
+        "boardRegionId": null,
+        "decisionArtReady": false,
+        "decisionArtPrepared": null,
+        "entryPoint": null,
+        "processingPhase": null,
+        "sourceRevision": 2,
+        "ready": null,
+        "processing": {
+          "sourceRevision": 2,
+          "sourceSec": 0,
+          "baseRevision": 2,
+          "baseSec": 0,
+          "timelineMatches": true,
+          "sourceMatches": true,
+          "requestId": 2,
+          "revision": 2,
+          "adopting": false,
+          "workerActive": false,
+          "draftActive": false,
+          "draftActionCount": 0,
+          "jobActive": false,
+          "phase": null,
+          "error": null,
+          "accepted": null,
+          "jobReady": null,
+          "ready": null,
+          "targetSec": null,
+          "computedSec": null,
+          "revealSec": null
+        },
+        "recapOpen": false,
+        "continueState": null,
+        "recapClock": null,
+        "recapClockStartedAt": null
+      }
+    },
+    "frontier": 0,
+    "viewed": 0,
+    "mode": "map",
+    "camera": {
+      "zoom": 1,
+      "x": -334.8799912346069,
+      "y": 0
+    },
+    "processing": null,
+    "projection": {
+      "forecastBaseSec": 0,
+      "forecastEndSec": 0,
+      "forecastStepSec": 1,
+      "forecastDtStep": null,
+      "forecastAsyncBaseSec": 0,
+      "forecastAsyncEndSec": 196,
+      "forecastAsyncStepSec": 1,
+      "forecastAsyncToken": "sig:4"
+    },
+    "forecast": {
+      "historyEndSec": 0,
+      "computedCoverageEndSec": 196,
+      "revealedCoverageEndSec": 181,
+      "browseCapSec": 181,
+      "displayedLossSec": 196,
+      "displayedLossYear": 7,
+      "projectedLossSec": null,
+      "projectedLossYear": null,
+      "projectedLossResolved": false,
+      "currentVassalResolutionSec": null,
+      "currentVassalResolutionComputed": false,
+      "currentVassalResolutionRevealed": false,
+      "currentVassalResolutionResolved": false,
+      "pendingCommitTargetSec": null,
+      "nextVassalEnabled": false
+    },
+    "graph": {
+      "revealed": 181,
+      "target": 160,
+      "plot": {
+        "x": 302.7890037128713,
+        "y": 581.8514851485148,
+        "width": 673.4140779702971,
+        "height": 77.02178217821782
+      }
+    },
+    "decision": {
+      "open": false,
+      "family": null,
+      "selected": null,
+      "shopTag": null,
+      "offers": [],
+      "purchaseOrder": [],
+      "recap": false
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "observed": "2026-11-04T17:05:10.007Z",
+  "status": {
+    "protocol": 2,
+    "workspaceId": "318fcd5d72880280",
+    "pid": 4484,
+    "desktop": "http://localhost:5184/",
+    "mobile": [
+      "http://100.105.63.49:5184/",
+      "http://192.168.1.103:5184/"
+    ]
+  },
+  "info": {
+    "performanceFixtureKey": "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+    "version": "1.1.52",
+    "build": "eefb3099af0f",
+    "revision": "a9df52cbd625",
+    "channel": "local",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": "5184"
+  },
+  "embedded": {
+    "performanceFixtureKey": "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+    "version": "1.1.52",
+    "build": "eefb3099af0f",
+    "revision": "a9df52cbd625",
+    "channel": "local",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": "5184"
+  },
+  "servedSourceHashes": {
+    "src/controllers/sim-runner.js": "a15dc72c7697406b1edb7ecc8b6e3c6ac0e87325cade0dcd3fbe65798b4be8db",
+    "src/views/ui-root/settlement-debug-api.js": "4c948784ab3998b2a77853f707b22726a9f621972db02030b99772b364cb1ddd",
+    "src/views/ui-root-settlement-pixi.js": "19ed00c3ce1a74015776af7caec1287c4f6a031172733550f6362c8ab63326d4"
+  },
+  "verified": "HTTP HTML/build-info equality and exact updated source bytes; source server reuses this checkout"
+}

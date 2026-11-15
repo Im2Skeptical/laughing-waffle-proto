@@ -1,0 +1,16 @@
+{
+  "at": "2026-11-15T06:36:06.511Z",
+  "status": 200,
+  "finalHost": "vsblobprodscussu5shard47.blob.core.windows.net",
+  "redirects": [
+    {
+      "host": "msdl.microsoft.com",
+      "status": 302,
+      "locationSha256": "6dd5f82413e2333e3b732751693d8314f3c532823ff59b6a35e778371201fd63"
+    }
+  ],
+  "contentLength": "1921024",
+  "bytes": 1921024,
+  "sha256": "26d65ee88992ad9c3b258142f7dd3aac3b56f9e271587d9043d01dab3552163c",
+  "url": "https://msdl.microsoft.com/download/symbols/ntdll.pdb/44294CBD55E8CD67B3D56B689F03152D1/ntdll.pdb"
+}

@@ -1,0 +1,9 @@
+{
+  "at": "2026-11-15T07:36:22.947Z",
+  "slot": 4,
+  "mode": "descendant",
+  "verdict": "PASS",
+  "problems": [],
+  "resultSha256": "ccbbf547077e640da20054bb23ee2bf772a7bf843a1f91bdb17dddff21bb850d",
+  "scope": "Synthetic control oracle only; no native cause/fix/product timing/whole SOUND."
+}

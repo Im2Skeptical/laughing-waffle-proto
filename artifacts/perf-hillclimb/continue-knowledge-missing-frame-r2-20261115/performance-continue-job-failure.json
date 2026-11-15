@@ -1,0 +1,16 @@
+{
+  "launchId": "continue-knowledge-missing-frame-r2-20261115:launch-0-performance-continue",
+  "job": "performance-continue",
+  "originalError": {
+    "name": "Error",
+    "message": "settled pre-save full read timeout after 1500ms",
+    "stack": "Error: settled pre-save full read timeout after 1500ms\n    at Timeout.<anonymous> (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/deadline.mjs:8:35)\n    at listOnTimeout (node:internal/timers:605:17)\n    at process.processTimers (node:internal/timers:541:7)"
+  },
+  "observationCount": 2,
+  "document": {
+    "available": false,
+    "reason": "current launch page is closed"
+  },
+  "passive": null,
+  "collectionErrors": []
+}

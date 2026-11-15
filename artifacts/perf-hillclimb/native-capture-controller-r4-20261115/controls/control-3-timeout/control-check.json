@@ -1,0 +1,9 @@
+{
+  "at": "2026-11-15T07:36:21.668Z",
+  "slot": 3,
+  "mode": "timeout",
+  "verdict": "PASS",
+  "problems": [],
+  "resultSha256": "c6358fc10639a0f026644ca97651877eadf7fdd98b9464195a653d19980f4f7d",
+  "scope": "Synthetic control oracle only; no native cause/fix/product timing/whole SOUND."
+}

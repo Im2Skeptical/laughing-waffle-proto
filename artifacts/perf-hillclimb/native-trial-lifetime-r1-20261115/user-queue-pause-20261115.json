@@ -1,0 +1,46 @@
+{
+    "at":  "2026-11-15T11:49:44.7630312Z",
+    "status":  "USER_PAUSED_QUEUE_BACKLOG",
+    "sourcePureLease":  "CLOSED",
+    "nativeLease":  "NOT_ACQUIRED",
+    "matchingProcesses":  [
+
+                          ],
+    "newExperimentsAfterStop":  0,
+    "nativeCalls":  0,
+    "actualControlAttempt":  false,
+    "selectedManagedBuild":  "entry-r2",
+    "selectedManagedInputsUnchanged":  48,
+    "managedControls":  543,
+    "provenanceControls":  54,
+    "provenanceAccepts":  2,
+    "provenanceRejects":  50,
+    "diskControls":  19,
+    "diskAccepts":  1,
+    "diskRejects":  15,
+    "completeCellAcceptance":  false,
+    "wholePhaseA":  "NOT_SOUND",
+    "referenceFailuresPreserved":  [
+                                       "r1 unresolved serializer/nonterminating null output NOT PROOF",
+                                       "r2 stopped schema error from private config missing separate InputPins"
+                                   ],
+    "next":  "Paused. Fresh human resume required. Complete checker composition/raw-owner-target+provenance/disk/runtime/source/loader/batch, causal controls/final plan/manifest/parent wrapper and COMPLETE independent source review before any native attempt. Do not follow stale queued continue prompts.",
+    "scheduleEnabled":  false,
+    "queuedContinuationsCancelled":  124,
+    "remainingQueued":  0,
+    "files":  {
+                  "check-trial-provenance.mjs":  "b02cc5e728b692d4e18e3c011e91c87241e4afe29f2473399bba02eaa78dc196",
+                  "provenance-fixture-r1.mjs":  "f965acf8f0ed0c24b1427102de8f49c2bf61d9a0ea47d8111926b1d28acc1dd4",
+                  "test-trial-provenance-r1.mjs":  "34bed96ecfc831bf91d5907a5a59f1177c4f88b191bfb5747f59d12b92cbb128",
+                  "collect-trial-originals.mjs":  "e014ce197c3e79a608018d9ad2731a06f059278446af5f3667b1b5011fd8235c",
+                  "test-collect-trial-originals-r1.mjs":  "9028ffcbb5d2f3e48688475c041a42d87ca9adf9bba17ee3cedcf002dd667a02",
+                  "make-provenance-reference-r2.ps1":  "b8a86a3737226e7801d84f4e4d7d507f173fb5ce0d72339e70200ab9fbb7d90d",
+                  "make-provenance-reference-r3.ps1":  "b64195de99917e6966ae3c2190e7a89f9d7b86504afa7f587232705d49beecd1",
+                  "provenance-proof-r1/managed-fingerprint-reference.json":  "c786fd33f7fa37620ccec3751d6dd747617986cf95e1ebf4c770c87dbb5581e5",
+                  "provenance-proof-r1/reference-failure-note.json":  "a3fa6bc34112c47f4377c6b75485e8c5fbbf5e39f1da8b7feba35d2806757334",
+                  "provenance-proof-r2/reference-failure-note.json":  "42e78e20f4f1d9bba911d27b468bb40da831f4e799d48e465db8ad4a835f3928",
+                  "provenance-proof-r3/managed-fingerprint-reference.json":  "e682e6a1f655bbb809f51140c0eab68649887eeb4d20e28dbdd310edb60728f6",
+                  "provenance-proof-r3/checker-proof-r1.json":  "4d0a82ae8d3749238895fbf2bad268912da00ac2f003280c9726da819db1aa93",
+                  "disk-originals-proof-r1/proof.json":  "7e765c5166c53871e567a2f1f06609612109dc2d961be418750cfd11de55c07e"
+              }
+}

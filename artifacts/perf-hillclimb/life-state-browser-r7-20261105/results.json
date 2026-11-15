@@ -1,0 +1,128 @@
+[
+  {
+    "seed": 123,
+    "population": "desktop",
+    "mode": "guard-twin",
+    "pass": true,
+    "costs": [
+      {
+        "tag": "initial",
+        "hostRpcMs": 859.1183999999994,
+        "readerCpuMs": 19.80000001192093,
+        "startMs": 17974.5,
+        "endMs": 17994.30000001192
+      },
+      {
+        "tag": "initial-present",
+        "hostRpcMs": 219.7873999999938,
+        "readerCpuMs": 6.0999999940395355,
+        "startMs": 19114,
+        "endMs": 19120.09999999404
+      },
+      {
+        "tag": "entered",
+        "hostRpcMs": 672.8581000000049,
+        "readerCpuMs": 15.400000005960464,
+        "startMs": 20804.5,
+        "endMs": 20819.90000000596
+      },
+      {
+        "tag": "category",
+        "hostRpcMs": 647.2514999999985,
+        "readerCpuMs": 16.19999998807907,
+        "startMs": 21593.80000001192,
+        "endMs": 21610
+      },
+      {
+        "tag": "staged",
+        "hostRpcMs": 651.1549999999988,
+        "readerCpuMs": 14,
+        "startMs": 22349,
+        "endMs": 22363
+      },
+      {
+        "tag": "committed",
+        "hostRpcMs": 503.14429999999993,
+        "readerCpuMs": 12.099999994039536,
+        "startMs": 26359,
+        "endMs": 26371.09999999404
+      },
+      {
+        "tag": "history-16",
+        "hostRpcMs": 394.7753999999986,
+        "readerCpuMs": 10.799999982118607,
+        "startMs": 30386.80000001192,
+        "endMs": 30397.59999999404
+      },
+      {
+        "tag": "history-17",
+        "hostRpcMs": 384.1791999999987,
+        "readerCpuMs": 10.5,
+        "startMs": 32252.40000000596,
+        "endMs": 32262.90000000596
+      },
+      {
+        "tag": "present",
+        "hostRpcMs": 531.5325000000012,
+        "readerCpuMs": 13.100000023841858,
+        "startMs": 32701.59999999404,
+        "endMs": 32714.70000001788
+      },
+      {
+        "tag": "boundary-evidence-export",
+        "hostRpcMs": 15319.799800000008
+      }
+    ]
+  },
+  {
+    "seed": 123,
+    "population": "desktop",
+    "mode": "mutation",
+    "pass": false,
+    "error": "page.waitForFunction: Timeout 180000ms exceeded.",
+    "costs": [
+      {
+        "tag": "initial",
+        "hostRpcMs": 837.3914999999979,
+        "readerCpuMs": 16.900000005960464,
+        "startMs": 17264.70000001788,
+        "endMs": 17281.600000023842
+      },
+      {
+        "tag": "initial-present",
+        "hostRpcMs": 208.8987999999954,
+        "readerCpuMs": 6.300000011920929,
+        "startMs": 18400,
+        "endMs": 18406.30000001192
+      },
+      {
+        "tag": "entered",
+        "hostRpcMs": 635.1696999999986,
+        "readerCpuMs": 15.899999976158142,
+        "startMs": 20032.100000023842,
+        "endMs": 20048
+      },
+      {
+        "tag": "category",
+        "hostRpcMs": 624.5182999999961,
+        "readerCpuMs": 16,
+        "startMs": 20838.80000001192,
+        "endMs": 20854.80000001192
+      },
+      {
+        "tag": "staged",
+        "hostRpcMs": 707.1734999999899,
+        "readerCpuMs": 78.69999998807907,
+        "startMs": 21585.600000023842,
+        "endMs": 21664.30000001192
+      },
+      {
+        "tag": "committed",
+        "hostRpcMs": 481.152700000006,
+        "readerCpuMs": 10.799999982118607,
+        "startMs": 25508.100000023842,
+        "endMs": 25518.90000000596
+      }
+    ]
+  }
+]

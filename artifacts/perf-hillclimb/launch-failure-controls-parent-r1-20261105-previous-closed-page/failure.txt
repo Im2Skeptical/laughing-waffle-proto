@@ -1,0 +1,2 @@
+Error: deliberate pre-page harness control
+    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:959:80

@@ -1,0 +1,771 @@
+{
+  "file": "reference-failure-observation.json",
+  "phase": "failure",
+  "hostCollectedAt": "2026-11-15T01:18:08.527Z",
+  "continuous": {
+    "session": {
+      "available": false,
+      "longTasksAvailable": false,
+      "startMs": 6866.600000023842,
+      "endMs": 303769.10000002384,
+      "readAtMs": 303769.60000002384,
+      "frames": [],
+      "longTasks": [],
+      "trailingFrameRightCensored": null,
+      "trailingFrameLowerBoundMs": null,
+      "scope": "continuous main-thread rAF intervals/long tasks; keep a declared post-action observation window, not only transaction markers"
+    },
+    "sessionStartScope": "trusted entry input",
+    "postAction": {
+      "available": false,
+      "longTasksAvailable": false,
+      "startMs": 303766.5,
+      "endMs": 303769.10000002384,
+      "readAtMs": 303769.90000003576,
+      "frames": [],
+      "longTasks": [],
+      "trailingFrameRightCensored": null,
+      "trailingFrameLowerBoundMs": null,
+      "scope": "continuous main-thread rAF intervals/long tasks; keep a declared post-action observation window, not only transaction markers"
+    },
+    "postAnchor": 303766.5,
+    "desiredPostEnd": 306266.5,
+    "fullPostWindowReached": false,
+    "partialByFailure": true
+  },
+  "witness": {
+    "samples": [],
+    "warnings": [],
+    "resourceEvents": [],
+    "assetLoadCalls": [
+      {
+        "time": 813,
+        "paths": [
+          "images/sprite-sheets/resource-language.json"
+        ],
+        "operation": "setup"
+      },
+      {
+        "time": 63416.30000001192,
+        "paths": [
+          "images/sprite-sheets/full-map-content-prototype.json"
+        ],
+        "operation": "opening-to-responsive-present"
+      },
+      {
+        "time": 65348.700000047684,
+        "paths": [
+          "images/sprite-sheets/full-map-chaos-dictator.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 67610.70000004768,
+        "paths": [
+          "images/sprite-sheets/settlement-pieces-0.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 71076.90000003576,
+        "paths": [
+          "images/sprite-sheets/heirlooms.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 73208.5,
+        "paths": [
+          "images/sprite-sheets/piece-frames.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 75319.5,
+        "paths": [
+          "images/sprite-sheets/chronicle-illustrations.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 77554.40000003576,
+        "paths": [
+          "images/sprite-sheets/region-landmarks.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 79176.40000003576,
+        "paths": [
+          "images/sprite-sheets/vassal-portraits.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 80934.60000002384,
+        "paths": [
+          "images/sprite-sheets/vassal-class.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 83125.60000002384,
+        "paths": [
+          "images/sprite-sheets/chronicle-gate.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 84713.5,
+        "paths": [
+          "images/sprite-sheets/class-picker-frames.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 85440.60000002384,
+        "paths": [
+          "images/sprite-sheets/chronicle-hud-frames.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 85759.10000002384,
+        "paths": [
+          "images/sprite-sheets/timegraph-chronicle.json"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 87601.10000002384,
+        "paths": [
+          "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/cloud-banks-v2.png"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 87602.30000001192,
+        "paths": [
+          "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/cloud-banks-v3.png"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 87602.70000004768,
+        "paths": [
+          "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/cloud-cumulus-v1.png"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 92114.10000002384,
+        "paths": [
+          "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/settlement-buildings-v1.webp"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      },
+      {
+        "time": 92349.80000001192,
+        "paths": [
+          "http://127.0.0.1:18246/images/dark-fantasy/map-generation-prototype/assets/runtime/crown-buildings-v1.webp"
+        ],
+        "operation": "remaining-background-wait-to-prepared"
+      }
+    ],
+    "droppedSamples": 0,
+    "samplingCpuMs": 0,
+    "publicationEvents": [
+      {
+        "kind": "hide",
+        "time": 7006.900000035763,
+        "prefix": "full-map-content-prototype/art/"
+      },
+      {
+        "kind": "hide",
+        "time": 7007,
+        "prefix": "full-map-chaos-prototype/art/"
+      },
+      {
+        "kind": "hide",
+        "time": 7007,
+        "prefix": "heirlooms-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 7007,
+        "prefix": "settlement-pieces-v4/"
+      },
+      {
+        "kind": "hide",
+        "time": 7007,
+        "prefix": "piece-frames-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 7007,
+        "prefix": "chronicle-illustrations-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 7007,
+        "prefix": "region-landmarks-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 7007,
+        "prefix": "vassal-portraits-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 7007,
+        "prefix": "vassal-class-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 7007.200000047684,
+        "prefix": "chronicle-gate-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 7007.200000047684,
+        "prefix": "class-picker-frames-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 7007.200000047684,
+        "prefix": "chronicle-hud-frames-v1/"
+      },
+      {
+        "kind": "hide",
+        "time": 7007.200000047684,
+        "prefix": "timegraph-chronicle-v1/"
+      }
+    ],
+    "terrainEvents": [],
+    "terrainProbeCount": 0,
+    "terrainProbeCpuMs": 0,
+    "startInput": 6866.600000023842,
+    "revealInput": null,
+    "firstReadyAt": null,
+    "firstReadyFrameAt": null,
+    "assetWitnessInstalled": true,
+    "pixiVersion": "7.2.4",
+    "resources": [
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/resource-language.json",
+        "start": 5871.5,
+        "duration": 3.800000011920929,
+        "responseEnd": 5875.300000011921,
+        "transferSize": 1209
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-content-prototype.json",
+        "start": 63428.60000002384,
+        "duration": 5.800000011920929,
+        "responseEnd": 63434.40000003576,
+        "transferSize": 1486
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/full-map-chaos-dictator.json",
+        "start": 65350.80000001192,
+        "duration": 8.900000035762787,
+        "responseEnd": 65359.700000047684,
+        "transferSize": 1104
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-0.json",
+        "start": 67613.20000004768,
+        "duration": 4.899999976158142,
+        "responseEnd": 67618.10000002384,
+        "transferSize": 2162
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-1.json",
+        "start": 67818.40000003576,
+        "duration": 6.899999976158142,
+        "responseEnd": 67825.30000001192,
+        "transferSize": 2040
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/settlement-pieces-2.json",
+        "start": 67819.70000004768,
+        "duration": 5.899999976158142,
+        "responseEnd": 67825.60000002384,
+        "transferSize": 836
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/heirlooms.json",
+        "start": 71078.60000002384,
+        "duration": 4.800000011920929,
+        "responseEnd": 71083.40000003576,
+        "transferSize": 858
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/piece-frames.json",
+        "start": 73210.60000002384,
+        "duration": 4.800000011920929,
+        "responseEnd": 73215.40000003576,
+        "transferSize": 829
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/chronicle-illustrations.json",
+        "start": 75321.30000001192,
+        "duration": 4.400000035762787,
+        "responseEnd": 75325.70000004768,
+        "transferSize": 915
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/region-landmarks.json",
+        "start": 77556.30000001192,
+        "duration": 5.300000011920929,
+        "responseEnd": 77561.60000002384,
+        "transferSize": 724
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/vassal-portraits.json",
+        "start": 79178.20000004768,
+        "duration": 5.199999988079071,
+        "responseEnd": 79183.40000003576,
+        "transferSize": 875
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/vassal-class.json",
+        "start": 80936.40000003576,
+        "duration": 4.599999964237213,
+        "responseEnd": 80941,
+        "transferSize": 780
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/chronicle-gate.json",
+        "start": 83127.60000002384,
+        "duration": 4.199999988079071,
+        "responseEnd": 83131.80000001192,
+        "transferSize": 862
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/class-picker-frames.json",
+        "start": 84714.90000003576,
+        "duration": 4.599999964237213,
+        "responseEnd": 84719.5,
+        "transferSize": 794
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/chronicle-hud-frames.json",
+        "start": 85442.20000004768,
+        "duration": 4.199999988079071,
+        "responseEnd": 85446.40000003576,
+        "transferSize": 1003
+      },
+      {
+        "name": "http://127.0.0.1:18246/images/sprite-sheets/timegraph-chronicle.json",
+        "start": 85760.60000002384,
+        "duration": 4.199999988079071,
+        "responseEnd": 85764.80000001192,
+        "transferSize": 877
+      }
+    ]
+  },
+  "phaseWitness": {
+    "collectedAt": 304079.40000003576,
+    "version": 1,
+    "eventLimit": 32,
+    "loaderLimit": 8,
+    "countLimit": 2147483647,
+    "events": [
+      {
+        "id": 1,
+        "site": "loader-enter",
+        "time": 61955.40000003576,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "atlas-enter",
+        "time": 61955.90000003576,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "wait-enter",
+        "time": 61957,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "idle-enter",
+        "time": 61957.60000002384,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "idle-return",
+        "time": 63415.30000001192,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "wait-return",
+        "time": 63415.60000002384,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "wait-enter",
+        "time": 63702.90000003576,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "idle-enter",
+        "time": 63703.10000002384,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "idle-return",
+        "time": 64192.90000003576,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "wait-return",
+        "time": 64193.10000002384,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "wait-enter",
+        "time": 64315.30000001192,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "idle-enter",
+        "time": 64315.40000003576,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "idle-return",
+        "time": 65348.40000003576,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "wait-return",
+        "time": 65348.5,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "wait-enter",
+        "time": 65404.5,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "idle-enter",
+        "time": 65404.700000047684,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "idle-return",
+        "time": 66429.30000001192,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "wait-return",
+        "time": 66429.5,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "wait-enter",
+        "time": 66618.5,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "idle-enter",
+        "time": 66618.5,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "idle-return",
+        "time": 67610.5,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "wait-return",
+        "time": 67610.70000004768,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "wait-enter",
+        "time": 68066.40000003576,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "idle-enter",
+        "time": 68066.40000003576,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "idle-return",
+        "time": 68293.60000002384,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "wait-return",
+        "time": 68293.60000002384,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "wait-enter",
+        "time": 68585.40000003576,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "idle-enter",
+        "time": 68585.40000003576,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "idle-return",
+        "time": 69612.60000002384,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "wait-return",
+        "time": 69612.80000001192,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "wait-enter",
+        "time": 69769.10000002384,
+        "value": null
+      },
+      {
+        "id": 1,
+        "site": "idle-enter",
+        "time": 69769.10000002384,
+        "value": null
+      }
+    ],
+    "droppedEvents": 1241,
+    "loaderCount": 1,
+    "droppedLoaders": 0,
+    "loaders": [
+      {
+        "id": 1,
+        "sites": {
+          "loader-enter": {
+            "count": 1,
+            "lastAt": 61955.40000003576,
+            "last": null
+          },
+          "atlas-enter": {
+            "count": 1,
+            "lastAt": 61955.90000003576,
+            "last": null
+          },
+          "wait-enter": {
+            "count": 317,
+            "lastAt": 303371.40000003576,
+            "last": null
+          },
+          "idle-enter": {
+            "count": 317,
+            "lastAt": 303371.40000003576,
+            "last": null
+          },
+          "idle-return": {
+            "count": 316,
+            "lastAt": 303361.10000002384,
+            "last": null
+          },
+          "wait-return": {
+            "count": 316,
+            "lastAt": 303361.3000000119,
+            "last": null
+          },
+          "atlas-return": {
+            "count": 1,
+            "lastAt": 86584.70000004768,
+            "last": true
+          },
+          "pre-terrain-wait-enter": {
+            "count": 1,
+            "lastAt": 86584.70000004768,
+            "last": null
+          },
+          "pre-terrain-wait-return": {
+            "count": 1,
+            "lastAt": 87585.60000002384,
+            "last": null
+          },
+          "terrain-enter": {
+            "count": 1,
+            "lastAt": 87585.60000002384,
+            "last": null
+          },
+          "main-enter": {
+            "count": 1,
+            "lastAt": 87586,
+            "last": null
+          }
+        },
+        "gates": {
+          "wait-current": {
+            "count": 317,
+            "denied": 0,
+            "last": true,
+            "lastAt": 303371.40000003576
+          },
+          "pre-idle-load": {
+            "count": 317,
+            "denied": 0,
+            "last": true,
+            "lastAt": 303371.40000003576
+          },
+          "post-idle-load": {
+            "count": 316,
+            "denied": 0,
+            "last": true,
+            "lastAt": 303361.3000000119
+          },
+          "atlas-ok": {
+            "count": 1,
+            "denied": 0,
+            "last": true,
+            "lastAt": 86584.70000004768
+          },
+          "loader-current": {
+            "count": 1,
+            "denied": 0,
+            "last": true,
+            "lastAt": 87585.60000002384
+          }
+        },
+        "lastPhase": "idle-enter",
+        "lastAt": 303371.40000003576
+      }
+    ],
+    "unlinkedSites": {},
+    "callingLoader": 1,
+    "linkage": "prepare/ready capture synchronous caller; error callbacks explicitly unlinked",
+    "cooperative": {
+      "collectedAt": 304079.40000003576,
+      "version": 1,
+      "loaderLimit": 8,
+      "jobLimit": 4,
+      "invalid": 0,
+      "unlinkedJobs": 0,
+      "loaders": [
+        {
+          "id": 1,
+          "phase": "main",
+          "phaseStarted": {
+            "loader": 61955.40000003576,
+            "atlas": 61955.90000003576,
+            "pre-terrain": 86584.70000004768,
+            "main": 87586
+          },
+          "waits": {
+            "atlas:idle": {
+              "phase": "atlas",
+              "kind": "idle",
+              "count": 28,
+              "totalMs": 21984.199999928474,
+              "maxMs": 1457.699999988079,
+              "lastReturned": 86525.5
+            },
+            "pre-terrain:idle": {
+              "phase": "pre-terrain",
+              "kind": "idle",
+              "count": 1,
+              "totalMs": 1000.5,
+              "maxMs": 1000.5,
+              "lastReturned": 87585.40000003576
+            },
+            "main:idle": {
+              "phase": "main",
+              "kind": "idle",
+              "count": 287,
+              "totalMs": 161077.80000036955,
+              "maxMs": 1854.2000000476837,
+              "lastReturned": 303361.10000002384
+            }
+          },
+          "open": {
+            "kind": "idle",
+            "phase": "main",
+            "started": 303371.40000003576,
+            "ambiguous": false
+          },
+          "jobs": [
+            {
+              "name": "bake",
+              "phase": "main",
+              "started": 92384,
+              "updatedAt": 146955.70000004768,
+              "status": "complete",
+              "steps": 135,
+              "yields": 95,
+              "longestStepMs": 2654.100000023842,
+              "longestStepScope": "existing shared stats, cumulative across jobs"
+            },
+            {
+              "name": "regional",
+              "phase": "main",
+              "started": 155342.30000001192,
+              "updatedAt": 303371.40000003576,
+              "status": "yield-enter",
+              "steps": 285,
+              "yields": 192,
+              "longestStepMs": 2654.100000023842,
+              "longestStepScope": "existing shared stats, cumulative across jobs"
+            }
+          ],
+          "invalid": 0
+        }
+      ],
+      "boundary": "post-clock collection; open waits right-censored; residual is other work/waits"
+    }
+  },
+  "diagnosticWindows": [
+    {
+      "id": "j8-paired-off-20261115-r1:reference:browser:diagnostic:1",
+      "label": "legacy getTimeActionClickPoint geometry calibration",
+      "startMs": 62286,
+      "endMs": 62461.200000047684,
+      "status": "completed"
+    },
+    {
+      "id": "j8-paired-off-20261115-r1:reference:browser:diagnostic:2",
+      "label": "CDP heap inspection entry",
+      "startMs": 63671.700000047684,
+      "endMs": 63724,
+      "status": "completed"
+    }
+  ],
+  "collectionErrors": [],
+  "availability": {
+    "continuous": true,
+    "witness": true,
+    "completePostWindow": false
+  }
+}

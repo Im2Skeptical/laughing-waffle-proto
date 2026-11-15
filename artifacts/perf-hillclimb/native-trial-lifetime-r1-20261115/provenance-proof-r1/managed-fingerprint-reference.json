@@ -1,0 +1,12 @@
+[
+    {
+        "config":  null,
+        "fingerprint":  null,
+        "mode":  "reuse"
+    },
+    {
+        "config":  null,
+        "fingerprint":  null,
+        "mode":  "fail-after-first"
+    }
+]

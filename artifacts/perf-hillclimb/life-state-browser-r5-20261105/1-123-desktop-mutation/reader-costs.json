@@ -1,0 +1,69 @@
+[
+  {
+    "tag": "initial",
+    "hostRpcMs": 680.5325000000012,
+    "readerCpuMs": 17.80000001192093,
+    "startMs": 17268.5,
+    "endMs": 17286.30000001192
+  },
+  {
+    "tag": "initial-present",
+    "hostRpcMs": 211.18679999999586,
+    "readerCpuMs": 4.799999982118607,
+    "startMs": 18270.100000023842,
+    "endMs": 18274.90000000596
+  },
+  {
+    "tag": "entered",
+    "hostRpcMs": 668.7419999999984,
+    "readerCpuMs": 10.700000017881393,
+    "startMs": 19863.5,
+    "endMs": 19874.20000001788
+  },
+  {
+    "tag": "category",
+    "hostRpcMs": 659.8037999999942,
+    "readerCpuMs": 16.30000001192093,
+    "startMs": 20691.30000001192,
+    "endMs": 20707.600000023842
+  },
+  {
+    "tag": "staged",
+    "hostRpcMs": 686.7423999999883,
+    "readerCpuMs": 88.69999998807907,
+    "startMs": 21454.600000023842,
+    "endMs": 21543.30000001192
+  },
+  {
+    "tag": "committed",
+    "hostRpcMs": 484.40260000000126,
+    "readerCpuMs": 11.400000005960464,
+    "startMs": 25314.90000000596,
+    "endMs": 25326.30000001192
+  },
+  {
+    "tag": "history-16",
+    "hostRpcMs": 398.9856999999902,
+    "readerCpuMs": 11.300000011920929,
+    "startMs": 29317.40000000596,
+    "endMs": 29328.70000001788
+  },
+  {
+    "tag": "history-17",
+    "hostRpcMs": 402.4922999999835,
+    "readerCpuMs": 10.400000005960464,
+    "startMs": 31096.70000001788,
+    "endMs": 31107.100000023842
+  },
+  {
+    "tag": "present",
+    "hostRpcMs": 513.943100000004,
+    "readerCpuMs": 9.699999988079071,
+    "startMs": 31565.100000023842,
+    "endMs": 31574.80000001192
+  },
+  {
+    "tag": "boundary-evidence-export",
+    "hostRpcMs": 15921.053899999999
+  }
+]

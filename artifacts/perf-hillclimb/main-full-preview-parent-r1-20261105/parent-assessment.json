@@ -1,0 +1,55 @@
+{
+  "ok": true,
+  "scope": "parent construction proof only; whole Phase A NOT SOUND; no tail or performance gain",
+  "identity": [
+    "ff0beead28bd38d153384943454875301a88c86bf8d138f72f06d37ee6c0f99b",
+    "6d710b467c7f2a761c9b35d4414d64ebddb3f0c3938ceaadb66edf454ee6e775",
+    "a98cd87e6f8a56d518475272261c9cdd8c384fec35d81c34a4e427ac9241ba96"
+  ],
+  "cells": [
+    {
+      "id": "main-full-preview-parent-r1-20261105-0-desktop-scrub-anchor-off-s123-cold",
+      "job": "scrub-anchor",
+      "population": "desktop",
+      "target": 16,
+      "fullStateAndRng": true,
+      "sourceCorrespondenceStable": true,
+      "officialContinuedSeconds": 3,
+      "readerCpuMs": 17.099999994039536,
+      "hostReadAndTransferMs": 604.9642999999996
+    },
+    {
+      "id": "main-full-preview-parent-r1-20261105-1-desktop-scrub-off-anchor-off-s123-cold",
+      "job": "scrub-off-anchor",
+      "population": "desktop",
+      "target": 17,
+      "fullStateAndRng": true,
+      "sourceCorrespondenceStable": true,
+      "officialContinuedSeconds": 3,
+      "readerCpuMs": 12.599999994039536,
+      "hostReadAndTransferMs": 632.8152000000009
+    },
+    {
+      "id": "main-full-preview-parent-r1-20261105-2-mobile4-scrub-anchor-off-s123-cold",
+      "job": "scrub-anchor",
+      "population": "mobile4",
+      "target": 16,
+      "fullStateAndRng": true,
+      "sourceCorrespondenceStable": true,
+      "officialContinuedSeconds": 3,
+      "readerCpuMs": 121.19999998807907,
+      "hostReadAndTransferMs": 1373.2102999999988
+    },
+    {
+      "id": "main-full-preview-parent-r1-20261105-3-mobile4-scrub-off-anchor-off-s123-cold",
+      "job": "scrub-off-anchor",
+      "population": "mobile4",
+      "target": 17,
+      "fullStateAndRng": true,
+      "sourceCorrespondenceStable": true,
+      "officialContinuedSeconds": 3,
+      "readerCpuMs": 86.69999998807907,
+      "hostReadAndTransferMs": 1206.8248999999996
+    }
+  ]
+}

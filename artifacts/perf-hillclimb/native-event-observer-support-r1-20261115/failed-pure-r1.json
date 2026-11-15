@@ -1,0 +1,7 @@
+{
+  "at": "2026-11-15T04:16:23Z",
+  "compileExit": 0,
+  "pureScriptExit": 1,
+  "failure": "PowerShell selected the Marshal.SizeOf object overload for System.RuntimeType at first dynamic layout check; no checks/target/API ran after compilation.",
+  "sourceDisposition": "Observer support C# unchanged. Preserve build-pure.ps1, NativeCaptureSupport.dll, compile.log and compile-exit.txt. A fresh r2 fixture will box an actual struct for the object overload and use separate output IDs."
+}

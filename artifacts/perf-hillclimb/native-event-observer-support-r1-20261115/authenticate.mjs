@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,existsSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+const root='artifacts/perf-hillclimb/native-event-observer-support-r1-20261115';
+const authorityFile='artifacts/perf-hillclimb/j8-paired-wait-progress-r1-20261115/plan.json';
+const hash=f=>createHash('sha256').update(readFileSync(f)).digest('hex');
+assert.ok(!existsSync(root+'/build-manifest.json'),'Never overwrite build proof');
+assert.equal(process.version,'v24.15.0');assert.equal(hash(authorityFile),'8c45bbf674f60ac7f6dc7214fb1abc76bc9617f02bb943c73bb7e318a2dc172e');
+const authority=JSON.parse(readFileSync(authorityFile,'utf8')),changes=[];
+for(const[f,h]of Object.entries(authority.sources))if(hash(f)!==h)changes.push(f);
+for(const[f,h]of Object.entries(authority.assets))if(hash('dist/'+f)!==h)changes.push('dist/'+f);
+const files={};for(const name of ['NativeCaptureSupport.cs','build-pure.ps1','build-pure-r2.ps1','prepare-pure-r2.ps1','failed-pure-r1.json','NativeCaptureSupport.dll','NativeCaptureSupport-r2.dll','compile.log','compile-exit.txt','compile-r2.log','compile-exit-r2.txt','pure-result-r2.json','authenticate.mjs'])files[name]=hash(root+'/'+name);
+const result={at:new Date().toISOString(),node:process.version,phase:'PURE_SUPPORT_PARTIAL_ONLY',authority:authorityFile,sourceCount:Object.keys(authority.sources).length,assetCount:Object.keys(authority.assets).length,sourceAssetChanges:changes,files,scope:'Builder pure support/Win32 declarations pinning. Forty-four pure checks after retained PowerShell fixture overload failure. Compiler processes ran, no Native method/target/observer loop/capture. Not source/child admission or complete observer.'};
+writeFileSync(root+'/build-manifest.json',JSON.stringify(result,null,2));console.log(JSON.stringify({sourceCount:result.sourceCount,assetCount:result.assetCount,sourceAssetChanges:changes,manifestSha256:hash(root+'/build-manifest.json'),sourceSha256:files['NativeCaptureSupport.cs']}));assert.deepEqual(changes,[]);

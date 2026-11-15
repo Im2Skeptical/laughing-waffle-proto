@@ -1,0 +1,1951 @@
+import { hideChronicleArtwork } from './chronicle-art.js';
+import { progressiveGraphics, enablePerformanceGraphics } from './minimal-graphics.js';
+import { loadProgressiveArtwork } from './progressive-artwork.js';
+import { loadPerformanceStart } from '../controllers/performance-start.js';
+import { createEdgeTransferScrubGate } from "./ui-root/edge-transfer-scrub-gate.js";
+import { getSettlementVassalFocusWindows } from "./ui-root/settlement-timegraph-window.js";
+import { createVassalCommissionPicker } from './vassal-commission-picker-pixi.js';
+import { createLifeDecisionController } from "../controllers/life-decision-controller.js";
+import { createNodeResolutionDiagnostics } from "../controllers/node-resolution-diagnostics.js";
+import { createLifeProcessingView } from "./life-processing-pixi.js";
+import { createSettlementTimingSnapshot } from "./ui-root/settlement-timing-snapshot.js";
+import { createGameSessionController } from "../controllers/game-session-controller.js";
+import { openLabHandoff, readLabHandoff } from '../controllers/development-lab-bridge.js';
+import { openCardReviewer, createCardReviewController } from '../controllers/card-review-controller.js';
+import { createNewGameSettingsController } from '../controllers/new-game-settings-controller.js';
+import { createNewGameOpeningController } from "../controllers/new-game-opening-controller.js";
+import { mergePreparedForecast } from '../controllers/prepared-forecast-handoff.js';
+import { createGameMenuDom } from "./game-menu-dom.js";
+import { createResearchLibraryView } from './research-library-pixi.js';
+import { buildSaveDiagnosticReport } from './save-diagnostics-dom.js';
+import { prepareChronicleArt } from './chronicle-art.js';
+import { createChronicleFrame } from './chronicle-skin.js';
+import { createTimelineAudio } from './timeline-audio.js';
+const BOOT_SETUP_ID = "devPlaytesting01";
+
+import { createSimRunner } from "../controllers/sim-runner.js";
+import { createVassalDebugPresetController } from "../controllers/vassal-debug-preset-controller.js";
+import { createSettlementForecastController } from "../controllers/settlement-forecast-controller.js";
+import { createTimegraphForecastWorkerService } from "../controllers/timegraph-forecast-worker-service.js";
+import { ActionKinds } from "../model/actions.js";
+import {
+  buildEdgeTransferBatchAtBoundary,
+  getLatestEdgeTransferBoundarySec,
+} from "../model/edge-transfers.js";
+import { GRAPH_METRICS } from "../model/graph-metrics.js";
+import {
+  getSettlementClassIds,
+  getSettlementPracticeSlotsByClass,
+  getSettlementSelectedVassalRealizedSegments,
+  getSettlementStructureSlots,
+  getSettlementVassalBoundarySeconds,
+  getSettlementVassalElderEventSeconds,
+} from "../model/settlement-state.js";
+import {
+  getSettlementCurrentVassal,
+  getSettlementFirstSelectedVassal,
+  getVassalLifeMapNode,
+} from "../model/vassal-life-map.js";
+import { getPrimaryDetailedSiteState } from "../model/world-state.js";
+import { computeHistoryZoneSegments } from "../model/timegraph/edit-policy.js";
+import { createTimeGraphController } from "../model/timegraph-controller.js";
+import {
+  VIEWPORT_DESIGN_HEIGHT,
+  VIEWPORT_DESIGN_WIDTH,
+} from "./layout-pixi.js";
+import { createSettlementPrototypeView } from "./settlement-prototype-view.js";
+import { createRunCompleteView } from "./run-complete-pixi.js";
+import { createSettlementNavigationView } from "./settlement-navigation-pixi.js";
+import { createTimeControlsView } from "./time-controls-pixi.js";
+import { createMetricGraphView } from "./timegraphs-pixi.js";
+import { createTooltipView } from "./tooltip-pixi.js";
+import {
+  createSunAndMoonDisksView,
+  SUN_AND_MOON_DISKS_LAYOUT,
+} from "./sunandmoon-disks-pixi.js";
+import { installGlobalTextStylePolicy } from "./ui-helpers/text-style-policy.js";
+import {
+  computeSettlementGraphWindowSpec,
+  createSettlementProjectionCache,
+  SETTLEMENT_GRAPH_FORECAST_STEP_SEC,
+  SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC,
+} from "./ui-root/settlement-timegraph-window.js";
+import {
+  publishSettlementDebugApi as publishSettlementDebugApiForSettlement,
+} from "./ui-root/settlement-debug-api.js";
+import {
+  createSettlementGraphSession,
+  MAX_SETTLEMENT_GRAPH_VISIBLE_SERIES,
+  SETTLEMENT_EXACT_LOSS_SEARCH_BUCKET_SEC,
+  SETTLEMENT_GRAPH_BOOT_FADE_DURATION_MS,
+  SETTLEMENT_GRAPH_REVEAL_DEFAULT,
+  SETTLEMENT_GRAPH_SNAPSHOT_BOUNDS_QUANTUM_SEC,
+  SETTLEMENT_GRAPH_SNAPSHOT_LEAD_SEC,
+  SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC,
+  SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_STRIDE_SEC,
+  SETTLEMENT_GRAPH_WINDOW_SEC,
+  SETTLEMENT_HORIZON_LEAD_BUFFER_SEC,
+  SETTLEMENT_HORIZON_UPDATE_QUANTUM_SEC,
+  SETTLEMENT_UNRESOLVED_BROWSE_LEAD_SEC,
+} from "./ui-root/settlement-graph-session.js";
+import { createSettlementGraphSeriesMenu } from "./ui-root/settlement-graph-series-menu.js";
+import { createSettlementPlayback } from "./ui-root/settlement-playback.js";
+import { createSettlementVassalFlow } from "./ui-root/settlement-vassal-flow.js";
+import {
+  getSettlementNavigationState as buildSettlementNavigationState,
+} from "./ui-root/settlement-navigation-state.js";
+import { createSettlementDebugMenuDom } from "./settlement-debug-menu-dom.js";
+import { createWorldMapView } from "./world-map-pixi.js";
+import { createWorldMapVassalDrawerView } from "./world-map-vassal-drawer-pixi.js";
+import { createVassalLifeMapView } from "./vassal-life-map-pixi.js";
+import { createVassalLifeHudView } from "./vassal-life-hud-pixi.js";
+import { createVassalLevelUpModalView } from "./vassal-level-up-modal-pixi.js";
+import { createVassalResolutionRecapView } from "./vassal-resolution-recap-pixi.js";
+import { createVassalHeirloomFlowView } from "./vassal-heirloom-flow-pixi.js";
+import { createVassalNodeDecisionModalView } from "./vassal-node-decision-modal-pixi.js";
+import { shouldInvalidateSettlementTimelineForecast } from "./ui-root/timeline-invalidation-reasons.js";
+
+if (typeof globalThis !== "undefined" && globalThis.__PERF_ENABLED__ == null) {
+  globalThis.__PERF_ENABLED__ = false;
+}
+
+export const app = new PIXI.Application({
+  width: VIEWPORT_DESIGN_WIDTH,
+  height: VIEWPORT_DESIGN_HEIGHT,
+  backgroundColor: 0x121819,
+  antialias: true,
+});
+// Large decision panels contain many small text/graphics uploads. Budget their
+// preparation by frame time instead of Pixi's default four items per frame.
+app.renderer.prepare.limiter = new PIXI.TimeLimiter(4);
+
+installGlobalTextStylePolicy(PIXI, {
+  fontFamily: "Georgia",
+  headingFontFamily: document.documentElement.dataset.headingFont,
+  titleVariant: "small-caps",
+  titleMinSize: 32,
+  titleWeightMinSize: 26,
+});
+// Start behind the menu; entry awaits a fresh call so failed preparation can
+// be retried without reloading the page. The loading screen owns errors.
+void prepareChronicleArt(app.renderer).catch(() => {});
+
+document.body.appendChild(app.view);
+app.view.style.touchAction = "none";
+app.view.style.userSelect = "none";
+app.view.style.webkitUserSelect = "none";
+app.view.style.display = "block";
+
+function getViewportSizePx() {
+  const vv = window.visualViewport;
+  if (
+    vv &&
+    Number.isFinite(vv.width) &&
+    Number.isFinite(vv.height) &&
+    vv.width > 0 &&
+    vv.height > 0
+  ) {
+    return {
+      width: Math.max(1, Math.floor(vv.width)),
+      height: Math.max(1, Math.floor(vv.height)),
+    };
+  }
+  return {
+    width: Math.max(
+      1,
+      Math.floor(
+        window.innerWidth ||
+          document.documentElement.clientWidth ||
+          VIEWPORT_DESIGN_WIDTH
+      )
+    ),
+    height: Math.max(
+      1,
+      Math.floor(
+        window.innerHeight ||
+          document.documentElement.clientHeight ||
+          VIEWPORT_DESIGN_HEIGHT
+      )
+    ),
+  };
+}
+
+function fitCanvasToViewport(view) {
+  const vp = getViewportSizePx();
+  const scale = Math.min(
+    vp.width / VIEWPORT_DESIGN_WIDTH,
+    vp.height / VIEWPORT_DESIGN_HEIGHT
+  );
+  const cssWidth = Math.max(1, Math.floor(VIEWPORT_DESIGN_WIDTH * scale));
+  const cssHeight = Math.max(1, Math.floor(VIEWPORT_DESIGN_HEIGHT * scale));
+  const left = Math.floor((vp.width - cssWidth) * 0.5);
+  const top = Math.floor((vp.height - cssHeight) * 0.5);
+  view.style.width = `${cssWidth}px`;
+  view.style.height = `${cssHeight}px`;
+  view.style.position = "fixed";
+  view.style.left = `${left}px`;
+  view.style.top = `${top}px`;
+  // Keep the 2424×1080 logical stage/input coordinates, but rasterise at the
+  // pixels actually displayed. A small viewport must not draw a full-size
+  // backing buffer only to shrink it in CSS on every clock-animation frame.
+  const resolution = Math.min(1, scale * (window.devicePixelRatio || 1));
+  if (Math.abs(app.renderer.resolution - resolution) > .001) {
+    app.renderer.resolution = resolution;
+    app.renderer.resize(VIEWPORT_DESIGN_WIDTH, VIEWPORT_DESIGN_HEIGHT);
+  }
+}
+
+function stylePage() {
+  document.body.style.backgroundColor = "#090e10";
+  document.body.style.margin = "0";
+  document.body.style.overflow = "hidden";
+  document.body.style.height = "100%";
+  document.documentElement.style.backgroundColor = "#090e10";
+  document.documentElement.style.height = "100%";
+}
+
+fitCanvasToViewport(app.view);
+stylePage();
+
+const playfieldLayer = new PIXI.Container();
+createChronicleFrame(app.stage);
+const graphLayer = new PIXI.Container();
+const controlLayer = new PIXI.Container();
+controlLayer.sortableChildren = true;
+const tooltipLayer = new PIXI.Container();
+const modalLayer = new PIXI.Container();
+app.stage.eventMode = "static";
+app.stage.hitArea = app.screen;
+app.stage.addChild(playfieldLayer, graphLayer, controlLayer, modalLayer, tooltipLayer);
+
+let prototypeView = null;
+let worldMapView = null;
+let worldViewMode = "map";
+let selectedWorldRegionId = null;
+let worldMapRegionSelectionActive = false;
+let settlementGraphController = null;
+let selectedPracticeClassId = "villager";
+let settlementGraphView = null;
+let settlementVassalChooserView = null;
+let settlementNavigationView = null;
+let vassalLifeMapView = null;
+let vassalLifeHudView = null;
+let vassalNodeDecisionModalView = null;
+let vassalLevelUpModalView = null;
+let vassalResolutionRecapView = null;
+let vassalHeirloomFlowView = null;
+let runCompleteView = null;
+const cardReviews=createCardReviewController();
+const newGameSettings = createNewGameSettingsController({ cardReviews });
+const opening = createNewGameOpeningController({
+  loadPrepared: new URLSearchParams(location.search).get("perf") === "1" ? loadPerformanceStart : null,
+  createState:()=>newGameSettings.createNewGame(),
+  getPreparationKey:()=>newGameSettings.getLaunchKey(),
+  createCache: () => createSettlementProjectionCache({ horizonSec: SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC }),
+  createWorkerService: () => createTimegraphForecastWorkerService(),
+  searchLimitSec: SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC,
+});
+const openingBlocker = new PIXI.Graphics();
+openingBlocker.beginFill(0, 0.001).drawRect(0, 0, app.screen.width, app.screen.height).endFill();
+openingBlocker.eventMode = "static";
+openingBlocker.visible = false;
+app.stage.addChild(openingBlocker);
+openingBlocker.on("pointerdown", event => event.stopPropagation());
+openingBlocker.on("pointertap", event => event.stopPropagation());
+let settlementForecastController = null;
+let settlementGraphSeriesMenu = null;
+let settlementDebugMenu = null;
+let pendingArtworkReveal=null;
+let vassalDebugPresetController = null;
+let settlementEdgeTransferBatchCache = {
+  key: null,
+  batch: null,
+};
+
+const settlementGraphSession = createSettlementGraphSession({
+  getTimeline: () => runner.getTimeline(),
+  getPreparedResolution: () => lifeDecisionController?.getResolution(),
+  getGraphController: () => settlementGraphController,
+  getGraphView: () => settlementGraphView,
+  getForecastController: () => settlementForecastController,
+  getSeriesMenu: () => settlementGraphSeriesMenu,
+  getSelectedWorldRegionId: () => selectedWorldRegionId,
+  getFrontierState: () => getSettlementFrontierState(),
+  getFrontierSec: () => getSettlementFrontierSec(),
+  setWorldViewMode: (mode) => setWorldViewMode(mode),
+  onPendingResolutionSettled: (payload) =>
+    settlementVassalFlow?.noteResolutionSettled?.(payload),
+  isRecapAnimating: () => vassalResolutionRecapView?.isAnimating() === true,
+});
+const {
+  getSettlementGraphScope,
+  getSettlementGraphMetric,
+  setSettlementGraphContext,
+  getEffectiveSettlementGraphHorizonSec,
+  setSettlementGraphHorizonOverride,
+  syncSettlementGraphRevealConfig,
+  syncSettlementGraphHorizon,
+  revealCivilizationAfterVassalEnd,
+  processSettlementPendingCommit,
+} = settlementGraphSession;
+
+function setWorldViewMode(mode) {
+  const nextWorldViewMode = mode === "settlement" ? "settlement" : mode === "vassalLife" ? "vassalLife" : "map";
+  if (nextWorldViewMode !== worldViewMode) {
+    // Navigation is passive: preserve the current visual forecast edge until
+    // an explicit game action begins a new reveal.
+    settlementGraphView?.pauseForecastReveal?.();
+  }
+  worldViewMode = nextWorldViewMode;
+  const settlementVisible = worldViewMode === "settlement";
+  const lifeMapVisible = worldViewMode === "vassalLife";
+  worldMapRegionSelectionActive = settlementVisible;
+  prototypeView?.setVisible?.(settlementVisible);
+  worldMapView?.setVisible?.(!settlementVisible && !lifeMapVisible);
+  vassalLifeMapView?.setVisible?.(lifeMapVisible);
+  if (!lifeMapVisible) vassalNodeDecisionModalView?.close?.({ immediate: true });
+  setSettlementGraphContext(
+    settlementVisible ? "settlement" : "civilization",
+    selectedWorldRegionId
+  );
+}
+
+const SETTLEMENT_AUTO_COMMIT_BUFFER_SEC = 16;
+const SETTLEMENT_AUTO_COMMIT_CHUNK_SEC = 128;
+const SETTLEMENT_AUTO_COMMIT_MIN_INTERVAL_MS = 900;
+const SETTLEMENT_AUTO_COMMIT_FORCE_LAG_SEC = 448;
+const SETTLEMENT_AUTO_COMMIT_FALLBACK_MS = 1800;
+const SETTLEMENT_DYNAMIC_DISPLAY_BUFFER_YEARS = 4;
+const SETTLEMENT_DYNAMIC_DISPLAY_QUANTUM_SEC = 1;
+const forecastWorkerService = createTimegraphForecastWorkerService();
+const settlementProjectionCache = createSettlementProjectionCache({
+  horizonSec: SETTLEMENT_GRAPH_WINDOW_SEC,
+  stepSec: SETTLEMENT_GRAPH_FORECAST_STEP_SEC,
+});
+const tooltipView = createTooltipView({
+  layer: tooltipLayer,
+  app,
+  onReview: face => {try{openCardReviewer(getSettlementViewedState(),face);}catch(error){window.alert(`Card review could not be saved: ${error.message}`);}},
+});
+
+
+function invalidateSettlementProjectedLossCache() {
+  settlementForecastController?.invalidateLossCache?.();
+}
+
+function clearSettlementPendingCommitJob() {
+  settlementForecastController?.clearPendingCommitJob?.();
+}
+
+function scheduleSettlementPendingCommit(frontierSec, currentVassal) {
+  return settlementForecastController?.schedulePendingCommit?.(frontierSec, currentVassal) ?? null;
+}
+
+function resyncSettlementPendingCommitForFrontier() {
+  clearSettlementPendingCommitJob();
+  const frontierState = getSettlementFrontierState();
+  if (isSettlementStateRunComplete(frontierState)) return null;
+  const currentVassal = getSettlementCurrentVassal(frontierState);
+  if (!currentVassal || currentVassal.isDead === true) return null;
+  const frontierSec = getSettlementFrontierSec();
+  const resolutionSec = Number.isFinite(currentVassal?.lifeMap?.pendingResolution?.resolveSec)
+    ? Math.max(0, Math.floor(currentVassal.lifeMap.pendingResolution.resolveSec))
+    : null;
+  if (resolutionSec == null || resolutionSec <= frontierSec) return null;
+  return scheduleSettlementPendingCommit(frontierSec, currentVassal);
+}
+
+const settlementPlayback = createSettlementPlayback({
+  getRunner: () => runner,
+  getForecastController: () => settlementForecastController,
+  getGraphController: () => settlementGraphController,
+  getGraphView: () => settlementGraphView,
+  getPlaybackSpanSec: () => settlementGraphView?.getVisibleTimeSpanSec?.(),
+  onInvalidateProjectedLoss: invalidateSettlementProjectedLossCache,
+  onSyncGraphHorizon: syncSettlementGraphHorizon,
+});
+const {
+  getSettlementPreviewCapSec,
+  getSettlementViewedSec,
+  getSettlementVisualTime,
+  setSettlementVisualTime,
+  ensureSettlementRunnerPaused,
+  getSettlementPlaybackTarget,
+  setSettlementPlaybackTarget,
+  getSettlementPlaybackState,
+  getSettlementViewedState,
+  getSettlementFrontierSec,
+  getSettlementFrontierState,
+  getSettlementLifeMapPresentation,
+  setSettlementViewedSecond,
+  restoreSettlementPendingPreviewTarget,
+  updateSettlementPreviewPlayback,
+  returnSettlementViewToPresent,
+} = settlementPlayback;
+
+function isSettlementStateRunComplete(state) {
+  return state?.runStatus?.complete === true;
+}
+
+function getProjectedSettlementLossInfo({ deferDuringPendingCommit = true } = {}) {
+  return settlementForecastController?.getProjectedLossInfo?.({
+    deferDuringPendingCommit,
+  }) ?? { lossSec: null, lossYear: null, resolved: false };
+}
+
+function getDisplayedSettlementLossInfo() {
+  return settlementForecastController?.getDisplayedLossInfo?.() ?? {
+    lossSec: null,
+    lossYear: null,
+    resolved: false,
+    finalLossSec: null,
+    finalLossYear: null,
+  };
+}
+
+function getSettlementVisibleVassalTimeSec(state = null) {
+  return settlementForecastController?.getVisibleVassalTimeSec?.(state) ?? 0;
+}
+
+function getSettlementRenderedHistoryEndSec({
+  actualHistoryEndSec = null,
+  displayHistoryEndSec = null,
+  visibleForecastCoverageEndSec = null,
+} = {}) {
+  return settlementForecastController?.getRenderedHistoryEndSec?.({
+    actualHistoryEndSec,
+    displayHistoryEndSec,
+    revealedCoverageEndSec: visibleForecastCoverageEndSec,
+  }) ?? Math.max(0, Math.floor(displayHistoryEndSec ?? actualHistoryEndSec ?? 0));
+}
+
+function getSettlementDebugOverrideMarkerSeconds() {
+  const actions = runner?.getTimeline?.()?.actions;
+  if (!Array.isArray(actions) || actions.length <= 0) return [];
+  const seconds = [];
+  for (const action of actions) {
+    if (action?.kind !== ActionKinds.DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES) {
+      continue;
+    }
+    const tSec = Math.max(0, Math.floor(action?.tSec ?? 0));
+    if (!seconds.includes(tSec)) seconds.push(tSec);
+  }
+  return seconds.sort((a, b) => a - b);
+}
+
+function getSettlementViewedSlotSummary() {
+  const state = getSettlementViewedState();
+  if (!getPrimaryDetailedSiteState(state)?.hub) return null;
+  const practices = {};
+  for (const classId of getSettlementClassIds(state)) {
+    practices[classId] = getSettlementPracticeSlotsByClass(state, classId).map((slot) => {
+      const card = slot?.card ?? null;
+      return {
+        defId: card?.defId ?? null,
+        tier: card?.tier ?? card?.props?.settlement?.upgradeTier ?? null,
+      };
+    });
+  }
+  const structures = getSettlementStructureSlots(state).map((slot) => {
+    const structure = slot?.structure ?? null;
+    return {
+      defId: structure?.defId ?? null,
+      tier: structure?.tier ?? structure?.props?.settlement?.upgradeTier ?? null,
+    };
+  });
+  return { practices, structures };
+}
+
+let lifeDecisionController = null;
+let lifeProcessingView = null;
+const settlementVassalFlow = createSettlementVassalFlow({
+  getDecisionController: () => lifeDecisionController,
+  isInputLocked: () => opening.isRevealing(),
+  getRunner: () => runner,
+  playback: settlementPlayback,
+  getForecastController: () => settlementForecastController,
+  getGraphController: () => settlementGraphController,
+  getGraphView: () => settlementGraphView,
+  getChooserView: () => settlementVassalChooserView,
+  getWorldMapView: () => worldMapView,
+  getLifeMapView: () => vassalLifeMapView,
+  getNodeDecisionView: () => vassalNodeDecisionModalView,
+  getLevelUpView: () => vassalLevelUpModalView,
+  getRecapView: () => vassalResolutionRecapView,
+  getHeirloomFlowView: () => vassalHeirloomFlowView,
+  getPrototypeView: () => prototypeView,
+  getNavigationView: () => settlementNavigationView,
+  requestPause: () => requestPauseBeforeDrag(),
+  setWorldViewMode,
+  setSelectedWorldRegionId: (regionId) => {
+    selectedWorldRegionId = regionId;
+  },
+  isRunComplete: isSettlementStateRunComplete,
+  revealCivilizationAfterVassalEnd,
+  onInvalidateProjectedLoss: invalidateSettlementProjectedLossCache,
+  onSyncGraphHorizon: syncSettlementGraphHorizon,
+  getLossInfoForDisplay: getSettlementLossInfoForDisplay,
+});
+const {
+  syncSettlementVassalSelectionPauseState,
+  closeSettlementVassalSelection,
+  openLifeMapVassalSelection,
+  dispatchLifeMapAction,
+  selectLifeMapCandidate,
+  previewLifeMapCandidate,
+  rerollLifeMapCandidates,
+  replaceSettlementVassalCandidate,
+  getResolutionRecap,
+  dismissResolutionRecap,
+} = settlementVassalFlow;
+
+function applySettlementDebugOverrides(overrides) {
+  const cleanOverrides = (Array.isArray(overrides) ? overrides : []).filter(
+    (override) => override && typeof override === "object"
+  );
+  if (!cleanOverrides.length) return { ok: false, reason: "noOverrides" };
+
+  setSettlementPlaybackTarget(0);
+  const viewedSec = getSettlementViewedSec();
+  const targetSec = Math.max(0, Math.floor(viewedSec));
+  const frontierBeforeEdit = getSettlementFrontierSec();
+  const hadPendingSelection = !!settlementVassalFlow.getPendingSelection();
+  settlementVassalFlow.clearPendingSelection();
+  let moveResult = { ok: true };
+  if (targetSec <= frontierBeforeEdit) {
+    moveResult = setSettlementViewedSecond(targetSec, { mode: "commit" });
+  } else {
+    runner.clearPreviewState?.();
+  }
+  if (!moveResult?.ok) return moveResult || { ok: false, reason: "targetBrowseFailed" };
+  settlementGraphView?.resetForecastPreviewState?.();
+
+  const previousFullHistoryEdit = runner.getFullHistoryEditOverride?.() === true;
+  runner.setFullHistoryEditOverride?.(true);
+  let result;
+  try {
+    const payload = {
+      overrides: cleanOverrides,
+    };
+    result =
+      targetSec > frontierBeforeEdit
+        ? runner.dispatchActionAtSecond?.(
+            ActionKinds.DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES,
+            payload,
+            targetSec,
+            {
+              reason: "debugSettlementOverrides",
+              truncateFuture: true,
+            }
+          )
+        : runner.dispatchActionAtCurrentSecond?.(
+            ActionKinds.DEBUG_SET_SETTLEMENT_SLOT_OVERRIDES,
+            payload,
+            {
+              reason: "debugSettlementOverrides",
+              resetMaxReachedHistoryEndSec: true,
+            }
+          );
+  } finally {
+    runner.setFullHistoryEditOverride?.(previousFullHistoryEdit);
+  }
+
+  if (result?.ok) {
+    invalidateSettlementProjectedLossCache();
+    resyncSettlementPendingCommitForFrontier();
+    if (hadPendingSelection) {
+      const frontierState = getSettlementFrontierState();
+      const forecastStatus = settlementForecastController?.getForecastStatus?.() ?? null;
+      settlementVassalFlow.restorePendingSelection(
+        frontierState,
+        forecastStatus?.nextVassalEnabled === true
+      );
+    }
+    syncSettlementGraphHorizon();
+    if (targetSec > getSettlementFrontierSec()) {
+      settlementGraphController?.ensureForecastCoverageTo?.(targetSec);
+      settlementGraphView?.restartForecastRevealFrom?.(targetSec, {
+        allowForecastStart: true,
+        clearProjectionReplacementTransition: true,
+      });
+      settlementPlayback.setPendingPreviewRestoreSec(targetSec);
+      restoreSettlementPendingPreviewTarget();
+    } else {
+      settlementGraphView?.restartForecastRevealFrom?.(targetSec, {
+        clearProjectionReplacementTransition: true,
+      });
+    }
+    prototypeView?.refresh?.();
+    settlementGraphView?.render?.();
+  }
+
+  return {
+    ...(result ?? { ok: false, reason: "dispatchFailed" }),
+    targetSec,
+  };
+}
+
+function getSettlementNavigationState() {
+  return buildSettlementNavigationState({
+    onboarding: opening.isRevealing(),
+    frontierState: getSettlementFrontierState(),
+    viewedState: getSettlementViewedState(),
+    frontierSec: getSettlementFrontierSec(),
+    viewedSec: getSettlementViewedSec(),
+    presentation: getSettlementLifeMapPresentation(),
+    worldViewMode,
+    pendingVassalSelection: settlementVassalFlow.getPendingSelection(),
+    selectedVassalCandidateIndex: settlementVassalFlow.getSelectedCandidateIndex(),
+    selectedWorldRegionId,
+    worldMapRegionSelectionActive,
+  });
+}
+
+function focusSettlementVassalLocation({ openSettlement = false } = {}) {
+  const location = getSettlementNavigationState().location;
+  if (!location || (openSettlement && !location.hasSettlement)) return;
+  if (settlementVassalFlow.getPendingSelection()) closeSettlementVassalSelection();
+  // setVisible(true) rebuilds even when already shown; skip a no-op locate.
+  if (!openSettlement
+    && worldViewMode === "map"
+    && selectedWorldRegionId === location.regionId
+    && worldMapRegionSelectionActive === true) {
+    return;
+  }
+  selectedWorldRegionId = location.regionId;
+  setWorldViewMode(openSettlement ? "settlement" : "map");
+  worldMapRegionSelectionActive = true;
+  setSettlementGraphContext(location.hasSettlement ? "settlement" : "civilization", location.regionId);
+  worldMapView?.refresh?.();
+  prototypeView?.refresh?.();
+}
+
+function navigateSettlementControl(id) {
+  const destination = getSettlementNavigationState().destinations.find((entry) => entry.id === id);
+  if (!destination || destination.enabled === false) return;
+  tooltipView?.hide?.();
+  if (id === "vassal") {
+    if (settlementVassalFlow.getPendingSelection()) {
+      return selectLifeMapCandidate(settlementVassalFlow.getSelectedCandidateIndex());
+    }
+    if (isSettlementStateRunComplete(getSettlementFrontierState())) return openSettlementRunCompleteOverlay();
+    return openLifeMapVassalSelection();
+  }
+  if (settlementVassalFlow.getPendingSelection()) closeSettlementVassalSelection();
+  if (id === "settlement") selectedWorldRegionId = destination.regionId;
+  setWorldViewMode(id === "life" ? "vassalLife" : id === "settlement" ? "settlement" : "map");
+  worldMapView?.refresh?.();
+}
+
+function getSettlementLossInfoForDisplay() {
+  const forecast = settlementForecastController?.getLossInfoForDisplay?.() ?? {
+    lossSec: null,
+    lossYear: null,
+    resolved: false,
+    finalLossSec: null,
+    finalLossYear: null,
+    maxLossYear: null,
+  };
+  return { ...forecast, observedEnd: runCompleteView?.getSemanticSnapshot?.().info ?? null };
+}
+
+function openSettlementRunCompleteOverlay() {
+  syncSettlementRunCompletePresentation();
+  return runCompleteView?.reopen?.() ?? {
+    ok: false,
+    reason: "overlayUnavailable",
+  };
+}
+
+function syncSettlementRunCompletePresentation() {
+  if (opening.isRevealing()) return;
+  const timeline = runner.getTimeline?.();
+  runCompleteView?.sync?.({
+    frontierState: getSettlementFrontierState(),
+    viewedState: getSettlementViewedState(),
+    timeline,
+    revision: timeline?.revision,
+  });
+}
+
+function isSettlementScrubDragging() {
+  return settlementGraphView?.isScrubbing?.() === true || sunMoonDisksView?.isDragging?.() === true;
+}
+
+const settlementEdgeTransferScrubGate = createEdgeTransferScrubGate({
+  isScrubActive: isSettlementScrubDragging,
+});
+
+// Settle timing follows real pointer input during a scrub drag.
+const noteSettlementScrubPointerMove = () => {
+  if (isSettlementScrubDragging()) settlementEdgeTransferScrubGate.notePointerMove();
+};
+app.stage.on("globalpointermove", noteSettlementScrubPointerMove);
+
+function invalidateSettlementEdgeTransferBatchCache() {
+  settlementEdgeTransferBatchCache = {
+    key: null,
+    batch: null,
+  };
+}
+
+function getSettlementViewedEdgeTransferBatch() {
+  const viewedSec = getSettlementViewedSec();
+  const boundarySec = getLatestEdgeTransferBoundarySec(
+    viewedSec,
+    getSettlementViewedState()
+  );
+  if (boundarySec <= 0) return null;
+  // Skip the previous-second restore while a scrub is moving; rebuild on settle.
+  if (settlementEdgeTransferScrubGate.shouldSkip(viewedSec)) return null;
+  const timeline = runner.getTimeline?.() ?? null;
+  const cacheKey = [
+    boundarySec,
+    Math.max(0, Math.floor(timeline?.revision ?? 0)),
+    Math.max(0, Math.floor(timeline?._actionContentVersion ?? 0)),
+    Math.max(0, Math.floor(timeline?.historyEndSec ?? 0)),
+  ].join(":");
+  if (settlementEdgeTransferBatchCache.key === cacheKey) {
+    return settlementEdgeTransferBatchCache.batch;
+  }
+  const preBoundaryState =
+    settlementGraphController?.getStateAt?.(boundarySec - 1) ?? null;
+  const batch = preBoundaryState
+    ? buildEdgeTransferBatchAtBoundary(preBoundaryState, boundarySec)
+    : null;
+  settlementEdgeTransferBatchCache = {
+    key: cacheKey,
+    batch,
+  };
+  return batch;
+}
+
+const runner = createSimRunner({
+  setupId: BOOT_SETUP_ID,
+  onInvalidate: (reason) => {
+    if (reason === "vassalDecisionStaged") return;
+    if (shouldInvalidateSettlementTimelineForecast(reason)) {
+      forecastWorkerService.handleTimelineInvalidation?.(reason);
+      settlementGraphController?.handleInvalidate?.(reason);
+    }
+    invalidateSettlementEdgeTransferBatchCache();
+    // Corridor trend survives ordinary browsing (scrubBrowse); only real timeline
+    // changes (edits, commits, reprojection, load) invalidate it.
+    if (shouldInvalidateSettlementTimelineForecast(reason)) worldMapView?.clearTradeCorridorHistory?.();
+    invalidateSettlementProjectedLossCache();
+    syncSettlementGraphHorizon();
+    prototypeView?.refresh?.();
+    settlementDebugMenu?.refresh?.();
+  },
+  onRebuildViews: (reason) => {
+    if (reason === "vassalDecisionStaged") return;
+    invalidateSettlementEdgeTransferBatchCache();
+    // Corridor trend survives ordinary browsing (scrubBrowse); only real timeline
+    // changes (edits, commits, reprojection, load) invalidate it.
+    if (shouldInvalidateSettlementTimelineForecast(reason)) worldMapView?.clearTradeCorridorHistory?.();
+    invalidateSettlementProjectedLossCache();
+    syncSettlementGraphHorizon();
+    prototypeView?.refresh?.();
+    settlementDebugMenu?.refresh?.();
+  },
+});
+
+lifeDecisionController = createLifeDecisionController({
+  getRunner: () => runner,
+  getState: () => getSettlementFrontierState(),
+  onChange: () => vassalNodeDecisionModalView?.update?.(),
+  onChunk: chunk => {
+    const timeline = runner.getTimeline();
+    settlementProjectionCache.mergeForecastChunk(timeline, {...chunk,
+      timelineToken:settlementProjectionCache.getTimelineToken(timeline),
+      historyEndSec:timeline.historyEndSec});
+  },
+  onPrepare: state => Promise.all([
+    settlementVassalFlow.prepareResolution(state),
+    vassalLevelUpModalView?.prepare?.({state,
+      vassal:state.civilization?.vassalLineage?.vassalsById?.[state.civilization?.vassalLineage?.currentVassalId],
+      readOnly:false}),
+  ]),
+  onPrepareChoices: (nodes, state) => vassalNodeDecisionModalView?.prepareChoices?.(nodes, state),
+});
+lifeProcessingView = createLifeProcessingView({ app, layer: modalLayer,
+  getStatus: () => lifeDecisionController.getStatus(),
+  onRetry: () => lifeDecisionController.retry(),
+  onReturn: () => {
+    const result = lifeDecisionController.cancelFailure();
+    if (result.nodeId) vassalNodeDecisionModalView?.open?.(result.nodeId);
+  },
+});
+
+settlementGraphController = createTimeGraphController({
+  getTimeline: () => runner.getTimeline?.(),
+  getCursorState: () => runner.getCursorState?.(),
+  metric: GRAPH_METRICS.civilization,
+  projectionCache: settlementProjectionCache,
+  forecastWorkerService,
+  forecastStepSec: SETTLEMENT_GRAPH_FORECAST_STEP_SEC,
+  horizonSec: SETTLEMENT_GRAPH_WINDOW_SEC,
+  nonFocusStablePrefixSpanSec: SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_SEC,
+  nonFocusStablePrefixStrideSec:
+    SETTLEMENT_GRAPH_STABLE_DETAIL_PREFIX_STRIDE_SEC,
+});
+settlementGraphController.setSubject?.(
+  null,
+  "civilization"
+);
+settlementForecastController = createSettlementForecastController({
+  getPreparedResolution: () => lifeDecisionController.getResolution(),
+  commitPreparedResolution: () => lifeDecisionController.commitResolution(),
+  getTimeline: () => runner.getTimeline?.(),
+  ensureControllerCache: () => settlementGraphController?.ensureCache?.(),
+  getControllerData: () => settlementGraphController?.getData?.(),
+  getControllerStateAt: (tSec) => settlementGraphController?.getStateAt?.(tSec),
+  getControllerStateDataAt: (tSec) =>
+    settlementGraphController?.getStateDataAt?.(tSec),
+  getControllerSummaryAt: (tSec, options) => settlementGraphController?.getSummaryAt?.(tSec, options),
+  getFrontierSec: () => getSettlementFrontierSec(),
+  getFrontierState: () => getSettlementFrontierState(),
+  getViewedState: () => getSettlementViewedState(),
+  getViewedSec: () => getSettlementViewedSec(),
+  getRevealedCoverageEndSec: () =>
+    Math.floor(settlementGraphView?.getForecastScrubCapSec?.() ?? getSettlementFrontierSec()),
+  getEffectiveGraphHorizonSec: () => getEffectiveSettlementGraphHorizonSec(),
+  setHorizonSecOverride: (nextHorizonSec) => setSettlementGraphHorizonOverride(nextHorizonSec),
+  commitCursorSecond: (tSec, stateData) => runner.commitCursorSecond?.(tSec, stateData),
+  browseCursorSecond: (tSec) => runner.browseCursorSecond?.(tSec),
+  clearPreviewState: () => runner.clearPreviewState?.(),
+  setPlaybackViewSec: () => {},
+  getMaxObservedSurvivalYear: () =>
+    runner.getTimeline?.()?.persistentKnowledge
+      ?.maxObservedCivilizationSurvivalYear ?? null,
+  rememberObservedSurvivalYear: (year) =>
+    runner.rememberCivilizationSurvivalYear?.(year),
+  graphWindowSec: SETTLEMENT_GRAPH_WINDOW_SEC,
+  lossSearchCapacitySec: SETTLEMENT_GRAPH_LOSS_SEARCH_CAPACITY_SEC,
+  autoCommitBufferSec: SETTLEMENT_AUTO_COMMIT_BUFFER_SEC,
+  autoCommitChunkSec: SETTLEMENT_AUTO_COMMIT_CHUNK_SEC,
+  autoCommitMinIntervalMs: SETTLEMENT_AUTO_COMMIT_MIN_INTERVAL_MS,
+  autoCommitForceLagSec: SETTLEMENT_AUTO_COMMIT_FORCE_LAG_SEC,
+  autoCommitFallbackMs: SETTLEMENT_AUTO_COMMIT_FALLBACK_MS,
+  dynamicDisplayBufferYears: SETTLEMENT_DYNAMIC_DISPLAY_BUFFER_YEARS,
+  dynamicDisplayQuantumSec: SETTLEMENT_DYNAMIC_DISPLAY_QUANTUM_SEC,
+  exactLossSearchBucketSec: SETTLEMENT_EXACT_LOSS_SEARCH_BUCKET_SEC,
+  horizonUpdateQuantumSec: SETTLEMENT_HORIZON_UPDATE_QUANTUM_SEC,
+  horizonLeadBufferSec: SETTLEMENT_HORIZON_LEAD_BUFFER_SEC,
+  unresolvedBrowseLeadSec: SETTLEMENT_UNRESOLVED_BROWSE_LEAD_SEC,
+});
+settlementGraphSeriesMenu = createSettlementGraphSeriesMenu({
+  PIXI,
+  layer: controlLayer,
+  getAllSeries: () => {
+    const state = runner?.getCursorState?.() ?? runner?.getState?.() ?? null;
+    const metric = getSettlementGraphMetric();
+    if (typeof metric?.getSeries === "function") {
+      return metric.getSeries(
+        getSettlementGraphScope() === "settlement"
+          ? { regionId: selectedWorldRegionId }
+          : null,
+        state
+      );
+    }
+    return Array.isArray(metric?.series)
+      ? metric.series
+      : [];
+  },
+  getGraphScreenRect: () => settlementGraphView?.getScreenRect?.() ?? null,
+  applySeriesSelection: (visibleSeries) =>
+    settlementGraphController?.setSeries?.(visibleSeries),
+  renderGraph: () => settlementGraphView?.render?.(),
+  getPreferredSeriesIds: (contextId) =>
+    contextId === "settlement"
+      ? ["food", "gold", "totalPopulation", "housingCapacity"]
+      : ["monsterCount", "chaosResistance", "chaosRawPressure"],
+  maxVisibleSeries: MAX_SETTLEMENT_GRAPH_VISIBLE_SERIES,
+  viewportWidth: VIEWPORT_DESIGN_WIDTH,
+  viewportHeight: VIEWPORT_DESIGN_HEIGHT,
+});
+settlementGraphSeriesMenu.setContext("civilization");
+settlementGraphSeriesMenu.applySelection();
+
+prototypeView = createSettlementPrototypeView({
+  app,
+  onAssignGarrison: (regionId,targetRegionId) => runner.dispatchActionAtCurrentSecond?.(ActionKinds.SETTLEMENT_ASSIGN_GARRISON,{regionId,targetRegionId}),
+  layer: playfieldLayer,
+  getState: () => runner.getState?.(),
+  getSelectedRegionId: () => selectedWorldRegionId,
+  getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
+  onOpenEndDetails: () => openSettlementRunCompleteOverlay(),
+  getSelectedPracticeClassId: () => selectedPracticeClassId,
+  getVisibleVassalTimeSec: (state) => getSettlementVisibleVassalTimeSec(state),
+  tooltipView,
+  setSelectedPracticeClassId: (classId) => {
+    selectedPracticeClassId = typeof classId === "string" && classId.length > 0 ? classId : "villager";
+  },
+});
+prototypeView.setVisible(false);
+
+function selectWorldMapRegion(regionId) {
+  const state = runner.getState?.();
+  if (!state?.world?.regions?.some((entry) => entry.id === regionId)) {
+    return false;
+  }
+  const isSelectedAgain =
+    worldMapRegionSelectionActive && selectedWorldRegionId === regionId;
+  selectedWorldRegionId = regionId;
+  worldMapRegionSelectionActive = !isSelectedAgain;
+  const hasDetailedSettlement = state.world.sites?.some(
+    (site) => site.regionId === regionId
+  );
+  setSettlementGraphContext(
+    worldMapRegionSelectionActive && hasDetailedSettlement
+      ? "settlement"
+      : "civilization",
+    regionId
+  );
+  worldMapView?.refresh?.();
+  return true;
+}
+
+const researchLayer = new PIXI.Container();
+app.stage.addChild(researchLayer);
+app.stage.setChildIndex(tooltipLayer, app.stage.children.length - 1);
+const researchLibrary = createResearchLibraryView({
+  layer: researchLayer,
+  tooltipView,
+  getState: () => getSettlementViewedState(),
+  onOpen: () => {
+    tooltipView?.hide?.();
+    settlementGraphView?.setPresentationSuspended?.(true);
+    timelineAudio?.update(0);
+  },
+  onClose: () => settlementGraphView?.setPresentationSuspended?.(false),
+});
+
+worldMapView = createWorldMapView({
+  layer: playfieldLayer,
+  getState: () => runner.getState?.(),
+  getStateRevision: () => runner.getTimeline?.()?.revision,
+  getEdgeTransferBatch: () => getSettlementViewedEdgeTransferBatch(),
+  // Coarse trade trend while packets are skipped: the viewed state's own stock
+  // journal (already restored), never an extra getStateAt.
+  isTradeScrubSkipping: () => settlementEdgeTransferScrubGate.isSkipping(),
+  getScrubTradeTransfers: () => getSettlementViewedState()?.civilization?.practiceEvents?.stockTransfers ?? null,
+  getVisualTime: getSettlementVisualTime,
+  getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
+  onOpenEndDetails: () => openSettlementRunCompleteOverlay(),
+  onOpenResearch: () => researchLibrary.open(),
+  getSelectedRegionId: () => selectedWorldRegionId,
+  getRegionSelectionActive: () => worldMapRegionSelectionActive,
+  getGraphScope: () => getSettlementGraphScope(),
+  setSelectedRegionId: selectWorldMapRegion,
+  onShowCivilizationGraph: () => {
+    worldMapRegionSelectionActive = false;
+    setSettlementGraphContext("civilization");
+    worldMapView?.refresh?.();
+  },
+  getVassalHighlight: () => {
+    const candidate = settlementVassalFlow.getHoveredCandidate();
+    if (!candidate) return null;
+    return {
+      targetRegionId: candidate.locationRegionId,
+      intervention: null,
+    };
+  },
+  tooltipView,
+  onOpenDetailedSite: (_siteId, regionId) => {
+    if (typeof regionId === "string") {
+      selectedWorldRegionId = regionId;
+    }
+    worldMapRegionSelectionActive = true;
+    setWorldViewMode("settlement");
+  },
+});
+
+const DISK_LAYOUT = {
+  ...SUN_AND_MOON_DISKS_LAYOUT,
+  moon: {
+    ...SUN_AND_MOON_DISKS_LAYOUT.moon,
+    x: 2286,
+    y: 942,
+    scale: 0.4752,
+  },
+  season: {
+    ...SUN_AND_MOON_DISKS_LAYOUT.season,
+    x: 2286,
+    y: 942,
+    scale: 0.72,
+  },
+};
+
+const timeControlsView = createTimeControlsView({
+  app,
+  layer: controlLayer,
+  getGameState: () => ({
+    ...(getSettlementViewedState() ?? {}),
+    paused: getSettlementPlaybackTarget() === 0 && !settlementGraphView?.isFollowingForecastReveal?.(),
+    followingForecast: settlementGraphView?.isFollowingForecastReveal?.() === true,
+  }),
+  getTimeScale: () => getSettlementPlaybackState(),
+  setTimeScaleTarget: (speed, opts) => {
+    if (lifeDecisionController.getStatus()) return {ok:false,reason:"decisionProcessing"};
+    sunMoonDisksView.stopMomentum();
+    settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
+    return setSettlementPlaybackTarget(speed, opts);
+  },
+  layout: {
+    enabled: true,
+    zIndex: 4,
+    screenPadding: 16,
+    diskTextureRadiusPx: 220,
+  },
+  sunMoonLayout: DISK_LAYOUT,
+});
+
+const sunMoonDisksView = createSunAndMoonDisksView({
+  app,
+  layer: controlLayer,
+  referenceLayer: modalLayer,
+  getState: () => getSettlementViewedState(),
+  getVisualTime: getSettlementVisualTime,
+  setVisualTime: setSettlementVisualTime,
+  getTimeline: () => runner.getTimeline?.(),
+  getEditableHistoryBounds: () => runner.getEditableHistoryBounds?.(),
+  getForecastPreviewCapSec: () => getSettlementPreviewCapSec(),
+  browseCursorSecond: (tSec) => setSettlementViewedSecond(tSec, { mode: "browse" }),
+  commitCursorSecond: (tSec) => setSettlementViewedSecond(tSec, { mode: "commit" }),
+  previewCursorSecond: (tSec) => setSettlementViewedSecond(tSec, { mode: "preview" }),
+  clearPreviewState: () => runner.clearPreviewState?.(),
+  commitPreviewToLive: () => ({ ok: true, previewOnly: true }),
+  requestPauseBeforeDrag: requestPauseBeforeDrag,
+  tooltipView,
+  layout: DISK_LAYOUT,
+});
+
+settlementGraphView = createMetricGraphView({
+  app,
+  layer: graphLayer,
+  controller: settlementGraphController,
+  tooltipView,
+  metric: GRAPH_METRICS.settlement,
+  getTimeline: () => runner.getTimeline?.(),
+  getCursorState: () => runner.getCursorState?.(),
+  getPreviewStatus: () => runner.getPreviewStatus?.(),
+  canAutoPreviewForecastReveal: () => !settlementVassalFlow.getPendingSelection(),
+  getEditableHistoryBounds: () => runner.getEditableHistoryBounds?.(),
+  setPreviewState: (state) => runner.setPreviewState?.(state),
+  clearPreviewState: () => runner.clearPreviewState?.(),
+  commitSecond: (tSec, stateData) =>
+    setSettlementViewedSecond(tSec, { mode: "commit", stateData }),
+  commitForecastOnScrubRelease: false,
+  commitHistoryOnScrubRelease: false,
+  forecastPreviewStatusNote: "Viewing forecast",
+  getFocusWindows: () => opening.isRevealing() ? [] : getSettlementVassalFocusWindows(
+    getSettlementFrontierState(), getDisplayedSettlementLossInfo()?.lossSec),
+  getWindowSpec: ({ timeline, cursorState, zoomed }) => {
+    if (opening.isRevealing()) return { minSec: 0, maxSec: opening.getSnapshot().lossSec,
+      scrubSec: getSettlementViewedSec() };
+    const preview = runner.getPreviewStatus?.();
+    const frontierState = getSettlementFrontierState();
+    const firstSelectedVassal = getSettlementFirstSelectedVassal(frontierState);
+    const currentVassal = getSettlementCurrentVassal(frontierState);
+    const displayedLossInfo = getDisplayedSettlementLossInfo();
+    return computeSettlementGraphWindowSpec({
+      historyEndSec: timeline?.historyEndSec,
+      cursorSec: cursorState?.tSec,
+      forecastPreviewSec: preview?.isForecastPreview ? preview.previewSec : null,
+      horizonSec: SETTLEMENT_GRAPH_WINDOW_SEC,
+      zoomed,
+      lineageStartSec: firstSelectedVassal?.selectedSec ?? null,
+      currentVassalStartSec: currentVassal?.selectedSec ?? null,
+      projectedLossSec: displayedLossInfo?.lossSec ?? null,
+    });
+  },
+  openPosition: { x: 356, y: 828 },
+  windowWidth: 1700,
+  windowHeight: 258,
+  displayScale: 0.935,
+  headerHeight: 42,
+  getRenderedHistoryEndSec: (spec) =>
+    getSettlementRenderedHistoryEndSec({
+      actualHistoryEndSec: spec?.actualHistoryEndSec,
+      displayHistoryEndSec: spec?.displayHistoryEndSec,
+      visibleForecastCoverageEndSec: spec?.visibleForecastCoverageEndSec,
+    }),
+  forecastRevealTargetDurationSec: SETTLEMENT_GRAPH_REVEAL_DEFAULT.targetDurationSec,
+  forecastRevealMinRateSecPerSec: SETTLEMENT_GRAPH_REVEAL_DEFAULT.minRateSecPerSec,
+  forecastRevealMaxRateSecPerSec: SETTLEMENT_GRAPH_REVEAL_DEFAULT.maxRateSecPerSec,
+  forecastRevealStartDelayMs: SETTLEMENT_GRAPH_REVEAL_DEFAULT.startDelayMs,
+  forecastRevealFollowGapSec: SETTLEMENT_GRAPH_REVEAL_DEFAULT.followGapSec,
+  forecastRevealFollowResponseSec: SETTLEMENT_GRAPH_REVEAL_DEFAULT.followResponseSec,
+  forecastRevealAccelerationSecPerSec2:
+    SETTLEMENT_GRAPH_REVEAL_DEFAULT.accelerationSecPerSec2,
+  forecastRevealDecelerationSecPerSec2:
+    SETTLEMENT_GRAPH_REVEAL_DEFAULT.decelerationSecPerSec2,
+  plotSnapshotBoundsQuantumSec:
+    SETTLEMENT_GRAPH_SNAPSHOT_BOUNDS_QUANTUM_SEC,
+  plotSnapshotCoverForecast: true,
+  plotSnapshotLeadSec: SETTLEMENT_GRAPH_SNAPSHOT_LEAD_SEC,
+  freezeRevealedPlotPrefix: true,
+  freezeScaleMaxDuringReveal: true,
+  bootFadeDurationMs: SETTLEMENT_GRAPH_BOOT_FADE_DURATION_MS,
+  bootRevealDelayMs: SETTLEMENT_GRAPH_BOOT_FADE_DURATION_MS,
+  onToggleSystemTargetMode: () => settlementGraphSeriesMenu?.toggle?.(),
+  getActiveSeriesGroups: () => settlementGraphSeriesMenu?.getActiveGroups?.() ?? [],
+  onToggleSeriesGroup: (id) => settlementGraphSeriesMenu?.toggleGroup?.(id),
+  showClose: false,
+  showPin: false,
+  draggable: false,
+});
+settlementGraphView.setHistoryZoneResolver?.((zoneSpec) => {
+  const timeline = runner.getTimeline?.();
+  const frontierState = getSettlementFrontierState();
+  const baseBounds = runner.getEditableHistoryBounds?.();
+  const baseSegments = computeHistoryZoneSegments({
+    minSec: zoneSpec?.minSec,
+    maxSec: zoneSpec?.maxSec,
+    historyEndSec: zoneSpec?.historyEndSec,
+    baseMinEditableSec: baseBounds?.minEditableSec,
+  });
+  const realizedSegments = getSettlementSelectedVassalRealizedSegments(
+    frontierState,
+    Math.floor(timeline?.historyEndSec ?? 0)
+  );
+  if (!realizedSegments.length) {
+    return baseSegments;
+  }
+  return [
+    ...baseSegments,
+    ...realizedSegments.map((segment) => ({
+      kind: "fixedHistory",
+      startSec: segment.startSec,
+      endSec: segment.endSec,
+    })),
+  ];
+});
+settlementGraphView.setCommitPolicyResolver?.(({ scrubSec, historyEndSec }) => {
+  const frontierState = getSettlementFrontierState();
+  const realizedSegments = getSettlementSelectedVassalRealizedSegments(
+    frontierState,
+    historyEndSec
+  );
+  for (const segment of realizedSegments) {
+    const insideFixedSegment =
+      scrubSec >= segment.startSec &&
+      (scrubSec < segment.endSec ||
+        (isSettlementStateRunComplete(frontierState) && scrubSec === segment.endSec));
+    if (insideFixedSegment) {
+      return { allow: false, reason: "Vassal history is fixed" };
+    }
+  }
+  return { allow: true };
+});
+
+vassalLifeMapView = createVassalLifeMapView({
+  app,
+  confirmLayer: modalLayer,
+  getCivilizationLossInfo: () => getSettlementLossInfoForDisplay(),
+  onOpenEndDetails: () => openSettlementRunCompleteOverlay(),
+  layer: playfieldLayer,
+  tooltipView,
+  isRecapOpen: () => vassalResolutionRecapView?.isOpen?.() === true,
+  getPresentation: () => lifeDecisionController.overlay(getSettlementLifeMapPresentation()),
+  isVisible: () => worldViewMode === "vassalLife",
+  onEnterNode: (nodeId) => dispatchLifeMapAction(ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId }),
+  onReadOnlyAction: () => settlementNavigationView?.showReadOnlyFeedback?.(),
+  onOpenDecision: (nodeId, nodePoint) => {
+    tooltipView?.hide?.();
+    vassalNodeDecisionModalView?.open?.(nodeId, nodePoint);
+  },
+});
+vassalLifeMapView.setVisible(false);
+
+vassalNodeDecisionModalView = createVassalNodeDecisionModalView({
+  tooltipView,
+  onOpenHeirlooms: (tab) => vassalHeirloomFlowView?.openInventory?.(tab),
+  onReview: face => {try{openCardReviewer(getSettlementViewedState(),face);}catch(error){window.alert(`Card review could not be saved: ${error.message}`);}},
+  app,
+  layer: modalLayer,
+  getProtectedBackdropRects: () => [
+    settlementNavigationView?.getSemanticSnapshot?.()?.rect,
+    timeControlsView?.getScreenRect?.(),
+    sunMoonDisksView?.getScreenRect?.(),
+  ].filter(Boolean),
+  getState: () => getSettlementViewedState(),
+  getPresentation: () => lifeDecisionController.overlay(getSettlementLifeMapPresentation()),
+  onReadOnlyAction: () => settlementNavigationView?.showReadOnlyFeedback?.(),
+  getDecisionPresentation: (nodeId, preview) => lifeDecisionController.getPresentation(nodeId, preview),
+  onEnterNode: (nodeId) => dispatchLifeMapAction(ActionKinds.VASSAL_ENTER_LIFE_NODE, { nodeId }),
+  onSelectOption: (nodeId, optionId) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_SELECT_LIFE_OPTION, { nodeId, optionId }
+  ),
+  onPurchaseOffer: (nodeId, offerId, origin, toIndex, replacePracticeId) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_PURCHASE_SHOP_OFFER, { nodeId, offerId, origin, toIndex, replacePracticeId }
+  ),
+  onMoveStructure: (nodeId, offerId, origin) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_MOVE_SHOP_STRUCTURE, { nodeId, offerId, origin }
+  ),
+  onUndoPurchase: (nodeId, offerId) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_UNDO_SHOP_PURCHASE, { nodeId, offerId }
+  ),
+  onReorderPurchase: (nodeId, offerId, toIndex) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_REORDER_SHOP_PURCHASE, { nodeId, offerId, toIndex }
+  ),
+  onRerollShop: (nodeId) => dispatchLifeMapAction(ActionKinds.VASSAL_REROLL_SHOP, { nodeId }),
+  onConfirmNode: (nodeId, acquire = null) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_CONFIRM_LIFE_NODE, { nodeId, acquire }
+  ),
+  onWorldMap: (regionId) => {
+    if (regionId) selectedWorldRegionId = regionId;
+    setWorldViewMode("map");
+    worldMapView?.refresh?.();
+  },
+});
+
+const vassalCommissionPicker = createVassalCommissionPicker({
+  layer:modalLayer,
+  getPresentation:()=>lifeDecisionController.overlay(getSettlementLifeMapPresentation()),
+  isVisible:()=>worldViewMode==='vassalLife' && !getResolutionRecap?.(),
+  onChoose:offerId=>dispatchLifeMapAction(ActionKinds.VASSAL_CHOOSE_COMMISSION,{offerId}),
+});
+
+vassalLevelUpModalView = createVassalLevelUpModalView({
+  app,
+  layer: modalLayer,
+  tooltipView,
+  getPresentation: () => lifeDecisionController.overlay(getSettlementLifeMapPresentation()),
+  isLifegraphVisible: () => worldViewMode === "vassalLife",
+  isRecapOpen: () => vassalResolutionRecapView?.isOpen?.() === true,
+  onChoose: (choiceId, statId) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_CHOOSE_DEVELOPMENT_STAT, { choiceId, statId }
+  ),
+});
+
+vassalResolutionRecapView = createVassalResolutionRecapView({
+  app,
+  layer: modalLayer,
+  tooltipView,
+  getRecap: () => getResolutionRecap?.() ?? null,
+  isLifegraphVisible: () => worldViewMode === "vassalLife",
+  onDismiss: () => dismissResolutionRecap?.(),
+});
+
+vassalHeirloomFlowView = createVassalHeirloomFlowView({
+  app,
+  layer: modalLayer,
+  getState: () => getSettlementFrontierState(),
+  getPresentation: () => lifeDecisionController.overlay(getSettlementLifeMapPresentation()),
+  tooltipView,
+  onOpenInventory: () => requestPauseBeforeDrag(),
+  isRecapOpen: () => getResolutionRecap?.() != null,
+  onResolveOverflow: (keepInstanceIds) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_RESOLVE_VAULT_OVERFLOW, { keepInstanceIds }
+  ),
+  onConfirmLoadout: (equippedInstanceIds) => dispatchLifeMapAction(
+    ActionKinds.VASSAL_CONFIRM_HEIRLOOM_LOADOUT, { equippedInstanceIds }
+  ),
+  onDismissSummary: () => setWorldViewMode("map"),
+});
+
+vassalLifeHudView = createVassalLifeHudView({
+  app,
+  onOpenHeirlooms: (tab) => vassalHeirloomFlowView?.openInventory?.(tab),
+  layer: modalLayer,
+  tooltipView,
+  getPresentation: () => lifeDecisionController.overlay(getSettlementLifeMapPresentation()),
+  isVisible: () => worldViewMode === "vassalLife",
+  getDeltas: () => {
+    if (vassalResolutionRecapView?.isOpen?.()) return null;
+    return vassalLevelUpModalView?.getHudDeltas?.()
+      ?? vassalNodeDecisionModalView?.getHudDeltas?.()
+      ?? null;
+  },
+  getCountUp: () => getResolutionRecap?.() ?? null,
+  getLevelUp: () => vassalLevelUpModalView?.getHudState?.() ?? null,
+});
+
+function getSettlementVassalInterventionMarkers(state) {
+  const lineage = state?.civilization?.vassalLineage;
+  const selected = (lineage?.selectedVassalIds ?? [])
+    .map((vassalId) => lineage?.vassalsById?.[vassalId])
+    .filter(Boolean);
+  const markerByKey = new Map();
+  for (const vassal of selected) {
+    for (const [index, event] of (vassal?.lifeEvents ?? []).entries()) {
+      const tSec = Number.isFinite(event?.tSec) ? Math.max(0, Math.floor(event.tSec)) : null;
+      if (tSec == null || event.kind === "selected") continue;
+      // Mark each node at entry only: resolution and purchases would repeat its
+      // icon at the next node's start or stack multiple copies at this one.
+      if (event.nodeId && event.kind !== "nodeEntered") continue;
+      const key = `${vassal.vassalId ?? "vassal"}:${index}:${tSec}`;
+      markerByKey.set(key, {
+        tSec,
+        nodeIcon: event.nodeId ? getVassalLifeMapNode(vassal, event.nodeId) : null,
+        severity: event.kind === "died" ? "critical" : "warning",
+        color: 0xd48f3f,
+        lineWidth: 2,
+        radius: 4,
+        alpha: 0.92,
+        tooltip: {
+          title: `Vassal: ${event.kind}`,
+          lines: [event.text ?? event.kind],
+          maxWidth: 280,
+        },
+      });
+    }
+  }
+  return [...markerByKey.values()];
+}
+
+settlementGraphView.setEventMarkerResolver?.(({
+  historyEndSec,
+  visibleForecastCoverageEndSec,
+}) => {
+  const frontierState = getSettlementFrontierState();
+  const safeHistoryEndSec = Number.isFinite(historyEndSec)
+    ? Math.max(0, Math.floor(historyEndSec))
+    : 0;
+  const runComplete = isSettlementStateRunComplete(frontierState);
+  const boundarySeconds = getSettlementVassalBoundarySeconds(frontierState, safeHistoryEndSec);
+  const boundaryMarkers = boundarySeconds
+    .filter((sec, index, arr) => arr.indexOf(sec) === index)
+    .map((tSec) => ({
+      tSec,
+      severity: "critical",
+      color: 0xe3c46c,
+      lineWidth: tSec === safeHistoryEndSec && !runComplete ? 4 : 3,
+      radius: tSec === safeHistoryEndSec && !runComplete ? 6 : 5,
+      alpha: tSec === safeHistoryEndSec && !runComplete ? 0.92 : 0.78,
+    }));
+  const elderMarkerCapSec = Number.isFinite(visibleForecastCoverageEndSec)
+    ? Math.max(safeHistoryEndSec, Math.floor(visibleForecastCoverageEndSec))
+    : safeHistoryEndSec;
+  const elderMarkers = getSettlementVassalElderEventSeconds(
+    frontierState,
+    elderMarkerCapSec
+  ).map((tSec) => ({
+    tSec,
+    severity: "critical",
+    color: 0xa4be8d,
+    lineWidth: 2,
+    radius: 4,
+    alpha: 0.86,
+  }));
+  const debugMarkers = getSettlementDebugOverrideMarkerSeconds().map((tSec) => ({
+    tSec,
+    severity: "critical",
+    color: 0x7bdff2,
+    lineWidth: 2,
+    radius: 4,
+    alpha: 0.9,
+  }));
+  const interventionMarkers = getSettlementVassalInterventionMarkers(frontierState);
+  return [
+    ...boundaryMarkers,
+    ...elderMarkers,
+    ...debugMarkers,
+    ...interventionMarkers,
+  ];
+});
+
+settlementNavigationView = createSettlementNavigationView({
+  app,
+  layer: modalLayer,
+  getState: getSettlementNavigationState,
+  onNavigate: navigateSettlementControl,
+  onLocateVassal: () => focusSettlementVassalLocation(),
+  onOpenVassalSettlement: () => focusSettlementVassalLocation({ openSettlement: true }),
+  onReturnToPresent: () => {
+    tooltipView?.hide?.();
+    settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
+    return returnSettlementViewToPresent();
+  },
+  tooltipView,
+});
+
+settlementVassalChooserView = createWorldMapVassalDrawerView({
+  layer: controlLayer,
+  getState: () => runner.getState?.(),
+  getSelectionPool: () => settlementVassalFlow.getPendingSelection(),
+  getSelectedCandidateIndex: () => settlementVassalFlow.getSelectedCandidateIndex(),
+  isOpen: () => worldViewMode === "map" && !!settlementVassalFlow.getPendingSelection(),
+  onPreviewCandidate: (candidateIndex) => previewLifeMapCandidate(candidateIndex),
+  onConfirmCandidate: (candidateIndex) => selectLifeMapCandidate(candidateIndex),
+  onReroll: () => rerollLifeMapCandidates(),
+  onClose: () => closeSettlementVassalSelection(),
+  onHoverCandidate: (candidate) => settlementVassalFlow.hoverCandidate(candidate),
+  tooltipView,
+});
+runCompleteView = createRunCompleteView({
+  app,
+  layer: modalLayer,
+  getSpotlightRects: () => [
+    settlementGraphView?.getScreenRect(), settlementNavigationView?.getPresentScreenRect(),
+    sunMoonDisksView?.getScreenRect(), timeControlsView?.getScreenRect(),
+  ].filter(Boolean),
+  getEmphasisTargets: () => [
+    { id: 'plot', rect: settlementGraphView?.getPlotStageRect(), shape: 'rect' },
+    { id: 'present', rect: settlementNavigationView?.getPresentScreenRect(), shape: 'circle' },
+  ].filter(target => target.rect).map(target => ({ ...target, rect: {
+    x: target.rect.x, y: target.rect.y, width: target.rect.width, height: target.rect.height,
+  } })),
+  onOpen: () => {
+    requestPauseBeforeDrag();
+    settlementGraphView?.pauseForecastReveal?.();
+    tooltipView?.hide?.({ force: true });
+  },
+  onNewGame: () => gameMenu?.openNewGame?.(),
+});
+let openingPreviewSecond = null;
+let openingPreviewState = null;
+
+function clearOpeningPreviewCache() {
+  openingPreviewSecond = null;
+  openingPreviewState = null;
+}
+
+function openingPreviewStateAt(second) {
+  const openingSecond = Math.floor(second);
+  if (openingPreviewSecond === openingSecond && openingPreviewState != null) {
+    return openingPreviewState;
+  }
+  const nextState = settlementGraphController.getStateAt(openingSecond);
+  if (nextState == null) return null;
+  openingPreviewSecond = openingSecond;
+  openingPreviewState = nextState;
+  return openingPreviewState;
+}
+
+function handleDebugFreshRunApplied(reason) {
+  const capitalRegionId = runner.getCursorState?.()?.civilization?.capitalRegionId;
+  selectedWorldRegionId = typeof capitalRegionId === "string" && capitalRegionId.length > 0
+    ? capitalRegionId
+    : null;
+  opening.reset();
+  clearOpeningPreviewCache();
+  openingBlocker.visible = false;
+  settlementGraphView?.setOpeningRevealSecond(null);
+  requestPauseBeforeDrag();
+  settlementVassalFlow.resetSelectionForFreshRun();
+  settlementPlayback.clearPendingPreviewRestore();
+  settlementDebugMenu?.close?.();
+  runCompleteView?.reset?.();
+  worldMapView?.resetEdgeTransferPackets?.();
+  forecastWorkerService.handleTimelineInvalidation?.(`${reason}:freshRun`);
+  settlementProjectionCache.clear?.();
+  settlementGraphController?.handleInvalidate?.("init");
+  runner.clearPreviewState?.();
+  settlementGraphView?.resetForecastPreviewState?.();
+  settlementGraphView?.resetDataContext?.();
+  // Navigation and transport reset must precede the new reveal: neither is
+  // player intervention that should detach or pause its default follow.
+  setWorldViewMode("map");
+  settlementGraphSeriesMenu?.reset?.();
+  settlementGraphView?.restartForecastRevealFrom?.(0, {
+    clearProjectionReplacementTransition: true,
+  });
+  worldMapView?.refresh?.();
+  settlementGraphView?.render?.();
+}
+vassalDebugPresetController = createVassalDebugPresetController();
+settlementDebugMenu = createSettlementDebugMenuDom({
+  isArtworkReady:()=>Boolean(pendingArtworkReveal),
+  revealArtwork:()=>{
+    if(!pendingArtworkReveal)return false;
+    const reveal=pendingArtworkReveal;
+    if(reveal()===false)return false;
+    pendingArtworkReveal=null;worldMapView.refresh();return true;
+  },
+  getSaveDiagnosticReport: () => buildSaveDiagnosticReport(gameSession),
+  openDevelopmentLab: () => window.open(new URL('#/dev/gym?workspace=setup',location.href).href,'_blank','noopener'),
+  openCurrentStateInGym: () => openLabHandoff(runner.getCursorState()),
+  getState: () => getSettlementViewedState(),
+  getFrontierSec: () => getSettlementFrontierSec(),
+  getViewedSec: () => getSettlementViewedSec(),
+  getPreviewStatus: () => runner.getPreviewStatus?.(),
+  applyOverrides: (overrides) => applySettlementDebugOverrides(overrides),
+  getVassalSelectionPool: () => settlementVassalFlow.getPendingSelection(),
+  isVassalSelectionOpen: () => !!settlementVassalFlow.getPendingSelection(),
+  replaceVassalCandidate: (candidateIndex, spec) =>
+    replaceSettlementVassalCandidate(candidateIndex, spec),
+  getDebugSnapshot: () => globalThis.__SETTLEMENT_DEBUG__?.getSnapshot?.() ?? null,
+  isInteractionBlocked: () => !!settlementVassalFlow.getPendingSelection(),
+  vassalDebugPresetController,
+});
+
+function requestPauseBeforeDrag() {
+  sunMoonDisksView.stopMomentum();
+  settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
+  setSettlementPlaybackTarget(0);
+  ensureSettlementRunnerPaused();
+}
+
+function togglePause() {
+  const following = settlementGraphView?.isFollowingForecastReveal?.() === true;
+  settlementGraphView?.suspendForecastRevealPlayheadFollow?.();
+  if (following || getSettlementPlaybackTarget() !== 0 || sunMoonDisksView.isDragging()) return requestPauseBeforeDrag();
+  return setSettlementPlaybackTarget(1);
+}
+
+function isTypingTarget(target) {
+  if (!target || typeof target !== "object") return false;
+  return (
+    target.tagName === "INPUT" ||
+    target.tagName === "TEXTAREA" ||
+    target.isContentEditable === true
+  );
+}
+
+function handleGlobalKeyDown(ev) {
+  if (researchLibrary.isOpen()) { researchLibrary.handleKeyDown(ev); return; }
+  if (gameSession.isInMenu() || opening.isRevealing() || !ev || ev.repeat || isTypingTarget(ev.target)) return;
+  if (runCompleteView?.isOpen?.()) return;
+  // The founder class picker owns arrows, Enter and Escape while it is open.
+  if (settlementVassalChooserView?.handleKeyDown?.(ev)) { ev.preventDefault(); return; }
+  if (vassalHeirloomFlowView?.isOpen?.()) {
+    if (ev.key === 'Escape') {ev.preventDefault();vassalHeirloomFlowView.closeInventory();}
+    return;
+  }
+  if (ev.key === "Escape" && vassalNodeDecisionModalView?.isOpen?.()) {
+    if(vassalNodeDecisionModalView.handleInspectionKey(ev))return;
+    ev.preventDefault();
+    vassalNodeDecisionModalView.close();
+    return;
+  }
+  if (!vassalNodeDecisionModalView?.isOpen?.() && !vassalLevelUpModalView?.isOpen?.()
+    && !vassalHeirloomFlowView?.isOpen?.()
+    && vassalLifeMapView?.handleKeyDown?.(ev)) return;
+  if (ev.code === "Space" || ev.key === " ") {
+    ev.preventDefault();
+    togglePause();
+  }
+}
+
+function resizeCanvas() {
+  fitCanvasToViewport(app.view);
+  stylePage();
+  prototypeView?.refresh?.();
+  worldMapView?.refresh?.();
+  settlementDebugMenu?.refresh?.();
+  settlementGraphView.render?.();
+  settlementGraphSeriesMenu?.render?.();
+  sunMoonDisksView.applyLayout?.();
+  settlementVassalChooserView?.refresh?.();
+  runCompleteView?.resize?.();
+  vassalNodeDecisionModalView?.resize?.();
+  vassalLevelUpModalView?.resize?.();
+  vassalResolutionRecapView?.resize?.();
+  vassalHeirloomFlowView?.refresh?.();
+  vassalLifeHudView?.refresh?.();
+}
+
+function publishSettlementDebugApi() {
+  publishSettlementDebugApiForSettlement({
+    getTimingSnapshot: createSettlementTimingSnapshot({
+      getLocalState: () => ({ mode: worldViewMode, selectedRegionId: selectedWorldRegionId,
+        regionSelectionActive: worldMapRegionSelectionActive }),
+      getRunner: () => runner,
+      getMap: () => worldMapView?.getTimingSnapshot?.() ?? null,
+      getGraph: () => settlementGraphView?.getTimingSnapshot?.() ?? null,
+      getLifeMap: () => vassalLifeMapView?.getTimingSnapshot?.() ?? null,
+      getDecision: () => vassalNodeDecisionModalView?.getTimingSnapshot?.() ?? null,
+      getProcessing: () => lifeDecisionController?.getTimingSnapshot?.() ?? null,
+      getRecap: () => vassalResolutionRecapView?.getTimingSnapshot?.() ?? null,
+    }),
+    getForecastStatus: () => settlementForecastController?.getForecastStatus?.() ?? null,
+    getFrontierSec: () => getSettlementFrontierSec(),
+    getViewedSec: () => getSettlementViewedSec(),
+    getPreviewCapSec: () => getSettlementPreviewCapSec(),
+    getPlaybackTarget: () => getSettlementPlaybackState().target,
+    getPlaybackCurrent: () => getSettlementPlaybackState().current,
+    getTooltipDebugState: () => tooltipView.getDebugState(),
+    getProjectedLossInfo: () => getProjectedSettlementLossInfo(),
+    getDisplayedLossInfo: () => getSettlementLossInfoForDisplay(),
+    getGraphDebugState: () => ({ ...settlementGraphView?.getDebugState?.(), seriesMenu: settlementGraphSeriesMenu?.getDebugState?.() }),
+    getGraphControllerData: () => settlementGraphController?.getData?.() ?? null,
+    getProjectionForecastMeta: () =>
+      settlementProjectionCache?.getForecastMeta?.() ?? null,
+    getProjectionDebugSecondKeys: (limit) =>
+      settlementProjectionCache?.getDebugSecondKeys?.(limit) ?? null,
+    getViewSemanticSnapshot: () => prototypeView?.getSemanticSnapshot?.() ?? null,
+    getWorldMapSnapshot: () => ({
+      ...(worldMapView?.getSemanticSnapshot?.() ?? {}),
+      mode: worldViewMode,
+      presentationTimeSec: getSettlementVisualTime(),
+      audio: timelineAudio.getSnapshot(),
+      lifeDecisionProcessing: lifeDecisionController.getStatus(),
+      researchLibrary: researchLibrary.getSemanticSnapshot(),
+      vassalPreparation: {
+        chooser: settlementVassalChooserView?.getPreparationSnapshot(),
+        lifeMap: vassalLifeMapView?.getPreparationSnapshot(),
+        hud: vassalLifeHudView?.getPreparationSnapshot(),
+      },
+    }),
+    getLifeMapPresentation: () => {
+      const presentation = getSettlementLifeMapPresentation();
+      return {
+        vassalId: presentation.vassal?.vassalId ?? null,
+        profileVassalId: presentation.profileVassal?.vassalId ?? null,
+        readOnly: presentation.readOnly === true,
+        viewedSec: presentation.viewedSec,
+        frontierSec: presentation.frontierSec,
+        committedNodeIds: presentation.committedNodeIds ?? [],
+        playheadNodeId: presentation.playheadNodeId ?? null,
+        candidateNodeId: vassalLifeMapView?.getCandidateNodeId?.() ?? null,
+        entryConfirmationOpen: vassalLifeMapView?.isEntryConfirmationOpen?.() === true,
+        entryCancelPoint: vassalLifeMapView?.getEntryCancelClickPoint?.() ?? null,
+        entryConfirmation: vassalLifeMapView?.getEntryConfirmationSnapshot?.() ?? null,
+        profile: presentation.profileVassal ? {
+          prestige: presentation.profileVassal.prestige,
+          stats: presentation.profileVassal.stats,
+          locationRegionId: presentation.profileVassal.locationRegionId,
+        } : null,
+      };
+    },
+    getLifeMapDecisionSnapshot: () => vassalNodeDecisionModalView?.getSemanticSnapshot?.() ?? null,
+    getLifeMapLevelUpSnapshot: () => vassalLevelUpModalView?.getSemanticSnapshot?.() ?? null,
+    getLifeMapHudSnapshot: () => ({...vassalLifeHudView?.getSemanticSnapshot?.(),heirlooms:vassalHeirloomFlowView?.getSemanticSnapshot?.()}),
+    getLifeMapRecapSnapshot: () => vassalResolutionRecapView?.getSemanticSnapshot?.() ?? null,
+    getCommissionSnapshot: () => vassalCommissionPicker.getSnapshot(),
+    getFounderSnapshot: () => settlementVassalChooserView?.getFounderSnapshot?.() ?? null,
+    getFounderControlClickPoint: id => settlementVassalChooserView?.getFounderControlClickPoint?.(id) ?? null,
+    getCommissionChoiceClickPoint: index => vassalCommissionPicker.getChoiceClickPoint(index),
+    getLifeDecisionStatus: () => lifeDecisionController.getStatus(),
+    isLifeProcessingVisible: () => lifeProcessingView?.isVisible() === true,
+    getLifeDecisionControlClickPoint: id => lifeProcessingView?.getControlClickPoint(id) ?? null,
+    getForecastWorkerDiagnostics: () => forecastWorkerService.getDiagnostics(),
+    getRunCompleteSnapshot: () => runCompleteView?.getSemanticSnapshot?.() ?? null,
+    getOpeningSnapshot: () => opening.getSnapshot(),
+    getRunCompleteClickPoint: (id) => {
+      if (id === "details") {
+        return worldMapView?.getEndDetailsClickPoint?.()
+          ?? prototypeView?.getEndDetailsClickPoint?.()
+          ?? vassalLifeMapView?.getEndDetailsClickPoint?.()
+          ?? null;
+      }
+      return runCompleteView?.getClickPoint?.(id) ?? null;
+    },
+    getWorldMapClickPoint: (regionId) => worldMapView?.getRegionClickPoint?.(regionId) ?? null,
+    getTimeLeverScreenRect: () =>
+      timeControlsView?.getTimeLeverScreenRect?.() ?? null,
+    getTimeWheelSnapshot: () => sunMoonDisksView?.getSemanticSnapshot?.() ?? null,
+    getPhaseReferenceSnapshot: () => sunMoonDisksView?.getPhaseReferenceSnapshot?.() ?? null,
+    getPhaseReferenceClickPoint: id => sunMoonDisksView?.getPhaseReferenceClickPoint?.(id) ?? null,
+    getTimeActionClickPoint: () =>
+      settlementNavigationView?.getClickPoint?.("present") ?? null,
+    browseSecond: (tSec) => setSettlementViewedSecond(tSec, { mode: "browse" }),
+    getNavigationSnapshot: () => settlementNavigationView?.getSemanticSnapshot?.() ?? null,
+    getNavigationClickPoint: (id) => settlementNavigationView?.getClickPoint?.(id) ?? null,
+    getVassalCandidateClickPoint: (candidateIndex) =>
+      settlementVassalChooserView?.getCandidateClickPoint?.(candidateIndex) ??
+      null,
+    getVassalRerollClickPoint: () => settlementVassalChooserView?.getRerollClickPoint?.() ?? null,
+    getVassalCloseClickPoint: () => settlementVassalChooserView?.getCloseClickPoint?.() ?? null,
+    selectWorldRegion: (regionId) => {
+      if (worldViewMode === "settlement") {
+        if (!runner.getState?.()?.world?.regions?.some((entry) => entry.id === regionId)) {
+          return false;
+        }
+        selectedWorldRegionId = regionId;
+        setSettlementGraphContext("settlement", regionId);
+        prototypeView?.refresh?.();
+        worldMapView?.refresh?.();
+        return true;
+      }
+      return selectWorldMapRegion(regionId);
+    },
+    enterBootTestRun: () => {
+      // The probe bypasses session entry, so initialize its default map focus.
+      selectedWorldRegionId ??= runner.getCursorState?.()?.civilization?.capitalRegionId ?? null;
+      worldMapView.refresh();
+      gameSession.resume(); gameMenu.hide();
+    },
+    getWorldPracticeClickPoint: (practiceId) => worldMapView?.getPracticeClickPoint?.(practiceId) ?? null,
+    getWorldInstalledPracticeClickPoint: (installedIndex) =>
+      worldMapView?.getInstalledPracticeClickPoint?.(installedIndex) ?? null,
+    getViewedSlotSummary: () => getSettlementViewedSlotSummary(),
+    getPendingCommitJob: () =>
+      settlementForecastController?.getPendingCommitJob?.() ?? null,
+    getTimeline: () => runner?.getTimeline?.() ?? null,
+    getPreviewStatus: () => runner?.getPreviewStatus?.() ?? null,
+    getCursorState: () => runner?.getCursorState?.() ?? null,
+    getState: () => runner?.getState?.() ?? null,
+    getFrontierState: () => getSettlementFrontierState(),
+    getGraphPlotScreenRect: () => settlementGraphView?.getPlotScreenRect?.() ?? null,
+    renderGraph: () => settlementGraphView?.render?.(),
+    refreshPrototypeView: () => prototypeView?.refresh?.(),
+    refreshWorldMap: () => worldMapView?.refresh?.(),
+    getGraphController: () => settlementGraphController,
+    hasStateDataAt: (tSec) =>
+      settlementGraphController?.getStateDataAt?.(tSec) != null,
+    hasStateAt: (tSec) => settlementGraphController?.getStateAt?.(tSec) != null,
+    applyOverrides: (overrides) => applySettlementDebugOverrides(overrides),
+    openNextSelection: () => openLifeMapVassalSelection(),
+    selectCandidate: (candidateIndex) => selectLifeMapCandidate(candidateIndex),
+    closeVassalSelection: () => closeSettlementVassalSelection(),
+    getLastVassalSelectionResult: () => settlementVassalFlow.getLastSelectionResult(),
+    getVassalSelectionPool: () => settlementVassalFlow.getPendingSelection(),
+    isVassalSelectionOpen: () => !!settlementVassalFlow.getPendingSelection(),
+    getLifeMapNodeClickPoint: (nodeId) => vassalLifeMapView?.getNodeClickPoint?.(nodeId) ?? null,
+    getLifeMapEnterNodeClickPoint: () => vassalLifeMapView?.getEnterNodeClickPoint?.()
+      ?? vassalNodeDecisionModalView?.getEnterNodeClickPoint?.() ?? null,
+    getLifeMapOptionClickPoint: (index) => vassalNodeDecisionModalView?.getOptionClickPoint?.(index) ?? null,
+    getLifeMapOfferFacePoint: index => vassalNodeDecisionModalView?.getOfferFacePoint?.(index) ?? null,
+    getLifeMapOfferPageClickPoint: direction => vassalNodeDecisionModalView?.getOfferPageClickPoint?.(direction) ?? null,
+    getLifeMapDiscardClickPoint: index => vassalNodeDecisionModalView?.getDiscardClickPoint?.(index) ?? null,
+    getLifeMapInspectionClosePoint: () => vassalNodeDecisionModalView?.getInspectionClosePoint?.() ?? null,
+    getLifeMapInspectionCostPoint: () => vassalNodeDecisionModalView?.getInspectionCostPoint?.() ?? null,
+    getLifeMapTableauClickPoint: index => vassalNodeDecisionModalView?.getTableauClickPoint?.(index) ?? null,
+    getLifeMapConstructionPoint: origin => vassalNodeDecisionModalView?.getConstructionPoint?.(origin) ?? null,
+    getLifeMapUndoClickPoint: index => vassalNodeDecisionModalView?.getUndoClickPoint?.(index) ?? null,
+    getLifeMapOfferClickPoint: (index) => vassalNodeDecisionModalView?.getOfferClickPoint?.(index) ?? null,
+    getLifeMapConfirmClickPoint: () => vassalNodeDecisionModalView?.getConfirmClickPoint?.() ?? null,
+    getLifeMapLevelUpChoiceClickPoint: (index) =>
+      vassalLevelUpModalView?.getChoiceClickPoint?.(index) ?? null,
+    getLifeMapLevelUpConfirmClickPoint: () =>
+      vassalLevelUpModalView?.getConfirmClickPoint?.() ?? null,
+    getLifeMapRecapDismissClickPoint: () =>
+      vassalResolutionRecapView?.getDismissClickPoint?.() ?? null,
+    getGraphRevealedSec: () => settlementGraphView?.getForecastScrubCapSec?.(),
+    getGraphRevealTargetSec: () => settlementGraphView?.getForecastRevealTargetEndSec?.(),
+  });
+}
+
+runner.init();
+requestPauseBeforeDrag();
+syncSettlementGraphHorizon();
+syncSettlementGraphRevealConfig();
+syncSettlementVassalSelectionPauseState();
+prototypeView.init();
+worldMapView.init();
+vassalLifeMapView.init();
+vassalLifeHudView.init();
+vassalNodeDecisionModalView.init();
+vassalLevelUpModalView.init();
+vassalResolutionRecapView.init();
+vassalHeirloomFlowView.init();
+setWorldViewMode("map");
+settlementGraphView.open();
+settlementGraphSeriesMenu?.render?.();
+timeControlsView.init();
+sunMoonDisksView.init();
+settlementNavigationView.init();
+settlementVassalChooserView.init();
+runCompleteView.init();
+settlementDebugMenu.init();
+syncSettlementRunCompletePresentation();
+publishSettlementDebugApi();
+
+let gameMenu;
+let progressiveArtEpoch=0,progressiveArtStarted=false;
+const nodeResolutionDiagnostics = createNodeResolutionDiagnostics();
+const gameSession = createGameSessionController({
+  createState:()=>newGameSettings.createNewGame(),
+  runner,
+  opening,
+  prefetchEntry: state => worldMapView.prefetch(state),
+  cancelPrefetch: () => worldMapView.cancelPrefetch(),
+  prepareEntry: async (prepared, { isCurrent, onProgress }) => {
+    const stage = async (id, label) => {
+      if (!isCurrent()) return false;
+      onProgress?.({ stage: id, label });
+      await new Promise(resolve => setTimeout(resolve, 0));
+      return isCurrent();
+    };
+    if (!await stage('artwork', 'Loading chronicle artwork')) return;
+    await prepareChronicleArt(app.renderer);
+    if (!await stage('map', 'Uploading map artwork')) return;
+    await worldMapView.prepare(app.renderer);
+    if (!await stage('decisionMap', 'Preparing decision map artwork')) return;
+    await vassalNodeDecisionModalView.prepare(app.renderer);
+    if (!await stage('settlement', 'Preparing settlement panels and artwork')) return;
+    await prototypeView.prepare(app.renderer);
+    if (!await stage('vassal', 'Preparing Vassal panels and artwork')) return;
+    await settlementVassalChooserView.prepare(app.renderer);
+    if (!isCurrent()) return;
+    await vassalLifeMapView.prepare(app.renderer);
+    if (!isCurrent()) return;
+    await vassalLifeHudView.prepare(app.renderer);
+    if (!isCurrent()) return;
+    if (prepared?.forecast) {
+      if (!await stage('handoff', 'Preparing forecast graphs')) return;
+      const timeline = runner.getTimeline();
+      const merged = await mergePreparedForecast({
+        cache: settlementProjectionCache, timeline, forecast: prepared.forecast,
+        isCurrent: () => isCurrent() && runner.getTimeline() === timeline,
+        onProgress,
+      });
+      if (merged.reason === 'cancelled') return;
+      if (!merged.ok) throw new Error(`Prepared forecast handoff failed: ${merged.reason}`);
+      if (!await stage('graph', 'Drawing your opening chronicle')) return;
+      settlementGraphController.handleInvalidate("init");
+      opening.begin(prepared.lossSec);
+      openingBlocker.visible = true;
+      settlementGraphView.setOpeningRevealSecond(0);
+      settlementGraphView.clearForecastRevealRestart();
+      settlementGraphView.render();
+    }
+  },
+  onEnter: prepared => {
+    progressiveArtEpoch++; progressiveArtStarted=false;pendingArtworkReveal=null;
+    if (prepared?.historySummaryBySecond) {
+      settlementGraphController.retainAuthoritativeSummariesFrom(0, prepared.historySummaryBySecond);
+    }
+    handleDebugFreshRunApplied("sessionEnter");
+  },
+  onError: (message) => gameMenu?.showError(message),
+  onSaved: () => gameMenu?.clearError(),
+  onSaveStatusChange: () => gameMenu?.syncSaveStatus(),
+  getPresentationDiagnostics: () => nodeResolutionDiagnostics.snapshot(),
+  getForecastDiagnostics: () => forecastWorkerService.getDiagnostics(),
+});
+gameMenu = createGameMenuDom({
+  cardReviews,
+  newGameSettings,
+  session: gameSession,
+  onPerformanceMode: ({ progressiveArtwork }) => {
+    progressiveArtEpoch++; progressiveArtStarted=false;pendingArtworkReveal=null;
+    enablePerformanceGraphics({ progressiveArtwork });
+    opening.setPreparedLoader(loadPerformanceStart);
+    hideChronicleArtwork(app.renderer);
+    worldMapView.resetArtwork();
+    vassalNodeDecisionModalView.resetArtwork();
+  },
+  onResume: () => settlementGraphView?.setPresentationSuspended?.(false),
+  onPause: () => {
+    researchLibrary.close();
+    nodeResolutionDiagnostics.suspend();
+    settlementGraphView?.setPresentationSuspended?.(true);
+    timelineAudio?.update(0);
+  },
+});
+setInterval(() => { if (!gameSession.isInMenu()) gameSession.save(); }, 10000);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) nodeResolutionDiagnostics.suspend();
+});
+
+window.addEventListener("resize", resizeCanvas);
+window.addEventListener("keydown", handleGlobalKeyDown);
+
+const timelineAudio = createTimelineAudio({
+  getTime:getSettlementVisualTime,
+  getRate:()=>getSettlementPlaybackState().rate,
+  isSuspended:()=>gameSession.isInMenu()||gameMenu.requiresLandscape()||researchLibrary.isOpen(),
+  parent:document.querySelector('[data-testid="utility-controls"]'),
+});
+
+if (location.hash.startsWith('#/dev/play')) {
+  try {
+    const state = readLabHandoff();
+    if (!state) throw new Error('No Gym state was supplied.');
+    const result = gameSession.enterDisposableState(state);
+    if (!result.ok) throw new Error(result.reason);
+    gameMenu.hide();
+    const badge = document.createElement('div');
+    badge.dataset.testid = 'lab-play-badge';
+    badge.style.cssText = 'position:fixed;left:12px;top:8px;z-index:1001;background:#152725;color:#eff7ed;padding:6px;font:12px sans-serif;max-width:45vw;pointer-events:none';
+    badge.textContent = `Gym play · unsaved · history begins at ${state.tSec}s`;
+    document.body.append(badge);
+  } catch (error) { gameMenu.showError(`Lab launch failed: ${error.message}`); }
+}
+
+app.ticker.add((delta) => {
+  if (researchLibrary.isOpen()) { researchLibrary.update(); tooltipView.update(); }
+  if (gameSession.isInMenu() || gameMenu.requiresLandscape() || document.hidden || researchLibrary.isOpen()) {
+    nodeResolutionDiagnostics.suspend();
+    timelineAudio.update(0);
+    return;
+  }
+  if (progressiveGraphics && !progressiveArtStarted && !opening.isRevealing()) {
+    progressiveArtStarted=true;const epoch=progressiveArtEpoch;
+    void loadProgressiveArtwork({renderer:app.renderer,
+      isCurrent:()=>epoch===progressiveArtEpoch,
+      canLoad:()=>!gameSession.isInMenu()&&!document.hidden&&!opening.isRevealing()&&!vassalResolutionRecapView.isOpen()&&!lifeDecisionController.getResolution(),
+      prepareTerrain:async(wait,isCurrent)=>{
+        const main=await worldMapView.prepareProgressive(app.renderer,wait,isCurrent);
+        if(!isCurrent())return;
+        const decision=await vassalNodeDecisionModalView.prepareProgressive(app.renderer,wait,isCurrent);
+        return ()=>{if(!isCurrent())return false;return main?.()!==false && decision?.()!==false;};
+      },
+      onReady:reveal=>{if(epoch===progressiveArtEpoch){pendingArtworkReveal=reveal;settlementDebugMenu.refresh();}},onError:error=>console.warn('[progressive-artwork]',error.message),
+    }).catch(error=>console.warn('[progressive-artwork]',error.message));
+  }
+  const frameDt = delta / 60;
+  const openingFrame = opening.advance(frameDt);
+  if (!openingFrame) {
+    clearOpeningPreviewCache();
+    runner.update(frameDt);
+  }
+  if (vassalResolutionRecapView.isAnimating()) {
+    // Keep runner ticks above this gate. The resolved recap already owns input;
+    // even covered graph status queries can restart expensive forecast work.
+    lifeProcessingView.update();
+    vassalResolutionRecapView.update(frameDt);
+    nodeResolutionDiagnostics.sample({recapOpen:true,resolutionSec:getSettlementFrontierSec()});
+    timelineAudio.update(frameDt);
+    return;
+  }
+  settlementGraphController.update?.();
+  if (openingFrame) {
+    settlementGraphView.setOpeningRevealSecond(openingFrame.second);
+    runner.setPreviewState(openingPreviewStateAt(openingFrame.second));
+    if (openingFrame.complete) {
+      openingBlocker.visible = false;
+    }
+  }
+  settlementForecastController?.syncObservedSurvivalYear?.();
+  if (lifeDecisionController.resumePendingResolution()) {
+    const pending = lifeDecisionController.getResolution();
+    settlementGraphView?.restartForecastRevealFrom?.(getSettlementFrontierSec(), {
+      allowForecastStart:true, revealTargetEndSec:pending?.revealSec,
+    });
+  }
+  settlementGraphView?.setInteractionReadinessCap?.(lifeDecisionController.getReadinessCap());
+  const resolutionOpened = processSettlementPendingCommit();
+  // Committing clears the preparation job. Hide its loading bar in this same
+  // frame before the recap paints, rather than freezing the previous status.
+  lifeProcessingView?.update?.();
+  if (vassalResolutionRecapView.isOpen()) {
+    // The prepared recap owns this frame. Simulation/worker commits above keep
+    // their normal cadence; covered views need no replay, geometry or preview
+    // work until dismissal. Pixi still renders immediate control feedback.
+    vassalResolutionRecapView.update(frameDt);
+    nodeResolutionDiagnostics.sample({recapOpen:true,resolutionSec:getSettlementFrontierSec()});
+    timelineAudio.update(frameDt);
+    return;
+  }
+  syncSettlementGraphRevealConfig();
+  syncSettlementGraphHorizon();
+  restoreSettlementPendingPreviewTarget();
+  if (!openingFrame) updateSettlementPreviewPlayback(frameDt);
+  syncSettlementRunCompletePresentation();
+  syncSettlementVassalSelectionPauseState();
+  settlementGraphSeriesMenu?.syncSelection?.();
+  prototypeView.update(frameDt);
+  worldMapView.update(frameDt);
+  vassalLifeMapView.update(frameDt);
+  vassalLifeHudView.update(frameDt);
+  vassalNodeDecisionModalView.update(frameDt);
+  vassalCommissionPicker.update();
+  vassalLevelUpModalView.update(frameDt);
+  vassalResolutionRecapView.update(frameDt);
+  nodeResolutionDiagnostics.sample({
+    recapOpen: vassalResolutionRecapView.isOpen(), resolutionSec: getSettlementFrontierSec(),
+  });
+  vassalHeirloomFlowView.update(frameDt);
+  if (!resolutionOpened) settlementGraphView.render();
+  if (openingFrame?.complete) settlementGraphView.setOpeningRevealSecond(null);
+  settlementGraphSeriesMenu?.render?.();
+  timeControlsView.update(frameDt);
+  sunMoonDisksView.update(frameDt);
+  timelineAudio.update(frameDt);
+  settlementNavigationView.update(frameDt);
+  settlementVassalChooserView.update(frameDt);
+  syncSettlementRunCompletePresentation();
+  runCompleteView.update(frameDt);
+  const lossPanel = runCompleteView.getSemanticSnapshot();
+  settlementGraphView.setMonsterEmphasis(lossPanel.open && lossPanel.info?.projected &&
+    lossPanel.info.reason === "monsterOverrun", lossPanel.info ? {
+      tSec: lossPanel.info.tSec, value: lossPanel.info.monsterCount,
+    } : null);
+  settlementDebugMenu.update(frameDt);
+});

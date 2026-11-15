@@ -1,0 +1,16 @@
+{
+  "launchId": "feedback-final-matrix-r2-20261105-minimal-all-5-desktop-map-open-off-s123-cold:launch-0-map-open",
+  "job": "map-open",
+  "originalError": {
+    "name": "AssertionError",
+    "message": "J3 requires matching current-generation work/progress within the measured operation",
+    "stack": "AssertionError [ERR_ASSERTION]: J3 requires matching current-generation work/progress within the measured operation\n    at assertActiveWork (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/active-work-oracle.mjs:37:10)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:700:51\n    at record (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:170:50)\n    at async mapAndScrub (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:760:29)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/run.mjs:1119:9"
+  },
+  "observationCount": 1,
+  "document": {
+    "available": false,
+    "reason": "current launch page is closed"
+  },
+  "passive": null,
+  "collectionErrors": []
+}

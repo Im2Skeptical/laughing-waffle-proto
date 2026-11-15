@@ -257,6 +257,12 @@ export function createTimeLeverView({
     width,
     trackHeight: height,
     height: fullHeight,
+    getRetainedFeedbackSnapshot: () => ({
+      visible: timeLever.visible,
+      labelVisible: leverLabel.visible,
+      label: leverLabel.text,
+      handleY: leverHandle.y,
+    }),
     getTrackBounds: () => leverHit.getBounds(),
     update: updateTimeLever,
   };

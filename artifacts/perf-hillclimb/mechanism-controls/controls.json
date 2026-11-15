@@ -1,0 +1,404 @@
+{
+  "ok": true,
+  "chromium": "147.0.7727.15",
+  "launch": {
+    "headless": true,
+    "args": [
+      "--use-gl=angle",
+      "--use-angle=swiftshader"
+    ]
+  },
+  "results": [
+    {
+      "mechanism": "trusted-input/deferred-visible-completion",
+      "baseline": {
+        "id": 1,
+        "name": "control",
+        "armed": 21.5,
+        "started": 75.09999999403954,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 88,
+            "dt": 17
+          },
+          {
+            "time": 104.40000000596046,
+            "dt": 16.400000005960464
+          },
+          {
+            "time": 121.5,
+            "dt": 17.099999994039536
+          },
+          {
+            "time": 138.40000000596046,
+            "dt": 16.900000005960464
+          }
+        ],
+        "longTasks": [],
+        "probes": 0,
+        "probeCpuMs": 0,
+        "workerOffset": 0,
+        "handlerStarted": 76,
+        "eventTimeStamp": 75.09999999403954,
+        "inputQueueMs": 0.9000000059604645,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "semanticEnd": 105.59999999403954,
+        "finished": 138.40000000596046,
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 63.30000001192093,
+        "feedbackMs": 30.5,
+        "armToDispatchMs": 53.599999994039536,
+        "workerEvents": [],
+        "saveEvents": []
+      },
+      "delay": {
+        "id": 2,
+        "name": "control",
+        "armed": 141,
+        "started": 172.90000000596046,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 188.7999999821186,
+            "dt": 17.799999982118607
+          },
+          {
+            "time": 205.2999999821186,
+            "dt": 16.5
+          },
+          {
+            "time": 221.5,
+            "dt": 16.200000017881393
+          },
+          {
+            "time": 237.69999998807907,
+            "dt": 16.19999998807907
+          },
+          {
+            "time": 254.90000000596046,
+            "dt": 17.200000017881393
+          },
+          {
+            "time": 271,
+            "dt": 16.099999994039536
+          },
+          {
+            "time": 288.5,
+            "dt": 17.5
+          },
+          {
+            "time": 304.40000000596046,
+            "dt": 15.900000005960464
+          },
+          {
+            "time": 321.7999999821186,
+            "dt": 17.399999976158142
+          },
+          {
+            "time": 338.2999999821186,
+            "dt": 16.5
+          },
+          {
+            "time": 354.69999998807907,
+            "dt": 16.400000005960464
+          },
+          {
+            "time": 372.09999999403954,
+            "dt": 17.400000005960464
+          },
+          {
+            "time": 389,
+            "dt": 16.900000005960464
+          },
+          {
+            "time": 406.19999998807907,
+            "dt": 17.19999998807907
+          },
+          {
+            "time": 421.5,
+            "dt": 15.300000011920929
+          }
+        ],
+        "longTasks": [],
+        "probes": 0,
+        "probeCpuMs": 0,
+        "workerOffset": 0,
+        "handlerStarted": 173.09999999403954,
+        "eventTimeStamp": 172.90000000596046,
+        "inputQueueMs": 0.19999998807907104,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "semanticEnd": 390.19999998807907,
+        "finished": 421.5,
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 248.59999999403954,
+        "feedbackMs": 217.2999999821186,
+        "armToDispatchMs": 31.900000005960464,
+        "workerEvents": [],
+        "saveEvents": []
+      },
+      "queued": {
+        "id": 3,
+        "name": "control",
+        "armed": 424.09999999403954,
+        "started": 457.2999999821186,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 657.6999999880791,
+            "dt": 202.5
+          },
+          {
+            "time": 658.1999999880791,
+            "dt": 0.5
+          },
+          {
+            "time": 671.6999999880791,
+            "dt": 13.5
+          },
+          {
+            "time": 688.1999999880791,
+            "dt": 16.5
+          }
+        ],
+        "longTasks": [
+          {
+            "start": 457.2999999821186,
+            "duration": 200
+          }
+        ],
+        "probes": 0,
+        "probeCpuMs": 0,
+        "workerOffset": 0,
+        "handlerStarted": 657.5,
+        "eventTimeStamp": 457.2999999821186,
+        "inputQueueMs": 200.2000000178814,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "semanticEnd": 661,
+        "finished": 688.1999999880791,
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 230.90000000596046,
+        "feedbackMs": 203.7000000178814,
+        "armToDispatchMs": 33.19999998807907,
+        "workerEvents": [],
+        "saveEvents": []
+      },
+      "wrongFailed": true,
+      "lateFailed": true
+    },
+    {
+      "mechanism": "actual-worker-delivery",
+      "workerBaseline": {
+        "id": 6,
+        "name": "control",
+        "armed": 1532.4000000059605,
+        "started": 1556.7999999821186,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 1571.199999988079,
+            "dt": 16.19999998807907
+          },
+          {
+            "time": 1588.2999999821186,
+            "dt": 17.099999994039536
+          },
+          {
+            "time": 1604.699999988079,
+            "dt": 16.400000005960464
+          },
+          {
+            "time": 1621,
+            "dt": 16.30000001192093
+          }
+        ],
+        "longTasks": [],
+        "probes": 0,
+        "probeCpuMs": 0,
+        "workerOffset": 2,
+        "handlerStarted": 1556.9000000059605,
+        "eventTimeStamp": 1556.7999999821186,
+        "inputQueueMs": 0.10000002384185791,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "semanticEnd": 1589.5,
+        "finished": 1621,
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 64.2000000178814,
+        "feedbackMs": 32.70000001788139,
+        "armToDispatchMs": 24.399999976158142,
+        "workerEvents": [
+          {
+            "kind": "request",
+            "url": "blob:http://127.0.0.1:18245/88af179b-35f9-49fe-afc6-4a2345937ae1",
+            "time": 1557.0999999940395
+          },
+          {
+            "kind": "response",
+            "url": "blob:http://127.0.0.1:18245/88af179b-35f9-49fe-afc6-4a2345937ae1",
+            "time": 1571.4000000059605
+          }
+        ],
+        "saveEvents": []
+      },
+      "workerDelayed": {
+        "id": 7,
+        "name": "control",
+        "armed": 1623.699999988079,
+        "started": 1657.0999999940395,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [
+          {
+            "time": 1671.9000000059605,
+            "dt": 17.5
+          },
+          {
+            "time": 1687.9000000059605,
+            "dt": 16
+          },
+          {
+            "time": 1705,
+            "dt": 17.099999994039536
+          },
+          {
+            "time": 1721.0999999940395,
+            "dt": 16.099999994039536
+          },
+          {
+            "time": 1738.4000000059605,
+            "dt": 17.30000001192093
+          },
+          {
+            "time": 1754.5999999940395,
+            "dt": 16.19999998807907
+          },
+          {
+            "time": 1772.0999999940395,
+            "dt": 17.5
+          },
+          {
+            "time": 1788.7999999821186,
+            "dt": 16.69999998807907
+          },
+          {
+            "time": 1805,
+            "dt": 16.200000017881393
+          },
+          {
+            "time": 1820.9000000059605,
+            "dt": 15.900000005960464
+          },
+          {
+            "time": 1838,
+            "dt": 17.099999994039536
+          },
+          {
+            "time": 1854.4000000059605,
+            "dt": 16.400000005960464
+          },
+          {
+            "time": 1872.199999988079,
+            "dt": 17.799999982118607
+          },
+          {
+            "time": 1888.2999999821186,
+            "dt": 16.099999994039536
+          },
+          {
+            "time": 1905.699999988079,
+            "dt": 17.400000005960464
+          },
+          {
+            "time": 1921.7999999821186,
+            "dt": 16.099999994039536
+          }
+        ],
+        "longTasks": [],
+        "probes": 0,
+        "probeCpuMs": 0,
+        "workerOffset": 4,
+        "handlerStarted": 1657.4000000059605,
+        "eventTimeStamp": 1657.0999999940395,
+        "inputQueueMs": 0.30000001192092896,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "semanticEnd": 1889.5,
+        "finished": 1921.7999999821186,
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 264.69999998807907,
+        "feedbackMs": 232.40000000596046,
+        "armToDispatchMs": 33.400000005960464,
+        "workerEvents": [
+          {
+            "kind": "request",
+            "url": "blob:http://127.0.0.1:18245/88af179b-35f9-49fe-afc6-4a2345937ae1",
+            "time": 1657.5
+          },
+          {
+            "kind": "response",
+            "url": "blob:http://127.0.0.1:18245/88af179b-35f9-49fe-afc6-4a2345937ae1",
+            "time": 1672.0999999940395
+          }
+        ],
+        "saveEvents": []
+      }
+    },
+    {
+      "mechanism": "IndexedDB committed transaction",
+      "correctSlot": true,
+      "wrongSlotRejected": true,
+      "replacementIdentity": true
+    },
+    {
+      "mechanism": "no-hook reference",
+      "nativeWorker": true,
+      "operation": {
+        "id": 1,
+        "name": "control",
+        "armed": 16.30000001192093,
+        "started": 57,
+        "timeoutMs": 2000,
+        "event": "pointerdown",
+        "frames": [],
+        "longTasks": [],
+        "probes": 0,
+        "probeCpuMs": 0,
+        "workerOffset": 0,
+        "handlerStarted": 57.69999998807907,
+        "eventTimeStamp": 57,
+        "inputQueueMs": 0.699999988079071,
+        "trustedInput": true,
+        "inputType": "pointerdown",
+        "semanticEnd": 88.30000001192093,
+        "finished": 120.19999998807907,
+        "witness": {
+          "text": "correct"
+        },
+        "elapsedMs": 63.19999998807907,
+        "feedbackMs": 31.30000001192093,
+        "armToDispatchMs": 40.69999998807907,
+        "workerEvents": [],
+        "saveEvents": []
+      }
+    }
+  ],
+  "scope": "mechanism fixtures only; product-path wrong generation/art/RNG/read-only controls remain required"
+}

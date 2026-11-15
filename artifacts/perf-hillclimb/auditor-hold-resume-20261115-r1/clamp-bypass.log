@@ -1,0 +1,2 @@
+[hillclimb] FAIL J5/scrub-anchor: page.waitForFunction: Error: J5 observed unrevealed browse access; C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\artifacts\perf-hillclimb\auditor-hold-clamp-bypass-20261115-r1
+[hillclimb] FAILED observations=1 path=C:\Users\User\.t3\worktrees\laughing-waffle-proto\perf-hillclimb-20261104\artifacts\perf-hillclimb\auditor-hold-clamp-bypass-20261115-r1

@@ -1,0 +1,2 @@
+[feedback-bindings] PASS: actual retained accessor/root wiring500 pure isolated reads; Present drift, Settlement surface and hover controls
+[hold-source] PASS: actual getters500 raw typed/copy/poison reads; exact source callback order; bypass/late Hold rejected

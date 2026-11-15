@@ -1,0 +1,65 @@
+{
+  "sourceActualSha256": "725bf2db932b363133a72501d2e109d40d4e58b943b041e53b2d5f0497b55ab6",
+  "sourceExpectedSha256": "725bf2db932b363133a72501d2e109d40d4e58b943b041e53b2d5f0497b55ab6",
+  "attemptedSeconds": 3,
+  "advancedSeconds": 3,
+  "terminal": false,
+  "actualFinalSha256": "b4a510474288e99f3e147578b5ac669e39897d9ddf30d7616ca614d44dc5b7bc",
+  "expectedFinalSha256": "b4a510474288e99f3e147578b5ac669e39897d9ddf30d7616ca614d44dc5b7bc",
+  "artifact": "launch-0-performance-continue-continued-continuation.json",
+  "allFieldsAndRng": true,
+  "scope": "functional transport/continuation proof on copies; no phone interaction-latency claim",
+  "samples": [
+    {
+      "attempt": 1,
+      "previousSec": 574,
+      "actualResult": {
+        "ok": true,
+        "currentSec": 575
+      },
+      "expectedResult": {
+        "ok": true,
+        "currentSec": 575
+      },
+      "actualSha256": "2fd83e0a3b9f327e40e2b820632e0ddeaf6c8942f5fe12e111b1ec9842f98889",
+      "expectedSha256": "2fd83e0a3b9f327e40e2b820632e0ddeaf6c8942f5fe12e111b1ec9842f98889",
+      "stateMatches": true,
+      "resultMatches": true,
+      "deltaPaths": []
+    },
+    {
+      "attempt": 2,
+      "previousSec": 575,
+      "actualResult": {
+        "ok": true,
+        "currentSec": 576
+      },
+      "expectedResult": {
+        "ok": true,
+        "currentSec": 576
+      },
+      "actualSha256": "89d4b80828a6076610698b94bc06f1a7fd5304d4783412ec33eeadbec8db5ef7",
+      "expectedSha256": "89d4b80828a6076610698b94bc06f1a7fd5304d4783412ec33eeadbec8db5ef7",
+      "stateMatches": true,
+      "resultMatches": true,
+      "deltaPaths": []
+    },
+    {
+      "attempt": 3,
+      "previousSec": 576,
+      "actualResult": {
+        "ok": true,
+        "currentSec": 577
+      },
+      "expectedResult": {
+        "ok": true,
+        "currentSec": 577
+      },
+      "actualSha256": "b4a510474288e99f3e147578b5ac669e39897d9ddf30d7616ca614d44dc5b7bc",
+      "expectedSha256": "b4a510474288e99f3e147578b5ac669e39897d9ddf30d7616ca614d44dc5b7bc",
+      "stateMatches": true,
+      "resultMatches": true,
+      "deltaPaths": []
+    }
+  ]
+}

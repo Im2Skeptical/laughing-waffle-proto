@@ -1,0 +1,9 @@
+{
+  "reviewAcceptedHash": "4a95a54c2e93b12f3928d34d42b35031fb27927b422457cce7ca3ae933ecaf0f",
+  "reviewedGitRaw": "4a95a54c2e93b12f3928d34d42b35031fb27927b422457cce7ca3ae933ecaf0f",
+  "reviewedGitLF": "4a95a54c2e93b12f3928d34d42b35031fb27927b422457cce7ca3ae933ecaf0f",
+  "currentRaw": "9443d67041037fe97b1f9198067be8cfb2e0a9c065b40ed02f6ef24521bd4153",
+  "currentLF": "9443d67041037fe97b1f9198067be8cfb2e0a9c065b40ed02f6ef24521bd4153",
+  "sameAfterLF": false,
+  "conclusion": "Semantic change since scoped acceptance: frozen provenance eligibility/groups added; numerical quantile and cluster algorithms unchanged in exact diff. This source-only inspection does not independently accept full current statistics integration."
+}

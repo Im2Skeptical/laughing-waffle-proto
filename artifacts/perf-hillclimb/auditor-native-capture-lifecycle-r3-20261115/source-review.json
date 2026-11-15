@@ -1,0 +1,30 @@
+{
+    "at":  "2026-11-15T05:06:59.2983143Z",
+    "afterPins":  {
+                      "RepairContracts.cs":  "ef240eab6df7d8ed4da5cb65670289ae2daaa0d47023e09de10ff2bf302d9bc5",
+                      "RepairedResources.cs":  "aad6b34b8f53e70f712d978951b3269b6134f0d48d6905219253e6f772c1420f",
+                      "PureFixtures.cs":  "3f32e13706182a764242241e214838b7b07bf629299ebc307bbbe42693b3901b",
+                      "build-manifest.json":  "6f18c91fbfe9ad0dbb7abb639ff45aa4509ebb323939439c78653da515226adb"
+                  },
+    "managedReceiptSha256":  "3384fd856e1e37b0a384527834760a1096073229ae36a1bb8e6f83359ec5fcd8",
+    "previousFindings":  {
+                             "finalizationRetry":  "SCOPED_REPAIR_SUPPORTED",
+                             "drainErrorPolicyAndHeaderRetention":  "SCOPED_REPAIR_SUPPORTED_SOURCE_ONLY",
+                             "startCloseRace":  "SCOPED_REPAIR_SUPPORTED"
+                         },
+    "remainingSourceGate":  {
+                                "lines":  [
+                                              83,
+                                              87,
+                                              88
+                                          ],
+                                "file":  "RepairedResources.cs",
+                                "finding":  "ManualResetEvent ready is allocated before CreatePipe. CreatePipe false throws from constructor without disposing ready; caller has no returned instance for rollback. Source fix and failure-path proof needed before native helper construction."
+                            },
+    "otherLimits":  [
+                        "Normal Run/controller/creation/loader/EXIT-state transfer/outer failsafe/wire/classifier absent",
+                        "Shared managed budget does not prove OS API return latency",
+                        "Unknown/pending event and cancellation/EOF/handle/job cleanup require separately admitted native synthetic controls"
+                    ],
+    "scope":  "Independent managed/source-only affected review, not native lifecycle or child admission"
+}

@@ -1,0 +1,58 @@
+[
+  {
+    "index": 0,
+    "stage": "main",
+    "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-wK02Dx",
+    "finished": "2026-11-15T03:40:16.209Z",
+    "status": 0,
+    "signal": null,
+    "pid": null,
+    "stdoutBytes": 141,
+    "stderrBytes": null,
+    "stderrAvailable": false,
+    "native": false,
+    "exactPriorSignature": false
+  },
+  {
+    "index": 1,
+    "stage": "main",
+    "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-wK02Dx",
+    "finished": "2026-11-15T03:40:16.343Z",
+    "status": 0,
+    "signal": null,
+    "pid": null,
+    "stdoutBytes": 141,
+    "stderrBytes": null,
+    "stderrAvailable": false,
+    "native": false,
+    "exactPriorSignature": false
+  },
+  {
+    "index": 2,
+    "stage": "worktrees/task-a",
+    "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-wK02Dx\\worktrees\\task-a",
+    "finished": "2026-11-15T03:40:27.364Z",
+    "status": 0,
+    "signal": null,
+    "pid": null,
+    "stdoutBytes": 141,
+    "stderrBytes": null,
+    "stderrAvailable": false,
+    "native": false,
+    "exactPriorSignature": false
+  },
+  {
+    "index": 3,
+    "stage": "worktrees/task-b",
+    "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-wK02Dx\\worktrees\\task-b",
+    "finished": "2026-11-15T03:40:27.928Z",
+    "status": 0,
+    "signal": null,
+    "pid": null,
+    "stdoutBytes": 141,
+    "stderrBytes": null,
+    "stderrAvailable": false,
+    "native": false,
+    "exactPriorSignature": false
+  }
+]

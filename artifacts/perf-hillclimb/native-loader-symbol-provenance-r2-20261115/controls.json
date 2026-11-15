@@ -1,0 +1,128 @@
+{
+  "at": "2026-11-15T06:38:29.429Z",
+  "cases": [
+    {
+      "name": "matched PE RSDS/PDB/runtime/public/INT3 byte",
+      "expectedError": null,
+      "error": null,
+      "asExpected": true
+    },
+    {
+      "name": "wrong DOS",
+      "expectedError": "DOS",
+      "error": "DOS\n\n23040 !== 23117\n",
+      "asExpected": true
+    },
+    {
+      "name": "wrong machine",
+      "expectedError": "x64",
+      "error": "x64\n\n332 !== 34404\n",
+      "asExpected": true
+    },
+    {
+      "name": "raw section out of file",
+      "expectedError": "PE range",
+      "error": "PE range",
+      "asExpected": true
+    },
+    {
+      "name": "CodeView identity too short",
+      "expectedError": "CodeView size",
+      "error": "CodeView size",
+      "asExpected": true
+    },
+    {
+      "name": "CodeView pointer mismatch",
+      "expectedError": "CodeView pointer/RVA",
+      "error": "CodeView pointer/RVA\n\n1344 !== 1348\n",
+      "asExpected": true
+    },
+    {
+      "name": "wrong PDB GUID",
+      "expectedError": "PDB/PE GUID mismatch",
+      "error": "PDB/PE GUID mismatch\n+ actual - expected\n\n+ '010102030405060708090a0b0c0d0e0f'\n- '000102030405060708090a0b0c0d0e0f'\n",
+      "asExpected": true
+    },
+    {
+      "name": "wrong PDB age",
+      "expectedError": null,
+      "error": null,
+      "asExpected": true
+    },
+    {
+      "name": "directory outside file",
+      "expectedError": "data block index",
+      "error": "data block index",
+      "asExpected": true
+    },
+    {
+      "name": "stream outside file",
+      "expectedError": "data block index",
+      "error": "data block index",
+      "asExpected": true
+    },
+    {
+      "name": "zero-length symbol",
+      "expectedError": "symbol record length",
+      "error": "symbol record length",
+      "asExpected": true
+    },
+    {
+      "name": "unmapped public segment",
+      "expectedError": "exact runtime-function start public symbol unavailable",
+      "error": "exact runtime-function start public symbol unavailable",
+      "asExpected": true
+    },
+    {
+      "name": "point not INT3 byte",
+      "expectedError": "observed point is not an INT3 byte",
+      "error": "observed point is not an INT3 byte\n\n144 !== 204\n",
+      "asExpected": true
+    },
+    {
+      "name": "DBI age differs",
+      "expectedError": "DBI/image age mismatch",
+      "error": "DBI/image age mismatch\n\n2 !== 1\n",
+      "asExpected": true
+    },
+    {
+      "name": "PDB info age4 with exact image1 DBI1",
+      "expectedError": null,
+      "error": null,
+      "asExpected": true
+    },
+    {
+      "name": "PDB info age below image",
+      "expectedError": "PDB info age older than image",
+      "error": "PDB info age older than image",
+      "asExpected": true
+    },
+    {
+      "name": "DBI zero is not exact modern binding",
+      "expectedError": "DBI/image age mismatch",
+      "error": "DBI/image age mismatch\n\n0 !== 1\n",
+      "asExpected": true
+    },
+    {
+      "name": "later info age cannot hide wrong DBI",
+      "expectedError": "DBI/image age mismatch",
+      "error": "DBI/image age mismatch\n\n2 !== 1\n",
+      "asExpected": true
+    }
+  ],
+  "allExpected": true,
+  "sourcePins": {
+    "pe-data.mjs": "4b8f4aeed8d5c6d763c9c53a7123028304c72a2f3fee1f10c12dd3671fe5e277",
+    "pdb-data.mjs": "d06a0f5c7ad31ad1e03631d53565314a6d8ead7dbc29cd5694a51c8f753c824a",
+    "resolve.mjs": "bce8c78b932206955c2817f1838dd2561bb007b476a674fbe4c5d30fd2cbf4c5",
+    "controls.mjs": "90f45b50fc643b95cc3092a26fea2ef7d83ec4816999e97a2430013420c195a3"
+  },
+  "correctedPriorExpectation": {
+    "name": "wrong PDB age",
+    "prior": "reject info2/image1/DBI1",
+    "current": "accept",
+    "reason": "Microsoft OpenValidate4: matching GUID, infoAge>=imageAge, DBIAge==imageAge. Legacy DBI0 remains unsupported here.",
+    "source": "https://github.com/microsoft/microsoft-pdb/blob/master/PDB/dbi/pdb.cpp"
+  },
+  "scope": "Builder static fixture controls only; exact14 retained mutations, one explicitly corrected expectation plus4 affected age controls. No native API/helper/target/capture, no real symbol data or safe-continuation acceptance."
+}

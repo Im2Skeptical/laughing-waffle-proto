@@ -1,0 +1,6 @@
+{
+  "name": "wrong-addendum-pin",
+  "status": "PASS expected rejection",
+  "expected": "/addendum pin/",
+  "error": "AssertionError [ERR_ASSERTION]: addendum pin\n+ actual - expected\n\n+ '5b73f0ab8f14021857a9f639c3127961f5c3188ead3f547df7bd26b0712b4b70'\n- '0000000000000000000000000000000000000000000000000000000000000000'\n\n    at loadFrozenLifeOracle (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle.mjs:173:10)\n    at async negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:19)\n    at async run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:84:5)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:171:3"
+}

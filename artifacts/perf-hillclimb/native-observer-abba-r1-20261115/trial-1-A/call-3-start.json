@@ -1,0 +1,9 @@
+{
+  "index": 3,
+  "stage": "worktrees/task-b",
+  "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-QhH96i\\worktrees\\task-b",
+  "started": "2026-11-15T03:39:56.368Z",
+  "timeoutMs": 40000,
+  "fixturePort": 50251,
+  "subjectNormalizedSha256": "1d67e6672d6abcc95cbd41b1e13138f101cdcf6ac9e70ff8da0d10cb1d2fa4b9"
+}

@@ -1,0 +1,184 @@
+{
+  "at": "2026-11-15T05:42:06.867Z",
+  "scope": "Actual frozen checker body evaluated in node VM with memory-only filesystem; no actual control roots written, Native/controller/stop script/target not invoked. PASS mutations identify checker false acceptance, not a native control pass.",
+  "checkerSha256": "b9f888e43095604d2ee40146ce13ac6de3281fc67283f8a1dc4951095737a17a",
+  "candidateSha256": "77a625b03ab1572dfce1dfad87c84d56e5d335c42cdb2617a2cee1fcb4e95fca",
+  "planSha256": "985a38a4a45faf7d06bced286dc2ef7769073f1a0317ef356f4e7b79db7814a5",
+  "caseCount": 20,
+  "falseAcceptances": 8,
+  "cases": [
+    {
+      "name": "self-consistent virtual normal",
+      "mode": "normal",
+      "expected": "PASS",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "self-consistent virtual nonzero",
+      "mode": "nonzero",
+      "expected": "PASS",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "self-consistent virtual synthetic-native",
+      "mode": "synthetic-native",
+      "expected": "PASS",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "self-consistent virtual timeout",
+      "mode": "timeout",
+      "expected": "PASS",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "self-consistent virtual descendant",
+      "mode": "descendant",
+      "expected": "PASS",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "self-consistent virtual observer-failure",
+      "mode": "observer-failure",
+      "expected": "PASS",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "missing loader event despite fact true",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": false
+    },
+    {
+      "name": "only exit event despite facts true",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": false
+    },
+    {
+      "name": "arbitrary loader address swallowed",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": false
+    },
+    {
+      "name": "wrong loader continuation",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": false
+    },
+    {
+      "name": "native classification with fatal count zero",
+      "mode": "synthetic-native",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": false
+    },
+    {
+      "name": "normal classification with fatal count one",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": false
+    },
+    {
+      "name": "normal with host incomplete code2",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": false
+    },
+    {
+      "name": "descendant missing all original child evidence",
+      "mode": "descendant",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": false
+    },
+    {
+      "name": "missing exit event",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "actual exit event missing/double/mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wrong event owner",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "event ownership/continuation error"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wrong raw byte length",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "raw byte lengths incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "stream error retained",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "stream errors/dropped errors"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wrong synthetic parameter",
+      "mode": "synthetic-native",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "supplied native record/parameters/chance mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wrong timeout error",
+      "mode": "timeout",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "expected timeout mismatch",
+        "unexpected observer errors"
+      ],
+      "asExpected": true
+    }
+  ]
+}

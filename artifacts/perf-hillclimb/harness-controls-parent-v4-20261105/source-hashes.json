@@ -1,0 +1,46 @@
+[
+    {
+        "Path":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\harness-controls-parent-v4-20261105\\sources\\active-work-oracle-test.mjs",
+        "Hash":  "141BCE05E040196FECDDA89A0069E1C56FDFD347911D27793A69B1D168F43444"
+    },
+    {
+        "Path":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\harness-controls-parent-v4-20261105\\sources\\active-work-oracle.mjs",
+        "Hash":  "CC5C9D393904991865999822210274B50505FB6AD5B91D6728E9254F487CC6D7"
+    },
+    {
+        "Path":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\harness-controls-parent-v4-20261105\\sources\\browser-runtime-test.mjs",
+        "Hash":  "D46195A4A3C65B70A9B244B72FC1309932E2AFFBD4CB1BEEB65833514DD37BD7"
+    },
+    {
+        "Path":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\harness-controls-parent-v4-20261105\\sources\\browser-runtime.mjs",
+        "Hash":  "F81EFB2ACCBA8B8AE3B7C35DB109835C8639AA91C87C7E3EC69541FC608714F1"
+    },
+    {
+        "Path":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\harness-controls-parent-v4-20261105\\sources\\deadline-test.mjs",
+        "Hash":  "57B47AE59B4CD5D4FAB35BBD789701A723E0ED06A8D044698D84E4A2A52BE6D7"
+    },
+    {
+        "Path":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\harness-controls-parent-v4-20261105\\sources\\deadline.mjs",
+        "Hash":  "B38266F2E0E32344E1128150B7156868F95AD4F96A4C0D835EBCD1C44A747073"
+    },
+    {
+        "Path":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\harness-controls-parent-v4-20261105\\sources\\offered-input-test.mjs",
+        "Hash":  "39220DFF90E409C6AD5FA2E4984DC117F687AA670AC62EE2D11F920EA2B076B7"
+    },
+    {
+        "Path":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\harness-controls-parent-v4-20261105\\sources\\offered-input.mjs",
+        "Hash":  "AFA1362EABA2E70F8269173228FB7A67F066EA6F62CEE285F085BA9DBC941BE2"
+    },
+    {
+        "Path":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\harness-controls-parent-v4-20261105\\sources\\run.mjs",
+        "Hash":  "71814005AE145DFCEE7B1E736C9B1F04C0ECF9EA9DEE4A50052FABA86F3346B1"
+    },
+    {
+        "Path":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\harness-controls-parent-v4-20261105\\sources\\statistics-test.mjs",
+        "Hash":  "036E6579BFB39D6BD203C5DF5E48C6581CDE543EA274930586881C18330D44F5"
+    },
+    {
+        "Path":  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\harness-controls-parent-v4-20261105\\sources\\statistics.mjs",
+        "Hash":  "9443D67041037FE97B1F9198067BE8CFB2E0A9C065B40ED02F6EF24521BD4153"
+    }
+]

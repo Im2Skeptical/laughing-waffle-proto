@@ -1,0 +1,14 @@
+{
+    "time":  "2026-11-04T21:03:36.9704752Z",
+    "root":  "\"C:\\Program Files\\nodejs\\node.exe\" scripts/perf-hillclimb/feedback-gesture-controls.mjs feedback-gesture-controls-r1-20261105",
+    "ownedProcessIds":  [
+                            35640,
+                            35972,
+                            10320,
+                            6424,
+                            38336,
+                            20440,
+                            33956
+                        ],
+    "reason":  "Superseded invalid readiness: first Present click preceded full opening readiness; first case failed at 180s; second incomplete; no gesture-dispatch proof"
+}

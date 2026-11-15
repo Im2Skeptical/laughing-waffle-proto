@@ -1,0 +1,15 @@
+{
+    "time":  "2026-11-04T21:34:54.4176458Z",
+    "root":  "\"C:\\Program Files\\nodejs\\node.exe\" scripts/perf-hillclimb/feedback-proof-matrix.mjs feedback-final-matrix-r1-20261105",
+    "ownedIds":  [
+                     4600,
+                     25244,
+                     19060,
+                     38624,
+                     30868,
+                     4352,
+                     3064,
+                     35828
+                 ],
+    "reason":  "Repair real public Settlement view binding and Present autonomous scrub-field drift; completed cells remain diagnostic, all unexecuted cells interrupted"
+}

@@ -1,0 +1,136 @@
+{
+  "at": "2026-11-15T03:06:25.002Z",
+  "driverSha256": "1150f3d913bed5ebafcad2a20d4f292ef97d53f55e247b6f4a303ed805ca56bf",
+  "scope": "Virtual pure driver-classification repair checks only; no fixture or startup process created",
+  "cases": [
+    {
+      "name": "valid no-reproduction",
+      "expected": "NO_REPRODUCTION_NOT_A_FIX",
+      "actual": "NO_REPRODUCTION_NOT_A_FIX",
+      "error": null,
+      "problems": [],
+      "pass": true
+    },
+    {
+      "name": "valid linked native red",
+      "expected": "RED_PRIOR_NATIVE_SIGNATURE_REPRODUCED",
+      "actual": "RED_PRIOR_NATIVE_SIGNATURE_REPRODUCED",
+      "error": null,
+      "problems": [],
+      "pass": true
+    },
+    {
+      "name": "wrong cwd",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "wrong/missing registered cwd at2",
+        "prior-signature metadata mismatch at2"
+      ],
+      "pass": true
+    },
+    {
+      "name": "missing cwd",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "wrong/missing registered cwd at2",
+        "prior-signature metadata mismatch at2"
+      ],
+      "pass": true
+    },
+    {
+      "name": "nonarray cleanup",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [],
+      "pass": true
+    },
+    {
+      "name": "unconfirmed cleanup",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [],
+      "pass": true
+    },
+    {
+      "name": "missing calls",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "helperCalls must be an array",
+        "missing or excess original helper calls",
+        "complete prefix requires four successful original calls and normal exit"
+      ],
+      "pass": true
+    },
+    {
+      "name": "null call object",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": "Cannot read properties of null (reading 'status')",
+      "problems": [],
+      "pass": false
+    },
+    {
+      "name": "native followed by null call",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": "Cannot read properties of null (reading 'pid')",
+      "problems": [],
+      "pass": false
+    },
+    {
+      "name": "missing stdout file",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "missing raw stdout at2:ENOENT",
+        "prior-signature metadata mismatch at2"
+      ],
+      "pass": true
+    },
+    {
+      "name": "wrong propagated PID",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "native signature missing original propagated error"
+      ],
+      "pass": true
+    },
+    {
+      "name": "wrong stage",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [
+        "wrong original call order/stage at2",
+        "prior-signature metadata mismatch at2"
+      ],
+      "pass": true
+    },
+    {
+      "name": "outer cleanup signal",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [],
+      "pass": true
+    },
+    {
+      "name": "outer cleanup error",
+      "expected": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "actual": "INCOMPLETE_OR_INFRASTRUCTURE",
+      "error": null,
+      "problems": [],
+      "pass": true
+    }
+  ],
+  "pass": false
+}

@@ -1,0 +1,37 @@
+{
+  "at": "2026-11-14T22:45:48.855Z",
+  "completed": 20,
+  "failed": [],
+  "nextIndex": 20,
+  "cleanupVerified": true,
+  "latestChunk": "chunk-2026-11-14T22-44-27-400Z.json",
+  "chunk": {
+    "started": "2026-11-14T22:24:07.389Z",
+    "finished": "2026-11-14T22:44:27.400Z",
+    "cells": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "completed": 20,
+    "failed": [],
+    "sourceAssetChanges": [],
+    "nextIndex": 20
+  }
+}

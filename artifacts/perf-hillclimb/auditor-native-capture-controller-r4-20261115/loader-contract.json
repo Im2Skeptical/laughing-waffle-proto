@@ -1,0 +1,22 @@
+{
+  "ImageSha256": "a0f81bf5c610c0ff0a550adc020a58446f214790c748057bb575042e972e6a34",
+  "PdbSha256": "26d65ee88992ad9c3b258142f7dd3aac3b56f9e271587d9043d01dab3552163c",
+  "Symbol": "LdrpDoDebuggerBreak",
+  "GuidRaw": "bd4c2944e85567cdb3d56b689f03152d",
+  "ImageAge": 1,
+  "InfoAge": 4,
+  "DbiAge": 1,
+  "FunctionBeginRva": 1200656,
+  "FunctionEndRva": 1200718,
+  "BodySha256": "b0d15223c10f0d345e73b469946eaf4e224ee1ab6cb3a4b1bb31ef0846bd1a32",
+  "TrapRva": 1200709,
+  "ReachableTrapOffset": 53,
+  "ExcludedTrapOffsets": [
+    61
+  ],
+  "QueryExportRva": 1468528,
+  "InstructionDerivationSha256": "ce361761a1f4808a808116aa82c4076373aa0e0a690087ca737f4a8c1b2d3ace",
+  "Scope": "Static named routine/CFG derivation from PE/PDB only; startup phase/thread/once gating and independent source acceptance required. No observed event address input.",
+  "ImagePath": "C:\\WINDOWS\\System32\\ntdll.dll",
+  "PdbPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-loader-symbol-provenance-r1-20261115\\ntdll.pdb"
+}

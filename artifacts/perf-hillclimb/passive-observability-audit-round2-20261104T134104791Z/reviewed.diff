@@ -1,0 +1,400 @@
+diff --git a/package.json b/package.json
+index 249b65fd..e2f180ab 100644
+--- a/package.json
++++ b/package.json
+@@ -32,7 +32,7 @@
+     "test:keywords": "node scripts/practice-keywords-test.mjs && node scripts/keywords-classes-prototype-test.mjs && node scripts/bronze-keyword-cards-test.mjs",
+     "test:card-review": "node scripts/card-review-test.mjs && node scripts/catalogue-summary-test.mjs && node scripts/locked-stock-context-test.mjs",
+     "test:save-recovery": "node scripts/save-recovery-test.mjs && node scripts/save-indexeddb-test.mjs && node scripts/save-load-worker-test.mjs && node scripts/save-import-boundaries-test.mjs",
+-    "test:presentation": "node scripts/chronicle-art-test.mjs && node scripts/minimal-graphics-test.mjs && node scripts/progressive-art-test.mjs && node scripts/performance-start-test.mjs && node scripts/region-map-camera-test.mjs && node scripts/territory-boundary-cache-test.mjs && node scripts/presentation-time-test.mjs && node scripts/time-controls-test.mjs && node scripts/timegraph-focus-test.mjs && node scripts/edge-transfer-scrub-gate-test.mjs && node scripts/trade-corridors-test.mjs && node scripts/forecast-worker-service-test.mjs && node scripts/node-resolution-diagnostics-test.mjs && node scripts/new-game-opening-test.mjs && node scripts/prepared-forecast-handoff-test.mjs && node scripts/game-display-mode-test.mjs && node scripts/creep-terminology-test.mjs && node scripts/mechanics-catalogue-test.mjs && node scripts/life-map-interaction-test.mjs && node scripts/life-decision-test.mjs && node scripts/opening-graph-editor-test.mjs",
++    "test:presentation": "node scripts/chronicle-art-test.mjs && node scripts/minimal-graphics-test.mjs && node scripts/progressive-art-test.mjs && node scripts/performance-start-test.mjs && node scripts/region-map-camera-test.mjs && node scripts/territory-boundary-cache-test.mjs && node scripts/presentation-time-test.mjs && node scripts/time-controls-test.mjs && node scripts/timegraph-focus-test.mjs && node scripts/edge-transfer-scrub-gate-test.mjs && node scripts/trade-corridors-test.mjs && node scripts/forecast-worker-service-test.mjs && node scripts/node-resolution-diagnostics-test.mjs && node scripts/new-game-opening-test.mjs && node scripts/prepared-forecast-handoff-test.mjs && node scripts/game-display-mode-test.mjs && node scripts/creep-terminology-test.mjs && node scripts/mechanics-catalogue-test.mjs && node scripts/life-map-interaction-test.mjs && node scripts/life-decision-test.mjs && node scripts/timing-observability-test.mjs && node scripts/opening-graph-editor-test.mjs",
+     "probe:civilization": "node scripts/civilization-browser-probe.mjs",
+     "probe:development-lab": "node scripts/development-lab-browser-probe.mjs",
+     "probe:prototypes": "node scripts/prototype-workbenches-browser-probe.mjs",
+diff --git a/src/controllers/life-decision-controller.js b/src/controllers/life-decision-controller.js
+index eb1172a1..66a334b0 100644
+--- a/src/controllers/life-decision-controller.js
++++ b/src/controllers/life-decision-controller.js
+@@ -191,6 +191,27 @@ export function createLifeDecisionController({
+   return {
+     handles: kind => LIFE_DRAFT_ACTIONS.has(kind) || TRANSACTIONS.has(kind),
+     getState: current,
++    // Unlike getStatus, observation must not sync/terminate a stale job.
++    getTimingSnapshot() {
++      const timeline = getRunner().getTimeline();
++      const sourceRevision = timeline?.revision ?? null;
++      const sourceSec = timeline == null ? null : Math.floor(timeline.historyEndSec ?? 0);
++      const timelineMatches = base == null ? null : base.timeline === timeline;
++      const sourceMatches = base == null ? null : timelineMatches
++        && base.revision === sourceRevision && base.sec === sourceSec;
++      return {
++        sourceRevision, sourceSec, baseRevision: base?.revision ?? null,
++        baseSec: base?.sec ?? null, timelineMatches, sourceMatches,
++        requestId, revision, adopting, workerActive: worker !== null,
++        draftActive: draft !== null, draftActionCount: actions.length,
++        jobActive: job !== null, phase: job?.phase ?? null, error: job?.error ?? null,
++        accepted: job == null ? null : job.accepted === true,
++        jobReady: job == null ? null : job.ready === true,
++        ready: job == null ? null : sourceMatches === true && job.ready === true,
++        targetSec: job?.targetSec ?? null, computedSec: job?.computedSec ?? null,
++        revealSec: job?.revealSec ?? null,
++      };
++    },
+     getStatus() {
+       sync();
+       return job ? { phase: job.phase, error: job.error, canReturn: !job.accepted, ready: job.ready === true,
+diff --git a/src/model/timegraph/controller-core.js b/src/model/timegraph/controller-core.js
+index a08ef8dd..35b9270a 100644
+--- a/src/model/timegraph/controller-core.js
++++ b/src/model/timegraph/controller-core.js
+@@ -1113,6 +1113,38 @@ export function createTimeGraphController({
+     return { ok: true };
+   }
+ 
++  // Passive observation only: do not synchronize coverage or consult projection.
++  function getTimingSnapshot({ anchorSec, includeProjectionSource = false } = {}) {
++    const requestedAnchorSec = Number.isInteger(anchorSec) && anchorSec >= 0 ? anchorSec : null;
++    // Scope is deliberately this controller's actual retained boundary store.
++    // The shared projection LRU has no passive membership seam; never touch it.
++    const anchors = graphCache?.stateDataByBoundary;
++    return {
++      ...(includeProjectionSource === true ? {
++        projection: projection.getTimingSnapshot?.({ timeline: getTimeline?.(), anchorSec: requestedAnchorSec }) ?? null,
++      } : {}),
++      ...(requestedAnchorSec == null ? {} : {
++        requestedAnchorSec,
++        hasRetainedAnchor: anchors instanceof Map ? anchors.has(requestedAnchorSec) : null,
++        retainedAnchorSource: anchors instanceof Map
++          ? requestedAnchorSec > graphCache.historyEndSec ? 'graph-forecast-boundary' : 'graph-history-boundary'
++          : null,
++        retainedAnchorScope: 'graph-boundary-store',
++      }),
++      cacheVersion: graphCache?.version ?? cacheVersion,
++      subjectKey,
++      historyEndSec: graphCache?.historyEndSec ?? null,
++      computedSec: graphCache?.window?.forecastCoverageEndSec ?? null,
++      requestedSec: graphCache?.window?.forecastRequestedEndSec ?? null,
++      pending: graphCache?.window ? graphCache.window.forecastPending === true : null,
++      asyncToken: lastAsyncForecastToken,
++      asyncPollMs: Number.isFinite(lastAsyncForecastPollMs) ? lastAsyncForecastPollMs : null,
++      asyncHistoryEndSec: lastAsyncForecastHistoryEndSec,
++      asyncRequestedSec: lastAsyncForecastDesiredEndSec,
++      asyncComputedSec: lastAsyncForecastCoverageEndSec,
++    };
++  }
++
+   function getData() {
+     const tl = getTimeline?.();
+     if (tl) {
+@@ -1763,6 +1795,7 @@ export function createTimeGraphController({
+     handleInvalidate,
+     update,
+     getData,
++    getTimingSnapshot,
+     getSamplesForWindow,
+     getSeriesValuesForSeconds,
+     getStateDataAt,
+diff --git a/src/model/timegraph/projection-cache.js b/src/model/timegraph/projection-cache.js
+index 0ee3864e..63bc2945 100644
+--- a/src/model/timegraph/projection-cache.js
++++ b/src/model/timegraph/projection-cache.js
+@@ -290,6 +290,23 @@ export function createProjectionCache({
+     return `sig:${signatureVersion}`;
+   }
+ 
++  // Optional debug observation. Do not ensureSignature, touch the LRU, or
++  // enumerate anchors: a stale source must stay stale until normal orchestration.
++  function getTimingSnapshot({ timeline, anchorSec } = {}) {
++    const knownSignature = signature !== null && typeof signature === 'object';
++    return {
++      signatureVersion,
++      timelineToken: knownSignature ? `sig:${signatureVersion}` : null,
++      signatureMatches: timeline == null ? null
++        : knownSignature && signatureEquals(computeTimelineSignature(timeline), signature),
++      ...(Number.isInteger(anchorSec) && anchorSec >= 0 ? {
++        requestedAnchorSec: anchorSec,
++        hasRetainedAnchor: stateDataBySecond.has(anchorSec),
++        retainedAnchorScope: 'controller-projection-store',
++      } : {}),
++    };
++  }
++
+   function shouldAbsorbPersistentKnowledge(opts = {}) {
+     return opts?.absorbPersistentKnowledge !== false;
+   }
+@@ -658,6 +675,7 @@ export function createProjectionCache({
+     ensureSignature,
+     invalidateFromSecond,
+     getTimelineToken,
++    getTimingSnapshot,
+     ensureStateAtSecond,
+     ensureForecastWindow,
+     mergeForecastChunk,
+diff --git a/src/views/chronicle-art.js b/src/views/chronicle-art.js
+index bdfb3f16..611f2e44 100644
+--- a/src/views/chronicle-art.js
++++ b/src/views/chronicle-art.js
+@@ -151,6 +151,36 @@ export function getChronicleTexture(file) {
+   return loadTexture(file);
+ }
+ 
++// Optional, untimed publication inventory. Read the very stores used by
++// loadTexture above: a retained packed texture is drawable iff its group is
++// not hidden, even in minimal mode. No resolver call, load, upload or revision.
++export function getChronicleArtworkPublicationSnapshot() {
++  const groups = [...Object.entries(PACKED_GROUPS),
++    ...[...presentationGroups].map(([prefix, group]) => [prefix, group])]
++    .filter(([, group]) => group !== PACKED_GROUPS.resources);
++  return {
++    version: 1, revision, minimalGraphics,
++    groups: groups.map(([id, group]) => {
++      let textureCount = 0, validTextureCount = 0, sampleFile = null;
++      for (const [file, texture] of packedTextures) {
++        if (packedGroupFor(file) !== group) continue;
++        textureCount++;
++        if (texture?.baseTexture?.valid === true && texture.valid !== false) validTextureCount++;
++        if (sampleFile == null) sampleFile = file;
++      }
++      const hidden = hiddenGroups.has(group);
++      return {
++        id, prefix: group.prefix, loadRequested: packedLoads.has(group), failed: failedGroups.has(group),
++        // loaded means at least one retained frame, not promise completion or GPU idle.
++        loaded: textureCount > 0, textureCount, validTextureCount, hidden,
++        drawingAvailable: textureCount > 0 && !hidden,
++        drawingAvailableCount: hidden ? 0 : textureCount,
++        sampleFile, sampleDrawingAvailable: sampleFile == null ? null : !hidden,
++      };
++    }),
++  };
++}
++
+ function artworkError(message, cause) {
+   const error = new Error(message, { cause });
+   error.code = 'artworkLoadFailed';
+diff --git a/src/views/timegraphs-pixi.js b/src/views/timegraphs-pixi.js
+index 572a2fb8..81c8ccea 100644
+--- a/src/views/timegraphs-pixi.js
++++ b/src/views/timegraphs-pixi.js
+@@ -2252,6 +2252,49 @@ export function createMetricGraphView({
+     return { x: topLeft.x, y: topLeft.y, width: bottomRight.x - topLeft.x, height: bottomRight.y - topLeft.y };
+   }
+ 
++  // Read raw reveal/scrub state. The normal cap accessor synchronizes getData;
++  // its equivalent arithmetic here deliberately leaves stale overrides alone.
++  function getTimingSnapshot(options = {}) {
++    const data = controller.getTimingSnapshot?.(options) ?? null;
++    // Copy the renderer's retained transform, without updating transforms/bounds.
++    // Coordinates can lag layout until the ordinary renderer runs.
++    const matrix = root.transform?.worldTransform;
++    const plotRect = matrix && matrix.b === 0 && matrix.c === 0 ? {
++      x: matrix.a * plot.x + matrix.tx, y: matrix.d * plot.y + matrix.ty,
++      width: matrix.a * plot.w, height: matrix.d * plot.h,
++    } : null;
++    const historyEndSec = Math.max(0, Math.floor(getTimeline?.()?.historyEndSec ?? 0));
++    const computedSec = data?.computedSec == null ? null
++      : Math.max(historyEndSec, Math.floor(data.computedSec));
++    const revealedSec = computedSec == null ? null : Math.max(historyEndSec, Math.min(
++      computedSec, reveal.historyEndSec === historyEndSec
++        ? Math.floor(reveal.visibleEndSec ?? historyEndSec) : historyEndSec));
++    return {
++      visible: root.visible === true, minSec, maxSec,
++      plotRect, plotRectSpace: 'stage-retained-transform',
++      ...(data && Object.hasOwn(data, 'projection') ? { projection: data.projection } : {}),
++      ...(data?.requestedAnchorSec == null ? {} : {
++        requestedAnchorSec: data.requestedAnchorSec, hasRetainedAnchor: data.hasRetainedAnchor,
++        retainedAnchorSource: data.retainedAnchorSource, retainedAnchorScope: data.retainedAnchorScope,
++      }),
++      scrubSec: scrub.scrubSec, isScrubbing: scrub.isScrubbing === true,
++      latchedForecastScrubSec: scrub.latchedForecastScrubSec,
++      historyEndSec, revealedSec, browseCapSec: revealedSec,
++      targetSec: reveal.targetEndSec,
++      computedSec, requestedSec: data?.requestedSec ?? null, pending: data?.pending ?? null,
++      cacheVersion: data?.cacheVersion ?? null, subjectKey: data?.subjectKey ?? null,
++      asyncToken: data?.asyncToken ?? null, asyncPollMs: data?.asyncPollMs ?? null,
++      asyncHistoryEndSec: data?.asyncHistoryEndSec ?? null,
++      asyncRequestedSec: data?.asyncRequestedSec ?? null, asyncComputedSec: data?.asyncComputedSec ?? null,
++      revealHistoryEndSec: reveal.historyEndSec,
++      animatedSec: reveal.animatedEndSec, visibleEndSec: reveal.visibleEndSec,
++      startSecOverride: reveal.startSecOverride,
++      readinessCapSec: reveal.readinessCapSec ?? null,
++      capEndSec: reveal.capEndSec, paused: reveal.paused,
++      presentationSuspended, openingRevealSec,
++    };
++  }
++
+   function getDebugState() {
+     syncProjectionReplacementDataContext();
+     const tl = getTimeline?.();
+@@ -2536,6 +2579,7 @@ export function createMetricGraphView({
+     getPlotScreenRect,
+     getPlotStageRect,
+     getDebugState,
++    getTimingSnapshot,
+     isScrubbing: () => scrub.isScrubbing === true,
+     getVisibleTimeSpanSec: () => Math.max(1, maxSec - minSec),
+     getForecastScrubCapSec: () => getVisibleForecastScrubCapSec(),
+diff --git a/src/views/ui-root-settlement-pixi.js b/src/views/ui-root-settlement-pixi.js
+index 6b9fc629..cb334042 100644
+--- a/src/views/ui-root-settlement-pixi.js
++++ b/src/views/ui-root-settlement-pixi.js
+@@ -1,4 +1,4 @@
+-import { hideChronicleArtwork } from './chronicle-art.js';
++import { hideChronicleArtwork, getChronicleArtworkPublicationSnapshot } from './chronicle-art.js';
+ import { progressiveGraphics, enablePerformanceGraphics } from './minimal-graphics.js';
+ import { loadProgressiveArtwork } from './progressive-artwork.js';
+ import { loadPerformanceStart } from '../controllers/performance-start.js';
+@@ -8,6 +8,7 @@ import { createVassalCommissionPicker } from './vassal-commission-picker-pixi.js
+ import { createLifeDecisionController } from "../controllers/life-decision-controller.js";
+ import { createNodeResolutionDiagnostics } from "../controllers/node-resolution-diagnostics.js";
+ import { createLifeProcessingView } from "./life-processing-pixi.js";
++import { createSettlementTimingSnapshot } from "./ui-root/settlement-timing-snapshot.js";
+ import { createGameSessionController } from "../controllers/game-session-controller.js";
+ import { openLabHandoff, readLabHandoff } from '../controllers/development-lab-bridge.js';
+ import { openCardReviewer, createCardReviewController } from '../controllers/card-review-controller.js';
+@@ -1539,6 +1540,19 @@ function resizeCanvas() {
+ 
+ function publishSettlementDebugApi() {
+   publishSettlementDebugApiForSettlement({
++    getTimingSnapshot: createSettlementTimingSnapshot({
++      getLocalState: () => ({ mode: worldViewMode, selectedRegionId: selectedWorldRegionId,
++        regionSelectionActive: worldMapRegionSelectionActive }),
++      getRunner: () => runner,
++      getMap: () => worldMapView?.getTimingSnapshot?.() ?? null,
++      getGraph: (options) => settlementGraphView?.getTimingSnapshot?.(options) ?? null,
++      getLifeMap: () => vassalLifeMapView?.getTimingSnapshot?.() ?? null,
++      getDecision: () => vassalNodeDecisionModalView?.getTimingSnapshot?.() ?? null,
++      getProcessing: () => lifeDecisionController?.getTimingSnapshot?.() ?? null,
++      getRecap: () => vassalResolutionRecapView?.getTimingSnapshot?.() ?? null,
++      getOpeningSnapshot: () => opening.getSnapshot(),
++      getArtwork: getChronicleArtworkPublicationSnapshot,
++    }),
+     getForecastStatus: () => settlementForecastController?.getForecastStatus?.() ?? null,
+     getFrontierSec: () => getSettlementFrontierSec(),
+     getViewedSec: () => getSettlementViewedSec(),
+diff --git a/src/views/ui-root/settlement-debug-api.js b/src/views/ui-root/settlement-debug-api.js
+index 3a377b55..2e41c593 100644
+--- a/src/views/ui-root/settlement-debug-api.js
++++ b/src/views/ui-root/settlement-debug-api.js
+@@ -94,6 +94,7 @@ function summarizeLineage(state) {
+ }
+ 
+ export function publishSettlementDebugApi({
++  getTimingSnapshot,
+   getForecastStatus,
+   getFrontierSec,
+   getViewedSec,
+@@ -178,6 +179,7 @@ export function publishSettlementDebugApi({
+ } = {}) {
+   if (typeof globalThis === "undefined") return;
+   globalThis.__SETTLEMENT_DEBUG__ = {
++    getTimingSnapshot,
+     getFounderSnapshot, getFounderControlClickPoint, getCommissionSnapshot, getCommissionChoiceClickPoint,
+     getLifeDecisionTimingSnapshot: () => {
+       const lineage = summarizeLineage(getFrontierState?.());
+diff --git a/src/views/vassal-life-map-pixi.js b/src/views/vassal-life-map-pixi.js
+index c3b80f83..74c7cb4d 100644
+--- a/src/views/vassal-life-map-pixi.js
++++ b/src/views/vassal-life-map-pixi.js
+@@ -568,6 +568,17 @@ export function createVassalLifeMapView({
+       }
+     },
+     handleKeyDown,
++    getTimingSnapshot() {
++      const entry = entryDialog.getSnapshot();
++      return {
++        visible: root.visible === true, selectedCandidateNodeId: candidateNodeId,
++        displayedVassalId, entryConfirmationOpen,
++        entryVisible: entry.visible, entryOpen: entry.open, entryPhase: entry.phase,
++        // The entry dialog's point reader uses retained layout arithmetic only.
++        // The other dock uses getBounds and is deliberately unavailable here.
++        entryPoint: entryConfirmationOpen ? entryDialog.getConfirmPoint() : null,
++      };
++    },
+     getCandidateNodeId: () => getCandidate()?.id ?? null,
+     isEntryConfirmationOpen: () => entryConfirmationOpen && confirmSurface.visible,
+     getEntryCancelClickPoint: () => entryConfirmationOpen ? entryDialog.getCancelPoint() : null,
+diff --git a/src/views/vassal-node-decision-modal-pixi.js b/src/views/vassal-node-decision-modal-pixi.js
+index 317448a6..f8adeaaf 100644
+--- a/src/views/vassal-node-decision-modal-pixi.js
++++ b/src/views/vassal-node-decision-modal-pixi.js
+@@ -1073,6 +1073,24 @@ export function createVassalNodeDecisionModalView({
+     },
+     init: () => {}, update: () => { advanceMotion(); render(); worldScreen.update(); },
+     refresh: () => render(true), resize: () => render(true),
++    getTimingSnapshot() {
++      const terrain = worldScreen.getTimingSnapshot();
++      return {
++        open: logicalOpen, nodeId: openNodeId,
++        phase: motion ? logicalOpen ? 'opening' : 'closing' : logicalOpen ? 'open' : 'closed',
++        pendingInteractionCount: root.pendingInteractionCount ?? null,
++        family: lastDecision?.node?.family ?? null,
++        selectedOptionId: lastDecision?.nodeState?.selectedOptionId ?? null,
++        resolving: lastDecision?.nodeState?.resolving ?? null,
++        shopTag: lastDecision?.shopTag ?? null,
++        offerIds: lastDecision?.offers?.map(offer => offer.offerId ?? null) ?? null,
++        purchaseOrder: lastDecision?.purchases?.map(purchase => purchase.offerId ?? null) ?? null,
++        boardPracticeIds: lastDecision?.settlement?.practices?.map(piece => piece?.practiceId ?? null) ?? null,
++        observedDecisionNodeId: lastDecision?.node?.id ?? null,
++        boardRegionId: lastDecision?.previewRegionId ?? null,
++        artReady: terrain.artReady, artPrepared: terrain.artPrepared,
++      };
++    },
+     open, close, isOpen: () => logicalOpen, getOpenNodeId: () => openNodeId,
+     getWorldDecisionPoint: (kind,id) => worldScreen.getPoint(kind,id),
+     getEnterNodeClickPoint: () => logicalOpen && enterRoot?.toGlobal
+diff --git a/src/views/vassal-node-decision/world-screen.js b/src/views/vassal-node-decision/world-screen.js
+index 1cfee8c3..58ab1f5c 100644
+--- a/src/views/vassal-node-decision/world-screen.js
++++ b/src/views/vassal-node-decision/world-screen.js
+@@ -210,6 +210,7 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
+   const point=control=>{if(!root.visible||!control)return null;const r=control.getBounds();return{x:r.x+r.width/2,y:r.y+r.height/2};};
+   const bounds=control=>{const r=control.getBounds();return{x:r.x,y:r.y,width:r.width,height:r.height};};
+   return {refresh,
++    getTimingSnapshot: () => map.getTimingSnapshot(),
+     getTerrainStats:()=>({...map.getSemanticSnapshot().illustratedTerrain}),
+     resetArtwork:()=>map.resetArtwork(),
+     prepareProgressive:(renderer,wait,isCurrent)=>map.prepareProgressive(renderer,wait,isCurrent),
+diff --git a/src/views/vassal-resolution-recap-pixi.js b/src/views/vassal-resolution-recap-pixi.js
+index 27f621bd..bd629395 100644
+--- a/src/views/vassal-resolution-recap-pixi.js
++++ b/src/views/vassal-resolution-recap-pixi.js
+@@ -169,6 +169,16 @@ export function createVassalResolutionRecapView({
+       ? dismissRoot.toGlobal(new PIXI.Point(
+         dismissRoot.hitArea.width / 2, dismissRoot.hitArea.height / 2
+       )) : null,
++    getTimingSnapshot() {
++      const clock = clockView?.getSnapshot?.();
++      return {
++        open: root.visible === true, continueState: dismissRoot?.interactionState ?? null,
++        clockStartedAt,
++        clock: clock == null ? null : {
++          second: clock.second ?? null, progress: clock.progress ?? null, locked: clock.locked ?? null,
++        },
++      };
++    },
+     getSemanticSnapshot: () => ({
+       open: root.visible,
+       continueState: dismissRoot?.interactionState ?? null,
+diff --git a/src/views/world-map-pixi.js b/src/views/world-map-pixi.js
+index dcc46e5b..cee9e9b7 100644
+--- a/src/views/world-map-pixi.js
++++ b/src/views/world-map-pixi.js
+@@ -1114,6 +1114,18 @@ export function createWorldMapView({
+         stockTransferIcons.beginFrame();
+       }
+     },
++    getTimingSnapshot() {
++      const pose = camera.snapshot();
++      const panel = panelReveal.snapshot();
++      return {
++        visible: root.visible === true,
++        detailVisible: root.visible === true && detailRoot.visible === true,
++        camera: { x: pose.x, y: pose.y, zoom: pose.zoom },
++        focusAnimating: camera.isAnimating(),
++        panelPhase: panel.phase, panelAnimating: panel.animating,
++        artReady: illustrated.stats.ready ?? null, artPrepared: illustrated.stats.prepared ?? null,
++      };
++    },
+     getSemanticSnapshot: () => {
+       const state = getState?.();
+       const regionId = getSelectedRegionId?.();

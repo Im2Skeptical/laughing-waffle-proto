@@ -1,0 +1,13 @@
+{
+  "at": "2026-11-15T01:47:20.853Z",
+  "inputSha256": "ef4a62c628e77a520c0707dd0179bedba3f8e27630afcf2b18972da22b6e58d9",
+  "extractionSha256": "fd69488ef2227cea5571ef7b1cc95103f66b86dcbc515508372b8cd4c887d62f",
+  "verdict": "ACCEPT_CURRENT_DESKTOP_PAN_LINKAGE_ONLY",
+  "chunksAfterRead": 11,
+  "computedAtInput": 196,
+  "computedAtTerminal": 416,
+  "uncertaintyMs": 1.3046500000000378,
+  "sourceCount": 683,
+  "assetCount": 5,
+  "cleanupVerified": true
+}

@@ -1,0 +1,4 @@
+{
+  "message": "first response precedes final offered event",
+  "stack": "AssertionError [ERR_ASSERTION]: first response precedes final offered event\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/feedback-gesture-controls.mjs:58:38"
+}

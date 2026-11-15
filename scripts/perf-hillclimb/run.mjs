@@ -22,7 +22,7 @@ import {installFeedbackBindings,feedbackBinding} from './feedback-bindings.mjs';
 import {summarize} from './statistics.mjs';
 import {dispatchOfferedDrag,dispatchOfferedPinch} from './offered-input.mjs';
 import {assertActiveWork} from './active-work-oracle.mjs';
-import {expectedPlanningPause,expectedOpeningKnowledge} from './save-state-oracle.mjs';
+import {expectedPlanningPause,expectedOpeningKnowledge,settledSaveKnowledge,assertSettledSaveAfter,SETTLED_SAVE_KNOWLEDGE_POLICY} from './save-state-oracle.mjs';
 import {scrubComplete,installSaveCompletionControl,installScrubInputObservation,installStaleGenerationControl} from './main-job-oracles.mjs';
 import {MAP_VIEWPORT_RECT} from '../../src/views/world-map/constants.js';
 import {withDeadline} from './deadline.mjs';
@@ -39,7 +39,7 @@ const config={jobs:String(args.jobs??'all').split(','),samples:Number(args.sampl
   workerDelayMs:Number(args['worker-delay']??0),timeoutMs:Number(args.timeout??180000),
   port:Number(args.port??18244),dist:String(args.dist??'dist'),seed:Number(args.seed??123),control:args.control??null,feedback:args.feedback!=='off',visual:args['visual-evidence']==='1'};
 const requestedJobs=[...config.jobs];config.jobs=normalizeJobSelection(requestedJobs);
-assert.ok([null,'wrong-target','stale-generation','clamp-bypass','wrong-save','deferred-save','pre-page-failure'].includes(config.control));
+assert.ok([null,'wrong-target','stale-generation','clamp-bypass','wrong-save','deferred-save','pre-page-failure','settled-missing-frame','settled-never-evaluation'].includes(config.control));
 const prePageControlJob=config.control==='pre-page-failure'?String(args['control-job']??config.jobs.at(-1)):null;
 assert.ok(!args['control-job']||config.control==='pre-page-failure','control-job requires the explicit pre-page-failure control');
 assert.ok(prePageControlJob===null||config.jobs.includes(prePageControlJob),'pre-page control job must be selected');
@@ -166,6 +166,18 @@ async function record(job,step,body,{input,fixture=null,event='pointerdown',star
     }
     assert.ok(timing.elapsedMs>=0,'finite nonnegative browser elapsed');
     assert.ok(startNow||timing.trustedInput,'real trusted input required');
+    if(binding==='scrub'){
+      // Post-clock witness, with raw retained values. The press itself owns Hold;
+      // the harness never inserts a pause or rewrites the observed transport.
+      timing.holdRelease=await page.evaluate(()=>{
+        const s=__SETTLEMENT_DEBUG__.getRetainedFeedbackSnapshot();
+        return {atMs:performance.now(),transport:s.transport,momentum:s.momentum,timeControls:s.timeControls};
+      });
+      assert.equal(timing.holdRelease.transport.target,0,'released graph remains held');
+      assert.equal(timing.holdRelease.transport.current,0,'released graph current remains zero');
+      assert.equal(timing.holdRelease.momentum.active,false,'released graph has no wheel momentum');
+      assert.equal(timing.holdRelease.timeControls.lever.label,'HOLD','existing lever has drawn HOLD');
+    }
     oracleStart=oracle?await page.evaluate(()=>performance.now()):null;
     const oracleResult=oracle?await withDeadline(oracle(witness,timing),config.timeoutMs,`${job}/${step} untimed correctness oracle`):null;
     if(config.visual){const window={launchId,startMs:await page.evaluate(()=>performance.now()),endMs:null,reason:'separate comparison-ineligible visual diagnostic'};setupDiagnosticWindows.push(window);await page.screenshot({path:path.join(output,`${header.observationId.split(':').at(-1)}-after.png`)});window.endMs=await page.evaluate(()=>performance.now());}
@@ -233,7 +245,10 @@ async function closeSession(session){
       launches.at(-1).measuredDocumentResources=await withDeadline(session.page.evaluate(readScenarioResources),5000,
         'post-observation document resource evidence').catch(error=>({available:false,error:error.message}));
     }
-  }finally{await session.context.close();}
+  }finally{
+    await session.context.close();
+    (manifest.ownedContextCleanup??=[]).push({launchId,closed:true,pageClosed:session.page.isClosed(),at:new Date().toISOString()});
+  }
 }
 let nextWaitId=1;
 async function wait(fn,arg,timeout=config.timeoutMs,terminal=false) {
@@ -563,9 +578,55 @@ async function continueFixture(fixture,slot=1) {
   await useful();await present();
   return session;
 }
-async function persistedEntryOracle(fixture,tag,slot=1,openingKnowledge=false,{computedTerminalSec=null}={}){
+async function prepareSettledSaveKnowledge(fixture,tag){
+  assert.ok(frozen,'settled save knowledge requires the immutable pinned corpus');
+  const window={launchId,startMs:await withDeadline(currentPage.evaluate(()=>performance.now()),5000,'settled setup start marker'),endMs:null,
+    reason:'declared settled-terminal pre-save setup; includes frozen derivation/full inspection and is not a product speedup'};
+  setupDiagnosticWindows.push(window);
+  try{
+    const terminal=expectedOpeningKnowledge(expectedOracle,fixture.expectedState);
+    await withDeadline(observe((s,e)=>s.runner.frontierSec===e.seconds&&s.runner.actionCount===e.actions
+      &&s.graph.projection.signatureMatches===true&&s.graph.projection.timelineToken===s.graph.asyncToken
+      &&s.graph.asyncHistoryEndSec===e.seconds&&s.graph.computedSec>=e.lossSec,
+    {seconds:fixture.seconds,actions:fixture.actions,lossSec:terminal.lossSec},{terminal:false,query:{includeProjectionSource:true}}),config.timeoutMs,'settled terminal coverage');
+    const hostStarted=performance.now();
+    const readTimeout=['settled-missing-frame','settled-never-evaluation'].includes(config.control)?1500:config.timeoutMs;
+    const receipt=await withDeadline(currentPage.evaluate(async control=>{
+      if(__HC__.active)throw Error('settled save setup is forbidden under a latency clock');
+      const sample=()=>({atMs:performance.now(),snapshot:__SETTLEMENT_DEBUG__.getTimingSnapshot({includeProjectionSource:true})});
+      const ready=sample(),frames=[];
+      globalThis.__HC_SETTLED_SAVE_READ__={ready,frames,phase:'frames'};
+      if(control==='settled-never-evaluation'){
+        __HC_SETTLED_SAVE_READ__.phase='deliberate-never-evaluation';
+        await (globalThis.__HC_SETTLED_SAVE_NEVER__=new Promise(resolve=>{globalThis.__HC_SETTLED_SAVE_NEVER_RESOLVE__=resolve;}));
+      }
+      globalThis.__HC_SETTLED_SAVE_MISSING_CALLBACKS__=[];
+      const scheduleFrame=control==='settled-missing-frame'?callback=>__HC_SETTLED_SAVE_MISSING_CALLBACKS__.push(callback):requestAnimationFrame;
+      for(let i=0;i<2;i++)await new Promise(resolve=>scheduleFrame(()=>{frames.push(sample());resolve();}));
+      const startMs=performance.now(),before=__SETTLEMENT_DEBUG__.getTimingSnapshot({includeProjectionSource:true});
+      const actual=__SETTLEMENT_DEBUG__.inspectRetainedStates();
+      const after=__SETTLEMENT_DEBUG__.getTimingSnapshot({includeProjectionSource:true});
+      const receipt={ready,frames,read:{startMs,endMs:performance.now(),before,actual,after}};
+      globalThis.__HC_SETTLED_SAVE_READ__={...receipt,phase:'complete'};return receipt;
+    },config.control),readTimeout,'settled pre-save full read');
+    // Retain untouched bodies even when a following source/state assertion fails.
+    await writeFile(path.join(output,`${tag}-settled-save-preparation.json`),JSON.stringify({policy:SETTLED_SAVE_KNOWLEDGE_POLICY,
+      terminal,receipt,readerHostRpcMs:performance.now()-hostStarted,readerCpuMs:receipt.read.endMs-receipt.read.startMs}));
+    const knowledge=settledSaveKnowledge(expectedOracle,fixture,terminal,receipt);
+    window.endMs=await withDeadline(currentPage.evaluate(()=>performance.now()),5000,'settled setup end marker');
+    return {...knowledge,terminal,preparationWindow:{...window},artifact:`${tag}-settled-save-preparation.json`};
+  }catch(error){
+    const partial=await withDeadline(currentPage.evaluate(()=>globalThis.__HC_SETTLED_SAVE_READ__??null),5000,'settled setup partial receipt')
+      .catch(failure=>({available:false,error:failure.message}));
+    await writeFile(path.join(output,`${tag}-settled-save-preparation-failed.json`),JSON.stringify({policy:SETTLED_SAVE_KNOWLEDGE_POLICY,
+      error:error.stack,window,partial,scope:'failed/censored setup; no save completion or zero-cost claim'}));throw error;
+  }finally{if(window.endMs===null)window.endMs=await withDeadline(currentPage.evaluate(()=>performance.now()),5000,'settled setup final marker').catch(()=>null);}
+}
+async function persistedEntryOracle(fixture,tag,slot=1,openingKnowledge=false,{computedTerminalSec=null,settledKnowledge=false}={}){
+  const knowledge=settledKnowledge?await prepareSettledSaveKnowledge(fixture,tag):null;
   const previous=await currentPage.evaluate(readSave,{database:SAVE_DATABASE_NAME,slot});
   const saveOffset=await currentPage.evaluate(()=>__HC__.saveEvents.length);
+  const saveStartedMs=await currentPage.evaluate(()=>performance.now());
   await activate('game-menu-open');
   await wait(({slot,saveOffset,instrumentation})=>document.querySelector('[data-testid=game-save-status]')?.dataset.phase==='saved'
     &&(!instrumentation||__HC__.saveEvents.slice(saveOffset).some(e=>e.kind==='complete'&&e.slots.includes(slot))),
@@ -584,7 +645,14 @@ async function persistedEntryOracle(fixture,tag,slot=1,openingKnowledge=false,{c
     assert.equal(observed.graph.projection.timelineToken,observed.graph.asyncToken);
     assert.equal(observed.graph.asyncHistoryEndSec,fixture.seconds);
   }
-  const full=await fullSaveOracle(fixture,text,tag,{planningPause:true,openingKnowledge:openingKnowledge||observedTerminal});
+  if(knowledge)assertSettledSaveAfter(knowledge,fixture,observed,saveStartedMs);
+  const full=await fullSaveOracle(fixture,text,tag,{planningPause:true,openingKnowledge:openingKnowledge||observedTerminal,knowledge});
+  if(knowledge){
+    full.identity.settledSavePreparation={policy:knowledge.policy,artifact:knowledge.artifact,window:knowledge.preparationWindow,
+      setupThroughPersistedMs:await currentPage.evaluate(()=>performance.now())-knowledge.preparationWindow.startMs,
+      scope:'full setup-plus-save span retained; setup is outside existing transaction latency, never free or a speedup'};
+    await writeFile(path.join(output,`${tag}-settled-save-span.json`),JSON.stringify(full.identity.settledSavePreparation,null,2));
+  }
   full.identity.observedTerminalTrigger=computedTerminalSec===null?null:{frozenLossSec:computedTerminalSec,
     computedSec:observed.graph.computedSec,revealedSec:observed.graph.revealedSec,observedTerminal,
     sourceMatches:observed.graph.projection.signatureMatches,token:observed.graph.asyncToken};
@@ -684,7 +752,7 @@ async function performanceContinue() {
     }});
     const presentPoint=await point('getTimeActionClickPoint');
     await record('J2','performance-continue-present',()=>present(presentPoint),{input:'Present',fixture,
-      oracle:()=>persistedEntryOracle(fixture,`${launchId.split(':').at(-1)}-continued`,'performance-dev')});
+      oracle:()=>persistedEntryOracle(fixture,`${launchId.split(':').at(-1)}-continued`,'performance-dev',false,{settledKnowledge:true})});
     assert.deepEqual(session.errors,[]);
   }finally{await closeSession(session);}
 }
@@ -995,6 +1063,7 @@ async function saveLoad(fixtureName='later-history') {
       return previewOracle(fixture,s.viewedSec,s);
     }});
     await present();
+    const knowledge=await prepareSettledSaveKnowledge(fixture,`${launchId.split(':').at(-1)}-save`);
     if(config.control==='deferred-save')await currentPage.evaluate(installSaveCompletionControl);
     await record('J7','save-to-persisted',async()=>{
       await activate('game-menu-open');await currentPage.getByTestId('game-menu').waitFor({state:'visible'});
@@ -1024,12 +1093,17 @@ async function saveLoad(fixtureName='later-history') {
         const visible=timing.visibleSaveAcknowledgement?.firstVisibleSavedAfterNativeComplete;
         if(visible)assert.ok(visible.atMs>=delivery.deliveredAt,'old Saved text before deferred app acknowledgement cannot be new visible save feedback');
       }
-      const full=await fullSaveOracle(fixture,text,`${launchId.split(':').at(-1)}-save`,{planningPause:true});
+      assertSettledSaveAfter(knowledge,fixture,await currentPage.evaluate(()=>__SETTLEMENT_DEBUG__.getTimingSnapshot({includeProjectionSource:true})),timing.started);
+      const full=await fullSaveOracle(fixture,text,`${launchId.split(':').at(-1)}-save`,{planningPause:true,knowledge});
       // Fail closed on every source/persisted difference. Any legitimate new
       // survival knowledge needs an independently derived exact expectation
       // before acceptance; never merge the actual output into its own oracle.
       const continuation=await officialContinuationOracle(actual,full.expected,`${launchId.split(':').at(-1)}-save-continuation`);
-      return {characters:text.length,sha256:digest(text),stateSha256:digest(actual),seconds:actual.tSec,allFields:true,continuation,
+      const setupAndSave={policy:knowledge.policy,artifact:knowledge.artifact,window:knowledge.preparationWindow,
+        saveStartedMs:timing.started,saveFinishedMs:timing.finished,setupThroughSaveMs:timing.finished-knowledge.preparationWindow.startMs,
+        scope:'full setup-plus-save span; settled setup excluded only from transaction latency, never claimed free'};
+      await writeFile(path.join(output,`${launchId.split(':').at(-1)}-save-settled-span.json`),JSON.stringify(setupAndSave,null,2));
+      return {characters:text.length,sha256:digest(text),stateSha256:digest(actual),seconds:actual.tSec,allFields:true,continuation,setupAndSave,
         continuationSeconds:continuation.advancedSeconds};
     }});
     assert.deepEqual(session.errors,[]);
@@ -1123,7 +1197,8 @@ try {
         throw error;
       }finally{
         const owned=activeBrowser;activeBrowser=null;
-        if(owned)try{await withDeadline(owned.close(),10000,'owned browser cleanup');}
+        if(owned)try{await withDeadline(owned.close(),10000,'owned browser cleanup');
+          (manifest.ownedBrowserCleanup??=[]).push({launchId,closed:!owned.isConnected(),at:new Date().toISOString()});}
         catch(cleanupError){(manifest.cleanupErrors??=[]).push({launchId,error:cleanupError.message});if(!originalFailure)throw cleanupError;}
       }
     }

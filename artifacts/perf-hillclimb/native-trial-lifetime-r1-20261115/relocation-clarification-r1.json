@@ -1,0 +1,8 @@
+{
+  "at": "2026-11-15T10:44:02Z",
+  "correction": "Earlier prose said two empty stray directories were removed. The conditional cleanup actually removed ONLY the newly created native-trial-lifetime-r1-20261115 child. The sibling perf-hillclimb parent contains an OLDER native-capture-controller-r1-20261115 directory and was preserved.",
+  "finalCheck": "Directory-absent assertion for the entire sibling parent was overbroad and failed. Correct verification checks the own misplaced file/new child are absent, while preserving the older sibling child and parent.",
+  "sourceMove": "Only our new TrialHostPolicy.cs moved to authorized OLD artifacts root; initial bytes retained in host-policy-initial-relocated.cs.source.",
+  "frozenCheckpoint": "checkpoint-protocol-r2.json and its pinned docs remain immutable; this addendum corrects directory-cleanup prose without changing original source/build evidence.",
+  "nativeCalls": 0
+}

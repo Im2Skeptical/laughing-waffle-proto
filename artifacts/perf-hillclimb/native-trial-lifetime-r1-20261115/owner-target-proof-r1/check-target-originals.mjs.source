@@ -1,0 +1,40 @@
+// Independent target-file reconstruction from ORIGINAL BYTES. Still not full
+// cell/source/runtime/host acceptance. No builder classifier reuse.
+import path from 'node:path';import {createHash} from 'node:crypto';import {parseEvidenceJson} from './strict-evidence-json.mjs';
+const need=(v,m)=>{if(!v)throw new Error(m);};
+const canonical=v=>{need(typeof v==='string'&&/^[A-Za-z]:[\\/]/.test(v),'absolute target image');return path.win32.normalize(v).toLowerCase();};
+const decimal=v=>{need(typeof v==='string'&&/^[1-9][0-9]*$/.test(v)&&BigInt(v)<=0xffffffffffffffffn,'positive lossless decimal FILETIME');return BigInt(v);};
+const stable=v=>JSON.stringify(v&&typeof v==='object'&&!Array.isArray(v)?Object.fromEntries(Object.keys(v).sort().map(k=>[k,v[k]])):v);
+export function inspectTargetOriginals(report,contract,rawSummary,originals){
+  const mode=contract.mode;need((mode==='reuse'||mode==='fail-after-first')&&report.mode===mode,'target mode contract');need(originals instanceof Map&&originals.size<=64,'original target byte inventory');
+  const metadata=new Map();need(Array.isArray(report.targetOriginals)&&report.targetOriginals.length<=64,'target original metadata');
+  for(const f of report.targetOriginals){need(f&&typeof f.Name==='string'&&!metadata.has(f.Name)&&f.Error===null,'target original duplicate/name/error');metadata.set(f.Name,f);}
+  need(metadata.size===originals.size,'target original byte/metadata inventory mismatch');const files=new Map();
+  for(const [name,bytes] of originals){need(typeof name==='string'&&path.win32.basename(name)===name&&Buffer.isBuffer(bytes)&&bytes.length>0&&bytes.length<=8192&&name.endsWith('.json')&&!name.startsWith('target-error-'),'invalid/error/temporary original target bytes');const f=metadata.get(name);need(f&&f.Bytes===bytes.length&&f.Sha256===createHash('sha256').update(bytes).digest('hex'),'original target hash/byte count');const parsed=parseEvidenceJson(bytes,{maxBytes:8192,maxDepth:2,maxKeys:16});need(parsed&&!Array.isArray(parsed)&&typeof parsed==='object','flat target object');for(const v of Object.values(parsed))need(typeof v==='string'||typeof v==='boolean'||(Number.isInteger(v)&&v>=0&&v<=0xffffffff),'flat target scalar schema');need(stable(f.Values)===stable(parsed),'parsed Values differs from original bytes');files.set(name,parsed);}
+  const used=new Set(),get=(name,keys)=>{need(files.has(name),'missing original:'+name);used.add(name);const f=files.get(name);need(Object.keys(f).sort().join('|')===[...keys].sort().join('|'),'target schema:'+name);return f;};
+  const u=(f,k)=>{need(Number.isInteger(f[k])&&f[k]>=0&&f[k]<=0xffffffff,'target unsigned field:'+k);return f[k];};
+  const str=(f,k)=>{need(typeof f[k]==='string','target string field:'+k);return f[k];};
+  const yes=(f,k,v=true)=>need(f[k]===v,'target boolean:'+k);
+  const population=mode==='reuse'?4:3;need(report.processes.length===population&&rawSummary.processes.length===population,'target/native process population');
+  const roles=new Map(),ids=new Map(report.processes.map(p=>[p.pid,p.identity]));
+  for(const p of report.processes){const f=get(`identity-${p.pid}.json`,['Pid','ReportedParent','Role','CreatedFileTimeUtc','Image','DebuggerPresent']);const role=str(f,'Role');need(u(f,'Pid')===p.pid&&p.pid>0&&p.pid<=0x7fffffff&&decimal(f.CreatedFileTimeUtc)===BigInt(p.identity.CreatedFileTime)&&canonical(f.Image)===canonical(p.identity.Image),'original/native identity linkage');yes(f,'DebuggerPresent');need([mode,'helper-first','helper-second','daemon'].includes(role)&&!roles.has(role),'unknown/duplicate native role');roles.set(role,p.pid);}
+  const root=roles.get(mode),first=roles.get('helper-first'),second=roles.get('helper-second'),daemon=roles.get('daemon');need(root===contract.rootPid&&first&&daemon&&(mode==='reuse'?!!second:second===undefined),'required target role inventory');
+  const raw=new Map(rawSummary.processes.map(p=>[p.pid,p]));for(const [role,pid] of roles){const f=files.get(`identity-${pid}.json`);need(u(f,'ReportedParent')===(role===mode?0:role==='daemon'?first:root),'target reported parent');}
+  const start=(role,parent,child)=>{const f=get(`start-${role}.json`,['ParentPid','ChildPid','ChildCreatedFileTimeUtc','Image']);need(u(f,'ParentPid')===parent&&u(f,'ChildPid')===child&&decimal(f.ChildCreatedFileTimeUtc)===BigInt(ids.get(child).CreatedFileTime)&&canonical(f.Image)===canonical(contract.imagePath),'target Start/native child linkage');};
+  start('helper-first',root,first);start('daemon',first,daemon);
+  const ready=get('daemon-ready.json',['Pid','CreatedFileTimeUtc','Image']),time=BigInt(ids.get(daemon).CreatedFileTime);need(u(ready,'Pid')===daemon&&decimal(ready.CreatedFileTimeUtc)===time&&canonical(ready.Image)===canonical(contract.imagePath),'daemon ready native generation');
+  const daemonLink=f=>{need(u(f,'DaemonPid')===daemon&&decimal(f.CreatedFileTimeUtc)===time,'SAME daemon generation differs');yes(f,'DaemonAlive');};
+  const returned=get('helper-first-return.json',['HelperPid','DaemonPid','CreatedFileTimeUtc','DaemonAlive']);need(u(returned,'HelperPid')===first,'first helper return PID');daemonLink(returned);
+  const between=get('between-helpers.json',['RootPid','FirstHelperPid','FirstHelperExitCode','DaemonPid','CreatedFileTimeUtc','DaemonAlive']);need(u(between,'RootPid')===root&&u(between,'FirstHelperPid')===first&&u(between,'FirstHelperExitCode')===0,'between-helper return linkage');daemonLink(between);
+  const keys=['RootPid','ExpectedExitCode','Completed','AfterFirstReturn','DaemonPid','CreatedFileTimeUtc','DaemonAlive'];if(mode==='reuse')keys.push('SecondHelperPid');const outcome=get('prefix-outcome.json',keys);need(u(outcome,'RootPid')===root&&u(outcome,'ExpectedExitCode')===(mode==='reuse'?0:23),'root declared outcome');yes(outcome,'Completed',mode==='reuse');yes(outcome,'AfterFirstReturn');daemonLink(outcome);
+  need(raw.get(root).exitCode===(mode==='reuse'?0:23)&&raw.get(first).exitCode===0&&raw.get(daemon).exitCode===0xe0000001,'actual native exit codes; fallback96 is failure');
+  const r=raw.get(root),f=raw.get(first),d=raw.get(daemon);need(r.createIndex<f.createIndex&&f.createIndex<d.createIndex&&d.createIndex<f.exitIndex&&f.exitIndex<r.exitIndex&&r.exitIndex<d.exitIndex,'native daemon/helper interval');
+  if(mode==='reuse'){
+    start('helper-second',root,second);const s=raw.get(second);need(u(outcome,'SecondHelperPid')===second&&s.exitCode===0&&f.exitIndex<s.createIndex&&s.createIndex<s.exitIndex&&s.exitIndex<r.exitIndex,'native second-helper interval');
+    const request=get('reuse-request.json',['RequestorPid','Sequence']);need(u(request,'RequestorPid')===second&&u(request,'Sequence')===2,'reuse request');const reply=get('reuse-reply.json',['DaemonPid','RequestorPid','Sequence','CreatedFileTimeUtc']);need(u(reply,'DaemonPid')===daemon&&u(reply,'RequestorPid')===second&&u(reply,'Sequence')===2&&decimal(reply.CreatedFileTimeUtc)===time,'SAME live daemon reply');
+    const returned2=get('helper-second-return.json',['HelperPid','DaemonPid','CreatedFileTimeUtc','DaemonAlive','Sequence']);need(u(returned2,'HelperPid')===second&&u(returned2,'Sequence')===2,'second return');daemonLink(returned2);
+  }
+  need(used.size===files.size&&files.size===(mode==='reuse'?14:9),'extra/missing original target files');
+  const classification=mode==='reuse'?'SYNTHETIC_SAME_DAEMON_REUSE_LINKED':'SYNTHETIC_FAILURE_AFTER_FIRST_RETURN_LINKED';need(report.classification===classification,'builder classification contradicts independently reconstructed originals');
+  return {scope:'ORIGINAL_TARGET_BYTES_AND_NATIVE_INTERVAL_ONLY',completeCellAcceptance:false,classification,rootPid:root,firstHelperPid:first,secondHelperPid:second??null,daemonPid:daemon,daemonFileTimeHex:ids.get(daemon).CreatedFileTime,files:files.size};
+}

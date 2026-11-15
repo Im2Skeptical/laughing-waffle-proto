@@ -1,0 +1,408 @@
+import { MECHANIC_EFFECTS } from '../../defs/mechanics.js';
+import { validateGamepieceMechanics } from '../mechanic-validation.js';
+import { describeMechanicTrigger } from '../mechanic-readings.js';
+import { planPopulationRecipe, commitPopulationRecipe } from './political-recipes.js';
+import { keywordScaledAmount } from '../keywords-classes-prototype.js';
+import { assignDetailedSettlementWorkers, isScholarStaffed } from './workers.js';
+// Shared declarative Practice resolution; all temporal material state belongs to slots.
+import { detailedSettlementPracticeDefs } from '../../defs/gamepieces/detailed-settlement-defs.js';
+import { getDetailedPracticeDef, getDetailedStructureDef, getGameSetting } from '../game-config.js';
+import { getCurrentSeasonKey } from '../state.js';
+import { getRegionState } from '../world-state.js';
+import { getDetailedSettlement, getDetailedSettlementSite, getDetailedSettlementSites, getPopulationSummary } from './queries.js';
+import { stockCapacity, planStock, applyStockPlan, generateStock, specialistCount, trainSpecialists, structureModifiers, matchesPractice } from './stock.js';
+import { resolveExternalPractice, adjacentRegionIds, addMonsterPressure, triggerMonsterSpawn } from './external-world.js';
+import { applyBuild, findStructurePlacement } from '../structure-layout.js';
+import { addActionChaos, emitPracticeEvent, practiceEventJournal, tracePracticeEvent, withPracticeRoot } from './practice-events.js';
+import { stockTraits, stockProviderSlots, stockProviderSlot, stockOutputBreakdown } from './stock.js';
+import { getConnectedRegionIds } from '../world-state.js';
+
+export function validateDetailedPracticeDefinitions() {
+  const errors = [];
+  for (const [op, binding] of Object.entries(MECHANIC_EFFECTS)) {
+    if (binding.status === 'implemented' && !Object.hasOwn(practiceEffectResolvers, op)) errors.push(`${op}: registered without a resolver`);
+  }
+  for (const op of Object.keys(practiceEffectResolvers)) if (MECHANIC_EFFECTS[op]?.status !== 'implemented') errors.push(`${op}: resolver without an implemented binding`);
+  for (const [id, def] of Object.entries(detailedSettlementPracticeDefs)) {
+    if (def.id !== id || !Number.isInteger(def.workerCapacity)) errors.push(`${id}: invalid identity/workers`);
+    if (!['scheduled','charge'].includes(def.mode) || def.lane !== def.mode || (def.mode === 'charge') !== (def.activation.type === 'charge')) errors.push(`${id}: invalid mode`);
+    if (def.mode === 'charge' && (!def.charge?.trigger?.any?.length || !Number.isInteger(def.charge.gain) || def.charge.gain < 1 || !Number.isInteger(def.charge.threshold) || def.charge.threshold < 1)) errors.push(`${id}: invalid Charge grammar`);
+    if (def.mode === 'charge' && (def.consume.length || def.require.length)) errors.push(`${id}: Charge cannot consume or require Stock`);
+    errors.push(...validateGamepieceMechanics(def).map(error => `${id}: ${error}`));
+    for (const cost of [...def.consume, ...def.require]) {
+      if (!cost.traits.some(trait => Object.values(detailedSettlementPracticeDefs).some(provider => (['common', def.pool].includes(provider.pool)||def.provenance&&['sheepHusbandry','papermaking','recordKeeping','bowmaking','requisitioning'].includes(provider.id)) && provider.stockTraits.includes(trait)))) errors.push(`${id}: missing provider ${cost.traits}`);
+    }
+  }
+  return { ok: !errors.length, errors };
+}
+
+export { assignDetailedSettlementWorkers, isScholarStaffed } from './workers.js';
+export function getPracticeTags(state, practiceId, assignment = null) {
+  return [...new Set([...(getDetailedPracticeDef(state, practiceId)?.tags ?? []), ...(isScholarStaffed(assignment) ? ['Knowledge'] : [])])];
+}
+export function getLocalTaggedPieceCount(state, regionId, tag, { excludeStructureId = null } = {}) {
+  const settlement = getDetailedSettlement(state, regionId);
+  return assignDetailedSettlementWorkers(state, regionId).filter(a => getPracticeTags(state, a.practiceId, a).includes(tag)).length
+    + (settlement?.structureSlots ?? []).filter(s => s && !s.construction && s.structureId !== excludeStructureId && getDetailedStructureDef(state, s.structureId)?.tags.includes(tag)).length;
+}
+export function getLocalDistinctPieceTags(state, regionId) {
+  return [...new Set([...assignDetailedSettlementWorkers(state, regionId).flatMap(a => getPracticeTags(state, a.practiceId, a)), ...(getDetailedSettlement(state, regionId)?.structureSlots ?? []).flatMap(s => s?.construction ? [] : getDetailedStructureDef(state, s?.structureId)?.tags ?? [])])].sort();
+}
+export function getPhaseModifiers(state) { return state.civilization.phaseModifiers; }
+
+function conditionsMet(state, site, def, assignment, localOnly = false) {
+  const settlement = site.detailedState;
+  if (!state.rulesetId && def.scholarRequired && !isScholarStaffed(assignment)) return false;
+  if (!state.rulesetId && def.specialistRequired && !specialistCount(settlement, def.specialistRequired)) return false;
+  if (def.condition === 'diverseStock') {
+    const signatures = new Set(stockProviderSlots(state, settlement, localOnly).filter(s => !s.market && (s.slot?.stock ?? 0) > 0).map(s => stockTraits(state, s.slot).slice().sort().join('|')));
+    if (signatures.size < 2) return false;
+  }
+  if (def.condition === 'ruins' && !adjacentRegionIds(state, site.regionId).some(id => getRegionState(state, id)?.lostAtSec != null || getRegionState(state, id)?.monster)) return false;
+  if (def.condition === 'deaths' && !(settlement.history?.lastDeathSec === state.tSec)) return false;
+  if (def.condition === 'chaos' && !(state.civilization.chaos.lastMoonIncome?.totalIncome > 0)) return false;
+  if (def.condition === 'externalConnection' && !getConnectedRegionIds(state,site.regionId).some(id=>['frontier','external-a'].includes(getRegionState(state,id)?.controller))) return false;
+  if (def.minimumSupportRequired && getMartialSupportForCondition(state,site.regionId)<def.minimumSupportRequired) return false;
+  if (def.positiveSupportRequired && !(getMartialSupportForCondition(state,site.regionId) > 0)) return false;
+  if (def.minimumWarriors && specialistCount(settlement,'warrior') < def.minimumWarriors) return false;
+  if (def.connectedSupportRequired && !getConnectedRegionIds(state,site.regionId).some(id => getRegionState(state,id)?.controller === 'player' && specialistCount(getDetailedSettlement(state,id),'warrior') > 0)) return false;
+  return true;
+}
+
+// Positive manpower support avoids recursively evaluating supplied Practice bonuses.
+const getMartialSupportForCondition = (state,id) => Math.floor(specialistCount(getDetailedSettlement(state,id),'warrior') / 5);
+
+function practiceEffectAmount(state, site, assignment, effect, activationType = null) {
+  const settlement=site.detailedState, slot=settlement.practiceSlots[assignment.slotIndex];
+  const def=getDetailedPracticeDef(state,slot.practiceId);
+  activationType??=def.activation.type;
+  let amount=effect.activationAmounts?.[activationType] ?? (activationType==='season'?effect.seasonAmounts?.[getCurrentSeasonKey(state)]:undefined) ?? effect.amount ?? 0;
+  amount+=keywordScaledAmount(state,site.regionId,effect.keywordScale);
+  if (['addChaos','addMonsterPressure','triggerMonsterSpawn'].includes(effect.op)) return Math.max(0, amount);
+  const modifiers=structureModifiers(state,settlement);
+  if (effect.populationBand) amount+=Math.min(3+modifiers.reduce((n,m)=>n+(m.kind==='scalingCap'&&matchesPractice(state,slot,m.query,isScholarStaffed(assignment))?m.amount:0),0),Math.floor(getPopulationSummary(state,site.regionId).total/effect.populationBand));
+  if (effect.historyScale==='losses') amount+=Math.min(4,state.civilization.history?.lostSettlements??0);
+  if (effect.historyScale==='deaths') amount+=Math.min(2,settlement.history?.deaths??0);
+  if (effect.historyScale==='deathsSinceSpring' && activationType==='season') amount+=Math.min(1,Math.max(0,(settlement.history?.deaths??0)-(settlement.history?.springDeaths??0)));
+  if (effect.localDeathScale) amount+=Math.min(effect.localDeathCap??2,settlement.history?.lastDeathCount??0);
+  if (effect.externalConnectionScale) amount+=Math.min(3,getConnectedRegionIds(state,site.regionId).filter(id=>getRegionState(state,id)?.controller==='external-a').length);
+  if(effect.op==='convertPopulation')return Math.floor(amount*(def.mode==='charge'?1:1+assignment.effectiveWorkers*def.workerBonus));
+  if (effect.op==='generateStock') {
+    amount+=modifiers.reduce((sum,m)=>sum+(m.kind==='output'&&matchesPractice(state,slot,m.query,isScholarStaffed(assignment))?m.amount:0),0);
+    const seasonal=settlement.seasonalFoodBoost;
+    if (def.activation.type==='season' && def.tags.includes('Food') && def.stockTraits.includes('Edible') && seasonal?.year===state.year
+      && seasonal.practiceId===def.id && !seasonal.seasons.includes(getCurrentSeasonKey(state))) amount+=seasonal.amount;
+    amount=Math.floor(amount*stockOutputBreakdown(state,settlement,slot,isScholarStaffed(assignment),modifiers).multiplier*(def.mode==='charge'?1:1+assignment.effectiveWorkers*def.workerBonus));
+  }
+  amount+=modifiers.reduce((n,m)=>n+(m.kind==='effectBonus'&&matchesPractice(state,slot,m.query,isScholarStaffed(assignment))?m.amount:0),0);
+  return amount;
+}
+
+export function getChargeThreshold(state,settlement,slot,staffed=false) {
+  const def=getDetailedPracticeDef(state,slot?.practiceId);
+  if (def?.mode!=='charge') return null;
+  return Math.max(1,Math.floor(def.charge.threshold-structureModifiers(state,settlement).reduce((n,m)=>n+(m.kind==='chargeThresholdReduction'&&matchesPractice(state,slot,m.query,staffed)?m.amount:0),0)));
+}
+
+function chargeGain(state,settlement,slot,assignment) {
+  const def=getDetailedPracticeDef(state,slot.practiceId);
+  const base=def.charge.gain+structureModifiers(state,settlement).reduce((n,m)=>n+(m.kind==='chargeGain'&&matchesPractice(state,slot,m.query,isScholarStaffed(assignment))?m.amount:0),0);
+  // Charge is an integer meter, just like Stock. Workers accelerate the meter,
+  // never the effects released by it; passive gains are multiplied with base gain.
+  return Math.max(0,Math.floor(base*(1+assignment.effectiveWorkers*def.workerBonus)));
+}
+
+function recipePlan(state,site,assignment,localOnly = false) {
+  const settlement=site.detailedState, slot=settlement.practiceSlots[assignment.slotIndex],def=getDetailedPracticeDef(state,slot?.practiceId);
+  if (!conditionsMet(state,site,def,assignment,localOnly)) return {ok:false,reason:def.scholarRequired&&!isScholarStaffed(assignment)?'Requires a Scholar worker':'State / population requirements not satisfied',providers:[]};
+  let plan=planStock(state,settlement,def.consume,def.require,slot,isScholarStaffed(assignment),localOnly);
+  if (!plan.ok) return {...plan,reason:`Missing ${plan.missing.kind}: ${plan.missing.amount} [${plan.missing.traits.join(' / ')}]`};
+  if (def.mode==='charge' && def.effects.some(e=>e.op==='generateStock')) {
+    const spent=plan.providers.filter(p=>p.kind==='consume'&&p.regionId===site.regionId&&p.slotIndex===assignment.slotIndex).reduce((n,p)=>n+p.amount,0);
+    if ((slot.stock??0)-spent>=stockCapacity(state,settlement,slot,isScholarStaffed(assignment))) return {ok:false,providers:[],reason:'Stock capacity is full'};
+  }
+  if (def.mode==='charge' && def.effects.every(e=>e.op==='train') && Object.values(settlement.populationByClass).every(c=>c.adults<=c.specialists.scholar.adults+c.specialists.warrior.adults)) return {ok:false,providers:[],reason:'No unclassed adults available for training'};
+  const populationPlan=state.rulesetId?planPopulationRecipe(state,site,slot,def,def.effects.map(e=>practiceEffectAmount(state,site,assignment,e)),localOnly):{ok:true};
+  if(!populationPlan.ok)return {...populationPlan,providers:[]};
+  if(populationPlan.extraConsume?.length||populationPlan.extraRequire?.length){plan=planStock(state,settlement,[...def.consume,...populationPlan.extraConsume],[...def.require,...populationPlan.extraRequire],slot,isScholarStaffed(assignment),localOnly);if(!plan.ok)return plan;}
+  const external=def.externalAction?resolveExternalPractice(state,site,def,false):{ok:true,bonus:0};
+  return external.ok?{...plan,external,populationPlan}:{ok:false,providers:[],reason:'No eligible external target'};
+}
+
+export function buildDetailedPracticeEvaluation(state, site, assignment) {
+  const slot = site?.detailedState?.practiceSlots?.[assignment.slotIndex];
+  const def = getDetailedPracticeDef(state, slot?.practiceId);
+  if (!def) return null;
+  const plan = recipePlan(state,site,assignment);
+  const threshold=getChargeThreshold(state,site.detailedState,slot,isScholarStaffed(assignment));
+  const charge=threshold==null?null:Math.min(threshold,slot.charge??0);
+  return { practiceId: def.id, label: def.label, workerCapacity: def.workerCapacity, activation: def.activation, rule: def.ui.rule,
+    mode:def.mode,charge,chargeThreshold:threshold,chargeGain:def.mode==='charge'?chargeGain(state,site.detailedState,slot,assignment):null,chargeTrigger:def.mode==='charge'?describeMechanicTrigger(def.charge?.trigger):null,dischargeEffect:def.charge?.dischargeText??null,
+    ready:threshold!=null&&charge>=threshold,blocked:state.rulesetId?!plan.ok:threshold!=null&&charge>=threshold&&!plan.ok,blockedReason:(state.rulesetId||threshold!=null&&charge>=threshold)&&!plan.ok?plan.reason:null,
+    conversionTargets:plan.populationPlan?.conversions?.map(c=>({regionId:c.targetId,amount:c.selected.reduce((n,b)=>n+b.count,0)}))??[],
+    stock: slot.stock ?? 0, stockCapacity: stockCapacity(state, site.detailedState, slot, isScholarStaffed(assignment)), stockTraits: def.stockTraits,
+    providers: plan.providers, missing: plan.missing ?? null, supplied: plan.ok,
+    effects: def.effects.map(e => ({ op: e.op, scaledValue: { effectiveValue: practiceEffectAmount(state,site,assignment,e), baseValue: e.amount ?? 0, workerMultiplier: def.mode==='charge'?1:1 + assignment.effectiveWorkers * def.workerBonus } })) };
+}
+export function evaluateDetailedPracticeSlot(state, regionId, slotIndex) {
+  const site = getDetailedSettlementSites(state).find(s => s.regionId === regionId);
+  return site ? buildDetailedPracticeEvaluation(state, site, assignDetailedSettlementWorkers(state, regionId)[slotIndex]) : null;
+}
+
+export function runPracticeActivation(state, activationType, stage = null) {
+  if(state.rulesetId&&stage!=='postRouting'&&stage!=='afterMeals')for(const site of getDetailedSettlementSites(state).filter(s=>!s.neutral))for(const slot of site.detailedState.structureSlots.filter(Boolean)){
+    const upkeep=getDetailedStructureDef(state,slot.structureId)?.upkeep;
+    if(!slot.construction&&upkeep&&(upkeep.activation===activationType||activationType==='season'&&upkeep.activation===getCurrentSeasonKey(state))){
+      const payment=planStock(state,site.detailedState,upkeep.consume,[],null,false,true);
+      if(upkeep.disables)slot.upkeepActive=payment.ok;
+      if(payment.ok)applyStockPlan(state,site.detailedState,payment);
+    }
+  }
+  const sharedRetries = [];
+  for (const site of getDetailedSettlementSites(state)) {
+    if(site.neutral)continue;
+    if (!state.rulesetId && !['player', 'external-a'].includes(getRegionState(state, site.regionId)?.controller)) continue;
+    const settlement = site.detailedState;
+    for (const assignment of assignDetailedSettlementWorkers(state, site.regionId)) {
+      const slot = settlement.practiceSlots[assignment.slotIndex];
+      const def = getDetailedPracticeDef(state, slot?.practiceId);
+      if (!def || def.mode !== 'scheduled' || !(def.activation.type === activationType || def.activation.also?.includes(activationType)) || (stage && def.activation.stage !== stage)) continue;
+      if (activationType==='season' && def.activation.seasonKeys && !def.activation.seasonKeys.includes(getCurrentSeasonKey(state))) continue;
+      if (def.cadenceMoons && Math.floor(state.tSec / (getGameSetting(state, 'phaseDurationSec') * 6)) % def.cadenceMoons) continue;
+      const attempt = (currentAssignment, localOnly) => {
+        if (state.runStatus?.complete || site.simulationMode !== 'detailed' || site.neutral || (!state.rulesetId && !['player','external-a'].includes(getRegionState(state,site.regionId)?.controller))) return false;
+        if (def.activation.conditions?.[activationType] && !conditionsMet(state,site,{...def,condition:def.activation.conditions[activationType]},currentAssignment,localOnly)) return false;
+        const plan = recipePlan(state,site,currentAssignment,localOnly);
+        if (!plan.ok) return false;
+        withPracticeRoot(state,{kind:'scheduledActivation',regionId:site.regionId,practiceId:def.id,activationType},()=>resolveRecipe(state,site,currentAssignment,plan,false,activationType));
+        return true;
+      };
+      if (!attempt(assignDetailedSettlementWorkers(state,site.regionId)[assignment.slotIndex], true)) sharedRetries.push(() => {
+        const currentAssignment = assignDetailedSettlementWorkers(state, site.regionId)[assignment.slotIndex];
+        if (currentAssignment?.practiceId === def.id) attempt(currentAssignment, false);
+      });
+    }
+  }
+  // Scheduled local recipes precede reactions; both precede neighbour sourcing.
+  drainPracticeEvents(state, sharedRetries);
+}
+
+// One executor for every implemented catalogue binding. Validation checks both
+// directions, so registering a name without execution cannot silently ship.
+const practiceEffectResolvers = Object.freeze({
+  generateStock: ({state,settlement,slot,amount,plan,staffed}) => generateStock(state,settlement,slot,amount+plan.external.bonus,staffed),
+  // Conversion is selected and paid atomically with the whole recipe above.
+  convertPopulation: () => {},
+  addChaos: ({state,site,settlement,def,amount}) => {
+    if(!state.rulesetId||getRegionState(state,site.regionId).controller==='player') addActionChaos(state,amount,{regionId:site.regionId,practiceId:def.id});
+    else settlement.regionalChaos=(settlement.regionalChaos??0)+amount;
+  },
+  addMonsterPressure: ({state,amount}) => addMonsterPressure(state,amount),
+  triggerMonsterSpawn: ({state,amount}) => {
+    for (let count=0; count<amount && !state.runStatus?.complete; count++) triggerMonsterSpawn(state);
+  },
+  politicalForce: ({state,settlement,slot,effect,amount}) => {
+    settlement.politicalForce??={};
+    settlement.politicalForce[slot.instanceId]={allegiance:slot.allegiance,amount,defenseOnly:!!effect.defenseOnly,
+      untilSec:state.tSec+(effect.duration==='year'?state.seasonDurationSec*state.seasons.length:6*getGameSetting(state,'phaseDurationSec'))};
+  },
+  research: ({state,site,settlement,amount}) => {
+    if(!state.rulesetId||getRegionState(state,site.regionId).controller==='player') state.civilization.research.total+=amount;
+    else settlement.research=(settlement.research??0)+amount;
+  },
+  train: ({settlement,effect,amount,staffed}) => trainSpecialists(settlement,effect.classId,amount*(staffed&&effect.classId==='scholar'?2:1)),
+  addHousingForPhase: ({state,site,amount}) => {getPhaseModifiers(state).housingByRegion[site.regionId]=(getPhaseModifiers(state).housingByRegion[site.regionId]??0)+amount;},
+  reduceLocalFoodRequirement: ({state,site,amount}) => {getPhaseModifiers(state).foodByRegion[site.regionId]=(getPhaseModifiers(state).foodByRegion[site.regionId]??0)+amount;},
+  addFaithChaosResistance: ({state,site,amount}) => {
+    if(!state.rulesetId||getRegionState(state,site.regionId).controller==='player') getPhaseModifiers(state).faithResistance+=amount;
+  },
+  bankCandidateDevelopment: ({state,site,settlement,effect,amount}) => {
+    const owner=state.rulesetId&&getRegionState(state,site.regionId).controller!=='player'?settlement:state.civilization;
+    const bank=owner.candidateDevelopment??={scholar:0,warrior:0}; bank[effect.classId]+=Math.floor(amount);
+    emitPracticeEvent(state,{kind:'candidateDevelopmentBanked',regionId:site.regionId,classId:effect.classId,amount});
+  },
+  bankShopQuality: ({settlement,amount}) => {settlement.shopQualityBonus=Math.min(3,(settlement.shopQualityBonus??0)+amount);},
+  bankSupport: ({settlement,effect,amount}) => {
+    const bank=settlement.supportBank??={}; bank[effect.bank]=Math.min(10,(bank[effect.bank]??0)+amount);
+  },
+  bankPreview: ({settlement,amount}) => {settlement.previewBonus=Math.min(3,(settlement.previewBonus??0)+amount);},
+  boostSeasonalFood: ({state,settlement,amount}) => {
+    const producer=settlement.practiceSlots.find(slot=>{const def=getDetailedPracticeDef(state,slot?.practiceId);return def?.activation.type==='season'&&def.tags.includes('Food')&&def.stockTraits.includes('Edible');});
+    if (producer && settlement.seasonalFoodBoost?.year!==state.year) settlement.seasonalFoodBoost={year:state.year,practiceId:producer.practiceId,amount,seasons:[]};
+  },
+});
+
+function resolveRecipe(state,site,assignment,plan,discharge,activationType=null) {
+  const settlement=site.detailedState,slot=settlement.practiceSlots[assignment.slotIndex],def=getDetailedPracticeDef(state,slot.practiceId);
+  const staffed=isScholarStaffed(assignment);
+  // Evaluate at activation start, before any input or output changes query results.
+  const amounts=def.effects.map(e=>practiceEffectAmount(state,site,assignment,e,activationType));
+  if (!applyStockPlan(state,settlement,plan)) return;
+  if(state.rulesetId)commitPopulationRecipe(state,site,slot,plan.populationPlan);
+  const consumed=plan.providers.filter(p=>p.kind==='consume');
+  if (consumed.length) emitPracticeEvent(state,{kind:'stockConsumed',regionId:site.regionId,practiceId:def.id,slotIndex:assignment.slotIndex,
+    traits:[...new Set(consumed.flatMap(p=>stockTraits(state,stockProviderSlot(state,settlement,p))))],tags:getPracticeTags(state,def.id,assignment),pool:def.pool,providers:consumed});
+  if (def.externalAction) resolveExternalPractice(state,site,def,true,plan.external);
+  // Reset before emitting reactions; newly earned Charge survives this root chain.
+  if (discharge) slot.charge=0;
+  for (const [index,effect] of def.effects.entries()) {
+    if (site.neutral && effect.op !== 'generateStock') continue;
+    const resolve = Object.hasOwn(practiceEffectResolvers, effect.op) ? practiceEffectResolvers[effect.op] : null;
+    if (!resolve) throw new Error(`Unsupported Practice effect: ${effect.op}`);
+    resolve({state,site,settlement,slot,def,plan,staffed,effect,amount:amounts[index]});
+  }
+  if (def.activation.type==='season' && settlement.seasonalFoodBoost?.practiceId===def.id) {
+    const season=getCurrentSeasonKey(state);if (!settlement.seasonalFoodBoost.seasons.includes(season)) settlement.seasonalFoodBoost.seasons.push(season);
+  }
+  const journal=practiceEventJournal(state);
+  tracePracticeEvent(state,{kind:discharge?'discharged':'activated',regionId:site.regionId,targetPracticeId:def.id,slotIndex:assignment.slotIndex,rootId:journal.activeRoot,parentId:journal.activeEvent,providers:plan.providers});
+  emitPracticeEvent(state,{kind:'practiceResolved',regionId:site.regionId,practiceId:def.id,slotIndex:assignment.slotIndex,discharge});
+}
+
+function matchesEvent(state,site,assignment,event,trigger) {
+  const instance=site.detailedState.practiceSlots[assignment.slotIndex];
+  if (trigger.anotherPractice && (event.instanceId?event.instanceId===instance.instanceId:event.practiceId===assignment.practiceId&&event.regionId===site.regionId)) return false;
+  const beneficiary = getDetailedPracticeDef(state, instance.practiceId)?.category === 'influence'
+    ? instance.allegiance : getRegionState(state, site.regionId)?.controller;
+  if(state.rulesetId&&event.faction&&event.kind==='defenseSucceeded'&&beneficiary!==event.faction)return false;
+  return trigger.any.some(clause=>{
+    if (event.kind!==clause.kind) return false;
+    if(state.rulesetId&&clause.controller==='beneficiary'&&beneficiary==='frontier'&&event.regionId!==site.regionId)return false;
+    if (clause.scope!=='civilization' && event.regionId!==site.regionId) {
+      if (clause.scope==='adjacent' && !adjacentRegionIds(state,site.regionId).includes(event.regionId)) return false;
+      if (clause.scope==='connected' && !getConnectedRegionIds(state,site.regionId).includes(event.regionId)) return false;
+      if (!['adjacent','connected'].includes(clause.scope)) return false;
+    }
+    return (!clause.traitsAny || clause.traitsAny.some(t=>event.traits?.includes(t)))
+      && (!clause.faction || (event.faction??getRegionState(state,event.regionId)?.controller)===(clause.faction==='beneficiary'?beneficiary:clause.faction))
+      && (!clause.controller || (event.controller??getRegionState(state,event.regionId)?.controller)===(clause.controller==='beneficiary'?beneficiary:clause.controller))
+      && (!clause.tagsAny || clause.tagsAny.some(t=>event.tags?.includes(t)))
+      && (!clause.scholarStaffed || event.scholarStaffed)
+      && (!clause.pool || event.pool===clause.pool)
+      && (!clause.classId || event.classId===clause.classId)
+      && (!clause.premature || event.premature)
+      && (!clause.martial || event.martial)
+      && (!clause.actionKindsAny || clause.actionKindsAny.includes(event.actionKind))
+      && (!clause.minimumSources || event.sourceRegionIds?.length>=clause.minimumSources);
+  });
+}
+
+// Pending events and their local reaction chains drain before any shared retry.
+// Bookkeeping lives only in this synchronous drain, never in serialized GameState.
+// Each slot may Discharge once per root, including across local/shared passes.
+export function flushPracticeEvents(state) {
+  drainPracticeEvents(state);
+}
+
+function drainPracticeEvents(state, sharedRetries = []) {
+  const journal = practiceEventJournal(state);
+  if (journal.activeRoot != null) return; // a recipe is still emitting its effects
+  const cap = getGameSetting(state, 'practiceReactionResolutionCap');
+  const roots = new Map(), deferred = new Map();
+  let sharedIndex = 0;
+  const rootFor = rootId => {
+    if (!roots.has(rootId)) roots.set(rootId, { discharged: new Set(), resolutions: 0, events: 0, stopped: false });
+    return roots.get(rootId);
+  };
+  const stopRoot = event => {
+    const root = rootFor(event.rootId);
+    if (root.stopped) return;
+    root.stopped = true;
+    tracePracticeEvent(state, { kind: 'cascadeSafetyCap', rootId: event.rootId, parentId: event.id,
+      reason: `Practice reaction safety cap ${cap} reached; remaining root events stopped` });
+    journal.pending = journal.pending.filter(e => e.rootId !== event.rootId);
+    for (const [key, candidate] of deferred) if (candidate.event.rootId === event.rootId) deferred.delete(key);
+  };
+  const tryDischarge = (site, assignment, event, localOnly) => {
+    if (state.runStatus?.complete || site.simulationMode !== 'detailed' || site.neutral || (!state.rulesetId && getRegionState(state,site.regionId)?.controller !== 'player')) return;
+    const root = rootFor(event.rootId);
+    if (root.stopped) return;
+    const slot = site.detailedState.practiceSlots[assignment.slotIndex];
+    const def = getDetailedPracticeDef(state, slot?.practiceId);
+    if (def?.mode !== 'charge' || (slot.charge ?? 0) < getChargeThreshold(state, site.detailedState, slot, isScholarStaffed(assignment))) return;
+    if (event.regionId !== site.regionId && !matchesEvent(state, site, assignment, event, def.charge.trigger)) return;
+    const key = slot.instanceId??`${site.regionId}:${assignment.slotIndex}`, deferredKey = `${event.rootId}:${key}`;
+    if (root.discharged.has(key)) {
+      tracePracticeEvent(state, { kind: 'cascadeDeferred', rootId: event.rootId, parentId: event.id,
+        regionId: site.regionId, targetPracticeId: def.id, reason: 'Already Discharged in this root chain' });
+      return;
+    }
+    const plan = recipePlan(state, site, assignment, localOnly);
+    if (!plan.ok) {
+      if (localOnly) {
+        // Keep the first eligible parent; retry against fresh Stock and staffing.
+        if (!deferred.has(deferredKey)) deferred.set(deferredKey, { site, slotIndex: assignment.slotIndex, practiceId: def.id, event });
+      } else tracePracticeEvent(state, { kind: 'dischargeBlocked', rootId: event.rootId, parentId: event.id,
+        regionId: site.regionId, targetPracticeId: def.id, reason: plan.reason });
+      return;
+    }
+    if (root.resolutions >= cap) { stopRoot(event); return; }
+    deferred.delete(deferredKey);
+    root.discharged.add(key); root.resolutions++;
+    resolveRecipe(state, site, assignment, plan, true);
+    if (root.resolutions >= cap) stopRoot(event);
+  };
+  try {
+    while (journal.pending.length || sharedIndex < sharedRetries.length || deferred.size) {
+      // True FIFO across queued roots. All Charge gains for an event precede
+      // its authored site/slot local recipes. Children join the same queue.
+      while (journal.pending.length) {
+        const event = journal.pending.shift(), root = rootFor(event.rootId);
+        if (root.stopped) continue;
+        journal.activeRoot = event.rootId; journal.activeEvent = event.id;
+        tracePracticeEvent(state, event);
+        const sites = getDetailedSettlementSites(state).filter(s => !s.neutral && (state.rulesetId || ['player', 'external-a'].includes(getRegionState(state, s.regionId)?.controller))
+          && s.detailedState.practiceSlots.some(slot=>getDetailedPracticeDef(state,slot?.practiceId)?.mode==='charge'));
+        for (const site of sites) {
+          const settlement = site.detailedState;
+          for (const assignment of assignDetailedSettlementWorkers(state, site.regionId)) {
+            const slot = settlement.practiceSlots[assignment.slotIndex], def = getDetailedPracticeDef(state, slot?.practiceId);
+            if (def?.mode !== 'charge') continue;
+            const threshold = getChargeThreshold(state, settlement, slot, isScholarStaffed(assignment));
+            slot.charge = Math.min(threshold, slot.charge ?? 0);
+            if (matchesEvent(state, site, assignment, event, def.charge.trigger)) {
+              const gain = chargeGain(state, settlement, slot, assignment), before = slot.charge;
+              slot.charge = Math.min(threshold, slot.charge + gain);
+              if (slot.charge > before) tracePracticeEvent(state, { kind: 'chargeGained', rootId: event.rootId,
+                parentId: event.id, regionId: site.regionId, targetPracticeId: def.id, slotIndex: assignment.slotIndex,
+                amount: slot.charge - before, charge: slot.charge, threshold });
+            }
+          }
+        }
+        for (const site of sites) for (const assignment of assignDetailedSettlementWorkers(state, site.regionId)) {
+          tryDischarge(site, assignment, event, true);
+        }
+        if (++root.events >= cap) stopRoot(event);
+      }
+      delete journal.activeRoot; delete journal.activeEvent;
+      if (sharedIndex < sharedRetries.length) {
+        sharedRetries[sharedIndex++]();
+      } else if (deferred.size) {
+        const [key, candidate] = deferred.entries().next().value;
+        deferred.delete(key);
+        const { site, slotIndex, practiceId, event } = candidate;
+        const assignment = assignDetailedSettlementWorkers(state, site.regionId)[slotIndex];
+        if (assignment?.practiceId !== practiceId) continue;
+        journal.activeRoot = event.rootId; journal.activeEvent = event.id;
+        tryDischarge(site, assignment, event, false);
+      }
+      // A shared recipe's newly emitted children get local priority before
+      // the next shared recipe. No gain or successful activation is repeated.
+    }
+  } finally { delete journal.activeRoot; delete journal.activeEvent; }
+}
+
+export function tryCreateStructure(state, regionId, structureId) {
+  const site = getDetailedSettlementSite(state, regionId);
+  // Storefront boards are unavailable for installation, including developed
+  // towns whose existing board is frozen after returning to frontier control.
+  if (site?.neutral) return false;
+  const settlement = site?.detailedState;
+  const def = getDetailedStructureDef(state, structureId);
+  if (!settlement || !def) return false;
+  const location = findStructurePlacement(settlement.structureSlots, def.footprint);
+  if (!location.ok) return false;
+  const result = applyBuild(settlement.structureSlots, { structureId, width: def.footprint, origin: location.origin, placementId: `${regionId}:${state.tSec}:${location.origin}` });
+  if (result.ok) settlement.structureSlots = result.slots;
+  return result.ok;
+}

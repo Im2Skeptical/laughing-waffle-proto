@@ -1,0 +1,250 @@
+{
+    "at":  "2026-11-15T04:08:10.9409119Z",
+    "verdict":  "ACCEPT_MANAGED_LAYOUT_DECODER_FOUNDATION_ONLY",
+    "sourceSha256":  "8c7a7d5d70ba871e2341d40ce147cef5d80d664d475777b33366b670eefe4337",
+    "manifestSha256":  "d1aa623eb08f2711802f45563379e77a5fba63075ee1f36fba78801dbb6631f8",
+    "compiler":  "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe",
+    "compilerSha256":  "46809206887326d2d24db1eff1f3064de972c3451abe766b49111450a5e08e00",
+    "compileStarted":  "2026-11-15T04:08:10.5650862Z",
+    "compileExit":  0,
+    "assemblySha256":  "a40c144134ed3481aaa362ce08d792e1427f37f6e659ec81bcaec81bea1cf861",
+    "fixtureSha256":  "710794be57f5dd9869759334611f26659efe5a528b8b106bc56ddf391e9e05af",
+    "checks":  [
+                   {
+                       "pass":  true,
+                       "name":  "layout-startupInfoBytes"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-processInformationBytes"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-exceptionRecordBytes"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-exceptionDebugInfoBytes"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-debugEventBytes"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-unionOffset"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-exceptionParameterOffset"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-firstChanceOffset"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "unsigned-code-max"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "nested-pointer-max"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "address-max"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "fifteen-parameters"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "parameter-max-minus-0"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "parameter-max-minus-1"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "parameter-max-minus-2"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "parameter-max-minus-3"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "parameter-max-minus-4"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "parameter-max-minus-5"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "parameter-max-minus-6"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "parameter-max-minus-7"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "parameter-max-minus-8"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "parameter-max-minus-9"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "parameter-max-minus-10"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "parameter-max-minus-11"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "parameter-max-minus-12"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "parameter-max-minus-13"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "parameter-max-minus-14"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "first-chance-one-preserved"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "second-chance-zero-preserved"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wrong-owner"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "zero-owner"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "null-buffer"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "short-buffer"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "long-buffer"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "sixteen-parameters-rejected"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "noncanonical-chance-two-rejected"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "zero-tid"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "event-zero"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "event-ten"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "create-file-handle-max"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "create-process-handle-64"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "create-thread-handle-64"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "create-image-base-64"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "thread-handle-64"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "dll-file-handle-64"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "dll-base-64"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "unload-base-64"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "ordinary-exit23"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "exit-not-exception"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "rip-error"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "rip-type"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "header-only-event-4"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "no-fabricated-exception-4"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "header-only-event-8"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "no-fabricated-exception-8"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "source-still-frozen"
+                   }
+               ],
+    "checkCount":  56,
+    "layout":  {
+                   "startupInfoBytes":  104,
+                   "processInformationBytes":  24,
+                   "exceptionRecordBytes":  152,
+                   "exceptionDebugInfoBytes":  160,
+                   "debugEventBytes":  176,
+                   "unionOffset":  16,
+                   "exceptionParameterOffset":  32,
+                   "firstChanceOffset":  152
+               },
+    "scope":  "Compiler OS process and managed DLL loading/checks only. No debugger API/PInvoke, debug target, product/preview, observer loop, capture or complete-observer admission. Managed layout/byte fixtures are not actual Windows ABI/debug-event proof."
+}

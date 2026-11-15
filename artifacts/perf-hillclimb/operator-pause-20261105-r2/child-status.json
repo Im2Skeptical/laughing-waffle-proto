@@ -1,0 +1,8 @@
+{
+  "status": "completed",
+  "latestTerminalStatus": "completed",
+  "hasPendingChildRuns": false,
+  "workState": "result_available",
+  "taskId": "node:delegated-task:command%3Amcp%3A511023d3-b5a3-4982-ac62-178f5cb60278%3Adelegate-task%3Aperf-hillclimb-hold-adaptation-20261105-1",
+  "scope": "Read once after operator reported the child finished; no active delegation or new task."
+}

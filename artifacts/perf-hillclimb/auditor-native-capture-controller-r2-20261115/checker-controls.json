@@ -1,0 +1,234 @@
+{
+  "at": "2026-11-15T06:08:47.405Z",
+  "checkerSha256": "cdc6749de4e07754d24839822cde2cfbf19fe5d078ec51811e8d01b2cd4785b9",
+  "parentCorpusReceipt": "2454ea6a09912dae429c0ab12f569bee412f7a7d6f6027607c0f3929d2e6c9b7",
+  "caseCount": 24,
+  "allExpected": false,
+  "cases": [
+    {
+      "name": "self-consistent virtual normal",
+      "mode": "normal",
+      "expected": "PASS",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "self-consistent virtual nonzero",
+      "mode": "nonzero",
+      "expected": "PASS",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "self-consistent virtual synthetic-native",
+      "mode": "synthetic-native",
+      "expected": "PASS",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "self-consistent virtual timeout",
+      "mode": "timeout",
+      "expected": "PASS",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "self-consistent virtual descendant",
+      "mode": "descendant",
+      "expected": "PASS",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "self-consistent virtual observer-failure",
+      "mode": "observer-failure",
+      "expected": "PASS",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": true
+    },
+    {
+      "name": "missing loader event despite fact true",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "exactly one loader exception must be handled"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "only exit event despite facts true",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "exact initial owned CREATE missing",
+        "observed ntdll module/base missing",
+        "exactly one loader exception must be handled"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "arbitrary loader address swallowed",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "legitimate loader breakpoint trace mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wrong loader continuation",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "exactly one loader exception must be handled"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "native classification with fatal count zero",
+      "mode": "synthetic-native",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "computed fatal-record count contradicts claim"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "normal classification with fatal count one",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "computed fatal-record count contradicts claim"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "normal with host incomplete code2",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "mode-bound host exit/timeout incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "descendant missing all original child evidence",
+      "mode": "descendant",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "evidence parse/read:Virtual file absent:C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r2-20261115\\controls\\control-4-descendant/descendant-registration.json"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "missing exit event",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "actual exit event missing/double/mismatch",
+        "legitimate loader breakpoint trace mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wrong event owner",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "event ownership/continuation error"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wrong raw byte length",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "raw byte lengths incomplete"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "stream error retained",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "stream errors/dropped errors"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wrong synthetic parameter",
+      "mode": "synthetic-native",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "supplied native record/parameters/chance mismatch"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "wrong timeout error",
+      "mode": "timeout",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "FAIL_OR_INCOMPLETE",
+      "problems": [
+        "expected timeout mismatch",
+        "unexpected observer errors"
+      ],
+      "asExpected": true
+    },
+    {
+      "name": "fatal record after continued EXIT",
+      "mode": "synthetic-native",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": false
+    },
+    {
+      "name": "event after continued EXIT",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": false
+    },
+    {
+      "name": "failed module CloseHandle hidden by facts",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": false
+    },
+    {
+      "name": "failed rollback receipt hidden by facts",
+      "mode": "normal",
+      "expected": "FAIL_OR_INCOMPLETE",
+      "actual": "PASS",
+      "problems": [],
+      "asExpected": false
+    }
+  ],
+  "scope": "Independent reproduction of retained20 actual-checker VM cases using inspected r2 coherent input adaptation, plus4 connected trace/cleanup contradictions. Memory FS only, no real roots/native/control mutation. Reproduction adapter pins exact selected checker and PE parser through initial authentication; no native acceptance."
+}

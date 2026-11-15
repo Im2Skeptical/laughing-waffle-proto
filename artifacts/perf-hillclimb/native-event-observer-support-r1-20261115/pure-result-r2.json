@@ -1,0 +1,198 @@
+{
+    "at":  "2026-11-15T04:16:58.7508177Z",
+    "compileExit":  0,
+    "files":  {
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-event-observer-support-r1-20261115\\build-pure-r2.ps1":  "ef9e1af9c981846adbf8edad7bc61a05edacf86aee63e1e71d686164ffa0aa03",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-event-observer-build-r1-20261115\\NativeCaptureAbi.cs":  "8c7a7d5d70ba871e2341d40ce147cef5d80d664d475777b33366b670eefe4337",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-event-observer-support-r1-20261115\\NativeCaptureSupport-r2.dll":  "ab7172055d205004b8044f14f8af568ab030e6b36f8027800a623d163f735adf",
+                  "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-event-observer-support-r1-20261115\\NativeCaptureSupport.cs":  "fc3d4881e8e40089063eddfb3868db5570021d410b786b087e5912318e5d8442",
+                  "C:\\WINDOWS\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe":  "46809206887326d2d24db1eff1f3064de972c3451abe766b49111450a5e08e00"
+              },
+    "checks":  [
+                   {
+                       "pass":  true,
+                       "name":  "layout-StartupInfoEx64"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-SecurityAttributes"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-FileTimePair"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-JobBasicLimits"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-IoCounters"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-JobExtendedLimits"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "layout-JobAccounting"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "job-limit-flags-offset"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "job-active-count-offset"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "extended-attributes-offset"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "hex64-maximum"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wire-address-is-string"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wire-parameter-is-string"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wire-pid-stays-uint32"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wire-json-maximum-roundtrip"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wire-json-parameter-roundtrip"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-empty"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-simple"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-space"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-final-slash"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-embedded-quote"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "quote-nul"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "relative-path"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "drive-relative-path"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "root-relative-path"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "volume-root"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "sibling-not-inside"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "normalized-escape-not-inside"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "bounded-retained-count"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "bounded-total-count"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "bounded-overflow-visible"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "bounded-prefix-kept"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "invalid-retention-limit"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "invalid-chunk-length"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "valid-guard-does-not-launch"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wrong-config-pin"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "missing-allowlist"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "changed-argument-pin"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wrong-control-order"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "changed-control-limit"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "wrong-executable-hash"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "exclusive-marker-repeat"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "guard-rejects-attempted-root"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "marker-outside-root"
+                   }
+               ],
+    "wireFixture":  {
+                        "address":  "0xffffffffffffffff",
+                        "pid":  1234,
+                        "parameters":  [
+                                           "0xffffffffffffffff",
+                                           "0x0000000000000007"
+                                       ]
+                    },
+    "scope":  "Builder compile and pure layout/guard/quoting/buffer/wire checks only. Compiler process ran. Fixture launch.json is a managed exclusive-file test, not a target dispatch. No Native method, debug/control/preview target or observer loop invoked. Declarations/support only, no native ABI/capture proof or source admission."
+}

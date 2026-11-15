@@ -1,0 +1,79 @@
+{
+  "at": "2026-11-15T07:30:04.786Z",
+  "derived": {
+    "ImageSha256": "a0f81bf5c610c0ff0a550adc020a58446f214790c748057bb575042e972e6a34",
+    "PdbSha256": "26d65ee88992ad9c3b258142f7dd3aac3b56f9e271587d9043d01dab3552163c",
+    "Symbol": "LdrpDoDebuggerBreak",
+    "GuidRaw": "bd4c2944e85567cdb3d56b689f03152d",
+    "ImageAge": 1,
+    "InfoAge": 4,
+    "DbiAge": 1,
+    "FunctionBeginRva": 1200656,
+    "FunctionEndRva": 1200718,
+    "BodySha256": "b0d15223c10f0d345e73b469946eaf4e224ee1ab6cb3a4b1bb31ef0846bd1a32",
+    "TrapRva": 1200709,
+    "ReachableTrapOffset": 53,
+    "ExcludedTrapOffsets": [
+      61
+    ],
+    "QueryExportRva": 1468528,
+    "InstructionDerivationSha256": "ce361761a1f4808a808116aa82c4076373aa0e0a690087ca737f4a8c1b2d3ace",
+    "Scope": "Static named routine/CFG derivation from PE/PDB only; startup phase/thread/once gating and independent source acceptance required. No observed event address input."
+  },
+  "independentRaw": {
+    "rsdsOffset": 1737764,
+    "infoGuidRaw": "bd4c2944e85567cdb3d56b689f03152d",
+    "imageAge": 1,
+    "infoAge": 4,
+    "dbiAge": 1,
+    "role": {
+      "rva": 1200656,
+      "flags": 2,
+      "record": 293788
+    },
+    "range": [
+      1200656,
+      1200718
+    ],
+    "bodyHex": "4883ec38c64424400048836424200041b9010000004c8d442440418d511048c7c1feffffffe83616040085c0780a807c2440007503cceb004883c438c3cc"
+  },
+  "ageCases": [
+    {
+      "age": 1,
+      "infoAge": 4,
+      "dbiAge": 1,
+      "accepted": true
+    },
+    {
+      "age": 1,
+      "infoAge": 2,
+      "dbiAge": 1,
+      "accepted": true
+    },
+    {
+      "age": 1,
+      "infoAge": 0,
+      "dbiAge": 1,
+      "accepted": false
+    },
+    {
+      "age": 1,
+      "infoAge": 4,
+      "dbiAge": 2,
+      "accepted": false
+    },
+    {
+      "age": 1,
+      "infoAge": 4,
+      "dbiAge": 0,
+      "accepted": false
+    }
+  ],
+  "decoderControls": [
+    "unknown",
+    "truncated",
+    "cyclic",
+    "operand-trap-not-instruction"
+  ],
+  "scope": "Pure bounded raw PE/MSF/DBI/public-symbol cross-check and conservative decoder controls, no DLL/PDB execution, download, original event address input, native API or target."
+}

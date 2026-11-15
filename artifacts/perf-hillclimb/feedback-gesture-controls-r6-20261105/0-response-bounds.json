@@ -1,0 +1,9 @@
+{
+  "semanticAtMs": 16783.79999998212,
+  "firstChangedFrameAtMs": 16868.19999998808,
+  "persistentValidationAtMs": 16952.90000000596,
+  "lastNativeEventAtMs": 16944.19999998808,
+  "firstFrameBeforeLastEvent": true,
+  "validationAfterLastEvent": true,
+  "scope": "earliest retained-cue frame sample during continuing input; persistent validation may follow release; neither is physical first pixels"
+}

@@ -1,0 +1,335 @@
+{
+  "ok": true,
+  "comparisonEligible": false,
+  "sourceFiles": {
+    "scripts/perf-hillclimb/observation-windows.mjs": "bb2b64fe4c3e4444e44d4493d70441a388827c7774d2b6d361c99266ee33d395",
+    "scripts/perf-hillclimb/observation-windows-browser-controls.mjs": "fe6ccfc9036ebda31d0fbb07f24f4a8159ae7d7347fe8eef2665444699e8f6b6",
+    "scripts/perf-hillclimb/browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+    "scripts/perf-hillclimb/deadline.mjs": "b38266f2e0e32344e1128150b7156868f95ad4f96a4c0d835ebcd1c44a747073",
+    "scripts/browser-probe-config.mjs": "e2155875cb28129438d0d110465ed85c8a6e1b3bcda67bb0ccbba076bcd36350"
+  },
+  "machine": {
+    "host": "DESKTOP-R0AMF0N",
+    "os": "10.0.26200",
+    "platform": "win32",
+    "cpu": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+    "totalMemory": 34272436224
+  },
+  "runtime": {
+    "node": "v24.15.0",
+    "chromium": "147.0.7727.15",
+    "playwright": "1.59.1"
+  },
+  "launch": {
+    "headless": true,
+    "args": [
+      "--use-gl=angle",
+      "--use-angle=swiftshader"
+    ]
+  },
+  "knownStall": {
+    "began": 148.30000001192093,
+    "ended": 368.30000001192093,
+    "trusted": true
+  },
+  "raw": {
+    "available": true,
+    "longTasksAvailable": true,
+    "startMs": 96.09999999403954,
+    "endMs": 394.5,
+    "readAtMs": 395.40000000596046,
+    "frames": [
+      {
+        "time": 112,
+        "dt": 17.30000001192093
+      },
+      {
+        "time": 127.19999998807907,
+        "dt": 15.199999988079071
+      },
+      {
+        "time": 143.5,
+        "dt": 16.30000001192093
+      },
+      {
+        "time": 368.80000001192093,
+        "dt": 225.30000001192093
+      },
+      {
+        "time": 369.30000001192093,
+        "dt": 0.5
+      },
+      {
+        "time": 377.69999998807907,
+        "dt": 8.399999976158142
+      },
+      {
+        "time": 393.80000001192093,
+        "dt": 16.100000023841858
+      }
+    ],
+    "longTasks": [
+      {
+        "start": 147.59999999403954,
+        "duration": 221
+      }
+    ],
+    "trailingFrameRightCensored": true,
+    "trailingFrameLowerBoundMs": 0.699999988079071,
+    "scope": "continuous main-thread rAF intervals/long tasks; keep a declared post-action observation window, not only transaction markers"
+  },
+  "attributed": {
+    "available": true,
+    "longTasksAvailable": true,
+    "startMs": 96.09999999403954,
+    "endMs": 394.5,
+    "diagnosticWindows": [
+      {
+        "id": "actual-block",
+        "label": "known isolated renderer diagnostic",
+        "startMs": 96.90000000596046,
+        "endMs": 371.19999998807907
+      },
+      {
+        "id": "nested",
+        "label": "nested diagnostic annotation",
+        "startMs": 168.30000001192093,
+        "endMs": 348.30000001192093
+      }
+    ],
+    "observationGaps": [
+      {
+        "startMs": 96.90000000596046,
+        "endMs": 371.19999998807907,
+        "diagnosticIds": [
+          "actual-block",
+          "nested"
+        ]
+      }
+    ],
+    "diagnosticUnionMs": 274.2999999821186,
+    "outsideDiagnosticFrameIntervals": [
+      {
+        "time": 393.80000001192093,
+        "dt": 16.100000023841858
+      }
+    ],
+    "outsideDiagnosticLongTasks": [],
+    "excludedFrameIntervals": [
+      {
+        "time": 112,
+        "dt": 17.30000001192093
+      },
+      {
+        "time": 127.19999998807907,
+        "dt": 15.199999988079071
+      },
+      {
+        "time": 143.5,
+        "dt": 16.30000001192093
+      },
+      {
+        "time": 368.80000001192093,
+        "dt": 225.30000001192093
+      },
+      {
+        "time": 369.30000001192093,
+        "dt": 0.5
+      },
+      {
+        "time": 377.69999998807907,
+        "dt": 8.399999976158142
+      }
+    ],
+    "excludedLongTasks": [
+      {
+        "start": 147.59999999403954,
+        "duration": 221
+      }
+    ],
+    "rawTrailingFrameRightCensored": true,
+    "rawTrailingFrameLowerBoundMs": 0.699999988079071,
+    "hasUnclosedDiagnostic": false,
+    "wholeWindowFrameEvidenceAvailable": false,
+    "scope": "attribution only; raw telemetry retained; crossing intervals excluded whole; gaps never establish smoothness; common sampling/hooks/driver overhead remain unproved"
+  },
+  "longTaskControl": {
+    "available": true,
+    "knownStallRetained": true
+  },
+  "openRaw": {
+    "available": true,
+    "longTasksAvailable": true,
+    "startMs": 397.19999998807907,
+    "endMs": 712.4000000059605,
+    "readAtMs": 713.0999999940395,
+    "frames": [
+      {
+        "time": 411.5,
+        "dt": 17.69999998807907
+      },
+      {
+        "time": 427.59999999403954,
+        "dt": 16.099999994039536
+      },
+      {
+        "time": 443.90000000596046,
+        "dt": 16.30000001192093
+      },
+      {
+        "time": 461,
+        "dt": 17.099999994039536
+      },
+      {
+        "time": 477.69999998807907,
+        "dt": 16.69999998807907
+      },
+      {
+        "time": 494,
+        "dt": 16.30000001192093
+      },
+      {
+        "time": 678.5,
+        "dt": 184.5
+      },
+      {
+        "time": 678.6999999880791,
+        "dt": 0.19999998807907104
+      },
+      {
+        "time": 693.6999999880791,
+        "dt": 15
+      },
+      {
+        "time": 711.5999999940395,
+        "dt": 17.900000005960464
+      }
+    ],
+    "longTasks": [
+      {
+        "start": 498.30000001192093,
+        "duration": 180
+      }
+    ],
+    "trailingFrameRightCensored": true,
+    "trailingFrameLowerBoundMs": 0.800000011920929,
+    "scope": "continuous main-thread rAF intervals/long tasks; keep a declared post-action observation window, not only transaction markers"
+  },
+  "open": {
+    "available": true,
+    "longTasksAvailable": true,
+    "startMs": 397.19999998807907,
+    "endMs": 712.4000000059605,
+    "diagnosticWindows": [
+      {
+        "id": "unknown-end",
+        "label": "host deadline without confirmed end",
+        "startMs": 397.19999998807907,
+        "endMs": null
+      }
+    ],
+    "observationGaps": [
+      {
+        "startMs": 397.19999998807907,
+        "endMs": 712.4000000059605,
+        "diagnosticIds": [
+          "unknown-end"
+        ]
+      }
+    ],
+    "diagnosticUnionMs": 315.2000000178814,
+    "outsideDiagnosticFrameIntervals": [],
+    "outsideDiagnosticLongTasks": [],
+    "excludedFrameIntervals": [
+      {
+        "time": 411.5,
+        "dt": 17.69999998807907
+      },
+      {
+        "time": 427.59999999403954,
+        "dt": 16.099999994039536
+      },
+      {
+        "time": 443.90000000596046,
+        "dt": 16.30000001192093
+      },
+      {
+        "time": 461,
+        "dt": 17.099999994039536
+      },
+      {
+        "time": 477.69999998807907,
+        "dt": 16.69999998807907
+      },
+      {
+        "time": 494,
+        "dt": 16.30000001192093
+      },
+      {
+        "time": 678.5,
+        "dt": 184.5
+      },
+      {
+        "time": 678.6999999880791,
+        "dt": 0.19999998807907104
+      },
+      {
+        "time": 693.6999999880791,
+        "dt": 15
+      },
+      {
+        "time": 711.5999999940395,
+        "dt": 17.900000005960464
+      }
+    ],
+    "excludedLongTasks": [
+      {
+        "start": 498.30000001192093,
+        "duration": 180
+      }
+    ],
+    "rawTrailingFrameRightCensored": true,
+    "rawTrailingFrameLowerBoundMs": 0.800000011920929,
+    "hasUnclosedDiagnostic": true,
+    "wholeWindowFrameEvidenceAvailable": false,
+    "scope": "attribution only; raw telemetry retained; crossing intervals excluded whole; gaps never establish smoothness; common sampling/hooks/driver overhead remain unproved"
+  },
+  "lateReceipt": {
+    "began": 498.30000001192093,
+    "ended": 678.3000000119209
+  },
+  "unavailable": {
+    "available": false,
+    "longTasksAvailable": false,
+    "startMs": 96.09999999403954,
+    "endMs": 394.5,
+    "diagnosticWindows": [
+      {
+        "id": "actual-block",
+        "label": "known isolated renderer diagnostic",
+        "startMs": 96.90000000596046,
+        "endMs": 371.19999998807907
+      }
+    ],
+    "observationGaps": [
+      {
+        "startMs": 96.90000000596046,
+        "endMs": 371.19999998807907,
+        "diagnosticIds": [
+          "actual-block"
+        ]
+      }
+    ],
+    "diagnosticUnionMs": 274.2999999821186,
+    "outsideDiagnosticFrameIntervals": [],
+    "outsideDiagnosticLongTasks": [],
+    "excludedFrameIntervals": [],
+    "excludedLongTasks": [],
+    "rawTrailingFrameRightCensored": true,
+    "rawTrailingFrameLowerBoundMs": 0.699999988079071,
+    "hasUnclosedDiagnostic": false,
+    "wholeWindowFrameEvidenceAvailable": false,
+    "scope": "attribution only; raw telemetry retained; crossing intervals excluded whole; gaps never establish smoothness; common sampling/hooks/driver overhead remain unproved"
+  },
+  "scope": "native renderer/frame/unknown-end attribution mechanism only; actual artwork wrapper, affected product paths, common observer overhead and independent audit remain required"
+}

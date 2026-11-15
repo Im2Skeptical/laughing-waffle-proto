@@ -1,0 +1,199 @@
+{
+  "message": "page.waitForFunction: Timeout 180000ms exceeded.",
+  "stack": "page.waitForFunction: Timeout 180000ms exceeded.\n    at wait (C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\life-state-browser.mjs:58:35)\n    at C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\scripts\\perf-hillclimb\\life-state-browser.mjs:92:11",
+  "errors": [],
+  "passive": {
+    "version": 2,
+    "mode": "map",
+    "selectedRegionId": "R14",
+    "regionSelectionActive": false,
+    "runner": {
+      "frontierSec": 54,
+      "cursorSec": 21,
+      "viewedSec": 21,
+      "previewActive": false,
+      "forecastPreview": false,
+      "revision": 4,
+      "actionCount": 5,
+      "checkpointCount": 2
+    },
+    "opening": {
+      "phase": "idle",
+      "preparation": "idle",
+      "coverageSec": 116,
+      "elapsedSec": 0,
+      "lossSec": null
+    },
+    "map": {
+      "visible": true,
+      "detailVisible": false,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "zoom": 1
+      },
+      "focusAnimating": false,
+      "panelPhase": "closed",
+      "panelAnimating": false,
+      "artReady": false,
+      "artPrepared": null
+    },
+    "graph": {
+      "visible": true,
+      "minSec": 0,
+      "maxSec": 182,
+      "plotRect": {
+        "x": 573.855,
+        "y": 884.1,
+        "width": 1276.275,
+        "height": 145.86
+      },
+      "plotRectSpace": "stage-retained-transform",
+      "projection": {
+        "signatureVersion": 7,
+        "timelineToken": "sig:7",
+        "signatureMatches": true
+      },
+      "scrubSec": 21,
+      "isScrubbing": false,
+      "latchedForecastScrubSec": null,
+      "historyEndSec": 54,
+      "revealedSec": 54,
+      "browseCapSec": 54,
+      "targetSec": 54,
+      "computedSec": 1334,
+      "requestedSec": 1334,
+      "pending": false,
+      "cacheVersion": 287,
+      "subjectKey": "civilization",
+      "asyncToken": "sig:7",
+      "asyncPollMs": 34038.30000001192,
+      "asyncHistoryEndSec": 54,
+      "asyncRequestedSec": 1334,
+      "asyncComputedSec": 1330,
+      "revealHistoryEndSec": 54,
+      "animatedSec": 54,
+      "visibleEndSec": 54,
+      "startSecOverride": null,
+      "readinessCapSec": null,
+      "capEndSec": 54,
+      "paused": true,
+      "presentationSuspended": false,
+      "openingRevealSec": null
+    },
+    "life": {
+      "visible": false,
+      "selectedCandidateNodeId": null,
+      "displayedVassalId": "vassal-1",
+      "entryConfirmationOpen": false,
+      "entryOpen": false,
+      "entryVisible": false,
+      "entryPhase": "closed",
+      "decisionOpen": false,
+      "decisionNodeId": "life-milestone-milestone-1",
+      "decisionPhase": "closed",
+      "pendingInteractionCount": null,
+      "family": "practiceReform",
+      "selectedOptionId": null,
+      "resolving": false,
+      "shopTag": "random",
+      "offerIds": [
+        "life-milestone-milestone-1:r0:practice:1",
+        "life-milestone-milestone-1:r0:practice:2"
+      ],
+      "purchaseOrder": [
+        "life-milestone-milestone-1:r0:practice:0"
+      ],
+      "boardPracticeIds": [
+        "fieldStudy",
+        "logging",
+        "barter",
+        null,
+        null
+      ],
+      "observedDecisionNodeId": "life-milestone-milestone-1",
+      "boardRegionId": "R18",
+      "decisionArtReady": false,
+      "decisionArtPrepared": null,
+      "entryPoint": null,
+      "processingPhase": null,
+      "sourceRevision": 4,
+      "ready": null,
+      "processing": {
+        "sourceRevision": 4,
+        "sourceSec": 54,
+        "baseRevision": 4,
+        "baseSec": 54,
+        "timelineMatches": true,
+        "sourceMatches": true,
+        "requestId": 4,
+        "revision": 9,
+        "adopting": false,
+        "workerActive": false,
+        "draftActive": false,
+        "draftActionCount": 0,
+        "jobActive": false,
+        "phase": null,
+        "error": null,
+        "accepted": null,
+        "jobReady": null,
+        "ready": null,
+        "targetSec": null,
+        "computedSec": null,
+        "revealSec": null
+      },
+      "recapOpen": false,
+      "continueState": "idle",
+      "recapClock": {
+        "second": 54,
+        "progress": 1,
+        "locked": true
+      },
+      "recapClockStartedAt": 25500.30000001192
+    }
+  },
+  "costs": [
+    {
+      "tag": "initial",
+      "hostRpcMs": 837.3914999999979,
+      "readerCpuMs": 16.900000005960464,
+      "startMs": 17264.70000001788,
+      "endMs": 17281.600000023842
+    },
+    {
+      "tag": "initial-present",
+      "hostRpcMs": 208.8987999999954,
+      "readerCpuMs": 6.300000011920929,
+      "startMs": 18400,
+      "endMs": 18406.30000001192
+    },
+    {
+      "tag": "entered",
+      "hostRpcMs": 635.1696999999986,
+      "readerCpuMs": 15.899999976158142,
+      "startMs": 20032.100000023842,
+      "endMs": 20048
+    },
+    {
+      "tag": "category",
+      "hostRpcMs": 624.5182999999961,
+      "readerCpuMs": 16,
+      "startMs": 20838.80000001192,
+      "endMs": 20854.80000001192
+    },
+    {
+      "tag": "staged",
+      "hostRpcMs": 707.1734999999899,
+      "readerCpuMs": 78.69999998807907,
+      "startMs": 21585.600000023842,
+      "endMs": 21664.30000001192
+    },
+    {
+      "tag": "committed",
+      "hostRpcMs": 481.152700000006,
+      "readerCpuMs": 10.799999982118607,
+      "startMs": 25508.100000023842,
+      "endMs": 25518.90000000596
+    }
+  ]
+}

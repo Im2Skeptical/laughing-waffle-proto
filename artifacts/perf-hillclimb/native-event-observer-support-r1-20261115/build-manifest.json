@@ -1,0 +1,25 @@
+{
+  "at": "2026-11-15T04:18:13.178Z",
+  "node": "v24.15.0",
+  "phase": "PURE_SUPPORT_PARTIAL_ONLY",
+  "authority": "artifacts/perf-hillclimb/j8-paired-wait-progress-r1-20261115/plan.json",
+  "sourceCount": 683,
+  "assetCount": 5,
+  "sourceAssetChanges": [],
+  "files": {
+    "NativeCaptureSupport.cs": "fc3d4881e8e40089063eddfb3868db5570021d410b786b087e5912318e5d8442",
+    "build-pure.ps1": "e6f3deb57bc896d3ac4d6a6e751c3d036b63549dac06ced4384bfa6613f601e9",
+    "build-pure-r2.ps1": "ef9e1af9c981846adbf8edad7bc61a05edacf86aee63e1e71d686164ffa0aa03",
+    "prepare-pure-r2.ps1": "ea1763a6a9ddbe546db67e23b888bb3a4a6fbb77779ce22d18aae04f900c66eb",
+    "failed-pure-r1.json": "263d94e79719e538b44f29af5f8391460b1f58ef043954e6df33fafbf9cf5c33",
+    "NativeCaptureSupport.dll": "0f871c2e8424286abecd5f1988c8dabb904cc8ac6b36a9e32c4a6e949a3a1e74",
+    "NativeCaptureSupport-r2.dll": "ab7172055d205004b8044f14f8af568ab030e6b36f8027800a623d163f735adf",
+    "compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compile-exit.txt": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+    "compile-r2.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compile-exit-r2.txt": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9",
+    "pure-result-r2.json": "cfdf4aa4b4d2e0a226006bdfaed5474de4740f102fe4f00440af77c24c92d8cc",
+    "authenticate.mjs": "783f8f9d83b55ae280f6a260f657d3f8934f99bed01501e0d9264585792d5161"
+  },
+  "scope": "Builder pure support/Win32 declarations pinning. Forty-four pure checks after retained PowerShell fixture overload failure. Compiler processes ran, no Native method/target/observer loop/capture. Not source/child admission or complete observer."
+}

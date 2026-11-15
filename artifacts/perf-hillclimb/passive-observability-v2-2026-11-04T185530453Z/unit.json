@@ -1,0 +1,39 @@
+{
+  "verdict": "focused checks passed; Phase A NOT SOUND",
+  "head": "a9df52cbd6255ed95c51c9e7d524cf9ab557472b",
+  "branch": "perf/hillclimb-20261104",
+  "node": "v24.15.0",
+  "sourceHashes": {
+    "src/views/world-map-pixi.js": "dab0eb94d73c4d8091cf196228a0d5a615b6f611b104078c6ae77388129ce3c5",
+    "src/views/vassal-life-map-pixi.js": "cdb8021c4e46455f5741b15dd90535ff79d481b37f84e3f8b786e7474d7ea6ed",
+    "src/views/vassal-node-decision-modal-pixi.js": "6bfeb9cf25e2864d1462045d79a6ee7b732a243bff5a1b2ba0af3abd10bf9d86",
+    "src/views/vassal-resolution-recap-pixi.js": "d39fa9dd7c1769b347094c2ed1d9dfd111f737d37a5049081bd9f0d382493e09",
+    "src/views/timegraphs-pixi.js": "515acd487d4b42d53cd06ec09b78558a0b543488f5eee2e0184c6fababf124c5",
+    "src/model/timegraph/controller-core.js": "611b4cb8fc49918dc88013e8e3f03478fc764c374c353e4ae7eaba0ad8dacd99",
+    "src/controllers/life-decision-controller.js": "8408c4820980c9fa3a7fe7a59a13fad618aa74978e29db5c192caa75ef405ed8",
+    "src/model/timegraph/projection-cache.js": "5293d1d30bd5caf194a9941d1a9af0746a73c5230b2aab4e90e672f91bcc97d4",
+    "scripts/projection-timing-observability-test.mjs": "9234668cb4a086a77961a336aef28c0d3f395ede3b9dd4c4294b885fde1de0b1",
+    "src/views/ui-root/settlement-timing-snapshot.js": "cd993134623615d50660d38898914fcedad2c35a7359fda90212dee77cde43c1",
+    "src/views/ui-root/settlement-debug-api.js": "5e2800bb9508583684c6829bef1edafacbbc7a2099c2c7eebeae423685240604",
+    "src/views/ui-root-settlement-pixi.js": "d0110b208f627a295599a4221fd47f1bf621f11f7c3a78c42330d73df09dab23",
+    "src/views/chronicle-art.js": "c5e6f91f1424e2f2f20f1bdbca0999af2431dd1e0c32deb0766950d2f41b1b71",
+    "src/views/vassal-node-decision/world-screen.js": "1311988076eae98626801abeb3e5edd94d8ba71d7df94169feb43d1482f7fc78",
+    "scripts/timing-observability-browser-probe.mjs": "ae3b9a275906081f519533e510df8340cdaf9b509c1b135cac00bbdd4b20c113",
+    "scripts/timing-observability-test.mjs": "be5a91f007b82b5c464d40925a538f4e62a544f9a048158f704cdb67a4f2e9c5"
+  },
+  "forbiddenCalls": [],
+  "readsPerCase": 500,
+  "checks": [
+    "raw view seams",
+    "actual graph controller",
+    "actual Life active/stale job",
+    "state/RNG/timeline invariance",
+    "DTO mutation isolation",
+    "published facade",
+    "untimed graph parity"
+  ],
+  "limitations": [
+    "Node view getters use closure fixtures; browser covers actual constructors",
+    "no matched overhead or tail acceptance"
+  ]
+}

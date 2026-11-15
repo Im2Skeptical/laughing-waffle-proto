@@ -1,0 +1,155 @@
+{
+  "since": 125688.69999998808,
+  "observedAt": 125984.90000000596,
+  "key": "[0,192,{\"x\":573.855,\"y\":884.1,\"width\":1276.275,\"height\":145.86},64,\"sig:7\",64]",
+  "snapshot": {
+    "version": 2,
+    "mode": "map",
+    "selectedRegionId": "R04",
+    "regionSelectionActive": false,
+    "runner": {
+      "frontierSec": 64,
+      "cursorSec": 64,
+      "viewedSec": 64,
+      "previewActive": false,
+      "forecastPreview": false,
+      "revision": 4,
+      "actionCount": 5,
+      "checkpointCount": 2
+    },
+    "opening": {
+      "phase": "idle",
+      "preparation": "idle",
+      "coverageSec": 536,
+      "elapsedSec": 0,
+      "lossSec": null
+    },
+    "map": {
+      "visible": true,
+      "detailVisible": false,
+      "camera": {
+        "x": 0,
+        "y": 0,
+        "zoom": 1
+      },
+      "focusAnimating": false,
+      "panelPhase": "closed",
+      "panelAnimating": false,
+      "artReady": false,
+      "artPrepared": null
+    },
+    "graph": {
+      "visible": true,
+      "minSec": 0,
+      "maxSec": 192,
+      "plotRect": {
+        "x": 573.855,
+        "y": 884.1,
+        "width": 1276.275,
+        "height": 145.86
+      },
+      "plotRectSpace": "stage-retained-transform",
+      "projection": {
+        "signatureVersion": 7,
+        "timelineToken": "sig:7",
+        "signatureMatches": true
+      },
+      "scrubSec": 64,
+      "isScrubbing": false,
+      "latchedForecastScrubSec": null,
+      "historyEndSec": 64,
+      "revealedSec": 64,
+      "browseCapSec": 64,
+      "targetSec": 64,
+      "computedSec": 320,
+      "requestedSec": 1344,
+      "pending": true,
+      "cacheVersion": 363,
+      "subjectKey": "civilization",
+      "asyncToken": "sig:7",
+      "asyncPollMs": 125968.59999999404,
+      "asyncHistoryEndSec": 64,
+      "asyncRequestedSec": 1344,
+      "asyncComputedSec": 320,
+      "revealHistoryEndSec": 64,
+      "animatedSec": 64,
+      "visibleEndSec": 64,
+      "startSecOverride": null,
+      "readinessCapSec": null,
+      "capEndSec": 64,
+      "paused": true,
+      "presentationSuspended": false,
+      "openingRevealSec": null
+    },
+    "life": {
+      "visible": false,
+      "selectedCandidateNodeId": null,
+      "displayedVassalId": "vassal-1",
+      "entryConfirmationOpen": false,
+      "entryOpen": false,
+      "entryVisible": false,
+      "entryPhase": "closed",
+      "decisionOpen": false,
+      "decisionNodeId": "life-milestone-milestone-1",
+      "decisionPhase": "closed",
+      "pendingInteractionCount": null,
+      "family": "practiceReform",
+      "selectedOptionId": null,
+      "resolving": false,
+      "shopTag": "random",
+      "offerIds": [
+        "life-milestone-milestone-1:r0:practice:1",
+        "life-milestone-milestone-1:r0:practice:2"
+      ],
+      "purchaseOrder": [
+        "life-milestone-milestone-1:r0:practice:0"
+      ],
+      "boardPracticeIds": [
+        "fm_woodlotRights",
+        "dryFarming",
+        "fm_handQuern",
+        "barter",
+        null
+      ],
+      "observedDecisionNodeId": "life-milestone-milestone-1",
+      "boardRegionId": "R04",
+      "decisionArtReady": false,
+      "decisionArtPrepared": null,
+      "entryPoint": null,
+      "processingPhase": null,
+      "sourceRevision": 4,
+      "ready": null,
+      "processing": {
+        "sourceRevision": 4,
+        "sourceSec": 64,
+        "baseRevision": 4,
+        "baseSec": 64,
+        "timelineMatches": true,
+        "sourceMatches": true,
+        "requestId": 4,
+        "revision": 9,
+        "adopting": false,
+        "workerActive": false,
+        "draftActive": false,
+        "draftActionCount": 0,
+        "jobActive": false,
+        "phase": null,
+        "error": null,
+        "accepted": null,
+        "jobReady": null,
+        "ready": null,
+        "targetSec": null,
+        "computedSec": null,
+        "revealSec": null
+      },
+      "recapOpen": false,
+      "continueState": "idle",
+      "recapClock": {
+        "second": 64,
+        "progress": 1,
+        "locked": true
+      },
+      "recapClockStartedAt": 120719.5
+    }
+  }
+}

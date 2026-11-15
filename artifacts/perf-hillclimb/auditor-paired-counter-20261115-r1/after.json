@@ -1,0 +1,17 @@
+{
+  "at": "2026-11-15T01:08:46.543Z",
+  "authoritySha256": "510560d5710c1b779c7ec4e0e2569b724720d290eec3b46e47f9105869f6eff1",
+  "files": {
+    "scripts/perf-hillclimb/artwork-bundle-controls.mjs": "b9c3f1a756c699c9031505bd0ad7c94cdeaa08e94e88760053807a81d395e2bb",
+    "scripts/perf-hillclimb/artwork-bundle-controls-test.mjs": "1985b02d3f3e85bb885b10fa34e13750588e0b8d0b8dce903cddaded64d3f1eb",
+    "scripts/perf-hillclimb/artwork-controls.mjs": "6854bccb0fcef5ff3627f26c808d88ac5fcd53b4608eb3540734bb60410d3239",
+    "docs/performance/perf-hillclimb-20261104/HARNESS.md": "a2c16fae584d77f0ab45478a0604b54eaae92227ae2cde2f99852c45d5682017"
+  },
+  "assets": {
+    "./assets/app-6H5PP5LS.js": "2650f059863769f98da13622798df92cf8a338c082f5fd5a695094aee2a48ea8",
+    "./assets/timegraph-forecast-worker-YOB3XRD7.js": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+    "./assets/save-load-worker-7YJYILEJ.js": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+    "./assets/styles-ec05c6a73a6e.css": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0",
+    "images/dev-fixtures/performance-start.json.gz": "7d07599499c43871cea5bb261bd91fb372cb7f6437c4d2dd0238a9190751ee1d"
+  }
+}

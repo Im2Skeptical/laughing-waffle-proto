@@ -1,0 +1,20 @@
+{
+  "at": "2026-11-05T02:04:34.145Z",
+  "operator": "Cam explicit resume",
+  "phaseA": "NOT SOUND",
+  "head": "0e47aa72bb8da272006a4dba2c70f4ba92775276",
+  "branch": "perf/hillclimb-20261104",
+  "sourceCount": 683,
+  "sourceChanges": [],
+  "added": [],
+  "missing": [],
+  "buildChanges": [],
+  "dirtyChanges": [],
+  "evidenceCount": 1904,
+  "evidenceChanges": [],
+  "node": {
+    "version": "v24.15.0",
+    "sha256": "3331e1ffe19874215472217c5e94f5a0c6d8e18c4ac7111d3937aa0ad5e9b4a5"
+  },
+  "scope": "Resume integrity only; retains prior acceptance/rejection/contention. No source modification, new score or complete Phase A acceptance."
+}

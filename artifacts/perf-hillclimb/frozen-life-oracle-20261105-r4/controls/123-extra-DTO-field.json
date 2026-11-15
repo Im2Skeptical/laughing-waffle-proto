@@ -1,0 +1,6 @@
+{
+  "name": "123-extra-DTO-field",
+  "status": "PASS expected rejection",
+  "expected": "/strict full result differs/",
+  "error": "AssertionError [ERR_ASSERTION]: expected data: strict full result differs; actual=2b627b095ba57fbc33af1c9537513b3b14d215ee85e975ec9278fb54e1a5ff54 expected=12e8c9a3e85302bceb1ffbcd3ec94d9b0c686c507c51fc66c9583cb0e99c3c54\n    at assertExact (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-expectations.mjs:7:10)\n    at file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:67:52\n    at negative (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:14:25)\n    at run (file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:67:13)\n    at async file:///C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104/scripts/perf-hillclimb/frozen-life-oracle-test.mjs:155:3"
+}

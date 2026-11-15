@@ -1,0 +1,39 @@
+{
+  "ok": true,
+  "checks": [
+    {
+      "viewport": 1280,
+      "direction": 1,
+      "gesture": "click",
+      "second": 1175
+    },
+    {
+      "viewport": 1280,
+      "direction": -1,
+      "gesture": "drag",
+      "second": 1567
+    },
+    {
+      "viewport": 1280,
+      "gesture": "touch",
+      "second": 979
+    },
+    {
+      "viewport": 844,
+      "direction": 1,
+      "gesture": "click",
+      "second": 1175
+    },
+    {
+      "viewport": 844,
+      "direction": -1,
+      "gesture": "drag",
+      "second": 1567
+    },
+    {
+      "viewport": 844,
+      "gesture": "touch",
+      "second": 980
+    }
+  ]
+}

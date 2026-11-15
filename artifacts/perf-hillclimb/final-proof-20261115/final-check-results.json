@@ -1,0 +1,145 @@
+{
+  "at": "2026-11-15T02:13:36.924Z",
+  "phaseA": "NOT SOUND",
+  "fullVerifyPassed": false,
+  "fullVerifyExit": "1",
+  "previewTestReproductionExit": "1",
+  "badgePassed": true,
+  "modelSuitePassed": true,
+  "integrity": {
+    "at": "2026-11-15T02:13:06.799Z",
+    "stage": "after-final-verify",
+    "head": "0e47aa72bb8da272006a4dba2c70f4ba92775276",
+    "branch": "perf/hillclimb-20261104",
+    "phaseA": "NOT SOUND",
+    "sourceCount": 683,
+    "sourceMismatches": [],
+    "declaredChanges": [
+      {
+        "file": "docs/performance/perf-hillclimb-20261104/HARNESS.md",
+        "original": "cb6cd004ed85c53dde460b9abcff8c3818c34a99f20fe1f7945a0a310492867f",
+        "actual": "a2c16fae584d77f0ab45478a0604b54eaae92227ae2cde2f99852c45d5682017"
+      },
+      {
+        "file": "scripts/perf-hillclimb/artwork-bundle-controls-test.mjs",
+        "original": "6820e97197eb20e87bba54fe9e173b43df5501d40cc52876a01c013cf4958c84",
+        "actual": "1985b02d3f3e85bb885b10fa34e13750588e0b8d0b8dce903cddaded64d3f1eb"
+      },
+      {
+        "file": "scripts/perf-hillclimb/artwork-bundle-controls.mjs",
+        "original": "74da29d61ca2758498170efeca46e38e77148e26f91ff6e72a05c92a463d80ac",
+        "actual": "b9c3f1a756c699c9031505bd0ad7c94cdeaa08e94e88760053807a81d395e2bb"
+      },
+      {
+        "file": "scripts/perf-hillclimb/artwork-controls.mjs",
+        "original": "f2f2d32ba3ee5d0e22b25a598ee2c6604488da298dd7c20f8065127bd35bcf42",
+        "actual": "6854bccb0fcef5ff3627f26c808d88ac5fcd53b4608eb3540734bb60410d3239"
+      },
+      {
+        "file": "scripts/perf-hillclimb/run.mjs",
+        "original": "282477e03794247c49bda74b5fa5f4722590a009619867553044c9649018b61a",
+        "actual": "d1a81bf6d99be2e35ddc167e8688b11ae2907c0f35acb0526e8d0f3e53b6a714"
+      },
+      {
+        "file": "scripts/perf-hillclimb/save-state-oracle-test.mjs",
+        "original": "930160e6c05c69e08c02cbcd0a228baf93b2cf2a148f0deb5b04bd63e450fb0f",
+        "actual": "d4948f5ee2179c553c4c5a2f9027ffb575f24167ec28f93d73a5ced79de66517"
+      },
+      {
+        "file": "scripts/perf-hillclimb/save-state-oracle.mjs",
+        "original": "6b8633f93324007f6a2592fb0de93b7d514d957875261187146c8df2962e0aff",
+        "actual": "dbc4f373e5b47c66e889711ad48f012563d63dc71bc4bb8aa5664e94616fdd51"
+      }
+    ],
+    "assetCount": 5,
+    "assetMismatches": [],
+    "frozenEvidenceCount": 1904,
+    "frozenBytes": 252991851,
+    "frozenMismatches": [],
+    "latestPlanSha256": "8c45bbf674f60ac7f6dc7214fb1abc76bc9617f02bb943c73bb7e318a2dc172e",
+    "originalSourceInventorySha256": "0e8d6c1ea5403635e918e04bab6b3a8324ae7a55b86f51075102f5a30da2ba35",
+    "frozenInventorySha256": "3887a45961844bb7639a83e8a16f3033bd7f6af3876226ef6441efce5710fde6",
+    "node": "v24.15.0",
+    "gitStatus": " M docs/performance/perf-hillclimb-20261104/ATTEMPTS.md\n M docs/performance/perf-hillclimb-20261104/HARNESS.md\n M docs/performance/perf-hillclimb-20261104/STATE.md\n M package.json\n M scripts/perf-hillclimb/artwork-bundle-controls-test.mjs\n M scripts/perf-hillclimb/artwork-bundle-controls.mjs\n M scripts/perf-hillclimb/artwork-controls.mjs\n M scripts/perf-hillclimb/feedback-bindings-passive-test.mjs\n M scripts/perf-hillclimb/feedback-bindings.mjs\n M scripts/perf-hillclimb/run.mjs\n M scripts/perf-hillclimb/save-state-oracle-test.mjs\n M scripts/perf-hillclimb/save-state-oracle.mjs\n M src/views/sunandmoon-disks-pixi.js\n M src/views/time-controls-pixi.js\n M src/views/time-lever-pixi.js\n M src/views/ui-root-settlement-pixi.js\n M src/views/ui-root/settlement-playback.js\n?? docs/performance/perf-hillclimb-20261104/CONTINUE_KNOWLEDGE_RESUME_20261115.md\n?? docs/performance/perf-hillclimb-20261104/HOLD_ADAPTATION_IMPLEMENTATION.md\n?? docs/performance/perf-hillclimb-20261104/OPERATOR_PAUSE.md\n?? docs/performance/perf-hillclimb-20261104/PAUSED_HANDOFF.md\n?? docs/performance/perf-hillclimb-20261104/PHASE_WITNESS_IMPLEMENTATION_20261115.md\n?? scripts/perf-hillclimb/hold-adoption-controls-test.mjs\n?? scripts/perf-hillclimb/hold-adoption-controls.mjs\n",
+    "scope": "Read-only identity/frozen-byte confirmation; no benchmark, product test, score or acceptance. Build metadata can refresh for preview; five compiled bodies remain fixed."
+  },
+  "preview": {
+    "at": "2026-11-15T02:13:36.564Z",
+    "build": {
+      "performanceFixtureKey": "d8e62f7018a37c9148e6215a4360de14978ada6a3d4085b144251b386bc70dde",
+      "version": "1.1.53",
+      "build": "b502cc73de89",
+      "revision": "0e47aa72bb8d",
+      "channel": "local",
+      "branch": "perf/hillclimb-20261104",
+      "dirty": true,
+      "preview": true,
+      "previewLabel": "5202"
+    },
+    "status": {
+      "protocol": 2,
+      "workspaceId": "318fcd5d72880280",
+      "pid": 40528,
+      "desktop": "http://localhost:5202/",
+      "mobile": [
+        "http://100.105.63.49:5202/",
+        "http://192.168.1.103:5202/"
+      ]
+    },
+    "loaded": {
+      "text": "v1.1.53 · Preview 5202",
+      "title": "Game v1.1.53 | Build b502cc73de89 | Revision 0e47aa72bb8d | local | Branch perf/hillclimb-20261104 (modified) | Preview checkout",
+      "dataset": {
+        "testid": "game-build-badge",
+        "version": "1.1.53",
+        "build": "b502cc73de89"
+      }
+    },
+    "lan": "http://192.168.1.103:5202/",
+    "lanEmbeddedIdentity": true
+  },
+  "pins": {
+    "verify-final-r1.log": {
+      "sha256": "9131f1eac918c8dfb81c807c2bd6ac8255431b82f17f369886e56718711ee735"
+    },
+    "verify-final-r1-exit.txt": {
+      "sha256": "f1b2f662800122bed0ff255693df89c4487fbdcf453d3524a42d4ec20c3d9c04",
+      "literalExit": "1"
+    },
+    "isolated-build-preview-r1.log": {
+      "sha256": "41388a2b54f4c8dc9fb7eca30d90c1486d0cb6af350c45fb7d896536cdd151a4"
+    },
+    "isolated-build-preview-r1-exit.txt": {
+      "sha256": "f1b2f662800122bed0ff255693df89c4487fbdcf453d3524a42d4ec20c3d9c04",
+      "literalExit": "1"
+    },
+    "build-badge-final-r1.log": {
+      "sha256": "ad9f2887bece62f9fab6afd36d93e2d2579ca9b710b481565da36e0e54f4714f"
+    },
+    "build-badge-final-r1-exit.txt": {
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "literalExit": "0"
+    },
+    "npm-test-final-r1.log": {
+      "sha256": "3abaaf066ad1516b81b0f0fe5d1ad1778196f57b3655d5dc3ee725db461a1dc8"
+    },
+    "npm-test-final-r1-exit.txt": {
+      "sha256": "13bf7b3039c63bf5a50491fa3cfd8eb4e699d1ba1436315aef9cbe5711530354",
+      "literalExit": "0"
+    },
+    "after-final-verify.json": {
+      "sha256": "5f6ea966c010cc2cd3017230c9630184f5baed279f4d0d6248f46e69e947a309"
+    },
+    "preview-final.json": {
+      "sha256": "410d34b0bbb48254584715e4e71283f87532fbd49c3dd98f0c7621597abe0671"
+    },
+    "npm-start-final-r1.log": {
+      "sha256": "e28addc136644c22225671843d998b1c291ec951d812a6b99a9684ad1532efd0"
+    },
+    "npm-start-final-r1-exit.txt": {
+      "sha256": "88b83d6efdf28d9baae081f00cb619359cc7c79d03289f427e227f599787fb87",
+      "literalExit": "-1073740791"
+    }
+  },
+  "scope": "Passed subchecks and healthy fallback preview do not waive failed registered verifier or full harness gates. No product optimization/scoring/PR/merge/Pages."
+}

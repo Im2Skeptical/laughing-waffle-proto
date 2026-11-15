@@ -1,0 +1,50 @@
+[
+  {
+    "seed": 123,
+    "second": 16,
+    "pass": true,
+    "rawFrozenPurityReads": 12,
+    "wrongFieldExtraRngTargetRejected": true,
+    "realInstalledRestorerAndControllerMutation": true
+  },
+  {
+    "seed": 123,
+    "second": 17,
+    "pass": true,
+    "rawFrozenPurityReads": 12,
+    "wrongFieldExtraRngTargetRejected": true,
+    "realInstalledRestorerAndControllerMutation": true
+  },
+  {
+    "seed": 424242,
+    "second": 16,
+    "pass": true,
+    "rawFrozenPurityReads": 12,
+    "wrongFieldExtraRngTargetRejected": true,
+    "realInstalledRestorerAndControllerMutation": true
+  },
+  {
+    "seed": 424242,
+    "second": 17,
+    "pass": true,
+    "rawFrozenPurityReads": 12,
+    "wrongFieldExtraRngTargetRejected": true,
+    "realInstalledRestorerAndControllerMutation": true
+  },
+  {
+    "seed": 99117,
+    "second": 16,
+    "pass": true,
+    "rawFrozenPurityReads": 12,
+    "wrongFieldExtraRngTargetRejected": true,
+    "realInstalledRestorerAndControllerMutation": true
+  },
+  {
+    "seed": 99117,
+    "second": 17,
+    "pass": true,
+    "rawFrozenPurityReads": 12,
+    "wrongFieldExtraRngTargetRejected": true,
+    "realInstalledRestorerAndControllerMutation": true
+  }
+]

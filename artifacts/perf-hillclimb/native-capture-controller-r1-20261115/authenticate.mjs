@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,existsSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+const root='artifacts/perf-hillclimb/native-capture-controller-r1-20261115';
+const authorityFile='artifacts/perf-hillclimb/j8-paired-wait-progress-r1-20261115/plan.json';
+const hash=f=>createHash('sha256').update(readFileSync(f)).digest('hex');
+assert.ok(!existsSync(root+'/candidate-manifest.json'),'Never overwrite candidate evidence');
+assert.equal(process.version,'v24.15.0');assert.equal(hash(authorityFile),'8c45bbf674f60ac7f6dc7214fb1abc76bc9617f02bb943c73bb7e318a2dc172e');
+const authority=JSON.parse(readFileSync(authorityFile,'utf8')),changes=[];
+for(const[f,h]of Object.entries(authority.sources))if(hash(f)!==h)changes.push(f);
+for(const[f,h]of Object.entries(authority.assets))if(hash('dist/'+f)!==h)changes.push('dist/'+f);
+const plan=JSON.parse(readFileSync(root+'/plan.json','utf8'));for(const[f,h]of Object.entries(plan.files))assert.equal(hash(f),h,'plan pinned file drift:'+f);
+assert.equal(plan.slots.length,6);for(const slot of plan.slots)assert.ok(!existsSync(slot.config.RunRoot+'/attempt.marker')&&!existsSync(slot.config.RunRoot+'/launch.json'),'No target slot attempted');
+assert.ok(!existsSync(root+'/admission.json'),'Builder never self-admits');
+const selected={};for(const name of ['plan.json','README.md','build-pure-final.json','compile-observer-final.log','compile-observer-final-exit.txt','compile-target-final.log','compile-target-final-exit.txt','CaptureController-final.dll','SyntheticCaptureTarget-final.exe','authenticate.mjs'])selected[name]=hash(root+'/'+name);
+const result={at:new Date().toISOString(),node:process.version,phase:'CONNECTED_CONTROLLER_SOURCE_CANDIDATE_NOT_ADMITTED',planSha256:hash(root+'/plan.json'),sourceCount:Object.keys(authority.sources).length,assetCount:Object.keys(authority.assets).length,sourceAssetChanges:changes,selected,pinnedSourceAndBinaryFiles:plan.files,scope:'Complete connected source candidate for affected review.27managed policy checks and compiler/metadata only. No native helper/API/Run/Main/target/capture, six slots unattempted, no source/child admission.'};
+writeFileSync(root+'/candidate-manifest.json',JSON.stringify(result,null,2));console.log(JSON.stringify({sourceCount:result.sourceCount,assetCount:result.assetCount,sourceAssetChanges:changes,candidateSha256:hash(root+'/candidate-manifest.json'),planSha256:result.planSha256}));assert.deepEqual(changes,[]);

@@ -1,0 +1,464 @@
+{
+  "at": "2026-11-15T06:24:58.453Z",
+  "originalResultSha256": "a932e405b5c5e958a86682e6226a916f6f96ab3ca313644c64739996ee7a1402",
+  "planSha256": "d9a3d4dff9226d9615bf7f4f23249fbfb8b825e4d2119994dac213531225dcb5",
+  "admissionSha256": "9066061746d5f2635e5cfeecf91bd5efc7afa69ba5cf229b2dd78cb4d23bc9b3",
+  "classification": "INCOMPLETE",
+  "facts": {
+    "Identity": true,
+    "AssignedBeforeResume": true,
+    "LoaderBreakpoint": false,
+    "ExitContinued": true,
+    "JobEmpty": true,
+    "StreamsComplete": true,
+    "HandlesClosed": true,
+    "SourceStable": true,
+    "TimedOut": false,
+    "Overflow": false,
+    "ObserverError": false,
+    "UnsafeRecovery": true,
+    "ExitCode": 0,
+    "MatchingFatalRecords": 0,
+    "Complete": false
+  },
+  "errors": [
+    "Owned failsafe termination:False:5",
+    "Owned debug detach after termination:True:5"
+  ],
+  "launch": {
+    "pid": 14256,
+    "primaryTid": 39388,
+    "creatingOsThread": 38116,
+    "image": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\SyntheticCaptureTarget-final.exe",
+    "createdFileTimeHex": "0x01dd74c95d384cf3",
+    "configSha256": "01c082d493aa990b69f2bbabe4b262eb975bdc747125851ea5011df54f5709e9"
+  },
+  "identity": {
+    "pid": 14256,
+    "createdFileTimeUtc": "134391972092202227",
+    "debuggerPresent": true
+  },
+  "host": {
+    "at": "2026-11-15T06:20:09.332Z",
+    "slot": 0,
+    "hostExitCode": 2,
+    "hostSignal": null,
+    "hostError": null,
+    "expired": false,
+    "scope": "Supervisor outcome only; no automatic native/cleanup/control PASS."
+  },
+  "hostLaunch": {
+    "at": "2026-11-15T06:20:09.1201942Z",
+    "hostPid": 29136,
+    "hostCreatedUtc": "2026-11-15T06:20:08.6896038Z",
+    "slot": 0,
+    "planSha256": "d9a3d4dff9226d9615bf7f4f23249fbfb8b825e4d2119994dac213531225dcb5"
+  },
+  "supervisorLaunch": {
+    "at": "2026-11-15T06:20:08.697Z",
+    "supervisorPid": 23312,
+    "hostPid": 29136,
+    "slot": 0
+  },
+  "check": {
+    "at": "2026-11-15T06:20:09.382Z",
+    "slot": 0,
+    "mode": "normal",
+    "verdict": "FAIL_OR_INCOMPLETE",
+    "problems": [
+      "mode-bound host exit/timeout incomplete",
+      "missing required fact LoaderBreakpoint",
+      "overflow/unsafe recovery",
+      "exactly one loader exception must be handled",
+      "normal outcome mismatch",
+      "computed trace classification mismatch",
+      "unexpected observer errors"
+    ],
+    "resultSha256": "a932e405b5c5e958a86682e6226a916f6f96ab3ca313644c64739996ee7a1402",
+    "scope": "Synthetic control oracle only; no native cause/fix/product timing/whole SOUND."
+  },
+  "stdout": {
+    "bytes": 15,
+    "text": "capture-normal\n",
+    "sha256": "8afc3e1854887f78855b0f7072de0f18ccfe3032d38a5dde0604c2cd4f3a4d6d"
+  },
+  "stderr": {
+    "bytes": 15,
+    "text": "capture-stderr\n",
+    "sha256": "cc8ee493c453557de7fc79a1b5cc5195970bd470a592d268b6e2182c70b46bec"
+  },
+  "startup": {
+    "stdout": {
+      "Ready": true,
+      "WorkerLive": true,
+      "ThreadHandleOwned": true,
+      "Closing": false,
+      "DeadlineExpired": false,
+      "Errors": [],
+      "DroppedErrors": 0,
+      "Succeeded": true
+    },
+    "stderr": {
+      "Ready": true,
+      "WorkerLive": true,
+      "ThreadHandleOwned": true,
+      "Closing": false,
+      "DeadlineExpired": false,
+      "Errors": [],
+      "DroppedErrors": 0,
+      "Succeeded": true
+    }
+  },
+  "streamReceipt": {
+    "stdoutEof": true,
+    "stderrEof": true,
+    "stdoutResourcesReleased": true,
+    "stderrResourcesReleased": true,
+    "stdoutErrors": [],
+    "stderrErrors": [],
+    "stdoutDroppedErrors": 0,
+    "stderrDroppedErrors": 0
+  },
+  "rollback": [],
+  "loader": {
+    "path": "C:\\WINDOWS\\system32\\ntdll.dll",
+    "sha256": "a0f81bf5c610c0ff0a550adc020a58446f214790c748057bb575042e972e6a34",
+    "export": "DbgBreakPoint",
+    "rvaHex": "0x0000000000126ae0",
+    "baseHex": "0x00007ff94fcb0000",
+    "expectedAddressHex": "0x00007ff94fdd6ae0",
+    "moduleEventIndex": 1
+  },
+  "eventCount": 53,
+  "types": {
+    "1": 2,
+    "2": 5,
+    "3": 1,
+    "4": 5,
+    "5": 1,
+    "6": 36,
+    "7": 3
+  },
+  "exceptions": [
+    {
+      "i": 6,
+      "eventCode": 1,
+      "pid": 14256,
+      "tid": 39388,
+      "exceptionCode": 2147483651,
+      "exceptionFlags": 0,
+      "nestedRecord": "0x0000000000000000",
+      "exceptionAddress": "0x00007ff94fdd5245",
+      "parameterCount": 1,
+      "parameters": [
+        "0x0000000000000000"
+      ],
+      "firstChance": 1,
+      "continuation": 2147549185,
+      "continued": true,
+      "continueError": 0
+    },
+    {
+      "i": 33,
+      "eventCode": 1,
+      "pid": 14256,
+      "tid": 39388,
+      "exceptionCode": 69477408,
+      "exceptionFlags": 128,
+      "nestedRecord": "0x0000000000000000",
+      "exceptionAddress": "0x00007ff94d16569a",
+      "parameterCount": 3,
+      "parameters": [
+        "0x0000000031415927",
+        "0x00007ff900500000",
+        "0x00000000007ff190"
+      ],
+      "firstChance": 1,
+      "continuation": 2147549185,
+      "continued": true,
+      "continueError": 0
+    }
+  ],
+  "create": {
+    "eventCode": 3,
+    "pid": 14256,
+    "tid": 39388,
+    "fileHandle": "0x0000000000000af8",
+    "processHandle": "0x0000000000000b08",
+    "threadHandle": "0x00000000000009c4",
+    "imageBase": "0x0000000000160000",
+    "imagePath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\SyntheticCaptureTarget-final.exe",
+    "imageHandleClosed": true,
+    "continuation": 65538,
+    "continued": true,
+    "continueError": 0
+  },
+  "exit": {
+    "eventCode": 5,
+    "pid": 14256,
+    "tid": 39388,
+    "exitCode": 0,
+    "continuation": 65538,
+    "continued": true,
+    "continueError": 0
+  },
+  "imageClose": [
+    {
+      "tag": 3,
+      "handle": "0x0000000000000af8",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000af8",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000920",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000920",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000920",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000734",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x000000000000075c",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000a4c",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000a4c",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000920",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000920",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000864",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000b10",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000734",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000b10",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000734",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x000000000000079c",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000a48",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x000000000000079c",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000b10",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000b10",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x000000000000079c",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x000000000000079c",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x00000000000007a4",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x000000000000079c",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x000000000000079c",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x000000000000079c",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x000000000000079c",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000734",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000b10",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000a54",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000b10",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000b10",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000b10",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000738",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000a54",
+      "closed": true
+    },
+    {
+      "tag": 6,
+      "handle": "0x0000000000000b14",
+      "closed": true
+    }
+  ],
+  "unused": [
+    {
+      "id": "control-1-nonzero",
+      "attempted": false,
+      "result": false,
+      "dispatched": false
+    },
+    {
+      "id": "control-2-synthetic-native",
+      "attempted": false,
+      "result": false,
+      "dispatched": false
+    },
+    {
+      "id": "control-3-timeout",
+      "attempted": false,
+      "result": false,
+      "dispatched": false
+    },
+    {
+      "id": "control-4-descendant",
+      "attempted": false,
+      "result": false,
+      "dispatched": false
+    },
+    {
+      "id": "control-5-observer-failure",
+      "attempted": false,
+      "result": false,
+      "dispatched": false
+    }
+  ],
+  "pins": {
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\PureControllerChecks.cs": "568ead17e42e40b423f761c6c178011fe08649d675d9100c6332fed379dce0b7",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\SyntheticCaptureTarget-final.exe": "1fd1d69e68363495e9742c65cdb2a193b630a3dc9af32754f65026ec3339fdde",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\ControllerPolicy.cs": "9113f6e6071620e4b3630bd0e2506a60ae547c0c39eb52e92a265c1aa9d439c0",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\build-final-only.ps1": "dd666a97ccecf0c6995c5b70293d2d99c5329188cd02e8f7841a7f66ec209b34",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\next.mjs": "9ae954c31ca48757d55469489f2226bfbd9fb13feae8b620cb2aecce7ebb5cd5",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\CaptureController.cs": "94ebc0631483d18142e2eea9d9144d4d8902237aaa7619c3ccda216a0340d890",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\NativeCaptureAbi.cs": "8c7a7d5d70ba871e2341d40ce147cef5d80d664d475777b33366b670eefe4337",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\stop-owned-host.ps1": "11310dd94a1d97b9226b07094376cbf06554e60a5fdc0eaf61fa56421a649ba7",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\build-only.ps1": "7d7355adbc114e6d26e83b6f365361c4435239ddf4e8590aa45c27b0128c38e5",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\CaptureController-final.dll": "6caf98e3f5b78fea2e500c369052c051eef9a3dd9126cd8a34c728cff10c2929",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\EventSession.cs": "31d9c0da006fa70c55bc780f5057a40fc34347f55d2ddfb038ab6ab74cef5da9",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\invoke-control.ps1": "706610268f3d0d455ca4bfde43a3ca7874219cda0490a81386ba26df3140a4b3",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\SyntheticCaptureTarget.cs": "dcab449478a325c9591b4f13220b2b83ffa2e78698dcbb42b6d5240bd4082937",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\check-control.mjs": "9014d279b859dd76c53ffa5fc938425140935d4066920bfd8dd92282a520fab1",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\DescendantWitness.cs": "7ff7ba6eaffe7ce59165bd35a0420a44610fa0285d075bd176cbc3514b4b1bcb",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\RepairedResources.cs": "2126baeebe91a60541e03a1a844ae8f9773526a606b0ca8317cf82e9d25d53b3",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\inherit-build.mjs": "79bdc70b96dbb6d61d6e8433da8e132a450587d2e3de4b65fc2d4be71d6ffb8c",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\pe-export.mjs": "fefe4a12276591cb1d05590659dfc989fe4fad0f7164abf395752f899ae088d3",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\RepairContracts.cs": "5d3b07086a42e12345a21a39c805c83335669d70d0aae53f99b91ee2a189bf19",
+    "C:\\WINDOWS\\System32\\ntdll.dll": "a0f81bf5c610c0ff0a550adc020a58446f214790c748057bb575042e972e6a34",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\prepare-final-build.ps1": "c69a05e491f20f512014747eb660d8983a618be8d5f99a8f3703e8157e0f9b57",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\ControllerNative.cs": "a3d239b8c21279964dba433565cfb389963ea2c1aa41a8926166d625312e7fc4",
+    "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe": "d8f182560210d43baaf767d482ad1dc1207372522e91413b9d5e515a875e552d",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\pure-checker.mjs": "6affb31dd25bedab622e23b167e8392e5e6546bf677690ae0dd140d33d6f9b4f",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\prepare-plan.ps1": "d8e98c77006fd5ad5b77234b6172df3bf91ebd56b2ee3acfc02f713b7171513e",
+    "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\native-capture-controller-r3-20261115\\NativeCaptureSupport.cs": "fc3d4881e8e40089063eddfb3868db5570021d410b786b087e5912318e5d8442",
+    "artifacts/perf-hillclimb/native-capture-controller-r3-20261115/controls/control-0-normal/attempt.marker": "49646d9836e27189046205b28f6977e4b45c3c896904141966691820a8cd2ace",
+    "artifacts/perf-hillclimb/native-capture-controller-r3-20261115/controls/control-0-normal/control-check.json": "f6187b68fc8a842fb68cb53386fd9a6acad5293997d73166db9cd29ef491aaed",
+    "artifacts/perf-hillclimb/native-capture-controller-r3-20261115/controls/control-0-normal/host-launch.json": "093ee8c6f2fff513b518faefd43086058ae331b5e61e0c9fa4a030e545ae30fa",
+    "artifacts/perf-hillclimb/native-capture-controller-r3-20261115/controls/control-0-normal/host.log": "ddadacf173fa621d3e39b06ef43d735fc0bcdd861446368bdfd7d697d9fd8af2",
+    "artifacts/perf-hillclimb/native-capture-controller-r3-20261115/controls/control-0-normal/launch.json": "41ab761d25cfc3ebac3f6b0c9f733e0ef617c2f5d4d262a1e7a9c05b956279fc",
+    "artifacts/perf-hillclimb/native-capture-controller-r3-20261115/controls/control-0-normal/result.json": "a932e405b5c5e958a86682e6226a916f6f96ab3ca313644c64739996ee7a1402",
+    "artifacts/perf-hillclimb/native-capture-controller-r3-20261115/controls/control-0-normal/stderr.raw": "cc8ee493c453557de7fc79a1b5cc5195970bd470a592d268b6e2182c70b46bec",
+    "artifacts/perf-hillclimb/native-capture-controller-r3-20261115/controls/control-0-normal/stdout.raw": "8afc3e1854887f78855b0f7072de0f18ccfe3032d38a5dde0604c2cd4f3a4d6d",
+    "artifacts/perf-hillclimb/native-capture-controller-r3-20261115/controls/control-0-normal/supervisor-launch.json": "75bd140be1a24bf297868e152c2d9072dd168dbcfd76fd70e40e9b46ee14ed08",
+    "artifacts/perf-hillclimb/native-capture-controller-r3-20261115/controls/control-0-normal/supervisor-result.json": "7370ee9fdb19537713339565859c93352310352fc4787f94187c5e5a5f7384f2",
+    "artifacts/perf-hillclimb/native-capture-controller-r3-20261115/controls/control-0-normal/target-identity.json": "90af617077a810f8914f933eb0cbf0a122efdd5d5da544a58317647042e7fb70"
+  },
+  "limits": "Bounded independent extraction of original evidence, not native execution. Zero-time wait outcome/create-info owned handle values were not retained by original report; cannot invent them."
+}

@@ -1,0 +1,999 @@
+{
+  "at": "2026-11-15T01:33:47.039Z",
+  "scope": "Existing native-clock/current-work linkage only, no runtime/test",
+  "currentSourceHashes": {
+    "active-work-oracle.mjs": "678596e562a19bde6a8fba7ce715b64974a2493903c56d4c1d2aaf3a2e749778",
+    "browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+    "offered-input.mjs": "dd92f961f1a0ce3efc0aa2f64a5ea789f7aa69403fb5a9e7734d89ec7843dfc0",
+    "run.mjs": "d1a81bf6d99be2e35ddc167e8688b11ae2907c0f35acb0526e8d0f3e53b6a714"
+  },
+  "archivedRunSha256": "282d7ebaa49f6527a09049edee6f69e1f526372ae5e58f07307b3fc9153f3a5b",
+  "originalDesktopPanArgv": [
+    "scripts/perf-hillclimb/run.mjs",
+    "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+    "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "--seed=123",
+    "--jobs=map-pan",
+    "--population=desktop",
+    "--artwork=off",
+    "--cache=cold",
+    "--samples=1",
+    "--id=main-repair-r3-20261105-1-desktop-map-pan-off"
+  ],
+  "sourceComparison": {
+    "archiveJ3Sha256": "b9a3788a46b98d8d823bd8ae1a25a65bbdf142a2c9a57cfbdec037ee34dbd94d",
+    "currentJ3Sha256": "55fc54e88ed74dc1e0937940e56f7cb29f65002132b0000ceeaa5e5de61f0cfb",
+    "finding": "Current settlement open/close completion adds retained rendered visibility/region checks; historical runner/body not promoted."
+  },
+  "reports": [
+    {
+      "id": "main-repair-r3-20261105-1-desktop-map-pan-off",
+      "step": "map-pan",
+      "launchId": "main-repair-r3-20261105-1-desktop-map-pan-off:launch-0-map-pan",
+      "harnessId": "9c38efaf79e1687ea67ebac7ed84a2d2e210678321b96d8762e94767aa086761",
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+      "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "sourceHashes": {
+        "active-work-oracle.mjs": "678596e562a19bde6a8fba7ce715b64974a2493903c56d4c1d2aaf3a2e749778",
+        "browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+        "offered-input.mjs": "dd92f961f1a0ce3efc0aa2f64a5ea789f7aa69403fb5a9e7734d89ec7843dfc0",
+        "run.mjs": "c01c10b951fc4cdf160e1b350a5949de3601fca6e7de19962f622fe9e535c746"
+      },
+      "runSourceEqualsCurrent": false,
+      "runSourceEqualsFinalArchive": false,
+      "started": 3383.800000011921,
+      "handlerStarted": 3384.2000000178814,
+      "inputTimingReadStarted": 3384.300000011921,
+      "inputTimingReadMs": 0.09999999403953552,
+      "inputQueueMs": 0.4000000059604645,
+      "semanticEnd": 4074.800000011921,
+      "finished": 4593.9000000059605,
+      "frontier": 0,
+      "revision": 2,
+      "token": "sig:4",
+      "computedAtInput": 156,
+      "computedAtTerminal": 416,
+      "requestedAtInput": 1280,
+      "matchingSuccessfulReplies": [
+        {
+          "time": 3430.100000023842,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 156,
+          "endSec": 176
+        },
+        {
+          "time": 3512,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 176,
+          "endSec": 196
+        },
+        {
+          "time": 3668.2000000178814,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 196,
+          "endSec": 216
+        },
+        {
+          "time": 3748.100000023842,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 216,
+          "endSec": 236
+        },
+        {
+          "time": 3835.300000011921,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 236,
+          "endSec": 256
+        },
+        {
+          "time": 3928.100000023842,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 256,
+          "endSec": 276
+        },
+        {
+          "time": 4022.2000000178814,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 276,
+          "endSec": 296
+        },
+        {
+          "time": 4114.800000011921,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 296,
+          "endSec": 316
+        },
+        {
+          "time": 4202.5,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 316,
+          "endSec": 336
+        },
+        {
+          "time": 4279.700000017881,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 336,
+          "endSec": 356
+        },
+        {
+          "time": 4357.200000017881,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 356,
+          "endSec": 376
+        },
+        {
+          "time": 4465.4000000059605,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 376,
+          "endSec": 396
+        },
+        {
+          "time": 4555.100000023842,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 396,
+          "endSec": 416
+        }
+      ],
+      "matchingRepliesAfterInputRead": 13,
+      "matchingProgress": true,
+      "calibration": {
+        "uncertaintyMs": 1.3160499942441675,
+        "samples": 9,
+        "nativeMetrics": 11,
+        "domainCheck": {
+          "domainBefore": 3342.6909999980126,
+          "javascriptNow": 3346.2000000178814,
+          "domainAfter": 3347.3790000134613
+        },
+        "firstOfferedEventTime": 3383.800000011921,
+        "contactCount": 14,
+        "pointerIds": [
+          1
+        ],
+        "summary": {
+          "model": "fixed offered rate; acknowledgements do not pace dispatch",
+          "input": "mouse",
+          "offered": 14,
+          "matched": 14,
+          "dropped": 0,
+          "offeredContacts": 14,
+          "matchedContacts": 14,
+          "droppedContacts": 0,
+          "cancelled": 0,
+          "missingFrames": 0,
+          "invalidTimestamps": 0,
+          "coalesced": 12,
+          "unmatchedObserved": 0,
+          "protocolErrors": 0,
+          "maxHostDispatchLatenessMs": 14.054166666664969,
+          "frameWitness": "double-rAF opportunity with passive raw camera DTO, not physical scanout",
+          "intervalMs": 16.666666666666668,
+          "steps": 12,
+          "generatorSaturated": false,
+          "calibrationResolved": true
+        }
+      },
+      "fault": null
+    },
+    {
+      "id": "main-repair-r3-20261105-2-desktop-map-zoom-off",
+      "step": "map-zoom",
+      "launchId": "main-repair-r3-20261105-2-desktop-map-zoom-off:launch-0-map-zoom",
+      "harnessId": "9c38efaf79e1687ea67ebac7ed84a2d2e210678321b96d8762e94767aa086761",
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+      "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "sourceHashes": {
+        "active-work-oracle.mjs": "678596e562a19bde6a8fba7ce715b64974a2493903c56d4c1d2aaf3a2e749778",
+        "browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+        "offered-input.mjs": "dd92f961f1a0ce3efc0aa2f64a5ea789f7aa69403fb5a9e7734d89ec7843dfc0",
+        "run.mjs": "c01c10b951fc4cdf160e1b350a5949de3601fca6e7de19962f622fe9e535c746"
+      },
+      "runSourceEqualsCurrent": false,
+      "runSourceEqualsFinalArchive": false,
+      "started": 3099.100000023842,
+      "handlerStarted": 3287.100000023842,
+      "inputTimingReadStarted": 3287.100000023842,
+      "inputTimingReadMs": 0.19999998807907104,
+      "inputQueueMs": 188,
+      "semanticEnd": 3292.2000000178814,
+      "finished": 3458.4000000059605,
+      "frontier": 0,
+      "revision": 2,
+      "token": "sig:4",
+      "computedAtInput": 116,
+      "computedAtTerminal": 176,
+      "requestedAtInput": 1280,
+      "matchingSuccessfulReplies": [
+        {
+          "time": 3260.300000011921,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 116,
+          "endSec": 136
+        },
+        {
+          "time": 3328.600000023842,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 136,
+          "endSec": 156
+        },
+        {
+          "time": 3399.800000011921,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 156,
+          "endSec": 176
+        }
+      ],
+      "matchingRepliesAfterInputRead": 2,
+      "matchingProgress": true,
+      "calibration": null,
+      "fault": null
+    },
+    {
+      "id": "main-repair-r3-20261105-3-desktop-map-open-off",
+      "step": "settlement-open",
+      "launchId": "main-repair-r3-20261105-3-desktop-map-open-off:launch-0-map-open",
+      "harnessId": "9c38efaf79e1687ea67ebac7ed84a2d2e210678321b96d8762e94767aa086761",
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+      "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "sourceHashes": {
+        "active-work-oracle.mjs": "678596e562a19bde6a8fba7ce715b64974a2493903c56d4c1d2aaf3a2e749778",
+        "browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+        "offered-input.mjs": "dd92f961f1a0ce3efc0aa2f64a5ea789f7aa69403fb5a9e7734d89ec7843dfc0",
+        "run.mjs": "c01c10b951fc4cdf160e1b350a5949de3601fca6e7de19962f622fe9e535c746"
+      },
+      "runSourceEqualsCurrent": false,
+      "runSourceEqualsFinalArchive": false,
+      "started": 3317.2000000178814,
+      "handlerStarted": 3322.7000000178814,
+      "inputTimingReadStarted": 3322.7000000178814,
+      "inputTimingReadMs": 0.09999999403953552,
+      "inputQueueMs": 5.5,
+      "semanticEnd": 3345.4000000059605,
+      "finished": 3457.600000023842,
+      "frontier": 0,
+      "revision": 2,
+      "token": "sig:4",
+      "computedAtInput": 156,
+      "computedAtTerminal": 196,
+      "requestedAtInput": 1280,
+      "matchingSuccessfulReplies": [
+        {
+          "time": 3423.100000023842,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 156,
+          "endSec": 176
+        },
+        {
+          "time": 3435.100000023842,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 176,
+          "endSec": 196
+        }
+      ],
+      "matchingRepliesAfterInputRead": 2,
+      "matchingProgress": true,
+      "calibration": null,
+      "fault": null
+    },
+    {
+      "id": "main-repair-r3-20261105-8-mobile4-map-pan-off",
+      "step": "map-pan",
+      "launchId": "main-repair-r3-20261105-8-mobile4-map-pan-off:launch-0-map-pan",
+      "harnessId": "bf83defcb9f4f99e0351b92cbb8325ab8c2ba801c1ddbc03e4c3c6c1936eedb1",
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+      "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "sourceHashes": {
+        "active-work-oracle.mjs": "678596e562a19bde6a8fba7ce715b64974a2493903c56d4c1d2aaf3a2e749778",
+        "browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+        "offered-input.mjs": "dd92f961f1a0ce3efc0aa2f64a5ea789f7aa69403fb5a9e7734d89ec7843dfc0",
+        "run.mjs": "c01c10b951fc4cdf160e1b350a5949de3601fca6e7de19962f622fe9e535c746"
+      },
+      "runSourceEqualsCurrent": false,
+      "runSourceEqualsFinalArchive": false,
+      "started": 26665.09999999404,
+      "handlerStarted": 26843.19999998808,
+      "inputTimingReadStarted": 26843.30000001192,
+      "inputTimingReadMs": 0.699999988079071,
+      "inputQueueMs": 178.09999999403954,
+      "semanticEnd": 27327.69999998808,
+      "finished": 27548.69999998808,
+      "frontier": 0,
+      "revision": 2,
+      "token": "sig:4",
+      "computedAtInput": 1276,
+      "computedAtTerminal": 1456,
+      "requestedAtInput": 1552,
+      "matchingSuccessfulReplies": [
+        {
+          "time": 26908.69999998808,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1276,
+          "endSec": 1296
+        },
+        {
+          "time": 26984.19999998808,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1296,
+          "endSec": 1316
+        },
+        {
+          "time": 27081.90000000596,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1316,
+          "endSec": 1336
+        },
+        {
+          "time": 27134.09999999404,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1336,
+          "endSec": 1356
+        },
+        {
+          "time": 27216.09999999404,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1356,
+          "endSec": 1376
+        },
+        {
+          "time": 27271.40000000596,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1376,
+          "endSec": 1396
+        },
+        {
+          "time": 27328.30000001192,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1396,
+          "endSec": 1416
+        },
+        {
+          "time": 27391.5,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1416,
+          "endSec": 1436
+        },
+        {
+          "time": 27456.40000000596,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1436,
+          "endSec": 1456
+        }
+      ],
+      "matchingRepliesAfterInputRead": 9,
+      "matchingProgress": true,
+      "calibration": {
+        "uncertaintyMs": 1.3730499925877666,
+        "samples": 9,
+        "nativeMetrics": 11,
+        "domainCheck": {
+          "domainBefore": 26382.48400000157,
+          "javascriptNow": 26523.80000001192,
+          "domainAfter": 26584.021000016946
+        },
+        "firstOfferedEventTime": 26665.09999999404,
+        "contactCount": 14,
+        "pointerIds": [
+          4
+        ],
+        "summary": {
+          "model": "fixed offered rate; acknowledgements do not pace dispatch",
+          "input": "touch",
+          "offered": 14,
+          "matched": 14,
+          "dropped": 0,
+          "offeredContacts": 14,
+          "matchedContacts": 14,
+          "droppedContacts": 0,
+          "cancelled": 0,
+          "missingFrames": 0,
+          "invalidTimestamps": 0,
+          "coalesced": 12,
+          "unmatchedObserved": 0,
+          "protocolErrors": 0,
+          "maxHostDispatchLatenessMs": 14.173433333333378,
+          "frameWitness": "double-rAF opportunity with passive raw camera DTO, not physical scanout",
+          "intervalMs": 16.666666666666668,
+          "steps": 12,
+          "generatorSaturated": false,
+          "calibrationResolved": true
+        }
+      },
+      "fault": null
+    },
+    {
+      "id": "main-repair-r3-20261105-9-mobile4-map-zoom-off",
+      "step": "map-pinch-zoom",
+      "launchId": "main-repair-r3-20261105-9-mobile4-map-zoom-off:launch-0-map-zoom",
+      "harnessId": "bf83defcb9f4f99e0351b92cbb8325ab8c2ba801c1ddbc03e4c3c6c1936eedb1",
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+      "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "sourceHashes": {
+        "active-work-oracle.mjs": "678596e562a19bde6a8fba7ce715b64974a2493903c56d4c1d2aaf3a2e749778",
+        "browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+        "offered-input.mjs": "dd92f961f1a0ce3efc0aa2f64a5ea789f7aa69403fb5a9e7734d89ec7843dfc0",
+        "run.mjs": "c01c10b951fc4cdf160e1b350a5949de3601fca6e7de19962f622fe9e535c746"
+      },
+      "runSourceEqualsCurrent": false,
+      "runSourceEqualsFinalArchive": false,
+      "started": 31910,
+      "handlerStarted": 32009.09999999404,
+      "inputTimingReadStarted": 32009.09999999404,
+      "inputTimingReadMs": 0.9000000059604645,
+      "inputQueueMs": 99.09999999403954,
+      "semanticEnd": 32505.80000001192,
+      "finished": 32681.70000001788,
+      "frontier": 0,
+      "revision": 2,
+      "token": "sig:4",
+      "computedAtInput": 1636,
+      "computedAtTerminal": 1840,
+      "requestedAtInput": 1840,
+      "matchingSuccessfulReplies": [
+        {
+          "time": 32065.30000001192,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1636,
+          "endSec": 1666
+        },
+        {
+          "time": 32146.70000001788,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1666,
+          "endSec": 1696
+        },
+        {
+          "time": 32237.80000001192,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1696,
+          "endSec": 1726
+        },
+        {
+          "time": 32327.90000000596,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1726,
+          "endSec": 1756
+        },
+        {
+          "time": 32422.09999999404,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1756,
+          "endSec": 1786
+        },
+        {
+          "time": 32506.59999999404,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1786,
+          "endSec": 1816
+        },
+        {
+          "time": 32588.20000001788,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1816,
+          "endSec": 1840
+        }
+      ],
+      "matchingRepliesAfterInputRead": 7,
+      "matchingProgress": true,
+      "calibration": {
+        "uncertaintyMs": 1.3935000073979609,
+        "samples": 9,
+        "nativeMetrics": 11,
+        "domainCheck": {
+          "domainBefore": 31792.625000001863,
+          "javascriptNow": 31816.09999999404,
+          "domainAfter": 31868.688999995356
+        },
+        "firstOfferedEventTime": 31910,
+        "contactCount": 28,
+        "pointerIds": [
+          4,
+          5
+        ],
+        "summary": {
+          "model": "fixed offered rate; acknowledgements do not pace dispatch",
+          "input": "touch",
+          "offered": 14,
+          "matched": 14,
+          "dropped": 0,
+          "offeredContacts": 28,
+          "matchedContacts": 28,
+          "droppedContacts": 0,
+          "cancelled": 0,
+          "missingFrames": 0,
+          "invalidTimestamps": 0,
+          "coalesced": 24,
+          "unmatchedObserved": 0,
+          "protocolErrors": 0,
+          "maxHostDispatchLatenessMs": 15.17246666666324,
+          "frameWitness": "double-rAF opportunity with passive raw camera DTO, not physical scanout",
+          "intervalMs": 16.666666666666668,
+          "steps": 12,
+          "generatorSaturated": false,
+          "calibrationResolved": true
+        }
+      },
+      "fault": null
+    },
+    {
+      "id": "main-repair-r3-20261105-10-mobile4-map-open-off",
+      "step": "settlement-open",
+      "launchId": "main-repair-r3-20261105-10-mobile4-map-open-off:launch-0-map-open",
+      "harnessId": "bf83defcb9f4f99e0351b92cbb8325ab8c2ba801c1ddbc03e4c3c6c1936eedb1",
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+      "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "sourceHashes": {
+        "active-work-oracle.mjs": "678596e562a19bde6a8fba7ce715b64974a2493903c56d4c1d2aaf3a2e749778",
+        "browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+        "offered-input.mjs": "dd92f961f1a0ce3efc0aa2f64a5ea789f7aa69403fb5a9e7734d89ec7843dfc0",
+        "run.mjs": "c01c10b951fc4cdf160e1b350a5949de3601fca6e7de19962f622fe9e535c746"
+      },
+      "runSourceEqualsCurrent": false,
+      "runSourceEqualsFinalArchive": false,
+      "started": 33466.40000000596,
+      "handlerStarted": 33560.09999999404,
+      "inputTimingReadStarted": 33560.09999999404,
+      "inputTimingReadMs": 0.9000000059604645,
+      "inputQueueMs": 93.69999998807907,
+      "semanticEnd": 33858.59999999404,
+      "finished": 34084.5,
+      "frontier": 0,
+      "revision": 2,
+      "token": "sig:4",
+      "computedAtInput": 2160,
+      "computedAtTerminal": 2310,
+      "requestedAtInput": 2432,
+      "matchingSuccessfulReplies": [
+        {
+          "time": 33503.59999999404,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 2160,
+          "endSec": 2190
+        },
+        {
+          "time": 33792.40000000596,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 2190,
+          "endSec": 2220
+        },
+        {
+          "time": 33859.80000001192,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 2220,
+          "endSec": 2250
+        },
+        {
+          "time": 33950.80000001192,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 2250,
+          "endSec": 2280
+        },
+        {
+          "time": 34002.09999999404,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 2280,
+          "endSec": 2310
+        }
+      ],
+      "matchingRepliesAfterInputRead": 4,
+      "matchingProgress": true,
+      "calibration": null,
+      "fault": null
+    },
+    {
+      "id": "main-repair-r4-close-20261105-0-desktop-map-close-off",
+      "step": "settlement-close",
+      "launchId": "main-repair-r4-close-20261105-0-desktop-map-close-off:launch-0-map-close",
+      "harnessId": "c6d6d8132f756ddf26b51bb4c42a44d709461c6a0914f89c375d3fc540fbb67e",
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+      "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "sourceHashes": {
+        "active-work-oracle.mjs": "678596e562a19bde6a8fba7ce715b64974a2493903c56d4c1d2aaf3a2e749778",
+        "browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+        "offered-input.mjs": "dd92f961f1a0ce3efc0aa2f64a5ea789f7aa69403fb5a9e7734d89ec7843dfc0",
+        "run.mjs": "ff4a3451262312143575c77d5a69957835d0636f45bc537b2c79aa5f4f096955"
+      },
+      "runSourceEqualsCurrent": false,
+      "runSourceEqualsFinalArchive": false,
+      "started": 3835.4000000059605,
+      "handlerStarted": 3841.0999999940395,
+      "inputTimingReadStarted": 3841.0999999940395,
+      "inputTimingReadMs": 0.10000002384185791,
+      "inputQueueMs": 5.699999988079071,
+      "semanticEnd": 3910.800000011921,
+      "finished": 4320.5999999940395,
+      "frontier": 0,
+      "revision": 2,
+      "token": "sig:4",
+      "computedAtInput": 276,
+      "computedAtTerminal": 396,
+      "requestedAtInput": 1280,
+      "matchingSuccessfulReplies": [
+        {
+          "time": 3967.0999999940395,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 276,
+          "endSec": 296
+        },
+        {
+          "time": 3978.9000000059605,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 296,
+          "endSec": 316
+        },
+        {
+          "time": 3989.300000011921,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 316,
+          "endSec": 336
+        },
+        {
+          "time": 4065,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 336,
+          "endSec": 356
+        },
+        {
+          "time": 4140.800000011921,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 356,
+          "endSec": 376
+        },
+        {
+          "time": 4249.0999999940395,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 376,
+          "endSec": 396
+        }
+      ],
+      "matchingRepliesAfterInputRead": 6,
+      "matchingProgress": true,
+      "calibration": null,
+      "fault": null
+    },
+    {
+      "id": "main-repair-r4-close-20261105-1-mobile4-map-close-off",
+      "step": "settlement-close",
+      "launchId": "main-repair-r4-close-20261105-1-mobile4-map-close-off:launch-0-map-close",
+      "harnessId": "c6d6d8132f756ddf26b51bb4c42a44d709461c6a0914f89c375d3fc540fbb67e",
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+      "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "sourceHashes": {
+        "active-work-oracle.mjs": "678596e562a19bde6a8fba7ce715b64974a2493903c56d4c1d2aaf3a2e749778",
+        "browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+        "offered-input.mjs": "dd92f961f1a0ce3efc0aa2f64a5ea789f7aa69403fb5a9e7734d89ec7843dfc0",
+        "run.mjs": "ff4a3451262312143575c77d5a69957835d0636f45bc537b2c79aa5f4f096955"
+      },
+      "runSourceEqualsCurrent": false,
+      "runSourceEqualsFinalArchive": false,
+      "started": 32563,
+      "handlerStarted": 32809.69999998808,
+      "inputTimingReadStarted": 32809.69999998808,
+      "inputTimingReadMs": 0.7000000178813934,
+      "inputQueueMs": 246.69999998807907,
+      "semanticEnd": 33492.19999998808,
+      "finished": 33541.69999998808,
+      "frontier": 0,
+      "revision": 2,
+      "token": "sig:4",
+      "computedAtInput": 1974,
+      "computedAtTerminal": 2096,
+      "requestedAtInput": 2096,
+      "matchingSuccessfulReplies": [
+        {
+          "time": 32743.90000000596,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 1974,
+          "endSec": 2004
+        },
+        {
+          "time": 33202.5,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 2004,
+          "endSec": 2034
+        },
+        {
+          "time": 33325.19999998808,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 2034,
+          "endSec": 2064
+        },
+        {
+          "time": 33386.69999998808,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 2064,
+          "endSec": 2094
+        },
+        {
+          "time": 33464.59999999404,
+          "timelineToken": "sig:4",
+          "historyEndSec": 0,
+          "baseSec": 2094,
+          "endSec": 2096
+        }
+      ],
+      "matchingRepliesAfterInputRead": 4,
+      "matchingProgress": true,
+      "calibration": null,
+      "fault": null
+    },
+    {
+      "id": "main-controls-r1-20261105-stale-generation",
+      "step": "map-pan",
+      "launchId": "main-controls-r1-20261105-stale-generation:launch-0-map-pan",
+      "harnessId": "c6d6d8132f756ddf26b51bb4c42a44d709461c6a0914f89c375d3fc540fbb67e",
+      "buildId": "d90b548b14c9eb1f93be466e13b0e9b58c656df38b5de25c86b70dc3b96a9928",
+      "servedAssets": {
+        "bundle": "ec7f5c671422ed9c77867886dfcb1671b737b96be39b790f5fcdc1f6acb16798",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+      "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "sourceHashes": {
+        "active-work-oracle.mjs": "678596e562a19bde6a8fba7ce715b64974a2493903c56d4c1d2aaf3a2e749778",
+        "browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+        "offered-input.mjs": "dd92f961f1a0ce3efc0aa2f64a5ea789f7aa69403fb5a9e7734d89ec7843dfc0",
+        "run.mjs": "ff4a3451262312143575c77d5a69957835d0636f45bc537b2c79aa5f4f096955"
+      },
+      "runSourceEqualsCurrent": false,
+      "runSourceEqualsFinalArchive": false,
+      "started": 3250.0999999940395,
+      "handlerStarted": 3252.2999999821186,
+      "inputTimingReadStarted": 3252.2999999821186,
+      "inputTimingReadMs": 0.10000002384185791,
+      "inputQueueMs": 2.199999988079071,
+      "semanticEnd": 3638.0999999940395,
+      "finished": 3963.9000000059605,
+      "frontier": 0,
+      "revision": 2,
+      "token": "sig:4",
+      "computedAtInput": 156,
+      "computedAtTerminal": 156,
+      "requestedAtInput": 1280,
+      "matchingSuccessfulReplies": [],
+      "matchingRepliesAfterInputRead": 0,
+      "matchingProgress": false,
+      "calibration": {
+        "uncertaintyMs": 1.2756999968942182,
+        "samples": 9,
+        "nativeMetrics": 11,
+        "domainCheck": {
+          "domainBefore": 3204.2700000165496,
+          "javascriptNow": 3208.7999999821186,
+          "domainAfter": 3210.056000010809
+        },
+        "firstOfferedEventTime": 3250.0999999940395,
+        "contactCount": 14,
+        "pointerIds": [
+          1
+        ],
+        "summary": {
+          "model": "fixed offered rate; acknowledgements do not pace dispatch",
+          "input": "mouse",
+          "offered": 14,
+          "matched": 14,
+          "dropped": 0,
+          "offeredContacts": 14,
+          "matchedContacts": 14,
+          "droppedContacts": 0,
+          "cancelled": 0,
+          "missingFrames": 0,
+          "invalidTimestamps": 0,
+          "coalesced": 12,
+          "unmatchedObserved": 0,
+          "protocolErrors": 0,
+          "maxHostDispatchLatenessMs": 13.307999999999993,
+          "frameWitness": "double-rAF opportunity with passive raw camera DTO, not physical scanout",
+          "intervalMs": 16.666666666666668,
+          "steps": 12,
+          "generatorSaturated": false,
+          "calibrationResolved": true
+        }
+      },
+      "fault": {
+        "mutatedDeliveries": 9,
+        "staleDuringOperation": 8,
+        "deliveredTokens": [
+          "stale-control-generation"
+        ],
+        "originalTokens": [
+          "sig:4"
+        ],
+        "initSha256": "abdddab64c2636ebdeff92ce0c30d7d493a82857698cdb75809b2ab5ec249ff1"
+      }
+    },
+    {
+      "id": "resume-hold-negative-r1-20261115-1-map-pan",
+      "step": "map-pan",
+      "launchId": "resume-hold-negative-r1-20261115-1-map-pan:launch-0-map-pan",
+      "harnessId": "148ce1d43b2c6b53583394b7cbde6d1343d4bfb35a5daa8960afbe9b28879b8a",
+      "buildId": "cb9b16916f926f41438027164cdc4c48ea4e868aa776e9c0ce6ebf646afa9a1e",
+      "servedAssets": {
+        "bundle": "2650f059863769f98da13622798df92cf8a338c082f5fd5a695094aee2a48ea8",
+        "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+        "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+        "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+      },
+      "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+      "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+      "sourceHashes": {
+        "active-work-oracle.mjs": "678596e562a19bde6a8fba7ce715b64974a2493903c56d4c1d2aaf3a2e749778",
+        "browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+        "offered-input.mjs": "dd92f961f1a0ce3efc0aa2f64a5ea789f7aa69403fb5a9e7734d89ec7843dfc0",
+        "run.mjs": "282477e03794247c49bda74b5fa5f4722590a009619867553044c9649018b61a"
+      },
+      "runSourceEqualsCurrent": false,
+      "runSourceEqualsFinalArchive": false,
+      "started": 3493.0999999940395,
+      "handlerStarted": 3493.699999988079,
+      "inputTimingReadStarted": 3493.699999988079,
+      "inputTimingReadMs": 0.10000002384185791,
+      "inputQueueMs": 0.5999999940395355,
+      "semanticEnd": 4171.300000011921,
+      "finished": 4653.5,
+      "frontier": 0,
+      "revision": 2,
+      "token": "sig:4",
+      "computedAtInput": 196,
+      "computedAtTerminal": 196,
+      "requestedAtInput": 1280,
+      "matchingSuccessfulReplies": [],
+      "matchingRepliesAfterInputRead": 0,
+      "matchingProgress": false,
+      "calibration": {
+        "uncertaintyMs": 1.2909499964916904,
+        "samples": 9,
+        "nativeMetrics": 11,
+        "domainCheck": {
+          "domainBefore": 3463.2240000064485,
+          "javascriptNow": 3464.4000000059605,
+          "domainAfter": 3465.029000013601
+        },
+        "firstOfferedEventTime": 3493.0999999940395,
+        "contactCount": 14,
+        "pointerIds": [
+          1
+        ],
+        "summary": {
+          "model": "fixed offered rate; acknowledgements do not pace dispatch",
+          "input": "mouse",
+          "offered": 14,
+          "matched": 14,
+          "dropped": 0,
+          "offeredContacts": 14,
+          "matchedContacts": 14,
+          "droppedContacts": 0,
+          "cancelled": 0,
+          "missingFrames": 0,
+          "invalidTimestamps": 0,
+          "coalesced": 12,
+          "unmatchedObserved": 0,
+          "protocolErrors": 0,
+          "maxHostDispatchLatenessMs": 13.749700000000303,
+          "frameWitness": "double-rAF opportunity with passive raw camera DTO, not physical scanout",
+          "intervalMs": 16.666666666666668,
+          "steps": 12,
+          "generatorSaturated": false,
+          "calibrationResolved": true
+        }
+      },
+      "fault": {
+        "mutatedDeliveries": 16,
+        "staleDuringOperation": 16,
+        "deliveredTokens": [
+          "stale-control-generation"
+        ],
+        "originalTokens": [
+          "sig:4"
+        ],
+        "initSha256": "abdddab64c2636ebdeff92ce0c30d7d493a82857698cdb75809b2ab5ec249ff1"
+      }
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "at": "2026-11-15T03:53:44.682Z",
+  "verdict": "NO_USABLE_TOOL_FOUND_IN_QUERIED_LOCATIONS_ONLY",
+  "scriptSha256": "e7b141560eff69976ff2cea0c691683e2f19faefba08efdd408b295848619aa9",
+  "inventorySha256": "ac69a533276628a8e5ec01990055622550b10f2566c6dbda9994dc91d29052d6",
+  "inventoryAt": "2026-11-15T03:51:24.0342285Z",
+  "pathQueryCount": 7,
+  "pathStates": {
+    "NOT_FOUND": 7
+  },
+  "candidateCount": 30,
+  "candidateStates": {
+    "MISSING": 30
+  },
+  "origins": {
+    "EXPLICIT_SDK": 18,
+    "EXPLICIT_SYSINTERNALS": 12
+  },
+  "candidateCap": 64,
+  "overflow": false,
+  "scope": "Independent bounded source/JSON review only; inventory not rerun and no tool executed.",
+  "limits": [
+    "Application command lookup only, not aliases/functions/all app packages.",
+    "Explicit SDK10 and four Sysinternals roots only; unqueried installs/versions/custom paths remain outside scope.",
+    "No recursive scan or global absence inference.",
+    "Reparse/alias/PE/hash caps exist but no candidate reached file inspection in this run.",
+    "OrderedDictionary Group-Object stdout grouping was blank; actual JSON states independently counted.",
+    "No runtime/capture capability tested, install/download/license/settings/attach performed."
+  ]
+}

@@ -1,0 +1,1300 @@
+diff --git a/docs/performance/perf-hillclimb-20261104/ATTEMPTS.md b/docs/performance/perf-hillclimb-20261104/ATTEMPTS.md
+index 7793eddb..4137b87f 100644
+--- a/docs/performance/perf-hillclimb-20261104/ATTEMPTS.md
++++ b/docs/performance/perf-hillclimb-20261104/ATTEMPTS.md
+@@ -2,6 +2,10 @@
+ 
+ No scored optimization attempts yet. Phase A proof gate remains closed. Harness construction and oracle repairs are measurement work and do not count as product improvements.
+ 
++Latest2026-11-05 checkpoint: Life retained-state Builder r8 PASS8/8 (both seed123 controls plus6 all3-seed desktop/mobile4 positives), no independent acceptance. Root confirmed app pins, repaired9 docs-route formatting references and full npm run verify passed. New feedback observer/control source then passed syntax/26 virtual controls; identical26 pass through new CI entry. Actual/native all8-job feedback and main J6 oracle integration transfer to the next separate Builder under FEEDBACK_NATIVE_BINDING_BRIEF.md. Macro must refresh afterward; no performance win or scoring. All failed construction runs and independently reported6 draft findings remain retained.
++
++2026-11-05 parent checkpoint: frozen-Life addendum Builder r7 passes3 seeds/68 rejection controls, pin6b7456c5594cf05393b81c16a3cfc3682bff8c92fbba8821bfe8af16e911d8b8; independent acceptance pending. Actual main J5 full installed-state integration passes12/12 all3-seed x desktop/mobile4 x16/17 cold/minimal launches, one exact harness/build/contract revision, every full state/knowledge/RNG match plus3 official continuation seconds. Combined assessment: artifacts/perf-hillclimb/main-full-preview-otherseeds-parent-r1-20261105/parent-assessment.json. No source changed during either matrix. No earlier provenance failure was waived. Next Life private-state/tableau/stale-commit Builder is bounded by LIFE_STATE_BINDING_BRIEF.md; full Phase A remains NOT SOUND.
++
+ | Work ID | Kind | Evidence / decision |
+ | --- | --- | --- |
+ | A-oracle | Existing test oracle repair | Verified local commit `7f7a1fe0`: real Logging Timber/Construction use, exact expected exception tags. Region-map unit/browser and full verify pass. No product change or performance gain. |
+diff --git a/docs/performance/perf-hillclimb-20261104/BUILDER_NOTES.md b/docs/performance/perf-hillclimb-20261104/BUILDER_NOTES.md
+index 95e113a5..2963154e 100644
+--- a/docs/performance/perf-hillclimb-20261104/BUILDER_NOTES.md
++++ b/docs/performance/perf-hillclimb-20261104/BUILDER_NOTES.md
+@@ -4,7 +4,7 @@ Builder `/root/harness_builder`, Codex gpt-6.1-sol / xhigh, 2026-11-04. **NOT SO
+ 
+ ## Files and reproduction
+ 
+-- `scripts/perf-hillclimb/fixtures.mjs`: ordinary current New Game seed 123; selected founder; entered first shop; real purchased/confirmed node history at second 54. Five recorded public actions and every official simulation tick. Nontrivial live/replay full serialized equality including RNG is asserted. No gameplay settings or graph generators are modified. Fixture savedAt is frozen for stable hashes. More representative seeds/history required before acceptance.
++- `scripts/perf-hillclimb/fixtures.mjs`: construction recipe for the three fixed ordinary seeds 123, 424242 and 99117, five fixtures each including six-node histories. Every official tick and public action is retained. Candidate runs must reuse the frozen corpus described below, never regenerate this recipe as their expected workload.
+ - `scripts/perf-hillclimb/browser-runtime.mjs`: browser monotonic event timestamp through semantic completion and double-rAF, captures handler delay separately; deadline rejection; optional worker/frame/long-task and completed save transaction evidence. Instrumentation-off preserves the native Worker and IndexedDB implementations. Instrumentation overhead controls/evidence remain required.
+ - `scripts/perf-hillclimb/run.mjs`: sequential real regular-game/browser paths, job/population arguments, JSONL raw operations, per-run manifests and summaries. A fresh browser is created for each job/suite repetition. Contexts are isolated. Cold excludes OS disk-cache coldness. Warm performs one full unmeasured equivalent entry then clears save records, reinstalls fixture if any and navigates again in the retained context.
+ - `scripts/perf-hillclimb/mechanism-controls.mjs`: standalone reversible browser fixtures using the same timer and completion primitive. Deliberate preceding input-handler stall, 200ms deferred completion, wrong result, late success, wrong slot/payload and native unwrapped reference checks. These supplement, and do not replace, required actual-product controls.
+@@ -29,7 +29,7 @@ Other arguments: `--population=mobile|mobile4`, `--cache=warm`, `--worker-delay=
+ 
+ `mechanism-controls` passed four fixture mechanism groups (trusted input + preceding main-thread stall; deferred/wrong/deadline completion; actual delayed worker; IndexedDB identity/native reference). These control results predate later runtime timing refinements and lack exact code/build hashes, so they are discovery evidence only and must be rerun after the mechanism freezes.
+ 
+-Current `runtime.probe` captures explicitly designated terminal semantic success and the next double-rAF entirely in the browser; `finish` consumes those timestamps and reports host delivery delay separately. `wait()` is a precondition; `complete()` designates terminal readiness. A missing terminal predicate fails the operation. Changing predicate identity or receiving another input invalidates an earlier completion candidate. Final controls include an immediate successful intermediate wait followed by a deferred 200ms terminal wait with no further input, and must verify the refined mechanism.
++Root owns the runtime. Its current repair requires explicitly designated terminal truth to stay true through two frame opportunities and revalidates at finish. Incidental waits are nonterminal; a missing terminal predicate fails. Changing predicate identity, receiving another input or a false predicate invalidates the candidate. The original control passes below did not catch a later same-key false predicate and are superseded by root's transient/deadline controls. Current schema names terminalReadinessMs, semanticToFrameOpportunityMs, frameOpportunityToFinishCallMs and postSemanticToFinishCallMs. These gaps are not isolated driver overhead; firstFeedbackMs remains null/unmeasured until a real job-specific witness exists.
+ 
+ The fixed ordinary corpus is seeds 123, 424242 and 99117. Two real six-node histories were first generated: seed 123 at second 439, 21 actions / 28 genuine checkpoints; seed 424242 at second 574, 21 actions / 29 checkpoints. Seed 99117 exposed a genuine original-baseline serialization blocker at second 740 after travel to a neutral market and founding training installed a Lyceum. Root's separate read-only diagnosis reproduced the actual enabled live view option, paused live model dispatch and normal simulation runner. Original-baseline evidence remains red and retained; the seed was never excluded or replaced. Root assigned separate corrective implementation; this Builder makes no product edit.
+ 
+@@ -39,7 +39,7 @@ Updated mechanism controls passed five groups in `artifacts/perf-hillclimb/mecha
+ 
+ Durable repro: `node scripts/perf-hillclimb/repro-neutral-market.mjs` uses `scripts/perf-hillclimb/fixtures/neutral-market-99117.json` (18 public actions and all official ticks to second 740). It exits 1 on the exact neutral-market serializer symptom, exits 2 on an invalid altered itinerary, and exits 0 if the symptom is absent. Last valid / first invalid full states and concise repro output are written under `artifacts/perf-hillclimb/neutral-market-repro/`. Removing each of the 18 recorded actions removes the symptom under the recorded timing, generally by making subsequent required actions unavailable; this is action-omission minimal for that trace, not a claim about all possible gameplay paths.
+ 
+-Still required: all repaired scripts executed; exact field/target bindings repaired from real snapshots; active compute/reveal overlap J3/J5 (not merely a static prepared forecast); J5 exact pointer-to-target mapping, full oracle/read-only independence; J4/J6 current first shop flow, expected costs/state and fresh generation/forecast output equivalence; J7 full source/resume/continuation equality and nontrivial action/off-anchor histories; J2 nontrivial Continue and prepared-fixture metadata; J8 real preparation start, no automatic reveal oracle, assets failure/retry and repeated-navigation memory. Fixed offered input schedule/drop/lateness is not yet implemented. Current runner is closed-loop and declares that limitation.
++Still required: all repaired bindings executed and audited; J3 actual simulation/forecast work overlapping map input; J5 actual anchor/off-anchor scrubs during advancing reveal with correct clamps and read-only independence. J5 does not require simultaneous forecast compute. J4/J6 current shop flow, expected costs/state and fresh forecast equivalence, J7 exact source/resume/continued state, all populations and actual-product controls remain unproved. Root's separately owned artwork controls cover required failure/retry/publication mechanisms but do not accept the complete harness. Fixed offered pan input is now wired, with due/dispatch/event/handler/frame and drop/lateness evidence, but unexecuted. Mobile pinch remains an explicit coverage gap; mouse wheel is not substituted for it.
+ 
+ Actual current save DB is `full-map-redesign-v1-saves`. Older probes using `civilization-saves` or legacy `selectedState()` are unsuitable as representative current-main fixtures.
+ 
+@@ -47,7 +47,7 @@ No full three-suite smoke, sufficient-tail quota, actual-product negative contro
+ 
+ Full debug snapshot polling is materially intrusive: existing failed Life Map discoveries spent about 17–20% of elapsed time in polling, with individual reads around 11–23ms. Existing `getLifeDecisionTimingSnapshot` is also not a passive accepted substitute because it can call controller synchronization and heavy presentation getters. Root is arranging separate primitive, read-only observability; current run.mjs timing polls remain discovery only until that binding, overhead proof and independent audit are complete.
+ 
+-`offered-input.mjs` is an untested, unwired fixed-rate CDP input helper. It schedules all requested events independently of ACKs and retains due/dispatched/arrival/handler/frame times, clock calibration uncertainty, coalescing, missing events, protocol errors and generator lateness. Its current reference-region projection getter also needs passivity review; bind to root's new passive observability before claiming accepted responsiveness evidence.
++`offered-input.mjs` is an untested fixed-rate CDP input helper wired to the J3 pan binding. It schedules all requested events independently of ACKs and retains due/dispatched/arrival/handler/frame times, calibration uncertainty, coalescing, missing events, protocol errors and generator lateness. It now reads raw passive camera fields, with precomputed geometry and mouse/touch dispatch. Actual offered-load validity, overhead and saturation controls remain required.
+ 
+ `builder-discovery-life-d05bab3-r2` failed at final entry confirmation because a second click arrived before the entry-confirmation dialog settled. Current run.mjs now has a separate measured entry-dialog-open step waiting for phase=open, followed by final confirmation. That repair is unexecuted. The same discovery retained real asynchronous forecast coverage (computed 1280s while reveal was 162s), so current selected-run Continue is a promising J3 workload; map/scrub now start from that fixture. Actual worker/progress overlap must still be demonstrated per operation.
+ 
+@@ -66,3 +66,44 @@ Avoid treating warm/cold as a per-click switch after a session is already runnin
+ | J8 progressive art | Progressive preparation and explicit reveal, cold/warm resource cache, each browser configuration; matched artwork-off reference for frame/memory overhead, not a meaningless “off preparation latency” cell. Repeated post-reveal navigation memory is separated from intentional asset allocation. |
+ 
+ This is an applicability proposal. Root's exact contract/coverage matrix and independent acceptance govern proof; no missing cell is implicitly waived.
++
++## Frozen workload and baseline SDK handoff
++
++Canonical immutable corpus: `artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json`.
++
++- Manifest ID: `406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000`.
++- SDK SHA256: `8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0` (1,329,028 bytes, one ESM bundle).
++- Captured source ID: `94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7` (141 exact input byte snapshots).
++- Construction runtime: Node v24.15.0; esbuild version and complete runtime versions recorded in the manifest. Only `node:assert/strict` and `node:crypto` remain external. Dynamic imports, CJS require, split outputs and mutable repository imports are rejected.
++
++The source snapshot rebuild reads its inputs solely from the captured byte map and reproduces the exact SDK SHA. All 15 text/state identities match the retained corrected `fixture-corpus-d05bab3` without normalization. Each immutable save and raw expected frontier state is retained. `conformance.json` records 141 full-state comparisons across all three seeds: raw/decode parity, authoritative rebuilds at 0/16/17/frontier, then three official continued seconds including all RNG fields. Normal losses/actions are not suppressed. This is baseline construction conformance, not independent Phase A acceptance and not browser latency evidence.
++
++The earlier `frozen-baseline-a9df52c-20261104` construction output is preserved, with the same SDK/source bytes. The canonical sourceproof manifest adds the source-only reproduction witness and packet identity checks; the loader requires that stronger witness. Expected model semantics never changed between those construction outputs.
++
++Construction command (already run; the existing output directory must not be overwritten):
++
++```powershell
++node scripts/perf-hillclimb/freeze-corpus.mjs --retained=artifacts/perf-hillclimb/fixture-corpus-d05bab3/manifest.json --output=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104
++```
++
++Loader/isolation controls passed 11 groups; exact current script hashes and results are retained in `artifacts/perf-hillclimb/frozen-loader-controls-a9df52c/controls.json`. The controls reject a wrong pin, altered manifest, altered frozen bytes, duplicate fixture pairs and external/dynamic imports. They leave the immutable source untouched.
++
++```powershell
++node scripts/perf-hillclimb/freeze-corpus-test.mjs artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json 406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000 artifacts/perf-hillclimb/frozen-loader-controls-a9df52c/controls.json
++```
++
++Exact reuse command for a focused Life Map discovery, after root grants the browser slot and DTO v2 is implemented/audited (not yet run):
++
++```powershell
++node scripts/perf-hillclimb/run.mjs --fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json --fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000 --seed=123 --jobs=life --population=desktop --artwork=off --cache=cold --samples=1 --id=life-passive-frozen-discovery
++```
++
++The same manifest path/ID must be used for A/B. Seed 424242 and 99117 select their existing immutable ordinary fixtures; Performance New/Continue use their actual fixed logical seed 123. Each run validates all frozen byte hashes, records the frozen manifest/SDK/source IDs, and includes the frozen identity in population grouping. Without an explicit manifest and pinned ID the runner labels output `generated-construction-only`, sets comparison/tail-inference eligibility false and cannot support a baseline or candidate score. It never silently creates a new frozen expectation.
++
++Prepared fixture bytes remain separate from logical expected state. Baseline packet SHA is `cad1a039895f5bba1aceb50ea693c17c06550b8c068b436c624c2b803994d9a6`, baseline source key `db9c9cfa0b929b060892b105c668dfa45cc3fafa1e5665b641a265877ceabe79`, loss second 3918 and 245 retained forecast states. Its initial state exactly matches immutable ordinary seed123 state `df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f`. Candidate packet key/hash may vary with source: the runner validates its actual key against its actual build and its seed/state against the frozen logical workload, then records both separately.
++
++`run.mjs` now uses the frozen SDK for expected preview/replay and continued expected states; current product code only validates actual results. Save correctness compares raw, decoded and authoritative rebuilt actual states to the immutable raw expected state, including persistent knowledge and RNG, outside the timed interval. Any legitimate knowledge delta needs a separately derived exact expectation and audit; mismatches are not normalized. Syntax checks pass for runner, SDK entry, freezer and focused controls. No browser job has run through the new loader yet.
++
++The new timed bindings use passive DTO v2/DOM fields and require expected node/source/target/generation. Full/legacy snapshots are guarded against timed use. Geometry is calibrated explicitly outside clocks and retained; point-getter passivity and calibration side effects remain subject to audit. Missing v2 opening phase/loss/coverage, cached shop fields, anchor membership and artwork prepared/publication fields deliberately block their jobs rather than weakening terminal criteria. Root owns the DTO extension and shared timer/artwork files.
++
++Impact: these are harness-only changes. Product simulation, RNG streams, schemas, replay, UI behavior and layering are untouched. The frozen SDK copies the verified model; conformance executes all 60 ticks per official second. Remaining gates include passive DTO audit, real execution of all repaired jobs/populations and controls, correct visible completion, mobile pinch, timing/observation overhead, first-feedback witnesses, required smoke/tail samples and independent Harness Auditor acceptance. **Phase A remains NOT SOUND.**
+diff --git a/docs/performance/perf-hillclimb-20261104/COVERAGE.md b/docs/performance/perf-hillclimb-20261104/COVERAGE.md
+index c84b1f26..a24754d8 100644
+--- a/docs/performance/perf-hillclimb-20261104/COVERAGE.md
++++ b/docs/performance/perf-hillclimb-20261104/COVERAGE.md
+@@ -1,21 +1,23 @@
+ # Construction coverage ledger
+ 
+-2026-11-04. All eight jobs remain required. **No job is yet accepted for Phase A.** Passing application tests or a standalone mechanism control does not fill missing end-to-end oracle/timing/population proof.
++Updated2026-11-05. All eight jobs remain required. **No job is yet accepted for Phase A.** Scoped passive-observability acceptance does not establish end-to-end harness acceptance. Main discovery has58 passing observations across25 launches, selected across distinct recorded revisions; it is not a consecutive complete suite or a tail population. See MAIN_BINDING_IMPLEMENTATION.md for exact runs, controls and source hashes.
+ 
+ | Job | Executable path / discovery | Remaining proof blockers |
+ | --- | --- | --- |
+-| J1 ordinary New Game | Real ordinary menu, seed preference, full opening forecast, Present input reached in first discovery. | Discovery exceeded deadline and mislabeled artwork; repaired path requires fresh runs. Full initial click and navigation timing, correct cache/art reset, complete oracle and all required populations/samples. |
+-| J2 Performance New/Continue | Actual prepared fixture/menu path and separate current `performance-dev` save; New and nontrivial Continue get separate launches. | Execute and validate precise bindings, fixture/file hashes and preparation cost, full correct continuation, cold/warm/art modes and uncertainty. |
+-| J3 map/settlement under active work | Pointer camera/panel primitives scaffolded. | A completed opening has idle forecast compute despite continuing reveal. Need real action/recompute overlap evidence; fixed offered schedule, queue/lateness/drops, rendered completion and oracle controls. |
+-| J4 Life Map | Current ordinary action-derived fixture and canvas hit targets. | Execute real entry/choice/confirmation/return, assert exactly-once costs/time/state and replay equality, full populations/control/overhead evidence. |
+-| J5 scrub/restore | Pointer scrub/anchor and off-anchor scaffolding. | Exact target/reveal clamp, actively advancing reveal, correct independent authoritative state, unchanged frontier/RNG and mutable-preview independence; negative controls and tails. Concurrent compute is an additional diagnostic, not a J5 requirement; J3 separately requires actual active work. |
+-| J6 action/reforecast | Actual first-shop transaction path scaffolded. | Execute action and full invalidation/new-generation completion, prove actual usable preview matches replay and reject stale output; keep heavy independent checks outside timed interval. |
+-| J7 save/load | Current full-map IndexedDB namespace, committed-transaction witness, untimed full-state checks; all3 seed corpus now passes15 fixtures after separately verified storefront correction d05bab34. | Execute source/load/resume equivalence and subsequent official ticks, fail closed on all serialized/RNG differences. Any intended persistent-knowledge merge needs an independent exact expectation. No seed excluded. |
+-| J8 artwork | Progressive real preparation/explicit reveal path scaffolded; Worker/IDB/frame instrumentation available. | Execute actual prep/reveal controls including required-asset failure/retry, pre-action no-swap, responsive play, before/after repeated navigation memory and frame stalls; separate art populations from minimal graphics. |
++| J1 ordinary New Game | Actual full opening, Present and exact committed state pass desktop/mobile4 minimal; desktop illustrated also passes. | Broader seeds, warm populations, mobile illustrated, feedback/overhead and sufficient independent samples. |
++| J2 Performance New/Continue | Separate prepared New and nontrivial Continue launches pass desktop/mobile4 minimal, including exact fixture identity, namespace and raw/decoded/rebuilt state. | Warm/art populations, preparation-cost attribution, broader histories/seeds and uncertainty. |
++| J3 map/settlement under active work | Pan, zoom, Settlement open and close pass separate desktop/mobile4 launches with actual current-source work at trusted input and matching progress. Mobile zoom uses a genuine two-contact pinch. Actual stale-generation control rejects stale-only progress. | Independent audit of new native-clock binding; full observer/offered-input overhead, broader populations and tails. No synthetic worker delay is used in positive runs. |
++| J4 Life Map | Seed123 desktop/mobile4 minimal pass entry, choice/confirmation, recap and return. Nine J4/J6 observations per population include strict full state. | Other seeds/art/cache populations, feedback/overhead and sufficient samples. |
++| J5 scrub/restore | Parent actual timing/full installed-preview integration now passes12/12 all3-seed desktop/mobile4 cold/minimal separate16/17 launches on one exact revision, including full frontier/knowledge/RNG and3 official continued seconds. Separate seam/focused and real installed mutation-restoration construction controls remain pinned to their recorded revisions. Combined parent assessment is in main-full-preview-otherseeds-parent-r1-20261105. | Independent seam/isolation acceptance remains required. The standalone matrix has an opening-lock failure/interruption and final provenance failure from concurrent root edits; rerun fixed-source proof. Broader populations, first feedback/overhead and tails remain. |
++| J6 action/reforecast | Exact offers, purchase board, three-action committed batch, recomputed preview and authoritative replay pass desktop/mobile4 minimal. | Full preview equality/isolation, direct stale-commit fault, other populations and feedback/overhead/tails. Known UI pause/resolved-survival expectations come only from frozen SDK data; actual outputs are untouched. |
++| J7 save/load | Opening and later-history loads/saves pass desktop/mobile4 with exact raw/decoded/rebuilt fields and three continued official seconds/RNG. Actual wrong-save rejection and deferred committed-I/O controls pass. | All three seeds/nontrivial histories, warm/art populations, complete samples and independent audit. No seed is excluded. |
++| J8 artwork | Actual early-HUD publication fault rejects; normal/deferred/retry/exhausted paths pass28 observations in artwork-passive-positive-r2-20261105, including strict current exported state. Full16-atlas/13-group preparation, drawing parity, current-context presence, real navigation and frame/JS-heap observations retained. Refreshed actual current/foreign/lost texture and bounded missing-request controls pass their intended outcomes. | Explicit heavy-diagnostic frame windows, matched hook/sampling overhead/native corroboration, first feedback, warm/mobile populations and tails; independent audit still required. Prior ineligible runs stay retained. Never pool with minimal graphics. |
+ 
+ Common blockers: exact runner/config/fixture contract freeze, whole-suite 3 consecutive smoke runs, all required populations and sufficient independent samples, measured instrumentation overhead/native reference, independent actual-browser reproduction, and complete Auditor acceptance. Statistics subreviews do not accept any of these common gates.
+ 
+-Mechanism fixtures passed in `artifacts/perf-hillclimb/mechanism-controls/controls.json`: trusted input queue delay/deferred visible completion; wrong/late result rejection; delayed Worker completion; committed IndexedDB identity; native Worker reference. Product-path negative controls remain required.
++The observer/warm static review found five concrete integration/retention/liveness/schedule defects. Root repair status and actual control evidence are in OBSERVER_WARM_REVIEW_DISPOSITIONS.md. Host/native mechanism controls and the throwing-diagnostic actual control have passed; these do not infer successful warm populations or close independent acceptance. The rooted never-diagnostic retry reaches its intended timeout; the full fixed-source five-control failure/liveness batch is still running.
++
++Runtimev4 nine actual mechanism controls pass in `artifacts/perf-hillclimb/mechanism-controls-parent-v4-projection-20261105/controls.json`. Five actual main-product controls pass in `artifacts/perf-hillclimb/main-controls-r1-20261105/results.json`. All are named control populations, comparison-ineligible; remaining oracle-specific controls still block complete acceptance.
+ 
+ Current commands (construction only, one browser workload at a time):
+ 
+diff --git a/docs/performance/perf-hillclimb-20261104/HARNESS.md b/docs/performance/perf-hillclimb-20261104/HARNESS.md
+index 5e8c7abf..21d894e1 100644
+--- a/docs/performance/perf-hillclimb-20261104/HARNESS.md
++++ b/docs/performance/perf-hillclimb-20261104/HARNESS.md
+@@ -1,6 +1,6 @@
+ # Phase A measurement contract
+ 
+-Contract draft A2, 2026-11-04. Required job scope frozen by Cam; exact executable fixture/oracle bindings are being refined against current code. **PROOF: NOT SOUND — construction in progress.** No product scoring or optimization permitted until independent acceptance. Refinements must be recorded before proof; later mechanism changes require refreshed proof/audit and comparable re-baseline. A1 responded to independent round-1 statistical review: 60 samples cannot yield a finite two-sided 95% P95 upper bound. A2 responds to the independent statistics subreview: 40 correlated launches are also insufficient; bootstrap tails cannot establish the hard gate, unlike builds/fixtures cannot pool, and the two planned looks need joint coverage. These changes precede accepted proof/timing evidence.
++Contract draft A3, 2026-11-04. Required job scope frozen by Cam; exact executable fixture/oracle bindings are being refined against current code. **PROOF: NOT SOUND — construction in progress.** No product scoring or optimization permitted until independent acceptance. Refinements must be recorded before proof; later mechanism changes require refreshed proof/audit and comparable re-baseline. A1/A2 repaired tail-resolution, clustering, identity and repeated-look policy. A3 records observer purity, terminal/frame scope and immutable-oracle requirements, plus source-supported startup pacing. All changes precede any accepted performance baseline, product score or optimization; old intrusive discoveries are ineligible for timing comparisons.
+ 
+ ## Build and machine
+ 
+@@ -28,18 +28,280 @@ Any uncovered required job/population/oracle blocks complete Phase A. No quarant
+ ## Timing, controls and samples
+ 
+ - Browser `performance.now()` owns start/end for E2E paths. Host round-trip/enqueue/CPU time never substitutes. Mark before real input dispatch and finish after semantic completion and a subsequent rendered frame; double-rAF is a frame opportunity proxy, not physical display scanout. Record feedback and settled completion separately when animations are intentional. Preserve intentional reveal pacing; report compute supply and visible reveal separately.
++- Timing predicates use independently proven passive readers only. No global full debug snapshots, presentation/controller sync, knowledge-merging state access, restore or cache-warming getters under the clock. Predicates bind expected request/generation/target identity and must remain true through frame opportunities and finish. A transient true does not terminate the job. Terminal readiness is not first feedback; unmeasured first-feedback fields stay null and uncovered, never relabelled. Intervals after a frame marker may contain app work as well as driver delivery and are not subtracted as pure overhead.
++- Shop staging binds the actual open/cached node, exact frozen offers/board/purchase IDs, matching source and expected draft count, with no active job/resolution and an open modal. The legacy pendingInteractionCount property has no assignment in current app code and is null in real DTOs; it is not an authoritative queue counter. Mirror the modal's actual >0 guard without asserting that null proves an empty queue. Subsequent real purchase/confirmation must work. Do not require a nonexistent zero-valued counter or relabel it as observed work completion.
++- Saved UI state and authoritative replay state have separate exact expectations. Present and paid-time cursor commits explicitly pause the runner into planning (sim-runner.js commitCursorSecondInternal -> seekCursorSecond with paused:true -> syncPhaseToPaused). Derive that known expected UI pause on immutable baseline data with the frozen SDK; assert no other field changes. Compare raw/decoded output to that exact UI expectation and rebuilt output to the unchanged replay fixture. Never normalize actual raw flags, knowledge or RNG. Wrong raw phase/pause must fail even when replay reconstruction would repair them.
++- Record continuous job-window frames/long tasks beyond transaction latency markers, including a declared post-action settling window. Keep right-censored trailing frame gaps and unavailable instrumentation explicit. Frame windows require positive duration and positive interval overlap; boundary touches are not observations. Transaction markers alone cannot establish hitch-free interaction or artwork preparation.
+ - Record raw observations (run/session/operation ID, config, fixture, input, elapsed, outcome, completion witnesses), timeouts/errors/dropped work, frame intervals and retained memory summaries. Error samples remain in reliability counts and block correctness gates; timeouts remain censored slow observations, not silently removed from tails.
+ - One browser workload at a time on this machine. No overlapping compile/test/profile jobs. User/external load and thermal/power drift must be reported. Fixed offered input schedules for responsiveness stress; record scheduled/dispatch/completion times and late/dropped events. Closed-loop transaction latency is labelled as such and cannot establish responsiveness under offered load.
++- J3 offered gesture schedule:12 moves at nominal60Hz, then release at the next interval, with all host due times fixed before acknowledgements. Pan uses one pointer. Mobile zoom uses two trusted touch contacts centred on the map, initial span10% of viewport-map width in CSS pixels, expanding by1.35. Record14 protocol commands and each contact observation separately, stable actual pointer identity, coalescing, cancelled/missing events, queue/frame timestamps and protocol failures. No mouse wheel substitutes for mobile pinch. Host dispatch lateness above max(10ms, interval) marks generator saturation; calibration uncertainty above min(5ms, interval/4) is unresolved. Both block eligible offered-load evidence, as do missing required contacts/frame witnesses or invalid timestamps. These are pre-proof harness criteria, not product failures or accepted measurements.
++- J3 captures a passive DTOv2 source once at the first trusted input, with its read timestamp/CPU cost retained. Default operations do not perform this optional read. An earlier host snapshot cannot establish work active at input. Require current pending forecast or current unready Life job and corresponding generation/source progress or a matching successful chunk reply within the operation. Retained desired coverage beyond terminal loss, a completed retained worker object, stale/unrelated messages and progress only before input cannot satisfy this check. Current in-flight work/delivery is a browser proxy, not a claim of continuous worker CPU occupancy; corroboration and overhead remain required.
+ - Browser-cache cold means new browser process/context with empty cache/storage except explicitly installed fixture. It does not mean cold OS disk cache. Warm means one declared unmeasured warmup followed by a new run with browser/HTTP caches retained and equivalent reset game/storage. Separate browser cache, prepared fixture, restored save and artwork variants.
+ - Stage smoke: one observation per job/population in at least three consecutive suites; this proves executability only. Before Phase A acceptance use at least 120 independent launches per scored job/population, with fixed equal offered operations per launch. Startup populations use independent starts. Retain actual launch/session/build/input-fixture/harness-mechanism/measurement-contract identities and globally unique observation IDs; reject duplicates, missing identities and unequal cluster counts for hard inference. Require explicit JSON population configuration. Never pool unlike seeds/fixtures/builds, mechanisms or contracts. No loop mean presented as an operation tail. Report nearest-rank P50/P95, min/max, count, error/timeout count, spread and uncertainty. Independent startup samples use exact binomial order-statistic quantile intervals (unbounded ends reported honestly). Repeated interactions use a conservative exact envelope: lower bound from independent launch minima, upper from independent launch maxima. Equal operation counts imply the operation quantile lies between those two population quantiles; a union bound covers the selected interval sides. Bootstrap of whole sessions is a diagnostic only. True independent identically distributed launches and fixed schedules must be evidenced, not inferred from IDs. Three suite means are insufficient for P95.
+ - Candidate comparisons use frozen order/crossover AB/BA matched fixtures, equal warmup, concurrent load zero. Compare against last accepted revision; periodically and on stop compare accumulated gains against original baseline. Predeclare minimum practical effect: at least 10% **and** 10ms for interaction, 10% **and** 100ms for startup/heavy paths. Use conservative bounds for quantile differences/ratios and require the practical-effect threshold to be supported, with no zero benefit. Every per-build/per-look hard-tail interval is 99%; at most two looks across baseline/candidate yields at least 96% joint coverage for each metric by union bound (not simultaneous coverage across all jobs). Inconclusive gets one predeclared extension to 240 independent launches with the same schedule, then remains inconclusive; choose another supported hypothesis. No rerun-until-win or extra promotion looks. A future Judge must freeze the complete comparison implementation and multiplicity assumptions before scoring.
+ - Hard candidate gates: 100% functional passes; no critical-job P95 >10% regression; no dropped required work; no unexplained retained JS-heap growth >10% or 20MiB (whichever larger) after equivalent repeated workload/settle/measurement policy. Quantile uncertainty too wide to exclude material regression means INCONCLUSIVE, not keep.
+-- Initial target bands (to freeze before scoring, not proof assertions): desktop P95 immediate visible response <=100ms, settled preview/restore <=100ms, ordinary navigation-to-useful <=5s and prepared performance entry <=2s; 4x proxy response <=200ms, preview <=250ms, ordinary <=20s/prepared <=8s. Desktop/mobile-1x frame P95 <=33ms and max <=100ms; 4x proxy frame P95 <=50ms, max <=200ms. Heavy forecast compute measured separately from unchanged reveal pacing, with responsiveness taking precedence. These are engineering goals, not physical-device claims. Judge anchors must use these measurements and preserve every job's underlying numbers.
++- Source-supported startup pacing: both ordinary and prepared New pass through `opening.begin(lossSec)` and the opening controller advances through 5s of authored presentation time. Preserve that pacing and include its wall time in reported time-to-useful. Report preparation/full-forecast-data readiness and opening reveal separately; reveal reduction is never a compute gain. The former 5s ordinary/2s prepared total targets could not include that intentional presentation and are superseded before baseline/scoring.
++- Initial target bands (Judge freezes all job-specific anchors before scoring, not proof assertions): desktop/mobile-1x P95 immediate visible response <=100ms, interactive preview/restore <=100ms, ordinary New navigation-to-useful <=10s, prepared New action-to-useful <=8s and performance Continue <=3s. 4x proxy response <=200ms, preview/restore <=250ms, ordinary New <=25s, prepared New <=15s, performance Continue <=8s. Desktop/mobile-1x frame P95 <=33ms and max <=100ms; 4x proxy frame P95 <=50ms, max <=200ms. Authored node/travel animations likewise need separate compute/feedback/settled metrics and source-supported total allowances before their anchors freeze. These are engineering goals, not physical-device claims; no targets change after an optimization result to manufacture acceptance.
+ - Validity controls must exercise every distinct oracle and timing mechanism: deliberate wrong result/failed action must fail; real added 200ms delay in measured completion path must show approximately that addition; a deferred action must not pass before completion; stale generation, clamp bypass, wrong save and missing required art must fail corresponding oracles. No product behavior edits for controls. Restore controls before proof. Unit-only timer tests do not prove browser path sensitivity.
+ - Compare same build through every alternative runner path if used (A/A); identical path used for baseline/candidate otherwise. Independently corroborate representative worker, simulation-second, paint/frame, I/O and art work with matched diagnostic counters/trace. Measure instrumentation on/off overhead with matched runs; profiling stays out of acceptance timing. Unexplained >25% spread/drift is investigated, never automatically filtered away.
++- Freeze logical input fixtures, raw expected states and a self-contained baseline oracle SDK before any optimization. Candidate code must not regenerate its own expected workload/results. Validate immutable corpus/SDK hashes on every accepted run, retain current actual product packet/hash separately, and prove same-build A/A conformance first. Generated fixtures/current-model expectations remain construction-only. Actual prepared packet key/encoding may change with product code; its fixed logical seed123 workload and expected outcome must not change or be relabelled as another seed.
++- The central raw-row statistics reader also enforces frozen-workload eligibility: explicit comparison eligibility plus pinned 64-hex corpus and oracle-SDK identities are necessary for tail inference. Missing/false construction flags or unpinned identities stay diagnostic even at the numerical sample quota. Unlike corpus/SDK/eligibility groups never pool. These labels are necessary metadata, not a substitute for independent loader/oracle acceptance.
+ 
+ ## Reproduction and roles
+ 
+-Dependencies: `npm ci --no-audit --no-fund`. Build: `npm run build`. Concrete source preview: `npm start` (capture printed address and build-info). Executable suite/control/analyzer commands will be bound here when Builder supplies them. No standalone prototype is an eligible target.
++Dependencies: `npm ci --no-audit --no-fund`. Build: `npm run build`. Concrete source preview: `npm start` (capture printed address and build-info). No standalone prototype is an eligible target. Current **construction-only** commands follow; replace each NEW_ID with a unique ID. These do not yet implement the complete population/sample schedule.
+ 
+-Builder: `/root/harness_builder` (scripts); root (contract/proof/legacy oracle validation). Auditor must be separate from both builders and own HARNESS_REVIEW.md. Judge remains separate from product Implementer. Root orchestrates and maintains STATE.md / ATTEMPTS.md. All exact revisions/raw run IDs/controls and limitations belong in PROOF_RUN.md and independent review. No maximum audit rounds; repair until sound.
++```powershell
++node scripts/perf-hillclimb/main-discovery.mjs --id=NEW_MAIN_ID --jobs=entry,performance,map,scrub,save,life --populations=desktop,mobile4 --illustrated=1
++node scripts/perf-hillclimb/main-controls.mjs NEW_MAIN_CONTROLS_ID
++node scripts/perf-hillclimb/artwork-controls.mjs --cases=reference,deferred,retry,exhausted --cycles=1 --id=NEW_ART_ID
++node scripts/perf-hillclimb/artwork-controls.mjs --cases=early-publication --cycles=1 --id=NEW_EARLY_FAULT_ID
++node scripts/perf-hillclimb/artwork-oracles-browser-controls.mjs
++```
++
++Main discovery currently covers seed123/cold and desktop/mobile4 only, plus a separate ordinary desktop illustrated sentinel. J8 defaults desktop/cold/progressive with an explicit required-resource retry off-mode control. Neither driver is the full frozen suite; mobile1, other seeds, warm/art populations, full-preview isolation, feedback, observer accounting/overhead, consecutive suites and tails remain required. Named negative controls are comparison-ineligible. The J8 missing-request control uses `--cases=deferred --control-no-request=1 --gate-timeout=1000 --cycles=1 --id=NEW_MISSING_REQUEST_ID` and must exit1 with the bounded request-observation timeout. Raw continuous sessions containing heavy diagnostics are not product-only frame evidence; explicit windows and overhead proof are required before acceptance.
++
++Original Harness/Artwork Builders and the later main-binding Builder completed their scoped stages; root owns their integrated harness files, contract, evidence and repair ledger. The next full-preview Builder has separate ownership in PREVIEW_STATE_BRIEF.md. Auditor must be independent of the implementation they accept and own HARNESS_REVIEW.md. Judge remains separate from product Implementer. Root orchestrates and maintains STATE.md / ATTEMPTS.md. All exact revisions/raw run IDs/controls and limitations belong in PROOF_RUN.md and independent review. No maximum audit rounds; repair until sound.
++
++
++## Feedback/native construction protocol, 2026-11-05
++
++Phase A remains NOT SOUND. This construction extension preserves all eight jobs,
++workloads, targets, independent-launch/tail policy and regression gates above.
++`feedback-runtime.mjs` retains original HC v4 start/queue/terminal fields unchanged.
++Each operation names a pure `feedback-bindings.mjs` reader. It samples arm and
++window-capture quiescence before HC/app dispatch, a cancellable timer task, and
++rAF reads. Drift fails closed; no silent rebaseline. Source loss, no-op, failed
++reader, cancelled/replaced host, missing frames, deadlines and late validation
++remain distinct. Raw cue/read/CPU samples, first semantic change, first changed
++frame sample, rejected transients and two-frame persistent validation are kept.
++`firstFeedbackMs` is the existing persistent retained-cue/double-rAF opportunity
++upper-bound proxy, NOT first physical pixels. A one-frame/transient cue can be
++missed by persistent validation; absence of that metric never proves absence of
++paint. Original terminal readiness and stabilization gates are unchanged.
++
++Bindings: J1 slot picker and launch loading are separate; J2/loading/J7 load
++use connected viewport-visible loading ink; J3 applied camera and panel pose;
++J4 retained Life, candidate, entry and decision state; category/purchase keys
++exclude hover identities and use committed tag/purchase/tableau IDs; J6 includes
++actual modal pose/disappearance, existing processing-view visibility and recap;
++J5 retained issued scrub draw signature's scrubbing/second/cursor fields omit
++autonomous bound/reveal fields; J7 visible Menu and recovery summary are distinct
++from native I/O and hidden utility phase; J8 actual ready-seal symbol/readiness
++and explicit reveal. Pure app extensions copy retained pose/signature/visibility
++only. No new product cue or per-frame bookkeeping is added. Background artwork
++waits may explicitly attach to the original HC startNow clock with no input
++claim; loading feedback and ready-seal feedback keep different bindings.
++
++Main Life strict reads execute first after each marker, in heavy correctness
++windows outside frame/heap acceptance. Untouched draft/actions/decision/runner
++bodies and costs precede assertions. Frozen Life addendum pin
++6b7456c5594cf05393b81c16a3cfc3682bff8c92fbba8821bfe8af16e911d8b8 and original
++base pin406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000
++remain fixed. Use explicit `node --experimental-vm-modules` for run.mjs Life
++and propagated child runs. Expected full DTOs execute authenticated frozen
++zero-import bytes in a separate Chromium context, outside product windows;
++actual outputs are not normalized. Only initial second0 five-action itineraries
++are supported, followed by legal committed history16/17 and Present54/54/64.
++
++Native diagnostics use `feedback-native-controls.mjs <fresh-id>`: thirteen fixed
++controls in desktop/mobile1/mobile4, fresh contexts, no scoring. Known faults
++are comparison-ineligible. Queue200ms and capture-reader60ms stay separately
++labelled. DOM render-delay250ms is a diagnostic visibility gate on the real
++public slot-picker, not a proven Pixi/GPU-render seam. Transient hiding and
++missing-rAF controls retain raw bounds/failures. Event Timing threshold16ms,
++receipt capacity2048, fixed unique timestamp/target/type join tolerance0.25ms;
++ambiguous/missing/excluded entries never become zero-latency observations.
++Trace categories are discovered and restricted to supported devtools.timeline,
++blink.user_timing, disabled-by-default-devtools.timeline.inputs and cc. One owned
++ReturnAsStream trace,32MiB maximum,15s flush/drain,5s per read, complete/loss/partial
++and handle cleanup records. Same-surface frame lineage remains UNPROVED until
++raw native frame/surface identity is established; nearby paint is insufficient.
++These limits govern diagnostic liveness, not the continuous performance goal.
++
++The final representative schedule is frozen in the owned matrix plan before
++execution, retaining all attempted cells/failures. Minimal all-job runs cover
++desktop/mobile4 seed123 cold; other seeds cover Life/J5/Continue/J7 separately;
++warm ordinary/prepared and progressive/illustrated artwork remain distinct.
++This is representative construction, never three complete suites,120-launch
++tails, negligible overhead, physical Pixel6 or independent Phase A acceptance.
++Matched B/F/N overhead blocks/native render-lineage proof remain required if
++not actually executed and resolved. `--feedback=off` preserves original HC-only
++reference behavior for future matched controls; do not infer bias from virtual
++control counts or single-launch timing differences.
++
++
++The separate native gesture command is `node scripts/perf-hillclimb/feedback-gesture-controls.mjs NEW_ID`.
++It runs actual12-move60Hz pan, actual two-contact pinch, and six independently
++scheduled repeated wheel events on the real prepared game. A250ms delayed
++completion is explicitly injected; these are mechanism-only controls and do
++not replace active-work J3. Before/after PNG diagnostics are outside clocks.
++The native control ordering asserts pre-reader <= original HC <= native target
++and the timer task after the native target callback. Per-frame J7 acknowledgement
++samples separately retain visible Saving and Saved summary text after actual
++native transaction completion; unavailable samples remain censored. Costs and
++512-sample overflow are retained. Saving is not assumed to paint.
++
++Final representative driver: `node scripts/perf-hillclimb/feedback-proof-matrix.mjs NEW_ID`.
++It records a complete plan before execution, exact app/harness/package/contract
++hashes and dist/worker/style/prepared fixture bytes, executes stages sequentially,
++and rechecks those identities before each stage and at the end. Canonical jobs
++are normalized by the existing schedule helper. Other metadata documents may
++change; the gate does not assert whole-worktree stability. Original raw continuous
++sessions and post-action right-censored gaps remain; product arrays explicitly
++exclude expensive frozen expected-data setup and post-clock diagnostic windows,
++and those exclusions cannot prove smoothness across the gaps. All failures and
++unexecuted required populations remain visible. The isolated expected realm is
++closed after each DTO; it is never the product frame surface.
++
++
++`--visual-evidence=1` main runs are separately comparison-ineligible diagnostics:
++PNG captures precede arm and follow the post-clock oracle, with explicit visual
++windows excluded from product frame arrays and all raw continuous data kept.
++They show captured content only, not first pixels. The final driver includes
++seed123 desktop/mobile4 visual sentinels for ordinary entry, Life, save, panel
++opening and anchor scrub; native gesture controls separately capture map
++before/after and J8 retains its existing drawing/publication/context diagnostics.
++A failed active-work/reveal precondition in a screenshot diagnostic is retained;
++it does not authorize an easier positive workload.
++
++
++Final native trace diagnostics record Page root-frame identity and the actual
++Menu DOM backend-node identity before trace start. Ten uniquely named same-realm
++performance.mark brackets (five before/five after) derive trace-microsecond to
++page-millisecond offset bounds. A valid clock requires ten unique marks, a
++nonempty offset intersection and width<=1ms. Paint corroboration requires exact
++root-frame and backend-node identity, not a nearby event. This establishes only
++same-document Menu DOM Paint; compositor-to-content/frame and physical pixels
++remain unproved. PipelineReporter fields are retained as observed; raw native
++>53-bit frame identifiers are not joined through lossy JS numeric parsing.
++Parser work and source/version/category/stream/cleanup identities stay explicit
++and outside product acceptance windows.
++
++
++Native protocol r3 preserves r2's mobile4 queued-input failure at1209.3ms against
++its1200ms diagnostic cap. Normal native controls now have a5000ms liveness cap;
++missing-frame remains1200ms and its explicit1300ms wait is unchanged. These are
++resource/deadline controls, not latency targets or shortened product work. A new
++actual clipped-slot negative control verifies ancestor overflow clipping. All
++visible readers intersect ancestor clip rectangles; save acknowledgement requires
++the entire summary inside that clip/viewport, a newly observed saving-to-saved
++phase transition and a new native completion. Hidden status is only a causal
++generation gate, never the visible cue. Old Saved text alone is insufficient.
++Native JS receipt/callback/export costs are measured separately and quantized;
++they do not establish complete observer overhead. R2's nonintersecting raw trace
++clock brackets remain failed/unavailable alignment, without widened tolerances.
++Same-node Paint identity can be recorded without claiming an aligned first-frame
++or compositor/physical-pixel endpoint. Remaining native clock/lineage proof stays
++explicitly open.
++
++
++Gesture r1's first case failed before any offered gesture: its Present click
++preceded full opening readiness and was correctly ignored. The superseded
++runner's second incomplete case/process tree is recorded and closed. Fresh
++gesture controls require actual completed full-opening coverage/loss, then a
++real Present click and naturally settled map focus before arming. No input lock
++is bypassed, model time skipped or worker paused. These remain prepared-game
++mechanism controls, separate from active-work positive J3. Setup failures now
++retain passive source/input/native evidence instead of only a timeout stack.
++
++
++Observer protocol v3 corrects an exposed observation delay: if the timer task
++sees baseline and the first changed cue is detected in rAF, that callback is
++frame sample1, followed by sample2. It no longer waits an unintended third
++callback. Task-detected candidates still require two subsequent sampled frames;
++transient return/source loss still rejects. This changes an unaudited proxy,
++not physical first-pixel claims or original HC terminal stabilization. V2 runs
++remain separate and ineligible for comparison to this mechanism. A dedicated
++virtual control requires exactly two sampled frames in this branch.
++
++Gesture r2 retained2/5 passing outcomes. Its centre/rightward pan produced no
++applied movement, and desktop wheel validation followed the final short-stream
++event. Fresh r3 uses the exact canonical J3 clear-east-background pan coordinates
++and direction, unchanged12 moves at60Hz plus release. Pinch uses the canonical
++J3 zoom centre and genuine contacts. Repeated wheel is strengthened from6 to18
++commands at the same40ms offered interval, all scheduled before acknowledgements;
++this sustains same-source armed events after early feedback. Actual earlier
++failures and raw semantic/first-frame/persistent-validation bounds are retained.
++These diagnostic changes never replace or ease the canonical positive workloads.
++
++
++Gesture r3's pan/pinch cells pass; its two wheel cells fail the former assumption
++that18 CDP commands imply18 DOM events. Both raw ledgers retain17 trusted wheel
++receipts and HC counts exactly17. Fresh r4 keeps all18 commands at40ms and asserts
++HC/native-receipt parity plus actual repeated events, retaining offered/received
++counts and unresolved missing-or-coalesced count explicitly. It does not label
++that difference zero, prove protocol-to-DOM conformance, or weaken canonical
++positive J3 pointer delivery/generator gates. Wheel controls are comparison-
++ineligible lifetime diagnostics; unresolved wheel delivery remains a Phase A gap.
++
++
++Matrix r1 was interrupted after exposing two real binding gaps, with unchanged
++source/asset hashes through interruption retained in partial-provenance-after.
++Canonical Settlement navigation calls prototypeView.setVisible and hides the
++map; it does not use the legacy world-map detail-panel transition. Fresh binding
++copies actual retained Settlement visibility/region/tab through that view's
++existing passive semantic accessor, plus actual map visibility. The retained
++legacy panel pose remains available for paths that use it. No240/320ms pacing
++is changed or claimed to have run on the canonical surface-switch path.
++
++Present now keys the issued draw signature's cursor and forecast-preview
++presence, excluding the autonomously advancing scrub/forecast positions. This
++rejects true source drift without treating reveal progression as input drift.
++Existing real history Present still changes its drawn cursor. A registered pure
++check executes the actual specific retained accessor/root wiring500 times with
++active calls poisoned, and tests autonomous reveal, real Present, canonical
++surface visibility and purchase-hover isolation. Product state/RNG/schemas,
++rendering rules, original terminal gates and all workloads are unchanged.
++
++
++A quick real Settlement opening exposed collection censoring after a changed
++retained cue: original HC completed before the separate observer's second frame.
++The shared collector now permits up to1000ms of post-completion observation,
++outside and without moving any original HC start/queue/semantic/frame/terminal
++marker. It stops as soon as feedback finalizes, then exports once; no-op/absence
++is censored at that collection cap, with raw negative/semantic/frame/late bounds
++kept. Wait window, expiry/overrun and original host end are explicit. Raw global
++continuous frames include this interval; it is not discarded as overhead or
++substituted for useful completion. First feedback may validate after completion,
++and markerAfterCompletion must retain that fact. A new native immediate-completion
++case and two actual-HC virtual controls exercise both validation and no-op cleanup.
++No authored pacing, offered input or existing terminal stabilization is changed.
++
++
++Canonical Settlement terminal predicates retain their original mode/region/focus
++checks and additionally require the actual retained Settlement view visible at
++the expected frozen region. Closing requires that retained view hidden as well
++as the original usable map gates. This strengthens rendered identity; it changes
++no app navigation or pacing. The shared post-completion collector is registered
++through the existing test module, preserving npm test:perf-feedback --output
++argument forwarding. Final source has32 virtual controls plus the actual-source
++500-read getter/wiring and binding checks; counts are not independent timings.
++
++
++Gesture r5 retains a4/5 result: desktop pan's changed cue was sampled at140.8ms
++while native input continued to219.6ms, but persistent validation was224.5ms.
++The old assertion conflated first sampled change with later persistence. Fresh
++r6 preserves exactly the same workloads/rates and asserts a changed retained-cue
++frame sample during continuing input, with persistence before the original
++functional completion. It separately retains semantic, first changed-frame,
++persistence and final-event timestamps plus validation-after-final-event flags.
++No physical-pixel timing follows from either rAF bound; that proof gate remains
++open. Earlier failures are not relabelled, input is not paced by acknowledgements,
++and the original HC settled completion/input-count gates remain unchanged.
++
++
++J8 receipt retention repair after fixed-source matrix r2: existing operation JSONL
++rows now retain the complete collector receipt (record, drained records/session
++status, exportCpuMs, collection wait and measured host RPC), including failure
++rows after late oracle failure. Successful collection is bounded by the existing
++operation/case lifetime; original HC markers, workload and terminal gates are
++unchanged. Earlier r2 J8 successful rows retain per-operation samples/costs but
++lost drained-session/export receipts; that loss is preserved as an evidence gap.
++The affected fixed-source reproof schedules each of the four original J8 cases
++independently on desktop/mobile4, still with five navigation cycles, all13 groups,
++raw frames/failures and original liveness limits. Independent case processes keep
++later required cases scheduled after an earlier failure. This is labelled
++possibly-contended diagnostic construction, not acceptance or an overhead claim.
++J1?J7 executable dependencies and all app/build/fixture bytes remain unchanged;
++exact old/new source and contract identities are retained for staged review.
+diff --git a/docs/performance/perf-hillclimb-20261104/PROOF_RUN.md b/docs/performance/perf-hillclimb-20261104/PROOF_RUN.md
+index 6018606b..337265f9 100644
+--- a/docs/performance/perf-hillclimb-20261104/PROOF_RUN.md
++++ b/docs/performance/perf-hillclimb-20261104/PROOF_RUN.md
+@@ -1,6 +1,16 @@
+ # Phase A proof evidence
+ 
+-2026-11-04. **PROOF: NOT SOUND** — harness construction, no complete proof suites yet. Independent acceptance pending. Baseline scorecard and candidate iterations not reached.
++Updated2026-11-05. **PROOF: NOT SOUND** — harness construction, no complete proof suites yet. Independent acceptance pending. Baseline scorecard and candidate iterations not reached.
++
++Approved main contract update is queued at83c0049710882fd182c6542892d77fb30cd12ce6/v1.1.53: Hold target/current0 and stopped wheel momentum before graph preview; release stays held until resume. Current owned batches retain their old frozen source/identities. After release, adoption requires preserved task work, affected gesture/feedback revalidation and a comparable current-build reference before judging. No old row is rewritten/pooled and no UX change is credited as a compute gain. Unchanged mechanism certificates retain their exact source scope. See APPROVED_HOLD_ADOPTION.md; adoption not yet complete.
++
++External contention notice recorded UTC 2026-11-04 23:15:29 UTC: PM's separate v1.1.53 Hold UX verification is running on the same host. Exact interval unknown; potential-overlap latency/overhead evidence is contended and cannot be presented as uncontended acceptance. Preserve raw rows/failures and frozen perf source/behavior; no incorporation/rebase while owned by measurement/audit. See EXTERNAL_CONTENTION_20261105.md. PM's six reported UX regressions are separate work, not performance-harness acceptance. No new measurement or performance claim follows from this notice.
++
++Latest source integration: Life Builder r8 passes8/8 diagnostic rows (seed123 mutation/guard sensitivity plus6 all3-seed desktop/mobile4 positives), with all4 current app pins matching at parent takeover. Parent repaired9 malformed documentation range routes, preserving the original analysis copy, then full npm run verify PASS exit0 in parent-life-integration-r1-20261105/verify.log. That aggregate result predates new feedback harness/package wiring. Observer/control syntax and26 virtual controls then PASS exit0 in parent-feedback-v2-controls-r1-20261105; the same26 also pass through the newly registered npm entry, now included in test:presentation. These prove virtual mechanism/CI wiring only, not native first feedback or52 independent samples. Main first-feedback and full J6 positive-run integration remain pending the next Builder per FEEDBACK_NATIVE_BINDING_BRIEF.md; current aggregate verification must refresh after that work.
++
++Delayed background-command receipt reconciled2026-11-05: the previously assessed artwork-failure-controls-parent-r1-20261105 wrapper completed exit0 and reports5 expected-negative controls PASS. Read-only recheck of all5 retained assessments confirms each product case remains failed/exit1, raw continuous frames retained, and owned context/browser closed. Post-collection keeps its completed raw file. Case-hang retains one explicitly unconfirmed pure body Promise; the receipt does not establish that unresolved logical work completed. The initial metadata check wrapped the parsed JSON array as one PowerShell item; direct assignment confirms all5 names and assertions without changing data or rerunning anything. This adds the outer host exit witness for that historical batch only; it is not current-source/full J8 acceptance, a product latency pass, a Life handoff or the independent frozen-Life runtime witness.
++
++Latest parent integration: main-full-preview-parent-r1-20261105 and main-full-preview-otherseeds-parent-r1-20261105 passed12/12 cold all3-seed desktop/mobile4 anchor16/off-anchor17 launches on one exact harness/build/contract identity. Full retained installed-preview/frontier/knowledge/RNG comparison has zero deltas, source correspondence is stable, and each saved frontier matches3 official continued seconds. Combined parent-assessment.json in the other-seed matrix records identities, reader/transfer costs and raw artifact paths. New Life recorded-action and refreshed Continue/J7 continuation bindings remain pending. Frozen-Life addendum construction r7 passes all3 seeds/68 rejection controls with original178-file integrity, but actual private-Life binding and independent acceptance remain required. None of these scoped observations is whole Phase A or a performance gain.
+ 
+ Original baseline `ec49648ed1ef92d25a0d0a715f128044f907390e`, v1.1.52. Dependencies installed from lockfile. Machine/config contract in HARNESS.md. Raw runs will live in task-specific `artifacts/perf-hillclimb-20261104/`; durable compact summaries and hashes belong here. No timings claimed yet.
+ 
+@@ -63,3 +73,70 @@ Deferred artwork discovery completed exit0 (1case,9observations), proving its st
+ Full debug snapshot polling is both expensive and potentially causally intrusive. Primary Builder's old Life Map rows show 195.7ms probe CPU /1156.9ms elapsed on11probes; a failed90s entry had17,570.1ms probe CPU across1564probes. Artwork's250ms sampler retained362snapshots and about4.99s snapshot CPU over115s. These are harness-overhead diagnostics, **not product performance**; all such discovery timings remain ineligible for baseline/score claims.
+ 
+ Read-only Explorer `/root/timing_observability_seam` found existing named timing APIs also unsafe as passive substitutes: Life decision status can sync/reset worker/draft state; runner state accessors merge persistent knowledge; frontier access can restore; graph getData updates cache/version and graph debug state samples/synchronizes plots. A separate additive passive-observability implementation is needed, using raw primitive closure reads only and independently checked for no state/RNG/cache/worker effects. No product optimization or scoring permitted before new observer controls/overhead proof and independent audit.
++
++## Passive API and fresh audit evidence
++
++Separate instrumentation Implementer completed timing DTOv1. Independent OBSERVABILITY_REVIEW_ROUND1 accepted its scoped purity at exact hashes after focused tests and actual browser reproduction (six stages,1000reads each). Artifacts retained separately; full PhaseA remains NOT SOUND. Primary integration identified missing opening, shop, art-publication and retained-anchor endpoints; OBSERVABILITY_SEMANTIC_BRIEF.md specifies the required extension without weaker readiness substitutes.
++
++Independent ARTWORK_REVIEW_ROUND1 found five real control/oracle gaps: unbounded request gate, transient terminal latch, terrain-only publication check, requested-region echo and arbitrary-context upload check. No full artwork acceptance was granted. Root owns repairs; prior case successes stay discovery-only.
++
++The old terminal latch was reproduced red by `browser-runtime-test.mjs`, then repaired. Runtimev2 passed virtual controls and actual Chromium seven-group proof, independently reproduced in TIMING_RUNTIME_REVIEW_ROUND2. The review accepted that repair but corrected attribution: semantic readiness was not first feedback, and semantic-to-host-call gaps may contain frame waits/app work. Runtimev3 now uses honest labels, keeps firstFeedbackMs null, and retains continuous session rAF/long-task observations beyond latency markers. Its actual eight-group control run is `artifacts/perf-hillclimb/mechanism-controls-2026-11-04T12-12-37-324Z/controls.json`, including a real200ms post-marker stall preserved in both frame and long-task observations. New scoped recheck remains required.
++
++Bounded missing-request control: actual Performance New with progressive art deliberately off, `--control-no-request=1 --gate-timeout=1000 --timeout=90000`. The entry operation passed, then the intended request-observation step failed/censored at1002.3ms rather than hanging; raw `artifacts/perf-hillclimb/artwork-no-request-control-r1/`. Exit1 is the expected negative-control outcome, not a product failure or acceptance sample. Deadline helper checks confirm resolved/failed/missing waits clear timers.
++
++Current-context texture oracle semantic controls and actual WebGL current/foreign/lost-context controls pass: `artifacts/perf-hillclimb/artwork-oracle-controls-2026-11-04T11-45-08-529Z/controls.json`. The same helper is now bound to real atlas checks; full actual-artwork replay and independent recheck still pending. It proves current-context texture presence, not GPU idle/physical presentation.
++
++## Latest construction checkpoint
++
++- Independent TIMING_RUNTIME_REVIEW_ROUND3 supports the repaired terminal attribution and continuous recording, with two additional edge findings. Root reproduced and repaired both: arm rejects nonpositive/nonfinite deadlines; continuous windows require positive length and positive-duration overlap. Virtual controls pass; refreshed actual Chromium nine-group controls pass in `artifacts/perf-hillclimb/mechanism-controls-2026-11-04T12-30-27-616Z/controls.json`. The review's original red sources/results remain retained. Full next Harness Auditor must recheck the repaired exact source; this is not whole-suite acceptance.
++- Accepted passive DTOv1 source/test/review bytes were preserved before extension in `artifacts/perf-hillclimb/passive-observability-accepted-v1-20261104T232005426/`, including source-hashes.json. Its scoped independent acceptance does not cover pending DTOv2 or observer overhead.
++- Immutable corpus/SDK construction completed: `artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json`, ID `406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000`; SDK SHA `8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0`. All15 fixtures preserve corrected-baseline raw bytes/state, 141 full-state conformance comparisons pass, captured bytes reproduce the exact SDK, and11 loader/isolation controls pass. See BUILDER_NOTES.md for exact commands. Independent corpus/loader acceptance and browser execution through it remain pending.
++- Root reproduced a central statistics provenance gap red: re-summarizing120 construction rows regained eligibleForTailInference despite the runner's construction-only label. The central reader now requires explicit comparison eligibility and pinned corpus/SDK digests, separates unlike provenance groups, and keeps generated/missing/false/unpinned rows diagnostic. Focused controls pass without changing quantile mathematics. The previous scoped statistics acceptance applies to its recorded older hashes; this additive gate needs the next independent review. Impact is harness-only; gameplay, simulation state/RNG, schemas and replay are untouched.
++- No timing baseline, scorecard, product optimization or claimed speed gain. Missing DTOv2 opening/shop/anchor/all-atlas publication witnesses, required real-game bindings/negative controls, mobile pinch, first-feedback measurement, overhead, frozen population schedule, repeated smoke/tails and whole independent acceptance remain open.
++
++## Independent root construction during DTOv2 implementation
++
++The preceding turn made concrete progress (central provenance gate red/green and separate DTOv2 launch). Root did not poll the running T3 child and used its disjoint harness ownership to address two required J3 gaps. The child retains the exclusive CPU/build/browser test slot. **All changes below are unexecuted construction, not acceptance or measured results.**
++
++- `offered-input.mjs` now builds a fixed-rate two-contact pinch alongside pan; each contact matches trusted actual pointer identity/coordinates, with explicit command/contact drops, cancellation, frame absence, invalid timestamp, clock uncertainty and generator saturation. Dispatch never waits for the previous ACK. Overall deadline includes observer/frame completion; failure cancels scheduled dispatch, removes listeners/frames and releases contacts. `offered-input-test.mjs` contains host/semantic controls including delayed ACK and missing-frame liveness; it still needs execution and actual-browser proof. Main J3 mobile binding uses the actual touch protocol, with no wheel fallback.
++- Runtimev4 adds opt-in passive DTOv2 capture at the first real input, with exact read time/cost and reader error. Defaults remain free of that reader. Worker telemetry retains copied primitive chunk/generation/source metadata. Earlier runtimev3 acceptance/controls do not cover this new exact source; virtual and actual controls must refresh.
++- `active-work-oracle.mjs` replaces J3's earlier broad any-worker-response allowance. It requires input-time pending/current work plus matching current successful chunk or same-source progress. It rejects retained desired coverage after terminal loss, completed retained Life workers, stale/unrelated/failed/out-of-window replies and progress only before input. New semantic controls and optional runtime capture controls are drafted, not run. Freshness/correspondence still needs actual-product confirmation; this source alone does not establish coverage.
++- Root took explicit ownership of offered-input.mjs, the J3 pan/zoom block in run.mjs, runtime and the new oracle/control files after the primary Builder's completed stage. No concurrent child-owned source files were edited. Product simulation/state/RNG, schemas, replay, interactions and layering remain untouched. Instrumentation overhead of the new input read remains to measure.
++
++When the child releases its slot, run `node scripts/perf-hillclimb/offered-input-test.mjs`, `node scripts/perf-hillclimb/active-work-oracle-test.mjs`, `node scripts/perf-hillclimb/browser-runtime-test.mjs`, then refreshed actual mechanism and real J3 jobs only against audited DTOv2. Do not promote any prior result to new-source proof. Phase A remains **NOT SOUND**.
++
++## DTOv2 return and parent source-correspondence extension
++
++The separate DTOv2 Implementer completed and released its slot. Handoff/evidence: OBSERVABILITY_SEMANTIC_IMPLEMENTATION.md and `artifacts/perf-hillclimb/passive-observability-v2-20261105-semantic-01/`. Child focused/presentation/architecture/source/docs/build and11 actual full-map seed123 purity stages pass, including all13 nonresource atlas drawing groups. Child correctly reports graph-boundary membership alone cannot establish shared projection-LRU presence. These are scoped construction checks, not self-acceptance or full job proof.
++
++Root's queued offered-input, active-work and runtime host/semantic controls now pass. Runtimev4 actual nine-group controls pass in `artifacts/perf-hillclimb/mechanism-controls-2026-11-04T13-13-55-999Z/controls.json`; they still do not prove genuine full-product pinch or all required job mechanisms.
++
++Read-only inspection confirmed the normal token accessor calls ensureSignature and can mutate/reset projection state. Parent added a narrow optional passive signature/membership seam instead, preserving all original DTO fields/scopes and defaults. See PROJECTION_OBSERVABILITY_ADDENDUM.md. New storage and actual-controller focused checks pass, including stale-source preservation and no LRU access/enumeration. J3 now rejects a cached matching token if it does not belong to the actual timeline signature; J5 tests actual graph+projection forecast stores. Whole exact-source independent acceptance is still pending.
++
++Parent full `npm run verify` **passed exit0**, log `artifacts/perf-hillclimb-20261104/verify-passive-v2-projection.log`. Refreshed browser queries **passed11 stages**,1000 reads/stage across default/graph-anchor/artwork/projection-source+anchor queries, in `artifacts/perf-hillclimb/passive-observability-v2-parent-projection-20261105/{unit,browser}.json`. Actual prepared seed123 projection anchor16 is present and graph-boundary anchor16 absent; the distinction is now observed rather than guessed. Current signature correspondence is true at each sampled stage. This does not yet prove J5's ordinary Continue populations.
++
++After the optional input-capture argument changed, root refreshed exact runtimev4 browser controls again: nine groups pass in `artifacts/perf-hillclimb/mechanism-controls-parent-v4-projection-20261105/controls.json`. Offered-input, active-work, virtual runtime and statistics focused suites pass; exact scripts/hashes/output retained in `artifacts/perf-hillclimb/harness-controls-parent-v4-20261105/`. Main runner syntax and git diff checks pass. No browser/test process remains after these commands; idle preview only. No earlier scoped acceptance is relabelled as acceptance of these later hashes.
++
++## Latest actual-job construction
++
++OBSERVABILITY_REVIEW_ROUND2.md now independently accepts the passive API/projection seam at its recorded hashes. Two small nonblocking findings were repaired by parent without changing reader behavior. See [LIFE_BINDING_PROOF.md](LIFE_BINDING_PROOF.md) for exact dispositions, preserved failed runs, known UI pause expectation, strict raw-state controls and the first successful frozen Life/purchase/recompute/save flow (9 observations; seed123, desktop/cold/minimal). Whole Phase A remains **NOT SOUND**. Other populations/jobs, negative controls, feedback/overhead/tail proof and full independent acceptance remain required.
++
++## J1-J7 handoff and J8 response-only publication control
++
++The main-binding Builder completed58 successful observations across25 launches/19 selected directories, including desktop/mobile4 minimal J1-J7 and desktop illustrated startup. These span distinct recorded harness revisions; they are not a complete consecutive suite or a statistical population. Five actual product-path controls also produced their expected rejection/delay outcomes. MAIN_BINDING_IMPLEMENTATION.md records exact identities, failures, commands and remaining gaps; no product source was changed in that stage.
++
++Root's `artwork-passive-early-r1-20261105` reached full hidden preparation but failed its test-only injection: the bundled name `bumpRevision` referred to timeline revision rather than artwork revision. The entire failed run remains retained. The repaired injector uniquely binds the no-argument artwork increment, with renamed/colliding-name/ambiguity semantic controls. It changes only an explicitly recorded served response, never product/dist bytes or global prototypes.
++
++`artifacts/perf-hillclimb/artwork-passive-early-r2-20261105/` now PASS3 operation observations and the actual expected-negative control. A real loaded hidden `chronicleHudFrames` frame changes actual drawing availability false-to-true while both terrain-ready flags remain false. The same normal prepared-endpoint oracle rejects `premature non-resource publication chronicleHudFrames`; actual drawing parity covers all13 required groups. The fault is restored, its exact publication interval is declared and checked against the private-store trace, and the current supported UI export matches the frozen expected state/replay in every field including RNG. Resolved survival knowledge comes only from a once-before-browser frozen3918-second/year123 projection, with actual completed/current-source terminal correspondence checked. No actual output is normalized. Full measured click/asset preparation spans, frame/memory windows, diagnostic overhead and exact served bytes remain in the run; the run is comparison-ineligible and is not a product timing claim.
++
++The first positive batch `artwork-passive-positive-r1-20261105` reached preparation/reveal but failed an invented active-Vassal assumption at ordinary start. The actual navigation falls back to the authored initially selected capital; parent repaired that immutable expectation. Fresh `artwork-passive-positive-r2-20261105` PASS4/4 reference/deferred/retry/exhausted cases,28 observations, including exact current supported export/replay/RNG for every case. The actual no-request r2 control rejects after1000ms; refreshed actual current/foreign/lost-context helper controls pass. See ARTWORK_REPAIR_NOTES.md for commands/scopes/remaining frame-observer contamination. All owned processes closed. Earlier artwork runs are not promoted to this source revision. Full-preview equality/isolation, broader populations, feedback/overhead, complete suites/tails and independent whole acceptance still block Phase A.
++
++Parent focused artwork bundle/publication and frozen save-state controls pass; latest save-state evidence is `save-state-controls-2026-11-04T16-12-26-352Z/controls.json`. `npm start` serves v1.1.52 / Preview5184 / fingerprint37df75c44d6c / perf/hillclimb-20261104, dirty/local/unintegrated. Actual HTTP and embedded HTML agree; identity retained in root-j8-handoff-20261105/preview.json. No new commit/push/PR/deployment. The next separately owned Builder closes full actual preview equality/mutability proof per PREVIEW_STATE_BRIEF.md, then independent audit remains required.
++
++## Preview-state return and root observer/warm review repairs
++
++PREVIEW_STATE_IMPLEMENTATION.md records the completed separate Builder: passive opt-in retained-state inspection, focused six all-seed/target cells, all-three-seed desktop/mobile4 actual equality and isolated installed-preview mutation/restoration controls, plus full npm verify PASS. Its final r3 provenance gate failed because root-owned run.mjs changed during the diagnostic schedule. This parent-side concurrent edit was avoidable; all failed provenance/binding/interruption evidence remains, and affected proof must rerun with fixed sources after integration. This is not independent acceptance or complete J5/J6 coverage.
++
++Independent static observer/warm round1 found five concrete defects; its exact12 input copies/hashes and reviewer report are preserved. Root staged non123 Continue support, exact canonical schedule/leaf validation, launch-scoped original failures, raw artwork failure retention and enclosing case lifetime/cleanup. OBSERVER_WARM_REVIEW_DISPOSITIONS.md separates executed controls from pending integration/acceptance.
++
++Parent host controls PASS5 groups in parent-host-controls-r1-20261105. Native scenario-storage-parent-r1-20261105 PASS committed full reset, actual DataCloneError abort, malformed keys, fresh document and HTTP-cache/raw-transfer/server-counter corroboration. Native observation-windows-parent-r1-20261105 PASS actual trusted renderer stall retention, native long tasks, whole crossing intervals/nested union, lost completion and unavailable evidence. Actual artwork-failure-throw-parent-r1-20261105 correctly exits1 after2 valid operations, retains111 raw frames with a diagnostic-crossing stall, complete witness/open diagnostic, and closes its context/browser with zero unconfirmed guarded work. This is an expected-negative control, never a successful product latency. Further actual never/final-read/case-limit/post-collection controls, warm populations, first feedback/overhead, preview integration and independent recheck remain required. Phase A stays NOT SOUND.
+diff --git a/docs/performance/perf-hillclimb-20261104/STATE.md b/docs/performance/perf-hillclimb-20261104/STATE.md
+index 762fc943..f7142d9e 100644
+--- a/docs/performance/perf-hillclimb-20261104/STATE.md
++++ b/docs/performance/perf-hillclimb-20261104/STATE.md
+@@ -1,41 +1,110 @@
+-# Continuous performance run
+-
+-Operator Cam. Started 2026-11-04. Stop only on Cam's explicit stop; success is a checkpoint. No finite iteration, time, token, cost or audit-round budget. Goal remains active.
+-
+-## Continuation and ownership
+-
+-- Runtime goal/thread: `01a1a5fb-32cf-7ff0-86a6-68448a1aa3e9`; Codex gpt-6.1-sol / xhigh, inherited by same-provider workers/reviewers.
+-- Worktree `C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104`, branch `perf/hillclimb-20261104`. Primary checkout and other worktrees untouched.
+-- Original main baseline: `ec49648ed1ef92d25a0d0a715f128044f907390e`, v1.1.52. Corrected local baseline: `d05bab34417ff2af4fd280225e03bab316602105` (correctness prerequisite, not a speed gain).
+-- Phase A **NOT SOUND**. No full harness acceptance, product scorecard, optimization attempt or performance win. Statistics submechanism only has independent scoped acceptance.
+-- Root owns HARNESS/PROOF_RUN/STATE/COVERAGE/ATTEMPTS, measurements, and frozen `statistics.mjs` / `statistics-test.mjs`.
+-- `/root/harness_builder` owns other harness scripts and BUILDER_NOTES.md, except artwork supplement below. Builder never accepts own work.
+-- `/root/artwork_harness_builder` owns only `scripts/perf-hillclimb/artwork-controls.mjs` and ARTWORK_BUILDER.md. Script ready/syntax passed; actual browser execution pending.
+-- Independent completed reviews: HARNESS_REVIEW.md (round1 NOT SOUND), STATISTICS_REVIEW.md (round2 findings), STATISTICS_REVIEW_ROUND3.md (scoped statistics ACCEPTED at exact hashes). Full later Harness Auditor must independently reproduce real browser checks before Phase B. Judge never implements the candidate being scored.
+-
+-## Current execution slot and next actions
+-
+-- Root full verification session85875 **completed exit0**; no running root shell verification. Log `artifacts/perf-hillclimb-20261104/verify-storefront-fix.log`. Updated `dist` / prepared fixture generated; `npm start` reused source preview.
+-- All native construction/inspection agents have completed their current stage. No browser/server/test handles remain, apart from the idle source preview. Primary and artwork script ownership stays reserved for later integration follow-ups.
+-- All3 ordinary seeds /15 fixtures pass on corrected baseline. Five refreshed mechanism controls pass, including real queued CDP input and deferred terminal completion. Life discovery remains red on an entry-motion binding; corrected binding is unexecuted.
+-- Artwork deferred, retry, exhausted and reference controls pass as discovery evidence. Matched on/off pair identities agree but overhead remains INCONCLUSIVE; common polling and one-pair uncertainty are not resolved. ARTWORK_BUILDER.md has exact run identities.
+-- Next separate background Implementer task (client request `perf-hillclimb-passive-observability-20261104-1`) follows OBSERVABILITY_BRIEF.md, owns only its listed additive source getters plus focused tests/implementation note. Codex gpt-6.1-sol / xhigh, shared owned checkout, no child commits/PR. Root will independently review and obtain audit, then reuse primary Builder for passive-predicate integration and all job bindings.
+-- No overlapping measured browser/build/test processes. Background instrumentation work owns the next CPU/build/browser slot; refresh proof after observer changes.
+-- After these batches, complete every required job/oracle and offered-input stress/overhead controls, freeze exact population matrix/fixtures/terminal predicates, then 3 consecutive smoke suites plus adequate independent tail samples under HARNESS A2.
+-- Independent audit/repair/recheck until SOUND, no round cap. Only then Judge freezes rubric/scores baseline and supplies measured briefs. Continue after success milestone until Cam stops, periodically confirm accumulated gains against original baseline with correctness failure of original99117 disclosed.
+-
+-## Verified changes and evidence
+-
+-- `7f7a1fe0`: strict Stock-role test oracle repair. Actual Logging Timber/Construction unit is used through Housebuilding; used Edible and the whole Logging unit are hidden; Currency/Metal green and missing Tool red remain. Unit, full region-map browser probe and full initial verify passed. No product behavior change.
+-- `d05bab34417ff2af4fd280225e03bab316602105`: separate corrective Implementer repaired generic optional Structure placement on neutral storefronts, including reopened frozen towns. Founding/training/cost/time/RNG/control/validator unchanged. New self-contained boundary+18-action+JSON/replay regression in normal test chain. Red before fix; original seed99117 t740 repro now exit0; focused economy/class/replay tests and full verify pass. No performance claim.
+-- Original failure independently reproduced via actual enabled presentation, normal paused dispatch without isReplay and normal SimRunner update. Read-only diagnosis + separate Implementer completed; no remaining child work from those roles. Durable repro input is `scripts/perf-hillclimb/fixtures/neutral-market-99117.json`.
+-- Stats A2: >=120 independent launches, fixed equal operation counts; exact conservative launch minima/maxima tail envelope, bootstrap diagnostic only, perbuild/perlook99% CI with at most2looks; explicit build/harness/contract/fixture/population IDs, duplicate rejection and censored/invalid failure gates. Independent round3 verified actual repaired hashes. Runner still must establish IID/provenance and actual job coverage.
+-- Browser mechanism controls previously passed; runtime has since gained explicit terminal `complete()` vs intermediate `wait()` and browser-side completion timestamps. Refreshed frozen-source controls required. Active-reveal J5 does not require simultaneous compute; J3 separately requires actual work in flight. No required Cam job removed.
+-- Full debug snapshots and several existing named timing APIs are expensive AND causally intrusive (knowledge merge, worker sync, cache synchronization). Do not adopt them as neutral observation. New cheap primitive facade is necessary; no product speed claim from removing probe overhead. See OBSERVABILITY_BRIEF.md and PROOF_RUN.md.
+-- Discovery entry and life failures retained as invalid/failed evidence, never proof or scored timing. Complete required coverage remains in COVERAGE.md.
+-
+-## Preview and delivery
+-
+-- Live source preview `http://localhost:5184/`; LAN `http://192.168.1.103:5184/`, Tailscale `http://100.105.63.49:5184/`. Version v1.1.52, Preview5184, isolated / not integrated. Refresh actual `/build-info.json` and embedded HTML identity before report; ongoing docs/harness edits change fingerprint. Raw identity record in task artifacts.
+-- Machine DESKTOP-R0AMF0N Windows11 Home26200, i9-10900K10C/20T, 34,272,436,224 bytesRAM, RTX3080. Chromium147.0.7727.15 uses explicit SwiftShader in harness; desktop/mobile-layout/4xCPU proxies, **no physical Pixel6 evidence**.
+-- No PR, push, merge, Pages or external bots/webhooks. Local commits only verified task changes. PR version bump/workflow apply when preparing a PR. Merge and Pages require Cam approval. Do not touch others' changes or primary checkout. Continue useful measurement while any future PR waits.
++﻿# Continuous performance run
++
++Updated2026-11-05. Operator Cam; stop only on his explicit stop. Success is a checkpoint. No finite iteration/time/token/cost/audit-round ceiling. Objective01a1a5fb-32cf-7ff0-86a6-68448a1aa3e9 is unchanged; native goal status was BLOCKED while awaiting asynchronous handoffs and exposes no agent resume status. The Life completion has now resolved that dependency and root is working under the original authorization. Continue through T3 completion wakeups as needed; never mark the objective complete from an intermediate phase. Codex gpt-6.1-sol / xhigh throughout.
++
++## Ownership and gate
++
++- Worktree C:/Users/User/.t3/worktrees/laughing-waffle-proto/perf-hillclimb-20261104, branch perf/hillclimb-20261104, HEAD a9df52cbd6255ed95c51c9e7d524cf9ab557472b. Primary checkout and other worktrees untouched.
++- Phase A **NOT SOUND**. No full acceptance, baseline scorecard, scored candidate or performance win. All eight jobs remain required.
++- Root owns the harness, evidence, HARNESS/PROOF_RUN/STATE/COVERAGE/ATTEMPTS, runtime/statistics and J8. Previous delegates completed. The next T3 preview-state Builder receives only the ownership in PREVIEW_STATE_BRIEF.md and the exclusive CPU/build/browser slot; client request perf-hillclimb-preview-state-phasea-20261105-1. Completion wakes root; never poll it. Independent reviewers own their review artifacts and never accept their own implementation.
++- Preview-state Builder has now completed and released the slot; root read completion status once after delivery. PREVIEW_STATE_IMPLEMENTATION.md records full inspection seam, focused all-seed isolation, actual all-seed desktop/mobile4 equality and real-preview mutation controls, plus full verify PASS. Its r3 final provenance gate failed because root edited run.mjs during the schedule. Preserve that failure; freeze root sources and rerun affected proof after integration, then independent audit. No child remains active.
++- Main discovery:58 passing observations /25 launches /19 selected directories across recorded distinct harness revisions. Desktop/mobile4 minimal J1-J7 plus desktop illustrated startup and five actual product controls. See MAIN_BINDING_IMPLEMENTATION.md. This is not three complete consecutive suites or a tail population.
++- Passive API/projection observation independently ACCEPTED at exact recorded hashes in OBSERVABILITY_REVIEW_ROUND2.md. Parent then repaired one stale comment and strengthened the raw-type test without changing reader behavior. Full harness acceptance remains separate.
++
++## Execution and next actions
++
++**Approved-main adoption QUEUED, recorded UTC 2026-11-04 23:46:06 UTC:** PM reports PR80 merged as83c0049710882fd182c6542892d77fb30cd12ce6/v1.1.53 (original6059ebc7). Approved graph-press contract: playback target/current0 and wheel momentum stopped before preview; release remains Hold until explicit resume. Keep current worker/audit batches on exact frozen source until ownership release. At next stable integration checkpoint preserve all uncommitted work/evidence, integrate the approved main merge safely, adopt correct version fields, update affected gesture/feedback expectations, rerun affected correctness/measurement and full verify, and establish a comparable current-build reference before judging optimization. Reuse unaffected source-scoped mechanisms; never call this UX change a performance win. See APPROVED_HOLD_ADOPTION.md for completion criteria. Adoption is NOT COMPLETE; no source/contract/fixture change is made now. No Pages publication or new PR review requested. PM plans no new full-suite load; prior contention tags remain.
++
++**PM contention follow-up, recorded UTC 2026-11-04 23:19:40 UTC:** PM reports full verify/six interaction checks PASS and its test load finished; only idle preview5185 remains. Separate Hold UX commit6059ebc7/v1.1.53 is PR80 open/unmerged; no review requested. Keep earlier potential-overlap samples contended. Fresh predeclared acceptance/overhead collection may proceed after environment checks; do not retroactively promote data. Frozen perf source/preview5184 remains isolated. Later integration is an approved interaction-contract change requiring affected-path/baseline revalidation, not a compute gain. See EXTERNAL_CONTENTION_20261105.md. Existing feedback/native Builder is informed through steering; no source/package/HARNESS change or task/PR polling.
++
++**Current execution lease, superseding historical ownership entries below:** feedback/native Builder perf-hillclimb-feedback-native-bindings-20261105-1 was launched with codex gpt-6.1-sol/xhigh and granted the exclusive local CPU/Node/test/build/browser slot. Its completion notification has not been received; root does not poll or infer termination. Root is metadata-only until handoff. Parent source/package/HARNESS freeze remains in force.
++
++**Shared-host load notice:** PM reports its separate fix/timegraph-scrub-hold v1.1.53 worktree/preview5185 and npm run verify running on this host. No edits to this performance worktree/evidence. See EXTERNAL_CONTENTION_20261105.md, recorded UTC 2026-11-04 23:15:29 UTC. Preserve frozen perf behavior/preview5184; do not incorporate/rebase the UX change while measurement/audit owns source. Potential-overlap timing/overhead samples must remain preserved and labelled contended, with no uncontended acceptance claim. Functional/source construction can continue. External end time is unknown; no PM/PR/process polling or scheduled self-poll. Notify the existing Builder through informational steering only.
++
++**Current ownership:** Life-state Builder COMPLETED/released the exclusive CPU/Node/test/build/browser slot; completion status consumed once after its notification. All delegates are now terminal and root owns the slot, main harness, source integration and evidence. LIFE_STATE_IMPLEMENTATION.md records8/8 r8 diagnostic PASS (both seed123 controls plus all3-seed desktop/mobile4 positive cells), four passive app-source pins, preserved failures and proof limits. Root verified all4 current source pins match and the retained matrix has8 rows. No independent acceptance. Frozen-Life r7 pin6b7456c5594cf05393b81c16a3cfc3682bff8c92fbba8821bfe8af16e911d8b8 remains unchanged; its static review has no blocking findings, but independent runtime is pending.
++
++Root evidence directory parent-life-integration-r1-20261105 contains the reproduced9-error docs gate and a pre-repair copy of J6_PREVIEW_BINDING_ANALYSIS.md. Parent moved only those9 inline route line suffixes outside code spans so the docs checker resolves actual files; no substantive analysis/source/oracle change. Rerun check:docs and full verify, then stage actual feedbackv2 module/virtual controls from the nonexecutable drafts, repair test failures and continue actual bindings/native proof. Keep current source identities and all earlier failures separate. The Builder's broad whole-file handoff check did observe root metadata edits (STATE/PROOF/FEEDBACK plan); its narrower r8 executable/build/oracle gate passed. Do not claim whole-worktree stability or waive that retained broader assertion failure.
++
++Parent check:docs now PASS after the9 range-only reference repairs; log check-docs-after.log. An initial broader scan found10 colon refs (one valid single-line ref plus9 malformed ranges) and aborted before touching the analysis; the corrected range-specific guard preserves that valid ref. Original analysis bytes are retained in the root evidence backup. Full aggregate verify has not yet refreshed on this handoff.
++
++Full parent npm run verify now PASS exit0, session71534 completed, log parent-life-integration-r1-20261105/verify.log. The quiet redirected console initially obscured advancing progress; own log/process check showed active CPU work and the run was preserved to completion. All8 retained Life rows are pass=true (guard-twin/mutation seed123 desktop plus6 all3-seed desktop/mobile4 positives). No independent acceptance.
++
++Root promoted feedbackv2 observer/control drafts into new scripts/perf-hillclimb/feedback-runtime.mjs and feedback-runtime-test.mjs, guarded against overwriting existing files. FEEDBACK_IMPLEMENTATION.md records impact/scope. Syntax/virtual execution is NEXT and no feedback result exists yet; evidence dir parent-feedback-v2-controls-r1-20261105. Actual run.mjs first-feedback remains unmeasured/null, app source unchanged. The just-passed aggregate verify predates this harness source addition. No active delegate remains; root owns the execution slot. Goal manager's blocked flag has no agent resume operation, but its external dependency is resolved and the original continuous task proceeds under existing authorization/T3 wakeups.
++
++Current feedback checkpoint: syntax PASS and26/26 actual-HC-runtime virtual controls PASS exit0 on first execution. New npm test:perf-feedback entry also PASS26/26 and is appended to test:presentation. These are the same unit controls through two entries, not52 timing samples. Actual observer SHA5d8b6a6a2ca9de07cb25e8b81dde9d27c866c5d837e1363be66a15854ed24b0d; test872b31f8c97be328096368cb94f01894ebc77b45485506d32b5d3752d1ad3e88; old runtimef81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1 unchanged. Full aggregate verify still predates this harness/package addition; current docs gate passes160 documents. No native feedback or current whole Phase A acceptance.
++
++Next Builder request perf-hillclimb-feedback-native-bindings-20261105-1 owns the explicit files/responsibilities in FEEDBACK_NATIVE_BINDING_BRIEF.md: actual all8-job feedback/native validity integration, main J6 full-state oracle binding and minimal passive rendered-cue getter extensions. On launch it receives the exclusive CPU/Node/test/build/browser slot and root transfers run.mjs/feedback integration ownership for that task. Root retains STATE/PROOF/COVERAGE/ATTEMPTS/statistics and later independent acceptance. Root must not change executables/package/HARNESS or run competing workloads while its fixed-source proof runs. Complete notification/status consumption, not task polling, resumes root. No other active delegate is expected before this launch.
++
++Preview preparation: the combined docs/start/HTTP-write command was rejected before execution by automatic policy review with only 'blocked by policy' and no detailed reason. Safer separate explicit commands succeeded: npm run check:docs exit0, npm start exit0, and actual localhost metadata/LAN HTML agreed at the recorded parent snapshot. No denied action was obfuscated or repeated as a combined command; no permission question is required. The final preview snapshot for this handoff is stored in parent-feedback-v2-controls-r1-20261105/preview.json after root metadata is finalized. App source remains the handed-off Life seam, v1.1.52/Preview5184/perf-hillclimb-20261104/dirty local unintegrated. No new commit/push/PR/merge/Pages/bot/webhook.
++
++Parent syntax check for updated run.mjs PASS. main-full-preview-parent-r1-20261105 completed PASS4/4 (scrub16/17 x desktop/mobile4, seed123/cold), one exact harness/build/contract identity. Full installed preview/frontier/knowledge/RNG has zero deltas and stable source correspondence; each saved frontier then matches3 official continued seconds. See its parent-assessment.json. These are construction observations, not whole acceptance or tails.
++
++Root exec session65856 completed exit0: main-full-preview-otherseeds-parent-r1-20261105 PASS8/8. Together with the seed123 matrix,12/12 cells pass all3 seeds x16/17 x desktop/mobile4, cold/minimal, one exact harness/build/contract identity. Full installed preview/frontier/knowledge/RNG has zero deltas, source correspondence is stable, and each saved frontier matches3 official continued seconds. Combined parent-assessment.json is in the other-seed matrix. Harnessff0beead28bd38d153384943454875301a88c86bf8d138f72f06d37ee6c0f99b, build6d710b467c7f2a761c9b35d4414d64ebddb3f0c3938ceaadb66edf454ee6e775, contracta98cd87e6f8a56d518475272261c9cdd8c384fec35d81c34a4e427ac9241ba96. All owned test/browser processes are closed; no active child yet.
++
++Next separate Builder request perf-hillclimb-life-state-phasea-20261105-1 owns only the passive private-Life seam, existing focused-test extensions, new life-state-* diagnostics/controls and LIFE_STATE_IMPLEMENTATION.md per LIFE_STATE_BINDING_BRIEF.md. On launch it receives the exclusive CPU/Node/build/browser slot. Root must keep executable sources/HARNESS fixed during its proof, end turn on T3 next, and never poll. Root retains main timing integration, first feedback (FEEDBACK_PROOF_PLAN.md is design only), overhead/populations/tails, independent audit and refreshed whole verification. New recorded-action Life binding and refreshed Continue/J7 checks remain pending. All earlier parent sessions below are historical/completed.
++
++That request was launched with codex gpt-6.1-sol/xhigh and granted the exclusive slot; completion notification/status consumption is pending. On the goal continuation root did ONLY disjoint static source analysis and documentation: FEEDBACK_BINDINGS_STATIC.md pins actual launch/loading, visible menu save summary and artwork seal cues. New concrete finding: the current J7 hidden utility game-save-status cannot establish visible acknowledgement while Menu is open (styles.css:15-17); validate/bind the actual game-save-summary instead. Executable sources/HARNESS and all tests/builds/browsers were untouched by root, with no task poll. This is not new runtime proof or acceptance.
++
++Next goal continuation also remained read-only/source-static, recording FEEDBACK_CANVAS_BINDINGS_STATIC.md. Actual map camera DTO reflects applied transforms, but current contact samples are only frame opportunities; panel closing phase alone precedes visible motion; graph raw scrubSec is distinct from the retained drawn marker signature. New implementation constraint/control: first feedback must not reuse terminal exact-inputCount invalidation during60Hz gestures, which would delay it until input ends. No executable/HARNESS/test/build/browser changes or delegate polls. Life handoff is still the prerequisite for root execution.
++
++Next safe parallel action is a separate independent STATIC-ONLY frozen-Life oracle/provenance review, client request perf-hillclimb-frozen-life-static-audit-r1-20261105-1. It owns only FROZEN_LIFE_ORACLE_STATIC_REVIEW_ROUND1.md. No tests/Node/browser/build/simulation/source edits; the Life Builder keeps the exclusive execution slot. Original corpus and frozen-life-oracle/helper/test inputs are stable and read only to both roles. Static review cannot grant independent runtime or whole Phase A acceptance. Neither child is polled; each completion will wake root. Reproduction is deferred until the execution slot releases.
++
++The static Auditor was launched separately with codex gpt-6.1-sol/xhigh. No completion notification has been consumed for either pending request. Root then prepared concrete observer draft source ONLY as nonexecutable data at drafts/feedback-runtime-v1.mjs.txt plus drafts/FEEDBACK_RUNTIME_DRAFT.md, not imported/applied by app or harness. It separates first-response lifetime from final completion, records pure-cue reader costs/failures and observed negative-frame censor bounds, and retains source/cleanup/deadline errors. It remains UNAPPLIED/UNEXECUTED/UNAUDITED; lifecycle/actual bindings/overhead/native controls remain mandatory. Root changed no executable/HARNESS and ran no competing tests/build/browser/Node, preserving the Life proof source freeze. No delegate polling.
++
++Frozen-Life static Auditor now COMPLETED; completion status consumed once after notification. No blocking static findings, supplied pins and indexed hashes match. Exact scope/boundaries in FROZEN_LIFE_ORACLE_STATIC_REVIEW_ROUND1.md and root FROZEN_LIFE_ORACLE_REVIEW_DISPOSITIONS.md: zero-second five-action helper only, control-gate scopes unchanged, independent runtime with host exit witness still pending. Actual J6/state/knowledge and whole acceptance remain unaccepted. Life Builder completion is still pending; its exclusive slot/source freeze remains intact.
++
++Next parallel request perf-hillclimb-feedback-draft-static-audit-r1-20261105-1 is a distinct independent STATIC-ONLY draft-mechanism review. It owns only FEEDBACK_DRAFT_STATIC_REVIEW_ROUND1.md and must run no tests/Node/build/browser/simulation or executable changes. Input draft SHA4fe506a16de979de85a3be35c4fbd4a605e34c78ed4f63117847d36eb0740b13. Root freezes that unapplied .txt draft during review; small findings will be repaired by root after its handoff. It cannot grant runtime/whole acceptance. Completion notification, not polling, resumes consumption.
++
++Feedback static Auditor now COMPLETED; root consumed status once after notification. It found3 P1/3 P2 issues; exact reviewed v1 preserved. Root staged repairs only in new drafts/feedback-runtime-v2.mjs.txt and FEEDBACK_DRAFT_REVIEW_DISPOSITIONS.md: original HC queue fields, pre-handler drift check, host failure reconciliation/paired cleanup, cancellable post-dispatch task, absolute late-marker ordering and bounded/drained history with preserved counters. UNAPPLIED/UNEXECUTED/v2 UNAUDITED. The .txt virtual test draft still targets v1 and needs adaptation/execution. Root corrected prior inputCount wording: ordinary pan/scrub moves do not increment a pointerdown-armed counter; repeated wheel is a separate control. No executable/HARNESS/test/Node/build/browser changes or pending-Life task poll. The Life Builder still owns the exclusive execution slot; only its completion can release it.
++
++Root has now prepared drafts/feedback-runtime-v2-test.mjs.txt as an adapted UNAPPLIED/UNEXECUTED virtual control suite using the actual existing HC runtime, with a bounded fake window/document/target/post-task/frame scheduler and genuine HC.finish rather than assigned completion fields. It adds original queue/capture/pre-read costs, autonomous baseline drift, sustained down/move/up/two-contact/repeated-wheel streams, transient/source failure, pre-input cancel/runtime replacement, suppressed frames/deadline/late-read ordering, malformed readers, paired cleanup and bounded40-operation drain/reinstall accounting. The observer v2 also distinguishes successful completion from failed/cancelled host termination for ordering flags. No runtime result or native event/paint/overhead proof exists yet. Executable/HARNESS source freeze remains intact and the Life task is not polled.
++
++Root read/applied the research skill (background research required) to close the native corroboration API uncertainty. Next separate request perf-hillclimb-native-corroboration-research-20261105-1 owns only NATIVE_CORROBORATION_RESEARCH.md: primary-source web/spec/CDP documentation, no local Node/test/browser/build/profiling/source changes or task polling. It must pin Event Timing applicability/clock/quantization/absence limits and the smallest actual-game native trace/counter corroboration protocol, not claim native API output proves meaningful response or physical scanout. The Life Builder still retains the exclusive local execution slot; research completion is a separate notification and cannot grant acceptance.
++
++**Parent automatic-continuation gate,2026-11-05:** after that launch, three consecutive parent goal turns reached the same external handoff dependency without new notifications or safe execution work. T3 next explicitly requires ending the turn and forbids waiting/polling the delegated tasks. Tool discovery exposes no applicable Codex event-wait gate (t3_background_wait is Claude-only); thread/task reads would be polling. Root must not use repeat status messages/draft churn as progress or restart a task because its completion has not arrived. Automatic parent goal status is being marked BLOCKED on this orchestration dependency, not complete/paused, and the objective remains unchanged. No delegate is cancelled, interrupted, replaced or polled. Their last authoritative launch receipts said running; missing notification is not terminal evidence or current liveness verification.
++
++Pending task identities: node:delegated-task:command%3Amcp%3A511023d3-b5a3-4982-ac62-178f5cb60278%3Adelegate-task%3Aperf-hillclimb-life-state-phasea-20261105-1 and node:delegated-task:command%3Amcp%3A511023d3-b5a3-4982-ac62-178f5cb60278%3Adelegate-task%3Aperf-hillclimb-native-corroboration-research-20261105-1. T3 completion notifications are the resumption trigger. On notification, consume that task status once and inspect its owned handoff/evidence. A native-research result does NOT release the Life Builder's exclusive local CPU/test/build/browser slot. Only a Life completion/release does. Preserve all sources/HARNESS and current task ownership until then.
++
++On Life release: inspect exact state/decision/worker/commit/isolation/stale-gate evidence and remaining gaps; acquire the execution slot; run syntax and actual virtual controls for the staged feedbackv2 observer/control data, repair failures before positive integration; refresh needed current-source actual J6/J5/Continue/J7 and J8 paths; obtain independent frozen-oracle runtime reproduction with explicit exit witness, native rendering/order/overhead corroboration, complete populations/suites/tails and whole Auditor SOUND. No scoring or optimization before that gate. Full npm verify and actual npm start identity before any task commit/reviewable source handoff. Cam approval for merge/Pages remains required. This is a durable resumption point, not a stop pack or scope reduction; no new app/timing/result/performance claim.
++
++New external message is a delayed background-command receipt for the ALREADY assessed artwork-failure-controls-parent-r1-20261105 wrapper: outer exit0/PASS5. Root reconciled all5 small retained assessments read-only; each product case remains expected failed/exit1 with raw frames and context/browser closure, case-hang keeps one unconfirmed pure Promise. The first metadata check counted a PowerShell-wrapped array as one item; corrected direct assignment verifies5 names without changing data/rerunning work. This is not either pending T3 handoff and does not release the Life slot or satisfy independent frozen-Life runtime exit proof. No tests/Node/build/browser/source/HARNESS change, task poll or duplicate run. get_goal still returns BLOCKED; external handoff dependency remains unresolved. Original continuous objective and resumption trigger are unchanged.
++
++Native corroboration research now COMPLETED; status consumed once after notification. NATIVE_CORROBORATION_RESEARCH.md supplies primary citations and a proposed bounded protocol, not execution/acceptance. Root NATIVE_CORROBORATION_DISPOSITIONS.md records source-backed decisions: Event Timing is thresholded and excludes gesture motion/wheel, native queue joins need unique event/clock correspondence, trace surface/frame/stream ownership must be proved, visual-cue and full functional oracles remain mandatory, and proposed diagnostic budgets are not a whole-goal stop or tail proof. Current offered-input dispatch source omits optional CDP timestamps, so no page-ms/UTC argument bug was found by that static check. No executable/HARNESS/test/Node/build/browser/source changes or Life task polling. Only the Life-state Builder completion remains pending and retains the exclusive local slot. Parent automatic continuation remains externally blocked until that handoff; do not cancel/restart it or create busywork. Goal/objective/all8 jobs unchanged.
++
++Root integrated J5 full installed-preview/frontier/RNG comparison before the legacy summary getter, exact immutable Life action/purchase binding, and explicit copied-state official-second continuation for persisted entry/save checks. J5 all3 seeds PASS12 cells on this revision. Life and refreshed Continue/J7 bindings remain pending; see MAIN_ORACLE_INTEGRATION.md. Do not promote the earlier8-cell Continue matrix to this source revision.
++
++- Historical J8 discovery: early-publication r2 PASS3 observations plus expected-negative HUD fault; positive r2 PASS4/4 reference/deferred/retry/exhausted cases and28 observations with exact exported state/replay/RNG. Earlier failures remain retained; later accounting/lifetime changes require their own proof and are not accepted by those runs.
++- J8 uses passive13-group publication checks, actual drawing parity, current-game-context texture checks, real Settlement dock input with source-supported ordinary capital fallback, frozen terminal-survival expectation and supported current-game export after observation. These are comparison-ineligible construction controls. Heavy diagnostics still contaminate raw session frames; explicit windows/overhead must be repaired before product-frame acceptance. No prior run is relabelled as current acceptance.
++- Root staged J8 diagnostic-window accounting while the preview-state Builder owns the exclusive execution slot. New observation-windows helper/controls and artwork-control integration are **UNEXECUTED**; read OBSERVER_ACCOUNTING_IMPLEMENTATION.md before any next root run. Raw telemetry remains intact; separate outsideDiagnostic arrays/gaps never certify smoothness. Root started no tests/build/browser while the slot is delegated. Preserve this exact draft and verify after release; old J8 results do not accept it.
++- Root also repaired a source-visible warm menu witness bug and staged exact logical-storage reset/native controls plus explicit cache/mobile1/seed construction scheduling. **UNEXECUTED**, source/evidence scope in WARM_RESET_IMPLEMENTATION.md. main-discovery/run/scenario-storage are root-owned; preview-state Builder ownership remains unchanged. Defaults remain cold/seed123; no warm coverage or acceptance is claimed. Validate these drafts after the delegated slot is released.
++- Independent observer/warm static review completed and completion status was read once after delivery. All12 frozen hashes matched; five findings in OBSERVER_WARM_STATIC_REVIEW_ROUND1.md. Root repairs are **UNEXECUTED**, detailed in OBSERVER_WARM_REVIEW_DISPOSITIONS.md: non123 Continue, exact canonical scheduling, launch-scoped original errors and persisted failed raw telemetry are staged; enclosing J8 case lifetime/cancellation/cleanup and corresponding liveness controls remain open. Frozen input copies/reviewer artifact stay unchanged. Preview-state Builder retains the exclusive execution slot; no task polling.
++- Root added observation-windows-browser-controls.mjs as a new pending control while preserving the frozen reviewed code. It stages real trusted-input renderer blocking, raw/native counter retention, nested attribution and lost-completion behavior. **UNEXECUTED**; run only after slot release, then refreshed actual J8 paths. No source-only draft is promoted to evidence.
++- Execution slot is root-owned. Host/native controls and all5 actual artwork failure/liveness controls now PASS their expected-negative assertions in artwork-failure-controls-parent-r1-20261105, including retained completed raw, final read5000ms and whole case30000ms with verified context/browser closure. Never r1's invalid context-error outcome remains retained. Both first/prior-closed-page failure controls PASS in launch-failure-controls-parent-r1-20261105; no invented failed-launch timings. All owned sessions from these controls are completed. Root is starting actual non123 cold/warm Performance Continue discovery next; code/HARNESS must stay fixed during it.
++- Read-only J6 binding analysis is requested as client perf-hillclimb-j6-preview-analysis-20261105-1, same model/xhigh, artifact J6_PREVIEW_BINDING_ANALYSIS.md only. No tests/build/browser/simulation/source edits; parent retains exclusive execution slot and own session88503. Completion wakes root; never poll. It must identify real staged/committed preview ownership, frozen-oracle sufficiency and stale-commit control without treating visible boards/frontier equality as full preview proof.
++- J8 session88503 is completed: all5 expected-negative controls PASS. Main setup-error session51427 also completed: both controls PASS. Current own exec session30771 runs main-otherseed-continue-parent-r1-20261105, fixed-source8-cell seed424242/99117 x cold/warm x desktop/mobile4 Performance Continue discovery. First3 cells PASS with exact one-launch plan validation; warm desktop424242 confirms full storage restoration and fresh document. Keep code/HARNESS unchanged until this matrix finishes. J6 analyst remains source/metadata only and owns no execution slot.
++- Session30771 is now completed PASS8/8,16 observations, one exact shared harness/build/contract identity; all planned single launches match. All4 warm cells restore full storage hashes exactly and use a fresh measured document. Parent assessment is retained in that matrix. J6 analysis completed/delivered and task status read once: staged draft/tableau need a separate passive Life inspector and captured-source presentation/action addendum; all recorded offers are index0 but must bind by immutable action. No active child/test/browser remains.
++- Next Builder request perf-hillclimb-frozen-life-oracle-20261105-1 owns only the new captured-baseline Life oracle addendum/loader/conformance and its implementation note per FROZEN_LIFE_ORACLE_BRIEF.md. Parent will grant its exclusive Node test/build slot and end turn. App/root harness files and original corpus stay read only to it; root must not execute competing workloads while granted. Completion wakes root; never poll. Root retains later J5 integration, actual J6 inspection/control implementation, first feedback, overhead/populations/tails and independent whole acceptance.
++- Validate staged J8 observer accounting, refresh affected actual controls and obtain independent audit/repair. Need matched on/off/private-hook A/A and first-feedback/observer-cost evidence, native corroboration, mobile/warm coverage and adequate tails.
++- Full actual serialized preview equality and mutable-preview independence are still a blocking J5/J6 read-seam gap. Current saved-frontier equality and visible summary equality are insufficient. Next separate Builder should establish a narrowly scoped diagnostic seam/control without cache-policy/gameplay changes; independent audit required.
++- Complete direct J6 stale-commit fault control, all three seeds/nontrivial histories, warm/art populations. Freeze one exact complete schedule; run at least three consecutive complete smoke suites and >=120 independent launches per eligible population under HARNESS. No mixing revisions/populations or dropping failures.
++- Obtain independent whole Harness Auditor SOUND before separate Judge freezes rubric/scores baseline. Then measured implementation/judge iterations continue until Cam stops. Never treat scoped audit, target attainment or a review count as automatic stop/acceptance.
++
++## Frozen workload and mechanisms
++
++- Original baseline ec49648ed1ef92d25a0d0a715f128044f907390e, v1.1.52. Selected corrected baseline d05bab34417ff2af4fd280225e03bab316602105 fixes neutral storefront Structure eligibility; correctness prerequisite only, not speed gain. Original seed99117 failure retained.
++- Immutable15-fixture/all-three-seed corpus: artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json; manifest406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000; SDK8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0. Captured source reproducibility,141 raw-state checks and11 loader controls pass; independent complete loader audit pending.
++- Current ordinary seed123 initial-state SHA df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f. Frozen SDK derives loss3918/year123 by every official second. Known UI pause and resolved-survival knowledge expectations are derived from frozen inputs; actual raw/decoded/rebuilt states are never normalized. Other knowledge/RNG differences fail.
++- Runtimev4 nine actual controls pass: artifacts/perf-hillclimb/mechanism-controls-parent-v4-projection-20261105/controls.json. Main controls pass: artifacts/perf-hillclimb/main-controls-r1-20261105/results.json. New native clock/input binding and complete source still need independent whole audit. firstFeedbackMs remains null.
++- Statistics: >=120 independent launches, fixed operation counts, exact binomial launch-extrema envelopes, perbuild/perlook99% intervals, at most two declared looks120/240; bootstrap diagnostic only. Failures/censoring block unconditional tails. Explicit source/fixture/SDK eligibility prevents generated/unpinned/control rows regaining inference. Current added provenance gate is newer than scoped statistics acceptance.
++- Expensive legacy snapshots/geometry accessors are prohibited under timing clocks; some merge knowledge, synchronize workers/caches or render. Passive DTOv2 does not do those operations. Untimed geometry calibration windows/costs remain disclosed and full-state checks catch unintended persistent effects.
++
++## Verified checkpoints and preview
++
++- Latest parent npm start + actual localhost metadata/LAN HTML identity agree: v1.1.52 / Preview5184 / fingerprint3e932b24d3a1 / perf/hillclimb-20261104 / dirty local unintegrated. Mobile http://192.168.1.103:5184/, evidence artifacts/perf-hillclimb/parent-life-state-handoff-20261105/preview.json, verified UTC2026-11-04T18:22:01.8352536Z. Both current scrub matrices completed and no owned matrix Node/browser process remains. No new commit/push/PR/deployment. The next Life Builder will refresh identity after its source changes.
++
++- 7f7a1fe0: strict Stock recipe oracle repair, focused/browser/full verify pass.
++- d05bab34417ff2af4fd280225e03bab316602105: separately diagnosed/implemented neutral storefront correction, red-to-green public itinerary, JSON/replay/RNG/focused/full verify pass.
++- a9df52cbd6255ed95c51c9e7d524cf9ab557472b: documentation/statistics checkpoint. Later harness/API work remains uncommitted. Full npm verify passed after DTOv2/projection at artifacts/perf-hillclimb-20261104/verify-passive-v2-projection.log; rerun macro verification before any new task commit.
++- Refreshed npm start and actual HTTP/embedded-HTML identity: v1.1.52 / Preview5184 / fingerprint37df75c44d6c / perf/hillclimb-20261104, dirty/local/unintegrated. http://192.168.1.103:5184/ (also http://100.105.63.49:5184/). Evidence artifacts/perf-hillclimb/root-j8-handoff-20261105/preview.json. Only idle source preview remains; no test/browser/owned static server processes. Focused artwork bundle/publication/context and frozen save-state controls pass; no new commit, full macro verification must refresh after next source change.
++- Machine Windows11 Home26200, i9-10900K, RTX3080, ~32GiB RAM; Node24.15/Playwright1.59.1/Chromium147/explicit SwiftShader. Desktop and mobile4 CPU-throttled browser proxies only. **No physical Pixel6 evidence.**
++- No push, PR, merge, Pages deployment, external bot or webhook. Cam approval remains required for merge/Pages. No other agent/user edits are reverted.
+diff --git a/package.json b/package.json
+index 249b65fd..24c6f9dd 100644
+--- a/package.json
++++ b/package.json
+@@ -32,7 +32,8 @@
+     "test:keywords": "node scripts/practice-keywords-test.mjs && node scripts/keywords-classes-prototype-test.mjs && node scripts/bronze-keyword-cards-test.mjs",
+     "test:card-review": "node scripts/card-review-test.mjs && node scripts/catalogue-summary-test.mjs && node scripts/locked-stock-context-test.mjs",
+     "test:save-recovery": "node scripts/save-recovery-test.mjs && node scripts/save-indexeddb-test.mjs && node scripts/save-load-worker-test.mjs && node scripts/save-import-boundaries-test.mjs",
+-    "test:presentation": "node scripts/chronicle-art-test.mjs && node scripts/minimal-graphics-test.mjs && node scripts/progressive-art-test.mjs && node scripts/performance-start-test.mjs && node scripts/region-map-camera-test.mjs && node scripts/territory-boundary-cache-test.mjs && node scripts/presentation-time-test.mjs && node scripts/time-controls-test.mjs && node scripts/timegraph-focus-test.mjs && node scripts/edge-transfer-scrub-gate-test.mjs && node scripts/trade-corridors-test.mjs && node scripts/forecast-worker-service-test.mjs && node scripts/node-resolution-diagnostics-test.mjs && node scripts/new-game-opening-test.mjs && node scripts/prepared-forecast-handoff-test.mjs && node scripts/game-display-mode-test.mjs && node scripts/creep-terminology-test.mjs && node scripts/mechanics-catalogue-test.mjs && node scripts/life-map-interaction-test.mjs && node scripts/life-decision-test.mjs && node scripts/opening-graph-editor-test.mjs",
++    "test:presentation": "node scripts/chronicle-art-test.mjs && node scripts/minimal-graphics-test.mjs && node scripts/progressive-art-test.mjs && node scripts/performance-start-test.mjs && node scripts/region-map-camera-test.mjs && node scripts/territory-boundary-cache-test.mjs && node scripts/presentation-time-test.mjs && node scripts/time-controls-test.mjs && node scripts/timegraph-focus-test.mjs && node scripts/edge-transfer-scrub-gate-test.mjs && node scripts/trade-corridors-test.mjs && node scripts/forecast-worker-service-test.mjs && node scripts/node-resolution-diagnostics-test.mjs && node scripts/new-game-opening-test.mjs && node scripts/prepared-forecast-handoff-test.mjs && node scripts/game-display-mode-test.mjs && node scripts/creep-terminology-test.mjs && node scripts/mechanics-catalogue-test.mjs && node scripts/life-map-interaction-test.mjs && node scripts/life-decision-test.mjs && node scripts/timing-observability-test.mjs && node scripts/opening-graph-editor-test.mjs && npm run test:perf-feedback",
++    "test:perf-feedback": "node scripts/perf-hillclimb/feedback-runtime-test.mjs",
+     "probe:civilization": "node scripts/civilization-browser-probe.mjs",
+     "probe:development-lab": "node scripts/development-lab-browser-probe.mjs",
+     "probe:prototypes": "node scripts/prototype-workbenches-browser-probe.mjs",
+diff --git a/scripts/life-decision-test.mjs b/scripts/life-decision-test.mjs
+index 6a2a8c40..28289d13 100644
+--- a/scripts/life-decision-test.mjs
++++ b/scripts/life-decision-test.mjs
+@@ -1,4 +1,5 @@
+ import assert from 'node:assert/strict';
++import './perf-hillclimb/life-state-inspection-test.mjs';
+ import { selectedState } from '../src/model/tests/vassal-life-map/helpers.js';
+ import { ActionKinds, applyAction } from '../src/model/actions.js';
+ import { serializeGameState, deserializeGameState } from '../src/model/state.js';
+diff --git a/scripts/perf-hillclimb/statistics-test.mjs b/scripts/perf-hillclimb/statistics-test.mjs
+index 15e722c2..7e082d5b 100644
+--- a/scripts/perf-hillclimb/statistics-test.mjs
++++ b/scripts/perf-hillclimb/statistics-test.mjs
+@@ -17,7 +17,8 @@ for(const n of [120,1000,10000,100000]) {
+ }
+ let observation=0;
+ const row=(launchId,elapsedMs,extra={})=>({job:'control',step:'completion',population:{cpu:1},launchId,elapsedMs,ok:true,
+-  buildId:'statistics-control-build',fixture:'fixed-control',harnessId:'control-mechanism-v1',measurementContractId:'A2',observationId:`control-${observation++}`,...extra});
++  buildId:'statistics-control-build',fixture:'fixed-control',harnessId:'control-mechanism-v1',measurementContractId:'A2',
++  fixtureManifestId:'1'.repeat(64),oracleSdkSha256:'2'.repeat(64),comparisonEligible:true,observationId:`control-${observation++}`,...extra});
+ const sixty=Array.from({length:60},(_,i)=>row(`launch-${i}`,100));
+ const failed=summarize([...sixty,...Array.from({length:10},(_,i)=>row(`timeout-${i}`,180000,{ok:false,timeout:true}))])[0];
+ assert.equal(failed.p95,null,'conditional tail cannot appear as unconditional P95');
+@@ -59,4 +60,18 @@ assert.throws(()=>summarize([row('a',10,{population:undefined})]),/population co
+ assert.throws(()=>summarize([row('a',10,{population:{cpu:undefined}})]),/explicit JSON/);
+ assert.equal(summarize([row('a',10,{harnessId:'timer-v1'}),row('b',20,{harnessId:'timer-v2'})]).length,2,'different measurement mechanisms cannot pool');
+ assert.equal(summarize([row('a',10,{measurementContractId:'A1'}),row('b',20,{measurementContractId:'A2'})]).length,2,'changed contracts cannot pool');
++for(const extra of [
++  {comparisonEligible:false}, {comparisonEligible:undefined},
++  {fixtureManifestId:undefined}, {fixtureManifestId:'none-construction-only'},
++  {oracleSdkSha256:null}, {oracleSdkSha256:'not-a-frozen-sdk'},
++]) {
++  const diagnostic=summarize(sequence(120).map(i=>row(`construction-${i}`,i,extra)))[0];
++  assert.equal(diagnostic.tailSampleQuotaMet,true,'construction data may meet the numerical sample quota');
++  assert.equal(diagnostic.eligibleForTailInference,false,'raw construction or unpinned oracle data cannot regain inferential eligibility');
++  assert.equal(diagnostic.comparisonEligible,false);
++  assert.match(diagnostic.inference,/construction|frozen/i);
++}
++assert.equal(summarize([row('a',10),row('b',20,{comparisonEligible:false})]).length,2,'construction and comparison rows never pool');
++assert.equal(summarize([row('a',10),row('b',20,{fixtureManifestId:'3'.repeat(64)})]).length,2,'different frozen corpora never pool');
++assert.equal(summarize([row('a',10),row('b',20,{oracleSdkSha256:'4'.repeat(64)})]).length,2,'different oracle SDKs never pool');
+ console.log('[hillclimb-statistics] controls passed: stable intervals, honest unbounded/censored tails, invalid timing, launch quotas and clustered inference');
+diff --git a/scripts/perf-hillclimb/statistics.mjs b/scripts/perf-hillclimb/statistics.mjs
+index 72bb7022..c28ed5e3 100644
+--- a/scripts/perf-hillclimb/statistics.mjs
++++ b/scripts/perf-hillclimb/statistics.mjs
+@@ -84,6 +84,8 @@ export function clusterQuantileInterval(rows,p=.95,{confidence=.95}={}) {
+ 
+ const finiteElapsed=r=>Number.isFinite(r.elapsedMs)&&r.elapsedMs>=0;
+ const completed=r=>r.ok===true&&!r.timeout&&finiteElapsed(r);
++const pinnedDigest=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
++const frozenWorkload=r=>r.comparisonEligible===true&&pinnedDigest(r.fixtureManifestId)&&pinnedDigest(r.oracleSdkSha256);
+ const stable=value=>Array.isArray(value)?value.map(stable):value&&typeof value==='object'
+   ?Object.fromEntries(Object.keys(value).sort().map(k=>[k,stable(value[k])])):value;
+ function boundQuantile(values,p){const sorted=[...values].sort((a,b)=>a-b);const q=sorted[Math.ceil(p*sorted.length)-1];return Number.isFinite(q)?q:null;}
+@@ -106,7 +108,11 @@ export function summarize(records,bootstrapOptions={}) {
+     });
+     assert.ok(typeof record.observationId==='string'&&record.observationId,'every observation needs unique observation identity');
+     assert.ok(!seen.has(record.observationId),'duplicate observation identity');seen.add(record.observationId);
+-    const key=JSON.stringify(stable([record.buildId,record.harnessId,record.measurementContractId,record.fixture,record.job,record.step,record.population]));
++    // Preserve provenance in the central raw-row summarizer. A caller cannot
++    // regain inference merely by omitting the runner's construction-only label.
++    // The loader/auditor must still establish that these pinned bytes are sound.
++    const key=JSON.stringify(stable([record.buildId,record.harnessId,record.measurementContractId,record.fixture,record.job,record.step,record.population,
++      record.fixtureManifestId??null,record.oracleSdkSha256??null,record.comparisonEligible===true]));
+     if(!groups.has(key))groups.set(key,[]);
+     groups.get(key).push(record);
+   }
+@@ -114,6 +120,7 @@ export function summarize(records,bootstrapOptions={}) {
+     const successful=rows.filter(completed),times=successful.map(r=>r.elapsedMs);
+     const launches=new Set(rows.map(r=>r.launchId)).size,independent=launches===rows.length;
+     const allComplete=successful.length===rows.length;
++    const comparisonEligible=rows.every(frozenWorkload);
+     const successOnly=times.length?{count:times.length,p50:quantile(times,.5),p95:quantile(times,.95),
+       min:Math.min(...times),max:Math.max(...times),population:'conditional on valid successful completion'}:null;
+     // An unsuccessful operation has no correct completion; its duration is a
+@@ -121,6 +128,7 @@ export function summarize(records,bootstrapOptions={}) {
+     const lower=rows.map(r=>finiteElapsed(r)?r.elapsedMs:0),upper=rows.map(r=>completed(r)?r.elapsedMs:Infinity);
+     const interval=allComplete?(independent?quantileInterval(times,.95,confidence):clusterQuantileInterval(successful,.95,{confidence})):null;
+     return {key:JSON.parse(key),attempted:rows.length,passed:successful.length,failed:rows.length-successful.length,
++      fixtureManifestId:rows[0].fixtureManifestId??null,oracleSdkSha256:rows[0].oracleSdkSha256??null,comparisonEligible,
+       invalid:rows.filter(r=>r.ok===true&&!r.timeout&&!finiteElapsed(r)).length,
+       timeouts:rows.filter(r=>r.timeout).length,independentLaunches:launches,
+       p50:allComplete?successOnly.p50:null,p95:allComplete?successOnly.p95:null,
+@@ -133,10 +141,11 @@ export function summarize(records,bootstrapOptions={}) {
+         method:'observed completion or right-censored time-to-correct-completion; null high is unbounded'},
+       correctnessGate:allComplete,
+       tailSampleQuotaMet:allComplete&&rows.length>=120&&launches>=120,
+-      eligibleForTailInference:allComplete&&rows.length>=120&&launches>=120&&interval.bounded,
++      eligibleForTailInference:comparisonEligible&&allComplete&&rows.length>=120&&launches>=120&&interval.bounded,
+       censored:rows.filter(r=>!completed(r)).map(r=>({lowerBoundMs:finiteElapsed(r)?r.elapsedMs:0,
+         launchId:r.launchId,timeout:!!r.timeout,invalidTiming:r.ok===true&&!finiteElapsed(r)})),
+-      inference:allComplete?(independent?'iid interval only if manifest proves separate independent launches':'conservative exact envelope of independent launch extrema; bootstrap diagnostic only')
++      inference:!comparisonEligible?'CONSTRUCTION OR UNPINNED ORACLE: diagnostic only; explicit frozen corpus and SDK identities required'
++        :allComplete?(independent?'iid interval only if manifest proves separate independent launches':'conservative exact envelope of independent launch extrema; bootstrap diagnostic only')
+         :'failed correctness gate; unconditional latency unresolved, successful-only values diagnostic'};
+   });
+ }
+diff --git a/src/controllers/life-decision-controller.js b/src/controllers/life-decision-controller.js
+index eb1172a1..d495fd7a 100644
+--- a/src/controllers/life-decision-controller.js
++++ b/src/controllers/life-decision-controller.js
+@@ -191,6 +191,61 @@ export function createLifeDecisionController({
+   return {
+     handles: kind => LIFE_DRAFT_ACTIONS.has(kind) || TRANSACTIONS.has(kind),
+     getState: current,
++    // Expensive opt-in inspection of lexical retention, never a synchronizing
++    // getter. Missing bodies stay missing; no replay, cache or presentation read.
++    inspectRetainedPreparation({ nodeId = null } = {}) {
++      const copy = value => value == null ? null : JSON.parse(JSON.stringify(value));
++      const timeline = getRunner().getTimeline();
++      const sourceRevision = timeline?.revision ?? null;
++      const sourceSec = timeline == null ? null : Math.floor(timeline.historyEndSec ?? 0);
++      const timelineMatches = base == null ? null : base.timeline === timeline;
++      const sourceMatches = base == null ? null : timelineMatches
++        && base.revision === sourceRevision && base.sec === sourceSec;
++      const selected = typeof nodeId === 'string' && Object.hasOwn(nodes, nodeId) ? nodes[nodeId] : null;
++      return {
++        version: 1, sourceRevision, sourceSec, baseRevision: base?.revision ?? null,
++        baseSec: base?.sec ?? null, timelineMatches, sourceMatches,
++        requestId, revision, adopting, workerActive: worker !== null,
++        draft: draft == null ? null : { rawJson: JSON.stringify(draft), stateData: serializeGameState(draft) },
++        actions: copy(actions),
++        job: job == null ? null : {
++          phase: job.phase ?? null, error: job.error ?? null, accepted: job.accepted === true,
++          ready: job.ready === true, sourceReady: sourceMatches === true && job.ready === true,
++          staged: job.staged === true, targetSec: job.targetSec ?? null,
++          revealSec: job.revealSec ?? null, computedSec: job.computedSec ?? null,
++          payload: job.payload == null ? null : {
++            stateData: copy(job.payload.stateData), actions: copy(job.payload.actions),
++          },
++          stateData: copy(job.stateData),
++        },
++        selectedNodeId: typeof nodeId === 'string' ? nodeId : null,
++        selectedNode: selected == null ? null : {
++          stateData: copy(selected.stateData), actions: copy(selected.actions),
++          presentation: copy(selected.presentation), entryPresentation: copy(selected.entryPresentation),
++        },
++      };
++    },
++    // Unlike getStatus, observation must not sync/terminate a stale job.
++    getTimingSnapshot() {
++      const timeline = getRunner().getTimeline();
++      const sourceRevision = timeline?.revision ?? null;
++      const sourceSec = timeline == null ? null : Math.floor(timeline.historyEndSec ?? 0);
++      const timelineMatches = base == null ? null : base.timeline === timeline;
++      const sourceMatches = base == null ? null : timelineMatches
++        && base.revision === sourceRevision && base.sec === sourceSec;
++      return {
++        sourceRevision, sourceSec, baseRevision: base?.revision ?? null,
++        baseSec: base?.sec ?? null, timelineMatches, sourceMatches,
++        requestId, revision, adopting, workerActive: worker !== null,
++        draftActive: draft !== null, draftActionCount: actions.length,
++        jobActive: job !== null, phase: job?.phase ?? null, error: job?.error ?? null,
++        accepted: job == null ? null : job.accepted === true,
++        jobReady: job == null ? null : job.ready === true,
++        ready: job == null ? null : sourceMatches === true && job.ready === true,
++        targetSec: job?.targetSec ?? null, computedSec: job?.computedSec ?? null,
++        revealSec: job?.revealSec ?? null,
++      };
++    },
+     getStatus() {
+       sync();
+       return job ? { phase: job.phase, error: job.error, canReturn: !job.accepted, ready: job.ready === true,
+diff --git a/src/controllers/sim-runner.js b/src/controllers/sim-runner.js
+index fc051f46..443d26e0 100644
+--- a/src/controllers/sim-runner.js
++++ b/src/controllers/sim-runner.js
+@@ -1737,6 +1737,26 @@ export function createSimRunner({
+     }),
+ 
+     getTimeline: () => timeline,
++    // Expensive, opt-in diagnostic. Read only the objects already installed in
++    // this runner: no knowledge merge, replay, cache lookup or view refresh.
++    // rawJson preserves runtime fields; stateData uses the save serializer on a
++    // copy. Neither result exposes a mutable installed state or frozen config.
++    inspectRetainedStates: () => {
++      const inspect = (state) => state == null ? null : ({
++        rawJson: JSON.stringify(state),
++        stateData: serializeGameState(state),
++      });
++      return {
++        version: 1,
++        cursor: inspect(cursorState),
++        preview: inspect(dragPreviewState),
++        frontierSec: timeline?.historyEndSec ?? null,
++        cursorIsFrontier: cursorState != null && cursorState.tSec === timeline?.historyEndSec,
++        // A historical cursor is not the frontier. Do not reconstruct it here.
++        timelineKnowledge: timeline?.persistentKnowledge == null ? null
++          : JSON.parse(JSON.stringify(timeline.persistentKnowledge)),
++      };
++    },
+     rememberCivilizationSurvivalYear,
+     getCursorState: () => {
+       applyTimelinePersistentKnowledgeToState(cursorState);
+diff --git a/src/model/timegraph/controller-core.js b/src/model/timegraph/controller-core.js
+index a08ef8dd..a0a07e5e 100644
+--- a/src/model/timegraph/controller-core.js
++++ b/src/model/timegraph/controller-core.js
+@@ -1113,6 +1113,38 @@ export function createTimeGraphController({
+     return { ok: true };
+   }
+ 
++  // Passive observation only: do not synchronize coverage or consult projection.
++  function getTimingSnapshot({ anchorSec, includeProjectionSource = false } = {}) {
++    const requestedAnchorSec = Number.isInteger(anchorSec) && anchorSec >= 0 ? anchorSec : null;
++    // Anchor-only scope is this controller's retained boundary store. Projection
++    // correspondence/membership is a separate explicitly requested passive read.
++    const anchors = graphCache?.stateDataByBoundary;
++    return {
++      ...(includeProjectionSource === true ? {
++        projection: projection.getTimingSnapshot?.({ timeline: getTimeline?.(), anchorSec: requestedAnchorSec }) ?? null,
++      } : {}),
++      ...(requestedAnchorSec == null ? {} : {
++        requestedAnchorSec,
++        hasRetainedAnchor: anchors instanceof Map ? anchors.has(requestedAnchorSec) : null,
++        retainedAnchorSource: anchors instanceof Map
++          ? requestedAnchorSec > graphCache.historyEndSec ? 'graph-forecast-boundary' : 'graph-history-boundary'
++          : null,
++        retainedAnchorScope: 'graph-boundary-store',
++      }),
++      cacheVersion: graphCache?.version ?? cacheVersion,
++      subjectKey,
++      historyEndSec: graphCache?.historyEndSec ?? null,
++      computedSec: graphCache?.window?.forecastCoverageEndSec ?? null,
++      requestedSec: graphCache?.window?.forecastRequestedEndSec ?? null,
++      pending: graphCache?.window ? graphCache.window.forecastPending === true : null,
++      asyncToken: lastAsyncForecastToken,
++      asyncPollMs: Number.isFinite(lastAsyncForecastPollMs) ? lastAsyncForecastPollMs : null,
++      asyncHistoryEndSec: lastAsyncForecastHistoryEndSec,
++      asyncRequestedSec: lastAsyncForecastDesiredEndSec,
++      asyncComputedSec: lastAsyncForecastCoverageEndSec,
++    };
++  }
++
+   function getData() {
+     const tl = getTimeline?.();
+     if (tl) {
+@@ -1763,6 +1795,7 @@ export function createTimeGraphController({
+     handleInvalidate,
+     update,
+     getData,
++    getTimingSnapshot,
+     getSamplesForWindow,
+     getSeriesValuesForSeconds,
+     getStateDataAt,
+diff --git a/src/model/timegraph/projection-cache.js b/src/model/timegraph/projection-cache.js
+index 0ee3864e..63bc2945 100644
+--- a/src/model/timegraph/projection-cache.js
++++ b/src/model/timegraph/projection-cache.js
+@@ -290,6 +290,23 @@ export function createProjectionCache({
+     return `sig:${signatureVersion}`;
+   }
+ 
++  // Optional debug observation. Do not ensureSignature, touch the LRU, or
++  // enumerate anchors: a stale source must stay stale until normal orchestration.
++  function getTimingSnapshot({ timeline, anchorSec } = {}) {
++    const knownSignature = signature !== null && typeof signature === 'object';
++    return {
++      signatureVersion,
++      timelineToken: knownSignature ? `sig:${signatureVersion}` : null,
++      signatureMatches: timeline == null ? null
++        : knownSignature && signatureEquals(computeTimelineSignature(timeline), signature),
++      ...(Number.isInteger(anchorSec) && anchorSec >= 0 ? {
++        requestedAnchorSec: anchorSec,
++        hasRetainedAnchor: stateDataBySecond.has(anchorSec),
++        retainedAnchorScope: 'controller-projection-store',
++      } : {}),
++    };
++  }
++
+   function shouldAbsorbPersistentKnowledge(opts = {}) {
+     return opts?.absorbPersistentKnowledge !== false;
+   }
+@@ -658,6 +675,7 @@ export function createProjectionCache({
+     ensureSignature,
+     invalidateFromSecond,
+     getTimelineToken,
++    getTimingSnapshot,
+     ensureStateAtSecond,
+     ensureForecastWindow,
+     mergeForecastChunk,
+diff --git a/src/views/chronicle-art.js b/src/views/chronicle-art.js
+index bdfb3f16..611f2e44 100644
+--- a/src/views/chronicle-art.js
++++ b/src/views/chronicle-art.js
+@@ -151,6 +151,36 @@ export function getChronicleTexture(file) {
+   return loadTexture(file);
+ }
+ 
++// Optional, untimed publication inventory. Read the very stores used by
++// loadTexture above: a retained packed texture is drawable iff its group is
++// not hidden, even in minimal mode. No resolver call, load, upload or revision.
++export function getChronicleArtworkPublicationSnapshot() {
++  const groups = [...Object.entries(PACKED_GROUPS),
++    ...[...presentationGroups].map(([prefix, group]) => [prefix, group])]
++    .filter(([, group]) => group !== PACKED_GROUPS.resources);
++  return {
++    version: 1, revision, minimalGraphics,
++    groups: groups.map(([id, group]) => {
++      let textureCount = 0, validTextureCount = 0, sampleFile = null;
++      for (const [file, texture] of packedTextures) {
++        if (packedGroupFor(file) !== group) continue;
++        textureCount++;
++        if (texture?.baseTexture?.valid === true && texture.valid !== false) validTextureCount++;
++        if (sampleFile == null) sampleFile = file;
++      }
++      const hidden = hiddenGroups.has(group);
++      return {
++        id, prefix: group.prefix, loadRequested: packedLoads.has(group), failed: failedGroups.has(group),
++        // loaded means at least one retained frame, not promise completion or GPU idle.
++        loaded: textureCount > 0, textureCount, validTextureCount, hidden,
++        drawingAvailable: textureCount > 0 && !hidden,
++        drawingAvailableCount: hidden ? 0 : textureCount,
++        sampleFile, sampleDrawingAvailable: sampleFile == null ? null : !hidden,
++      };
++    }),
++  };
++}
++
+ function artworkError(message, cause) {
+   const error = new Error(message, { cause });
+   error.code = 'artworkLoadFailed';
+diff --git a/src/views/timegraphs-pixi.js b/src/views/timegraphs-pixi.js
+index 572a2fb8..26a9b1f4 100644
+--- a/src/views/timegraphs-pixi.js
++++ b/src/views/timegraphs-pixi.js
+@@ -2252,6 +2252,50 @@ export function createMetricGraphView({
+     return { x: topLeft.x, y: topLeft.y, width: bottomRight.x - topLeft.x, height: bottomRight.y - topLeft.y };
+   }
+ 
++  // Read raw reveal/scrub state. The normal cap accessor synchronizes getData;
++  // its equivalent arithmetic here deliberately leaves stale overrides alone.
++  function getTimingSnapshot(options = {}) {
++    const data = controller.getTimingSnapshot?.(options) ?? null;
++    // Copy the renderer's retained transform, without updating transforms/bounds.
++    // Coordinates can lag layout until the ordinary renderer runs.
++    const matrix = root.transform?.worldTransform;
++    const plotRect = matrix && matrix.b === 0 && matrix.c === 0 ? {
++      x: matrix.a * plot.x + matrix.tx, y: matrix.d * plot.y + matrix.ty,
++      width: matrix.a * plot.w, height: matrix.d * plot.h,
++    } : null;
++    const historyEndSec = Math.max(0, Math.floor(getTimeline?.()?.historyEndSec ?? 0));
++    const computedSec = data?.computedSec == null ? null
++      : Math.max(historyEndSec, Math.floor(data.computedSec));
++    const revealedSec = computedSec == null ? null : Math.max(historyEndSec, Math.min(
++      computedSec, reveal.historyEndSec === historyEndSec
++        ? Math.floor(reveal.visibleEndSec ?? historyEndSec) : historyEndSec));
++    return {
++      visible: root.visible === true, minSec, maxSec,
++      scrubDrawSignature: lastScrubSignature,
++      plotRect, plotRectSpace: 'stage-retained-transform',
++      ...(data && Object.hasOwn(data, 'projection') ? { projection: data.projection } : {}),
++      ...(data?.requestedAnchorSec == null ? {} : {
++        requestedAnchorSec: data.requestedAnchorSec, hasRetainedAnchor: data.hasRetainedAnchor,
++        retainedAnchorSource: data.retainedAnchorSource, retainedAnchorScope: data.retainedAnchorScope,
++      }),
++      scrubSec: scrub.scrubSec, isScrubbing: scrub.isScrubbing === true,
++      latchedForecastScrubSec: scrub.latchedForecastScrubSec,
++      historyEndSec, revealedSec, browseCapSec: revealedSec,
++      targetSec: reveal.targetEndSec,
++      computedSec, requestedSec: data?.requestedSec ?? null, pending: data?.pending ?? null,
++      cacheVersion: data?.cacheVersion ?? null, subjectKey: data?.subjectKey ?? null,
++      asyncToken: data?.asyncToken ?? null, asyncPollMs: data?.asyncPollMs ?? null,
++      asyncHistoryEndSec: data?.asyncHistoryEndSec ?? null,
++      asyncRequestedSec: data?.asyncRequestedSec ?? null, asyncComputedSec: data?.asyncComputedSec ?? null,
++      revealHistoryEndSec: reveal.historyEndSec,
++      animatedSec: reveal.animatedEndSec, visibleEndSec: reveal.visibleEndSec,
++      startSecOverride: reveal.startSecOverride,
++      readinessCapSec: reveal.readinessCapSec ?? null,
++      capEndSec: reveal.capEndSec, paused: reveal.paused,
++      presentationSuspended, openingRevealSec,
++    };
++  }
++
+   function getDebugState() {
+     syncProjectionReplacementDataContext();
+     const tl = getTimeline?.();
+@@ -2536,6 +2580,7 @@ export function createMetricGraphView({
+     getPlotScreenRect,
+     getPlotStageRect,
+     getDebugState,
++    getTimingSnapshot,
+     isScrubbing: () => scrub.isScrubbing === true,
+     getVisibleTimeSpanSec: () => Math.max(1, maxSec - minSec),
+     getForecastScrubCapSec: () => getVisibleForecastScrubCapSec(),
+diff --git a/src/views/ui-root-settlement-pixi.js b/src/views/ui-root-settlement-pixi.js
+index 6b9fc629..adff4982 100644
+--- a/src/views/ui-root-settlement-pixi.js
++++ b/src/views/ui-root-settlement-pixi.js
+@@ -1,4 +1,4 @@
+-import { hideChronicleArtwork } from './chronicle-art.js';
++import { hideChronicleArtwork, getChronicleArtworkPublicationSnapshot } from './chronicle-art.js';
+ import { progressiveGraphics, enablePerformanceGraphics } from './minimal-graphics.js';
+ import { loadProgressiveArtwork } from './progressive-artwork.js';
+ import { loadPerformanceStart } from '../controllers/performance-start.js';
+@@ -8,6 +8,7 @@ import { createVassalCommissionPicker } from './vassal-commission-picker-pixi.js
+ import { createLifeDecisionController } from "../controllers/life-decision-controller.js";
+ import { createNodeResolutionDiagnostics } from "../controllers/node-resolution-diagnostics.js";
+ import { createLifeProcessingView } from "./life-processing-pixi.js";
++import { createSettlementTimingSnapshot } from "./ui-root/settlement-timing-snapshot.js";
+ import { createGameSessionController } from "../controllers/game-session-controller.js";
+ import { openLabHandoff, readLabHandoff } from '../controllers/development-lab-bridge.js';
+ import { openCardReviewer, createCardReviewController } from '../controllers/card-review-controller.js';
+@@ -1539,6 +1540,38 @@ function resizeCanvas() {
+ 
+ function publishSettlementDebugApi() {
+   publishSettlementDebugApiForSettlement({
++    inspectRetainedStates: () => runner.inspectRetainedStates(),
++    inspectRetainedLifePreparation: (options) => lifeDecisionController?.inspectRetainedPreparation(options) ?? null,
++    inspectRetainedLifeDecision: () => vassalNodeDecisionModalView?.inspectRetainedDecision() ?? null,
++    // Pure copies of retained display fields; no presentation/state resolution.
++    getRetainedFeedbackSnapshot: () => {
++      // This specific accessor only copies its retained semantic snapshot and
++      // current root visibility. It does not render or resolve model state.
++      const settlement = prototypeView?.getSemanticSnapshot?.();
++      return {
++        settlement: { visible: settlement?.visible === true,
++          regionId: settlement?.regionId ?? null, activeTab: settlement?.activeTab ?? null },
++        map: worldMapView?.getTimingSnapshot?.() ?? null,
++        graph: settlementGraphView?.getTimingSnapshot?.() ?? null,
++        life: vassalLifeMapView?.getTimingSnapshot?.() ?? null,
++        decision: vassalNodeDecisionModalView?.getTimingSnapshot?.() ?? null,
++        processingVisible: lifeProcessingView?.isVisible() === true,
++        recap: vassalResolutionRecapView?.getTimingSnapshot?.() ?? null,
++      };
++    },
++    getTimingSnapshot: createSettlementTimingSnapshot({
++      getLocalState: () => ({ mode: worldViewMode, selectedRegionId: selectedWorldRegionId,
++        regionSelectionActive: worldMapRegionSelectionActive }),
++      getRunner: () => runner,
++      getMap: () => worldMapView?.getTimingSnapshot?.() ?? null,
++      getGraph: (options) => settlementGraphView?.getTimingSnapshot?.(options) ?? null,
++      getLifeMap: () => vassalLifeMapView?.getTimingSnapshot?.() ?? null,
++      getDecision: () => vassalNodeDecisionModalView?.getTimingSnapshot?.() ?? null,
++      getProcessing: () => lifeDecisionController?.getTimingSnapshot?.() ?? null,
++      getRecap: () => vassalResolutionRecapView?.getTimingSnapshot?.() ?? null,
++      getOpeningSnapshot: () => opening.getSnapshot(),
++      getArtwork: getChronicleArtworkPublicationSnapshot,
++    }),
+     getForecastStatus: () => settlementForecastController?.getForecastStatus?.() ?? null,
+     getFrontierSec: () => getSettlementFrontierSec(),
+     getViewedSec: () => getSettlementViewedSec(),
+diff --git a/src/views/ui-root/settlement-debug-api.js b/src/views/ui-root/settlement-debug-api.js
+index 3a377b55..91e43e31 100644
+--- a/src/views/ui-root/settlement-debug-api.js
++++ b/src/views/ui-root/settlement-debug-api.js
+@@ -94,6 +94,11 @@ function summarizeLineage(state) {
+ }
+ 
+ export function publishSettlementDebugApi({
++  inspectRetainedStates,
++  inspectRetainedLifePreparation,
++  inspectRetainedLifeDecision,
++  getRetainedFeedbackSnapshot,
++  getTimingSnapshot,
+   getForecastStatus,
+   getFrontierSec,
+   getViewedSec,
+@@ -178,6 +183,11 @@ export function publishSettlementDebugApi({
+ } = {}) {
+   if (typeof globalThis === "undefined") return;
+   globalThis.__SETTLEMENT_DEBUG__ = {
++    inspectRetainedStates,
++    inspectRetainedLifePreparation,
++    inspectRetainedLifeDecision,
++    getRetainedFeedbackSnapshot,
++    getTimingSnapshot,
+     getFounderSnapshot, getFounderControlClickPoint, getCommissionSnapshot, getCommissionChoiceClickPoint,
+     getLifeDecisionTimingSnapshot: () => {
+       const lineage = summarizeLineage(getFrontierState?.());
+diff --git a/src/views/vassal-life-map-pixi.js b/src/views/vassal-life-map-pixi.js
+index c3b80f83..74c7cb4d 100644
+--- a/src/views/vassal-life-map-pixi.js
++++ b/src/views/vassal-life-map-pixi.js
+@@ -568,6 +568,17 @@ export function createVassalLifeMapView({
+       }
+     },
+     handleKeyDown,
++    getTimingSnapshot() {
++      const entry = entryDialog.getSnapshot();
++      return {
++        visible: root.visible === true, selectedCandidateNodeId: candidateNodeId,
++        displayedVassalId, entryConfirmationOpen,
++        entryVisible: entry.visible, entryOpen: entry.open, entryPhase: entry.phase,
++        // The entry dialog's point reader uses retained layout arithmetic only.
++        // The other dock uses getBounds and is deliberately unavailable here.
++        entryPoint: entryConfirmationOpen ? entryDialog.getConfirmPoint() : null,
++      };
++    },
+     getCandidateNodeId: () => getCandidate()?.id ?? null,
+     isEntryConfirmationOpen: () => entryConfirmationOpen && confirmSurface.visible,
+     getEntryCancelClickPoint: () => entryConfirmationOpen ? entryDialog.getCancelPoint() : null,
+diff --git a/src/views/vassal-node-decision-modal-pixi.js b/src/views/vassal-node-decision-modal-pixi.js
+index 317448a6..20baaf13 100644
+--- a/src/views/vassal-node-decision-modal-pixi.js
++++ b/src/views/vassal-node-decision-modal-pixi.js
+@@ -1073,6 +1073,47 @@ export function createVassalNodeDecisionModalView({
+     },
+     init: () => {}, update: () => { advanceMotion(); render(); worldScreen.update(); },
+     refresh: () => render(true), resize: () => render(true),
++    // Copy only the decisions/identities already retained by rendering/input.
++    // This diagnostic never renders, calls a getter or derives a presentation.
++    inspectRetainedDecision() {
++      const copy = value => value == null ? null : JSON.parse(JSON.stringify(value));
++      return {
++        version: 1, logicalOpen, visible: root.visible, openNodeId,
++        lastDecision: copy(lastDecision), dragPreview: copy(dragPreview),
++        variant: {
++          previewOptionId, previewOfferId, previewTableauId, hoveredOptionId, hoveredOfferId,
++          pinnedInspectionId, quickInspectionId, dragTargetIndex,
++          dragged: dragged == null ? null : {
++            fromOffer: dragged.fromOffer, active: dragged.active,
++            piece: copy(dragged.piece),
++            start: { x: dragged.start.x, y: dragged.start.y },
++            point: { x: dragged.point.x, y: dragged.point.y },
++          },
++        },
++      };
++    },
++    getTimingSnapshot() {
++      const terrain = worldScreen.getTimingSnapshot();
++      return {
++        open: logicalOpen, nodeId: openNodeId,
++        renderedVisible: root.visible === true,
++        renderedPose: { x: root.x, y: root.y, alpha: root.alpha },
++        renderedTransition: { visible: transitionGraphic.visible === true,
++          alpha: transitionGraphic.alpha, rect: motionRect ? { ...motionRect } : null },
++        phase: motion ? logicalOpen ? 'opening' : 'closing' : logicalOpen ? 'open' : 'closed',
++        pendingInteractionCount: root.pendingInteractionCount ?? null,
++        family: lastDecision?.node?.family ?? null,
++        selectedOptionId: lastDecision?.nodeState?.selectedOptionId ?? null,
++        resolving: lastDecision?.nodeState?.resolving ?? null,
++        shopTag: lastDecision?.shopTag ?? null,
++        offerIds: lastDecision?.offers?.map(offer => offer.offerId ?? null) ?? null,
++        purchaseOrder: lastDecision?.purchases?.map(purchase => purchase.offerId ?? null) ?? null,
++        boardPracticeIds: lastDecision?.settlement?.practices?.map(piece => piece?.practiceId ?? null) ?? null,
++        observedDecisionNodeId: lastDecision?.node?.id ?? null,
++        boardRegionId: lastDecision?.previewRegionId ?? null,
++        artReady: terrain.artReady, artPrepared: terrain.artPrepared,
++      };
++    },
+     open, close, isOpen: () => logicalOpen, getOpenNodeId: () => openNodeId,
+     getWorldDecisionPoint: (kind,id) => worldScreen.getPoint(kind,id),
+     getEnterNodeClickPoint: () => logicalOpen && enterRoot?.toGlobal
+diff --git a/src/views/vassal-node-decision/world-screen.js b/src/views/vassal-node-decision/world-screen.js
+index 1cfee8c3..58ab1f5c 100644
+--- a/src/views/vassal-node-decision/world-screen.js
++++ b/src/views/vassal-node-decision/world-screen.js
+@@ -210,6 +210,7 @@ export function createVassalWorldDecisionScreen({ app, layer, getState, getVassa
+   const point=control=>{if(!root.visible||!control)return null;const r=control.getBounds();return{x:r.x+r.width/2,y:r.y+r.height/2};};
+   const bounds=control=>{const r=control.getBounds();return{x:r.x,y:r.y,width:r.width,height:r.height};};
+   return {refresh,
++    getTimingSnapshot: () => map.getTimingSnapshot(),
+     getTerrainStats:()=>({...map.getSemanticSnapshot().illustratedTerrain}),
+     resetArtwork:()=>map.resetArtwork(),
+     prepareProgressive:(renderer,wait,isCurrent)=>map.prepareProgressive(renderer,wait,isCurrent),
+diff --git a/src/views/vassal-resolution-recap-pixi.js b/src/views/vassal-resolution-recap-pixi.js
+index 27f621bd..bd629395 100644
+--- a/src/views/vassal-resolution-recap-pixi.js
++++ b/src/views/vassal-resolution-recap-pixi.js
+@@ -169,6 +169,16 @@ export function createVassalResolutionRecapView({
+       ? dismissRoot.toGlobal(new PIXI.Point(
+         dismissRoot.hitArea.width / 2, dismissRoot.hitArea.height / 2
+       )) : null,
++    getTimingSnapshot() {
++      const clock = clockView?.getSnapshot?.();
++      return {
++        open: root.visible === true, continueState: dismissRoot?.interactionState ?? null,
++        clockStartedAt,
++        clock: clock == null ? null : {
++          second: clock.second ?? null, progress: clock.progress ?? null, locked: clock.locked ?? null,
++        },
++      };
++    },
+     getSemanticSnapshot: () => ({
+       open: root.visible,
+       continueState: dismissRoot?.interactionState ?? null,
+diff --git a/src/views/world-map-pixi.js b/src/views/world-map-pixi.js
+index dcc46e5b..d845c4c5 100644
+--- a/src/views/world-map-pixi.js
++++ b/src/views/world-map-pixi.js
+@@ -1114,6 +1114,19 @@ export function createWorldMapView({
+         stockTransferIcons.beginFrame();
+       }
+     },
++    getTimingSnapshot() {
++      const pose = camera.snapshot();
++      const panel = panelReveal.snapshot();
++      return {
++        visible: root.visible === true,
++        detailVisible: root.visible === true && detailRoot.visible === true,
++        camera: { x: pose.x, y: pose.y, zoom: pose.zoom },
++        focusAnimating: camera.isAnimating(),
++        panelPhase: panel.phase, panelAnimating: panel.animating,
++        panelPose: { x: panel.x, y: panel.y, scale: panel.scale },
++        artReady: illustrated.stats.ready ?? null, artPrepared: illustrated.stats.prepared ?? null,
++      };
++    },
+     getSemanticSnapshot: () => {
+       const state = getState?.();
+       const regionId = getSelectedRegionId?.();

@@ -1,0 +1,81 @@
+    if(mapOnly){
+      const b=canvasBox,rect=MAP_VIEWPORT_RECT;
+      const screen=(x,y)=>({x:b.x+x*b.width/2424,y:b.y+y*b.height/1080});
+      // Seed123's centre has population/settlement hit targets. Start on clear
+      // east background so the map viewport receives the gesture's first press.
+      const from=screen(rect.x+rect.width*.92,rect.y+rect.height*.65),to=screen(rect.x+rect.width*.78,rect.y+rect.height*.65);
+      if(operation==='pan'){
+      const panBefore=await timing();
+      await record('J3','map-pan',async()=>{
+        if(config.control==='stale-generation')await currentPage.evaluate(()=>{__HC_STALE_CONTROL__.armed=true;});
+        const offered=pendingOfferedEvidence=await dispatchOfferedDrag({page:currentPage,cdp:session.cdp,from,to,input:population.inputType});
+        const after=await observe((s,expected)=>s.mode==='map'&&s.map.visible&&!s.map.focusAnimating
+          &&(s.map.camera.x!==expected.x||s.map.camera.y!==expected.y)&&s,panBefore.map.camera);
+        return {...after,offered};
+      },{input:{gesture:'fixed-offered pan',from,to,steps:12,intervalMs:1000/60},captureInputTiming:true,oracle:async(after,timing)=>{
+        assert.equal(after.offered.summary.dropped,0,'no requested pointer samples silently disappear');
+        assert.equal(after.offered.summary.protocolErrors,0);assert.equal(after.offered.summary.generatorSaturated,false,'offered load generator is not saturated');
+        assert.equal(after.offered.summary.cancelled,0);assert.equal(after.offered.summary.missingFrames,0);
+        assert.equal(after.offered.summary.invalidTimestamps,0);assert.equal(after.offered.summary.calibrationResolved,true,'offered input clock calibration resolves requested interval');
+        return workOracle(panBefore)(after,timing);
+      }});
+      }
+      if(operation==='zoom'){
+      const zoomBefore=await timing(),zoomPoint=screen(rect.x+rect.width*.82,rect.y+rect.height*.62);
+      if(config.population==='desktop'){
+        await record('J3','map-zoom',async()=>{
+          await currentPage.mouse.move(zoomPoint.x,zoomPoint.y);await currentPage.mouse.wheel(0,-180);
+          return observe((s,old)=>s.mode==='map'&&s.map.camera.zoom>old.zoom&&s,zoomBefore.map.camera);
+        },{event:'wheel',input:{wheel:-180,point:zoomPoint},captureInputTiming:true,oracle:workOracle(zoomBefore)});
+      }else{
+        const startSpan=rect.width*.1*b.width/2424,endSpan=startSpan*1.35;
+        await record('J3','map-pinch-zoom',async()=>{
+          const offered=pendingOfferedEvidence=await dispatchOfferedPinch({page:currentPage,cdp:session.cdp,center:zoomPoint,startSpan,endSpan});
+          const after=await observe((s,old)=>s.mode==='map'&&s.map.visible&&!s.map.focusAnimating&&s.map.camera.zoom>old.zoom&&s,zoomBefore.map.camera);
+          return {...after,offered};
+        },{input:{gesture:'fixed-offered two-touch pinch',center:zoomPoint,startSpan,endSpan,steps:12,intervalMs:1000/60},captureInputTiming:true,oracle:async(after,timing)=>{
+          assert.equal(after.offered.summary.dropped,0,'no offered pinch contact samples silently disappear');
+          assert.equal(after.offered.summary.protocolErrors,0);assert.equal(after.offered.summary.cancelled,0);
+          assert.equal(after.offered.summary.missingFrames,0);assert.equal(after.offered.summary.invalidTimestamps,0);
+          assert.equal(after.offered.summary.generatorSaturated,false);assert.equal(after.offered.summary.calibrationResolved,true);
+          return workOracle(zoomBefore)(after,timing);
+        }});
+      }
+      }
+      if(operation==='open'||operation==='close'){
+      const source=JSON.parse(interactionFixture.text).state;
+      // Without an active explicit map selection, the real Settlement dock
+      // targets the current Vassal location, whose flag can be offscreen.
+      const region=start.regionSelectionActive?start.selectedRegionId:
+        source.civilization.vassalLineage.vassalsById[interactionFixture.expected.lineage].locationRegionId;
+      const regionPoint=await point('getNavigationClickPoint','settlement'),openBefore=await timing();
+      const open=async()=>{
+        await click(regionPoint);
+        return observe((s,id)=>{
+          const display=__SETTLEMENT_DEBUG__.getRetainedFeedbackSnapshot().settlement;
+          return s.mode==='settlement'&&s.selectedRegionId===id&&!s.map.focusAnimating
+            &&display.visible&&display.regionId===id&&{...s,renderedSettlement:display};
+        },region);
+      };
+      if(operation==='open')await record('J3','settlement-open',open,{input:{navigation:'Settlement',region},captureInputTiming:true,oracle:workOracle(openBefore)});
+      else{
+      await open();
+      // The mode variable changes before its dock is rendered. Calibrate the
+      // first actual available Map control in one RPC, retaining the canvas
+      // measured earlier in this unchanged document; avoid waiting away work.
+      const handle=await currentPage.waitForFunction(()=>{
+        if(__HC__.active)throw new Error('close calibration must precede timing');
+        const before=__SETTLEMENT_DEBUG__.getTimingSnapshot();
+        const point=__SETTLEMENT_DEBUG__.getNavigationClickPoint('map');
+        return point&&{point,before,after:__SETTLEMENT_DEBUG__.getTimingSnapshot()};
+      },null,{polling:'raf',timeout:config.timeoutMs});
+      const calibrated=await handle.jsonValue();await handle.dispose();
+      assert.ok(isDeepStrictEqual(calibrated.before,calibrated.after),'close geometry calibration preserves passive primitives');
+      calibrations.push({launchId,method:'ready Map navigation point; one RPC, retained canvas',...calibrated,canvasBox});
+      const closePoint=calibrated.point,closeBefore=openBefore;
+      await record('J3','settlement-close',async()=>{
+        await click(closePoint);return observe(s=>s.mode==='map'&&s.map.visible&&!s.map.focusAnimating
+          &&__SETTLEMENT_DEBUG__.getRetainedFeedbackSnapshot().settlement.visible===false&&s);
+      },{input:'Map navigation',captureInputTiming:true,oracle:workOracle(closeBefore)});
+      }
+      }

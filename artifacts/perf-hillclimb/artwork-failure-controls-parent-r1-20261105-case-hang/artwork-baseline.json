@@ -1,0 +1,25 @@
+{
+  "format": 1,
+  "purpose": "Immutable logical artwork inventory frozen before any scored optimization; packing-byte changes are recorded separately.",
+  "baselineHead": "a9df52cbd6255ed95c51c9e7d524cf9ab557472b",
+  "evidence": "artifacts/perf-hillclimb/passive-observability-v2-parent-projection-20261105/browser.json: artwork-prepared-hidden",
+  "seed": 123,
+  "initialStateSha256": "df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f",
+  "resourceFiles": ["resource-language.json"],
+  "groups": [
+    {"id":"fullMap","prefix":"full-map-content-prototype/art/","textureCount":50,"files":["full-map-content-prototype.json"]},
+    {"id":"fullMapEnemy","prefix":"full-map-chaos-prototype/art/","textureCount":22,"files":["full-map-chaos-dictator.json"]},
+    {"id":"heirlooms","prefix":"heirlooms-v1/","textureCount":15,"files":["heirlooms.json"]},
+    {"id":"settlementPieces","prefix":"settlement-pieces-v4/","textureCount":224,"files":["settlement-pieces-0.json","settlement-pieces-1.json","settlement-pieces-2.json"]},
+    {"id":"pieceFrames","prefix":"piece-frames-v1/","textureCount":9,"files":["piece-frames.json"]},
+    {"id":"chronicleIllustrations","prefix":"chronicle-illustrations-v1/","textureCount":18,"files":["chronicle-illustrations.json"]},
+    {"id":"regionLandmarks","prefix":"region-landmarks-v1/","textureCount":4,"files":["region-landmarks.json"]},
+    {"id":"vassalPortraits","prefix":"vassal-portraits-v1/","textureCount":24,"files":["vassal-portraits.json"]},
+    {"id":"vassalClass","prefix":"vassal-class-v1/","textureCount":6,"files":["vassal-class.json"]},
+    {"id":"chronicleGate","prefix":"chronicle-gate-v1/","textureCount":1,"files":["chronicle-gate.json"]},
+    {"id":"classPickerFrames","prefix":"class-picker-frames-v1/","textureCount":9,"files":["class-picker-frames.json"]},
+    {"id":"chronicleHudFrames","prefix":"chronicle-hud-frames-v1/","textureCount":19,"files":["chronicle-hud-frames.json"]},
+    {"id":"timegraphChronicle","prefix":"timegraph-chronicle-v1/","textureCount":1,"files":["timegraph-chronicle.json"]}
+  ],
+  "limitations": ["Counts and resolver-group coverage do not prove every frame's pixel content.", "Current built-in registry is frozen; a content/registry change requires an explicit contract revision and comparable re-baseline.", "Construction inventory remains subject to independent harness review."]
+}

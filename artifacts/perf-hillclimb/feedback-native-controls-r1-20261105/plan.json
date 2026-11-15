@@ -1,0 +1,151 @@
+{
+  "schedule": [
+    {
+      "population": "desktop",
+      "control": "immediate-delayed-completion"
+    },
+    {
+      "population": "desktop",
+      "control": "queue"
+    },
+    {
+      "population": "desktop",
+      "control": "capture-cost"
+    },
+    {
+      "population": "desktop",
+      "control": "no-op"
+    },
+    {
+      "population": "desktop",
+      "control": "pre-input-drift"
+    },
+    {
+      "population": "desktop",
+      "control": "transient"
+    },
+    {
+      "population": "desktop",
+      "control": "render-delay"
+    },
+    {
+      "population": "desktop",
+      "control": "missing-frame"
+    },
+    {
+      "population": "desktop",
+      "control": "cancel-before-input"
+    },
+    {
+      "population": "desktop",
+      "control": "host-failure"
+    },
+    {
+      "population": "mobile",
+      "control": "immediate-delayed-completion"
+    },
+    {
+      "population": "mobile",
+      "control": "queue"
+    },
+    {
+      "population": "mobile",
+      "control": "capture-cost"
+    },
+    {
+      "population": "mobile",
+      "control": "no-op"
+    },
+    {
+      "population": "mobile",
+      "control": "pre-input-drift"
+    },
+    {
+      "population": "mobile",
+      "control": "transient"
+    },
+    {
+      "population": "mobile",
+      "control": "render-delay"
+    },
+    {
+      "population": "mobile",
+      "control": "missing-frame"
+    },
+    {
+      "population": "mobile",
+      "control": "cancel-before-input"
+    },
+    {
+      "population": "mobile",
+      "control": "host-failure"
+    },
+    {
+      "population": "mobile4",
+      "control": "immediate-delayed-completion"
+    },
+    {
+      "population": "mobile4",
+      "control": "queue"
+    },
+    {
+      "population": "mobile4",
+      "control": "capture-cost"
+    },
+    {
+      "population": "mobile4",
+      "control": "no-op"
+    },
+    {
+      "population": "mobile4",
+      "control": "pre-input-drift"
+    },
+    {
+      "population": "mobile4",
+      "control": "transient"
+    },
+    {
+      "population": "mobile4",
+      "control": "render-delay"
+    },
+    {
+      "population": "mobile4",
+      "control": "missing-frame"
+    },
+    {
+      "population": "mobile4",
+      "control": "cancel-before-input"
+    },
+    {
+      "population": "mobile4",
+      "control": "host-failure"
+    }
+  ],
+  "sources": {
+    "feedback-native-controls": "a752576c6d699f9c4db0e12103acb13d8942861f4e2859fb9b5d0ae7bc3649ab",
+    "native-feedback": "25c479d652c966adecdad544274607834860932082af98186e9d6e78b451fe1e",
+    "feedback-bindings": "e1aa15460302ae3baaafdf4d58403359b8b9323136f98de8b44beddb84288c1d",
+    "feedback-runtime": "79a6b3f5dfbd1ffc0f4efdedd9f767ea463ddb2fdfc2f41b7a82f6cbdb7930e8",
+    "browser-runtime": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1"
+  },
+  "build": {
+    "performanceFixtureKey": "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+    "version": "1.1.52",
+    "build": "06d25c45aa48",
+    "revision": "a9df52cbd625",
+    "channel": "pages",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": null,
+    "entryPoint": "src/views/ui-root-pixi.js",
+    "bundle": "./assets/app-B647D36H.js",
+    "worker": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+    "saveLoadWorker": "./assets/save-load-worker-7YJYILEJ.js",
+    "stylesheet": "./assets/styles-ec05c6a73a6e.css"
+  },
+  "contract": "c6f55acbf5ea8504b1e99f6f14757cf7e6b9499963a65c55c50d04539800d49c",
+  "phaseA": "NOT SOUND",
+  "comparisonEligible": false,
+  "scope": "native diagnostic controls, no first physical pixel proof"
+}

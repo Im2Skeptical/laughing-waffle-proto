@@ -1,0 +1,44 @@
+[
+  {
+    "seed": 123,
+    "cache": "warm",
+    "population": "desktop",
+    "job": "entry",
+    "artwork": "off"
+  },
+  {
+    "seed": 123,
+    "cache": "warm",
+    "population": "desktop",
+    "job": "performance-new",
+    "artwork": "off"
+  },
+  {
+    "seed": 123,
+    "cache": "warm",
+    "population": "desktop",
+    "job": "performance-continue",
+    "artwork": "off"
+  },
+  {
+    "seed": 123,
+    "cache": "warm",
+    "population": "mobile4",
+    "job": "entry",
+    "artwork": "off"
+  },
+  {
+    "seed": 123,
+    "cache": "warm",
+    "population": "mobile4",
+    "job": "performance-new",
+    "artwork": "off"
+  },
+  {
+    "seed": 123,
+    "cache": "warm",
+    "population": "mobile4",
+    "job": "performance-continue",
+    "artwork": "off"
+  }
+]

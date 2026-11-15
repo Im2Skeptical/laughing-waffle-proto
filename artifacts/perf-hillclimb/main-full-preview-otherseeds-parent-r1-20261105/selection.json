@@ -1,0 +1,9 @@
+{
+  "requestedJobs": [
+    "scrub"
+  ],
+  "executableJobs": [
+    "scrub-anchor",
+    "scrub-off-anchor"
+  ]
+}

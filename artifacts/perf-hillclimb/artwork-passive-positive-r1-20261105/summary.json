@@ -1,0 +1,16 @@
+{
+  "ok": false,
+  "results": [],
+  "observations": 4,
+  "failures": 0,
+  "caseFailures": [
+    {
+      "case": "reference",
+      "error": "Cannot read properties of undefined (reading 'locationRegionId')",
+      "detailsFile": "reference-failure.json"
+    }
+  ],
+  "requestedCases": 4,
+  "completedCases": 0,
+  "scope": "construction controls and diagnostics only; independent audit and representative sampling still required"
+}

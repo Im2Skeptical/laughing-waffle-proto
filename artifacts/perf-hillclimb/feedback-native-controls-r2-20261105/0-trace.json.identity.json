@@ -1,0 +1,167 @@
+{
+  "version": {
+    "protocolVersion": "1.3",
+    "product": "HeadlessChrome/147.0.7727.15",
+    "revision": "@6b5a1b80ccc1e8a4967901d8e58fc2e162cdf050",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.7727.15 Safari/537.36",
+    "jsVersion": "14.7.173.6"
+  },
+  "categories": [
+    "devtools.timeline",
+    "blink.user_timing",
+    "disabled-by-default-devtools.timeline.inputs",
+    "cc"
+  ],
+  "frame": {
+    "id": "55847B9C87A7DBC480CA0F9DEBE65096",
+    "loaderId": "48D6CD0FB27ABFDE36A5272B32841BEF",
+    "url": "http://127.0.0.1:18248/?dev=1&art=0",
+    "domainAndRegistry": "",
+    "securityOrigin": "http://127.0.0.1:18248",
+    "securityOriginDetails": {
+      "isLocalhost": true
+    },
+    "mimeType": "text/html",
+    "adFrameStatus": {
+      "adFrameType": "none"
+    },
+    "secureContextType": "SecureLocalhost",
+    "crossOriginIsolatedContextType": "NotIsolated",
+    "gatedAPIFeatures": []
+  },
+  "menuBackendNodeId": 2,
+  "maxBytes": 33554432,
+  "maxDrainMs": 15000,
+  "complete": true,
+  "sameSurfaceLineage": "UNPROVED: raw trace alone does not authenticate meaningful game frame/pixels",
+  "event": {
+    "dataLossOccurred": false,
+    "stream": "1",
+    "traceFormat": "json",
+    "streamCompression": "none"
+  },
+  "bytes": 3145069,
+  "marks": [
+    {
+      "name": "hc-native-before-0",
+      "before": 2161.5,
+      "after": 2161.5,
+      "traceMatches": 1,
+      "traceTsUs": 227562187167
+    },
+    {
+      "name": "hc-native-before-1",
+      "before": 2163.300000011921,
+      "after": 2163.300000011921,
+      "traceMatches": 1,
+      "traceTsUs": 227562188993
+    },
+    {
+      "name": "hc-native-before-2",
+      "before": 2164.300000011921,
+      "after": 2164.300000011921,
+      "traceMatches": 1,
+      "traceTsUs": 227562189942
+    },
+    {
+      "name": "hc-native-before-3",
+      "before": 2165,
+      "after": 2165,
+      "traceMatches": 1,
+      "traceTsUs": 227562190726
+    },
+    {
+      "name": "hc-native-before-4",
+      "before": 2165.600000023842,
+      "after": 2165.600000023842,
+      "traceMatches": 1,
+      "traceTsUs": 227562191348
+    },
+    {
+      "name": "hc-native-after-0",
+      "before": 4101.300000011921,
+      "after": 4101.4000000059605,
+      "traceMatches": 1,
+      "traceTsUs": 227564127052
+    },
+    {
+      "name": "hc-native-after-1",
+      "before": 4102.5,
+      "after": 4102.5,
+      "traceMatches": 1,
+      "traceTsUs": 227564128207
+    },
+    {
+      "name": "hc-native-after-2",
+      "before": 4103.5,
+      "after": 4103.5,
+      "traceMatches": 1,
+      "traceTsUs": 227564129194
+    },
+    {
+      "name": "hc-native-after-3",
+      "before": 4104.100000023842,
+      "after": 4104.100000023842,
+      "traceMatches": 1,
+      "traceTsUs": 227564129804
+    },
+    {
+      "name": "hc-native-after-4",
+      "before": 4104.700000017881,
+      "after": 4104.800000011921,
+      "traceMatches": 1,
+      "traceTsUs": 227564130492
+    }
+  ],
+  "clock": {
+    "lowTraceMinusPageMs": 227560025.74799997,
+    "highTraceMinusPageMs": 227560025.642,
+    "valid": false,
+    "scope": "10 same-document JS mark brackets; trace microseconds explicitly converted to ms; no epoch/scanout conversion"
+  },
+  "menuPaint": [
+    {
+      "tsUs": 227562230758,
+      "pid": 38188,
+      "tid": 7612,
+      "phase": "X",
+      "data": {
+        "clip": [
+          8,
+          8,
+          1272,
+          8,
+          1272,
+          1161,
+          8,
+          1161
+        ],
+        "frame": "55847B9C87A7DBC480CA0F9DEBE65096",
+        "layerId": 0,
+        "nodeId": 2,
+        "nodeName": "MAIN id='game-menu'"
+      }
+    }
+  ],
+  "paintScope": "exact native backend node + root document frame match; DOM Paint only, not compositor completion or first meaningful pixels",
+  "pipelineReporterFields": [
+    "affects_smoothness",
+    "checkerboarded_needs_raster",
+    "checkerboarded_needs_record",
+    "display_trace_id",
+    "frame_sequence",
+    "frame_source",
+    "has_compositor_animation",
+    "has_high_latency",
+    "has_main_animation",
+    "has_missing_content",
+    "has_smooth_input_main",
+    "layer_tree_host_id",
+    "scroll_state",
+    "state",
+    "surface_frame_trace_id"
+  ],
+  "pipelineScope": "raw stream retains native frame/surface ids; unsafe >53-bit numeric identifiers are not used for JS joins; compositor-to-menu lineage remains unproved",
+  "parseCpuMs": 30.01599999999962,
+  "handleClosed": true
+}

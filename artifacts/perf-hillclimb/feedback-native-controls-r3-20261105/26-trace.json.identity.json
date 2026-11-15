@@ -1,0 +1,189 @@
+{
+  "version": {
+    "protocolVersion": "1.3",
+    "product": "HeadlessChrome/147.0.7727.15",
+    "revision": "@6b5a1b80ccc1e8a4967901d8e58fc2e162cdf050",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.7727.15 Safari/537.36",
+    "jsVersion": "14.7.173.6"
+  },
+  "categories": [
+    "devtools.timeline",
+    "blink.user_timing",
+    "disabled-by-default-devtools.timeline.inputs",
+    "cc"
+  ],
+  "frame": {
+    "id": "5B60BE2B22BC30FB310B57BBEBB7978B",
+    "loaderId": "1F72209B21155DB6D82D1A7E10AEA63B",
+    "url": "http://127.0.0.1:18248/?dev=1&art=0",
+    "domainAndRegistry": "",
+    "securityOrigin": "http://127.0.0.1:18248",
+    "securityOriginDetails": {
+      "isLocalhost": true
+    },
+    "mimeType": "text/html",
+    "adFrameStatus": {
+      "adFrameType": "none"
+    },
+    "secureContextType": "SecureLocalhost",
+    "crossOriginIsolatedContextType": "NotIsolated",
+    "gatedAPIFeatures": []
+  },
+  "menuBackendNodeId": 3,
+  "maxBytes": 33554432,
+  "maxDrainMs": 15000,
+  "complete": true,
+  "sameSurfaceLineage": "UNPROVED: raw trace alone does not authenticate meaningful game frame/pixels",
+  "event": {
+    "dataLossOccurred": false,
+    "stream": "1",
+    "traceFormat": "json",
+    "streamCompression": "none"
+  },
+  "bytes": 1767485,
+  "marks": [
+    {
+      "name": "hc-native-before-0",
+      "before": 6670.5999999940395,
+      "after": 6671.299999982119,
+      "traceMatches": 1,
+      "traceTsUs": 227954931423
+    },
+    {
+      "name": "hc-native-before-1",
+      "before": 6679.199999988079,
+      "after": 6679.399999976158,
+      "traceMatches": 1,
+      "traceTsUs": 227954940031
+    },
+    {
+      "name": "hc-native-before-2",
+      "before": 6680.799999982119,
+      "after": 6680.799999982119,
+      "traceMatches": 1,
+      "traceTsUs": 227954941621
+    },
+    {
+      "name": "hc-native-before-3",
+      "before": 6681.899999976158,
+      "after": 6682.0999999940395,
+      "traceMatches": 1,
+      "traceTsUs": 227954942662
+    },
+    {
+      "name": "hc-native-before-4",
+      "before": 6683.0999999940395,
+      "after": 6683.0999999940395,
+      "traceMatches": 1,
+      "traceTsUs": 227954943844
+    },
+    {
+      "name": "hc-native-after-0",
+      "before": 7753.699999988079,
+      "after": 7753.699999988079,
+      "traceMatches": 1,
+      "traceTsUs": 227956014513
+    },
+    {
+      "name": "hc-native-after-1",
+      "before": 7815.399999976158,
+      "after": 7815.5,
+      "traceMatches": 1,
+      "traceTsUs": 227956076290
+    },
+    {
+      "name": "hc-native-after-2",
+      "before": 7873.399999976158,
+      "after": 7873.5999999940395,
+      "traceMatches": 1,
+      "traceTsUs": 227956134379
+    },
+    {
+      "name": "hc-native-after-3",
+      "before": 7924.5,
+      "after": 7924.799999982119,
+      "traceMatches": 1,
+      "traceTsUs": 227956185524
+    },
+    {
+      "name": "hc-native-after-4",
+      "before": 7932.5,
+      "after": 7932.699999988079,
+      "traceMatches": 1,
+      "traceTsUs": 227956193307
+    }
+  ],
+  "clock": {
+    "lowTraceMinusPageMs": 227948260.821,
+    "highTraceMinusPageMs": 227948260.74400002,
+    "valid": false,
+    "scope": "10 same-document JS mark brackets; trace microseconds explicitly converted to ms; no epoch/scanout conversion"
+  },
+  "menuPaint": [
+    {
+      "tsUs": 227955168338,
+      "pid": 34856,
+      "tid": 36160,
+      "phase": "X",
+      "data": {
+        "clip": [
+          4,
+          4,
+          840,
+          4,
+          840,
+          386,
+          4,
+          386
+        ],
+        "frame": "5B60BE2B22BC30FB310B57BBEBB7978B",
+        "layerId": 0,
+        "nodeId": 3,
+        "nodeName": "MAIN id='game-menu'"
+      }
+    },
+    {
+      "tsUs": 227955380166,
+      "pid": 34856,
+      "tid": 36160,
+      "phase": "X",
+      "data": {
+        "clip": [
+          4,
+          4,
+          840,
+          4,
+          840,
+          386,
+          4,
+          386
+        ],
+        "frame": "5B60BE2B22BC30FB310B57BBEBB7978B",
+        "layerId": 0,
+        "nodeId": 3,
+        "nodeName": "MAIN id='game-menu'"
+      }
+    }
+  ],
+  "paintScope": "exact native backend node + root document frame match; DOM Paint only, not compositor completion or first meaningful pixels",
+  "pipelineReporterFields": [
+    "affects_smoothness",
+    "checkerboarded_needs_raster",
+    "checkerboarded_needs_record",
+    "display_trace_id",
+    "frame_sequence",
+    "frame_source",
+    "has_compositor_animation",
+    "has_high_latency",
+    "has_main_animation",
+    "has_missing_content",
+    "has_smooth_input_main",
+    "layer_tree_host_id",
+    "scroll_state",
+    "state",
+    "surface_frame_trace_id"
+  ],
+  "pipelineScope": "raw stream retains native frame/surface ids; unsafe >53-bit numeric identifiers are not used for JS joins; compositor-to-menu lineage remains unproved",
+  "parseCpuMs": 17.968900000007125,
+  "handleClosed": true
+}

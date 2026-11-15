@@ -1,0 +1,57 @@
+[
+  {
+    "population": "desktop",
+    "job": "map",
+    "artwork": "off"
+  },
+  {
+    "population": "desktop",
+    "job": "save",
+    "artwork": "off"
+  },
+  {
+    "population": "desktop",
+    "job": "entry",
+    "artwork": "off"
+  },
+  {
+    "population": "desktop",
+    "job": "performance",
+    "artwork": "off"
+  },
+  {
+    "population": "desktop",
+    "job": "life",
+    "artwork": "off"
+  },
+  {
+    "population": "mobile4",
+    "job": "map",
+    "artwork": "off"
+  },
+  {
+    "population": "mobile4",
+    "job": "save",
+    "artwork": "off"
+  },
+  {
+    "population": "mobile4",
+    "job": "entry",
+    "artwork": "off"
+  },
+  {
+    "population": "mobile4",
+    "job": "performance",
+    "artwork": "off"
+  },
+  {
+    "population": "mobile4",
+    "job": "life",
+    "artwork": "off"
+  },
+  {
+    "population": "desktop",
+    "job": "entry",
+    "artwork": "illustrated"
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "cell": {
+    "index": 1,
+    "id": "j8-phase-on-20261115-r1",
+    "instrumentation": "on",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/artwork-controls.mjs",
+      "--id=j8-phase-on-20261115-r1",
+      "--population=mobile4",
+      "--cases=reference",
+      "--cycles=5",
+      "--instrumentation=on",
+      "--phase-witness=1",
+      "--timeout=240000",
+      "--gate-timeout=240000",
+      "--case-timeout=600000"
+    ]
+  },
+  "started": "2026-11-15T00:41:56.595Z",
+  "parentPid": 26156,
+  "childPid": 19176
+}

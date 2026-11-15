@@ -1,0 +1,41 @@
+{
+    "at":  "2026-11-15T07:46:30.1351337Z",
+    "verdict":  "SCOPED_SIX_SYNTHETIC_EXPECTED_OUTCOMES_SUPPORTED",
+    "extractionSha256":  "6532bbf02acecf3d14982da1c8ba12e76daa993d6b9582ab126f969f3345f638",
+    "adapterSha256":  "b4097fae076b35c3345e8258a4c0d41966d0bf664bf9933da978f186769846bb",
+    "parentSummarySha256":  "9b6643b047a4c56470d7214f2dd039500c8bd2b8447170dcd3dd59f7377e886c",
+    "snapshotSha256":  "47a97ad32156dc3e5088220a3cc14400ab7310d344ffa035473a087148b063f2",
+    "snapshotAt":  "2026-11-15T07:39:24.0651253Z",
+    "exactRecordedPids":  [
+                              6076,
+                              24980,
+                              18544,
+                              36004,
+                              11056,
+                              21968,
+                              26780,
+                              7192,
+                              33812,
+                              13088,
+                              35696,
+                              39248,
+                              38096,
+                              26724,
+                              28444,
+                              23264,
+                              18716,
+                              16732,
+                              34652,
+                              22844,
+                              34600,
+                              15860
+                          ],
+    "recordedLiveCount":  0,
+    "nextGate":  "Separate complete trial-wide daemon-lifetime source/protocol/pure/synthetic admission; current per-helper kill-on-close invalidates original reuse population",
+    "limits":  [
+                   "Raw native API observations validated for original source/identity/schema consistency, not re-queried afterclosure",
+                   "0ms waited is millisecond-resolution report, not latency zero",
+                   "Expected timeout/observer error remain INCOMPLETE target outcomes",
+                   "No additional actual run/checker/compiler/API/target/stop/download/settings"
+               ]
+}

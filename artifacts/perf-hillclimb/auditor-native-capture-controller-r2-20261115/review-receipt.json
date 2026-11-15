@@ -1,0 +1,22 @@
+{
+    "at":  "2026-11-15T06:10:09.7552043Z",
+    "candidatePins":  {
+                          "CaptureController-final.dll":  "6caf98e3f5b78fea2e500c369052c051eef9a3dd9126cd8a34c728cff10c2929",
+                          "SyntheticCaptureTarget-final.exe":  "1fd1d69e68363495e9742c65cdb2a193b630a3dc9af32754f65026ec3339fdde",
+                          "CaptureController.cs":  "94ebc0631483d18142e2eea9d9144d4d8902237aaa7619c3ccda216a0340d890",
+                          "ControllerPolicy.cs":  "9113f6e6071620e4b3630bd0e2506a60ae547c0c39eb52e92a265c1aa9d439c0",
+                          "RepairContracts.cs":  "5d3b07086a42e12345a21a39c805c83335669d70d0aae53f99b91ee2a189bf19",
+                          "RepairedResources.cs":  "2126baeebe91a60541e03a1a844ae8f9773526a606b0ca8317cf82e9d25d53b3",
+                          "EventSession.cs":  "31d9c0da006fa70c55bc780f5057a40fc34347f55d2ddfb038ab6ab74cef5da9",
+                          "DescendantWitness.cs":  "7ff7ba6eaffe7ce59165bd35a0420a44610fa0285d075bd176cbc3514b4b1bcb",
+                          "check-control.mjs":  "cdc6749de4e07754d24839822cde2cfbf19fe5d078ec51811e8d01b2cd4785b9",
+                          "pe-export.mjs":  "fefe4a12276591cb1d05590659dfc989fe4fad0f7164abf395752f899ae088d3",
+                          "next.mjs":  "b34ce37926b0b50dce59f2f3dff6776089fba38e9026847fca82ff56e1b5d682"
+                      },
+    "authenticationSha256":  "8b0af9322928752656de78676bc089b0ace84c1b3c5e2178be92636989691832",
+    "managedSha256":  "499f08cb87aceb34ed81727f1aa6191b54680e26676a563afcd348ef4f874617",
+    "checkerSha256":  "8449231ff3b66958f45d0335a1e4bd69eb4325eef3bd8e1e62f68d0dd393603e",
+    "adapterSha256":  "fae83ab1c152b98c8a07c97c6d873b505d4ee3ef813e66b87fa410abda761003",
+    "admission":  "WITHHELD",
+    "allSixUnattempted":  true
+}

@@ -1,0 +1,36 @@
+{
+  "at": "2026-11-15T11:43:08.087Z",
+  "verdict": "PASS",
+  "checks": [
+    "coherent-VIRTUAL-bounded-original-file-inventory",
+    "empty-raw-streams-retained-as-originals",
+    "original-byte-hash-size-link",
+    "extra-stale-result-file",
+    "missing-native-host-end",
+    "empty-JSON-receipt",
+    "target-byte-cap",
+    "raw-byte-cap",
+    "journal-byte-cap",
+    "directory-substitution-for-file",
+    "invalid-target-name-inventory-10",
+    "invalid-target-name-inventory-11",
+    "invalid-target-name-inventory-12",
+    "invalid-target-name-inventory-13",
+    "invalid-target-name-inventory-14",
+    "invalid-target-name-inventory-15",
+    "invalid-target-name-inventory-16",
+    "held-descriptor-byte-read",
+    "held-descriptor-size-bound"
+  ],
+  "accepts": 1,
+  "rejects": 15,
+  "error": null,
+  "files": {
+    "collect-trial-originals.mjs": "e014ce197c3e79a608018d9ad2731a06f059278446af5f3667b1b5011fd8235c",
+    "test-collect-trial-originals-r1.mjs": "9028ffcbb5d2f3e48688475c041a42d87ca9adf9bba17ee3cedcf002dd667a02"
+  },
+  "scope": "VIRTUAL_ORDINARY_MANAGED_FILE_IO_NO_NATIVE_CELL_ACCEPTANCE",
+  "completeCellAcceptance": false,
+  "nativeCalls": 0,
+  "actualControlAttempt": false
+}

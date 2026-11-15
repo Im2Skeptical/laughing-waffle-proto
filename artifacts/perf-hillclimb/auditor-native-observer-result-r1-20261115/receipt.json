@@ -1,0 +1,42 @@
+{
+  "at": "2026-11-15T03:44:05.761Z",
+  "inputSha256": "1addba9b60a98cf14a743a6bdd94d73d5521a33640903ab2bb55d523ab89f942",
+  "extractionSha256": "6d3a9f884286ac6a1dca554cd416da12775a7fbc14122127ef55059236bc48eb",
+  "classifications": [
+    {
+      "id": "trial-1-A",
+      "classification": "NO_REPRODUCTION_NOT_A_FIX"
+    },
+    {
+      "id": "trial-2-B",
+      "classification": "NO_REPRODUCTION_NOT_A_FIX"
+    },
+    {
+      "id": "trial-3-B",
+      "classification": "OTHER_FAILURE_NOT_PRIOR_NATIVE_SIGNATURE"
+    },
+    {
+      "id": "trial-4-A",
+      "classification": "NO_REPRODUCTION_NOT_A_FIX"
+    }
+  ],
+  "nativeExitOccurrences": [
+    {
+      "trial": "trial-3-B",
+      "mode": "B",
+      "index": 1,
+      "stage": "main",
+      "cwd": "C:\\Users\\User\\AppData\\Local\\Temp\\civilization-build-preview-KYeb7O",
+      "status": 3221226505,
+      "signal": null,
+      "pid": 35760,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "exactPriorSignature": false
+    }
+  ],
+  "priorLinkedNativeObserved": false,
+  "sourceCount": 683,
+  "assetCount": 5,
+  "cleanupVerified": true
+}

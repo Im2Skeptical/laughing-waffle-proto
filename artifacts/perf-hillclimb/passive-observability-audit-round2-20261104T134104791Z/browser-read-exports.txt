@@ -1,0 +1,5 @@
+
+export {getChronicleTexture as timingProbeDrawingTexture};
+export function timingProbeArtState(){return JSON.stringify({revision,
+ cells:[...cells.keys()],textures:[...packedTextures.keys()],loads:[...packedLoads.keys()].map(g=>g.prefix),
+ failed:[...failedGroups].map(g=>g.prefix),hidden:[...hiddenGroups].map(g=>g.prefix)});}

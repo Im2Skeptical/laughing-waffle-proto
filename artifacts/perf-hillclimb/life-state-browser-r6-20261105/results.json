@@ -1,0 +1,78 @@
+[
+  {
+    "seed": 123,
+    "population": "desktop",
+    "mode": "guard-twin",
+    "pass": false,
+    "error": "expected data: strict full result differs; actual=6d831266bd9e030451c9e91161b68806a2f78e0afdec5f82a42e89a05267a4e0 expected=141bef44efe3c461299d9be974226b35cea042b455ec4b1eb51e62fee80e78da",
+    "costs": [
+      {
+        "tag": "initial",
+        "hostRpcMs": 842.0983999999953,
+        "readerCpuMs": 16,
+        "startMs": 18692.69999998808,
+        "endMs": 18708.69999998808
+      },
+      {
+        "tag": "initial-present",
+        "hostRpcMs": 231.32190000000264,
+        "readerCpuMs": 5.199999988079071,
+        "startMs": 19670.90000000596,
+        "endMs": 19676.09999999404
+      },
+      {
+        "tag": "entered",
+        "hostRpcMs": 632.8580000000002,
+        "readerCpuMs": 11.799999982118607,
+        "startMs": 21295.30000001192,
+        "endMs": 21307.09999999404
+      },
+      {
+        "tag": "category",
+        "hostRpcMs": 668.2416000000012,
+        "readerCpuMs": 17.69999998807907,
+        "startMs": 22084,
+        "endMs": 22101.69999998808
+      },
+      {
+        "tag": "staged",
+        "hostRpcMs": 638.5358999999953,
+        "readerCpuMs": 16.700000017881393,
+        "startMs": 22898.19999998808,
+        "endMs": 22914.90000000596
+      },
+      {
+        "tag": "committed",
+        "hostRpcMs": 503.64660000000003,
+        "readerCpuMs": 12.100000023841858,
+        "startMs": 26812.69999998808,
+        "endMs": 26824.80000001192
+      },
+      {
+        "tag": "history-16",
+        "hostRpcMs": 395.0008999999991,
+        "readerCpuMs": 9.5,
+        "startMs": 30907.40000000596,
+        "endMs": 30916.90000000596
+      },
+      {
+        "tag": "history-17",
+        "hostRpcMs": 384.60719999999856,
+        "readerCpuMs": 10.699999988079071,
+        "startMs": 32816.80000001192,
+        "endMs": 32827.5
+      },
+      {
+        "tag": "present",
+        "hostRpcMs": 531.0578999999998,
+        "readerCpuMs": 13.300000011920929,
+        "startMs": 33274.5,
+        "endMs": 33287.80000001192
+      },
+      {
+        "tag": "boundary-evidence-export",
+        "hostRpcMs": 14505.489800000003
+      }
+    ]
+  }
+]

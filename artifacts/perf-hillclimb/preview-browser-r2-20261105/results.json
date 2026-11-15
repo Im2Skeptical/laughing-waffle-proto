@@ -1,0 +1,401 @@
+[
+  {
+    "seed": 123,
+    "population": "desktop",
+    "second": 16,
+    "entry": "regular-continue",
+    "control": false,
+    "index": 0,
+    "pass": true,
+    "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 619.5842999999986,
+        "startMs": 17583.899999976158,
+        "endMs": 17601.09999999404,
+        "readerCpuMs": 17.200000017881393,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      },
+      {
+        "tag": "two-copy-isolation-reads",
+        "hostElapsedMs": 603.7334999999985,
+        "startMs": 18242.09999999404,
+        "endMs": 18270,
+        "readerAndMutationCpuMs": 27.900000005960464,
+        "outside": "all latency/frame/memory observation windows"
+      }
+    ]
+  },
+  {
+    "seed": 123,
+    "population": "desktop",
+    "second": 17,
+    "entry": "regular-continue",
+    "control": false,
+    "index": 1,
+    "pass": true,
+    "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 619.7716,
+        "startMs": 18089.79999998212,
+        "endMs": 18102.19999998808,
+        "readerCpuMs": 12.400000005960464,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      },
+      {
+        "tag": "two-copy-isolation-reads",
+        "hostElapsedMs": 585.8262000000032,
+        "startMs": 18740.5,
+        "endMs": 18771.5,
+        "readerAndMutationCpuMs": 31,
+        "outside": "all latency/frame/memory observation windows"
+      }
+    ]
+  },
+  {
+    "seed": 123,
+    "population": "mobile4",
+    "second": 16,
+    "entry": "regular-continue",
+    "control": false,
+    "index": 2,
+    "pass": true,
+    "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 1339.514199999976,
+        "startMs": 72713.59999999404,
+        "endMs": 72797.5,
+        "readerCpuMs": 83.90000000596046,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      },
+      {
+        "tag": "two-copy-isolation-reads",
+        "hostElapsedMs": 1312.6226000000024,
+        "startMs": 74064.5,
+        "endMs": 74237.30000001192,
+        "readerAndMutationCpuMs": 172.80000001192093,
+        "outside": "all latency/frame/memory observation windows"
+      }
+    ]
+  },
+  {
+    "seed": 123,
+    "population": "mobile4",
+    "second": 17,
+    "entry": "regular-continue",
+    "control": false,
+    "index": 3,
+    "pass": true,
+    "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 1317.3440000000119,
+        "startMs": 73904.5,
+        "endMs": 73986,
+        "readerCpuMs": 81.5,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      },
+      {
+        "tag": "two-copy-isolation-reads",
+        "hostElapsedMs": 1335.5707999999868,
+        "startMs": 75255.29999998212,
+        "endMs": 75426.79999998212,
+        "readerAndMutationCpuMs": 171.5,
+        "outside": "all latency/frame/memory observation windows"
+      }
+    ]
+  },
+  {
+    "seed": 424242,
+    "population": "desktop",
+    "second": 16,
+    "entry": "regular-continue",
+    "control": false,
+    "index": 4,
+    "pass": true,
+    "fixture": "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 682.3203000000212,
+        "startMs": 19418.70000001788,
+        "endMs": 19437.80000001192,
+        "readerCpuMs": 19.099999994039536,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      },
+      {
+        "tag": "two-copy-isolation-reads",
+        "hostElapsedMs": 624.9616000000096,
+        "startMs": 20132,
+        "endMs": 20165.90000000596,
+        "readerAndMutationCpuMs": 33.900000005960464,
+        "outside": "all latency/frame/memory observation windows"
+      }
+    ]
+  },
+  {
+    "seed": 424242,
+    "population": "desktop",
+    "second": 17,
+    "entry": "regular-continue",
+    "control": false,
+    "index": 5,
+    "pass": true,
+    "fixture": "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 586.561800000025,
+        "startMs": 19473.40000000596,
+        "endMs": 19489.5,
+        "readerCpuMs": 16.099999994039536,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      },
+      {
+        "tag": "two-copy-isolation-reads",
+        "hostElapsedMs": 589.0679000000237,
+        "startMs": 20078.30000001192,
+        "endMs": 20113,
+        "readerAndMutationCpuMs": 34.69999998807907,
+        "outside": "all latency/frame/memory observation windows"
+      }
+    ]
+  },
+  {
+    "seed": 424242,
+    "population": "mobile4",
+    "second": 16,
+    "entry": "regular-continue",
+    "control": false,
+    "index": 6,
+    "pass": true,
+    "fixture": "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 1283.3239999999641,
+        "startMs": 78888,
+        "endMs": 78984.19999998808,
+        "readerCpuMs": 96.19999998807907,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      },
+      {
+        "tag": "two-copy-isolation-reads",
+        "hostElapsedMs": 1099.8736999999965,
+        "startMs": 80182.80000001192,
+        "endMs": 80368.69999998808,
+        "readerAndMutationCpuMs": 185.89999997615814,
+        "outside": "all latency/frame/memory observation windows"
+      }
+    ]
+  },
+  {
+    "seed": 424242,
+    "population": "mobile4",
+    "second": 17,
+    "entry": "regular-continue",
+    "control": false,
+    "index": 7,
+    "pass": true,
+    "fixture": "871bd696b5af4252da2fb17ebe77f5141880f7bdd91dc4993ff4e06220d26392",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 1227.4469999999856,
+        "startMs": 79730.09999999404,
+        "endMs": 79822.40000000596,
+        "readerCpuMs": 92.30000001192093,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      },
+      {
+        "tag": "two-copy-isolation-reads",
+        "hostElapsedMs": 1337.4277000000002,
+        "startMs": 80989.70000001788,
+        "endMs": 81179.5,
+        "readerAndMutationCpuMs": 189.7999999821186,
+        "outside": "all latency/frame/memory observation windows"
+      }
+    ]
+  },
+  {
+    "seed": 99117,
+    "population": "desktop",
+    "second": 16,
+    "entry": "regular-continue",
+    "control": false,
+    "index": 8,
+    "pass": true,
+    "fixture": "7b81f5b1957dd202e7a488ec02bec653cc699f688ee97a094a4a4e5ac1b8991c",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 636.3963999999687,
+        "startMs": 20878.90000000596,
+        "endMs": 20896.29999998212,
+        "readerCpuMs": 17.399999976158142,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      },
+      {
+        "tag": "two-copy-isolation-reads",
+        "hostElapsedMs": 575.8494000000064,
+        "startMs": 21547.69999998808,
+        "endMs": 21577.79999998212,
+        "readerAndMutationCpuMs": 30.099999994039536,
+        "outside": "all latency/frame/memory observation windows"
+      }
+    ]
+  },
+  {
+    "seed": 99117,
+    "population": "desktop",
+    "second": 17,
+    "entry": "regular-continue",
+    "control": false,
+    "index": 9,
+    "pass": true,
+    "fixture": "7b81f5b1957dd202e7a488ec02bec653cc699f688ee97a094a4a4e5ac1b8991c",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 617.3803000000189,
+        "startMs": 21820.19999998808,
+        "endMs": 21838.69999998808,
+        "readerCpuMs": 18.5,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      },
+      {
+        "tag": "two-copy-isolation-reads",
+        "hostElapsedMs": 565.4829000000027,
+        "startMs": 22472,
+        "endMs": 22509.09999999404,
+        "readerAndMutationCpuMs": 37.099999994039536,
+        "outside": "all latency/frame/memory observation windows"
+      }
+    ]
+  },
+  {
+    "seed": 99117,
+    "population": "mobile4",
+    "second": 16,
+    "entry": "regular-continue",
+    "control": false,
+    "index": 10,
+    "pass": true,
+    "fixture": "7b81f5b1957dd202e7a488ec02bec653cc699f688ee97a094a4a4e5ac1b8991c",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 1321.6839000000618,
+        "startMs": 88289.20000001788,
+        "endMs": 88374.90000000596,
+        "readerCpuMs": 85.69999998807907,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      },
+      {
+        "tag": "two-copy-isolation-reads",
+        "hostElapsedMs": 1291.517200000002,
+        "startMs": 89646.59999999404,
+        "endMs": 89831.90000000596,
+        "readerAndMutationCpuMs": 185.30000001192093,
+        "outside": "all latency/frame/memory observation windows"
+      }
+    ]
+  },
+  {
+    "seed": 99117,
+    "population": "mobile4",
+    "second": 17,
+    "entry": "regular-continue",
+    "control": false,
+    "index": 11,
+    "pass": true,
+    "fixture": "7b81f5b1957dd202e7a488ec02bec653cc699f688ee97a094a4a4e5ac1b8991c",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 1233.3157000000356,
+        "startMs": 85145.29999998212,
+        "endMs": 85232.89999997616,
+        "readerCpuMs": 87.59999999403954,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      },
+      {
+        "tag": "two-copy-isolation-reads",
+        "hostElapsedMs": 1310.9404000000795,
+        "startMs": 86398.59999999404,
+        "endMs": 86578.39999997616,
+        "readerAndMutationCpuMs": 179.7999999821186,
+        "outside": "all latency/frame/memory observation windows"
+      }
+    ]
+  },
+  {
+    "seed": 123,
+    "population": "desktop",
+    "second": 16,
+    "entry": "performance-new",
+    "control": false,
+    "index": 12,
+    "pass": false,
+    "error": "page.waitForFunction: Timeout 180000ms exceeded.",
+    "costs": []
+  },
+  {
+    "seed": 123,
+    "population": "desktop",
+    "second": 16,
+    "entry": "regular-continue",
+    "control": true,
+    "index": 13,
+    "pass": true,
+    "fixture": "97eaf76c7bac1eebe1cc026909b8e649c0d354f7a629cbcc5cacf43e1edaf5eb",
+    "costs": [
+      {
+        "tag": "actual-installed",
+        "hostElapsedMs": 593.016100000008,
+        "startMs": 17991.600000023842,
+        "endMs": 18018.70000001788,
+        "readerCpuMs": 27.099999994039536,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      },
+      {
+        "tag": "two-copy-isolation-reads",
+        "hostElapsedMs": 584.3096000000369,
+        "startMs": 18614.600000023842,
+        "endMs": 18678.100000023842,
+        "readerAndMutationCpuMs": 63.5,
+        "outside": "all latency/frame/memory observation windows"
+      },
+      {
+        "tag": "real-installed-mutant",
+        "hostElapsedMs": 567.9947999999858,
+        "startMs": 19210.80000001192,
+        "endMs": 19239.70000001788,
+        "readerCpuMs": 28.900000005960464,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      },
+      {
+        "tag": "other-independent-preview",
+        "hostElapsedMs": 565.2778000000399,
+        "startMs": 20473.40000000596,
+        "endMs": 20506.600000023842,
+        "readerCpuMs": 33.20000001788139,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      },
+      {
+        "tag": "revisited-independent-preview",
+        "hostElapsedMs": 587.4645999999484,
+        "startMs": 21971.40000000596,
+        "endMs": 22004.600000023842,
+        "readerCpuMs": 33.20000001788139,
+        "outside": "all latency/frame/memory observation windows; diagnostic script publishes none"
+      }
+    ]
+  }
+]

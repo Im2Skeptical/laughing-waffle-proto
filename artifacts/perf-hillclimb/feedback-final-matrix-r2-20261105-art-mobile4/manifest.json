@@ -1,0 +1,312 @@
+{
+  "runId": "feedback-final-matrix-r2-20261105-art-mobile4",
+  "started": "2026-11-04T23:40:15.783Z",
+  "config": {
+    "cases": [
+      "reference",
+      "deferred",
+      "retry",
+      "exhausted"
+    ],
+    "population": "mobile4",
+    "instrumentation": true,
+    "timeoutMs": 240000,
+    "navigationCycles": 5,
+    "gateTimeoutMs": 240000,
+    "controlNoRequest": false,
+    "tracePublication": true,
+    "controlDiagnostic": "none",
+    "controlFinalRead": "none",
+    "controlCaseHang": false,
+    "port": 18246,
+    "dist": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\dist",
+    "caseTimeoutMs": 6720000
+  },
+  "build": {
+    "performanceFixtureKey": "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+    "version": "1.1.52",
+    "build": "f06e6cb5eecc",
+    "revision": "a9df52cbd625",
+    "channel": "pages",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": null,
+    "entryPoint": "src/views/ui-root-pixi.js",
+    "bundle": "./assets/app-XQU3IQLE.js",
+    "worker": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+    "saveLoadWorker": "./assets/save-load-worker-7YJYILEJ.js",
+    "stylesheet": "./assets/styles-ec05c6a73a6e.css"
+  },
+  "buildId": "d445e8ed846f186017cd2c2fb6237a4a1266bbbaa0841deddbfa740e3adac331",
+  "measurementContractId": "9b6cfaba65e691b6b0e29525f8a9fca546343e375891378b85ec321e8fc96d33",
+  "productHead": "a9df52cbd6255ed95c51c9e7d524cf9ab557472b",
+  "machine": {
+    "host": "DESKTOP-R0AMF0N",
+    "os": "10.0.26200",
+    "platform": "win32",
+    "cpus": [
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+      "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz"
+    ],
+    "totalMemory": 34272436224
+  },
+  "runtime": {
+    "node": "v24.15.0",
+    "playwright": "1.59.1",
+    "chromium": "147.0.7727.15"
+  },
+  "launch": {
+    "headless": true,
+    "args": [
+      "--use-gl=angle",
+      "--use-angle=swiftshader"
+    ]
+  },
+  "sourceFiles": {
+    "scripts/perf-hillclimb/artwork-controls.mjs": "0f5a008b6d2c4f5caba216dc2185946bc2631f95d49795b5a04127137d48124b",
+    "scripts/perf-hillclimb/browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+    "scripts/perf-hillclimb/feedback-runtime.mjs": "a4d9859480109058b24261825e24a862c145fb9f462bae2c5e2a96b3bbf06329",
+    "scripts/perf-hillclimb/feedback-bindings.mjs": "54f265f5d7554c0be01e79823a22408496286a983d09b486cf4e663b4760cf59",
+    "scripts/perf-hillclimb/feedback-collection.mjs": "c6ab8fcd90e53413886e057a7c9bd9fe6de29c2a6a7e5293ca14ac9fdca6dfa0",
+    "scripts/perf-hillclimb/deadline.mjs": "b38266f2e0e32344e1128150b7156868f95ad4f96a4c0d835ebcd1c44a747073",
+    "scripts/perf-hillclimb/artwork-oracles.mjs": "4734399c176668d6e0da3bee14f961eaa9c9595869e3627a9908e3f7a12030d2",
+    "scripts/perf-hillclimb/artwork-bundle-controls.mjs": "74da29d61ca2758498170efeca46e38e77148e26f91ff6e72a05c92a463d80ac",
+    "scripts/perf-hillclimb/observation-windows.mjs": "bb2b64fe4c3e4444e44d4493d70441a388827c7774d2b6d361c99266ee33d395",
+    "scripts/perf-hillclimb/case-lifetime.mjs": "9d10e08e8e689686a5b10b0d96aca8b630bd4dd435504ac4973670a14002ce9b",
+    "scripts/perf-hillclimb/fixtures/artwork-baseline.json": "1c78bf3d92e50118c491bc0a011298527c3eb5bdd46efa073a6d04eb3e7d10f9",
+    "scripts/perf-hillclimb/freeze-corpus.mjs": "183d90188538396078becfc9a87bab1675115de7bebcc13463f6d30448271f79",
+    "scripts/perf-hillclimb/save-state-oracle.mjs": "6b8633f93324007f6a2592fb0de93b7d514d957875261187146c8df2962e0aff",
+    "scripts/browser-probe-config.mjs": "e2155875cb28129438d0d110465ed85c8a6e1b3bcda67bb0ccbba076bcd36350",
+    "src/views/chronicle-art.js": "c5e6f91f1424e2f2f20f1bdbca0999af2431dd1e0c32deb0766950d2f41b1b71",
+    "src/views/progressive-artwork.js": "0fc1e68c5c1ecca87bb8819d42de5cbb7394149fd396b5460f1b49115ae2a2d4"
+  },
+  "atlasFiles": [
+    "full-map-content-prototype.json",
+    "full-map-chaos-dictator.json",
+    "heirlooms.json",
+    "resource-language.json",
+    "settlement-pieces-0.json",
+    "settlement-pieces-1.json",
+    "settlement-pieces-2.json",
+    "piece-frames.json",
+    "chronicle-illustrations.json",
+    "region-landmarks.json",
+    "vassal-portraits.json",
+    "vassal-class.json",
+    "chronicle-gate.json",
+    "class-picker-frames.json",
+    "chronicle-hud-frames.json",
+    "timegraph-chronicle.json"
+  ],
+  "artworkBaseline": {
+    "format": 1,
+    "purpose": "Immutable logical artwork inventory frozen before any scored optimization; packing-byte changes are recorded separately.",
+    "baselineHead": "a9df52cbd6255ed95c51c9e7d524cf9ab557472b",
+    "evidence": "artifacts/perf-hillclimb/passive-observability-v2-parent-projection-20261105/browser.json: artwork-prepared-hidden",
+    "seed": 123,
+    "initialStateSha256": "df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f",
+    "resourceFiles": [
+      "resource-language.json"
+    ],
+    "groups": [
+      {
+        "id": "fullMap",
+        "prefix": "full-map-content-prototype/art/",
+        "textureCount": 50,
+        "files": [
+          "full-map-content-prototype.json"
+        ]
+      },
+      {
+        "id": "fullMapEnemy",
+        "prefix": "full-map-chaos-prototype/art/",
+        "textureCount": 22,
+        "files": [
+          "full-map-chaos-dictator.json"
+        ]
+      },
+      {
+        "id": "heirlooms",
+        "prefix": "heirlooms-v1/",
+        "textureCount": 15,
+        "files": [
+          "heirlooms.json"
+        ]
+      },
+      {
+        "id": "settlementPieces",
+        "prefix": "settlement-pieces-v4/",
+        "textureCount": 224,
+        "files": [
+          "settlement-pieces-0.json",
+          "settlement-pieces-1.json",
+          "settlement-pieces-2.json"
+        ]
+      },
+      {
+        "id": "pieceFrames",
+        "prefix": "piece-frames-v1/",
+        "textureCount": 9,
+        "files": [
+          "piece-frames.json"
+        ]
+      },
+      {
+        "id": "chronicleIllustrations",
+        "prefix": "chronicle-illustrations-v1/",
+        "textureCount": 18,
+        "files": [
+          "chronicle-illustrations.json"
+        ]
+      },
+      {
+        "id": "regionLandmarks",
+        "prefix": "region-landmarks-v1/",
+        "textureCount": 4,
+        "files": [
+          "region-landmarks.json"
+        ]
+      },
+      {
+        "id": "vassalPortraits",
+        "prefix": "vassal-portraits-v1/",
+        "textureCount": 24,
+        "files": [
+          "vassal-portraits.json"
+        ]
+      },
+      {
+        "id": "vassalClass",
+        "prefix": "vassal-class-v1/",
+        "textureCount": 6,
+        "files": [
+          "vassal-class.json"
+        ]
+      },
+      {
+        "id": "chronicleGate",
+        "prefix": "chronicle-gate-v1/",
+        "textureCount": 1,
+        "files": [
+          "chronicle-gate.json"
+        ]
+      },
+      {
+        "id": "classPickerFrames",
+        "prefix": "class-picker-frames-v1/",
+        "textureCount": 9,
+        "files": [
+          "class-picker-frames.json"
+        ]
+      },
+      {
+        "id": "chronicleHudFrames",
+        "prefix": "chronicle-hud-frames-v1/",
+        "textureCount": 19,
+        "files": [
+          "chronicle-hud-frames.json"
+        ]
+      },
+      {
+        "id": "timegraphChronicle",
+        "prefix": "timegraph-chronicle-v1/",
+        "textureCount": 1,
+        "files": [
+          "timegraph-chronicle.json"
+        ]
+      }
+    ],
+    "limitations": [
+      "Counts and resolver-group coverage do not prove every frame's pixel content.",
+      "Current built-in registry is frozen; a content/registry change requires an explicit contract revision and comparable re-baseline.",
+      "Construction inventory remains subject to independent harness review."
+    ]
+  },
+  "artworkBaselineId": "00e2f85ed25f0dba069950f307ad31b23864d6ac3724c72b05010540cbc4e375",
+  "requiredPassiveTimingApiVersion": 2,
+  "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+  "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+  "preparedFixture": {
+    "key": "1718e926a3b8970d66fc1fe23eaffa1e58986734bbca456ea5d46bfd141c8f74",
+    "gzipSha256": "edbbb99ae9dfdf93a53cf469c010c4e654c1ca18a5c32ab2db6c848aa24eeee8",
+    "gzipBytes": 9636454,
+    "stateSha256": "df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f",
+    "seed": 123,
+    "lossSec": 3918
+  },
+  "retryPolicy": {
+    "attemptsPerSheetInvocation": 3,
+    "automaticBackoffsMs": [
+      500,
+      1500
+    ],
+    "requestCount": "diagnostic only; Pixi dependency fetching/cache can change HTTP counts",
+    "attemptWitness": "PIXI.Assets.load wrapper installed before unchanged app bundle is released; original Promise returned"
+  },
+  "fixture": "real performance New Game seed123; prepared current-build fixture; no game-settings override",
+  "proxy": "desktop Chromium/SwiftShader, optionally CPU-throttled; no physical Pixel6 evidence",
+  "memoryScope": "CDP JS heap only; native process/GPU memory unavailable; no forced GC",
+  "scope": "construction controls and diagnostics only; independent audit and representative sampling still required",
+  "publicationWitness": {
+    "mode": "specific private visibility Set and packed-Map mutations plus passive samples",
+    "cachePolicy": "new browser/context per case; interception is explicit and this script makes browser-cold claims only",
+    "overhead": "private-Set and common asset hooks require matched A/A/on-off proof before timing acceptance"
+  },
+  "harnessId": "d01a76dab518961194c8791a7cfc3b2f147179cd23279c36aff0ad835e0f09f4",
+  "serializedRuntimeSha256": "43e854e562a89673d73a8c7a5a7afd7a54837b436cb9fc2e24e60cc26ac787db",
+  "servedAssets": {
+    "bundle": "0c679390bf360cb727d8babee0c0a875abd4fb0d52c388b641a5a3c20bc11a53",
+    "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+    "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+    "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0",
+    "preparedFixture": "edbbb99ae9dfdf93a53cf469c010c4e654c1ca18a5c32ab2db6c848aa24eeee8"
+  },
+  "caseVariants": {
+    "reference": {
+      "originalSha256": "0c679390bf360cb727d8babee0c0a875abd4fb0d52c388b641a5a3c20bc11a53",
+      "servedSha256": "4b867f2f597355f93bd0c8992649a71784c084577606a339a4cd28e865ad6db9",
+      "tracePublication": true,
+      "localFaultApi": false,
+      "scope": "specific private Set/packed-Map writes and optional actual non-terrain visibility fault; no production/dist edits or global prototype hooks"
+    }
+  },
+  "caseCleanup": {
+    "reference": {
+      "case": "reference",
+      "contextClosed": true,
+      "browserClosed": true,
+      "errors": [],
+      "browserConnected": false,
+      "lifetime": {
+        "label": "artwork reference",
+        "status": "cancelled",
+        "hostStartedMs": 10669.0013,
+        "hostDeadlineMs": 6730669.0013,
+        "reason": "page.waitForFunction: Timeout 240000ms exceeded.",
+        "unconfirmedWork": [],
+        "scope": "host liveness only; guarded rejection does not certify remote completion or substitute a product timing"
+      }
+    }
+  },
+  "finished": "2026-11-04T23:45:16.041Z",
+  "failed": true
+}

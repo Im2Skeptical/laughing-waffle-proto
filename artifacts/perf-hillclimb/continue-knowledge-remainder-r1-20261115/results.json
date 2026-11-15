@@ -1,0 +1,602 @@
+[
+  {
+    "index": 0,
+    "id": "continue-knowledge-remainder-r1-20261115-24-99117-cold-desktop-performance-continue",
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "performance-continue",
+    "artwork": "off",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--id=continue-knowledge-remainder-r1-20261115-24-99117-cold-desktop-performance-continue",
+      "--jobs=performance-continue",
+      "--seed=99117",
+      "--population=desktop",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000"
+    ],
+    "originalIndex": 24,
+    "originalPlannedId": "continue-knowledge-coverage-r1-20261115-24-99117-cold-desktop-performance-continue",
+    "started": "2026-11-14T23:04:25.947Z",
+    "finished": "2026-11-14T23:05:00.930Z",
+    "exitCode": 0,
+    "manifestPresent": true,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "continue-knowledge-remainder-r1-20261115-24-99117-cold-desktop-performance-continue:launch-0-performance-continue",
+      "job": "performance-continue"
+    },
+    "cleanupVerified": true,
+    "ownedContextCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-24-99117-cold-desktop-performance-continue:launch-0-performance-continue",
+        "closed": true,
+        "pageClosed": true,
+        "at": "2026-11-14T23:04:59.336Z"
+      }
+    ],
+    "ownedBrowserCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-24-99117-cold-desktop-performance-continue:launch-0-performance-continue",
+        "closed": true,
+        "at": "2026-11-14T23:05:00.571Z"
+      }
+    ],
+    "cleanupErrors": []
+  },
+  {
+    "index": 1,
+    "id": "continue-knowledge-remainder-r1-20261115-25-99117-cold-desktop-save-history",
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "save-history",
+    "artwork": "off",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--id=continue-knowledge-remainder-r1-20261115-25-99117-cold-desktop-save-history",
+      "--jobs=save-history",
+      "--seed=99117",
+      "--population=desktop",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000"
+    ],
+    "originalIndex": 25,
+    "originalPlannedId": "continue-knowledge-coverage-r1-20261115-25-99117-cold-desktop-save-history",
+    "started": "2026-11-14T23:07:16.743Z",
+    "finished": "2026-11-14T23:07:50.543Z",
+    "exitCode": 0,
+    "manifestPresent": true,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "continue-knowledge-remainder-r1-20261115-25-99117-cold-desktop-save-history:launch-0-save-history",
+      "job": "save-history"
+    },
+    "cleanupVerified": true,
+    "ownedContextCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-25-99117-cold-desktop-save-history:launch-0-save-history",
+        "closed": true,
+        "pageClosed": true,
+        "at": "2026-11-14T23:07:49.450Z"
+      }
+    ],
+    "ownedBrowserCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-25-99117-cold-desktop-save-history:launch-0-save-history",
+        "closed": true,
+        "at": "2026-11-14T23:07:50.197Z"
+      }
+    ],
+    "cleanupErrors": []
+  },
+  {
+    "index": 2,
+    "id": "continue-knowledge-remainder-r1-20261115-26-99117-cold-desktop-save-opening",
+    "seed": 99117,
+    "cache": "cold",
+    "population": "desktop",
+    "job": "save-opening",
+    "artwork": "off",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--id=continue-knowledge-remainder-r1-20261115-26-99117-cold-desktop-save-opening",
+      "--jobs=save-opening",
+      "--seed=99117",
+      "--population=desktop",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000"
+    ],
+    "originalIndex": 26,
+    "originalPlannedId": "continue-knowledge-coverage-r1-20261115-26-99117-cold-desktop-save-opening",
+    "started": "2026-11-14T23:07:50.847Z",
+    "finished": "2026-11-14T23:08:19.519Z",
+    "exitCode": 0,
+    "manifestPresent": true,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "continue-knowledge-remainder-r1-20261115-26-99117-cold-desktop-save-opening:launch-0-save-opening",
+      "job": "save-opening"
+    },
+    "cleanupVerified": true,
+    "ownedContextCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-26-99117-cold-desktop-save-opening:launch-0-save-opening",
+        "closed": true,
+        "pageClosed": true,
+        "at": "2026-11-14T23:08:18.050Z"
+      }
+    ],
+    "ownedBrowserCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-26-99117-cold-desktop-save-opening:launch-0-save-opening",
+        "closed": true,
+        "at": "2026-11-14T23:08:19.176Z"
+      }
+    ],
+    "cleanupErrors": []
+  },
+  {
+    "index": 3,
+    "id": "continue-knowledge-remainder-r1-20261115-27-99117-cold-mobile4-performance-continue",
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "performance-continue",
+    "artwork": "off",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--id=continue-knowledge-remainder-r1-20261115-27-99117-cold-mobile4-performance-continue",
+      "--jobs=performance-continue",
+      "--seed=99117",
+      "--population=mobile4",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000"
+    ],
+    "originalIndex": 27,
+    "originalPlannedId": "continue-knowledge-coverage-r1-20261115-27-99117-cold-mobile4-performance-continue",
+    "started": "2026-11-14T23:08:19.821Z",
+    "finished": "2026-11-14T23:09:58.689Z",
+    "exitCode": 0,
+    "manifestPresent": true,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "continue-knowledge-remainder-r1-20261115-27-99117-cold-mobile4-performance-continue:launch-0-performance-continue",
+      "job": "performance-continue"
+    },
+    "cleanupVerified": true,
+    "ownedContextCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-27-99117-cold-mobile4-performance-continue:launch-0-performance-continue",
+        "closed": true,
+        "pageClosed": true,
+        "at": "2026-11-14T23:09:57.342Z"
+      }
+    ],
+    "ownedBrowserCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-27-99117-cold-mobile4-performance-continue:launch-0-performance-continue",
+        "closed": true,
+        "at": "2026-11-14T23:09:58.309Z"
+      }
+    ],
+    "cleanupErrors": []
+  },
+  {
+    "index": 4,
+    "id": "continue-knowledge-remainder-r1-20261115-28-99117-cold-mobile4-save-history",
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "save-history",
+    "artwork": "off",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--id=continue-knowledge-remainder-r1-20261115-28-99117-cold-mobile4-save-history",
+      "--jobs=save-history",
+      "--seed=99117",
+      "--population=mobile4",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000"
+    ],
+    "originalIndex": 28,
+    "originalPlannedId": "continue-knowledge-coverage-r1-20261115-28-99117-cold-mobile4-save-history",
+    "started": "2026-11-14T23:09:58.995Z",
+    "finished": "2026-11-14T23:11:25.942Z",
+    "exitCode": 0,
+    "manifestPresent": true,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "continue-knowledge-remainder-r1-20261115-28-99117-cold-mobile4-save-history:launch-0-save-history",
+      "job": "save-history"
+    },
+    "cleanupVerified": true,
+    "ownedContextCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-28-99117-cold-mobile4-save-history:launch-0-save-history",
+        "closed": true,
+        "pageClosed": true,
+        "at": "2026-11-14T23:11:24.481Z"
+      }
+    ],
+    "ownedBrowserCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-28-99117-cold-mobile4-save-history:launch-0-save-history",
+        "closed": true,
+        "at": "2026-11-14T23:11:25.601Z"
+      }
+    ],
+    "cleanupErrors": []
+  },
+  {
+    "index": 5,
+    "id": "continue-knowledge-remainder-r1-20261115-29-99117-cold-mobile4-save-opening",
+    "seed": 99117,
+    "cache": "cold",
+    "population": "mobile4",
+    "job": "save-opening",
+    "artwork": "off",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--id=continue-knowledge-remainder-r1-20261115-29-99117-cold-mobile4-save-opening",
+      "--jobs=save-opening",
+      "--seed=99117",
+      "--population=mobile4",
+      "--cache=cold",
+      "--artwork=off",
+      "--samples=1",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000"
+    ],
+    "originalIndex": 29,
+    "originalPlannedId": "continue-knowledge-coverage-r1-20261115-29-99117-cold-mobile4-save-opening",
+    "started": "2026-11-14T23:11:26.235Z",
+    "finished": "2026-11-14T23:12:27.156Z",
+    "exitCode": 0,
+    "manifestPresent": true,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "continue-knowledge-remainder-r1-20261115-29-99117-cold-mobile4-save-opening:launch-0-save-opening",
+      "job": "save-opening"
+    },
+    "cleanupVerified": true,
+    "ownedContextCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-29-99117-cold-mobile4-save-opening:launch-0-save-opening",
+        "closed": true,
+        "pageClosed": true,
+        "at": "2026-11-14T23:12:26.001Z"
+      }
+    ],
+    "ownedBrowserCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-29-99117-cold-mobile4-save-opening:launch-0-save-opening",
+        "closed": true,
+        "at": "2026-11-14T23:12:26.814Z"
+      }
+    ],
+    "cleanupErrors": []
+  },
+  {
+    "index": 6,
+    "id": "continue-knowledge-remainder-r1-20261115-30-99117-warm-desktop-performance-continue",
+    "seed": 99117,
+    "cache": "warm",
+    "population": "desktop",
+    "job": "performance-continue",
+    "artwork": "off",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--id=continue-knowledge-remainder-r1-20261115-30-99117-warm-desktop-performance-continue",
+      "--jobs=performance-continue",
+      "--seed=99117",
+      "--population=desktop",
+      "--cache=warm",
+      "--artwork=off",
+      "--samples=1",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000"
+    ],
+    "originalIndex": 30,
+    "originalPlannedId": "continue-knowledge-coverage-r1-20261115-30-99117-warm-desktop-performance-continue",
+    "started": "2026-11-14T23:12:27.467Z",
+    "finished": "2026-11-14T23:13:17.002Z",
+    "exitCode": 0,
+    "manifestPresent": true,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "continue-knowledge-remainder-r1-20261115-30-99117-warm-desktop-performance-continue:launch-0-performance-continue",
+      "job": "performance-continue"
+    },
+    "cleanupVerified": true,
+    "ownedContextCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-30-99117-warm-desktop-performance-continue:launch-0-performance-continue",
+        "closed": true,
+        "pageClosed": true,
+        "at": "2026-11-14T23:13:15.444Z"
+      }
+    ],
+    "ownedBrowserCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-30-99117-warm-desktop-performance-continue:launch-0-performance-continue",
+        "closed": true,
+        "at": "2026-11-14T23:13:16.630Z"
+      }
+    ],
+    "cleanupErrors": []
+  },
+  {
+    "index": 7,
+    "id": "continue-knowledge-remainder-r1-20261115-31-99117-warm-desktop-save-history",
+    "seed": 99117,
+    "cache": "warm",
+    "population": "desktop",
+    "job": "save-history",
+    "artwork": "off",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--id=continue-knowledge-remainder-r1-20261115-31-99117-warm-desktop-save-history",
+      "--jobs=save-history",
+      "--seed=99117",
+      "--population=desktop",
+      "--cache=warm",
+      "--artwork=off",
+      "--samples=1",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000"
+    ],
+    "originalIndex": 31,
+    "originalPlannedId": "continue-knowledge-coverage-r1-20261115-31-99117-warm-desktop-save-history",
+    "started": "2026-11-14T23:13:17.324Z",
+    "finished": "2026-11-14T23:14:04.452Z",
+    "exitCode": 0,
+    "manifestPresent": true,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "continue-knowledge-remainder-r1-20261115-31-99117-warm-desktop-save-history:launch-0-save-history",
+      "job": "save-history"
+    },
+    "cleanupVerified": true,
+    "ownedContextCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-31-99117-warm-desktop-save-history:launch-0-save-history",
+        "closed": true,
+        "pageClosed": true,
+        "at": "2026-11-14T23:14:03.693Z"
+      }
+    ],
+    "ownedBrowserCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-31-99117-warm-desktop-save-history:launch-0-save-history",
+        "closed": true,
+        "at": "2026-11-14T23:14:04.098Z"
+      }
+    ],
+    "cleanupErrors": []
+  },
+  {
+    "index": 8,
+    "id": "continue-knowledge-remainder-r1-20261115-32-99117-warm-desktop-save-opening",
+    "seed": 99117,
+    "cache": "warm",
+    "population": "desktop",
+    "job": "save-opening",
+    "artwork": "off",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--id=continue-knowledge-remainder-r1-20261115-32-99117-warm-desktop-save-opening",
+      "--jobs=save-opening",
+      "--seed=99117",
+      "--population=desktop",
+      "--cache=warm",
+      "--artwork=off",
+      "--samples=1",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000"
+    ],
+    "originalIndex": 32,
+    "originalPlannedId": "continue-knowledge-coverage-r1-20261115-32-99117-warm-desktop-save-opening",
+    "started": "2026-11-14T23:14:04.765Z",
+    "finished": "2026-11-14T23:14:38.845Z",
+    "exitCode": 0,
+    "manifestPresent": true,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "continue-knowledge-remainder-r1-20261115-32-99117-warm-desktop-save-opening:launch-0-save-opening",
+      "job": "save-opening"
+    },
+    "cleanupVerified": true,
+    "ownedContextCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-32-99117-warm-desktop-save-opening:launch-0-save-opening",
+        "closed": true,
+        "pageClosed": true,
+        "at": "2026-11-14T23:14:37.192Z"
+      }
+    ],
+    "ownedBrowserCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-32-99117-warm-desktop-save-opening:launch-0-save-opening",
+        "closed": true,
+        "at": "2026-11-14T23:14:38.495Z"
+      }
+    ],
+    "cleanupErrors": []
+  },
+  {
+    "index": 9,
+    "id": "continue-knowledge-remainder-r1-20261115-33-99117-warm-mobile4-performance-continue",
+    "seed": 99117,
+    "cache": "warm",
+    "population": "mobile4",
+    "job": "performance-continue",
+    "artwork": "off",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--id=continue-knowledge-remainder-r1-20261115-33-99117-warm-mobile4-performance-continue",
+      "--jobs=performance-continue",
+      "--seed=99117",
+      "--population=mobile4",
+      "--cache=warm",
+      "--artwork=off",
+      "--samples=1",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000"
+    ],
+    "originalIndex": 33,
+    "originalPlannedId": "continue-knowledge-coverage-r1-20261115-33-99117-warm-mobile4-performance-continue",
+    "started": "2026-11-14T23:14:39.145Z",
+    "finished": "2026-11-14T23:17:04.481Z",
+    "exitCode": 0,
+    "manifestPresent": true,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "continue-knowledge-remainder-r1-20261115-33-99117-warm-mobile4-performance-continue:launch-0-performance-continue",
+      "job": "performance-continue"
+    },
+    "cleanupVerified": true,
+    "ownedContextCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-33-99117-warm-mobile4-performance-continue:launch-0-performance-continue",
+        "closed": true,
+        "pageClosed": true,
+        "at": "2026-11-14T23:17:03.087Z"
+      }
+    ],
+    "ownedBrowserCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-33-99117-warm-mobile4-performance-continue:launch-0-performance-continue",
+        "closed": true,
+        "at": "2026-11-14T23:17:04.124Z"
+      }
+    ],
+    "cleanupErrors": []
+  },
+  {
+    "index": 10,
+    "id": "continue-knowledge-remainder-r1-20261115-34-99117-warm-mobile4-save-history",
+    "seed": 99117,
+    "cache": "warm",
+    "population": "mobile4",
+    "job": "save-history",
+    "artwork": "off",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--id=continue-knowledge-remainder-r1-20261115-34-99117-warm-mobile4-save-history",
+      "--jobs=save-history",
+      "--seed=99117",
+      "--population=mobile4",
+      "--cache=warm",
+      "--artwork=off",
+      "--samples=1",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000"
+    ],
+    "originalIndex": 34,
+    "originalPlannedId": "continue-knowledge-coverage-r1-20261115-34-99117-warm-mobile4-save-history",
+    "started": "2026-11-14T23:17:04.785Z",
+    "finished": "2026-11-14T23:19:19.510Z",
+    "exitCode": 0,
+    "manifestPresent": true,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "continue-knowledge-remainder-r1-20261115-34-99117-warm-mobile4-save-history:launch-0-save-history",
+      "job": "save-history"
+    },
+    "cleanupVerified": true,
+    "ownedContextCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-34-99117-warm-mobile4-save-history:launch-0-save-history",
+        "closed": true,
+        "pageClosed": true,
+        "at": "2026-11-14T23:19:18.592Z"
+      }
+    ],
+    "ownedBrowserCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-34-99117-warm-mobile4-save-history:launch-0-save-history",
+        "closed": true,
+        "at": "2026-11-14T23:19:19.158Z"
+      }
+    ],
+    "cleanupErrors": []
+  },
+  {
+    "index": 11,
+    "id": "continue-knowledge-remainder-r1-20261115-35-99117-warm-mobile4-save-opening",
+    "seed": 99117,
+    "cache": "warm",
+    "population": "mobile4",
+    "job": "save-opening",
+    "artwork": "off",
+    "argv": [
+      "--experimental-vm-modules",
+      "scripts/perf-hillclimb/run.mjs",
+      "--id=continue-knowledge-remainder-r1-20261115-35-99117-warm-mobile4-save-opening",
+      "--jobs=save-opening",
+      "--seed=99117",
+      "--population=mobile4",
+      "--cache=warm",
+      "--artwork=off",
+      "--samples=1",
+      "--fixture-manifest=artifacts/perf-hillclimb/frozen-baseline-a9df52c-sourceproof-20261104/manifest.json",
+      "--fixture-manifest-id=406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000"
+    ],
+    "originalIndex": 35,
+    "originalPlannedId": "continue-knowledge-coverage-r1-20261115-35-99117-warm-mobile4-save-opening",
+    "started": "2026-11-14T23:19:19.820Z",
+    "finished": "2026-11-14T23:20:50.467Z",
+    "exitCode": 0,
+    "manifestPresent": true,
+    "actualLaunchValidation": {
+      "ok": true,
+      "launchId": "continue-knowledge-remainder-r1-20261115-35-99117-warm-mobile4-save-opening:launch-0-save-opening",
+      "job": "save-opening"
+    },
+    "cleanupVerified": true,
+    "ownedContextCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-35-99117-warm-mobile4-save-opening:launch-0-save-opening",
+        "closed": true,
+        "pageClosed": true,
+        "at": "2026-11-14T23:20:49.844Z"
+      }
+    ],
+    "ownedBrowserCleanup": [
+      {
+        "launchId": "continue-knowledge-remainder-r1-20261115-35-99117-warm-mobile4-save-opening:launch-0-save-opening",
+        "closed": true,
+        "at": "2026-11-14T23:20:50.133Z"
+      }
+    ],
+    "cleanupErrors": []
+  }
+]

@@ -1,0 +1,989 @@
+{
+  "runId": "continue-knowledge-remainder-r1-20261115-26-99117-cold-desktop-save-opening",
+  "started": "2026-11-14T23:07:53.407Z",
+  "requestedJobs": [
+    "save-opening"
+  ],
+  "config": {
+    "jobs": [
+      "save-opening"
+    ],
+    "samples": 1,
+    "population": "desktop",
+    "cache": "cold",
+    "artwork": "off",
+    "instrumentation": true,
+    "workerDelayMs": 0,
+    "timeoutMs": 180000,
+    "port": 18244,
+    "dist": "dist",
+    "seed": 99117,
+    "control": null,
+    "feedback": true,
+    "visual": false
+  },
+  "productHead": "0e47aa72bb8da272006a4dba2c70f4ba92775276",
+  "branch": "perf/hillclimb-20261104",
+  "dirty": [
+    "M docs/performance/perf-hillclimb-20261104/ATTEMPTS.md",
+    " M docs/performance/perf-hillclimb-20261104/HARNESS.md",
+    " M docs/performance/perf-hillclimb-20261104/STATE.md",
+    " M package.json",
+    " M scripts/perf-hillclimb/feedback-bindings-passive-test.mjs",
+    " M scripts/perf-hillclimb/feedback-bindings.mjs",
+    " M scripts/perf-hillclimb/run.mjs",
+    " M scripts/perf-hillclimb/save-state-oracle-test.mjs",
+    " M scripts/perf-hillclimb/save-state-oracle.mjs",
+    " M src/views/sunandmoon-disks-pixi.js",
+    " M src/views/time-controls-pixi.js",
+    " M src/views/time-lever-pixi.js",
+    " M src/views/ui-root-settlement-pixi.js",
+    " M src/views/ui-root/settlement-playback.js",
+    "?? docs/performance/perf-hillclimb-20261104/CONTINUE_KNOWLEDGE_RESUME_20261115.md",
+    "?? docs/performance/perf-hillclimb-20261104/HOLD_ADAPTATION_IMPLEMENTATION.md",
+    "?? docs/performance/perf-hillclimb-20261104/OPERATOR_PAUSE.md",
+    "?? docs/performance/perf-hillclimb-20261104/PAUSED_HANDOFF.md",
+    "?? scripts/perf-hillclimb/hold-adoption-controls-test.mjs",
+    "?? scripts/perf-hillclimb/hold-adoption-controls.mjs"
+  ],
+  "machine": {
+    "host": "DESKTOP-R0AMF0N",
+    "platform": "win32",
+    "release": "10.0.26200",
+    "arch": "x64",
+    "cpus": [
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 12066359,
+          "nice": 0,
+          "sys": 5845703,
+          "idle": 243601953,
+          "irq": 1049234
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 14194171,
+          "nice": 0,
+          "sys": 4342546,
+          "idle": 242977203,
+          "irq": 449062
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 19213468,
+          "nice": 0,
+          "sys": 5527140,
+          "idle": 236773312,
+          "irq": 318343
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 15697671,
+          "nice": 0,
+          "sys": 3620640,
+          "idle": 242195609,
+          "irq": 244218
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 13413093,
+          "nice": 0,
+          "sys": 3807890,
+          "idle": 244292937,
+          "irq": 306328
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 13468875,
+          "nice": 0,
+          "sys": 3341218,
+          "idle": 244703828,
+          "irq": 228015
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 13977140,
+          "nice": 0,
+          "sys": 3625953,
+          "idle": 243910828,
+          "irq": 265468
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 13344375,
+          "nice": 0,
+          "sys": 3417953,
+          "idle": 244751593,
+          "irq": 258781
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 14816906,
+          "nice": 0,
+          "sys": 5898562,
+          "idle": 240798453,
+          "irq": 371515
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 12945171,
+          "nice": 0,
+          "sys": 3356312,
+          "idle": 245212437,
+          "irq": 260984
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 16162921,
+          "nice": 0,
+          "sys": 6258281,
+          "idle": 239092718,
+          "irq": 348359
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 12111000,
+          "nice": 0,
+          "sys": 2880578,
+          "idle": 246522328,
+          "irq": 215437
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 12647609,
+          "nice": 0,
+          "sys": 3382687,
+          "idle": 245483625,
+          "irq": 260625
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 12880484,
+          "nice": 0,
+          "sys": 3783468,
+          "idle": 244849968,
+          "irq": 339000
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 12714734,
+          "nice": 0,
+          "sys": 3433953,
+          "idle": 245365234,
+          "irq": 226140
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 12829156,
+          "nice": 0,
+          "sys": 3242890,
+          "idle": 245441875,
+          "irq": 293593
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 14818406,
+          "nice": 0,
+          "sys": 4805046,
+          "idle": 241890468,
+          "irq": 152937
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 14228625,
+          "nice": 0,
+          "sys": 4690578,
+          "idle": 242594718,
+          "irq": 132203
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 20138875,
+          "nice": 0,
+          "sys": 5583718,
+          "idle": 235791296,
+          "irq": 153765
+        }
+      },
+      {
+        "model": "Intel(R) Core(TM) i9-10900K CPU @ 3.70GHz",
+        "speed": 3696,
+        "times": {
+          "user": 15740859,
+          "nice": 0,
+          "sys": 4864843,
+          "idle": 240908187,
+          "irq": 137234
+        }
+      }
+    ],
+    "totalMemory": 34272436224
+  },
+  "runtime": {
+    "node": "v24.15.0",
+    "execArgv": [
+      "--experimental-vm-modules"
+    ],
+    "playwright": "1.59.1",
+    "chromium": "147.0.7727.15"
+  },
+  "launch": {
+    "headless": true,
+    "args": [
+      "--use-gl=angle",
+      "--use-angle=swiftshader"
+    ]
+  },
+  "proxy": "desktop OS/CPU/GPU; no physical Pixel 6 evidence",
+  "timings": "Browser performance.now input capture through semantic completion plus double-rAF frame opportunity; not physical scanout",
+  "loadModel": "closed-loop transactions; map pan and mobile two-touch pinch additionally use fixed offered input independent of acknowledgements (pending validation)",
+  "postActionObservationMs": 2500,
+  "requiredPassiveTimingApiVersion": 2,
+  "lifeAuthority": null,
+  "phaseAStatus": "NOT SOUND; frozen workload identity is only one prerequisite, independent end-to-end acceptance remains required",
+  "workload": {
+    "mode": "frozen-baseline",
+    "fixtureManifestId": "406f042f7e4a3142620b8d05023167d98893185d24347f4745740a3a3feac000",
+    "comparisonEligible": true,
+    "frozenManifestPath": "C:\\Users\\User\\.t3\\worktrees\\laughing-waffle-proto\\perf-hillclimb-20261104\\artifacts\\perf-hillclimb\\frozen-baseline-a9df52c-sourceproof-20261104\\manifest.json",
+    "oracleSdkSha256": "8c163025e51f71818016c358c1f10055beaf343dfc249f3db6713965d5fc40b0",
+    "oracleSourceId": "94afaa581ff65f0fdde91ef35bfea36e40129dc58e0ac39bc73a6d1dc9b87ea7",
+    "policy": "immutable corpus and SDK reused; current product only produces actual results"
+  },
+  "externalLoad": "operator load not instrumented; no known competing task-owned workload",
+  "build-info.json": {
+    "performanceFixtureKey": "d8e62f7018a37c9148e6215a4360de14978ada6a3d4085b144251b386bc70dde",
+    "version": "1.1.53",
+    "build": "f24d6ea66651",
+    "revision": "0e47aa72bb8d",
+    "channel": "pages",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": null
+  },
+  "build-manifest.json": {
+    "performanceFixtureKey": "d8e62f7018a37c9148e6215a4360de14978ada6a3d4085b144251b386bc70dde",
+    "version": "1.1.53",
+    "build": "f24d6ea66651",
+    "revision": "0e47aa72bb8d",
+    "channel": "pages",
+    "branch": "perf/hillclimb-20261104",
+    "dirty": true,
+    "preview": true,
+    "previewLabel": null,
+    "entryPoint": "src/views/ui-root-pixi.js",
+    "bundle": "./assets/app-6H5PP5LS.js",
+    "worker": "./assets/timegraph-forecast-worker-YOB3XRD7.js",
+    "saveLoadWorker": "./assets/save-load-worker-7YJYILEJ.js",
+    "stylesheet": "./assets/styles-ec05c6a73a6e.css"
+  },
+  "buildId": "e42364994b970f344a628d5ca8a10ee00b941678c5e7f548f0a2acc1a507da51",
+  "preparedFixture": {
+    "key": "d8e62f7018a37c9148e6215a4360de14978ada6a3d4085b144251b386bc70dde",
+    "compressedBytes": 9636456,
+    "sha256": "7d07599499c43871cea5bb261bd91fb372cb7f6437c4d2dd0238a9190751ee1d",
+    "logicalSeed": 123,
+    "stateSha256": "df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f",
+    "lossSec": 3918,
+    "expectedOrdinaryStateSha256": "df5bbc7c7ea715cb09ca038063adcb776736fb61e74a3ab4905aa9664123c24f",
+    "preparation": "npm run build / npm start invokes performance-fixture.mjs; generation is outside runtime timings"
+  },
+  "harnessFiles": {
+    "active-work-oracle-test.mjs": "9bcba931ddfae60428d8b14ff073931879dda7e32cded8f46a8a3041acd61d1d",
+    "active-work-oracle.mjs": "678596e562a19bde6a8fba7ce715b64974a2493903c56d4c1d2aaf3a2e749778",
+    "artwork-bundle-controls-test.mjs": "6820e97197eb20e87bba54fe9e173b43df5501d40cc52876a01c013cf4958c84",
+    "artwork-bundle-controls.mjs": "74da29d61ca2758498170efeca46e38e77148e26f91ff6e72a05c92a463d80ac",
+    "artwork-controls.mjs": "f2f2d32ba3ee5d0e22b25a598ee2c6604488da298dd7c20f8065127bd35bcf42",
+    "artwork-oracles-browser-controls.mjs": "9a9e22a949c63cf7f3d96f75268f35f2c52a92cffd4f859612d42f492efed5e0",
+    "artwork-oracles-test.mjs": "c0d256c1a084f240892d2367802ce29075a153583599b139ce8f84b1428ca0f9",
+    "artwork-oracles.mjs": "4734399c176668d6e0da3bee14f961eaa9c9595869e3627a9908e3f7a12030d2",
+    "browser-runtime-test.mjs": "d46195a4a3c65b70a9b244b72fc1309932e2affbd4cb1beeb65833514dd37bd7",
+    "browser-runtime.mjs": "f81efb2accba8b8ae3b7c35db109835c8639aa91c87c7e3ec69541fc608714f1",
+    "case-lifetime-test.mjs": "42a8dd95d1c2cb72a4336a6933136d42efe7c6ffbc0bd2ed6fe4f6cdbfc7afd9",
+    "case-lifetime.mjs": "9d10e08e8e689686a5b10b0d96aca8b630bd4dd435504ac4973670a14002ce9b",
+    "corpus.mjs": "6eaa347af6fee33bf96e8a2173418ccdc69dee1b804f4f208b0cad136139c3d4",
+    "deadline-test.mjs": "57b47ae59b4cd5d4fab35bbd789701a723e0ed06a8d044698d84e4a2a52be6d7",
+    "deadline.mjs": "b38266f2e0e32344e1128150b7156868f95ad4f96a4c0d835ebcd1c44a747073",
+    "feedback-bindings-passive-test.mjs": "cd12a37826e2a5c253f1da2196c3fb047f32a632a460184fe0252672fa87cb25",
+    "feedback-bindings.mjs": "a17bb0c3c003e9eb1efcbdc50ac9fc788bc4b25e98d08984a6f9b835eb726072",
+    "feedback-collection.mjs": "c6ab8fcd90e53413886e057a7c9bd9fe6de29c2a6a7e5293ca14ac9fdca6dfa0",
+    "feedback-gesture-controls.mjs": "13b9820ee66c1113930a460e282e67deb2338b074b1db7de79df5f519e0479a6",
+    "feedback-native-controls.mjs": "cb09efaf95f8b47c3fa7d01d9896eac9014ad249a02182ad7dcdcdfe6cd9a999",
+    "feedback-proof-matrix.mjs": "309d43da58490049c9de2e5fda39156c10ad9b323b339d7a444bc9820fe61458",
+    "feedback-runtime-test.mjs": "7395d2c1d53a6ad5c803ee28e13e3bafae16557f1e0981e25c6165708b9a0a03",
+    "feedback-runtime.mjs": "a4d9859480109058b24261825e24a862c145fb9f462bae2c5e2a96b3bbf06329",
+    "fixtures.mjs": "f1babbfc97d88f3026719ff76728510ab189ac3b4395e9a4694d9b4f0b801a1e",
+    "freeze-corpus-test.mjs": "16c9e81018af18dc74b93a2bb7d9b3139424b17ef07a83bcb9c056b5091fc57f",
+    "freeze-corpus.mjs": "183d90188538396078becfc9a87bab1675115de7bebcc13463f6d30448271f79",
+    "frozen-life-expectations.mjs": "fd2303e57d59a4852675bc30c311835f3fe82b7fa2ee6c4d6294197e1418be22",
+    "frozen-life-oracle-test.mjs": "b2880d9bed36f6f89541369d0775970d8aabc6cdec70196afcf42b34e3e2b3fb",
+    "frozen-life-oracle.mjs": "642492aef553296a5522cffaf3c4868f19b822e6c7c896645bd6b53fe5840e83",
+    "hold-adoption-controls-test.mjs": "a391bda98ccc7bfa36bc4687ece878bcbc8e6cdb03aeeeee8cbfb404a98fa939",
+    "hold-adoption-controls.mjs": "68ef1bc2df0725c6da42569ad6fc479c5aacc519345d4aa2f515e3c0af8f5257",
+    "job-schedule-test.mjs": "a27be16db266d6cc3b9dab9c939ef1f3baaa8c18bf2b445ba51f3f2b3a8da3fd",
+    "job-schedule.mjs": "103d3ee03dcfb721ddc24a8da36d0034824cfb1aae18821cc70820a29d531c19",
+    "life-state-browser.mjs": "c12d402eb81d5e2a93b634082e649598cd6f309c3919c40de1273225234b304a",
+    "life-state-check.mjs": "8125de5aa44e27d66dc4b38ee9ef2104e7247bd8a67cca3900fc0578cf20da0a",
+    "life-state-controls.mjs": "dd0c02685a6d01bf6993d012dcbb6eb8b6ba81d0592555779631c9bc01b71ba0",
+    "life-state-inspection-test.mjs": "400f563f3e41dff3021b470c32cada0ddad498f00063be77da3ca8364d51ed89",
+    "life-state-modal-test.mjs": "3ac8d303dfbd95543b880947f6561d772b030d7a43942ebf0e144c4dfc36844d",
+    "life-state-presentation.mjs": "e193e697b5df553e40e16f96375ef1577d86bd09cf32482bc35497240e9426dc",
+    "main-controls.mjs": "f3010aec9b0a6806b26a7546f6de3091d8d5dab9be594f0920748cc370d6b714",
+    "main-discovery.mjs": "65fb9d3d1af2c421128e44ca3c82597d120a4bc9c727a38b20ea24ba656f0d54",
+    "main-job-oracles-test.mjs": "5055ae20f7110d5706486200d71f54865388fde567d6f21cee7f27dc520062f3",
+    "main-job-oracles.mjs": "9e162823376c56cba35b2fe0b43fade1c9b18462a3251bcf21bbca7cdb276d24",
+    "main-life-oracle.mjs": "09c5aa362696c6d55960657c19ec185128780605a2ca17f4f717db93caf1246a",
+    "main-stage-report.mjs": "e22fde3d53a4f43dc558c8aa1f4cc9f9e36f576a941fcb3cded7d17853583d23",
+    "mechanism-controls.mjs": "97a558ad9bdbf19f2356f50313cf63a2b019050c0d1d8818614e55c64bf9c34c",
+    "native-feedback.mjs": "7442a248260be4d02f61ddc69a88ae8649dec93d7cb89e3d7edc9c3272a26404",
+    "observation-windows-browser-controls.mjs": "fe6ccfc9036ebda31d0fbb07f24f4a8159ae7d7347fe8eef2665444699e8f6b6",
+    "observation-windows-test.mjs": "8d63a92786e56e87e480fdd514e00bb85b8fc61675288860646c47e3515c6b31",
+    "observation-windows.mjs": "bb2b64fe4c3e4444e44d4493d70441a388827c7774d2b6d361c99266ee33d395",
+    "offered-input-test.mjs": "ea794e396533e03c692f5c8bb0faac6200b146af05503b576b09fc9fe6c65b20",
+    "offered-input.mjs": "dd92f961f1a0ce3efc0aa2f64a5ea789f7aa69403fb5a9e7734d89ec7843dfc0",
+    "oracle-entry.mjs": "2cbbc2b760238567cc2b7600dc0608470bf0c03820fcbeecb8bac8399bd2f97f",
+    "preview-state-browser.mjs": "84430668ff747de54e8b9c1c3d03b9c6da1894b638a093a8852d93ebc2a1a672",
+    "preview-state-controls.mjs": "505d32f6f3a5e995bdc8bde8e95705bd8c46ed2a61ccb3924bdc50541e6aa1b9",
+    "preview-state-oracle.mjs": "a746c43eaae6934d769c7b224287bdacf758a8a885edfc36ed739347fe18789a",
+    "repro-neutral-market.mjs": "e58d1ca222cd8ae3cd3a73aea4b8a7f6faf0f5c02cc7e8517f6885487fdde11b",
+    "run.mjs": "d1a81bf6d99be2e35ddc167e8688b11ae2907c0f35acb0526e8d0f3e53b6a714",
+    "save-state-oracle-test.mjs": "d4948f5ee2179c553c4c5a2f9027ffb575f24167ec28f93d73a5ced79de66517",
+    "save-state-oracle.mjs": "dbc4f373e5b47c66e889711ad48f012563d63dc71bc4bb8aa5664e94616fdd51",
+    "scenario-storage-browser-controls.mjs": "02e5723b379e03686d587050a0a927977f00d6ac4745c6e7ec0dfc7020248f4b",
+    "scenario-storage.mjs": "4a9d89c9fceaa9e677b317e636ac65ef9acce27e945e0a3578b10b428f6339a0",
+    "statistics-test.mjs": "036e6579bfb39d6bd203c5df5e48c6581cde543ea274930586881c18330d44f5",
+    "statistics.mjs": "9443d67041037fe97b1f9198067be8cfb2e0a9c065b40ed02f6ef24521bd4153"
+  },
+  "harnessId": "99a3ad99d77ebf82d14a74447084f1ae23a2bc65589f72442dc24e974c01ac58",
+  "measurementContractId": "eca7b0ab570f8ca9259244dcae39f2f77a70bd93a16ee04aa336b9a5815496ac",
+  "servedAssets": {
+    "bundle": "2650f059863769f98da13622798df92cf8a338c082f5fd5a695094aee2a48ea8",
+    "worker": "32ad63db17606f16d17583fb299764adc5e7fa51d59be8369ba2b808c171c58a",
+    "saveLoadWorker": "15567845726ea874758859dc9d826f752a477a6e7208a36614e225ebbea13fb5",
+    "stylesheet": "ec05c6a73a6ef95d586f39ee307fa9691e80e7167f4e6d7a0b7d07b740134cb0"
+  },
+  "gpu": {
+    "devices": [
+      {
+        "vendorId": 65535,
+        "deviceId": 65535,
+        "subSysId": 0,
+        "revision": 0,
+        "vendorString": "Google Inc. (Google)",
+        "deviceString": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver-5.0.0)",
+        "driverVendor": "SwANGLE",
+        "driverVersion": "5.0.0"
+      }
+    ],
+    "auxAttributes": {
+      "amdSwitchable": false,
+      "bgra8OverlaySupport": "NONE",
+      "canSupportThreadedTextureMailbox": false,
+      "directComposition": false,
+      "directMLFeatureLevel": "Not supported",
+      "directRenderingVersion": "",
+      "displayType": "ANGLE_SWIFTSHADER",
+      "dx12FeatureLevel": "Not supported",
+      "glExtensions": "GL_AMD_performance_monitor GL_ANGLE_base_vertex_base_instance_shader_builtin GL_ANGLE_blob_cache GL_ANGLE_client_arrays GL_ANGLE_clip_cull_distance GL_ANGLE_compressed_texture_etc GL_ANGLE_copy_texture_3d GL_ANGLE_depth_texture GL_ANGLE_framebuffer_blit GL_ANGLE_framebuffer_multisample GL_ANGLE_get_image GL_ANGLE_get_serialized_context_string GL_ANGLE_get_tex_level_parameter GL_ANGLE_instanced_arrays GL_ANGLE_memory_object_flags GL_ANGLE_memory_size GL_ANGLE_multi_draw GL_ANGLE_pack_reverse_row_order GL_ANGLE_polygon_mode GL_ANGLE_program_binary_readiness_query GL_ANGLE_program_cache_control GL_ANGLE_read_only_depth_stencil_feedback_loops GL_ANGLE_relaxed_vertex_attribute_type GL_ANGLE_renderability_validation GL_ANGLE_request_extension GL_ANGLE_rgbx_internal_format GL_ANGLE_robust_client_memory GL_ANGLE_robust_fragment_shader_output GL_ANGLE_robust_resource_initialization GL_ANGLE_shader_pixel_local_storage GL_ANGLE_shader_pixel_local_storage_coherent GL_ANGLE_stencil_texturing GL_ANGLE_texture_compression_dxt3 GL_ANGLE_texture_compression_dxt5 GL_ANGLE_texture_multisample GL_ANGLE_texture_usage GL_ANGLE_translated_shader_source GL_ANGLE_vulkan_image GL_ANGLE_yuv_internal_format GL_APPLE_clip_distance GL_ARM_rgba8 GL_ARM_shader_framebuffer_fetch GL_ARM_shader_framebuffer_fetch_depth_stencil GL_CHROMIUM_bind_generates_resource GL_CHROMIUM_bind_uniform_location GL_CHROMIUM_copy_compressed_texture GL_CHROMIUM_copy_texture GL_CHROMIUM_lose_context GL_EXT_EGL_image_array GL_EXT_EGL_image_external_wrap_modes GL_EXT_EGL_image_storage GL_EXT_base_instance GL_EXT_blend_minmax GL_EXT_buffer_storage GL_EXT_clear_texture GL_EXT_clip_control GL_EXT_clip_cull_distance GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_compressed_ETC1_RGB8_sub_texture GL_EXT_conservative_depth GL_EXT_copy_image GL_EXT_debug_label GL_EXT_debug_marker GL_EXT_depth_clamp GL_EXT_discard_framebuffer GL_EXT_disjoint_timer_query GL_EXT_draw_buffers GL_EXT_draw_buffers_indexed GL_EXT_draw_elements_base_vertex GL_EXT_float_blend GL_EXT_frag_depth GL_EXT_instanced_arrays GL_EXT_map_buffer_range GL_EXT_memory_object GL_EXT_occlusion_query_boolean GL_EXT_polygon_offset_clamp GL_EXT_read_format_bgra GL_EXT_robustness GL_EXT_sRGB GL_EXT_sRGB_write_control GL_EXT_semaphore GL_EXT_separate_shader_objects GL_EXT_shader_framebuffer_fetch GL_EXT_shader_framebuffer_fetch_non_coherent GL_EXT_shader_non_constant_global_initializers GL_EXT_shader_texture_lod GL_EXT_shadow_samplers GL_EXT_texture_border_clamp GL_EXT_texture_compression_bptc GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc_srgb GL_EXT_texture_cube_map_array GL_EXT_texture_filter_anisotropic GL_EXT_texture_format_BGRA8888 GL_EXT_texture_mirror_clamp_to_edge GL_EXT_texture_rg GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_RG8 GL_EXT_texture_sRGB_decode GL_EXT_texture_shadow_lod GL_EXT_texture_storage GL_EXT_texture_type_2_10_10_10_REV GL_EXT_unpack_subimage GL_KHR_blend_equation_advanced GL_KHR_debug GL_KHR_robust_buffer_access_behavior GL_KHR_robustness GL_KHR_texture_compression_astc_ldr GL_NV_depth_buffer_float2 GL_NV_fence GL_NV_framebuffer_blit GL_NV_pack_subimage GL_NV_pixel_buffer_object GL_NV_polygon_mode GL_NV_read_depth GL_NV_read_depth_stencil GL_NV_read_stencil GL_NV_shader_noperspective_interpolation GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_EGL_image_external_essl3 GL_OES_EGL_sync GL_OES_compressed_EAC_R11_signed_texture GL_OES_compressed_EAC_R11_unsigned_texture GL_OES_compressed_EAC_RG11_signed_texture GL_OES_compressed_EAC_RG11_unsigned_texture GL_OES_compressed_ETC1_RGB8_texture GL_OES_compressed_ETC2_RGB8_texture GL_OES_compressed_ETC2_RGBA8_texture GL_OES_compressed_ETC2_punchthroughA_RGBA8_texture GL_OES_compressed_ETC2_punchthroughA_sRGB8_alpha_texture GL_OES_compressed_ETC2_sRGB8_alpha8_texture GL_OES_compressed_ETC2_sRGB8_texture GL_OES_compressed_paletted_texture GL_OES_copy_image GL_OES_depth24 GL_OES_depth32 GL_OES_depth_texture GL_OES_depth_texture_cube_map GL_OES_draw_buffers_indexed GL_OES_draw_elements_base_vertex GL_OES_element_index_uint GL_OES_fbo_render_mipmap GL_OES_get_program_binary GL_OES_mapbuffer GL_OES_packed_depth_stencil GL_OES_required_internalformat GL_OES_rgb8_rgba8 GL_OES_sample_shading GL_OES_sample_variables GL_OES_shader_multisample_interpolation GL_OES_standard_derivatives GL_OES_surfaceless_context GL_OES_texture_3D GL_OES_texture_border_clamp GL_OES_texture_cube_map_array GL_OES_texture_float GL_OES_texture_float_linear GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_texture_npot GL_OES_texture_stencil8 GL_OES_texture_storage_multisample_2d_array GL_OES_vertex_array_object GL_OES_vertex_half_float GL_OES_vertex_type_10_10_10_2 GL_OVR_multiview GL_OVR_multiview2 ",
+      "glImplementationParts": "(gl=egl-angle,angle=swiftshader)",
+      "glRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver-5.0.0)",
+      "glResetNotificationStrategy": 33362,
+      "glVendor": "Google Inc. (Google)",
+      "glVersion": "OpenGL ES 3.0 (ANGLE 2.1.27278 git hash: 0d61b30acc76)",
+      "glWsExtensions": "EGL_EXT_create_context_robustness EGL_ANGLE_surface_orientation EGL_KHR_create_context EGL_KHR_image EGL_KHR_image_base EGL_EXT_image_gl_colorspace EGL_KHR_gl_colorspace EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_gl_renderbuffer_image EGL_KHR_get_all_proc_addresses EGL_KHR_fence_sync EGL_KHR_wait_sync EGL_ANGLE_create_context_webgl_compatibility EGL_CHROMIUM_create_context_bind_generates_resource EGL_KHR_swap_buffers_with_damage EGL_EXT_pixel_format_float EGL_KHR_surfaceless_context EGL_ANGLE_display_texture_share_group EGL_ANGLE_display_semaphore_share_group EGL_ANGLE_create_context_client_arrays EGL_ANGLE_program_cache_control EGL_ANGLE_robust_resource_initialization EGL_ANGLE_create_context_extensions_enabled EGL_ANDROID_blob_cache EGL_ANDROID_recordable EGL_ANGLE_create_context_backwards_compatible EGL_KHR_no_config_context EGL_IMG_context_priority EGL_KHR_create_context_no_error EGL_KHR_reusable_sync EGL_EXT_buffer_age EGL_ANGLE_create_surface_swap_interval EGL_ANGLE_vulkan_image EGL_KHR_partial_update EGL_ANGLE_global_fence_sync EGL_ANGLE_memory_usage_report ",
+      "glWsVendor": "Google Inc. (Google)",
+      "glWsVersion": "1.5 (ANGLE 2.1.27278 git hash: 0d61b30acc76)",
+      "inProcessGpu": false,
+      "initializationTime": 0.069359,
+      "isAsan": false,
+      "isClangCoverage": false,
+      "jpegDecodeAcceleratorSupported": false,
+      "maxMsaaSamples": "4",
+      "nv12OverlaySupport": "NONE",
+      "optimus": false,
+      "p010OverlaySupport": "NONE",
+      "passthroughCmdDecoder": true,
+      "pixelShaderVersion": "3.00",
+      "processCrashCount": 0,
+      "rgb10a2OverlaySupport": "NONE",
+      "sandboxed": false,
+      "skiaBackendType": "GaneshGL",
+      "subpixelFontRendering": true,
+      "supportsD3dSharedImages": false,
+      "supportsDirectML": false,
+      "supportsDx12": false,
+      "supportsOverlays": false,
+      "supportsVulkan": false,
+      "targetCpuBits": 64,
+      "vertexShaderVersion": "3.00",
+      "visibilityCallbackCallCount": 0,
+      "vulkanVersion": "Not supported",
+      "yuy2OverlaySupport": "NONE"
+    },
+    "featureStatus": {
+      "2d_canvas": "enabled",
+      "direct_rendering_display_compositor": "disabled_off_ok",
+      "gpu_compositing": "enabled",
+      "multiple_raster_threads": "enabled_on",
+      "opengl": "enabled_on",
+      "rasterization": "enabled",
+      "raw_draw": "disabled_off_ok",
+      "skia_graphite": "disabled_off",
+      "trees_in_viz": "disabled_off",
+      "video_decode": "enabled",
+      "video_encode": "enabled",
+      "webgl": "enabled",
+      "webgpu": "unavailable_software",
+      "webnn": "enabled_on"
+    },
+    "driverBugWorkarounds": [
+      "disable_d3d11_vp9_ksvc_decoding",
+      "disable_video_overlay_if_moving",
+      "disable_vp_auto_hdr",
+      "disable_vp_scaling",
+      "disable_vp_super_resolution",
+      "enable_webgl_timer_query_extensions",
+      "exit_on_context_lost",
+      "disabled_extension_GL_KHR_blend_equation_advanced",
+      "disabled_extension_GL_KHR_blend_equation_advanced_coherent"
+    ],
+    "videoDecoding": [],
+    "videoEncoding": []
+  },
+  "ownedContextCleanup": [
+    {
+      "launchId": "continue-knowledge-remainder-r1-20261115-26-99117-cold-desktop-save-opening:launch-0-save-opening",
+      "closed": true,
+      "pageClosed": true,
+      "at": "2026-11-14T23:08:18.050Z"
+    }
+  ],
+  "ownedBrowserCleanup": [
+    {
+      "launchId": "continue-knowledge-remainder-r1-20261115-26-99117-cold-desktop-save-opening:launch-0-save-opening",
+      "closed": true,
+      "at": "2026-11-14T23:08:19.176Z"
+    }
+  ],
+  "finished": "2026-11-14T23:08:19.176Z",
+  "failed": false,
+  "launches": [
+    {
+      "launchId": "continue-knowledge-remainder-r1-20261115-26-99117-cold-desktop-save-opening:launch-0-save-opening",
+      "sample": 0,
+      "job": "save-opening",
+      "hostStarted": "2026-11-14T23:07:55.158Z",
+      "browserProcess": "fresh Chromium.launch",
+      "contextPolicy": "isolated context per job; warm retained only within declared unmeasured priming",
+      "menuReady": {
+        "readyAtMs": 987.1999999880791,
+        "frameOpportunityMs": 1005.5999999940395,
+        "timeOrigin": 1794697675406.4,
+        "url": "http://127.0.0.1:18244/?dev=1&art=0",
+        "scope": "current document navigation origin to host-observed enabled menu + double-rAF; includes driver observation gap, firstFeedback unmeasured"
+      },
+      "documentVersions": {
+        "runtime": 4,
+        "passiveTiming": 2
+      },
+      "measuredDocumentResources": {
+        "available": true,
+        "timeOrigin": 1794697675406.4,
+        "readAtMs": 22635.59999999404,
+        "entries": [
+          {
+            "name": "http://127.0.0.1:18244/assets/styles-ec05c6a73a6e.css",
+            "initiatorType": "link",
+            "startTime": 4.199999988079071,
+            "responseStart": 7.0999999940395355,
+            "responseEnd": 7.799999982118607,
+            "duration": 3.5999999940395355,
+            "transferSize": 14875,
+            "encodedBodySize": 14575,
+            "decodedBodySize": 78135,
+            "nextHopProtocol": "http/1.1"
+          },
+          {
+            "name": "http://127.0.0.1:18244/images/dark-fantasy/card-chrome-prototype/display.css",
+            "initiatorType": "link",
+            "startTime": 4.4000000059604645,
+            "responseStart": 8,
+            "responseEnd": 8.099999994039536,
+            "duration": 3.699999988079071,
+            "transferSize": 876,
+            "encodedBodySize": 576,
+            "decodedBodySize": 1262,
+            "nextHopProtocol": "http/1.1"
+          },
+          {
+            "name": "https://cdn.jsdelivr.net/npm/pixi.js@7.2.4/dist/pixi.min.js",
+            "initiatorType": "script",
+            "startTime": 4.4000000059604645,
+            "responseStart": 38.69999998807907,
+            "responseEnd": 46.69999998807907,
+            "duration": 42.29999998211861,
+            "transferSize": 134058,
+            "encodedBodySize": 133758,
+            "decodedBodySize": 452451,
+            "nextHopProtocol": "h2"
+          },
+          {
+            "name": "http://127.0.0.1:18244/assets/app-6H5PP5LS.js",
+            "initiatorType": "script",
+            "startTime": 4.5,
+            "responseStart": 8.199999988079071,
+            "responseEnd": 78.09999999403954,
+            "duration": 73.59999999403954,
+            "transferSize": 871876,
+            "encodedBodySize": 871576,
+            "decodedBodySize": 3984355,
+            "nextHopProtocol": "http/1.1"
+          },
+          {
+            "name": "http://127.0.0.1:18244/images/fonts/libron/Libron-Regular.woff2",
+            "initiatorType": "css",
+            "startTime": 146.59999999403954,
+            "responseStart": 149.2999999821186,
+            "responseEnd": 149.59999999403954,
+            "duration": 3,
+            "transferSize": 85072,
+            "encodedBodySize": 84772,
+            "decodedBodySize": 84772,
+            "nextHopProtocol": "http/1.1"
+          },
+          {
+            "name": "http://127.0.0.1:18244/images/fonts/libron/Libron-Bold.woff2",
+            "initiatorType": "css",
+            "startTime": 146.7999999821186,
+            "responseStart": 149.7999999821186,
+            "responseEnd": 149.90000000596046,
+            "duration": 3.100000023841858,
+            "transferSize": 85416,
+            "encodedBodySize": 85116,
+            "decodedBodySize": 85116,
+            "nextHopProtocol": "http/1.1"
+          },
+          {
+            "name": "http://127.0.0.1:18244/assets/timegraph-forecast-worker-YOB3XRD7.js",
+            "initiatorType": "other",
+            "startTime": 745.9000000059605,
+            "responseStart": 745.9000000059605,
+            "responseEnd": 425.90000000596046,
+            "duration": -320,
+            "transferSize": 300,
+            "encodedBodySize": 230687,
+            "decodedBodySize": 1243957,
+            "nextHopProtocol": ""
+          },
+          {
+            "name": "http://127.0.0.1:18244/assets/timegraph-forecast-worker-YOB3XRD7.js",
+            "initiatorType": "other",
+            "startTime": 945.0999999940395,
+            "responseStart": 945.0999999940395,
+            "responseEnd": 938.9000000059605,
+            "duration": -6.199999988079071,
+            "transferSize": 300,
+            "encodedBodySize": 230687,
+            "decodedBodySize": 1243957,
+            "nextHopProtocol": ""
+          },
+          {
+            "name": "http://127.0.0.1:18244/images/sprite-sheets/resource-language.json",
+            "initiatorType": "fetch",
+            "startTime": 987,
+            "responseStart": 989.9000000059605,
+            "responseEnd": 990.1999999880791,
+            "duration": 3.199999988079071,
+            "transferSize": 1209,
+            "encodedBodySize": 909,
+            "decodedBodySize": 10761,
+            "nextHopProtocol": "http/1.1"
+          },
+          {
+            "name": "http://127.0.0.1:18244/assets/save-load-worker-7YJYILEJ.js",
+            "initiatorType": "other",
+            "startTime": 1160.699999988079,
+            "responseStart": 1160.699999988079,
+            "responseEnd": 1177.699999988079,
+            "duration": 17,
+            "transferSize": 234778,
+            "encodedBodySize": 234478,
+            "decodedBodySize": 1259756,
+            "nextHopProtocol": "http/1.1"
+          },
+          {
+            "name": "http://127.0.0.1:18244/assets/timegraph-forecast-worker-YOB3XRD7.js",
+            "initiatorType": "other",
+            "startTime": 2275.5,
+            "responseStart": 2275.5,
+            "responseEnd": 2010.5,
+            "duration": -265,
+            "transferSize": 300,
+            "encodedBodySize": 230687,
+            "decodedBodySize": 1243957,
+            "nextHopProtocol": ""
+          },
+          {
+            "name": "http://127.0.0.1:18244/assets/timegraph-forecast-worker-YOB3XRD7.js",
+            "initiatorType": "other",
+            "startTime": 19853.09999999404,
+            "responseStart": 19853.09999999404,
+            "responseEnd": 19818,
+            "duration": -35.099999994039536,
+            "transferSize": 300,
+            "encodedBodySize": 230687,
+            "decodedBodySize": 1243957,
+            "nextHopProtocol": ""
+          }
+        ],
+        "scope": "returned document ResourceTiming buffer only, not a complete network trace; retain raw bytes/times; zero transfer for positive same-origin body corroborates cache use; no latency subtraction"
+      }
+    }
+  ],
+  "calibrations": [
+    {
+      "launchId": "continue-knowledge-remainder-r1-20261115-26-99117-cold-desktop-save-opening:launch-0-save-opening",
+      "method": "getTimeActionClickPoint",
+      "point": {
+        "x": 300,
+        "y": 861.4375
+      },
+      "passiveBefore": {
+        "version": 2,
+        "mode": "map",
+        "selectedRegionId": "R04",
+        "regionSelectionActive": false,
+        "runner": {
+          "frontierSec": 0,
+          "cursorSec": 0,
+          "viewedSec": 183,
+          "previewActive": true,
+          "forecastPreview": true,
+          "revision": 1,
+          "actionCount": 0,
+          "checkpointCount": 0
+        },
+        "opening": {
+          "phase": "idle",
+          "preparation": "idle",
+          "coverageSec": 116,
+          "elapsedSec": 0,
+          "lossSec": null
+        },
+        "map": {
+          "visible": true,
+          "detailVisible": false,
+          "camera": {
+            "x": 0,
+            "y": 0,
+            "zoom": 1
+          },
+          "focusAnimating": false,
+          "panelPhase": "closed",
+          "panelAnimating": false,
+          "panelPose": {
+            "x": 0,
+            "y": 0,
+            "scale": 1
+          },
+          "artReady": false,
+          "artPrepared": null
+        },
+        "graph": {
+          "visible": true,
+          "minSec": 0,
+          "maxSec": 276,
+          "scrubDrawSignature": "0|183|0|0|0:276||Civilization • All player settlements|183",
+          "plotRect": {
+            "x": 573.855,
+            "y": 884.1,
+            "width": 1276.275,
+            "height": 145.86
+          },
+          "plotRectSpace": "stage-retained-transform",
+          "scrubSec": 183,
+          "isScrubbing": false,
+          "latchedForecastScrubSec": null,
+          "historyEndSec": 0,
+          "revealedSec": 183,
+          "browseCapSec": 183,
+          "targetSec": 276,
+          "computedSec": 276,
+          "requestedSec": 1280,
+          "pending": true,
+          "cacheVersion": 18,
+          "subjectKey": "civilization",
+          "asyncToken": "sig:4",
+          "asyncPollMs": 4087.5,
+          "asyncHistoryEndSec": 0,
+          "asyncRequestedSec": 1280,
+          "asyncComputedSec": 276,
+          "revealHistoryEndSec": 0,
+          "animatedSec": 183.63331906498007,
+          "visibleEndSec": 183.63331906498007,
+          "startSecOverride": 0,
+          "readinessCapSec": null,
+          "capEndSec": null,
+          "paused": false,
+          "presentationSuspended": false,
+          "openingRevealSec": null
+        },
+        "life": {
+          "visible": false,
+          "selectedCandidateNodeId": null,
+          "displayedVassalId": null,
+          "entryConfirmationOpen": false,
+          "entryOpen": false,
+          "entryVisible": false,
+          "entryPhase": "closed",
+          "decisionOpen": false,
+          "decisionNodeId": null,
+          "decisionPhase": "closed",
+          "pendingInteractionCount": null,
+          "family": null,
+          "selectedOptionId": null,
+          "resolving": null,
+          "shopTag": null,
+          "offerIds": null,
+          "purchaseOrder": null,
+          "boardPracticeIds": null,
+          "observedDecisionNodeId": null,
+          "boardRegionId": null,
+          "decisionArtReady": false,
+          "decisionArtPrepared": null,
+          "entryPoint": null,
+          "processingPhase": null,
+          "sourceRevision": 1,
+          "ready": null,
+          "processing": {
+            "sourceRevision": 1,
+            "sourceSec": 0,
+            "baseRevision": 1,
+            "baseSec": 0,
+            "timelineMatches": true,
+            "sourceMatches": true,
+            "requestId": 2,
+            "revision": 2,
+            "adopting": false,
+            "workerActive": false,
+            "draftActive": false,
+            "draftActionCount": 0,
+            "jobActive": false,
+            "phase": null,
+            "error": null,
+            "accepted": null,
+            "jobReady": null,
+            "ready": null,
+            "targetSec": null,
+            "computedSec": null,
+            "revealSec": null
+          },
+          "recapOpen": false,
+          "continueState": null,
+          "recapClock": null,
+          "recapClockStartedAt": null
+        }
+      },
+      "passiveAfter": {
+        "version": 2,
+        "mode": "map",
+        "selectedRegionId": "R04",
+        "regionSelectionActive": false,
+        "runner": {
+          "frontierSec": 0,
+          "cursorSec": 0,
+          "viewedSec": 183,
+          "previewActive": true,
+          "forecastPreview": true,
+          "revision": 1,
+          "actionCount": 0,
+          "checkpointCount": 0
+        },
+        "opening": {
+          "phase": "idle",
+          "preparation": "idle",
+          "coverageSec": 116,
+          "elapsedSec": 0,
+          "lossSec": null
+        },
+        "map": {
+          "visible": true,
+          "detailVisible": false,
+          "camera": {
+            "x": 0,
+            "y": 0,
+            "zoom": 1
+          },
+          "focusAnimating": false,
+          "panelPhase": "closed",
+          "panelAnimating": false,
+          "panelPose": {
+            "x": 0,
+            "y": 0,
+            "scale": 1
+          },
+          "artReady": false,
+          "artPrepared": null
+        },
+        "graph": {
+          "visible": true,
+          "minSec": 0,
+          "maxSec": 276,
+          "scrubDrawSignature": "0|183|0|0|0:276||Civilization • All player settlements|183",
+          "plotRect": {
+            "x": 573.855,
+            "y": 884.1,
+            "width": 1276.275,
+            "height": 145.86
+          },
+          "plotRectSpace": "stage-retained-transform",
+          "scrubSec": 183,
+          "isScrubbing": false,
+          "latchedForecastScrubSec": null,
+          "historyEndSec": 0,
+          "revealedSec": 183,
+          "browseCapSec": 183,
+          "targetSec": 276,
+          "computedSec": 276,
+          "requestedSec": 1280,
+          "pending": true,
+          "cacheVersion": 18,
+          "subjectKey": "civilization",
+          "asyncToken": "sig:4",
+          "asyncPollMs": 4087.5,
+          "asyncHistoryEndSec": 0,
+          "asyncRequestedSec": 1280,
+          "asyncComputedSec": 276,
+          "revealHistoryEndSec": 0,
+          "animatedSec": 183.63331906498007,
+          "visibleEndSec": 183.63331906498007,
+          "startSecOverride": 0,
+          "readinessCapSec": null,
+          "capEndSec": null,
+          "paused": false,
+          "presentationSuspended": false,
+          "openingRevealSec": null
+        },
+        "life": {
+          "visible": false,
+          "selectedCandidateNodeId": null,
+          "displayedVassalId": null,
+          "entryConfirmationOpen": false,
+          "entryOpen": false,
+          "entryVisible": false,
+          "entryPhase": "closed",
+          "decisionOpen": false,
+          "decisionNodeId": null,
+          "decisionPhase": "closed",
+          "pendingInteractionCount": null,
+          "family": null,
+          "selectedOptionId": null,
+          "resolving": null,
+          "shopTag": null,
+          "offerIds": null,
+          "purchaseOrder": null,
+          "boardPracticeIds": null,
+          "observedDecisionNodeId": null,
+          "boardRegionId": null,
+          "decisionArtReady": false,
+          "decisionArtPrepared": null,
+          "entryPoint": null,
+          "processingPhase": null,
+          "sourceRevision": 1,
+          "ready": null,
+          "processing": {
+            "sourceRevision": 1,
+            "sourceSec": 0,
+            "baseRevision": 1,
+            "baseSec": 0,
+            "timelineMatches": true,
+            "sourceMatches": true,
+            "requestId": 2,
+            "revision": 2,
+            "adopting": false,
+            "workerActive": false,
+            "draftActive": false,
+            "draftActionCount": 0,
+            "jobActive": false,
+            "phase": null,
+            "error": null,
+            "accepted": null,
+            "jobReady": null,
+            "ready": null,
+            "targetSec": null,
+            "computedSec": null,
+            "revealSec": null
+          },
+          "recapOpen": false,
+          "continueState": null,
+          "recapClock": null,
+          "recapClockStartedAt": null
+        }
+      },
+      "policy": "explicit untimed geometry calibration; raw-DTo parity alone does not prove hidden-cache passivity",
+      "canvasBox": {
+        "x": 0,
+        "y": 115,
+        "width": 1279,
+        "height": 570
+      }
+    }
+  ]
+}
