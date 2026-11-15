@@ -4,7 +4,7 @@ Ready-to-paste T3 launch packet for the independent Harness Auditor (WP6). Code 
 
 - Branch: `perf/phase-a-20261116` (origin). Review tip: **`TIP_SHA`** (set at WP5 handoff; see `STATE.md` "Next step" for the pushed hash).
 - Harness sources: `scripts/perf-phase-a-20261116/` (statistics module `statistics.mjs`, sha256 `9443d670…`).
-- Contract and evidence: `docs/performance/phase-a-20261116/{HARNESS,STATE,PROOF_RUN}.md`; committed raw JSON + sha256 `MANIFEST.json` per run under `docs/performance/phase-a-20261116/runs/<run-id>/`.
+- Contract and evidence: `HARNESS.md`, `STATE.md` and `PROOF_RUN.md` in this folder; committed raw JSON + sha256 `MANIFEST.json` per run under `docs/performance/phase-a-20261116/runs/<run-id>/`.
 - Acceptance runs to recompute: `wp4-node` (Node window ×120, horizon ×6, re-projection ×6), `wp4-suites` (3 suites × desktop 1× and mobile 4×: New Game, bake, opening-unveil pacing, scrub step, scrub drag), plus controls `wp1-node-controls-r2`, `wp1-browser-controls`, `wp2-a1-01-r2`, `wp3-drag-r3`, `wp3b-repeat-desktop-r2`, `wp3c-mobile-a2`. Failed attempts kept as evidence: `wp2-a1-01-r1`, `wp3-drag-r2`, `wp3c-mobile-a1`, mobile section of `wp3b-repeat-desktop-r2`, `wp3b-repeat-mobile-r3`.
 - `HARNESS_REVIEW.md` is the Auditor's file. The Builder left it **NOT AUDITED**.
 
