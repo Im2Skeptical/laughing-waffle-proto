@@ -84,7 +84,7 @@
     "probe:monsters": "node scripts/monster-escalation-browser-probe.mjs",
     "probe:ready-cards": "node scripts/ready-cards-browser-probe.mjs",
     "probe:previous-projection": "node scripts/previous-projection-browser-probe.mjs",
-    "test:perf-phase-a-20261116": "node scripts/perf-phase-a-20261116/statistics-test.mjs",
+    "test:perf-phase-a-20261116": "node scripts/perf-phase-a-20261116/statistics-test.mjs && node scripts/perf-phase-a-20261116/failclosed-test.mjs",
     "test:artwork-cache": "node scripts/artwork-cache-test.mjs",
     "test:loading-recovery": "node scripts/loading-checkpoint-test.mjs && node scripts/loading-recovery-browser-probe.mjs"
   },

@@ -296,7 +296,7 @@ async function waitForUseful(page, timeout = NEW_GAME_TIMEOUT_MS) {
   }
 }
 
-function oracleNewGame(snap, errors) {
+export function oracleNewGame(snap, errors) {
   const reasons = [];
   if (!snap) reasons.push('no-snapshot');
   const opening = snap?.opening;
@@ -304,6 +304,10 @@ function oracleNewGame(snap, errors) {
   // post-enter honest state. 'ready' is only visible before consume().
   const opened = opening?.phase === 'revealing' || opening?.phase === 'completed' || opening?.preparation === 'ready';
   if (!opened) reasons.push(`forecast-not-ready:${opening?.phase}/${opening?.preparation}`);
+  // B03: the authored reveal must actually have been reached; a swallowed
+  // reveal timeout (phase 'revealing', elapsedSec < 5) fails closed.
+  const revealReached = opening?.phase === 'completed' || (Number.isFinite(opening?.elapsedSec) && opening.elapsedSec >= 5);
+  if (!revealReached) reasons.push(`reveal-incomplete:${opening?.phase}/${opening?.elapsedSec}`);
   if (!(opening?.lossSec > 0)) reasons.push('missing-loss');
   else if (opening.lossSec !== EXPECTED_OPENING_LOSS_SEC) reasons.push(`loss-mismatch:${opening.lossSec}!=${EXPECTED_OPENING_LOSS_SEC}`);
   if (snap?.runner?.baseSeed !== FROZEN_SEED) {
@@ -414,7 +418,7 @@ export async function runNewGameJob({ server, cpuThrottle = 1, viewport = 'deskt
   return result;
 }
 
-export async function runScrubJob({ session, launchId, observationPrefix, steps = SCRUB_WARM_STEPS, addedDelayMs = 0, wrongTarget = null, deferredMs = 0 } = {}) {
+export async function runScrubJob({ session, launchId, observationPrefix, steps = SCRUB_WARM_STEPS, addedDelayMs = 0, wrongTarget = null, deferredMs = 0, deadlineMs = 30000 } = {}) {
   const { page, errors, cpuThrottle = 1, viewport = 'desktop' } = session;
   const assets = collectBuildAssets();
   const fixture = session.fixture ?? `ordinary-new-game-seed-${FROZEN_SEED}`;
@@ -431,7 +435,7 @@ export async function runScrubJob({ session, launchId, observationPrefix, steps 
     };
   });
   const hi = Math.max(1, Math.min(snap0.cap ?? snap0.rev ?? snap0.frontier ?? 1, snap0.rev ?? 1e9));
-  const observations = await page.evaluate(async ({ n, hi, addedDelayMs, deferredMs, wrongTarget }) => {
+  const observations = await page.evaluate(async ({ n, hi, addedDelayMs, deferredMs, wrongTarget, deadlineMs }) => {
     const d = globalThis.__SETTLEMENT_DEBUG__;
     const raf = () => new Promise((r) => requestAnimationFrame(r));
     const rows = [];
@@ -442,8 +446,12 @@ export async function runScrubJob({ session, launchId, observationPrefix, steps 
         while (performance.now() < until) { /* in-path delay */ }
       }
       if (deferredMs > 0) {
-        const start = performance.now();
-        while (performance.now() - start < deferredMs) { /* completion deferred */ }
+        // B02: genuine deferred completion. The call returns immediately and
+        // the real browse runs later in a separate task, so a timer that
+        // trusted the return (or two rAFs) would read early; only the
+        // viewedSec completion oracle below can catch it.
+        setTimeout(() => original(sec), deferredMs);
+        return undefined;
       }
       return original(sec);
     };
@@ -455,7 +463,7 @@ export async function runScrubJob({ session, launchId, observationPrefix, steps 
       // Wait for observable completion: viewed second matches request (clamped
       // to coverage), state is present, then a frame opportunity. Two rAF alone
       // is not completion if viewedSec is still stale.
-      const deadline = t0 + 30000;
+      const deadline = t0 + deadlineMs;
       let viewed = d.getSnapshot().viewedSec;
       while (viewed !== sec && performance.now() < deadline) {
         await raf();
@@ -465,15 +473,19 @@ export async function runScrubJob({ session, launchId, observationPrefix, steps 
       await raf();
       const t1 = performance.now();
       const snap = d.getSnapshot();
-      const ok = snap.viewedSec === expected && (has || snap.viewedSec === sec);
+      // B03: completion must be observed before the deadline; a timed-out wait fails.
+      const reached = viewed === sec;
+      const ok = reached && snap.viewedSec === expected && (has || snap.viewedSec === sec);
       rows.push({
         i, targetSec: sec, viewedSec: snap.viewedSec, expected,
         elapsedMs: t1 - t0, ok, hasState: has,
-        timeout: t1 - t0 >= 30000,
+        timeout: !reached,
       });
+      // Let any still-pending deferred browse land before the next step.
+      if (!reached && deferredMs > 0) await new Promise((r) => setTimeout(r, deferredMs + 50));
     }
     return rows;
-  }, { n: steps, hi, addedDelayMs, deferredMs, wrongTarget });
+  }, { n: steps, hi, addedDelayMs, deferredMs, wrongTarget, deadlineMs });
 
   const buildId = assets.buildAssetSha256 ?? 'missing-dist';
   return observations.map((row, idx) => ({
@@ -497,6 +509,8 @@ export async function runScrubJob({ session, launchId, observationPrefix, steps 
     hasState: row.hasState,
     addedDelayMs,
     deferredMs,
+    deferredMode: deferredMs > 0 ? 'setTimeout-async' : null,
+    deadlineMs,
     errors: errors.slice(0, 4),
     hi,
   }));

@@ -12,7 +12,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { startServer, launchPage, runNewGameJob, closeSession } from './browser.mjs';
+import { startServer, launchPage, runNewGameJob, closeSession, graphicsPinned } from './browser.mjs';
 import { quantile, quantileInterval, summarize } from './statistics.mjs';
 import { finalizeRun } from './manifest.mjs';
 import {
@@ -60,6 +60,9 @@ export async function openPreparedStart({ server, cpuThrottle = 1, viewport = 'd
     return (!menu || menu.hidden) && o?.phase === 'completed' && o?.lossSec > 0;
   }, null, { timeout: timeoutMs, polling: 250 });
   const opening = await page.evaluate(() => { const s = globalThis.__SETTLEMENT_DEBUG__.getSnapshot(); return { lossSec: s.opening.lossSec, seed: s.runner?.baseSeed ?? null }; });
+  // B04: fail closed on the frozen identity before admitting prepared samples.
+  const pin = preparedPinCheck({ opening, applied: session.applied });
+  if (!pin.ok) { await closeSession(session); throw new Error(`prepared-start-pin-failed: ${pin.reasons.join(',')}`); }
   Object.assign(session, {
     fixture: `prepared-performance-start-seed-${FROZEN_SEED}`, start: 'prepared-424242', artwork: 'performance-mode-stubs-art0',
     openMs: Date.now() - t0, opening, entry: `/?dev=1&perf=1&art=0&seed=${FROZEN_SEED}&launch=new`,
@@ -96,11 +99,24 @@ async function enableProbe(page) {
 }
 
 // Waits until the visible forecast reveal has caught up so the drag range is stable.
+// B04: pure pin check for the prepared start (exported for the fail-closed test).
+export function preparedPinCheck({ opening, applied }) {
+  const reasons = [];
+  if (opening?.lossSec !== EXPECTED_OPENING_LOSS_SEC) reasons.push(`loss-mismatch:${opening?.lossSec}!=${EXPECTED_OPENING_LOSS_SEC}`);
+  if (opening?.seed !== FROZEN_SEED) reasons.push(`seed-mismatch:${opening?.seed}`);
+  if (!graphicsPinned(applied)) reasons.push('graphics-not-pinned');
+  return { ok: reasons.length === 0, reasons };
+}
+
+// B03: required preconditions/completions; a timeout is a failed check, never a pass.
+export const DRAG_REQUIRED_PRECONDITIONS = ['revealSettled', 'referenceAwayReached', 'referenceReached', 'lossPinned'];
+
+// Returns true only if the condition was observed before the timeout (B03).
 async function waitForRevealSettled(page, timeoutMs = 60000) {
   await page.waitForFunction(() => {
     const g = globalThis.__SETTLEMENT_DEBUG__.getSnapshot().graph;
     return g && g.revealedCoverageEndSec >= g.computedCoverageEndSec && g.computedCoverageEndSec > 0;
-  }, null, { timeout: timeoutMs, polling: 500 }).catch(() => {});
+  }, null, { timeout: timeoutMs, polling: 500 }).then(() => true, () => false);
 }
 
 async function readFingerprint(page) {
@@ -116,7 +132,7 @@ async function readFingerprint(page) {
     const digest = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))).map((b) => b.toString(16).padStart(2, '0')).join('');
     return {
       viewedSec: s.viewedSec, frontierSec: s.frontierSec, baseSeed: s.runner?.baseSeed ?? null,
-      timeline: s.runner?.timeline ?? null, playbackTarget: s.playbackTarget,
+      timeline: s.runner?.timeline ?? null, playbackTarget: s.playbackTarget, lossSec: s.opening?.lossSec ?? null,
       isScrubbing: s.graph?.isScrubbing ?? null, scrubSec: s.graph?.scrubSec ?? null,
       minSec: s.graph?.minSec, maxSec: s.graph?.maxSec, browseCapSec: s.browseCapSec,
       revealedCoverageEndSec: s.graph?.revealedCoverageEndSec, viewedStateSha256: digest,
@@ -249,7 +265,7 @@ export async function runDrag({ session, launchId, kind = 'mouse', moves = DRAG_
   if (playing) await resumePlaying(page);
   const probe0 = await enableProbe(page);
   if (!probe0) return { launchId, ok: false, reason: 'probe-unavailable' };
-  await waitForRevealSettled(page);
+  const revealSettled = await waitForRevealSettled(page);
   const before = await readFingerprint(page);
   const cap = Math.min(before.browseCapSec ?? before.revealedCoverageEndSec, before.revealedCoverageEndSec ?? Infinity, before.maxSec);
   const minSec = before.minSec, maxSec = before.maxSec;
@@ -290,15 +306,18 @@ export async function runDrag({ session, launchId, kind = 'mouse', moves = DRAG_
   // Never-dragged reference at the same second: browse away, browse back, settle.
   const S = afterRelease.viewedSec;
   await page.evaluate((s) => globalThis.__SETTLEMENT_DEBUG__.browseSecond(Math.max(0, s - 37)), S);
-  await page.waitForFunction((s) => globalThis.__SETTLEMENT_DEBUG__.getScrubProbe().viewedSec === Math.max(0, s - 37), S, { timeout: 30000 }).catch(() => {});
+  const referenceAwayReached = await page.waitForFunction((s) => globalThis.__SETTLEMENT_DEBUG__.getScrubProbe().viewedSec === Math.max(0, s - 37), S, { timeout: 30000 }).then(() => true, () => false);
   await page.evaluate((s) => globalThis.__SETTLEMENT_DEBUG__.browseSecond(s), S);
-  await page.waitForFunction((s) => globalThis.__SETTLEMENT_DEBUG__.getScrubProbe().viewedSec === s, S, { timeout: 30000 }).catch(() => {});
+  const referenceReached = await page.waitForFunction((s) => globalThis.__SETTLEMENT_DEBUG__.getScrubProbe().viewedSec === s, S, { timeout: 30000 }).then(() => true, () => false);
   await delay(SETTLE_MS + 250);
   const reference = await readFingerprint(page);
   const analysis = analyzeDrag(raw);
   const secPerPx = (maxSec - minSec) / Math.max(1, plot.b.x - plot.a.x);
   const mappingErrors = analysis.rows.filter((r) => r.targetSec != null).map((r) => Math.abs(r.targetSec - (minSec + (r.x - plot.a.x) * secPerPx)));
   const oracle = {
+    revealSettled, referenceAwayReached, referenceReached,
+    lossPinned: before.lossSec === EXPECTED_OPENING_LOSS_SEC && reference.lossSec === EXPECTED_OPENING_LOSS_SEC,
+    graphicsPinned: graphicsPinned(session.applied),
     latchedIsScrubbing: analysis.latchedIsScrubbing,
     isScrubbingMidDrag: midProbe?.isScrubbing === true,
     edgeSkipMidDrag: midProbe?.edge?.skipping === true,
@@ -315,7 +334,7 @@ export async function runDrag({ session, launchId, kind = 'mouse', moves = DRAG_
     movesCompletedAny: analysis.completed > 0,
     allDeliveredMovesCaughtUp: analysis.caught.length > 0 && analysis.caughtUp === analysis.caught.length,
   };
-  const required = [...(playing ? ['holdMeaningful'] : []), 'latchedIsScrubbing', 'isScrubbingMidDrag', 'edgeSkipMidDrag', 'holdAfterDown', 'releasedNotScrubbing', 'edgeSettledAfterRelease',
+  const required = [...DRAG_REQUIRED_PRECONDITIONS, 'graphicsPinned', ...(playing ? ['holdMeaningful'] : []), 'latchedIsScrubbing', 'isScrubbingMidDrag', 'edgeSkipMidDrag', 'holdAfterDown', 'releasedNotScrubbing', 'edgeSettledAfterRelease',
     'pointerMappingOk', 'settledEqualsReferenceState', 'settledEqualsReferencePackets', 'frontierUnchanged', 'seedUnchanged', 'timelineUnchanged', 'movesCompletedAny', 'allDeliveredMovesCaughtUp'];
   const ok = required.every((k) => oracle[k] === true);
   const buildId = collectBuildAssets().buildAssetSha256 ?? 'missing-dist';
@@ -476,12 +495,24 @@ export const CARRYOVER_CIRCUIT_4B = [0, 2, 1, 3, 1, 2, 3, 0, 3, 2, 0, 1];
 
 // Fixed settle gap: wait until playback is held and the drag/edge state is
 // idle, then a further gapMs (recorded per drag).
+// B03: a drag whose settle-gap idle precondition timed out is not admitted.
+export function applyGapOutcome(drag, gap) {
+  drag.settleGap = gap;
+  if (gap && gap.idleReached !== true) {
+    drag.ok = false;
+    drag.oracle = { ...(drag.oracle ?? {}), settleGapIdleReached: false };
+    drag.required = [...(drag.required ?? []), 'settleGapIdleReached'];
+    for (const o of drag.observations ?? []) o.ok = false;
+  }
+  return drag;
+}
+
 export async function settleGap(page, gapMs) {
   const t0 = Date.now();
-  await page.waitForFunction(() => { const p = globalThis.__SETTLEMENT_DEBUG__.getScrubProbe(); return p && p.playbackTarget === 0 && p.isScrubbing === false && p.edge?.skipping !== true; }, null, { timeout: 30000, polling: 100 }).catch(() => {});
+  const idleReached = await page.waitForFunction(() => { const p = globalThis.__SETTLEMENT_DEBUG__.getScrubProbe(); return p && p.playbackTarget === 0 && p.isScrubbing === false && p.edge?.skipping !== true; }, null, { timeout: 30000, polling: 100 }).then(() => true, () => false);
   const idleAt = Date.now();
   await delay(gapMs);
-  return { waitIdleMs: idleAt - t0, extraMs: gapMs, totalMs: Date.now() - t0 };
+  return { idleReached, waitIdleMs: idleAt - t0, extraMs: gapMs, totalMs: Date.now() - t0 };
 }
 
 export async function runRepeatSuite({ outDir, kinds = ['prepared-desktop', 'prepared-mobile'], reps = 5, screenshotDir = outDir, design = 'rotation', settleGapMs = 0 }) {
@@ -514,7 +545,7 @@ export async function runRepeatSuite({ outDir, kinds = ['prepared-desktop', 'pre
             const shotTag = idx === 0 ? kindName : null;
             const d = await runDrag({ session, launchId, kind: input, addedDelayMs: a.addedDelayMs, deferredMs: a.deferredMs, playing: true, arm: a.arm, rep: r,
               screenshotDir: shotTag ? screenshotDir : null, tag: shotTag ?? launchId });
-            d.prevArm = prevArm; d.settleGap = gap;
+            d.prevArm = prevArm; applyGapOutcome(d, gap);
             drags.push(d);
             const { raw, sendLog, ...rest } = d;
             writeFileSync(path.join(outDir, `raw-drag-${launchId}.json`), JSON.stringify(d));

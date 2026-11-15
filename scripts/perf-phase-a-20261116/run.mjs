@@ -7,7 +7,8 @@ import { summarize } from './statistics.mjs';
 import { runForecastWindow, runForecastHorizon, runReprojection } from './forecast.mjs';
 import { startServer, runNewGameJob, runScrubJob, closeSession } from './browser.mjs';
 import { runAllControls } from './controls.mjs';
-import { openPreparedStart, enterPlaying, runDrag, settleGap, ARMS, CARRYOVER_CIRCUIT_4B, bootstrapMedianDelta, wrongTargetControl } from './scrub-drag.mjs';
+import { labelSequentialInProcess } from './independence.mjs';
+import { openPreparedStart, enterPlaying, runDrag, settleGap, applyGapOutcome, ARMS, CARRYOVER_CIRCUIT_4B, bootstrapMedianDelta, wrongTargetControl } from './scrub-drag.mjs';
 import { quantile } from './statistics.mjs';
 import { loadavg } from 'node:os';
 import { PerformanceObserver, performance as perfNow } from 'node:perf_hooks';
@@ -60,7 +61,7 @@ async function runForecastPopulation({ count, job, runOne, idPrefix }) {
     const t1 = perfNow.now(), heap1 = process.memoryUsage().heapUsed;
     await new Promise((r) => setImmediate(r));
     const hits = gc.filter((g) => g.start < t1 && g.start + g.duration > t0);
-    rows.push({ ...dropSession(row), diag: { index: i, wallStart: wall, loadavg1: la, heapUsedBeforeMB: heap0 / 1048576, heapUsedAfterMB: heap1 / 1048576,
+    rows.push({ ...labelSequentialInProcess(dropSession(row), { idPrefix, index: i }), diag: { index: i, wallStart: wall, loadavg1: la, heapUsedBeforeMB: heap0 / 1048576, heapUsedAfterMB: heap1 / 1048576,
       gcCount: hits.length, gcMs: hits.reduce((a, g) => a + g.duration, 0), gcMaxMs: hits.length ? Math.max(...hits.map((g) => g.duration)) : 0, gcKinds: hits.map((g) => g.kind) } });
   }
   obs.disconnect();
@@ -201,7 +202,7 @@ async function runBrowserSuites({ suites, populations, outDir }) {
             const d = await runDrag({ session: prep, launchId: `${launchId}-drag${String(r).padStart(2, '0')}-${arm.arm}`, kind: pop.viewport === 'mobile' ? 'touch' : 'mouse',
               addedDelayMs: arm.addedDelayMs, deferredMs: arm.deferredMs, playing: true, arm: arm.arm, rep: r,
               screenshotDir: r === 0 ? outDir : null, tag: `${launchId}-drag` });
-            d.prevArm = prevArm; d.settleGap = gap;
+            d.prevArm = prevArm; applyGapOutcome(d, gap);
             drags.push(d);
             dragRows.push(...d.observations);
             writeJson(path.join(outDir, 'drags', `raw-${d.launchId}.json`), d);
