@@ -1,0 +1,136 @@
+{
+  "mobile-x4": {
+    "drags": 36,
+    "okDrags": 36,
+    "sessions": 3,
+    "controls": {
+      "correctness": true,
+      "wrongTarget": true,
+      "aa": {
+        "passed": true,
+        "delta": -39.59999999869615,
+        "low": -774.4000000013039,
+        "high": 364.5,
+        "confidence": 0.95,
+        "replicates": 5000,
+        "seed": 1094791217,
+        "nA": 9,
+        "nB": 9,
+        "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n"
+      },
+      "delay": {
+        "passed": true,
+        "aaEnvelopeMs": 774.4000000013039,
+        "delta": 1399.2000000001863,
+        "low": 852.4000000022352,
+        "high": 1726.2999999998137,
+        "confidence": 0.95,
+        "replicates": 5000,
+        "seed": 1145392177,
+        "nA": 18,
+        "nB": 9,
+        "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n"
+      },
+      "deferred": {
+        "passed": false,
+        "aaEnvelopeMs": 774.4000000013039,
+        "delta": 446.6999999983236,
+        "low": 74.80000000074506,
+        "high": 1139.5,
+        "confidence": 0.95,
+        "replicates": 5000,
+        "seed": 1145390641,
+        "nA": 18,
+        "nB": 9,
+        "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n"
+      }
+    },
+    "betweenSession": {
+      "sessionBaselines": {
+        "suite0-mobile-x4": {
+          "n": 6,
+          "median": 884.0999999996275,
+          "values": [
+            1955.2999999998137,
+            1113.7000000001863,
+            803.8000000007451,
+            884.0999999996275,
+            770.9000000003725,
+            915.7000000001863
+          ]
+        },
+        "suite1-mobile-x4": {
+          "n": 6,
+          "median": 1153.2999999988824,
+          "values": [
+            2187.199999999255,
+            1674.800000000745,
+            951.3000000007451,
+            1153.2999999988824,
+            1375.0999999996275,
+            1059.9000000003725
+          ]
+        },
+        "suite2-mobile-x4": {
+          "n": 6,
+          "median": 1180.8999999985099,
+          "values": [
+            942.4000000003725,
+            1382.0999999996275,
+            1248.5999999996275,
+            1223.6000000014901,
+            882.5999999996275,
+            1180.8999999985099
+          ]
+        }
+      },
+      "pairs": [
+        {
+          "a": "suite0-mobile-x4",
+          "b": "suite1-mobile-x4",
+          "delta": 269.19999999925494,
+          "low": -53.799999999813735,
+          "high": 871,
+          "confidence": 0.95,
+          "replicates": 5000,
+          "seed": 1397052210,
+          "nA": 6,
+          "nB": 6,
+          "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+          "containsZero": true
+        },
+        {
+          "a": "suite0-mobile-x4",
+          "b": "suite2-mobile-x4",
+          "delta": 296.7999999988824,
+          "low": -171.29999999981374,
+          "high": 452.7000000011176,
+          "confidence": 0.95,
+          "replicates": 5000,
+          "seed": 1397052211,
+          "nA": 6,
+          "nB": 6,
+          "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+          "containsZero": true
+        },
+        {
+          "a": "suite1-mobile-x4",
+          "b": "suite2-mobile-x4",
+          "delta": 27.59999999962747,
+          "low": -732.4000000003725,
+          "high": 229.59999999776483,
+          "confidence": 0.95,
+          "replicates": 5000,
+          "seed": 1397052218,
+          "nA": 6,
+          "nB": 6,
+          "method": "percentile bootstrap over whole drags of median(per-drag p50) difference; diagnostic, small n",
+          "containsZero": true
+        }
+      ],
+      "allContainZero": true,
+      "crossSessionEnvelopeMs": 871,
+      "rule": "cross-session comparisons (e.g. baseline vs candidate in different sessions) must exceed crossSessionEnvelopeMs; reported, not a stop gate"
+    }
+  }
+}

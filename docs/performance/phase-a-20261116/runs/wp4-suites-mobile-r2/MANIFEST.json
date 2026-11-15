@@ -1,0 +1,342 @@
+{
+  "artifactDir": "artifacts/perf-phase-a-20261116/wp4-suites-mobile-r2",
+  "files": [
+    {
+      "path": "PROOF_SUMMARY.json",
+      "bytes": 45193,
+      "sha256": "1f3bba951e1f3687c0586f8df7861de306290d105d3fc399fd396127ba316a01",
+      "committed": true
+    },
+    {
+      "path": "browser-summaries.json",
+      "bytes": 28800,
+      "sha256": "ba79587fdc090fc7f818c74f7cfe24fc69d8e8486a2cfc5708c2fed683950aad",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite0-mobile-x4-drag00-A1.json",
+      "bytes": 34372,
+      "sha256": "3d7fa5cd935c06a9418846b446d4ad2e2df45cad390e332b6e9c927d368ff1ab",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite0-mobile-x4-drag01-delay.json",
+      "bytes": 36230,
+      "sha256": "952f86e61c7a1bc55bddf4b6a75088151695bf22af636f6c3af2c08d81defd3d",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite0-mobile-x4-drag02-A2.json",
+      "bytes": 35939,
+      "sha256": "b50f94324aacd76731b8cf5dbbc081f24d1ec05731a93d764037cf91fe956e90",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite0-mobile-x4-drag03-deferred.json",
+      "bytes": 33072,
+      "sha256": "cfe1c4c763d996e0b69c5b03eb22fc6ac47a7760ebb85799f1769191a1e581d1",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite0-mobile-x4-drag04-A2.json",
+      "bytes": 33474,
+      "sha256": "24e50d92031f2ffac205d9992f41b46486faef4e4f5d616fab61b2911b138061",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite0-mobile-x4-drag05-delay.json",
+      "bytes": 33163,
+      "sha256": "276bc59584cbf6125b4f21c9e8f7defeb4b279e21dbdbc30c1e7bc5c601b4869",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite0-mobile-x4-drag06-deferred.json",
+      "bytes": 33465,
+      "sha256": "40cf24e8a02f622f368e97db127bf919bb4e51d15efb2b5396ed36ae251fecc6",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite0-mobile-x4-drag07-A1.json",
+      "bytes": 36418,
+      "sha256": "74d13b8eabca853f3e189133019c3343c324f1816f893cb5c318b02a9c021b51",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite0-mobile-x4-drag08-deferred.json",
+      "bytes": 32915,
+      "sha256": "b389ea4e94ec4f48ca612ad6f8f6549da2bc86273e7693e713aadb99894990ef",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite0-mobile-x4-drag09-delay.json",
+      "bytes": 29212,
+      "sha256": "d01c59a8ecfb9eac922549061396a5e9dd72392533476dea173579978ad4ed71",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite0-mobile-x4-drag10-A1.json",
+      "bytes": 37086,
+      "sha256": "d96abd3cf99dd50fa5113023a394cb1fa12ec5d7416d016861324f7b56862103",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite0-mobile-x4-drag11-A2.json",
+      "bytes": 39107,
+      "sha256": "405dddf73cb8f94c52eb94b9c5509ac7be29a5a8503a033c754a88acec71e787",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite1-mobile-x4-drag00-A1.json",
+      "bytes": 38164,
+      "sha256": "5a79953dd1679b901102e09fe315fbc8a49158b1e83d265d67468f9637390b9b",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite1-mobile-x4-drag01-delay.json",
+      "bytes": 33115,
+      "sha256": "28f72daff25b02950d648736a1153218e1a129fbd89fed18ad6d6ccbe46898fc",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite1-mobile-x4-drag02-A2.json",
+      "bytes": 32196,
+      "sha256": "51a85c9b277bb6a559196e2db1a8f69f406bd871805824bf1366caa834700557",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite1-mobile-x4-drag03-deferred.json",
+      "bytes": 33224,
+      "sha256": "e1d60176311b1dc0f6ff5db16d4bc4966cc0e028c007a2e4e0de6ff58815abb7",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite1-mobile-x4-drag04-A2.json",
+      "bytes": 36408,
+      "sha256": "78053f18f7c1870178ae352277133cf4ead8a1405f4fa4ce4a8c183585865410",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite1-mobile-x4-drag05-delay.json",
+      "bytes": 32949,
+      "sha256": "5bc82d7f1ba480d65f3efabcbf9ac57182f0bf2cd6f39c2a06fb285ac0129af8",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite1-mobile-x4-drag06-deferred.json",
+      "bytes": 33326,
+      "sha256": "7750f62ce4e3f12207f1257f81039929a95d771f73a59198ddee7d6a6b7da44e",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite1-mobile-x4-drag07-A1.json",
+      "bytes": 39823,
+      "sha256": "4a5b1b80ab8ba5fd5e92581c953476e31e4989089bcab6f6ea13a5c8c4a9dc46",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite1-mobile-x4-drag08-deferred.json",
+      "bytes": 33446,
+      "sha256": "5d07fca7f85d5b35fa849b3245b9ba87f7fc9b32700d440884bbec75ed30de68",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite1-mobile-x4-drag09-delay.json",
+      "bytes": 33676,
+      "sha256": "d96d9e1427619c8784de414f038626d56792b2a848adb77eb308c963d6780f62",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite1-mobile-x4-drag10-A1.json",
+      "bytes": 39754,
+      "sha256": "e65819dfd6ad0eb56b8c5117e765b64783b1a7cf37f65005743afee836a6826a",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite1-mobile-x4-drag11-A2.json",
+      "bytes": 39326,
+      "sha256": "45e71db9bdd7047128f25d4e55f5fc08bdb9b8481d93de972189682710d32d10",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite2-mobile-x4-drag00-A1.json",
+      "bytes": 37896,
+      "sha256": "25342578213255164327a305f93b705711fc1dd3371bbb45733f75fc351b9b91",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite2-mobile-x4-drag01-delay.json",
+      "bytes": 33139,
+      "sha256": "727f63dd1aa0f58a3670faad1fb306e5176009c4fdd23b4cb2c9fc2dd92f88b3",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite2-mobile-x4-drag02-A2.json",
+      "bytes": 36475,
+      "sha256": "c40fd46604bb827b8eaffbd806092f5278e5f7ac1646fc22f60c0f28bc7467c7",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite2-mobile-x4-drag03-deferred.json",
+      "bytes": 32608,
+      "sha256": "790f801c6e521d38f7c735d07514c38881c350268f54980e2495bd09b8fb9df9",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite2-mobile-x4-drag04-A2.json",
+      "bytes": 36352,
+      "sha256": "0157229af2b0edde545c725564bd8b706ef11dae30040b7f951920847a4adda7",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite2-mobile-x4-drag05-delay.json",
+      "bytes": 32797,
+      "sha256": "2435ee1bf97e9023a7d9b392cd7164b8ccda9014cb9308a0d6c342f5a48c65a8",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite2-mobile-x4-drag06-deferred.json",
+      "bytes": 33436,
+      "sha256": "9cd6aaba1a6fc9a0bfce28fc9fead431b3b089189cf070a7bd14926c8a693e81",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite2-mobile-x4-drag07-A1.json",
+      "bytes": 40031,
+      "sha256": "f56edc04121b1e52c61fd66c350b348e25ccf44f25a77ae1fb5b4a24844ad7a0",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite2-mobile-x4-drag08-deferred.json",
+      "bytes": 30142,
+      "sha256": "218d8d3b96d4ea0e6ff9d0cb8d0355091cc9efc459101de69ee2d9c0c61f8a32",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite2-mobile-x4-drag09-delay.json",
+      "bytes": 33722,
+      "sha256": "91bfbf42a3b9385cf34d999534f12201e7051a332c72bd1b674acfcd3c222289",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite2-mobile-x4-drag10-A1.json",
+      "bytes": 39740,
+      "sha256": "99d9e369d46f08790963616fcc891bfb0ef79087b6c3426b9467f9880e7a5899",
+      "committed": true
+    },
+    {
+      "path": "drags/raw-suite2-mobile-x4-drag11-A2.json",
+      "bytes": 39601,
+      "sha256": "49d90a8dbe0be9374bc3d1db1194c89e947a9a39202effb625a07ca25d52d985",
+      "committed": true
+    },
+    {
+      "path": "identities.json",
+      "bytes": 3974,
+      "sha256": "593256ae36061326f81982d2b40d4a8f892943919f415785aea9fc31d7254a9d",
+      "committed": true
+    },
+    {
+      "path": "raw-bake.json",
+      "bytes": 10299,
+      "sha256": "1dc31e22219bea2d94ea0957f1557a859d98de6f04a4121d9db6ed918320827f",
+      "committed": true
+    },
+    {
+      "path": "raw-new-game.json",
+      "bytes": 10348,
+      "sha256": "2c63a99aeae154374ffd46106957cc9b5a1a0fe074d3dd58e38583f80397fbd4",
+      "committed": true
+    },
+    {
+      "path": "raw-opening-unveil.json",
+      "bytes": 10610,
+      "sha256": "1db0d2602ce562f7f56dd8029d37b5984dac0c21985ee4e245f61db64d668bcb",
+      "committed": true
+    },
+    {
+      "path": "raw-scrub-drag.json",
+      "bytes": 214853,
+      "sha256": "ff343116df99453438b819e559d47c54c333471e187453ba5c256561e5ca557c",
+      "committed": true
+    },
+    {
+      "path": "raw-scrub.json",
+      "bytes": 127181,
+      "sha256": "c16586c1fddb959afe53aedde79f0c1ede6acc60a4da5217a210602d97b9fccd",
+      "committed": true
+    },
+    {
+      "path": "scrub-drag-evaluation.json",
+      "bytes": 4090,
+      "sha256": "15615e23b5fa65d62578a9238c18515ae6157625af8e6b0782d541c864058a94",
+      "committed": true
+    },
+    {
+      "path": "scrub-drag-runs.json",
+      "bytes": 21086,
+      "sha256": "facc117658d4b54c563b1ff1a0bda3c75b5648dfbf7a2d1b1a6e1bfa75a0af88",
+      "committed": true
+    },
+    {
+      "path": "suite0-mobile-x4-drag-after-settle.png",
+      "bytes": 345679,
+      "sha256": "2530f776d598e69810e51b9b3427ef392aa419ee440d6f8afd4cfd42d9aac376",
+      "committed": false
+    },
+    {
+      "path": "suite0-mobile-x4-drag-mid-drag.png",
+      "bytes": 345741,
+      "sha256": "931d452e966f665e25e19e150f7d20efc23d9df17b10879489741c953fc5ec26",
+      "committed": false
+    },
+    {
+      "path": "suite0-mobile-x4-new-game-finished.png",
+      "bytes": 920415,
+      "sha256": "41862a86c84990ed8c101e50bea13635e7c8b6e04716b73278c9cbc64d08d962",
+      "committed": false
+    },
+    {
+      "path": "suite1-mobile-x4-drag-after-settle.png",
+      "bytes": 345679,
+      "sha256": "2530f776d598e69810e51b9b3427ef392aa419ee440d6f8afd4cfd42d9aac376",
+      "committed": false
+    },
+    {
+      "path": "suite1-mobile-x4-drag-mid-drag.png",
+      "bytes": 345741,
+      "sha256": "931d452e966f665e25e19e150f7d20efc23d9df17b10879489741c953fc5ec26",
+      "committed": false
+    },
+    {
+      "path": "suite1-mobile-x4-new-game-finished.png",
+      "bytes": 920114,
+      "sha256": "7d848a8e07de50beceb43181b368991fb8e870c8ac89def7c4aab3e58105a6cd",
+      "committed": false
+    },
+    {
+      "path": "suite2-mobile-x4-drag-after-settle.png",
+      "bytes": 345679,
+      "sha256": "2530f776d598e69810e51b9b3427ef392aa419ee440d6f8afd4cfd42d9aac376",
+      "committed": false
+    },
+    {
+      "path": "suite2-mobile-x4-drag-mid-drag.png",
+      "bytes": 345741,
+      "sha256": "931d452e966f665e25e19e150f7d20efc23d9df17b10879489741c953fc5ec26",
+      "committed": false
+    },
+    {
+      "path": "suite2-mobile-x4-new-game-finished.png",
+      "bytes": 915836,
+      "sha256": "584820d213f759236c0dd31972e0fac9b2eeca4471221224de0841eed6b89b0f",
+      "committed": false
+    },
+    {
+      "path": "suites.json",
+      "bytes": 1703,
+      "sha256": "ecd0f406186cc63b76f85f43c50fd418bdabfbd0af8d0022b7ead522deea3027",
+      "committed": true
+    }
+  ],
+  "at": "2026-11-15T15:58:07.821Z"
+}

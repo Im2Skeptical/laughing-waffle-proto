@@ -1,0 +1,353 @@
+[
+  {
+    "job": "bake",
+    "step": "terrain-bake",
+    "population": {
+      "cpuThrottle": 4,
+      "viewport": "mobile",
+      "cold": true,
+      "artwork": "illustrated-default-graphics",
+      "start": "ordinary-new-game",
+      "machine": "box-linux-xeon-8",
+      "renderer": "swiftshader"
+    },
+    "launchId": "suite0-mobile-x4",
+    "observationId": "suite0-mobile-x4-bake",
+    "elapsedMs": 37161.39999999944,
+    "handlerElapsedMs": 158977,
+    "queueDelayMs": 8.599999999627471,
+    "ok": true,
+    "timeout": false,
+    "buildId": "0fa4e215c5923390f30aec1e74f220e38a46d2c252cbead23b9a5078a3cbd608",
+    "fixture": "ordinary-new-game-seed-424242",
+    "harnessId": "perf-phase-a-20261116-v1",
+    "measurementContractId": "HC-20261116-A1",
+    "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+    "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+    "comparisonEligible": true,
+    "lossSec": 6138,
+    "coverageSec": 6138,
+    "openingPhase": "completed",
+    "openingElapsedSec": 5,
+    "bake": {
+      "bakeMs": 37161.39999999944,
+      "terrainBakeMs": 20347,
+      "variantBuildMs": 16035
+    },
+    "heapMB": 759,
+    "workerWrapped": false,
+    "originalWorkerIntact": true,
+    "instrument": false,
+    "milestones": {
+      "preparing": 1376.0999999996275,
+      "coverageFirst": 1376.0999999996275,
+      "coverageReachedLoss": 36945.5,
+      "preparationReady": 36945.5,
+      "revealing": 118563.09999999963,
+      "menuHidden": 127273.89999999944
+    },
+    "forecastReadyMs": 36945.5,
+    "coverageReachedLossMs": 36945.5,
+    "menuHiddenMs": 127273.89999999944,
+    "revealCompleteMs": null,
+    "graphicsApplied": {
+      "graphicsOptions": {
+        "fog": true,
+        "clouds": true,
+        "shadows": true,
+        "wisps": true,
+        "water": true
+      },
+      "search": "",
+      "minimalGraphicsUrl": false,
+      "performanceUrl": false,
+      "progressiveArtwork": null,
+      "devicePixelRatio": 2,
+      "innerWidth": 844,
+      "innerHeight": 390
+    },
+    "graphicsPinned": true,
+    "browserVersion": "156.0.8078.47",
+    "screenshotPath": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp4-suites-mobile-r2/suite0-mobile-x4-new-game-finished.png",
+    "longTaskSumMs": 138619,
+    "longTasks200": 150,
+    "longestTaskMs": 17505,
+    "oracle": {
+      "ok": true,
+      "reasons": [],
+      "errors": []
+    },
+    "click": {
+      "tArm": 5020.5,
+      "startArrival": 5298.799999999814,
+      "startHandler": 5307.399999999441,
+      "slotClick": true,
+      "marks": [
+        {
+          "type": "pointerdown",
+          "timeStamp": 5298.799999999814,
+          "handlerNow": 5307.399999999441
+        },
+        {
+          "type": "mousedown",
+          "timeStamp": 5298.799999999814,
+          "handlerNow": 5308.899999999441
+        },
+        {
+          "type": "click",
+          "timeStamp": 5298.899999999441,
+          "handlerNow": 5311.799999999814
+        },
+        {
+          "type": "pointerdown",
+          "timeStamp": 6137.399999999441,
+          "handlerNow": 6153.399999999441
+        },
+        {
+          "type": "mousedown",
+          "timeStamp": 6137.399999999441,
+          "handlerNow": 6153.5
+        },
+        {
+          "type": "click",
+          "timeStamp": 6137.5,
+          "handlerNow": 6154.199999999255
+        }
+      ]
+    }
+  },
+  {
+    "job": "bake",
+    "step": "terrain-bake",
+    "population": {
+      "cpuThrottle": 4,
+      "viewport": "mobile",
+      "cold": true,
+      "artwork": "illustrated-default-graphics",
+      "start": "ordinary-new-game",
+      "machine": "box-linux-xeon-8",
+      "renderer": "swiftshader"
+    },
+    "launchId": "suite1-mobile-x4",
+    "observationId": "suite1-mobile-x4-bake",
+    "elapsedMs": 38310.799999999814,
+    "handlerElapsedMs": 168668.40000000037,
+    "queueDelayMs": 5.2999999998137355,
+    "ok": true,
+    "timeout": false,
+    "buildId": "0fa4e215c5923390f30aec1e74f220e38a46d2c252cbead23b9a5078a3cbd608",
+    "fixture": "ordinary-new-game-seed-424242",
+    "harnessId": "perf-phase-a-20261116-v1",
+    "measurementContractId": "HC-20261116-A1",
+    "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+    "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+    "comparisonEligible": true,
+    "lossSec": 6138,
+    "coverageSec": 6138,
+    "openingPhase": "completed",
+    "openingElapsedSec": 5,
+    "bake": {
+      "bakeMs": 38310.799999999814,
+      "terrainBakeMs": 18958,
+      "variantBuildMs": 16544.10000000056
+    },
+    "heapMB": 788,
+    "workerWrapped": false,
+    "originalWorkerIntact": true,
+    "instrument": false,
+    "milestones": {
+      "preparing": 1511,
+      "coverageFirst": 1511,
+      "coverageReachedLoss": 35175.5,
+      "preparationReady": 35175.5,
+      "revealing": 125246.20000000019,
+      "menuHidden": 137151.59999999963
+    },
+    "forecastReadyMs": 35175.5,
+    "coverageReachedLossMs": 35175.5,
+    "menuHiddenMs": 137151.59999999963,
+    "revealCompleteMs": null,
+    "graphicsApplied": {
+      "graphicsOptions": {
+        "fog": true,
+        "clouds": true,
+        "shadows": true,
+        "wisps": true,
+        "water": true
+      },
+      "search": "",
+      "minimalGraphicsUrl": false,
+      "performanceUrl": false,
+      "progressiveArtwork": null,
+      "devicePixelRatio": 2,
+      "innerWidth": 844,
+      "innerHeight": 390
+    },
+    "graphicsPinned": true,
+    "browserVersion": "156.0.8078.47",
+    "screenshotPath": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp4-suites-mobile-r2/suite1-mobile-x4-new-game-finished.png",
+    "longTaskSumMs": 145151,
+    "longTasks200": 157,
+    "longestTaskMs": 17960,
+    "oracle": {
+      "ok": true,
+      "reasons": [],
+      "errors": []
+    },
+    "click": {
+      "tArm": 4536.5,
+      "startArrival": 4650.100000000559,
+      "startHandler": 4655.4000000003725,
+      "slotClick": true,
+      "marks": [
+        {
+          "type": "pointerdown",
+          "timeStamp": 4650.100000000559,
+          "handlerNow": 4655.4000000003725
+        },
+        {
+          "type": "mousedown",
+          "timeStamp": 4650.100000000559,
+          "handlerNow": 4656
+        },
+        {
+          "type": "click",
+          "timeStamp": 4650.200000000186,
+          "handlerNow": 4657.200000000186
+        },
+        {
+          "type": "pointerdown",
+          "timeStamp": 5554.200000000186,
+          "handlerNow": 5572.200000000186
+        },
+        {
+          "type": "mousedown",
+          "timeStamp": 5554.200000000186,
+          "handlerNow": 5573
+        },
+        {
+          "type": "click",
+          "timeStamp": 5554.200000000186,
+          "handlerNow": 5574.200000000186
+        }
+      ]
+    }
+  },
+  {
+    "job": "bake",
+    "step": "terrain-bake",
+    "population": {
+      "cpuThrottle": 4,
+      "viewport": "mobile",
+      "cold": true,
+      "artwork": "illustrated-default-graphics",
+      "start": "ordinary-new-game",
+      "machine": "box-linux-xeon-8",
+      "renderer": "swiftshader"
+    },
+    "launchId": "suite2-mobile-x4",
+    "observationId": "suite2-mobile-x4-bake",
+    "elapsedMs": 35787.79999999888,
+    "handlerElapsedMs": 152330.5,
+    "queueDelayMs": 6.700000001117587,
+    "ok": true,
+    "timeout": false,
+    "buildId": "0fa4e215c5923390f30aec1e74f220e38a46d2c252cbead23b9a5078a3cbd608",
+    "fixture": "ordinary-new-game-seed-424242",
+    "harnessId": "perf-phase-a-20261116-v1",
+    "measurementContractId": "HC-20261116-A1",
+    "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+    "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+    "comparisonEligible": true,
+    "lossSec": 6138,
+    "coverageSec": 6138,
+    "openingPhase": "completed",
+    "openingElapsedSec": 5,
+    "bake": {
+      "bakeMs": 35787.79999999888,
+      "terrainBakeMs": 16279,
+      "variantBuildMs": 15772.799999998882
+    },
+    "heapMB": 1378,
+    "workerWrapped": false,
+    "originalWorkerIntact": true,
+    "instrument": false,
+    "milestones": {
+      "preparing": 2345.2000000011176,
+      "coverageFirst": 2345.2000000011176,
+      "coverageReachedLoss": 32607.5,
+      "preparationReady": 32607.5,
+      "revealing": 111190.59999999963,
+      "menuHidden": 121172.80000000075
+    },
+    "forecastReadyMs": 32607.5,
+    "coverageReachedLossMs": 32607.5,
+    "menuHiddenMs": 121172.80000000075,
+    "revealCompleteMs": null,
+    "graphicsApplied": {
+      "graphicsOptions": {
+        "fog": true,
+        "clouds": true,
+        "shadows": true,
+        "wisps": true,
+        "water": true
+      },
+      "search": "",
+      "minimalGraphicsUrl": false,
+      "performanceUrl": false,
+      "progressiveArtwork": null,
+      "devicePixelRatio": 2,
+      "innerWidth": 844,
+      "innerHeight": 390
+    },
+    "graphicsPinned": true,
+    "browserVersion": "156.0.8078.47",
+    "screenshotPath": "/workspace/perf-phase-a-20261116/artifacts/perf-phase-a-20261116/wp4-suites-mobile-r2/suite2-mobile-x4-new-game-finished.png",
+    "longTaskSumMs": 131074,
+    "longTasks200": 149,
+    "longestTaskMs": 16574,
+    "oracle": {
+      "ok": true,
+      "reasons": [],
+      "errors": []
+    },
+    "click": {
+      "tArm": 5080.700000001118,
+      "startArrival": 5468.5,
+      "startHandler": 5475.200000001118,
+      "slotClick": true,
+      "marks": [
+        {
+          "type": "pointerdown",
+          "timeStamp": 5468.5,
+          "handlerNow": 5475.200000001118
+        },
+        {
+          "type": "mousedown",
+          "timeStamp": 5468.5,
+          "handlerNow": 5475.300000000745
+        },
+        {
+          "type": "click",
+          "timeStamp": 5468.5999999996275,
+          "handlerNow": 5477.0999999996275
+        },
+        {
+          "type": "pointerdown",
+          "timeStamp": 6623.9000000003725,
+          "handlerNow": 6629
+        },
+        {
+          "type": "mousedown",
+          "timeStamp": 6623.9000000003725,
+          "handlerNow": 6629.5999999996275
+        },
+        {
+          "type": "click",
+          "timeStamp": 6623.9000000003725,
+          "handlerNow": 6630.5999999996275
+        }
+      ]
+    }
+  }
+]

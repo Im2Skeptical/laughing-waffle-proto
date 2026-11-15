@@ -1,0 +1,813 @@
+{
+  "newGame": [
+    {
+      "key": [
+        "0fa4e215c5923390f30aec1e74f220e38a46d2c252cbead23b9a5078a3cbd608",
+        "perf-phase-a-20261116-v1",
+        "HC-20261116-A1",
+        "ordinary-new-game-seed-424242",
+        "new-game-opening",
+        "useful-interaction",
+        {
+          "artwork": "illustrated-default-graphics",
+          "cold": true,
+          "cpuThrottle": 4,
+          "machine": "box-linux-xeon-8",
+          "renderer": "swiftshader",
+          "start": "ordinary-new-game",
+          "viewport": "mobile"
+        },
+        "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+        "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+        true
+      ],
+      "attempted": 3,
+      "passed": 3,
+      "failed": 0,
+      "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+      "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+      "comparisonEligible": true,
+      "invalid": 0,
+      "timeouts": 0,
+      "independentLaunches": 3,
+      "p50": 158985.59999999963,
+      "p95": 168673.7000000002,
+      "min": 152337.20000000112,
+      "max": 168673.7000000002,
+      "successOnly": {
+        "count": 3,
+        "p50": 158985.59999999963,
+        "p95": 168673.7000000002,
+        "min": 152337.20000000112,
+        "max": 168673.7000000002,
+        "population": "conditional on valid successful completion"
+      },
+      "p95Interval": {
+        "n": 3,
+        "p": 0.95,
+        "confidence": 0.99,
+        "estimate": 168673.7000000002,
+        "low": 152337.20000000112,
+        "high": null,
+        "lowerRank": 1,
+        "upperRank": 4,
+        "bounded": false,
+        "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+      },
+      "p95BootstrapDiagnostic": null,
+      "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+      "latencyBounds": {
+        "p50": {
+          "low": 158985.59999999963,
+          "high": 158985.59999999963
+        },
+        "p95": {
+          "low": 168673.7000000002,
+          "high": 168673.7000000002
+        },
+        "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+      },
+      "correctnessGate": true,
+      "tailSampleQuotaMet": false,
+      "eligibleForTailInference": false,
+      "censored": [],
+      "inference": "iid interval only if manifest proves separate independent launches"
+    }
+  ],
+  "bake": [
+    {
+      "key": [
+        "0fa4e215c5923390f30aec1e74f220e38a46d2c252cbead23b9a5078a3cbd608",
+        "perf-phase-a-20261116-v1",
+        "HC-20261116-A1",
+        "ordinary-new-game-seed-424242",
+        "bake",
+        "terrain-bake",
+        {
+          "artwork": "illustrated-default-graphics",
+          "cold": true,
+          "cpuThrottle": 4,
+          "machine": "box-linux-xeon-8",
+          "renderer": "swiftshader",
+          "start": "ordinary-new-game",
+          "viewport": "mobile"
+        },
+        "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+        "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+        true
+      ],
+      "attempted": 3,
+      "passed": 3,
+      "failed": 0,
+      "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+      "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+      "comparisonEligible": true,
+      "invalid": 0,
+      "timeouts": 0,
+      "independentLaunches": 3,
+      "p50": 37161.39999999944,
+      "p95": 38310.799999999814,
+      "min": 35787.79999999888,
+      "max": 38310.799999999814,
+      "successOnly": {
+        "count": 3,
+        "p50": 37161.39999999944,
+        "p95": 38310.799999999814,
+        "min": 35787.79999999888,
+        "max": 38310.799999999814,
+        "population": "conditional on valid successful completion"
+      },
+      "p95Interval": {
+        "n": 3,
+        "p": 0.95,
+        "confidence": 0.99,
+        "estimate": 38310.799999999814,
+        "low": 35787.79999999888,
+        "high": null,
+        "lowerRank": 1,
+        "upperRank": 4,
+        "bounded": false,
+        "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+      },
+      "p95BootstrapDiagnostic": null,
+      "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+      "latencyBounds": {
+        "p50": {
+          "low": 37161.39999999944,
+          "high": 37161.39999999944
+        },
+        "p95": {
+          "low": 38310.799999999814,
+          "high": 38310.799999999814
+        },
+        "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+      },
+      "correctnessGate": true,
+      "tailSampleQuotaMet": false,
+      "eligibleForTailInference": false,
+      "censored": [],
+      "inference": "iid interval only if manifest proves separate independent launches"
+    }
+  ],
+  "scrub": [
+    {
+      "key": [
+        "0fa4e215c5923390f30aec1e74f220e38a46d2c252cbead23b9a5078a3cbd608",
+        "perf-phase-a-20261116-v1",
+        "HC-20261116-A1",
+        "ordinary-new-game-seed-424242",
+        "scrub-step",
+        "restore-visible",
+        {
+          "artwork": "illustrated-default-graphics",
+          "cold": false,
+          "cpuThrottle": 4,
+          "machine": "box-linux-xeon-8",
+          "renderer": "swiftshader",
+          "start": "ordinary-new-game",
+          "viewport": "mobile"
+        },
+        "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+        "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+        true
+      ],
+      "attempted": 120,
+      "passed": 120,
+      "failed": 0,
+      "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+      "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+      "comparisonEligible": true,
+      "invalid": 0,
+      "timeouts": 0,
+      "independentLaunches": 3,
+      "p50": 865.5,
+      "p95": 1094.2999999998137,
+      "min": 629,
+      "max": 1680.199999999255,
+      "successOnly": {
+        "count": 120,
+        "p50": 865.5,
+        "p95": 1094.2999999998137,
+        "min": 629,
+        "max": 1680.199999999255,
+        "population": "conditional on valid successful completion"
+      },
+      "p95Interval": {
+        "n": 120,
+        "clusters": 3,
+        "p": 0.95,
+        "confidence": 0.99,
+        "estimate": 1094.2999999998137,
+        "low": 629,
+        "high": null,
+        "bounded": false,
+        "equalClusterSize": true,
+        "operationsPerLaunch": 40,
+        "minimaInterval": {
+          "n": 3,
+          "p": 0.95,
+          "confidence": 0.99,
+          "estimate": 664.5,
+          "low": 629,
+          "high": null,
+          "lowerRank": 1,
+          "upperRank": 4,
+          "bounded": false,
+          "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+        },
+        "maximaInterval": {
+          "n": 3,
+          "p": 0.95,
+          "confidence": 0.99,
+          "estimate": 1680.199999999255,
+          "low": 1146.0999999996275,
+          "high": null,
+          "lowerRank": 1,
+          "upperRank": 4,
+          "bounded": false,
+          "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+        },
+        "eligibleForInference": false,
+        "method": "conservative exact binomial envelope of independent-session minima/maxima; null endpoint unbounded",
+        "assumptions": "independent identically distributed sessions, fixed equal offered operation counts; no workload-dependent sample loss"
+      },
+      "p95BootstrapDiagnostic": {
+        "n": 120,
+        "clusters": 3,
+        "p": 0.95,
+        "confidence": 0.95,
+        "estimate": 1094.2999999998137,
+        "low": 1047.3999999985099,
+        "high": 1104.5,
+        "bounded": true,
+        "method": "percentile bootstrap of whole launch clusters (operation-weighted quantile)",
+        "replicates": 5000,
+        "seed": 1279477809,
+        "eligibleForInference": false,
+        "limitation": "diagnostic only: empirical bootstrap cannot discover unobserved tail modes; never used for hard regression gates"
+      },
+      "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+      "latencyBounds": {
+        "p50": {
+          "low": 865.5,
+          "high": 865.5
+        },
+        "p95": {
+          "low": 1094.2999999998137,
+          "high": 1094.2999999998137
+        },
+        "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+      },
+      "correctnessGate": true,
+      "tailSampleQuotaMet": false,
+      "eligibleForTailInference": false,
+      "censored": [],
+      "inference": "conservative exact envelope of independent launch extrema; bootstrap diagnostic only"
+    }
+  ],
+  "scrubDrag": [
+    {
+      "key": [
+        "0fa4e215c5923390f30aec1e74f220e38a46d2c252cbead23b9a5078a3cbd608",
+        "perf-phase-a-20261116-v1",
+        "HC-20261116-A1",
+        "prepared-performance-start-seed-424242",
+        "scrub-drag",
+        "move-arrival-to-caught-up-frame",
+        {
+          "arm": "A1",
+          "artwork": "performance-mode-stubs-art0",
+          "cadenceMs": 50,
+          "cold": false,
+          "cpuThrottle": 4,
+          "input": "touch",
+          "machine": "box-linux-xeon-8",
+          "renderer": "swiftshader",
+          "start": "prepared-424242",
+          "viewport": "mobile"
+        },
+        "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+        "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+        true
+      ],
+      "attempted": 57,
+      "passed": 57,
+      "failed": 0,
+      "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+      "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+      "comparisonEligible": true,
+      "invalid": 0,
+      "timeouts": 0,
+      "independentLaunches": 9,
+      "p50": 1164.7000000001863,
+      "p95": 2553.5,
+      "min": 600.4000000003725,
+      "max": 2834.4000000003725,
+      "successOnly": {
+        "count": 57,
+        "p50": 1164.7000000001863,
+        "p95": 2553.5,
+        "min": 600.4000000003725,
+        "max": 2834.4000000003725,
+        "population": "conditional on valid successful completion"
+      },
+      "p95Interval": {
+        "n": 57,
+        "clusters": 9,
+        "p": 0.95,
+        "confidence": 0.99,
+        "estimate": 2553.5,
+        "low": null,
+        "high": null,
+        "bounded": false,
+        "equalClusterSize": false,
+        "operationsPerLaunch": null,
+        "minimaInterval": {
+          "n": 9,
+          "p": 0.95,
+          "confidence": 0.99,
+          "estimate": 1270.9000000003725,
+          "low": 846.1999999992549,
+          "high": null,
+          "lowerRank": 6,
+          "upperRank": 10,
+          "bounded": false,
+          "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+        },
+        "maximaInterval": {
+          "n": 9,
+          "p": 0.95,
+          "confidence": 0.99,
+          "estimate": 2834.4000000003725,
+          "low": 1503.4000000003725,
+          "high": null,
+          "lowerRank": 6,
+          "upperRank": 10,
+          "bounded": false,
+          "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+        },
+        "eligibleForInference": false,
+        "method": "conservative exact binomial envelope of independent-session minima/maxima; null endpoint unbounded",
+        "assumptions": "independent identically distributed sessions, fixed equal offered operation counts; no workload-dependent sample loss"
+      },
+      "p95BootstrapDiagnostic": {
+        "n": 57,
+        "clusters": 9,
+        "p": 0.95,
+        "confidence": 0.95,
+        "estimate": 2553.5,
+        "low": 1467.2000000011176,
+        "high": 2834.4000000003725,
+        "bounded": true,
+        "method": "percentile bootstrap of whole launch clusters (operation-weighted quantile)",
+        "replicates": 5000,
+        "seed": 1279477809,
+        "eligibleForInference": false,
+        "limitation": "diagnostic only: empirical bootstrap cannot discover unobserved tail modes; never used for hard regression gates"
+      },
+      "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+      "latencyBounds": {
+        "p50": {
+          "low": 1164.7000000001863,
+          "high": 1164.7000000001863
+        },
+        "p95": {
+          "low": 2553.5,
+          "high": 2553.5
+        },
+        "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+      },
+      "correctnessGate": true,
+      "tailSampleQuotaMet": false,
+      "eligibleForTailInference": false,
+      "censored": [],
+      "inference": "conservative exact envelope of independent launch extrema; bootstrap diagnostic only"
+    },
+    {
+      "key": [
+        "0fa4e215c5923390f30aec1e74f220e38a46d2c252cbead23b9a5078a3cbd608",
+        "perf-phase-a-20261116-v1",
+        "HC-20261116-A1",
+        "prepared-performance-start-seed-424242",
+        "scrub-drag",
+        "move-arrival-to-caught-up-frame",
+        {
+          "arm": "delay",
+          "artwork": "performance-mode-stubs-art0",
+          "cadenceMs": 50,
+          "cold": false,
+          "cpuThrottle": 4,
+          "input": "touch",
+          "machine": "box-linux-xeon-8",
+          "renderer": "swiftshader",
+          "start": "prepared-424242",
+          "viewport": "mobile"
+        },
+        "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+        "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+        false
+      ],
+      "attempted": 45,
+      "passed": 45,
+      "failed": 0,
+      "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+      "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+      "comparisonEligible": false,
+      "invalid": 0,
+      "timeouts": 0,
+      "independentLaunches": 9,
+      "p50": 2404.9000000003725,
+      "p95": 3114.4000000003725,
+      "min": 869.5999999996275,
+      "max": 3210.5999999996275,
+      "successOnly": {
+        "count": 45,
+        "p50": 2404.9000000003725,
+        "p95": 3114.4000000003725,
+        "min": 869.5999999996275,
+        "max": 3210.5999999996275,
+        "population": "conditional on valid successful completion"
+      },
+      "p95Interval": {
+        "n": 45,
+        "clusters": 9,
+        "p": 0.95,
+        "confidence": 0.99,
+        "estimate": 3114.4000000003725,
+        "low": null,
+        "high": null,
+        "bounded": false,
+        "equalClusterSize": false,
+        "operationsPerLaunch": null,
+        "minimaInterval": {
+          "n": 9,
+          "p": 0.95,
+          "confidence": 0.99,
+          "estimate": 1842.2999999988824,
+          "low": 1698.0999999996275,
+          "high": null,
+          "lowerRank": 6,
+          "upperRank": 10,
+          "bounded": false,
+          "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+        },
+        "maximaInterval": {
+          "n": 9,
+          "p": 0.95,
+          "confidence": 0.99,
+          "estimate": 3210.5999999996275,
+          "low": 2969.4000000003725,
+          "high": null,
+          "lowerRank": 6,
+          "upperRank": 10,
+          "bounded": false,
+          "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+        },
+        "eligibleForInference": false,
+        "method": "conservative exact binomial envelope of independent-session minima/maxima; null endpoint unbounded",
+        "assumptions": "independent identically distributed sessions, fixed equal offered operation counts; no workload-dependent sample loss"
+      },
+      "p95BootstrapDiagnostic": {
+        "n": 45,
+        "clusters": 9,
+        "p": 0.95,
+        "confidence": 0.95,
+        "estimate": 3114.4000000003725,
+        "low": 2889.2000000001863,
+        "high": 3210.5999999996275,
+        "bounded": true,
+        "method": "percentile bootstrap of whole launch clusters (operation-weighted quantile)",
+        "replicates": 5000,
+        "seed": 1279477809,
+        "eligibleForInference": false,
+        "limitation": "diagnostic only: empirical bootstrap cannot discover unobserved tail modes; never used for hard regression gates"
+      },
+      "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+      "latencyBounds": {
+        "p50": {
+          "low": 2404.9000000003725,
+          "high": 2404.9000000003725
+        },
+        "p95": {
+          "low": 3114.4000000003725,
+          "high": 3114.4000000003725
+        },
+        "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+      },
+      "correctnessGate": true,
+      "tailSampleQuotaMet": false,
+      "eligibleForTailInference": false,
+      "censored": [],
+      "inference": "CONSTRUCTION OR UNPINNED ORACLE: diagnostic only; explicit frozen corpus and SDK identities required"
+    },
+    {
+      "key": [
+        "0fa4e215c5923390f30aec1e74f220e38a46d2c252cbead23b9a5078a3cbd608",
+        "perf-phase-a-20261116-v1",
+        "HC-20261116-A1",
+        "prepared-performance-start-seed-424242",
+        "scrub-drag",
+        "move-arrival-to-caught-up-frame",
+        {
+          "arm": "A2",
+          "artwork": "performance-mode-stubs-art0",
+          "cadenceMs": 50,
+          "cold": false,
+          "cpuThrottle": 4,
+          "input": "touch",
+          "machine": "box-linux-xeon-8",
+          "renderer": "swiftshader",
+          "start": "prepared-424242",
+          "viewport": "mobile"
+        },
+        "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+        "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+        true
+      ],
+      "attempted": 55,
+      "passed": 55,
+      "failed": 0,
+      "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+      "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+      "comparisonEligible": true,
+      "invalid": 0,
+      "timeouts": 0,
+      "independentLaunches": 9,
+      "p50": 1087.4000000003725,
+      "p95": 1705.5,
+      "min": 569.9000000003725,
+      "max": 1874,
+      "successOnly": {
+        "count": 55,
+        "p50": 1087.4000000003725,
+        "p95": 1705.5,
+        "min": 569.9000000003725,
+        "max": 1874,
+        "population": "conditional on valid successful completion"
+      },
+      "p95Interval": {
+        "n": 55,
+        "clusters": 9,
+        "p": 0.95,
+        "confidence": 0.99,
+        "estimate": 1705.5,
+        "low": null,
+        "high": null,
+        "bounded": false,
+        "equalClusterSize": false,
+        "operationsPerLaunch": null,
+        "minimaInterval": {
+          "n": 9,
+          "p": 0.95,
+          "confidence": 0.99,
+          "estimate": 1195.7999999988824,
+          "low": 853,
+          "high": null,
+          "lowerRank": 6,
+          "upperRank": 10,
+          "bounded": false,
+          "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+        },
+        "maximaInterval": {
+          "n": 9,
+          "p": 0.95,
+          "confidence": 0.99,
+          "estimate": 1874,
+          "low": 1453,
+          "high": null,
+          "lowerRank": 6,
+          "upperRank": 10,
+          "bounded": false,
+          "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+        },
+        "eligibleForInference": false,
+        "method": "conservative exact binomial envelope of independent-session minima/maxima; null endpoint unbounded",
+        "assumptions": "independent identically distributed sessions, fixed equal offered operation counts; no workload-dependent sample loss"
+      },
+      "p95BootstrapDiagnostic": {
+        "n": 55,
+        "clusters": 9,
+        "p": 0.95,
+        "confidence": 0.95,
+        "estimate": 1705.5,
+        "low": 1438.7999999988824,
+        "high": 1874,
+        "bounded": true,
+        "method": "percentile bootstrap of whole launch clusters (operation-weighted quantile)",
+        "replicates": 5000,
+        "seed": 1279477809,
+        "eligibleForInference": false,
+        "limitation": "diagnostic only: empirical bootstrap cannot discover unobserved tail modes; never used for hard regression gates"
+      },
+      "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+      "latencyBounds": {
+        "p50": {
+          "low": 1087.4000000003725,
+          "high": 1087.4000000003725
+        },
+        "p95": {
+          "low": 1705.5,
+          "high": 1705.5
+        },
+        "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+      },
+      "correctnessGate": true,
+      "tailSampleQuotaMet": false,
+      "eligibleForTailInference": false,
+      "censored": [],
+      "inference": "conservative exact envelope of independent launch extrema; bootstrap diagnostic only"
+    },
+    {
+      "key": [
+        "0fa4e215c5923390f30aec1e74f220e38a46d2c252cbead23b9a5078a3cbd608",
+        "perf-phase-a-20261116-v1",
+        "HC-20261116-A1",
+        "prepared-performance-start-seed-424242",
+        "scrub-drag",
+        "move-arrival-to-caught-up-frame",
+        {
+          "arm": "deferred",
+          "artwork": "performance-mode-stubs-art0",
+          "cadenceMs": 50,
+          "cold": false,
+          "cpuThrottle": 4,
+          "input": "touch",
+          "machine": "box-linux-xeon-8",
+          "renderer": "swiftshader",
+          "start": "prepared-424242",
+          "viewport": "mobile"
+        },
+        "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+        "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+        false
+      ],
+      "attempted": 44,
+      "passed": 44,
+      "failed": 0,
+      "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+      "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+      "comparisonEligible": false,
+      "invalid": 0,
+      "timeouts": 0,
+      "independentLaunches": 9,
+      "p50": 1560.3999999985099,
+      "p95": 3024.800000000745,
+      "min": 796.9000000003725,
+      "max": 3674.199999999255,
+      "successOnly": {
+        "count": 44,
+        "p50": 1560.3999999985099,
+        "p95": 3024.800000000745,
+        "min": 796.9000000003725,
+        "max": 3674.199999999255,
+        "population": "conditional on valid successful completion"
+      },
+      "p95Interval": {
+        "n": 44,
+        "clusters": 9,
+        "p": 0.95,
+        "confidence": 0.99,
+        "estimate": 3024.800000000745,
+        "low": null,
+        "high": null,
+        "bounded": false,
+        "equalClusterSize": false,
+        "operationsPerLaunch": null,
+        "minimaInterval": {
+          "n": 9,
+          "p": 0.95,
+          "confidence": 0.99,
+          "estimate": 2505.199999999255,
+          "low": 1044.7999999998137,
+          "high": null,
+          "lowerRank": 6,
+          "upperRank": 10,
+          "bounded": false,
+          "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+        },
+        "maximaInterval": {
+          "n": 9,
+          "p": 0.95,
+          "confidence": 0.99,
+          "estimate": 3674.199999999255,
+          "low": 2102.899999999441,
+          "high": null,
+          "lowerRank": 6,
+          "upperRank": 10,
+          "bounded": false,
+          "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+        },
+        "eligibleForInference": false,
+        "method": "conservative exact binomial envelope of independent-session minima/maxima; null endpoint unbounded",
+        "assumptions": "independent identically distributed sessions, fixed equal offered operation counts; no workload-dependent sample loss"
+      },
+      "p95BootstrapDiagnostic": {
+        "n": 44,
+        "clusters": 9,
+        "p": 0.95,
+        "confidence": 0.95,
+        "estimate": 3024.800000000745,
+        "low": 2090.800000000745,
+        "high": 3674.199999999255,
+        "bounded": true,
+        "method": "percentile bootstrap of whole launch clusters (operation-weighted quantile)",
+        "replicates": 5000,
+        "seed": 1279477809,
+        "eligibleForInference": false,
+        "limitation": "diagnostic only: empirical bootstrap cannot discover unobserved tail modes; never used for hard regression gates"
+      },
+      "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+      "latencyBounds": {
+        "p50": {
+          "low": 1560.3999999985099,
+          "high": 1560.3999999985099
+        },
+        "p95": {
+          "low": 3024.800000000745,
+          "high": 3024.800000000745
+        },
+        "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+      },
+      "correctnessGate": true,
+      "tailSampleQuotaMet": false,
+      "eligibleForTailInference": false,
+      "censored": [],
+      "inference": "CONSTRUCTION OR UNPINNED ORACLE: diagnostic only; explicit frozen corpus and SDK identities required"
+    }
+  ],
+  "openingUnveil": [
+    {
+      "key": [
+        "0fa4e215c5923390f30aec1e74f220e38a46d2c252cbead23b9a5078a3cbd608",
+        "perf-phase-a-20261116-v1",
+        "HC-20261116-A1",
+        "ordinary-new-game-seed-424242",
+        "opening-unveil-pacing",
+        "authored-reveal",
+        {
+          "artwork": "illustrated-default-graphics",
+          "cold": true,
+          "cpuThrottle": 4,
+          "machine": "box-linux-xeon-8",
+          "renderer": "swiftshader",
+          "start": "ordinary-new-game",
+          "viewport": "mobile"
+        },
+        "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+        "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+        true
+      ],
+      "attempted": 3,
+      "passed": 3,
+      "failed": 0,
+      "fixtureManifestId": "a5ebe352cbd9e45399cc1efbe64c493632ae0fde9fd20fa040960ccbd2261a79",
+      "oracleSdkSha256": "00f31fb31ec34d6d3681ab429ae54942ab1648b2beea25393fd132a1cf0e9727",
+      "comparisonEligible": true,
+      "invalid": 0,
+      "timeouts": 0,
+      "independentLaunches": 3,
+      "p50": 5000,
+      "p95": 5000,
+      "min": 5000,
+      "max": 5000,
+      "successOnly": {
+        "count": 3,
+        "p50": 5000,
+        "p95": 5000,
+        "min": 5000,
+        "max": 5000,
+        "population": "conditional on valid successful completion"
+      },
+      "p95Interval": {
+        "n": 3,
+        "p": 0.95,
+        "confidence": 0.99,
+        "estimate": 5000,
+        "low": 5000,
+        "high": null,
+        "lowerRank": 1,
+        "upperRank": 4,
+        "bounded": false,
+        "method": "iid binomial order statistics, mode-centred weights; null endpoint is unbounded"
+      },
+      "p95BootstrapDiagnostic": null,
+      "decisionCoverage": "99% per build/per look; at most two predeclared looks across baseline/candidate gives >=96% metricwise joint coverage by union bound, not across all jobs",
+      "latencyBounds": {
+        "p50": {
+          "low": 5000,
+          "high": 5000
+        },
+        "p95": {
+          "low": 5000,
+          "high": 5000
+        },
+        "method": "observed completion or right-censored time-to-correct-completion; null high is unbounded"
+      },
+      "correctnessGate": true,
+      "tailSampleQuotaMet": false,
+      "eligibleForTailInference": false,
+      "censored": [],
+      "inference": "iid interval only if manifest proves separate independent launches"
+    }
+  ]
+}
