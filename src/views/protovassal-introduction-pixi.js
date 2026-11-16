@@ -16,23 +16,30 @@ export function createProtovassalIntroduction({ candidates, selected, onDetails 
   }
   const title = text(root, 'Who will lead your people?', PANEL.width / 2, 54, 64, { fontWeight: 'bold' });
   title.anchor.set(.5, 0);
-  const subtitle = text(root, 'Choose a leader to explore their playstyle.', PANEL.width / 2, 140, 30, { fill: RELIC.ash });
-  subtitle.anchor.set(.5, 0);
-  const width = 1000, height = 430, gap = 64;
-  const left = (PANEL.width - candidates.length * width - (candidates.length - 1) * gap) / 2;
-  candidates.forEach((candidate, index) => {
-    const data = FOUNDER_CLASSES[candidate.founderClassId];
-    const card = new PIXI.Container(); card.position.set(left + index * (width + gap), 210);
+  const slots = 4, width = 520, height = 520, gap = 28;
+  const left = (PANEL.width - slots * width - (slots - 1) * gap) / 2;
+  for (let index = 0; index < slots; index++) {
+    const candidate = candidates[index], data = candidate && FOUNDER_CLASSES[candidate.founderClassId];
+    const card = new PIXI.Container(); card.position.set(left + index * (width + gap), 148);
     card.hitArea = new PIXI.Rectangle(0, 0, width, height); card.eventMode = 'static';
     root.addChild(card);
-    addPaintedPanel(card, 'panel', width, height, { tint: data.frameTint, fill: data.deep });
-    const portrait = createClassPortraitArt(candidate.founderClassId, { size: 300, founder: true });
-    if (portrait) { portrait.position.set(48, 58); card.addChild(portrait); }
-    const x = 390, copyWidth = width - x - 52;
-    text(card, data.name, x, 62, 44, { fontWeight: 'bold', letterSpacing: 2 });
-    text(card, `UNLOCKS ${data.unlocks.toUpperCase()}`, x, 123, 22, { fill: data.accent, fontWeight: 'bold', letterSpacing: 3 });
-    text(card, data.playstyle, x, 179, 32, { wordWrap: true, wordWrapWidth: copyWidth, lineHeight: 42 });
-    text(card, 'EXPLORE LEADER  ›', x, 349, 26, { fill: data.accent, fontWeight: 'bold', letterSpacing: 2 });
+    addPaintedPanel(card, 'panel', width, height, { tint: data?.frameTint ?? 0x85877d, fill: data?.deep ?? 0x242721 });
+    const portrait = createClassPortraitArt(candidate?.founderClassId ?? 'mystery', { size: 200, founder: !!candidate });
+    if (portrait) { portrait.position.set((width - 200) / 2, 42); portrait.alpha = candidate ? 1 : .65; card.addChild(portrait); }
+    const centered = (copy, y, size, options = {}) => {
+      const label = text(card, copy, width / 2, y, size, { align: 'center', ...options });
+      label.anchor.set(.5, 0); return label;
+    };
+    if (!candidate) {
+      centered('?', 74, 114, { fill: RELIC.ash });
+      centered('LOCKED', 268, 36, { fill: RELIC.ash, fontWeight: 'bold', letterSpacing: 2 });
+      card.cursor = 'default'; root.controls[`locked:${index}`] = card;
+      continue;
+    }
+    centered(data.name, 268, 36, { fontWeight: 'bold', letterSpacing: 2 });
+    centered(`UNLOCKS ${data.unlocks.toUpperCase()}`, 315, 20, { fill: data.accent, fontWeight: 'bold', letterSpacing: 3 });
+    centered(data.playstyle, 354, 28, { wordWrap: true, wordWrapWidth: width - 80, lineHeight: 34 });
+    centered('EXPLORE LEADER  ›', 462, 22, { fill: data.accent, fontWeight: 'bold', letterSpacing: 2 });
     // Arrow keys can highlight a portrait before Enter opens its details.
     if (candidate === selected) {
       const focus = new PIXI.Graphics().lineStyle(2, data.accent, .6).drawRoundedRect(18, 18, width - 36, height - 36, 6);
@@ -42,6 +49,6 @@ export function createProtovassalIntroduction({ candidates, selected, onDetails 
     card.portraitStage = 'youth';
     root.controls[`leader:${candidate.founderClassId}`] = card;
     root.candidateRoots[candidate.candidateIndex] = card;
-  });
+  }
   return root;
 }
