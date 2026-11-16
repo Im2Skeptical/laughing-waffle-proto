@@ -86,23 +86,11 @@ export function createWorldMapVassalDrawerView({
 
   // The founder picker persists between redraws so its open, close and page
   // transitions play; it only rebuilds when the pool or artwork changes.
-  // The dock's Confirm button is the way to begin, so the class on show must
-  // already be the selected candidate; preview it (outside this render) if not.
-  let autoPreviewQueued = false;
-  function ensureFounderSelected(pool, selectedIndex) {
-    if (selectedIndex != null || autoPreviewQueued || !pool.candidates.length) return;
-    autoPreviewQueued = true;
-    queueMicrotask(() => {
-      autoPreviewQueued = false;
-      if (isOpen?.() === true && getSelectedCandidateIndex?.() == null) onPreviewCandidate?.(pool.candidates[0].candidateIndex);
-    });
-  }
-
   function renderFounder(pool, selectedIndex, open, force) {
-    if (open) ensureFounderSelected(pool, selectedIndex);
     const sig = `${getArtRevision()}:${getVassalClassArtRevision()}:${JSON.stringify(pool.candidates.map(c => [c.candidateIndex, c.founderClassId, c.stats]))}`;
     const justOpened = open && !wasOpen;
     if (!founderDossier || force || sig !== founderSignature) {
+      const previous = !justOpened ? founderDossier?.capturePanelState() : null;
       founderDossier?.destroyTooltip?.();
       clearChildren(root);
       const blocker = new PIXI.Graphics();
@@ -114,9 +102,10 @@ export function createWorldMapVassalDrawerView({
       root.addChild(founderDossier);candidateRoots=founderDossier.candidateRoots;rerollRoot=null;
       buildCount++;
       if (open) founderDossier.open();
+      if (previous) founderDossier.restorePanelState(previous);
     } else {
       if (justOpened) founderDossier.open();
-      founderDossier.select(selectedIndex);
+      if (founderDossier.getSnapshot().step === 'details') founderDossier.select(selectedIndex);
     }
   }
 
@@ -202,6 +191,8 @@ export function createWorldMapVassalDrawerView({
     setVisible: (visible) => { root.visible = visible === true; },
     handleKeyDown: event => root.visible && !!founderDossier && isOpen?.() === true && founderDossier.handleKeyDown(event),
     getFounderSnapshot: () => root.visible ? founderDossier?.getSnapshot() ?? null : null,
+    captureFounderPanelState: () => root.visible ? founderDossier?.capturePanelState() ?? null : null,
+    restoreFounderPanelState: saved => founderDossier?.restorePanelState(saved),
     getFounderControlClickPoint: id => {
       const control=founderDossier?.controls[id];
       if(!root.visible || !control || control.destroyed)return null;
