@@ -5,8 +5,11 @@ import { VASSAL_LIFE_TUNING } from "../defs/gamepieces/vassal-life-map-defs.js";
 import {
   getVassalAge,
   getVassalHeirloomInventory,
+  getVassalNodeResolutionGains,
+  getVassalPrestigeIncome,
   getVassalStatsPresentation,
 } from "../model/vassal-life-map.js";
+import { TERRITORIAL_PRESTIGE_POPULATION_PER_POINT } from "../model/vassal-life-map/selectors.js";
 import { getRegionReference } from "../model/world-state.js";
 import { clearChildren, createText, roundedRect } from "./settlement-view-primitives.js";
 import { PALETTE, TEXT_STYLES } from "./settlement-theme.js";
@@ -142,6 +145,7 @@ export function createVassalLifeHudView({
   let activeSlots = [];
   let banners = [];
   let litPlaque = null;
+  let prestigeIncomeSnapshot = null;
 
   function hideStatTooltip() {
     pinnedStatId = null;
@@ -201,12 +205,15 @@ export function createVassalLifeHudView({
     if (!countUp) tween = null;
     const shown = vassal ? displayedValues(vassal, presentation, countUp) : null;
     const inventory = vassal ? getVassalHeirloomInventory(vassal) : { equipped: [], carry: [] };
+    const prestigeIncome = vassal ? getVassalNodeResolutionGains(presentation.state, vassal).prestige : 0;
+    const personalPrestigeIncome = vassal ? getVassalPrestigeIncome(vassal) : 0;
     const nextSignature = getArtRevision() + JSON.stringify({
       vassalId: vassal?.vassalId ?? null,
       classId: vassal?.classId ?? null,
       founderClassId: vassal?.founderClassId ?? null,
       retinue: getRetinue(presentation.state, vassal),
       prestige: vassal?.prestige ?? null,
+      prestigeIncome,
       commission: vassal?.commission ?? null,
       stats: vassal?.stats ?? null,
       exp: vassal?.developmentProgress ?? null,
@@ -226,6 +233,7 @@ export function createVassalLifeHudView({
     bagControl = null;
     activeSlots = [];
     banners = [];
+    prestigeIncomeSnapshot = null;
     clearChildren(root);
     if (!vassal || !shown) return;
 
@@ -344,6 +352,29 @@ export function createVassalLifeHudView({
       ...(prestigeCut ? [`Shown: ${prestigeLabel}`] : []),
     ] }));
 
+    // A paired pendant keeps recurring income distinct from the spendable bank.
+    const incomeText = createText(`+${prestigeIncome.toLocaleString('en-US')} / node`, valueStyle(24, 0xb6ce92), 0, 47, .5, .5);
+    const incomeW = Math.max(170, Math.min(260, incomeText.width + 36));
+    const incomeX = pd.x + pendantW + 6;
+    const join = new PIXI.Graphics();
+    join.lineStyle(3, PALETTE.accent, 1);
+    for (const y of [32, 62]) join.moveTo(pd.x + pendantW - 5, pd.y + y).lineTo(incomeX + 5, pd.y + y);
+    join.eventMode = 'none'; crest.addChild(join);
+    const income = new PIXI.Container(); income.position.set(incomeX, pd.y); crest.addChild(income);
+    if (painted) addSliced(income, tex('pendant'), 0, 0, incomeW, pd.unit, SLICES.pendant);
+    else { const g = new PIXI.Graphics(); roundedRect(g, 0, 20, incomeW, 54, 9, 0x423d2c, PALETTE.accent, 3); income.addChild(g); }
+    incomeText.x = incomeW / 2; fitText(incomeText, incomeW - 28, 22); income.addChild(incomeText);
+    income.hitArea = new PIXI.Rectangle(0, 0, incomeW, 75);
+    income.cursor = 'help';
+    tipOn(income, () => ({ title: 'Prestige income', scale: 2, lines: [
+      `+${prestigeIncome.toLocaleString('en-US')} Prestige per completed node.`,
+      `${personalPrestigeIncome} from the Vassal + ${prestigeIncome - personalPrestigeIncome} from player-held regions.`,
+      `Each region earns 1 per full ${TERRITORIAL_PRESTIGE_POPULATION_PER_POINT} residents, rounded down separately.`,
+      'Node-specific rewards and bonuses are additional. Delve and campaign encounters award no node income.',
+    ] }));
+    prestigeIncomeSnapshot = { value: prestigeIncome, label: incomeText.text, rect: income.getBounds() };
+    const prestigeRight = incomeX + incomeW;
+
     // ---- four stat plaques: icon and value; the label lives in the tooltip ----
     const sp = CREST.stats;
     getVassalStatsPresentation(vassal).forEach((stat, index) => {
@@ -430,9 +461,9 @@ export function createVassalLifeHudView({
       const text = createText(entry.value, { ...TEXT_STYLES.header, fontSize: 20, fill: PALETTE.text, stroke: 0x1a0b0b, strokeThickness: 3 }, 0, 0, .5, 0);
       return { entry, text, width: Math.max(tb.minWidth, text.width + 34) };
     });
-    // Reserve the actual Prestige pendant width. Normal labels keep their font
+    // Reserve both Prestige pendants. Normal labels keep their font
     // size; unusually long combined labels share the remaining horizontal room.
-    const available = tb.right - (pd.x + pendantW + tb.gap * 2) - tb.gap * (measured.length - 1);
+    const available = tb.right - (prestigeRight + tb.gap * 2) - tb.gap * (measured.length - 1);
     const tabRatio = Math.min(1, available / measured.reduce((sum, item) => sum + item.width, 0));
     let right = tb.right;
     for (const { entry, text, width: naturalWidth } of measured) {
@@ -446,7 +477,7 @@ export function createVassalLifeHudView({
       tab.hitArea = new PIXI.Rectangle(0, 0, width, tb.height);
       tipOn(tab, () => entry.tip);
       banners.push({ kind: entry.kind ?? 'task', text: text.text, fullText: entry.tip.lines[0],
-        width, textWidth: text.width, x, pendantRight: pd.x + pendantW, right: x + width });
+        width, textWidth: text.width, x, pendantRight: prestigeRight, right: x + width });
     }
   }
 
@@ -470,7 +501,7 @@ export function createVassalLifeHudView({
     getPreparationSnapshot: () => ({ visible: root.visible, childCount: root.children.length, buildCount }),
     getSemanticSnapshot: () => {
       const p=getPresentation?.()??{},v=p.profileVassal??p.vassal;
-      return {visible:root.visible===true,prestigeDelta:getDeltas?.()?.prestige??0,
+      return {visible:root.visible===true,prestigeDelta:getDeltas?.()?.prestige??0,prestigeIncome:prestigeIncomeSnapshot,
         stats:root.children.flatMap(child => child.children ?? []).filter(child => child.statPresentation).map(child => child.statPresentation),
         banners,retinue:getRetinue(p.state,v),bagRect:bagControl?.getBounds?.(),
         activeSlotRects:activeSlots.map(slot=>slot.getBounds()),
