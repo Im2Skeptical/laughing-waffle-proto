@@ -39,7 +39,6 @@ export function createProtovassalIntroduction({ candidates, selected, onDetails 
     centered(data.name, 268, 36, { fontWeight: 'bold', letterSpacing: 2 });
     centered(`UNLOCKS ${data.unlocks.toUpperCase()}`, 315, 20, { fill: data.accent, fontWeight: 'bold', letterSpacing: 3 });
     centered(data.playstyle, 354, 28, { wordWrap: true, wordWrapWidth: width - 80, lineHeight: 34 });
-    centered('EXPLORE LEADER  ›', 462, 22, { fill: data.accent, fontWeight: 'bold', letterSpacing: 2 });
     // Arrow keys can highlight a portrait before Enter opens its details.
     if (candidate === selected) {
       const focus = new PIXI.Graphics().lineStyle(2, data.accent, .6).drawRoundedRect(18, 18, width - 36, height - 36, 6);
