@@ -1,0 +1,54 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 28, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "dev",
+      "displayName": "Development",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/dev",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "optimized",
+      "displayName": "Optimized",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/optimized",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "android",
+      "displayName": "Android arm64 (project-local NDK r30)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/android",
+      "toolchainFile": "${sourceDir}/.tools/android-sdk/ndk/30.0.16248370/build/cmake/android.toolchain.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ANDROID_ABI": "arm64-v8a",
+        "ANDROID_PLATFORM": "android-31",
+        "ANDROID_STL": "c++_static"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "dev", "configurePreset": "dev" },
+    { "name": "optimized", "configurePreset": "optimized" },
+    { "name": "android", "configurePreset": "android" }
+  ],
+  "testPresets": [
+    {
+      "name": "dev",
+      "configurePreset": "dev",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "optimized",
+      "configurePreset": "optimized",
+      "output": { "outputOnFailure": true }
+    }
+  ]
+}

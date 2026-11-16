@@ -17,7 +17,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
   const recentSaveAttempts = [];
   let preparedImport = null;
   let pendingSave = null;
-  let openingSavePending = false;
+  let openingSaveCheckpoint = null;
   let replacing = false;
   let runVersion = 0;
   const loadingDiagnostics = createLoadingDiagnostics();
@@ -88,13 +88,14 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
     phase = 'saving'; notify();
     const slot = activeSlot;
     const version = runVersion;
+    const checkpoint = openingSaveCheckpoint;
     pendingSave = (async () => {
       const stored = await runner.saveToSlot(slot);
       if (version !== runVersion) return stored;
       const result = await record(stored, slot);
-      if (result.ok && openingSavePending) {
-        openingSavePending = false;
-        await opening?.clearCheckpoint?.();
+      if (result.ok && checkpoint) {
+        if (openingSaveCheckpoint === checkpoint) openingSaveCheckpoint = null;
+        await opening?.clearCheckpoint?.(checkpoint);
       }
       if (!result.ok) onError?.(saveFailureMessage(lastAttempt.category));
       return result;
@@ -135,7 +136,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
     try { result = await runner.loadFromSlot(slot, { isCurrent: () => isCurrent() && version === runVersion, onProgress }); }
     finally { replacing = false; notify(); }
     if (!result.ok) { if (result.reason !== 'cancelled') onError?.('This save could not be loaded.'); return result; }
-    openingSavePending = false;
+    openingSaveCheckpoint = null;
     opening?.reset();
     phase = 'saved'; lastAttempt = null;
     lastSuccessfulSave = { slot, savedAt: result.meta?.savedAt ?? null, tSec: result.meta?.tSec ?? null };
@@ -205,7 +206,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
     getPreparationStatus: () => opening?.getSnapshot(),
     getLoadingStatus: () => loadingDiagnostics.snapshot(),
     enterDisposableState(state) {
-      openingSavePending = false;
+      openingSaveCheckpoint = null;
       opening?.reset();
       const result = runner.resetToState(state, 'developmentLab');
       if (!result.ok) return result;
@@ -236,7 +237,7 @@ export function createGameSessionController({ runner, opening, onEnter, prepareE
         phase = 'idle'; lastSuccessfulSave = null; lastAttempt = null;
         const entry = prepareEntry ? await prepareAndEnter(slot, prepared, isCurrent, onProgress) : enter(slot, prepared);
         if (!entry.ok) return entry;
-        openingSavePending = true;
+        openingSaveCheckpoint = prepared?.checkpointRef ?? null;
         onProgress({ stage: 'save', label: 'Saving your new chronicle', detail: slot === PERFORMANCE_SAVE_SLOT ? 'Performance Dev save' : `Browser save slot ${slot}` });
         const saved = await save();
         if (!isCurrent()) {
