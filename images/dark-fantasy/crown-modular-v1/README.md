@@ -1,6 +1,6 @@
-# Warlord modular city kit — local iteration
+# Warlord modular city kit
 
-This is the local art/composition iteration for Trello `g1t0yH8o`.
+This is the art/composition kit for Trello `g1t0yH8o`.
 `warlord-parts-v1.png` is an original built-in imagegen sheet with 20 complete
 transparent components. `prompts.json` records its exact prompt and source path.
 Nothing is a region-sized painting. The earlier fitted Crown kit is preserved
@@ -46,7 +46,8 @@ settlement/readout anchor and building scale. Capturing the city retains the
 kit, plots and ruins, with only a muted material tint on its central building.
 
 `?crownArt=baseline` uses the original fitted kit and compact town planning.
-The default in this isolated branch is the modular candidate. No variant
+The default is the modular kit, shipped in
+[PR #90](https://github.com/Im2Skeptical/laughing-waffle-proto/pull/90). No variant
 switcher or extra design labels appear in the actual game UI.
 
 The fifth iteration adds `warlord-biomes-v5.png`, with exact built-in provenance
@@ -60,6 +61,5 @@ frontiers retain irregular bands of native terrain, while shared original
 urban borders have no additional landscape setback. Architecture and biome
 identity still survive capture.
 
-This sheet is a candidate, not Cam's final art acceptance. The other three
-enemy-class families are not generated yet. Their current palette and patron
-grammar are recorded in `docs/crown-modular-art-iteration.md`.
+The other three enemy-class families are not generated yet. Their current palette
+and patron grammar are recorded in `docs/crown-modular-art-iteration.md`.

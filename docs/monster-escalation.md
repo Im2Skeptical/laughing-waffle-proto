@@ -38,11 +38,14 @@ so ordinary save and forecast-anchor validation can restore those outcomes.
 
 With the [civilian core and minority outer garrisons](crown-minority-opening.md),
 the 70% holding base, 90%-allied player opening and [ten-year Unrest](unrest.md),
-32 ordinary unattended seeds complete every run: **149.871-year mean**, range
-**96 to 221.4375 years**, with no surviving/censored runs at the 400-year cap.
-Original Crown holdings retained at year 50 average 10.5 (8 to 13); every
-capital survives. This is an average target, not a requirement that every seed
-end before 200. Played builds can extend survival.
+the 16 November 2026 audit at source revision `930801a5` reproduces 32 ordinary
+unattended seeds with a **141.891-year mean**, range **31.5 to 226.6875 years**,
+and no surviving/censored runs at the 400-year cap. Original Crown holdings
+retained at year 50 average 10.581 (7 to 14) across the 31 runs reaching that
+checkpoint; all 31 sampled capitals remain held. Seed 23758 ends in territorial
+loss at 31.5 years, so the probe fails its complete year-50 sampling guardrail.
+The extinction target is an average, not a requirement that every seed end before
+200. Played builds can extend survival.
 Measurements use elapsed simulation years (`tSec / 32`); the HUD names the
 containing calendar year.
 
@@ -50,7 +53,9 @@ containing calendar year.
 60-tick stepper. It reports every seed, terminal reason, range and mean under
 `artifacts/monster-escalation/`, and fails if any run remains censored or the mean
 reaches 200. It also checks mean Crown retention of at least nine holdings at
-year 50 and that every capital survives in this civilian-core UX trial.
+year 50, that all seeds reach that checkpoint and that every sampled capital
+remains held. The audited sample meets the extinction target but fails the
+checkpoint requirement above.
 The fixed sample starts with 123, 42,
 424242, then `i * 7919 + 1`.
 No time or simulation phases are skipped. The older authored Starter_02 fixture's

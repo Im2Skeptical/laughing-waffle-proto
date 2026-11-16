@@ -3,11 +3,20 @@
 Each run allows ten Vassal tenures. Death or retirement spends one; at zero,
 the run freezes with history browsing and New game available (#68).
 
-Ordinary New Game on main uses `full-map-redesign-v1` for ordinary New Game.
-All 20 regions run the same settlement simulation. Joint population cohorts keep
+Ordinary New Game on main uses `full-map-redesign-v1`. Joint population cohorts keep
 residency, allegiance, specialty and age independently; holder is territory state.
-Shared Prestige, supplied local occupation, unrest, atomic faction-aware recipes,
+Shared Prestige, supplied local occupation, Unrest, atomic faction-aware recipes,
 and physical military transfers replace fixed neutral-market/global-Force behavior.
+Holding needs 70% allegiance at zero Force; Force reduces the required share with
+diminishing returns (`0.70 / (1 + Force / pressure)`, with population/composition-scaled
+pressure). Required loyal residents round up, with at least one in a populated region.
+Peaceful claims need 75% allegiance for two consecutive control checks. Failed
+holding starts a ten-year Unrest countdown: no controller, continued local simulation,
+blocked peaceful claims and 1 Chaos per year per region, then ordinary unheld status.
+Starting player settlements install three Practices in five slots; the fourth and
+fifth spaces unlock through separate one-time 10/30 Prestige shop purchases.
+Each player-held region earns `floor(population / 20)` Prestige per completed node,
+rounded down separately before combining regional income in the shared treasury.
 Zero workers operates at x1; staffing gates are disabled in this ruleset. Scheduled
 conversion scales with workers, Charge scales its incoming gain, and Stock output
 and capacity use separate pools. Victims, costs, reserves, Research and Force do

@@ -12,10 +12,13 @@ demographics, Elder Orders, and view models through
 
 Vassal Life Map rules belong in `src/model/vassal-life-map.js`, not here.
 For ordinary full-map rules, route initial population through
-`src/model/full-map-world.js`, joint cohorts through `population-ledger.js`,
-faction-aware recipes through `political-recipes.js`, and control, unrest,
+`src/model/full-map-world.js` and Crown cohorts through `src/model/full-map-crown.js`,
+joint cohorts through `population-ledger.js`, faction-aware recipes through
+`political-recipes.js`, and control, Unrest transitions,
 military supply and treasury through `territory.js` in the detailed-settlements
-folder. Read that folder's README first; neutral-market rules are legacy fixtures.
+folder. Unrest countdown summaries, year conversion and episode validation live in
+that folder's `unrest.js`. Read that folder's README first; neutral-market rules
+are legacy fixtures.
 
 ## Do not extend these
 

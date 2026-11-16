@@ -13,10 +13,12 @@ and its direct dependencies.
   `native/reference/`; it does not establish C++ parity.
 
 - Ordinary full-map initialization: `src/model/new-game.js` and
-  `src/model/full-map-world.js`; admitted offers: `src/defs/gamepieces/full-map-defs.js`.
+  `src/model/full-map-world.js`; initial Crown cohorts: `src/model/full-map-crown.js`;
+  admitted offers: `src/defs/gamepieces/full-map-defs.js`.
 - Full-map settlement rules: read `src/model/detailed-settlements/README.md`,
   then route joint cohorts to `population-ledger.js`, faction recipes to
-  `political-recipes.js`, control/unrest/supply/treasury to `territory.js`.
+  `political-recipes.js`, control/Unrest transitions/supply/treasury to `territory.js`,
+  and Unrest countdown summaries/year conversion/validation to `unrest.js`.
   The neutral-market module describes legacy fixtures.
 
 - Browser entry: `src/views/ui-root-pixi.js`
@@ -33,6 +35,7 @@ and its direct dependencies.
 - Loading status/timing view: `src/views/game-loading-dom.js`; runtime-only
   stage timings and failure reasons: `src/controllers/loading-diagnostics.js`.
   The latest entry is also included in the save diagnostic report.
+  Presentation-only rotating loading copy: `src/views/loading-flavour.js`.
 - Loading lifecycle and foreground clock: `src/controllers/loading-lifecycle.js`.
   Opening pause/resume and checkpoint orchestration: `new-game-opening-controller.js`;
   atomic single-record persistence: `opening-checkpoint-store.js`; derivative
@@ -69,6 +72,8 @@ not use the root file as the default location for new rendering or model rules.
 - Frame and stone materials: `src/views/chronicle-skin.js`
 - Original atlases and texture regions: `src/views/chronicle-art.js`,
   `images/dark-fantasy/README.md`
+- Pinned artwork URLs, changed-category notices and guarded reloads:
+  `src/views/artwork-cache.js`
 - Illustrated pieces and inspection: `src/views/settlement-piece-pixi.js` and
   `src/views/chronicle-inspection.js`
 - Practice and Structure reading copy: `src/model/practice-reading.js`,
@@ -106,8 +111,10 @@ not use the root file as the default location for new rendering or model rules.
 
 ### Detailed settlement
 
-- Overview/Demographics layout and labels:
-  `src/views/settlement-prototype-view.js`
+- Overview/Demographics shell and wiring: `src/views/settlement-prototype-view.js`.
+  Overview layout, Stock and population drawing: `src/views/settlement-overview-pixi.js`;
+  regional Stock aggregation and controlled-settlement navigation:
+  `src/views/settlement-overview-data.js`.
 - Vassal candidate drawer, Life Map, and shared navigation/time-status dock:
   `src/views/world-map-vassal-drawer-pixi.js`,
   `src/views/vassal-life-map-pixi.js`, and
