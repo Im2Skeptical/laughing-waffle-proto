@@ -4,9 +4,9 @@ import { getDetailedPracticeDef, getDetailedStructureDef } from '../game-config.
 import { ageCohortTotal, emptySpecialists } from './cohorts.js';
 import { emitPracticeEvent, practiceEventJournal } from './practice-events.js';
 import { getConnectedRegionIds, getRegionState, getAdjacentRegionIds } from '../world-state.js';
-import { biomeMultiplierModifiers } from './biome-multipliers.js';
+import { practiceMultiplierSources } from './practice-multipliers.js';
 import { keywordPrototypeOutputSources } from '../keywords-classes-prototype.js';
-import { keywordOutputSources } from '../practice-keywords.js';
+import { keywordOutputSources, keywordCapacitySources } from '../practice-keywords.js';
 
 export const CIV_CONTENT_TUNING = Object.freeze({ populationPerEdible: 30, warriorsPerSupport: 5, monsterDefense: 3 });
 export const stockTraits = (state, slot) => slot?.traits ?? getDetailedPracticeDef(state, slot?.practiceId)?.stockTraits ?? [];
@@ -76,6 +76,8 @@ export function stockCapacityBreakdown(state, settlement, slot, staffed = false)
   const sources = base > 0 ? structureModifiers(state, settlement)
     .filter(mod => mod.kind === 'capacity' && matchesPractice(state, slot, mod.query, staffed))
     .map(multiplierSource) : [];
+  const regionId=state?.world?.sites?.find(site=>site.detailedState===settlement)?.regionId;
+  if (base > 0) sources.push(...practiceMultiplierSources(state,settlement,def,'capacity'),...keywordCapacitySources(state,regionId,def));
   const multiplier = 1 + sources.reduce((sum, source) => sum + source.amount, 0);
   return { base, quality, scholar, multiplier, sources, total: base > 0 ? Math.floor((base + quality + scholar) * multiplier) : 0 };
 }
@@ -86,11 +88,12 @@ function multiplierSource(mod) {
 }
 
 export function stockOutputBreakdown(state, settlement, slot, staffed=false, modifiers=structureModifiers(state,settlement)) {
-  const sources=[...modifiers,...biomeMultiplierModifiers(state,settlement)]
+  const def=getDetailedPracticeDef(state,slot?.practiceId);
+  const sources=[...modifiers]
     .filter(mod=>mod.kind==='outputMultiplier'&&matchesPractice(state,slot,mod.query,staffed)).map(multiplierSource);
   const regionId=state?.world?.sites.find(site=>site.detailedState===settlement)?.regionId??state?.civilization?.capitalRegionId;
   const keywordSources=state?.gameConfig?.keywordPrototype?keywordPrototypeOutputSources:keywordOutputSources;
-  sources.push(...keywordSources(state,regionId,getDetailedPracticeDef(state,slot?.practiceId)));
+  sources.push(...practiceMultiplierSources(state,settlement,def,'outputMultiplier'),...keywordSources(state,regionId,def));
   return {multiplier:1+sources.reduce((sum,source)=>sum+source.amount,0),sources};
 }
 

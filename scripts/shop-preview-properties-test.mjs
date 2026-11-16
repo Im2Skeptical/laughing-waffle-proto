@@ -12,6 +12,11 @@ import {serializeGameState} from '../src/model/state.js';
 
 const sandbox = createLabNodeSandbox({type:'neutralMarket', seed:0, cunning:100, prestige:500, classId:'scholar'});
 const state = sandbox.state, nodeId = sandbox.nodeId;
+// This property fixture authors two disjoint storage scopes so reservation,
+// displacement and staffing remain independently measurable as live content evolves.
+state.gameConfig.gamepieces.structures.granary.modifiers=[{kind:'capacity',amount:1,query:{traitsAny:['Edible']}}];
+state.gameConfig.gamepieces.structures.storehouse.modifiers=[{kind:'capacity',amount:1,query:{traitsAny:['Construction']}}];
+state.gameConfig.gamepieces.practices.pastoralism.stockMultipliers=[];
 const vassal = getCurrentLifeMapVassal(state);
 const board = state.world.sites.find((site) => site.regionId === vassal.locationRegionId).detailedState;
 const node = vassal.lifeMap.nodeStates[nodeId];
@@ -90,7 +95,7 @@ eq(amounts(first, 'forage', 'granary'), []);
 eq(row(first, 'quarrying').capacity.multiplier, 1);
 eq(amounts(first, 'quarrying', 'academy'), []);
 eq(row(first, 'surfaceMining').capacity.multiplier, 5);
-eq(row(first, 'dryFarming').output.multiplier, 2, 'authored fixture has one plains region');
+eq(row(first, 'dryFarming').output.multiplier, 1, 'authored fixture has one plains region');
 eq(row(first, 'logging').output.multiplier, 1);
 // Bronze quality 3 adds +3 to an authored +1. Hover completes only that offer.
 eq(row(hoverGranary, 'forage').capacity.multiplier, 9);
@@ -100,7 +105,7 @@ eq(row(hoverGranary, 'logging').capacity.multiplier, 5);
 eq(row(hoverStorehouse, 'logging').capacity.multiplier, 9);
 eq(amounts(hoverStorehouse, 'logging', 'storehouse'), [{amount:4, pending:true}]);
 eq(row(hoverStorehouse, 'forage').capacity.multiplier, 5);
-eq(row(hoverStorehouse, 'dryFarming').output.multiplier, 2);
+eq(row(hoverStorehouse, 'dryFarming').output.multiplier, 1);
 const offered = hoverGranary.offers.find((offer) => offer.offerId === granary.offerId);
 eq(offered.multiplierPreview.rows.find((entry) => entry.practiceId === 'forage').capacity.multiplier, 9);
 
@@ -170,7 +175,7 @@ eq(row(reserved, 'dryFarming').capacity.multiplier, 5);
 eq(row(reserved, 'dryFarming').before?.capacity?.multiplier, 5);
 eq(amounts(reserved, 'dryFarming', 'academy'), [], 'the new Practice pushes Dry Farming off a Scholar socket');
 eq(amounts(reserved, 'dryFarming', 'granary'), [{amount:4, pending:true}]);
-eq(row(reserved, 'dryFarming').output.multiplier, 2);
+eq(row(reserved, 'dryFarming').output.multiplier, 1);
 eq(row(reserved, 'logging').output.multiplier, 1);
 eq(row(reserved, 'quarrying').capacity.multiplier, 5);
 eq(row(reserved, 'quarrying').before?.capacity?.multiplier, 1);

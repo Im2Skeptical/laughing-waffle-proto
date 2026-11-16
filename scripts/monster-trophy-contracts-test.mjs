@@ -25,7 +25,7 @@ const names = [];
 const eq = (actual, expected, name) => { names.push(name); assert.equal(actual, expected, `ASSERT ${name}`); };
 const deep = (actual, expected, name) => { names.push(name); assert.deepEqual(actual, expected, `ASSERT ${name}`); };
 const trophyScale = { keyword: 'monsterTrophies', per: 2, amount: 3, cap: 1 };
-const contrib = (scale, score, active) => active ? Math.min(scale.cap, Math.floor(score / scale.per)) * scale.amount : 0;
+const contrib = (scale, score, active) => active ? Math.min(scale.cap ?? Infinity, Math.floor(score / scale.per)) * scale.amount : 0;
 const snap = state => ({ saved: serializeGameState(state), paused: state.paused, phase: state.phase, tSec: state.tSec,
   rng: [state.rng.seed, state.rng.baseSeed, state.rng.vassalSeed, state.rng.vassalDevelopmentSeed, state.rng.vassalLifeMapSeed, state.rng.vassalPortraitSeed] });
 const pure = (state, read) => { const before = snap(state); const value = read(); deep(snap(state), before, 'pure-read'); return value; };

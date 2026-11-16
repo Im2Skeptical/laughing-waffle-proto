@@ -49,6 +49,7 @@ function fixture({ loop = false, scheduled = false } = {}) {
   const site = getDetailedSettlementSites(state, { playerOnly:true })[0];
   const id = scheduled ? 'forage' : 'watchkeeping';
   const def = state.gameConfig.gamepieces.practices[id];
+  delete def.stockMultipliers; // This fixture replaces the entire Stock recipe with an event effect.
   delete def.condition;
   delete def.specialistRequired;
   delete def.scholarRequired;

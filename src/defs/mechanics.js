@@ -16,6 +16,12 @@ function freeze(value) {
 }
 
 export const MECHANICS = freeze({
+  outputMultiplier: { name:'Output Multiplier', type:'effect', icon:'stock', status:'implemented',
+    definition:'Adds to the base ×1 Stock output pool. The card states its conditions. Capacity, recipe costs, Research and Charge gain are separate.',
+    modifiers:[{kind:'outputMultiplier',fields:['kind','amount','biome','perRegion','seasonKeys','stockedTraitsAny']}] },
+  capacityMultiplier: { name:'Capacity Multiplier', type:'effect', icon:'stock', status:'implemented',
+    definition:'Adds to the base ×1 hosted Stock capacity pool. More room does not increase production. The card states its conditions.',
+    modifiers:[{kind:'capacity',fields:['kind','amount','biome','perRegion','seasonKeys','stockedTraitsAny']}] },
   creep: { name: 'Creep', type: 'meter', icon: 'monster', status: 'implemented',
     definition: 'The shared Monster threat meter. At 100 Creep by default, trigger a Monster Spawn and retain excess Creep. Direct Creep gains bypass Resistance.',
     statePath: 'civilization.chaos.monsterPressure', thresholdSetting: 'monsterExpansionThreshold',
@@ -28,10 +34,10 @@ export const MECHANICS = freeze({
     definition: 'A regional Monster advance, expansion, appearance or strengthening. One Monster Spawn may cause activity in more than one region. This is separate from Creep gain and the once-per-Spawn event.',
     events: [event('monsterPressure', 'Monster activity', 'monster')] },
   synthesis: { name: 'Synthesis', type: 'keyword', icon: 'knowledge', status: 'implemented',
-    definition: 'Counts other Scholar-staffed Practices with currently supplied recipes in this settlement. The card gives its additive Output Multiplier contribution.',
+    definition: 'Counts other Scholar-staffed Practices with currently supplied recipes in this settlement. The card states whether it adds to Output or Capacity Multiplier.',
     keyword: { classId: 'scholar', className: 'Philosopher' } },
   monsterTrophies: { name: 'Monster Trophies', type: 'keyword', icon: 'monster', status: 'implemented',
-    definition: 'Counts Monsters destroyed by this civilisation. Trophies persist across Vassal lives; they are not spendable Stock. The card gives its Output Multiplier contribution.',
+    definition: 'Counts Monsters destroyed by this civilisation. Trophies persist across Vassal lives; they are not spendable Stock. The card states whether it adds to Output or Capacity Multiplier.',
     keyword: { classId: 'warrior', className: 'Warlord' } },
   economicRegions: { name: 'Economic Regions', type: 'keyword', icon: 'trade', status: 'implemented',
     definition: 'Counts occupied settlements in the same connected trade zone. The card gives its Output Multiplier contribution.',
@@ -115,11 +121,13 @@ function bindings(field, key) {
 }
 export const MECHANIC_EFFECTS = bindings('effects', 'op');
 export const MECHANIC_EVENTS = bindings('events', 'kind');
+export const MECHANIC_MULTIPLIERS = bindings('modifiers', 'kind');
 export const MECHANIC_KEYWORDS = freeze(Object.fromEntries(Object.entries(MECHANICS)
   .filter(([, value]) => value.keyword && value.status === 'implemented')
   .map(([id, value]) => [id, { name: value.name, ...value.keyword }])));
 export const mechanicEffect = op => Object.hasOwn(MECHANIC_EFFECTS, op) ? MECHANIC_EFFECTS[op] : null;
 export const mechanicEvent = kind => Object.hasOwn(MECHANIC_EVENTS, kind) ? MECHANIC_EVENTS[kind] : null;
+export const mechanicMultiplier = kind => Object.hasOwn(MECHANIC_MULTIPLIERS, kind) ? MECHANIC_MULTIPLIERS[kind] : null;
 
 // References are derived from executable DSL data, never a second authored list.
 export function gamepieceMechanics(def) {
@@ -131,7 +139,8 @@ export function gamepieceMechanics(def) {
     for (const op of mod.query?.effectOpsAny ?? []) add(mechanicEffect(op));
     for (const kind of mod.query?.triggerKindsAny ?? []) add(mechanicEvent(kind));
   }
-  if (Object.hasOwn(MECHANIC_KEYWORDS, def?.keywordOutputScale?.keyword)) ids.add(def.keywordOutputScale.keyword);
+  for (const mod of [...(def?.modifiers??[]),...(def?.stockMultipliers??[])]) add(mechanicMultiplier(mod.kind));
+  for (const field of ['keywordOutputScale','keywordCapacityScale']) if (Object.hasOwn(MECHANIC_KEYWORDS, def?.[field]?.keyword)) ids.add(def[field].keyword);
   return [...ids].map(id => ({ id, name: MECHANICS[id].name, type: MECHANICS[id].type,
     icon: MECHANICS[id].icon, definition: MECHANICS[id].definition }));
 }

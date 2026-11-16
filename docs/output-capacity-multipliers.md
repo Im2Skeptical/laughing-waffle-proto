@@ -1,5 +1,10 @@
 # Output and Capacity Multipliers
 
+The [ordinary-pool content pass](card-content-pass.md) supersedes the blanket
+biome rules below. Output and Capacity remain independent additive pools.
+Terrain bonuses are now authored on particular cards; starter Stock traits do
+not inherit them. The earlier implementation notes remain below as provenance.
+
 ## Full-map experimental ruleset
 
 For `full-map-redesign-v1`, zero workers still means x1. Workers are allocated by

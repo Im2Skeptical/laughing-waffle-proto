@@ -1,4 +1,5 @@
 import { describeMechanicEffect, describeMechanicTrigger } from './mechanic-readings.js';
+import { describePracticeMultiplier } from './mechanic-readings.js';
 // Read-only translation of the implemented recipe. Card numerals and these
 // lines both describe base effects; evaluation still owns the actual result.
 const title = value => value ? value[0].toUpperCase() + value.slice(1) : '';
@@ -25,10 +26,11 @@ export function getPracticeReading(def, {workerGates=true}={}) {
   const activation = def.activation ?? {};
   const times = charge ? [''] : [activation.type, ...(activation.also ?? [])].flatMap(type =>
     type === 'season' ? (activation.seasonKeys?.length ? activation.seasonKeys : ['spring', 'summer', 'autumn', 'winter']).map(title)
-      : [type === 'passive' ? 'While active' : type === 'crisis' ? 'During a Crisis' : `${title(type)} phase`]);
+      : [type === 'passive' ? 'While active' : type === 'crisis' ? 'During a Crisis' : `${title(type)} phase${type===activation.type&&activation.stage==='preRouting'?', before meals':type===activation.type&&activation.stage==='afterMeals'?', after meals':''}`]);
   const effects = times.flatMap(timing => (def.effects ?? []).filter(effect=>!['addChaos','addMonsterPressure'].includes(effect.op)).map(effect => ({
     timing, text: describeMechanicEffect(effect, effect.seasonAmounts?.[timing.toLowerCase()] ?? effect.amount ?? 0),
   })));
+  for (const mod of def.stockMultipliers ?? []) effects.push({timing:'',passive:true,text:describePracticeMultiplier(mod)});
   // Some supplied martial Practices contribute continuously rather than via
   // an effect operation. Describe their implemented contribution explicitly.
   if (!effects.length && (def.supportMultiplier || def.defenseMultiplier)) effects.push({timing: 'While supplied', text: `Contribute extra ${def.defenseMultiplier?'defensive ':''}Martial Support from local Warriors${def.retinueForce ? `; gain ${def.retinueForce} Warrior Retinue Force` : ''}`});
@@ -51,6 +53,10 @@ export function getPracticeReading(def, {workerGates=true}={}) {
   if(def.requireBaseHeadroom)requirements.push('Complete base Stock output must fit before activation.');
   if(def.populationCondition==='housed')requirements.push('Housing must cover every local resident.');
   if(def.populationCondition==='relief')requirements.push('After local shortage: this allegiance must actually supply the civilian meal this Food phase.');
+  if(def.externalAction==='hunt') {
+    requirements.push('Requires an adjacent Monster whose Strength does not exceed local Martial Force.');
+    for(const effect of effects) if(!effect.passive) effect.text='On a successful Hunt: '+effect.text;
+  }
   return { type: charge ? 'Charge' : 'Cycle', passive: activation.type === 'passive', classLabel: def.pool === 'common' ? 'Neutral' : title(def.pool),
     effects, requirements, trigger: charge ? describeMechanicTrigger(def.charge?.trigger).replace(/^On /, 'Charge on ') : null,
     ...(def.flavour??def.flavor?{flavour:def.flavour??def.flavor}:{}) };

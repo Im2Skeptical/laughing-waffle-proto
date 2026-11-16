@@ -10,7 +10,7 @@
     "silentRewrite": false
   },
   "schemasCaptured": {
-    "gameState": 51,
+    "gameState": 52,
     "gameConfig": 31,
     "runnerSaveSourceConstant": 33,
     "runnerSaveIsEqualityGate": false
@@ -34,7 +34,7 @@
       "tSec": 7
     }
   ],
-  "gameConfigSha256": "fc636beab8a53278229a99e052339ec59044adca4d9208a69ed5d9f8c16d2761",
+  "gameConfigSha256": "13169dbc9782f50cfdccc72250e4e884ec9e7349f1ff6836b3224395035872ea",
   "numericTreatment": "JSON numbers copied from serializeGameState. No corpus rounding. Object-key order is not significant in the semantic files. Array order is significant. The full-state pin sorts object keys only so its hash is stable; it removes no fields.",
   "ordering": "Regions follow world.regions. Joint cohorts keep the stored joint-array order inside classId sorted A to Z. Practice slots keep slot index, including empty slots. Pending candidates keep pool order. Birth-credit keys and allegiance ids are sorted in the semantic projection only.",
   "covered": [
