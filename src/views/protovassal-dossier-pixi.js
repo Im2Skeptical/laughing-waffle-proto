@@ -6,6 +6,7 @@ import { addIllustration } from './chronicle-art.js';
 import { addPaintedBanner, addPaintedPanel, addPaintedSocket, addPaintedWindow } from './painted-frames.js';
 import { PANEL as MODAL_PANEL } from './vassal-node-decision/constants.js';
 import { BASE_STATS, FOUNDER_CLASSES, STAT_ICONS, founderTooltipSpec } from './protovassal-class-data.js';
+import { createProtovassalIntroduction } from './protovassal-introduction-pixi.js';
 
 // The founder class picker: a carved-stone slab on the node-decision modal's
 // footprint, so it sits between the top bar and dock instead of over them. The
@@ -74,7 +75,7 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
   }
 
   let selected = candidates.find(c => c.candidateIndex === selectedIndex) ?? candidates[0];
-  let page = null, leaving = null, transition = null, tabs = [];
+  let page = null, leaving = null, transition = null, tabs = [], step = 'introduction';
   let pose = { phase: 'open', startedAt: 0 }, gone = false, begun = false, tipId = null;
 
   // ---- tooltips (shared view) ----
@@ -118,7 +119,6 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
     label(view, 'ATTRIBUTES', cx, 40);
     BASE_STATS.forEach((base, index) => {
       const replaced = base.name === data.replaces, name = replaced ? data.stat : base.name;
-      const value = candidate.stats?.[replaced ? data.statKey : base.statId];
       const x = cx + (index % 2) * (cw + cgap), y = rowsTop + Math.floor(index / 2) * (ch + rowGap);
       const chip = control(view, x, y, cw, ch), g = new PIXI.Graphics(); chip.addChild(g);
       if (replaced) g.beginFill(data.glow, .22).drawRoundedRect(-6, -6, cw + 12, ch + 12, 16).endFill();
@@ -128,13 +128,12 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
       addPaintedSocket(chip, 62, ch / 2, 92, { tint: replaced ? data.frameTint : 0xffffff });
       addResourceIcon(chip, STAT_ICONS[name], 62, ch / 2, 64);
       const tx = 124;
-      const title = text(chip, name, tx, replaced ? 14 : ch / 2 - 22, 36, { fontWeight: 'bold', fill: replaced ? 0xfff0d6 : RELIC.bone }); fit(title, cw - tx - 80);
+      const title = text(chip, name, tx, replaced ? 14 : ch / 2 - 22, 36, { fontWeight: 'bold', fill: replaced ? 0xfff0d6 : RELIC.bone }); fit(title, cw - tx - 26);
       if (replaced) {
         const old = text(chip, base.name, tx, 66, 24, { fill: 0x8d9084 });
         const strike = new PIXI.Graphics().lineStyle(2, 0x8d9084).moveTo(tx, 79).lineTo(tx + old.width, 79);
         chip.addChild(strike); text(chip, 'replaced', tx + old.width + 10, 66, 24, { fill: 0x8d9084, letterSpacing: 2 });
       }
-      const num = text(chip, value == null ? '–' : String(value), cw - 24, ch / 2, 54, { fontWeight: 'bold', fill: replaced ? data.accent : RELIC.gold }); num.anchor.set(1, .5);
       addInteractionFeedback(chip, { x: 0, y: 0, width: cw, height: ch });
       addTip(chip, name, 'stat', classId, 'right'); controls[name] = chip;
     });
@@ -180,6 +179,10 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
       addTip(card, ability.id, 'ability', classId, 'left'); controls[ability.id] = card;
     });
 
+    const back = control(view, COLUMN.left, 578, 450, 68);
+    text(back, '‹  BACK TO LEADERS', 18, 16, 26, { fill: RELIC.bone, fontWeight: 'bold', letterSpacing: 2 });
+    addInteractionFeedback(back, { x: 0, y: 0, width: 450, height: 68 }, { onActivate: showIntroduction });
+    controls.back = back;
     view.controls = controls; view.candidateIndex = candidate.candidateIndex;
     return view;
   }
@@ -218,19 +221,35 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
   }
 
   function confirmSelected() {
-    if (begun || gone) return; begun = true; hideTip(); onConfirm?.(selected.candidateIndex);
+    if (begun || gone) return;
+    if (step === 'introduction') { showDetails(selected); return; }
+    begun = true; hideTip(); onConfirm?.(selected.candidateIndex);
   }
   function mountPage(candidate, { fromDir = 0 } = {}) {
-    const next = buildPage(candidate);
+    const next = step === 'introduction'
+      ? createProtovassalIntroduction({ candidates, selected, onDetails: showDetails }) : buildPage(candidate);
+    tabLayer.visible = step === 'details';
+    root.candidateRoots.length = 0;
+    for (const item of candidates) root.candidateRoots[item.candidateIndex] = step === 'introduction'
+      ? next.candidateRoots[item.candidateIndex] : tabs[candidates.indexOf(item)];
     holder.addChild(next);
     if (page && fromDir && !reducedMotion()) {
       leaving = page; leaving.eventMode = 'none';
       transition = { startedAt: now(), dir: fromDir, from: leaving, to: next };
       next.alpha = 0; next.x = fromDir * 70;
     } else if (page) { page.destroy({ children: true }); }
-    page = next; root.controls = { ...tabsControls(), ...next.controls };
+    page = next; root.controls = { ...(step === 'details' ? tabsControls() : {}), ...next.controls };
   }
   const tabsControls = () => Object.fromEntries(Object.entries(root.controls).filter(([key]) => key.startsWith('tab:')));
+
+  function showIntroduction() {
+    step = 'introduction'; hideTip(); finishTransition(); mountPage(selected);
+  }
+  function showDetails(candidate) {
+    selected = candidate; step = 'details'; hideTip(); finishTransition();
+    windowFrame?.setTint(FOUNDER_CLASSES[selected.founderClassId].frameTint);
+    buildTabs(); mountPage(selected); onPreview?.(selected.candidateIndex);
+  }
 
   function choose(candidate) {
     if (!candidate || candidate === selected) return;
@@ -244,7 +263,9 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
   }
   function navigate(delta) {
     const at = candidates.indexOf(selected);
-    choose(candidates[(at + delta + candidates.length) % candidates.length]);
+    const next = candidates[(at + delta + candidates.length) % candidates.length];
+    if (step === 'introduction') select(next.candidateIndex);
+    else choose(next);
   }
   function finishTransition() {
     if (!transition) return;
@@ -268,7 +289,7 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
   }
   function open() {
     gone = false; begun = false; root.visible = true; root.eventMode = 'static';
-    hideTip();
+    showIntroduction();
     if (reducedMotion()) { pose = { phase: 'open', startedAt: 0 }; applyPose(1, true); return; }
     pose = { phase: 'opening', startedAt: now() }; applyPose(0, true);
   }
@@ -295,7 +316,12 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
     if (event.key === 'ArrowRight') { navigate(1); return true; }
     if (event.key === 'ArrowLeft') { navigate(-1); return true; }
     if (event.key === 'Enter' || event.key === 'NumpadEnter') { confirmSelected(); return true; }
-    if (event.key === 'Escape') { if (pinnedTip()) { hideTip(); return true; } onClose?.(); return true; }
+    if (event.key === 'Escape') {
+      if (pinnedTip()) hideTip();
+      else if (step === 'details') showIntroduction();
+      else onClose?.();
+      return true;
+    }
     return false;
   }
 
@@ -306,7 +332,14 @@ export function createProtovassalDossier({ candidates: poolCandidates, selectedI
     select, open, close, update, handleKeyDown, navigate,
     isGone: () => gone, isClosing: () => pose.phase === 'closing',
     destroyTooltip: hideTip,
-    getSnapshot: () => ({ classId: selected.founderClassId, name: FOUNDER_CLASSES[selected.founderClassId].name,
+    capturePanelState: () => ({ step, candidateIndex: selected.candidateIndex }),
+    restorePanelState(saved) {
+      selected = candidates.find(candidate => candidate.candidateIndex === saved?.candidateIndex) ?? selected;
+      step = saved?.step === 'details' ? 'details' : 'introduction';
+      windowFrame?.setTint(FOUNDER_CLASSES[selected.founderClassId].frameTint);
+      hideTip(); finishTransition(); buildTabs(); mountPage(selected);
+    },
+    getSnapshot: () => ({ step, classId: selected.founderClassId, name: FOUNDER_CLASSES[selected.founderClassId].name,
       replacedStat: FOUNDER_CLASSES[selected.founderClassId].replaces, classStat: FOUNDER_CLASSES[selected.founderClassId].stat,
       tooltip: pinnedTip() || null, availableFounders: candidates.length, totalSlots: SLOT_COUNT,
       lockedSlots: SLOT_COUNT - candidates.length, phase: pose.phase, transitioning: !!transition,

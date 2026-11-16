@@ -48,6 +48,7 @@ export function getSettlementNavigationState({
   worldViewMode,
   pendingVassalSelection,
   selectedVassalCandidateIndex,
+  founderIntroduction = false,
   selectedWorldRegionId,
   worldMapRegionSelectionActive,
   onboarding = false,
@@ -69,8 +70,8 @@ export function getSettlementNavigationState({
   const destinations = [];
   if (worldViewMode !== "map") destinations.push({ id: "map", label: "Map", hint: ["Regional Map"] });
   if (pendingVassalSelection) {
-    const selected = Number.isInteger(selectedVassalCandidateIndex);
-    destinations.push({ id: "vassal", label: selected ? "Confirm" : "Choose Vassal",
+    const selected = !founderIntroduction && Number.isInteger(selectedVassalCandidateIndex);
+    destinations.push({ id: "vassal", label: selected ? "Confirm" : founderIntroduction ? "Choose Leader" : "Choose Vassal",
       icon: selected ? "confirm" : "vassal",
       hint: [selected ? "Confirm this Vassal and begin their life." : "Select a candidate above."], enabled: selected });
   } else {

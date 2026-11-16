@@ -62,6 +62,7 @@ const ABILITY_TIPS = Object.freeze({
 export const FOUNDER_CLASSES = Object.freeze({
   warrior: Object.freeze({
     name: 'WARLORD', unlocks: 'Warrior', flavour: 'Their courage outlives their name.',
+    playstyle: 'Build Martial Force, take risks and turn victories into Prestige.',
     ...classStat('warrior'),
     effects: ['+1 Martial Force per point', '15% increased RISK success chance per point'],
     abilities: Object.freeze([
@@ -73,6 +74,7 @@ export const FOUNDER_CLASSES = Object.freeze({
   }),
   scholar: Object.freeze({
     name: 'PHILOSOPHER', unlocks: 'Scholar', flavour: 'A patient mind leaves its mark.',
+    playstyle: 'Pursue Research, improve shop finds and earn Prestige through Commissions.',
     ...classStat('scholar'),
     effects: ['+5% shop-quality chance per point', '+1 Research on DISCOVERY per point'],
     abilities: Object.freeze([

@@ -611,6 +611,7 @@ function getSettlementNavigationState() {
     worldViewMode,
     pendingVassalSelection: settlementVassalFlow.getPendingSelection(),
     selectedVassalCandidateIndex: settlementVassalFlow.getSelectedCandidateIndex(),
+    founderIntroduction: settlementVassalChooserView?.getFounderSnapshot?.()?.step === 'introduction',
     selectedWorldRegionId,
     worldMapRegionSelectionActive,
   });

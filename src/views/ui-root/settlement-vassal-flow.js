@@ -428,13 +428,15 @@ export function createSettlementVassalFlow({
     getLastSelectionResult: () => settlementLastVassalSelectionResult,
     getResolutionRecap: () => resolutionRecap,
     capturePanelState:()=>({selection:settlementPendingVassalSelection,
-      selectedIndex:settlementSelectedVassalCandidateIndex,recap:resolutionRecap}),
+      selectedIndex:settlementSelectedVassalCandidateIndex,recap:resolutionRecap,
+      founder:getChooserView?.()?.captureFounderPanelState?.()??null}),
     restorePanelState(saved){
       settlementPendingVassalSelection=saved?.selection??null;
       settlementSelectedVassalCandidateIndex=saved?.selectedIndex??null;
       settlementHoveredVassalCandidate=settlementPendingVassalSelection?.candidates?.[settlementSelectedVassalCandidateIndex]??null;
       resolutionRecap=saved?.recap??null;
       getChooserView?.()?.refresh?.();getRecapView?.()?.refresh?.();
+      getChooserView?.()?.restoreFounderPanelState?.(saved?.founder);
     },
     prepareResolution,
     noteResolutionSettled,
